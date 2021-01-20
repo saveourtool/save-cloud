@@ -86,6 +86,41 @@ You can always contribute to the main SAVE framework or to a dashboard - just cr
 the maintaner of the test package/analysis category. Please see the list of them.  
 
 
+====== Test framework
+# sactest
+Test framework for Static Analyzers and Compilers
+
+# options 
+1. help
+2. workers (threads)
+3. config 
+4. debug
+5. directory to detect and run all tests inside
+5. quiet (just report?)
+6. report type (xml, json, e.t.c)
+7. exclude tests by name
+8. list of tests run by name
+
+
+# config file
+TOML format 
+[test]
+name = SomeTestName
+source = /usr/test/Test.java (optional, first should try to resolve by TestName)
+expected = /usr/test/Test.java (optional, can be missing or will be resolved by TestName)
+tags = parsing, null-pointer, e.t.c
+description = (optional??)
+
+[compiler]
+testType = frontend, backend, codegen, translator
+binaryPath = /usr/bin/
+
+[static analyzer]
+testType = checker, fixer
+binaryPath = /usr/bin/
+
+
+# can be used as functional tests and as futional tests
 
 
  
