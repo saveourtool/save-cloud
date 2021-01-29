@@ -1,18 +1,17 @@
 plugins {
-    kotlin("multiplatform") version "1.4.21"
-    id("org.springframework.boot") version "2.4.1"
+    kotlin("multiplatform") version "1.4.10"
 }
 
 
 repositories {
     jcenter()
+    mavenCentral()
 }
 
-val kotlinVersion = "1.4.21"
-val springBootVersion = "2.4.1"
-val springWebFluxVersion = "5.2.8.RELEASE"
-val reactVersion = "17.0.0"
-val kotlinReactVersion = "17.0.0-pre.134-kotlin-1.4.10"
+val kotlinVersion = "1.4.10"
+val springBootVersion = "2.2.6.RELEASE"
+val hibernateVersion = "5.4.2.Final"
+val loggerVersion = "1.7.30"
 
 kotlin {
     /* Targets configuration omitted. 
@@ -35,10 +34,9 @@ kotlin {
     sourceSets {
         getByName("jvmMain") {
             dependencies {
-                implementation("org.springframework.boot:spring-boot-starter-web:$springBootVersion")
                 implementation("org.springframework.boot:spring-boot-starter-webflux:$springBootVersion")
-                implementation("io.projectreactor:reactor-core:3.4.2")
-                implementation("org.reactivestreams:reactive-streams:1.0.2")
+                implementation("org.hibernate:hibernate-core:$hibernateVersion")
+                implementation("org.slf4j:slf4j-api:$loggerVersion")
             }
         }
         getByName("jvmTest") {
