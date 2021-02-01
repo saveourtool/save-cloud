@@ -12,9 +12,6 @@ import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import java.io.File
 
-
-
-
 @Controller
 class DownloadFilesController {
     @GetMapping(value = ["/download"], produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])

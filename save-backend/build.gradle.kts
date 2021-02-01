@@ -1,45 +1,29 @@
 plugins {
-    kotlin("multiplatform") version "1.4.10"
+    kotlin("jvm")
 }
 
-
-repositories {
-    jcenter()
-    mavenCentral()
-}
-
-val kotlinVersion = "1.4.10"
+val kotlinVersion = "1.4.21"
 val springBootVersion = "2.2.6.RELEASE"
 val hibernateVersion = "5.4.2.Final"
-val loggerVersion = "1.7.30"
+val slf4jVersion = "1.7.30"
+val compileKotlin: org.jetbrains.kotlin.gradle.tasks.KotlinCompile by tasks
+
+compileKotlin.apply {
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+}
 
 kotlin {
-    /* Targets configuration omitted. 
-    *  To find out how to configure the targets, please follow the link:
-    *  https://kotlinlang.org/docs/reference/building-mpp-with-gradle.html#setting-up-targets */
-
-    jvm {
-        repositories {
-            mavenLocal()
-            mavenCentral()
-        }
-        withJava()
-        compilations.all {
-            kotlinOptions {
-                jvmTarget = "1.8"
-            }
-        }
-    }
-
     sourceSets {
-        getByName("jvmMain") {
+        getByName("main") {
             dependencies {
                 implementation("org.springframework.boot:spring-boot-starter-webflux:$springBootVersion")
                 implementation("org.hibernate:hibernate-core:$hibernateVersion")
-                implementation("org.slf4j:slf4j-api:$loggerVersion")
+                implementation("org.slf4j:slf4j-api:$slf4jVersion")
             }
         }
-        getByName("jvmTest") {
+        getByName("test") {
             dependencies {
                 implementation("org.springframework.boot:spring-boot-starter-test:$springBootVersion")
             }
