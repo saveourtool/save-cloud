@@ -10,7 +10,7 @@ val hibernateVersion = "5.4.2.Final"
 val slf4jVersion = "1.7.30"
 val compileKotlin: KotlinCompile by tasks
 
-compileKotlin.apply {
+tasks.withType<KotlinCompile> {
     kotlinOptions {
         jvmTarget = "1.8"
     }
@@ -21,6 +21,6 @@ kotlin {
         implementation("org.springframework.boot:spring-boot-starter-webflux:$springBootVersion")
         implementation("org.hibernate:hibernate-core:$hibernateVersion")
         implementation("org.slf4j:slf4j-api:$slf4jVersion")
-        implementation("org.springframework.boot:spring-boot-starter-test:$springBootVersion")
+        testImplementation("org.springframework.boot:spring-boot-starter-test:$springBootVersion")
     }
 }
