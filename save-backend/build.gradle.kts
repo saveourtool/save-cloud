@@ -1,3 +1,5 @@
+import  org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 plugins {
     kotlin("jvm")
 }
@@ -6,7 +8,7 @@ val kotlinVersion = "1.4.21"
 val springBootVersion = "2.2.6.RELEASE"
 val hibernateVersion = "5.4.2.Final"
 val slf4jVersion = "1.7.30"
-val compileKotlin: org.jetbrains.kotlin.gradle.tasks.KotlinCompile by tasks
+val compileKotlin: KotlinCompile by tasks
 
 compileKotlin.apply {
     kotlinOptions {
