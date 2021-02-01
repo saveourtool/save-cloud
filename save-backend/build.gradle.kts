@@ -17,18 +17,10 @@ compileKotlin.apply {
 }
 
 kotlin {
-    sourceSets {
-        getByName("main") {
-            dependencies {
-                implementation("org.springframework.boot:spring-boot-starter-webflux:$springBootVersion")
-                implementation("org.hibernate:hibernate-core:$hibernateVersion")
-                implementation("org.slf4j:slf4j-api:$slf4jVersion")
-            }
-        }
-        getByName("test") {
-            dependencies {
-                implementation("org.springframework.boot:spring-boot-starter-test:$springBootVersion")
-            }
-        }
+    dependencies {
+        implementation("org.springframework.boot:spring-boot-starter-webflux:$springBootVersion")
+        implementation("org.hibernate:hibernate-core:$hibernateVersion")
+        implementation("org.slf4j:slf4j-api:$slf4jVersion")
+        implementation("org.springframework.boot:spring-boot-starter-test:$springBootVersion")
     }
 }
