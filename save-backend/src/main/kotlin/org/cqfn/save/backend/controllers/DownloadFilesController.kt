@@ -17,7 +17,6 @@ class DownloadFilesController {
 
     @GetMapping(value = ["/download"], produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
     fun download(): Mono<ByteArray> {
-        logger.warn("WWEWEEWWE")
         return Mono.fromCallable {
             val file = File("test.txt")
             file.createNewFile()

@@ -5,8 +5,8 @@ plugins {
 }
 
 val kotlinVersion = "1.4.21"
-val springBootVersion = "2.2.6.RELEASE"
-val springSecurityVersion = "5.3.4.RELEASE"
+val springBootVersion = "2.4.2"
+val springSecurityVersion = "5.4.2"
 val hibernateVersion = "5.4.2.Final"
 val liquibaseVersion = "4.2.2"
 val slf4jVersion = "1.7.30"
