@@ -1,5 +1,6 @@
 package org.cqfn.save.backend.controllers
 
+import org.slf4j.LoggerFactory
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.http.codec.multipart.FilePart
@@ -12,8 +13,11 @@ import java.io.File
 
 @RestController
 class DownloadFilesController {
+    private val logger = LoggerFactory.getLogger("org.cqfn.save.logback")
+
     @GetMapping(value = ["/download"], produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
     fun download(): Mono<ByteArray> {
+        logger.warn("WWEWEEWWE")
         return Mono.fromCallable {
             val file = File("test.txt")
             file.createNewFile()
