@@ -11,7 +11,7 @@ val hibernateVersion = "5.4.2.Final"
 val liquibaseVersion = "4.2.2"
 val slf4jVersion = "1.7.30"
 val logbackVersion = "1.2.3"
-val compileKotlin: KotlinCompile by tasks
+val dockerJavaApiVersion = "3.2.7"
 
 tasks.withType<KotlinCompile> {
     kotlinOptions {
@@ -32,6 +32,8 @@ kotlin {
         implementation("org.hibernate:hibernate-core:$hibernateVersion")
         implementation("org.slf4j:slf4j-api:$slf4jVersion")
         implementation("ch.qos.logback:logback-core:$logbackVersion")
+        implementation("com.github.docker-java:docker-java-core:$dockerJavaApiVersion")
+        implementation("com.github.docker-java:docker-java-transport-httpclient5:$dockerJavaApiVersion")
         testImplementation("org.springframework.boot:spring-boot-starter-test:$springBootVersion")
     }
 }
