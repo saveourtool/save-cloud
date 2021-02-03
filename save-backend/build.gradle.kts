@@ -19,6 +19,10 @@ tasks.withType<KotlinCompile> {
     }
 }
 
+tasks.withType<Test> {
+    useJUnitPlatform()
+}
+
 kotlin {
     dependencies {
         implementation("org.springframework.boot:spring-boot-starter-webflux:$springBootVersion")
