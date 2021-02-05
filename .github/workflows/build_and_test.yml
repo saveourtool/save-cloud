@@ -37,7 +37,7 @@ jobs:
           rm -f *.sha512
           chmod a+rx runsc containerd-shim-runsc-v1
           sudo mv runsc containerd-shim-runsc-v1 /usr/local/bin
-          /usr/local/bin/runsc install
+          sudo /usr/local/bin/runsc install
           sudo systemctl reload docker
       - name: Gradle build
         run: |
