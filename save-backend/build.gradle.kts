@@ -1,3 +1,4 @@
+import org.cqfn.save.buildutils.configureJacoco
 import  org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -23,17 +24,18 @@ tasks.withType<Test> {
     useJUnitPlatform()
 }
 
-kotlin {
-    dependencies {
-        implementation("org.springframework.boot:spring-boot-starter-webflux:$springBootVersion")
-        implementation("org.springframework.boot:spring-boot-starter-actuator:$springBootVersion")
-        implementation("org.springframework.security:spring-security-core:$springSecurityVersion")
-        implementation("org.liquibase:liquibase-core:$liquibaseVersion")
-        implementation("org.hibernate:hibernate-core:$hibernateVersion")
-        implementation("org.slf4j:slf4j-api:$slf4jVersion")
-        implementation("ch.qos.logback:logback-core:$logbackVersion")
-        implementation("com.github.docker-java:docker-java-core:$dockerJavaApiVersion")
-        implementation("com.github.docker-java:docker-java-transport-httpclient5:$dockerJavaApiVersion")
-        testImplementation("org.springframework.boot:spring-boot-starter-test:$springBootVersion")
-    }
+dependencies {
+    implementation("org.springframework.boot:spring-boot-starter-webflux:$springBootVersion")
+    implementation("org.springframework.boot:spring-boot-starter-actuator:$springBootVersion")
+    implementation("org.springframework.security:spring-security-core:$springSecurityVersion")
+    implementation("org.liquibase:liquibase-core:$liquibaseVersion")
+    implementation("org.hibernate:hibernate-core:$hibernateVersion")
+    implementation("org.slf4j:slf4j-api:$slf4jVersion")
+    implementation("ch.qos.logback:logback-core:$logbackVersion")
+    implementation("com.github.docker-java:docker-java-core:$dockerJavaApiVersion")
+    implementation("com.github.docker-java:docker-java-transport-httpclient5:$dockerJavaApiVersion")
+    implementation("org.apache.commons:commons-compress:1.20")
+    testImplementation("org.springframework.boot:spring-boot-starter-test:$springBootVersion")
 }
+
+configureJacoco()
