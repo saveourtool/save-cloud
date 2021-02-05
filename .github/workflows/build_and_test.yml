@@ -27,7 +27,7 @@ jobs:
           restore-keys: ${{ runner.os }}-gradle-build
       - name: Gradle build
         run: |
-          ./gradlew build -x detekt
+          ./gradlew build
       # TODO: enable when we have actual tests
       - name: Code coverage report
         if: false
