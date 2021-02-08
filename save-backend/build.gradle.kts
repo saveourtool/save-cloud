@@ -25,6 +25,7 @@ tasks.withType<Test> {
 }
 
 dependencies {
+    implementation(project(":save-common"))
     implementation("org.springframework.boot:spring-boot-starter-webflux:$springBootVersion")
     implementation("org.springframework.boot:spring-boot-starter-actuator:$springBootVersion")
     implementation("org.springframework.security:spring-security-core:$springSecurityVersion")
