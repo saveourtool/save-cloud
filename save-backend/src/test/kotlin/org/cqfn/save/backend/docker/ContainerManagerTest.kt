@@ -1,5 +1,6 @@
 package org.cqfn.save.backend.docker
 
+import org.cqfn.save.domain.RunConfiguration
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
@@ -29,11 +30,15 @@ class ContainerManagerTest {
         testFile.writeText("wow such testing")
         val resourceFile = createTempFile().toFile()
         resourceFile.writeText("Lorem ipsum dolor sit amet")
-        testContainerId = containerManager.createWithFile(testFile, listOf(resourceFile))!!
+        testContainerId = containerManager.createWithFile(
+            RunConfiguration("./script.sh", testFile.name),
+            testFile,
+            listOf(resourceFile)
+        )!!
         val inspectContainerResponse = containerManager.dockerClient
             .inspectContainerCmd(testContainerId)
             .exec()
-        Assertions.assertEquals("./${testFile.name}", inspectContainerResponse.path)
+        Assertions.assertEquals("./script.sh", inspectContainerResponse.path)
         Assertions.assertEquals(0, inspectContainerResponse.args.size)
     }
 

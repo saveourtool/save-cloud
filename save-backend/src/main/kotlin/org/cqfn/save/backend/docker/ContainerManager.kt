@@ -8,6 +8,7 @@ import com.github.dockerjava.httpclient5.ApacheDockerHttpClient
 import com.github.dockerjava.transport.DockerHttpClient
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream
+import org.cqfn.save.domain.RunConfiguration
 import org.slf4j.LoggerFactory
 
 import java.io.BufferedOutputStream
@@ -30,11 +31,14 @@ class ContainerManager(private val dockerHost: String = "unix:///var/run/docker.
     /**
      * Creates a docker container with [file], prepared to execute it
      *
+     * @param runConfiguration a [RunConfiguration] for the supplied binary
      * @param file an executable file
      * @param resources additional files to be copied in the container too
      * @return id of created container or null if it wasn't created
      */
-    fun createWithFile(file: File, resources: Collection<File> = emptySet()): String? {
+    fun createWithFile(runConfiguration: RunConfiguration,
+                       file: File,
+                       resources: Collection<File> = emptySet()): String? {
         // ensure the image is present in the system
         dockerClient.pullImageCmd("docker.io/library/ubuntu")
             .withTag("latest")
@@ -42,7 +46,7 @@ class ContainerManager(private val dockerHost: String = "unix:///var/run/docker.
             .awaitCompletion()
 
         val createContainerCmdResponse = dockerClient.createContainerCmd("ubuntu:latest")
-            .withCmd("./${file.name}")
+            .withCmd(runConfiguration.startCommand)
             .withName("testContainer")
             .withHostConfig(HostConfig.newHostConfig()
                 .withRuntime("runsc")
@@ -53,26 +57,38 @@ class ContainerManager(private val dockerHost: String = "unix:///var/run/docker.
             return null
         }
 
-        val out = ByteArrayOutputStream()
-        val buffOut = BufferedOutputStream(out)
-        val gzOut = GZIPOutputStream(buffOut)
-        val tgzOut = TarArchiveOutputStream(gzOut)
-        tgzOut.putArchiveEntry(TarArchiveEntry(file))
-        Files.copy(file.toPath(), tgzOut)
-        tgzOut.closeArchiveEntry()
-        resources.forEach {
-            tgzOut.putArchiveEntry(TarArchiveEntry(it))
-            Files.copy(it.toPath(), tgzOut)
-            tgzOut.closeArchiveEntry()
+        createTgzStream(file, *resources.toTypedArray()).use { out ->
+            dockerClient.copyArchiveToContainerCmd(createContainerCmdResponse.id)
+                .withTarInputStream(out.toByteArray().inputStream())
+                .withRemotePath("/run")
+                .exec()
         }
-        tgzOut.finish()
-        gzOut.finish()
-        buffOut.flush()
-        dockerClient.copyArchiveToContainerCmd(createContainerCmdResponse.id)
-            .withTarInputStream(out.toByteArray().inputStream())
-            .withRemotePath("/run")
-            .exec()
         return createContainerCmdResponse.id
+    }
+
+    /**
+     * Add [files] to .tar.gz archive and return the underlying [ByteArrayOutputStream]
+     *
+     * @param files files to be added to archive
+     * @return resulting [ByteArrayOutputStream]
+     */
+    private fun createTgzStream(vararg files: File): ByteArrayOutputStream {
+        val out = ByteArrayOutputStream()
+        BufferedOutputStream(out).use { buffOut ->
+            GZIPOutputStream(buffOut).use { gzOut ->
+                TarArchiveOutputStream(gzOut).use { tgzOut ->
+                    files.forEach {
+                        tgzOut.putArchiveEntry(TarArchiveEntry(it))
+                        Files.copy(it.toPath(), tgzOut)
+                        tgzOut.closeArchiveEntry()
+                    }
+                    tgzOut.finish()
+                }
+                gzOut.finish()
+            }
+            buffOut.flush()
+        }
+        return out
     }
 
     companion object {
