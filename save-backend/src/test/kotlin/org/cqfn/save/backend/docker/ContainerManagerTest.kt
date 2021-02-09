@@ -32,14 +32,16 @@ class ContainerManagerTest {
         resourceFile.writeText("Lorem ipsum dolor sit amet")
         testContainerId = containerManager.createWithFile(
             RunConfiguration("./script.sh", testFile.name),
+            "testContainer",
             testFile,
             listOf(resourceFile)
-        )!!
+        )
         val inspectContainerResponse = containerManager.dockerClient
             .inspectContainerCmd(testContainerId)
             .exec()
         Assertions.assertEquals("./script.sh", inspectContainerResponse.path)
         Assertions.assertEquals(0, inspectContainerResponse.args.size)
+        Assertions.assertEquals("testContainer", inspectContainerResponse.name)
     }
 
     @AfterEach
