@@ -19,6 +19,10 @@ import java.io.File
 import java.nio.file.Files
 import java.util.zip.GZIPOutputStream
 
+import kotlin.io.path.ExperimentalPathApi
+import kotlin.io.path.createTempDirectory
+import kotlin.io.path.createTempFile
+
 class ContainerManager(private val dockerHost: String = "unix:///var/run/docker.sock") {
     private val dockerClientConfig: DockerClientConfig = DefaultDockerClientConfig
         .createDefaultConfigBuilder()
@@ -40,7 +44,7 @@ class ContainerManager(private val dockerHost: String = "unix:///var/run/docker.
      * @throws RuntimeException if an exception not specific to docker has occurred
      * @return id of created container or null if it wasn't created
      */
-    fun createWithFile(runConfiguration: RunConfiguration,
+    internal fun createWithFile(runConfiguration: RunConfiguration,
                        containerName: String,
                        file: File,
                        resources: Collection<File> = emptySet()): String {
@@ -65,6 +69,40 @@ class ContainerManager(private val dockerHost: String = "unix:///var/run/docker.
                 .exec()
         }
         return createContainerCmdResponse.id
+    }
+
+    /**
+     * Creates a docker image with proided [resources]
+     *
+     * @param baseImage base docker image rom which this image will be built
+     * @param resources files to be included into the image
+     * @param resourcesPath absolute path to resources inside the image's FS
+     * @throws DockerException
+     * @return id of the created docker image
+     */
+    @OptIn(ExperimentalPathApi::class)
+    internal fun buildImageWithResources(baseImage: String = "ubuntu:latest",
+                                         baseDir: File,
+                                         resourcesPath: String): String {
+        val tmpDir = createTempDirectory().toFile()
+        baseDir.copyRecursively(File(tmpDir, "resources"))
+        val dockerFileAsText =
+            """
+                FROM $baseImage
+                COPY resources $resourcesPath
+                RUN /bin/bash
+            """.trimIndent()  // RUN command shouldn't matter because it will be replaced on container creation
+        val dockerFile = createTempFile(tmpDir.toPath()).toFile()
+        dockerFile.writeText(dockerFileAsText)
+        val buildImageResultCallback: BuildImageResultCallback = try {
+            dockerClient.buildImageCmd(dockerFile)
+                .withBaseDirectory(tmpDir)
+                .start()
+        } finally {
+            dockerFile.delete()
+            tmpDir.deleteRecursively()
+        }
+        return buildImageResultCallback.awaitImageId()
     }
 
     /**

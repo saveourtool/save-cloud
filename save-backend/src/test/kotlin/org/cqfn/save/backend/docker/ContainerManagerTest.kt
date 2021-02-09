@@ -5,7 +5,9 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.condition.DisabledIfSystemProperty
 import kotlin.io.path.ExperimentalPathApi
+import kotlin.io.path.createTempDirectory
 import kotlin.io.path.createTempFile
 
 @OptIn(ExperimentalPathApi::class)
@@ -41,11 +43,23 @@ class ContainerManagerTest {
             .exec()
         Assertions.assertEquals("./script.sh", inspectContainerResponse.path)
         Assertions.assertEquals(0, inspectContainerResponse.args.size)
-        Assertions.assertEquals("testContainer", inspectContainerResponse.name)
+        Assertions.assertEquals("/testContainer", inspectContainerResponse.name)
+    }
+
+    @Test
+    @DisabledIfSystemProperty(named = "os.name", matches = "Windows.*", disabledReason = "Cannot properly use Dockerfiles on Windows")
+    fun `should build an image with provided resources`() {
+        val resourcesDir = createTempDirectory()
+        repeat(5) { createTempFile(resourcesDir) }
+        val imageId =  containerManager.buildImageWithResources(baseDir = resourcesDir.toFile(), resourcesPath = "/app/resources")
+        val inspectImageResponse = containerManager.dockerClient.inspectImageCmd(imageId).exec()
+        Assertions.assertTrue(inspectImageResponse.size!! > 0)
     }
 
     @AfterEach
     fun tearDown() {
-        containerManager.dockerClient.removeContainerCmd(testContainerId).exec()
+        if (::testContainerId.isInitialized) {
+            containerManager.dockerClient.removeContainerCmd(testContainerId).exec()
+        }
     }
 }

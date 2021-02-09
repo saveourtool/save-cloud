@@ -44,6 +44,11 @@ jobs:
         run: |
           ./gradlew build
       # TODO: enable when we have actual tests
+      - name: Upload test reports
+        uses: actions/upload-artifact@v2
+        with:
+          name: gradle-test-report
+          path: '**/build/reports/'
       - name: Code coverage report
         if: false
         uses: codecov/codecov-action@v1
