@@ -19,7 +19,7 @@
     </appender>
     <logger name="org.cqfn.save.logback" />
     <logger name="org.cqfn.save.logback.tests" />
-    <root level="debug">
+    <root level="info">
         <appender-ref ref="STDOUT" />
     </root>
 </configuration>

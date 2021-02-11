@@ -1,0 +1,55 @@
+name: Build and test
+
+on:
+  pull_request
+
+jobs:
+  build_and_test_with_code_coverage:
+    name: Build, test and upload code coverage
+    runs-on: ubuntu-20.04
+
+    steps:
+      # actions/checkout v1.* is needed for correct codecov upload, see https://github.com/actions/checkout/issues/237 for details
+      - uses: actions/checkout@v1
+      # ensure that gradle wrapper files in repository are valid by checking checksums
+      - uses: gradle/wrapper-validation-action@v1
+      - name: Set up JDK 11
+        uses: actions/setup-java@v1
+        with:
+          java-version: 1.11
+      # todo: consider using https://github.com/burrunan/gradle-cache-action instead
+      - name: Cache gradle caches
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.gradle/caches/
+            ~/.gradle/wrapper/
+          key: ${{ runner.os }}-gradle-build-${{ hashFiles('**/*.gradle*') }}
+          restore-keys: ${{ runner.os }}-gradle-build
+      # https://gvisor.dev/docs/user_guide/install/
+      - name: Install gvisor runsc runtime
+        run: |
+          ARCH=$(uname -m)
+          URL=https://storage.googleapis.com/gvisor/releases/release/latest/${ARCH}
+          wget ${URL}/runsc ${URL}/runsc.sha512 \
+            ${URL}/containerd-shim-runsc-v1 ${URL}/containerd-shim-runsc-v1.sha512
+          sha512sum -c runsc.sha512 \
+            -c containerd-shim-runsc-v1.sha512
+          rm -f *.sha512
+          chmod a+rx runsc containerd-shim-runsc-v1
+          sudo mv runsc containerd-shim-runsc-v1 /usr/local/bin
+          sudo /usr/local/bin/runsc install
+          sudo systemctl reload docker
+      - name: Gradle build
+        run: |
+          ./gradlew build
+      - name: Upload test reports
+        uses: actions/upload-artifact@v2
+        with:
+          name: gradle-test-report
+          path: '**/build/reports/'
+      - name: Code coverage report
+        uses: codecov/codecov-action@v1
+        with:
+          flags: unittests
+          fail_ci_if_error: true # optional (default = false)
