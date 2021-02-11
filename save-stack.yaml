@@ -1,5 +1,6 @@
 # https://docs.docker.com/engine/swarm/stack-deploy/
 # $ docker-compose build
+# --> should start `registry` here
 # $ docker-compose push
 # $ docker stack deploy --compose-file save-stack.yml save
 version: '3.9'
