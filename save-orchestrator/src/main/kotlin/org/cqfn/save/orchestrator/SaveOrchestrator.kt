@@ -1,9 +1,12 @@
-package org.cqfn.save.backend
+package org.cqfn.save.orchestrator
 
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.web.reactive.config.EnableWebFlux
 
+/**
+ * An entrypoint for spring boot for save-orchestrator
+ */
 @SpringBootApplication
 @EnableWebFlux
 open class SaveOrchestrator

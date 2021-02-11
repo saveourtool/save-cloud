@@ -1,7 +1,10 @@
 name: Build and test
 
 on:
-  pull_request
+  pull_request:
+  push:
+    branches:
+      - 'master'
 
 jobs:
   build_and_test_with_code_coverage:
@@ -42,7 +45,7 @@ jobs:
           sudo systemctl reload docker
       - name: Gradle build
         run: |
-          ./gradlew build
+          ./gradlew build -x detekt
       - name: Upload test reports
         uses: actions/upload-artifact@v2
         with:

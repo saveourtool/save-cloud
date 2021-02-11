@@ -2,6 +2,7 @@
   enabled: true
   configuration:
     domainName: org.cqfn.save
+    kotlinVersion: 1.4
 - name: ENUM_VALUE
   enabled: true
   configuration:
