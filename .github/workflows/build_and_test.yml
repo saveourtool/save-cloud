@@ -50,7 +50,6 @@ jobs:
           name: gradle-test-report
           path: '**/build/reports/'
       - name: Code coverage report
-        if: false
         uses: codecov/codecov-action@v1
         with:
           file: '**/build/jacoco/jacoco.xml'
