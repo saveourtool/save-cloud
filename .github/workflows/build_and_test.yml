@@ -1,7 +1,10 @@
 name: Build and test
 
 on:
-  pull_request
+  pull_request:
+  push:
+    branches:
+      - 'master'
 
 jobs:
   build_and_test_with_code_coverage:
@@ -31,7 +34,7 @@ jobs:
         run: |
           ARCH=$(uname -m)
           URL=https://storage.googleapis.com/gvisor/releases/release/latest/${ARCH}
-          wget ${URL}/runsc ${URL}/runsc.sha512 \
+          wget -nv ${URL}/runsc ${URL}/runsc.sha512 \
             ${URL}/containerd-shim-runsc-v1 ${URL}/containerd-shim-runsc-v1.sha512
           sha512sum -c runsc.sha512 \
             -c containerd-shim-runsc-v1.sha512
@@ -42,7 +45,7 @@ jobs:
           sudo systemctl reload docker
       - name: Gradle build
         run: |
-          ./gradlew build
+          ./gradlew build -x detekt
       - name: Upload test reports
         uses: actions/upload-artifact@v2
         with:

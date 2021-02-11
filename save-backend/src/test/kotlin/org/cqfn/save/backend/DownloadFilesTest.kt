@@ -11,14 +11,15 @@ import kotlin.io.path.ExperimentalPathApi
 
 @WebFluxTest
 class DownloadFilesTest {
-
     @Autowired
     lateinit var webClient: WebTestClient
 
     @Test
     fun checkDownload() {
-        webClient.get().uri("/download").exchange().expectStatus().isOk
-        webClient.get().uri("/download").exchange().expectBody(String::class.java).isEqualTo<Nothing>("qweqwe")
+        webClient.get().uri("/download").exchange()
+            .expectStatus().isOk
+        webClient.get().uri("/download").exchange()
+            .expectBody(String::class.java).isEqualTo<Nothing>("qweqwe")
     }
 
     @Test
@@ -28,14 +29,14 @@ class DownloadFilesTest {
 
         val body = MultipartBodyBuilder().apply {
             part("file", object : ByteArrayResource("testString".toByteArray()) {
-                override fun getFilename(): String? {
-                    return tmpFile.fileName.toString()
-                }
+                override fun getFilename() = tmpFile.fileName.toString()
             })
         }.build()
 
-        webClient.post().uri("/upload").body(BodyInserters.fromMultipartData(body)).exchange().expectStatus().isOk
+        webClient.post().uri("/upload").body(BodyInserters.fromMultipartData(body))
+            .exchange().expectStatus().isOk
 
-        webClient.post().uri("/upload").body(BodyInserters.fromMultipartData(body)).exchange().expectBody(String::class.java).isEqualTo<Nothing>("test")
+        webClient.post().uri("/upload").body(BodyInserters.fromMultipartData(body))
+            .exchange().expectBody(String::class.java).isEqualTo<Nothing>("test")
     }
 }
