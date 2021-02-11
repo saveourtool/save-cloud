@@ -1,3 +1,4 @@
-FROM ubuntu:20-04
-
-RUN java -jar save-backend.jar
+FROM openjdk:8-jdk-alpine
+ARG JAR_FILE=build/libs/save-orchestrator*.jar
+COPY ${JAR_FILE} save-orchestrator.jar
+ENTRYPOINT ["java","-jar","/save-orchestrator.jar"]

@@ -3,11 +3,12 @@ import  org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("jvm")
+    id("org.springframework.boot") version Versions.springBoot
 }
 
 tasks.withType<KotlinCompile> {
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = Versions.jdk
     }
 }
 
