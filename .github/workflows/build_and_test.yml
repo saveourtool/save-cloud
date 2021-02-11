@@ -43,7 +43,6 @@ jobs:
       - name: Gradle build
         run: |
           ./gradlew build
-      # TODO: enable when we have actual tests
       - name: Upload test reports
         uses: actions/upload-artifact@v2
         with:
@@ -52,6 +51,5 @@ jobs:
       - name: Code coverage report
         uses: codecov/codecov-action@v1
         with:
-          file: '**/build/jacoco/jacoco.xml'
           flags: unittests
           fail_ci_if_error: true # optional (default = false)

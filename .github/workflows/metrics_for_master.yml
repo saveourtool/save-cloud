@@ -1,0 +1,38 @@
+name: Update metrics for master branch
+
+on:
+  push:
+    branches:
+      - 'master'
+
+env:
+  GRADLE_OPTS: -Dorg.gradle.daemon=false
+
+jobs:
+  master_flow:
+    name: Master branch update
+    runs-on: ubuntu-20.04
+
+    steps:
+      - uses: actions/checkout@v2.3.3
+      - name: Set up JDK 11
+        uses: actions/setup-java@v1
+        with:
+          java-version: 1.11
+      # todo: consider using https://github.com/burrunan/gradle-cache-action instead
+      - name: Cache gradle caches
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.gradle/caches/
+            ~/.gradle/wrapper/
+          key: ${{ runner.os }}-gradle-build-${{ hashFiles('**/*.gradle*') }}
+          restore-keys: ${{ runner.os }}-gradle-build
+      - name: Run tests
+        # we need to run `install` goal here so that gradle will be able to resolve dependencies and run tests on diktat-gradle-plugin
+        run: ./gradlew build
+      - name: Generate code coverage report
+        uses: codecov/codecov-action@v1
+        with:
+          flags: unittests
+          fail_ci_if_error: true # optional (default = false)
