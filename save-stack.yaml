@@ -1,6 +1,6 @@
 # https://docs.docker.com/engine/swarm/stack-deploy/
 # $ docker-compose build
-# --> should start `registry` here
+# $ docker-compose up -d registry
 # $ docker-compose push
 # $ docker stack deploy --compose-file save-stack.yml save
 version: '3.9'
@@ -10,16 +10,16 @@ services:
     # a throwaway registry used to distribute images in a swarm
     image: registry:2
     ports:
-      - "5000:5000"
+      - "6000:6000"
   orchestrator:
     # todo: set version from gradle?
-    image: 127.0.0.1:5000/save-orchestrator
+    image: 127.0.0.1:6000/save-orchestrator
     build: save-orchestrator  # location of Dockerfile?
     ports:
       - "5100:5100"
   backend:
     # todo: set version from gradle?
-    image: 127.0.0.1:5000/save-backend
+    image: 127.0.0.1:6000/save-backend
     build: save-backend
     ports:
       - "5000:5000"
