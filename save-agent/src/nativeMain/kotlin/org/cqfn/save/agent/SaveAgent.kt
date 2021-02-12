@@ -2,23 +2,26 @@ package org.cqfn.save.agent
 
 import io.ktor.client.HttpClient
 import io.ktor.client.request.post
-import kotlinx.coroutines.runBlocking
 import platform.posix.system
+import kotlin.native.concurrent.AtomicReference
 
-class SaveAgent {
-    val httpClient = HttpClient()
+class SaveAgent(private val backendUrl: String = "http://localhost:5000",
+                private val orchestratorUrl: String = "http://localhost:5100") {
+    private val httpClient = HttpClient()
+    private val state = AtomicReference(AgentState.IDLE)
 
-    fun runSave(cliArgs: List<String>) {
-        runBlocking {
-            platform.posix.system("./save ${cliArgs.joinToString(" ")}")
-        }
+    fun runSave(cliArgs: List<String>): Int {
+        return platform.posix.system("./save ${cliArgs.joinToString(" ")}")
     }
 
     suspend fun sendHeartbeat() {
-        httpClient.post<Heartbeat>("localhost:5100/heartbeat")  // todo url, properties file?
+        println("Sending heartbeat to $backendUrl")
+        httpClient.post<Heartbeat>("$backendUrl/heartbeat") {  // todo url, properties file?
+//            this.body = Heartbeat(state.value, 0)
+        }
     }
 
     suspend fun sendExecutionData() {
-        httpClient.post<ExecutionData>("localhost:5000/executionData")
+        httpClient.post<ExecutionData>("$orchestratorUrl/executionData")
     }
 }

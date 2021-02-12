@@ -14,7 +14,9 @@ kotlin {
     }
 
     configure(listOf(hostTarget)) {
-        binaries.executable()
+        binaries.executable {
+            entryPoint = "org.cqfn.save.agent.main"
+        }
     }
     sourceSets {
         val nativeMain by creating {
@@ -22,6 +24,8 @@ kotlin {
                 implementation(project(":save-common"))
                 implementation("io.ktor:ktor-client-core:${Versions.ktor}")
                 implementation("io.ktor:ktor-client-curl:${Versions.ktor}")
+                // as for 2.0.2, kotlin-logging doesn't have mingw version and it'll be PITA to use it
+//                implementation("io.github.microutils:kotlin-logging-${hostTarget.name}:2.0.2")
             }
         }
         getByName("${hostTarget.name}Main").dependsOn(nativeMain)
