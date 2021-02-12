@@ -17,6 +17,8 @@ services:
     build: save-orchestrator  # location of Dockerfile?
     ports:
       - "5100:5100"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
   backend:
     # todo: set version from gradle?
     image: 127.0.0.1:6000/save-backend
