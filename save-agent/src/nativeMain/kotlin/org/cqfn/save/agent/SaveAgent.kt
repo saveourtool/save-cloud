@@ -1,13 +1,18 @@
 package org.cqfn.save.agent
 
 import io.ktor.client.HttpClient
+import io.ktor.client.features.json.JsonFeature
 import io.ktor.client.request.post
+import io.ktor.http.ContentType
+import io.ktor.http.contentType
 import platform.posix.system
 import kotlin.native.concurrent.AtomicReference
 
 class SaveAgent(private val backendUrl: String = "http://localhost:5000",
                 private val orchestratorUrl: String = "http://localhost:5100") {
-    private val httpClient = HttpClient()
+    private val httpClient = HttpClient() {
+        install(JsonFeature)
+    }
     private val state = AtomicReference(AgentState.IDLE)
 
     fun runSave(cliArgs: List<String>): Int {
@@ -16,8 +21,9 @@ class SaveAgent(private val backendUrl: String = "http://localhost:5000",
 
     suspend fun sendHeartbeat() {
         println("Sending heartbeat to $backendUrl")
-        httpClient.post<Heartbeat>("$backendUrl/heartbeat") {  // todo url, properties file?
-//            this.body = Heartbeat(state.value, 0)
+        httpClient.post<Unit>("$backendUrl/heartbeat") {  // todo url, properties file?
+            contentType(ContentType.Application.Json)
+            body = Heartbeat(state.value, 0)
         }
     }
 
