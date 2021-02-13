@@ -30,7 +30,15 @@ kotlin {
             }
         }
         getByName("${hostTarget.name}Main").dependsOn(nativeMain)
-        val nativeTest by creating
+        val nativeTest by creating {
+            dependencies {
+                implementation("io.ktor:ktor-client-mock:${Versions.ktor}")
+            }
+        }
         getByName("${hostTarget.name}Test").dependsOn(nativeTest)
     }
+}
+
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinTest> {
+    testLogging.showStandardStreams = true
 }
