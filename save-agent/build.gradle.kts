@@ -37,6 +37,29 @@ kotlin {
         }
         getByName("${hostTarget.name}Test").dependsOn(nativeTest)
     }
+
+    // code coverage: https://github.com/JetBrains/kotlin-native/blob/master/CODE_COVERAGE.md, https://github.com/JetBrains/kotlin-native/blob/master/samples/coverage/build.gradle.kts
+    if (false /*os.isLinux*/) {
+        hostTarget.binaries.getTest("DEBUG").apply {
+            freeCompilerArgs = freeCompilerArgs + listOf("-Xlibrary-to-cover=${hostTarget.compilations["main"].output.classesDirs.singleFile.absolutePath}")
+        }
+        val createCoverageReportTask by tasks.creating {
+            dependsOn("${hostTarget.name}Test")
+            description = "Create coverage report"
+
+            doLast {
+                val testDebugBinary = hostTarget.binaries.getTest("DEBUG").outputFile
+                val llvmPath = "${System.getenv()["HOME"]}/.konan/dependencies/clang-llvm-8.0.0-linux-x86-64/bin"
+                exec {
+                    commandLine("$llvmPath/llvm-profdata", "merge", "$testDebugBinary.profraw", "-o", "$testDebugBinary.profdata")
+                }
+                exec {
+                    commandLine("$llvmPath/llvm-cov", "show", "$testDebugBinary", "-instr-profile", "$testDebugBinary.profdata")
+                }
+            }
+        }
+        tasks.getByName("${hostTarget.name}Test").finalizedBy(createCoverageReportTask)
+    }
 }
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinTest> {

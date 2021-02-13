@@ -21,7 +21,7 @@ jobs:
         with:
           java-version: 1.11
       - name: Install system pacakges
-        run: sudo apt-get install libcurl4-openssl-dev
+        run: sudo apt-get install llvm libcurl4-openssl-dev
       # todo: consider using https://github.com/burrunan/gradle-cache-action instead
       - name: Cache gradle caches
         uses: actions/cache@v2
@@ -49,6 +49,7 @@ jobs:
         run: |
           ./gradlew build -x detekt
       - name: Upload test reports
+        if: ${{ failure() }}  # runs only if previous step has failed, the entire workflow will still be marked as failed
         uses: actions/upload-artifact@v2
         with:
           name: gradle-test-report
