@@ -14,3 +14,8 @@ data class Heartbeat(val state: AgentState, val percentCompletion: Int) {
         require(percentCompletion in 0..100) { "percentCompletion should be in 0..100, but is $percentCompletion" }
     }
 }
+
+@Serializable sealed class HeartbeatResponse
+@Serializable object EmptyResponse: HeartbeatResponse()
+@Serializable data class NewJobResponse(val ids: List<String>) : HeartbeatResponse()
+@Serializable object TerminatingResponse : HeartbeatResponse()

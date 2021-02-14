@@ -3,25 +3,33 @@ package org.cqfn.save.agent
 import io.ktor.client.HttpClient
 import io.ktor.client.features.HttpTimeout
 import io.ktor.client.features.json.JsonFeature
+import io.ktor.client.features.json.serializer.KotlinxSerializer
+import io.ktor.client.request.accept
 import io.ktor.client.request.post
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
-import kotlinx.atomicfu.AtomicBoolean
 import kotlinx.atomicfu.atomic
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.modules.SerializersModule
 import platform.posix.system
 import kotlin.native.concurrent.AtomicReference
 
 class SaveAgent(private val backendUrl: String = "http://localhost:5000",
                 private val orchestratorUrl: String = "http://localhost:5100",
                 private val httpClient: HttpClient = HttpClient {
-                    install(JsonFeature)
+                    install(JsonFeature) {
+                        serializer = KotlinxSerializer(Json {
+                            serializersModule = SerializersModule {
+                                // for some reason for K/N it's needed explicitly, at least for ktor 1.5.1, kotlin 1.4.21
+                                contextual(HeartbeatResponse::class, HeartbeatResponse.serializer())
+                            }
+                        })
+                    }
                     install(HttpTimeout) {
                         requestTimeoutMillis = 1000
                     }
@@ -29,28 +37,11 @@ class SaveAgent(private val backendUrl: String = "http://localhost:5000",
 ) {
     val state = AtomicReference(AgentState.IDLE)
     private val isStopped = atomic(false)
+    private lateinit var saveProcessJob: Job
 
     suspend fun start() = coroutineScope {
         println("Starting agent")
-        val saveProcessJob = launch {
-//        val code = saveAgent.runSave(emptyList())
-        }
-        saveProcessJob.invokeOnCompletion {
-            state.value = AgentState.FINISHED
-        }
-        val heartbeatsJob = launch {
-            println("Scheduling heartbeats")
-            while (isStopped.value.not()) {
-                val deferred = async { sendHeartbeat() }
-                try {
-                    deferred.await()
-                } catch (e: Exception) {
-                    println("Exception during heartbeat: ${e.message}")
-                }
-                println("Waiting for 15 sec")
-                delay(15_000)
-            }
-        }
+        val heartbeatsJob = launch { startHeartbeats() }
         heartbeatsJob.join()
     }
 
@@ -58,19 +49,63 @@ class SaveAgent(private val backendUrl: String = "http://localhost:5000",
         isStopped.getAndSet(true)
     }
 
-    fun runSave(cliArgs: List<String>): Int {
+    private suspend fun startHeartbeats() = coroutineScope {
+        println("Scheduling heartbeats")
+        while (isStopped.value.not()) {
+            val deferred = async { sendHeartbeat() }
+            try {
+                when (deferred.await()) {
+                    is NewJobResponse -> {
+                        require(::saveProcessJob.isInitialized.not() || saveProcessJob.isCompleted) {
+                            "Shouldn't start new process when there is the previous running"
+                        }
+                        saveProcessJob = launch {
+                            // new job received from Orchestrator, spawning SAVE CLI process
+                            startSaveProcess()
+                        }
+                    }
+                    TerminatingResponse -> stop()
+                    EmptyResponse -> Unit  // do nothing
+                }
+            } catch (e: Exception) {
+                println("Exception during heartbeat: ${e.message}")
+            }
+            // todo: start waiting after request was sent, not after response?
+            println("Waiting for 15 sec")
+            delay(15_000)
+        }
+    }
+
+    internal suspend fun startSaveProcess() = coroutineScope {
+        // blocking execution of OS process
+//        val code = saveAgent.runSave(emptyList())
+        state.value = AgentState.FINISHED
+        val deferred = async {
+            // todo: read data from files here
+            sendExecutionData()
+        }
+        deferred.await()
+        state.value = AgentState.IDLE
+    }
+
+    private fun runSave(cliArgs: List<String>): Int {
         return platform.posix.system("./save ${cliArgs.joinToString(" ")}")
     }
 
-    suspend fun sendHeartbeat() {
+    internal suspend fun sendHeartbeat(): HeartbeatResponse {
         println("Sending heartbeat to $backendUrl")
-        httpClient.post<Unit>("$backendUrl/heartbeat") {
+        // if current state is IDLE or FINISHED, should accept new jobs as a response
+        return httpClient.post("$backendUrl/heartbeat") {
             contentType(ContentType.Application.Json)
+            accept(ContentType.Application.Json)
             body = Heartbeat(state.value, 0)
         }
     }
 
-    suspend fun sendExecutionData() {
-        httpClient.post<ExecutionData>("$orchestratorUrl/executionData")
+    private suspend fun sendExecutionData() {
+        httpClient.post<Unit>("$orchestratorUrl/executionData") {
+            contentType(ContentType.Application.Json)
+            body = ExecutionData(emptyList())
+        }
     }
 }
