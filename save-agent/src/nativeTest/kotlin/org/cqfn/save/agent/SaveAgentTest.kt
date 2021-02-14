@@ -46,12 +46,8 @@ class SaveAgentTest {
 
     @Test
     fun `agent should send heartbeats`() {
-        try {
-            runBlocking {
-                saveAgentForTest.sendHeartbeat()
-            }
-        } catch (e: Throwable) {
-            println(e.stackTraceToString())
+        runBlocking {
+            saveAgentForTest.sendHeartbeat()
         }
     }
 
