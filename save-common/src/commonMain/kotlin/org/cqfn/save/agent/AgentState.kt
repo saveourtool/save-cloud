@@ -7,5 +7,9 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 enum class AgentState {
-    IDLE, BUSY, FINISHED, ERROR
+    BUSY,
+    ERROR,
+    FINISHED,
+    IDLE,
+    ;
 }

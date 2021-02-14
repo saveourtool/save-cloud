@@ -1,3 +1,5 @@
+@file:Suppress("PACKAGE_NAME_INCORRECT_PATH")
+
 package org.cqfn.save.agent
 
 import io.ktor.client.HttpClient
@@ -9,13 +11,15 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
+
+import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
-import kotlin.test.Test
-import kotlin.test.assertEquals
 
+@Suppress("INLINE_CLASS_CAN_BE_USED")
 class SaveAgentTest {
     private val saveAgentForTest = SaveAgent(httpClient = HttpClient(MockEngine) {
         install(JsonFeature) {
@@ -28,10 +32,10 @@ class SaveAgentTest {
         }
         engine {
             addHandler { request ->
-                when(request.url.encodedPath) {
+                when (request.url.encodedPath) {
                     "/heartbeat" -> respond(Json.encodeToString(HeartbeatResponse.serializer(), EmptyResponse),
-                                            HttpStatusCode.OK,
-                                            headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                        HttpStatusCode.OK,
+                        headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString())
                     )
                     "/executionData" -> respond("", status = HttpStatusCode.OK)
                     else -> error("Unhandled ${request.url}")

@@ -1,3 +1,7 @@
+/**
+ * Model classes for heartbeating between save agent and the orchestrator
+ */
+
 package org.cqfn.save.agent
 
 import kotlinx.serialization.Serializable
@@ -15,7 +19,14 @@ data class Heartbeat(val state: AgentState, val percentCompletion: Int) {
     }
 }
 
+/**
+ * A response from Orchestrator to Agent
+ */
 @Serializable sealed class HeartbeatResponse
-@Serializable object EmptyResponse: HeartbeatResponse()
+@Serializable object EmptyResponse : HeartbeatResponse()
+
+/**
+ * @property ids a list of new jobs for this agent
+ */
 @Serializable data class NewJobResponse(val ids: List<String>) : HeartbeatResponse()
 @Serializable object TerminatingResponse : HeartbeatResponse()

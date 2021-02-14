@@ -1,3 +1,5 @@
+@file:Suppress("PACKAGE_NAME_INCORRECT_PATH")
+
 package org.cqfn.save.agent
 
 import io.ktor.client.HttpClient
@@ -8,6 +10,9 @@ import io.ktor.client.request.accept
 import io.ktor.client.request.post
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
+import platform.posix.system
+
+import kotlin.native.concurrent.AtomicReference
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
@@ -16,9 +21,10 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
-import platform.posix.system
-import kotlin.native.concurrent.AtomicReference
 
+/**
+ * A main class for SAVE Agent
+ */
 class SaveAgent(private val backendUrl: String = "http://localhost:5000",
                 private val orchestratorUrl: String = "http://localhost:5100",
                 private val httpClient: HttpClient = HttpClient {
@@ -35,16 +41,25 @@ class SaveAgent(private val backendUrl: String = "http://localhost:5000",
                     }
                 }
 ) {
+    /**
+     * The current [AgentState] of this agent
+     */
     val state = AtomicReference(AgentState.IDLE)
     private val isStopped = atomic(false)
     private lateinit var saveProcessJob: Job
 
+    /**
+     * @return Unit
+     */
     suspend fun start() = coroutineScope {
         println("Starting agent")
         val heartbeatsJob = launch { startHeartbeats() }
         heartbeatsJob.join()
     }
 
+    /**
+     * Shutdown the Agent
+     */
     fun stop() {
         isStopped.getAndSet(true)
     }
@@ -66,6 +81,9 @@ class SaveAgent(private val backendUrl: String = "http://localhost:5000",
                     }
                     TerminatingResponse -> stop()
                     EmptyResponse -> Unit  // do nothing
+                    else -> {
+                        // this is a generated else block
+                    }
                 }
             } catch (e: Exception) {
                 println("Exception during heartbeat: ${e.message}")
@@ -76,9 +94,12 @@ class SaveAgent(private val backendUrl: String = "http://localhost:5000",
         }
     }
 
+    /**
+     * @return Unit
+     */
     internal suspend fun startSaveProcess() = coroutineScope {
         // blocking execution of OS process
-//        val code = saveAgent.runSave(emptyList())
+        // val code = saveAgent.runSave(emptyList())
         state.value = AgentState.FINISHED
         val deferred = async {
             // todo: read data from files here
@@ -88,10 +109,11 @@ class SaveAgent(private val backendUrl: String = "http://localhost:5000",
         state.value = AgentState.IDLE
     }
 
-    private fun runSave(cliArgs: List<String>): Int {
-        return platform.posix.system("./save ${cliArgs.joinToString(" ")}")
-    }
+    private fun runSave(cliArgs: List<String>) = platform.posix.system("./save ${cliArgs.joinToString(" ")}")
 
+    /**
+     * @return a [HeartbeatResponse] from Orchestrator
+     */
     internal suspend fun sendHeartbeat(): HeartbeatResponse {
         println("Sending heartbeat to $backendUrl")
         // if current state is IDLE or FINISHED, should accept new jobs as a response
