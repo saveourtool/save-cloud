@@ -1,5 +1,5 @@
 object Versions {
-    const val kotlin = "1.4.30"
+    const val kotlin = "1.4.21"
     const val springBoot = "2.4.2"
     const val springSecurity = "5.4.2"
     const val hibernate = "5.4.2.Final"

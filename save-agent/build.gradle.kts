@@ -39,7 +39,7 @@ kotlin {
     }
 
     // code coverage: https://github.com/JetBrains/kotlin-native/blob/master/CODE_COVERAGE.md, https://github.com/JetBrains/kotlin-native/blob/master/samples/coverage/build.gradle.kts
-    if (false /*os.isLinux*/) {
+    if (false /*os.isLinux*/) {  // this doesn't work for 1.4.21, maybe will be fixed later
         hostTarget.binaries.getTest("DEBUG").apply {
             freeCompilerArgs = freeCompilerArgs + listOf("-Xlibrary-to-cover=${hostTarget.compilations["main"].output.classesDirs.singleFile.absolutePath}")
         }
