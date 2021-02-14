@@ -2,9 +2,8 @@ name: Run deteKT
 
 on:
   push:
-    branches: [ main ]
+    branches: [ master ]
   pull_request:
-    branches: [ main ]
 
 jobs:
   detekt_check:
