@@ -1,0 +1,35 @@
+# https://docs.docker.com/engine/swarm/stack-deploy/
+# $ ./gradlew build  # create executable jars
+# $ docker-compose build  # build docker images
+# $ docker service create --name registry --publish published=6000,target=5000 registry:2  # create a throwaway local registry
+# $ docker-compose push  # push images to local registry
+# todo: copy configuration files from repo to host
+# $ docker stack deploy --compose-file docker-compose.yaml save
+version: '3.9'
+
+services:
+  orchestrator:
+    # todo: set version from gradle, otherwise will be `latest`
+    image: 127.0.0.1:6000/save-orchestrator
+    build: save-orchestrator  # location of Dockerfile
+    ports:
+      - "5100:5100"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+  backend:
+    # todo: set version from gradle
+    image: 127.0.0.1:6000/save-backend
+    build: save-backend
+    ports:
+      - "5000:5000"
+  prometheus:
+    image: prom/prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      # todo: store yml in repo
+      - "/path/to/prometheus.yml:/etc/prometheus/prometheus.yml"
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "9100:3000"
