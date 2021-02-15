@@ -21,7 +21,7 @@ import kotlinx.serialization.modules.SerializersModule
 
 @Suppress("INLINE_CLASS_CAN_BE_USED")
 class SaveAgentTest {
-    private val saveAgentForTest = SaveAgent(httpClient = HttpClient(MockEngine) {
+    private val saveAgentForTest = SaveAgent(AgentConfiguration(), httpClient = HttpClient(MockEngine) {
         install(JsonFeature) {
             serializer = KotlinxSerializer(Json {
                 serializersModule = SerializersModule {

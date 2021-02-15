@@ -4,7 +4,6 @@ package org.cqfn.save.agent
 
 import com.benasher44.uuid.uuid4
 import io.ktor.client.HttpClient
-import io.ktor.client.features.HttpSend
 import io.ktor.client.features.HttpTimeout
 import io.ktor.client.features.json.JsonFeature
 import io.ktor.client.features.json.serializer.KotlinxSerializer
@@ -29,8 +28,7 @@ import kotlinx.serialization.modules.SerializersModule
  * A main class for SAVE Agent
  */
 @OptIn(KtorExperimentalAPI::class)
-class SaveAgent(private val backendUrl: String = "http://localhost:5000",
-                private val orchestratorUrl: String = "http://localhost:5100",
+class SaveAgent(private val config: AgentConfiguration,
                 private val httpClient: HttpClient = HttpClient {
                     install(JsonFeature) {
                         serializer = KotlinxSerializer(Json {
@@ -41,7 +39,7 @@ class SaveAgent(private val backendUrl: String = "http://localhost:5000",
                         })
                     }
                     install(HttpTimeout) {
-                        requestTimeoutMillis = 1000
+                        requestTimeoutMillis = config.requestTimeoutMillis
                     }
                 }
 ) {
@@ -51,7 +49,7 @@ class SaveAgent(private val backendUrl: String = "http://localhost:5000",
      */
     val state = AtomicReference(AgentState.IDLE)
     private val isStopped = atomic(false)
-    private lateinit var saveProcessJob: Job
+    private var saveProcessJob: Job? = null
 
     /**
      * @return Unit
@@ -69,6 +67,7 @@ class SaveAgent(private val backendUrl: String = "http://localhost:5000",
     fun stop() {
         println("Stopping agent")
         httpClient.close()
+        if (saveProcessJob?.isActive == true) saveProcessJob?.cancel()
         isStopped.getAndSet(true)
     }
 
@@ -79,7 +78,7 @@ class SaveAgent(private val backendUrl: String = "http://localhost:5000",
             try {
                 when (deferred.await()) {
                     is NewJobResponse -> {
-                        require(::saveProcessJob.isInitialized.not() || saveProcessJob.isCompleted) {
+                        require(saveProcessJob == null || saveProcessJob?.isCompleted == true) {
                             "Shouldn't start new process when there is the previous running"
                         }
                         saveProcessJob = launch {
@@ -97,8 +96,8 @@ class SaveAgent(private val backendUrl: String = "http://localhost:5000",
                 println("Exception during heartbeat: ${e.message}")
             }
             // todo: start waiting after request was sent, not after response?
-            println("Waiting for 15 sec")
-            delay(15_000)
+            println("Waiting for ${config.heartbeatIntervalMillis} sec")
+            delay(config.heartbeatIntervalMillis)
         }
     }
 
@@ -122,7 +121,7 @@ class SaveAgent(private val backendUrl: String = "http://localhost:5000",
     internal suspend fun sendHeartbeat(): HeartbeatResponse {
         // log.trace("Sending heartbeat to $orchestratorUrl")
         // if current state is IDLE or FINISHED, should accept new jobs as a response
-        return httpClient.post("$orchestratorUrl/heartbeat") {
+        return httpClient.post("${config.orchestratorUrl}/heartbeat") {
             contentType(ContentType.Application.Json)
             accept(ContentType.Application.Json)
             body = Heartbeat(id, state.value, 0)
@@ -134,8 +133,8 @@ class SaveAgent(private val backendUrl: String = "http://localhost:5000",
             postExecutionData(executionData)
         }
         while (result.isFailure) {
-            println("Backend is unreachable, will retry in 1 second. Reason:  ${result.exceptionOrNull()?.message}")
-            delay(1_000)
+            println("Backend is unreachable, will retry in ${config.executionDataRequestRetryMillis} second. Reason:  ${result.exceptionOrNull()?.message}")
+            delay(config.executionDataRequestRetryMillis)
             result = runCatching {
                 postExecutionData(executionData)
             }
@@ -143,7 +142,7 @@ class SaveAgent(private val backendUrl: String = "http://localhost:5000",
     }
 
     private suspend fun postExecutionData(executionData: ExecutionData) {
-        httpClient.post<Unit>("$backendUrl/executionData") {
+        httpClient.post<Unit>("${config.backendUrl}/executionData") {
             contentType(ContentType.Application.Json)
             body = executionData
         }
