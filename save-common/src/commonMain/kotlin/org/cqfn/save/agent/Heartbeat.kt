@@ -9,6 +9,7 @@ import kotlinx.serialization.Serializable
 /**
  * A heartbeat sent from Agent to Orchestrator.
  *
+ * @property agentId unique ID of the agent which sent the heartbeat
  * @property state current state of the Agent
  * @property percentCompletion percentage of completed jobs, integer 0..100
  */

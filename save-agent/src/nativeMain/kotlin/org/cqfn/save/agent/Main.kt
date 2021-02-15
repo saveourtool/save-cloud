@@ -2,7 +2,7 @@
  * Main entrypoint for SAVE Agent
  */
 
-@file:Suppress("FILE_NAME_INCORRECT", "PACKAGE_NAME_INCORRECT_PATH")
+@file:Suppress("PACKAGE_NAME_INCORRECT_PATH")
 
 package org.cqfn.save.agent
 

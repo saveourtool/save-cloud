@@ -17,7 +17,6 @@ import platform.posix.system
 import kotlin.native.concurrent.AtomicReference
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -43,11 +42,11 @@ class SaveAgent(private val config: AgentConfiguration,
                     }
                 }
 ) {
-    private val id = uuid4().toString()
     /**
      * The current [AgentState] of this agent
      */
     val state = AtomicReference(AgentState.IDLE)
+    private val id = uuid4().toString()
     private val isStopped = atomic(false)
     private var saveProcessJob: Job? = null
 
@@ -67,37 +66,43 @@ class SaveAgent(private val config: AgentConfiguration,
     fun stop() {
         println("Stopping agent")
         httpClient.close()
-        if (saveProcessJob?.isActive == true) saveProcessJob?.cancel()
+        if (saveProcessJob?.isActive == true) {
+            saveProcessJob?.cancel()
+        }
         isStopped.getAndSet(true)
     }
 
+    @Suppress("WHEN_WITHOUT_ELSE")  // when with sealed class
     private suspend fun startHeartbeats() = coroutineScope {
         println("Scheduling heartbeats")
         while (isStopped.value.not()) {
-            val deferred = async { sendHeartbeat() }
-            try {
-                when (deferred.await()) {
-                    is NewJobResponse -> {
-                        require(saveProcessJob == null || saveProcessJob?.isCompleted == true) {
-                            "Shouldn't start new process when there is the previous running"
-                        }
-                        saveProcessJob = launch {
-                            // new job received from Orchestrator, spawning SAVE CLI process
-                            startSaveProcess()
-                        }
+            val response = runCatching { sendHeartbeat() }
+            if (response.isSuccess) {
+                when (response.getOrNull()) {
+                    is NewJobResponse -> maybeStartSaveProcess()
+                    TerminatingResponse -> {
+                        println("Terminating the agent because termination signal has been received")
+                        stop()
                     }
-                    TerminatingResponse -> stop()
                     EmptyResponse -> Unit  // do nothing
-                    else -> {
-                        // this is a generated else block
-                    }
                 }
-            } catch (e: Exception) {
-                println("Exception during heartbeat: ${e.message}")
+            } else {
+                println("Exception during heartbeat: ${response.exceptionOrNull()?.message}")
             }
             // todo: start waiting after request was sent, not after response?
             println("Waiting for ${config.heartbeatIntervalMillis} sec")
             delay(config.heartbeatIntervalMillis)
+        }
+    }
+
+    private suspend fun maybeStartSaveProcess() = coroutineScope {
+        if (saveProcessJob?.isCompleted == false) {
+            println("Shouldn't start new process when there is the previous running")
+        } else {
+            saveProcessJob = launch {
+                // new job received from Orchestrator, spawning SAVE CLI process
+                startSaveProcess()
+            }
         }
     }
 
