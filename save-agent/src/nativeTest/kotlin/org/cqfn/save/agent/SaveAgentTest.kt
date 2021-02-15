@@ -33,7 +33,8 @@ class SaveAgentTest {
         engine {
             addHandler { request ->
                 when (request.url.encodedPath) {
-                    "/heartbeat" -> respond(Json.encodeToString(HeartbeatResponse.serializer(), EmptyResponse),
+                    "/heartbeat" -> respond(
+                        Json.encodeToString(HeartbeatResponse.serializer(), EmptyResponse),
                         HttpStatusCode.OK,
                         headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString())
                     )

@@ -32,6 +32,13 @@ jobs:
             ~/.gradle/wrapper/
           key: ${{ runner.os }}-gradle-build-${{ hashFiles('**/*.gradle*') }}
           restore-keys: ${{ runner.os }}-gradle-build
+      - name: Cache konan
+        uses: actions/cache@v2
+        with:
+          path: ~/.konan
+          key: ${{ runner.os }}-gradle-konan-${{ hashFiles('**/*.gradle.kts') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-konan-
       # https://gvisor.dev/docs/user_guide/install/
       - name: Install gvisor runsc runtime
         run: |

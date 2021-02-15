@@ -13,7 +13,9 @@ import kotlinx.serialization.Serializable
  * @property percentCompletion percentage of completed jobs, integer 0..100
  */
 @Serializable
-data class Heartbeat(val state: AgentState, val percentCompletion: Int) {
+data class Heartbeat(val agentId: String,
+                     val state: AgentState,
+                     val percentCompletion: Int) {
     init {
         require(percentCompletion in 0..100) { "percentCompletion should be in 0..100, but is $percentCompletion" }
     }

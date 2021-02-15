@@ -2,6 +2,7 @@
 
 package org.cqfn.save.agent
 
+import com.benasher44.uuid.uuid4
 import io.ktor.client.HttpClient
 import io.ktor.client.features.HttpTimeout
 import io.ktor.client.features.json.JsonFeature
@@ -41,6 +42,7 @@ class SaveAgent(private val backendUrl: String = "http://localhost:5000",
                     }
                 }
 ) {
+    val id = uuid4().toString()
     /**
      * The current [AgentState] of this agent
      */
@@ -115,17 +117,17 @@ class SaveAgent(private val backendUrl: String = "http://localhost:5000",
      * @return a [HeartbeatResponse] from Orchestrator
      */
     internal suspend fun sendHeartbeat(): HeartbeatResponse {
-        println("Sending heartbeat to $backendUrl")
+        println("Sending heartbeat to $orchestratorUrl")
         // if current state is IDLE or FINISHED, should accept new jobs as a response
-        return httpClient.post("$backendUrl/heartbeat") {
+        return httpClient.post("$orchestratorUrl/heartbeat") {
             contentType(ContentType.Application.Json)
             accept(ContentType.Application.Json)
-            body = Heartbeat(state.value, 0)
+            body = Heartbeat(id, state.value, 0)
         }
     }
 
     private suspend fun sendExecutionData() {
-        httpClient.post<Unit>("$orchestratorUrl/executionData") {
+        httpClient.post<Unit>("$backendUrl/executionData") {
             contentType(ContentType.Application.Json)
             body = ExecutionData(emptyList())
         }
