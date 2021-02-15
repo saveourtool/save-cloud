@@ -4,6 +4,7 @@ package org.cqfn.save.agent
 
 import com.benasher44.uuid.uuid4
 import io.ktor.client.HttpClient
+import io.ktor.client.features.HttpSend
 import io.ktor.client.features.HttpTimeout
 import io.ktor.client.features.json.JsonFeature
 import io.ktor.client.features.json.serializer.KotlinxSerializer
@@ -11,6 +12,7 @@ import io.ktor.client.request.accept
 import io.ktor.client.request.post
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
+import io.ktor.util.KtorExperimentalAPI
 import platform.posix.system
 
 import kotlin.native.concurrent.AtomicReference
@@ -26,6 +28,7 @@ import kotlinx.serialization.modules.SerializersModule
 /**
  * A main class for SAVE Agent
  */
+@OptIn(KtorExperimentalAPI::class)
 class SaveAgent(private val backendUrl: String = "http://localhost:5000",
                 private val orchestratorUrl: String = "http://localhost:5100",
                 private val httpClient: HttpClient = HttpClient {
@@ -42,7 +45,7 @@ class SaveAgent(private val backendUrl: String = "http://localhost:5000",
                     }
                 }
 ) {
-    val id = uuid4().toString()
+    private val id = uuid4().toString()
     /**
      * The current [AgentState] of this agent
      */
@@ -57,12 +60,15 @@ class SaveAgent(private val backendUrl: String = "http://localhost:5000",
         println("Starting agent")
         val heartbeatsJob = launch { startHeartbeats() }
         heartbeatsJob.join()
+        println("Heartbeats job is done")
     }
 
     /**
      * Shutdown the Agent
      */
     fun stop() {
+        println("Stopping agent")
+        httpClient.close()
         isStopped.getAndSet(true)
     }
 
@@ -103,11 +109,8 @@ class SaveAgent(private val backendUrl: String = "http://localhost:5000",
         // blocking execution of OS process
         // val code = saveAgent.runSave(emptyList())
         state.value = AgentState.FINISHED
-        val deferred = async {
-            // todo: read data from files here
-            sendExecutionData()
-        }
-        deferred.await()
+        // todo: read data from files here
+        sendExecutionData(ExecutionData(emptyList()))
         state.value = AgentState.IDLE
     }
 
@@ -117,7 +120,7 @@ class SaveAgent(private val backendUrl: String = "http://localhost:5000",
      * @return a [HeartbeatResponse] from Orchestrator
      */
     internal suspend fun sendHeartbeat(): HeartbeatResponse {
-        println("Sending heartbeat to $orchestratorUrl")
+        // log.trace("Sending heartbeat to $orchestratorUrl")
         // if current state is IDLE or FINISHED, should accept new jobs as a response
         return httpClient.post("$orchestratorUrl/heartbeat") {
             contentType(ContentType.Application.Json)
@@ -126,10 +129,23 @@ class SaveAgent(private val backendUrl: String = "http://localhost:5000",
         }
     }
 
-    private suspend fun sendExecutionData() {
+    private suspend fun sendExecutionData(executionData: ExecutionData): Unit = coroutineScope {
+        var result = runCatching {
+            postExecutionData(executionData)
+        }
+        while (result.isFailure) {
+            println("Backend is unreachable, will retry in 1 second. Reason:  ${result.exceptionOrNull()?.message}")
+            delay(1_000)
+            result = runCatching {
+                postExecutionData(executionData)
+            }
+        }
+    }
+
+    private suspend fun postExecutionData(executionData: ExecutionData) {
         httpClient.post<Unit>("$backendUrl/executionData") {
             contentType(ContentType.Application.Json)
-            body = ExecutionData(emptyList())
+            body = executionData
         }
     }
 }
