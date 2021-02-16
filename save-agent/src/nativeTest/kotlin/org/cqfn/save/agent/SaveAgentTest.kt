@@ -48,7 +48,7 @@ class SaveAgentTest {
     @Test
     fun `agent should send heartbeats`() {
         runBlocking {
-            saveAgentForTest.sendHeartbeat()
+            saveAgentForTest.sendHeartbeat(ExecutionProgress(0))
         }
     }
 
