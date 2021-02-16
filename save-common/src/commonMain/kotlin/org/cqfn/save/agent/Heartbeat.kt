@@ -29,6 +29,7 @@ data class ExecutionProgress(val percentCompletion: Int) {
 data class Heartbeat(val agentId: String,
                      val state: AgentState,
                      val executionProgress: ExecutionProgress)
+
 /**
  * A response from Orchestrator to Agent
  */

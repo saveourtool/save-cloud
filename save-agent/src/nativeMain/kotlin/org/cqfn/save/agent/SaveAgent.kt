@@ -16,7 +16,6 @@ import io.ktor.util.KtorExperimentalAPI
 import platform.posix.system
 
 import kotlin.native.concurrent.AtomicReference
-import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
@@ -107,6 +106,7 @@ class SaveAgent(private val config: AgentConfiguration,
     private fun runSave(cliArgs: List<String>) = platform.posix.system("./save ${cliArgs.joinToString(" ")}")
 
     /**
+     * @param executionProgress execution progress that will be sent in a heartbeat message
      * @return a [HeartbeatResponse] from Orchestrator
      */
     internal suspend fun sendHeartbeat(executionProgress: ExecutionProgress): HeartbeatResponse {

@@ -34,7 +34,7 @@ class SaveAgentTest {
             addHandler { request ->
                 when (request.url.encodedPath) {
                     "/heartbeat" -> respond(
-                        Json.encodeToString(HeartbeatResponse.serializer(), EmptyResponse),
+                        Json.encodeToString(HeartbeatResponse.serializer(), ContinueResponse),
                         HttpStatusCode.OK,
                         headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString())
                     )
@@ -58,6 +58,6 @@ class SaveAgentTest {
         runBlocking { saveAgentForTest.startSaveProcess() }
         println("Waiting for 5 sec in test")
         delay(5_000)  // todo: proper criterion of SAVE CLI termination
-        assertEquals(AgentState.IDLE, saveAgentForTest.state.value)
+        assertEquals(AgentState.FINISHED, saveAgentForTest.state.value)
     }
 }
