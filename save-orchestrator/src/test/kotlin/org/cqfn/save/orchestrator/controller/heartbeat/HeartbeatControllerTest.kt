@@ -1,10 +1,8 @@
 package org.cqfn.save.orchestrator.controller.heartbeat
 
 import org.cqfn.save.orchestrator.model.AgentState
-import org.cqfn.save.orchestrator.model.EmptyResponse
 import org.cqfn.save.orchestrator.model.Heartbeat
 import org.cqfn.save.orchestrator.model.NewJobResponse
-import org.cqfn.save.orchestrator.model.TerminatingResponse
 import org.cqfn.save.orchestrator.service.AgentService
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
