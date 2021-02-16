@@ -9,6 +9,7 @@ import io.ktor.client.features.json.JsonFeature
 import io.ktor.client.features.json.serializer.KotlinxSerializer
 import io.ktor.client.request.accept
 import io.ktor.client.request.post
+import io.ktor.client.request.url
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.util.KtorExperimentalAPI
@@ -47,7 +48,6 @@ class SaveAgent(private val config: AgentConfiguration,
      */
     val state = AtomicReference(AgentState.IDLE)
     private val id = uuid4().toString()
-    private val isStopped = atomic(false)
     private var saveProcessJob: Job? = null
 
     /**
@@ -57,34 +57,21 @@ class SaveAgent(private val config: AgentConfiguration,
         println("Starting agent")
         val heartbeatsJob = launch { startHeartbeats() }
         heartbeatsJob.join()
-        println("Heartbeats job is done")
-    }
-
-    /**
-     * Shutdown the Agent
-     */
-    fun stop() {
-        println("Stopping agent")
-        httpClient.close()
-        if (saveProcessJob?.isActive == true) {
-            saveProcessJob?.cancel()
-        }
-        isStopped.getAndSet(true)
     }
 
     @Suppress("WHEN_WITHOUT_ELSE")  // when with sealed class
     private suspend fun startHeartbeats() = coroutineScope {
         println("Scheduling heartbeats")
-        while (isStopped.value.not()) {
-            val response = runCatching { sendHeartbeat() }
+        while (true) {
+            val response = runCatching {
+                // TODO: get execution progress here
+                sendHeartbeat(ExecutionProgress(0))
+            }
             if (response.isSuccess) {
                 when (response.getOrNull()) {
                     is NewJobResponse -> maybeStartSaveProcess()
-                    TerminatingResponse -> {
-                        println("Terminating the agent because termination signal has been received")
-                        stop()
-                    }
-                    EmptyResponse -> Unit  // do nothing
+                    WaitResponse -> state.value = AgentState.IDLE
+                    ContinueResponse -> Unit  // do nothing
                 }
             } else {
                 println("Exception during heartbeat: ${response.exceptionOrNull()?.message}")
@@ -112,10 +99,9 @@ class SaveAgent(private val config: AgentConfiguration,
     internal suspend fun startSaveProcess() = coroutineScope {
         // blocking execution of OS process
         // val code = saveAgent.runSave(emptyList())
-        state.value = AgentState.FINISHED
         // todo: read data from files here
         sendExecutionData(ExecutionData(emptyList()))
-        state.value = AgentState.IDLE
+        state.value = AgentState.FINISHED
     }
 
     private fun runSave(cliArgs: List<String>) = platform.posix.system("./save ${cliArgs.joinToString(" ")}")
@@ -123,31 +109,38 @@ class SaveAgent(private val config: AgentConfiguration,
     /**
      * @return a [HeartbeatResponse] from Orchestrator
      */
-    internal suspend fun sendHeartbeat(): HeartbeatResponse {
+    internal suspend fun sendHeartbeat(executionProgress: ExecutionProgress): HeartbeatResponse {
         // log.trace("Sending heartbeat to $orchestratorUrl")
         // if current state is IDLE or FINISHED, should accept new jobs as a response
         return httpClient.post("${config.orchestratorUrl}/heartbeat") {
             contentType(ContentType.Application.Json)
             accept(ContentType.Application.Json)
-            body = Heartbeat(id, state.value, 0)
+            body = Heartbeat(id, state.value, executionProgress)
         }
     }
 
+    /**
+     * Attempt to send execution data to backend, will retry several times, while increasing delay 2 times on each iteration.
+     */
     private suspend fun sendExecutionData(executionData: ExecutionData): Unit = coroutineScope {
-        var result = runCatching {
-            postExecutionData(executionData)
-        }
-        while (result.isFailure) {
-            println("Backend is unreachable, will retry in ${config.executionDataRequestRetryMillis} second. Reason:  ${result.exceptionOrNull()?.message}")
-            delay(config.executionDataRequestRetryMillis)
-            result = runCatching {
+        var retryInterval = config.executionDataInitialRetryMillis
+        repeat(config.executionDataRetryAttempts) { attempt ->
+            val result = runCatching {
                 postExecutionData(executionData)
+            }
+            if (result.isSuccess) {
+                return@repeat
+            } else {
+                println("Backend is unreachable (x$attempt), will retry in $retryInterval second. Reason:  ${result.exceptionOrNull()?.message}")
+                delay(retryInterval)
+                retryInterval *= 2
             }
         }
     }
 
     private suspend fun postExecutionData(executionData: ExecutionData) {
-        httpClient.post<Unit>("${config.backendUrl}/executionData") {
+        httpClient.post<Unit> {
+            url("${config.backendUrl}/executionData")
             contentType(ContentType.Application.Json)
             body = executionData
         }
