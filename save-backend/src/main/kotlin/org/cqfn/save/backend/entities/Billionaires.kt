@@ -7,7 +7,6 @@ import javax.persistence.Id
 
 @Entity
 data class Billionaires(val firstName: String, val lastName: String, val career: String) {
-    constructor() : this("testName", "testLastName", "testCareer")
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     var id: Int? = null
