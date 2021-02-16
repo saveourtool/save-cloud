@@ -2,6 +2,7 @@ package org.cqfn.save.backend
 
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories
 import org.springframework.web.reactive.config.EnableWebFlux
 
 /**
@@ -9,6 +10,7 @@ import org.springframework.web.reactive.config.EnableWebFlux
  */
 @SpringBootApplication
 @EnableWebFlux
+@EnableJpaRepositories(basePackages = ["org.cqfn.save.backend.repository"])
 open class SaveApplication
 
 fun main(args: Array<String>) {
