@@ -6,6 +6,10 @@ import kotlinx.serialization.Serializable
 data class Heartbeat(val agentId: String,
                      val state: AgentState,
                      val percentCompletion: Int) {
+    constructor(): this("test", AgentState.BUSY, 0) {
+
+    }
+
     init {
         require(percentCompletion in 0..100) { "percentCompletion should be in 0..100, but is $percentCompletion" }
     }
@@ -20,5 +24,7 @@ data class Heartbeat(val agentId: String,
 /**
  * @property ids a list of new jobs for this agent
  */
-@Serializable data class NewJobResponse(val ids: List<String>) : HeartbeatResponse()
+@Serializable data class NewJobResponse(val ids: List<String>) : HeartbeatResponse() {
+    constructor() : this(emptyList())
+}
 @Serializable object TerminatingResponse : HeartbeatResponse()
