@@ -20,6 +20,7 @@ dependencies {
     implementation(project(":save-common"))
     implementation("org.springframework.boot:spring-boot-starter-webflux:${Versions.springBoot}")
     implementation("org.springframework.boot:spring-boot-starter-actuator:${Versions.springBoot}")
+    implementation("io.micrometer:micrometer-registry-prometheus:${Versions.micrometer}")  // expose prometheus metrics in actuator
     implementation("org.springframework.security:spring-security-core:${Versions.springSecurity}")
     implementation("org.liquibase:liquibase-core:${Versions.liquibase}")
     implementation("org.hibernate:hibernate-core:${Versions.hibernate}")

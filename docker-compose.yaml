@@ -3,7 +3,7 @@
 # $ docker-compose build  # build docker images
 # $ docker service create --name registry --publish published=6000,target=5000 registry:2  # create a throwaway local registry
 # $ docker-compose push  # push images to local registry
-# todo: copy configuration files from repo to host
+# $ cp save-deploy/* ~/configs
 # $ docker stack deploy --compose-file docker-compose.yaml save
 version: '3.9'
 
@@ -16,19 +16,22 @@ services:
       - "5100:5100"
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
+    labels:
+      - prometheus-job
   backend:
     # todo: set version from gradle
     image: 127.0.0.1:6000/save-backend
     build: save-backend
     ports:
       - "5000:5000"
+    labels:
+      - prometheus-job
   prometheus:
     image: prom/prometheus
     ports:
       - "9090:9090"
     volumes:
-      # todo: store yml in repo
-      - "/path/to/prometheus.yml:/etc/prometheus/prometheus.yml"
+      - "~/configs/prometheus.yml:/etc/prometheus/prometheus.yml"
   grafana:
     image: grafana/grafana
     ports:

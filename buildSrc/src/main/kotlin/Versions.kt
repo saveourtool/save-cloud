@@ -8,4 +8,5 @@ object Versions {
     const val slf4j = "1.7.30"
     const val logback = "1.2.3"
     const val dockerJavaApi = "3.2.7"
+    const val micrometer = "1.6.3"
 }
