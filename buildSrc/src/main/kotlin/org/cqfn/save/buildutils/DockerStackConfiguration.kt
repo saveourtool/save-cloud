@@ -23,6 +23,8 @@ fun Project.createStackDeployTask() {
         }
         description = "Deploy docker stack to docker swarm"
         commandLine("docker", "stack", "deploy", "--compose-file", "docker-compose.yaml", "save")
+        // or just run services locally
+        // commandLine("docker-compose", "up", "-d")
         doLast {
             exec {
                 description = "Stop local docker registry"
