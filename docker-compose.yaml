@@ -9,14 +9,16 @@ services:
       - "5100:5100"
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
-    labels:
-      - "prometheus-job=save-orchestrator"
+    deploy:
+      labels:
+        - "prometheus-job=save-orchestrator"
   backend:
     image: 127.0.0.1:6000/save-backend:0.1.0-SNAPSHOT
     ports:
       - "5000:5000"
-    labels:
-      - "prometheus-job=save-backend"
+    deploy:
+      labels:
+        - "prometheus-job=save-backend"
   prometheus:
     image: prom/prometheus
     user: root  # to access host's docker socket for service discovery, see https://groups.google.com/g/prometheus-users/c/EuEW0qRzXvg/m/0aqKh_ZABQAJ
