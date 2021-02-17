@@ -6,8 +6,9 @@ import javax.persistence.GenerationType
 import javax.persistence.Id
 
 @Entity
-data class Billionaires(val firstName: String, val lastName: String, val career: String) {
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    var id: Int? = null
-}
+class Project(
+    var owner: String,
+    var name: String,
+    var url: String,
+    @Id @GeneratedValue(strategy = GenerationType.AUTO) var id: Int? = null
+)

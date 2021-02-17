@@ -6,8 +6,7 @@ import javax.persistence.GenerationType
 import javax.persistence.Id
 
 @Entity
-data class TestEntity(val value: String) {
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    var id: Long? = null
-}
+class TestEntity(
+    var value: String,
+    @Id @GeneratedValue(strategy = GenerationType.AUTO) var id: Long? = null
+)
