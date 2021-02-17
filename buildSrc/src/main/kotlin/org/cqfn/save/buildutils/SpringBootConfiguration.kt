@@ -2,8 +2,10 @@ package org.cqfn.save.buildutils
 
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.apply
+import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.dependencies
 import org.gradle.kotlin.dsl.named
+import org.springframework.boot.gradle.dsl.SpringBootExtension
 import org.springframework.boot.gradle.plugin.SpringBootPlugin
 import org.springframework.boot.gradle.tasks.bundling.BootBuildImage
 
@@ -16,6 +18,10 @@ fun Project.configureSpringBoot() {
         add("implementation", "io.micrometer:micrometer-registry-prometheus:${Versions.micrometer}")  // expose prometheus metrics in actuator
         add("implementation", "org.springframework.security:spring-security-core:${Versions.springSecurity}")
         add("testImplementation", "org.springframework.boot:spring-boot-starter-test:${Versions.springBoot}")
+    }
+
+    configure<SpringBootExtension> {
+        buildInfo()  // configures `bootBuildInfo` task, which creates META-INF/build-info.properties file
     }
 
     tasks.named<BootBuildImage>("bootBuildImage") {
