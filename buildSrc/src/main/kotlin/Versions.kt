@@ -1,5 +1,6 @@
 object Versions {
-    const val jdk = "1.8"  // jdk version that will be used as kotlin compiler target
+    const val jdk = "11"  // jdk version that will be used as kotlin compiler target
+    const val BP_JVM_VERSION = "11"  // jvm version for spring boot image build
     const val kotlin = "1.4.21"
     const val springBoot = "2.4.2"
     const val springSecurity = "5.4.2"
