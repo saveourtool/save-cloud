@@ -4,7 +4,7 @@ version: '3.9'
 
 services:
   orchestrator:
-    image: 127.0.0.1:6000/save-orchestrator
+    image: 127.0.0.1:6000/save-orchestrator:0.1.0-SNAPSHOT
     ports:
       - "5100:5100"
     volumes:
@@ -12,7 +12,7 @@ services:
     labels:
       - prometheus-job
   backend:
-    image: 127.0.0.1:6000/save-backend
+    image: 127.0.0.1:6000/save-backend:0.1.0-SNAPSHOT
     ports:
       - "5000:5000"
     labels:
