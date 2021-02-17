@@ -19,10 +19,12 @@ services:
       - prometheus-job
   prometheus:
     image: prom/prometheus
+    user: root  # to access host's docker socket for service discovery, see https://groups.google.com/g/prometheus-users/c/EuEW0qRzXvg/m/0aqKh_ZABQAJ
     ports:
       - "9090:9090"
     volumes:
       - "~/configs/prometheus.yml:/etc/prometheus/prometheus.yml"
+      - "/var/run/docker.sock:/var/run/docker.sock"
   grafana:
     image: grafana/grafana
     ports:
