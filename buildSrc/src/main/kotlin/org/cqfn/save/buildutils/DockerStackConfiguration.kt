@@ -8,7 +8,8 @@ import org.springframework.boot.gradle.tasks.bundling.BootBuildImage
 
 fun Project.createStackDeployTask() {
     tasks.register<Exec>("startLocalDockerRegistry") {
-        description = "Start local docker registry for spring boot images"
+        enabled = false
+        description = "Start local docker registry for spring boot images. Disabled, see comment in deployDockerStack task."
         commandLine("docker", "service", "create", "--name", "registry", "--publish", "published=6000,target=5000", "registry:2")
     }
 
@@ -21,15 +22,13 @@ fun Project.createStackDeployTask() {
                 into("${System.getProperty("user.home")}/configs")
             }
         }
-        description = "Deploy docker stack to docker swarm"
+        description = "Deploy to docker swarm. If swarm contains more than one node, some registry for built images is requried."
         commandLine("docker", "stack", "deploy", "--compose-file", "docker-compose.yaml", "save")
-        // or just run services locally
-        // commandLine("docker-compose", "up", "-d")
-        doLast {
-            exec {
-                description = "Stop local docker registry"
-                commandLine("docker", "service", "rm", "registry")
-            }
-        }
+//        doLast {
+//            exec {
+//                description = "Stop local docker registry"
+//                commandLine("docker", "service", "rm", "registry")
+//            }
+//        }
     }
 }

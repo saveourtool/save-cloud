@@ -27,13 +27,8 @@ fun Project.configureSpringBoot() {
     tasks.named<BootBuildImage>("bootBuildImage") {
         dependsOn(rootProject.tasks.getByName("startLocalDockerRegistry"))
         // `host.docker.internal` for win 10?
-        imageName = "localhost:6000/${project.name}:${project.version}"
+        imageName = "127.0.0.1:6000/${project.name}:${project.version}"
         environment = mapOf("BP_JVM_VERSION" to Versions.BP_JVM_VERSION)
-        // setting `isPublish` with temporary local registry seems tricky
-        doLast {
-            exec {
-                commandLine("docker", "push", imageName)
-            }
-        }
+        isPublish = false
     }
 }
