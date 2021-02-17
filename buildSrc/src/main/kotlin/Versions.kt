@@ -7,5 +7,7 @@ object Versions {
     const val slf4j = "1.7.30"
     const val logback = "1.2.3"
     const val dockerJavaApi = "3.2.7"
+    const val ktor = "1.5.1"
+    const val serialization = "1.0.1"
     const val h2 = "1.4.200"
 }

@@ -20,6 +20,9 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: 1.11
+      - name: Install system pacakges
+        # libcurl is needed for ktor-client-curl
+        run: sudo apt-get install libcurl4-openssl-dev
       # todo: consider using https://github.com/burrunan/gradle-cache-action instead
       - name: Cache gradle caches
         uses: actions/cache@v2
@@ -29,6 +32,13 @@ jobs:
             ~/.gradle/wrapper/
           key: ${{ runner.os }}-gradle-build-${{ hashFiles('**/*.gradle*') }}
           restore-keys: ${{ runner.os }}-gradle-build
+      - name: Cache konan
+        uses: actions/cache@v2
+        with:
+          path: ~/.konan
+          key: ${{ runner.os }}-gradle-konan-${{ hashFiles('**/*.gradle.kts') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-konan-
       # https://gvisor.dev/docs/user_guide/install/
       - name: Install gvisor runsc runtime
         run: |
@@ -47,6 +57,7 @@ jobs:
         run: |
           ./gradlew build -x detekt
       - name: Upload test reports
+        if: ${{ failure() }}  # runs only if previous step has failed, the entire workflow will still be marked as failed
         uses: actions/upload-artifact@v2
         with:
           name: gradle-test-report

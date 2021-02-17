@@ -107,7 +107,8 @@ Test framework for Static Analyzers and Compilers
 
 
 # config file
-TOML format 
+TOML format
+```toml
 [test]
 name = SomeTestName
 source = /usr/test/Test.java (optional, first should try to resolve by TestName)
@@ -122,9 +123,9 @@ binaryPath = /usr/bin/
 [static analyzer]
 testType = checker, fixer
 binaryPath = /usr/bin/
+```
 
-
-# can be used as functional tests and as futional tests
+# can be used as functional tests and as functional tests
 
 
  
