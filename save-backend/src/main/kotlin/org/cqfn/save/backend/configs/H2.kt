@@ -17,7 +17,7 @@ class H2 {
     private var webServer: Server? = null
     private val log = LoggerFactory.getLogger(H2::class.java)
 
-    @Value("\${savebackend.h2-console-port}")
+    @Value("\${save.backend.h2-console-port}")
     var h2ConsolePort: Int? = null
 
     @EventListener(ContextRefreshedEvent::class)

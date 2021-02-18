@@ -4,6 +4,13 @@ import  org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     kotlin("jvm")
     id("org.jetbrains.kotlin.plugin.jpa") version Versions.kotlin
+    id("org.jetbrains.kotlin.plugin.allopen") version Versions.kotlin
+}
+
+allOpen {
+    annotation("javax.persistence.Entity")
+    annotation("javax.persistence.Embeddable")
+    annotation("javax.persistence.MappedSuperclass")
 }
 
 tasks.withType<KotlinCompile> {

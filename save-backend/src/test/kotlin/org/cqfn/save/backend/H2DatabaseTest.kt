@@ -1,6 +1,5 @@
 package org.cqfn.save.backend
 
-import org.cqfn.save.backend.entities.Project
 import org.cqfn.save.backend.entities.TestEntity
 import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.repository.TestEntityRepository
