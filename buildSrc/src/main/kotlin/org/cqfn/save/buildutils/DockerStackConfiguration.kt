@@ -21,9 +21,15 @@ fun Project.createStackDeployTask() {
                 from("save-deploy")
                 into("${System.getProperty("user.home")}/configs")
             }
+            description = "Set project version in docker-compose file"
+            val newText = file("$rootDir/docker-compose.yaml.template").readLines()
+                .joinToString(System.lineSeparator()) { it.replace("{{project.version}}", version.toString()) }
+            file("$buildDir/docker-compose.yaml")
+                .apply { createNewFile() }
+                .writeText(newText)
         }
         description = "Deploy to docker swarm. If swarm contains more than one node, some registry for built images is requried."
-        commandLine("docker", "stack", "deploy", "--compose-file", "docker-compose.yaml", "save")
+        commandLine("docker", "stack", "deploy", "--compose-file", "$buildDir/docker-compose.yaml", "save")
 //        doLast {
 //            exec {
 //                description = "Stop local docker registry"
