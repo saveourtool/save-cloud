@@ -27,6 +27,9 @@ services:
     volumes:
       - "~/configs/prometheus.yml:/etc/prometheus/prometheus.yml"
       - "/var/run/docker.sock:/var/run/docker.sock"
+    # this is needed to access node_exporter from inside the container
+    extra_hosts:
+    - "host.docker.internal:host-gateway"
   grafana:
     image: grafana/grafana
     ports:
