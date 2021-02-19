@@ -11,6 +11,6 @@ fun Project.configureVersioning() {
 
     configure<ReckonExtension> {
         scopeFromProp()
-        stageFromProp("rc", "final")  // use -Preckon.stage=final for release; otherwise version string will be based on last commit
+        snapshotFromProp()  // use -Preckon.stage=final for release; otherwise version string will end with `-SNAPSHOT`
     }
 }
