@@ -4,7 +4,13 @@ plugins {
 }
 
 kotlin {
-    jvm()
+    jvm {
+        compilations.all {
+            kotlinOptions {
+                jvmTarget = Versions.jdk
+            }
+        }
+    }
     js(IR).browser()
 
     // setup native compilation
