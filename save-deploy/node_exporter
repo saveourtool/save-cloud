@@ -1,0 +1,1 @@
+OPTIONS=--collector.textfile.directory /home/saveu/3rd-party/node_exporter/textfile_collector  --web.listen-address=":9091"

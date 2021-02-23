@@ -1,4 +1,5 @@
 import org.cqfn.save.buildutils.configureJacoco
+import org.cqfn.save.buildutils.configureSpringBoot
 import  org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -13,9 +14,11 @@ allOpen {
     annotation("javax.persistence.MappedSuperclass")
 }
 
+configureSpringBoot()
+
 tasks.withType<KotlinCompile> {
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = Versions.jdk
     }
 }
 
@@ -25,9 +28,6 @@ tasks.withType<Test> {
 
 dependencies {
     implementation(project(":save-common"))
-    implementation("org.springframework.boot:spring-boot-starter-webflux:${Versions.springBoot}")
-    implementation("org.springframework.boot:spring-boot-starter-actuator:${Versions.springBoot}")
-    implementation("org.springframework.security:spring-security-core:${Versions.springSecurity}")
     implementation("org.liquibase:liquibase-core:${Versions.liquibase}")
     implementation("org.hibernate:hibernate-core:${Versions.hibernate}")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa:${Versions.springBoot}")
@@ -35,7 +35,6 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect:${Versions.kotlin}")
     implementation("org.slf4j:slf4j-api:${Versions.slf4j}")
     implementation("ch.qos.logback:logback-core:${Versions.logback}")
-    testImplementation("org.springframework.boot:spring-boot-starter-test:${Versions.springBoot}")
 }
 
 configureJacoco()

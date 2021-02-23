@@ -1,0 +1,36 @@
+# https://docs.docker.com/engine/swarm/stack-deploy/
+# $ ./gradlew deployDockerStack
+version: '3.9'
+
+services:
+  orchestrator:
+    image: 127.0.0.1:6000/save-orchestrator:{{project.version}}
+    ports:
+      - "5100:5100"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    deploy:
+      labels:
+        - "prometheus-job=save-orchestrator"
+  backend:
+    image: 127.0.0.1:6000/save-backend:{{project.version}}
+    ports:
+      - "5000:5000"
+    deploy:
+      labels:
+        - "prometheus-job=save-backend"
+  prometheus:
+    image: prom/prometheus
+    user: root  # to access host's docker socket for service discovery, see https://groups.google.com/g/prometheus-users/c/EuEW0qRzXvg/m/0aqKh_ZABQAJ
+    ports:
+      - "9090:9090"
+    volumes:
+      - "~/configs/prometheus.yml:/etc/prometheus/prometheus.yml"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    # this is needed to access node_exporter from inside the container
+    extra_hosts:
+    - "host.docker.internal:host-gateway"
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "9100:3000"
