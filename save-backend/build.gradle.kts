@@ -20,7 +20,7 @@ tasks.withType<Test> {
 }
 
 dependencies {
-    implementation(project(":save-common"))
+    api(project(":save-common"))
     implementation("org.liquibase:liquibase-core:${Versions.liquibase}")
     implementation("org.hibernate:hibernate-core:${Versions.hibernate}")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa:${Versions.springBoot}")
