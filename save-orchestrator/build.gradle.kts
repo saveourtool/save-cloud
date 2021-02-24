@@ -27,7 +27,6 @@ dependencies {
     implementation("com.github.docker-java:docker-java-core:${Versions.dockerJavaApi}")
     implementation("com.github.docker-java:docker-java-transport-httpclient5:${Versions.dockerJavaApi}")
     implementation("org.apache.commons:commons-compress:1.20")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:${Versions.serialization}")
     testImplementation("org.springframework.boot:spring-boot-starter-test:${Versions.springBoot}")
 }
 

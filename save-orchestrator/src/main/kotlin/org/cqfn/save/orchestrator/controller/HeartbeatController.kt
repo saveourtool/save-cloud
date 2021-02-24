@@ -1,6 +1,5 @@
 package org.cqfn.save.orchestrator.controller
 
-import org.cqfn.save.agent.AgentState
 import org.cqfn.save.agent.AgentState.*
 import org.cqfn.save.agent.ContinueResponse
 import org.cqfn.save.agent.Heartbeat
@@ -11,6 +10,7 @@ import org.cqfn.save.orchestrator.service.AgentService
 import org.slf4j.LoggerFactory
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.ResponseBody
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
 
