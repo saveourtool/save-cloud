@@ -1,14 +1,12 @@
 package org.cqfn.save.orchestrator.controller
 
-import org.cqfn.save.orchestrator.model.AgentState.BUSY
-import org.cqfn.save.orchestrator.model.AgentState.ERROR
-import org.cqfn.save.orchestrator.model.AgentState.FINISHED
-import org.cqfn.save.orchestrator.model.AgentState.IDLE
-import org.cqfn.save.orchestrator.model.EmptyResponse
-import org.cqfn.save.orchestrator.model.Heartbeat
-import org.cqfn.save.orchestrator.model.HeartbeatResponse
-import org.cqfn.save.orchestrator.model.NewJobResponse
-import org.cqfn.save.orchestrator.model.TerminatingResponse
+import org.cqfn.save.agent.AgentState
+import org.cqfn.save.agent.AgentState.*
+import org.cqfn.save.agent.ContinueResponse
+import org.cqfn.save.agent.Heartbeat
+import org.cqfn.save.agent.HeartbeatResponse
+import org.cqfn.save.agent.NewJobResponse
+import org.cqfn.save.agent.WaitResponse
 import org.cqfn.save.orchestrator.service.AgentService
 import org.slf4j.LoggerFactory
 import org.springframework.web.bind.annotation.PostMapping
@@ -37,11 +35,11 @@ class HeartbeatController(private val agentService: AgentService) {
                 agentService.checkSavedData()
                 Mono.just(NewJobResponse(agentService.setNewTestsIds()))
             }
-            BUSY -> Mono.just(EmptyResponse)
+            BUSY -> Mono.just(WaitResponse)
             ERROR -> {
                 // Maybe set tests in TerminatingResponse
                 agentService.resendTestsOnError()
-                Mono.just(TerminatingResponse)
+                Mono.just(ContinueResponse)
             }
         }
     }
