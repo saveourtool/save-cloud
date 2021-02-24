@@ -4,17 +4,10 @@ import  org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("jvm")
-    kotlin("plugin.allopen") version Versions.kotlin
     id("org.jetbrains.kotlin.plugin.jpa") version Versions.kotlin
 }
 
-allOpen {
-    annotation("javax.persistence.Entity")
-    annotation("javax.persistence.Embeddable")
-    annotation("javax.persistence.MappedSuperclass")
-}
-
-configureSpringBoot()
+configureSpringBoot(true)
 
 tasks.withType<KotlinCompile> {
     kotlinOptions {
