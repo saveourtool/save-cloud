@@ -1,5 +1,6 @@
 package org.cqfn.save.backend
 
+import org.cqfn.save.backend.repository.ProjectRepository
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
@@ -9,9 +10,16 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.web.reactive.function.BodyInserters
 import kotlin.io.path.ExperimentalPathApi
+import org.springframework.boot.test.mock.mockito.MockBean
+
+
+
 
 @WebFluxTest
 class DownloadFilesTest {
+    @MockBean
+    var repository: ProjectRepository? = null
+
     @Autowired
     lateinit var webClient: WebTestClient
 
