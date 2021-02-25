@@ -1,5 +1,11 @@
 package org.cqfn.save.entities
 
+/**
+ * @property owner
+ * @property name
+ * @property url
+ * @property id
+ */
 @Entity
 class Project(
     var owner: String,
