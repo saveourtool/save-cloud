@@ -11,7 +11,6 @@ import io.ktor.client.request.HttpResponseData
 import io.ktor.client.request.accept
 import io.ktor.client.request.post
 import io.ktor.client.request.url
-import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
@@ -108,9 +107,7 @@ class SaveAgent(private val config: AgentConfiguration,
                 sendExecutionData(ExecutionData(emptyList()))
                 state.value = AgentState.FINISHED
             }
-            else -> {
-                state.value = AgentState.CLI_FAILED
-            }
+            else -> state.value = AgentState.CLI_FAILED
         }
     }
 
@@ -156,11 +153,9 @@ class SaveAgent(private val config: AgentConfiguration,
         }
     }
 
-    private suspend fun postExecutionData(executionData: ExecutionData): HttpResponseData {
-        return httpClient.post<HttpResponseData> {
-            url("${config.backendUrl}/executionData")
-            contentType(ContentType.Application.Json)
-            body = executionData
-        }
+    private suspend fun postExecutionData(executionData: ExecutionData) = httpClient.post<HttpResponseData> {
+        url("${config.backendUrl}/executionData")
+        contentType(ContentType.Application.Json)
+        body = executionData
     }
 }
