@@ -140,7 +140,7 @@ class SaveAgent(private val config: AgentConfiguration,
                 postExecutionData(executionData)
             }
             if (result.isSuccess && result.getOrNull()?.statusCode == HttpStatusCode.OK) {
-                return@repeat
+                return
             } else {
                 val reason = if (result.isSuccess && result.getOrNull()?.statusCode != HttpStatusCode.OK) {
                     state.value = AgentState.BACKEND_FAILURE
