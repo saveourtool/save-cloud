@@ -4,7 +4,6 @@ import  org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("jvm")
-    id("org.jetbrains.kotlin.plugin.jpa") version Versions.kotlin
 }
 
 configureSpringBoot(true)

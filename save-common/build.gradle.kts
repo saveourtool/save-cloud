@@ -1,6 +1,7 @@
 plugins {
     kotlin("multiplatform")
     kotlin("plugin.serialization") version Versions.kotlin
+    id("org.jetbrains.kotlin.plugin.jpa") version Versions.kotlin
 }
 
 kotlin {
