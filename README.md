@@ -10,3 +10,6 @@ that regularly updates tests and discuss the best practices for particular progr
 ## What is SAVE Cloud?
 SAVE Cloud is a service for executing tests using the SAVE tool. You can provide a link to a git repository with a project, configured to
 run SAVE. These tests will then be executed server-side, providing you access to execution results, statistics and logs.
+
+## Build
+To build the project and run all tests, execute `./gradlew build`. For more detailed instructions, including deployment instructions, see [save-deploy/README.md](save-deploy/README.md).
