@@ -17,11 +17,11 @@ allprojects {
         mavenCentral()
     }
     configureDiktat()
-    configureDetekt()
+    // configureDetekt()
 }
 
 createStackDeployTask()
 configureVersioning()
 createDiktatTask()
-createDetektTask()
+// createDetektTask()
 installGitHooks()

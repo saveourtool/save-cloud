@@ -25,6 +25,7 @@ kotlin {
     val hostTarget = when {
         os.isLinux -> linuxX64()
         os.isWindows -> mingwX64()
+        os.isMacOsX -> macosX64()
         else -> throw GradleException("Host OS '${os.name}' is not supported in Kotlin/Native $project.")
     }
 
@@ -37,6 +38,8 @@ kotlin {
         val jvmMain by getting {
             dependencies {
                 implementation("org.hibernate.javax.persistence:hibernate-jpa-2.1-api:${Versions.jpa}")
+                implementation("org.springframework.boot:spring-boot-starter-webflux:${Versions.springBoot}")
+                implementation("org.springframework.boot:spring-boot-starter-data-jpa:${Versions.springBoot}")
             }
         }
     }

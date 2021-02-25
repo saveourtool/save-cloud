@@ -10,6 +10,7 @@ kotlin {
     val hostTarget = when {
         os.isLinux -> linuxX64()
         os.isWindows -> mingwX64()  // you'll need to install msys2 and run `pacman -S mingw-w64-x86_64-curl` to have libcurl for ktor-client
+        os.isMacOsX -> macosX64()
         else -> throw GradleException("Host OS '${os.name}' is not supported in Kotlin/Native $project.")
     }
 
