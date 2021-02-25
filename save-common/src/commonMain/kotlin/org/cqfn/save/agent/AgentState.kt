@@ -8,7 +8,9 @@ import kotlinx.serialization.Serializable
 @Serializable
 enum class AgentState {
     BUSY,
-    ERROR,
+    CLI_FAILED,
+    BACKEND_FAILURE,
+    BACKEND_UNREACHABLE,
     FINISHED,
     IDLE,
     ;
