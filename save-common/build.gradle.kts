@@ -27,5 +27,10 @@ kotlin {
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:${Versions.serialization}")
             }
         }
+        val jvmMain by getting {
+            dependencies {
+                implementation("org.springframework.boot:spring-boot-starter-data-jpa:${Versions.springBoot}")
+            }
+        }
     }
 }
