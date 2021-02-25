@@ -7,10 +7,13 @@ import io.ktor.client.HttpClient
 import io.ktor.client.features.HttpTimeout
 import io.ktor.client.features.json.JsonFeature
 import io.ktor.client.features.json.serializer.KotlinxSerializer
+import io.ktor.client.request.HttpResponseData
 import io.ktor.client.request.accept
 import io.ktor.client.request.post
 import io.ktor.client.request.url
+import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.util.KtorExperimentalAPI
 import platform.posix.system
@@ -97,13 +100,21 @@ class SaveAgent(private val config: AgentConfiguration,
      */
     internal suspend fun startSaveProcess() = coroutineScope {
         // blocking execution of OS process
-        // val code = saveAgent.runSave(emptyList())
-        // todo: read data from files here
-        sendExecutionData(ExecutionData(emptyList()))
-        state.value = AgentState.FINISHED
+        state.value = AgentState.BUSY
+        val code = runSave(emptyList())
+        when (code) {
+            0 -> {
+                // todo: read data from files here
+                sendExecutionData(ExecutionData(emptyList()))
+                state.value = AgentState.FINISHED
+            }
+            else -> {
+                state.value = AgentState.CLI_FAILED
+            }
+        }
     }
 
-    private fun runSave(cliArgs: List<String>) = platform.posix.system("./save ${cliArgs.joinToString(" ")}")
+    private fun runSave(cliArgs: List<String>) = platform.posix.system("sleep 5")  // fixme: actually run save CLI here
 
     /**
      * @param executionProgress execution progress that will be sent in a heartbeat message
@@ -128,18 +139,25 @@ class SaveAgent(private val config: AgentConfiguration,
             val result = runCatching {
                 postExecutionData(executionData)
             }
-            if (result.isSuccess) {
+            if (result.isSuccess && result.getOrNull()?.statusCode == HttpStatusCode.OK) {
                 return@repeat
             } else {
-                println("Backend is unreachable (x$attempt), will retry in $retryInterval second. Reason:  ${result.exceptionOrNull()?.message}")
+                val reason = if (result.isSuccess && result.getOrNull()?.statusCode != HttpStatusCode.OK) {
+                    state.value = AgentState.BACKEND_FAILURE
+                    "Backend returned status ${result.getOrNull()?.statusCode}"
+                } else {
+                    state.value = AgentState.BACKEND_UNREACHABLE
+                    "Backend is unreachable, ${result.exceptionOrNull()?.message}"
+                }
+                println("Cannot post execution data (x$attempt), will retry in $retryInterval second. Reason: $reason")
                 delay(retryInterval)
                 retryInterval *= 2
             }
         }
     }
 
-    private suspend fun postExecutionData(executionData: ExecutionData) {
-        httpClient.post<Unit> {
+    private suspend fun postExecutionData(executionData: ExecutionData): HttpResponseData {
+        return httpClient.post<HttpResponseData> {
             url("${config.backendUrl}/executionData")
             contentType(ContentType.Application.Json)
             body = executionData
