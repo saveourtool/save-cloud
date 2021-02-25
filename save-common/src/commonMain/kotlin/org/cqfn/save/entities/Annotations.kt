@@ -1,16 +1,13 @@
 package org.cqfn.save.entities
 
-@OptIn
+@OptIn(ExperimentalMultiplatform::class)
 @OptionalExpectation
-@ExperimentalMultiplatform
 expect annotation class Entity()
 
-@OptIn
+@OptIn(ExperimentalMultiplatform::class)
 @OptionalExpectation
-@ExperimentalMultiplatform
 expect annotation class Id()
 
-@OptIn
+@OptIn(ExperimentalMultiplatform::class)
 @OptionalExpectation
-@ExperimentalMultiplatform
 expect annotation class GeneratedValue()
