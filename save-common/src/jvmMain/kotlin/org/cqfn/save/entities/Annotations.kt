@@ -1,3 +1,7 @@
+/**
+ * This file contains actual annotation from Spring data jpa
+ */
+
 package org.cqfn.save.entities
 
 import javax.persistence.Entity
