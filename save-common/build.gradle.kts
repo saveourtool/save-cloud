@@ -1,10 +1,16 @@
 plugins {
     kotlin("multiplatform")
     kotlin("plugin.serialization") version Versions.kotlin
-    id("org.jetbrains.kotlin.plugin.jpa") version Versions.kotlin
+    kotlin("plugin.allopen")
+    kotlin("plugin.jpa") version Versions.kotlin
 }
 
+
 kotlin {
+    allOpen {
+        annotation("javax.persistence.Entity")
+    }
+
     jvm {
         compilations.all {
             kotlinOptions {
