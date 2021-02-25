@@ -10,6 +10,7 @@ import org.springframework.boot.gradle.plugin.SpringBootPlugin
 import org.springframework.boot.gradle.tasks.bundling.BootBuildImage
 import org.jetbrains.kotlin.allopen.gradle.AllOpenGradleSubplugin
 import org.jetbrains.kotlin.allopen.gradle.AllOpenExtension
+import org.jetbrains.kotlin.allopen.gradle.SpringGradleSubplugin
 
 fun Project.configureSpringBoot(withSpringDataJpa: Boolean = false) {
     apply<SpringBootPlugin>()
@@ -25,6 +26,8 @@ fun Project.configureSpringBoot(withSpringDataJpa: Boolean = false) {
     configure<SpringBootExtension> {
         buildInfo()  // configures `bootBuildInfo` task, which creates META-INF/build-info.properties file
     }
+
+    apply<SpringGradleSubplugin>()
 
     if (withSpringDataJpa) {
         apply<AllOpenGradleSubplugin>()

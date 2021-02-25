@@ -30,3 +30,16 @@ dependencies {
 }
 
 configureJacoco()
+
+tasks.register("addFrontendToResources") {
+    dependsOn(":save-frontend:browserDistribution")
+    description = "Copy frontend files (html, js etc.) to this project's resources dir"
+    doFirst {
+        mkdir("$buildDir/resources/main/static")
+    }
+    copy {
+        from("${rootProject.project("save-frontend").buildDir}/distributions")
+        into("$buildDir/resources/main/static")
+    }
+}
+tasks.getByName("processResources").dependsOn("addFrontendToResources")

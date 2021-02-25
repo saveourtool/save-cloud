@@ -10,8 +10,11 @@ object Versions {
     const val logback = "1.2.3"
     const val dockerJavaApi = "3.2.7"
     const val ktor = "1.5.1"
+    const val coroutines = "1.4.2"
     const val serialization = "1.0.1"
     const val micrometer = "1.6.3"
     const val h2 = "1.4.200"
     const val jpa = "1.0.2.Final"
+    const val react = "17.0.1"
+    const val kotlinReact = "17.0.1-pre.142-kotlin-1.4.21"
 }

@@ -2,9 +2,12 @@ package org.cqfn.save.backend
 
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
+import org.springframework.context.annotation.Bean
+import org.springframework.core.io.ClassPathResource
 import org.springframework.boot.autoconfigure.domain.EntityScan
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories
 import org.springframework.web.reactive.config.EnableWebFlux
+import org.springframework.web.reactive.function.server.RouterFunctions.resources
 
 /**
  * An entrypoint for spring for save-backend
