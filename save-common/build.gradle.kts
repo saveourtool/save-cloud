@@ -1,9 +1,16 @@
 plugins {
     kotlin("multiplatform")
     kotlin("plugin.serialization") version Versions.kotlin
+    kotlin("plugin.allopen")
+    kotlin("plugin.jpa") version Versions.kotlin
 }
 
+
 kotlin {
+    allOpen {
+        annotation("javax.persistence.Entity")
+    }
+
     jvm {
         compilations.all {
             kotlinOptions {
@@ -25,6 +32,11 @@ kotlin {
         commonMain {
             dependencies {
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:${Versions.serialization}")
+            }
+        }
+        val jvmMain by getting {
+            dependencies {
+                implementation("org.hibernate.javax.persistence:hibernate-jpa-2.1-api:${Versions.jpa}")
             }
         }
     }

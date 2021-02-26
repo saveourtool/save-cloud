@@ -8,8 +8,10 @@ import org.gradle.kotlin.dsl.named
 import org.springframework.boot.gradle.dsl.SpringBootExtension
 import org.springframework.boot.gradle.plugin.SpringBootPlugin
 import org.springframework.boot.gradle.tasks.bundling.BootBuildImage
+import org.jetbrains.kotlin.allopen.gradle.AllOpenGradleSubplugin
+import org.jetbrains.kotlin.allopen.gradle.AllOpenExtension
 
-fun Project.configureSpringBoot() {
+fun Project.configureSpringBoot(withSpringDataJpa: Boolean = false) {
     apply<SpringBootPlugin>()
 
     dependencies {
@@ -22,6 +24,16 @@ fun Project.configureSpringBoot() {
 
     configure<SpringBootExtension> {
         buildInfo()  // configures `bootBuildInfo` task, which creates META-INF/build-info.properties file
+    }
+
+    if (withSpringDataJpa) {
+        apply<AllOpenGradleSubplugin>()
+
+        configure<AllOpenExtension>() {
+            annotation("javax.persistence.Entity")
+            annotation("javax.persistence.Embeddable")
+            annotation("javax.persistence.MappedSuperclass")
+        }
     }
 
     tasks.named<BootBuildImage>("bootBuildImage") {
