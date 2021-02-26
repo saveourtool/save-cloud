@@ -11,6 +11,10 @@ kotlin {
         annotation("javax.persistence.Entity")
     }
 
+    repositories {
+        maven(url = "https://kotlin.bintray.com/kotlinx/") // it is used for datetime. In future updates it will be jcenter()
+    }
+
     jvm {
         compilations.all {
             kotlinOptions {
@@ -32,6 +36,7 @@ kotlin {
         commonMain {
             dependencies {
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:${Versions.serialization}")
+                implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.1.1")
             }
         }
         val jvmMain by getting {
