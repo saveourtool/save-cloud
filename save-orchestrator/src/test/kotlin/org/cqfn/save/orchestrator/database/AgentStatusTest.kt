@@ -18,6 +18,6 @@ class AgentStatusTest {
     @Test
     fun `check that agent status is in the database`() {
         val statuses = agentStatusRepository.findAll()
-        assertTrue(statuses.any { it.state == AgentState.IDLE && it.time.toString() == "2021-12-31" })
+        assertTrue(statuses.any { it.state == AgentState.IDLE && it.time.toString() == "2021-12-31" && it.agentId.toInt() == 0})
     }
 }
