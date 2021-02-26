@@ -6,13 +6,14 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.core.io.ClassPathResource
 import org.springframework.core.io.Resource
 import org.springframework.http.MediaType.TEXT_HTML
-import org.springframework.web.reactive.function.server.RouterFunctions
 import org.springframework.web.reactive.function.server.router
 
 @Configuration
 class WebConfiguration {
     @Bean
-    fun staticResourceRouter() = RouterFunctions.resources("/**", ClassPathResource("static/"))
+    fun staticResourceRouter() = router {
+        resources("/**", ClassPathResource("static/"))
+    }
 
     @Bean
     fun indexRouter(@Value("classpath:/static/index.html") html: Resource) = router {
