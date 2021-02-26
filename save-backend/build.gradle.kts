@@ -20,6 +20,7 @@ tasks.withType<Test> {
 
 dependencies {
     implementation(project(":save-common"))
+    implementation(project(":save-frontend", "distribution"))  // static resources packed as a jar, will be accessed from classpath
     implementation("org.liquibase:liquibase-core:${Versions.liquibase}")
     implementation("org.hibernate:hibernate-core:${Versions.hibernate}")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa:${Versions.springBoot}")
@@ -30,16 +31,3 @@ dependencies {
 }
 
 configureJacoco()
-
-tasks.register("addFrontendToResources") {
-    dependsOn(":save-frontend:browserDistribution")
-    description = "Copy frontend files (html, js etc.) to this project's resources dir"
-    doFirst {
-        mkdir("$buildDir/resources/main/static")
-    }
-    copy {
-        from("${rootProject.project("save-frontend").buildDir}/distributions")
-        into("$buildDir/resources/main/static")
-    }
-}
-tasks.getByName("processResources").dependsOn("addFrontendToResources")

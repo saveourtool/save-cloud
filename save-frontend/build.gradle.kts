@@ -87,11 +87,17 @@ tasks.withType<org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack>().f
             into("${rootProject.buildDir}/js/packages/save-${project.name}")
         }
     }
-    it.doLast {
-        // remove resources that have been bundled into frontend.js
-        file("${it.destinationDirectory}/scss").deleteRecursively()
-        file("${it.destinationDirectory}/webfonts").deleteRecursively()
-    }
+}
+
+val distribution: Configuration by configurations.creating
+val distributionJarTask by tasks.registering(Jar::class) {
+    archiveClassifier.set("distribution")
+    from("$buildDir/distributions")
+    into("static")
+    exclude("scss", "webfonts")
+}
+artifacts.add(distribution.name, distributionJarTask.get().archiveFile) {
+    builtBy(distributionJarTask)
 }
 
 detekt {
