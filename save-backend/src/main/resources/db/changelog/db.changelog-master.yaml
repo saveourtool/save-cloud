@@ -17,9 +17,6 @@ databaseChangeLog:
               - column:
                   name: owner
                   type: varchar(250)
-                  constraints:
-                    unique: true
-                    nullable: false
               - column:
                   name: name
                   type: varchar(250)
