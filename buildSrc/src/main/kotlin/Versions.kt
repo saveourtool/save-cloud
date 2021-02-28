@@ -14,4 +14,5 @@ object Versions {
     const val micrometer = "1.6.3"
     const val h2 = "1.4.200"
     const val jpa = "1.0.2.Final"
+    const val gson = "2.8.6"
 }
