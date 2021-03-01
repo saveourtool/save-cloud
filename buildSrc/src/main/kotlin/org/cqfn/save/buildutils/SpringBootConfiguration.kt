@@ -39,7 +39,7 @@ fun Project.configureSpringBoot(withSpringDataJpa: Boolean = false) {
     tasks.named<BootBuildImage>("bootBuildImage") {
         dependsOn(rootProject.tasks.getByName("startLocalDockerRegistry"))
         // `host.docker.internal` for win 10?
-        imageName = "127.0.0.1:6000/${project.name}:${project.version}"
+        imageName = "127.0.0.1:6000/${project.name}:${project.versionForDockerImages()}"
         environment = mapOf("BP_JVM_VERSION" to Versions.BP_JVM_VERSION)
         isPublish = false
     }
