@@ -1,0 +1,8 @@
+CREATE TABLE project (
+     id INT AUTO_INCREMENT  PRIMARY KEY,
+     owner VARCHAR(250) NOT NULL,
+     name VARCHAR(250) NOT NULL,
+     url VARCHAR(250) DEFAULT NULL
+);
+
+GO

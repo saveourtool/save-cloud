@@ -10,8 +10,22 @@ plugins {
 liquibase {
     activities {
         // Configuring luiquibase
+        register("main") {
+            arguments = mapOf(
+                "changeLogFile" to "src/main/resources/db/changelog/db.changelog-master.yaml",
+                "url" to "jdbc:h2:mem:testdb",
+                "username" to "test",
+                "password" to "test",
+                "logLevel" to "info"
+            )
+        }
     }
 }
+
+//tasks.register("dev") {
+//    // depend on the liquibase status task
+//    dependsOn("update")
+//}
 
 configureSpringBoot(true)
 
@@ -26,8 +40,12 @@ tasks.withType<Test> {
 }
 
 dependencies {
+    liquibaseRuntime("org.yaml:snakeyaml:1.15")
+    liquibaseRuntime("org.liquibase:liquibase-core:${Versions.liquibase}")
+    liquibaseRuntime("mysql:mysql-connector-java:${Versions.liquibaseMySQLConnector}")
+    liquibaseRuntime("org.liquibase.ext:liquibase-hibernate5:${Versions.liquibaseHibernate5}")
+    liquibaseRuntime(sourceSets.getByName("main").output)
     implementation(project(":save-common"))
-    implementation("org.liquibase:liquibase-core:${Versions.liquibase}")
     implementation("org.hibernate:hibernate-core:${Versions.hibernate}")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa:${Versions.springBoot}")
     implementation("com.h2database:h2:${Versions.h2}")
