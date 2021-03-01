@@ -1,6 +1,6 @@
-![Build and test](https://github.com/cqfn/save/workflows/Build%20and%20test/badge.svg)
-[![License](https://img.shields.io/github/license/cqfn/save)](https://github.com/cqfn/save/blob/master/LICENSE)
-[![codecov](https://codecov.io/gh/cqfn/save/branch/master/graph/badge.svg)](https://codecov.io/gh/cqfn/save)
+![Build and test](https://github.com/cqfn/save-cloud/workflows/Build%20and%20test/badge.svg)
+[![License](https://img.shields.io/github/license/cqfn/save-cloud)](https://github.com/cqfn/save-cloud/blob/master/LICENSE)
+[![codecov](https://codecov.io/gh/cqfn/save-cloud/branch/master/graph/badge.svg)](https://codecov.io/gh/cqfn/save-cloud)
 
 ## What is SAVE?
 [SAVE](https://github.com/cqfn/save) - is an eco-system for measuring, testing and certification of static code analyzers. Instead of writing your test framework SAVE will provide you a command line application with a
