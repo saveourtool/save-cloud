@@ -7,6 +7,21 @@ plugins {
     id("org.liquibase.gradle") version Versions.liquibaseGradlePlugin
 }
 
+liquibase {
+    activities {
+        // Configuring luiquibase
+        register("main") {
+            arguments = mapOf(
+                    "changeLogFile" to "mysqlLiquibaseResources/db/changelog/db.changelog-master.xml",
+                    "url" to "jdbc:mysql://192.168.0.250",
+                    "username" to "",
+                    "password" to "",
+                    "logLevel" to "info",
+                    "context" to "prod"
+            )
+        }
+    }
+}
 
 tasks.register("prod") {
     dependsOn("update")
@@ -37,7 +52,7 @@ tasks.register("dev") {
             register("main") {
                 arguments = mapOf(
                         "changeLogFile" to "mysqlLiquibaseResources/db/changelog/db.changelog-master.xml",
-                        "url" to "jdbc:mysql://192.168.0.250",
+                        "url" to "jdbc:mysql://INTERNAL_IP",
                         "username" to "",
                         "password" to "",
                         "logLevel" to "info",
@@ -62,7 +77,7 @@ tasks.withType<Test> {
 
 dependencies {
     liquibaseRuntime("org.liquibase:liquibase-core:${Versions.liquibase}")
-    liquibaseRuntime("mysql:mysql-connector-java:${Versions.liquibaseMySQLConnector}")
+    liquibaseRuntime("mysql:mysql-connector-java:${Versions.mySql}")
     liquibaseRuntime("org.liquibase.ext:liquibase-hibernate5:${Versions.liquibaseHibernate5}")
     liquibaseRuntime(sourceSets.getByName("main").output)
     implementation(project(":save-common"))
