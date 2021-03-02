@@ -13,20 +13,26 @@ fun Project.createStackDeployTask() {
         commandLine("docker", "service", "create", "--name", "registry", "--publish", "published=6000,target=5000", "registry:2")
     }
 
+    tasks.register("generateComposeFile") {
+        description = "Set project version in docker-compose file"
+        doFirst {
+            val newText = file("$rootDir/docker-compose.yaml.template").readLines()
+                .joinToString(System.lineSeparator()) { it.replace("{{project.version}}", versionForDockerImages()) }
+            file("$buildDir/docker-compose.yaml")
+                .apply { createNewFile() }
+                .writeText(newText)
+        }
+    }
+
     tasks.register<Exec>("deployDockerStack") {
         dependsOn(subprojects.flatMap { it.tasks.withType<BootBuildImage>() })
+        dependsOn("generateComposeFile")
         doFirst {
             copy {
                 description = "Copy configuration files from repo to actual locations"
                 from("save-deploy")
                 into("${System.getProperty("user.home")}/configs")
             }
-            description = "Set project version in docker-compose file"
-            val newText = file("$rootDir/docker-compose.yaml.template").readLines()
-                .joinToString(System.lineSeparator()) { it.replace("{{project.version}}", version.toString()) }
-            file("$buildDir/docker-compose.yaml")
-                .apply { createNewFile() }
-                .writeText(newText)
         }
         description = "Deploy to docker swarm. If swarm contains more than one node, some registry for built images is requried."
         commandLine("docker", "stack", "deploy", "--compose-file", "$buildDir/docker-compose.yaml", "save")
@@ -36,5 +42,11 @@ fun Project.createStackDeployTask() {
 //                commandLine("docker", "service", "rm", "registry")
 //            }
 //        }
+    }
+
+    tasks.register<Exec>("deployLocal") {
+        dependsOn(subprojects.flatMap { it.tasks.withType<BootBuildImage>() })
+        dependsOn("generateComposeFile")
+        commandLine("docker-compose", "--file", "$buildDir/docker-compose.yaml", "up", "-d", "orchestrator", "backend")
     }
 }
