@@ -38,8 +38,6 @@ kotlin {
         val jvmMain by getting {
             dependencies {
                 implementation("org.hibernate.javax.persistence:hibernate-jpa-2.1-api:${Versions.jpa}")
-                implementation("org.springframework.boot:spring-boot-starter-webflux:${Versions.springBoot}")
-                implementation("org.springframework.boot:spring-boot-starter-data-jpa:${Versions.springBoot}")
             }
         }
     }
