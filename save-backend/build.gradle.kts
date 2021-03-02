@@ -7,17 +7,43 @@ plugins {
     id("org.liquibase.gradle") version Versions.liquibaseGradlePlugin
 }
 
-liquibase {
-    activities {
-        // Configuring luiquibase
-        register("main") {
-            arguments = mapOf(
-                "changeLogFile" to "../mysqlLiquibaseResources/db/changelog/db.changelog-master.xml",
-                "url" to "jdbc:mysql://192.168.0.250",
-                "username" to "",
-                "password" to "",
-                "logLevel" to "info"
-            )
+
+tasks.register("prod") {
+    dependsOn("update")
+
+    liquibase {
+        activities {
+            // Configuring luiquibase
+            register("main") {
+                arguments = mapOf(
+                        "changeLogFile" to "mysqlLiquibaseResources/db/changelog/db.changelog-master.xml",
+                        "url" to "jdbc:mysql://192.168.0.250",
+                        "username" to "",
+                        "password" to "",
+                        "logLevel" to "info",
+                        "context" to "prod"
+                )
+            }
+        }
+    }
+}
+
+tasks.register("dev") {
+    dependsOn("update")
+
+    liquibase {
+        activities {
+            // Configuring luiquibase
+            register("main") {
+                arguments = mapOf(
+                        "changeLogFile" to "mysqlLiquibaseResources/db/changelog/db.changelog-master.xml",
+                        "url" to "jdbc:mysql://192.168.0.250",
+                        "username" to "",
+                        "password" to "",
+                        "logLevel" to "info",
+                        "context" to "dev"
+                )
+            }
         }
     }
 }
@@ -35,7 +61,6 @@ tasks.withType<Test> {
 }
 
 dependencies {
-    liquibaseRuntime("org.yaml:snakeyaml:1.15")
     liquibaseRuntime("org.liquibase:liquibase-core:${Versions.liquibase}")
     liquibaseRuntime("mysql:mysql-connector-java:${Versions.liquibaseMySQLConnector}")
     liquibaseRuntime("org.liquibase.ext:liquibase-hibernate5:${Versions.liquibaseHibernate5}")
