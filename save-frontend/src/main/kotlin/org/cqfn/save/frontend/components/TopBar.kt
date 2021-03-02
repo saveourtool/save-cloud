@@ -17,6 +17,8 @@ import react.dom.span
 import react.dom.ul
 import react.router.dom.RouteResultProps
 
+@OptIn(ExperimentalJsExport::class)
+@JsExport
 class TopBar : RComponent<RouteResultProps<RProps>, RState>() {
     override fun RBuilder.render() {
         println("My current props: ${JSON.stringify(props)}")

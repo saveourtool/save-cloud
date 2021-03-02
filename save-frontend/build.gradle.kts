@@ -3,7 +3,7 @@ plugins {
 }
 
 kotlin {
-    js(LEGACY) {  // as of kotlin 1.4.21, IR compilation leads to errors in React in production webpack
+    js(IR) {
         browser {
             repositories {
                 jcenter()
@@ -30,8 +30,8 @@ kotlin {
             compileOnly("kotlin.js.externals:kotlin-js-jquery:3.2.0-0")  // todo: use react instead of jquery
             implementation("org.jetbrains:kotlin-react:${Versions.kotlinReact}")
             implementation("org.jetbrains:kotlin-react-dom:${Versions.kotlinReact}")
-            implementation("org.jetbrains:kotlin-react-router-dom:5.2.0-pre.142-kotlin-1.4.21")
-            implementation("org.jetbrains:kotlin-react-table:7.6.3-pre.143-kotlin-1.4.21")
+            implementation("org.jetbrains:kotlin-react-router-dom:5.2.0${Versions.kotlinJsWrappersSuffix}")
+            implementation("org.jetbrains:kotlin-react-table:7.6.3${Versions.kotlinJsWrappersSuffix}")
             implementation(npm("react", Versions.react))
             implementation(npm("react-dom", Versions.react))
 

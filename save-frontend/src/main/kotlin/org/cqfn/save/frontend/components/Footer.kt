@@ -10,6 +10,8 @@ import react.dom.div
 import react.dom.footer
 import react.dom.span
 
+@OptIn(ExperimentalJsExport::class)
+@JsExport
 class Footer : RComponent<RProps, RState>() {
     override fun RBuilder.render() {
         footer("sticky-footer bg-white") {
