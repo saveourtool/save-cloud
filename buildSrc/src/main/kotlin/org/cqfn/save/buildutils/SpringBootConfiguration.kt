@@ -42,7 +42,7 @@ fun Project.configureSpringBoot(withSpringDataJpa: Boolean = false) {
             add("implementation", "org.liquibase:liquibase-core:${Versions.liquibase}")
             add("implementation", "org.springframework.boot:spring-boot-starter-data-jpa:${Versions.springBoot}")
             add("implementation", "org.jetbrains.kotlin:kotlin-reflect:${Versions.kotlin}")
-            add("implementation", "mysql:mysql-connector-java:8.0.23")
+            add("implementation", "mysql:mysql-connector-java:${Versions.mySql}")
             add("testImplementation", "org.testcontainers:testcontainers:${Versions.testcontainers}")
             add("testImplementation", "org.testcontainers:mysql:${Versions.testcontainers}")
             add("testImplementation", "org.testcontainers:junit-jupiter:${Versions.testcontainers}")
