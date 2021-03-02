@@ -9,7 +9,7 @@ services:
       - "5100:5100"
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
-      - "~/var/lib/docker/volumes/repository"
+      - save: /home/repositories
     deploy:
       labels:
         - "prometheus-job=save-orchestrator"
@@ -23,7 +23,7 @@ services:
   preprocessor:
     image: 127.0.0.1:6000/save-preprocessor:{{project.version}}
     volumes:
-      - "~/var/lib/docker/volumes/repository"
+      - save: /home/repositories
     ports:
       - "5200:5200"
     deploy:
@@ -44,3 +44,5 @@ services:
     image: grafana/grafana
     ports:
       - "9100:3000"
+volumes:
+  save:
