@@ -12,20 +12,15 @@ liquibase {
         // Configuring luiquibase
         register("main") {
             arguments = mapOf(
-                "changeLogFile" to "src/main/resources/db/changelog/db.changelog-master.yaml",
-                "url" to "jdbc:h2:mem:testdb",
-                "username" to "test",
-                "password" to "test",
+                "changeLogFile" to "../mysqlLiquibaseResources/db/changelog/db.changelog-master.xml",
+                "url" to "jdbc:mysql://192.168.0.250:testdb",
+                "username" to "",
+                "password" to "",
                 "logLevel" to "info"
             )
         }
     }
 }
-
-//tasks.register("dev") {
-//    // depend on the liquibase status task
-//    dependsOn("update")
-//}
 
 configureSpringBoot(true)
 
