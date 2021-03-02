@@ -21,26 +21,25 @@ import react.router.dom.RouteResultProps
 @JsExport
 class TopBar : RComponent<RouteResultProps<RProps>, RState>() {
     override fun RBuilder.render() {
-        println("My current props: ${JSON.stringify(props)}")
         nav("navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow") {
             // Topbar Navbar
-            ul("navbar-nav ml-auto") {
-                nav {
-                    attrs["aria-label"] = "breadcrumb"
-                    ol("breadcrumb") {
-                        props.location.pathname.split("/").apply {
-                            mapIndexed { index: Int, s: String ->
-                                li("breadcrumb-item") {
-                                    attrs["aria-current"] = "page"
-                                    if (index == size - 1) {
-                                        attrs["active"] = "true"
-                                    }
-                                    +s
+            nav("navbar-nav mr-auto") {
+                attrs["aria-label"] = "breadcrumb"
+                ol("breadcrumb") {
+                    props.location.pathname.split("/").apply {
+                        mapIndexed { index: Int, s: String ->
+                            li("breadcrumb-item") {
+                                attrs["aria-current"] = "page"
+                                if (index == size - 1) {
+                                    attrs["active"] = "true"
                                 }
+                                +s
                             }
                         }
                     }
                 }
+            }
+            ul("navbar-nav ml-auto") {
                 div("topbar-divider d-none d-sm-block") {}
                 // Nav Item - User Information
                 li("nav-item dropdown no-arrow") {

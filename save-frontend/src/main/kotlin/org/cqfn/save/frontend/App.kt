@@ -20,14 +20,14 @@ fun main() {
         hashRouter {
             div("d-flex flex-column") {
                 attrs.id = "content-wrapper"
-                switch {
-                    child(withRouter(TopBar::class).invoke {
-                    })
-                    div("container-fluid") {
+                route("*") {
+                    // `withRouter` needs to be wrapped in `route`; we place it outside of `switch` to render always and unconditionally
+                    withRouter(TopBar::class).invoke {
+                } }
+                div("container-fluid") {
+                    switch {
                         route("/:type/:owner/:name") {
-                            withRouter(ProjectView::class).invoke {
-
-                            }
+                            withRouter(ProjectView::class).invoke {}
                         }
                         route("*", FallbackView::class)
                     }
