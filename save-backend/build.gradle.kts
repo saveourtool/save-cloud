@@ -13,7 +13,7 @@ liquibase {
         register("main") {
             arguments = mapOf(
                 "changeLogFile" to "../mysqlLiquibaseResources/db/changelog/db.changelog-master.xml",
-                "url" to "jdbc:mysql://192.168.0.250:testdb",
+                "url" to "jdbc:mysql://192.168.0.250",
                 "username" to "",
                 "password" to "",
                 "logLevel" to "info"
