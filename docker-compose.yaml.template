@@ -9,6 +9,7 @@ services:
       - "5100:5100"
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
+      - "~/var/lib/docker/volumes/repository"
     deploy:
       labels:
         - "prometheus-job=save-orchestrator"
@@ -19,6 +20,15 @@ services:
     deploy:
       labels:
         - "prometheus-job=save-backend"
+  preprocessor:
+    image: 127.0.0.1:6000/save-preprocessor:{{project.version}}
+    volumes:
+      - "~/var/lib/docker/volumes/repository"
+    ports:
+      - "5200:5200"
+    deploy:
+      labels:
+        - "prometheus-job=save-preprocessor"
   prometheus:
     image: prom/prometheus
     user: root  # to access host's docker socket for service discovery, see https://groups.google.com/g/prometheus-users/c/EuEW0qRzXvg/m/0aqKh_ZABQAJ
