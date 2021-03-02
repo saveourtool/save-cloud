@@ -23,11 +23,11 @@ Deployment is performed on server via docker swarm or locally via docker-compose
 ## Ports allocation
 | port | descritpion |
 | ---- | ----------- |
+| 3306 | database (locally) |
 | 5000 | save-backend |
 | 5100 | save-orchestrator |
 | 5200 | save-test-preprocessor |
 | 6000 | local docker registry (not used currently) |
-| 8081 | h2 console (active with `dev` profile) |
 | 9090 | prometheus |
 | 9091 | node_exporter |
 | 9100 | grafana |
