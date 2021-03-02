@@ -56,11 +56,11 @@ jobs:
       - name: Gradle build
         run: |
           ./gradlew build -x detekt
-      - name: Upload test reports
-        if: ${{ failure() }}  # runs only if previous step has failed, the entire workflow will still be marked as failed
+      - name: Upload gradle reports
+#        if: ${{ failure() }}  # runs only if previous step has failed, the entire workflow will still be marked as failed
         uses: actions/upload-artifact@v2
         with:
-          name: gradle-test-report
+          name: gradle-reports
           path: '**/build/reports/'
       - name: Code coverage report
         uses: codecov/codecov-action@v1
