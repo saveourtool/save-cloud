@@ -23,6 +23,7 @@ Deployment is performed on server via docker swarm or locally via docker-compose
 ## Ports allocation
 | port | descritpion |
 | ---- | ----------- |
+} 3306 | database (locally) |
 | 5000 | save-backend |
 | 5100 | save-orchestrator |
 | 5200 | save-test-preprocessor |

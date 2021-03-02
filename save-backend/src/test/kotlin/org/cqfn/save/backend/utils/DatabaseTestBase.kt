@@ -16,9 +16,9 @@ open class DatabaseTestBase {
         @Container
         @JvmStatic
         val dbContainer: JdbcDatabaseContainer<*> = MySQLContainerProvider()
-            .newInstance("8.0")
+            .newInstance("8.0.20")
             .withExposedPorts(3306)
-            .withDatabaseName("db_example")
+            .withDatabaseName("save_db_test")
             .waitingFor(Wait.forLogMessage("Container is started (JDBC URL: ", 1))
             .apply {
                 start()
