@@ -15,6 +15,6 @@ object Versions {
     const val h2 = "1.4.200"
     const val jpa = "1.0.2.Final"
     const val liquibaseGradlePlugin = "2.0.4"
-    const val liquibaseMySQLConnector = "8.0.23"
+    const val liquibaseMySQLConnector = "8.0.22"
     const val liquibaseHibernate5 = "3.6"
 }

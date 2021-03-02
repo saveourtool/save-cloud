@@ -11,4 +11,6 @@
         <tagDatabase tag="v1.0"/>
     </changeSet>
 
+    <include file="10-changeset-project-table-insert.xml" relativeToChangelogFile="true"/>
+
 </databaseChangeLog>
