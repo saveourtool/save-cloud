@@ -18,21 +18,20 @@ import react.dom.h1
 import react.dom.p
 
 import kotlinx.html.ButtonType
+import org.cqfn.save.entities.Project
 
 /**
  * [RProps] for project view
- *
- * @property type type of project (github/binary/etc)
- * @property name name of the project
- * @property owner owner of the project (user of organization)
- * @property description project description
  */
 @Suppress("MISSING_KDOC_CLASS_ELEMENTS")
 external interface ProjectProps : RProps {
-    var type: String  // todo type in common
+    var project: Project
+}
+
+external interface ProjectRouteProps : RProps {
     var name: String
     var owner: String
-    var description: String
+    var type: String
 }
 
 /**
@@ -46,7 +45,7 @@ class ProjectView : RComponent<ProjectProps, RState>() {
         // Page Heading
         div("d-sm-flex align-items-center justify-content-between mb-4") {
             h1("h3 mb-0 text-gray-800") {
-                +"Project ${props.name}"
+                +"Project ${props.project.name}"
             }
         }
 
@@ -63,20 +62,20 @@ class ProjectView : RComponent<ProjectProps, RState>() {
 
             child(cardComponent {
                 p("small") {
-                    +"Name: ${props.name}"
+                    +"Name: ${props.project.name}"
                 }
                 p("small") {
-                    +"Description: ${props.description}"
+                    +"Description: ${props.project.description}"
                 }
                 p("small") {
                     // todo: use router props?
                     // todo: links to individual history entires
-                    a(href = "/${props.type}/${props.owner}/${props.name}/history/latest") {
+                    a(href = "#/${props.project.type}/${props.project.owner}/${props.project.name}/history/latest") {
                         +"Latest test execution: N/A"
                     }
                 }
                 p("small") {
-                    a(href = "/${props.type}/${props.owner}/${props.name}/history") {
+                    a(href = "#/${props.project.type}/${props.project.owner}/${props.project.name}/history") {
                         +"Execution history"
                     }
                 }
@@ -88,3 +87,11 @@ class ProjectView : RComponent<ProjectProps, RState>() {
         }
     }
 }
+
+fun ProjectRouteProps.toProject() = Project(
+        owner = owner,
+        name = name,
+        type = type,
+        description = "Todo: fetch description",
+        url = "Todo: fetch URL"
+    )

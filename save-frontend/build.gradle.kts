@@ -3,7 +3,7 @@ plugins {
 }
 
 kotlin {
-    js(IR) {
+    js(LEGACY) {  // as for `-pre.148-kotlin-1.4.21`, react-table gives errors with IR
         browser {
             repositories {
                 jcenter()

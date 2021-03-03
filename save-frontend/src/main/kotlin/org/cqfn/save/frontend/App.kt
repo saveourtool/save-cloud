@@ -6,7 +6,6 @@ package org.cqfn.save.frontend
 
 import org.cqfn.save.frontend.components.FallbackView
 import org.cqfn.save.frontend.components.Footer
-import org.cqfn.save.frontend.components.ProjectProps
 import org.cqfn.save.frontend.components.ProjectView
 import org.cqfn.save.frontend.components.TopBar
 
@@ -19,6 +18,10 @@ import react.router.dom.withRouter
 
 import kotlinx.browser.document
 import kotlinx.html.id
+import org.cqfn.save.entities.Project
+import org.cqfn.save.frontend.components.HistoryView
+import org.cqfn.save.frontend.components.ProjectRouteProps
+import org.cqfn.save.frontend.components.toProject
 
 @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
 fun main() {
@@ -33,19 +36,21 @@ fun main() {
                 }
                 div("container-fluid") {
                     switch {
-                        route("/") { TODO("Collection view here") }
-                        route<ProjectProps>("/:type/:owner/:name") { routeResultProps ->
+//                        route("/") { TODO("Collection view here") }
+                        route<ProjectRouteProps>("/:type/:owner/:name", exact = true) { routeResultProps ->
                             child(ProjectView::class) {
-                                attrs.name = routeResultProps.match.params.name
-                                attrs.owner = routeResultProps.match.params.owner
-                                attrs.description = "Todo: fetch description"
+                                attrs.project = routeResultProps.match.params.toProject()
                             }
                         }
-                        route("/:type/:owner/:name/history") { TODO() }
-                        route("/:type/:owner/:name/history/:executionId") {
-                            // executionId might be `latest`
-                            TODO()
+                        route<ProjectRouteProps>("/:type/:owner/:name/history") { routeResultProps ->
+                            child(HistoryView::class) {
+                                attrs.project = routeResultProps.match.params.toProject()
+                            }
                         }
+//                        route("/:type/:owner/:name/history/:executionId") {
+                            // executionId might be `latest`
+//                            TODO()
+//                        }
                         route("*", FallbackView::class)
                     }
                 }

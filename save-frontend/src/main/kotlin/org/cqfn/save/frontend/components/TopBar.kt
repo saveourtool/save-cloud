@@ -33,7 +33,7 @@ class TopBar : RComponent<RouteResultProps<RProps>, RState>() {
                 ol("breadcrumb") {
                     li("breadcrumb-item") {
                         attrs["aria-current"] = "page"
-                        a(href = "/") {
+                        a(href = "#/") {
                             +"SAVE"
                         }
                     }
