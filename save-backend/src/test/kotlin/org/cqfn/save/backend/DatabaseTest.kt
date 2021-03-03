@@ -1,6 +1,7 @@
 package org.cqfn.save.backend
 
 import org.cqfn.save.backend.repository.ProjectRepository
+import org.cqfn.save.backend.utils.DatabaseTestBase
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -9,7 +10,7 @@ import org.springframework.test.context.ActiveProfiles
 
 @SpringBootTest(classes = [SaveApplication::class])
 @ActiveProfiles("dev")
-class H2DatabaseTest {
+class DatabaseTest : DatabaseTestBase() {
     @Autowired
     private lateinit var projectRepository: ProjectRepository
 

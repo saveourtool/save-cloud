@@ -12,7 +12,8 @@ object Versions {
     const val ktor = "1.5.1"
     const val serialization = "1.0.1"
     const val micrometer = "1.6.3"
-    const val h2 = "1.4.200"
+    const val mySql = "8.0.20"
     const val jpa = "1.0.2.Final"
+    const val testcontainers = "1.15.2"
     const val gson = "2.8.6"
 }
