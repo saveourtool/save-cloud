@@ -57,7 +57,7 @@ jobs:
         run: |
           ./gradlew build -x detekt
       - name: Upload gradle reports
-#        if: ${{ failure() }}  # runs only if previous step has failed, the entire workflow will still be marked as failed
+        if: ${{ always() }}
         uses: actions/upload-artifact@v2
         with:
           name: gradle-reports
