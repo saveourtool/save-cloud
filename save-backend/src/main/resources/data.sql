@@ -9,7 +9,7 @@ CREATE TABLE project (
   description VARCHAR(250) DEFAULT NULL
 );
 
-INSERT INTO project (owner, name, url) VALUES
+INSERT INTO project (owner, name, type, url, description) VALUES
   ('Google', 'googleName', 'github', 'google.com'),
   ('Test', 'testName', 'generic', 'test.com', 'A test project in SAVE'),
   ('Huawei', 'huaweiName', 'huawei.com', 'generic');
