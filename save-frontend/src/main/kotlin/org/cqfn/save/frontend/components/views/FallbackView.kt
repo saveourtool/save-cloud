@@ -1,4 +1,4 @@
-package org.cqfn.save.frontend.components
+package org.cqfn.save.frontend.components.views
 
 import react.RBuilder
 import react.RComponent
@@ -24,12 +24,9 @@ class FallbackView : RComponent<RProps, RState>() {
             p("lead text-gray-800 mb-5") {
                 +"Page not found"
             }
-            p("text-gray-500 mb-0") {
-                +"It looks like you found a glitch in the matrix..."
-            }
             child(LinkComponent::class) {
                 attrs.to = "/"
-                +"← Back to Dashboard"  // todo: use '&larr;' instead when backend will be able to set headers
+                +"&larr; Back to the main page"
             }
         }
     }

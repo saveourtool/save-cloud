@@ -1,4 +1,4 @@
-package org.cqfn.save.frontend.components
+package org.cqfn.save.frontend.components.views
 
 import org.cqfn.save.entities.Project
 import org.cqfn.save.frontend.components.tables.tableComponent

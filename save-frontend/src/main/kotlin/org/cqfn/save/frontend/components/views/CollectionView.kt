@@ -1,4 +1,4 @@
-package org.cqfn.save.frontend.components
+package org.cqfn.save.frontend.components.views
 
 import org.cqfn.save.entities.Project
 import org.cqfn.save.frontend.components.tables.tableComponent
@@ -11,6 +11,8 @@ import react.dom.a
 import react.dom.td
 import react.table.columns
 
+@OptIn(ExperimentalJsExport::class)
+@JsExport
 class CollectionView : RComponent<RProps, RState>() {
     override fun RBuilder.render() {
         child(tableComponent(

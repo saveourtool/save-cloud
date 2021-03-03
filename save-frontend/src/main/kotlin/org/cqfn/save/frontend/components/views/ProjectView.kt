@@ -2,7 +2,7 @@
  * A view with project details
  */
 
-package org.cqfn.save.frontend.components
+package org.cqfn.save.frontend.components.views
 
 import org.cqfn.save.frontend.components.basic.cardComponent
 

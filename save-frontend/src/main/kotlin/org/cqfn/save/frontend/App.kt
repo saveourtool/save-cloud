@@ -4,9 +4,7 @@
 
 package org.cqfn.save.frontend
 
-import org.cqfn.save.frontend.components.FallbackView
 import org.cqfn.save.frontend.components.Footer
-import org.cqfn.save.frontend.components.ProjectView
 import org.cqfn.save.frontend.components.TopBar
 
 import react.dom.div
@@ -18,11 +16,14 @@ import react.router.dom.withRouter
 
 import kotlinx.browser.document
 import kotlinx.html.id
-import org.cqfn.save.entities.Project
-import org.cqfn.save.frontend.components.CollectionView
-import org.cqfn.save.frontend.components.HistoryView
-import org.cqfn.save.frontend.components.ProjectRouteProps
-import org.cqfn.save.frontend.components.toProject
+import org.cqfn.save.frontend.components.views.CollectionView
+import org.cqfn.save.frontend.components.views.ExecutionProps
+import org.cqfn.save.frontend.components.views.ExecutionView
+import org.cqfn.save.frontend.components.views.FallbackView
+import org.cqfn.save.frontend.components.views.HistoryView
+import org.cqfn.save.frontend.components.views.ProjectRouteProps
+import org.cqfn.save.frontend.components.views.ProjectView
+import org.cqfn.save.frontend.components.views.toProject
 
 @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
 fun main() {
@@ -48,10 +49,12 @@ fun main() {
                                 attrs.project = routeResultProps.match.params.toProject()
                             }
                         }
-//                        route("/:type/:owner/:name/history/:executionId") {
+                        route<ExecutionProps>("/:type/:owner/:name/history/:executionId") { props ->
                             // executionId might be `latest`
-//                            TODO()
-//                        }
+                            child(ExecutionView::class) {
+                                attrs.executionId = props.match.params.executionId
+                            }
+                        }
                         route("*", FallbackView::class)
                     }
                 }
