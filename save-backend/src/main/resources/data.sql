@@ -10,6 +10,6 @@ CREATE TABLE project (
 );
 
 INSERT INTO project (owner, name, type, url, description) VALUES
-  ('Google', 'googleName', 'github', 'google.com'),
+  ('Google', 'googleName', 'github', 'google.com', NULL),
   ('Test', 'testName', 'generic', 'test.com', 'A test project in SAVE'),
-  ('Huawei', 'huaweiName', 'huawei.com', 'generic');
+  ('Huawei', 'huaweiName', 'generic', 'huawei.com', NULL);
