@@ -1,5 +1,6 @@
 package org.cqfn.save.backend
 
+import org.cqfn.save.backend.utils.DatabaseTestBase
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
@@ -15,7 +16,7 @@ import kotlin.io.path.ExperimentalPathApi
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("dev")
 @AutoConfigureWebTestClient
-class DownloadFilesTest(@Autowired private val webClient: WebTestClient) {
+class DownloadFilesTest(@Autowired private val webClient: WebTestClient) : DatabaseTestBase() {
 
     @Test
     fun checkDownload() {

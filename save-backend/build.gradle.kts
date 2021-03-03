@@ -20,7 +20,6 @@ tasks.withType<Test> {
 
 dependencies {
     implementation(project(":save-common"))
-    implementation("com.google.code.gson:gson:${Versions.gson}")
 }
 
 configureJacoco()
