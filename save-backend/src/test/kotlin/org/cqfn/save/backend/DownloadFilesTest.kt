@@ -1,6 +1,7 @@
 package org.cqfn.save.backend
 
 import org.cqfn.save.backend.repository.ProjectRepository
+import org.cqfn.save.backend.utils.DatabaseTestBase
 
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -14,7 +15,7 @@ import org.springframework.web.reactive.function.BodyInserters
 import kotlin.io.path.ExperimentalPathApi
 
 @WebFluxTest
-class DownloadFilesTest {
+class DownloadFilesTest : DatabaseTestBase() {
     @MockBean
     var repository: ProjectRepository? = null
 

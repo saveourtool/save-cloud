@@ -16,49 +16,8 @@ liquibase {
                     "url" to "jdbc:mysql://192.168.0.250",
                     "username" to "",
                     "password" to "",
-                    "logLevel" to "info",
-                    "context" to "prod"
+                    "logLevel" to "info"
             )
-        }
-    }
-}
-
-tasks.register("prod") {
-    dependsOn("update")
-
-    liquibase {
-        activities {
-            // Configuring luiquibase
-            register("main") {
-                arguments = mapOf(
-                        "changeLogFile" to "mysqlLiquibaseResources/db/changelog/db.changelog-master.xml",
-                        "url" to "jdbc:mysql://192.168.0.250",
-                        "username" to "",
-                        "password" to "",
-                        "logLevel" to "info",
-                        "context" to "prod"
-                )
-            }
-        }
-    }
-}
-
-tasks.register("dev") {
-    dependsOn("update")
-
-    liquibase {
-        activities {
-            // Configuring luiquibase
-            register("main") {
-                arguments = mapOf(
-                        "changeLogFile" to "mysqlLiquibaseResources/db/changelog/db.changelog-master.xml",
-                        "url" to "jdbc:mysql://INTERNAL_IP",
-                        "username" to "",
-                        "password" to "",
-                        "logLevel" to "info",
-                        "context" to "dev"
-                )
-            }
         }
     }
 }
