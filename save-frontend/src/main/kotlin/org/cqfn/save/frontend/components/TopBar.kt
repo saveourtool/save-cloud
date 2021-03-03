@@ -41,14 +41,18 @@ class TopBar : RComponent<RouteResultProps<RProps>, RState>() {
                         .split("/")
                         .filterNot { it.isBlank() }
                         .apply {
-                            mapIndexed { index: Int, pathPart: String ->
+                            foldIndexed("#") { index: Int, acc: String, pathPart: String ->
+                                val currentLink = "$acc/$pathPart"
                                 li("breadcrumb-item") {
                                     attrs["aria-current"] = "page"
                                     if (index == size - 1) {
                                         attrs["active"] = "true"
                                     }
-                                    +pathPart
+                                    a(href = currentLink) {
+                                        +pathPart
+                                    }
                                 }
+                                currentLink
                             }
                         }
                 }

@@ -19,6 +19,7 @@ import react.router.dom.withRouter
 import kotlinx.browser.document
 import kotlinx.html.id
 import org.cqfn.save.entities.Project
+import org.cqfn.save.frontend.components.CollectionView
 import org.cqfn.save.frontend.components.HistoryView
 import org.cqfn.save.frontend.components.ProjectRouteProps
 import org.cqfn.save.frontend.components.toProject
@@ -36,13 +37,13 @@ fun main() {
                 }
                 div("container-fluid") {
                     switch {
-//                        route("/") { TODO("Collection view here") }
+                        route("/", exact = true, component = CollectionView::class)
                         route<ProjectRouteProps>("/:type/:owner/:name", exact = true) { routeResultProps ->
                             child(ProjectView::class) {
                                 attrs.project = routeResultProps.match.params.toProject()
                             }
                         }
-                        route<ProjectRouteProps>("/:type/:owner/:name/history") { routeResultProps ->
+                        route<ProjectRouteProps>("/:type/:owner/:name/history", exact = true) { routeResultProps ->
                             child(HistoryView::class) {
                                 attrs.project = routeResultProps.match.params.toProject()
                             }

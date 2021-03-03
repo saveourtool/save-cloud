@@ -57,6 +57,7 @@ class ProjectView : RComponent<ProjectProps, RState>() {
             }) {
                 attrs {
                     header = "Run tests"
+                    leftBorderColor = "primary"
                 }
             }
 
