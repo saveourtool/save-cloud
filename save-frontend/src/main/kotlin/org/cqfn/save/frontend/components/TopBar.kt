@@ -1,7 +1,5 @@
 package org.cqfn.save.frontend.components
 
-import kotlinx.html.id
-import kotlinx.html.role
 import react.RBuilder
 import react.RComponent
 import react.RProps
@@ -17,26 +15,42 @@ import react.dom.span
 import react.dom.ul
 import react.router.dom.RouteResultProps
 
+import kotlinx.html.id
+import kotlinx.html.role
+
+/**
+ * A component for web page top bar
+ */
 @OptIn(ExperimentalJsExport::class)
 @JsExport
 class TopBar : RComponent<RouteResultProps<RProps>, RState>() {
+    @Suppress("TOO_LONG_FUNCTION", "EMPTY_BLOCK_STRUCTURE_ERROR")
     override fun RBuilder.render() {
         nav("navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow") {
             // Topbar Navbar
             nav("navbar-nav mr-auto") {
                 attrs["aria-label"] = "breadcrumb"
                 ol("breadcrumb") {
-                    props.location.pathname.split("/").apply {
-                        mapIndexed { index: Int, s: String ->
-                            li("breadcrumb-item") {
-                                attrs["aria-current"] = "page"
-                                if (index == size - 1) {
-                                    attrs["active"] = "true"
-                                }
-                                +s
-                            }
+                    li("breadcrumb-item") {
+                        attrs["aria-current"] = "page"
+                        a(href = "/") {
+                            +"SAVE"
                         }
                     }
+                    props.location.pathname
+                        .split("/")
+                        .filterNot { it.isBlank() }
+                        .apply {
+                            mapIndexed { index: Int, pathPart: String ->
+                                li("breadcrumb-item") {
+                                    attrs["aria-current"] = "page"
+                                    if (index == size - 1) {
+                                        attrs["active"] = "true"
+                                    }
+                                    +pathPart
+                                }
+                            }
+                        }
                 }
             }
             ul("navbar-nav ml-auto") {

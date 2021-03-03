@@ -10,8 +10,12 @@ import react.dom.div
 import react.dom.footer
 import react.dom.span
 
+/**
+ * A web page footer component
+ */
 @OptIn(ExperimentalJsExport::class)
 @JsExport
+@Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
 class Footer : RComponent<RProps, RState>() {
     override fun RBuilder.render() {
         footer("sticky-footer bg-white") {
