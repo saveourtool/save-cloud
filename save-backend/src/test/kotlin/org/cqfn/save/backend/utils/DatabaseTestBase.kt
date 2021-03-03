@@ -1,5 +1,6 @@
 package org.cqfn.save.backend.utils
 
+import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.testcontainers.containers.JdbcDatabaseContainer
@@ -11,6 +12,7 @@ import org.testcontainers.junit.jupiter.Container
  * A base class giving access to a database instance. Is used instead of `@Testcontainers` annotations:
  * we manually start container here, and DB connection can be used in all tests inheriting this class.
  */
+@ActiveProfiles("dev")
 open class DatabaseTestBase {
     companion object {
         @Container

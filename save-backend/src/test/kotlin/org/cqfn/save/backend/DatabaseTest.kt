@@ -18,6 +18,6 @@ class DatabaseTest : DatabaseTestBase() {
     fun checkTestDataInDataBase() {
         val projects = projectRepository.findAll()
 
-        assertTrue(projects.any { it.name == "huaweiName" && it.owner == "Huawei" && it.url == "huawei.com" })
+        assertTrue(projects.any { it.name == "huaweiName" && it.owner == "Huawei" && it.url == "huaweiUrl" })
     }
 }
