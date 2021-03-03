@@ -56,8 +56,6 @@ class ExecutionView : RComponent<ExecutionProps, RState>() {
                     }
                 }
             },
-        )) {
-            
-        }
+        )) { }
     }
 }

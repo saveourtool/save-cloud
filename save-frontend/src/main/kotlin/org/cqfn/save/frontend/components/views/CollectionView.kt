@@ -44,8 +44,6 @@ class CollectionView : RComponent<RProps, RState>() {
                     }
                 }
             },
-        )) {
-            
-        }
+        )) { }
     }
 }
