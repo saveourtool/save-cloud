@@ -12,9 +12,9 @@ object Versions {
     const val ktor = "1.5.1"
     const val serialization = "1.0.1"
     const val micrometer = "1.6.3"
-    const val mySql = "8.0.20"
+    const val mySql = "8.0.22"
     const val jpa = "1.0.2.Final"
     const val liquibaseGradlePlugin = "2.0.4"
-    const val liquibaseHibernate5 = "3.6"
+    const val liquibaseHibernate5 = "4.3.1"
     const val testcontainers = "1.15.2"
 }

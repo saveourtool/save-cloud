@@ -12,10 +12,10 @@ liquibase {
         // Configuring luiquibase
         register("main") {
             arguments = mapOf(
-                    "changeLogFile" to "db/changelog/db.changelog-master.xml",
-                    "url" to "jdbc:mysql://192.168.0.250",
-                    "username" to "",
-                    "password" to "",
+                    "changeLogFile" to "save-backend/src/main/resources/db/changelog/db.changelog-master.xml",
+                    "url" to "jdbc:mysql://172.17.0.2:3306/test",
+                    "username" to "root",
+                    "password" to "123",
                     "logLevel" to "info"
             )
         }
