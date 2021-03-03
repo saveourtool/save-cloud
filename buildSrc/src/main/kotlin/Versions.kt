@@ -9,7 +9,7 @@ object Versions {
     const val slf4j = "1.7.30"
     const val logback = "1.2.3"
     const val dockerJavaApi = "3.2.7"
-    const val ktor = "1.5.2"
+    const val ktor = "1.5.1"  // for ktor - same as for serialization
     const val serialization = "1.0.1"  // serialization is compiled by 1.4.30 since version 1.1.0 and for native ABI is different. We can update serialization only after we update kotlin.
     const val micrometer = "1.6.4"
     const val mySql = "8.0.20"
