@@ -29,11 +29,13 @@ class DownloadProject {
     fun upload(@RequestBody gitRepository: GitRepository): ResponseEntity<String> {
         val tmpDir = File("$VOLUMES/${gitRepository.url.hashCode()}")
         tmpDir.deleteRecursively()
+        log.info("dir created")
         val user = if (gitRepository.username != null && gitRepository.password != null) {
             UsernamePasswordCredentialsProvider(gitRepository.username, gitRepository.password)
         } else {
             CredentialsProvider.getDefault()
         }
+        log.info("starting clone")
         try {
             Git.cloneRepository()
                 .setURI(gitRepository.url)
@@ -45,7 +47,7 @@ class DownloadProject {
                     return ResponseEntity("Cloned", HttpStatus.ACCEPTED)
                 }
         } catch (ex: Exception) {
-            //log.warn(ex.stackTraceToString())
+            log.warn(ex.stackTraceToString())
             return ResponseEntity(ex.stackTraceToString(), HttpStatus.BAD_REQUEST)
         }
     }
