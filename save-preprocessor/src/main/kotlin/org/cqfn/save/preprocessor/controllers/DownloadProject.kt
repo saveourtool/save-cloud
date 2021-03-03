@@ -5,6 +5,7 @@ import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.transport.CredentialsProvider
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
 import org.slf4j.LoggerFactory
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -26,7 +27,7 @@ class DownloadProject {
     @Suppress("TooGenericExceptionCaught")
     @PostMapping(value = ["/upload"])
     fun upload(@RequestBody gitRepository: GitRepository): ResponseEntity<String> {
-        val tmpDir = File(VOLUMES)
+        val tmpDir = File("$VOLUMES/${gitRepository.url.hashCode()}")
         tmpDir.deleteRecursively()
         val user = if (gitRepository.username != null && gitRepository.password != null) {
             UsernamePasswordCredentialsProvider(gitRepository.username, gitRepository.password)
@@ -41,15 +42,15 @@ class DownloadProject {
                 .call().use {
                     log.info("Repository cloned: ${gitRepository.url}")
                     // TODO post request to orchestrator
-                    return ResponseEntity.ok("Cloned")
+                    return ResponseEntity("Cloned", HttpStatus.ACCEPTED)
                 }
         } catch (ex: Exception) {
-            log.warn(ex.stackTraceToString())
-            return ResponseEntity.ok(ex.stackTraceToString())
+            //log.warn(ex.stackTraceToString())
+            return ResponseEntity(ex.stackTraceToString(), HttpStatus.BAD_REQUEST)
         }
     }
 
     companion object {
-        private const val VOLUMES = "~/var/lib/docker/volumes/repository"
+        private const val VOLUMES = "/home/repositories/"
     }
 }
