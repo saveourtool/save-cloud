@@ -24,7 +24,7 @@ import kotlinx.html.role
 @OptIn(ExperimentalJsExport::class)
 @JsExport
 class TopBar : RComponent<RouteResultProps<RProps>, RState>() {
-    @Suppress("TOO_LONG_FUNCTION", "EMPTY_BLOCK_STRUCTURE_ERROR")
+    @Suppress("TOO_LONG_FUNCTION", "EMPTY_BLOCK_STRUCTURE_ERROR", "LongMethod")
     override fun RBuilder.render() {
         nav("navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow") {
             // Topbar Navbar

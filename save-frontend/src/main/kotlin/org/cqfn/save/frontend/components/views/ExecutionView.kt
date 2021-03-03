@@ -1,3 +1,7 @@
+/**
+ * View for displaying individual execution results
+ */
+
 package org.cqfn.save.frontend.components.views
 
 import org.cqfn.save.frontend.components.tables.tableComponent
@@ -10,13 +14,23 @@ import react.dom.td
 import react.table.columns
 import kotlin.js.json
 
+/**
+ * [RProps] for execution results view
+ */
 external interface ExecutionProps : RProps {
+    /**
+     * ID of execution
+     */
     var executionId: String
 }
 
+/**
+ * A [RComponent] for execution view
+ */
 @OptIn(ExperimentalJsExport::class)
 @JsExport
 class ExecutionView : RComponent<ExecutionProps, RState>() {
+    @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
     override fun RBuilder.render() {
         child(tableComponent(
             data = arrayOf(
@@ -41,9 +55,9 @@ class ExecutionView : RComponent<ExecutionProps, RState>() {
                         +"${it.value["result"]}"
                     }
                 }
-            }
+            },
         )) {
-
+            
         }
     }
 }

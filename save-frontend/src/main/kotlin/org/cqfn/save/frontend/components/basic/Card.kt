@@ -2,7 +2,7 @@
  * Components for cards
  */
 
-@file:Suppress("FILE_NAME_MATCH_CLASS")
+@file:Suppress("FILE_NAME_MATCH_CLASS", "MatchingDeclarationName")
 
 package org.cqfn.save.frontend.components.basic
 

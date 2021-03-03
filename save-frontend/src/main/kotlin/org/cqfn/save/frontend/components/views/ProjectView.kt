@@ -4,6 +4,7 @@
 
 package org.cqfn.save.frontend.components.views
 
+import org.cqfn.save.entities.Project
 import org.cqfn.save.frontend.components.basic.cardComponent
 
 import react.RBuilder
@@ -18,7 +19,6 @@ import react.dom.h1
 import react.dom.p
 
 import kotlinx.html.ButtonType
-import org.cqfn.save.entities.Project
 
 /**
  * [RProps] for project view
@@ -28,6 +28,10 @@ external interface ProjectProps : RProps {
     var project: Project
 }
 
+/**
+ * [RProps] retrieved from router
+ */
+@Suppress("MISSING_KDOC_CLASS_ELEMENTS")
 external interface ProjectRouteProps : RProps {
     var name: String
     var owner: String
@@ -40,7 +44,7 @@ external interface ProjectRouteProps : RProps {
 @OptIn(ExperimentalJsExport::class)
 @JsExport
 class ProjectView : RComponent<ProjectProps, RState>() {
-    @Suppress("TOO_LONG_FUNCTION")
+    @Suppress("TOO_LONG_FUNCTION", "ForbiddenComment")
     override fun RBuilder.render() {
         // Page Heading
         div("d-sm-flex align-items-center justify-content-between mb-4") {
@@ -89,10 +93,14 @@ class ProjectView : RComponent<ProjectProps, RState>() {
     }
 }
 
+/**
+ * @return a [Project] constructed from these props
+ */
+@Suppress("EXTENSION_FUNCTION_WITH_CLASS")
 fun ProjectRouteProps.toProject() = Project(
-        owner = owner,
-        name = name,
-        type = type,
-        description = "Todo: fetch description",
-        url = "Todo: fetch URL"
-    )
+    owner = owner,
+    name = name,
+    type = type,
+    description = "Todo: fetch description",
+    url = "Todo: fetch URL",
+)

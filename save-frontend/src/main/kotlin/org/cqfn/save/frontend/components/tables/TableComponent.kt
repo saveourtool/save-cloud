@@ -7,7 +7,6 @@
 package org.cqfn.save.frontend.components.tables
 
 import org.cqfn.save.frontend.utils.spread
-import react.RComponent
 import react.RProps
 import react.dom.div
 import react.dom.h6

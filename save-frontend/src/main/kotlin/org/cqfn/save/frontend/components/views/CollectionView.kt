@@ -11,13 +11,17 @@ import react.dom.a
 import react.dom.td
 import react.table.columns
 
+/**
+ * A view with collection of projects
+ */
 @OptIn(ExperimentalJsExport::class)
 @JsExport
 class CollectionView : RComponent<RProps, RState>() {
+    @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
     override fun RBuilder.render() {
         child(tableComponent(
             data = arrayOf(
-                Project("cqfn", "diktat", "gh", "https://github.com/cqfn/diktat", null)
+                Project("cqfn", "diktat", "gh", "https://github.com/cqfn/diktat", null),
             ),
             columns = columns {
                 column(id = "index", header = "#") {
@@ -39,9 +43,9 @@ class CollectionView : RComponent<RProps, RState>() {
                         }
                     }
                 }
-            }
+            },
         )) {
-
+            
         }
     }
 }

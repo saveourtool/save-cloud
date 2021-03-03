@@ -6,6 +6,14 @@ package org.cqfn.save.frontend
 
 import org.cqfn.save.frontend.components.Footer
 import org.cqfn.save.frontend.components.TopBar
+import org.cqfn.save.frontend.components.views.CollectionView
+import org.cqfn.save.frontend.components.views.ExecutionProps
+import org.cqfn.save.frontend.components.views.ExecutionView
+import org.cqfn.save.frontend.components.views.FallbackView
+import org.cqfn.save.frontend.components.views.HistoryView
+import org.cqfn.save.frontend.components.views.ProjectRouteProps
+import org.cqfn.save.frontend.components.views.ProjectView
+import org.cqfn.save.frontend.components.views.toProject
 
 import react.dom.div
 import react.dom.render
@@ -16,14 +24,6 @@ import react.router.dom.withRouter
 
 import kotlinx.browser.document
 import kotlinx.html.id
-import org.cqfn.save.frontend.components.views.CollectionView
-import org.cqfn.save.frontend.components.views.ExecutionProps
-import org.cqfn.save.frontend.components.views.ExecutionView
-import org.cqfn.save.frontend.components.views.FallbackView
-import org.cqfn.save.frontend.components.views.HistoryView
-import org.cqfn.save.frontend.components.views.ProjectRouteProps
-import org.cqfn.save.frontend.components.views.ProjectView
-import org.cqfn.save.frontend.components.views.toProject
 
 @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
 fun main() {
