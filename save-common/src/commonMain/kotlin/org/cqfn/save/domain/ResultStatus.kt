@@ -16,4 +16,5 @@ enum class ResultStatus {
      * Test failed
      */
     FAILED,
+    ;
 }

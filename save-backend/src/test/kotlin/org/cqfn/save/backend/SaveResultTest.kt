@@ -16,7 +16,6 @@ import org.springframework.web.reactive.function.BodyInserters
 @ActiveProfiles("dev")
 @AutoConfigureWebTestClient
 class SaveResultTest(@Autowired private val webClient: WebTestClient) : DatabaseTestBase() {
-
     @Test
     fun checkSave() {
         webClient.post()

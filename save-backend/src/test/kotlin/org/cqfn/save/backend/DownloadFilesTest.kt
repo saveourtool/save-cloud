@@ -17,7 +17,6 @@ import kotlin.io.path.ExperimentalPathApi
 @ActiveProfiles("dev")
 @AutoConfigureWebTestClient
 class DownloadFilesTest(@Autowired private val webClient: WebTestClient) : DatabaseTestBase() {
-
     @Test
     fun checkDownload() {
         webClient.get().uri("/download").exchange()

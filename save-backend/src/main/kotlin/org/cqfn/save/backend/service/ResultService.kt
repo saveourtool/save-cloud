@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service
  */
 @Service
 class ResultService(private val resultRepository: ResultRepository) {
-
     /**
      * @param testResults list of test result
      */
