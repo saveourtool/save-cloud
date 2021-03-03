@@ -17,7 +17,6 @@ import reactor.core.publisher.Mono
  */
 @RestController
 class ResultController(private val resultService: ResultService) {
-
     /**
      * @param results list of test result
      * @return [Mono] with respone
