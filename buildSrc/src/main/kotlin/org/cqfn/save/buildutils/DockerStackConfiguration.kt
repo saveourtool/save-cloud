@@ -25,6 +25,7 @@ fun Project.createStackDeployTask() {
     }
 
     tasks.register<Exec>("deployDockerStack") {
+        dependsOn(":save-backend:update")
         dependsOn(subprojects.flatMap { it.tasks.withType<BootBuildImage>() })
         dependsOn("generateComposeFile")
         doFirst {
