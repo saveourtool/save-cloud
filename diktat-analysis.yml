@@ -60,7 +60,7 @@
   configuration:
     lineLength: 180
 - name: WRONG_NEWLINES
-  enabled: true
+  enabled: false  # todo: re-enable after bug in diktat 0.4.1 is fixed
   configuration:
     maxParametersInOneLine: 2
 - name: TOO_MANY_CONSECUTIVE_SPACES
@@ -100,3 +100,14 @@
   enabled: true
   configuration:
     maxNestedBlockQuantity: 4
+- name: TRAILING_COMMA
+  enabled: false
+  configuration:
+    valueArgument: true
+    valueParameter: true
+
+# todo: disabled due to bug in diktat 0.4.1
+- name: COMPLEX_EXPRESSION
+  enabled: false
+- name: REDUNDANT_SEMICOLON
+  enabled: false
