@@ -29,7 +29,6 @@ class DownloadProject {
     fun upload(@RequestBody gitRepository: GitRepository): ResponseEntity<String> {
         val tmpDir = File("$VOLUMES/${gitRepository.url.hashCode()}")
         tmpDir.deleteRecursively()
-        tmpDir.mkdir()
         log.info("dir created")
         val user = if (gitRepository.username != null && gitRepository.password != null) {
             UsernamePasswordCredentialsProvider(gitRepository.username, gitRepository.password)

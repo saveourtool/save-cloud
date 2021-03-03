@@ -34,7 +34,7 @@ class DownloadProjectTest {
 
     @Test
     fun testCorrectDownload() {
-        val url = "https://github.com/cqfn/save-cloud"
+        val url = "https://github.com/cqfn/save-cloud.git"
         val request = HttpEntity(GitRepository(url))
         val result: ResponseEntity<String> = testRestTemplate
                 .postForEntity("/upload", request, GitRepository::class)
