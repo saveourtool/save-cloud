@@ -1,5 +1,6 @@
 package org.cqfn.save.preprocessor
 
+import org.cqfn.save.preprocessor.utils.RepositoryVolume
 import org.cqfn.save.repository.GitRepository
 import org.junit.jupiter.api.Assertions
 
@@ -14,7 +15,7 @@ import java.io.File
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureWebTestClient
-class DownloadProjectTest(@Autowired private val webClient: WebTestClient) {
+class DownloadProjectTest(@Autowired private val webClient: WebTestClient) : RepositoryVolume() {
     @Test
     fun testBadRequest() {
         val wrongRepo = GitRepository("wrongRepo")
