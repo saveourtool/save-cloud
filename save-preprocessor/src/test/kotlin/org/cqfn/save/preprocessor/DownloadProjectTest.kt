@@ -1,44 +1,45 @@
 package org.cqfn.save.preprocessor
 
 import org.cqfn.save.repository.GitRepository
+import org.junit.jupiter.api.Assertions
 
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
 import org.junit.jupiter.api.Test
-import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.web.client.TestRestTemplate
-import org.springframework.boot.test.web.client.postForEntity
-import org.springframework.http.HttpEntity
-import org.springframework.http.HttpStatus
-import org.springframework.http.ResponseEntity
-import org.springframework.test.context.junit4.SpringRunner
+import org.springframework.http.MediaType
+import org.springframework.test.web.reactive.server.WebTestClient
+import org.springframework.web.reactive.function.BodyInserters
 import java.io.File
 
-@RunWith(SpringRunner::class)
-@SpringBootTest(classes = [SaveApplication::class],
-        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class DownloadProjectTest {
-
-    @Autowired
-    lateinit var testRestTemplate: TestRestTemplate
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@AutoConfigureWebTestClient
+class DownloadProjectTest(@Autowired private val webClient: WebTestClient) {
 
     @Test
     fun testBadRequest() {
-        val request = HttpEntity(GitRepository("wrongRepo"))
-        val result: ResponseEntity<String> = testRestTemplate
-                .postForEntity("/upload", request, GitRepository::class)
-        assertEquals(result.statusCode, HttpStatus.BAD_REQUEST)
+        val wrongRepo = GitRepository("wrongRepo")
+        webClient.post()
+            .uri("/upload")
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(BodyInserters.fromValue(wrongRepo))
+            .exchange()
+            .expectStatus()
+            .isBadRequest
     }
 
     @Test
     fun testCorrectDownload() {
-        val url = "https://github.com/cqfn/save-cloud.git"
-        val request = HttpEntity(GitRepository(url))
-        val result: ResponseEntity<String> = testRestTemplate
-                .postForEntity("/upload", request, GitRepository::class)
-        assertEquals(result.statusCode, HttpStatus.ACCEPTED)
-        assertTrue(File("/home/repositories/${url.hashCode()}").exists())
+       val wrongRepo = GitRepository("https://github.com/cqfn/save-cloud.git")
+        webClient.post()
+            .uri("/upload")
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(BodyInserters.fromValue(wrongRepo))
+            .exchange()
+            .expectStatus()
+            .isAccepted
+            .expectBody(String::class.java)
+            .isEqualTo<Nothing>("Cloned")
+        Assertions.assertTrue(File("../save-preprocessor/build/${wrongRepo.url.hashCode()}").exists())
     }
 }
