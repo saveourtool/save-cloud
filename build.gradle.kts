@@ -21,7 +21,8 @@ liquibase {
                     "url" to "jdbc:mysql://172.17.0.2:3306/test",
                     "username" to "root",
                     "password" to "123",
-                    "logLevel" to "info"
+                    "logLevel" to "info",
+                    "context" to "prod"
             )
         }
     }
@@ -31,12 +32,6 @@ dependencies {
     liquibaseRuntime("org.liquibase:liquibase-core:${Versions.liquibase}")
     liquibaseRuntime("mysql:mysql-connector-java:${Versions.mySql}")
     liquibaseRuntime("org.liquibase.ext:liquibase-hibernate5:${Versions.liquibaseHibernate5}")
-}
-
-tasks.register<Copy>("copyLiquibase") {
-    from("db")
-    into("save-backend/build/resources/main/db")
-    into("save-orchestrator/build/resources/main/db")
 }
 
 allprojects {
