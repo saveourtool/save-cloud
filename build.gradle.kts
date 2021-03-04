@@ -12,15 +12,38 @@ plugins {
     id("org.liquibase.gradle") version Versions.liquibaseGradlePlugin
 }
 
+val profile = if(properties["profile"] == null) "dev" else properties["profile"]
+val propertyFileLines = File("save-backend/src/main/resources/application-$profile.properties").readLines()
+val secretsLines = File("secrets").readLines() // TODO: specify path to file
+
+val databaseUrl = getCredential(propertyFileLines, "database.url")
+var username: String
+var password: String
+
+if (profile == "prod") {
+    username = getCredential(secretsLines, "username")
+    password = getCredential(secretsLines, "password")
+} else {
+    username = getCredential(propertyFileLines, "database.username")
+    password = getCredential(propertyFileLines, "database.password")
+}
+
+fun getCredential(lines: List<String>, token: String): String =
+    lines.find {
+        it.startsWith(token)
+    }.let {
+        it?.split("=")?.get(1)?.trim()!!
+    }
+
 liquibase {
     activities {
         // Configuring luiquibase
         register("main") {
             arguments = mapOf(
                     "changeLogFile" to "db/changelog/db.changelog-master.xml",
-                    "url" to "jdbc:mysql://172.17.0.2:3306/test",
-                    "username" to "root",
-                    "password" to "123",
+                    "url" to "jdbc:mysql://$databaseUrl:3306/test",
+                    "username" to username,
+                    "password" to password,
                     "logLevel" to "info",
                     "contexts" to "prod"
             )
