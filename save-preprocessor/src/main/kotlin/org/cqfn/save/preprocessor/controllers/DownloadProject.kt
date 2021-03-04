@@ -1,6 +1,8 @@
 package org.cqfn.save.preprocessor.controllers
 
+import org.cqfn.save.preprocessor.Response
 import org.cqfn.save.repository.GitRepository
+
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.transport.CredentialsProvider
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
@@ -12,7 +14,6 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
-
 import java.io.File
 
 /**
@@ -31,7 +32,7 @@ class DownloadProject {
      */
     @Suppress("TooGenericExceptionCaught")
     @PostMapping(value = ["/upload"])
-    fun upload(@RequestBody gitRepository: GitRepository): Mono<ResponseEntity<String>> {
+    fun upload(@RequestBody gitRepository: GitRepository): Response {
         val urlHash = gitRepository.url.hashCode()
         val tmpDir = File("$volumes/$urlHash")
         tmpDir.deleteRecursively()
@@ -52,7 +53,7 @@ class DownloadProject {
                     return Mono.just(ResponseEntity("Cloned", HttpStatus.ACCEPTED))
                 }
         } catch (ex: Exception) {
-            log.warn("Cloning ${gitRepository.url} repository failed",ex)
+            log.warn("Cloning ${gitRepository.url} repository failed", ex)
             return Mono.just(ResponseEntity(ex.stackTraceToString(), HttpStatus.BAD_REQUEST))
         }
     }
