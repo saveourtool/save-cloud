@@ -22,7 +22,7 @@ liquibase {
                     "username" to "root",
                     "password" to "123",
                     "logLevel" to "info",
-                    "context" to "prod"
+                    "contexts" to "prod"
             )
         }
     }
