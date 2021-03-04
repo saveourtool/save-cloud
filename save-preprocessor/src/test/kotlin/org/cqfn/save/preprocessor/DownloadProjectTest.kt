@@ -15,7 +15,6 @@ import java.io.File
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureWebTestClient
 class DownloadProjectTest(@Autowired private val webClient: WebTestClient) {
-
     @Test
     fun testBadRequest() {
         val wrongRepo = GitRepository("wrongRepo")
@@ -31,15 +30,15 @@ class DownloadProjectTest(@Autowired private val webClient: WebTestClient) {
     @Test
     fun testCorrectDownload() {
        val wrongRepo = GitRepository("https://github.com/cqfn/save-cloud.git")
-        webClient.post()
-            .uri("/upload")
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(BodyInserters.fromValue(wrongRepo))
-            .exchange()
-            .expectStatus()
-            .isAccepted
-            .expectBody(String::class.java)
-            .isEqualTo<Nothing>("Cloned")
+       webClient.post()
+           .uri("/upload")
+           .contentType(MediaType.APPLICATION_JSON)
+           .body(BodyInserters.fromValue(wrongRepo))
+           .exchange()
+           .expectStatus()
+           .isAccepted
+           .expectBody(String::class.java)
+           .isEqualTo<Nothing>("Cloned")
         Assertions.assertTrue(File("../save-preprocessor/build/${wrongRepo.url.hashCode()}").exists())
     }
 }
