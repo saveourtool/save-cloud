@@ -60,7 +60,7 @@
   configuration:
     lineLength: 180
 - name: WRONG_NEWLINES
-  enabled: false
+  enabled: false  # todo: re-enable after bug in diktat 0.4.1 is fixed
   configuration:
     maxParametersInOneLine: 2
 - name: TOO_MANY_CONSECUTIVE_SPACES
