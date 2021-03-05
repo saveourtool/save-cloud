@@ -63,6 +63,7 @@ talaiot {
         timelinePublisher = true
     }
 }
+
 allprojects {
     repositories {
         jcenter()
