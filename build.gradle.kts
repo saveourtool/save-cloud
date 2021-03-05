@@ -15,14 +15,14 @@ plugins {
 
 val profile = if(properties["profile"] == null) "dev" else properties["profile"]
 val propertyFileLines = File("save-backend/src/main/resources/application-$profile.properties").readLines()
-val secretsLines = File("secrets").readLines() // TODO: specify path to file
+val secretsLines = if(File("secrets").exists()) File("secrets").readLines() else null
 
 val databaseUrl = getCredential(propertyFileLines, "database.url")
 var username: String
 var password: String
 
 if (profile == "prod") {
-    username = getCredential(secretsLines, "username")
+    username = getCredential(secretsLines!!, "username")
     password = getCredential(secretsLines, "password")
 } else {
     username = getCredential(propertyFileLines, "database.username")
