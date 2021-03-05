@@ -5,6 +5,7 @@ import org.cqfn.save.buildutils.createDetektTask
 import org.cqfn.save.buildutils.createDiktatTask
 import org.cqfn.save.buildutils.createStackDeployTask
 import org.cqfn.save.buildutils.installGitHooks
+import org.jetbrains.kotlin.gradle.utils.loadPropertyFromResources
 
 plugins {
     kotlin("jvm") version Versions.kotlin apply false
@@ -13,28 +14,26 @@ plugins {
     id("org.liquibase.gradle") version Versions.liquibaseGradlePlugin
 }
 
-val profile = if(properties["profile"] == null) "dev" else properties["profile"]
-val propertyFileLines = File("save-backend/src/main/resources/application-$profile.properties").readLines()
-val secretsLines = if(File("secrets").exists()) File("secrets").readLines() else null
+val profile = properties.getOrDefault("profile", "dev")
 
-val databaseUrl = getCredential(propertyFileLines, "database.url")
+val props = java.util.Properties()
+file("save-backend/src/main/resources/application-$profile.properties").apply { props.load(inputStream()) }
+
+if (File("secrets").exists()) {
+    file("secrets").apply { props.load(inputStream()) }
+}
+
+val databaseUrl = props.getProperty("spring.datasource.url")
 var username: String
 var password: String
 
 if (profile == "prod") {
-    username = getCredential(secretsLines!!, "username")
-    password = getCredential(secretsLines, "password")
+    username = props.getProperty("username")
+    password = props.getProperty("password")
 } else {
-    username = getCredential(propertyFileLines, "database.username")
-    password = getCredential(propertyFileLines, "database.password")
+    username = props.getProperty("spring.datasource.username")
+    password = props.getProperty("spring.datasource.password")
 }
-
-fun getCredential(lines: List<String>, token: String): String =
-    lines.find {
-        it.startsWith(token)
-    }.let {
-        it?.split("=")?.get(1)?.trim()!!
-    }
 
 liquibase {
     activities {
@@ -42,7 +41,7 @@ liquibase {
         register("main") {
             arguments = mapOf(
                     "changeLogFile" to "db/changelog/db.changelog-master.xml",
-                    "url" to "jdbc:mysql://$databaseUrl:3306/test",
+                    "url" to "jdbc:mysql://$databaseUrl/save_cloud",
                     "username" to username,
                     "password" to password,
                     "logLevel" to "info",
