@@ -8,8 +8,8 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
-import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
+import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.web.reactive.function.BodyInserters
@@ -17,22 +17,21 @@ import java.io.File
 import kotlin.io.path.ExperimentalPathApi
 
 @ExperimentalPathApi
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@AutoConfigureWebTestClient
+@WebFluxTest
 class DownloadProjectTest(@Autowired private val webClient: WebTestClient) : RepositoryVolume() {
     @Value("\${save.repository}")
     private lateinit var volumes: String
 
     @Test
     fun testBadRequest() {
-        val wrongRepo = GitRepository("wrongRepo")
+        val wrongRepo = GitRepository("wrongGit")
         webClient.post()
             .uri("/upload")
             .contentType(MediaType.APPLICATION_JSON)
             .body(BodyInserters.fromValue(wrongRepo))
             .exchange()
             .expectStatus()
-            .isBadRequest
+            .isEqualTo(HttpStatus.BAD_GATEWAY)
     }
 
     @Test
