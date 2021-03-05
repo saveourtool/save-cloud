@@ -1,7 +1,6 @@
 package org.cqfn.save.backend
 
 import org.cqfn.save.backend.repository.ProjectRepository
-import org.cqfn.save.backend.utils.DatabaseTestBase
 
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
