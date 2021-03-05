@@ -20,7 +20,6 @@ import kotlin.io.path.ExperimentalPathApi
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureWebTestClient
 class DownloadProjectTest(@Autowired private val webClient: WebTestClient) : RepositoryVolume() {
-
     @Value("\${save.repository}")
     private lateinit var volumes: String
 
