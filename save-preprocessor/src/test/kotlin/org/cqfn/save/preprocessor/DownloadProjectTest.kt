@@ -2,8 +2,9 @@ package org.cqfn.save.preprocessor
 
 import org.cqfn.save.preprocessor.utils.RepositoryVolume
 import org.cqfn.save.repository.GitRepository
-import org.junit.jupiter.api.Assertions
 
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
@@ -40,6 +41,11 @@ class DownloadProjectTest(@Autowired private val webClient: WebTestClient) : Rep
             .isAccepted
             .expectBody(String::class.java)
             .isEqualTo<Nothing>("Cloned")
-        Assertions.assertTrue(File("../save-preprocessor/build/${wrongRepo.url.hashCode()}").exists())
+        Assertions.assertTrue(File("../save-preprocessor/tempDir/${wrongRepo.url.hashCode()}").exists())
+    }
+
+    @AfterEach
+    fun removeTestDir() {
+        File("../save-preprocessor/tempDir").deleteRecursively()
     }
 }

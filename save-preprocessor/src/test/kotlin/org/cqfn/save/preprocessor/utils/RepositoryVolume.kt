@@ -14,7 +14,7 @@ open class RepositoryVolume {
         @DynamicPropertySource
         @JvmStatic
         fun dbProperties(registry: DynamicPropertyRegistry) {
-            registry.add("save.repository") { "../save-preprocessor/build" }
+            registry.add("save.repository") { "../save-preprocessor/tempDir" }
         }
     }
 }
