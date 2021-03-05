@@ -15,7 +15,7 @@ import org.springframework.web.reactive.function.BodyInserters
 import kotlin.io.path.ExperimentalPathApi
 
 @WebFluxTest
-class DownloadFilesTest : DatabaseTestBase() {
+class DownloadFilesTest {
     @MockBean
     var repository: ProjectRepository? = null
 

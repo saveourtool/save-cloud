@@ -25,7 +25,7 @@ fun Project.createStackDeployTask() {
     }
 
     tasks.register<Exec>("deployDockerStack") {
-        dependsOn("update")
+        dependsOn("liquibaseUpdate")
         dependsOn(subprojects.flatMap { it.tasks.withType<BootBuildImage>() })
         dependsOn("generateComposeFile")
         doFirst {

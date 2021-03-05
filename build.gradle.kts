@@ -5,7 +5,6 @@ import org.cqfn.save.buildutils.createDetektTask
 import org.cqfn.save.buildutils.createDiktatTask
 import org.cqfn.save.buildutils.createStackDeployTask
 import org.cqfn.save.buildutils.installGitHooks
-import org.jetbrains.kotlin.gradle.utils.loadPropertyFromResources
 
 plugins {
     kotlin("jvm") version Versions.kotlin apply false
@@ -17,7 +16,7 @@ plugins {
 val profile = properties.getOrDefault("profile", "dev")
 
 val props = java.util.Properties()
-file("save-backend/src/main/resources/application-$profile.properties").apply { props.load(inputStream()) }
+val file = file("save-backend/src/main/resources/application-$profile.properties").apply { props.load(inputStream()) }
 
 if (File("secrets").exists()) {
     file("secrets").apply { props.load(inputStream()) }
@@ -30,9 +29,30 @@ var password: String
 if (profile == "prod") {
     username = props.getProperty("username")
     password = props.getProperty("password")
+
+    fillSpringDatasource(username, password)
 } else {
     username = props.getProperty("spring.datasource.username")
     password = props.getProperty("spring.datasource.password")
+}
+
+fun fillSpringDatasource(userName: String, password: String) {
+    val fileLines = file.readLines()
+    val newText: StringBuilder = java.lang.StringBuilder()
+    fileLines.forEach {
+        when {
+            it.startsWith("spring.datasource.username") -> {
+                newText.append("spring.datasource.username=$userName\n")
+            }
+            it.startsWith("spring.datasource.password") -> {
+                newText.append("spring.datasource.password=$password\n")
+            }
+            else -> {
+                newText.append("$it\n")
+            }
+        }
+    }
+    file.writeText(newText.toString())
 }
 
 liquibase {
