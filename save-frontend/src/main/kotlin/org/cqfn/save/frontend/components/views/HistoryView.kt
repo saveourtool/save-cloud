@@ -29,6 +29,7 @@ external interface HistoryProps : RProps {
  * A table to display execution results for a certain project.
  */
 class HistoryView : RComponent<HistoryProps, RState>() {
+    @Suppress("TOO_LONG_FUNCTION")
     override fun RBuilder.render() {
         child(tableComponent(
             data = arrayOf(
