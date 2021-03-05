@@ -19,6 +19,15 @@ import react.dom.h1
 import react.dom.p
 
 import kotlinx.html.ButtonType
+import kotlinx.html.js.onClickFunction
+import org.cqfn.save.frontend.externals.modal.ReactModal
+import org.cqfn.save.frontend.externals.modal.modal
+import react.buildElements
+import react.dom.h2
+import react.dom.li
+import react.dom.ul
+import react.functionalComponent
+import react.useState
 
 /**
  * [RProps] for project view
@@ -43,19 +52,47 @@ external interface ProjectRouteProps : RProps {
  */
 @OptIn(ExperimentalJsExport::class)
 @JsExport
-class ProjectView : RComponent<ProjectProps, RState>() {
-    @Suppress("TOO_LONG_FUNCTION", "ForbiddenComment")
-    override fun RBuilder.render() {
-        // Page Heading
-        div("d-sm-flex align-items-center justify-content-between mb-4") {
-            h1("h3 mb-0 text-gray-800") {
-                +"Project ${props.project.name}"
+fun projectView() = functionalComponent<ProjectProps> { props ->
+    val (modalIsOpen, setModalIsOpen) = useState(false)
+
+    // Page Heading
+    div("d-sm-flex align-items-center justify-content-between mb-4") {
+        h1("h3 mb-0 text-gray-800") {
+            +"Project ${props.project.name}"
+        }
+        modal {
+            attrs {
+                isOpen = modalIsOpen
+                contentLabel = "Submit tests execution"
+            }
+            div {
+                h2("h3 mb-0 text-gray-800") {
+                    +"Choose type of test execution"
+                }
+                ul("nav nav-pills") {
+                    li("nav-item") {
+                        a(classes = "nav-link") {
+                            +"Repo URL"
+                        }
+                    }
+                    li("nav-item") {
+                        a(classes = "nav-link") {
+                            +"Upload an executable"
+                        }
+                    }
+                }
+            }
+            button(type = ButtonType.button, classes = "btn btn-primary") {
+                attrs.onClickFunction = { setModalIsOpen(false) }
+                +"Close"
             }
         }
+    }
 
         div("row") {
             child(cardComponent {
-                button(type = ButtonType.button, classes = "btn") {
+                button(type = ButtonType.button, classes = "btn btn-primary") {
+                    attrs.onClickFunction = { setModalIsOpen(true) }
                     +"Run tests now"
                 }
             }) {
@@ -73,8 +110,6 @@ class ProjectView : RComponent<ProjectProps, RState>() {
                     +"Description: ${props.project.description}"
                 }
                 p("small") {
-                    // todo: use router props?
-                    // todo: links to individual history entires
                     a(href = "#/${props.project.type}/${props.project.owner}/${props.project.name}/history/latest") {
                         +"Latest test execution: N/A"
                     }
@@ -91,7 +126,6 @@ class ProjectView : RComponent<ProjectProps, RState>() {
             }
         }
     }
-}
 
 /**
  * @return a [Project] constructed from these props

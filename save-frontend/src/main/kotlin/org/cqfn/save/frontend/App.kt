@@ -12,7 +12,6 @@ import org.cqfn.save.frontend.components.views.ExecutionView
 import org.cqfn.save.frontend.components.views.FallbackView
 import org.cqfn.save.frontend.components.views.HistoryView
 import org.cqfn.save.frontend.components.views.ProjectRouteProps
-import org.cqfn.save.frontend.components.views.ProjectView
 import org.cqfn.save.frontend.components.views.toProject
 
 import react.dom.div
@@ -24,10 +23,16 @@ import react.router.dom.withRouter
 
 import kotlinx.browser.document
 import kotlinx.html.id
+import org.cqfn.save.frontend.components.views.projectView
+import org.cqfn.save.frontend.externals.modal.ReactModal
+import org.w3c.dom.HTMLElement
+import react.child
 
 @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
 fun main() {
     kotlinext.js.require("../scss/save-frontend.scss")  // this is needed for webpack to include resource
+    ReactModal.setAppElement(document.getElementById("wrapper") as HTMLElement)  // required for accessibility in react-modal
+
     render(document.getElementById("wrapper")) {
         hashRouter {
             div("d-flex flex-column") {
@@ -40,7 +45,7 @@ fun main() {
                     switch {
                         route("/", exact = true, component = CollectionView::class)
                         route<ProjectRouteProps>("/:type/:owner/:name", exact = true) { routeResultProps ->
-                            child(ProjectView::class) {
+                            child(projectView()) {
                                 attrs.project = routeResultProps.match.params.toProject()
                             }
                         }

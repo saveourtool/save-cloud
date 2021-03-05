@@ -34,6 +34,7 @@ kotlin {
             implementation("org.jetbrains:kotlin-react-table:7.6.3${Versions.kotlinJsWrappersSuffix}")
             implementation(npm("react", Versions.react))
             implementation(npm("react-dom", Versions.react))
+            implementation(npm("react-modal", "3.12.1"))
 
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${Versions.coroutines}")
         }
