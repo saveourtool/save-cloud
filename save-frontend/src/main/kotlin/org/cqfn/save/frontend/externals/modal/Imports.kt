@@ -27,6 +27,12 @@ external interface ModalProps : RProps {
      * String indicating how the content container should be announced to screenreaders.
      */
     var contentLabel: String
+
+    /** String or object className to be applied to the modal content. */
+    val className: Classes
+
+    /** String or object className to be applied to the overlay. */
+    val overlayClassName: Classes
 }
 
 /**

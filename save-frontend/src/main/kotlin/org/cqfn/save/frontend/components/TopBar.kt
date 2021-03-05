@@ -1,3 +1,7 @@
+/**
+ * Top bar of web page
+ */
+
 package org.cqfn.save.frontend.components
 
 import react.RBuilder
@@ -14,16 +18,32 @@ import react.dom.ol
 import react.dom.span
 import react.dom.ul
 import react.router.dom.RouteResultProps
+import react.setState
 
 import kotlinx.html.id
+import kotlinx.html.js.onClickFunction
 import kotlinx.html.role
+
+/**
+ * A state of top bar component
+ */
+external interface TopBarState : RState {
+    /**
+     * Whether logout window is opened
+     */
+    var isLogoutModalOpen: Boolean
+}
 
 /**
  * A component for web page top bar
  */
 @OptIn(ExperimentalJsExport::class)
 @JsExport
-class TopBar : RComponent<RouteResultProps<RProps>, RState>() {
+class TopBar : RComponent<RouteResultProps<RProps>, TopBarState>() {
+    init {
+        state.isLogoutModalOpen = false
+    }
+
     @Suppress("TOO_LONG_FUNCTION", "EMPTY_BLOCK_STRUCTURE_ERROR", "LongMethod")
     override fun RBuilder.render() {
         nav("navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow") {
@@ -88,6 +108,12 @@ class TopBar : RComponent<RouteResultProps<RProps>, RState>() {
                             }
                         }
                         a("#", classes = "dropdown-item") {
+                            attrs.onClickFunction = {
+                                println("Changing value from ${state.isLogoutModalOpen} to true")
+                                setState {
+                                    isLogoutModalOpen = true
+                                }
+                            }
                             i("fas fa-sign-out fa-sm fa-fw mr-2 text-gray-400") {
                                 +"Log out"
                             }
@@ -95,6 +121,11 @@ class TopBar : RComponent<RouteResultProps<RProps>, RState>() {
                     }
                 }
             }
+        }
+        logoutModal({
+            attrs.isOpen = state.isLogoutModalOpen
+        }) {
+            setState { isLogoutModalOpen = false }
         }
     }
 }
