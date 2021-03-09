@@ -31,7 +31,9 @@ class DownloadProjectTest(@Autowired private val webClient: WebTestClient) : Rep
             .body(BodyInserters.fromValue(wrongRepo))
             .exchange()
             .expectStatus()
-            .isEqualTo(HttpStatus.BAD_REQUEST)
+            .isEqualTo(HttpStatus.ACCEPTED)
+        Thread.sleep(2000)  // Time for request to delete directory
+        Assertions.assertFalse(File("$volumes/${wrongRepo.url.hashCode()}").exists())
     }
 
     @Test
