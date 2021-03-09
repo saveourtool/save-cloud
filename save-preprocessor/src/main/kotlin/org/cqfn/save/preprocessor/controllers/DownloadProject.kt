@@ -33,7 +33,7 @@ class DownloadProject {
      * @param gitRepository - Dto of repo information to clone
      * @return response entity with text
      */
-    @Suppress("TooGenericExceptionCaught")
+    @Suppress("TooGenericExceptionCaught", "TOO_LONG_FUNCTION")
     @PostMapping(value = ["/upload"])
     fun upload(@RequestBody gitRepository: GitRepository): Response {
         val urlHash = gitRepository.url.hashCode()
@@ -59,18 +59,19 @@ class DownloadProject {
                     // TODO post request to orchestrator
                     return Mono.just(ResponseEntity("Cloned", HttpStatus.ACCEPTED))
                 }
-        } catch (invalidRemoteException: InvalidRemoteException) {
-            log.warn("Invalidate remote exception while cloning ${gitRepository.url} repository", invalidRemoteException)
-            return Mono.just(ResponseEntity(invalidRemoteException.stackTraceToString(), HttpStatus.BAD_GATEWAY))
-        } catch (transportException: TransportException) {
-            log.warn("Transport operation failed while cloning ${gitRepository.url} repository", transportException)
-            return Mono.just(ResponseEntity(transportException.stackTraceToString(), HttpStatus.NOT_ACCEPTABLE))
-        } catch (gitAPIException: GitAPIException) {
-            log.warn("Error with git API while cloning ${gitRepository.url} repository", gitAPIException)
-            return Mono.just(ResponseEntity(gitAPIException.stackTraceToString(), HttpStatus.BAD_REQUEST))
-        } catch (ex: Exception) {
-            log.warn("Cloning ${gitRepository.url} repository failed", ex)
-            return Mono.just(ResponseEntity(ex.stackTraceToString(), HttpStatus.INTERNAL_SERVER_ERROR))
+        } catch (exception: Exception) {
+            return when (exception) {
+                is InvalidRemoteException,
+                is TransportException,
+                is GitAPIException -> {
+                    log.warn("Error with git API while cloning ${gitRepository.url} repository", exception)
+                    Mono.just(ResponseEntity(exception.stackTraceToString(), HttpStatus.BAD_REQUEST))
+                }
+                else -> {
+                    log.warn("Cloning ${gitRepository.url} repository failed", exception)
+                    Mono.just(ResponseEntity(exception.stackTraceToString(), HttpStatus.INTERNAL_SERVER_ERROR))
+                }
+            }
         }
     }
 }

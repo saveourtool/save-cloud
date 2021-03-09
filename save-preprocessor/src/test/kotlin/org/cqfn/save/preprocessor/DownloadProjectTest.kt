@@ -31,22 +31,22 @@ class DownloadProjectTest(@Autowired private val webClient: WebTestClient) : Rep
             .body(BodyInserters.fromValue(wrongRepo))
             .exchange()
             .expectStatus()
-            .isEqualTo(HttpStatus.BAD_GATEWAY)
+            .isEqualTo(HttpStatus.BAD_REQUEST)
     }
 
     @Test
     fun testCorrectDownload() {
-        val wrongRepo = GitRepository("https://github.com/cqfn/save-cloud.git")
+        val validRepo = GitRepository("https://github.com/cqfn/save-cloud.git")
         webClient.post()
             .uri("/upload")
             .contentType(MediaType.APPLICATION_JSON)
-            .body(BodyInserters.fromValue(wrongRepo))
+            .body(BodyInserters.fromValue(validRepo))
             .exchange()
             .expectStatus()
             .isAccepted
             .expectBody(String::class.java)
             .isEqualTo<Nothing>("Cloned")
-        Assertions.assertTrue(File("$volumes/${wrongRepo.url.hashCode()}").exists())
+        Assertions.assertTrue(File("$volumes/${validRepo.url.hashCode()}").exists())
     }
 
     @AfterEach
