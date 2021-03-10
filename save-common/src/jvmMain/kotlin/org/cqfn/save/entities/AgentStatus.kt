@@ -1,15 +1,15 @@
 package org.cqfn.save.entities
 
 import org.cqfn.save.agent.AgentState
-import java.time.LocalDate
+import java.time.LocalDateTime
 import javax.persistence.*
 
 @Entity
 class AgentStatus (
         @Column(name="time")
-        var time: LocalDate,
+        var time: LocalDateTime,
         @Enumerated(EnumType.STRING)
         var state: AgentState,
-        var agentId: Long,
+        var agentId: String,
         @Id @GeneratedValue var id: Long? = null
 )
