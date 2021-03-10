@@ -15,9 +15,6 @@ plugins {
 
 val profile = properties.getOrDefault("profile", "dev")
 
-println("#############")
-println(profile)
-
 val props = java.util.Properties()
 val file = file("save-backend/src/main/resources/application-$profile.properties").apply { props.load(inputStream()) }
 
@@ -74,7 +71,7 @@ allprojects {
     configureDetekt()
 }
 
-createStackDeployTask(profile)
+createStackDeployTask(profile as String)
 configureVersioning()
 createDiktatTask()
 createDetektTask()
