@@ -13,7 +13,7 @@ plugins {
     id("org.liquibase.gradle") version Versions.liquibaseGradlePlugin
 }
 
-val profile = properties.getOrDefault("profile", "dev")
+val profile = properties.getOrDefault("profile", "dev") as String
 
 val props = java.util.Properties()
 val file = file("save-backend/src/main/resources/application-$profile.properties").apply { props.load(inputStream()) }
@@ -53,7 +53,6 @@ liquibase {
 dependencies {
     liquibaseRuntime("org.liquibase:liquibase-core:${Versions.liquibase}")
     liquibaseRuntime("mysql:mysql-connector-java:${Versions.mySql}")
-    liquibaseRuntime("org.liquibase.ext:liquibase-hibernate5:${Versions.liquibaseHibernate5}")
 }
 
 talaiot {
@@ -71,7 +70,7 @@ allprojects {
     configureDetekt()
 }
 
-createStackDeployTask(profile as String)
+createStackDeployTask(profile)
 configureVersioning()
 createDiktatTask()
 createDetektTask()

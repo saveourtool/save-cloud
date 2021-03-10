@@ -19,9 +19,8 @@ fun Project.createStackDeployTask(profile: String) {
         doFirst {
             val newText = file("$rootDir/docker-compose.yaml.template").readLines()
                 .joinToString(System.lineSeparator()) {
-                    var tmp = it
-                    tmp = tmp.replace("{{project.version}}", versionForDockerImages())
-                    tmp.replace("{{profile}}", profile)
+                    it.replace("{{project.version}}", versionForDockerImages())
+                            .replace("{{profile}}", profile)
                 }
             file("$buildDir/docker-compose.yaml")
                 .apply { createNewFile() }

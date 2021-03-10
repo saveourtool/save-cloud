@@ -1,8 +1,6 @@
 # https://docs.docker.com/engine/swarm/stack-deploy/
 # $ ./gradlew deployDockerStack
 version: '3.9'
-environment:
-  - SPRING_PROFILES_ACTIVE={{profile}}
 
 services:
   orchestrator:
@@ -17,7 +15,7 @@ services:
   backend:
     image: 127.0.0.1:6000/save-backend:{{project.version}}
     environment:
-      - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_PROFILES_ACTIVE={{profile}}
     ports:
       - "5000:5000"
     deploy:
