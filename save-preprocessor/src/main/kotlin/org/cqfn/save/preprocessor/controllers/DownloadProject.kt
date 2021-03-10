@@ -46,7 +46,7 @@ class DownloadProject {
             }
     }
 
-    @Suppress("TOO_LONG_FUNCTION")
+    @Suppress("TOO_LONG_FUNCTION", "TooGenericExceptionCaught")
     private fun downLoadRepository(gitRepository: GitRepository) {
         val urlHash = gitRepository.url.hashCode()
         val tmpDir = File("$volumes/$urlHash")
