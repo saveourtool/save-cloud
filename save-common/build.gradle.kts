@@ -9,6 +9,7 @@ plugins {
 kotlin {
     allOpen {
         annotation("javax.persistence.Entity")
+        annotation("org.springframework.stereotype.Service")
     }
 
     repositories {
