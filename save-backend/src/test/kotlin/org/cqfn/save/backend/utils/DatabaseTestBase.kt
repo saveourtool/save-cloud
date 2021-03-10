@@ -1,6 +1,5 @@
 package org.cqfn.save.backend.utils
 
-import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.testcontainers.containers.JdbcDatabaseContainer
