@@ -26,6 +26,8 @@ services:
         - "prometheus-job=save-backend"
   preprocessor:
     image: 127.0.0.1:6000/save-preprocessor:{{project.version}}
+    environment:
+      - SPRING_PROFILES_ACTIVE={{profile}}
     volumes:
       - save:/home/cnb/
     ports:
