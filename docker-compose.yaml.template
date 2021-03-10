@@ -5,6 +5,8 @@ version: '3.9'
 services:
   orchestrator:
     image: 127.0.0.1:6000/save-orchestrator:{{project.version}}
+    environment:
+      - SPRING_PROFILES_ACTIVE={{profile}}
     ports:
       - "5100:5100"
     volumes:
@@ -14,6 +16,8 @@ services:
         - "prometheus-job=save-orchestrator"
   backend:
     image: 127.0.0.1:6000/save-backend:{{project.version}}
+    environment:
+      - SPRING_PROFILES_ACTIVE={{profile}}
     ports:
       - "5000:5000"
     deploy:
