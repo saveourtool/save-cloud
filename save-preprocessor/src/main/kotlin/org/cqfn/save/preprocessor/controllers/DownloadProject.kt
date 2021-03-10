@@ -34,7 +34,7 @@ class DownloadProject {
      * @param gitRepository - Dto of repo information to clone
      * @return response entity with text
      */
-    @Suppress("TooGenericExceptionCaught", "TOO_LONG_FUNCTION")
+    @Suppress("TooGenericExceptionCaught")
     @PostMapping(value = ["/upload"])
     fun upload(@RequestBody gitRepository: GitRepository): Response {
         return Mono.just(ResponseEntity("Clone pending", HttpStatus.ACCEPTED))
@@ -46,6 +46,7 @@ class DownloadProject {
             }
     }
 
+    @Suppress("TOO_LONG_FUNCTION")
     private fun downLoadRepository(gitRepository: GitRepository) {
         val urlHash = gitRepository.url.hashCode()
         val tmpDir = File("$volumes/$urlHash")
@@ -74,12 +75,8 @@ class DownloadProject {
             when (exception) {
                 is InvalidRemoteException,
                 is TransportException,
-                is GitAPIException -> {
-                    log.warn("Error with git API while cloning ${gitRepository.url} repository", exception)
-                }
-                else -> {
-                    log.warn("Cloning ${gitRepository.url} repository failed", exception)
-                }
+                is GitAPIException -> log.warn("Error with git API while cloning ${gitRepository.url} repository", exception)
+                else -> log.warn("Cloning ${gitRepository.url} repository failed", exception)
             }
         }
     }
