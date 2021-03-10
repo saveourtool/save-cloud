@@ -52,6 +52,6 @@ fun Project.createStackDeployTask(profile: String) {
     tasks.register<Exec>("deployLocal") {
         dependsOn(subprojects.flatMap { it.tasks.withType<BootBuildImage>() })
         dependsOn("generateComposeFile")
-        commandLine("docker-compose", "--file", "$buildDir/docker-compose.yaml", "up", "-d", "orchestrator", "backend")
+        commandLine("docker-compose", "--file", "$buildDir/docker-compose.yaml", "up", "-d", "orchestrator", "backend", "preprocessor")
     }
 }

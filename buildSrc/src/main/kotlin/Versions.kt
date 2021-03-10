@@ -16,4 +16,5 @@ object Versions {
     const val jpa = "1.0.2.Final"
     const val liquibaseGradlePlugin = "2.0.4"
     const val testcontainers = "1.15.2"
+    const val jgit = "5.10.0.202012080955-r"
 }
