@@ -37,46 +37,50 @@ class DownloadProject {
     @Suppress("TooGenericExceptionCaught", "TOO_LONG_FUNCTION")
     @PostMapping(value = ["/upload"])
     fun upload(@RequestBody gitRepository: GitRepository): Response {
-        return Mono.just(ResponseEntity("Cloned", HttpStatus.ACCEPTED))
+        return Mono.just(ResponseEntity("Clone pending", HttpStatus.ACCEPTED))
             .subscribeOn(Schedulers.boundedElastic())
             .also {
                 it.subscribe {
-                    val urlHash = gitRepository.url.hashCode()
-                    val tmpDir = File("$volumes/$urlHash")
-                    if (tmpDir.exists()) {
-                        tmpDir.deleteRecursively()
-                        log.info("For ${gitRepository.url} repository: dir $urlHash was deleted")
-                    }
-                    tmpDir.mkdirs()
-                    log.info("For ${gitRepository.url} repository: dir $urlHash was created")
-                    val userCredentials = if (gitRepository.username != null && gitRepository.password != null) {
-                        UsernamePasswordCredentialsProvider(gitRepository.username, gitRepository.password)
-                    } else {
-                        CredentialsProvider.getDefault()
-                    }
-                    try {
-                        Git.cloneRepository()
-                            .setURI(gitRepository.url)
-                            .setCredentialsProvider(userCredentials)
-                            .setDirectory(tmpDir)
-                            .call().use {
-                                log.info("Repository cloned: ${gitRepository.url}")
-                                // TODO post request to orchestrator
-                            }
-                    } catch (exception: Exception) {
-                        tmpDir.deleteRecursively()
-                        when (exception) {
-                            is InvalidRemoteException,
-                            is TransportException,
-                            is GitAPIException -> {
-                                log.warn("Error with git API while cloning ${gitRepository.url} repository", exception)
-                            }
-                            else -> {
-                                log.warn("Cloning ${gitRepository.url} repository failed", exception)
-                            }
-                        }
-                    }
+                    downLoadRepository(gitRepository)
                 }
             }
+    }
+
+    private fun downLoadRepository(gitRepository: GitRepository) {
+        val urlHash = gitRepository.url.hashCode()
+        val tmpDir = File("$volumes/$urlHash")
+        if (tmpDir.exists()) {
+            tmpDir.deleteRecursively()
+            log.info("For ${gitRepository.url} repository: dir $urlHash was deleted")
+        }
+        tmpDir.mkdirs()
+        log.info("For ${gitRepository.url} repository: dir $urlHash was created")
+        val userCredentials = if (gitRepository.username != null && gitRepository.password != null) {
+            UsernamePasswordCredentialsProvider(gitRepository.username, gitRepository.password)
+        } else {
+            CredentialsProvider.getDefault()
+        }
+        try {
+            Git.cloneRepository()
+                .setURI(gitRepository.url)
+                .setCredentialsProvider(userCredentials)
+                .setDirectory(tmpDir)
+                .call().use {
+                    log.info("Repository cloned: ${gitRepository.url}")
+                    // TODO post request to orchestrator
+                }
+        } catch (exception: Exception) {
+            tmpDir.deleteRecursively()
+            when (exception) {
+                is InvalidRemoteException,
+                is TransportException,
+                is GitAPIException -> {
+                    log.warn("Error with git API while cloning ${gitRepository.url} repository", exception)
+                }
+                else -> {
+                    log.warn("Cloning ${gitRepository.url} repository failed", exception)
+                }
+            }
+        }
     }
 }

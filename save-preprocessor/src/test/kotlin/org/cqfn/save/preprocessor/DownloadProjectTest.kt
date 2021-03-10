@@ -47,7 +47,7 @@ class DownloadProjectTest(@Autowired private val webClient: WebTestClient) : Rep
             .expectStatus()
             .isAccepted
             .expectBody(String::class.java)
-            .isEqualTo<Nothing>("Cloned")
+            .isEqualTo<Nothing>("Clone pending")
         Assertions.assertTrue(File("$volumes/${validRepo.url.hashCode()}").exists())
     }
 
