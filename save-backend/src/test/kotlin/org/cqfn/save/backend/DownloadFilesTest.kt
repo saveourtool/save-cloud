@@ -1,6 +1,8 @@
 package org.cqfn.save.backend
 
 import org.cqfn.save.backend.repository.ProjectRepository
+import org.cqfn.save.backend.service.InitializeTestIdsService
+import org.cqfn.save.backend.service.TestStatusesService
 
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -17,6 +19,12 @@ import kotlin.io.path.ExperimentalPathApi
 class DownloadFilesTest {
     @MockBean
     var repository: ProjectRepository? = null
+
+    @MockBean
+    val initializeTestIdsService: InitializeTestIdsService? = null
+
+    @MockBean
+    val testStatusesService: TestStatusesService? = null
 
     @Autowired
     lateinit var webClient: WebTestClient

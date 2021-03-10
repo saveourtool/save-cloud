@@ -1,5 +1,6 @@
 package org.cqfn.save.backend
 
+import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.service.InitializeTestIdsService
 import org.cqfn.save.backend.service.TestStatusesService
 import org.junit.jupiter.api.Test
@@ -14,6 +15,9 @@ import reactor.core.publisher.Mono
 class InitializeTestIdsControllerTest {
     @Autowired
     lateinit var webClient: WebTestClient
+
+    @MockBean
+    var repository: ProjectRepository? = null
 
     @MockBean
     val testIdsService: InitializeTestIdsService? = null
