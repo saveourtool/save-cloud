@@ -15,11 +15,31 @@ plugins {
 
 val profile = properties.getOrDefault("profile", "dev")
 
+println("#############")
+println(profile)
+
 val props = java.util.Properties()
 val file = file("save-backend/src/main/resources/application-$profile.properties").apply { props.load(inputStream()) }
 
 if (File("secrets").exists()) {
     file("secrets").apply { props.load(inputStream()) }
+}
+
+fun fillComposeFile() {
+    val composeFileLines = File("docker-compose.yaml.template").readLines()
+    val newText: StringBuilder = java.lang.StringBuilder()
+    composeFileLines.forEach { line ->
+        when {
+            line.contains("SPRING_PROFILES_ACTIVE") -> {
+                newText.append(line.takeWhile { it != '=' })
+                newText.append("=$profile")
+            }
+            else -> {
+                newText.append("$line\n")
+            }
+        }
+    }
+    File("docker-compose.yaml.template").writeText(newText.toString())
 }
 
 val databaseUrl = props.getProperty("spring.datasource.url")
@@ -29,30 +49,10 @@ var password: String
 if (profile == "prod") {
     username = props.getProperty("username")
     password = props.getProperty("password")
-
-    fillSpringDatasource(username, password)
+    fillComposeFile()
 } else {
     username = props.getProperty("spring.datasource.username")
     password = props.getProperty("spring.datasource.password")
-}
-
-fun fillSpringDatasource(userName: String, password: String) {
-    val fileLines = file.readLines()
-    val newText: StringBuilder = java.lang.StringBuilder()
-    fileLines.forEach {
-        when {
-            it.startsWith("spring.datasource.username") -> {
-                newText.append("spring.datasource.username=$userName\n")
-            }
-            it.startsWith("spring.datasource.password") -> {
-                newText.append("spring.datasource.password=$password\n")
-            }
-            else -> {
-                newText.append("$it\n")
-            }
-        }
-    }
-    file.writeText(newText.toString())
 }
 
 liquibase {
