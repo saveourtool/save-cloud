@@ -20,25 +20,16 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: 1.11
-      - name: Install system pacakges
+      - name: Install system packages
         # libcurl is needed for ktor-client-curl
         run: sudo apt-get install libcurl4-openssl-dev
-      # todo: consider using https://github.com/burrunan/gradle-cache-action instead
-      - name: Cache gradle caches
-        uses: actions/cache@v2
-        with:
-          path: |
-            ~/.gradle/caches/
-            ~/.gradle/wrapper/
-          key: ${{ runner.os }}-gradle-build-${{ hashFiles('**/*.gradle*') }}
-          restore-keys: ${{ runner.os }}-gradle-build
       - name: Cache konan
         uses: actions/cache@v2
         with:
           path: ~/.konan
-          key: ${{ runner.os }}-gradle-konan-${{ hashFiles('**/*.gradle.kts') }}
+          key: ${{ runner.os }}-gradle-konan
           restore-keys: |
-            ${{ runner.os }}-gradle-konan-
+            ${{ runner.os }}-gradle-konan
       # https://gvisor.dev/docs/user_guide/install/
       - name: Install gvisor runsc runtime
         run: |
@@ -53,14 +44,23 @@ jobs:
           sudo mv runsc containerd-shim-runsc-v1 /usr/local/bin
           sudo /usr/local/bin/runsc install
           sudo systemctl reload docker
-      - name: Gradle build
-        run: |
-          ./gradlew build -x detekt
-      - name: Upload test reports
-        if: ${{ failure() }}  # runs only if previous step has failed, the entire workflow will still be marked as failed
+      - name: Gradle build with remote cache
+        uses: burrunan/gradle-cache-action@v1
+        with:
+          arguments: |
+            build
+            -x detekt
+          properties: |
+            org.gradle.caching=true
+          gradle-version: wrapper
+          # additional files to calculate key for dependency cache
+          gradle-dependencies-cache-key: |
+            buildSrc/**/Versions.kt
+      - name: Upload gradle reports
+        if: ${{ always() }}
         uses: actions/upload-artifact@v2
         with:
-          name: gradle-test-report
+          name: gradle-reports
           path: '**/build/reports/'
       - name: Code coverage report
         uses: codecov/codecov-action@v1

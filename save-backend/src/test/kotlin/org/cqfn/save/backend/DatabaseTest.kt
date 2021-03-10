@@ -1,16 +1,16 @@
 package org.cqfn.save.backend
 
 import org.cqfn.save.backend.repository.ProjectRepository
+import org.cqfn.save.backend.utils.DatabaseTestBase
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.ActiveProfiles
 
-
 @SpringBootTest(classes = [SaveApplication::class])
 @ActiveProfiles("dev")
-class H2DatabaseTest {
+class DatabaseTest : DatabaseTestBase() {
     @Autowired
     private lateinit var projectRepository: ProjectRepository
 
@@ -18,6 +18,6 @@ class H2DatabaseTest {
     fun checkTestDataInDataBase() {
         val projects = projectRepository.findAll()
 
-        assertTrue(projects.any { it.name == "huaweiName" && it.owner == "Huawei" && it.url == "huawei.com" })
+        assertTrue(projects.any { it.name == "huaweiName" && it.owner == "Huawei" && it.url == "huaweiUrl" })
     }
 }
