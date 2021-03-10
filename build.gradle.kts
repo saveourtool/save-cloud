@@ -25,23 +25,6 @@ if (File("secrets").exists()) {
     file("secrets").apply { props.load(inputStream()) }
 }
 
-fun fillComposeFile() {
-    val composeFileLines = File("docker-compose.yaml.template").readLines()
-    val newText: StringBuilder = java.lang.StringBuilder()
-    composeFileLines.forEach { line ->
-        when {
-            line.contains("SPRING_PROFILES_ACTIVE") -> {
-                newText.append(line.takeWhile { it != '=' })
-                newText.append("=$profile")
-            }
-            else -> {
-                newText.append("$line\n")
-            }
-        }
-    }
-    File("docker-compose.yaml.template").writeText(newText.toString())
-}
-
 val databaseUrl = props.getProperty("spring.datasource.url")
 var username: String
 var password: String
@@ -49,7 +32,6 @@ var password: String
 if (profile == "prod") {
     username = props.getProperty("username")
     password = props.getProperty("password")
-    fillComposeFile()
 } else {
     username = props.getProperty("spring.datasource.username")
     password = props.getProperty("spring.datasource.password")
@@ -92,7 +74,7 @@ allprojects {
     configureDetekt()
 }
 
-createStackDeployTask()
+createStackDeployTask(profile)
 configureVersioning()
 createDiktatTask()
 createDetektTask()

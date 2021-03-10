@@ -2,7 +2,7 @@
 # $ ./gradlew deployDockerStack
 version: '3.9'
 environment:
-  - SPRING_PROFILES_ACTIVE=%PROFILE_STUB%
+  - SPRING_PROFILES_ACTIVE={{profile}}
 
 services:
   orchestrator:
