@@ -14,6 +14,13 @@ tasks.withType<KotlinCompile> {
     }
 }
 
+tasks.getByName("processTestResources").dependsOn("copyLiquibase")
+
+tasks.register<Copy>("copyLiquibase") {
+    from("$rootDir/db")
+    into("$buildDir/resources/main/db")
+}
+
 tasks.withType<Test> {
     useJUnitPlatform()
 }
