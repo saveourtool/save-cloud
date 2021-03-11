@@ -14,24 +14,24 @@ kotlin {
         sourceSets["main"].dependencies {
             implementation(project(":save-common"))
 
-            // devDependencies for webpack
-            compileOnly(devNpm("node-sass", "*"))
-            compileOnly(devNpm("sass-loader", "10.1.1"))  // todo: there is some issue with newer versions
+            // devDependencies for webpack. As for kotlin 1.4.31, kotlin bundles webpack 4.x, and some
+            //  latest ersions of dependencies already require webpack ^5. These versions are fixed on the last compatible.
+            compileOnly(devNpm("node-sass", "5.0.0"))
+            compileOnly(devNpm("sass-loader", "10.1.1"))
             compileOnly(devNpm("style-loader", "*"))
             compileOnly(devNpm("css-loader", "*"))
             compileOnly(devNpm("url-loader", "*"))
             compileOnly(devNpm("file-loader", "*"))
 
             // web-specific dependencies
-            // todo: bootstrap and jquery.easing need jquery, but if it's loaded from webpack, they can't use it
-            //  and for some reason neither can be loaded from webpack. So they reside in html, bootstrap is here for scss.
-            compileOnly(npm("bootstrap", "4.5.3"))
             compileOnly(npm("@fortawesome/fontawesome-free", "5.15.1"))  // needed to copy fonts to resources, not needed in runtime
-            compileOnly("kotlin.js.externals:kotlin-js-jquery:3.2.0-0")  // todo: use react instead of jquery
             implementation("org.jetbrains:kotlin-react:${Versions.kotlinReact}")
             implementation("org.jetbrains:kotlin-react-dom:${Versions.kotlinReact}")
             implementation("org.jetbrains:kotlin-react-router-dom:5.2.0${Versions.kotlinJsWrappersSuffix}")
             implementation("org.jetbrains:kotlin-react-table:7.6.3${Versions.kotlinJsWrappersSuffix}")
+            implementation(npm("jquery", "3.5.1"))
+            implementation(npm("popper.js", "1.16.1"))  // peer dependency for bootstrap
+            implementation(npm("bootstrap", "4.6.0"))
             implementation(npm("react", Versions.react))
             implementation(npm("react-dom", Versions.react))
             implementation(npm("react-modal", "3.12.1"))

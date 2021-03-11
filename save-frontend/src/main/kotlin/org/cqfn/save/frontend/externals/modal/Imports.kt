@@ -87,7 +87,7 @@ external interface OnAfterOpenCallback {
 @JsModule("react-modal")
 @JsNonModule
 @JsName("ModalPortal")
-@Suppress("MISSING_KDOC_TOP_LEVEL", "MISSING_KDOC_CLASS_ELEMENTS")  // todo
+@Suppress("MISSING_KDOC_TOP_LEVEL", "MISSING_KDOC_CLASS_ELEMENTS")  // todo figure out what is portal and describe
 external class ReactModalPortal : Component<RProps, RState> {
     val content: HTMLDivElement
     val overlay: HTMLDivElement
