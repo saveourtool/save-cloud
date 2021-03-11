@@ -40,7 +40,7 @@ liquibase {
         register("main") {
             arguments = mapOf(
                     "changeLogFile" to "db/changelog/db.changelog-master.xml",
-                    "url" to "jdbc:mysql://$databaseUrl/save_cloud",
+                    "url" to databaseUrl,
                     "username" to username,
                     "password" to password,
                     "logLevel" to "info",

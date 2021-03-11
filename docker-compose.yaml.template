@@ -6,7 +6,7 @@ services:
   orchestrator:
     image: 127.0.0.1:6000/save-orchestrator:{{project.version}}
     environment:
-      - SPRING_PROFILES_ACTIVE={{profile}}
+      - "SPRING_PROFILES_ACTIVE={{profile}}"
     ports:
       - "5100:5100"
     volumes:
@@ -18,9 +18,9 @@ services:
   backend:
     image: 127.0.0.1:6000/save-backend:{{project.version}}
     environment:
-      SPRING_PROFILES_ACTIVE={{profile}}
-      MYSQL_USER: /run/secrets/db_username
-      MYSQL_PASSWORD_FILE: /run/secrets/db_password
+      - "SPRING_PROFILES_ACTIVE={{profile}}"
+      - "MYSQL_USER: /run/secrets/db_username"
+      - "MYSQL_PASSWORD_FILE: /run/secrets/db_password"
     secrets:
       - db_username
       - db_password
@@ -32,7 +32,7 @@ services:
   preprocessor:
     image: 127.0.0.1:6000/save-preprocessor:{{project.version}}
     environment:
-      - SPRING_PROFILES_ACTIVE={{profile}}
+      - "SPRING_PROFILES_ACTIVE={{profile}}"
     volumes:
       - save:/home/cnb/
     ports:
@@ -57,9 +57,10 @@ services:
       - "9100:3000"
 volumes:
   save:
+  db_data:
 
 secrets:
   db_password:
-    file: db_password.txt
+    external: true
   db_username:
-    file: db_username.txt
+    external: true

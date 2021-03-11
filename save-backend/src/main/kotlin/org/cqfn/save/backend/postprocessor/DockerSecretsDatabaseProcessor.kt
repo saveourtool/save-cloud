@@ -15,8 +15,8 @@ import java.util.*
 @Profile("prod")
 class DockerSecretsDatabaseProcessor : EnvironmentPostProcessor {
     override fun postProcessEnvironment(environment: ConfigurableEnvironment?, application: SpringApplication?) {
-        val passwordResource = FileSystemResource("/run/secrets/db-password")
-        val usernameResource = FileSystemResource("/run/secrets/db-username")
+        val passwordResource = FileSystemResource("/run/secrets/db_password")
+        val usernameResource = FileSystemResource("/run/secrets/db_username")
 
         if (passwordResource.exists()) {
             try {
@@ -24,7 +24,7 @@ class DockerSecretsDatabaseProcessor : EnvironmentPostProcessor {
                 val dbUsername = StreamUtils.copyToString(usernameResource.inputStream, Charset.defaultCharset())
                 val props = Properties()
                 props["spring.datasource.password"] = dbPassword
-                props["spring.datasource.password"] = dbUsername
+                props["spring.datasource.username"] = dbUsername
                 environment?.propertySources?.addLast(PropertiesPropertySource("dbProps", props))
             } catch (exc: IOException) {
                 throw RuntimeException(exc)
