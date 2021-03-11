@@ -18,11 +18,13 @@ import react.dom.h2
 import react.dom.li
 import react.dom.p
 import react.dom.ul
-import react.functionalComponent
-import react.useState
 
 import kotlinx.html.ButtonType
 import kotlinx.html.js.onClickFunction
+import react.RBuilder
+import react.RComponent
+import react.RState
+import react.setState
 
 /**
  * [RProps] for project view
@@ -54,6 +56,10 @@ fun ProjectRouteProps.toProject() = Project(
     url = "Todo: fetch URL",
 )
 
+external interface ProjectViewState : RState {
+    var isModalOpen: Boolean
+}
+
 /**
  * A functional RComponent for project view
  *
@@ -61,77 +67,80 @@ fun ProjectRouteProps.toProject() = Project(
  */
 @OptIn(ExperimentalJsExport::class)
 @JsExport
-@Suppress("TOO_LONG_FUNCTION", "LongMethod")
-fun projectView() = functionalComponent<ProjectProps> { props ->
-    val (modalIsOpen, setModalIsOpen) = useState(false)
-
-    // Page Heading
-    div("d-sm-flex align-items-center justify-content-between mb-4") {
-        h1("h3 mb-0 text-gray-800") {
-            +"Project ${props.project.name}"
-        }
-        modal {
-            attrs {
-                isOpen = modalIsOpen
-                contentLabel = "Submit tests execution"
-            }
-            div {
-                h2("h3 mb-0 text-gray-800") {
-                    +"Choose type of test execution"
-                }
-                ul("nav nav-pills") {
-                    li("nav-item") {
-                        a(classes = "nav-link") {
-                            +"Repo URL"
-                        }
-                    }
-                    li("nav-item") {
-                        a(classes = "nav-link") {
-                            +"Upload an executable"
-                        }
-                    }
-                }
-            }
-            button(type = ButtonType.button, classes = "btn btn-primary") {
-                attrs.onClickFunction = { setModalIsOpen(false) }
-                +"Close"
-            }
-        }
+class ProjectView : RComponent<ProjectProps, ProjectViewState>() {
+    init {
+        state.isModalOpen = false
     }
 
-    div("row") {
-        child(cardComponent {
-            button(type = ButtonType.button, classes = "btn btn-primary") {
-                attrs.onClickFunction = { setModalIsOpen(true) }
-                +"Run tests now"
+    override fun RBuilder.render() {
+        // Page Heading
+        div("d-sm-flex align-items-center justify-content-between mb-4") {
+            h1("h3 mb-0 text-gray-800") {
+                +"Project ${props.project.name}"
             }
-        }) {
-            attrs {
-                header = "Run tests"
-                leftBorderColor = "primary"
+            modal {
+                attrs {
+                    isOpen = state.isModalOpen
+                    contentLabel = "Submit tests execution"
+                }
+                div {
+                    h2("h3 mb-0 text-gray-800") {
+                        +"Choose type of test execution"
+                    }
+                    ul("nav nav-pills") {
+                        li("nav-item") {
+                            a(classes = "nav-link") {
+                                +"Repo URL"
+                            }
+                        }
+                        li("nav-item") {
+                            a(classes = "nav-link") {
+                                +"Upload an executable"
+                            }
+                        }
+                    }
+                }
+                button(type = ButtonType.button, classes = "btn btn-primary") {
+                    attrs.onClickFunction = { setState { isModalOpen = false } }
+                    +"Close"
+                }
             }
         }
 
-        child(cardComponent {
-            p("small") {
-                +"Name: ${props.project.name}"
-            }
-            p("small") {
-                +"Description: ${props.project.description}"
-            }
-            p("small") {
-                a(href = "#/${props.project.type}/${props.project.owner}/${props.project.name}/history/latest") {
-                    +"Latest test execution: N/A"
+        div("row") {
+            child(cardComponent {
+                button(type = ButtonType.button, classes = "btn btn-primary") {
+                    attrs.onClickFunction = { setState { isModalOpen = true } }
+                    +"Run tests now"
+                }
+            }) {
+                attrs {
+                    header = "Run tests"
+                    leftBorderColor = "primary"
                 }
             }
-            p("small") {
-                a(href = "#/${props.project.type}/${props.project.owner}/${props.project.name}/history") {
-                    +"Execution history"
+
+            child(cardComponent {
+                p("small") {
+                    +"Name: ${props.project.name}"
                 }
-            }
-        }) {
-            attrs {
-                header = "Project info"
+                p("small") {
+                    +"Description: ${props.project.description}"
+                }
+                p("small") {
+                    a(href = "#/${props.project.type}/${props.project.owner}/${props.project.name}/history/latest") {
+                        +"Latest test execution: N/A"
+                    }
+                }
+                p("small") {
+                    a(href = "#/${props.project.type}/${props.project.owner}/${props.project.name}/history") {
+                        +"Execution history"
+                    }
+                }
+            }) {
+                attrs {
+                    header = "Project info"
+                }
             }
         }
     }
