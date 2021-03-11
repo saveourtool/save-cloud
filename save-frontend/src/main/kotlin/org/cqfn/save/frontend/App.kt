@@ -12,40 +12,63 @@ import org.cqfn.save.frontend.components.views.ExecutionView
 import org.cqfn.save.frontend.components.views.FallbackView
 import org.cqfn.save.frontend.components.views.HistoryView
 import org.cqfn.save.frontend.components.views.ProjectRouteProps
-import org.cqfn.save.frontend.components.views.projectView
 import org.cqfn.save.frontend.components.views.toProject
 import org.cqfn.save.frontend.externals.modal.ReactModal
 
 import org.w3c.dom.HTMLElement
-import react.child
 import react.dom.div
 import react.dom.render
 import react.router.dom.hashRouter
 import react.router.dom.route
 import react.router.dom.switch
-import react.router.dom.withRouter
 
 import kotlinx.browser.document
 import kotlinx.html.id
+import org.cqfn.save.frontend.components.basic.scrollToTopButton
+import org.cqfn.save.frontend.components.views.ProjectView
+import react.RBuilder
+import react.RComponent
+import react.RProps
+import react.RState
+import react.child
 
-@Suppress("EMPTY_BLOCK_STRUCTURE_ERROR", "TOO_LONG_FUNCTION")
 fun main() {
     kotlinext.js.require("../scss/save-frontend.scss")  // this is needed for webpack to include resource
     ReactModal.setAppElement(document.getElementById("wrapper") as HTMLElement)  // required for accessibility in react-modal
 
     render(document.getElementById("wrapper")) {
+        child(App::class) {}
+    }
+}
+
+external interface AppState : RState {
+    var userName: String?
+}
+
+class App : RComponent<RProps, AppState>() {
+    init {
+        state.userName = "User Name"
+    }
+
+    @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR", "TOO_LONG_FUNCTION")
+    override fun RBuilder.render() {
         hashRouter {
             div("d-flex flex-column") {
                 attrs.id = "content-wrapper"
-                route("*") {
-                    // `withRouter` needs to be wrapped in `route`; we place it outside of `switch` to render always and unconditionally
-                    withRouter(TopBar::class).invoke {}
+                route<RProps>("*") { routeResultProps ->
+                    // needs to be wrapped in `route` to have access to pathname; we place it outside of `switch` to render always and unconditionally
+                    child(TopBar::class) {
+                        attrs {
+                            pathname = routeResultProps.location.pathname
+                            userName = state.userName
+                        }
+                    }
                 }
                 div("container-fluid") {
                     switch {
                         route("/", exact = true, component = CollectionView::class)
                         route<ProjectRouteProps>("/:type/:owner/:name", exact = true) { routeResultProps ->
-                            child(projectView()) {
+                            child(ProjectView::class) {
                                 attrs.project = routeResultProps.match.params.toProject()
                             }
                         }
@@ -66,5 +89,7 @@ fun main() {
                 child(Footer::class) {}
             }
         }
+        child(scrollToTopButton()) {}
     }
+
 }

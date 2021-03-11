@@ -4,6 +4,8 @@
 
 package org.cqfn.save.frontend.components
 
+import kotlinx.html.BUTTON
+import kotlinx.html.ButtonType
 import react.RBuilder
 import react.RComponent
 import react.RProps
@@ -17,12 +19,19 @@ import react.dom.nav
 import react.dom.ol
 import react.dom.span
 import react.dom.ul
-import react.router.dom.RouteResultProps
 import react.setState
 
 import kotlinx.html.id
 import kotlinx.html.js.onClickFunction
 import kotlinx.html.role
+import react.dom.RDOMBuilder
+import react.dom.button
+
+external interface TopBarProps : RProps {
+    var userName: String?
+
+    var pathname: String
+}
 
 /**
  * A state of top bar component
@@ -39,7 +48,8 @@ external interface TopBarState : RState {
  */
 @OptIn(ExperimentalJsExport::class)
 @JsExport
-class TopBar : RComponent<RouteResultProps<RProps>, TopBarState>() {
+class TopBar : RComponent<TopBarProps, TopBarState>() {
+    // RouteResultProps - how to add other props??? Only via contexts?
     init {
         state.isLogoutModalOpen = false
     }
@@ -57,7 +67,7 @@ class TopBar : RComponent<RouteResultProps<RProps>, TopBarState>() {
                             +"SAVE"
                         }
                     }
-                    props.location.pathname
+                    props.pathname
                         .split("/")
                         .filterNot { it.isBlank() }
                         .apply {
@@ -90,32 +100,20 @@ class TopBar : RComponent<RouteResultProps<RProps>, TopBarState>() {
                             set("aria-expanded", "false")
                         }
                         span("mr-2 d-none d-lg-inline text-gray-600 small") {
-                            +"User Name"  // todo receive username from App, store it in State and re-render on updates
+                            +(props.userName ?: "Log In")
                         }
                         img(classes = "img-profile rounded-circle", src = "img/undraw_profile.svg") {}
                     }
                     // Dropdown - User Information
                     div("dropdown-menu dropdown-menu-right shadow animated--grow-in") {
                         attrs["aria-labelledby"] = "userDropdown"
-                        a("#", classes = "dropdown-item") {
-                            i("fas fa-user fa-sm fa-fw mr-2 text-gray-400") {
-                                +"Profile"
-                            }
-                        }
-                        a("#", classes = "dropdown-item") {
-                            i("fas fa-cogs fa-sm fa-fw mr-2 text-gray-400") {
-                                +"Settings"
-                            }
-                        }
-                        a("#", classes = "dropdown-item") {
+                        dropdownEntry("fa-user", "Profile")
+                        dropdownEntry("fa-cogs", "Settings")
+                        dropdownEntry("fa-sign-out-alt", "Log out") {
                             attrs.onClickFunction = {
-                                println("Changing value from ${state.isLogoutModalOpen} to true")
                                 setState {
                                     isLogoutModalOpen = true
                                 }
-                            }
-                            i("fas fa-sign-out fa-sm fa-fw mr-2 text-gray-400") {
-                                +"Log out"
                             }
                         }
                     }
@@ -128,4 +126,12 @@ class TopBar : RComponent<RouteResultProps<RProps>, TopBarState>() {
             setState { isLogoutModalOpen = false }
         }
     }
+
+    private fun RBuilder.dropdownEntry(faIcon: String, text: String, handler: RDOMBuilder<BUTTON>.() -> Unit = {}) =
+        button(type = ButtonType.button, classes = "btn btn-no-outline dropdown-item rounded-0 shadow-none") {
+            i("fas $faIcon fa-sm fa-fw mr-2 text-gray-400") {
+                +text
+            }
+            handler(this)
+        }
 }
