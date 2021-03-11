@@ -29,7 +29,7 @@ external interface HistoryProps : RProps {
  * A table to display execution results for a certain project.
  */
 class HistoryView : RComponent<HistoryProps, RState>() {
-    @Suppress("TOO_LONG_FUNCTION")
+    @Suppress("TOO_LONG_FUNCTION", "ForbiddenComment")
     override fun RBuilder.render() {
         child(tableComponent(
             columns = columns {
@@ -58,13 +58,14 @@ class HistoryView : RComponent<HistoryProps, RState>() {
                         +"${it.value["skipped"]}"
                     }
                 }
-            }) {
-                // todo: fetch data from backend using `window.location.origin`
-                 arrayOf(
-                    json("date" to "26-Jan-2016", "passed" to "26", "failed" to "17", "skipped" to "36"),
-                    json("date" to "76-Jun-2019", "passed" to "67", "failed" to "75", "skipped" to "236"),
-                )
             }
+        ) {
+            // todo: fetch data from backend using `window.location.origin`
+            arrayOf(
+                json("date" to "26-Jan-2016", "passed" to "26", "failed" to "17", "skipped" to "36"),
+                json("date" to "76-Jun-2019", "passed" to "67", "failed" to "75", "skipped" to "236"),
+            )
+        }
         ) {
             attrs.tableHeader = "Execution details"
         }

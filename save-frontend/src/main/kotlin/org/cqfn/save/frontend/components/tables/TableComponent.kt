@@ -45,7 +45,7 @@ external interface TableProps : RProps {
  * @param getData a function to retrieve data for the table, returns an array of data of type [out D] that will be inserted into the table
  * @return a functional react component
  */
-@Suppress("TOO_LONG_FUNCTION", "ForbiddenComment")
+@Suppress("TOO_LONG_FUNCTION", "ForbiddenComment", "LongMethod")
 fun <D : Any> tableComponent(columns: Array<out Column<D, *>>, getData: () -> Array<out D>) = functionalComponent<TableProps> { props ->
     val (data, setData) = useState<Array<out D>>(emptyArray())
 

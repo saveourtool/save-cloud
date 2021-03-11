@@ -1,3 +1,7 @@
+/**
+ * Scroll-to-top button component
+ */
+
 package org.cqfn.save.frontend.components.basic
 
 import org.w3c.dom.SMOOTH
@@ -16,8 +20,11 @@ import kotlinx.html.js.onClickFunction
 
 /**
  * Renders scroll to top button
+ *
+ * @return a functional component
  */
-fun scrollToTopButton()  = functionalComponent<RProps> {
+@Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
+fun scrollToTopButton() = functionalComponent<RProps> {
     val (isVisible, setIsVisible) = useState(false)
 
     useEffect(emptyList()) {

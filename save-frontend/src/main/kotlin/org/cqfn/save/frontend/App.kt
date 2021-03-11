@@ -6,16 +6,23 @@ package org.cqfn.save.frontend
 
 import org.cqfn.save.frontend.components.Footer
 import org.cqfn.save.frontend.components.TopBar
+import org.cqfn.save.frontend.components.basic.scrollToTopButton
 import org.cqfn.save.frontend.components.views.CollectionView
 import org.cqfn.save.frontend.components.views.ExecutionProps
 import org.cqfn.save.frontend.components.views.ExecutionView
 import org.cqfn.save.frontend.components.views.FallbackView
 import org.cqfn.save.frontend.components.views.HistoryView
 import org.cqfn.save.frontend.components.views.ProjectRouteProps
+import org.cqfn.save.frontend.components.views.ProjectView
 import org.cqfn.save.frontend.components.views.toProject
 import org.cqfn.save.frontend.externals.modal.ReactModal
 
 import org.w3c.dom.HTMLElement
+import react.RBuilder
+import react.RComponent
+import react.RProps
+import react.RState
+import react.child
 import react.dom.div
 import react.dom.render
 import react.router.dom.hashRouter
@@ -24,27 +31,20 @@ import react.router.dom.switch
 
 import kotlinx.browser.document
 import kotlinx.html.id
-import org.cqfn.save.frontend.components.basic.scrollToTopButton
-import org.cqfn.save.frontend.components.views.ProjectView
-import react.RBuilder
-import react.RComponent
-import react.RProps
-import react.RState
-import react.child
 
-fun main() {
-    kotlinext.js.require("../scss/save-frontend.scss")  // this is needed for webpack to include resource
-    ReactModal.setAppElement(document.getElementById("wrapper") as HTMLElement)  // required for accessibility in react-modal
-
-    render(document.getElementById("wrapper")) {
-        child(App::class) {}
-    }
-}
-
+/**
+ * Top-level state of the whole App
+ */
 external interface AppState : RState {
+    /**
+     * Currently logged in user or null
+     */
     var userName: String?
 }
 
+/**
+ * MAin component for the whole App
+ */
 class App : RComponent<RProps, AppState>() {
     init {
         state.userName = "User Name"
@@ -91,5 +91,14 @@ class App : RComponent<RProps, AppState>() {
         }
         child(scrollToTopButton()) {}
     }
+}
 
+@Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
+fun main() {
+    kotlinext.js.require("../scss/save-frontend.scss")  // this is needed for webpack to include resource
+    ReactModal.setAppElement(document.getElementById("wrapper") as HTMLElement)  // required for accessibility in react-modal
+
+    render(document.getElementById("wrapper")) {
+        child(App::class) {}
+    }
 }

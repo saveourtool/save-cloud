@@ -38,8 +38,6 @@ fun RBuilder.logoutModal(handler: RHandler<ModalProps>, closeCallback: () -> Uni
                     attrs {
                         set("data-dismiss", "modal")
                         set("aria-label", "Close")
-                        onClickFunction = { // todo: close modal window
-                        }
                     }
                     span {
                         attrs["aria-hidden"] = "true"

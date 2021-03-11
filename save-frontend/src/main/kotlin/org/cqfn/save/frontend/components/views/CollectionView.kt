@@ -40,10 +40,11 @@ class CollectionView : RComponent<RProps, RState>() {
                         }
                     }
                 }
-            }) {
-                arrayOf(
-                    Project("cqfn", "diktat", "gh", "https://github.com/cqfn/diktat", null),
-                )
-            }) { }
+            }
+        ) {
+            arrayOf(
+                Project("cqfn", "diktat", "gh", "https://github.com/cqfn/diktat", null),
+            )
+        }) { }
     }
 }

@@ -4,13 +4,13 @@
 
 package org.cqfn.save.frontend.components
 
-import kotlinx.html.BUTTON
-import kotlinx.html.ButtonType
 import react.RBuilder
 import react.RComponent
 import react.RProps
 import react.RState
+import react.dom.RDOMBuilder
 import react.dom.a
+import react.dom.button
 import react.dom.div
 import react.dom.i
 import react.dom.img
@@ -21,15 +21,24 @@ import react.dom.span
 import react.dom.ul
 import react.setState
 
+import kotlinx.html.BUTTON
+import kotlinx.html.ButtonType
 import kotlinx.html.id
 import kotlinx.html.js.onClickFunction
 import kotlinx.html.role
-import react.dom.RDOMBuilder
-import react.dom.button
 
+/**
+ * [RProps] of the top bor component
+ */
 external interface TopBarProps : RProps {
+    /**
+     * Currently logged in user or null
+     */
     var userName: String?
 
+    /**
+     * Current path received from router
+     */
     var pathname: String
 }
 
@@ -127,11 +136,12 @@ class TopBar : RComponent<TopBarProps, TopBarState>() {
         }
     }
 
-    private fun RBuilder.dropdownEntry(faIcon: String, text: String, handler: RDOMBuilder<BUTTON>.() -> Unit = {}) =
-        button(type = ButtonType.button, classes = "btn btn-no-outline dropdown-item rounded-0 shadow-none") {
-            i("fas $faIcon fa-sm fa-fw mr-2 text-gray-400") {
-                +text
+    @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")  // todo: https://github.com/cqfn/diKTat/issues/796
+    private fun RBuilder.dropdownEntry(faIcon: String, text: String, handler: RDOMBuilder<BUTTON>.() -> Unit = { }) =
+            button(type = ButtonType.button, classes = "btn btn-no-outline dropdown-item rounded-0 shadow-none") {
+                i("fas $faIcon fa-sm fa-fw mr-2 text-gray-400") {
+                    +text
+                }
+                handler(this)
             }
-            handler(this)
-        }
 }
