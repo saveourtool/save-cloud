@@ -33,12 +33,6 @@ class ExecutionView : RComponent<ExecutionProps, RState>() {
     @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
     override fun RBuilder.render() {
         child(tableComponent(
-            data = arrayOf(
-                json("name" to "test 1", "result" to "passed"),
-                json("name" to "test 2", "result" to "failed"),
-                json("name" to "test 3", "result" to "skipped"),
-                json("name" to "test 4", "result" to "failed"),
-            ),
             columns = columns {
                 column(id = "index", header = "#") {
                     td {
@@ -55,7 +49,13 @@ class ExecutionView : RComponent<ExecutionProps, RState>() {
                         +"${it.value["result"]}"
                     }
                 }
-            },
-        )) { }
+            }) {
+               arrayOf(
+                   json("name" to "test 1", "result" to "passed"),
+                   json("name" to "test 2", "result" to "failed"),
+                   json("name" to "test 3", "result" to "skipped"),
+                   json("name" to "test 4", "result" to "failed"),
+               )
+            }) { }
     }
 }

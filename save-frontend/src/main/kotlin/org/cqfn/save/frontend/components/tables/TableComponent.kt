@@ -7,6 +7,7 @@
 package org.cqfn.save.frontend.components.tables
 
 import org.cqfn.save.frontend.utils.spread
+
 import react.RProps
 import react.dom.div
 import react.dom.h6
@@ -21,6 +22,10 @@ import react.table.Column
 import react.table.TableInstance
 import react.table.useSortBy
 import react.table.useTable
+import react.useEffect
+import react.useMemo
+import react.useState
+
 import kotlin.js.json
 
 /**
@@ -36,14 +41,21 @@ external interface TableProps : RProps {
 /**
  * A [RComponent] for a data table
  *
- * @param data array of data of type [out D] that will be inserted into the table
  * @param columns columns as an array of [Column]
+ * @param getData a function to retrieve data for the table, returns an array of data of type [out D] that will be inserted into the table
  * @return a functional react component
  */
 @Suppress("TOO_LONG_FUNCTION", "ForbiddenComment")
-fun <D : Any> tableComponent(data: Array<out D>, columns: Array<out Column<D, *>>) = functionalComponent<TableProps> { props ->
+fun <D : Any> tableComponent(columns: Array<out Column<D, *>>, getData: () -> Array<out D>) = functionalComponent<TableProps> { props ->
+    val (data, setData) = useState<Array<out D>>(emptyArray())
+
+    // with `emptyList` effect will be executed only once on the initial render. TODO: how to handle dynamic data updates, e.g. when paging?
+    useEffect(emptyList()) {
+        setData(getData())
+    }
+
     val tableInstance: TableInstance<D> = useTable(useSortBy) {
-        this.columns = columns
+        this.columns = useMemo { columns }
         this.data = data
     }
 
