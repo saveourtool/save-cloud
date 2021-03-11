@@ -18,7 +18,12 @@ services:
   backend:
     image: 127.0.0.1:6000/save-backend:{{project.version}}
     environment:
-      - SPRING_PROFILES_ACTIVE={{profile}}
+      SPRING_PROFILES_ACTIVE={{profile}}
+      MYSQL_USER: /run/secrets/db_username
+      MYSQL_PASSWORD_FILE: /run/secrets/db_password
+    secrets:
+      - db_username
+      - db_password
     ports:
       - "5000:5000"
     deploy:
@@ -52,3 +57,9 @@ services:
       - "9100:3000"
 volumes:
   save:
+
+secrets:
+  db_password:
+    file: db_password.txt
+  db_username:
+    file: db_username.txt
