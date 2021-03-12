@@ -7,11 +7,12 @@ import org.springframework.core.env.ConfigurableEnvironment
 import org.springframework.core.env.PropertiesPropertySource
 import org.springframework.core.io.FileSystemResource
 import org.springframework.util.StreamUtils
-import java.io.IOException
-import java.lang.RuntimeException
 import java.nio.charset.Charset
-import java.util.*
+import java.util.Properties
 
+/**
+ * Post processor that collects credentials for database from docker secrets
+ */
 @Profile("prod")
 class DockerSecretsDatabaseProcessor : EnvironmentPostProcessor {
     override fun postProcessEnvironment(environment: ConfigurableEnvironment?, application: SpringApplication?) {
