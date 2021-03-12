@@ -19,8 +19,8 @@ services:
     image: 127.0.0.1:6000/save-backend:{{project.version}}
     environment:
       - "SPRING_PROFILES_ACTIVE={{profile}}"
-      - "MYSQL_USER: /run/secrets/db_username"
-      - "MYSQL_PASSWORD_FILE: /run/secrets/db_password"
+      - "MYSQL_USER=/run/secrets/db_username"
+      - "MYSQL_PASSWORD_FILE=/run/secrets/db_password"
     secrets:
       - db_username
       - db_password
