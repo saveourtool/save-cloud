@@ -18,8 +18,8 @@ val profile = properties.getOrDefault("profile", "dev") as String
 val props = java.util.Properties()
 val file = file("save-backend/src/main/resources/application-$profile.properties").apply { props.load(inputStream()) }
 
-if (File("../secrets").exists()) {
-    file("../secrets").apply { props.load(inputStream()) }
+if (File("${System.getenv()["HOME"]}/secrets").exists()) {
+    file("${System.getenv()["HOME"]}/secrets").apply { props.load(inputStream()) }
 }
 
 val databaseUrl = props.getProperty("spring.datasource.url")
