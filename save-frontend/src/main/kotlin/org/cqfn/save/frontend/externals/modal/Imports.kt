@@ -29,39 +29,58 @@ external interface ModalProps : RProps {
     var contentLabel: String
 
     /** String or object className to be applied to the modal content. */
-    val className: Classes
+    var className: Classes
 
     /** String or object className to be applied to the overlay. */
-    val overlayClassName: Classes
+    var overlayClassName: Classes
+
+    /**
+     *  Object indicating styles to be used for the modal, divided into overlay and content styles.
+     */
+    var style: Styles
+
+    /**
+     * Boolean indicating if the overlay should close the modal. Defaults to true.
+     */
+    var shouldCloseOnOverlayClick: Boolean?
 }
 
 /**
- * Styles of Modal component. Are represented as css types, described in csstype library.
- * // FixMe: add to kotlin somehow.
+ * Object containing css properties. They are represented as css types, described in csstype library.
+ * FixMe: add to kotlin somehow.
  */
-external interface Styles
+external interface CSSProperties
 
 /**
- * The value corresponding to each key is a class name.
+ * Styles of Modal component.
  */
-external interface Classes {
+class Styles(
+    val content: CSSProperties? = undefined,
+    val overlay: CSSProperties? = undefined
+)
+
+/**
+ * The value corresponding to each key is a class name. Please note that specifying a CSS class
+ * for the overlay or the content will disable the default styles for that component.
+ */
+class Classes(
     /**
      * This class will always be applied to the component
      */
-    var base: String
+    var base: String,
 
     /**
      * This class will be applied after the modal has been opened
      */
-    var afterOpen: String
+    var afterOpen: String = "$base--after-open",
 
     /**
      * This class will be applied after the modal has requested to be closed
      * (e.g. when the user presses the escape key or clicks on the overlay).
      * Will have no effect unless the closeTimeoutMS prop is set to a non-zero value, since otherwise the modal will be closed immediately when requested.
      */
-    var beforeClose: String
-}
+    var beforeClose: String = "$base--before-close",
+)
 
 /** Describes overlay and content element references passed to onAfterOpen function */
 external interface OnAfterOpenCallbackOptions {
@@ -84,12 +103,21 @@ external interface OnAfterOpenCallback {
     fun onAfterOpen(obj: OnAfterOpenCallbackOptions): Unit
 }
 
+/**
+ * A wrapper component for a [portal](https://reactjs.org/docs/portals.html) which will contain this modal
+ */
 @JsModule("react-modal")
 @JsNonModule
 @JsName("ModalPortal")
-@Suppress("MISSING_KDOC_TOP_LEVEL", "MISSING_KDOC_CLASS_ELEMENTS")  // todo figure out what is portal and describe
 external class ReactModalPortal : Component<RProps, RState> {
+    /**
+     * Content of the modal portal
+     */
     val content: HTMLDivElement
+
+    /**
+     * Overlay (part that covers the background) of the modal portal
+     */
     val overlay: HTMLDivElement
 
     override fun render(): ReactElement?
