@@ -22,7 +22,6 @@ class DownloadProjectTest(
     @Autowired private val webClient: WebTestClient,
     @Autowired private val configProperties: ConfigProperties,
 ) : RepositoryVolume() {
-
     @Test
     fun testBadRequest() {
         val wrongRepo = GitRepository("wrongGit")
