@@ -96,6 +96,7 @@ class App : RComponent<RProps, AppState>() {
 @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
 fun main() {
     kotlinext.js.require("../scss/save-frontend.scss")  // this is needed for webpack to include resource
+    kotlinext.js.require("bootstrap")  // this is needed for webpack to include bootstrap
     ReactModal.setAppElement(document.getElementById("wrapper") as HTMLElement)  // required for accessibility in react-modal
 
     render(document.getElementById("wrapper")) {
