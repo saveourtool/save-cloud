@@ -23,7 +23,7 @@ kotlin {
             }
         }
     }
-    js(IR).browser()
+    js(BOTH).browser()
 
     // setup native compilation
     val os = org.gradle.nativeplatform.platform.internal.DefaultNativePlatform.getCurrentOperatingSystem()

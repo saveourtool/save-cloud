@@ -9,7 +9,9 @@
         <insert dbms="mysql" tableName="project">
             <column name="owner" value="Huawei" />
             <column name="name" value="huaweiName" />
+            <column name="type" value="manual" />
             <column name="url" value="huaweiUrl" />
+            <column name="description" value="test description" />
         </insert>
     </changeSet>
 
