@@ -1,7 +1,8 @@
 package org.cqfn.save.backend
 
+import org.cqfn.save.backend.repository.AgentStatusRepository
 import org.cqfn.save.backend.repository.ProjectRepository
-import org.cqfn.save.backend.service.InitializeTestIdsService
+import org.cqfn.save.backend.repository.TestStatusRepository
 import org.cqfn.save.backend.service.TestStatusesService
 
 import org.junit.jupiter.api.Test
@@ -21,10 +22,14 @@ class DownloadFilesTest {
     var repository: ProjectRepository? = null
 
     @MockBean
-    val initializeTestIdsService: InitializeTestIdsService? = null
+    val agentStatusRepository: AgentStatusRepository? = null
+
+    @MockBean
+    val testStatusRepository: TestStatusRepository? = null
 
     @MockBean
     val testStatusesService: TestStatusesService? = null
+
 
     @Autowired
     lateinit var webClient: WebTestClient

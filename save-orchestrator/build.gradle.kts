@@ -30,7 +30,6 @@ dependencies {
     implementation("org.slf4j:slf4j-api:${Versions.slf4j}")
     implementation("ch.qos.logback:logback-core:${Versions.logback}")
     implementation("com.github.docker-java:docker-java-core:${Versions.dockerJavaApi}")
-    implementation("org.springframework.boot:spring-boot-starter-data-jpa:${Versions.springBoot}")
     implementation("com.github.docker-java:docker-java-transport-httpclient5:${Versions.dockerJavaApi}")
     implementation("org.apache.commons:commons-compress:1.20")
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.1.1")

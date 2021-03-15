@@ -24,13 +24,21 @@
             <column name="end_time" type="DATETIME">
                 <constraints nullable="false" />
             </column>
-            <column name="agent_id" type="varchar(150)" />
+            <column name="agent_id" type="varchar(150)">
+                <constraints nullable="false" />
+            </column>
+            <column name="project_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="test_suite_execution_id" type="bigint">
+                <constraints nullable="false" />
+            </column>
         </createTable>
 
         <rollback>
             <dropTable
                     cascadeConstraints="true"
-                    tableName="agent_status" />
+                    tableName="test_status" />
         </rollback>
     </changeSet>
 

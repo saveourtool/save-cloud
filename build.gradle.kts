@@ -44,7 +44,7 @@ liquibase {
                     "username" to username,
                     "password" to password,
                     "logLevel" to "info",
-                    "contexts" to "prod,dev"
+                    "contexts" to "prod"
             )
         }
     }

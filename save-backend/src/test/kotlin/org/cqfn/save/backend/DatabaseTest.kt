@@ -5,6 +5,7 @@ import org.cqfn.save.backend.repository.AgentStatusRepository
 import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.repository.TestStatusRepository
 import org.cqfn.save.backend.utils.DatabaseTestBase
+import org.cqfn.save.test_status.TestResultStatus
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -32,7 +33,7 @@ class DatabaseTest : DatabaseTestBase() {
     fun checkTestStatusDataInDataBase() {
         val tests = testStatusRepository.findAll()
 
-        assertTrue(tests.any { it.status == "PASSED" && it.agentId == "cool_agent_id" })
+        assertTrue(tests.any { it.status == TestResultStatus.PASSED && it.agentId == "cool_agent_id" })
     }
 
     @Test
