@@ -19,17 +19,16 @@ import kotlin.io.path.ExperimentalPathApi
 @WebFluxTest
 class DownloadFilesTest {
     @MockBean
-    var repository: ProjectRepository? = null
+    lateinit var repository: ProjectRepository
 
     @MockBean
-    val agentStatusRepository: AgentStatusRepository? = null
+    lateinit var agentStatusRepository: AgentStatusRepository
 
     @MockBean
-    val testStatusRepository: TestStatusRepository? = null
+    lateinit var testStatusRepository: TestStatusRepository
 
     @MockBean
-    val testStatusesService: TestStatusesService? = null
-
+    lateinit var testStatusesService: TestStatusesService
 
     @Autowired
     lateinit var webClient: WebTestClient
