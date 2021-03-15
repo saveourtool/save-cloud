@@ -6,23 +6,40 @@ services:
   orchestrator:
     image: 127.0.0.1:6000/save-orchestrator:{{project.version}}
     environment:
-      - SPRING_PROFILES_ACTIVE={{profile}}
+      - "SPRING_PROFILES_ACTIVE={{profile}}"
     ports:
       - "5100:5100"
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
+      - save:/home/cnb
     deploy:
       labels:
         - "prometheus-job=save-orchestrator"
   backend:
     image: 127.0.0.1:6000/save-backend:{{project.version}}
     environment:
-      - SPRING_PROFILES_ACTIVE={{profile}}
+      - "SPRING_PROFILES_ACTIVE={{profile}}"
+      - "MYSQL_USER=/run/secrets/db_username"
+      - "MYSQL_PASSWORD_FILE=/run/secrets/db_password"
+    secrets:
+      - db_username
+      - db_password
     ports:
       - "5000:5000"
     deploy:
       labels:
         - "prometheus-job=save-backend"
+  preprocessor:
+    image: 127.0.0.1:6000/save-preprocessor:{{project.version}}
+    environment:
+      - "SPRING_PROFILES_ACTIVE={{profile}}"
+    volumes:
+      - save:/home/cnb/
+    ports:
+      - "5200:5200"
+    deploy:
+      labels:
+        - "prometheus-job=save-preprocessor"
   prometheus:
     image: prom/prometheus
     user: root  # to access host's docker socket for service discovery, see https://groups.google.com/g/prometheus-users/c/EuEW0qRzXvg/m/0aqKh_ZABQAJ
@@ -38,3 +55,11 @@ services:
     image: grafana/grafana
     ports:
       - "9100:3000"
+volumes:
+  save:
+
+secrets:
+  db_password:
+    external: true
+  db_username:
+    external: true
