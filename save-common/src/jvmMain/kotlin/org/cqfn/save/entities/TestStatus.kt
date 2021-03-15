@@ -10,6 +10,8 @@ import javax.persistence.Enumerated
  * @property agentId
  * @property startTime
  * @property endTime
+ * @property projectId
+ * @property testSuiteExecutionId
  * @property id
  */
 @Entity
@@ -19,5 +21,7 @@ class TestStatus(
     var agentId: String,
     var startTime: LocalDateTime,
     var endTime: LocalDateTime,
+    var projectId: Long,
+    var testSuiteExecutionId: Long,
     @Id @GeneratedValue var id: Long? = null
 )

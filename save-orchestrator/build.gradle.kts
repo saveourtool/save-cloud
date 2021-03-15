@@ -33,7 +33,6 @@ dependencies {
     implementation("com.github.docker-java:docker-java-transport-httpclient5:${Versions.dockerJavaApi}")
     implementation("org.apache.commons:commons-compress:1.20")
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.1.1")
-    implementation("org.jetbrains.kotlin:kotlin-reflect:${Versions.kotlin}")
 }
 
 configureJacoco()
