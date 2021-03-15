@@ -49,36 +49,31 @@ external interface ModalProps : RProps {
  * Object containing css properties. They are represented as css types, described in csstype library.
  * FixMe: add to kotlin somehow.
  */
-external interface CSSProperties
+@JsName("CSSProperties")
+external interface CssProperties
 
 /**
  * Styles of Modal component.
+ * @property content css styles for modal content
+ * @property overlay css styles for modal overlay
  */
 class Styles(
-    val content: CSSProperties? = undefined,
-    val overlay: CSSProperties? = undefined
+    val content: CssProperties? = undefined,
+    val overlay: CssProperties? = undefined
 )
 
 /**
  * The value corresponding to each key is a class name. Please note that specifying a CSS class
  * for the overlay or the content will disable the default styles for that component.
+ * @property base This class will always be applied to the component
+ * @property afterOpen This class will be applied after the modal has been opened
+ * @property beforeClose This class will be applied after the modal has requested to be closed
+ * (e.g. when the user presses the escape key or clicks on the overlay).
+ * Will have no effect unless the closeTimeoutMS prop is set to a non-zero value, since otherwise the modal will be closed immediately when requested.
  */
 class Classes(
-    /**
-     * This class will always be applied to the component
-     */
     var base: String,
-
-    /**
-     * This class will be applied after the modal has been opened
-     */
     var afterOpen: String = "$base--after-open",
-
-    /**
-     * This class will be applied after the modal has requested to be closed
-     * (e.g. when the user presses the escape key or clicks on the overlay).
-     * Will have no effect unless the closeTimeoutMS prop is set to a non-zero value, since otherwise the modal will be closed immediately when requested.
-     */
     var beforeClose: String = "$base--before-close",
 )
 
