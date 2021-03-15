@@ -55,9 +55,11 @@ fun Project.createStackDeployTask(profile: String) {
         commandLine("docker-compose", "--file", "$buildDir/docker-compose.yaml", "--profile", "dev", "up", "-d", "mysql")
         errorOutput = ByteArrayOutputStream()
         if (!errorOutput.toString().contains(" is up-to-date")) {
-            logger.info("Waitnig 5 sec for mysql to start")
-            Thread.sleep(5_000)  // wait 5 sec for mysql to start, can be manually increased when needed
+            val waitIntervalMs = 10_000L
+            logger.info("Waitnig $waitIntervalMs millis for mysql to start")
+            Thread.sleep(waitIntervalMs)  // wait for mysql to start, can be manually increased when needed
         }
+        finalizedBy("liquibaseUpdate")
     }
 
     tasks.register<Exec>("deployLocal") {
