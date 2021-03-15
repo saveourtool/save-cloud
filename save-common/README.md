@@ -1,0 +1,1 @@
+If entity is not going to be used on frontend and if the usage of platform specific API becomes to complex, then they can be put in `jvmMain`.

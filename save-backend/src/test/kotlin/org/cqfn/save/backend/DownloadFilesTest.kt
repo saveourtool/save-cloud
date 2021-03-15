@@ -1,6 +1,9 @@
 package org.cqfn.save.backend
 
+import org.cqfn.save.backend.repository.AgentStatusRepository
 import org.cqfn.save.backend.repository.ProjectRepository
+import org.cqfn.save.backend.repository.TestStatusRepository
+import org.cqfn.save.backend.service.TestStatusesService
 
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -16,7 +19,16 @@ import kotlin.io.path.ExperimentalPathApi
 @WebFluxTest
 class DownloadFilesTest {
     @MockBean
-    var repository: ProjectRepository? = null
+    lateinit var repository: ProjectRepository
+
+    @MockBean
+    lateinit var agentStatusRepository: AgentStatusRepository
+
+    @MockBean
+    lateinit var testStatusRepository: TestStatusRepository
+
+    @MockBean
+    lateinit var testStatusesService: TestStatusesService
 
     @Autowired
     lateinit var webClient: WebTestClient

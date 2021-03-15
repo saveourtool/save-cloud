@@ -18,6 +18,11 @@ tasks.withType<Test> {
     useJUnitPlatform()
 }
 
+repositories {
+    maven(url = "https://kotlin.bintray.com/kotlinx/") // it is used for datetime. In future updates it will be jcenter()
+}
+
+
 dependencies {
     implementation(project(":save-common"))
     implementation("org.liquibase:liquibase-core:${Versions.liquibase}")
@@ -27,6 +32,7 @@ dependencies {
     implementation("com.github.docker-java:docker-java-core:${Versions.dockerJavaApi}")
     implementation("com.github.docker-java:docker-java-transport-httpclient5:${Versions.dockerJavaApi}")
     implementation("org.apache.commons:commons-compress:1.20")
+    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.1.1")
 }
 
 configureJacoco()

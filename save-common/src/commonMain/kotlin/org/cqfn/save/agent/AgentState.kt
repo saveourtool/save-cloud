@@ -16,7 +16,7 @@ enum class AgentState {
      * Backend returned no code at all
      */
     BACKEND_UNREACHABLE,
-    
+
     /**
      * Agent is doing work
      */

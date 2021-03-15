@@ -13,4 +13,22 @@
 
     <include file="10-changeset-project-table-insert.xml" relativeToChangelogFile="true"/>
 
+    <changeSet id="6" author="aktsay">
+        <tagDatabase tag="v1.0 agent_status"/>
+    </changeSet>
+
+    <include file="02-changeset-agent-status-table.xml" relativeToChangelogFile="true"/>
+
+    <changeSet id="9" author="aktsay">
+        <tagDatabase tag="v1.0 test_status"/>
+    </changeSet>
+
+    <include file="03-changeset-test-status-table.xml" relativeToChangelogFile="true"/>
+
+    <changeSet id="10" author="aktsay" context="dev">
+        <tagDatabase tag="v1.0 insert-test-data"/>
+    </changeSet>
+
+    <include file="11-changeset-test-agent-insert-data.xml" relativeToChangelogFile="true"/>
+
 </databaseChangeLog>
