@@ -20,5 +20,3 @@ open class SaveApplication
 fun main(args: Array<String>) {
     SpringApplication.run(SaveApplication::class.java, *args)
 }
-
-typealias Response = Mono<ResponseEntity<String>>
