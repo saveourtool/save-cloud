@@ -11,21 +11,21 @@ import reactor.core.publisher.Mono
 
 @WebFluxTest
 class TestStatusesControllerTest {
+    @MockBean
+    lateinit var testStatusesService: TestStatusesService
+
     @Autowired
     lateinit var webClient: WebTestClient
 
-    @MockBean
-    val testStatusesService: TestStatusesService? = null
-
     @Test
     fun checkPostTestStatuses() {
-        val testStrings = emptyList<String>()
+        val testStrings: List<String> = emptyList()
 
         webClient.post()
-                .uri("/testStatuses")
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(Mono.just(testStrings), List::class.java)
-                .exchange()
-                .expectStatus().isOk
+            .uri("/testStatuses")
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(Mono.just(testStrings), List::class.java)
+            .exchange()
+            .expectStatus().isOk
     }
 }

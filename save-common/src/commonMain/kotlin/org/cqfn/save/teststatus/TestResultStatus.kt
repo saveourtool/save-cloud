@@ -1,14 +1,12 @@
-package org.cqfn.save.test_status
+package org.cqfn.save.teststatus
 
 import kotlinx.serialization.Serializable
 
+/**
+ * Possible test result statuses
+ */
 @Serializable
 enum class TestResultStatus {
-    /**
-     * Test passed execution
-     */
-    PASSED,
-
     /**
      * Test failed execution
      */
@@ -25,7 +23,13 @@ enum class TestResultStatus {
     INTERNAL_ERROR,
 
     /**
+     * Test passed execution
+     */
+    PASSED,
+
+    /**
      * Some error happened in the test (CLI exit 42)
      */
     TEST_ERROR,
+    ;
 }

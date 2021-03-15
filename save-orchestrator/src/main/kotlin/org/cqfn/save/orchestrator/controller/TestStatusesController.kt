@@ -6,11 +6,17 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 
+/**
+ * Controller for test statuses
+ */
 @RestController
 class TestStatusesController {
     @Autowired
     private lateinit var testStatusesService: TestStatusesService
 
+    /**
+     * @param tests
+     */
     // Fixme: change List<String> to Test when it will be ready
     @PostMapping("/testStatuses")
     fun receiveTestStatuses(@RequestBody tests: List<String>) {
