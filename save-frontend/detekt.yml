@@ -1,0 +1,4 @@
+style:
+  MagicNumber:
+    # There are a lot of magic number in UI code, so it's easier to just suppress the rule
+    active: false

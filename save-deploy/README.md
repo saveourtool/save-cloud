@@ -18,7 +18,7 @@ Deployment is performed on server via docker swarm or locally via docker-compose
 
 ## Local deployment
 * Ensure that docker daemon is running and docker-compose is installed.
-* Run `./gradlew deployLocal` to start only some components.
+* Run `./gradlew deployLocal -Pprofile=dev` to start only some components.
 
 ## Ports allocation
 | port | descritpion |

@@ -6,6 +6,7 @@ import org.gradle.kotlin.dsl.register
 import org.gradle.kotlin.dsl.withType
 import org.springframework.boot.gradle.tasks.bundling.BootBuildImage
 import java.io.File
+import java.io.ByteArrayOutputStream
 
 fun Project.createStackDeployTask(profile: String) {
     tasks.register<Exec>("startLocalDockerRegistry") {
@@ -49,9 +50,21 @@ fun Project.createStackDeployTask(profile: String) {
 //        }
     }
 
+    tasks.register<Exec>("startMysqlDb") {
+        dependsOn("generateComposeFile")
+        commandLine("docker-compose", "--file", "$buildDir/docker-compose.yaml", "--profile", "dev", "up", "-d", "mysql")
+        errorOutput = ByteArrayOutputStream()
+        if (!errorOutput.toString().contains(" is up-to-date")) {
+            val waitIntervalMs = 10_000L
+            logger.info("Waitnig $waitIntervalMs millis for mysql to start")
+            Thread.sleep(waitIntervalMs)  // wait for mysql to start, can be manually increased when needed
+        }
+        finalizedBy("liquibaseUpdate")
+    }
+
     tasks.register<Exec>("deployLocal") {
         dependsOn(subprojects.flatMap { it.tasks.withType<BootBuildImage>() })
-        dependsOn("generateComposeFile")
+        dependsOn("startMysqlDb")
         commandLine("docker-compose", "--file", "$buildDir/docker-compose.yaml", "up", "-d", "orchestrator", "backend", "preprocessor")
     }
 }
