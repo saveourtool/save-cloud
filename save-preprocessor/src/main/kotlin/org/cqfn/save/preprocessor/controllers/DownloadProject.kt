@@ -22,6 +22,8 @@ import java.io.File
 
 /**
  * A Spring controller for git project downloading
+ *
+ * @property configProperties config properties
  */
 @RestController
 class DownloadProject(val configProperties: ConfigProperties) {
