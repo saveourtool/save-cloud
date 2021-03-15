@@ -9,6 +9,7 @@ import org.cqfn.save.entities.TestStatus
 import org.cqfn.save.teststatus.TestResultStatus
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.mockito.Mockito.`when`
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
 import org.springframework.boot.test.mock.mockito.MockBean
@@ -16,7 +17,6 @@ import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.WebTestClient
 import reactor.core.publisher.Mono
 import java.time.LocalDateTime
-
 
 @WebFluxTest
 class TestStatusesControllerTest : DatabaseTestBase() {
@@ -53,16 +53,21 @@ class TestStatusesControllerTest : DatabaseTestBase() {
                 TestResultStatus.INTERNAL_ERROR,
                 "666",
                 LocalDateTime.now(),
-                LocalDateTime.now()
+                LocalDateTime.now(),
+                0,
+                0
             )
         )
+
+
+//        `when`(testStatusesService.saveTestStatuses(testStatus)).thenReturn(testStatus)
 
         webClient.post()
                 .uri("/saveTestStatuses")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(Mono.just(testStatus), List::class.java)
                 .exchange()
-                .expectStatus().isOk
+                .expectStatus().isCreated
 
         val statuses = testStatusRepository.findAll()
 

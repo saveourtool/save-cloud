@@ -10,14 +10,18 @@ import javax.persistence.Enumerated
  * @property agentId
  * @property startTime
  * @property endTime
+ * @property projectId
+ * @property testSuiteExecutionId
  * @property id
  */
 @Entity
 class TestStatus(
-    @Enumerated(EnumType.STRING)
-    var status: TestResultStatus,
-    var agentId: String,
-    var startTime: LocalDateTime,
-    var endTime: LocalDateTime,
-    @Id @GeneratedValue var id: Long? = null
+        @Enumerated(EnumType.STRING)
+        var status: TestResultStatus,
+        var agentId: String,
+        var startTime: LocalDateTime,
+        var endTime: LocalDateTime,
+        var projectId: Long,
+        var testSuiteExecutionId: Long,
+        @Id @GeneratedValue var id: Long? = null
 )
