@@ -33,11 +33,9 @@ class SaveResultTest : DatabaseTestBase() {
             1,
             1,
             1,
-            TestResultStatus.PASSED,
+            TestResultStatus.FAILED,
             date,
             date)
-        val beforePost = testExecutionRepository.findAll()
-        assertTrue(beforePost.any { it.status == TestResultStatus.FAILED })
         webClient.post()
             .uri("/saveTestResult")
             .contentType(MediaType.APPLICATION_JSON)
