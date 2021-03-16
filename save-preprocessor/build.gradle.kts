@@ -9,7 +9,7 @@ configureSpringBoot()
 dependencies {
     implementation(project(":save-common"))
     implementation("org.eclipse.jgit:org.eclipse.jgit:${Versions.jgit}")
-    runtimeOnly("org.jetbrains.kotlin:kotlin-reflect:${Versions.ktReflect}")
+    implementation("org.jetbrains.kotlin:kotlin-reflect:${Versions.kotlin}")
 }
 
 tasks.withType<Test> {
