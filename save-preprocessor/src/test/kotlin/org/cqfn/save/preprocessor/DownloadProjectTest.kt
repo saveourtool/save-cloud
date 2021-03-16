@@ -1,5 +1,6 @@
 package org.cqfn.save.preprocessor
 
+import org.cqfn.save.preprocessor.config.ConfigProperties
 import org.cqfn.save.preprocessor.utils.RepositoryVolume
 import org.cqfn.save.repository.GitRepository
 
@@ -7,7 +8,6 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -18,10 +18,10 @@ import kotlin.io.path.ExperimentalPathApi
 
 @ExperimentalPathApi
 @WebFluxTest
-class DownloadProjectTest(@Autowired private val webClient: WebTestClient) : RepositoryVolume() {
-    @Value("\${save.repository}")
-    private lateinit var volumes: String
-
+class DownloadProjectTest(
+    @Autowired private val webClient: WebTestClient,
+    @Autowired private val configProperties: ConfigProperties,
+) : RepositoryVolume() {
     @Test
     fun testBadRequest() {
         val wrongRepo = GitRepository("wrongGit")
@@ -33,7 +33,7 @@ class DownloadProjectTest(@Autowired private val webClient: WebTestClient) : Rep
             .expectStatus()
             .isEqualTo(HttpStatus.ACCEPTED)
         Thread.sleep(2000)  // Time for request to delete directory
-        Assertions.assertFalse(File("$volumes/${wrongRepo.url.hashCode()}").exists())
+        Assertions.assertFalse(File("${configProperties.repository}/${wrongRepo.url.hashCode()}").exists())
     }
 
     @Test
@@ -48,11 +48,11 @@ class DownloadProjectTest(@Autowired private val webClient: WebTestClient) : Rep
             .isAccepted
             .expectBody(String::class.java)
             .isEqualTo<Nothing>("Clone pending")
-        Assertions.assertTrue(File("$volumes/${validRepo.url.hashCode()}").exists())
+        Assertions.assertTrue(File("${configProperties.repository}/${validRepo.url.hashCode()}").exists())
     }
 
     @AfterEach
     fun removeTestDir() {
-        File(volumes).deleteRecursively()
+        File(configProperties.repository).deleteRecursively()
     }
 }

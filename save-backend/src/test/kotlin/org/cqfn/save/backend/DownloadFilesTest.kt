@@ -1,22 +1,38 @@
 package org.cqfn.save.backend
 
-import org.cqfn.save.backend.utils.DatabaseTestBase
+import org.cqfn.save.backend.repository.AgentStatusRepository
+import org.cqfn.save.backend.repository.ProjectRepository
+import org.cqfn.save.backend.repository.TestStatusRepository
+import org.cqfn.save.backend.service.TestStatusesService
+
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
-import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
+import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.core.io.ByteArrayResource
 import org.springframework.http.client.MultipartBodyBuilder
-import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.web.reactive.function.BodyInserters
 
 import kotlin.io.path.ExperimentalPathApi
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@ActiveProfiles("dev")
-@AutoConfigureWebTestClient
-class DownloadFilesTest(@Autowired private val webClient: WebTestClient) : DatabaseTestBase() {
+@WebFluxTest
+class DownloadFilesTest {
+    @MockBean
+    lateinit var repository: ProjectRepository
+
+    @MockBean
+    lateinit var agentStatusRepository: AgentStatusRepository
+
+    @MockBean
+    lateinit var testStatusRepository: TestStatusRepository
+
+    @MockBean
+    lateinit var testStatusesService: TestStatusesService
+
+    @Autowired
+    lateinit var webClient: WebTestClient
+
     @Test
     fun checkDownload() {
         webClient.get().uri("/download").exchange()

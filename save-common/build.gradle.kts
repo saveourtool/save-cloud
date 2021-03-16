@@ -9,6 +9,11 @@ plugins {
 kotlin {
     allOpen {
         annotation("javax.persistence.Entity")
+        annotation("org.springframework.stereotype.Service")
+    }
+
+    repositories {
+        maven(url = "https://kotlin.bintray.com/kotlinx/") // it is used for datetime. In future updates it will be jcenter()
     }
 
     jvm {
@@ -18,7 +23,7 @@ kotlin {
             }
         }
     }
-    js(IR).browser()
+    js(BOTH).browser()
 
     // setup native compilation
     val os = org.gradle.nativeplatform.platform.internal.DefaultNativePlatform.getCurrentOperatingSystem()
