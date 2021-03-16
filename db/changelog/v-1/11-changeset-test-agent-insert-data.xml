@@ -6,13 +6,14 @@
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
 
     <changeSet id="11" author="aktsay" context="dev">
-        <insert dbms="mysql" tableName="test_status">
-            <column name="status" value="PASSED" />
+        <insert dbms="mysql" tableName="test_execution">
+            <column name="status" value="FAILED" />
             <column name="start_time" value="2021-01-01 00:00:00" />
             <column name="end_time" value="2021-01-01 00:00:01" />
-            <column name="agent_id" value="cool_agent_id" />
-            <column name="project_id" value="0"/>
-            <column name="test_suite_execution_id" value="0"/>
+            <column name="test_id" value="1" />
+            <column name="agent_id" value="1" />
+            <column name="project_id" value="1"/>
+            <column name="test_suite_execution_id" value="1"/>
         </insert>
     </changeSet>
 

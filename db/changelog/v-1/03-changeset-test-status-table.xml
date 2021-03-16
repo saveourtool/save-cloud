@@ -5,15 +5,27 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
 
-    <changeSet id="10" author="aktsay" context="dev or prod">
+    <changeSet id="10" author="kentr0w" context="dev or prod">
         <preConditions onFail="MARK_RAN">
             <not>
-                <tableExists tableName="test_status"/>
+                <tableExists tableName="test_execution"/>
             </not>
         </preConditions>
-        <createTable tableName="test_status">
+        <createTable tableName="test_execution">
             <column name="id" type="bigint" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="test_id" type="bigint">
+                <constraints nullable="false" />
+            </column>
+            <column name="agent_id" type="bigint">
+                <constraints nullable="false" />
+            </column>
+            <column name="project_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="test_suite_execution_id" type="bigint">
+                <constraints nullable="false" />
             </column>
             <column name="status" type="varchar(50)">
                 <constraints nullable="false"/>
@@ -24,28 +36,13 @@
             <column name="end_time" type="DATETIME">
                 <constraints nullable="false" />
             </column>
-            <column name="agent_id" type="varchar(150)">
-                <constraints nullable="false" />
-            </column>
-            <column name="project_id" type="bigint">
-                <constraints nullable="false"/>
-            </column>
-            <column name="test_suite_execution_id" type="bigint">
-                <constraints nullable="false" />
-            </column>
         </createTable>
 
         <rollback>
             <dropTable
                     cascadeConstraints="true"
-                    tableName="test_status" />
+                    tableName="test_execution" />
         </rollback>
-    </changeSet>
-
-    <changeSet id="11" author="aktsay" context="dev or prod">
-        <addUniqueConstraint
-                tableName="test_status"
-                columnNames="agent_id"/>
     </changeSet>
 
 </databaseChangeLog>
