@@ -7,9 +7,14 @@ import javax.persistence.EnumType
 import javax.persistence.Enumerated
 
 /**
- * @property id id of test
- * @property status of test
- * @property date date of result
+ * @property id id of test execution
+ * @property testId id of test
+ * @property testSuiteExecutionId test suite execution id
+ * @property agentId agent id
+ * @property projectId project id
+ * @property status status of test execution
+ * @property startTime start time
+ * @property endTime finish time
  */
 @Entity
 class TestExecution(

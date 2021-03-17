@@ -8,11 +8,6 @@ import kotlinx.serialization.Serializable
 @Serializable
 enum class TestResultStatus {
     /**
-     * Test completed successfully
-     */
-    PASSED,
-
-    /**
      * Test failed
      */
     FAILED,
@@ -26,6 +21,11 @@ enum class TestResultStatus {
      * CLI exit 1
      */
     INTERNAL_ERROR,
+
+    /**
+     * Test completed successfully
+     */
+    PASSED,
 
     /**
      * CLI exit 42

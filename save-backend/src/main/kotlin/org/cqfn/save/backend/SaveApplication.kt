@@ -4,9 +4,7 @@ import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.autoconfigure.domain.EntityScan
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories
-import org.springframework.http.ResponseEntity
 import org.springframework.web.reactive.config.EnableWebFlux
-import reactor.core.publisher.Mono
 
 /**
  * An entrypoint for spring for save-backend

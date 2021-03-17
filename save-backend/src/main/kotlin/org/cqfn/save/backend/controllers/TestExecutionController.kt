@@ -16,11 +16,15 @@ import org.springframework.web.bind.annotation.RestController
 class TestExecutionController(private val testExecutionService: TestExecutionService) {
     /**
      * @param testExecutions list of test executions
-     * @return
+     * @return response
      */
     @PostMapping(value = ["/saveTestResult"])
     fun saveTestResult(@RequestBody testExecutions: List<TestExecution>): ResponseEntity<String> {
-        testExecutionService.saveTestResult(testExecutions)
+        try {
+            testExecutionService.saveTestResult(testExecutions)
+        } catch (exception: IllegalArgumentException) {
+            return ResponseEntity.ok().body("Error to save")
+        }
         return ResponseEntity.ok().body("Save")
     }
 }
