@@ -16,49 +16,49 @@ import java.time.Month
 @SpringBootTest(classes = [SaveApplication::class])
 @AutoConfigureWebTestClient
 class TestInitializeControllerTest : DatabaseTestBase() {
+    private val testLocalDateTime = LocalDateTime.of(2020, Month.APRIL, 10, 16, 30, 20)
+
     @Autowired
     lateinit var webClient: WebTestClient
 
     @Autowired
     lateinit var testInitRepository: TestRepository
 
-    private val testLocalDateTime = LocalDateTime.of(2020, Month.APRIL, 10, 16, 30, 20)
-
     @Test
     fun testConnection() {
         val test = org.cqfn.save.entities.Test(
-                "expectedPath",
-                "testPath",
-                testLocalDateTime,
-                0,
-                "HASH"
+            "expectedPath",
+            "testPath",
+            testLocalDateTime,
+            0,
+            "HASH"
         )
 
         webClient.post()
-                .uri("/initializeTests")
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(BodyInserters.fromValue(listOf(test)))
-                .exchange()
-                .expectStatus()
-                .isOk
+            .uri("/initializeTests")
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(BodyInserters.fromValue(listOf(test)))
+            .exchange()
+            .expectStatus()
+            .isOk
     }
 
     @Test
     fun checkDataSave() {
         val test = org.cqfn.save.entities.Test(
-                "expectedPath",
-                "testPath",
-                testLocalDateTime,
-                0,
-                "HASHANOTHER"
+            "expectedPath",
+            "testPath",
+            testLocalDateTime,
+            0,
+            "HASHANOTHER"
         )
         webClient.post()
-                .uri("/initializeTests")
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(BodyInserters.fromValue(listOf(test)))
-                .exchange()
-                .expectStatus()
-                .isOk
+            .uri("/initializeTests")
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(BodyInserters.fromValue(listOf(test)))
+            .exchange()
+            .expectStatus()
+            .isOk
 
         val databaseData = testInitRepository.findAll()
 

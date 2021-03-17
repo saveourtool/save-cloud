@@ -5,8 +5,15 @@ import java.time.LocalDateTime
 import javax.persistence.EnumType
 import javax.persistence.Enumerated
 
+/**
+ * @property id
+ * @property type
+ * @property name
+ * @property projectId
+ * @property dateAdded
+ */
 @Entity
-class TestSuite (
+class TestSuite(
     @Id @GeneratedValue var id: Long,
     @Enumerated(EnumType.STRING)
     var type: TestSuiteType,

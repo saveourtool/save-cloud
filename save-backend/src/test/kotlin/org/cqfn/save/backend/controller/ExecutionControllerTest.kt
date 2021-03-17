@@ -18,50 +18,50 @@ import java.time.Month
 @SpringBootTest(classes = [SaveApplication::class])
 @AutoConfigureWebTestClient
 class ExecutionControllerTest : DatabaseTestBase() {
+    private val testLocalDateTime = LocalDateTime.of(2020, Month.APRIL, 10, 16, 30, 20)
+
     @Autowired
     lateinit var webClient: WebTestClient
 
     @Autowired
     lateinit var executionRepository: ExecutionRepository
 
-    private val testLocalDateTime = LocalDateTime.of(2020, Month.APRIL, 10, 16, 30, 20)
-
     @Test
     fun testConnection() {
         val execution = Execution(
             0,
-                testLocalDateTime,
-                testLocalDateTime,
-                ExecutionStatus.RUNNING,
-                "0,1,2",
-                0
+            testLocalDateTime,
+            testLocalDateTime,
+            ExecutionStatus.RUNNING,
+            "0,1,2",
+            0
         )
         webClient.post()
-                .uri("/createExecution")
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(BodyInserters.fromValue(execution))
-                .exchange()
-                .expectStatus()
-                .isOk
+            .uri("/createExecution")
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(BodyInserters.fromValue(execution))
+            .exchange()
+            .expectStatus()
+            .isOk
     }
 
     @Test
     fun testDataSave() {
         val execution = Execution(
-                1,
-                testLocalDateTime,
-                testLocalDateTime,
-                ExecutionStatus.RUNNING,
-                "0,1,2",
-                1
+            1,
+            testLocalDateTime,
+            testLocalDateTime,
+            ExecutionStatus.RUNNING,
+            "0,1,2",
+            1
         )
         webClient.post()
-                .uri("/createExecution")
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(BodyInserters.fromValue(execution))
-                .exchange()
-                .expectStatus()
-                .isOk
+            .uri("/createExecution")
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(BodyInserters.fromValue(execution))
+            .exchange()
+            .expectStatus()
+            .isOk
 
         val databaseData = executionRepository.findAll()
 

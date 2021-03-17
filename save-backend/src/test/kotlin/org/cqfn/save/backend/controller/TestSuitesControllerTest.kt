@@ -18,50 +18,50 @@ import java.time.Month
 @SpringBootTest(classes = [SaveApplication::class])
 @AutoConfigureWebTestClient
 class TestSuitesControllerTest : DatabaseTestBase() {
+    private val testLocalDateTime = LocalDateTime.of(2020, Month.APRIL, 10, 16, 30, 20)
+
     @Autowired
     lateinit var webClient: WebTestClient
 
     @Autowired
     lateinit var testSuiteRepository: TestSuiteRepository
 
-    private val testLocalDateTime = LocalDateTime.of(2020, Month.APRIL, 10, 16, 30, 20)
-
     @Test
     fun testConnection() {
         val testSuite = TestSuite(
-                0,
-                TestSuiteType.PROJECT,
-                "test",
-                0,
-                testLocalDateTime
+            0,
+            TestSuiteType.PROJECT,
+            "test",
+            0,
+            testLocalDateTime
         )
 
         webClient.post()
-                .uri("/saveTestSuite")
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(BodyInserters.fromValue(testSuite))
-                .exchange()
-                .expectStatus()
-                .isOk
+            .uri("/saveTestSuite")
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(BodyInserters.fromValue(testSuite))
+            .exchange()
+            .expectStatus()
+            .isOk
     }
 
     @Test
     fun checkDataSave() {
         val testSuite = TestSuite(
-                1,
-                TestSuiteType.PROJECT,
-                "test",
-                0,
-                testLocalDateTime
+            1,
+            TestSuiteType.PROJECT,
+            "test",
+            0,
+            testLocalDateTime
         )
 
         webClient.post()
-                .uri("/saveTestSuite")
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(BodyInserters.fromValue(testSuite))
-                .exchange()
-                .expectStatus()
-                .isOk
+            .uri("/saveTestSuite")
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(BodyInserters.fromValue(testSuite))
+            .exchange()
+            .expectStatus()
+            .isOk
 
         val databaseData = testSuiteRepository.findAll()
 

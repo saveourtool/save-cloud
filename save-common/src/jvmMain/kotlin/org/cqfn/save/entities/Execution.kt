@@ -5,6 +5,14 @@ import java.time.LocalDateTime
 import javax.persistence.EnumType
 import javax.persistence.Enumerated
 
+/**
+ * @property projectId
+ * @property startTime
+ * @property endTime
+ * @property status
+ * @property testSuiteIds
+ * @property id
+ */
 @Entity
 class Execution(
     var projectId: Long,

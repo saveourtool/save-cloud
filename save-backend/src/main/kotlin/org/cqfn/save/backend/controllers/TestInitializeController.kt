@@ -7,11 +7,17 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 
+/**
+ *  Controller used to initialize tests
+ */
 @RestController
 class TestInitializeController {
     @Autowired
     private lateinit var testInitializeService: TestInitializeService
 
+    /**
+     * @param tests
+     */
     @PostMapping("/initializeTests")
     fun initializeTests(@RequestBody tests: List<Test>) {
         testInitializeService.saveTests(tests)
