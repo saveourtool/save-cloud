@@ -1,6 +1,11 @@
 package org.cqfn.save.backend
 
-import org.cqfn.save.backend.repository.*
+import org.cqfn.save.backend.repository.AgentStatusRepository
+import org.cqfn.save.backend.repository.ExecutionRepository
+import org.cqfn.save.backend.repository.ProjectRepository
+import org.cqfn.save.backend.repository.TestRepository
+import org.cqfn.save.backend.repository.TestSuiteRepository
+import org.cqfn.save.backend.repository.TestExecutionRepository
 import org.cqfn.save.backend.service.ExecutionService
 import org.cqfn.save.backend.service.TestExecutionService
 import org.cqfn.save.backend.service.TestInitializeService
