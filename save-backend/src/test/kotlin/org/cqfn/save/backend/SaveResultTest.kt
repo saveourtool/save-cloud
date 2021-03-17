@@ -5,8 +5,8 @@ import org.cqfn.save.backend.utils.DatabaseTestBase
 import org.cqfn.save.domain.TestResultStatus
 import org.cqfn.save.entities.TestExecution
 
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
@@ -21,6 +21,7 @@ import java.time.LocalDateTime
 @AutoConfigureWebTestClient
 class SaveResultTest : DatabaseTestBase() {
     private val date = LocalDateTime.now().withNano(0)
+
     @Autowired
     private lateinit var webClient: WebTestClient
 

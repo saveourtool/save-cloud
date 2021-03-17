@@ -14,20 +14,20 @@ class TestExecutionService(private val testResultRepository: TestExecutionReposi
 
     /**
      * @param testExecutions list of test executions
+     * @return list of lost tests
      */
     fun saveTestResult(testExecutions: List<TestExecution>): List<TestExecution> {
         val lostTests = mutableListOf<TestExecution>()
         testExecutions.forEach { testExec ->
             val foundTestExec = testResultRepository.findById(testExec.id)
-            foundTestExec.ifPresentOrElse(
-                {
-                    it.run {
-                        this.startTime = testExec.startTime
-                        this.endTime = testExec.endTime
-                        this.status = testExec.status
-                        testResultRepository.save(this)
-                    }
-                },
+            foundTestExec.ifPresentOrElse({
+                it.run {
+                    this.startTime = testExec.startTime
+                    this.endTime = testExec.endTime
+                    this.status = testExec.status
+                    testResultRepository.save(this)
+                }
+            },
                 {
                     lostTests.add(testExec)
                     log.error("Test execution with ${testExec.id} id was not found")
