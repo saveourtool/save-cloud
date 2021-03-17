@@ -17,7 +17,7 @@ class TestExecutionService(private val testResultRepository: TestExecutionReposi
      * @return list of lost tests
      */
     fun saveTestResult(testExecutions: List<TestExecution>): List<TestExecution> {
-        val lostTests = mutableListOf<TestExecution>()
+        val lostTests: MutableList<TestExecution> = mutableListOf()
         testExecutions.forEach { testExec ->
             val foundTestExec = testResultRepository.findById(testExec.id)
             foundTestExec.ifPresentOrElse({
