@@ -22,11 +22,14 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
      */
     @PostMapping(value = ["/saveTestResult"])
     fun saveTestResult(@RequestBody testExecutions: List<TestExecution>): ResponseEntity<String> {
-        try {
-            testExecutionService.saveTestResult(testExecutions)
+        return try {
+            if (testExecutionService.saveTestResult(testExecutions).isEmpty()) {
+                ResponseEntity.status(HttpStatus.OK).body("Saved")
+            } else {
+                ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Some ids don't exist")
+            }
         } catch (exception: DataAccessException) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error to save")
+            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error to save")
         }
-        return ResponseEntity.ok().body("Save")
     }
 }
