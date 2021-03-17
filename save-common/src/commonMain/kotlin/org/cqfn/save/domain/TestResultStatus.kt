@@ -1,34 +1,34 @@
-package org.cqfn.save.teststatus
+package org.cqfn.save.domain
 
 import kotlinx.serialization.Serializable
 
 /**
- * Possible test result statuses
+ * Enum of results status
  */
 @Serializable
 enum class TestResultStatus {
     /**
-     * Test failed execution
+     * Test failed
      */
     FAILED,
 
     /**
-     * Test was ignored
+     * Test ignore
      */
     IGNORED,
 
     /**
-     * Internal error happened in the agent (CLI exit 1)
+     * CLI exit 1
      */
     INTERNAL_ERROR,
 
     /**
-     * Test passed execution
+     * Test completed successfully
      */
     PASSED,
 
     /**
-     * Some error happened in the test (CLI exit 42)
+     * CLI exit 42
      */
     TEST_ERROR,
     ;

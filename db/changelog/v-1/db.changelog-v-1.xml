@@ -23,7 +23,7 @@
         <tagDatabase tag="v1.0 test_status"/>
     </changeSet>
 
-    <include file="03-changeset-test-status-table.xml" relativeToChangelogFile="true"/>
+    <include file="03-changeset-test-execution-table.xml" relativeToChangelogFile="true"/>
 
     <changeSet id="10" author="aktsay" context="dev">
         <tagDatabase tag="v1.0 insert-test-data"/>

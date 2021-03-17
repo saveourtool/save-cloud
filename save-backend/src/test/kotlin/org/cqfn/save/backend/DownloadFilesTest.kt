@@ -2,8 +2,8 @@ package org.cqfn.save.backend
 
 import org.cqfn.save.backend.repository.AgentStatusRepository
 import org.cqfn.save.backend.repository.ProjectRepository
-import org.cqfn.save.backend.repository.TestStatusRepository
-import org.cqfn.save.backend.service.TestStatusesService
+import org.cqfn.save.backend.repository.TestExecutionRepository
+import org.cqfn.save.backend.service.TestExecutionService
 
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -25,10 +25,10 @@ class DownloadFilesTest {
     lateinit var agentStatusRepository: AgentStatusRepository
 
     @MockBean
-    lateinit var testStatusRepository: TestStatusRepository
+    lateinit var testExecutionRepository: TestExecutionRepository
 
     @MockBean
-    lateinit var testStatusesService: TestStatusesService
+    lateinit var testExecutionService: TestExecutionService
 
     @Autowired
     lateinit var webClient: WebTestClient

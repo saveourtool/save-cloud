@@ -3,9 +3,9 @@ package org.cqfn.save.backend
 import org.cqfn.save.agent.AgentState
 import org.cqfn.save.backend.repository.AgentStatusRepository
 import org.cqfn.save.backend.repository.ProjectRepository
-import org.cqfn.save.backend.repository.TestStatusRepository
+import org.cqfn.save.backend.repository.TestExecutionRepository
 import org.cqfn.save.backend.utils.DatabaseTestBase
-import org.cqfn.save.teststatus.TestResultStatus
+import org.cqfn.save.domain.TestResultStatus
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -17,7 +17,7 @@ class DatabaseTest : DatabaseTestBase() {
     private lateinit var projectRepository: ProjectRepository
 
     @Autowired
-    private lateinit var testStatusRepository: TestStatusRepository
+    private lateinit var testExecutionRepository: TestExecutionRepository
 
     @Autowired
     private lateinit var agentStatusRepository: AgentStatusRepository
@@ -31,9 +31,9 @@ class DatabaseTest : DatabaseTestBase() {
 
     @Test
     fun checkTestStatusDataInDataBase() {
-        val tests = testStatusRepository.findAll()
+        val tests = testExecutionRepository.findAll()
 
-        assertTrue(tests.any { it.status == TestResultStatus.PASSED && it.agentId == "cool_agent_id" })
+        assertTrue(tests.any { it.status == TestResultStatus.FAILED && it.agentId == 1L })
     }
 
     @Test
