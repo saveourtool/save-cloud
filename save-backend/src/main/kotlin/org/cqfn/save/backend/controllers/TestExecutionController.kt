@@ -2,6 +2,8 @@ package org.cqfn.save.backend.controllers
 
 import org.cqfn.save.backend.service.TestExecutionService
 import org.cqfn.save.entities.TestExecution
+import org.springframework.dao.DataAccessException
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -22,8 +24,8 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
     fun saveTestResult(@RequestBody testExecutions: List<TestExecution>): ResponseEntity<String> {
         try {
             testExecutionService.saveTestResult(testExecutions)
-        } catch (exception: IllegalArgumentException) {
-            return ResponseEntity.ok().body("Error to save")
+        } catch (exception: DataAccessException) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error to save")
         }
         return ResponseEntity.ok().body("Save")
     }

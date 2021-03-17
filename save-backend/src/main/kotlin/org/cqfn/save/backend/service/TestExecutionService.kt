@@ -18,16 +18,18 @@ class TestExecutionService(private val testResultRepository: TestExecutionReposi
     fun saveTestResult(testExecutions: List<TestExecution>) {
         testExecutions.forEach { testExec ->
             val foundTestExec = testResultRepository.findById(testExec.id)
-            if (!foundTestExec.isPresent) {
-                log.error("Test execution with ${testExec.id} id was not found")
-            } else {
-                foundTestExec.get().run {
-                    this.startTime = testExec.startTime
-                    this.endTime = testExec.endTime
-                    this.status = testExec.status
-                    testResultRepository.save(this)
-                }
-            }
+            foundTestExec.ifPresentOrElse(
+                {
+                    foundTestExec.get().run {
+                        this.startTime = testExec.startTime
+                        this.endTime = testExec.endTime
+                        this.status = testExec.status
+                        testResultRepository.save(this)
+                    }
+                },
+                {
+                    log.error("Test execution with ${testExec.id} id was not found")
+                })
         }
     }
 }
