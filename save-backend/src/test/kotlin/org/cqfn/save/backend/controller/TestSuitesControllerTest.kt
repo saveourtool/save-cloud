@@ -5,6 +5,7 @@ import org.cqfn.save.backend.repository.TestSuiteRepository
 import org.cqfn.save.backend.utils.DatabaseTestBase
 import org.cqfn.save.entities.TestSuite
 import org.cqfn.save.testsuite.TestSuiteType
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
@@ -29,7 +30,6 @@ class TestSuitesControllerTest : DatabaseTestBase() {
     @Test
     fun testConnection() {
         val testSuite = TestSuite(
-            0,
             TestSuiteType.PROJECT,
             "test",
             0,
@@ -48,7 +48,6 @@ class TestSuitesControllerTest : DatabaseTestBase() {
     @Test
     fun checkDataSave() {
         val testSuite = TestSuite(
-            1,
             TestSuiteType.PROJECT,
             "test",
             0,
@@ -65,6 +64,6 @@ class TestSuitesControllerTest : DatabaseTestBase() {
 
         val databaseData = testSuiteRepository.findAll()
 
-        assert(databaseData.any { it.id == testSuite.id && it.projectId == testSuite.projectId })
+        assertTrue(databaseData.any { it.id == testSuite.id && it.projectId == testSuite.projectId })
     }
 }

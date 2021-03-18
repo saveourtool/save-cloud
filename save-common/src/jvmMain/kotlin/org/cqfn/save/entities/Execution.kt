@@ -21,5 +21,6 @@ class Execution(
     @Enumerated(EnumType.STRING)
     var status: ExecutionStatus,
     var testSuiteIds: String,
-    @Id @GeneratedValue var id: Long
-)
+) {
+    @Id @GeneratedValue var id: Long? = null
+}

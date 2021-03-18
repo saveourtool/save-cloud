@@ -5,6 +5,8 @@ import org.cqfn.save.backend.repository.ExecutionRepository
 import org.cqfn.save.backend.utils.DatabaseTestBase
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.execution.ExecutionStatus
+import org.cqfn.save.execution.ExecutionUpdateDto
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
@@ -33,8 +35,7 @@ class ExecutionControllerTest : DatabaseTestBase() {
             testLocalDateTime,
             testLocalDateTime,
             ExecutionStatus.RUNNING,
-            "0,1,2",
-            0
+            "0,1,2"
         )
         webClient.post()
             .uri("/createExecution")
@@ -52,8 +53,7 @@ class ExecutionControllerTest : DatabaseTestBase() {
             testLocalDateTime,
             testLocalDateTime,
             ExecutionStatus.RUNNING,
-            "0,1,2",
-            1
+            "0,1,2"
         )
         webClient.post()
             .uri("/createExecution")
@@ -65,6 +65,41 @@ class ExecutionControllerTest : DatabaseTestBase() {
 
         val databaseData = executionRepository.findAll()
 
-        assert(databaseData.any { it.status == execution.status && it.id == execution.id })
+        assertTrue(databaseData.any { it.status == execution.status && it.id == execution.id })
+    }
+
+    @Test
+    fun testUpdateExecution() {
+        val execution = Execution(
+                1,
+                testLocalDateTime,
+                testLocalDateTime,
+                ExecutionStatus.RUNNING,
+                "0,1,2"
+        )
+
+        webClient.post()
+                .uri("/createExecution")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(BodyInserters.fromValue(execution))
+                .exchange()
+                .expectStatus()
+                .isOk
+
+        val executionUpdateDto = ExecutionUpdateDto(
+                0, ExecutionStatus.FINISHED
+        )
+
+        webClient.post()
+                .uri("/updateExecution")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(BodyInserters.fromValue(executionUpdateDto))
+                .exchange()
+                .expectStatus()
+                .isOk
+
+        val databaseData = executionRepository.findAll()
+
+        assertTrue(databaseData.any { it.status == executionUpdateDto.status && it.id == executionUpdateDto.id })
     }
 }

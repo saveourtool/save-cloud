@@ -3,6 +3,7 @@ package org.cqfn.save.backend.controller
 import org.cqfn.save.backend.SaveApplication
 import org.cqfn.save.backend.repository.TestRepository
 import org.cqfn.save.backend.utils.DatabaseTestBase
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
@@ -62,6 +63,6 @@ class TestInitializeControllerTest : DatabaseTestBase() {
 
         val databaseData = testInitRepository.findAll()
 
-        assert(databaseData.any { it.id == test.id && it.expectedFilePath == test.expectedFilePath })
+        assertTrue(databaseData.any { it.id == test.id && it.expectedFilePath == test.expectedFilePath })
     }
 }

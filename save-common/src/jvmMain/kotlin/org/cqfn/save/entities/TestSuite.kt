@@ -14,10 +14,11 @@ import javax.persistence.Enumerated
  */
 @Entity
 class TestSuite(
-    @Id @GeneratedValue var id: Long,
     @Enumerated(EnumType.STRING)
     var type: TestSuiteType,
     var name: String,
     var projectId: Long? = null,
     var dateAdded: LocalDateTime
-)
+) {
+    @Id @GeneratedValue var id: Long? = null
+}
