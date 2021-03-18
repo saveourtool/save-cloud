@@ -23,12 +23,12 @@ class ExecutionService(private val executionRepository: ExecutionRepository) {
      * @param execution
      */
     fun updateExecution(execution: ExecutionUpdateDto) {
-        // test
-        val databaseExecution = executionRepository.findById(execution.id).get()
-        if (databaseExecution.status == ExecutionStatus.FINISHED) {
-            databaseExecution.endTime = LocalDateTime.now()
+        val databaseExecution = executionRepository.findById(execution.id).ifPresent {
+            if (it.status == ExecutionStatus.FINISHED) {
+                it.endTime = LocalDateTime.now()
+            }
+            it.status = execution.status
+            executionRepository.save(it)
         }
-        databaseExecution.status = execution.status
-        executionRepository.save(databaseExecution)
     }
 }
