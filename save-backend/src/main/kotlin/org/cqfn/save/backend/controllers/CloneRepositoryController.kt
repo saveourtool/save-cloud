@@ -41,7 +41,7 @@ class CloneRepositoryController(
             log.info("Project ${project.id} saved")
         } catch (exception: DataAccessException) {
             log.error("Save error with ${project.id} project")
-            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error to clone repo")
+            return Mono.just("Error to clone repo")
         }
         log.info("Starting to clone ${project.id} project")
         return webClient
