@@ -106,4 +106,18 @@ class ExecutionControllerTest : DatabaseTestBase() {
 
         assertTrue(databaseData.any { it.status == executionUpdateDto.status && it.id == executionUpdateDto.id })
     }
+
+    @Test
+    fun checkStatusException() {
+        val executionUpdateDto = ExecutionUpdateDto(
+            2, ExecutionStatus.FINISHED
+        )
+        webClient.post()
+            .uri("/updateExecution")
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(BodyInserters.fromValue(executionUpdateDto))
+            .exchange()
+            .expectStatus()
+            .isNotFound
+    }
 }
