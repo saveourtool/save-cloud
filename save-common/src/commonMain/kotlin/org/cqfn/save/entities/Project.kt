@@ -1,5 +1,7 @@
 package org.cqfn.save.entities
 
+import kotlinx.serialization.Serializable
+
 /**
  * @property owner
  * @property name
@@ -9,11 +11,13 @@ package org.cqfn.save.entities
  * @property id
  */
 @Entity
+@Serializable
 class Project(
     var owner: String,
     var name: String,
     var type: String,
     var url: String,
     var description: String?,
-    @Id @GeneratedValue var id: Int? = null,
-)
+) {
+    @Id @GeneratedValue var id: Long? = null
+}

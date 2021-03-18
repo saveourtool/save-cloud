@@ -1,6 +1,7 @@
 package org.cqfn.save.backend.service
 
 import org.cqfn.save.backend.repository.ProjectRepository
+import org.cqfn.save.entities.Project
 import org.springframework.stereotype.Service
 
 /**
@@ -9,4 +10,8 @@ import org.springframework.stereotype.Service
  * @property projectRepository
  */
 @Service
-class ProjectService(private val projectRepository: ProjectRepository)
+class ProjectService(private val projectRepository: ProjectRepository) {
+    fun saveProject(project: Project) {
+        projectRepository.save(project)
+    }
+}

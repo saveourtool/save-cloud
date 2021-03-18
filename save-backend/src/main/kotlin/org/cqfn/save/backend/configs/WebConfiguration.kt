@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.core.io.ClassPathResource
 import org.springframework.core.io.Resource
 import org.springframework.http.MediaType.TEXT_HTML
+import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.server.router
 
 /**
@@ -31,4 +32,10 @@ class WebConfiguration {
             ok().contentType(TEXT_HTML).bodyValue(html)
         }
     }
+
+    @Bean
+    fun webClient(builder: WebClient.Builder): WebClient =
+        builder
+            .baseUrl("http://preprocessor:5200")
+            .build()
 }
