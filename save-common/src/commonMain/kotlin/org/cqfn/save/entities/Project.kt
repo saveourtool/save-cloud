@@ -8,11 +8,10 @@ import kotlinx.serialization.Serializable
  * @property type type of the project, e.g. github or manually registered
  * @property url
  * @property description description of the project, may be absent
- * @property id
  */
 @Entity
 @Serializable
-class Project(
+data class Project(
     var owner: String,
     var name: String,
     var type: String,

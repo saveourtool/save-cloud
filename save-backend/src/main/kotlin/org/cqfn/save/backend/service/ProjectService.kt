@@ -11,6 +11,9 @@ import org.springframework.stereotype.Service
  */
 @Service
 class ProjectService(private val projectRepository: ProjectRepository) {
+    /**
+     * @param project
+     */
     fun saveProject(project: Project) {
         projectRepository.save(project)
     }

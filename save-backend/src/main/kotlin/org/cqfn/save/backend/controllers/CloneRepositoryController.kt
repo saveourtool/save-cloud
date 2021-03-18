@@ -24,13 +24,14 @@ import reactor.core.publisher.Mono
 class CloneRepositoryController(
     private val projectService: ProjectService,
     private val webClient: WebClient,
-    ) {
+) {
     private val log = LoggerFactory.getLogger(CloneRepositoryController::class.java)
 
     /**
      * Endpoint to save project
      *
      * @param projectDto information about project
+     * @return mono string
      */
     @PostMapping(value = ["/cloneRepository"])
     fun saveRepository(@RequestBody projectDto: ProjectDto): Mono<String> {

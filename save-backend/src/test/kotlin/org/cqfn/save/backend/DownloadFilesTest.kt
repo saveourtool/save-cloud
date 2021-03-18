@@ -3,6 +3,7 @@ package org.cqfn.save.backend
 import org.cqfn.save.backend.repository.AgentStatusRepository
 import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.repository.TestExecutionRepository
+import org.cqfn.save.backend.service.ProjectService
 import org.cqfn.save.backend.service.TestExecutionService
 
 import org.junit.jupiter.api.Test
@@ -13,6 +14,7 @@ import org.springframework.core.io.ByteArrayResource
 import org.springframework.http.client.MultipartBodyBuilder
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.web.reactive.function.BodyInserters
+import org.springframework.web.reactive.function.client.WebClient
 
 import kotlin.io.path.ExperimentalPathApi
 
@@ -25,19 +27,25 @@ class DownloadFilesTest {
     lateinit var agentStatusRepository: AgentStatusRepository
 
     @MockBean
+    lateinit var projectService: ProjectService
+
+    @MockBean
+    lateinit var webClient: WebClient
+
+    @MockBean
     lateinit var testExecutionRepository: TestExecutionRepository
 
     @MockBean
     lateinit var testExecutionService: TestExecutionService
 
     @Autowired
-    lateinit var webClient: WebTestClient
+    lateinit var webTestClient: WebTestClient
 
     @Test
     fun checkDownload() {
-        webClient.get().uri("/download").exchange()
+        webTestClient.get().uri("/download").exchange()
             .expectStatus().isOk
-        webClient.get().uri("/download").exchange()
+        webTestClient.get().uri("/download").exchange()
             .expectBody(String::class.java).isEqualTo<Nothing>("qweqwe")
     }
 
@@ -52,10 +60,10 @@ class DownloadFilesTest {
             })
         }.build()
 
-        webClient.post().uri("/upload").body(BodyInserters.fromMultipartData(body))
+        webTestClient.post().uri("/upload").body(BodyInserters.fromMultipartData(body))
             .exchange().expectStatus().isOk
 
-        webClient.post().uri("/upload").body(BodyInserters.fromMultipartData(body))
+        webTestClient.post().uri("/upload").body(BodyInserters.fromMultipartData(body))
             .exchange().expectBody(String::class.java).isEqualTo<Nothing>("test")
     }
 }

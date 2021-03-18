@@ -18,7 +18,7 @@ import org.springframework.web.reactive.function.BodyInserters
 
 @SpringBootTest(classes = [SaveApplication::class])
 @AutoConfigureWebTestClient
-class CloneRepoTest: DatabaseTestBase() {
+class CloneRepoTest : DatabaseTestBase() {
     @Autowired
     private lateinit var webClient: WebTestClient
 
@@ -26,8 +26,8 @@ class CloneRepoTest: DatabaseTestBase() {
     private lateinit var projectRepository: ProjectRepository
 
     @Test
-    fun checkSave() {
-        val project = Project("noname","1","1","1","1")
+    fun checkSaveProject() {
+        val project = Project("noname", "1", "1", "1", "1")
         val gitRepo = GitRepository("1")
         val projectDto = ProjectDto(project, gitRepo)
         webClient.post()

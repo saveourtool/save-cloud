@@ -33,9 +33,13 @@ class WebConfiguration {
         }
     }
 
+    /**
+     * @param builder
+     * @return web client
+     */
     @Bean
     fun webClient(builder: WebClient.Builder): WebClient =
-        builder
-            .baseUrl("http://preprocessor:5200")
-            .build()
+            builder
+                .baseUrl("http://preprocessor:5200")
+                .build()
 }

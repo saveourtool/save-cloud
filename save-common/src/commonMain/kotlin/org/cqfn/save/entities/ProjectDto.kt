@@ -1,7 +1,8 @@
 package org.cqfn.save.entities
 
-import kotlinx.serialization.Serializable
 import org.cqfn.save.repository.GitRepository
+
+import kotlinx.serialization.Serializable
 
 /**
  * Data class of information about project
