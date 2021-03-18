@@ -2,8 +2,8 @@ package org.cqfn.save.backend
 
 import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.utils.DatabaseTestBase
-import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.ExecutionRequest
+import org.cqfn.save.entities.Project
 import org.cqfn.save.repository.GitRepository
 
 import org.junit.jupiter.api.Assertions
