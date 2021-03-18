@@ -71,32 +71,32 @@ class ExecutionControllerTest : DatabaseTestBase() {
     @Test
     fun testUpdateExecution() {
         val execution = Execution(
-                1,
-                testLocalDateTime,
-                testLocalDateTime,
-                ExecutionStatus.RUNNING,
-                "0,1,2"
+            1,
+            testLocalDateTime,
+            testLocalDateTime,
+            ExecutionStatus.RUNNING,
+            "0,1,2"
         )
 
         webClient.post()
-                .uri("/createExecution")
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(BodyInserters.fromValue(execution))
-                .exchange()
-                .expectStatus()
-                .isOk
+            .uri("/createExecution")
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(BodyInserters.fromValue(execution))
+            .exchange()
+            .expectStatus()
+            .isOk
 
         val executionUpdateDto = ExecutionUpdateDto(
-                1, ExecutionStatus.FINISHED
+            1, ExecutionStatus.FINISHED
         )
 
         webClient.post()
-                .uri("/updateExecution")
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(BodyInserters.fromValue(executionUpdateDto))
-                .exchange()
-                .expectStatus()
-                .isOk
+            .uri("/updateExecution")
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(BodyInserters.fromValue(executionUpdateDto))
+            .exchange()
+            .expectStatus()
+            .isOk
 
         val databaseData = executionRepository.findAll()
 
@@ -110,7 +110,7 @@ class ExecutionControllerTest : DatabaseTestBase() {
     @Test
     fun checkStatusException() {
         val executionUpdateDto = ExecutionUpdateDto(
-            2, ExecutionStatus.FINISHED
+            -1, ExecutionStatus.FINISHED
         )
         webClient.post()
             .uri("/updateExecution")

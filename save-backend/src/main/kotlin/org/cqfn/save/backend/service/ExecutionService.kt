@@ -23,6 +23,7 @@ class ExecutionService(private val executionRepository: ExecutionRepository) {
 
     /**
      * @param execution
+     * @throws ResponseStatusException
      */
     fun updateExecution(execution: ExecutionUpdateDto) {
         executionRepository.findById(execution.id).ifPresentOrElse({
