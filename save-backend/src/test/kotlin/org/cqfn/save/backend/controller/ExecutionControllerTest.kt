@@ -65,7 +65,7 @@ class ExecutionControllerTest : DatabaseTestBase() {
 
         val databaseData = executionRepository.findAll()
 
-        assertTrue(databaseData.any { it.status == execution.status && it.id == execution.id })
+        assertTrue(databaseData.any { it.status == execution.status && it.startTime == testLocalDateTime })
     }
 
     @Test
@@ -87,7 +87,7 @@ class ExecutionControllerTest : DatabaseTestBase() {
                 .isOk
 
         val executionUpdateDto = ExecutionUpdateDto(
-                0, ExecutionStatus.FINISHED
+                1, ExecutionStatus.FINISHED
         )
 
         webClient.post()
@@ -99,6 +99,10 @@ class ExecutionControllerTest : DatabaseTestBase() {
                 .isOk
 
         val databaseData = executionRepository.findAll()
+
+        databaseData.forEach {
+            println(it.status)
+        }
 
         assertTrue(databaseData.any { it.status == executionUpdateDto.status && it.id == executionUpdateDto.id })
     }

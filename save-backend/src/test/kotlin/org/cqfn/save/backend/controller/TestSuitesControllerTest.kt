@@ -64,6 +64,6 @@ class TestSuitesControllerTest : DatabaseTestBase() {
 
         val databaseData = testSuiteRepository.findAll()
 
-        assertTrue(databaseData.any { it.id == testSuite.id && it.projectId == testSuite.projectId })
+        assertTrue(databaseData.any { it.projectId == testSuite.projectId && it.name == testSuite.name })
     }
 }

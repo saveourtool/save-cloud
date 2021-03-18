@@ -27,6 +27,7 @@ class ExecutionService(private val executionRepository: ExecutionRepository) {
         if (databaseExecution.status == ExecutionStatus.FINISHED) {
             databaseExecution.endTime = LocalDateTime.now()
         }
+        databaseExecution.status = execution.status
         executionRepository.save(databaseExecution)
     }
 }
