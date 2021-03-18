@@ -1,7 +1,7 @@
 package org.cqfn.save.backend.controllers
 
 import org.cqfn.save.backend.service.ProjectService
-import org.cqfn.save.entities.ProjectDto
+import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.repository.GitRepository
 
 import org.slf4j.LoggerFactory
@@ -30,12 +30,12 @@ class CloneRepositoryController(
     /**
      * Endpoint to save project
      *
-     * @param projectDto information about project
+     * @param executionRequest information about project
      * @return mono string
      */
-    @PostMapping(value = ["/cloneRepository"])
-    fun saveRepository(@RequestBody projectDto: ProjectDto): Mono<String> {
-        val project = projectDto.project
+    @PostMapping(value = ["/submitExecutionRequest"])
+    fun saveRepository(@RequestBody executionRequest: ExecutionRequest): Mono<String> {
+        val project = executionRequest.project
         try {
             projectService.saveProject(project)
             log.info("Project ${project.id} saved")
@@ -47,7 +47,7 @@ class CloneRepositoryController(
         return webClient
             .post()
             .uri("/upload")
-            .body(Mono.just(projectDto.gitRepository), GitRepository::class.java)
+            .body(Mono.just(executionRequest.gitRepository), GitRepository::class.java)
             .retrieve()
             .bodyToMono(String::class.java)
     }

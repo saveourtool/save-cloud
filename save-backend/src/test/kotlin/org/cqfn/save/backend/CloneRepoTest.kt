@@ -3,7 +3,7 @@ package org.cqfn.save.backend
 import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.utils.DatabaseTestBase
 import org.cqfn.save.entities.Project
-import org.cqfn.save.entities.ProjectDto
+import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.repository.GitRepository
 
 import org.junit.jupiter.api.Assertions
@@ -29,11 +29,11 @@ class CloneRepoTest : DatabaseTestBase() {
     fun checkSaveProject() {
         val project = Project("noname", "1", "1", "1", "1")
         val gitRepo = GitRepository("1")
-        val projectDto = ProjectDto(project, gitRepo)
+        val executionRequest = ExecutionRequest(project, gitRepo)
         webClient.post()
-            .uri("/cloneRepository")
+            .uri("/submitExecutionRequest")
             .contentType(MediaType.APPLICATION_JSON)
-            .body(BodyInserters.fromValue(projectDto))
+            .body(BodyInserters.fromValue(executionRequest))
             .exchange()
             .expectStatus()
             .isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR)  // because this post call preprocessor

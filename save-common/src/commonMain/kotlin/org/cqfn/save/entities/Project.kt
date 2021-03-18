@@ -18,5 +18,8 @@ data class Project(
     var url: String,
     var description: String?,
 ) {
+    /**
+     * id of project
+     */
     @Id @GeneratedValue var id: Long? = null
 }

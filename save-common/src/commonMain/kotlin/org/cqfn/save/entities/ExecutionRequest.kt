@@ -11,7 +11,7 @@ import kotlinx.serialization.Serializable
  * @property gitRepository github repository
  */
 @Serializable
-data class ProjectDto(
+data class ExecutionRequest(
     val project: Project,
     val gitRepository: GitRepository,
 )
