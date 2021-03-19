@@ -69,14 +69,6 @@ services:
         max_replicas_per_node: 1
         constraints:
           - "node.role==manager"
-  mysql:
-    image: mysql:8.0.20
-    ports:
-      - "3306:3306"
-    environment:
-      - "MYSQL_ROOT_PASSWORD=123"
-      - "MYSQL_DATABASE=save_cloud"
-    profiles: ["dev"]
 
 volumes:
   save:
