@@ -7,6 +7,9 @@ import org.testcontainers.containers.MySQLContainerProvider
 import org.testcontainers.containers.wait.strategy.Wait
 import java.util.concurrent.atomic.AtomicBoolean
 
+/**
+ * A Junit extension for launching MySql container before all tests.
+ */
 class MySqlExtension : BeforeAllCallback {
     override fun beforeAll(context: ExtensionContext?) {
         if (!isDatabaseCreated.getAndSet(true)) {
