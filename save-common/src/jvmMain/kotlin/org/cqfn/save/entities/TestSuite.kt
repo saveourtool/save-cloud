@@ -6,19 +6,21 @@ import javax.persistence.EnumType
 import javax.persistence.Enumerated
 
 /**
- * @property id
  * @property type
  * @property name
  * @property projectId
  * @property dateAdded
  */
 @Entity
-class TestSuite(
+data class TestSuite(
     @Enumerated(EnumType.STRING)
     var type: TestSuiteType,
     var name: String,
     var projectId: Long? = null,
     var dateAdded: LocalDateTime
 ) {
+    /**
+     * id
+     */
     @Id @GeneratedValue var id: Long? = null
 }

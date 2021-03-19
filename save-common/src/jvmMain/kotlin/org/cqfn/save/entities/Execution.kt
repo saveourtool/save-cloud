@@ -11,10 +11,9 @@ import javax.persistence.Enumerated
  * @property endTime
  * @property status
  * @property testSuiteIds
- * @property id
  */
 @Entity
-class Execution(
+data class Execution(
     var projectId: Long,
     var startTime: LocalDateTime,
     var endTime: LocalDateTime,
@@ -22,5 +21,8 @@ class Execution(
     var status: ExecutionStatus,
     var testSuiteIds: String,
 ) {
+    /**
+     * id
+     */
     @Id @GeneratedValue var id: Long? = null
 }

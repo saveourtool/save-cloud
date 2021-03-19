@@ -4,7 +4,7 @@ package org.cqfn.save.execution
  * @property id
  * @property status
  */
-class ExecutionUpdateDto(
+data class ExecutionUpdateDto(
     val id: Long,
     val status: ExecutionStatus
 ) {
