@@ -15,5 +15,5 @@ class Project(
     var type: String,
     var url: String,
     var description: String?,
-    @Id @GeneratedValue var id: Int? = null,
+    @Id @GeneratedValue var id: Long? = null,
 )

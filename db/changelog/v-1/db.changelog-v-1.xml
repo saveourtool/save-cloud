@@ -25,8 +25,26 @@
 
     <include file="03-changeset-test-execution-table.xml" relativeToChangelogFile="true"/>
 
-    <changeSet id="10" author="aktsay" context="dev">
-        <tagDatabase tag="v1.0 insert-test-data"/>
+    <changeSet id="10" author="aktsay">
+        <tagDatabase tag="v1.0 create test execution table"/>
+    </changeSet>
+
+    <include file="04-changeset-test-table.xml" relativeToChangelogFile="true" />
+
+    <changeSet id="test-table" author="aktsay">
+        <tagDatabase tag="v1.0 create test"/>
+    </changeSet>
+
+    <include file="05-changeset-test-suite-table.xml" relativeToChangelogFile="true" />
+
+    <changeSet id="test-suite" author="aktsay">
+        <tagDatabase tag="v1.0 create test suite"/>
+    </changeSet>
+
+    <include file="06-chageset-execution-table.xml" relativeToChangelogFile="true" />
+
+    <changeSet id="execution-table" author="aktsay">
+        <tagDatabase tag="v1.0 create execution table"/>
     </changeSet>
 
     <include file="11-changeset-test-agent-insert-data.xml" relativeToChangelogFile="true"/>
