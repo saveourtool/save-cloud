@@ -40,4 +40,23 @@ class CloneRepoTest : DatabaseTestBase() {
         val projects = projectRepository.findAll()
         Assertions.assertTrue(projects.any { it.owner == project.owner })
     }
+
+    @Test
+    fun checkSaveExistingProject() {
+        val project = Project("noname", "1", "1", "1", "1")
+        val gitRepo = GitRepository("1")
+        val executionRequest = ExecutionRequest(project, gitRepo)
+        val executionsClones = listOf(executionRequest, executionRequest, executionRequest)
+        executionsClones.forEach {
+            webClient.post()
+                .uri("/submitExecutionRequest")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(BodyInserters.fromValue(it))
+                .exchange()
+                .expectStatus()
+                .isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR)
+        }
+        val projects = projectRepository.findAll()
+        Assertions.assertTrue(projects.size == 2)
+    }
 }

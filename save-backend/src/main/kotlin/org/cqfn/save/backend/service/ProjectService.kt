@@ -15,6 +15,9 @@ class ProjectService(private val projectRepository: ProjectRepository) {
      * @param project
      */
     fun saveProject(project: Project) {
-        projectRepository.save(project)
+        projectRepository
+            .findAll()
+            .filter { it.equals(project) }
+            .ifEmpty { projectRepository.save(project) }
     }
 }
