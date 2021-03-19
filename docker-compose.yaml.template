@@ -48,6 +48,7 @@ services:
     volumes:
       - "~/configs/prometheus.yml:/etc/prometheus/prometheus.yml"
       - "/var/run/docker.sock:/var/run/docker.sock"
+      - "prometheus-storage:/prometheus"
     # this is needed to access node_exporter from inside the container
     extra_hosts:
     - "host.docker.internal:host-gateway"
@@ -76,9 +77,11 @@ services:
       - "MYSQL_ROOT_PASSWORD=123"
       - "MYSQL_DATABASE=save_cloud"
     profiles: ["dev"]
+
 volumes:
   save:
   grafana-storage:
+  prometheus-storage:
 
 secrets:
   db_password:
