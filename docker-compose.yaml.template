@@ -51,10 +51,23 @@ services:
     # this is needed to access node_exporter from inside the container
     extra_hosts:
     - "host.docker.internal:host-gateway"
+    deploy:
+      placement:
+        max_replicas_per_node: 1
+        constraints:
+          - "node.role==manager"
   grafana:
     image: grafana/grafana
     ports:
       - "9100:3000"
+    volumes:
+      - "grafana-storage:/var/lib/grafana"
+      - "~/configs/grafana.ini:/etc/grafana/grafana.ini"
+    deploy:
+      placement:
+        max_replicas_per_node: 1
+        constraints:
+          - "node.role==manager"
   mysql:
     image: mysql:8.0.20
     ports:
@@ -65,6 +78,7 @@ services:
     profiles: ["dev"]
 volumes:
   save:
+  grafana-storage:
 
 secrets:
   db_password:
