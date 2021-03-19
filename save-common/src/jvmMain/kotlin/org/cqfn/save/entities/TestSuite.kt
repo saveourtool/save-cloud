@@ -11,8 +11,9 @@ import javax.persistence.Enumerated
  * @property projectId
  * @property dateAdded
  */
+@Suppress("USE_DATA_CLASS")
 @Entity
-data class TestSuite(
+class TestSuite(
     @Enumerated(EnumType.STRING)
     var type: TestSuiteType,
     var name: String,

@@ -12,8 +12,9 @@ import javax.persistence.Enumerated
  * @property status
  * @property testSuiteIds
  */
+@Suppress("USE_DATA_CLASS")
 @Entity
-data class Execution(
+class Execution(
     var projectId: Long,
     var startTime: LocalDateTime,
     var endTime: LocalDateTime,
