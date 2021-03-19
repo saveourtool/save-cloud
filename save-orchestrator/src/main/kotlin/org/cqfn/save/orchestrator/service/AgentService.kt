@@ -9,7 +9,7 @@ class AgentService {
     /**
      * Used to send requests to backend
      */
-    private val webClient = WebClient.create("http://localhost:5000")
+    private val webClient = WebClient.create("http://backend:5000")
 
     /**
      * Sets new tests ids

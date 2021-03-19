@@ -33,14 +33,12 @@ class HeartbeatController(private val agentService: AgentService) {
             IDLE -> Mono.just(NewJobResponse(agentService.setNewTestsIds()))
             FINISHED -> {
                 agentService.checkSavedData()
-                Mono.just(NewJobResponse(agentService.setNewTestsIds()))
+                Mono.just(WaitResponse)
             }
-            BUSY -> Mono.just(WaitResponse)
-            ERROR -> {
-                // Maybe set tests in TerminatingResponse
-                agentService.resendTestsOnError()
-                Mono.just(ContinueResponse)
-            }
+            BUSY -> Mono.just(ContinueResponse)
+            BACKEND_FAILURE -> Mono.just(WaitResponse)
+            BACKEND_UNREACHABLE -> Mono.just(WaitResponse)
+            CLI_FAILED -> Mono.just(WaitResponse)
         }
     }
 }
