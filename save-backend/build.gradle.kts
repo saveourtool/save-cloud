@@ -18,7 +18,7 @@ tasks.getByName("processTestResources").dependsOn("copyLiquibase")
 
 tasks.register<Copy>("copyLiquibase") {
     from("$rootDir/db")
-    into("$buildDir/resources/main/db")
+    into("$buildDir/resources/test/db")
 }
 
 tasks.withType<Test> {
