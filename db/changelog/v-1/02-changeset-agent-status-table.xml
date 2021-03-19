@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="7" author="aktsay" context="dev or prod">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="agent_status"/>
+            </not>
+        </preConditions>
+        <createTable tableName="agent_status">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="state" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="time" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="agent_id" type="varchar(150)" />
+        </createTable>
+
+        <rollback>
+            <dropTable
+                    cascadeConstraints="true"
+                    tableName="agent_status" />
+        </rollback>
+    </changeSet>
+
+    <changeSet id="8" author="aktsay" context="dev or prod">
+        <addUniqueConstraint
+                tableName="agent_status"
+                columnNames="agent_id"/>
+    </changeSet>
+
+</databaseChangeLog>

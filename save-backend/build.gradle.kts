@@ -6,12 +6,19 @@ plugins {
     kotlin("jvm")
 }
 
-configureSpringBoot()
+configureSpringBoot(true)
 
 tasks.withType<KotlinCompile> {
     kotlinOptions {
         jvmTarget = Versions.jdk
     }
+}
+
+tasks.getByName("processTestResources").dependsOn("copyLiquibase")
+
+tasks.register<Copy>("copyLiquibase") {
+    from("$rootDir/db")
+    into("$buildDir/resources/test/db")
 }
 
 tasks.withType<Test> {
@@ -20,10 +27,7 @@ tasks.withType<Test> {
 
 dependencies {
     implementation(project(":save-common"))
-    implementation("org.liquibase:liquibase-core:${Versions.liquibase}")
-    implementation("org.hibernate:hibernate-core:${Versions.hibernate}")
-    implementation("org.slf4j:slf4j-api:${Versions.slf4j}")
-    implementation("ch.qos.logback:logback-core:${Versions.logback}")
+    implementation(project(":save-frontend", "distribution"))  // static resources packed as a jar, will be accessed from classpath
 }
 
 configureJacoco()

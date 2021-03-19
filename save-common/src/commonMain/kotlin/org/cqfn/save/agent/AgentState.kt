@@ -7,9 +7,34 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 enum class AgentState {
+    /**
+     * Backend returned non-OK code
+     */
+    BACKEND_FAILURE,
+
+    /**
+     * Backend returned no code at all
+     */
+    BACKEND_UNREACHABLE,
+
+    /**
+     * Agent is doing work
+     */
     BUSY,
-    ERROR,
+
+    /**
+     * SAVE CLI failed
+     */
+    CLI_FAILED,
+
+    /**
+     * Agent has finished execution
+     */
     FINISHED,
+
+    /**
+     * Agent is doing nothing
+     */
     IDLE,
     ;
 }
