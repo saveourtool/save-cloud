@@ -2,9 +2,10 @@ package org.cqfn.save.backend.controller
 
 import org.cqfn.save.backend.SaveApplication
 import org.cqfn.save.backend.repository.TestRepository
-import org.cqfn.save.backend.utils.DatabaseTestBase
+import org.cqfn.save.backend.utils.MySqlExtension
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.boot.test.context.SpringBootTest
@@ -16,7 +17,8 @@ import java.time.Month
 
 @SpringBootTest(classes = [SaveApplication::class])
 @AutoConfigureWebTestClient
-class TestInitializeControllerTest : DatabaseTestBase() {
+@ExtendWith(MySqlExtension::class)
+class TestInitializeControllerTest {
     private val testLocalDateTime = LocalDateTime.of(2020, Month.APRIL, 10, 16, 30, 20)
 
     @Autowired
