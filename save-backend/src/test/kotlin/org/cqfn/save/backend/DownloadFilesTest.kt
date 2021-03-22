@@ -8,7 +8,7 @@ import org.cqfn.save.backend.repository.TestRepository
 import org.cqfn.save.backend.repository.TestSuiteRepository
 import org.cqfn.save.backend.service.ExecutionService
 import org.cqfn.save.backend.service.TestExecutionService
-import org.cqfn.save.backend.service.TestInitializeService
+import org.cqfn.save.backend.service.TestService
 import org.cqfn.save.backend.service.TestSuitesService
 
 import org.junit.jupiter.api.Test
@@ -49,7 +49,7 @@ class DownloadFilesTest {
     lateinit var executionService: ExecutionService
 
     @MockBean
-    lateinit var testInitializeService: TestInitializeService
+    lateinit var testService: TestService
 
     @MockBean
     lateinit var testSuitesService: TestSuitesService

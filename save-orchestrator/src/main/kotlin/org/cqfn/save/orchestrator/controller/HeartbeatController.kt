@@ -30,7 +30,10 @@ class HeartbeatController(private val agentService: AgentService) {
     fun acceptHeartbeat(@RequestBody heartbeat: Heartbeat): Mono<HeartbeatResponse> {
         logger.info("Got heartbeat state: ${heartbeat.state.name} from ${heartbeat.agentId}")
         return when (heartbeat.state) {
-            IDLE -> Mono.just(NewJobResponse(agentService.setNewTestsIds()))
+            IDLE -> {
+                val some = agentService.setNewTestsIds()
+                Mono.just(NewJobResponse(agentService.setNewTestsIds()))
+            }
             FINISHED -> {
                 agentService.checkSavedData()
                 Mono.just(WaitResponse)

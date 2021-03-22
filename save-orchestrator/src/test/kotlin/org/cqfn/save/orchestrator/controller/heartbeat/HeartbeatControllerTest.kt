@@ -46,7 +46,6 @@ class HeartbeatControllerTest {
     }
 }
 
-// FIXME: for some reason controller returns JSON as: {"type" : "org...NewJobResponse", "ids" : []}
 data class TestNewJobResponse(val type: String? = null) {
     val ids: List<String> = emptyList()
 }

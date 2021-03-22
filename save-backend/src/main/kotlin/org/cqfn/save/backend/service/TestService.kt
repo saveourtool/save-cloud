@@ -2,14 +2,17 @@ package org.cqfn.save.backend.service
 
 import org.cqfn.save.backend.repository.TestRepository
 import org.cqfn.save.entities.Test
+import org.cqfn.save.test.TestDto
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 
 /**
  * Service that is used for manipulating data with tests
  */
 @Service
-class TestInitializeService {
+class TestService {
     @Autowired
     private lateinit var testRepository: TestRepository
 
@@ -18,5 +21,10 @@ class TestInitializeService {
      */
     fun saveTests(tests: List<Test>) {
         testRepository.saveAll(tests)
+    }
+
+    fun getTestBatches(): Mono<List<TestDto>> {
+        return Mono.just(listOf(TestDto("qwe", "www", 0, "id"),
+                TestDto("qwe", "www", 0, "qweqwe")))
     }
 }
