@@ -60,9 +60,9 @@
   configuration:
     lineLength: 180
 - name: WRONG_NEWLINES
-  enabled: false  # todo: re-enable after bug in diktat 0.4.1 is fixed
+  enabled: true
   configuration:
-    maxParametersInOneLine: 2
+    maxParametersInOneLine: 3
 - name: TOO_MANY_CONSECUTIVE_SPACES
   enabled: true
   configuration:
@@ -105,9 +105,3 @@
   configuration:
     valueArgument: true
     valueParameter: true
-
-# todo: disabled due to bug in diktat 0.4.1
-- name: COMPLEX_EXPRESSION
-  enabled: false
-- name: REDUNDANT_SEMICOLON
-  enabled: false
