@@ -13,7 +13,9 @@ import org.springframework.web.reactive.function.server.router
  * Configuration class that enables serving static resources
  */
 @Configuration
-class WebConfiguration {
+class WebConfiguration(
+    val configProperties: ConfigProperties,
+) {
     /**
      * @return a rotuer bean
      */
@@ -40,6 +42,6 @@ class WebConfiguration {
     @Bean
     fun webClient(builder: WebClient.Builder): WebClient =
             builder
-                .baseUrl("http://preprocessor:5200")
+                .baseUrl(configProperties.preprocessorUrl)
                 .build()
 }

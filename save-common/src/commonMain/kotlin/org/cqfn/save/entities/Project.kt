@@ -11,7 +11,7 @@ import kotlinx.serialization.Serializable
  */
 @Entity
 @Serializable
-data class Project(
+class Project(
     var owner: String,
     var name: String,
     var type: String,
