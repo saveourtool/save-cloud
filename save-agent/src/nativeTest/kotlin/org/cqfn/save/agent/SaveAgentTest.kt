@@ -39,6 +39,7 @@ class SaveAgentTest {
                         headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString())
                     )
                     "/executionData" -> respond("", status = HttpStatusCode.OK)
+                    "/executionLogs" -> respond("", status = HttpStatusCode.OK)
                     else -> error("Unhandled ${request.url}")
                 }
             }

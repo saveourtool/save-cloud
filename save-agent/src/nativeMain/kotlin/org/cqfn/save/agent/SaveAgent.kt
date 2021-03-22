@@ -7,17 +7,22 @@ import io.ktor.client.HttpClient
 import io.ktor.client.features.HttpTimeout
 import io.ktor.client.features.json.JsonFeature
 import io.ktor.client.features.json.serializer.KotlinxSerializer
-import io.ktor.client.request.HttpResponseData
 import io.ktor.client.request.accept
 import io.ktor.client.request.post
 import io.ktor.client.request.url
+import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.util.KtorExperimentalAPI
+import okio.ExperimentalFileSystem
+import okio.FileNotFoundException
+import okio.FileSystem
+import okio.Path.Companion.toPath
 import platform.posix.system
 
 import kotlin.native.concurrent.AtomicReference
+import kotlin.system.exitProcess
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
@@ -28,7 +33,7 @@ import kotlinx.serialization.modules.SerializersModule
 /**
  * A main class for SAVE Agent
  */
-@OptIn(KtorExperimentalAPI::class)
+@OptIn(KtorExperimentalAPI::class, ExperimentalFileSystem::class)
 class SaveAgent(private val config: AgentConfiguration,
                 private val httpClient: HttpClient = HttpClient {
                     install(JsonFeature) {
@@ -56,6 +61,7 @@ class SaveAgent(private val config: AgentConfiguration,
      */
     suspend fun start() = coroutineScope {
         println("Starting agent")
+        // maybeStartSaveProcess()
         val heartbeatsJob = launch { startHeartbeats() }
         heartbeatsJob.join()
     }
@@ -103,15 +109,37 @@ class SaveAgent(private val config: AgentConfiguration,
         val code = runSave(emptyList())
         when (code) {
             0 -> {
-                // todo: read data from files here
+                val executionLogs = ExecutionLogs(readFile("logs.txt"))
                 sendExecutionData(ExecutionData(emptyList()))
+                sendLogs(executionLogs)
                 state.value = AgentState.FINISHED
             }
             else -> state.value = AgentState.CLI_FAILED
         }
     }
 
-    private fun runSave(cliArgs: List<String>) = platform.posix.system("sleep 5")  // fixme: actually run save CLI here
+    private fun readFile(filePath: String): List<String> {
+        try {
+            val path = filePath.toPath()
+            return FileSystem.SYSTEM.read(path) {
+                generateSequence { readUtf8Line() }.toList()
+            }
+        } catch (e: FileNotFoundException) {
+            println("Not able to find file in the following path: $filePath")
+            exitProcess(1)
+        }
+    }
+
+    private fun runSave(cliArgs: List<String>) = platform.posix.system("echo \"Hello world\" > logs.txt")  // fixme: actually run save CLI here
+
+    /**
+     * @param executionLogs logs of CLI execution progress that will be sent in a message
+     */
+    private suspend fun sendLogs(executionLogs: ExecutionLogs) = httpClient.post<HttpResponse> {
+        url("${config.orchestratorUrl}/executionLogs")
+        contentType(ContentType.Application.Json)
+        body = executionLogs
+    }
 
     /**
      * @param executionProgress execution progress that will be sent in a heartbeat message
@@ -136,12 +164,12 @@ class SaveAgent(private val config: AgentConfiguration,
             val result = runCatching {
                 postExecutionData(executionData)
             }
-            if (result.isSuccess && result.getOrNull()?.statusCode == HttpStatusCode.OK) {
+            if (result.isSuccess && result.getOrNull()?.status == HttpStatusCode.OK) {
                 return@repeat
             } else {
-                val reason = if (result.isSuccess && result.getOrNull()?.statusCode != HttpStatusCode.OK) {
+                val reason = if (result.isSuccess && result.getOrNull()?.status != HttpStatusCode.OK) {
                     state.value = AgentState.BACKEND_FAILURE
-                    "Backend returned status ${result.getOrNull()?.statusCode}"
+                    "Backend returned status ${result.getOrNull()?.status}"
                 } else {
                     state.value = AgentState.BACKEND_UNREACHABLE
                     "Backend is unreachable, ${result.exceptionOrNull()?.message}"
@@ -153,7 +181,7 @@ class SaveAgent(private val config: AgentConfiguration,
         }
     }
 
-    private suspend fun postExecutionData(executionData: ExecutionData) = httpClient.post<HttpResponseData> {
+    private suspend fun postExecutionData(executionData: ExecutionData) = httpClient.post<HttpResponse> {
         url("${config.backendUrl}/executionData")
         contentType(ContentType.Application.Json)
         body = executionData
