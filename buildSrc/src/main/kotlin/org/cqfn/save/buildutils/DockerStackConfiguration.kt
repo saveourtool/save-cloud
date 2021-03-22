@@ -20,8 +20,22 @@ fun Project.createStackDeployTask(profile: String) {
         doFirst {
             val newText = file("$rootDir/docker-compose.yaml.template").readLines()
                 .joinToString(System.lineSeparator()) {
-                    it.replace("{{project.version}}", versionForDockerImages())
+                    if (profile == "dev" && it.startsWith("services:")) {
+                        // `docker stack deploy` doesn't recognise `profiles` option in compose file for some reason, with docker 20.10.5, compose file 3.9
+                        // so we create it here only in dev profile
+                        """|$it
+                           |  mysql:
+                           |    image: mysql:8.0.20
+                           |    ports:
+                           |      - "3306:3306"
+                           |    environment:
+                           |      - "MYSQL_ROOT_PASSWORD=123"
+                           |      - "MYSQL_DATABASE=save_cloud"
+                        """.trimMargin()
+                    } else {
+                        it.replace("{{project.version}}", versionForDockerImages())
                             .replace("{{profile}}", profile)
+                    }
                 }
             file("$buildDir/docker-compose.yaml")
                 .apply { createNewFile() }
@@ -52,7 +66,7 @@ fun Project.createStackDeployTask(profile: String) {
 
     tasks.register<Exec>("startMysqlDb") {
         dependsOn("generateComposeFile")
-        commandLine("docker-compose", "--file", "$buildDir/docker-compose.yaml", "--profile", "dev", "up", "-d", "mysql")
+        commandLine("docker-compose", "--file", "$buildDir/docker-compose.yaml", "up", "-d", "mysql")
         errorOutput = ByteArrayOutputStream()
         if (!errorOutput.toString().contains(" is up-to-date")) {
             val waitIntervalMs = 10_000L

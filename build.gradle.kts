@@ -9,7 +9,7 @@ import org.cqfn.save.buildutils.installGitHooks
 plugins {
     kotlin("jvm") version Versions.kotlin apply false
     id("com.github.ben-manes.versions") version "0.38.0"
-    id("com.cdsap.talaiot.plugin.base") version "1.4.1"
+    id("com.cdsap.talaiot.plugin.base") version "1.4.2"
     id("org.liquibase.gradle") version Versions.liquibaseGradlePlugin
 }
 

@@ -35,15 +35,13 @@ class DownloadProject(val configProperties: ConfigProperties) {
      */
     @Suppress("TooGenericExceptionCaught")
     @PostMapping(value = ["/upload"])
-    fun upload(@RequestBody gitRepository: GitRepository): Response {
-        return Mono.just(ResponseEntity("Clone pending", HttpStatus.ACCEPTED))
-            .subscribeOn(Schedulers.boundedElastic())
-            .also {
-                it.subscribe {
-                    downLoadRepository(gitRepository)
-                }
+    fun upload(@RequestBody gitRepository: GitRepository): Response = Mono.just(ResponseEntity("Clone pending", HttpStatus.ACCEPTED))
+        .subscribeOn(Schedulers.boundedElastic())
+        .also {
+            it.subscribe {
+                downLoadRepository(gitRepository)
             }
-    }
+        }
 
     @Suppress("TooGenericExceptionCaught")
     private fun downLoadRepository(gitRepository: GitRepository) {
