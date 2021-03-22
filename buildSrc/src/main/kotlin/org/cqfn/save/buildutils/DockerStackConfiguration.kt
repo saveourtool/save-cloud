@@ -31,7 +31,6 @@ fun Project.createStackDeployTask(profile: String) {
                            |    environment:
                            |      - "MYSQL_ROOT_PASSWORD=123"
                            |      - "MYSQL_DATABASE=save_cloud"
-                           |    profiles: ["dev"]
                         """.trimMargin()
                     } else {
                         it.replace("{{project.version}}", versionForDockerImages())
@@ -67,7 +66,7 @@ fun Project.createStackDeployTask(profile: String) {
 
     tasks.register<Exec>("startMysqlDb") {
         dependsOn("generateComposeFile")
-        commandLine("docker-compose", "--file", "$buildDir/docker-compose.yaml", "--profile", "dev", "up", "-d", "mysql")
+        commandLine("docker-compose", "--file", "$buildDir/docker-compose.yaml", "up", "-d", "mysql")
         errorOutput = ByteArrayOutputStream()
         if (!errorOutput.toString().contains(" is up-to-date")) {
             val waitIntervalMs = 10_000L
