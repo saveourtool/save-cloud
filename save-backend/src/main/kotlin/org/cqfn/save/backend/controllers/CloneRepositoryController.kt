@@ -19,12 +19,12 @@ import reactor.core.publisher.Mono
  * Controller to save project
  *
  * @property projectService service of project
- * @property webClient webclient
+ * @property preprocessorWebClient webclient
  */
 @RestController
 class CloneRepositoryController(
     private val projectService: ProjectService,
-    @Qualifier("preprocessorWebClient") private val webClient: WebClient,
+    @Qualifier("preprocessorWebClient") private val preprocessorWebClient: WebClient,
 ) {
     private val log = LoggerFactory.getLogger(CloneRepositoryController::class.java)
 
@@ -45,7 +45,7 @@ class CloneRepositoryController(
             return Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error to clone repo"))
         }
         log.info("Sending request to preprocessor to start cloning ${project.id} project")
-        return webClient
+        return preprocessorWebClient
             .post()
             .uri("/upload")
             .body(Mono.just(executionRequest.gitRepository), GitRepository::class.java)

@@ -14,6 +14,8 @@ import org.cqfn.save.backend.service.TestSuitesService
 
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.core.io.ByteArrayResource
@@ -25,6 +27,7 @@ import org.springframework.web.reactive.function.client.WebClient
 import kotlin.io.path.ExperimentalPathApi
 
 @WebFluxTest
+@AutoConfigureWebTestClient
 class DownloadFilesTest {
     @MockBean
     lateinit var repository: ProjectRepository
@@ -36,6 +39,7 @@ class DownloadFilesTest {
     lateinit var projectService: ProjectService
 
     @MockBean
+    @Qualifier("preprocessorWebClient")
     lateinit var webClient: WebClient
 
     @MockBean

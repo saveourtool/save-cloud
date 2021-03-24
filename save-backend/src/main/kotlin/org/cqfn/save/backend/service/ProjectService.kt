@@ -15,6 +15,7 @@ class ProjectService(private val projectRepository: ProjectRepository) {
     /**
      * @param project
      */
+    @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
     fun saveProject(project: Project) {
         projectRepository.findOne(Example.of(project)).ifPresentOrElse({}, {
             projectRepository.save(project)
