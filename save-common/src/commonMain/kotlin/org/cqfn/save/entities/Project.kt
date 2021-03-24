@@ -24,33 +24,4 @@ class Project(
     @Id
     @GeneratedValue
     var id: Long? = null
-
-    /**
-     * Override equals to compare projects without id
-     *
-     * @param other other projcet
-     */
-    override fun equals(other: Any?): Boolean {
-        if (this === other) {
-            return true
-        }
-        other?.let { anotherProject ->
-            if (anotherProject::class != this::class) {
-                return false
-            }
-            (anotherProject as Project).also {
-                return (it.description == this.description &&
-                        it.name == this.name &&
-                        it.owner == this.owner &&
-                        it.type == this.type &&
-                        it.url == this.url)
-            }
-        } ?: return false
-        return super.equals(other)
-    }
-
-    /**
-     * Override hashCode
-     */
-    override fun hashCode() = super.hashCode()
 }

@@ -5,6 +5,7 @@ import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.repository.GitRepository
 
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.dao.DataAccessException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -23,7 +24,7 @@ import reactor.core.publisher.Mono
 @RestController
 class CloneRepositoryController(
     private val projectService: ProjectService,
-    private val webClient: WebClient,
+    @Qualifier("preprocessorWebClient") private val webClient: WebClient,
 ) {
     private val log = LoggerFactory.getLogger(CloneRepositoryController::class.java)
 
@@ -43,7 +44,7 @@ class CloneRepositoryController(
             log.error("Save error with ${project.id} project", exception)
             return Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error to clone repo"))
         }
-        log.info("Starting to clone ${project.id} project")
+        log.info("Sending request to preprocessor to start cloning ${project.id} project")
         return webClient
             .post()
             .uri("/upload")

@@ -2,6 +2,7 @@ package org.cqfn.save.backend.service
 
 import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.entities.Project
+import org.springframework.data.domain.Example
 import org.springframework.stereotype.Service
 
 /**
@@ -15,9 +16,8 @@ class ProjectService(private val projectRepository: ProjectRepository) {
      * @param project
      */
     fun saveProject(project: Project) {
-        projectRepository
-            .findAll()
-            .filter { it.equals(project) }
-            .ifEmpty { projectRepository.save(project) }
+        projectRepository.findOne(Example.of(project)).ifPresentOrElse({}, {
+            projectRepository.save(project)
+        })
     }
 }

@@ -41,8 +41,8 @@ class WebConfiguration(
      * @param builder
      * @return web client
      */
-    @Bean
-    fun webClient(builder: WebClient.Builder): WebClient =
+    @Bean(name = ["preprocessorWebClient"])
+    fun preprocessorWebClient(builder: WebClient.Builder): WebClient =
             builder
                 .baseUrl(configProperties.preprocessorUrl)
                 .build()
