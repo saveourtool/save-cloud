@@ -4,15 +4,17 @@ import org.cqfn.save.agent.AgentState
 import org.cqfn.save.backend.repository.AgentStatusRepository
 import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.repository.TestExecutionRepository
-import org.cqfn.save.backend.utils.DatabaseTestBase
+import org.cqfn.save.backend.utils.MySqlExtension
 import org.cqfn.save.domain.TestResultStatus
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 
 @SpringBootTest(classes = [SaveApplication::class])
-class DatabaseTest : DatabaseTestBase() {
+@ExtendWith(MySqlExtension::class)
+class DatabaseTest {
     @Autowired
     private lateinit var projectRepository: ProjectRepository
 
