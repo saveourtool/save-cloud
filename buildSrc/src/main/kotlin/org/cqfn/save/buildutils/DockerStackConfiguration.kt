@@ -68,10 +68,12 @@ fun Project.createStackDeployTask(profile: String) {
         dependsOn("generateComposeFile")
         commandLine("docker-compose", "--file", "$buildDir/docker-compose.yaml", "up", "-d", "mysql")
         errorOutput = ByteArrayOutputStream()
-        if (!errorOutput.toString().contains(" is up-to-date")) {
-            val waitIntervalMs = 10_000L
-            logger.info("Waitnig $waitIntervalMs millis for mysql to start")
-            Thread.sleep(waitIntervalMs)  // wait for mysql to start, can be manually increased when needed
+        doLast {
+            if (!errorOutput.toString().contains(" is up-to-date")) {
+                val waitIntervalMs = 10_000L
+                logger.info("Waiting $waitIntervalMs millis for mysql to start")
+                Thread.sleep(waitIntervalMs)  // wait for mysql to start, can be manually increased when needed
+            }
         }
         finalizedBy("liquibaseUpdate")
     }
