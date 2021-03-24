@@ -22,7 +22,6 @@ import okio.Path.Companion.toPath
 import platform.posix.system
 
 import kotlin.native.concurrent.AtomicReference
-import kotlin.system.exitProcess
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
@@ -109,6 +108,10 @@ class SaveAgent(private val config: AgentConfiguration,
         when (code) {
             0 -> {
                 val executionLogs = ExecutionLogs(id, readFile("logs.txt"))
+                if (executionLogs.cliLogs.isEmpty()) {
+                    state.value = AgentState.CLI_FAILED
+                    return@coroutineScope
+                }
                 sendExecutionData(ExecutionData(emptyList()))
                 sendLogs(executionLogs)
                 state.value = AgentState.FINISHED
@@ -125,7 +128,7 @@ class SaveAgent(private val config: AgentConfiguration,
             }
         } catch (e: FileNotFoundException) {
             println("Not able to find file in the following path: $filePath")
-            exitProcess(1)
+            return emptyList()
         }
     }
 
