@@ -61,7 +61,6 @@ class SaveAgent(private val config: AgentConfiguration,
      */
     suspend fun start() = coroutineScope {
         println("Starting agent")
-        // maybeStartSaveProcess()
         val heartbeatsJob = launch { startHeartbeats() }
         heartbeatsJob.join()
     }
@@ -109,7 +108,7 @@ class SaveAgent(private val config: AgentConfiguration,
         val code = runSave(emptyList())
         when (code) {
             0 -> {
-                val executionLogs = ExecutionLogs(readFile("logs.txt"))
+                val executionLogs = ExecutionLogs(id, readFile("logs.txt"))
                 sendExecutionData(ExecutionData(emptyList()))
                 sendLogs(executionLogs)
                 state.value = AgentState.FINISHED
