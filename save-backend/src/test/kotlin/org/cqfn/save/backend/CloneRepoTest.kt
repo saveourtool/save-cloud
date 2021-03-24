@@ -1,13 +1,14 @@
 package org.cqfn.save.backend
 
 import org.cqfn.save.backend.repository.ProjectRepository
-import org.cqfn.save.backend.utils.DatabaseTestBase
+import org.cqfn.save.backend.utils.MySqlExtension
 import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.Project
 import org.cqfn.save.repository.GitRepository
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.boot.test.context.SpringBootTest
@@ -18,7 +19,8 @@ import org.springframework.web.reactive.function.BodyInserters
 
 @SpringBootTest(classes = [SaveApplication::class])
 @AutoConfigureWebTestClient
-class CloneRepoTest : DatabaseTestBase() {
+@ExtendWith(MySqlExtension::class)
+class CloneRepoTest {
     @Autowired
     private lateinit var webClient: WebTestClient
 
