@@ -31,9 +31,13 @@ class Project(
      * @param other other projcet
      */
     override fun equals(other: Any?): Boolean {
-        if (this === other) return true
+        if (this === other) {
+            return true
+        }
         other?.let { anotherProject ->
-            if (anotherProject::class != this::class) return false
+            if (anotherProject::class != this::class) {
+                return false
+            }
             (anotherProject as Project).also {
                 return (it.description == this.description &&
                         it.name == this.name &&
@@ -48,7 +52,5 @@ class Project(
     /**
      * Override hashCode
      */
-    override fun hashCode(): Int {
-        return super.hashCode()
-    }
+    override fun hashCode() = super.hashCode()
 }
