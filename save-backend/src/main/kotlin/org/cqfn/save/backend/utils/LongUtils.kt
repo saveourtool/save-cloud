@@ -1,6 +1,7 @@
 /**
  * Util class for Long type
  */
+
 package org.cqfn.save.backend.utils
 
 import java.time.Instant
