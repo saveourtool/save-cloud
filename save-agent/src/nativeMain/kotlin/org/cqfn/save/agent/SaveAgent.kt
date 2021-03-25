@@ -117,7 +117,7 @@ class SaveAgent(private val config: AgentConfiguration,
                 }
                 // todo: read data from files here
                 val currentTime = Clock.System.now().toEpochMilliseconds()
-                val testExecutionDtoExample = TestExecutionDto(LongUtils0, 0, TestResultStatus.PASSED, currentTime, currentTime)
+                val testExecutionDtoExample = TestExecutionDto(0L, 0L, TestResultStatus.PASSED, currentTime, currentTime)
                 sendExecutionData(testExecutionDtoExample)
                 sendLogs(executionLogs)
                 state.value = AgentState.FINISHED

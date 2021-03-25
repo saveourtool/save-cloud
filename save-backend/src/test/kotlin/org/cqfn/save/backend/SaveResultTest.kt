@@ -3,7 +3,7 @@ package org.cqfn.save.backend
 import org.cqfn.save.agent.TestExecutionDto
 import org.cqfn.save.backend.repository.TestExecutionRepository
 import org.cqfn.save.backend.utils.MySqlExtension
-import org.cqfn.save.backend.utils.toLocalTimeDate
+import org.cqfn.save.backend.utils.toLocalDateTime
 import org.cqfn.save.domain.TestResultStatus
 
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -43,8 +43,8 @@ class SaveResultTest {
             .exchange().expectBody(String::class.java)
             .isEqualTo<Nothing>("Saved")
         val tests = testExecutionRepository.findAll()
-        assertTrue(tests.any { it.startTime == testExecutionDto.startTime.toLocalTimeDate().withNano(0) })
-        assertTrue(tests.any { it.endTime == testExecutionDto.endTime.toLocalTimeDate().withNano(0) })
+        assertTrue(tests.any { it.startTime == testExecutionDto.startTime.toLocalDateTime().withNano(0) })
+        assertTrue(tests.any { it.endTime == testExecutionDto.endTime.toLocalDateTime().withNano(0) })
     }
 
     @Test
@@ -65,8 +65,8 @@ class SaveResultTest {
             .expectBody(String::class.java)
             .isEqualTo<Nothing>("Some ids don't exist")
         val tests = testExecutionRepository.findAll()
-        assertFalse(tests.any { it.startTime == testExecutionDto.startTime.toLocalTimeDate().withNano(0) })
-        assertFalse(tests.any { it.endTime == testExecutionDto.endTime.toLocalTimeDate().withNano(0) })
+        assertFalse(tests.any { it.startTime == testExecutionDto.startTime.toLocalDateTime().withNano(0) })
+        assertFalse(tests.any { it.endTime == testExecutionDto.endTime.toLocalDateTime().withNano(0) })
     }
 
     companion object {

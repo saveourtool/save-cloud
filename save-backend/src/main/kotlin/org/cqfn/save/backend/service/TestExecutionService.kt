@@ -2,12 +2,10 @@ package org.cqfn.save.backend.service
 
 import org.cqfn.save.agent.TestExecutionDto
 import org.cqfn.save.backend.repository.TestExecutionRepository
-import org.cqfn.save.backend.utils.toLocalTimeDate
+import org.cqfn.save.backend.utils.toLocalDateTime
 
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
-
-import java.util.*
 
 /**
  * Service for test result
@@ -26,8 +24,8 @@ class TestExecutionService(private val testResultRepository: TestExecutionReposi
             val foundTestExec = testResultRepository.findById(testExecDto.id)
             foundTestExec.ifPresentOrElse({
                 it.run {
-                    this.startTime = testExecDto.startTime.toLocalTimeDate()
-                    this.endTime = testExecDto.endTime.toLocalTimeDate()
+                    this.startTime = testExecDto.startTime.toLocalDateTime()
+                    this.endTime = testExecDto.endTime.toLocalDateTime()
                     this.status = testExecDto.status
                     testResultRepository.save(this)
                 }
