@@ -31,3 +31,7 @@ Deployment is performed on server via docker swarm or locally via docker-compose
 | 9090 | prometheus |
 | 9091 | node_exporter |
 | 9100 | grafana |
+
+## Secrets
+* Liquibase is reading secrets from the secrets file located on the server in the `home` directory.
+* PostProcessor is reading secrets for database connection from the docker secrets and fills the spring datasource. (DockerSecretsDatabaseProcessor class)
