@@ -6,13 +6,18 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.core.io.ClassPathResource
 import org.springframework.core.io.Resource
 import org.springframework.http.MediaType.TEXT_HTML
+import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.server.router
 
 /**
  * Configuration class that enables serving static resources
+ *
+ * @property configProperties properties in application.properties
  */
 @Configuration
-class WebConfiguration {
+class WebConfiguration(
+    val configProperties: ConfigProperties,
+) {
     /**
      * @return a rotuer bean
      */
@@ -31,4 +36,14 @@ class WebConfiguration {
             ok().contentType(TEXT_HTML).bodyValue(html)
         }
     }
+
+    /**
+     * @param builder
+     * @return web client
+     */
+    @Bean(name = ["preprocessorWebClient"])
+    fun preprocessorWebClient(builder: WebClient.Builder): WebClient =
+            builder
+                .baseUrl(configProperties.preprocessorUrl)
+                .build()
 }
