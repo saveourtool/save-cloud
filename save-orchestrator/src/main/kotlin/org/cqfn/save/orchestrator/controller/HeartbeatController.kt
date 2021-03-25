@@ -10,7 +10,6 @@ import org.cqfn.save.orchestrator.service.AgentService
 import org.slf4j.LoggerFactory
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.ResponseBody
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
 
@@ -27,12 +26,11 @@ class HeartbeatController(private val agentService: AgentService) {
      * 4. Response has ERROR state. Then orchestrator sends Terminating response.
      */
     @PostMapping("/heartbeat")
-    fun acceptHeartbeat(@RequestBody heartbeat: Heartbeat): Mono<HeartbeatResponse> {
+    fun acceptHeartbeat(@RequestBody heartbeat: Heartbeat): Mono<out HeartbeatResponse> {
         logger.info("Got heartbeat state: ${heartbeat.state.name} from ${heartbeat.agentId}")
         return when (heartbeat.state) {
             IDLE -> {
-                val some = agentService.setNewTestsIds()
-                Mono.just(NewJobResponse(agentService.setNewTestsIds()))
+                agentService.setNewTestsIds()
             }
             FINISHED -> {
                 agentService.checkSavedData()

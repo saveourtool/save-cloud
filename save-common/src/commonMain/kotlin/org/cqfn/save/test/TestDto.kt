@@ -8,4 +8,6 @@ class TestDto (
     var testFilePath: String,
     var testSuiteId: Long,
     var id: String
-)
+) {
+    constructor() : this("stub", "stub", 0, "stub")
+}

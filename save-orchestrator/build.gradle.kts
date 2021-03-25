@@ -24,15 +24,16 @@ repositories {
 
 
 dependencies {
-    implementation(project(":save-common"))
-    implementation("org.liquibase:liquibase-core:${Versions.liquibase}")
-    implementation("org.hibernate:hibernate-core:${Versions.hibernate}")
+    api(project(":save-common"))
     implementation("org.slf4j:slf4j-api:${Versions.slf4j}")
     implementation("ch.qos.logback:logback-core:${Versions.logback}")
     implementation("com.github.docker-java:docker-java-core:${Versions.dockerJavaApi}")
     implementation("com.github.docker-java:docker-java-transport-httpclient5:${Versions.dockerJavaApi}")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:1.1.0")
     implementation("org.apache.commons:commons-compress:1.20")
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.1.1")
+    testImplementation("com.squareup.okhttp3:okhttp:4.9.1")
+    testImplementation("com.squareup.okhttp3:mockwebserver:4.9.1")
 }
 
 configureJacoco()
