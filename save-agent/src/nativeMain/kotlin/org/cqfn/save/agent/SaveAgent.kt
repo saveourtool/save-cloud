@@ -114,12 +114,11 @@ class SaveAgent(private val config: AgentConfiguration,
                     state.value = AgentState.CLI_FAILED
                     return@coroutineScope
                 }
-                sendExecutionData(ExecutionData(emptyList()))
-                sendLogs(executionLogs)
                 // todo: read data from files here
                 val currentTime = Clock.System.now().toEpochMilliseconds()
                 val testExecutionDtoExample = TestExecutionDto(0,0,TestResultStatus.PASSED, currentTime, currentTime)
                 sendExecutionData(testExecutionDtoExample)
+                sendLogs(executionLogs)
                 state.value = AgentState.FINISHED
             }
             else -> state.value = AgentState.CLI_FAILED
@@ -189,8 +188,7 @@ class SaveAgent(private val config: AgentConfiguration,
         }
     }
 
-    private suspend fun postExecutionData(testExecutionDto: TestExecutionDto) = httpClient.post<HttpResponseData> {
-    private suspend fun postExecutionData(executionData: ExecutionData) = httpClient.post<HttpResponse> {
+    private suspend fun postExecutionData(testExecutionDto: TestExecutionDto) = httpClient.post<HttpResponse> {
         url("${config.backendUrl}/executionData")
         contentType(ContentType.Application.Json)
         body = testExecutionDto
