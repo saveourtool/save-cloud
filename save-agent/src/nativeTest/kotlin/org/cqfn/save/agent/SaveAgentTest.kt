@@ -14,7 +14,6 @@ import io.ktor.http.headersOf
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
@@ -39,6 +38,7 @@ class SaveAgentTest {
                         headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString())
                     )
                     "/executionData" -> respond("", status = HttpStatusCode.OK)
+                    "/executionLogs" -> respond("", status = HttpStatusCode.OK)
                     else -> error("Unhandled ${request.url}")
                 }
             }
@@ -56,8 +56,6 @@ class SaveAgentTest {
     fun `should change state to FINISHED after SAVE CLI returns`() = runBlocking {
         assertEquals(AgentState.IDLE, saveAgentForTest.state.value)
         runBlocking { saveAgentForTest.startSaveProcess() }
-        println("Waiting for 5 sec in test")
-        delay(5_000)  // todo: proper criterion of SAVE CLI termination
         assertEquals(AgentState.FINISHED, saveAgentForTest.state.value)
     }
 }
