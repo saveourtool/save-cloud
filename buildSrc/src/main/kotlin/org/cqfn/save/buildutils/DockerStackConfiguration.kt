@@ -8,6 +8,8 @@ import org.springframework.boot.gradle.tasks.bundling.BootBuildImage
 import java.io.File
 import java.io.ByteArrayOutputStream
 
+const val MYSQL_STARTUP_DELAY_MILLIS = 10_000L
+
 fun Project.createStackDeployTask(profile: String) {
     tasks.register<Exec>("startLocalDockerRegistry") {
         enabled = false
@@ -70,9 +72,8 @@ fun Project.createStackDeployTask(profile: String) {
         errorOutput = ByteArrayOutputStream()
         doLast {
             if (!errorOutput.toString().contains(" is up-to-date")) {
-                val waitIntervalMs = 10_000L
-                logger.info("Waiting $waitIntervalMs millis for mysql to start")
-                Thread.sleep(waitIntervalMs)  // wait for mysql to start, can be manually increased when needed
+                logger.info("Waiting $MYSQL_STARTUP_DELAY_MILLIS millis for mysql to start")
+                Thread.sleep(MYSQL_STARTUP_DELAY_MILLIS)  // wait for mysql to start, can be manually increased when needed
             }
         }
         finalizedBy("liquibaseUpdate")
