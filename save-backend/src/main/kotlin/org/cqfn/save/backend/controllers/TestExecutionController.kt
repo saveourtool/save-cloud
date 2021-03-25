@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 class TestExecutionController(private val testExecutionService: TestExecutionService) {
     /**
-     * @param testExecutions list of test executions
+     * @param testExecutionsDto
      * @return response
      */
     @PostMapping(value = ["/saveTestResult"])

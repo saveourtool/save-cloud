@@ -22,7 +22,6 @@ import org.springframework.web.reactive.function.BodyInserters
 @AutoConfigureWebTestClient
 @ExtendWith(MySqlExtension::class)
 class SaveResultTest {
-
     @Autowired
     private lateinit var webClient: WebTestClient
 

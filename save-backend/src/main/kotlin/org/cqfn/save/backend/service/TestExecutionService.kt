@@ -3,8 +3,10 @@ package org.cqfn.save.backend.service
 import org.cqfn.save.agent.TestExecutionDto
 import org.cqfn.save.backend.repository.TestExecutionRepository
 import org.cqfn.save.backend.utils.toLocalTimeDate
+
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
+
 import java.util.*
 
 /**
@@ -15,7 +17,7 @@ class TestExecutionService(private val testResultRepository: TestExecutionReposi
     private val log = LoggerFactory.getLogger(TestExecutionService::class.java)
 
     /**
-     * @param testExecutions list of test executions
+     * @param testExecutionsDto
      * @return list of lost tests
      */
     fun saveTestResult(testExecutionsDto: List<TestExecutionDto>): List<TestExecutionDto> {

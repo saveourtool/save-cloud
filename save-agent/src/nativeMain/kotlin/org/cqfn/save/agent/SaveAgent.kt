@@ -2,6 +2,8 @@
 
 package org.cqfn.save.agent
 
+import org.cqfn.save.domain.TestResultStatus
+
 import com.benasher44.uuid.uuid4
 import io.ktor.client.HttpClient
 import io.ktor.client.features.HttpTimeout
@@ -29,7 +31,6 @@ import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
-import org.cqfn.save.domain.TestResultStatus
 
 /**
  * A main class for SAVE Agent
@@ -116,7 +117,7 @@ class SaveAgent(private val config: AgentConfiguration,
                 }
                 // todo: read data from files here
                 val currentTime = Clock.System.now().toEpochMilliseconds()
-                val testExecutionDtoExample = TestExecutionDto(0,0,TestResultStatus.PASSED, currentTime, currentTime)
+                val testExecutionDtoExample = TestExecutionDto(LongUtils0, 0, TestResultStatus.PASSED, currentTime, currentTime)
                 sendExecutionData(testExecutionDtoExample)
                 sendLogs(executionLogs)
                 state.value = AgentState.FINISHED
