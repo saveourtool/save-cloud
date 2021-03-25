@@ -22,8 +22,10 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.datetime.Clock
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
+import org.cqfn.save.domain.TestResultStatus
 
 /**
  * A main class for SAVE Agent
@@ -104,7 +106,9 @@ class SaveAgent(private val config: AgentConfiguration,
         when (code) {
             0 -> {
                 // todo: read data from files here
-                sendExecutionData(ExecutionData(emptyList()))
+                val currentTime = Clock.System.now().toEpochMilliseconds()
+                val testExecutionDtoExample = TestExecutionDto(0,0,TestResultStatus.PASSED, currentTime, currentTime)
+                sendExecutionData(testExecutionDtoExample)
                 state.value = AgentState.FINISHED
             }
             else -> state.value = AgentState.CLI_FAILED
@@ -130,11 +134,11 @@ class SaveAgent(private val config: AgentConfiguration,
     /**
      * Attempt to send execution data to backend, will retry several times, while increasing delay 2 times on each iteration.
      */
-    private suspend fun sendExecutionData(executionData: ExecutionData): Unit = coroutineScope {
+    private suspend fun sendExecutionData(testExecutionDto: TestExecutionDto): Unit = coroutineScope {
         var retryInterval = config.executionDataInitialRetryMillis
         repeat(config.executionDataRetryAttempts) { attempt ->
             val result = runCatching {
-                postExecutionData(executionData)
+                postExecutionData(testExecutionDto)
             }
             if (result.isSuccess && result.getOrNull()?.statusCode == HttpStatusCode.OK) {
                 return@repeat
@@ -153,9 +157,9 @@ class SaveAgent(private val config: AgentConfiguration,
         }
     }
 
-    private suspend fun postExecutionData(executionData: ExecutionData) = httpClient.post<HttpResponseData> {
+    private suspend fun postExecutionData(testExecutionDto: TestExecutionDto) = httpClient.post<HttpResponseData> {
         url("${config.backendUrl}/executionData")
         contentType(ContentType.Application.Json)
-        body = executionData
+        body = testExecutionDto
     }
 }

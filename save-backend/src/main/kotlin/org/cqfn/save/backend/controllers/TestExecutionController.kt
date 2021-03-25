@@ -1,7 +1,7 @@
 package org.cqfn.save.backend.controllers
 
+import org.cqfn.save.agent.TestExecutionDto
 import org.cqfn.save.backend.service.TestExecutionService
-import org.cqfn.save.entities.TestExecution
 import org.springframework.dao.DataAccessException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -21,8 +21,8 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
      * @return response
      */
     @PostMapping(value = ["/saveTestResult"])
-    fun saveTestResult(@RequestBody testExecutions: List<TestExecution>) = try {
-        if (testExecutionService.saveTestResult(testExecutions).isEmpty()) {
+    fun saveTestResult(@RequestBody testExecutionsDto: List<TestExecutionDto>) = try {
+        if (testExecutionService.saveTestResult(testExecutionsDto).isEmpty()) {
             ResponseEntity.status(HttpStatus.OK).body("Saved")
         } else {
             ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Some ids don't exist")

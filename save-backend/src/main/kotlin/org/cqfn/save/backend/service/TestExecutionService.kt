@@ -1,9 +1,11 @@
 package org.cqfn.save.backend.service
 
+import org.cqfn.save.agent.TestExecutionDto
 import org.cqfn.save.backend.repository.TestExecutionRepository
-import org.cqfn.save.entities.TestExecution
+import org.cqfn.save.backend.utils.toLocalTimeDate
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
+import java.util.*
 
 /**
  * Service for test result
@@ -16,21 +18,21 @@ class TestExecutionService(private val testResultRepository: TestExecutionReposi
      * @param testExecutions list of test executions
      * @return list of lost tests
      */
-    fun saveTestResult(testExecutions: List<TestExecution>): List<TestExecution> {
-        val lostTests: MutableList<TestExecution> = mutableListOf()
-        testExecutions.forEach { testExec ->
-            val foundTestExec = testResultRepository.findById(testExec.id)
+    fun saveTestResult(testExecutionsDto: List<TestExecutionDto>): List<TestExecutionDto> {
+        val lostTests: MutableList<TestExecutionDto> = mutableListOf()
+        testExecutionsDto.forEach { testExecDto ->
+            val foundTestExec = testResultRepository.findById(testExecDto.id)
             foundTestExec.ifPresentOrElse({
                 it.run {
-                    this.startTime = testExec.startTime
-                    this.endTime = testExec.endTime
-                    this.status = testExec.status
+                    this.startTime = testExecDto.startTime.toLocalTimeDate()
+                    this.endTime = testExecDto.endTime.toLocalTimeDate()
+                    this.status = testExecDto.status
                     testResultRepository.save(this)
                 }
             },
                 {
-                    lostTests.add(testExec)
-                    log.error("Test execution with ${testExec.id} id was not found")
+                    lostTests.add(testExecDto)
+                    log.error("Test execution with ${testExecDto.id} id was not found")
                 })
         }
         return lostTests
