@@ -29,11 +29,11 @@ dependencies {
     implementation("ch.qos.logback:logback-core:${Versions.logback}")
     implementation("com.github.docker-java:docker-java-core:${Versions.dockerJavaApi}")
     implementation("com.github.docker-java:docker-java-transport-httpclient5:${Versions.dockerJavaApi}")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:1.1.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:${Versions.serialization}")
     implementation("org.apache.commons:commons-compress:1.20")
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.1.1")
-    testImplementation("com.squareup.okhttp3:okhttp:4.9.1")
-    testImplementation("com.squareup.okhttp3:mockwebserver:4.9.1")
+    testImplementation("com.squareup.okhttp3:okhttp:${Versions.okhttp3}")
+    testImplementation("com.squareup.okhttp3:mockwebserver:${Versions.okhttp3}")
 }
 
 configureJacoco()

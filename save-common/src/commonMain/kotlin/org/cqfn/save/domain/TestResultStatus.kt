@@ -8,6 +8,16 @@ import kotlinx.serialization.Serializable
 @Serializable
 enum class TestResultStatus {
     /**
+     * Ready for testing
+     */
+    READY,
+
+    /**
+     * Running state
+     */
+    RUNNING,
+
+    /**
      * Test failed
      */
     FAILED,
