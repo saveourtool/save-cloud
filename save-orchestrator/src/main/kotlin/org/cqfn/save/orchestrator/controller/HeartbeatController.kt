@@ -4,7 +4,6 @@ import org.cqfn.save.agent.AgentState.*
 import org.cqfn.save.agent.ContinueResponse
 import org.cqfn.save.agent.Heartbeat
 import org.cqfn.save.agent.HeartbeatResponse
-import org.cqfn.save.agent.NewJobResponse
 import org.cqfn.save.agent.WaitResponse
 import org.cqfn.save.orchestrator.service.AgentService
 import org.slf4j.LoggerFactory
@@ -30,7 +29,7 @@ class HeartbeatController(private val agentService: AgentService) {
         logger.info("Got heartbeat state: ${heartbeat.state.name} from ${heartbeat.agentId}")
         return when (heartbeat.state) {
             IDLE -> {
-                agentService.setNewTestsIds()
+                agentService.setNewTestsIds().apply { subscribe() }
             }
             FINISHED -> {
                 agentService.checkSavedData()

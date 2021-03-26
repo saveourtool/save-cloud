@@ -10,7 +10,7 @@ import org.springframework.web.reactive.function.client.WebClient
 import reactor.core.publisher.Mono
 
 @Service
-class AgentService(val baseUrl: String = "http://backend:5000" ) {
+class AgentService(baseUrl: String = "http://backend:5000" ) {
     /**
      * Used to send requests to backend
      */
@@ -20,17 +20,15 @@ class AgentService(val baseUrl: String = "http://backend:5000" ) {
      * Sets new tests ids
      */
     fun setNewTestsIds(): Mono<out HeartbeatResponse> {
-        val list = webClient
-                .get()
-                .uri("/getTestBatches")
-                .retrieve()
-                .bodyToMono(String::class.java)
-                .map {
-                    val listTest = Json.decodeFromString<List<TestDto>>(it)
-                    NewJobResponse(listTest)
-                }
-        list.subscribe()
-        return list
+        return webClient
+            .get()
+            .uri("/getTestBatches")
+            .retrieve()
+            .bodyToMono(String::class.java)
+            .map {
+                val listTest = Json.decodeFromString<List<TestDto>>(it)
+                NewJobResponse(listTest)
+            }
     }
 
     fun checkSavedData(): Boolean {

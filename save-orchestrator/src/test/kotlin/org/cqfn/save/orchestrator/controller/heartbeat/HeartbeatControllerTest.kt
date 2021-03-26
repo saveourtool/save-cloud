@@ -1,6 +1,7 @@
 package org.cqfn.save.orchestrator.controller.heartbeat
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.cqfn.save.agent.AgentState
@@ -31,7 +32,6 @@ class HeartbeatControllerTest {
     lateinit var webClient: WebTestClient
     lateinit var mockServer: MockWebServer
     private lateinit var agentService: AgentService
-    private val objectMapper = ObjectMapper()
 
     @BeforeAll
     fun startServer() {
@@ -71,15 +71,14 @@ class HeartbeatControllerTest {
     @Test
     fun checkNewJobResponse() {
         val list = listOf(TestDto("qwe", "www", 0, "hashID"))
-
         mockServer.enqueue(
                 MockResponse()
-                    .setBody(objectMapper.writeValueAsString(list))
+                    .setBody(Json.encodeToString(list))
                     .addHeader("Content-Type", "application/json")
         )
 
-        val monoResponse = agentService.setNewTestsIds()
+        val monoResponse = agentService.setNewTestsIds().block() as NewJobResponse
 
-        assertTrue((monoResponse.block() as NewJobResponse).ids.isNotEmpty())
+        assertTrue(monoResponse.ids.isNotEmpty() && monoResponse.ids.first().expectedFilePath == "qwe")
     }
 }
