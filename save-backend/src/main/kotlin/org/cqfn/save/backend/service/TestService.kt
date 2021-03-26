@@ -5,7 +5,6 @@ import org.cqfn.save.entities.Test
 import org.cqfn.save.test.TestDto
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
-import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
 /**
@@ -23,8 +22,10 @@ class TestService {
         testRepository.saveAll(tests)
     }
 
-    fun getTestBatches(): Mono<List<TestDto>> {
-        return Mono.just(listOf(TestDto("qwe", "www", 0, "id"),
-                TestDto("qwe", "www", 0, "qweqwe")))
-    }
+    /**
+     * @return Test batches
+     */
+    // Fixme: Stub in here
+    fun getTestBatches() = Mono.just(listOf(TestDto("qwe", "www", 0, "id"),
+        TestDto("qwe", "www", 0, "qweqwe")))
 }
