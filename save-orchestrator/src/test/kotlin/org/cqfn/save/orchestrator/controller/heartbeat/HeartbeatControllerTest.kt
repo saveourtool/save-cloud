@@ -4,6 +4,7 @@ import org.cqfn.save.agent.AgentState
 import org.cqfn.save.agent.ExecutionProgress
 import org.cqfn.save.agent.Heartbeat
 import org.cqfn.save.agent.NewJobResponse
+import org.cqfn.save.orchestrator.config.ConfigProperties
 import org.cqfn.save.orchestrator.service.AgentService
 import org.cqfn.save.test.TestDto
 
@@ -26,7 +27,6 @@ import java.time.Duration
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.cqfn.save.orchestrator.config.ConfigProperties
 
 @WebFluxTest
 @Import(AgentService::class)

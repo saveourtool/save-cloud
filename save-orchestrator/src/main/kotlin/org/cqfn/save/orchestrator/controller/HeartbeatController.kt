@@ -17,6 +17,7 @@ import reactor.core.publisher.Mono
  * Controller for heartbeat
  *
  * @param agentService
+ * @property configProperties
  */
 @RestController
 class HeartbeatController(private val agentService: AgentService, val configProperties: ConfigProperties) {

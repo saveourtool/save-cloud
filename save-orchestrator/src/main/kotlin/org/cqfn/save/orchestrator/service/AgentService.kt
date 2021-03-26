@@ -2,6 +2,7 @@ package org.cqfn.save.orchestrator.service
 
 import org.cqfn.save.agent.HeartbeatResponse
 import org.cqfn.save.agent.NewJobResponse
+import org.cqfn.save.orchestrator.config.ConfigProperties
 import org.cqfn.save.test.TestDto
 
 import org.springframework.stereotype.Service
@@ -10,7 +11,6 @@ import reactor.core.publisher.Mono
 
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
-import org.cqfn.save.orchestrator.config.ConfigProperties
 
 /**
  * Service for work with agents and backend
