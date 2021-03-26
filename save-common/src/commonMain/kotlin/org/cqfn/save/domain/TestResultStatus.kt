@@ -28,6 +28,16 @@ enum class TestResultStatus {
     PASSED,
 
     /**
+     * Ready for testing
+     */
+    READY,
+
+    /**
+     * Running state
+     */
+    RUNNING,
+
+    /**
      * CLI exit 42
      */
     TEST_ERROR,
