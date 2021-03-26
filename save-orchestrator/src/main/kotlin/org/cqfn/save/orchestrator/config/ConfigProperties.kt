@@ -6,7 +6,6 @@ import org.springframework.boot.context.properties.ConstructorBinding
 /**
  * Class for properties
  *
- * @property backend
  * @property backendUrl
  */
 @ConstructorBinding
