@@ -1,7 +1,9 @@
 package org.cqfn.save.orchestrator
 
+import org.cqfn.save.orchestrator.config.ConfigProperties
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.web.reactive.config.EnableWebFlux
 
 /**
@@ -9,6 +11,7 @@ import org.springframework.web.reactive.config.EnableWebFlux
  */
 @SpringBootApplication
 @EnableWebFlux
+@EnableConfigurationProperties(ConfigProperties::class)
 open class SaveOrchestrator
 
 fun main(args: Array<String>) {

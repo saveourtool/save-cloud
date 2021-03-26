@@ -5,6 +5,7 @@ import org.cqfn.save.agent.ContinueResponse
 import org.cqfn.save.agent.Heartbeat
 import org.cqfn.save.agent.HeartbeatResponse
 import org.cqfn.save.agent.WaitResponse
+import org.cqfn.save.orchestrator.config.ConfigProperties
 import org.cqfn.save.orchestrator.service.AgentService
 import org.slf4j.LoggerFactory
 import org.springframework.web.bind.annotation.PostMapping
@@ -18,7 +19,7 @@ import reactor.core.publisher.Mono
  * @param agentService
  */
 @RestController
-class HeartbeatController(private val agentService: AgentService) {
+class HeartbeatController(private val agentService: AgentService, val configProperties: ConfigProperties) {
     private val logger = LoggerFactory.getLogger(HeartbeatController::class.java)
 
     /**

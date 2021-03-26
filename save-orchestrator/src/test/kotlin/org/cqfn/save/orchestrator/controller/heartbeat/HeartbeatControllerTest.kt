@@ -26,6 +26,7 @@ import java.time.Duration
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.cqfn.save.orchestrator.config.ConfigProperties
 
 @WebFluxTest
 @Import(AgentService::class)
@@ -55,7 +56,7 @@ class HeartbeatControllerTest {
     @BeforeEach
     fun initialize() {
         val baseUrl = "http://localhost:${mockServer.port}"
-        agentService = AgentService(baseUrl)
+        agentService = AgentService(ConfigProperties(baseUrl))
     }
 
     @Test

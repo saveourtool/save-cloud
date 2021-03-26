@@ -10,6 +10,7 @@ import reactor.core.publisher.Mono
 
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
+import org.cqfn.save.orchestrator.config.ConfigProperties
 
 /**
  * Service for work with agents and backend
@@ -19,11 +20,11 @@ import kotlinx.serialization.json.Json
 @Service
 // Fixme: delete suppress when resendTestsOnError function has any code
 @Suppress("EmptyFunctionBlock")
-class AgentService(baseUrl: String = "http://backend:5000") {
+class AgentService(configProperties: ConfigProperties) {
     /**
      * Used to send requests to backend
      */
-    private val webClient = WebClient.create(baseUrl)
+    private val webClient = WebClient.create(configProperties.backendUrl)
 
     /**
      * Sets new tests ids
