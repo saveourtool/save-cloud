@@ -42,7 +42,7 @@ fun RBuilder.logoutModal(handler: RHandler<ModalProps>, closeCallback: () -> Uni
                     span {
                         attrs["aria-hidden"] = "true"
                         attrs.onClickFunction = { closeCallback() }
-                        +"&times;"
+                        +js("String.fromCharCode(215)").unsafeCast<String>()
                     }
                 }
             }
