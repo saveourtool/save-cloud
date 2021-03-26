@@ -7,28 +7,40 @@ import org.cqfn.save.backend.repository.TestExecutionRepository
 import org.cqfn.save.backend.repository.TestRepository
 import org.cqfn.save.backend.repository.TestSuiteRepository
 import org.cqfn.save.backend.service.ExecutionService
+import org.cqfn.save.backend.service.ProjectService
 import org.cqfn.save.backend.service.TestExecutionService
 import org.cqfn.save.backend.service.TestService
 import org.cqfn.save.backend.service.TestSuitesService
 
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.core.io.ByteArrayResource
 import org.springframework.http.client.MultipartBodyBuilder
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.web.reactive.function.BodyInserters
+import org.springframework.web.reactive.function.client.WebClient
 
 import kotlin.io.path.ExperimentalPathApi
 
 @WebFluxTest
+@AutoConfigureWebTestClient
 class DownloadFilesTest {
     @MockBean
     lateinit var repository: ProjectRepository
 
     @MockBean
     lateinit var agentStatusRepository: AgentStatusRepository
+
+    @MockBean
+    lateinit var projectService: ProjectService
+
+    @MockBean
+    @Qualifier("preprocessorWebClient")
+    lateinit var webClient: WebClient
 
     @MockBean
     lateinit var testExecutionRepository: TestExecutionRepository
@@ -55,13 +67,13 @@ class DownloadFilesTest {
     lateinit var testSuitesService: TestSuitesService
 
     @Autowired
-    lateinit var webClient: WebTestClient
+    lateinit var webTestClient: WebTestClient
 
     @Test
     fun checkDownload() {
-        webClient.get().uri("/download").exchange()
+        webTestClient.get().uri("/download").exchange()
             .expectStatus().isOk
-        webClient.get().uri("/download").exchange()
+        webTestClient.get().uri("/download").exchange()
             .expectBody(String::class.java).isEqualTo<Nothing>("qweqwe")
     }
 
@@ -76,10 +88,10 @@ class DownloadFilesTest {
             })
         }.build()
 
-        webClient.post().uri("/upload").body(BodyInserters.fromMultipartData(body))
+        webTestClient.post().uri("/upload").body(BodyInserters.fromMultipartData(body))
             .exchange().expectStatus().isOk
 
-        webClient.post().uri("/upload").body(BodyInserters.fromMultipartData(body))
+        webTestClient.post().uri("/upload").body(BodyInserters.fromMultipartData(body))
             .exchange().expectBody(String::class.java).isEqualTo<Nothing>("test")
     }
 }

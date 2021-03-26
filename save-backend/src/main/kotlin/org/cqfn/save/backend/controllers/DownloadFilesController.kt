@@ -16,7 +16,7 @@ import java.io.File
  */
 @RestController
 class DownloadFilesController {
-    private val logger = LoggerFactory.getLogger("org.cqfn.save.logback")
+    private val logger = LoggerFactory.getLogger(DownloadFilesController::class.java)
 
     /**
      * @return [Mono] with file contents
