@@ -10,7 +10,6 @@ import org.cqfn.save.backend.service.ExecutionService
 import org.cqfn.save.backend.service.TestExecutionService
 import org.cqfn.save.backend.service.TestService
 import org.cqfn.save.backend.service.TestSuitesService
-import org.cqfn.save.backend.services.ManageDatabaseService
 
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -45,9 +44,6 @@ class DownloadFilesTest {
 
     @MockBean
     lateinit var testExecutionService: TestExecutionService
-
-    @MockBean
-    lateinit var manageDatabaseService: ManageDatabaseService
 
     @MockBean
     lateinit var executionService: ExecutionService
