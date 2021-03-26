@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="event-scheduler-1" author="frolov" context="prod">
+        <sql>
+            CREATE EVENT delete_test
+            ON SCHEDULE EVERY 1 DAY
+            STARTS TIMESTAMP(CURRENT_DATE + INTERVAL 1 HOUR)
+            DO DELETE FROM TEST t
+            JOIN TEST_SUITE ts
+            ON t.test_suite_id = ts.id
+            JOIN PROJECT p
+            ON ts.project_id = p.id
+            WHERE 1 = 1
+            AND p.type = 'git'
+            AND DATEDIFF(NOW(), t.DATE_ADDED) >= 30;
+        </sql>
+    </changeSet>
+
+    <changeSet id="event-scheduler-2" author="frolov" context="prod">
+        <sql>
+            CREATE EVENT delete_test_execution
+            ON SCHEDULE EVERY 1 DAY
+            STARTS TIMESTAMP(CURRENT_DATE)
+            DO DELETE FROM TEST_EXECUTION WHERE DATEDIFF(NOW(), END_TIME) >= 30;
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

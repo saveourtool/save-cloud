@@ -49,4 +49,6 @@
 
     <include file="11-changeset-test-agent-insert-data.xml" relativeToChangelogFile="true"/>
 
+    <include file="event_scheduler.xml" relativeToChangelogFile="true"/>
+
 </databaseChangeLog>
