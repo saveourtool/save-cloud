@@ -21,4 +21,7 @@ class ProjectService(private val projectRepository: ProjectRepository) {
             projectRepository.save(project)
         })
     }
+
+    // todo: pagination
+    fun getProjects() = projectRepository.findAll()
 }

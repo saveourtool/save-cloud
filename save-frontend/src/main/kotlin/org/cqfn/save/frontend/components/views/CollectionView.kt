@@ -2,6 +2,9 @@ package org.cqfn.save.frontend.components.views
 
 import org.cqfn.save.entities.Project
 import org.cqfn.save.frontend.components.tables.tableComponent
+import org.cqfn.save.frontend.utils.get
+
+import org.w3c.fetch.Headers
 import react.RBuilder
 import react.RComponent
 import react.RProps
@@ -10,6 +13,9 @@ import react.child
 import react.dom.a
 import react.dom.td
 import react.table.columns
+
+import kotlinx.browser.window
+import kotlinx.coroutines.await
 
 /**
  * A view with collection of projects
@@ -36,15 +42,21 @@ class CollectionView : RComponent<RProps, RState>() {
                 column(id = "passed", header = "Tests passed") {
                     td {
                         a(href = "#/${it.value.type}/${it.value.owner}/${it.value.name}/history") {
-                            +"over 9000"
+                            +"TODO: retrieve from backend"
                         }
                     }
                 }
             }
         ) {
-            arrayOf(
-                Project("cqfn", "diktat", "gh", "https://github.com/cqfn/diktat", null),
+            get(
+                url = "${window.location.origin}/projects",
+                headers = Headers().also {
+                    it.set("Accept", "application/json")
+                },
             )
+                .json()
+                .await()
+                .unsafeCast<Array<Project>>()
         }) { }
     }
 }

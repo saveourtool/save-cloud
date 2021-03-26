@@ -46,7 +46,11 @@ liquibase {
                     "username" to username,
                     "password" to password,
                     "logLevel" to "info",
-                    "contexts" to "prod"
+                    "contexts" to when (profile) {
+                        "prod" -> "prod"
+                        "dev" -> "dev"
+                        else -> throw GradleException("Profile $profile not configured to map on a particular liquibase context")
+                    }
             )
         }
     }

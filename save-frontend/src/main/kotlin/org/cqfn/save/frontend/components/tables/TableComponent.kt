@@ -6,6 +6,8 @@
 
 package org.cqfn.save.frontend.components.tables
 
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import org.cqfn.save.frontend.utils.spread
 
 import react.RProps
@@ -20,6 +22,7 @@ import react.dom.tr
 import react.functionalComponent
 import react.table.Column
 import react.table.TableInstance
+import react.table.usePagination
 import react.table.useSortBy
 import react.table.useTable
 import react.useEffect
@@ -46,12 +49,16 @@ external interface TableProps : RProps {
  * @return a functional react component
  */
 @Suppress("TOO_LONG_FUNCTION", "ForbiddenComment", "LongMethod")
-fun <D : Any> tableComponent(columns: Array<out Column<D, *>>, getData: () -> Array<out D>) = functionalComponent<TableProps> { props ->
+// todo: add parameters for paging
+fun <D : Any> tableComponent(columns: Array<out Column<D, *>>,
+                             getData: suspend () -> Array<out D>) = functionalComponent<TableProps> { props ->
     val (data, setData) = useState<Array<out D>>(emptyArray())
 
-    // with `emptyList` effect will be executed only once on the initial render. TODO: how to handle dynamic data updates, e.g. when paging?
+    // with `emptyList` effect will be executed only once on the initial render.
     useEffect(emptyList()) {
-        setData(getData())
+        GlobalScope.launch {
+            setData(getData())
+        }
     }
 
     val tableInstance: TableInstance<D> = useTable(useSortBy) {
