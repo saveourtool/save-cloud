@@ -27,7 +27,7 @@
             <column name="test_suite_execution_id" type="bigint">
                 <constraints nullable="false" />
             </column>
-            <column name="status" type="varchar(50)">
+            <column name="status" type="varchar(50)" defaultValue="READY">
                 <constraints nullable="false"/>
             </column>
             <column name="start_time" type="DATETIME">
