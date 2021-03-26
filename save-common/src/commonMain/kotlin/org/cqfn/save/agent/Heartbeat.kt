@@ -4,8 +4,9 @@
 
 package org.cqfn.save.agent
 
-import kotlinx.serialization.Serializable
 import org.cqfn.save.test.TestDto
+
+import kotlinx.serialization.Serializable
 
 /**
  * Progress of tests execution

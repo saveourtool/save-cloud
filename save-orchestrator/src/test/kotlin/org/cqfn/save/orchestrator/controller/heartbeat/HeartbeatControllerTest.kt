@@ -1,15 +1,14 @@
 package org.cqfn.save.orchestrator.controller.heartbeat
 
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
-import okhttp3.mockwebserver.MockResponse
-import okhttp3.mockwebserver.MockWebServer
 import org.cqfn.save.agent.AgentState
 import org.cqfn.save.agent.ExecutionProgress
 import org.cqfn.save.agent.Heartbeat
 import org.cqfn.save.agent.NewJobResponse
 import org.cqfn.save.orchestrator.service.AgentService
 import org.cqfn.save.test.TestDto
+
+import okhttp3.mockwebserver.MockResponse
+import okhttp3.mockwebserver.MockWebServer
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeAll
@@ -22,7 +21,11 @@ import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.WebTestClient
 import reactor.core.publisher.Mono
+
 import java.time.Duration
+
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 @WebFluxTest
 @Import(AgentService::class)
@@ -60,21 +63,21 @@ class HeartbeatControllerTest {
         val heartBeatBusy = Heartbeat("test", AgentState.BUSY, ExecutionProgress(0))
 
         webClient.post()
-                .uri("/heartbeat")
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
-                .body(Mono.just(heartBeatBusy), Heartbeat::class.java)
-                .exchange()
-                .expectStatus().isOk
+            .uri("/heartbeat")
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
+            .body(Mono.just(heartBeatBusy), Heartbeat::class.java)
+            .exchange()
+            .expectStatus().isOk
     }
 
     @Test
     fun checkNewJobResponse() {
         val list = listOf(TestDto("qwe", "www", 0, "hashID"))
         mockServer.enqueue(
-                MockResponse()
-                    .setBody(Json.encodeToString(list))
-                    .addHeader("Content-Type", "application/json")
+            MockResponse()
+                .setBody(Json.encodeToString(list))
+                .addHeader("Content-Type", "application/json")
         )
 
         val monoResponse = agentService.setNewTestsIds().block() as NewJobResponse
