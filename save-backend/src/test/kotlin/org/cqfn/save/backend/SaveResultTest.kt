@@ -70,6 +70,6 @@ class SaveResultTest {
     }
 
     companion object {
-        private const val defaultDateTestExecution = 1L
+        private val defaultDateTestExecution = 1L
     }
 }
