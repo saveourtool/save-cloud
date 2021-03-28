@@ -21,5 +21,5 @@ object Versions {
     const val kotlinJsWrappersSuffix = "-pre.148-kotlin-1.4.30"
     const val kotlinReact = "$react$kotlinJsWrappersSuffix"
     const val jgit = "5.11.0.202103091610-r"
-    const val kotlinx_datetime = "0.1.1"
+    const val kotlinxDatetime = "0.1.1"
 }

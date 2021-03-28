@@ -15,12 +15,12 @@ class TestExecutionService(private val testResultRepository: TestExecutionReposi
     private val log = LoggerFactory.getLogger(TestExecutionService::class.java)
 
     /**
-     * @param testExecutionsDto
+     * @param testExecutionsDtos
      * @return list of lost tests
      */
-    fun saveTestResult(testExecutionsDto: List<TestExecutionDto>): List<TestExecutionDto> {
+    fun saveTestResult(testExecutionsDtos: List<TestExecutionDto>): List<TestExecutionDto> {
         val lostTests: MutableList<TestExecutionDto> = mutableListOf()
-        testExecutionsDto.forEach { testExecDto ->
+        testExecutionsDtos.forEach { testExecDto ->
             val foundTestExec = testResultRepository.findById(testExecDto.id)
             foundTestExec.ifPresentOrElse({
                 it.run {
@@ -32,7 +32,7 @@ class TestExecutionService(private val testResultRepository: TestExecutionReposi
             },
                 {
                     lostTests.add(testExecDto)
-                    log.error("Test execution with ${testExecDto.id} id was not found")
+                    log.error("Test execution with id=[${testExecDto.id}] was not found in the DB")
                 })
         }
         return lostTests

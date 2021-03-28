@@ -34,8 +34,8 @@ class SaveResultTest {
             1,
             1,
             TestResultStatus.FAILED,
-            date,
-            date)
+            defaultDateTestExecution,
+            defaultDateTestExecution)
         webClient.post()
             .uri("/saveTestResult")
             .contentType(MediaType.APPLICATION_JSON)
@@ -53,8 +53,8 @@ class SaveResultTest {
             2,
             1,
             TestResultStatus.FAILED,
-            date,
-            date)
+            defaultDateTestExecution,
+            defaultDateTestExecution)
         webClient.post()
             .uri("/saveTestResult")
             .contentType(MediaType.APPLICATION_JSON)
@@ -70,6 +70,6 @@ class SaveResultTest {
     }
 
     companion object {
-        private val date = 1L
+        private const val defaultDateTestExecution = 1L
     }
 }
