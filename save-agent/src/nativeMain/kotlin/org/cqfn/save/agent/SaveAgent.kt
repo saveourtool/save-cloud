@@ -2,6 +2,8 @@
 
 package org.cqfn.save.agent
 
+import org.cqfn.save.domain.TestResultStatus
+
 import com.benasher44.uuid.uuid4
 import io.ktor.client.HttpClient
 import io.ktor.client.features.HttpTimeout
@@ -26,6 +28,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.datetime.Clock
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 
@@ -112,7 +115,10 @@ class SaveAgent(private val config: AgentConfiguration,
                     state.value = AgentState.CLI_FAILED
                     return@coroutineScope
                 }
-                sendExecutionData(ExecutionData(emptyList()))
+                // todo: parse test executions from files
+                val currentTime = Clock.System.now().toEpochMilliseconds()
+                val testExecutionDtoExample = TestExecutionDto(0L, 0L, TestResultStatus.PASSED, currentTime, currentTime)
+                sendExecutionData(testExecutionDtoExample)
                 sendLogs(executionLogs)
                 state.value = AgentState.FINISHED
             }
@@ -160,11 +166,11 @@ class SaveAgent(private val config: AgentConfiguration,
     /**
      * Attempt to send execution data to backend, will retry several times, while increasing delay 2 times on each iteration.
      */
-    private suspend fun sendExecutionData(executionData: ExecutionData): Unit = coroutineScope {
+    private suspend fun sendExecutionData(testExecutionDto: TestExecutionDto): Unit = coroutineScope {
         var retryInterval = config.executionDataInitialRetryMillis
         repeat(config.executionDataRetryAttempts) { attempt ->
             val result = runCatching {
-                postExecutionData(executionData)
+                postExecutionData(testExecutionDto)
             }
             if (result.isSuccess && result.getOrNull()?.status == HttpStatusCode.OK) {
                 return@repeat
@@ -183,9 +189,9 @@ class SaveAgent(private val config: AgentConfiguration,
         }
     }
 
-    private suspend fun postExecutionData(executionData: ExecutionData) = httpClient.post<HttpResponse> {
+    private suspend fun postExecutionData(testExecutionDto: TestExecutionDto) = httpClient.post<HttpResponse> {
         url("${config.backendUrl}/executionData")
         contentType(ContentType.Application.Json)
-        body = executionData
+        body = testExecutionDto
     }
 }
