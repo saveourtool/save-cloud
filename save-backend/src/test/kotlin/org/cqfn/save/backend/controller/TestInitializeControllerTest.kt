@@ -1,11 +1,9 @@
 package org.cqfn.save.backend.controller
 
-import liquibase.hub.model.Project
 import org.cqfn.save.backend.SaveApplication
 import org.cqfn.save.backend.repository.TestRepository
 import org.cqfn.save.backend.utils.MySqlExtension
 import org.cqfn.save.test.TestDto
-import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
