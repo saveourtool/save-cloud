@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.reactive.function.client.WebClient
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.toMono
 
 /**
  * Controller to save project
@@ -35,21 +36,23 @@ class CloneRepositoryController(
      * @return mono string
      */
     @PostMapping(value = ["/submitExecutionRequest"])
-    fun submitExecutionRequest(@RequestBody executionRequest: ExecutionRequest): Mono<ResponseEntity<*>>? {
+    fun submitExecutionRequest(@RequestBody executionRequest: ExecutionRequest): Mono<ResponseEntity<String>> {
         val project = executionRequest.project
+        var projectId: String? = null
         try {
-            projectService.saveProject(project)
-            log.info("Project ${project.id} saved")
+            projectId = projectService.saveProject(project)?.toString() ?: "With non Id"
+            log.info("Project $projectId saved")
         } catch (exception: DataAccessException) {
-            log.error("Save error with ${project.id} project", exception)
+            log.error("Save error with $projectId project", exception)
             return Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error to clone repo"))
         }
-        log.info("Sending request to preprocessor to start cloning ${project.id} project")
+        log.info("Sending request to preprocessor to start cloning $projectId project")
         return preprocessorWebClient
             .post()
             .uri("/upload")
             .body(Mono.just(executionRequest.gitRepository), GitRepository::class.java)
             .retrieve()
-            .bodyToMono(ResponseEntity::class.java)
+            .toEntity(String::class.java)
+            .toMono()
     }
 }
