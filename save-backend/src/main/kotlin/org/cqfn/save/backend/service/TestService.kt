@@ -14,10 +14,10 @@ import java.util.concurrent.atomic.AtomicInteger
  */
 @Service
 class TestService(private val configProperties: ConfigProperties) {
+    private var offset = AtomicInteger(0)
+
     @Autowired
     private lateinit var testRepository: TestRepository
-
-    private var offset = AtomicInteger(0)
 
     /**
      * @param tests

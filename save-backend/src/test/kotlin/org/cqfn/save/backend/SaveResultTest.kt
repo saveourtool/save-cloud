@@ -1,10 +1,10 @@
 package org.cqfn.save.backend
 
+import org.cqfn.save.agent.TestExecutionDto
 import org.cqfn.save.backend.repository.TestExecutionRepository
 import org.cqfn.save.backend.utils.MySqlExtension
-import org.cqfn.save.domain.TestResultStatus
-import org.cqfn.save.agent.TestExecutionDto
 import org.cqfn.save.backend.utils.toLocalDateTime
+import org.cqfn.save.domain.TestResultStatus
 
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -17,6 +17,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.web.reactive.function.BodyInserters
+
 import java.time.LocalDateTime
 
 @SpringBootTest(classes = [SaveApplication::class])

@@ -83,13 +83,13 @@ class TestInitializeControllerTest {
             }
 
         webClient.get()
-                .uri("/getTestBatches")
-                .exchange()
-                .expectStatus()
-                .isOk
-                .expectBody(ParameterizedTypeReference.forType<List<TestDto>>(List::class.java))
-                .value<Nothing> {
-                    assertTrue(it.isNotEmpty() && it.size == 1)
-                }
+            .uri("/getTestBatches")
+            .exchange()
+            .expectStatus()
+            .isOk
+            .expectBody(ParameterizedTypeReference.forType<List<TestDto>>(List::class.java))
+            .value<Nothing> {
+                assertTrue(it.isNotEmpty() && it.size == 1)
+            }
     }
 }
