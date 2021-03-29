@@ -14,8 +14,8 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class TestExecutionDto(
     val id: Long,
-    var agentId: Long,
-    var status: TestResultStatus,
-    var startTime: Long,
-    var endTime: Long,
+    val agentId: Long,
+    val status: TestResultStatus,
+    val startTime: Long,
+    val endTime: Long,
 )
