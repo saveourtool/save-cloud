@@ -23,7 +23,7 @@ import kotlinx.coroutines.await
 @OptIn(ExperimentalJsExport::class)
 @JsExport
 class CollectionView : RComponent<RProps, RState>() {
-    @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
+    @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR", "TOO_LONG_FUNCTION")
     override fun RBuilder.render() {
         child(tableComponent(
             columns = columns {
@@ -42,11 +42,13 @@ class CollectionView : RComponent<RProps, RState>() {
                 column(id = "passed", header = "Tests passed") {
                     td {
                         a(href = "#/${it.value.type}/${it.value.owner}/${it.value.name}/history") {
-                            +"TODO: retrieve from backend"
+                            +(it.value.description ?: "Description N/A")
                         }
                     }
                 }
-            }
+            },
+            initialPageSize = 10,
+            useServerPaging = false,
         ) {
             get(
                 url = "${window.location.origin}/projects",

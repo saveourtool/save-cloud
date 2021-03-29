@@ -22,6 +22,8 @@ class ProjectService(private val projectRepository: ProjectRepository) {
         })
     }
 
-    // todo: pagination
-    fun getProjects() = projectRepository.findAll()
+    /**
+     * @return list of all projects
+     */
+    fun getProjects(): List<Project> = projectRepository.findAll()
 }
