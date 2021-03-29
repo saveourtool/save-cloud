@@ -13,6 +13,6 @@ interface TestRepository : JpaRepository<Test, String> {
      *
      * @return List of Tests
      */
-    @Query(value = "select * from test inner join test_execution on test.id = test_execution.test_id and test_execution.status = 'READY'", nativeQuery = true)
-    fun retrieveBatches(): List<Test>
+    @Query(value = "select * from test inner join test_execution on test.id = test_execution.test_id and test_execution.status = 'READY' limit 20 offset ?1", nativeQuery = true)
+    fun retrieveBatches(offset: Int): List<Test>
 }

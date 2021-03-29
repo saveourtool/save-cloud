@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+    <changeSet id="test-insert" author="aktsay" context="dev">
+        <insert dbms="mysql" tableName="test">
+            <column name="id" value="1" />
+            <column name="expected_file_path" value="expectedPath"/>
+            <column name="test_file_path" value="testPath" />
+            <column name="date_added" value="2021-01-01 00:00:00"/>
+            <column name="test_suite_id" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="test-insert-2" author="aktsay" context="dev">
+        <insert dbms="mysql" tableName="test">
+            <column name="id" value="2" />
+            <column name="expected_file_path" value="expectedPath2"/>
+            <column name="test_file_path" value="testPath2" />
+            <column name="date_added" value="2021-01-01 00:00:00"/>
+            <column name="test_suite_id" value="3" />
+        </insert>
+    </changeSet>
+</databaseChangeLog>

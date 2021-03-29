@@ -15,6 +15,8 @@ class TestService {
     @Autowired
     private lateinit var testRepository: TestRepository
 
+    private var offset = 0
+
     /**
      * @param tests
      */
@@ -26,9 +28,10 @@ class TestService {
      * @return Test batches
      */
     fun getTestBatches(): Mono<List<TestDto>> {
-        val tests = testRepository.retrieveBatches().map {
+        val tests = testRepository.retrieveBatches(offset).map {
             TestDto(it.expectedFilePath, it.testFilePath, it.testSuiteId, it.id)
         }
+        offset += 20
         return Mono.just(tests)
     }
 }
