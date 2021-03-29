@@ -3,6 +3,7 @@ package org.cqfn.save.frontend.components.views
 import org.cqfn.save.entities.Project
 import org.cqfn.save.frontend.components.tables.tableComponent
 import org.cqfn.save.frontend.utils.get
+import org.cqfn.save.frontend.utils.unsafeMap
 
 import org.w3c.fetch.Headers
 import react.RBuilder
@@ -56,9 +57,11 @@ class CollectionView : RComponent<RProps, RState>() {
                     it.set("Accept", "application/json")
                 },
             )
-                .json()
-                .await()
-                .unsafeCast<Array<Project>>()
+                .unsafeMap {
+                    it.json()
+                        .await()
+                        .unsafeCast<Array<Project>>()
+                }
         }) { }
     }
 }

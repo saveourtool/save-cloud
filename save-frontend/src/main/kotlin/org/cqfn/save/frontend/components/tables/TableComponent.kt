@@ -6,6 +6,7 @@
 
 package org.cqfn.save.frontend.components.tables
 
+import org.cqfn.save.frontend.components.modal.errorModal
 import org.cqfn.save.frontend.utils.spread
 
 import react.RProps
@@ -62,6 +63,8 @@ fun <D : Any> tableComponent(columns: Array<out Column<D, *>>,
                              getData: suspend () -> Array<out D>,
 ) = functionalComponent<TableProps> { props ->
     val (data, setData) = useState<Array<out D>>(emptyArray())
+    val (isModalOpen, setIsModalOpen) = useState(false)
+    val (dataAccessException, setDataAccessException) = useState<Throwable?>(null)
 
     val tableInstance: TableInstance<D> = useTable(useSortBy, usePagination) {
         this.columns = useMemo { columns }
@@ -82,7 +85,12 @@ fun <D : Any> tableComponent(columns: Array<out Column<D, *>>,
     }
     useEffect(dependencies) {
         GlobalScope.launch {
-            setData(getData())
+            try {
+                setData(getData())
+            } catch (e: Exception) {
+                setIsModalOpen(true)
+                setDataAccessException(e)
+            }
         }
     }
 
@@ -164,5 +172,13 @@ fun <D : Any> tableComponent(columns: Array<out Column<D, *>>,
                 }
             }
         }
+    }
+    errorModal(
+        "Error",
+        "Error when fetching data: ${dataAccessException?.message}",
+        {
+            attrs.isOpen = isModalOpen
+        }) {
+        setIsModalOpen(false)
     }
 }
