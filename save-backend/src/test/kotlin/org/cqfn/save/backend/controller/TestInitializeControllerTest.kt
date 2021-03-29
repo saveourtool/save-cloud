@@ -1,14 +1,18 @@
 package org.cqfn.save.backend.controller
 
+import liquibase.hub.model.Project
 import org.cqfn.save.backend.SaveApplication
 import org.cqfn.save.backend.repository.TestRepository
 import org.cqfn.save.backend.utils.MySqlExtension
+import org.cqfn.save.test.TestDto
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.web.reactive.function.BodyInserters
@@ -75,6 +79,9 @@ class TestInitializeControllerTest {
             .exchange()
             .expectStatus()
             .isOk
-            .expectBody(List::class.java)
+            .expectBody(ParameterizedTypeReference.forType<List<TestDto>>(List::class.java))
+            .value<Nothing> {
+                assertTrue(it.isNotEmpty())
+            }
     }
 }
