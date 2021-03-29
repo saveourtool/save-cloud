@@ -21,4 +21,9 @@ class ProjectService(private val projectRepository: ProjectRepository) {
             projectRepository.save(project)
         })
     }
+
+    /**
+     * @return list of all projects
+     */
+    fun getProjects(): List<Project> = projectRepository.findAll()
 }

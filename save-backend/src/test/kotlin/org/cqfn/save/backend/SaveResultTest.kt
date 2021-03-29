@@ -32,48 +32,46 @@ class SaveResultTest {
 
     @Test
     fun checkSave() {
-        val testExecution = TestExecution(
-            1,
-            1,
-            1,
+        val testExecutionDto = TestExecutionDto(
             1,
             1,
             TestResultStatus.FAILED,
-            date,
-            date)
+            defaultDateTestExecution,
+            defaultDateTestExecution)
         webClient.post()
             .uri("/saveTestResult")
             .contentType(MediaType.APPLICATION_JSON)
-            .body(BodyInserters.fromValue(listOf(testExecution)))
+            .body(BodyInserters.fromValue(listOf(testExecutionDto)))
             .exchange().expectBody(String::class.java)
             .isEqualTo<Nothing>("Saved")
         val tests = testExecutionRepository.findAll()
-        assertTrue(tests.any { it.startTime == testExecution.startTime.withNano(0) })
-        assertTrue(tests.any { it.endTime == testExecution.endTime.withNano(0) })
+        assertTrue(tests.any { it.startTime == testExecutionDto.startTime.toLocalDateTime().withNano(0) })
+        assertTrue(tests.any { it.endTime == testExecutionDto.endTime.toLocalDateTime().withNano(0) })
     }
 
     @Test
     fun checkErrorRequest() {
-        val testExecution = TestExecution(
+        val testExecutionDto = TestExecutionDto(
             999,
             1,
-            1,
-            1,
-            1,
             TestResultStatus.FAILED,
-            date,
-            date)
+            defaultDateTestExecution,
+            defaultDateTestExecution)
         webClient.post()
             .uri("/saveTestResult")
             .contentType(MediaType.APPLICATION_JSON)
-            .body(BodyInserters.fromValue(listOf(testExecution)))
+            .body(BodyInserters.fromValue(listOf(testExecutionDto)))
             .exchange()
             .expectStatus()
             .isEqualTo(HttpStatus.BAD_REQUEST)
             .expectBody(String::class.java)
             .isEqualTo<Nothing>("Some ids don't exist")
         val tests = testExecutionRepository.findAll()
-        assertFalse(tests.any { it.startTime == testExecution.startTime.withNano(0) })
-        assertFalse(tests.any { it.endTime == testExecution.endTime.withNano(0) })
+        assertFalse(tests.any { it.startTime == testExecutionDto.startTime.toLocalDateTime().withNano(0) })
+        assertFalse(tests.any { it.endTime == testExecutionDto.endTime.toLocalDateTime().withNano(0) })
+    }
+
+    companion object {
+        private val defaultDateTestExecution = 1L
     }
 }

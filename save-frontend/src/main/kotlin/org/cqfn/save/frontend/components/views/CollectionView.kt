@@ -2,6 +2,9 @@ package org.cqfn.save.frontend.components.views
 
 import org.cqfn.save.entities.Project
 import org.cqfn.save.frontend.components.tables.tableComponent
+import org.cqfn.save.frontend.utils.get
+
+import org.w3c.fetch.Headers
 import react.RBuilder
 import react.RComponent
 import react.RProps
@@ -11,13 +14,16 @@ import react.dom.a
 import react.dom.td
 import react.table.columns
 
+import kotlinx.browser.window
+import kotlinx.coroutines.await
+
 /**
  * A view with collection of projects
  */
 @OptIn(ExperimentalJsExport::class)
 @JsExport
 class CollectionView : RComponent<RProps, RState>() {
-    @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
+    @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR", "TOO_LONG_FUNCTION")
     override fun RBuilder.render() {
         child(tableComponent(
             columns = columns {
@@ -36,15 +42,23 @@ class CollectionView : RComponent<RProps, RState>() {
                 column(id = "passed", header = "Tests passed") {
                     td {
                         a(href = "#/${it.value.type}/${it.value.owner}/${it.value.name}/history") {
-                            +"over 9000"
+                            +(it.value.description ?: "Description N/A")
                         }
                     }
                 }
-            }
+            },
+            initialPageSize = 10,
+            useServerPaging = false,
         ) {
-            arrayOf(
-                Project("cqfn", "diktat", "gh", "https://github.com/cqfn/diktat", null),
+            get(
+                url = "${window.location.origin}/projects",
+                headers = Headers().also {
+                    it.set("Accept", "application/json")
+                },
             )
+                .json()
+                .await()
+                .unsafeCast<Array<Project>>()
         }) { }
     }
 }

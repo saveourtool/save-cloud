@@ -66,6 +66,11 @@ fun Project.createStackDeployTask(profile: String) {
 //        }
     }
 
+    tasks.register<Exec>("stopDockerStack") {
+        description = "Completely stop all services in docker swarm. NOT NEEDED FOR REDEPLOYING! Use only to explicitly stop everything."
+        commandLine("docker", "stack", "rm", "--compose-file", "$buildDir/docker-compose.yaml", "save")
+    }
+
     tasks.register<Exec>("startMysqlDb") {
         dependsOn("generateComposeFile")
         commandLine("docker-compose", "--file", "$buildDir/docker-compose.yaml", "up", "-d", "mysql")
@@ -77,6 +82,12 @@ fun Project.createStackDeployTask(profile: String) {
             }
         }
         finalizedBy("liquibaseUpdate")
+    }
+
+    tasks.register<Exec>("restartMysqlDb") {
+        dependsOn("generateComposeFile")
+        commandLine("docker-compose", "--file", "$buildDir/docker-compose.yaml", "rm", "--force", "mysql")
+        finalizedBy("startMysqlDb")
     }
 
     tasks.register<Exec>("deployLocal") {

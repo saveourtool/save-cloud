@@ -28,6 +28,7 @@ kotlin {
                 implementation("io.ktor:ktor-client-serialization:${Versions.ktor}")
                 implementation("com.benasher44:uuid:0.2.3")
                 implementation("com.squareup.okio:okio-multiplatform:3.0.0-alpha.1")
+                implementation("org.jetbrains.kotlinx:kotlinx-datetime:${Versions.kotlinxDatetime}")
                 // as for 2.0.4, kotlin-logging doesn't have mingw version and it'll be PITA to use it
 //                implementation("io.github.microutils:kotlin-logging:2.0.4")
             }
