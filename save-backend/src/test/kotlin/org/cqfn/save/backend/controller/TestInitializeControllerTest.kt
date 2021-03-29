@@ -67,4 +67,14 @@ class TestInitializeControllerTest {
 
         assertTrue(databaseData.any { it.id == test.id && it.expectedFilePath == test.expectedFilePath })
     }
+
+    @Test
+    fun checkServiceData() {
+        webClient.get()
+            .uri("/getTestBatches")
+            .exchange()
+            .expectStatus()
+            .isOk
+            .expectBody(List::class.java)
+    }
 }

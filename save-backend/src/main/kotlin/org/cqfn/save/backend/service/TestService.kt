@@ -25,7 +25,10 @@ class TestService {
     /**
      * @return Test batches
      */
-    // Fixme: Stub in here
-    fun getTestBatches() = Mono.just(listOf(TestDto("qwe", "www", 0, "id"),
-        TestDto("qwe", "www", 0, "qweqwe")))
+    fun getTestBatches(): Mono<List<TestDto>> {
+        val tests = testRepository.retrieveBatches().map {
+            TestDto(it.expectedFilePath, it.testFilePath, it.testSuiteId, it.id)
+        }
+        return Mono.just(tests)
+    }
 }

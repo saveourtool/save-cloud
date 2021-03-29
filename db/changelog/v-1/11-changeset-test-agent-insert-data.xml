@@ -5,12 +5,24 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
 
-    <changeSet id="11" author="aktsay" context="dev">
+    <changeSet id="test_execution-insert-1" author="aktsay" context="dev">
         <insert dbms="mysql" tableName="test_execution">
-            <column name="status" value="FAILED" />
+            <column name="status" value="READY" />
             <column name="start_time" value="2021-01-01 00:00:00" />
             <column name="end_time" value="2021-01-01 00:00:01" />
             <column name="test_id" value="1" />
+            <column name="agent_id" value="1" />
+            <column name="project_id" value="1"/>
+            <column name="test_suite_execution_id" value="1"/>
+        </insert>
+    </changeSet>
+
+    <changeSet id="test_execution-insert-2" author="aktsay" context="dev">
+        <insert dbms="mysql" tableName="test_execution">
+            <column name="status" value="READY" />
+            <column name="start_time" value="2021-01-01 00:00:00" />
+            <column name="end_time" value="2021-01-01 00:00:01" />
+            <column name="test_id" value="2" />
             <column name="agent_id" value="1" />
             <column name="project_id" value="1"/>
             <column name="test_suite_execution_id" value="1"/>
@@ -22,6 +34,26 @@
             <column name="state" value="BUSY" />
             <column name="time" value="2021-01-01 00:00:00" />
             <column name="agent_id" value="cool_agent_id" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="test-insert" author="aktsay" context="dev">
+        <insert dbms="mysql" tableName="test">
+            <column name="id" value="1" />
+            <column name="expected_file_path" value="expectedPath"/>
+            <column name="test_file_path" value="testPath" />
+            <column name="date_added" value="2021-01-01 00:00:00"/>
+            <column name="test_suite_id" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="test-insert-2" author="aktsay" context="dev">
+        <insert dbms="mysql" tableName="test">
+            <column name="id" value="2" />
+            <column name="expected_file_path" value="expectedPath2"/>
+            <column name="test_file_path" value="testPath2" />
+            <column name="date_added" value="2021-01-01 00:00:00"/>
+            <column name="test_suite_id" value="3" />
         </insert>
     </changeSet>
 
