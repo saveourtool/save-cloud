@@ -8,7 +8,6 @@ import org.springframework.boot.context.properties.ConstructorBinding
  *
  * @property preprocessorUrl url of preprocessor
  * @property limit
- * @property offset
  */
 @ConstructorBinding
 @ConfigurationProperties(prefix = "backend")
