@@ -20,7 +20,8 @@ import reactor.kotlin.core.publisher.toMono
 /**
  * Controller to save project
  *
- * @property projectService service of project
+ * @property projectService service of project\
+ *
  * @param configProperties
  */
 @RestController
@@ -38,6 +39,7 @@ class CloneRepositoryController(
      * @return mono string
      */
     @PostMapping(value = ["/submitExecutionRequest"])
+    @Suppress("SAY_NO_TO_VAR")
     fun submitExecutionRequest(@RequestBody executionRequest: ExecutionRequest): Response {
         val project = executionRequest.project
         var projectId: String? = null
