@@ -15,9 +15,7 @@ import org.springframework.web.reactive.function.server.router
  * @property configProperties properties in application.properties
  */
 @Configuration
-class WebConfiguration(
-    val configProperties: ConfigProperties,
-) {
+class WebConfiguration {
     /**
      * @return a rotuer bean
      */
@@ -36,14 +34,4 @@ class WebConfiguration(
             ok().contentType(TEXT_HTML).bodyValue(html)
         }
     }
-
-    /**
-     * @param builder
-     * @return web client
-     */
-    @Bean(name = ["preprocessorWebClient"])
-    fun preprocessorWebClient(builder: WebClient.Builder): WebClient =
-            builder
-                .baseUrl(configProperties.preprocessorUrl)
-                .build()
 }

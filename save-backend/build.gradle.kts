@@ -29,7 +29,8 @@ dependencies {
     implementation(project(":save-common"))
     implementation(project(":save-frontend", "distribution"))  // static resources packed as a jar, will be accessed from classpath
     implementation("io.projectreactor.kotlin:reactor-kotlin-extensions:1.1.3")
-
+    testImplementation("com.squareup.okhttp3:okhttp:${Versions.okhttp3}")
+    testImplementation("com.squareup.okhttp3:mockwebserver:${Versions.okhttp3}")
 }
 
 configureJacoco()

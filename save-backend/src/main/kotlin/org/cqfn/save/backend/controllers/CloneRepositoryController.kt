@@ -1,11 +1,11 @@
 package org.cqfn.save.backend.controllers
 
+import org.cqfn.save.backend.configs.ConfigProperties
 import org.cqfn.save.backend.service.ProjectService
 import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.repository.GitRepository
 
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.dao.DataAccessException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -25,9 +25,10 @@ import reactor.kotlin.core.publisher.toMono
 @RestController
 class CloneRepositoryController(
     private val projectService: ProjectService,
-    @Qualifier("preprocessorWebClient") private val preprocessorWebClient: WebClient,
+    configProperties: ConfigProperties,
 ) {
     private val log = LoggerFactory.getLogger(CloneRepositoryController::class.java)
+    private val preprocessorWebClient = WebClient.create(configProperties.preprocessorUrl)
 
     /**
      * Endpoint to save project
