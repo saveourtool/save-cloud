@@ -18,10 +18,14 @@ import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.web.reactive.function.BodyInserters
 
+import java.time.LocalDateTime
+
 @SpringBootTest(classes = [SaveApplication::class])
 @AutoConfigureWebTestClient
 @ExtendWith(MySqlExtension::class)
 class SaveResultTest {
+    private val date = LocalDateTime.now().withNano(0)
+
     @Autowired
     private lateinit var webClient: WebTestClient
 
@@ -50,7 +54,7 @@ class SaveResultTest {
     @Test
     fun checkErrorRequest() {
         val testExecutionDto = TestExecutionDto(
-            2,
+            999,
             1,
             TestResultStatus.FAILED,
             defaultDateTestExecution,

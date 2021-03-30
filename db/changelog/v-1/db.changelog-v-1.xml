@@ -49,6 +49,16 @@
 
     <include file="11-changeset-test-agent-insert-data.xml" relativeToChangelogFile="true"/>
 
+    <changeSet id="adding-event" author="aktsay">
+        <tagDatabase tag="v1.0 adding event on deleting test_executions"/>
+    </changeSet>
+
     <include file="event_scheduler.xml" relativeToChangelogFile="true"/>
+
+    <changeSet id="insert-test" author="aktsay">
+        <tagDatabase tag="v1.0 inserting into test"/>
+    </changeSet>
+
+    <include file="12-changeset-test-insert-data.xml" relativeToChangelogFile="true"/>
 
 </databaseChangeLog>
