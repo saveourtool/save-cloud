@@ -16,7 +16,7 @@
                 <constraints primaryKey="true" nullable="false"/>
             </column>
             <column name="project_id" type="bigint">
-                <constraints nullable="false"/>
+                <constraints foreignKeyName="fk_execution_project" references="project(id)" nullable="false"/>
             </column>
             <column name="start_time" type="timestamp">
                 <constraints nullable="false"/>

@@ -23,7 +23,7 @@
                 <constraints nullable="false"/>
             </column>
             <column name="test_suite_id" type="bigint">
-                <constraints nullable="false" />
+                <constraints foreignKeyName="fk_test_test_suite" references="test_suite(id)" nullable="false"/>
             </column>
         </createTable>
 
