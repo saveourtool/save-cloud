@@ -15,14 +15,14 @@
             <column name="id" type="bigint" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="test_id" type="bigint">
-                <constraints nullable="false" />
+            <column name="test_id" type="varchar(255)">
+                <constraints foreignKeyName="fk_test_execution_test" references="test(id)" nullable="false"/>
             </column>
             <column name="agent_id" type="bigint">
                 <constraints nullable="false" />
             </column>
             <column name="project_id" type="bigint">
-                <constraints nullable="false"/>
+                <constraints foreignKeyName="fk_test_execution_project" references="project(id)" nullable="false"/>
             </column>
             <column name="test_suite_execution_id" type="bigint">
                 <constraints nullable="false" />
