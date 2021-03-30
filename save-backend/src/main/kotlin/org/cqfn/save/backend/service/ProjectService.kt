@@ -26,4 +26,9 @@ class ProjectService(private val projectRepository: ProjectRepository) {
         })
         return projectId
     }
+
+    /**
+     * @return list of all projects
+     */
+    fun getProjects(): List<Project> = projectRepository.findAll()
 }

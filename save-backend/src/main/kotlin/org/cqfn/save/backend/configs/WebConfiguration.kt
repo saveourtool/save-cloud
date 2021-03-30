@@ -5,7 +5,6 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.io.ClassPathResource
 import org.springframework.core.io.Resource
-import org.springframework.http.MediaType.TEXT_HTML
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.server.router
 
@@ -31,7 +30,7 @@ class WebConfiguration {
     @Bean
     fun indexRouter(@Value("classpath:/static/index.html") html: Resource) = router {
         GET("/") {
-            ok().contentType(TEXT_HTML).bodyValue(html)
+            ok().header("Content-Type", "text/html; charset=utf8").bodyValue(html)
         }
     }
 }
