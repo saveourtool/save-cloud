@@ -4,6 +4,8 @@
 
 package org.cqfn.save.frontend.components
 
+import org.cqfn.save.frontend.components.modal.logoutModal
+
 import react.RBuilder
 import react.RComponent
 import react.RProps

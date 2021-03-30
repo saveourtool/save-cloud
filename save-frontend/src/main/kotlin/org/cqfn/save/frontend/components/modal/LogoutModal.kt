@@ -2,7 +2,7 @@
  * A component for logout modal window
  */
 
-package org.cqfn.save.frontend.components
+package org.cqfn.save.frontend.components.modal
 
 import org.cqfn.save.frontend.externals.modal.ModalProps
 import org.cqfn.save.frontend.externals.modal.modal
