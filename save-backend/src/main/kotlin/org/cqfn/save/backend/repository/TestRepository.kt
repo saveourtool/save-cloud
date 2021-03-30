@@ -12,8 +12,9 @@ interface TestRepository : JpaRepository<Test, String> {
      * Method to retrieve ready batches
      *
      * @param limit
+     * @param offset
      * @return List of Tests
      */
-    @Query(value = "select * from test inner join test_execution on test.id = test_execution.test_id and test_execution.status = 'READY' limit ?1 offset ?1", nativeQuery = true)
-    fun retrieveBatches(limit: Int): List<Test>
+    @Query(value = "select * from test inner join test_execution on test.id = test_execution.test_id and test_execution.status = 'READY' limit ?1 offset ?2", nativeQuery = true)
+    fun retrieveBatches(limit: Int, offset: Int): List<Test>
 }
