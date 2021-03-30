@@ -56,7 +56,10 @@ external interface TableProps : RProps {
  * @param useServerPaging whether data is split into pages server-side or in browser
  * @return a functional react component
  */
-@Suppress("TOO_LONG_FUNCTION", "ForbiddenComment", "LongMethod", "TooGenericExceptionCaught")
+@Suppress("TOO_LONG_FUNCTION",
+    "ForbiddenComment",
+    "LongMethod",
+    "TooGenericExceptionCaught")
 fun <D : Any> tableComponent(columns: Array<out Column<D, *>>,
                              initialPageSize: Int = 10,
                              useServerPaging: Boolean = false,
