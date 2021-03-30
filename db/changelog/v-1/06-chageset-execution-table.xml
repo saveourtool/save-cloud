@@ -30,6 +30,9 @@
             <column name="test_suite_ids" type="varchar(255)">
                 <constraints nullable="false"/>
             </column>
+            <column name="path" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
         </createTable>
 
         <rollback>

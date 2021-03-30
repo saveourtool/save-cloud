@@ -11,6 +11,7 @@ import javax.persistence.Enumerated
  * @property endTime
  * @property status
  * @property testSuiteIds
+ * @property path
  */
 @Suppress("USE_DATA_CLASS")
 @Entity
@@ -21,6 +22,7 @@ class Execution(
     @Enumerated(EnumType.STRING)
     var status: ExecutionStatus,
     var testSuiteIds: String,
+    var path: String,
 ) {
     /**
      * id

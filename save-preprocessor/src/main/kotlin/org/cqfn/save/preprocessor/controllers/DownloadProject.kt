@@ -1,8 +1,10 @@
 package org.cqfn.save.preprocessor.controllers
 
+import org.cqfn.save.entities.Execution
+import org.cqfn.save.entities.ExecutionRequest
+import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.preprocessor.Response
 import org.cqfn.save.preprocessor.config.ConfigProperties
-import org.cqfn.save.repository.GitRepository
 
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.api.errors.GitAPIException
@@ -16,9 +18,12 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.reactive.function.BodyInserters
+import org.springframework.web.reactive.function.client.WebClient
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
 import java.io.File
+import java.time.LocalDateTime
 
 /**
  * A Spring controller for git project downloading
@@ -28,23 +33,27 @@ import java.io.File
 @RestController
 class DownloadProject(val configProperties: ConfigProperties) {
     private val log = LoggerFactory.getLogger(DownloadProject::class.java)
+    private val webClientBackend = WebClient.create(configProperties.backend)
+    private val webClientOrchestrator = WebClient.create(configProperties.orchestrator)
 
     /**
-     * @param gitRepository - Dto of repo information to clone
+     * @param executionRequest - Dto of repo information to clone and project info
      * @return response entity with text
      */
     @Suppress("TooGenericExceptionCaught")
     @PostMapping(value = ["/upload"])
-    fun upload(@RequestBody gitRepository: GitRepository): Response = Mono.just(ResponseEntity("Clone pending", HttpStatus.ACCEPTED))
+    fun upload(@RequestBody executionRequest: ExecutionRequest): Response = Mono.just(ResponseEntity("Clone pending", HttpStatus.ACCEPTED))
         .subscribeOn(Schedulers.boundedElastic())
         .also {
             it.subscribe {
-                downLoadRepository(gitRepository)
+                downLoadRepository(executionRequest)
             }
         }
 
     @Suppress("TooGenericExceptionCaught")
-    private fun downLoadRepository(gitRepository: GitRepository) {
+    private fun downLoadRepository(executionRequest: ExecutionRequest) {
+        val gitRepository = executionRequest.gitRepository
+        val project = executionRequest.project
         val urlHash = gitRepository.url.hashCode()
         val tmpDir = File("${configProperties.repository}/$urlHash")
         if (tmpDir.exists()) {
@@ -65,7 +74,9 @@ class DownloadProject(val configProperties: ConfigProperties) {
                 .setDirectory(tmpDir)
                 .call().use {
                     log.info("Repository cloned: ${gitRepository.url}")
-                    // TODO post request to orchestrator
+                    // Post request to backend to create PENDING executions
+                    // Fixme: need to initialize test suite ids
+                    sendToBackendAndOrchestrator(project.id!!, tmpDir.absolutePath)
                 }
         } catch (exception: Exception) {
             tmpDir.deleteRecursively()
@@ -76,5 +87,26 @@ class DownloadProject(val configProperties: ConfigProperties) {
                 else -> log.warn("Cloning ${gitRepository.url} repository failed", exception)
             }
         }
+    }
+
+    private fun sendToBackendAndOrchestrator(id: Long, path: String) {
+        val execution = Execution(id, LocalDateTime.now(), LocalDateTime.now(), ExecutionStatus.PENDING, "1", path)
+        log.debug("Knock-Knock Backend")
+        webClientBackend
+            .post()
+            .uri("/createExecution")
+            .body(BodyInserters.fromValue(execution))
+            .retrieve()
+            .toEntity(HttpStatus::class.java)
+            .subscribe()
+        // Post request to orchestrator to initiate its work
+        log.debug("Knock-Knock Orchestrator")
+        webClientOrchestrator
+            .post()
+            .uri("/initializeAgents")
+            .body(BodyInserters.fromValue(execution))
+            .retrieve()
+            .toEntity(HttpStatus::class.java)
+            .subscribe()
     }
 }

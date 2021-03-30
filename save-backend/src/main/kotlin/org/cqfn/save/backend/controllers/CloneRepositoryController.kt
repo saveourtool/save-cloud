@@ -2,7 +2,6 @@ package org.cqfn.save.backend.controllers
 
 import org.cqfn.save.backend.service.ProjectService
 import org.cqfn.save.entities.ExecutionRequest
-import org.cqfn.save.repository.GitRepository
 
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
@@ -48,7 +47,7 @@ class CloneRepositoryController(
         return preprocessorWebClient
             .post()
             .uri("/upload")
-            .body(Mono.just(executionRequest.gitRepository), GitRepository::class.java)
+            .body(Mono.just(executionRequest), ExecutionRequest::class.java)
             .retrieve()
             .bodyToMono(ResponseEntity::class.java)
     }
