@@ -64,7 +64,7 @@ fun <D : Any> tableComponent(columns: Array<out Column<D, *>>,
 ) = functionalComponent<TableProps> { props ->
     val (data, setData) = useState<Array<out D>>(emptyArray())
     val (isModalOpen, setIsModalOpen) = useState(false)
-    val (dataAccessException, setDataAccessException) = useState<Throwable?>(null)
+    val (dataAccessException, setDataAccessException) = useState<Exception?>(null)
 
     val tableInstance: TableInstance<D> = useTable(useSortBy, usePagination) {
         this.columns = useMemo { columns }
