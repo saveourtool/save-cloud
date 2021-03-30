@@ -5,12 +5,212 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
 
-    <changeSet id="11" author="aktsay" context="dev">
+    <changeSet id="test_execution-insert-1" author="aktsay" context="dev">
         <insert dbms="mysql" tableName="test_execution">
-            <column name="status" value="FAILED" />
+            <column name="status" value="READY" />
             <column name="start_time" value="2021-01-01 00:00:00" />
             <column name="end_time" value="2021-01-01 00:00:01" />
             <column name="test_id" value="1" />
+            <column name="agent_id" value="1" />
+            <column name="project_id" value="1"/>
+            <column name="test_suite_execution_id" value="1"/>
+        </insert>
+
+        <insert dbms="mysql" tableName="test_execution">
+            <column name="status" value="READY" />
+            <column name="start_time" value="2021-01-01 00:00:00" />
+            <column name="end_time" value="2021-01-01 00:00:01" />
+            <column name="test_id" value="2" />
+            <column name="agent_id" value="1" />
+            <column name="project_id" value="1"/>
+            <column name="test_suite_execution_id" value="1"/>
+        </insert>
+
+        <insert dbms="mysql" tableName="test_execution">
+            <column name="status" value="READY" />
+            <column name="start_time" value="2021-01-01 00:00:00" />
+            <column name="end_time" value="2021-01-01 00:00:01" />
+            <column name="test_id" value="3" />
+            <column name="agent_id" value="1" />
+            <column name="project_id" value="1"/>
+            <column name="test_suite_execution_id" value="1"/>
+        </insert>
+
+        <insert dbms="mysql" tableName="test_execution">
+            <column name="status" value="READY" />
+            <column name="start_time" value="2021-01-01 00:00:00" />
+            <column name="end_time" value="2021-01-01 00:00:01" />
+            <column name="test_id" value="4" />
+            <column name="agent_id" value="1" />
+            <column name="project_id" value="1"/>
+            <column name="test_suite_execution_id" value="1"/>
+        </insert>
+
+        <insert dbms="mysql" tableName="test_execution">
+            <column name="status" value="READY" />
+            <column name="start_time" value="2021-01-01 00:00:00" />
+            <column name="end_time" value="2021-01-01 00:00:01" />
+            <column name="test_id" value="5" />
+            <column name="agent_id" value="1" />
+            <column name="project_id" value="1"/>
+            <column name="test_suite_execution_id" value="1"/>
+        </insert>
+
+        <insert dbms="mysql" tableName="test_execution">
+            <column name="status" value="READY" />
+            <column name="start_time" value="2021-01-01 00:00:00" />
+            <column name="end_time" value="2021-01-01 00:00:01" />
+            <column name="test_id" value="6" />
+            <column name="agent_id" value="1" />
+            <column name="project_id" value="1"/>
+            <column name="test_suite_execution_id" value="1"/>
+        </insert>
+
+        <insert dbms="mysql" tableName="test_execution">
+            <column name="status" value="READY" />
+            <column name="start_time" value="2021-01-01 00:00:00" />
+            <column name="end_time" value="2021-01-01 00:00:01" />
+            <column name="test_id" value="7" />
+            <column name="agent_id" value="1" />
+            <column name="project_id" value="1"/>
+            <column name="test_suite_execution_id" value="1"/>
+        </insert>
+
+        <insert dbms="mysql" tableName="test_execution">
+            <column name="status" value="READY" />
+            <column name="start_time" value="2021-01-01 00:00:00" />
+            <column name="end_time" value="2021-01-01 00:00:01" />
+            <column name="test_id" value="8" />
+            <column name="agent_id" value="1" />
+            <column name="project_id" value="1"/>
+            <column name="test_suite_execution_id" value="1"/>
+        </insert>
+
+        <insert dbms="mysql" tableName="test_execution">
+            <column name="status" value="READY" />
+            <column name="start_time" value="2021-01-01 00:00:00" />
+            <column name="end_time" value="2021-01-01 00:00:01" />
+            <column name="test_id" value="9" />
+            <column name="agent_id" value="1" />
+            <column name="project_id" value="1"/>
+            <column name="test_suite_execution_id" value="1"/>
+        </insert>
+
+        <insert dbms="mysql" tableName="test_execution">
+            <column name="status" value="READY" />
+            <column name="start_time" value="2021-01-01 00:00:00" />
+            <column name="end_time" value="2021-01-01 00:00:01" />
+            <column name="test_id" value="10" />
+            <column name="agent_id" value="1" />
+            <column name="project_id" value="1"/>
+            <column name="test_suite_execution_id" value="1"/>
+        </insert>
+
+        <insert dbms="mysql" tableName="test_execution">
+            <column name="status" value="READY" />
+            <column name="start_time" value="2021-01-01 00:00:00" />
+            <column name="end_time" value="2021-01-01 00:00:01" />
+            <column name="test_id" value="11" />
+            <column name="agent_id" value="1" />
+            <column name="project_id" value="1"/>
+            <column name="test_suite_execution_id" value="1"/>
+        </insert>
+
+        <insert dbms="mysql" tableName="test_execution">
+            <column name="status" value="READY" />
+            <column name="start_time" value="2021-01-01 00:00:00" />
+            <column name="end_time" value="2021-01-01 00:00:01" />
+            <column name="test_id" value="12" />
+            <column name="agent_id" value="1" />
+            <column name="project_id" value="1"/>
+            <column name="test_suite_execution_id" value="1"/>
+        </insert>
+
+        <insert dbms="mysql" tableName="test_execution">
+            <column name="status" value="READY" />
+            <column name="start_time" value="2021-01-01 00:00:00" />
+            <column name="end_time" value="2021-01-01 00:00:01" />
+            <column name="test_id" value="13" />
+            <column name="agent_id" value="1" />
+            <column name="project_id" value="1"/>
+            <column name="test_suite_execution_id" value="1"/>
+        </insert>
+
+        <insert dbms="mysql" tableName="test_execution">
+            <column name="status" value="READY" />
+            <column name="start_time" value="2021-01-01 00:00:00" />
+            <column name="end_time" value="2021-01-01 00:00:01" />
+            <column name="test_id" value="14" />
+            <column name="agent_id" value="1" />
+            <column name="project_id" value="1"/>
+            <column name="test_suite_execution_id" value="1"/>
+        </insert>
+
+        <insert dbms="mysql" tableName="test_execution">
+            <column name="status" value="READY" />
+            <column name="start_time" value="2021-01-01 00:00:00" />
+            <column name="end_time" value="2021-01-01 00:00:01" />
+            <column name="test_id" value="15" />
+            <column name="agent_id" value="1" />
+            <column name="project_id" value="1"/>
+            <column name="test_suite_execution_id" value="1"/>
+        </insert>
+
+        <insert dbms="mysql" tableName="test_execution">
+            <column name="status" value="READY" />
+            <column name="start_time" value="2021-01-01 00:00:00" />
+            <column name="end_time" value="2021-01-01 00:00:01" />
+            <column name="test_id" value="16" />
+            <column name="agent_id" value="1" />
+            <column name="project_id" value="1"/>
+            <column name="test_suite_execution_id" value="1"/>
+        </insert>
+
+        <insert dbms="mysql" tableName="test_execution">
+            <column name="status" value="READY" />
+            <column name="start_time" value="2021-01-01 00:00:00" />
+            <column name="end_time" value="2021-01-01 00:00:01" />
+            <column name="test_id" value="17" />
+            <column name="agent_id" value="1" />
+            <column name="project_id" value="1"/>
+            <column name="test_suite_execution_id" value="1"/>
+        </insert>
+
+        <insert dbms="mysql" tableName="test_execution">
+            <column name="status" value="READY" />
+            <column name="start_time" value="2021-01-01 00:00:00" />
+            <column name="end_time" value="2021-01-01 00:00:01" />
+            <column name="test_id" value="18" />
+            <column name="agent_id" value="1" />
+            <column name="project_id" value="1"/>
+            <column name="test_suite_execution_id" value="1"/>
+        </insert>
+
+        <insert dbms="mysql" tableName="test_execution">
+            <column name="status" value="READY" />
+            <column name="start_time" value="2021-01-01 00:00:00" />
+            <column name="end_time" value="2021-01-01 00:00:01" />
+            <column name="test_id" value="19" />
+            <column name="agent_id" value="1" />
+            <column name="project_id" value="1"/>
+            <column name="test_suite_execution_id" value="1"/>
+        </insert>
+
+        <insert dbms="mysql" tableName="test_execution">
+            <column name="status" value="READY" />
+            <column name="start_time" value="2021-01-01 00:00:00" />
+            <column name="end_time" value="2021-01-01 00:00:01" />
+            <column name="test_id" value="20" />
+            <column name="agent_id" value="1" />
+            <column name="project_id" value="1"/>
+            <column name="test_suite_execution_id" value="1"/>
+        </insert>
+
+        <insert dbms="mysql" tableName="test_execution">
+            <column name="status" value="READY" />
+            <column name="start_time" value="2021-01-01 00:00:00" />
+            <column name="end_time" value="2021-01-01 00:00:01" />
+            <column name="test_id" value="21" />
             <column name="agent_id" value="1" />
             <column name="project_id" value="1"/>
             <column name="test_suite_execution_id" value="1"/>

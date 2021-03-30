@@ -1,17 +1,21 @@
 package org.cqfn.save.backend.service
 
+import org.cqfn.save.backend.configs.ConfigProperties
 import org.cqfn.save.backend.repository.TestRepository
 import org.cqfn.save.entities.Test
 import org.cqfn.save.test.TestDto
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * Service that is used for manipulating data with tests
  */
 @Service
-class TestService {
+class TestService(private val configProperties: ConfigProperties) {
+    private var offset = AtomicInteger(0)
+
     @Autowired
     private lateinit var testRepository: TestRepository
 
@@ -25,7 +29,11 @@ class TestService {
     /**
      * @return Test batches
      */
-    // Fixme: Stub in here
-    fun getTestBatches() = Mono.just(listOf(TestDto("qwe", "www", 0, "id"),
-        TestDto("qwe", "www", 0, "qweqwe")))
+    fun getTestBatches(): Mono<List<TestDto>> {
+        val tests = testRepository.retrieveBatches(configProperties.limit, offset.get()).map {
+            TestDto(it.expectedFilePath, it.testFilePath, it.testSuiteId, it.id)
+        }
+        offset.addAndGet(configProperties.limit)
+        return Mono.just(tests)
+    }
 }
