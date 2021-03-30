@@ -1,5 +1,6 @@
 package org.cqfn.save.backend.controllers
 
+import org.cqfn.save.backend.Response
 import org.cqfn.save.backend.configs.ConfigProperties
 import org.cqfn.save.backend.service.ProjectService
 import org.cqfn.save.entities.ExecutionRequest
@@ -20,7 +21,7 @@ import reactor.kotlin.core.publisher.toMono
  * Controller to save project
  *
  * @property projectService service of project
- * @property preprocessorWebClient webclient
+ * @param configProperties
  */
 @RestController
 class CloneRepositoryController(
@@ -37,7 +38,7 @@ class CloneRepositoryController(
      * @return mono string
      */
     @PostMapping(value = ["/submitExecutionRequest"])
-    fun submitExecutionRequest(@RequestBody executionRequest: ExecutionRequest): Mono<ResponseEntity<String>> {
+    fun submitExecutionRequest(@RequestBody executionRequest: ExecutionRequest): Response {
         val project = executionRequest.project
         var projectId: String? = null
         try {

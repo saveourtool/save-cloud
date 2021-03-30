@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service
 class ProjectService(private val projectRepository: ProjectRepository) {
     /**
      * @param project
+     * @return project's id
      */
     @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
     fun saveProject(project: Project): Long? {

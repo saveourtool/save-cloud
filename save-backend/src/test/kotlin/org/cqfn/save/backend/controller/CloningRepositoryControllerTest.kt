@@ -16,7 +16,6 @@ import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.Project
 import org.cqfn.save.repository.GitRepository
 
-
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.jupiter.api.AfterAll
@@ -39,12 +38,9 @@ import java.time.Duration
 @Import(CloneRepositoryController::class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class CloningRepositoryControllerTest {
-
     @Autowired
     lateinit var webTestClient: WebTestClient
-
     lateinit var mockServer: MockWebServer
-
     lateinit var cloneRepositoryController: CloneRepositoryController
 
     @MockBean
