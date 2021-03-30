@@ -33,7 +33,7 @@ class ExecutionControllerTest {
     @Test
     fun testConnection() {
         val execution = Execution(
-            0,
+            1,
             testLocalDateTime,
             testLocalDateTime,
             ExecutionStatus.RUNNING,
