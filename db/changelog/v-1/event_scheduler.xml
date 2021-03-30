@@ -11,13 +11,17 @@
             ON SCHEDULE EVERY 1 DAY
             STARTS TIMESTAMP(CURRENT_DATE + INTERVAL 1 HOUR)
             DO DELETE FROM TEST t
-            JOIN TEST_SUITE ts
-            ON t.test_suite_id = ts.id
-            JOIN PROJECT p
-            ON ts.project_id = p.id
             WHERE 1 = 1
-            AND p.type = 'git'
-            AND DATEDIFF(NOW(), t.DATE_ADDED) >= 30;
+            AND DATEDIFF(NOW(), t.DATE_ADDED) >= 30
+            AND t.test_suite_id in (
+                SELECT ts.id
+                FROM TEST_SUITE ts
+                WHERE 1 = 1
+                and ts.project_id in (
+                    SELECT p.id
+                    FROM PROJECT p
+                    WHERE p.type = 'git')
+                );
         </sql>
     </changeSet>
 
