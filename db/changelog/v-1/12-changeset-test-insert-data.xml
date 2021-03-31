@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+    <changeSet id="test-insert" author="frolov" context="dev">
+
+        <loadData tableName="test" encoding="UTF-8" separator=";" quotchar="&quot;" file="db/changelog/v-1/sqlRequests/test.csv">
+            <column header="id" name="id" type="STRING" />
+            <column header="expected_file_path" name="expected_file_path" type="STRING" />
+            <column header="test_file_path" name="test_file_path" type="STRING" />
+            <column header="date_added" name="date_added" type="DATE" />
+            <column header="test_suite_id" name="test_suite_id" type="NUMERIC" />
+        </loadData>
+
+    </changeSet>
+
+</databaseChangeLog>

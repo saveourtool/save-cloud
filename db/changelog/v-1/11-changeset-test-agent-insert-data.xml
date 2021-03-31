@@ -5,16 +5,19 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
 
-    <changeSet id="11" author="aktsay" context="dev">
-        <insert dbms="mysql" tableName="test_execution">
-            <column name="status" value="FAILED" />
-            <column name="start_time" value="2021-01-01 00:00:00" />
-            <column name="end_time" value="2021-01-01 00:00:01" />
-            <column name="test_id" value="1" />
-            <column name="agent_id" value="1" />
-            <column name="project_id" value="1"/>
-            <column name="test_suite_execution_id" value="1"/>
-        </insert>
+    <changeSet id="test_execution-insert" author="frolov" context="dev">
+
+        <loadData tableName="test_execution" encoding="UTF-8" separator=";" quotchar="&quot;" file="db/changelog/v-1/sqlRequests/test_execution.csv">
+            <column header="id" name="id" type="SEQUENCE" />
+            <column header="status" name="status" type="STRING" />
+            <column header="start_time" name="start_time" type="DATE" />
+            <column header="end_time" name="end_time" type="DATE" />
+            <column header="test_id" name="test_id" type="STRING" />
+            <column header="agent_id" name="agent_id" type="NUMERIC" />
+            <column header="project_id" name="project_id" type="NUMERIC" />
+            <column header="test_suite_execution_id" name="test_suite_execution_id" type="NUMERIC" />
+        </loadData>
+
     </changeSet>
 
     <changeSet id="12" author="aktsay" context="dev">

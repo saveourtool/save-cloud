@@ -33,11 +33,12 @@ class ExecutionControllerTest {
     @Test
     fun testConnection() {
         val execution = Execution(
-            0,
+            1,
             testLocalDateTime,
             testLocalDateTime,
             ExecutionStatus.RUNNING,
-            "0,1,2"
+            "0,1,2",
+            "stub"
         )
         webClient.post()
             .uri("/createExecution")
@@ -55,7 +56,8 @@ class ExecutionControllerTest {
             testLocalDateTime,
             testLocalDateTime,
             ExecutionStatus.RUNNING,
-            "0,1,2"
+            "0,1,2",
+            "stub"
         )
         webClient.post()
             .uri("/createExecution")
@@ -77,7 +79,8 @@ class ExecutionControllerTest {
             testLocalDateTime,
             testLocalDateTime,
             ExecutionStatus.RUNNING,
-            "0,1,2"
+            "0,1,2",
+            "stub"
         )
 
         webClient.post()

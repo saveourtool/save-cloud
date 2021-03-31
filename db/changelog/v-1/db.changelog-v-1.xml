@@ -23,10 +23,10 @@
         <tagDatabase tag="v1.0 test_status"/>
     </changeSet>
 
-    <include file="03-changeset-test-execution-table.xml" relativeToChangelogFile="true"/>
+    <include file="05-changeset-test-suite-table.xml" relativeToChangelogFile="true" />
 
-    <changeSet id="10" author="aktsay">
-        <tagDatabase tag="v1.0 create test execution table"/>
+    <changeSet id="test-suite" author="aktsay">
+        <tagDatabase tag="v1.0 create test suite"/>
     </changeSet>
 
     <include file="04-changeset-test-table.xml" relativeToChangelogFile="true" />
@@ -35,10 +35,10 @@
         <tagDatabase tag="v1.0 create test"/>
     </changeSet>
 
-    <include file="05-changeset-test-suite-table.xml" relativeToChangelogFile="true" />
+    <include file="03-changeset-test-execution-table.xml" relativeToChangelogFile="true"/>
 
-    <changeSet id="test-suite" author="aktsay">
-        <tagDatabase tag="v1.0 create test suite"/>
+    <changeSet id="10" author="aktsay">
+        <tagDatabase tag="v1.0 create test execution table"/>
     </changeSet>
 
     <include file="06-chageset-execution-table.xml" relativeToChangelogFile="true" />
@@ -47,7 +47,23 @@
         <tagDatabase tag="v1.0 create execution table"/>
     </changeSet>
 
+    <include file="13-changeset-test-suite-insert-data.xml" relativeToChangelogFile="true"/>
+
+    <changeSet id="insert-test-suite" author="frolov">
+        <tagDatabase tag="v1.0 inserting into test_suite"/>
+    </changeSet>
+    
+    <changeSet id="insert-test" author="aktsay">
+        <tagDatabase tag="v1.0 inserting into test"/>
+    </changeSet>
+
+    <include file="12-changeset-test-insert-data.xml" relativeToChangelogFile="true"/>
+
     <include file="11-changeset-test-agent-insert-data.xml" relativeToChangelogFile="true"/>
+
+    <changeSet id="adding-event" author="aktsay">
+        <tagDatabase tag="v1.0 adding event on deleting test_executions"/>
+    </changeSet>
 
     <include file="event_scheduler.xml" relativeToChangelogFile="true"/>
 

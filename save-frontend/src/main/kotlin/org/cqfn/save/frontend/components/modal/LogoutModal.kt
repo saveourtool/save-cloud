@@ -2,7 +2,7 @@
  * A component for logout modal window
  */
 
-package org.cqfn.save.frontend.components
+package org.cqfn.save.frontend.components.modal
 
 import org.cqfn.save.frontend.externals.modal.ModalProps
 import org.cqfn.save.frontend.externals.modal.modal
@@ -42,7 +42,7 @@ fun RBuilder.logoutModal(handler: RHandler<ModalProps>, closeCallback: () -> Uni
                     span {
                         attrs["aria-hidden"] = "true"
                         attrs.onClickFunction = { closeCallback() }
-                        +"&times;"
+                        +js("String.fromCharCode(215)").unsafeCast<String>()
                     }
                 }
             }
