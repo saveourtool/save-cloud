@@ -35,7 +35,7 @@ class TestInitializeControllerTest {
             "expectedPath",
             "testPath",
             testLocalDateTime,
-            0,
+            2,
             "HASH"
         )
 
@@ -54,7 +54,7 @@ class TestInitializeControllerTest {
             "expectedPath",
             "testPath",
             testLocalDateTime,
-            0,
+            2,
             "HASHANOTHER"
         )
         webClient.post()

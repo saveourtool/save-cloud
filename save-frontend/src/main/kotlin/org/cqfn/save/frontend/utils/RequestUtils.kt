@@ -12,6 +12,19 @@ import kotlinx.browser.window
 import kotlinx.coroutines.await
 
 /**
+ * Perform a mapping operation on a [Response] if it's status is OK or throw an exception otherwise.
+ *
+ * @param map mapping function
+ * @return mapped result
+ * @throws IllegalStateException if response status is not OK
+ */
+suspend fun <T> Response.unsafeMap(map: suspend (Response) -> T) = if (this.ok) {
+    map(this)
+} else {
+    error("$status $statusText")
+}
+
+/**
  * Perform GET request.
  *
  * @param url request URL
