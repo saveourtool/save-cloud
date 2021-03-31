@@ -35,7 +35,7 @@ class DatabaseTest {
     fun checkTestStatusDataInDataBase() {
         val tests = testExecutionRepository.findAll()
 
-        assertTrue(tests.any { it.status == TestResultStatus.FAILED && it.agentId == 1L })
+        assertTrue(tests.any { it.status == TestResultStatus.READY && it.agentId == 1L })
     }
 
     @Test
