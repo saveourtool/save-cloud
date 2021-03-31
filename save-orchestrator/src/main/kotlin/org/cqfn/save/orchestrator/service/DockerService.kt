@@ -29,11 +29,12 @@ class DockerService(private val configProperties: ConfigProperties) {
     private fun buildBaseImageForExecution(execution: Execution): String {
         val resourcesPath = File(
             configProperties.testResources.basePath,
-            execution.resourcesRootPath
+            execution.resourcesRootPath,
         )
         val imageId = containerManager.buildImageWithResources(
+            imageName = "save-execution:${execution.id}",
             baseDir = resourcesPath,
-            resourcesPath = "/save-agent"
+            resourcesPath = "/save-agent",
         )
         return imageId
     }

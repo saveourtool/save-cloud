@@ -57,7 +57,7 @@ class ContainerManager(private val dockerHost: String) {
                                          runConfiguration: RunConfiguration,
                                          containerName: String): String {
         val baseImage = dockerClient.listImagesCmd().exec().find {
-            it.id == baseImageId
+            it.id.replaceFirst("sha256:", "").startsWith(baseImageId)
         }
             ?: error("Image with requested baseImageId=$baseImageId is not present in the system")
         val createContainerCmdResponse = dockerClient.createContainerCmd(baseImage.repoTags.first())
@@ -98,6 +98,7 @@ class ContainerManager(private val dockerHost: String) {
      */
     @OptIn(ExperimentalPathApi::class)
     internal fun buildImageWithResources(baseImage: String = "ubuntu:latest",
+                                         imageName: String,
                                          baseDir: File,
                                          resourcesPath: String): String {
         val tmpDir = createTempDirectory().toFile()
@@ -113,8 +114,7 @@ class ContainerManager(private val dockerHost: String) {
         val buildImageResultCallback: BuildImageResultCallback = try {
             dockerClient.buildImageCmd(dockerFile)
                 .withBaseDirectory(tmpDir)
-                    // todo: correct tag
-                .withTags(setOf("test:42"))
+                .withTags(setOf(imageName))
                 .start()
         } finally {
             dockerFile.delete()

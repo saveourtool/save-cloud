@@ -68,7 +68,9 @@ class ContainerManagerTest {
     fun `should build an image with provided resources`() {
         val resourcesDir = createTempDirectory()
         repeat(5) { createTempFile(resourcesDir) }
-        val imageId = containerManager.buildImageWithResources(baseDir = resourcesDir.toFile(), resourcesPath = "/app/resources")
+        val imageId = containerManager.buildImageWithResources(
+            imageName = "test:test", baseDir = resourcesDir.toFile(), resourcesPath = "/app/resources"
+        )
         val inspectImageResponse = containerManager.dockerClient.inspectImageCmd(imageId).exec()
         Assertions.assertTrue(inspectImageResponse.size!! > 0)
     }
