@@ -30,4 +30,16 @@ class InitializeAgentsTest {
             .expectStatus()
             .isOk
     }
+
+    @Test
+    fun checkPostResponseIsNotOk() {
+        val execution = Execution(3, stubTime, stubTime, ExecutionStatus.RUNNING, "stub", "stub")
+        webClient
+            .post()
+            .uri("/initializeAgents")
+            .body(BodyInserters.fromValue(execution))
+            .exchange()
+            .expectStatus()
+            .is5xxServerError
+    }
 }

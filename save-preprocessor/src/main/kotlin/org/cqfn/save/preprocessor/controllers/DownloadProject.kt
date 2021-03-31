@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
+import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
 import java.io.File
@@ -50,7 +51,7 @@ class DownloadProject(val configProperties: ConfigProperties) {
             }
         }
 
-    @Suppress("TooGenericExceptionCaught")
+    @Suppress("TooGenericExceptionCaught", "TOO_LONG_FUNCTION")
     private fun downLoadRepository(executionRequest: ExecutionRequest) {
         val gitRepository = executionRequest.gitRepository
         val project = executionRequest.project
@@ -76,7 +77,15 @@ class DownloadProject(val configProperties: ConfigProperties) {
                     log.info("Repository cloned: ${gitRepository.url}")
                     // Post request to backend to create PENDING executions
                     // Fixme: need to initialize test suite ids
-                    sendToBackendAndOrchestrator(project.id!!, tmpDir.absolutePath)
+                    project.id?.let {
+                        sendToBackendAndOrchestrator(project.id!!, tmpDir.absolutePath)
+                    }
+                        ?: run {
+                            throw ResponseStatusException(
+                                HttpStatus.INTERNAL_SERVER_ERROR,
+                                "Id should not be empty"
+                            )
+                        }
                 }
         } catch (exception: Exception) {
             tmpDir.deleteRecursively()
@@ -89,14 +98,20 @@ class DownloadProject(val configProperties: ConfigProperties) {
         }
     }
 
-    private fun sendToBackendAndOrchestrator(id: Long, path: String) {
-        val execution = Execution(id, LocalDateTime.now(), LocalDateTime.now(), ExecutionStatus.PENDING, "1", path)
+    private fun sendToBackendAndOrchestrator(projectId: Long, path: String) {
+        val execution = Execution(projectId, LocalDateTime.now(), LocalDateTime.now(), ExecutionStatus.PENDING, "1", path)
         log.debug("Knock-Knock Backend")
         webClientBackend
             .post()
             .uri("/createExecution")
             .body(BodyInserters.fromValue(execution))
             .retrieve()
+            .onStatus({status -> status != HttpStatus.OK }) {
+                throw ResponseStatusException(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Backend internal error"
+                )
+            }
             .toEntity(HttpStatus::class.java)
             .subscribe()
         // Post request to orchestrator to initiate its work
