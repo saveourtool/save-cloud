@@ -3,7 +3,6 @@ package org.cqfn.save.orchestrator.service
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.orchestrator.config.ConfigProperties
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -25,9 +24,7 @@ import kotlin.io.path.createTempDirectory
 import kotlin.io.path.pathString
 
 @ExtendWith(SpringExtension::class)
-//@ContextConfiguration(classes = [ConfigProperties::class, DockerService::class])
 @EnableConfigurationProperties(ConfigProperties::class)
-//@ConfigurationPropertiesScan("org.cqfn.save.orchestrator.config")
 @TestPropertySource("classpath:application.properties")
 class DockerServiceTest {
     @Autowired private lateinit var configProperties: ConfigProperties

@@ -2,19 +2,44 @@ package org.cqfn.save.orchestrator.docker
 
 import com.github.dockerjava.api.command.PullImageResultCallback
 import org.cqfn.save.domain.RunConfiguration
+import org.cqfn.save.orchestrator.config.ConfigProperties
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.DisabledIfSystemProperty
+import org.junit.jupiter.api.extension.ExtendWith
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.context.properties.EnableConfigurationProperties
+import org.springframework.test.context.TestPropertySource
+import org.springframework.test.context.junit.jupiter.SpringExtension
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.createTempDirectory
 import kotlin.io.path.createTempFile
 
 @OptIn(ExperimentalPathApi::class)
+@ExtendWith(SpringExtension::class)
+@EnableConfigurationProperties(ConfigProperties::class)
+@TestPropertySource("classpath:application.properties")
 class ContainerManagerTest {
+    @Autowired private lateinit var configProperties: ConfigProperties
+    private lateinit var containerManager: ContainerManager
+    private lateinit var imageId: String
     private lateinit var testContainerId: String
+
+    @BeforeEach
+    fun setUp() {
+        containerManager = ContainerManager(configProperties.docker.host)
+        containerManager.dockerClient.pullImageCmd("ubuntu")
+            .withTag("latest")
+            .exec(PullImageResultCallback())
+            .awaitCompletion()
+        imageId = containerManager.dockerClient.listImagesCmd().exec().find {
+            it.repoTags.firstOrNull() == "ubuntu:latest"
+        }!!
+            .id
+    }
 
     @Test
     fun `should create a container with specified cmd and then copy resources into it`() {
@@ -52,32 +77,6 @@ class ContainerManagerTest {
     fun tearDown() {
         if (::testContainerId.isInitialized) {
             containerManager.dockerClient.removeContainerCmd(testContainerId).exec()
-        }
-    }
-
-    companion object {
-        private lateinit var containerManager: ContainerManager
-        private lateinit var imageId: String
-
-        @BeforeAll
-        @JvmStatic
-        fun setUp() {
-            containerManager = if (System.getProperty("os.name").startsWith("Windows")) {
-                // for docker inside WSL2 use it's eth0 network IP: `ip a | grep eth0`
-                // for Docker Desktop, daemon can be exposed on localhost via tcp://localhost:2375, but runsc runtime can't be installed on windows.
-                ContainerManager("tcp://172.25.71.25:2375")
-            } else {
-                // for Linux "it just works"(c) with unix socket
-                ContainerManager("unix:///var/run/docker.sock")
-            }
-            containerManager.dockerClient.pullImageCmd("ubuntu")
-                .withTag("latest")
-                .exec(PullImageResultCallback())
-                .awaitCompletion()
-            imageId = containerManager.dockerClient.listImagesCmd().exec().find {
-                it.repoTags.firstOrNull() == "ubuntu:latest"
-            }!!
-                .id
         }
     }
 }

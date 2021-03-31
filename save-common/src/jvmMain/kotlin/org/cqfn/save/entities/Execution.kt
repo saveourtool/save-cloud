@@ -11,7 +11,7 @@ import javax.persistence.Enumerated
  * @property endTime
  * @property status
  * @property testSuiteIds
- * @property path path to test resources, relative to shared volume mount point
+ * @property resourcesRootPath path to test resources, relative to shared volume mount point
  */
 @Suppress("USE_DATA_CLASS")
 @Entity
