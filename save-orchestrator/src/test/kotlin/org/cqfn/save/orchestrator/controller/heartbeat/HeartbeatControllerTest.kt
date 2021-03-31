@@ -27,6 +27,10 @@ import java.time.Duration
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.cqfn.save.orchestrator.config.DockerSettings
+import org.cqfn.save.orchestrator.config.TestResources
+import org.cqfn.save.orchestrator.service.DockerService
+import org.springframework.boot.test.mock.mockito.MockBean
 
 @WebFluxTest
 @Import(AgentService::class)
@@ -36,6 +40,7 @@ class HeartbeatControllerTest {
     lateinit var webClient: WebTestClient
     lateinit var mockServer: MockWebServer
     private lateinit var agentService: AgentService
+    @MockBean private lateinit var dockerService: DockerService
 
     @BeforeAll
     fun startServer() {
@@ -56,7 +61,7 @@ class HeartbeatControllerTest {
     @BeforeEach
     fun initialize() {
         val baseUrl = "http://localhost:${mockServer.port}"
-        agentService = AgentService(ConfigProperties(baseUrl))
+        agentService = AgentService(ConfigProperties(baseUrl, TestResources("stub"), DockerSettings("stub")))
     }
 
     @Test

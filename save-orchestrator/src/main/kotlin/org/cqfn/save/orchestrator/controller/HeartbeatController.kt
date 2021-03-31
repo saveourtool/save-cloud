@@ -5,9 +5,12 @@ import org.cqfn.save.agent.ContinueResponse
 import org.cqfn.save.agent.Heartbeat
 import org.cqfn.save.agent.HeartbeatResponse
 import org.cqfn.save.agent.WaitResponse
+import org.cqfn.save.entities.Execution
 import org.cqfn.save.orchestrator.config.ConfigProperties
 import org.cqfn.save.orchestrator.service.AgentService
+import org.cqfn.save.orchestrator.service.DockerService
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
@@ -22,6 +25,8 @@ import reactor.core.publisher.Mono
 @RestController
 class HeartbeatController(private val agentService: AgentService, val configProperties: ConfigProperties) {
     private val logger = LoggerFactory.getLogger(HeartbeatController::class.java)
+    @Autowired
+    private lateinit var dockerService: DockerService
 
     /**
      * This controller accepts heartbeat and depending on the state it returns the needed response

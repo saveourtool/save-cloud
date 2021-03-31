@@ -21,6 +21,7 @@ class Execution(
     @Enumerated(EnumType.STRING)
     var status: ExecutionStatus,
     var testSuiteIds: String,
+    var resourcesRootPath: String,
 ) {
     /**
      * id

@@ -1,6 +1,6 @@
 import org.cqfn.save.buildutils.configureJacoco
 import org.cqfn.save.buildutils.configureSpringBoot
-import  org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("jvm")
@@ -11,6 +11,7 @@ configureSpringBoot()
 tasks.withType<KotlinCompile> {
     kotlinOptions {
         jvmTarget = Versions.jdk
+        freeCompilerArgs = freeCompilerArgs + "-Xopt-in=kotlin.RequiresOptIn"
     }
 }
 
@@ -21,7 +22,6 @@ tasks.withType<Test> {
 repositories {
     maven(url = "https://kotlin.bintray.com/kotlinx/") // it is used for datetime. In future updates it will be jcenter()
 }
-
 
 dependencies {
     api(project(":save-common"))
@@ -35,6 +35,17 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect:${Versions.kotlin}")
     testImplementation("com.squareup.okhttp3:okhttp:${Versions.okhttp3}")
     testImplementation("com.squareup.okhttp3:mockwebserver:${Versions.okhttp3}")
+}
+
+tasks.getByName("processResources") {
+    dependsOn(":save-agent:linkReleaseExecutableAgent")
+    doFirst {
+        copy {
+            // fixme: properly share artifact as per https://docs.gradle.org/current/userguide/cross_project_publications.html#cross_project_publications
+            from(file("${rootProject.project(":save-agent").buildDir}/bin/agent/releaseExecutable").listFiles()!!.single())
+            into("$buildDir/resources/main")
+        }
+    }
 }
 
 configureJacoco()
