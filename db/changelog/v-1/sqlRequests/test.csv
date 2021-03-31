@@ -20,3 +20,4 @@ id;expected_file_path;test_file_path;date_added;test_suite_id
 "19";"expectedPath2";"testPath2";"2021-01-01 00:00:00";3
 "20";"expectedPath2";"testPath2";"2021-01-01 00:00:00";3
 "21";"expectedPath2";"testPath2";"2021-01-01 00:00:00";3
+"22";"expectedPath2";"testPath2";"2021-01-01 00:00:00";3
