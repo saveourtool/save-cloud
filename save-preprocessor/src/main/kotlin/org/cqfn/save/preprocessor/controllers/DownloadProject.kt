@@ -78,12 +78,12 @@ class DownloadProject(val configProperties: ConfigProperties) {
                     // Post request to backend to create PENDING executions
                     // Fixme: need to initialize test suite ids
                     project.id?.let {
-                        sendToBackendAndOrchestrator(project.id!!, tmpDir.absolutePath)
+                        sendToBackendAndOrchestrator(it, tmpDir.absolutePath)
                     }
                         ?: run {
                             throw ResponseStatusException(
                                 HttpStatus.INTERNAL_SERVER_ERROR,
-                                "Id should not be empty"
+                                "Project id should not be empty"
                             )
                         }
                 }
@@ -107,6 +107,7 @@ class DownloadProject(val configProperties: ConfigProperties) {
             .body(BodyInserters.fromValue(execution))
             .retrieve()
             .onStatus({status -> status != HttpStatus.OK }) {
+                log.error("Backend internal error")
                 throw ResponseStatusException(
                     HttpStatus.INTERNAL_SERVER_ERROR,
                     "Backend internal error"

@@ -40,6 +40,6 @@ class InitializeAgentsTest {
             .body(BodyInserters.fromValue(execution))
             .exchange()
             .expectStatus()
-            .is5xxServerError
+            .is4xxClientError
     }
 }

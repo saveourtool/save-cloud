@@ -35,7 +35,7 @@ class InitializeAgentsController {
         // TODO initialization
         if (execution.status != ExecutionStatus.PENDING) {
             throw ResponseStatusException(
-                HttpStatus.INTERNAL_SERVER_ERROR,
+                HttpStatus.BAD_REQUEST,
                 "Execution status must be PENDING"
             )
         }
