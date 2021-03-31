@@ -107,7 +107,7 @@ class DownloadProject(val configProperties: ConfigProperties) {
             .body(BodyInserters.fromValue(execution))
             .retrieve()
             .onStatus({status -> status != HttpStatus.OK }) {
-                log.error("Backend internal error")
+                log.error("Backend internal error: ${it.statusCode()}")
                 throw ResponseStatusException(
                     HttpStatus.INTERNAL_SERVER_ERROR,
                     "Backend internal error"
