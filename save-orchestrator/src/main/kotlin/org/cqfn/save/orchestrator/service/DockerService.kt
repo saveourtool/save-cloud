@@ -16,14 +16,14 @@ import kotlin.io.path.writeText
 @Service
 @OptIn(ExperimentalPathApi::class)
 class DockerService(private val configProperties: ConfigProperties) {
-    private val containerManager = ContainerManager(configProperties.docker.host)
+    internal val containerManager = ContainerManager(configProperties.docker.host)
 
     /**
      * Function that builds a base image with test resources and then creates containers with agents.
      */
-    fun buildAndCreateContainer(execution: Execution) {
+    fun buildAndCreateContainer(execution: Execution): String {
         val imageId = buildBaseImageForExecution(execution)
-        createContainerForExecution(imageId)
+        return createContainerForExecution(imageId)
     }
 
     private fun buildBaseImageForExecution(execution: Execution): String {
@@ -39,7 +39,7 @@ class DockerService(private val configProperties: ConfigProperties) {
         return imageId
     }
 
-    private fun createContainerForExecution(imageId: String) {
+    private fun createContainerForExecution(imageId: String): String {
         val containerId = containerManager.createContainerFromImage(
             imageId,
             RunConfiguration("./save-agent", "save-agent"),
@@ -51,9 +51,11 @@ class DockerService(private val configProperties: ConfigProperties) {
                 agent.id=$containerId
             """.trimIndent()
         )
+        val agentExecutableExtension = if (System.getProperty("os.name").startsWith("windows", ignoreCase = true)) "exe" else "kexe"
         containerManager.copyResourcesIntoContainer(
             containerId, "/run",
-            listOf(ClassPathResource("save-agent").file, agentPropertiesFile.toFile())
+            listOf(ClassPathResource("save-agent.$agentExecutableExtension").file, agentPropertiesFile.toFile())
         )
+        return containerId
     }
 }

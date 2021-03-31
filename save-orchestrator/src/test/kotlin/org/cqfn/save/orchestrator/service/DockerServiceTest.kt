@@ -3,6 +3,7 @@ package org.cqfn.save.orchestrator.service
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.orchestrator.config.ConfigProperties
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -30,6 +31,7 @@ class DockerServiceTest {
     @Autowired private lateinit var configProperties: ConfigProperties
 
     private lateinit var dockerService: DockerService
+    private lateinit var testContainerId: String
 
     @BeforeEach
     fun setUp() {
@@ -39,7 +41,12 @@ class DockerServiceTest {
     @Test
     fun `test`() {
         val testExecution = Execution(0, LocalDateTime.now(), LocalDateTime.now(), ExecutionStatus.PENDING, "1", "foo")
-        dockerService.buildAndCreateContainer(testExecution)
+        testContainerId = dockerService.buildAndCreateContainer(testExecution)
+    }
+
+    @AfterEach
+    fun tearDown() {
+        dockerService.containerManager.dockerClient.removeContainerCmd(testContainerId).exec()
     }
 
     companion object {
