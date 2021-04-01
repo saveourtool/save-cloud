@@ -57,7 +57,8 @@ class ContainerManager(private val dockerHost: String) {
                                          runConfiguration: RunConfiguration,
                                          containerName: String): String {
         val baseImage = dockerClient.listImagesCmd().exec().find {
-            it.id == baseImageId
+            // fixme: sometimes createImageCmd returns short id without prefix, sometimes full and with prefix.
+            it.id.replaceFirst("sha256:", "").startsWith(baseImageId.replaceFirst("sha256:", ""))
         }
             ?: error("Image with requested baseImageId=$baseImageId is not present in the system")
         val createContainerCmdResponse = dockerClient.createContainerCmd(baseImage.repoTags.first())
