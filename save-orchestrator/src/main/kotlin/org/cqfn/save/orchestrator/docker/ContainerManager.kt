@@ -109,10 +109,10 @@ class ContainerManager(private val dockerHost: String) {
         baseDir.copyRecursively(File(tmpDir, "resources"))
         val dockerFileAsText =
                 """
-                    FROM $baseImage
-                    COPY resources $resourcesPath
-                    $runCmd
-                """.trimIndent()
+                    |FROM $baseImage
+                    |COPY resources $resourcesPath
+                    |$runCmd
+                """.trimMargin()
         val dockerFile = createTempFile(tmpDir.toPath()).toFile()
         dockerFile.writeText(dockerFileAsText)
         val buildImageResultCallback: BuildImageResultCallback = try {

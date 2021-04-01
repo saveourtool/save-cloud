@@ -38,7 +38,9 @@ class DockerService(private val configProperties: ConfigProperties) {
             imageName = "save-execution:${execution.id}",
             baseDir = resourcesPath,
             resourcesPath = executionDir,
-            runCmd = "RUN chmod +x $executionDir/$saveAgentExecutableName"
+            runCmd = """RUN apt-get update && apt-get install -y libcurl4-openssl-dev && rm -rf /var/lib/apt/lists/*
+                    |RUN chmod +x $executionDir/$saveAgentExecutableName
+                """
         )
         return imageId
     }
