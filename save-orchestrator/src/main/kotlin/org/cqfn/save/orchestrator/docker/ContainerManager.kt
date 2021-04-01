@@ -66,6 +66,7 @@ class ContainerManager(private val dockerHost: String) {
             .withName(containerName)
             .withHostConfig(HostConfig.newHostConfig()
                 .withRuntime("runsc")
+                .withExtraHosts("host.docker.internal:host-gateway")
             )
             .exec()
 

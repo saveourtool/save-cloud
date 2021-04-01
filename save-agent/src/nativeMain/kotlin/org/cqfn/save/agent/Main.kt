@@ -10,7 +10,7 @@ import kotlinx.coroutines.runBlocking
 
 fun main() {
     val saveAgent = SaveAgent(
-        AgentConfiguration(backendUrl = "http://backend:5000", orchestratorUrl = "http://orchestrator:5100")
+        AgentConfiguration(backendUrl = "http://host.docker.internal:5000", orchestratorUrl = "http://host.docker.internal:5100")
     )
     runBlocking {
         saveAgent.start()
