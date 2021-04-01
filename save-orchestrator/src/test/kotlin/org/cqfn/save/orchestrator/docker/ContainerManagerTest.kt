@@ -22,6 +22,7 @@ import kotlin.io.path.createTempFile
 @ExtendWith(SpringExtension::class)
 @EnableConfigurationProperties(ConfigProperties::class)
 @TestPropertySource("classpath:application.properties")
+@DisabledIfSystemProperty(named = "os.name", matches = "Windows.*", disabledReason = "Docker daemon behaves differently on Windows, and our target platform is Linux")
 class ContainerManagerTest {
     @Autowired private lateinit var configProperties: ConfigProperties
     private lateinit var containerManager: ContainerManager
@@ -64,7 +65,6 @@ class ContainerManagerTest {
     }
 
     @Test
-    @DisabledIfSystemProperty(named = "os.name", matches = "Windows.*", disabledReason = "Cannot properly use Dockerfiles on Windows")
     fun `should build an image with provided resources`() {
         val resourcesDir = createTempDirectory()
         repeat(5) { createTempFile(resourcesDir) }
