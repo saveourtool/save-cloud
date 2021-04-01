@@ -94,6 +94,7 @@ class ContainerManager(private val dockerHost: String) {
      * @param baseImage base docker image from which this image will be built
      * @param baseDir a context dir for Dockerfile
      * @param resourcesPath target path to additional resources. Resources from baseDir will be copied into this directory inside of the container.
+     * @param runCmd command to append to the Dockerfile. Actual entrypoint is added on container creation.
      * @return id of the created docker image
      * @throws DockerException
      */
@@ -101,15 +102,17 @@ class ContainerManager(private val dockerHost: String) {
     internal fun buildImageWithResources(baseImage: String = "ubuntu:latest",
                                          imageName: String,
                                          baseDir: File,
-                                         resourcesPath: String): String {
+                                         resourcesPath: String,
+                                         runCmd: String = "RUN /bin/bash",
+    ): String {
         val tmpDir = createTempDirectory().toFile()
         baseDir.copyRecursively(File(tmpDir, "resources"))
         val dockerFileAsText =
                 """
                     FROM $baseImage
                     COPY resources $resourcesPath
-                    RUN /bin/bash
-                """.trimIndent()  // RUN command shouldn't matter because it will be replaced on container creation
+                    $runCmd
+                """.trimIndent()
         val dockerFile = createTempFile(tmpDir.toPath()).toFile()
         dockerFile.writeText(dockerFileAsText)
         val buildImageResultCallback: BuildImageResultCallback = try {

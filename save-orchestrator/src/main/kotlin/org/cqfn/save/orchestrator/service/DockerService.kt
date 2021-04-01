@@ -32,20 +32,21 @@ class DockerService(private val configProperties: ConfigProperties) {
             configProperties.testResources.basePath,
             execution.resourcesRootPath,
         )
+        // include save-agent into the image
+        ClassPathResource(saveAgentExecutableName).file.copyTo(File(resourcesPath, saveAgentExecutableName))
         val imageId = containerManager.buildImageWithResources(
             imageName = "save-execution:${execution.id}",
             baseDir = resourcesPath,
             resourcesPath = executionDir,
+            runCmd = "RUN chmod +x $executionDir/$saveAgentExecutableName"
         )
         return imageId
     }
 
     private fun createContainerForExecution(imageId: String, containerNumber: String): String {
-        // fixme: there is no sense to support windows executable
-        val agentExecutableExtension = if (System.getProperty("os.name").startsWith("windows", ignoreCase = true)) "exe" else "kexe"
         val containerId = containerManager.createContainerFromImage(
             imageId,
-            RunConfiguration(listOf("$executionDir/save-agent.$agentExecutableExtension"), "save-agent"),
+            RunConfiguration(listOf("$executionDir/$saveAgentExecutableName"), "save-agent"),
             "save-execution-$containerNumber",
         )
         val agentPropertiesFile = createTempFile("agent")
@@ -54,11 +55,14 @@ class DockerService(private val configProperties: ConfigProperties) {
                 agent.id=$containerId
             """.trimIndent()
         )
-        // todo: check if executable is copied with execution permissions
         containerManager.copyResourcesIntoContainer(
             containerId, executionDir,
-            listOf(ClassPathResource("save-agent.$agentExecutableExtension").file, agentPropertiesFile.toFile())
+            listOf(agentPropertiesFile.toFile())
         )
         return containerId
+    }
+
+    companion object {
+        const val saveAgentExecutableName = "save-agent.kexe"
     }
 }

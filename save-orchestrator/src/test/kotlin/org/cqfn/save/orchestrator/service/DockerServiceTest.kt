@@ -42,19 +42,14 @@ class DockerServiceTest {
     }
 
     @Test
-    fun `should create a container with save agent and test resources`() {
+    fun `should create a container with save agent and test resources and start it`() {
         val testExecution = Execution(0, LocalDateTime.now(), LocalDateTime.now(), ExecutionStatus.PENDING, "1", "foo")
         testContainerId = dockerService.buildAndCreateContainer(testExecution)
         println("Created container $testContainerId")
         dockerService.containerManager.dockerClient.startContainerCmd(testContainerId).exec()
         Thread.sleep(2_500)  // waiting for container to start
-        val testContainer = dockerService.containerManager.dockerClient.listContainersCmd()
-            .exec()
-            .firstOrNull {
-                it.id == testContainerId
-            }
-        requireNotNull(testContainer) { "container $testContainerId is not listed" }
-        Assertions.assertEquals("running", testContainer.status) { "container $testContainerId is not running, actual status: ${testContainer.status}" }
+        val inspectContainerResponse = dockerService.containerManager.dockerClient.inspectContainerCmd(testContainerId).exec()
+        Assertions.assertTrue(inspectContainerResponse.state.running!!) { "container $testContainerId is not running, actual state ${inspectContainerResponse.state}" }
         dockerService.containerManager.dockerClient.stopContainerCmd(testContainerId).exec()
     }
 
