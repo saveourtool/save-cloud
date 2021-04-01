@@ -30,7 +30,7 @@
             <column name="test_suite_ids" type="varchar(255)">
                 <constraints nullable="false"/>
             </column>
-            <column name="resourcesRootPath" type="varchar(255)">
+            <column name="resources_root_path" type="varchar(255)">
                 <constraints nullable="false"/>
             </column>
         </createTable>
