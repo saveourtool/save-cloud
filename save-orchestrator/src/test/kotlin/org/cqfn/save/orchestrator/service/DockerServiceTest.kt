@@ -4,6 +4,7 @@ import org.cqfn.save.entities.Execution
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.orchestrator.config.ConfigProperties
 import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.DisabledIfSystemProperty
@@ -45,11 +46,21 @@ class DockerServiceTest {
         val testExecution = Execution(0, LocalDateTime.now(), LocalDateTime.now(), ExecutionStatus.PENDING, "1", "foo")
         testContainerId = dockerService.buildAndCreateContainer(testExecution)
         println("Created container $testContainerId")
+        dockerService.containerManager.dockerClient.startContainerCmd(testContainerId).exec()
+        Thread.sleep(2_500)  // waiting for container to start
+        val testContainer = dockerService.containerManager.dockerClient.listContainersCmd()
+            .exec()
+            .firstOrNull {
+                it.id == testContainerId
+            }
+        requireNotNull(testContainer) { "container $testContainerId is not listed" }
+        Assertions.assertEquals("running", testContainer.status) { "container $testContainerId is not running, actual status: ${testContainer.status}" }
+        dockerService.containerManager.dockerClient.stopContainerCmd(testContainerId).exec()
     }
 
     @AfterEach
     fun tearDown() {
-//        dockerService.containerManager.dockerClient.removeContainerCmd(testContainerId).exec()
+        dockerService.containerManager.dockerClient.removeContainerCmd(testContainerId).exec()
     }
 
     companion object {

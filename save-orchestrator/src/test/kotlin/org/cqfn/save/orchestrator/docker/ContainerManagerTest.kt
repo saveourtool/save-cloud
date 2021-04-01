@@ -37,7 +37,7 @@ class ContainerManagerTest {
             .exec(PullImageResultCallback())
             .awaitCompletion()
         imageId = containerManager.dockerClient.listImagesCmd().exec().find {
-            it.repoTags.firstOrNull() == "ubuntu:latest"
+            it.repoTags?.firstOrNull() == "ubuntu:latest"
         }!!
             .id
     }
