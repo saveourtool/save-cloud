@@ -49,13 +49,14 @@ class ContainerManager(private val dockerHost: String) {
      *
      * @param runConfiguration a [RunConfiguration] for the supplied binary
      * @param containerName a name for the created container
+     * @param baseImageId id of the base docker image for this container
      * @return id of created container or null if it wasn't created
      * @throws DockerException if docker daemon has returned an error
      * @throws RuntimeException if an exception not specific to docker has occurred
      */
     internal fun createContainerFromImage(baseImageId: String,
-                                         runConfiguration: RunConfiguration,
-                                         containerName: String): String {
+                                          runConfiguration: RunConfiguration,
+                                          containerName: String): String {
         val baseImage = dockerClient.listImagesCmd().exec().find {
             // fixme: sometimes createImageCmd returns short id without prefix, sometimes full and with prefix.
             it.id.replaceFirst("sha256:", "").startsWith(baseImageId.replaceFirst("sha256:", ""))
@@ -77,6 +78,8 @@ class ContainerManager(private val dockerHost: String) {
      * Copies specified [resources] into the container with id [containerId]
      *
      * @param resources additional resources
+     * @param containerId id of the target container
+     * @param remotePath path in the target container
      */
     internal fun copyResourcesIntoContainer(containerId: String,
                                             remotePath: String,
@@ -96,6 +99,7 @@ class ContainerManager(private val dockerHost: String) {
      * @param baseDir a context dir for Dockerfile
      * @param resourcesPath target path to additional resources. Resources from baseDir will be copied into this directory inside of the container.
      * @param runCmd command to append to the Dockerfile. Actual entrypoint is added on container creation.
+     * @param imageName name which will be assigned to the image
      * @return id of the created docker image
      * @throws DockerException
      */

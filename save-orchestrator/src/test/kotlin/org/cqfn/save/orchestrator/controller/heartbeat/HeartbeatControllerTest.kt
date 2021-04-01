@@ -5,7 +5,10 @@ import org.cqfn.save.agent.ExecutionProgress
 import org.cqfn.save.agent.Heartbeat
 import org.cqfn.save.agent.NewJobResponse
 import org.cqfn.save.orchestrator.config.ConfigProperties
+import org.cqfn.save.orchestrator.config.DockerSettings
+import org.cqfn.save.orchestrator.config.TestResources
 import org.cqfn.save.orchestrator.service.AgentService
+import org.cqfn.save.orchestrator.service.DockerService
 import org.cqfn.save.test.TestDto
 
 import okhttp3.mockwebserver.MockResponse
@@ -18,6 +21,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
+import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.WebTestClient
@@ -27,10 +31,6 @@ import java.time.Duration
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.cqfn.save.orchestrator.config.DockerSettings
-import org.cqfn.save.orchestrator.config.TestResources
-import org.cqfn.save.orchestrator.service.DockerService
-import org.springframework.boot.test.mock.mockito.MockBean
 
 @WebFluxTest
 @Import(AgentService::class)

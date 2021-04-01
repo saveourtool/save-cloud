@@ -1,11 +1,11 @@
 package org.cqfn.save.orchestrator.docker
 
-import com.github.dockerjava.api.command.PullImageResultCallback
 import org.cqfn.save.domain.RunConfiguration
 import org.cqfn.save.orchestrator.config.ConfigProperties
+
+import com.github.dockerjava.api.command.PullImageResultCallback
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.DisabledIfSystemProperty
@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.test.context.TestPropertySource
 import org.springframework.test.context.junit.jupiter.SpringExtension
+
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.createTempDirectory
 import kotlin.io.path.createTempFile

@@ -10,11 +10,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.DisabledIfSystemProperty
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.context.properties.ConfigurationPropertiesScan
 import org.springframework.boot.context.properties.EnableConfigurationProperties
-import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
-import org.springframework.context.annotation.Import
-import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.context.TestPropertySource
@@ -32,7 +28,6 @@ import kotlin.io.path.pathString
 @DisabledIfSystemProperty(named = "os.name", matches = "Windows.*", disabledReason = "Docker daemon behaves differently on Windows, and our target platform is Linux")
 class DockerServiceTest {
     @Autowired private lateinit var configProperties: ConfigProperties
-
     private lateinit var dockerService: DockerService
     private lateinit var testContainerId: String
 

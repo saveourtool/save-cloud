@@ -55,6 +55,7 @@ class SaveAgent(private val config: AgentConfiguration,
      * The current [AgentState] of this agent
      */
     val state = AtomicReference(AgentState.IDLE)
+
     private val id = uuid4().toString()  // todo: should be read from file
     private var saveProcessJob: Job? = null
 

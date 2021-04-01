@@ -2,25 +2,32 @@ package org.cqfn.save.orchestrator.service
 
 import org.cqfn.save.domain.RunConfiguration
 import org.cqfn.save.entities.Execution
-import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.orchestrator.config.ConfigProperties
 import org.cqfn.save.orchestrator.docker.ContainerManager
 import org.springframework.core.io.ClassPathResource
 import org.springframework.stereotype.Service
 import java.io.File
-import java.time.LocalDateTime
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.createTempFile
 import kotlin.io.path.writeText
 
+/**
+ * A service that uses [ContainerManager] to build and start containers for test execution.
+ */
 @Service
 @OptIn(ExperimentalPathApi::class)
 class DockerService(private val configProperties: ConfigProperties) {
+    /**
+     * [ContainerManager] that is used to access docker daemon API
+     */
     internal val containerManager = ContainerManager(configProperties.docker.host)
     private val executionDir = "/run/save-execution"
 
     /**
      * Function that builds a base image with test resources and then creates containers with agents.
+     *
+     * @param execution [Execution] from which this workflow is started
+     * @return id of the created container
      */
     fun buildAndCreateContainer(execution: Execution): String {
         val imageId = buildBaseImageForExecution(execution)
@@ -33,13 +40,13 @@ class DockerService(private val configProperties: ConfigProperties) {
             execution.resourcesRootPath,
         )
         // include save-agent into the image
-        ClassPathResource(saveAgentExecutableName).file.copyTo(File(resourcesPath, saveAgentExecutableName))
+        ClassPathResource(SAVE_AGENT_EXECUTABLE_NAME).file.copyTo(File(resourcesPath, SAVE_AGENT_EXECUTABLE_NAME))
         val imageId = containerManager.buildImageWithResources(
             imageName = "save-execution:${execution.id}",
             baseDir = resourcesPath,
             resourcesPath = executionDir,
             runCmd = """RUN apt-get update && apt-get install -y libcurl4-openssl-dev && rm -rf /var/lib/apt/lists/*
-                    |RUN chmod +x $executionDir/$saveAgentExecutableName
+                    |RUN chmod +x $executionDir/$SAVE_AGENT_EXECUTABLE_NAME
                 """
         )
         return imageId
@@ -48,7 +55,7 @@ class DockerService(private val configProperties: ConfigProperties) {
     private fun createContainerForExecution(imageId: String, containerNumber: String): String {
         val containerId = containerManager.createContainerFromImage(
             imageId,
-            RunConfiguration(listOf("$executionDir/$saveAgentExecutableName"), "save-agent"),
+            RunConfiguration(listOf("$executionDir/$SAVE_AGENT_EXECUTABLE_NAME"), "save-agent"),
             "save-execution-$containerNumber",
         )
         val agentPropertiesFile = createTempFile("agent")
@@ -65,6 +72,6 @@ class DockerService(private val configProperties: ConfigProperties) {
     }
 
     companion object {
-        const val saveAgentExecutableName = "save-agent.kexe"
+        private const val SAVE_AGENT_EXECUTABLE_NAME = "save-agent.kexe"
     }
 }

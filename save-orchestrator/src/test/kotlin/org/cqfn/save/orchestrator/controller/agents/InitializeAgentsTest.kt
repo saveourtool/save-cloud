@@ -20,7 +20,6 @@ class InitializeAgentsTest {
 
     @Autowired
     lateinit var webClient: WebTestClient
-
     @MockBean private lateinit var dockerService: DockerService
 
     @Test
