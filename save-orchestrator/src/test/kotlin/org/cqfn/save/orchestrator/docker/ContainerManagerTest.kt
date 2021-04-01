@@ -1,6 +1,5 @@
 package org.cqfn.save.orchestrator.docker
 
-import org.cqfn.save.domain.RunConfiguration
 import org.cqfn.save.orchestrator.config.ConfigProperties
 
 import com.github.dockerjava.api.command.PullImageResultCallback
@@ -27,8 +26,9 @@ import kotlin.io.path.createTempFile
 class ContainerManagerTest {
     @Autowired private lateinit var configProperties: ConfigProperties
     private lateinit var containerManager: ContainerManager
-    private lateinit var imageId: String
+    private lateinit var baseImageId: String
     private lateinit var testContainerId: String
+    private lateinit var testImageId: String
 
     @BeforeEach
     fun setUp() {
@@ -37,7 +37,7 @@ class ContainerManagerTest {
             .withTag("latest")
             .exec(PullImageResultCallback())
             .awaitCompletion()
-        imageId = containerManager.dockerClient.listImagesCmd().exec().find {
+        baseImageId = containerManager.dockerClient.listImagesCmd().exec().find {
             it.repoTags?.firstOrNull() == "ubuntu:latest"
         }!!
             .id
@@ -48,8 +48,8 @@ class ContainerManagerTest {
         val testFile = createTempFile().toFile()
         testFile.writeText("wow such testing")
         testContainerId = containerManager.createContainerFromImage(
-            imageId,
-            RunConfiguration(listOf("./script.sh"), testFile.name),
+            baseImageId,
+            listOf("./script.sh"),
             "testContainer"
         )
         val inspectContainerResponse = containerManager.dockerClient
@@ -69,10 +69,10 @@ class ContainerManagerTest {
     fun `should build an image with provided resources`() {
         val resourcesDir = createTempDirectory()
         repeat(5) { createTempFile(resourcesDir) }
-        val imageId = containerManager.buildImageWithResources(
+        testImageId = containerManager.buildImageWithResources(
             imageName = "test:test", baseDir = resourcesDir.toFile(), resourcesPath = "/app/resources"
         )
-        val inspectImageResponse = containerManager.dockerClient.inspectImageCmd(imageId).exec()
+        val inspectImageResponse = containerManager.dockerClient.inspectImageCmd(testImageId).exec()
         Assertions.assertTrue(inspectImageResponse.size!! > 0)
     }
 
@@ -80,6 +80,9 @@ class ContainerManagerTest {
     fun tearDown() {
         if (::testContainerId.isInitialized) {
             containerManager.dockerClient.removeContainerCmd(testContainerId).exec()
+        }
+        if (::testImageId.isInitialized) {
+            containerManager.dockerClient.removeImageCmd(testImageId).exec()
         }
     }
 }

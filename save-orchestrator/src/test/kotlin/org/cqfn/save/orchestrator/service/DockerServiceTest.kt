@@ -29,6 +29,7 @@ import kotlin.io.path.pathString
 class DockerServiceTest {
     @Autowired private lateinit var configProperties: ConfigProperties
     private lateinit var dockerService: DockerService
+    private lateinit var testImageId: String
     private lateinit var testContainerId: String
 
     @BeforeEach
@@ -44,13 +45,19 @@ class DockerServiceTest {
         dockerService.containerManager.dockerClient.startContainerCmd(testContainerId).exec()
         Thread.sleep(2_500)  // waiting for container to start
         val inspectContainerResponse = dockerService.containerManager.dockerClient.inspectContainerCmd(testContainerId).exec()
+        testImageId = inspectContainerResponse.imageId
         Assertions.assertTrue(inspectContainerResponse.state.running!!) { "container $testContainerId is not running, actual state ${inspectContainerResponse.state}" }
         dockerService.containerManager.dockerClient.stopContainerCmd(testContainerId).exec()
     }
 
     @AfterEach
     fun tearDown() {
-        dockerService.containerManager.dockerClient.removeContainerCmd(testContainerId).exec()
+        if (::testContainerId.isInitialized) {
+            dockerService.containerManager.dockerClient.removeContainerCmd(testContainerId).exec()
+        }
+        if (::testImageId.isInitialized) {
+            dockerService.containerManager.dockerClient.removeImageCmd(testImageId).exec()
+        }
     }
 
     companion object {

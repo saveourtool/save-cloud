@@ -1,7 +1,5 @@
 package org.cqfn.save.orchestrator.docker
 
-import org.cqfn.save.domain.RunConfiguration
-
 import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.api.command.BuildImageResultCallback
 import com.github.dockerjava.api.model.HostConfig
@@ -47,7 +45,7 @@ class ContainerManager(private val dockerHost: String) {
     /**
      * Creates a docker container
      *
-     * @param runConfiguration a [RunConfiguration] for the supplied binary
+     * @param runCmd an entrypoint for docker container with CLI arguments
      * @param containerName a name for the created container
      * @param baseImageId id of the base docker image for this container
      * @return id of created container or null if it wasn't created
@@ -55,18 +53,20 @@ class ContainerManager(private val dockerHost: String) {
      * @throws RuntimeException if an exception not specific to docker has occurred
      */
     internal fun createContainerFromImage(baseImageId: String,
-                                          runConfiguration: RunConfiguration,
+                                          runCmd: List<String>,
                                           containerName: String): String {
         val baseImage = dockerClient.listImagesCmd().exec().find {
             // fixme: sometimes createImageCmd returns short id without prefix, sometimes full and with prefix.
             it.id.replaceFirst("sha256:", "").startsWith(baseImageId.replaceFirst("sha256:", ""))
         }
             ?: error("Image with requested baseImageId=$baseImageId is not present in the system")
+        // createContainerCmd accepts image name, not id, so we retrieve it from tags
         val createContainerCmdResponse = dockerClient.createContainerCmd(baseImage.repoTags.first())
-            .withCmd(runConfiguration.startCommand)
+            .withCmd(runCmd)
             .withName(containerName)
             .withHostConfig(HostConfig.newHostConfig()
                 .withRuntime("runsc")
+                // processes from inside the container will be able to access host's network using this hostname
                 .withExtraHosts("host.docker.internal:host-gateway")
             )
             .exec()
@@ -159,6 +159,8 @@ class ContainerManager(private val dockerHost: String) {
 
     companion object {
         private val log = LoggerFactory.getLogger(ContainerManager::class.java)
+
+        // fixme: choose proper base image for tests
         private const val BASE_IMAGE = "ubuntu"
         private const val BASE_IMAGE_TAG = "latest"
         private const val DOCKER_REPO = "docker.io/library/$BASE_IMAGE"

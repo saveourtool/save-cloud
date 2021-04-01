@@ -1,6 +1,5 @@
 package org.cqfn.save.orchestrator.service
 
-import org.cqfn.save.domain.RunConfiguration
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.orchestrator.config.ConfigProperties
 import org.cqfn.save.orchestrator.docker.ContainerManager
@@ -31,6 +30,7 @@ class DockerService(private val configProperties: ConfigProperties) {
      */
     fun buildAndCreateContainer(execution: Execution): String {
         val imageId = buildBaseImageForExecution(execution)
+        // fixme: when creating multiple containers, assign corresponding numbers
         return createContainerForExecution(imageId, "${execution.id}-1")
     }
 
@@ -55,7 +55,7 @@ class DockerService(private val configProperties: ConfigProperties) {
     private fun createContainerForExecution(imageId: String, containerNumber: String): String {
         val containerId = containerManager.createContainerFromImage(
             imageId,
-            RunConfiguration(listOf("$executionDir/$SAVE_AGENT_EXECUTABLE_NAME"), "save-agent"),
+            listOf("$executionDir/$SAVE_AGENT_EXECUTABLE_NAME"),
             "save-execution-$containerNumber",
         )
         val agentPropertiesFile = createTempFile("agent")
