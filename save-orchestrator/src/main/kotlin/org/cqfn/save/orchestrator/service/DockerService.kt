@@ -17,13 +17,14 @@ import kotlin.io.path.writeText
 @OptIn(ExperimentalPathApi::class)
 class DockerService(private val configProperties: ConfigProperties) {
     internal val containerManager = ContainerManager(configProperties.docker.host)
+    private val executionDir = "/run/save-execution"
 
     /**
      * Function that builds a base image with test resources and then creates containers with agents.
      */
     fun buildAndCreateContainer(execution: Execution): String {
         val imageId = buildBaseImageForExecution(execution)
-        return createContainerForExecution(imageId)
+        return createContainerForExecution(imageId, "${execution.id}-1")
     }
 
     private fun buildBaseImageForExecution(execution: Execution): String {
@@ -34,16 +35,18 @@ class DockerService(private val configProperties: ConfigProperties) {
         val imageId = containerManager.buildImageWithResources(
             imageName = "save-execution:${execution.id}",
             baseDir = resourcesPath,
-            resourcesPath = "/save-agent",
+            resourcesPath = executionDir,
         )
         return imageId
     }
 
-    private fun createContainerForExecution(imageId: String): String {
+    private fun createContainerForExecution(imageId: String, containerNumber: String): String {
+        // fixme: there is no sense to support windows executable
+        val agentExecutableExtension = if (System.getProperty("os.name").startsWith("windows", ignoreCase = true)) "exe" else "kexe"
         val containerId = containerManager.createContainerFromImage(
             imageId,
-            RunConfiguration("./save-agent", "save-agent"),
-            "todo",
+            RunConfiguration(listOf("$executionDir/save-agent.$agentExecutableExtension"), "save-agent"),
+            "save-execution-$containerNumber",
         )
         val agentPropertiesFile = createTempFile("agent")
         agentPropertiesFile.writeText(
@@ -51,9 +54,9 @@ class DockerService(private val configProperties: ConfigProperties) {
                 agent.id=$containerId
             """.trimIndent()
         )
-        val agentExecutableExtension = if (System.getProperty("os.name").startsWith("windows", ignoreCase = true)) "exe" else "kexe"
+        // todo: check if executable is copied with execution permissions
         containerManager.copyResourcesIntoContainer(
-            containerId, "/run",
+            containerId, executionDir,
             listOf(ClassPathResource("save-agent.$agentExecutableExtension").file, agentPropertiesFile.toFile())
         )
         return containerId

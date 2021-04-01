@@ -39,14 +39,15 @@ class DockerServiceTest {
     }
 
     @Test
-    fun `test`() {
+    fun `should create a container with save agent and test resources`() {
         val testExecution = Execution(0, LocalDateTime.now(), LocalDateTime.now(), ExecutionStatus.PENDING, "1", "foo")
         testContainerId = dockerService.buildAndCreateContainer(testExecution)
+        println("Created container $testContainerId")
     }
 
     @AfterEach
     fun tearDown() {
-        dockerService.containerManager.dockerClient.removeContainerCmd(testContainerId).exec()
+//        dockerService.containerManager.dockerClient.removeContainerCmd(testContainerId).exec()
     }
 
     companion object {

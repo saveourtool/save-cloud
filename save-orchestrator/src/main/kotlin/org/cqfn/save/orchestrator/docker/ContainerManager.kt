@@ -135,7 +135,7 @@ class ContainerManager(private val dockerHost: String) {
             GZIPOutputStream(buffOut).use { gzOut ->
                 TarArchiveOutputStream(gzOut).use { tgzOut ->
                     files.forEach {
-                        tgzOut.putArchiveEntry(TarArchiveEntry(it))
+                        tgzOut.putArchiveEntry(TarArchiveEntry(it, it.name))
                         Files.copy(it.toPath(), tgzOut)
                         tgzOut.closeArchiveEntry()
                     }

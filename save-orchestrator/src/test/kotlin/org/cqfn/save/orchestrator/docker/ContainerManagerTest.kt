@@ -47,7 +47,7 @@ class ContainerManagerTest {
         testFile.writeText("wow such testing")
         testContainerId = containerManager.createContainerFromImage(
             imageId,
-            RunConfiguration("./script.sh", testFile.name),
+            RunConfiguration(listOf("./script.sh"), testFile.name),
             "testContainer"
         )
         val inspectContainerResponse = containerManager.dockerClient
