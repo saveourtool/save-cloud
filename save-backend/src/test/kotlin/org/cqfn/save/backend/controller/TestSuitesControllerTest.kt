@@ -34,7 +34,7 @@ class TestSuitesControllerTest {
         val testSuite = TestSuite(
             TestSuiteType.PROJECT,
             "test",
-            0,
+            1,
             testLocalDateTime
         )
 
@@ -52,7 +52,7 @@ class TestSuitesControllerTest {
         val testSuite = TestSuite(
             TestSuiteType.PROJECT,
             "test",
-            0,
+            1,
             testLocalDateTime
         )
 

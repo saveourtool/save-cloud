@@ -16,7 +16,7 @@
                 <constraints primaryKey="true" nullable="false"/>
             </column>
             <column name="project_id" type="bigint">
-                <constraints nullable="false"/>
+                <constraints foreignKeyName="fk_execution_project" references="project(id)" nullable="false"/>
             </column>
             <column name="start_time" type="timestamp">
                 <constraints nullable="false"/>
@@ -28,6 +28,9 @@
                 <constraints nullable="false" />
             </column>
             <column name="test_suite_ids" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="path" type="varchar(255)">
                 <constraints nullable="false"/>
             </column>
         </createTable>
