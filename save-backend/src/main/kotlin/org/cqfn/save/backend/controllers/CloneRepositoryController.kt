@@ -1,6 +1,6 @@
 package org.cqfn.save.backend.controllers
 
-import org.cqfn.save.backend.Response
+import org.cqfn.save.backend.StringResponse
 import org.cqfn.save.backend.configs.ConfigProperties
 import org.cqfn.save.backend.service.ProjectService
 import org.cqfn.save.entities.ExecutionRequest
@@ -19,9 +19,9 @@ import reactor.kotlin.core.publisher.toMono
 /**
  * Controller to save project
  *
- * @property projectService service of project\
+ * @property projectService service to manage projects
  *
- * @param configProperties
+ * @param configProperties configuration properties
  */
 @RestController
 class CloneRepositoryController(
@@ -38,17 +38,17 @@ class CloneRepositoryController(
      * @return mono string
      */
     @PostMapping(value = ["/submitExecutionRequest"])
-    fun submitExecutionRequest(@RequestBody executionRequest: ExecutionRequest): Response {
+    fun submitExecutionRequest(@RequestBody executionRequest: ExecutionRequest): Mono<StringResponse> {
         val project = executionRequest.project
         val projectId: Long
         try {
             projectId = projectService.saveProject(project)
             log.info("Project $projectId saved")
         } catch (exception: DataAccessException) {
-            log.error("Save error for execution request $executionRequest", exception)
+            log.error("Error when saving project for execution request $executionRequest", exception)
             return Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error to clone repo"))
         }
-        log.info("Sending request to preprocessor to start cloning $projectId project")
+        log.info("Sending request to preprocessor to start cloning project id=$projectId")
         return preprocessorWebClient
             .post()
             .uri("/upload")

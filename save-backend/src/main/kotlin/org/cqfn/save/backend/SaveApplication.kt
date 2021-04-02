@@ -8,7 +8,6 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories
 import org.springframework.http.ResponseEntity
 import org.springframework.web.reactive.config.EnableWebFlux
-import reactor.core.publisher.Mono
 
 /**
  * An entrypoint for spring for save-backend
@@ -24,4 +23,4 @@ fun main(args: Array<String>) {
     SpringApplication.run(SaveApplication::class.java, *args)
 }
 
-typealias Response = Mono<ResponseEntity<String>>
+typealias StringResponse = ResponseEntity<String>
