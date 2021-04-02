@@ -39,15 +39,14 @@ class CloneRepositoryController(
      * @return mono string
      */
     @PostMapping(value = ["/submitExecutionRequest"])
-    @Suppress("SAY_NO_TO_VAR")
     fun submitExecutionRequest(@RequestBody executionRequest: ExecutionRequest): Response {
         val project = executionRequest.project
-        var projectId: String? = null
+        val projectId: Long
         try {
-            projectId = projectService.saveProject(project)?.toString() ?: "With non Id"
+            projectId = projectService.saveProject(project)
             log.info("Project $projectId saved")
         } catch (exception: DataAccessException) {
-            log.error("Save error with $projectId project", exception)
+            log.error("Save error for execution request $executionRequest", exception)
             return Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error to clone repo"))
         }
         log.info("Sending request to preprocessor to start cloning $projectId project")
