@@ -5,6 +5,7 @@ import org.cqfn.save.entities.Execution
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.orchestrator.service.AgentService
 import org.cqfn.save.orchestrator.service.DockerService
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -47,6 +48,7 @@ class InitializeAgentsController {
             .subscribeOn(Schedulers.boundedElastic())
             .also {
                 it.subscribe {
+                    log.info("Starting preparations for launching execution $execution")
                     val agentIds = dockerService.buildAndCreateContainers(execution)
                     agentService.saveAgentsWithInitialStatuses(
                         agentIds.map { id ->
@@ -55,5 +57,9 @@ class InitializeAgentsController {
                     )
                 }
             }
+    }
+
+    companion object {
+        private val log = LoggerFactory.getLogger(InitializeAgentsController::class.java)
     }
 }

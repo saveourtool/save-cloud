@@ -78,7 +78,7 @@ class DownloadProject(val configProperties: ConfigProperties) {
                     // Post request to backend to create PENDING executions
                     // Fixme: need to initialize test suite ids
                     project.id?.let {
-                        sendToBackendAndOrchestrator(it, tmpDir.absolutePath)
+                        sendToBackendAndOrchestrator(it, tmpDir.relativeTo(File(configProperties.repository)).normalize().path)
                     }
                         ?: run {
                             throw ResponseStatusException(

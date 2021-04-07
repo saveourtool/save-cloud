@@ -3,6 +3,7 @@ package org.cqfn.save.orchestrator.service
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.orchestrator.config.ConfigProperties
 import org.cqfn.save.orchestrator.docker.ContainerManager
+import org.slf4j.LoggerFactory
 import org.springframework.core.io.ClassPathResource
 import org.springframework.stereotype.Service
 import java.io.File
@@ -29,9 +30,14 @@ class DockerService(private val configProperties: ConfigProperties) {
      * @return list of IDs of created containers
      */
     fun buildAndCreateContainers(execution: Execution): List<String> {
+        log.info("Building base image for execution.id=${execution.id}")
         val imageId = buildBaseImageForExecution(execution)
+        log.info("Built base image for execution.id=${execution.id}")
         return (0 until configProperties.agentsCount).map { number ->
-            createContainerForExecution(imageId, "${execution.id}-$number")
+            log.info("Starting container #$number for execution.id=${execution.id}")
+            createContainerForExecution(imageId, "${execution.id}-$number").also {
+                log.info("Started container id=$it for execution.id=${execution.id}")
+            }
         }
     }
 
@@ -74,5 +80,6 @@ class DockerService(private val configProperties: ConfigProperties) {
 
     companion object {
         private const val SAVE_AGENT_EXECUTABLE_NAME = "save-agent.kexe"
+        private val log = LoggerFactory.getLogger(DockerService::class.java)
     }
 }
