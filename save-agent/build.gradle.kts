@@ -8,15 +8,16 @@ kotlin {
     val os = getCurrentOperatingSystem()
     // Create a target for the host platform.
     val hostTarget = when {
-        os.isLinux -> linuxX64()
-        os.isWindows -> mingwX64()  // you'll need to install msys2 and run `pacman -S mingw-w64-x86_64-curl` to have libcurl for ktor-client
-        os.isMacOsX -> macosX64()
+        os.isLinux -> linuxX64("agent")
+        os.isWindows -> mingwX64("agent")  // you'll need to install msys2 and run `pacman -S mingw-w64-x86_64-curl` to have libcurl for ktor-client
+        os.isMacOsX -> macosX64("agent")
         else -> throw GradleException("Host OS '${os.name}' is not supported in Kotlin/Native $project.")
     }
 
     configure(listOf(hostTarget)) {
         binaries.executable {
             entryPoint = "org.cqfn.save.agent.main"
+            baseName = "save-agent"
         }
     }
     sourceSets {

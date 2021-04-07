@@ -55,7 +55,8 @@ class SaveAgent(private val config: AgentConfiguration,
      * The current [AgentState] of this agent
      */
     val state = AtomicReference(AgentState.IDLE)
-    private val id = uuid4().toString()
+
+    private val id = uuid4().toString()  // todo: should be read from file
     private var saveProcessJob: Job? = null
 
     /**
@@ -119,7 +120,13 @@ class SaveAgent(private val config: AgentConfiguration,
                 val currentTime = Clock.System.now().toEpochMilliseconds()
                 val testExecutionDtoExample = TestExecutionDto(0L, 0L, TestResultStatus.PASSED, currentTime, currentTime)
                 sendExecutionData(testExecutionDtoExample)
-                sendLogs(executionLogs)
+                runCatching {
+                    sendLogs(executionLogs)
+                }
+                    .exceptionOrNull()
+                    ?.let {
+                        println("Couldn't send logs, reason: ${it.message}")
+                    }
                 state.value = AgentState.FINISHED
             }
             else -> state.value = AgentState.CLI_FAILED

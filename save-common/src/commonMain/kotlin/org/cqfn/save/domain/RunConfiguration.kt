@@ -5,8 +5,8 @@ import kotlinx.serialization.Serializable
 /**
  * Describes the configuration to run tests on SAVE backend.
  *
- * @property startCommand shell command to run the file
- * @property fileName name of the supplied file
+ * @property startCommand shell command to run the file and its arguments
+ * @property fileName name of the supplied file. fixme: is it needed?
  */
 @Serializable
-data class RunConfiguration(val startCommand: String, val fileName: String)
+data class RunConfiguration(val startCommand: List<String>, val fileName: String)

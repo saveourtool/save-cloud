@@ -6,6 +6,8 @@ SAVE Cloud contains the following microservices:
 * orchestrator: moderates distributed execution of tests, feeds new batches of tests to a set of agents
 
 ## Building
+* Prerequisites: some components require additional system packages. See [save-agent](../save-agent/README.md) description for details.
+  save-frontend requires node.js installation.
 * To build the project and run all tests, execute `./gradlew build`.
 * For deployment, all microservices are packaged as docker images with the version based on latest git tag and latest commit hash, if there are commits after tag.
 To build release version after you create git tag, make sure to run gradle with `-Preckon.stage=final`.
@@ -13,6 +15,7 @@ To build release version after you create git tag, make sure to run gradle with 
 Deployment is performed on server via docker swarm or locally via docker-compose. See detailed information below.
 
 ## Server deployment
+* Gvisor should be installed and runsc runtime should be available for docker. See [installation guide](https://gvisor.dev/docs/user_guide/install/) for details.
 * Ensure that docker daemon is running and that docker is in swarm mode.
 * Pull new changes to the server and run `./gradlew deployDockerStack`.
 

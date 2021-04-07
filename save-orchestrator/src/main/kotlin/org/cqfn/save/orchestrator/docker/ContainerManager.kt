@@ -1,7 +1,5 @@
 package org.cqfn.save.orchestrator.docker
 
-import org.cqfn.save.domain.RunConfiguration
-
 import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.api.command.BuildImageResultCallback
 import com.github.dockerjava.api.model.HostConfig
@@ -29,7 +27,7 @@ import kotlin.io.path.createTempFile
  *
  * @property dockerHost a URL of docker daemon, local unix socket by default
  */
-class ContainerManager(private val dockerHost: String = "unix:///var/run/docker.sock") {
+class ContainerManager(private val dockerHost: String) {
     private val dockerClientConfig: DockerClientConfig = DefaultDockerClientConfig
         .createDefaultConfigBuilder()
         .withDockerHost(dockerHost)
@@ -45,69 +43,87 @@ class ContainerManager(private val dockerHost: String = "unix:///var/run/docker.
     internal val dockerClient: DockerClient = DockerClientImpl.getInstance(dockerClientConfig, dockerHttpClient)
 
     /**
-     * Creates a docker container with [file], prepared to execute it
+     * Creates a docker container
      *
-     * @param runConfiguration a [RunConfiguration] for the supplied binary
+     * @param runCmd an entrypoint for docker container with CLI arguments
      * @param containerName a name for the created container
-     * @param file a file that will be included as an executable
-     * @param resources additional resources
+     * @param baseImageId id of the base docker image for this container
      * @return id of created container or null if it wasn't created
      * @throws DockerException if docker daemon has returned an error
      * @throws RuntimeException if an exception not specific to docker has occurred
      */
-    internal fun createWithFile(runConfiguration: RunConfiguration,
-                                containerName: String,
-                                file: File,
-                                resources: Collection<File> = emptySet()): String {
-        // ensure the image is present in the system
-        dockerClient.pullImageCmd(DOCKER_REPO)
-            .withTag("latest")
-            .start()
-            .awaitCompletion()
-
-        val createContainerCmdResponse = dockerClient.createContainerCmd("ubuntu:latest")
-            .withCmd(runConfiguration.startCommand)
+    internal fun createContainerFromImage(baseImageId: String,
+                                          runCmd: List<String>,
+                                          containerName: String): String {
+        val baseImage = dockerClient.listImagesCmd().exec().find {
+            // fixme: sometimes createImageCmd returns short id without prefix, sometimes full and with prefix.
+            it.id.replaceFirst("sha256:", "").startsWith(baseImageId.replaceFirst("sha256:", ""))
+        }
+            ?: error("Image with requested baseImageId=$baseImageId is not present in the system")
+        // createContainerCmd accepts image name, not id, so we retrieve it from tags
+        val createContainerCmdResponse = dockerClient.createContainerCmd(baseImage.repoTags.first())
+            .withCmd(runCmd)
             .withName(containerName)
             .withHostConfig(HostConfig.newHostConfig()
                 .withRuntime("runsc")
+                // processes from inside the container will be able to access host's network using this hostname
+                .withExtraHosts("host.docker.internal:host-gateway")
             )
             .exec()
 
-        createTgzStream(file, *resources.toTypedArray()).use { out ->
-            dockerClient.copyArchiveToContainerCmd(createContainerCmdResponse.id)
+        return createContainerCmdResponse.id
+    }
+
+    /**
+     * Copies specified [resources] into the container with id [containerId]
+     *
+     * @param resources additional resources
+     * @param containerId id of the target container
+     * @param remotePath path in the target container
+     */
+    internal fun copyResourcesIntoContainer(containerId: String,
+                                            remotePath: String,
+                                            resources: Collection<File>) {
+        createTgzStream(*resources.toTypedArray()).use { out ->
+            dockerClient.copyArchiveToContainerCmd(containerId)
                 .withTarInputStream(out.toByteArray().inputStream())
-                .withRemotePath("/run")
+                .withRemotePath(remotePath)
                 .exec()
         }
-        return createContainerCmdResponse.id
     }
 
     /**
      * Creates a docker image with provided [resources]
      *
-     * @param baseImage base docker image rom which this image will be built
+     * @param baseImage base docker image from which this image will be built
      * @param baseDir a context dir for Dockerfile
-     * @param resourcesPath path to additional resources
+     * @param resourcesPath target path to additional resources. Resources from baseDir will be copied into this directory inside of the container.
+     * @param runCmd command to append to the Dockerfile. Actual entrypoint is added on container creation.
+     * @param imageName name which will be assigned to the image
      * @return id of the created docker image
      * @throws DockerException
      */
     @OptIn(ExperimentalPathApi::class)
     internal fun buildImageWithResources(baseImage: String = "ubuntu:latest",
+                                         imageName: String,
                                          baseDir: File,
-                                         resourcesPath: String): String {
+                                         resourcesPath: String,
+                                         runCmd: String = "RUN /bin/bash",
+    ): String {
         val tmpDir = createTempDirectory().toFile()
         baseDir.copyRecursively(File(tmpDir, "resources"))
         val dockerFileAsText =
                 """
-                    FROM $baseImage
-                    COPY resources $resourcesPath
-                    RUN /bin/bash
-                """.trimIndent()  // RUN command shouldn't matter because it will be replaced on container creation
+                    |FROM $baseImage
+                    |COPY resources $resourcesPath
+                    |$runCmd
+                """.trimMargin()
         val dockerFile = createTempFile(tmpDir.toPath()).toFile()
         dockerFile.writeText(dockerFileAsText)
         val buildImageResultCallback: BuildImageResultCallback = try {
             dockerClient.buildImageCmd(dockerFile)
                 .withBaseDirectory(tmpDir)
+                .withTags(setOf(imageName))
                 .start()
         } finally {
             dockerFile.delete()
@@ -128,7 +144,7 @@ class ContainerManager(private val dockerHost: String = "unix:///var/run/docker.
             GZIPOutputStream(buffOut).use { gzOut ->
                 TarArchiveOutputStream(gzOut).use { tgzOut ->
                     files.forEach {
-                        tgzOut.putArchiveEntry(TarArchiveEntry(it))
+                        tgzOut.putArchiveEntry(TarArchiveEntry(it, it.name))
                         Files.copy(it.toPath(), tgzOut)
                         tgzOut.closeArchiveEntry()
                     }
@@ -143,6 +159,10 @@ class ContainerManager(private val dockerHost: String = "unix:///var/run/docker.
 
     companion object {
         private val log = LoggerFactory.getLogger(ContainerManager::class.java)
-        private const val DOCKER_REPO = "docker.io/library/ubuntu"
+
+        // fixme: choose proper base image for tests
+        private const val BASE_IMAGE = "ubuntu"
+        private const val BASE_IMAGE_TAG = "latest"
+        private const val DOCKER_REPO = "docker.io/library/$BASE_IMAGE"
     }
 }
