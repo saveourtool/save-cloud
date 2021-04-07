@@ -13,13 +13,15 @@ import org.springframework.boot.context.properties.ConstructorBinding
  * @property backendUrl url of save-backend
  * @property testResources configuration for test resources
  * @property docker configuration for docker API
+ * @property agentsCount a number of agents to start for every [Execution]
  */
 @ConstructorBinding
 @ConfigurationProperties(prefix = "orchestrator")
 data class ConfigProperties(
     val backendUrl: String,
     val testResources: TestResources,
-    val docker: DockerSettings
+    val docker: DockerSettings,
+    val agentsCount: Int,
 )
 
 /**

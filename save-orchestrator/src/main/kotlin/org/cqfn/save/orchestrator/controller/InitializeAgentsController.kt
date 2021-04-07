@@ -1,8 +1,10 @@
 package org.cqfn.save.orchestrator.controller
 
+import org.cqfn.save.entities.Agent
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.orchestrator.service.AgentService
+import org.cqfn.save.orchestrator.service.DockerService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -11,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
+import reactor.core.scheduler.Schedulers
 
 typealias Status = Mono<ResponseEntity<HttpStatus>>
 
@@ -19,20 +22,21 @@ typealias Status = Mono<ResponseEntity<HttpStatus>>
  */
 @RestController
 class InitializeAgentsController {
-    /**
-     * agentService
-     */
     @Autowired
-    lateinit var agentService: AgentService
+    private lateinit var agentService: AgentService
+
+    @Autowired
+    private lateinit var dockerService: DockerService
 
     /**
+     * Schedules tasks to build base images, create a number of containers and put their data into the database.
+     *
      * @param execution
      * @return OK if everything went fine.
      * @throws ResponseStatusException
      */
     @PostMapping("/initializeAgents")
     fun initialize(@RequestBody execution: Execution): Status {
-        // TODO initialization
         if (execution.status != ExecutionStatus.PENDING) {
             throw ResponseStatusException(
                 HttpStatus.BAD_REQUEST,
@@ -40,5 +44,16 @@ class InitializeAgentsController {
             )
         }
         return Mono.just(ResponseEntity.ok(HttpStatus.OK))
+            .subscribeOn(Schedulers.boundedElastic())
+            .also {
+                it.subscribe {
+                    val agentIds = dockerService.buildAndCreateContainers(execution)
+                    agentService.saveAgentsWithInitialStatuses(
+                        agentIds.map { id ->
+                            Agent(id, execution.id!!)
+                        }
+                    )
+                }
+            }
     }
 }

@@ -61,7 +61,7 @@ class HeartbeatControllerTest {
     @BeforeEach
     fun initialize() {
         val baseUrl = "http://localhost:${mockServer.port}"
-        agentService = AgentService(ConfigProperties(baseUrl, TestResources("stub"), DockerSettings("stub")))
+        agentService = AgentService(ConfigProperties(baseUrl, TestResources("stub"), DockerSettings("stub"), -1))
     }
 
     @Test

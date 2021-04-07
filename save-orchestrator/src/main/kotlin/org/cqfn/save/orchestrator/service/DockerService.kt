@@ -26,12 +26,13 @@ class DockerService(private val configProperties: ConfigProperties) {
      * Function that builds a base image with test resources and then creates containers with agents.
      *
      * @param execution [Execution] from which this workflow is started
-     * @return id of the created container
+     * @return list of IDs of created containers
      */
-    fun buildAndCreateContainer(execution: Execution): String {
+    fun buildAndCreateContainers(execution: Execution): List<String> {
         val imageId = buildBaseImageForExecution(execution)
-        // fixme: when creating multiple containers, assign corresponding numbers
-        return createContainerForExecution(imageId, "${execution.id}-1")
+        return (0 until configProperties.agentsCount).map { number ->
+            createContainerForExecution(imageId, "${execution.id}-$number")
+        }
     }
 
     private fun buildBaseImageForExecution(execution: Execution): String {

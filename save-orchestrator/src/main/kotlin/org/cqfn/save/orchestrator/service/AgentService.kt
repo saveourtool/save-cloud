@@ -10,7 +10,13 @@ import org.springframework.web.reactive.function.client.WebClient
 import reactor.core.publisher.Mono
 
 import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.cqfn.save.agent.AgentState
+import org.cqfn.save.entities.Agent
+import org.cqfn.save.entities.AgentStatus
+import org.springframework.web.reactive.function.client.WebClientResponseException
+import java.time.LocalDateTime
 
 /**
  * Service for work with agents and backend
@@ -18,8 +24,6 @@ import kotlinx.serialization.json.Json
  * @param baseUrl
  */
 @Service
-// Fixme: delete suppress when resendTestsOnError function has any code
-@Suppress("EmptyFunctionBlock")
 class AgentService(configProperties: ConfigProperties) {
     /**
      * Used to send requests to backend
@@ -43,6 +47,32 @@ class AgentService(configProperties: ConfigProperties) {
                 }
 
     /**
+     * Save new agents to the DB and insert their statuses. This logic is performed in two consecutive requests.
+     *
+     * @throws WebClientResponseException if any of the requests fails
+     */
+    fun saveAgentsWithInitialStatuses(agents: List<Agent>) {
+        webClient
+            .post()
+            .uri("/addAgents")
+            .bodyValue(Json.encodeToString(agents))
+            .retrieve()
+            .bodyToMono(String::class.java)
+        updateAgentStates(agents.map {
+            AgentStatus(LocalDateTime.now(), AgentState.IDLE, it.agentId)
+        })
+    }
+
+    fun updateAgentStates(agentStates: List<AgentStatus>) {
+        webClient
+            .post()
+            .uri("/updateAgentStates")
+            .bodyValue(Json.encodeToString(agentStates))
+            .retrieve()
+            .bodyToMono(String::class.java)
+    }
+
+    /**
      * @return nothing for now Fixme
      */
     @Suppress("FunctionOnlyReturningConstant")
@@ -53,6 +83,6 @@ class AgentService(configProperties: ConfigProperties) {
      */
     @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")  // Fixme
     fun resendTestsOnError() {
-
+        TODO()
     }
 }

@@ -40,7 +40,7 @@ class DockerServiceTest {
     @Test
     fun `should create a container with save agent and test resources and start it`() {
         val testExecution = Execution(0, LocalDateTime.now(), LocalDateTime.now(), ExecutionStatus.PENDING, "1", "foo")
-        testContainerId = dockerService.buildAndCreateContainer(testExecution)
+        testContainerId = dockerService.buildAndCreateContainers(testExecution).single()
         println("Created container $testContainerId")
         dockerService.containerManager.dockerClient.startContainerCmd(testContainerId).exec()
         Thread.sleep(2_500)  // waiting for container to start
