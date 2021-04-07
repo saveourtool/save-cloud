@@ -58,15 +58,15 @@ class AgentService(configProperties: ConfigProperties) {
             .bodyValue(Json.encodeToString(agents))
             .retrieve()
             .bodyToMono(String::class.java)
-        updateAgentStates(agents.map {
+        updateAgentStatuses(agents.map {
             AgentStatus(LocalDateTime.now(), AgentState.IDLE, it.agentId)
         })
     }
 
-    fun updateAgentStates(agentStates: List<AgentStatus>) {
+    fun updateAgentStatuses(agentStates: List<AgentStatus>) {
         webClient
             .post()
-            .uri("/updateAgentStates")
+            .uri("/updateAgentStatuses")
             .bodyValue(Json.encodeToString(agentStates))
             .retrieve()
             .bodyToMono(String::class.java)
