@@ -15,6 +15,8 @@ import kotlinx.serialization.json.Json
 import org.cqfn.save.agent.AgentState
 import org.cqfn.save.entities.Agent
 import org.cqfn.save.entities.AgentStatus
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import java.time.LocalDateTime
 
@@ -25,10 +27,9 @@ import java.time.LocalDateTime
  */
 @Service
 class AgentService(configProperties: ConfigProperties) {
-    /**
-     * Used to send requests to backend
-     */
-    private val webClient = WebClient.create(configProperties.backendUrl)
+    @Autowired
+    @Qualifier("webClientBackend")
+    private lateinit var webClientBackend: WebClient
 
     /**
      * Sets new tests ids
@@ -36,7 +37,7 @@ class AgentService(configProperties: ConfigProperties) {
      * @return Mono<NewJobResponse>
      */
     fun setNewTestsIds(): Mono<out HeartbeatResponse> =
-            webClient
+            webClientBackend
                 .get()
                 .uri("/getTestBatches")
                 .retrieve()
@@ -52,7 +53,7 @@ class AgentService(configProperties: ConfigProperties) {
      * @throws WebClientResponseException if any of the requests fails
      */
     fun saveAgentsWithInitialStatuses(agents: List<Agent>) {
-        webClient
+        webClientBackend
             .post()
             .uri("/addAgents")
             .bodyValue(Json.encodeToString(agents))
@@ -64,7 +65,7 @@ class AgentService(configProperties: ConfigProperties) {
     }
 
     fun updateAgentStatuses(agentStates: List<AgentStatus>) {
-        webClient
+        webClientBackend
             .post()
             .uri("/updateAgentStatuses")
             .bodyValue(Json.encodeToString(agentStates))

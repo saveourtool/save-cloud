@@ -1,11 +1,18 @@
 package org.cqfn.save.orchestrator.service
 
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import org.cqfn.save.entities.Execution
+import org.cqfn.save.execution.ExecutionStatus
+import org.cqfn.save.execution.ExecutionUpdateDto
 import org.cqfn.save.orchestrator.config.ConfigProperties
 import org.cqfn.save.orchestrator.docker.ContainerManager
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.core.io.ClassPathResource
 import org.springframework.stereotype.Service
+import org.springframework.web.reactive.function.client.WebClient
 import java.io.File
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.createTempFile
@@ -17,6 +24,10 @@ import kotlin.io.path.writeText
 @Service
 @OptIn(ExperimentalPathApi::class)
 class DockerService(private val configProperties: ConfigProperties) {
+    @Autowired
+    @Qualifier("webClientBackend")
+    private lateinit var webClientBackend: WebClient
+
     /**
      * [ContainerManager] that is used to access docker daemon API
      */
@@ -33,12 +44,26 @@ class DockerService(private val configProperties: ConfigProperties) {
         log.info("Building base image for execution.id=${execution.id}")
         val imageId = buildBaseImageForExecution(execution)
         log.info("Built base image for execution.id=${execution.id}")
-        return (0 until configProperties.agentsCount).map { number ->
-            log.info("Starting container #$number for execution.id=${execution.id}")
+        return (1..configProperties.agentsCount).map { number ->
+            log.info("Building container #$number for execution.id=${execution.id}")
             createContainerForExecution(imageId, "${execution.id}-$number").also {
-                log.info("Started container id=$it for execution.id=${execution.id}")
+                log.info("Built container id=$it for execution.id=${execution.id}")
             }
         }
+    }
+
+    fun startContainersAndUpdateExecution(execution: Execution, agentIds: List<String>) {
+        log.info("Sending request to make execution.id=${execution.id} RUNNING")
+        webClientBackend
+            .post()
+            .uri("/updateExecution")
+            .bodyValue(Json.encodeToString(ExecutionUpdateDto(execution.id!!, ExecutionStatus.RUNNING)))
+            .retrieve()
+        agentIds.forEach {
+            log.info("Starting container id=$it")
+            containerManager.dockerClient.startContainerCmd(it).exec()
+        }
+        log.info("Successfully started all containers for execution.id=${execution.id}")
     }
 
     private fun buildBaseImageForExecution(execution: Execution): String {

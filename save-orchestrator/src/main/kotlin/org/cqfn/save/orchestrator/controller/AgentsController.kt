@@ -22,7 +22,7 @@ typealias Status = Mono<ResponseEntity<HttpStatus>>
  * Controller used to starts agents with needed information
  */
 @RestController
-class InitializeAgentsController {
+class AgentsController {
     @Autowired
     private lateinit var agentService: AgentService
 
@@ -55,11 +55,19 @@ class InitializeAgentsController {
                             Agent(id, execution.id!!)
                         }
                     )
+                    dockerService.startContainersAndUpdateExecution(execution, agentIds)
                 }
             }
     }
 
+    @PostMapping("/stopAgents")
+    fun stopAgents(agentIds: List<String>) {
+        agentIds.forEach {
+            dockerService.containerManager.dockerClient.stopContainerCmd(it).exec()
+        }
+    }
+
     companion object {
-        private val log = LoggerFactory.getLogger(InitializeAgentsController::class.java)
+        private val log = LoggerFactory.getLogger(AgentsController::class.java)
     }
 }
