@@ -2,18 +2,24 @@ package org.cqfn.save.orchestrator.service
 
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.execution.ExecutionStatus
+import org.cqfn.save.orchestrator.config.Beans
 import org.cqfn.save.orchestrator.config.ConfigProperties
+import org.cqfn.save.orchestrator.controller.AgentsController
 
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.condition.DisabledIfSystemProperty
+import org.junit.jupiter.api.condition.DisabledOnOs
+import org.junit.jupiter.api.condition.OS
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.properties.EnableConfigurationProperties
+import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
+import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.boot.test.mock.mockito.MockBeans
+import org.springframework.context.annotation.Import
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.context.TestPropertySource
@@ -30,22 +36,23 @@ import kotlin.io.path.pathString
 @ExtendWith(SpringExtension::class)
 @EnableConfigurationProperties(ConfigProperties::class)
 @TestPropertySource("classpath:application.properties")
-@DisabledIfSystemProperty(named = "os.name", matches = "Windows.*", disabledReason = "Docker daemon behaves differently on Windows, and our target platform is Linux")
+@DisabledOnOs(OS.WINDOWS, disabledReason = "Docker daemon behaves differently on Windows, and our target platform is Linux")
+@WebFluxTest(controllers = [AgentsController::class])  // to autowire everything for DockerService
+@MockBeans(
+    MockBean(AgentService::class)
+)
+@Import(Beans::class, DockerService::class)
 class DockerServiceTest {
-    @Autowired private lateinit var configProperties: ConfigProperties
-    private lateinit var dockerService: DockerService
+    @Autowired private lateinit var dockerService: DockerService
     private lateinit var testImageId: String
     private lateinit var testContainerId: String
-
-    @BeforeEach
-    fun setUp() {
-        dockerService = DockerService(configProperties)
-    }
 
     @Test
     fun `should create a container with save agent and test resources and start it`() {
         // build base image
-        val testExecution = Execution(0, LocalDateTime.now(), LocalDateTime.now(), ExecutionStatus.PENDING, "1", "foo")
+        val testExecution = Execution(0, LocalDateTime.now(), LocalDateTime.now(), ExecutionStatus.PENDING, "1", "foo").apply {
+            id = 42L
+        }
         testContainerId = dockerService.buildAndCreateContainers(testExecution).single()
         println("Created container $testContainerId")
 

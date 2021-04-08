@@ -3,19 +3,25 @@ package org.cqfn.save.orchestrator.controller.agents
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.orchestrator.config.Beans
+import org.cqfn.save.orchestrator.controller.AgentsController
 import org.cqfn.save.orchestrator.service.AgentService
 import org.cqfn.save.orchestrator.service.DockerService
+
 import org.junit.jupiter.api.Test
-import org.mockito.Mockito
+import org.mockito.ArgumentMatchers.anyList
+import org.mockito.kotlin.any
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.context.annotation.Import
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.web.reactive.function.BodyInserters
+
 import java.time.LocalDateTime
 
-@WebFluxTest
+@WebFluxTest(controllers = [AgentsController::class])
 @Import(AgentService::class, Beans::class)
 class AgentsControllerTest {
     private val stubTime = LocalDateTime.now()
@@ -27,6 +33,7 @@ class AgentsControllerTest {
     @Test
     fun checkPostResponseIsOk() {
         val execution = Execution(3, stubTime, stubTime, ExecutionStatus.PENDING, "stub", "stub")
+        whenever(dockerService.buildAndCreateContainers(any())).thenReturn(listOf("test-agent-id-1", "test-agent-id-2"))
         webClient
             .post()
             .uri("/initializeAgents")
@@ -34,6 +41,9 @@ class AgentsControllerTest {
             .exchange()
             .expectStatus()
             .isOk
+        Thread.sleep(1_000)  // wait for background task to complete on mocks
+        verify(dockerService).buildAndCreateContainers(any())
+        verify(dockerService).startContainersAndUpdateExecution(any(), anyList())
     }
 
     @Test
@@ -57,6 +67,6 @@ class AgentsControllerTest {
             .exchange()
             .expectStatus()
             .isOk
-        Mockito.verify(dockerService).stopAgents(Mockito.anyList())
+        verify(dockerService).stopAgents(anyList())
     }
 }

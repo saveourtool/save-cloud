@@ -10,15 +10,13 @@ import org.cqfn.save.test.TestDto
 
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.core.ParameterizedTypeReference
 import org.springframework.stereotype.Service
+import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 import reactor.core.publisher.Mono
 
 import java.time.LocalDateTime
-
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 
 /**
  * Service for work with agents and backend
@@ -39,11 +37,8 @@ class AgentService(configProperties: ConfigProperties) {
                 .get()
                 .uri("/getTestBatches")
                 .retrieve()
-                .bodyToMono(String::class.java)
-                .map {
-                    val listTest: List<TestDto> = Json.decodeFromString(it)
-                    NewJobResponse(listTest)
-                }
+                .bodyToMono(ParameterizedTypeReference.forType<List<TestDto>>(List::class.java))
+                .map { NewJobResponse(it) }
 
     /**
      * Save new agents to the DB and insert their statuses. This logic is performed in two consecutive requests.
@@ -55,7 +50,7 @@ class AgentService(configProperties: ConfigProperties) {
         webClientBackend
             .post()
             .uri("/addAgents")
-            .bodyValue(Json.encodeToString(agents))
+            .body(BodyInserters.fromValue(agents))
             .retrieve()
             .bodyToMono(String::class.java)
         updateAgentStatuses(agents.map {
@@ -70,7 +65,7 @@ class AgentService(configProperties: ConfigProperties) {
         webClientBackend
             .post()
             .uri("/updateAgentStatuses")
-            .bodyValue(Json.encodeToString(agentStates))
+            .body(BodyInserters.fromValue(agentStates))
             .retrieve()
             .bodyToMono(String::class.java)
     }
