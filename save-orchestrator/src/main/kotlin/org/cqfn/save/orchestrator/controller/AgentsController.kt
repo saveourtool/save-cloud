@@ -44,22 +44,24 @@ class AgentsController {
                 "Execution status must be PENDING"
             )
         }
-        return Mono.just(ResponseEntity.ok(HttpStatus.OK))
+        val response = Mono.just(ResponseEntity.ok(HttpStatus.OK))
             .subscribeOn(Schedulers.boundedElastic())
-            .also {
-                it.subscribe {
-                    log.info("Starting preparations for launching execution $execution")
-                    val agentIds = dockerService.buildAndCreateContainers(execution)
-                    agentService.saveAgentsWithInitialStatuses(
-                        agentIds.map { id ->
-                            Agent(id, execution.id!!)
-                        }
-                    )
-                    dockerService.startContainersAndUpdateExecution(execution, agentIds)
+        response.subscribe {
+            log.info("Starting preparations for launching execution $execution")
+            val agentIds = dockerService.buildAndCreateContainers(execution)
+            agentService.saveAgentsWithInitialStatuses(
+                agentIds.map { id ->
+                    Agent(id, execution.id!!)
                 }
-            }
+            )
+            dockerService.startContainersAndUpdateExecution(execution, agentIds)
+        }
+        return response
     }
 
+    /**
+     * @param agentIds list of IDs of agents to stop
+     */
     @PostMapping("/stopAgents")
     fun stopAgents(@RequestBody agentIds: List<String>) {
         dockerService.stopAgents(agentIds)

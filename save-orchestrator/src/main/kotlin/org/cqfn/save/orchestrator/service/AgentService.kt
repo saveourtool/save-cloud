@@ -1,24 +1,24 @@
 package org.cqfn.save.orchestrator.service
 
+import org.cqfn.save.agent.AgentState
 import org.cqfn.save.agent.HeartbeatResponse
 import org.cqfn.save.agent.NewJobResponse
+import org.cqfn.save.entities.Agent
+import org.cqfn.save.entities.AgentStatus
 import org.cqfn.save.orchestrator.config.ConfigProperties
 import org.cqfn.save.test.TestDto
 
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
 import reactor.core.publisher.Mono
 
+import java.time.LocalDateTime
+
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.cqfn.save.agent.AgentState
-import org.cqfn.save.entities.Agent
-import org.cqfn.save.entities.AgentStatus
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Qualifier
-import org.springframework.web.reactive.function.client.WebClientResponseException
-import java.time.LocalDateTime
 
 /**
  * Service for work with agents and backend
@@ -48,6 +48,7 @@ class AgentService(configProperties: ConfigProperties) {
     /**
      * Save new agents to the DB and insert their statuses. This logic is performed in two consecutive requests.
      *
+     * @param agents list of [Agent]s to save in the DB
      * @throws WebClientResponseException if any of the requests fails
      */
     fun saveAgentsWithInitialStatuses(agents: List<Agent>) {
@@ -62,6 +63,9 @@ class AgentService(configProperties: ConfigProperties) {
         })
     }
 
+    /**
+     * @param agentStates lsit of [AgentStatus]es to update in the DB
+     */
     fun updateAgentStatuses(agentStates: List<AgentStatus>) {
         webClientBackend
             .post()

@@ -1,11 +1,6 @@
-@file:UseSerializers(LocalDateTimeSerializer::class)
-
 package org.cqfn.save.entities
 
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.UseSerializers
 import org.cqfn.save.execution.ExecutionStatus
-import org.cqfn.save.utils.LocalDateTimeSerializer
 import java.time.LocalDateTime
 import javax.persistence.Entity
 import javax.persistence.EnumType

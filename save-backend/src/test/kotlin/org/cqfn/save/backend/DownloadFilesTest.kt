@@ -36,9 +36,7 @@ class DownloadFilesTest {
 
     @MockBean
     lateinit var agentStatusRepository: AgentStatusRepository
-
     @MockBean private lateinit var agentRepository: AgentRepository
-
     @MockBean private lateinit var agentsController: AgentsController
 
     @MockBean

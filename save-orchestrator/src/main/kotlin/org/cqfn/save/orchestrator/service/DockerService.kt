@@ -1,7 +1,5 @@
 package org.cqfn.save.orchestrator.service
 
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionUpdateDto
@@ -25,15 +23,15 @@ import kotlin.io.path.writeText
 @Service
 @OptIn(ExperimentalPathApi::class)
 class DockerService(private val configProperties: ConfigProperties) {
-    @Autowired
-    @Qualifier("webClientBackend")
-    private lateinit var webClientBackend: WebClient
-
     /**
      * [ContainerManager] that is used to access docker daemon API
      */
     internal val containerManager = ContainerManager(configProperties.docker.host)
     private val executionDir = "/run/save-execution"
+
+    @Autowired
+    @Qualifier("webClientBackend")
+    private lateinit var webClientBackend: WebClient
 
     /**
      * Function that builds a base image with test resources and then creates containers with agents.
@@ -53,6 +51,10 @@ class DockerService(private val configProperties: ConfigProperties) {
         }
     }
 
+    /**
+     * @param execution an [Execution] for which containers are being started
+     * @param agentIds list of IDs of agents (==containers) for this execution
+     */
     fun startContainersAndUpdateExecution(execution: Execution, agentIds: List<String>) {
         log.info("Sending request to make execution.id=${execution.id} RUNNING")
         webClientBackend
@@ -67,6 +69,9 @@ class DockerService(private val configProperties: ConfigProperties) {
         log.info("Successfully started all containers for execution.id=${execution.id}")
     }
 
+    /**
+     * @param agentIds list of IDs of agents to stop
+     */
     fun stopAgents(agentIds: List<String>) {
         agentIds.forEach {
             containerManager.dockerClient.stopContainerCmd(it).exec()
@@ -111,7 +116,7 @@ class DockerService(private val configProperties: ConfigProperties) {
     }
 
     companion object {
-        private const val SAVE_AGENT_EXECUTABLE_NAME = "save-agent.kexe"
         private val log = LoggerFactory.getLogger(DockerService::class.java)
+        private const val SAVE_AGENT_EXECUTABLE_NAME = "save-agent.kexe"
     }
 }

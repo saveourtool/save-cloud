@@ -1,3 +1,7 @@
+/**
+ * JPA repositories for Agent related data
+ */
+
 package org.cqfn.save.backend.repository
 
 import org.cqfn.save.entities.Agent

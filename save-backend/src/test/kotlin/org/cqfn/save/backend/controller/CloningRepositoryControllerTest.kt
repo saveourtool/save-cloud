@@ -1,6 +1,8 @@
 package org.cqfn.save.backend.controller
 
+import org.cqfn.save.backend.controllers.AgentsController
 import org.cqfn.save.backend.controllers.CloneRepositoryController
+import org.cqfn.save.backend.repository.AgentRepository
 import org.cqfn.save.backend.repository.AgentStatusRepository
 import org.cqfn.save.backend.repository.ExecutionRepository
 import org.cqfn.save.backend.repository.ProjectRepository
@@ -18,8 +20,6 @@ import org.cqfn.save.repository.GitRepository
 
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
-import org.cqfn.save.backend.controllers.AgentsController
-import org.cqfn.save.backend.repository.AgentRepository
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
@@ -50,9 +50,7 @@ class CloningRepositoryControllerTest {
 
     @MockBean
     lateinit var agentStatusRepository: AgentStatusRepository
-
     @MockBean private lateinit var agentRepository: AgentRepository
-
     @MockBean private lateinit var agentsController: AgentsController
 
     @MockBean
