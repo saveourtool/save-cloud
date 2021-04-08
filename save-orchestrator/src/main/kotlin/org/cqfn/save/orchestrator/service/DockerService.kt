@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.core.io.ClassPathResource
 import org.springframework.stereotype.Service
+import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 import java.io.File
 import kotlin.io.path.ExperimentalPathApi
@@ -57,13 +58,19 @@ class DockerService(private val configProperties: ConfigProperties) {
         webClientBackend
             .post()
             .uri("/updateExecution")
-            .bodyValue(Json.encodeToString(ExecutionUpdateDto(execution.id!!, ExecutionStatus.RUNNING)))
+            .body(BodyInserters.fromValue(ExecutionUpdateDto(execution.id!!, ExecutionStatus.RUNNING)))
             .retrieve()
         agentIds.forEach {
             log.info("Starting container id=$it")
             containerManager.dockerClient.startContainerCmd(it).exec()
         }
         log.info("Successfully started all containers for execution.id=${execution.id}")
+    }
+
+    fun stopAgents(agentIds: List<String>) {
+        agentIds.forEach {
+            containerManager.dockerClient.stopContainerCmd(it).exec()
+        }
     }
 
     private fun buildBaseImageForExecution(execution: Execution): String {

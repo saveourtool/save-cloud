@@ -1,10 +1,13 @@
 package org.cqfn.save.orchestrator.service
 
+import okhttp3.mockwebserver.MockResponse
+import okhttp3.mockwebserver.MockWebServer
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.orchestrator.config.ConfigProperties
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.DisabledIfSystemProperty
@@ -39,15 +42,26 @@ class DockerServiceTest {
 
     @Test
     fun `should create a container with save agent and test resources and start it`() {
+        // build base image
         val testExecution = Execution(0, LocalDateTime.now(), LocalDateTime.now(), ExecutionStatus.PENDING, "1", "foo")
         testContainerId = dockerService.buildAndCreateContainers(testExecution).single()
         println("Created container $testContainerId")
-        dockerService.containerManager.dockerClient.startContainerCmd(testContainerId).exec()
+
+        // start container and query backend
+        mockServer.enqueue(
+            MockResponse()
+                .setResponseCode(200)
+        )
+        dockerService.startContainersAndUpdateExecution(testExecution, listOf(testContainerId))
+
+        // assertions
         Thread.sleep(2_500)  // waiting for container to start
         val inspectContainerResponse = dockerService.containerManager.dockerClient.inspectContainerCmd(testContainerId).exec()
         testImageId = inspectContainerResponse.imageId
         Assertions.assertTrue(inspectContainerResponse.state.running!!) { "container $testContainerId is not running, actual state ${inspectContainerResponse.state}" }
-        dockerService.containerManager.dockerClient.stopContainerCmd(testContainerId).exec()
+
+        // tear down
+        dockerService.stopAgents(listOf(testContainerId))
     }
 
     @AfterEach
@@ -61,6 +75,9 @@ class DockerServiceTest {
     }
 
     companion object {
+        @JvmStatic
+        private val mockServer = MockWebServer()
+
         @OptIn(ExperimentalPathApi::class)
         @JvmStatic
         @DynamicPropertySource
@@ -69,6 +86,10 @@ class DockerServiceTest {
                 val tmpDir = createTempDirectory("repository")
                 Path(tmpDir.pathString, "foo").createDirectory()
                 tmpDir.pathString
+            }
+            registry.add("orchestrator.backendUrl") {
+                mockServer.start()
+                "http://localhost:${mockServer.port}"
             }
         }
     }

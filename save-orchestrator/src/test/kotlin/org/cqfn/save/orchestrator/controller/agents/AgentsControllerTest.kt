@@ -6,6 +6,7 @@ import org.cqfn.save.orchestrator.config.Beans
 import org.cqfn.save.orchestrator.service.AgentService
 import org.cqfn.save.orchestrator.service.DockerService
 import org.junit.jupiter.api.Test
+import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
 import org.springframework.boot.test.mock.mockito.MockBean
@@ -16,7 +17,7 @@ import java.time.LocalDateTime
 
 @WebFluxTest
 @Import(AgentService::class, Beans::class)
-class InitializeAgentsTest {
+class AgentsControllerTest {
     private val stubTime = LocalDateTime.now()
 
     @Autowired
@@ -45,5 +46,17 @@ class InitializeAgentsTest {
             .exchange()
             .expectStatus()
             .is4xxClientError
+    }
+
+    @Test
+    fun `should stop agents by id`() {
+        webClient
+            .post()
+            .uri("/stopAgents")
+            .body(BodyInserters.fromValue(listOf("id-of-agent")))
+            .exchange()
+            .expectStatus()
+            .isOk
+        Mockito.verify(dockerService).stopAgents(Mockito.anyList())
     }
 }

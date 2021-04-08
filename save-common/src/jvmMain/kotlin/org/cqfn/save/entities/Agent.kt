@@ -1,6 +1,5 @@
 package org.cqfn.save.entities
 
-import kotlinx.serialization.Serializable
 import javax.persistence.Entity
 import javax.persistence.Id
 
@@ -9,7 +8,6 @@ import javax.persistence.Id
  * @property executionId id of the execution, which the agent is serving
  */
 @Entity
-@Serializable
 class Agent(
     @Id var agentId: String,
     var executionId: Long,

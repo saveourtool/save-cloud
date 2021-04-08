@@ -61,10 +61,8 @@ class AgentsController {
     }
 
     @PostMapping("/stopAgents")
-    fun stopAgents(agentIds: List<String>) {
-        agentIds.forEach {
-            dockerService.containerManager.dockerClient.stopContainerCmd(it).exec()
-        }
+    fun stopAgents(@RequestBody agentIds: List<String>) {
+        dockerService.stopAgents(agentIds)
     }
 
     companion object {
