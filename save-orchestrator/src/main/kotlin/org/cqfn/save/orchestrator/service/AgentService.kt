@@ -22,8 +22,6 @@ import java.time.LocalDateTime
 
 /**
  * Service for work with agents and backend
- *
- * @param baseUrl
  */
 @Service
 class AgentService(configProperties: ConfigProperties) {

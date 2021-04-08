@@ -31,37 +31,23 @@ import java.time.Duration
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.cqfn.save.orchestrator.config.Beans
+import org.springframework.test.annotation.DirtiesContext
+import org.springframework.test.context.DynamicPropertyRegistry
+import org.springframework.test.context.DynamicPropertySource
 
 @WebFluxTest
-@Import(AgentService::class)
+@Import(Beans::class, AgentService::class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class HeartbeatControllerTest {
-    @Autowired
-    lateinit var webClient: WebTestClient
-    lateinit var mockServer: MockWebServer
-    private lateinit var agentService: AgentService
+    @Autowired lateinit var webClient: WebTestClient
+    @Autowired private lateinit var agentService: AgentService
     @MockBean private lateinit var dockerService: DockerService
-
-    @BeforeAll
-    fun startServer() {
-        mockServer = MockWebServer()
-        mockServer.start()
-    }
-
-    @AfterAll
-    fun stopServer() {
-        mockServer.shutdown()
-    }
 
     @BeforeEach
     fun webClientSetUp() {
         webClient.mutate().responseTimeout(Duration.ofSeconds(2)).build()
-    }
-
-    @BeforeEach
-    fun initialize() {
-        val baseUrl = "http://localhost:${mockServer.port}"
-        agentService = AgentService(ConfigProperties(baseUrl, TestResources("stub"), DockerSettings("stub"), -1))
     }
 
     @Test
@@ -89,5 +75,24 @@ class HeartbeatControllerTest {
         val monoResponse = agentService.setNewTestsIds().block() as NewJobResponse
 
         assertTrue(monoResponse.ids.isNotEmpty() && monoResponse.ids.first().expectedFilePath == "qwe")
+    }
+
+    companion object {
+        @JvmStatic
+        lateinit var mockServer: MockWebServer
+
+        @AfterAll
+        fun tearDown() {
+            mockServer.shutdown()
+        }
+
+        @DynamicPropertySource
+        @JvmStatic
+        fun properties(registry: DynamicPropertyRegistry) {
+            // todo: should be initialized in @BeforeAll, but it gets called after @DynamicPropertySource
+            mockServer = MockWebServer()
+            mockServer.start()
+            registry.add("orchestrator.backendUrl") { "http://localhost:${mockServer.port}" }
+        }
     }
 }

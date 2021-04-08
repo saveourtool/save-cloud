@@ -2,6 +2,7 @@ package org.cqfn.save.orchestrator.controller.agents
 
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.execution.ExecutionStatus
+import org.cqfn.save.orchestrator.config.Beans
 import org.cqfn.save.orchestrator.service.AgentService
 import org.cqfn.save.orchestrator.service.DockerService
 import org.junit.jupiter.api.Test
@@ -14,7 +15,7 @@ import org.springframework.web.reactive.function.BodyInserters
 import java.time.LocalDateTime
 
 @WebFluxTest
-@Import(AgentService::class)
+@Import(AgentService::class, Beans::class)
 class InitializeAgentsTest {
     private val stubTime = LocalDateTime.now()
 
