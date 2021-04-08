@@ -113,16 +113,18 @@ class DownloadProject(val configProperties: ConfigProperties) {
                     "Backend internal error"
                 )
             }
-            .toEntity(HttpStatus::class.java)
-            .subscribe()
-        // Post request to orchestrator to initiate its work
-        log.debug("Knock-Knock Orchestrator")
-        webClientOrchestrator
-            .post()
-            .uri("/initializeAgents")
-            .body(BodyInserters.fromValue(execution))
-            .retrieve()
-            .toEntity(HttpStatus::class.java)
+            .bodyToMono(Long::class.java)
+            .doOnNext { executionId ->
+                // Post request to orchestrator to initiate its work
+                log.debug("Knock-Knock Orchestrator")
+                webClientOrchestrator
+                    .post()
+                    .uri("/initializeAgents")
+                    .body(BodyInserters.fromValue(execution.also { it.id = executionId }))
+                    .retrieve()
+                    .toEntity(HttpStatus::class.java)
+                    .subscribe()
+            }
             .subscribe()
     }
 }

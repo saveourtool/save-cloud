@@ -17,9 +17,7 @@ class ExecutionService(private val executionRepository: ExecutionRepository) {
     /**
      * @param execution
      */
-    fun saveExecution(execution: Execution) {
-        executionRepository.save(execution)
-    }
+    fun saveExecution(execution: Execution): Long = executionRepository.save(execution).id!!
 
     /**
      * @param execution

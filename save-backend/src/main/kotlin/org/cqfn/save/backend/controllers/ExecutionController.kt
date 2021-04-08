@@ -16,9 +16,7 @@ class ExecutionController(private val executionService: ExecutionService) {
      * @param execution
      */
     @PostMapping("/createExecution")
-    fun createExecution(@RequestBody execution: Execution) {
-        executionService.saveExecution(execution)
-    }
+    fun createExecution(@RequestBody execution: Execution): Long = executionService.saveExecution(execution)
 
     /**
      * @param executionUpdateDto
