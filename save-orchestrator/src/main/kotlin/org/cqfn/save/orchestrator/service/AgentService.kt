@@ -10,13 +10,15 @@ import org.cqfn.save.test.TestDto
 
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
-import org.springframework.core.ParameterizedTypeReference
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 import reactor.core.publisher.Mono
 
 import java.time.LocalDateTime
+
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
 
 /**
  * Service for work with agents and backend
@@ -37,8 +39,11 @@ class AgentService(configProperties: ConfigProperties) {
                 .get()
                 .uri("/getTestBatches")
                 .retrieve()
-                .bodyToMono(ParameterizedTypeReference.forType<List<TestDto>>(List::class.java))
-                .map { NewJobResponse(it) }
+                .bodyToMono(String::class.java)  // fixme: use jackson everywhere in spring services
+                .map {
+                    val listTest: List<TestDto> = Json.decodeFromString(it)
+                    NewJobResponse(listTest)
+                }
 
     /**
      * Save new agents to the DB and insert their statuses. This logic is performed in two consecutive requests.

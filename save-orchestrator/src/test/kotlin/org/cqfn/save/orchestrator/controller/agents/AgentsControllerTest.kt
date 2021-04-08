@@ -15,6 +15,7 @@ import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
 import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.boot.test.mock.mockito.MockBeans
 import org.springframework.context.annotation.Import
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.web.reactive.function.BodyInserters
@@ -32,7 +33,9 @@ class AgentsControllerTest {
 
     @Test
     fun checkPostResponseIsOk() {
-        val execution = Execution(3, stubTime, stubTime, ExecutionStatus.PENDING, "stub", "stub")
+        val execution = Execution(3, stubTime, stubTime, ExecutionStatus.PENDING, "stub", "stub").apply {
+            id = 42L
+        }
         whenever(dockerService.buildAndCreateContainers(any())).thenReturn(listOf("test-agent-id-1", "test-agent-id-2"))
         webClient
             .post()
