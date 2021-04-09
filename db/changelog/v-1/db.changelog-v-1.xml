@@ -17,6 +17,18 @@
         <tagDatabase tag="v1.0 agent_status"/>
     </changeSet>
 
+    <include file="06-chageset-execution-table.xml" relativeToChangelogFile="true" />
+
+    <changeSet id="execution-table" author="aktsay">
+        <tagDatabase tag="v1.0 create execution table"/>
+    </changeSet>
+
+    <include file="07-changeset-agent-table.xml" relativeToChangelogFile="true"/>
+
+    <changeSet id="agent" author="petertrr">
+        <tagDatabase tag="v1.0 agent"/>
+    </changeSet>
+
     <include file="02-changeset-agent-status-table.xml" relativeToChangelogFile="true"/>
 
     <changeSet id="9" author="aktsay">
@@ -39,12 +51,6 @@
 
     <changeSet id="10" author="aktsay">
         <tagDatabase tag="v1.0 create test execution table"/>
-    </changeSet>
-
-    <include file="06-chageset-execution-table.xml" relativeToChangelogFile="true" />
-
-    <changeSet id="execution-table" author="aktsay">
-        <tagDatabase tag="v1.0 create execution table"/>
     </changeSet>
 
     <include file="13-changeset-test-suite-insert-data.xml" relativeToChangelogFile="true"/>

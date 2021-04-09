@@ -43,6 +43,7 @@ class CloneRepositoryController(
         val projectId: Long
         try {
             projectId = projectService.saveProject(project)
+            executionRequest.project.id = projectId
             log.info("Project $projectId saved")
         } catch (exception: DataAccessException) {
             log.error("Error when saving project for execution request $executionRequest", exception)

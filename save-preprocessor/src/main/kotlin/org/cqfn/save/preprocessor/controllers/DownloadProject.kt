@@ -78,7 +78,7 @@ class DownloadProject(val configProperties: ConfigProperties) {
                     // Post request to backend to create PENDING executions
                     // Fixme: need to initialize test suite ids
                     project.id?.let {
-                        sendToBackendAndOrchestrator(it, tmpDir.absolutePath)
+                        sendToBackendAndOrchestrator(it, tmpDir.relativeTo(File(configProperties.repository)).normalize().path)
                     }
                         ?: run {
                             throw ResponseStatusException(
@@ -113,16 +113,18 @@ class DownloadProject(val configProperties: ConfigProperties) {
                     "Backend internal error"
                 )
             }
-            .toEntity(HttpStatus::class.java)
-            .subscribe()
-        // Post request to orchestrator to initiate its work
-        log.debug("Knock-Knock Orchestrator")
-        webClientOrchestrator
-            .post()
-            .uri("/initializeAgents")
-            .body(BodyInserters.fromValue(execution))
-            .retrieve()
-            .toEntity(HttpStatus::class.java)
+            .bodyToMono(Long::class.java)
+            .doOnNext { executionId ->
+                // Post request to orchestrator to initiate its work
+                log.debug("Knock-Knock Orchestrator")
+                webClientOrchestrator
+                    .post()
+                    .uri("/initializeAgents")
+                    .body(BodyInserters.fromValue(execution.also { it.id = executionId }))
+                    .retrieve()
+                    .toEntity(HttpStatus::class.java)
+                    .subscribe()
+            }
             .subscribe()
     }
 }

@@ -1,6 +1,8 @@
 package org.cqfn.save.backend.controller
 
+import org.cqfn.save.backend.controllers.AgentsController
 import org.cqfn.save.backend.controllers.CloneRepositoryController
+import org.cqfn.save.backend.repository.AgentRepository
 import org.cqfn.save.backend.repository.AgentStatusRepository
 import org.cqfn.save.backend.repository.ExecutionRepository
 import org.cqfn.save.backend.repository.ProjectRepository
@@ -48,6 +50,8 @@ class CloningRepositoryControllerTest {
 
     @MockBean
     lateinit var agentStatusRepository: AgentStatusRepository
+    @MockBean private lateinit var agentRepository: AgentRepository
+    @MockBean private lateinit var agentsController: AgentsController
 
     @MockBean
     lateinit var projectService: ProjectService
@@ -110,7 +114,8 @@ class CloningRepositoryControllerTest {
             .exchange()
             .expectStatus()
             .isEqualTo(HttpStatus.ACCEPTED)
-            .expectBody(String::class.java).equals("Clone pending")
+            .expectBody(String::class.java)
+            .isEqualTo<Nothing>("Clone pending")
     }
 
     companion object {

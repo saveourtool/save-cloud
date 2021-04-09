@@ -23,6 +23,7 @@ fun Project.configureSpringBoot(withSpringDataJpa: Boolean = false) {
         add("implementation", "org.slf4j:slf4j-api:${Versions.slf4j}")
         add("implementation", "ch.qos.logback:logback-core:${Versions.logback}")
         add("testImplementation", "org.springframework.boot:spring-boot-starter-test:${Versions.springBoot}")
+        add("testImplementation", "org.mockito.kotlin:mockito-kotlin:3.1.0")
     }
 
     configure<SpringBootExtension> {

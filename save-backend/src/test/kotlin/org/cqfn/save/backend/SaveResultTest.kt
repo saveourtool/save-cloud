@@ -33,13 +33,14 @@ class SaveResultTest {
     private lateinit var testExecutionRepository: TestExecutionRepository
 
     @Test
-    fun checkSave() {
+    fun `should save TestExecutionDto into the DB`() {
         val testExecutionDto = TestExecutionDto(
             1,
             1,
             TestResultStatus.FAILED,
             defaultDateTestExecution,
-            defaultDateTestExecution)
+            defaultDateTestExecution
+        )
         webClient.post()
             .uri("/saveTestResult")
             .contentType(MediaType.APPLICATION_JSON)

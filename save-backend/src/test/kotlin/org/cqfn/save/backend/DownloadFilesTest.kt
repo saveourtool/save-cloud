@@ -1,5 +1,7 @@
 package org.cqfn.save.backend
 
+import org.cqfn.save.backend.controllers.AgentsController
+import org.cqfn.save.backend.repository.AgentRepository
 import org.cqfn.save.backend.repository.AgentStatusRepository
 import org.cqfn.save.backend.repository.ExecutionRepository
 import org.cqfn.save.backend.repository.ProjectRepository
@@ -34,6 +36,8 @@ class DownloadFilesTest {
 
     @MockBean
     lateinit var agentStatusRepository: AgentStatusRepository
+    @MockBean private lateinit var agentRepository: AgentRepository
+    @MockBean private lateinit var agentsController: AgentsController
 
     @MockBean
     lateinit var projectService: ProjectService

@@ -14,11 +14,10 @@ import org.springframework.web.bind.annotation.RestController
 class ExecutionController(private val executionService: ExecutionService) {
     /**
      * @param execution
+     * @return id of created [Execution]
      */
     @PostMapping("/createExecution")
-    fun createExecution(@RequestBody execution: Execution) {
-        executionService.saveExecution(execution)
-    }
+    fun createExecution(@RequestBody execution: Execution): Long = executionService.saveExecution(execution)
 
     /**
      * @param executionUpdateDto

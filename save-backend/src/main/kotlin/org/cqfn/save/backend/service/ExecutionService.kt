@@ -16,10 +16,9 @@ import java.time.LocalDateTime
 class ExecutionService(private val executionRepository: ExecutionRepository) {
     /**
      * @param execution
+     * @return id of the created [Execution]
      */
-    fun saveExecution(execution: Execution) {
-        executionRepository.save(execution)
-    }
+    fun saveExecution(execution: Execution): Long = executionRepository.save(execution).id!!
 
     /**
      * @param execution
