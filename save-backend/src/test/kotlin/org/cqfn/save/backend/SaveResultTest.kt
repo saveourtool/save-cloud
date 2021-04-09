@@ -16,6 +16,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.WebTestClient
+import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
 
 import java.time.LocalDateTime
@@ -45,8 +46,9 @@ class SaveResultTest {
             .uri("/saveTestResult")
             .contentType(MediaType.APPLICATION_JSON)
             .body(BodyInserters.fromValue(listOf(testExecutionDto)))
-            .exchange().expectBody(String::class.java)
-            .isEqualTo<Nothing>("Saved")
+            .exchange()
+            .expectBody<String>()
+            .isEqualTo("Saved")
         val tests = testExecutionRepository.findAll()
         assertTrue(tests.any { it.startTime == testExecutionDto.startTime.toLocalDateTime().withNano(0) })
         assertTrue(tests.any { it.endTime == testExecutionDto.endTime.toLocalDateTime().withNano(0) })
@@ -67,8 +69,8 @@ class SaveResultTest {
             .exchange()
             .expectStatus()
             .isEqualTo(HttpStatus.BAD_REQUEST)
-            .expectBody(String::class.java)
-            .isEqualTo<Nothing>("Some ids don't exist")
+            .expectBody<String>()
+            .isEqualTo("Some ids don't exist")
         val tests = testExecutionRepository.findAll()
         assertFalse(tests.any { it.startTime == testExecutionDto.startTime.toLocalDateTime().withNano(0) })
         assertFalse(tests.any { it.endTime == testExecutionDto.endTime.toLocalDateTime().withNano(0) })

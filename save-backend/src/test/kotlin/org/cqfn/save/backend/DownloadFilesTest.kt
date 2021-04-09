@@ -23,6 +23,7 @@ import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.core.io.ByteArrayResource
 import org.springframework.http.client.MultipartBodyBuilder
 import org.springframework.test.web.reactive.server.WebTestClient
+import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 
@@ -78,7 +79,7 @@ class DownloadFilesTest {
         webTestClient.get().uri("/download").exchange()
             .expectStatus().isOk
         webTestClient.get().uri("/download").exchange()
-            .expectBody(String::class.java).isEqualTo<Nothing>("qweqwe")
+            .expectBody<String>().isEqualTo("qweqwe")
     }
 
     @Test
@@ -96,6 +97,6 @@ class DownloadFilesTest {
             .exchange().expectStatus().isOk
 
         webTestClient.post().uri("/upload").body(BodyInserters.fromMultipartData(body))
-            .exchange().expectBody(String::class.java).isEqualTo<Nothing>("test")
+            .exchange().expectBody<String>().isEqualTo("test")
     }
 }
