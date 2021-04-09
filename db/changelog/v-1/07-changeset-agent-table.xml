@@ -20,10 +20,6 @@
             </column>
         </createTable>
 
-        <addUniqueConstraint
-                tableName="agent"
-                columnNames="agent_id"/>
-
         <rollback>
             <dropTable
                     cascadeConstraints="true"
