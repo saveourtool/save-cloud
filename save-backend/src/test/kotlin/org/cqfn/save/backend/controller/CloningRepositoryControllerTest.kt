@@ -16,7 +16,6 @@ import org.cqfn.save.repository.GitRepository
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -26,6 +25,8 @@ import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.boot.test.mock.mockito.MockBeans
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
+import org.springframework.test.context.DynamicPropertyRegistry
+import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
@@ -48,18 +49,6 @@ import java.time.Duration
 class CloningRepositoryControllerTest {
     @Autowired
     lateinit var webTestClient: WebTestClient
-    lateinit var mockServer: MockWebServer
-
-    @BeforeAll
-    fun startServer() {
-        mockServer = MockWebServer()
-        mockServer.start(mockServerPort)
-    }
-
-    @AfterAll
-    fun stopServer() {
-        mockServer.shutdown()
-    }
 
     @BeforeEach
     fun webClientSetUp() {
@@ -68,7 +57,7 @@ class CloningRepositoryControllerTest {
 
     @Test
     fun checkNewJobResponse() {
-        mockServer.enqueue(
+        mockServerPreprocessor.enqueue(
             MockResponse()
                 .setResponseCode(202)
                 .setBody("Clone pending")
@@ -89,7 +78,19 @@ class CloningRepositoryControllerTest {
     }
 
     companion object {
-        // todo: use junit extension
-        private const val mockServerPort = 8081
+        @JvmStatic lateinit var mockServerPreprocessor: MockWebServer
+
+        @AfterAll
+        fun tearDown() {
+            mockServerPreprocessor.shutdown()
+        }
+
+        @DynamicPropertySource
+        @JvmStatic
+        fun properties(registry: DynamicPropertyRegistry) {
+            mockServerPreprocessor = MockWebServer()
+            mockServerPreprocessor.start()
+            registry.add("backend.preprocessorUrl") { "http://localhost:${mockServerPreprocessor.port}" }
+        }
     }
 }

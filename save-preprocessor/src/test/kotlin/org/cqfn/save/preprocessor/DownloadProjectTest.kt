@@ -1,6 +1,5 @@
 package org.cqfn.save.preprocessor
 
-import okhttp3.mockwebserver.MockResponse
 import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.Project
 import org.cqfn.save.preprocessor.config.ConfigProperties
@@ -8,6 +7,7 @@ import org.cqfn.save.preprocessor.controllers.DownloadProjectController
 import org.cqfn.save.preprocessor.utils.RepositoryVolume
 import org.cqfn.save.repository.GitRepository
 
+import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
@@ -24,6 +24,7 @@ import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
+
 import java.io.File
 import java.time.Duration
 import java.util.concurrent.CompletableFuture
@@ -37,8 +38,7 @@ import kotlin.io.path.ExperimentalPathApi
 class DownloadProjectTest(
     @Autowired private val webClient: WebTestClient,
     @Autowired private val configProperties: ConfigProperties,
-) : RepositoryVolume() {
-
+) : RepositoryVolume {
     @BeforeEach
     fun webClientSetUp() {
         webClient.mutate().responseTimeout(Duration.ofSeconds(2)).build()
@@ -107,6 +107,7 @@ class DownloadProjectTest(
     companion object {
         @JvmStatic
         lateinit var mockServerBackend: MockWebServer
+
         @JvmStatic
         lateinit var mockServerOrchestrator: MockWebServer
 

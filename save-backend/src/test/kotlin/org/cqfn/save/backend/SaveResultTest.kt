@@ -19,14 +19,10 @@ import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
 
-import java.time.LocalDateTime
-
 @SpringBootTest(classes = [SaveApplication::class])
 @AutoConfigureWebTestClient
 @ExtendWith(MySqlExtension::class)
 class SaveResultTest {
-    private val date = LocalDateTime.now().withNano(0)
-
     @Autowired
     private lateinit var webClient: WebTestClient
 
@@ -39,8 +35,8 @@ class SaveResultTest {
             1,
             1,
             TestResultStatus.FAILED,
-            defaultDateTestExecution,
-            defaultDateTestExecution
+            DEFAULT_DATE_TEST_EXECUTION,
+            DEFAULT_DATE_TEST_EXECUTION
         )
         webClient.post()
             .uri("/saveTestResult")
@@ -60,8 +56,8 @@ class SaveResultTest {
             999,
             1,
             TestResultStatus.FAILED,
-            defaultDateTestExecution,
-            defaultDateTestExecution)
+            DEFAULT_DATE_TEST_EXECUTION,
+            DEFAULT_DATE_TEST_EXECUTION)
         webClient.post()
             .uri("/saveTestResult")
             .contentType(MediaType.APPLICATION_JSON)
@@ -77,6 +73,6 @@ class SaveResultTest {
     }
 
     companion object {
-        private val defaultDateTestExecution = 1L
+        private const val DEFAULT_DATE_TEST_EXECUTION = 1L
     }
 }
