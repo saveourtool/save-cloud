@@ -16,16 +16,13 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.WebTestClient
+import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
-
-import java.time.LocalDateTime
 
 @SpringBootTest(classes = [SaveApplication::class])
 @AutoConfigureWebTestClient
 @ExtendWith(MySqlExtension::class)
 class SaveResultTest {
-    private val date = LocalDateTime.now().withNano(0)
-
     @Autowired
     private lateinit var webClient: WebTestClient
 
@@ -38,15 +35,16 @@ class SaveResultTest {
             1,
             1,
             TestResultStatus.FAILED,
-            defaultDateTestExecution,
-            defaultDateTestExecution
+            DEFAULT_DATE_TEST_EXECUTION,
+            DEFAULT_DATE_TEST_EXECUTION
         )
         webClient.post()
             .uri("/saveTestResult")
             .contentType(MediaType.APPLICATION_JSON)
             .body(BodyInserters.fromValue(listOf(testExecutionDto)))
-            .exchange().expectBody(String::class.java)
-            .isEqualTo<Nothing>("Saved")
+            .exchange()
+            .expectBody<String>()
+            .isEqualTo("Saved")
         val tests = testExecutionRepository.findAll()
         assertTrue(tests.any { it.startTime == testExecutionDto.startTime.toLocalDateTime().withNano(0) })
         assertTrue(tests.any { it.endTime == testExecutionDto.endTime.toLocalDateTime().withNano(0) })
@@ -58,8 +56,8 @@ class SaveResultTest {
             999,
             1,
             TestResultStatus.FAILED,
-            defaultDateTestExecution,
-            defaultDateTestExecution)
+            DEFAULT_DATE_TEST_EXECUTION,
+            DEFAULT_DATE_TEST_EXECUTION)
         webClient.post()
             .uri("/saveTestResult")
             .contentType(MediaType.APPLICATION_JSON)
@@ -67,14 +65,14 @@ class SaveResultTest {
             .exchange()
             .expectStatus()
             .isEqualTo(HttpStatus.BAD_REQUEST)
-            .expectBody(String::class.java)
-            .isEqualTo<Nothing>("Some ids don't exist")
+            .expectBody<String>()
+            .isEqualTo("Some ids don't exist")
         val tests = testExecutionRepository.findAll()
         assertFalse(tests.any { it.startTime == testExecutionDto.startTime.toLocalDateTime().withNano(0) })
         assertFalse(tests.any { it.endTime == testExecutionDto.endTime.toLocalDateTime().withNano(0) })
     }
 
     companion object {
-        private val defaultDateTestExecution = 1L
+        private const val DEFAULT_DATE_TEST_EXECUTION = 1L
     }
 }

@@ -8,7 +8,7 @@ import kotlin.io.path.createTempDirectory
 /**
  * Override path to download repository
  */
-open class RepositoryVolume {
+interface RepositoryVolume {
     companion object {
         @OptIn(ExperimentalPathApi::class)
         private val volume: String by lazy {

@@ -32,8 +32,8 @@ import java.time.LocalDateTime
  * @property configProperties config properties
  */
 @RestController
-class DownloadProject(val configProperties: ConfigProperties) {
-    private val log = LoggerFactory.getLogger(DownloadProject::class.java)
+class DownloadProjectController(val configProperties: ConfigProperties) {
+    private val log = LoggerFactory.getLogger(DownloadProjectController::class.java)
     private val webClientBackend = WebClient.create(configProperties.backend)
     private val webClientOrchestrator = WebClient.create(configProperties.orchestrator)
 
