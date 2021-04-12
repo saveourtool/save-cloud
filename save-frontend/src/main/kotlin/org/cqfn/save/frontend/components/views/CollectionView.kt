@@ -24,7 +24,7 @@ import kotlinx.coroutines.await
 @OptIn(ExperimentalJsExport::class)
 @JsExport
 class CollectionView : RComponent<RProps, RState>() {
-    @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR", "TOO_LONG_FUNCTION")
+    @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR", "TOO_LONG_FUNCTION", "MAGIC_NUMBER")
     override fun RBuilder.render() {
         child(tableComponent(
             columns = columns {
