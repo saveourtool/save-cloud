@@ -15,7 +15,7 @@ class MySqlExtension : BeforeAllCallback {
         if (!isDatabaseCreated.getAndSet(true)) {
             val dbContainer: JdbcDatabaseContainer<*> = MySQLContainerProvider()
                 .newInstance("8.0.20")
-                .withExposedPorts(3306)
+                .withExposedPorts(MYSQL_PORT)
                 .withDatabaseName("save_db_test")
                 .waitingFor(Wait.forLogMessage("Container is started (JDBC URL: ", 1))
                 .apply {
@@ -29,6 +29,7 @@ class MySqlExtension : BeforeAllCallback {
     }
 
     companion object {
+        private const val MYSQL_PORT = 3306
         private val isDatabaseCreated = AtomicBoolean(false)
     }
 }

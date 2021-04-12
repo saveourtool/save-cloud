@@ -105,6 +105,7 @@ class SaveAgent(private val config: AgentConfiguration,
     /**
      * @return Unit
      */
+    @Suppress("MAGIC_NUMBER")  // todo: unsuppress when mocked data is substituted by actual
     internal suspend fun startSaveProcess() = coroutineScope {
         // blocking execution of OS process
         state.value = AgentState.BUSY
