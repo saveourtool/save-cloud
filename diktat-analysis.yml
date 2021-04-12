@@ -105,3 +105,5 @@
   configuration:
     valueArgument: true
     valueParameter: true
+- name: MAGIC_NUMBER
+  enabled: false  # todo: re-enable after https://github.com/cqfn/diKTat/issues/832
