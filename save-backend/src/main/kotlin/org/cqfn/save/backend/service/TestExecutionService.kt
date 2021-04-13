@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service
  * Service for test result
  */
 @Service
-class TestExecutionService(private val baseEntityRepository: BaseEntityRepository<TestExecution>) {
+class TestExecutionService(private val testExecutionRepository: BaseEntityRepository<TestExecution>) {
     private val log = LoggerFactory.getLogger(TestExecutionService::class.java)
 
     /**
@@ -22,13 +22,13 @@ class TestExecutionService(private val baseEntityRepository: BaseEntityRepositor
     fun saveTestResult(testExecutionsDtos: List<TestExecutionDto>): List<TestExecutionDto> {
         val lostTests: MutableList<TestExecutionDto> = mutableListOf()
         testExecutionsDtos.forEach { testExecDto ->
-            val foundTestExec = baseEntityRepository.findById(testExecDto.id)
+            val foundTestExec = testExecutionRepository.findById(testExecDto.id)
             foundTestExec.ifPresentOrElse({
                 it.run {
                     this.startTime = testExecDto.startTime.toLocalDateTime()
                     this.endTime = testExecDto.endTime.toLocalDateTime()
                     this.status = testExecDto.status
-                    baseEntityRepository.save(this)
+                    testExecutionRepository.save(this)
                 }
             },
                 {

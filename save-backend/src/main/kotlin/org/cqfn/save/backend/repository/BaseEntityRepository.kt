@@ -5,7 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 
 /**
- * JPA repositories for the heirs of the BaseEntity
+ * JPA repositories for the subclasses of the BaseEntity
  */
 @Repository
 interface BaseEntityRepository<T : BaseEntity> : JpaRepository<T, Long>

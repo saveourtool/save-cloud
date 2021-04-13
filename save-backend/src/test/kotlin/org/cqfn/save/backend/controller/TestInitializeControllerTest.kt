@@ -3,7 +3,10 @@ package org.cqfn.save.backend.controller
 import org.cqfn.save.backend.SaveApplication
 import org.cqfn.save.backend.repository.TestRepository
 import org.cqfn.save.backend.utils.MySqlExtension
+import org.cqfn.save.entities.Project
+import org.cqfn.save.entities.TestSuite
 import org.cqfn.save.test.TestDto
+import org.cqfn.save.testsuite.TestSuiteType
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -31,12 +34,13 @@ class TestInitializeControllerTest {
 
     @Test
     fun testConnection() {
+        val project = Project("Huawei", "huaweiName", "manual", "huaweiUrl", "description")
+        val testSuite = TestSuite(TestSuiteType.PROJECT, "test", project, LocalDateTime.now())
         val test = org.cqfn.save.entities.Test(
             "expectedPath",
             "testPath",
             testLocalDateTime,
-            2,
-            "HASH"
+            testSuite,
         )
 
         webClient.post()
@@ -50,12 +54,13 @@ class TestInitializeControllerTest {
 
     @Test
     fun checkDataSave() {
+        val project = Project("Huawei", "huaweiName", "manual", "huaweiUrl", "description")
+        val testSuite = TestSuite(TestSuiteType.PROJECT, "test", project, LocalDateTime.now())
         val test = org.cqfn.save.entities.Test(
             "expectedPath",
             "testPath",
             testLocalDateTime,
-            2,
-            "HASHANOTHER"
+            testSuite,
         )
         webClient.post()
             .uri("/initializeTests")

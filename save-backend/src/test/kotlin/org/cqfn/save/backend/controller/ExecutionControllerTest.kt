@@ -1,9 +1,10 @@
 package org.cqfn.save.backend.controller
 
 import org.cqfn.save.backend.SaveApplication
-import org.cqfn.save.backend.repository.ExecutionRepository
+import org.cqfn.save.backend.repository.BaseEntityRepository
 import org.cqfn.save.backend.utils.MySqlExtension
 import org.cqfn.save.entities.Execution
+import org.cqfn.save.entities.Project
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionUpdateDto
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -28,12 +29,13 @@ class ExecutionControllerTest {
     lateinit var webClient: WebTestClient
 
     @Autowired
-    lateinit var executionRepository: ExecutionRepository
+    lateinit var executionRepository: BaseEntityRepository<Execution>
 
     @Test
     fun testConnection() {
+        val project = Project("Huawei", "huaweiName", "manual", "huaweiUrl", "description")
         val execution = Execution(
-            1,
+            project,
             testLocalDateTime,
             testLocalDateTime,
             ExecutionStatus.RUNNING,
@@ -51,8 +53,9 @@ class ExecutionControllerTest {
 
     @Test
     fun testDataSave() {
+        val project = Project("Huawei", "huaweiName", "manual", "huaweiUrl", "description")
         val execution = Execution(
-            1,
+            project,
             testLocalDateTime,
             testLocalDateTime,
             ExecutionStatus.RUNNING,
@@ -74,8 +77,9 @@ class ExecutionControllerTest {
 
     @Test
     fun testUpdateExecution() {
+        val project = Project("Huawei", "huaweiName", "manual", "huaweiUrl", "description")
         val execution = Execution(
-            1,
+            project,
             testLocalDateTime,
             testLocalDateTime,
             ExecutionStatus.RUNNING,

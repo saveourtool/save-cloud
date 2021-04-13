@@ -26,9 +26,8 @@ class Test(
     @Column(name = "date_added")
     var dateAdded: LocalDateTime,
 
-    @JoinColumn(name = "id")
     @ManyToOne
-    @Column(name = "test_suite_id")
+    @JoinColumn(name = "test_suite_id")
     var testSuite: TestSuite,
 
 ) : BaseEntity()

@@ -2,6 +2,7 @@ package org.cqfn.save.preprocessor.controllers
 
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.ExecutionRequest
+import org.cqfn.save.entities.Project
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.preprocessor.Response
 import org.cqfn.save.preprocessor.config.ConfigProperties
@@ -77,7 +78,7 @@ class DownloadProjectController(val configProperties: ConfigProperties) {
                     log.info("Repository cloned: ${gitRepository.url}")
                     // Post request to backend to create PENDING executions
                     // Fixme: need to initialize test suite ids
-                    project.id?.let {
+                    project?.let {
                         sendToBackendAndOrchestrator(it, tmpDir.relativeTo(File(configProperties.repository)).normalize().path)
                     }
                         ?: run {
@@ -98,8 +99,8 @@ class DownloadProjectController(val configProperties: ConfigProperties) {
         }
     }
 
-    private fun sendToBackendAndOrchestrator(projectId: Long, path: String) {
-        val execution = Execution(projectId, LocalDateTime.now(), LocalDateTime.now(), ExecutionStatus.PENDING, "1", path)
+    private fun sendToBackendAndOrchestrator(project: Project, path: String) {
+        val execution = Execution(project, LocalDateTime.now(), LocalDateTime.now(), ExecutionStatus.PENDING, "1", path)
         log.debug("Knock-Knock Backend")
         webClientBackend
             .post()

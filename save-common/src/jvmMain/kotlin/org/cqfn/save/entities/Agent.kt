@@ -17,9 +17,8 @@ class Agent(
     @Column(name = "container_id")
     var containerId: String,
 
-    @JoinColumn(name = "id")
     @ManyToOne
-    @Column(name = "execution_id")
+    @JoinColumn(name = "execution_id")
     var execution: Execution,
 
 ) : BaseEntity()

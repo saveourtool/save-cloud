@@ -29,9 +29,8 @@ class TestSuite(
     @Column(name = "name")
     var name: String,
 
-    @JoinColumn(name = "id")
     @ManyToOne
-    @Column(name = "project_id")
+    @JoinColumn(name = "project_id")
     var project: Project? = null,
 
     @Column(name = "date_added")

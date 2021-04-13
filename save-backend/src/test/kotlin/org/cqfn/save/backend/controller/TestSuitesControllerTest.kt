@@ -1,8 +1,9 @@
 package org.cqfn.save.backend.controller
 
 import org.cqfn.save.backend.SaveApplication
-import org.cqfn.save.backend.repository.TestSuiteRepository
+import org.cqfn.save.backend.repository.BaseEntityRepository
 import org.cqfn.save.backend.utils.MySqlExtension
+import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.TestSuite
 import org.cqfn.save.testsuite.TestSuiteType
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -27,14 +28,15 @@ class TestSuitesControllerTest {
     lateinit var webClient: WebTestClient
 
     @Autowired
-    lateinit var testSuiteRepository: TestSuiteRepository
+    lateinit var testSuiteRepository: BaseEntityRepository<TestSuite>
 
     @Test
     fun testConnection() {
+        val project = Project("Huawei", "huaweiName", "manual", "huaweiUrl", "description")
         val testSuite = TestSuite(
             TestSuiteType.PROJECT,
             "test",
-            1,
+            project,
             testLocalDateTime
         )
 
@@ -49,10 +51,11 @@ class TestSuitesControllerTest {
 
     @Test
     fun checkDataSave() {
+        val project = Project("Huawei", "huaweiName", "manual", "huaweiUrl", "description")
         val testSuite = TestSuite(
             TestSuiteType.PROJECT,
             "test",
-            1,
+            project,
             testLocalDateTime
         )
 
@@ -66,6 +69,6 @@ class TestSuitesControllerTest {
 
         val databaseData = testSuiteRepository.findAll()
 
-        assertTrue(databaseData.any { it.projectId == testSuite.projectId && it.name == testSuite.name })
+        assertTrue(databaseData.any { it.project?.id == testSuite.project?.id && it.name == testSuite.name })
     }
 }

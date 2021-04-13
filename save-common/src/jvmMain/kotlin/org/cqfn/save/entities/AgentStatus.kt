@@ -26,9 +26,8 @@ class AgentStatus(
     @Column(name = "state")
     var state: AgentState,
 
-    @JoinColumn(name = "id")
     @ManyToOne
-    @Column(name = "agent_id")
+    @JoinColumn(name = "agent_id")
     var agent: Agent,
 
 ) : BaseEntity()

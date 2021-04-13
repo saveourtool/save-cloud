@@ -23,9 +23,8 @@ import javax.persistence.Table
 @Table(name = "execution")
 class Execution(
 
-    @JoinColumn(name = "id")
     @ManyToOne
-    @Column(name = "project_id")
+    @JoinColumn(name = "project_id")
     var project: Project,
 
     @Column(name = "start_time")

@@ -29,3 +29,7 @@ expect annotation class ManyToOne()
 @OptIn(ExperimentalMultiplatform::class)
 @OptionalExpectation
 expect annotation class OneToMany()
+
+@OptIn(ExperimentalMultiplatform::class)
+@OptionalExpectation
+expect annotation class MappedSuperclass()

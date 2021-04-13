@@ -13,24 +13,24 @@ import java.time.LocalDateTime
  * Service that is used to manipulate executions
  */
 @Service
-class ExecutionService(private val baseEntityRepository: BaseEntityRepository<Execution>) {
+class ExecutionService(private val executionRepository: BaseEntityRepository<Execution>) {
     /**
      * @param execution
      * @return id of the created [Execution]
      */
-    fun saveExecution(execution: Execution): Long = baseEntityRepository.save(execution).id!!
+    fun saveExecution(execution: Execution): Long = executionRepository.save(execution).id!!
 
     /**
      * @param execution
      * @throws ResponseStatusException
      */
     fun updateExecution(execution: ExecutionUpdateDto) {
-        baseEntityRepository.findById(execution.id).ifPresentOrElse({
+        executionRepository.findById(execution.id).ifPresentOrElse({
             if (it.status == ExecutionStatus.FINISHED) {
                 it.endTime = LocalDateTime.now()
             }
             it.status = execution.status
-            baseEntityRepository.save(it)
+            executionRepository.save(it)
         }) {
             throw ResponseStatusException(HttpStatus.NOT_FOUND)
         }

@@ -24,22 +24,19 @@ import javax.persistence.Table
 @Table(name = "test_execution")
 class TestExecution(
 
-    @JoinColumn(name = "id")
     @ManyToOne
-    @Column(name = "test_id")
+    @JoinColumn(name = "test_id")
     var test: Test,
 
     @Column(name = "test_suite_execution_id")
     var testSuiteExecutionId: Long,
 
-    @JoinColumn(name = "id")
     @ManyToOne
-    @Column(name = "agent_id")
+    @JoinColumn(name = "agent_id")
     var agent: Agent,
 
-    @JoinColumn(name = "id")
     @ManyToOne
-    @Column(name = "project_id")
+    @JoinColumn(name = "project_id")
     var project: Project,
 
     @Enumerated(EnumType.STRING)

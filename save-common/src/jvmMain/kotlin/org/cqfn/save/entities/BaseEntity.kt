@@ -1,17 +1,20 @@
 package org.cqfn.save.entities
 
-import javax.persistence.Entity
 import javax.persistence.GeneratedValue
+import javax.persistence.GenerationType
 import javax.persistence.Id
+import javax.persistence.MappedSuperclass
 
 /**
  * base class for all entities
  */
 @Suppress("USE_DATA_CLASS")
-@Entity
-class BaseEntity {
+@MappedSuperclass
+open class BaseEntity {
     /**
      * generate a unique id
      */
-    @Id @GeneratedValue var id: Long? = null
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    open var id: Long? = null
 }

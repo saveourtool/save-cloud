@@ -11,12 +11,12 @@ import org.springframework.stereotype.Service
 @Service
 class TestSuitesService {
     @Autowired
-    private lateinit var baseEntityRepository: BaseEntityRepository<TestSuite>
+    private lateinit var testSuitesRepository: BaseEntityRepository<TestSuite>
 
     /**
      * @param testSuite
      */
     fun saveTestSuite(testSuite: TestSuite) {
-        baseEntityRepository.save(testSuite)
+        testSuitesRepository.save(testSuite)
     }
 }
