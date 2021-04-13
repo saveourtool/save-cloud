@@ -51,7 +51,7 @@ class AgentsController {
             val agentIds = dockerService.buildAndCreateContainers(execution)
             agentService.saveAgentsWithInitialStatuses(
                 agentIds.map { id ->
-                    Agent(id, execution.id!!)
+                    Agent(id, execution)
                 }
             )
             dockerService.startContainersAndUpdateExecution(execution, agentIds)

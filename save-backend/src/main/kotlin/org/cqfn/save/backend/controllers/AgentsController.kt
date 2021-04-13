@@ -1,7 +1,6 @@
 package org.cqfn.save.backend.controllers
 
-import org.cqfn.save.backend.repository.AgentRepository
-import org.cqfn.save.backend.repository.AgentStatusRepository
+import org.cqfn.save.backend.repository.BaseEntityRepository
 import org.cqfn.save.entities.Agent
 import org.cqfn.save.entities.AgentStatus
 import org.springframework.web.bind.annotation.PostMapping
@@ -12,8 +11,8 @@ import org.springframework.web.bind.annotation.RestController
  * Controller to manipulate with Agent related data
  */
 @RestController
-class AgentsController(private val agentStatusRepository: AgentStatusRepository,
-                       private val agentRepository: AgentRepository,
+class AgentsController(private val agentStatusRepository: BaseEntityRepository<AgentStatus>,
+                       private val agentRepository: BaseEntityRepository<Agent>,
 ) {
     /**
      * @param agents list of [Agent]s to save into the DB

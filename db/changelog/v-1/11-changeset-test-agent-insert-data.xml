@@ -12,7 +12,7 @@
             <column header="status" name="status" type="STRING" />
             <column header="start_time" name="start_time" type="DATE" />
             <column header="end_time" name="end_time" type="DATE" />
-            <column header="test_id" name="test_id" type="STRING" />
+            <column header="test_id" name="test_id" type="NUMERIC" />
             <column header="agent_id" name="agent_id" type="NUMERIC" />
             <column header="project_id" name="project_id" type="NUMERIC" />
             <column header="test_suite_execution_id" name="test_suite_execution_id" type="NUMERIC" />
@@ -24,7 +24,7 @@
         <insert dbms="mysql" tableName="agent_status">
             <column name="state" value="BUSY" />
             <column name="time" value="2021-01-01 00:00:00" />
-            <column name="agent_id" value="cool_agent_id" />
+            <column name="agent_id" value="2" />
         </insert>
     </changeSet>
 

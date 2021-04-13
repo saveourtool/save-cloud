@@ -13,5 +13,5 @@ data class TestDto(
     var expectedFilePath: String,
     var testFilePath: String,
     var testSuiteId: Long,
-    var id: String
+    var id: Long
 )

@@ -17,3 +17,15 @@ expect annotation class Id()
 @OptIn(ExperimentalMultiplatform::class)
 @OptionalExpectation
 expect annotation class GeneratedValue()
+
+@OptIn(ExperimentalMultiplatform::class)
+@OptionalExpectation
+expect annotation class JoinColumn()
+
+@OptIn(ExperimentalMultiplatform::class)
+@OptionalExpectation
+expect annotation class ManyToOne()
+
+@OptIn(ExperimentalMultiplatform::class)
+@OptionalExpectation
+expect annotation class OneToMany()

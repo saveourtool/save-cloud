@@ -1,6 +1,7 @@
 package org.cqfn.save.orchestrator.service
 
 import org.cqfn.save.entities.Execution
+import org.cqfn.save.entities.Project
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.orchestrator.config.Beans
 import org.cqfn.save.orchestrator.config.ConfigProperties
@@ -50,7 +51,8 @@ class DockerServiceTest {
     @Test
     fun `should create a container with save agent and test resources and start it`() {
         // build base image
-        val testExecution = Execution(0, LocalDateTime.now(), LocalDateTime.now(), ExecutionStatus.PENDING, "1", "foo").apply {
+        val project = Project("Huawei", "huaweiName", "manual", "huaweiUrl", "description")
+        val testExecution = Execution(project, LocalDateTime.now(), LocalDateTime.now(), ExecutionStatus.PENDING, "1", "foo").apply {
             id = 42L
         }
         testContainerId = dockerService.buildAndCreateContainers(testExecution).single()

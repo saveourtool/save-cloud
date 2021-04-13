@@ -21,7 +21,7 @@
             <column name="time" type="DATETIME">
                 <constraints nullable="false"/>
             </column>
-            <column name="agent_id" type="varchar(64)" />
+            <column name="agent_id" type="bigint" />
         </createTable>
 
         <rollback>

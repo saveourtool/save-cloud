@@ -1,6 +1,7 @@
 package org.cqfn.save.orchestrator.controller.agents
 
 import org.cqfn.save.entities.Execution
+import org.cqfn.save.entities.Project
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.orchestrator.config.Beans
 import org.cqfn.save.orchestrator.controller.AgentsController
@@ -32,7 +33,8 @@ class AgentsControllerTest {
 
     @Test
     fun checkPostResponseIsOk() {
-        val execution = Execution(3, stubTime, stubTime, ExecutionStatus.PENDING, "stub", "stub").apply {
+        val project = Project("Huawei", "huaweiName", "manual", "huaweiUrl", "description")
+        val execution = Execution(project, stubTime, stubTime, ExecutionStatus.PENDING, "stub", "stub").apply {
             id = 42L
         }
         whenever(dockerService.buildAndCreateContainers(any())).thenReturn(listOf("test-agent-id-1", "test-agent-id-2"))
@@ -50,7 +52,8 @@ class AgentsControllerTest {
 
     @Test
     fun checkPostResponseIsNotOk() {
-        val execution = Execution(3, stubTime, stubTime, ExecutionStatus.RUNNING, "stub", "stub")
+        val project = Project("Huawei", "huaweiName", "manual", "huaweiUrl", "description")
+        val execution = Execution(project, stubTime, stubTime, ExecutionStatus.RUNNING, "stub", "stub")
         webClient
             .post()
             .uri("/initializeAgents")

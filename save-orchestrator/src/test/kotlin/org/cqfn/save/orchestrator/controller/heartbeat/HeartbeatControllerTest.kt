@@ -61,7 +61,7 @@ class HeartbeatControllerTest {
 
     @Test
     fun checkNewJobResponse() {
-        val list = listOf(TestDto("qwe", "www", 0, "hashID"))
+        val list = listOf(TestDto("qwe", "www", 0, 1))
         mockServer.enqueue(
             MockResponse()
                 .setBody(Json.encodeToString(list))
