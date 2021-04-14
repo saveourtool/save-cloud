@@ -57,7 +57,7 @@ kotlin {
         }
         from(file("$projectDir/src/nativeMain/resources/agent.properties"))
     }
-    artifacts.add(distribution.name, file("$buildDir/distribution")) {
+    artifacts.add(distribution.name, file("$buildDir/libs/${project.name}-${project.version}-distribution.jar")) {
         builtBy(copyAgentDistribution)
     }
 
