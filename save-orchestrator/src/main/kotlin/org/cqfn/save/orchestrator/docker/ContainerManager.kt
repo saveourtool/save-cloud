@@ -53,6 +53,7 @@ class ContainerManager(private val dockerHost: String) {
      * @throws RuntimeException if an exception not specific to docker has occurred
      */
     internal fun createContainerFromImage(baseImageId: String,
+                                          workingDir: String,
                                           runCmd: List<String>,
                                           containerName: String): String {
         val baseImage = dockerClient.listImagesCmd().exec().find {
@@ -62,6 +63,7 @@ class ContainerManager(private val dockerHost: String) {
             ?: error("Image with requested baseImageId=$baseImageId is not present in the system")
         // createContainerCmd accepts image name, not id, so we retrieve it from tags
         val createContainerCmdResponse = dockerClient.createContainerCmd(baseImage.repoTags.first())
+            .withWorkingDir(workingDir)
             .withCmd(runCmd)
             .withName(containerName)
             .withHostConfig(HostConfig.newHostConfig()

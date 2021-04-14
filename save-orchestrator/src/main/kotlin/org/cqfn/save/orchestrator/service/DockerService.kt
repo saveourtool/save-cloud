@@ -99,7 +99,8 @@ class DockerService(private val configProperties: ConfigProperties) {
     private fun createContainerForExecution(imageId: String, containerNumber: String): String {
         val containerId = containerManager.createContainerFromImage(
             imageId,
-            listOf("$executionDir/$SAVE_AGENT_EXECUTABLE_NAME"),
+            executionDir,
+            listOf("./$SAVE_AGENT_EXECUTABLE_NAME"),
             "save-execution-$containerNumber",
         )
         val agentPropertiesFile = createTempDirectory("agent")

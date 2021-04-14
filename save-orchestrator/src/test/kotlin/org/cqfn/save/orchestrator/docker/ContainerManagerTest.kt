@@ -49,6 +49,7 @@ class ContainerManagerTest {
         testFile.writeText("wow such testing")
         testContainerId = containerManager.createContainerFromImage(
             baseImageId,
+            "/",
             listOf("./script.sh"),
             "testContainer"
         )
