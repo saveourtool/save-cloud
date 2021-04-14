@@ -1,11 +1,12 @@
 package org.cqfn.save.orchestrator.service
 
-import org.apache.commons.io.FileUtils
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionUpdateDto
 import org.cqfn.save.orchestrator.config.ConfigProperties
 import org.cqfn.save.orchestrator.docker.ContainerManager
+
+import org.apache.commons.io.FileUtils
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
@@ -13,7 +14,9 @@ import org.springframework.core.io.ClassPathResource
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
+
 import java.io.File
+
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.createTempDirectory
 
@@ -109,7 +112,10 @@ class DockerService(private val configProperties: ConfigProperties) {
         val agentPropertiesFile = createTempDirectory("agent")
             .resolve("agent.properties")
             .toFile()
-        ClassPathResource("agent.properties").file.copyTo(agentPropertiesFile)
+        FileUtils.copyInputStreamToFile(
+            ClassPathResource("agent.properties").inputStream,
+            agentPropertiesFile
+        )
         agentPropertiesFile.writeText(
             agentPropertiesFile.readLines().joinToString(System.lineSeparator()) {
                 if (it.startsWith("id=")) "id=$containerId" else it
