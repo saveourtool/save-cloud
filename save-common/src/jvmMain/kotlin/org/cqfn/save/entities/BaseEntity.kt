@@ -1,7 +1,6 @@
 package org.cqfn.save.entities
 
 import javax.persistence.GeneratedValue
-import javax.persistence.GenerationType
 import javax.persistence.Id
 import javax.persistence.MappedSuperclass
 
@@ -10,11 +9,11 @@ import javax.persistence.MappedSuperclass
  */
 @Suppress("USE_DATA_CLASS")
 @MappedSuperclass
-open class BaseEntity {
+abstract class BaseEntity {
     /**
      * generate a unique id
      */
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @GeneratedValue
     open var id: Long? = null
 }

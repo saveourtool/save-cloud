@@ -1,6 +1,6 @@
 package org.cqfn.save.backend.service
 
-import org.cqfn.save.backend.repository.BaseEntityRepository
+import org.cqfn.save.backend.repository.ExecutionRepository
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionUpdateDto
@@ -13,7 +13,7 @@ import java.time.LocalDateTime
  * Service that is used to manipulate executions
  */
 @Service
-class ExecutionService(private val executionRepository: BaseEntityRepository<Execution>) {
+class ExecutionService(private val executionRepository: ExecutionRepository) {
     /**
      * @param execution
      * @return id of the created [Execution]

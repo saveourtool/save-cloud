@@ -1,11 +1,10 @@
 package org.cqfn.save.backend
 
 import org.cqfn.save.agent.TestExecutionDto
-import org.cqfn.save.backend.repository.BaseEntityRepository
+import org.cqfn.save.backend.repository.TestExecutionRepository
 import org.cqfn.save.backend.utils.MySqlExtension
 import org.cqfn.save.backend.utils.toLocalDateTime
 import org.cqfn.save.domain.TestResultStatus
-import org.cqfn.save.entities.TestExecution
 
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -28,7 +27,7 @@ class SaveResultTest {
     private lateinit var webClient: WebTestClient
 
     @Autowired
-    private lateinit var testExecutionRepository: BaseEntityRepository<TestExecution>
+    private lateinit var testExecutionRepository: TestExecutionRepository
 
     @Test
     fun `should save TestExecutionDto into the DB`() {

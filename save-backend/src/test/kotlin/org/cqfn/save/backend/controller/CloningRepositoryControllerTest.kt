@@ -1,8 +1,14 @@
 package org.cqfn.save.backend.controller
 
 import org.cqfn.save.backend.controllers.CloneRepositoryController
-import org.cqfn.save.backend.repository.BaseEntityRepository
+import org.cqfn.save.backend.repository.AgentRepository
+import org.cqfn.save.backend.repository.AgentStatusRepository
+import org.cqfn.save.backend.repository.ExecutionRepository
 import org.cqfn.save.backend.repository.ProjectRepository
+import org.cqfn.save.backend.repository.TestExecutionRepository
+import org.cqfn.save.backend.repository.TestRepository
+import org.cqfn.save.backend.repository.TestSuiteRepository
+import org.cqfn.save.backend.service.ProjectService
 import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.Project
 import org.cqfn.save.repository.GitRepository
@@ -30,8 +36,14 @@ import java.time.Duration
 @WebFluxTest(controllers = [CloneRepositoryController::class])
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @MockBeans(
-    MockBean(BaseEntityRepository::class),
+    MockBean(AgentStatusRepository::class),
+    MockBean(AgentRepository::class),
+    MockBean(ExecutionRepository::class),
     MockBean(ProjectRepository::class),
+    MockBean(TestExecutionRepository::class),
+    MockBean(TestRepository::class),
+    MockBean(TestSuiteRepository::class),
+    MockBean(ProjectService::class),
 )
 class CloningRepositoryControllerTest {
     @Autowired

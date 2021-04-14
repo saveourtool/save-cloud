@@ -1,9 +1,8 @@
 package org.cqfn.save.backend.service
 
 import org.cqfn.save.agent.TestExecutionDto
-import org.cqfn.save.backend.repository.BaseEntityRepository
+import org.cqfn.save.backend.repository.TestExecutionRepository
 import org.cqfn.save.backend.utils.toLocalDateTime
-import org.cqfn.save.entities.TestExecution
 
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -12,7 +11,7 @@ import org.springframework.stereotype.Service
  * Service for test result
  */
 @Service
-class TestExecutionService(private val testExecutionRepository: BaseEntityRepository<TestExecution>) {
+class TestExecutionService(private val testExecutionRepository: TestExecutionRepository) {
     private val log = LoggerFactory.getLogger(TestExecutionService::class.java)
 
     /**

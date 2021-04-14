@@ -12,7 +12,7 @@
             </not>
         </preConditions>
         <createTable tableName="test">
-            <column name="id" type="bigint">
+            <column name="id" type="bigint" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
             <column name="expected_file_path" type="varchar(255)">

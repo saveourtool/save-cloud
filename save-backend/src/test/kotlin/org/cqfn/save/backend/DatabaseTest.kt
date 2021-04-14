@@ -1,12 +1,11 @@
 package org.cqfn.save.backend
 
 import org.cqfn.save.agent.AgentState
-import org.cqfn.save.backend.repository.BaseEntityRepository
+import org.cqfn.save.backend.repository.AgentStatusRepository
 import org.cqfn.save.backend.repository.ProjectRepository
+import org.cqfn.save.backend.repository.TestExecutionRepository
 import org.cqfn.save.backend.utils.MySqlExtension
 import org.cqfn.save.domain.TestResultStatus
-import org.cqfn.save.entities.AgentStatus
-import org.cqfn.save.entities.TestExecution
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -20,10 +19,10 @@ class DatabaseTest {
     private lateinit var projectRepository: ProjectRepository
 
     @Autowired
-    private lateinit var testExecutionRepository: BaseEntityRepository<TestExecution>
+    private lateinit var testExecutionRepository: TestExecutionRepository
 
     @Autowired
-    private lateinit var agentStatusRepository: BaseEntityRepository<AgentStatus>
+    private lateinit var agentStatusRepository: AgentStatusRepository
 
     @Test
     fun checkProjectDataInDataBase() {

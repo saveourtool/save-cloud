@@ -1,8 +1,13 @@
 package org.cqfn.save.backend
 
 import org.cqfn.save.backend.controllers.DownloadFilesController
-import org.cqfn.save.backend.repository.BaseEntityRepository
+import org.cqfn.save.backend.repository.AgentRepository
+import org.cqfn.save.backend.repository.AgentStatusRepository
+import org.cqfn.save.backend.repository.ExecutionRepository
 import org.cqfn.save.backend.repository.ProjectRepository
+import org.cqfn.save.backend.repository.TestExecutionRepository
+import org.cqfn.save.backend.repository.TestRepository
+import org.cqfn.save.backend.repository.TestSuiteRepository
 
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -21,8 +26,13 @@ import kotlin.io.path.ExperimentalPathApi
 @WebFluxTest(controllers = [DownloadFilesController::class])
 @AutoConfigureWebTestClient
 @MockBeans(
-    MockBean(BaseEntityRepository::class),
+    MockBean(AgentStatusRepository::class),
+    MockBean(AgentRepository::class),
+    MockBean(ExecutionRepository::class),
     MockBean(ProjectRepository::class),
+    MockBean(TestExecutionRepository::class),
+    MockBean(TestRepository::class),
+    MockBean(TestSuiteRepository::class),
 )
 class DownloadFilesTest {
     @Autowired

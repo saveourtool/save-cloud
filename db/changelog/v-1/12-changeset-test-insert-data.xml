@@ -7,7 +7,7 @@ xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
     <changeSet id="test-insert" author="frolov" context="dev">
 
         <loadData tableName="test" encoding="UTF-8" separator=";" quotchar="&quot;" file="db/changelog/v-1/sqlRequests/test.csv">
-            <column header="id" name="id" type="STRING" />
+            <column header="id" name="id" type="NUMERIC" />
             <column header="expected_file_path" name="expected_file_path" type="STRING" />
             <column header="test_file_path" name="test_file_path" type="STRING" />
             <column header="date_added" name="date_added" type="DATE" />
