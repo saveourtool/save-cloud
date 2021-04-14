@@ -48,6 +48,7 @@ class ContainerManager(private val dockerHost: String) {
      * @param runCmd an entrypoint for docker container with CLI arguments
      * @param containerName a name for the created container
      * @param baseImageId id of the base docker image for this container
+     * @param workingDir working directory for [runCmd]
      * @return id of created container or null if it wasn't created
      * @throws DockerException if docker daemon has returned an error
      * @throws RuntimeException if an exception not specific to docker has occurred
