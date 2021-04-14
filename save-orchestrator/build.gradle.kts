@@ -37,18 +37,14 @@ dependencies {
     testImplementation("com.squareup.okhttp3:mockwebserver:${Versions.okhttp3}")
 }
 
-tasks.getByName("processResources") {
+val copyAgentResourcesTask by tasks.registering(Copy::class) {
     dependsOn(":save-agent:linkReleaseExecutableAgent")
-    doFirst {
-        copy {
-            // fixme: properly share artifact as per https://docs.gradle.org/current/userguide/cross_project_publications.html#cross_project_publications
-            from(
-                file("${rootProject.project(":save-agent").buildDir}/bin/agent/releaseExecutable").listFiles()!!.single(),
-                file("${rootProject.project(":save-agent").buildDir}/processedResources/agent/main").listFiles()!!.single()
-            )
-            into("$buildDir/resources/main")
-        }
-    }
+    dependsOn("processResources")
+    // fixme: properly share artifact as per https://docs.gradle.org/current/userguide/cross_project_publications.html#cross_project_publications
+    from(file("${rootProject.project(":save-agent").buildDir}/bin/agent/releaseExecutable").listFiles()!!.single())
+    from(file("${rootProject.project(":save-agent").projectDir}/src/nativeMain/resources/agent.properties"))
+    into("$buildDir/resources/main")
 }
+tasks.getByName("processResources").finalizedBy(copyAgentResourcesTask)
 
 configureJacoco()
