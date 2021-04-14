@@ -14,8 +14,8 @@ import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 import java.io.File
 import kotlin.io.path.ExperimentalPathApi
-import kotlin.io.path.createTempFile
-import kotlin.io.path.writeText
+import kotlin.io.path.createFile
+import kotlin.io.path.createTempDirectory
 
 /**
  * A service that uses [ContainerManager] to build and start containers for test execution.
@@ -102,15 +102,18 @@ class DockerService(private val configProperties: ConfigProperties) {
             listOf("$executionDir/$SAVE_AGENT_EXECUTABLE_NAME"),
             "save-execution-$containerNumber",
         )
-        val agentPropertiesFile = createTempFile("agent")
+        val agentPropertiesFile = createTempDirectory("agent")
+            .resolve("agent.properties")
+            .toFile()
+        ClassPathResource("agent.properties").file.copyTo(agentPropertiesFile)
         agentPropertiesFile.writeText(
-            """
-                agent.id=$containerId
-            """.trimIndent()
+            agentPropertiesFile.readLines().joinToString(System.lineSeparator()) {
+                if (it.startsWith("id=")) "id=$containerId" else it
+            }
         )
         containerManager.copyResourcesIntoContainer(
             containerId, executionDir,
-            listOf(agentPropertiesFile.toFile())
+            listOf(agentPropertiesFile)
         )
         return containerId
     }

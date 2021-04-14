@@ -42,7 +42,10 @@ tasks.getByName("processResources") {
     doFirst {
         copy {
             // fixme: properly share artifact as per https://docs.gradle.org/current/userguide/cross_project_publications.html#cross_project_publications
-            from(file("${rootProject.project(":save-agent").buildDir}/bin/agent/releaseExecutable").listFiles()!!.single())
+            from(
+                file("${rootProject.project(":save-agent").buildDir}/bin/agent/releaseExecutable").listFiles()!!.single(),
+                file("${rootProject.project(":save-agent").buildDir}/processedResources/agent/main").listFiles()!!.single()
+            )
             into("$buildDir/resources/main")
         }
     }
