@@ -25,6 +25,7 @@ repositories {
 
 dependencies {
     api(project(":save-common"))
+    implementation(project(":save-agent", "distribution"))
     implementation("org.slf4j:slf4j-api:${Versions.slf4j}")
     implementation("ch.qos.logback:logback-core:${Versions.logback}")
     implementation("com.github.docker-java:docker-java-core:${Versions.dockerJavaApi}")
@@ -36,15 +37,5 @@ dependencies {
     testImplementation("com.squareup.okhttp3:okhttp:${Versions.okhttp3}")
     testImplementation("com.squareup.okhttp3:mockwebserver:${Versions.okhttp3}")
 }
-
-val copyAgentResourcesTask by tasks.registering(Copy::class) {
-    dependsOn(":save-agent:linkReleaseExecutableAgent")
-    dependsOn("processResources")
-    // fixme: properly share artifact as per https://docs.gradle.org/current/userguide/cross_project_publications.html#cross_project_publications
-    from(file("${rootProject.project(":save-agent").buildDir}/bin/agent/releaseExecutable").listFiles()!!.single())
-    from(file("${rootProject.project(":save-agent").projectDir}/src/nativeMain/resources/agent.properties"))
-    into("$buildDir/resources/main")
-}
-tasks.getByName("processResources").finalizedBy(copyAgentResourcesTask)
 
 configureJacoco()

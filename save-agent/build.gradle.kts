@@ -48,6 +48,19 @@ kotlin {
         getByName("${hostTarget.name}Test").dependsOn(nativeTest)
     }
 
+    val distribution by configurations.creating
+    val copyAgentDistribution by tasks.registering(Jar::class) {
+        dependsOn("linkReleaseExecutableAgent")
+        archiveClassifier.set("distribution")
+        from(file("$buildDir/bin/agent/releaseExecutable")) {
+            include("*")
+        }
+        from(file("$projectDir/src/nativeMain/resources/agent.properties"))
+    }
+    artifacts.add(distribution.name, file("$buildDir/distribution")) {
+        builtBy(copyAgentDistribution)
+    }
+
     // code coverage: https://github.com/JetBrains/kotlin/blob/master/kotlin-native/CODE_COVERAGE.md, https://github.com/JetBrains/kotlin/blob/master/kotlin-native/samples/coverage/build.gradle.kts
     if (false /*os.isLinux*/) {  // this doesn't work for 1.4.31, maybe will be fixed later
         hostTarget.binaries.getTest("DEBUG").apply {
