@@ -1,5 +1,6 @@
 package org.cqfn.save.orchestrator.service
 
+import org.apache.commons.io.FileUtils
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionUpdateDto
@@ -83,7 +84,10 @@ class DockerService(private val configProperties: ConfigProperties) {
             execution.resourcesRootPath,
         )
         // include save-agent into the image
-        ClassPathResource(SAVE_AGENT_EXECUTABLE_NAME).file.copyTo(File(resourcesPath, SAVE_AGENT_EXECUTABLE_NAME))
+        FileUtils.copyInputStreamToFile(
+            ClassPathResource(SAVE_AGENT_EXECUTABLE_NAME).inputStream,
+            File(resourcesPath, SAVE_AGENT_EXECUTABLE_NAME)
+        )
         val imageId = containerManager.buildImageWithResources(
             imageName = "save-execution:${execution.id}",
             baseDir = resourcesPath,
