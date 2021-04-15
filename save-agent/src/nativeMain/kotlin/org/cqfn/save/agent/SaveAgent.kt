@@ -2,9 +2,9 @@
 
 package org.cqfn.save.agent
 
+import org.cqfn.save.agent.utils.readFile
 import org.cqfn.save.domain.TestResultStatus
 
-import com.benasher44.uuid.uuid4
 import io.ktor.client.HttpClient
 import io.ktor.client.features.HttpTimeout
 import io.ktor.client.features.json.JsonFeature
@@ -18,9 +18,6 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.util.KtorExperimentalAPI
 import okio.ExperimentalFileSystem
-import okio.FileNotFoundException
-import okio.FileSystem
-import okio.Path.Companion.toPath
 import platform.posix.system
 
 import kotlin.native.concurrent.AtomicReference
@@ -55,8 +52,6 @@ class SaveAgent(private val config: AgentConfiguration,
      * The current [AgentState] of this agent
      */
     val state = AtomicReference(AgentState.IDLE)
-
-    private val id = uuid4().toString()  // todo: should be read from file
     private var saveProcessJob: Job? = null
 
     /**
@@ -86,8 +81,8 @@ class SaveAgent(private val config: AgentConfiguration,
                 println("Exception during heartbeat: ${response.exceptionOrNull()?.message}")
             }
             // todo: start waiting after request was sent, not after response?
-            println("Waiting for ${config.heartbeatIntervalMillis} sec")
-            delay(config.heartbeatIntervalMillis)
+            println("Waiting for ${config.heartbeat.interval} sec")
+            delay(config.heartbeat.interval)
         }
     }
 
@@ -112,7 +107,7 @@ class SaveAgent(private val config: AgentConfiguration,
         val code = runSave(emptyList())
         when (code) {
             0 -> {
-                val executionLogs = ExecutionLogs(id, readFile("logs.txt"))
+                val executionLogs = ExecutionLogs(config.id, readFile("logs.txt"))
                 if (executionLogs.cliLogs.isEmpty()) {
                     state.value = AgentState.CLI_FAILED
                     return@coroutineScope
@@ -131,18 +126,6 @@ class SaveAgent(private val config: AgentConfiguration,
                 state.value = AgentState.FINISHED
             }
             else -> state.value = AgentState.CLI_FAILED
-        }
-    }
-
-    private fun readFile(filePath: String): List<String> {
-        try {
-            val path = filePath.toPath()
-            return FileSystem.SYSTEM.read(path) {
-                generateSequence { readUtf8Line() }.toList()
-            }
-        } catch (e: FileNotFoundException) {
-            println("Not able to find file in the following path: $filePath")
-            return emptyList()
         }
     }
 
@@ -167,7 +150,7 @@ class SaveAgent(private val config: AgentConfiguration,
         return httpClient.post("${config.orchestratorUrl}/heartbeat") {
             contentType(ContentType.Application.Json)
             accept(ContentType.Application.Json)
-            body = Heartbeat(id, state.value, executionProgress)
+            body = Heartbeat(config.id, state.value, executionProgress)
         }
     }
 

@@ -6,12 +6,19 @@
 
 package org.cqfn.save.agent
 
-import kotlinx.coroutines.runBlocking
+import org.cqfn.save.agent.utils.readProperties
 
+import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.properties.Properties
+import kotlinx.serialization.properties.decodeFromStringMap
+
+@OptIn(ExperimentalSerializationApi::class)
 fun main() {
-    val saveAgent = SaveAgent(
-        AgentConfiguration(backendUrl = "http://host.docker.internal:5000", orchestratorUrl = "http://host.docker.internal:5100")
+    val config: AgentConfiguration = Properties.decodeFromStringMap(
+        readProperties("agent.properties")
     )
+    val saveAgent = SaveAgent(config)
     runBlocking {
         saveAgent.start()
     }

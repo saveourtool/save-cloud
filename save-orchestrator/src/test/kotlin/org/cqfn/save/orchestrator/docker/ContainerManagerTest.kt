@@ -38,7 +38,7 @@ class ContainerManagerTest {
             .exec(PullImageResultCallback())
             .awaitCompletion()
         baseImageId = containerManager.dockerClient.listImagesCmd().exec().find {
-            it.repoTags?.firstOrNull() == "ubuntu:latest"
+            it.repoTags!!.contains("ubuntu:latest")
         }!!
             .id
     }
@@ -49,6 +49,7 @@ class ContainerManagerTest {
         testFile.writeText("wow such testing")
         testContainerId = containerManager.createContainerFromImage(
             baseImageId,
+            "/",
             listOf("./script.sh"),
             "testContainer"
         )

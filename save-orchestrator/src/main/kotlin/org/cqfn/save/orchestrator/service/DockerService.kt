@@ -5,6 +5,8 @@ import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionUpdateDto
 import org.cqfn.save.orchestrator.config.ConfigProperties
 import org.cqfn.save.orchestrator.docker.ContainerManager
+
+import org.apache.commons.io.FileUtils
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
@@ -12,10 +14,11 @@ import org.springframework.core.io.ClassPathResource
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
+
 import java.io.File
+
 import kotlin.io.path.ExperimentalPathApi
-import kotlin.io.path.createTempFile
-import kotlin.io.path.writeText
+import kotlin.io.path.createTempDirectory
 
 /**
  * A service that uses [ContainerManager] to build and start containers for test execution.
@@ -84,7 +87,10 @@ class DockerService(private val configProperties: ConfigProperties) {
             execution.resourcesRootPath,
         )
         // include save-agent into the image
-        ClassPathResource(SAVE_AGENT_EXECUTABLE_NAME).file.copyTo(File(resourcesPath, SAVE_AGENT_EXECUTABLE_NAME))
+        FileUtils.copyInputStreamToFile(
+            ClassPathResource(SAVE_AGENT_EXECUTABLE_NAME).inputStream,
+            File(resourcesPath, SAVE_AGENT_EXECUTABLE_NAME)
+        )
         val imageId = containerManager.buildImageWithResources(
             imageName = "save-execution:${execution.id}",
             baseDir = resourcesPath,
@@ -99,18 +105,25 @@ class DockerService(private val configProperties: ConfigProperties) {
     private fun createContainerForExecution(imageId: String, containerNumber: String): String {
         val containerId = containerManager.createContainerFromImage(
             imageId,
-            listOf("$executionDir/$SAVE_AGENT_EXECUTABLE_NAME"),
+            executionDir,
+            listOf("./$SAVE_AGENT_EXECUTABLE_NAME"),
             "save-execution-$containerNumber",
         )
-        val agentPropertiesFile = createTempFile("agent")
+        val agentPropertiesFile = createTempDirectory("agent")
+            .resolve("agent.properties")
+            .toFile()
+        FileUtils.copyInputStreamToFile(
+            ClassPathResource("agent.properties").inputStream,
+            agentPropertiesFile
+        )
         agentPropertiesFile.writeText(
-            """
-                agent.id=$containerId
-            """.trimIndent()
+            agentPropertiesFile.readLines().joinToString(System.lineSeparator()) {
+                if (it.startsWith("id=")) "id=$containerId" else it
+            }
         )
         containerManager.copyResourcesIntoContainer(
             containerId, executionDir,
-            listOf(agentPropertiesFile.toFile())
+            listOf(agentPropertiesFile)
         )
         return containerId
     }

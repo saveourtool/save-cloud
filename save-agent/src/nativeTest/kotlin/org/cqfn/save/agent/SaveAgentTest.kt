@@ -2,6 +2,8 @@
 
 package org.cqfn.save.agent
 
+import org.cqfn.save.agent.utils.readProperties
+
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
@@ -15,12 +17,17 @@ import io.ktor.http.headersOf
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
+import kotlinx.serialization.properties.Properties
+import kotlinx.serialization.properties.decodeFromStringMap
 
 @Suppress("INLINE_CLASS_CAN_BE_USED")
 class SaveAgentTest {
-    private val saveAgentForTest = SaveAgent(AgentConfiguration(), httpClient = HttpClient(MockEngine) {
+    @OptIn(ExperimentalSerializationApi::class)
+    private val configuration: AgentConfiguration = Properties.decodeFromStringMap(readProperties("src/nativeMain/resources/agent.properties"))
+    private val saveAgentForTest = SaveAgent(configuration, httpClient = HttpClient(MockEngine) {
         install(JsonFeature) {
             serializer = KotlinxSerializer(Json {
                 serializersModule = SerializersModule {

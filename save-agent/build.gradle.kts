@@ -2,6 +2,7 @@ import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform.getCurr
 
 plugins {
     kotlin("multiplatform")
+    kotlin("plugin.serialization") version Versions.kotlin
 }
 
 kotlin {
@@ -21,13 +22,17 @@ kotlin {
         }
     }
     sourceSets {
+        all {
+            languageSettings.useExperimentalAnnotation("kotlin.RequiresOptIn")
+            languageSettings.useExperimentalAnnotation("okio.ExperimentalFileSystem")
+        }
         val nativeMain by creating {
             dependencies {
                 implementation(project(":save-common"))
                 implementation("io.ktor:ktor-client-core:${Versions.ktor}")
                 implementation("io.ktor:ktor-client-curl:${Versions.ktor}")
                 implementation("io.ktor:ktor-client-serialization:${Versions.ktor}")
-                implementation("com.benasher44:uuid:0.2.4")
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-properties:${Versions.serialization}")
                 implementation("com.squareup.okio:okio-multiplatform:3.0.0-alpha.1")
                 implementation("org.jetbrains.kotlinx:kotlinx-datetime:${Versions.kotlinxDatetime}")
                 // as for 2.0.4, kotlin-logging doesn't have mingw version and it'll be PITA to use it
@@ -41,6 +46,19 @@ kotlin {
             }
         }
         getByName("${hostTarget.name}Test").dependsOn(nativeTest)
+    }
+
+    val distribution by configurations.creating
+    val copyAgentDistribution by tasks.registering(Jar::class) {
+        dependsOn("linkReleaseExecutableAgent")
+        archiveClassifier.set("distribution")
+        from(file("$buildDir/bin/agent/releaseExecutable")) {
+            include("*")
+        }
+        from(file("$projectDir/src/nativeMain/resources/agent.properties"))
+    }
+    artifacts.add(distribution.name, file("$buildDir/libs/${project.name}-${project.version}-distribution.jar")) {
+        builtBy(copyAgentDistribution)
     }
 
     // code coverage: https://github.com/JetBrains/kotlin/blob/master/kotlin-native/CODE_COVERAGE.md, https://github.com/JetBrains/kotlin/blob/master/kotlin-native/samples/coverage/build.gradle.kts
