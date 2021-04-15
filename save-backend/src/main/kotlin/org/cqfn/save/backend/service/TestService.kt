@@ -31,7 +31,7 @@ class TestService(private val configProperties: ConfigProperties) {
      */
     fun getTestBatches(): Mono<List<TestDto>> {
         val tests = testRepository.retrieveBatches(configProperties.limit, offset.get()).map {
-            TestDto(it.expectedFilePath, it.testFilePath, it.testSuite.id!!, it.id!!)
+            TestDto(it.filePath, it.testSuite.id!!, it.id!!)
         }
         offset.addAndGet(configProperties.limit)
         return Mono.just(tests)

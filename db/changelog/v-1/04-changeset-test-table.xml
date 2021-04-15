@@ -15,10 +15,9 @@
             <column name="id" type="bigint" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="expected_file_path" type="varchar(255)">
+            <column name="file_path" type="varchar(255)">
                 <constraints nullable="false"/>
             </column>
-            <column name="test_file_path" type="varchar(255)" />
             <column name="date_added" type="DATETIME">
                 <constraints nullable="false"/>
             </column>

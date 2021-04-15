@@ -37,7 +37,6 @@ class TestInitializeControllerTest {
     fun testConnection() {
         val testSuite = testSuiteRepository.findById(2).get()
         val test = org.cqfn.save.entities.Test(
-            "expectedPath",
             "testPath",
             testLocalDateTime,
             testSuite,
@@ -56,7 +55,6 @@ class TestInitializeControllerTest {
     fun checkDataSave() {
         val testSuite = testSuiteRepository.findById(2).get()
         val test = org.cqfn.save.entities.Test(
-            "expectedPath",
             "testPath",
             testLocalDateTime,
             testSuite,
@@ -71,7 +69,7 @@ class TestInitializeControllerTest {
 
         val databaseData = testInitRepository.findAll()
 
-        assertTrue(databaseData.any { it.testSuite.id == test.testSuite.id && it.expectedFilePath == test.expectedFilePath })
+        assertTrue(databaseData.any { it.testSuite.id == test.testSuite.id && it.filePath == test.filePath })
     }
 
     @Test

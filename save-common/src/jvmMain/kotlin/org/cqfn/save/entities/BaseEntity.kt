@@ -7,7 +7,6 @@ import javax.persistence.MappedSuperclass
 /**
  * base class for all entities
  */
-@Suppress("USE_DATA_CLASS")
 @MappedSuperclass
 abstract class BaseEntity {
     /**

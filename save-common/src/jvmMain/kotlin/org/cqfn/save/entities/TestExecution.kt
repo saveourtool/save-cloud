@@ -3,13 +3,11 @@ package org.cqfn.save.entities
 import org.cqfn.save.domain.TestResultStatus
 
 import java.time.LocalDateTime
-import javax.persistence.Column
 import javax.persistence.Entity
 import javax.persistence.EnumType
 import javax.persistence.Enumerated
 import javax.persistence.JoinColumn
 import javax.persistence.ManyToOne
-import javax.persistence.Table
 
 /**
  * @property test id of test
@@ -21,14 +19,12 @@ import javax.persistence.Table
  * @property endTime finish time
  */
 @Entity
-@Table(name = "test_execution")
 class TestExecution(
 
     @ManyToOne
     @JoinColumn(name = "test_id")
     var test: Test,
 
-    @Column(name = "test_suite_execution_id")
     var testSuiteExecutionId: Long,
 
     @ManyToOne
@@ -40,13 +36,10 @@ class TestExecution(
     var project: Project,
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status")
     var status: TestResultStatus,
 
-    @Column(name = "start_time")
     var startTime: LocalDateTime,
 
-    @Column(name = "end_time")
     var endTime: LocalDateTime,
 
 ) : BaseEntity()
