@@ -2,6 +2,7 @@ package org.cqfn.save.backend.controller
 
 import org.cqfn.save.backend.SaveApplication
 import org.cqfn.save.backend.repository.ExecutionRepository
+import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.utils.MySqlExtension
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.execution.ExecutionStatus
@@ -30,10 +31,14 @@ class ExecutionControllerTest {
     @Autowired
     lateinit var executionRepository: ExecutionRepository
 
+    @Autowired
+    lateinit var projectRepository: ProjectRepository
+
     @Test
     fun testConnection() {
+        val project = projectRepository.findById(1).get()
         val execution = Execution(
-            1,
+            project,
             testLocalDateTime,
             testLocalDateTime,
             ExecutionStatus.RUNNING,
@@ -51,8 +56,9 @@ class ExecutionControllerTest {
 
     @Test
     fun testDataSave() {
+        val project = projectRepository.findById(1).get()
         val execution = Execution(
-            1,
+            project,
             testLocalDateTime,
             testLocalDateTime,
             ExecutionStatus.RUNNING,
@@ -74,8 +80,9 @@ class ExecutionControllerTest {
 
     @Test
     fun testUpdateExecution() {
+        val project = projectRepository.findById(1).get()
         val execution = Execution(
-            1,
+            project,
             testLocalDateTime,
             testLocalDateTime,
             ExecutionStatus.RUNNING,

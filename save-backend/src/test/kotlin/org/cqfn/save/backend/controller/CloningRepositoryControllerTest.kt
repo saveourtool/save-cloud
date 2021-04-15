@@ -36,7 +36,6 @@ import java.time.Duration
 @WebFluxTest(controllers = [CloneRepositoryController::class])
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @MockBeans(
-    // todo: why need to mock all repos?
     MockBean(AgentStatusRepository::class),
     MockBean(AgentRepository::class),
     MockBean(ExecutionRepository::class),

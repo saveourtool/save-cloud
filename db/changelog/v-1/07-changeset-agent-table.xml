@@ -12,8 +12,11 @@
             </not>
         </preConditions>
         <createTable tableName="agent">
-            <column name="agent_id" type="varchar(64)">
+            <column name="id" type="bigint">
                 <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="container_id" type="varchar(64)">
+                <constraints nullable="false"/>
             </column>
             <column name="execution_id" type="bigint">
                 <constraints foreignKeyName="fk_agent_execution" references="execution(id)" nullable="false"/>

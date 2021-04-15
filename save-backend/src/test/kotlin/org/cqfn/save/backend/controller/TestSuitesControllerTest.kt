@@ -1,6 +1,7 @@
 package org.cqfn.save.backend.controller
 
 import org.cqfn.save.backend.SaveApplication
+import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.repository.TestSuiteRepository
 import org.cqfn.save.backend.utils.MySqlExtension
 import org.cqfn.save.entities.TestSuite
@@ -29,12 +30,16 @@ class TestSuitesControllerTest {
     @Autowired
     lateinit var testSuiteRepository: TestSuiteRepository
 
+    @Autowired
+    lateinit var projectRepository: ProjectRepository
+
     @Test
     fun testConnection() {
+        val project = projectRepository.findById(1).get()
         val testSuite = TestSuite(
             TestSuiteType.PROJECT,
             "test",
-            1,
+            project,
             testLocalDateTime
         )
 
@@ -49,10 +54,11 @@ class TestSuitesControllerTest {
 
     @Test
     fun checkDataSave() {
+        val project = projectRepository.findById(1).get()
         val testSuite = TestSuite(
             TestSuiteType.PROJECT,
             "test",
-            1,
+            project,
             testLocalDateTime
         )
 
@@ -66,6 +72,6 @@ class TestSuitesControllerTest {
 
         val databaseData = testSuiteRepository.findAll()
 
-        assertTrue(databaseData.any { it.projectId == testSuite.projectId && it.name == testSuite.name })
+        assertTrue(databaseData.any { it.project?.id == testSuite.project?.id && it.name == testSuite.name })
     }
 }

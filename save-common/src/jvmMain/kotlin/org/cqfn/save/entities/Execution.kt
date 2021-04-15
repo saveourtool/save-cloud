@@ -5,11 +5,11 @@ import java.time.LocalDateTime
 import javax.persistence.Entity
 import javax.persistence.EnumType
 import javax.persistence.Enumerated
-import javax.persistence.GeneratedValue
-import javax.persistence.Id
+import javax.persistence.JoinColumn
+import javax.persistence.ManyToOne
 
 /**
- * @property projectId
+ * @property project
  * @property startTime
  * @property endTime
  * @property status
@@ -19,16 +19,20 @@ import javax.persistence.Id
 @Suppress("USE_DATA_CLASS")
 @Entity
 class Execution(
-    var projectId: Long,
+
+    @ManyToOne
+    @JoinColumn(name = "project_id")
+    var project: Project,
+
     var startTime: LocalDateTime,
+
     var endTime: LocalDateTime,
+
     @Enumerated(EnumType.STRING)
     var status: ExecutionStatus,
+
     var testSuiteIds: String,
+
     var resourcesRootPath: String,
-) {
-    /**
-     * id
-     */
-    @Id @GeneratedValue var id: Long? = null
-}
+
+) : BaseEntity()

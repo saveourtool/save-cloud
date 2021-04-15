@@ -59,7 +59,7 @@ class AgentService(configProperties: ConfigProperties) {
             .retrieve()
             .bodyToMono(String::class.java)
         updateAgentStatuses(agents.map {
-            AgentStatus(LocalDateTime.now(), AgentState.IDLE, it.agentId)
+            AgentStatus(LocalDateTime.now(), AgentState.IDLE, it)
         })
     }
 

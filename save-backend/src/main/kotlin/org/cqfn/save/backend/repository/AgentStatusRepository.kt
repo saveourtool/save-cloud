@@ -6,14 +6,16 @@ package org.cqfn.save.backend.repository
 
 import org.cqfn.save.entities.Agent
 import org.cqfn.save.entities.AgentStatus
-import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.stereotype.Repository
 
 /**
  * JPA repository for agent statuses.
  */
-interface AgentStatusRepository : JpaRepository<AgentStatus, Long>
+@Repository
+interface AgentStatusRepository : BaseEntityRepository<AgentStatus>
 
 /**
  * JPA repository for agents.
  */
-interface AgentRepository : JpaRepository<Agent, String>
+@Repository
+interface AgentRepository : BaseEntityRepository<Agent>

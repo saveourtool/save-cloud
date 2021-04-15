@@ -2,6 +2,7 @@ package org.cqfn.save.backend.controller
 
 import org.cqfn.save.backend.SaveApplication
 import org.cqfn.save.backend.repository.TestRepository
+import org.cqfn.save.backend.repository.TestSuiteRepository
 import org.cqfn.save.backend.utils.MySqlExtension
 import org.cqfn.save.test.TestDto
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -29,14 +30,16 @@ class TestInitializeControllerTest {
     @Autowired
     lateinit var testInitRepository: TestRepository
 
+    @Autowired
+    lateinit var testSuiteRepository: TestSuiteRepository
+
     @Test
     fun testConnection() {
+        val testSuite = testSuiteRepository.findById(2).get()
         val test = org.cqfn.save.entities.Test(
-            "expectedPath",
             "testPath",
             testLocalDateTime,
-            2,
-            "HASH"
+            testSuite,
         )
 
         webClient.post()
@@ -50,12 +53,11 @@ class TestInitializeControllerTest {
 
     @Test
     fun checkDataSave() {
+        val testSuite = testSuiteRepository.findById(2).get()
         val test = org.cqfn.save.entities.Test(
-            "expectedPath",
             "testPath",
             testLocalDateTime,
-            2,
-            "HASHANOTHER"
+            testSuite,
         )
         webClient.post()
             .uri("/initializeTests")
@@ -67,7 +69,7 @@ class TestInitializeControllerTest {
 
         val databaseData = testInitRepository.findAll()
 
-        assertTrue(databaseData.any { it.id == test.id && it.expectedFilePath == test.expectedFilePath })
+        assertTrue(databaseData.any { it.testSuite.id == test.testSuite.id && it.filePath == test.filePath })
     }
 
     @Test

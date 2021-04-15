@@ -15,7 +15,7 @@
             <column name="id" type="bigint" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="test_id" type="varchar(255)">
+            <column name="test_id" type="bigint">
                 <constraints foreignKeyName="fk_test_execution_test" references="test(id)" nullable="false"/>
             </column>
             <column name="agent_id" type="bigint">

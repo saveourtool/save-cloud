@@ -7,6 +7,7 @@
 
     <changeSet id="5" author="aktsay" context="dev">
         <insert dbms="mysql" tableName="project">
+            <column name="id" value="1" />
             <column name="owner" value="Huawei" />
             <column name="name" value="huaweiName" />
             <column name="type" value="manual" />

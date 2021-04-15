@@ -1,9 +1,10 @@
 package org.cqfn.save.backend.repository
 
 import org.cqfn.save.entities.TestSuite
-import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.stereotype.Repository
 
 /**
- * Repository of test suites
+ * JPA repositories for TestSuite
  */
-interface TestSuiteRepository : JpaRepository<TestSuite, Long>
+@Repository
+interface TestSuiteRepository : BaseEntityRepository<TestSuite>

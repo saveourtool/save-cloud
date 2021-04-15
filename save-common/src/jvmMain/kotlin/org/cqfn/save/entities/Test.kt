@@ -1,19 +1,24 @@
 package org.cqfn.save.entities
 
 import java.time.LocalDateTime
+import javax.persistence.Entity
+import javax.persistence.JoinColumn
+import javax.persistence.ManyToOne
 
 /**
- * @property expectedFilePath
- * @property testFilePath
+ * @property filePath
  * @property dateAdded
- * @property testSuiteId
- * @property id
+ * @property testSuite
  */
 @Entity
 class Test(
-    var expectedFilePath: String,
-    var testFilePath: String,
+
+    var filePath: String,
+
     var dateAdded: LocalDateTime,
-    var testSuiteId: Long,
-    @Id var id: String
-)
+
+    @ManyToOne
+    @JoinColumn(name = "test_suite_id")
+    var testSuite: TestSuite,
+
+) : BaseEntity()

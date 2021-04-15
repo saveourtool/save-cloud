@@ -61,7 +61,7 @@ class HeartbeatControllerTest {
 
     @Test
     fun checkNewJobResponse() {
-        val list = listOf(TestDto("qwe", "www", 0, "hashID"))
+        val list = listOf(TestDto("qwe", 0, 1))
         mockServer.enqueue(
             MockResponse()
                 .setBody(Json.encodeToString(list))
@@ -70,7 +70,7 @@ class HeartbeatControllerTest {
 
         val monoResponse = agentService.setNewTestsIds().block() as NewJobResponse
 
-        assertTrue(monoResponse.ids.isNotEmpty() && monoResponse.ids.first().expectedFilePath == "qwe")
+        assertTrue(monoResponse.ids.isNotEmpty() && monoResponse.ids.first().filePath == "qwe")
     }
 
     companion object {

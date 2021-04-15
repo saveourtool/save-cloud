@@ -1,7 +1,10 @@
 package org.cqfn.save.backend.repository
 
 import org.cqfn.save.entities.TestExecution
-import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.stereotype.Repository
 
-@Suppress("MISSING_KDOC_TOP_LEVEL")
-interface TestExecutionRepository : JpaRepository<TestExecution, Long>
+/**
+ * Repository of execution
+ */
+@Repository
+interface TestExecutionRepository : BaseEntityRepository<TestExecution>

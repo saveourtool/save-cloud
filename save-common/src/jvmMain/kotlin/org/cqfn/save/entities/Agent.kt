@@ -1,14 +1,20 @@
 package org.cqfn.save.entities
 
 import javax.persistence.Entity
-import javax.persistence.Id
+import javax.persistence.JoinColumn
+import javax.persistence.ManyToOne
 
 /**
- * @property agentId id of the agent, equals to id of the container, inside which the agent is running
- * @property executionId id of the execution, which the agent is serving
+ * @property containerId id of the container, inside which the agent is running
+ * @property execution id of the execution, which the agent is serving
  */
 @Entity
 class Agent(
-    @Id var agentId: String,
-    var executionId: Long,
-)
+
+    var containerId: String,
+
+    @ManyToOne
+    @JoinColumn(name = "execution_id")
+    var execution: Execution,
+
+) : BaseEntity()
