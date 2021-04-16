@@ -1,15 +1,17 @@
 package org.cqfn.save.orchestrator.controller.heartbeat
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import org.cqfn.save.agent.AgentState
 import org.cqfn.save.agent.ExecutionProgress
 import org.cqfn.save.agent.Heartbeat
 import org.cqfn.save.agent.NewJobResponse
+import org.cqfn.save.entities.Agent
+import org.cqfn.save.entities.AgentStatus
 import org.cqfn.save.orchestrator.config.Beans
 import org.cqfn.save.orchestrator.service.AgentService
 import org.cqfn.save.orchestrator.service.DockerService
 import org.cqfn.save.test.TestDto
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.jupiter.api.AfterAll
@@ -17,6 +19,8 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
+import org.mockito.kotlin.any
+import org.mockito.kotlin.verify
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
 import org.springframework.boot.test.mock.mockito.MockBean
@@ -26,19 +30,14 @@ import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.web.reactive.server.WebTestClient
+import org.springframework.web.reactive.function.BodyInserters
 import reactor.core.publisher.Mono
 
 import java.time.Duration
+import java.time.LocalDateTime
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.cqfn.save.entities.Agent
-import org.cqfn.save.entities.AgentStatus
-import org.mockito.kotlin.any
-import org.mockito.kotlin.verify
-import org.springframework.web.reactive.function.BodyInserters
-import java.text.DateFormat
-import java.time.LocalDateTime
 
 @WebFluxTest
 @Import(Beans::class, AgentService::class)
@@ -98,8 +97,7 @@ class HeartbeatControllerTest {
         // /getAgentsStatusesForSameExecution
         mockServer.enqueue(
             MockResponse()
-                .setBody(//ObjectMapper()
-//                    .also { it.registerModule(JavaTimeModule()) }
+                .setBody(
                     objectMapper.writeValueAsString(
                         listOf(AgentStatus(LocalDateTime.now(), AgentState.IDLE, Agent("test", null)))
                     )
@@ -118,7 +116,6 @@ class HeartbeatControllerTest {
         // wait for background tasks
         Thread.sleep(5_000)
 
-//        verify(agentService).scheduleShutdownCheck(any())
         verify(dockerService).stopAgents(any())
     }
 

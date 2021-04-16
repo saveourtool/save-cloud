@@ -20,6 +20,7 @@ fun Project.configureSpringBoot(withSpringDataJpa: Boolean = false) {
         add("implementation", "org.springframework.boot:spring-boot-starter-actuator:${Versions.springBoot}")
         add("implementation", "io.micrometer:micrometer-registry-prometheus:${Versions.micrometer}")  // expose prometheus metrics in actuator
         add("implementation", "org.springframework.security:spring-security-core:${Versions.springSecurity}")
+        add("implementation", "com.fasterxml.jackson.module:jackson-module-kotlin:2.12.3")
         add("implementation", "org.slf4j:slf4j-api:${Versions.slf4j}")
         add("implementation", "ch.qos.logback:logback-core:${Versions.logback}")
         add("testImplementation", "org.springframework.boot:spring-boot-starter-test:${Versions.springBoot}")

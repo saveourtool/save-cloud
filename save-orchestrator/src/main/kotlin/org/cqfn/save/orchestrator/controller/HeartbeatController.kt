@@ -58,11 +58,9 @@ class HeartbeatController(private val agentService: AgentService,
         return when (heartbeat.state) {
             AgentState.IDLE -> agentService.setNewTestsIds().subscribeOn(scheduler)
                 .doOnNext {
-                    println("Subscribing")
                     if (it is WaitResponse) {
-                        println("Handling $WaitResponse")
                         // If agent was IDLE and there are no new tests - we check if the Execution is completed.
-                        agentService.scheduleShutdownCheck(heartbeat.agentId).subscribeOn(scheduler).subscribe { finishedAgentIds ->
+                        agentService.getAgentsAwaitingStop(heartbeat.agentId).subscribeOn(scheduler).subscribe { finishedAgentIds ->
                             if (finishedAgentIds.isNotEmpty()) {
                                 dockerService.stopAgents(finishedAgentIds)
                             }

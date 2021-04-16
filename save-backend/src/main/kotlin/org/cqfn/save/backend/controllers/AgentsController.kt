@@ -35,25 +35,19 @@ class AgentsController(private val agentStatusRepository: AgentStatusRepository,
         agentStatusRepository.saveAll(agentStates)
     }
 
-    @GetMapping("/getAgentCurrentState")
-    fun getAgentStates(@RequestBody agentId: String) = agentStatusRepository.findTopByAgentContainerIdOrderByTimeDesc(agentId)
-
-//    fun getExecutionForAgent(agentId: String)
-
-    @GetMapping("/getAgentsForSameExecution")
-    fun findAllAgentsForSameExecution(@RequestBody agentId: String): List<Agent> {
-        return agentRepository.findByContainerId(agentId).singleOrNull()?.let {
-            agentRepository.findByExecutionId(it.execution?.id!!)
-        } ?: throw IllegalStateException("Agent with containerId=$agentId not found or present multiple times in the DB")
-    }
-
+    /**
+     * Get statuses of all agents in the same execution with provided agent (including itself).
+     *
+     * @param agentId containerId of an agent.
+     * @return list of agent statuses
+     * @throws IllegalStateException if provided [agentId] is invalid.
+     */
     @GetMapping("/getAgentsStatusesForSameExecution")
-    fun findAllAgentStatusesForSameExecution(@RequestBody agentId: String): List<AgentStatus> {
-        return agentRepository.findByContainerId(agentId).singleOrNull()?.let {
-            agentRepository.findByExecutionId(it.execution?.id!!)
-        }?.map {
+    fun findAllAgentStatusesForSameExecution(@RequestBody agentId: String) = agentRepository.findByContainerId(agentId).singleOrNull()?.let {
+        agentRepository.findByExecutionId(it.execution?.id!!)
+    }
+        ?.map {
             agentStatusRepository.findTopByAgentContainerIdOrderByTimeDesc(it.containerId)
         }
-            ?: throw IllegalStateException("Agent with containerId=$agentId not found or present multiple times in the DB")
-    }
+        ?: throw IllegalStateException("Agent with containerId=$agentId not found or present multiple times in the DB")
 }

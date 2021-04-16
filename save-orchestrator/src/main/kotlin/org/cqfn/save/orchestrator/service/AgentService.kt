@@ -3,6 +3,7 @@ package org.cqfn.save.orchestrator.service
 import org.cqfn.save.agent.AgentState
 import org.cqfn.save.agent.HeartbeatResponse
 import org.cqfn.save.agent.NewJobResponse
+import org.cqfn.save.agent.WaitResponse
 import org.cqfn.save.entities.Agent
 import org.cqfn.save.entities.AgentStatus
 import org.cqfn.save.orchestrator.config.ConfigProperties
@@ -10,15 +11,13 @@ import org.cqfn.save.test.TestDto
 
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.core.ParameterizedTypeReference
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 import reactor.core.publisher.Mono
 
 import java.time.LocalDateTime
-
-import org.cqfn.save.agent.WaitResponse
-import org.springframework.core.ParameterizedTypeReference
 
 /**
  * Service for work with agents and backend
@@ -92,13 +91,13 @@ class AgentService(configProperties: ConfigProperties) {
         TODO()
     }
 
-    fun getAgentState(agentId: String) = webClientBackend
-        .get()
-        .uri("/getAgentState")
-        .retrieve()
-        .bodyToMono(AgentState::class.java)
-
-    fun scheduleShutdownCheck(agentId: String): Mono<List<String>> {
+    /**
+     * Get list of agent ids (containerIds) for agents that have completed their jobs.
+     *
+     * @param agentId containerId of an agent
+     * @return Mono with list of agent ids for agents that can be shut down.
+     */
+    fun getAgentsAwaitingStop(agentId: String): Mono<List<String>> {
         // If we call this method, then there are no unfinished TestExecutions.
         // check other agents status
         return webClientBackend
