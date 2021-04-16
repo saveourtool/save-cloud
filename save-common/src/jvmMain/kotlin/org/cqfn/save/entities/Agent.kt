@@ -15,6 +15,6 @@ class Agent(
 
     @ManyToOne
     @JoinColumn(name = "execution_id")
-    var execution: Execution,
+    var execution: Execution?,
 
 ) : BaseEntity()

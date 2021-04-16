@@ -17,8 +17,8 @@ import reactor.core.publisher.Mono
 
 import java.time.LocalDateTime
 
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.json.Json
+import org.cqfn.save.agent.WaitResponse
+import org.springframework.core.ParameterizedTypeReference
 
 /**
  * Service for work with agents and backend
@@ -39,10 +39,13 @@ class AgentService(configProperties: ConfigProperties) {
                 .get()
                 .uri("/getTestBatches")
                 .retrieve()
-                .bodyToMono(String::class.java)  // fixme: use jackson everywhere in spring services
+                .bodyToMono(object : ParameterizedTypeReference<List<TestDto>>() {})
                 .map {
-                    val listTest: List<TestDto> = Json.decodeFromString(it)
-                    NewJobResponse(listTest)
+                    if (it.isNotEmpty()) {
+                        NewJobResponse(it)
+                    } else {
+                        WaitResponse
+                    }
                 }
 
     /**
@@ -64,7 +67,7 @@ class AgentService(configProperties: ConfigProperties) {
     }
 
     /**
-     * @param agentStates lsit of [AgentStatus]es to update in the DB
+     * @param agentStates list of [AgentStatus]es to update in the DB
      */
     fun updateAgentStatuses(agentStates: List<AgentStatus>) {
         webClientBackend
@@ -87,5 +90,28 @@ class AgentService(configProperties: ConfigProperties) {
     @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")  // Fixme
     fun resendTestsOnError() {
         TODO()
+    }
+
+    fun getAgentState(agentId: String) = webClientBackend
+        .get()
+        .uri("/getAgentState")
+        .retrieve()
+        .bodyToMono(AgentState::class.java)
+
+    fun scheduleShutdownCheck(agentId: String): Mono<List<String>> {
+        // If we call this method, then there are no unfinished TestExecutions.
+        // check other agents status
+        return webClientBackend
+            .get()
+            .uri("/getAgentsStatusesForSameExecution")
+            .retrieve()
+            .bodyToMono(object : ParameterizedTypeReference<List<AgentStatus>>() {})
+            .map { agentStatuses ->
+                if (agentStatuses.all { it.state == AgentState.IDLE }) {
+                    agentStatuses.map { it.agent.containerId }
+                } else {
+                    emptyList()
+                }
+            }
     }
 }

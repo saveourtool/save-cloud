@@ -2,11 +2,14 @@ package org.cqfn.save.backend.controllers
 
 import org.cqfn.save.backend.repository.AgentRepository
 import org.cqfn.save.backend.repository.AgentStatusRepository
+import org.cqfn.save.backend.repository.ExecutionRepository
 import org.cqfn.save.entities.Agent
 import org.cqfn.save.entities.AgentStatus
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
+import java.lang.IllegalStateException
 
 /**
  * Controller to manipulate with Agent related data
@@ -14,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 class AgentsController(private val agentStatusRepository: AgentStatusRepository,
                        private val agentRepository: AgentRepository,
+                       private val executionRepository: ExecutionRepository,
 ) {
     /**
      * @param agents list of [Agent]s to save into the DB
@@ -29,5 +33,27 @@ class AgentsController(private val agentStatusRepository: AgentStatusRepository,
     @PostMapping("/updateAgentStatuses")
     fun updateAgentStatuses(@RequestBody agentStates: List<AgentStatus>) {
         agentStatusRepository.saveAll(agentStates)
+    }
+
+    @GetMapping("/getAgentCurrentState")
+    fun getAgentStates(@RequestBody agentId: String) = agentStatusRepository.findTopByAgentContainerIdOrderByTimeDesc(agentId)
+
+//    fun getExecutionForAgent(agentId: String)
+
+    @GetMapping("/getAgentsForSameExecution")
+    fun findAllAgentsForSameExecution(@RequestBody agentId: String): List<Agent> {
+        return agentRepository.findByContainerId(agentId).singleOrNull()?.let {
+            agentRepository.findByExecutionId(it.execution?.id!!)
+        } ?: throw IllegalStateException("Agent with containerId=$agentId not found or present multiple times in the DB")
+    }
+
+    @GetMapping("/getAgentsStatusesForSameExecution")
+    fun findAllAgentStatusesForSameExecution(@RequestBody agentId: String): List<AgentStatus> {
+        return agentRepository.findByContainerId(agentId).singleOrNull()?.let {
+            agentRepository.findByExecutionId(it.execution?.id!!)
+        }?.map {
+            agentStatusRepository.findTopByAgentContainerIdOrderByTimeDesc(it.containerId)
+        }
+            ?: throw IllegalStateException("Agent with containerId=$agentId not found or present multiple times in the DB")
     }
 }

@@ -1,5 +1,6 @@
 package org.cqfn.save.orchestrator.controller.heartbeat
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.cqfn.save.agent.AgentState
 import org.cqfn.save.agent.ExecutionProgress
 import org.cqfn.save.agent.Heartbeat
@@ -31,6 +32,13 @@ import java.time.Duration
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.cqfn.save.entities.Agent
+import org.cqfn.save.entities.AgentStatus
+import org.mockito.kotlin.any
+import org.mockito.kotlin.verify
+import org.springframework.web.reactive.function.BodyInserters
+import java.text.DateFormat
+import java.time.LocalDateTime
 
 @WebFluxTest
 @Import(Beans::class, AgentService::class)
@@ -40,6 +48,7 @@ class HeartbeatControllerTest {
     @Autowired lateinit var webClient: WebTestClient
     @Autowired private lateinit var agentService: AgentService
     @MockBean private lateinit var dockerService: DockerService
+    @Autowired private lateinit var objectMapper: ObjectMapper
 
     @BeforeEach
     fun webClientSetUp() {
@@ -71,6 +80,46 @@ class HeartbeatControllerTest {
         val monoResponse = agentService.setNewTestsIds().block() as NewJobResponse
 
         assertTrue(monoResponse.ids.isNotEmpty() && monoResponse.ids.first().filePath == "qwe")
+    }
+
+    @Test
+    fun `should shutdown idle agents when there are no tests left`() {
+        val heartbeatFinished = Heartbeat("test", AgentState.IDLE, ExecutionProgress(100))
+        // /updateAgentStatuses
+        mockServer.enqueue(
+            MockResponse().setResponseCode(200)
+        )
+        // /getTestBatches
+        mockServer.enqueue(
+            MockResponse()
+                .setBody(Json.encodeToString(emptyList<TestDto>()))
+                .addHeader("Content-Type", "application/json")
+        )
+        // /getAgentsStatusesForSameExecution
+        mockServer.enqueue(
+            MockResponse()
+                .setBody(//ObjectMapper()
+//                    .also { it.registerModule(JavaTimeModule()) }
+                    objectMapper.writeValueAsString(
+                        listOf(AgentStatus(LocalDateTime.now(), AgentState.IDLE, Agent("test", null)))
+                    )
+                )
+                .addHeader("Content-Type", "application/json")
+        )
+
+        webClient.post()
+            .uri("/heartbeat")
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
+            .body(BodyInserters.fromValue(heartbeatFinished))
+            .exchange()
+            .expectStatus().isOk
+
+        // wait for background tasks
+        Thread.sleep(5_000)
+
+//        verify(agentService).scheduleShutdownCheck(any())
+        verify(dockerService).stopAgents(any())
     }
 
     companion object {

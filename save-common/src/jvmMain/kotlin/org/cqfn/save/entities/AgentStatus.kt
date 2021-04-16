@@ -24,5 +24,4 @@ class AgentStatus(
     @ManyToOne
     @JoinColumn(name = "agent_id")
     var agent: Agent,
-
 ) : BaseEntity()
