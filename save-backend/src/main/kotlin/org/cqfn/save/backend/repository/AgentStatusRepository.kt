@@ -19,7 +19,7 @@ interface AgentStatusRepository : BaseEntityRepository<AgentStatus> {
      * @param containerId id of an agent
      * @return [AgentStatus] of an agent
      */
-    fun findTopByAgentContainerIdOrderByTimeDesc(containerId: String): AgentStatus
+    fun findTopByAgentContainerIdOrderByTimeDesc(containerId: String): AgentStatus?
 }
 
 /**

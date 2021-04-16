@@ -31,10 +31,4 @@
         </rollback>
     </changeSet>
 
-    <changeSet id="8" author="aktsay" context="dev or prod">
-        <addUniqueConstraint
-                tableName="agent_status"
-                columnNames="agent_id"/>
-    </changeSet>
-
 </databaseChangeLog>

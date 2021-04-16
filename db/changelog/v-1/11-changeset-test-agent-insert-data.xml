@@ -20,14 +20,6 @@
 
     </changeSet>
 
-    <changeSet id="12" author="aktsay" context="dev">
-        <insert dbms="mysql" tableName="agent_status">
-            <column name="state" value="BUSY" />
-            <column name="time" value="2021-01-01 00:00:00" />
-            <column name="agent_id" value="2" />
-        </insert>
-    </changeSet>
-
     <changeSet id="pr-90-1" author="frolov" context="dev">
         <insert dbms="mysql" tableName="execution">
             <column name="id" value="1" />
@@ -43,7 +35,7 @@
     <changeSet id="pr-90-2" author="frolov" context="dev">
         <insert dbms="mysql" tableName="agent">
             <column name="id" value="1" />
-            <column name="container_id" value="1" />
+            <column name="container_id" value="container-1" />
             <column name="execution_id" value="1" />
         </insert>
     </changeSet>
@@ -51,9 +43,19 @@
     <changeSet id="pr-90-3" author="frolov" context="dev">
         <insert dbms="mysql" tableName="agent">
             <column name="id" value="2" />
-            <column name="container_id" value="2" />
+            <column name="container_id" value="container-2" />
             <column name="execution_id" value="1" />
         </insert>
     </changeSet>
+
+    <changeSet id="agent-status-insert" author="petertrr" context="dev">
+        <loadData tableName="agent_status" encoding="UTF-8" separator=";" quotchar="&quot;" file="db/changelog/v-1/sqlRequests/agent-status.csv">
+            <column header="id" name="id" type="NUMERIC" />
+            <column header="time" name="time" type="DATETIME" />
+            <column header="state" name="state" type="STRING" />
+            <column header="agent_id" name="agent_id" type="NUMERIC" />
+        </loadData>
+    </changeSet>
+
 
 </databaseChangeLog>

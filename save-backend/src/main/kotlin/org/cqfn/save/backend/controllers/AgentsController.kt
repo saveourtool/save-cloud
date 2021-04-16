@@ -43,10 +43,14 @@ class AgentsController(private val agentStatusRepository: AgentStatusRepository,
      * @throws IllegalStateException if provided [agentId] is invalid.
      */
     @GetMapping("/getAgentsStatusesForSameExecution")
-    fun findAllAgentStatusesForSameExecution(@RequestBody agentId: String) = agentRepository.findByContainerId(agentId).singleOrNull()?.let {
-        agentRepository.findByExecutionId(it.execution?.id!!)
-    }
+    fun findAllAgentStatusesForSameExecution(@RequestBody agentId: String): List<AgentStatus?> = agentRepository
+        .findByContainerId(agentId)
+        .singleOrNull()
+        ?.let {
+            agentRepository.findByExecutionId(it.execution?.id!!)
+        }
         ?.map {
+            // this returns null in tests
             agentStatusRepository.findTopByAgentContainerIdOrderByTimeDesc(it.containerId)
         }
         ?: throw IllegalStateException("Agent with containerId=$agentId not found or present multiple times in the DB")

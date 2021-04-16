@@ -114,7 +114,7 @@ class HeartbeatControllerTest {
             .expectStatus().isOk
 
         // wait for background tasks
-        Thread.sleep(5_000)
+        Thread.sleep(2_000)
 
         verify(dockerService).stopAgents(any())
     }
