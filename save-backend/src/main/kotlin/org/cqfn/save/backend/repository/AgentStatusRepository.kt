@@ -6,6 +6,7 @@ package org.cqfn.save.backend.repository
 
 import org.cqfn.save.entities.Agent
 import org.cqfn.save.entities.AgentStatus
+import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Repository
 
 /**
@@ -42,4 +43,13 @@ interface AgentRepository : BaseEntityRepository<Agent> {
      * @return list of agents
      */
     fun findByContainerId(containerId: String): List<Agent>
+
+    /**
+     * Find all agents that have the same `executionId` as the agent with provided [containerId].
+     *
+     * @param containerId containerId of an agent
+     * @return list of agents from the same Execution
+     */
+    @Query(value = "SELECT * FROM agent WHERE agent.execution_id = (SELECT execution_id FROM agent WHERE agent.container_id = ?1)", nativeQuery = true)
+    fun findByExecutionIdOfContainerId(containerId: String): List<Agent>
 }

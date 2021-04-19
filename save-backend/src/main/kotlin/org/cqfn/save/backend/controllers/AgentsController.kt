@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
-import java.lang.IllegalStateException
 
 /**
  * Controller to manipulate with Agent related data
@@ -44,13 +43,8 @@ class AgentsController(private val agentStatusRepository: AgentStatusRepository,
      */
     @GetMapping("/getAgentsStatusesForSameExecution")
     fun findAllAgentStatusesForSameExecution(@RequestBody agentId: String): List<AgentStatus?> = agentRepository
-        .findByContainerId(agentId)
-        .singleOrNull()
-        ?.let {
-            agentRepository.findByExecutionId(it.execution?.id!!)
-        }
-        ?.map {
+        .findByExecutionIdOfContainerId(agentId)
+        .map {
             agentStatusRepository.findTopByAgentContainerIdOrderByTimeDesc(it.containerId)
         }
-        ?: throw IllegalStateException("Agent with containerId=$agentId not found or present multiple times in the DB")
 }
