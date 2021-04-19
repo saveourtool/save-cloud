@@ -70,6 +70,11 @@ talaiot {
 allprojects {
     repositories {
         mavenCentral()
+        maven("https://maven.pkg.jetbrains.space/public/p/kotlinx-html/maven") {  // detekt requires kotlinx.html
+            content {
+                includeModule("org.jetbrains.kotlinx", "kotlinx-html-jvm")
+            }
+        }
     }
     configureDiktat()
     configureDetekt()

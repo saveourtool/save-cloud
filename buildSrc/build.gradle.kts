@@ -5,6 +5,7 @@ plugins {
 repositories {
     gradlePluginPortal()
     mavenCentral()
+    maven("https://maven.pkg.jetbrains.space/public/p/kotlinx-html/maven")  // detekt requires kotlinx.html
 }
 
 dependencies {
