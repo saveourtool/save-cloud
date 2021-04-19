@@ -28,7 +28,7 @@ object Versions {
     const val okhttp3 = "4.9.1"
 
     // frontend
-    const val react = "17.0.1"
-    const val kotlinJsWrappersSuffix = "-pre.148-kotlin-1.4.30"
+    const val react = "17.0.2"
+    const val kotlinJsWrappersSuffix = "-pre.153-kotlin-1.4.32"
     const val kotlinReact = "$react$kotlinJsWrappersSuffix"
 }

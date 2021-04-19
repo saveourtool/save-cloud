@@ -12,10 +12,6 @@ kotlin {
         annotation("org.springframework.stereotype.Service")
     }
 
-    repositories {
-        maven(url = "https://kotlin.bintray.com/kotlinx/") // it is used for datetime. In future updates it will be jcenter()
-    }
-
     jvm {
         compilations.all {
             kotlinOptions {
