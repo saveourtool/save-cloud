@@ -38,6 +38,7 @@ import java.time.LocalDateTime
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.mockito.kotlin.times
 
 @WebFluxTest
 @Import(Beans::class, AgentService::class)
@@ -82,8 +83,65 @@ class HeartbeatControllerTest {
     }
 
     @Test
+    fun `should not shutdown any agents when not all of them are IDLE`() {
+        testHeartbeat(
+            agentStatuses = listOf(
+                AgentStatus(LocalDateTime.now(), AgentState.IDLE, Agent("test-1", null)),
+                AgentStatus(LocalDateTime.now(), AgentState.BUSY, Agent("test-2", null)),
+            ),
+            heartbeat = Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100)),
+            tests = emptyList()
+        ) {
+            verify(dockerService, times(0)).stopAgents(any())
+        }
+    }
+
+    @Test
+    fun `should not shutdown any agents when all agents are IDLE but there are more tests left`() {
+        testHeartbeat(
+            agentStatuses = listOf(
+                AgentStatus(LocalDateTime.now(), AgentState.IDLE, Agent("test-1", null)),
+                AgentStatus(LocalDateTime.now(), AgentState.IDLE, Agent("test-2", null)),
+            ),
+            heartbeat = Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100)),
+            tests = listOf(
+                TestDto("/path/to/test-1", 1, 1),
+                TestDto("/path/to/test-2", 1, 2),
+                TestDto("/path/to/test-3", 1, 3),
+            )
+        ) {
+            verify(dockerService, times(0)).stopAgents(any())
+        }
+    }
+
+    @Test
     fun `should shutdown idle agents when there are no tests left`() {
-        val heartbeatFinished = Heartbeat("test", AgentState.IDLE, ExecutionProgress(100))
+        testHeartbeat(
+            agentStatuses = listOf(
+                AgentStatus(LocalDateTime.now(), AgentState.IDLE, Agent("test-1", null)),
+                AgentStatus(LocalDateTime.now(), AgentState.IDLE, Agent("test-2", null)),
+            ),
+            heartbeat = Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100)),
+            tests = emptyList()
+        ) {
+            verify(dockerService, times(1)).stopAgents(any())
+        }
+    }
+
+    /**
+     * Test logic triggered by a heartbeat.
+     *
+     * @param agentStatuses agent statuses that are returned from backend (mocked response)
+     * @param heartbeat a [Heartbeat] that is received by orchestrator
+     * @param tests a batch of tests returned from backend (mocked response)
+     * @param verification a lambda for test assertions
+     */
+    private fun testHeartbeat(
+        agentStatuses: List<AgentStatus>,
+        heartbeat: Heartbeat,
+        tests: List<TestDto>,
+        verification: () -> Unit,
+    ) {
         // /updateAgentStatuses
         mockServer.enqueue(
             MockResponse().setResponseCode(200)
@@ -91,16 +149,14 @@ class HeartbeatControllerTest {
         // /getTestBatches
         mockServer.enqueue(
             MockResponse()
-                .setBody(Json.encodeToString(emptyList<TestDto>()))
+                .setBody(Json.encodeToString(tests))
                 .addHeader("Content-Type", "application/json")
         )
         // /getAgentsStatusesForSameExecution
         mockServer.enqueue(
             MockResponse()
                 .setBody(
-                    objectMapper.writeValueAsString(
-                        listOf(AgentStatus(LocalDateTime.now(), AgentState.IDLE, Agent("test", null)))
-                    )
+                    objectMapper.writeValueAsString(agentStatuses)
                 )
                 .addHeader("Content-Type", "application/json")
         )
@@ -109,14 +165,14 @@ class HeartbeatControllerTest {
             .uri("/heartbeat")
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
-            .body(BodyInserters.fromValue(heartbeatFinished))
+            .body(BodyInserters.fromValue(heartbeat))
             .exchange()
             .expectStatus().isOk
 
         // wait for background tasks
         Thread.sleep(2_000)
 
-        verify(dockerService).stopAgents(any())
+        verification.invoke()
     }
 
     companion object {

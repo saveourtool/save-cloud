@@ -50,7 +50,6 @@ class AgentsController(private val agentStatusRepository: AgentStatusRepository,
             agentRepository.findByExecutionId(it.execution?.id!!)
         }
         ?.map {
-            // this returns null in tests
             agentStatusRepository.findTopByAgentContainerIdOrderByTimeDesc(it.containerId)
         }
         ?: throw IllegalStateException("Agent with containerId=$agentId not found or present multiple times in the DB")
