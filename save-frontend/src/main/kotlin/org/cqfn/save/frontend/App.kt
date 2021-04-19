@@ -83,7 +83,7 @@ class App : RComponent<RProps, AppState>() {
                                 attrs.executionId = props.match.params.executionId
                             }
                         }
-                        route("*", FallbackView::class)
+                        route("*", component = FallbackView::class)
                     }
                 }
                 child(Footer::class) {}
