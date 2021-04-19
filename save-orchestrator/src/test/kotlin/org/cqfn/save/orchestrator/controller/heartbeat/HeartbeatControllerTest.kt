@@ -15,11 +15,13 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.mockito.kotlin.any
+import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
@@ -33,12 +35,12 @@ import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.web.reactive.function.BodyInserters
 import reactor.core.publisher.Mono
 
+import java.nio.charset.Charset
 import java.time.Duration
 import java.time.LocalDateTime
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.mockito.kotlin.times
 
 @WebFluxTest
 @Import(Beans::class, AgentService::class)
@@ -53,6 +55,15 @@ class HeartbeatControllerTest {
     @BeforeEach
     fun webClientSetUp() {
         webClient.mutate().responseTimeout(Duration.ofSeconds(2)).build()
+    }
+
+    @AfterEach
+    fun tearDown() {
+        mockServer.dispatcher.peek().let { mockResponse ->
+            assertTrue(mockResponse.getBody().let { it == null || it.size == 0L }) {
+                "There is an enqueued response in the MockServer after a test has completed. Enqueued body: ${mockResponse.getBody()?.readString(Charset.defaultCharset())}"
+            }
+        }
     }
 
     @Test
@@ -90,7 +101,8 @@ class HeartbeatControllerTest {
                 AgentStatus(LocalDateTime.now(), AgentState.BUSY, Agent("test-2", null)),
             ),
             heartbeat = Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100)),
-            tests = emptyList()
+            tests = emptyList(),
+            mockAgentStatuses = true,
         ) {
             verify(dockerService, times(0)).stopAgents(any())
         }
@@ -108,7 +120,8 @@ class HeartbeatControllerTest {
                 TestDto("/path/to/test-1", 1, 1),
                 TestDto("/path/to/test-2", 1, 2),
                 TestDto("/path/to/test-3", 1, 3),
-            )
+            ),
+            mockAgentStatuses = false,
         ) {
             verify(dockerService, times(0)).stopAgents(any())
         }
@@ -122,7 +135,8 @@ class HeartbeatControllerTest {
                 AgentStatus(LocalDateTime.now(), AgentState.IDLE, Agent("test-2", null)),
             ),
             heartbeat = Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100)),
-            tests = emptyList()
+            tests = emptyList(),
+            mockAgentStatuses = true,
         ) {
             verify(dockerService, times(1)).stopAgents(any())
         }
@@ -134,12 +148,14 @@ class HeartbeatControllerTest {
      * @param agentStatuses agent statuses that are returned from backend (mocked response)
      * @param heartbeat a [Heartbeat] that is received by orchestrator
      * @param tests a batch of tests returned from backend (mocked response)
+     * @param mockAgentStatuses whether a mocked response for `/getAgentsStatusesForSameExecution` should be added to queue
      * @param verification a lambda for test assertions
      */
     private fun testHeartbeat(
         agentStatuses: List<AgentStatus>,
         heartbeat: Heartbeat,
         tests: List<TestDto>,
+        mockAgentStatuses: Boolean = false,
         verification: () -> Unit,
     ) {
         // /updateAgentStatuses
@@ -152,14 +168,16 @@ class HeartbeatControllerTest {
                 .setBody(Json.encodeToString(tests))
                 .addHeader("Content-Type", "application/json")
         )
-        // /getAgentsStatusesForSameExecution
-        mockServer.enqueue(
-            MockResponse()
-                .setBody(
-                    objectMapper.writeValueAsString(agentStatuses)
-                )
-                .addHeader("Content-Type", "application/json")
-        )
+        if (mockAgentStatuses) {
+            // /getAgentsStatusesForSameExecution
+            mockServer.enqueue(
+                MockResponse()
+                    .setBody(
+                        objectMapper.writeValueAsString(agentStatuses)
+                    )
+                    .addHeader("Content-Type", "application/json")
+            )
+        }
 
         webClient.post()
             .uri("/heartbeat")
