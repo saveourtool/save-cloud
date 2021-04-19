@@ -5,8 +5,7 @@ import org.cqfn.save.agent.ContinueResponse
 import org.cqfn.save.agent.Heartbeat
 import org.cqfn.save.agent.HeartbeatResponse
 import org.cqfn.save.agent.WaitResponse
-import org.cqfn.save.entities.Agent
-import org.cqfn.save.entities.AgentStatus
+import org.cqfn.save.entities.AgentStatusDto
 import org.cqfn.save.orchestrator.config.ConfigProperties
 import org.cqfn.save.orchestrator.service.AgentService
 import org.cqfn.save.orchestrator.service.DockerService
@@ -46,9 +45,9 @@ class HeartbeatController(private val agentService: AgentService,
     fun acceptHeartbeat(@RequestBody heartbeat: Heartbeat): Mono<out HeartbeatResponse> {
         logger.info("Got heartbeat state: ${heartbeat.state.name} from ${heartbeat.agentId}")
         // store new state into DB
-        agentService.updateAgentStatuses(
+        agentService.updateAgentStatusesWithDto(
             listOf(
-                AgentStatus(LocalDateTime.now(), heartbeat.state, Agent(heartbeat.agentId, null))
+                AgentStatusDto(LocalDateTime.now(), heartbeat.state, heartbeat.agentId)
             )
         )
         return when (heartbeat.state) {

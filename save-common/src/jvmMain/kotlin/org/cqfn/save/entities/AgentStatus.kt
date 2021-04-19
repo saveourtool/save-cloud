@@ -1,3 +1,7 @@
+/**
+ * Data classes for agent status
+ */
+
 package org.cqfn.save.entities
 
 import org.cqfn.save.agent.AgentState
@@ -15,7 +19,6 @@ import javax.persistence.ManyToOne
  */
 @Entity
 class AgentStatus(
-
     var time: LocalDateTime,
 
     @Enumerated(EnumType.STRING)
@@ -25,3 +28,14 @@ class AgentStatus(
     @JoinColumn(name = "agent_id")
     var agent: Agent,
 ) : BaseEntity()
+
+/**
+ * @property time
+ * @property state
+ * @property containerId
+ */
+class AgentStatusDto(
+    val time: LocalDateTime,
+    val state: AgentState,
+    val containerId: String,
+)

@@ -6,6 +6,7 @@ import org.cqfn.save.agent.NewJobResponse
 import org.cqfn.save.agent.WaitResponse
 import org.cqfn.save.entities.Agent
 import org.cqfn.save.entities.AgentStatus
+import org.cqfn.save.entities.AgentStatusDto
 import org.cqfn.save.orchestrator.config.ConfigProperties
 import org.cqfn.save.test.TestDto
 
@@ -72,6 +73,18 @@ class AgentService(configProperties: ConfigProperties) {
         webClientBackend
             .post()
             .uri("/updateAgentStatuses")
+            .body(BodyInserters.fromValue(agentStates))
+            .retrieve()
+            .bodyToMono<String>()
+    }
+
+    /**
+     * @param agentStates list of [AgentStatus]es to update in the DB
+     */
+    fun updateAgentStatusesWithDto(agentStates: List<AgentStatusDto>) {
+        webClientBackend
+            .post()
+            .uri("/updateAgentStatusesWithDto")
             .body(BodyInserters.fromValue(agentStates))
             .retrieve()
             .bodyToMono<String>()
