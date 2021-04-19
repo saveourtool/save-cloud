@@ -10,11 +10,9 @@ import javax.persistence.ManyToOne
  */
 @Entity
 class Agent(
-
     var containerId: String,
 
     @ManyToOne
     @JoinColumn(name = "execution_id")
     var execution: Execution?,
-
 ) : BaseEntity()

@@ -11,10 +11,10 @@ import org.cqfn.save.test.TestDto
 
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
-import org.springframework.core.ParameterizedTypeReference
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
+import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Mono
 
 import java.time.LocalDateTime
@@ -38,7 +38,7 @@ class AgentService(configProperties: ConfigProperties) {
                 .get()
                 .uri("/getTestBatches")
                 .retrieve()
-                .bodyToMono(object : ParameterizedTypeReference<List<TestDto>>() {})
+                .bodyToMono<List<TestDto>>()
                 .map {
                     if (it.isNotEmpty()) {
                         NewJobResponse(it)
@@ -59,7 +59,7 @@ class AgentService(configProperties: ConfigProperties) {
             .uri("/addAgents")
             .body(BodyInserters.fromValue(agents))
             .retrieve()
-            .bodyToMono(String::class.java)
+            .bodyToMono<String>()
         updateAgentStatuses(agents.map {
             AgentStatus(LocalDateTime.now(), AgentState.IDLE, it)
         })
@@ -74,7 +74,7 @@ class AgentService(configProperties: ConfigProperties) {
             .uri("/updateAgentStatuses")
             .body(BodyInserters.fromValue(agentStates))
             .retrieve()
-            .bodyToMono(String::class.java)
+            .bodyToMono<String>()
     }
 
     /**
@@ -104,7 +104,7 @@ class AgentService(configProperties: ConfigProperties) {
             .get()
             .uri("/getAgentsStatusesForSameExecution")
             .retrieve()
-            .bodyToMono(object : ParameterizedTypeReference<List<AgentStatus>>() {})
+            .bodyToMono<List<AgentStatus>>()
             .map { agentStatuses ->
                 if (agentStatuses.all { it.state == AgentState.IDLE }) {
                     agentStatuses.map { it.agent.containerId }

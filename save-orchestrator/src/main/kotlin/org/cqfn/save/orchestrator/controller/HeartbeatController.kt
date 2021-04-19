@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
 import java.time.LocalDateTime
-import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Controller for heartbeat
@@ -28,9 +27,8 @@ import java.util.concurrent.ConcurrentHashMap
 @RestController
 class HeartbeatController(private val agentService: AgentService,
                           private val dockerService: DockerService,
-                          val configProperties: ConfigProperties) {
+                          private val configProperties: ConfigProperties) {
     private val logger = LoggerFactory.getLogger(HeartbeatController::class.java)
-    private val agentStates: MutableMap<String, AgentState> = ConcurrentHashMap()
     private val scheduler = Schedulers.boundedElastic().also { it.start() }
 
     /**
@@ -45,16 +43,14 @@ class HeartbeatController(private val agentService: AgentService,
      * @return Answer for agent
      */
     @PostMapping("/heartbeat")
-    @Suppress("MagicNumber")
     fun acceptHeartbeat(@RequestBody heartbeat: Heartbeat): Mono<out HeartbeatResponse> {
         logger.info("Got heartbeat state: ${heartbeat.state.name} from ${heartbeat.agentId}")
-        agentStates.compute(heartbeat.agentId) { _, _ ->
-            // store new state into DB
-            agentService.updateAgentStatuses(listOf(
+        // store new state into DB
+        agentService.updateAgentStatuses(
+            listOf(
                 AgentStatus(LocalDateTime.now(), heartbeat.state, Agent(heartbeat.agentId, null))
-            ))
-            heartbeat.state
-        }
+            )
+        )
         return when (heartbeat.state) {
             AgentState.IDLE -> agentService.setNewTestsIds().subscribeOn(scheduler)
                 .doOnNext {
