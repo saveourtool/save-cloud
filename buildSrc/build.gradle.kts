@@ -3,8 +3,8 @@ plugins {
 }
 
 repositories {
-    jcenter()
     gradlePluginPortal()
+    mavenCentral()
 }
 
 dependencies {

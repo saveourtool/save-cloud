@@ -6,8 +6,9 @@ kotlin {
     js(LEGACY) {  // as for `-pre.148-kotlin-1.4.21`, react-table gives errors with IR
         browser {
             repositories {
-                jcenter()
-                maven("https://kotlin.bintray.com/js-externals")
+                mavenCentral()
+                maven("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/kotlin-js-wrappers/")
+                maven("https://maven.pkg.jetbrains.space/public/p/kotlinx-html/maven")
             }
         }
         binaries.executable()  // already default for LEGACY, but explicitly needed for IR

@@ -69,7 +69,6 @@ talaiot {
 
 allprojects {
     repositories {
-        jcenter()
         mavenCentral()
     }
     configureDiktat()
