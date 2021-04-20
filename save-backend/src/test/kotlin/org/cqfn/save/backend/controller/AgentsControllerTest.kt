@@ -3,7 +3,6 @@ package org.cqfn.save.backend.controller
 import org.cqfn.save.agent.AgentState
 import org.cqfn.save.backend.SaveApplication
 import org.cqfn.save.backend.utils.MySqlExtension
-import org.cqfn.save.entities.AgentStatus
 import org.cqfn.save.entities.AgentStatusDto
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test

@@ -29,6 +29,9 @@ class AgentStatus(
     @JoinColumn(name = "agent_id")
     var agent: Agent,
 ) : BaseEntity() {
+    /**
+     * @return this object converted to [AgentStatusDto]
+     */
     fun toDto() = AgentStatusDto(time, state, agent.containerId)
 }
 

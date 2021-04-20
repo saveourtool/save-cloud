@@ -6,6 +6,7 @@ import org.cqfn.save.backend.repository.ExecutionRepository
 import org.cqfn.save.entities.Agent
 import org.cqfn.save.entities.AgentStatus
 import org.cqfn.save.entities.AgentStatusDto
+import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -55,6 +56,7 @@ class AgentsController(private val agentStatusRepository: AgentStatusRepository,
      * @throws IllegalStateException if provided [agentId] is invalid.
      */
     @GetMapping("/getAgentsStatusesForSameExecution")
+    @Transactional
     fun findAllAgentStatusesForSameExecution(@RequestBody agentId: String): List<AgentStatusDto?> = agentRepository
         .findByExecutionIdOfContainerId(agentId)
         .map {
