@@ -4,8 +4,7 @@ import org.cqfn.save.agent.AgentState
 import org.cqfn.save.agent.ExecutionProgress
 import org.cqfn.save.agent.Heartbeat
 import org.cqfn.save.agent.NewJobResponse
-import org.cqfn.save.entities.Agent
-import org.cqfn.save.entities.AgentStatus
+import org.cqfn.save.entities.AgentStatusDto
 import org.cqfn.save.orchestrator.config.Beans
 import org.cqfn.save.orchestrator.service.AgentService
 import org.cqfn.save.orchestrator.service.DockerService
@@ -96,9 +95,9 @@ class HeartbeatControllerTest {
     @Test
     fun `should not shutdown any agents when not all of them are IDLE`() {
         testHeartbeat(
-            agentStatuses = listOf(
-                AgentStatus(LocalDateTime.now(), AgentState.IDLE, Agent("test-1", null)),
-                AgentStatus(LocalDateTime.now(), AgentState.BUSY, Agent("test-2", null)),
+            agentStatusDtos = listOf(
+                AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "test-1"),
+                AgentStatusDto(LocalDateTime.now(), AgentState.BUSY, "test-2"),
             ),
             heartbeat = Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100)),
             tests = emptyList(),
@@ -111,9 +110,9 @@ class HeartbeatControllerTest {
     @Test
     fun `should not shutdown any agents when all agents are IDLE but there are more tests left`() {
         testHeartbeat(
-            agentStatuses = listOf(
-                AgentStatus(LocalDateTime.now(), AgentState.IDLE, Agent("test-1", null)),
-                AgentStatus(LocalDateTime.now(), AgentState.IDLE, Agent("test-2", null)),
+            agentStatusDtos = listOf(
+                AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "test-1"),
+                AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "test-2"),
             ),
             heartbeat = Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100)),
             tests = listOf(
@@ -130,9 +129,9 @@ class HeartbeatControllerTest {
     @Test
     fun `should shutdown idle agents when there are no tests left`() {
         testHeartbeat(
-            agentStatuses = listOf(
-                AgentStatus(LocalDateTime.now(), AgentState.IDLE, Agent("test-1", null)),
-                AgentStatus(LocalDateTime.now(), AgentState.IDLE, Agent("test-2", null)),
+            agentStatusDtos = listOf(
+                AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "test-1"),
+                AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "test-2"),
             ),
             heartbeat = Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100)),
             tests = emptyList(),
@@ -152,7 +151,7 @@ class HeartbeatControllerTest {
      * @param verification a lambda for test assertions
      */
     private fun testHeartbeat(
-        agentStatuses: List<AgentStatus>,
+        agentStatusDtos: List<AgentStatusDto>,
         heartbeat: Heartbeat,
         tests: List<TestDto>,
         mockAgentStatuses: Boolean = false,
@@ -173,7 +172,7 @@ class HeartbeatControllerTest {
             mockServer.enqueue(
                 MockResponse()
                     .setBody(
-                        objectMapper.writeValueAsString(agentStatuses)
+                        objectMapper.writeValueAsString(agentStatusDtos)
                     )
                     .addHeader("Content-Type", "application/json")
             )

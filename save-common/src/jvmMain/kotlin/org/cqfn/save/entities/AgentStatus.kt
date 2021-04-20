@@ -13,9 +13,9 @@ import javax.persistence.JoinColumn
 import javax.persistence.ManyToOne
 
 /**
- * @property time
- * @property state
- * @property agent
+ * @property time time of update
+ * @property state current state of the agent
+ * @property agent agent who's state is described
  */
 @Entity
 class AgentStatus(
@@ -30,9 +30,9 @@ class AgentStatus(
 ) : BaseEntity()
 
 /**
- * @property time
- * @property state
- * @property containerId
+ * @property time time of update
+ * @property state current state of the agent
+ * @property containerId id of the agent's container
  */
 class AgentStatusDto(
     val time: LocalDateTime,
