@@ -117,10 +117,10 @@ class AgentService(configProperties: ConfigProperties) {
             .get()
             .uri("/getAgentsStatusesForSameExecution")
             .retrieve()
-            .bodyToMono<List<AgentStatus>>()
+            .bodyToMono<List<AgentStatusDto>>()
             .map { agentStatuses ->
                 if (agentStatuses.all { it.state == AgentState.IDLE }) {
-                    agentStatuses.map { it.agent.containerId }
+                    agentStatuses.map { it.containerId }
                 } else {
                     emptyList()
                 }

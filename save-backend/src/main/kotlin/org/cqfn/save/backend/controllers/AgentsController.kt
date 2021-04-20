@@ -55,9 +55,9 @@ class AgentsController(private val agentStatusRepository: AgentStatusRepository,
      * @throws IllegalStateException if provided [agentId] is invalid.
      */
     @GetMapping("/getAgentsStatusesForSameExecution")
-    fun findAllAgentStatusesForSameExecution(@RequestBody agentId: String): List<AgentStatus?> = agentRepository
+    fun findAllAgentStatusesForSameExecution(@RequestBody agentId: String): List<AgentStatusDto?> = agentRepository
         .findByExecutionIdOfContainerId(agentId)
         .map {
-            agentStatusRepository.findTopByAgentContainerIdOrderByTimeDesc(it.containerId)
+            agentStatusRepository.findTopByAgentContainerIdOrderByTimeDesc(it.containerId)?.toDto()
         }
 }

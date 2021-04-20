@@ -51,7 +51,7 @@ class AgentsControllerTest {
             .accept(MediaType.APPLICATION_JSON)
             .bodyValue("container-1")
             .exchange()
-            .expectBody<List<AgentStatus?>>()
+            .expectBody<List<AgentStatusDto?>>()
             .consumeWith {
                 val statuses = it.responseBody
                 requireNotNull(statuses)

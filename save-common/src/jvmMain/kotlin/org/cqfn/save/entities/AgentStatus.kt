@@ -9,6 +9,7 @@ import java.time.LocalDateTime
 import javax.persistence.Entity
 import javax.persistence.EnumType
 import javax.persistence.Enumerated
+import javax.persistence.FetchType
 import javax.persistence.JoinColumn
 import javax.persistence.ManyToOne
 
@@ -24,10 +25,12 @@ class AgentStatus(
     @Enumerated(EnumType.STRING)
     var state: AgentState,
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "agent_id")
     var agent: Agent,
-) : BaseEntity()
+) : BaseEntity() {
+    fun toDto() = AgentStatusDto(time, state, agent.containerId)
+}
 
 /**
  * @property time time of update
