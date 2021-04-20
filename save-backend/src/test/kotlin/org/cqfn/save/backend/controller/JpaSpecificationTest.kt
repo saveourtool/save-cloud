@@ -1,8 +1,8 @@
 package org.cqfn.save.backend.controller
 
-import org.cqfn.save.backend.repository.ExecutionRepository
+import org.cqfn.save.agent.AgentState
+import org.cqfn.save.backend.repository.AgentStatusRepository
 import org.cqfn.save.backend.utils.MySqlExtension
-import org.cqfn.save.execution.ExecutionStatus
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -15,19 +15,19 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 @ExtendWith(MySqlExtension::class)
 class JpaSpecificationTest {
     @Autowired
-    lateinit var executionRepository: ExecutionRepository
+    lateinit var agentStatusRepository: AgentStatusRepository
 
     @Test
     fun testFindList() {
-        val executionToId = executionRepository.findById(1).get()
+        val agentStatusToId = agentStatusRepository.findById(7).get()
 
-        val executionToList = executionRepository.findAll { root, query, cb ->
+        val agentStatusToList = agentStatusRepository.findOne { root, query, cb ->
             cb.and(
-                cb.equal(root.get<Long>("id"), 1),
-                cb.equal(root.get<ExecutionStatus>("status"), ExecutionStatus.FINISHED)
+                cb.equal(root.get<Long>("id"), 7),
+                cb.equal(root.get<AgentState>("state"), AgentState.FINISHED)
             )
-        }[0]
+        }.get()
 
-        Assertions.assertTrue(executionToId.id == executionToList.id)
+        Assertions.assertTrue(agentStatusToId.id == agentStatusToList.id)
     }
 }
