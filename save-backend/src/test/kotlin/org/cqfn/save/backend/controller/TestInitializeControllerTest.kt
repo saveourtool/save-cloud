@@ -11,9 +11,9 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.WebTestClient
+import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
 import java.time.LocalDateTime
 import java.time.Month
@@ -79,9 +79,10 @@ class TestInitializeControllerTest {
             .exchange()
             .expectStatus()
             .isOk
-            .expectBody(ParameterizedTypeReference.forType<List<TestDto>>(List::class.java))
-            .value<Nothing> {
-                assertTrue(it.isNotEmpty() && it.size == 20)
+            .expectBody<List<TestDto>>()
+            .consumeWith {
+                println(it.responseBody)
+                assertTrue(it.responseBody!!.isNotEmpty() && it.responseBody!!.size == 20)
             }
 
         webClient.get()
@@ -89,9 +90,10 @@ class TestInitializeControllerTest {
             .exchange()
             .expectStatus()
             .isOk
-            .expectBody(ParameterizedTypeReference.forType<List<TestDto>>(List::class.java))
-            .value<Nothing> {
-                assertTrue(it.isNotEmpty() && it.size == 1)
+            .expectBody<List<TestDto>>()
+            .consumeWith {
+                println(it.responseBody)
+                assertTrue(it.responseBody!!.isNotEmpty() && it.responseBody!!.size == 1)
             }
     }
 }

@@ -30,4 +30,10 @@
         </rollback>
     </changeSet>
 
+    <changeSet id="agent-table-add-unique-constraint" author="petertrr" context="dev or prod">
+        <addUniqueConstraint
+                tableName="agent"
+                columnNames="container_id"/>
+    </changeSet>
+
 </databaseChangeLog>

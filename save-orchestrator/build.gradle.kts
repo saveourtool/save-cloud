@@ -21,7 +21,7 @@ tasks.withType<Test> {
 
 dependencies {
     api(project(":save-common"))
-    implementation(project(":save-agent", "distribution"))
+    runtimeOnly(project(":save-agent", "distribution"))
     implementation("org.slf4j:slf4j-api:${Versions.slf4j}")
     implementation("ch.qos.logback:logback-core:${Versions.logback}")
     implementation("com.github.docker-java:docker-java-core:${Versions.dockerJavaApi}")

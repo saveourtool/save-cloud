@@ -5,13 +5,17 @@ import org.cqfn.save.agent.ContinueResponse
 import org.cqfn.save.agent.Heartbeat
 import org.cqfn.save.agent.HeartbeatResponse
 import org.cqfn.save.agent.WaitResponse
+import org.cqfn.save.entities.AgentStatusDto
 import org.cqfn.save.orchestrator.config.ConfigProperties
 import org.cqfn.save.orchestrator.service.AgentService
+import org.cqfn.save.orchestrator.service.DockerService
 import org.slf4j.LoggerFactory
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
+import reactor.core.scheduler.Schedulers
+import java.time.LocalDateTime
 
 /**
  * Controller for heartbeat
@@ -20,8 +24,11 @@ import reactor.core.publisher.Mono
  * @property configProperties
  */
 @RestController
-class HeartbeatController(private val agentService: AgentService, val configProperties: ConfigProperties) {
+class HeartbeatController(private val agentService: AgentService,
+                          private val dockerService: DockerService,
+                          private val configProperties: ConfigProperties) {
     private val logger = LoggerFactory.getLogger(HeartbeatController::class.java)
+    private val scheduler = Schedulers.boundedElastic().also { it.start() }
 
     /**
      * This controller accepts heartbeat and depending on the state it returns the needed response
@@ -37,8 +44,25 @@ class HeartbeatController(private val agentService: AgentService, val configProp
     @PostMapping("/heartbeat")
     fun acceptHeartbeat(@RequestBody heartbeat: Heartbeat): Mono<out HeartbeatResponse> {
         logger.info("Got heartbeat state: ${heartbeat.state.name} from ${heartbeat.agentId}")
+        // store new state into DB
+        agentService.updateAgentStatusesWithDto(
+            listOf(
+                AgentStatusDto(LocalDateTime.now(), heartbeat.state, heartbeat.agentId)
+            )
+        )
         return when (heartbeat.state) {
-            AgentState.IDLE -> agentService.setNewTestsIds().apply { subscribe() }
+            AgentState.IDLE -> agentService.setNewTestsIds().subscribeOn(scheduler)
+                .doOnNext {
+                    if (it is WaitResponse) {
+                        // If agent was IDLE and there are no new tests - we check if the Execution is completed.
+                        agentService.getAgentsAwaitingStop(heartbeat.agentId).subscribeOn(scheduler).subscribe { finishedAgentIds ->
+                            if (finishedAgentIds.isNotEmpty()) {
+                                dockerService.stopAgents(finishedAgentIds)
+                            }
+                        }
+                    }
+                }
+                .apply { subscribe() }
             AgentState.FINISHED -> {
                 agentService.checkSavedData()
                 Mono.just(WaitResponse)
