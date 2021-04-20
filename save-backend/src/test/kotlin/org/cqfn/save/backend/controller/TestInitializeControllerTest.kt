@@ -81,6 +81,7 @@ class TestInitializeControllerTest {
             .isOk
             .expectBody<List<TestDto>>()
             .consumeWith {
+                println(it.responseBody)
                 assertTrue(it.responseBody!!.isNotEmpty() && it.responseBody!!.size == 20)
             }
 
@@ -91,6 +92,7 @@ class TestInitializeControllerTest {
             .isOk
             .expectBody<List<TestDto>>()
             .consumeWith {
+                println(it.responseBody)
                 assertTrue(it.responseBody!!.isNotEmpty() && it.responseBody!!.size == 1)
             }
     }
