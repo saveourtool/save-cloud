@@ -2,9 +2,11 @@ package org.cqfn.save.backend.controller
 
 import org.cqfn.save.agent.AgentState
 import org.cqfn.save.backend.SaveApplication
+import org.cqfn.save.backend.repository.AgentStatusRepository
 import org.cqfn.save.backend.utils.MySqlExtension
 import org.cqfn.save.entities.AgentStatusDto
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
@@ -24,6 +26,9 @@ class AgentsControllerTest {
     @Autowired
     lateinit var webTestClient: WebTestClient
 
+    @Autowired
+    lateinit var agentStatusRepository: AgentStatusRepository
+
     @Test
     fun `should save agent statuses`() {
         webTestClient
@@ -39,6 +44,58 @@ class AgentsControllerTest {
             .exchange()
             .expectStatus()
             .isOk
+    }
+
+    @Test
+    fun `check that agent statuses are updated`() {
+        webTestClient
+                .method(HttpMethod.POST)
+                .uri("/updateAgentStatusesWithDto")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .body(BodyInserters.fromValue(
+                    listOf(
+                            AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "container-2")
+                    )
+                ))
+                .exchange()
+                .expectStatus()
+                .isOk
+
+        webTestClient
+                .method(HttpMethod.POST)
+                .uri("/updateAgentStatusesWithDto")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .body(BodyInserters.fromValue(
+                        listOf(
+                                AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "container-2")
+                        )
+                ))
+                .exchange()
+                .expectStatus()
+                .isOk
+
+        webTestClient
+                .method(HttpMethod.POST)
+                .uri("/updateAgentStatusesWithDto")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .body(BodyInserters.fromValue(
+                        listOf(
+                                AgentStatusDto(LocalDateTime.now(), AgentState.BUSY, "container-2")
+                        )
+                ))
+                .exchange()
+                .expectStatus()
+                .isOk
+
+        assertTrue(
+                agentStatusRepository
+                    .findAll()
+                    .filter { it.state == AgentState.IDLE && it.agent.containerId == "container-2" }
+                    .size == 1
+        )
     }
 
     @Test

@@ -4,6 +4,7 @@
 
 package org.cqfn.save.backend.repository
 
+import org.cqfn.save.agent.AgentState
 import org.cqfn.save.entities.Agent
 import org.cqfn.save.entities.AgentStatus
 import org.springframework.data.jpa.repository.Query
@@ -21,6 +22,9 @@ interface AgentStatusRepository : BaseEntityRepository<AgentStatus> {
      * @return [AgentStatus] of an agent
      */
     fun findTopByAgentContainerIdOrderByTimeDesc(containerId: String): AgentStatus?
+
+//    @Query(value = "SELECT * FROM agent_status WHERE agent_status.agent_id = ?1 and agent_status.state = ?2", nativeQuery = true)
+    fun findByAgentIdAndState(agentId: Long, state: AgentState): List<AgentStatus>
 }
 
 /**
