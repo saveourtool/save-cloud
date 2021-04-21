@@ -90,9 +90,10 @@ class AgentsControllerTest {
                 .expectStatus()
                 .isOk
 
+        val statuses = agentStatusRepository.findAll()
+
         assertTrue(
-                agentStatusRepository
-                    .findAll()
+                statuses
                     .filter { it.state == AgentState.IDLE && it.agent.containerId == "container-2" }
                     .size == 1
         )
