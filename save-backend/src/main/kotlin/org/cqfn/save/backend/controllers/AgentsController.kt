@@ -2,10 +2,10 @@ package org.cqfn.save.backend.controllers
 
 import org.cqfn.save.backend.repository.AgentRepository
 import org.cqfn.save.backend.repository.AgentStatusRepository
-import org.cqfn.save.backend.repository.ExecutionRepository
 import org.cqfn.save.entities.Agent
 import org.cqfn.save.entities.AgentStatus
 import org.cqfn.save.entities.AgentStatusDto
+import org.cqfn.save.entities.Execution
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 class AgentsController(private val agentStatusRepository: AgentStatusRepository,
                        private val agentRepository: AgentRepository,
-                       private val executionRepository: ExecutionRepository,
 ) {
     /**
      * @param agents list of [Agent]s to save into the DB
@@ -42,16 +41,16 @@ class AgentsController(private val agentStatusRepository: AgentStatusRepository,
     @PostMapping("/updateAgentStatusesWithDto")
     fun updateAgentStatusesWithDto(@RequestBody agentStates: List<AgentStatusDto>) {
         agentStates.forEach { dto ->
-            val agent = agentRepository.findByContainerId(dto.containerId)
-                ?: error("Agent with containerId=${dto.containerId} not found in the DB")
-            val agentStatus = agentStatusRepository.findTopByAgentIdAndStateOrderByTimeDesc(agent.id!!, dto.state)
-            agentStatus?.let {
-                agentStatus.time = it.time
+            val agent = getAgentByContainerId(dto.containerId)
+            val agentStatus = agentStatusRepository.findTopByAgentContainerIdOrderByTimeDesc(dto.containerId)
+            if (agentStatus != null && agentStatus.state == dto.state) {
+                // updating time
+                agentStatus.time = dto.time
                 agentStatusRepository.save(agentStatus)
+            } else {
+                // insert new agent status
+                agentStatusRepository.save(AgentStatus(dto.time, dto.state, agent))
             }
-                ?: run {
-                    agentStatusRepository.save(AgentStatus(dto.time, dto.state, agent))
-                }
         }
     }
 
@@ -64,9 +63,23 @@ class AgentsController(private val agentStatusRepository: AgentStatusRepository,
      */
     @GetMapping("/getAgentsStatusesForSameExecution")
     @Transactional
-    fun findAllAgentStatusesForSameExecution(@RequestBody agentId: String): List<AgentStatusDto?> = agentRepository
-        .findByExecutionIdOfContainerId(agentId)
-        .map {
-            agentStatusRepository.findTopByAgentContainerIdOrderByTimeDesc(it.containerId)?.toDto()
+    fun findAllAgentStatusesForSameExecution(@RequestBody agentId: String): List<AgentStatusDto?> =
+            agentRepository.findAll { root, cq, cb ->
+                cb.equal(root.get<Execution>("execution"), getAgentByContainerId(agentId).execution)
+            }.map {
+                agentStatusRepository.findTopByAgentContainerIdOrderByTimeDesc(it.containerId)?.toDto()
+            }
+
+    /**
+     * Get agent by containerId.
+     *
+     * @param containerId containerId of an agent.
+     * @return list of agent statuses
+     */
+    private fun getAgentByContainerId(containerId: String): Agent {
+        val agent = agentRepository.findOne { root, _, cb ->
+            cb.equal(root.get<String>("containerId"), containerId)
         }
+        return agent.orElseThrow { IllegalStateException("Agent with containerId=$containerId not found in the DB") }
+    }
 }
