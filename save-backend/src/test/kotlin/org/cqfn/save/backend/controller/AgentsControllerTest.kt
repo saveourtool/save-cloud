@@ -106,7 +106,7 @@ class AgentsControllerTest {
 
         assertTrue(
                 statuses
-                    .filter { it.state == AgentState.IDLE && it.agent.containerId == "container-2" }
+                    .filter { it.state == AgentState.IDLE }
                     .size == 1
         )
     }
