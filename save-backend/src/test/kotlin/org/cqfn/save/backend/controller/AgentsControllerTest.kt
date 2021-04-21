@@ -116,7 +116,7 @@ class AgentsControllerTest {
                 requireNotNull(statuses)
                 Assertions.assertEquals(2, statuses.size)
                 Assertions.assertEquals(AgentState.IDLE, statuses.first()!!.state)
-                Assertions.assertEquals(AgentState.IDLE, statuses[1]!!.state)
+                Assertions.assertEquals(AgentState.BUSY, statuses[1]!!.state)
             }
     }
 }
