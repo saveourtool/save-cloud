@@ -23,8 +23,10 @@ interface AgentStatusRepository : BaseEntityRepository<AgentStatus> {
      */
     fun findTopByAgentContainerIdOrderByTimeDesc(containerId: String): AgentStatus?
 
-//    @Query(value = "SELECT * FROM agent_status WHERE agent_status.agent_id = ?1 and agent_status.state = ?2", nativeQuery = true)
-    fun findByAgentIdAndState(agentId: Long, state: AgentState): List<AgentStatus>
+    /**
+     * Find all [AgentStatus]
+     */
+    fun findTopByAgentIdAndStateOrderByTimeDesc(agentId: Long, state: AgentState): AgentStatus?
 }
 
 /**

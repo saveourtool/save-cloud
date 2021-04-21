@@ -44,7 +44,7 @@ class AgentsController(private val agentStatusRepository: AgentStatusRepository,
         agentStates.forEach {
             val agent = agentRepository.findByContainerId(it.containerId)
                 ?: error("Agent with containerId=${it.containerId} not found in the DB")
-            val agentStatus = agentStatusRepository.findByAgentIdAndState(agent.id!!, it.state).firstOrNull()
+            val agentStatus = agentStatusRepository.findTopByAgentIdAndStateOrderByTimeDesc(agent.id!!, it.state)
             if (agentStatus != null) {
                 agentStatus.time = it.time
                 agentStatusRepository.save(agentStatus)
