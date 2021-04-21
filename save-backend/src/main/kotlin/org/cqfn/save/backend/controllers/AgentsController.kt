@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
-import java.time.LocalDateTime
 
 /**
  * Controller to manipulate with Agent related data
@@ -60,10 +59,7 @@ class AgentsController(private val agentStatusRepository: AgentStatusRepository,
             agentRepository.findAll { root, cq, cb ->
                 cb.equal(root.get<Execution>("execution"), getAgentByContainerId(agentId).execution)
             }.map {
-                agentStatusRepository.findAll { root, cq, cb ->
-                    cq.orderBy(cb.desc(root.get<LocalDateTime>("time")))
-                    cb.equal(root.get<Agent>("agent").get<String>("containerId"), it.containerId)
-                }.get(0).toDto()
+                agentStatusRepository.findTopByAgentContainerIdOrderByTimeDesc(it.containerId)?.toDto()
             }
 
     /**
@@ -73,13 +69,9 @@ class AgentsController(private val agentStatusRepository: AgentStatusRepository,
      * @return list of agent statuses
      */
     private fun getAgentByContainerId(containerId: String): Agent {
-        val agent = agentRepository.findOne { root, query, cb ->
+        val agent = agentRepository.findOne { root, _, cb ->
             cb.equal(root.get<String>("containerId"), containerId)
         }
-        if (agent.isEmpty) {
-            error("Agent with containerId=$containerId not found in the DB")
-        } else {
-            return agent.get()
-        }
+        return agent.orElseThrow { IllegalStateException("Agent with containerId=$containerId not found in the DB") }
     }
 }

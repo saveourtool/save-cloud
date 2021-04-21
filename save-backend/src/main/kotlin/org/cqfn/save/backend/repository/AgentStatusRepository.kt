@@ -13,7 +13,15 @@ import org.springframework.stereotype.Repository
  * JPA repository for agent statuses.
  */
 @Repository
-interface AgentStatusRepository : BaseEntityRepository<AgentStatus>, JpaSpecificationExecutor<AgentStatus>
+interface AgentStatusRepository : BaseEntityRepository<AgentStatus>, JpaSpecificationExecutor<AgentStatus> {
+    /**
+     * Find latest [AgentStatus] for agent with provided [containerId]
+     *
+     * @param containerId id of an agent
+     * @return [AgentStatus] of an agent
+     */
+    fun findTopByAgentContainerIdOrderByTimeDesc(containerId: String): AgentStatus?
+}
 
 /**
  * JPA repository for agents.
