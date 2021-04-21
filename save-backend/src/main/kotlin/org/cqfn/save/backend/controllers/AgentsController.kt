@@ -65,9 +65,21 @@ class AgentsController(private val agentStatusRepository: AgentStatusRepository,
      */
     @GetMapping("/getAgentsStatusesForSameExecution")
     @Transactional
-    fun findAllAgentStatusesForSameExecution(@RequestBody agentId: String): List<AgentStatusDto?> = agentRepository
-        .findByExecutionIdOfContainerId(agentId)
-        .map {
-            agentStatusRepository.findTopByAgentContainerIdOrderByTimeDesc(it.containerId)?.toDto()
+    fun findAllAgentStatusesForSameExecution(@RequestBody agentId: String): List<AgentStatusDto?> =
+            agentRepository.findAll { root, cq, cb ->
+                cb.equal(root.get<Execution>("execution"), getAgentByContainerId(agentId).execution)
+            }.map {
+                agentStatusRepository.findTopByAgentContainerIdOrderByTimeDesc(it.containerId)?.toDto()
+            }
+
+    /**
+     * Get agent by containerId.
+     *
+     * @param containerId containerId of an agent.
+     * @return list of agent statuses
+     */
+    private fun getAgentByContainerId(containerId: String): Agent {
+        val agent = agentRepository.findOne { root, _, cb ->
+            cb.equal(root.get<String>("containerId"), containerId)
         }
 }
