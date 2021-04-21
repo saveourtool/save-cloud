@@ -59,4 +59,17 @@ class AgentsControllerTest {
                 Assertions.assertEquals(AgentState.BUSY, statuses[1]!!.state)
             }
     }
+
+    @Test
+    fun `should return error not found container id`() {
+        webTestClient
+            .method(HttpMethod.GET)
+            .uri("/getAgentsStatusesForSameExecution")
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
+            .bodyValue("container-3")
+            .exchange()
+            .expectStatus()
+            .is5xxServerError
+    }
 }
