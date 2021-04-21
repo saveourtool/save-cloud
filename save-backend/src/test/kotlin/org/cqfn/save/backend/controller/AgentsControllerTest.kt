@@ -2,10 +2,7 @@ package org.cqfn.save.backend.controller
 
 import org.cqfn.save.agent.AgentState
 import org.cqfn.save.backend.SaveApplication
-import org.cqfn.save.backend.repository.AgentRepository
 import org.cqfn.save.backend.repository.AgentStatusRepository
-import org.cqfn.save.backend.repository.ExecutionRepository
-import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.utils.MySqlExtension
 import org.cqfn.save.entities.AgentStatusDto
 import org.junit.jupiter.api.Assertions
@@ -33,15 +30,6 @@ class AgentsControllerTest {
 
     @Autowired
     lateinit var agentStatusRepository: AgentStatusRepository
-
-    @Autowired
-    lateinit var agentRepository: AgentRepository
-
-    @Autowired
-    lateinit var executionRepository: ExecutionRepository
-
-    @Autowired
-    lateinit var projectRepository: ProjectRepository
 
     @Test
     fun `should save agent statuses`() {
@@ -128,7 +116,7 @@ class AgentsControllerTest {
                 requireNotNull(statuses)
                 Assertions.assertEquals(2, statuses.size)
                 Assertions.assertEquals(AgentState.IDLE, statuses.first()!!.state)
-                Assertions.assertEquals(AgentState.BUSY, statuses[1]!!.state)
+                Assertions.assertEquals(AgentState.IDLE, statuses[1]!!.state)
             }
     }
 }
