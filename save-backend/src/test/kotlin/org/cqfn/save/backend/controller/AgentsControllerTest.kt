@@ -2,10 +2,7 @@ package org.cqfn.save.backend.controller
 
 import org.cqfn.save.agent.AgentState
 import org.cqfn.save.backend.SaveApplication
-import org.cqfn.save.backend.repository.AgentRepository
 import org.cqfn.save.backend.repository.AgentStatusRepository
-import org.cqfn.save.backend.repository.ExecutionRepository
-import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.utils.MySqlExtension
 import org.cqfn.save.entities.AgentStatusDto
 import org.junit.jupiter.api.Assertions
@@ -26,22 +23,12 @@ import javax.transaction.Transactional
 @SpringBootTest(classes = [SaveApplication::class])
 @AutoConfigureWebTestClient
 @ExtendWith(MySqlExtension::class)
-@Transactional
 class AgentsControllerTest {
     @Autowired
     lateinit var webTestClient: WebTestClient
 
     @Autowired
     lateinit var agentStatusRepository: AgentStatusRepository
-
-    @Autowired
-    lateinit var agentRepository: AgentRepository
-
-    @Autowired
-    lateinit var executionRepository: ExecutionRepository
-
-    @Autowired
-    lateinit var projectRepository: ProjectRepository
 
     @Test
     fun `should save agent statuses`() {
@@ -61,6 +48,7 @@ class AgentsControllerTest {
     }
 
     @Test
+    @Transactional
     @Suppress("TOO_LONG_FUNCTION")
     fun `check that agent statuses are updated`() {
         webTestClient
