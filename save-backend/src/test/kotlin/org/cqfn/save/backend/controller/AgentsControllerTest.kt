@@ -61,54 +61,55 @@ class AgentsControllerTest {
     }
 
     @Test
+    @Suppress("TOO_LONG_FUNCTION")
     fun `check that agent statuses are updated`() {
         webTestClient
-                .method(HttpMethod.POST)
-                .uri("/updateAgentStatusesWithDto")
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
-                .body(BodyInserters.fromValue(
-                    listOf(
-                            AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "container-2")
-                    )
-                ))
-                .exchange()
-                .expectStatus()
-                .isOk
+            .method(HttpMethod.POST)
+            .uri("/updateAgentStatusesWithDto")
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
+            .body(BodyInserters.fromValue(
+                listOf(
+                    AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "container-2")
+                )
+            ))
+            .exchange()
+            .expectStatus()
+            .isOk
 
         webTestClient
-                .method(HttpMethod.POST)
-                .uri("/updateAgentStatusesWithDto")
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
-                .body(BodyInserters.fromValue(
-                        listOf(
-                                AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "container-2")
-                        )
-                ))
-                .exchange()
-                .expectStatus()
-                .isOk
+            .method(HttpMethod.POST)
+            .uri("/updateAgentStatusesWithDto")
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
+            .body(BodyInserters.fromValue(
+                listOf(
+                    AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "container-2")
+                )
+            ))
+            .exchange()
+            .expectStatus()
+            .isOk
 
         webTestClient
-                .method(HttpMethod.POST)
-                .uri("/updateAgentStatusesWithDto")
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
-                .body(BodyInserters.fromValue(
-                        listOf(
-                                AgentStatusDto(LocalDateTime.now(), AgentState.BUSY, "container-2")
-                        )
-                ))
-                .exchange()
-                .expectStatus()
-                .isOk
+            .method(HttpMethod.POST)
+            .uri("/updateAgentStatusesWithDto")
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
+            .body(BodyInserters.fromValue(
+                listOf(
+                    AgentStatusDto(LocalDateTime.now(), AgentState.BUSY, "container-2")
+                )
+            ))
+            .exchange()
+            .expectStatus()
+            .isOk
 
         assertTrue(
-                agentStatusRepository
-                    .findAll()
-                    .filter { it.state == AgentState.IDLE && it.agent.containerId == "container-2" }
-                    .size == 1
+            agentStatusRepository
+                .findAll()
+                .filter { it.state == AgentState.IDLE && it.agent.containerId == "container-2" }
+                .size == 1
         )
     }
 

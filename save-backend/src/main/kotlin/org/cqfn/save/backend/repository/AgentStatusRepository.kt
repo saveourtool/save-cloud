@@ -25,6 +25,10 @@ interface AgentStatusRepository : BaseEntityRepository<AgentStatus> {
 
     /**
      * Find all [AgentStatus]
+     *
+     * @param agentId
+     * @param state
+     * @return [AgentStatus] of an agent
      */
     fun findTopByAgentIdAndStateOrderByTimeDesc(agentId: Long, state: AgentState): AgentStatus?
 }

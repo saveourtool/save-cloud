@@ -41,16 +41,17 @@ class AgentsController(private val agentStatusRepository: AgentStatusRepository,
      */
     @PostMapping("/updateAgentStatusesWithDto")
     fun updateAgentStatusesWithDto(@RequestBody agentStates: List<AgentStatusDto>) {
-        agentStates.forEach {
-            val agent = agentRepository.findByContainerId(it.containerId)
-                ?: error("Agent with containerId=${it.containerId} not found in the DB")
-            val agentStatus = agentStatusRepository.findTopByAgentIdAndStateOrderByTimeDesc(agent.id!!, it.state)
-            if (agentStatus != null) {
+        agentStates.forEach { dto ->
+            val agent = agentRepository.findByContainerId(dto.containerId)
+                ?: error("Agent with containerId=${dto.containerId} not found in the DB")
+            val agentStatus = agentStatusRepository.findTopByAgentIdAndStateOrderByTimeDesc(agent.id!!, dto.state)
+            agentStatus?.let {
                 agentStatus.time = it.time
                 agentStatusRepository.save(agentStatus)
-            } else {
-                agentStatusRepository.save(AgentStatus(it.time, it.state, agent))
             }
+                ?: run {
+                    agentStatusRepository.save(AgentStatus(dto.time, dto.state, agent))
+                }
         }
     }
 
