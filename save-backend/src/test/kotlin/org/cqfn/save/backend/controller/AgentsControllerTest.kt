@@ -2,6 +2,7 @@ package org.cqfn.save.backend.controller
 
 import org.cqfn.save.agent.AgentState
 import org.cqfn.save.backend.SaveApplication
+import org.cqfn.save.backend.repository.AgentRepository
 import org.cqfn.save.backend.repository.AgentStatusRepository
 import org.cqfn.save.backend.utils.MySqlExtension
 import org.cqfn.save.entities.AgentStatusDto
@@ -28,6 +29,9 @@ class AgentsControllerTest {
 
     @Autowired
     lateinit var agentStatusRepository: AgentStatusRepository
+
+    @Autowired
+    lateinit var agentRepository: AgentRepository
 
     @Test
     fun `should save agent statuses`() {
