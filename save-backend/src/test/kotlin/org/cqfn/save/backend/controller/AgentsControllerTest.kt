@@ -4,6 +4,8 @@ import org.cqfn.save.agent.AgentState
 import org.cqfn.save.backend.SaveApplication
 import org.cqfn.save.backend.repository.AgentRepository
 import org.cqfn.save.backend.repository.AgentStatusRepository
+import org.cqfn.save.backend.repository.ExecutionRepository
+import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.utils.MySqlExtension
 import org.cqfn.save.entities.AgentStatusDto
 import org.junit.jupiter.api.Assertions
@@ -32,6 +34,12 @@ class AgentsControllerTest {
 
     @Autowired
     lateinit var agentRepository: AgentRepository
+
+    @Autowired
+    lateinit var executionRepository: ExecutionRepository
+
+    @Autowired
+    lateinit var projectRepository: ProjectRepository
 
     @Test
     fun `should save agent statuses`() {
