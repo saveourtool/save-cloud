@@ -21,10 +21,12 @@ import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
 import java.time.LocalDateTime
+import javax.transaction.Transactional
 
 @SpringBootTest(classes = [SaveApplication::class])
 @AutoConfigureWebTestClient
 @ExtendWith(MySqlExtension::class)
+@Transactional
 class AgentsControllerTest {
     @Autowired
     lateinit var webTestClient: WebTestClient
@@ -102,11 +104,10 @@ class AgentsControllerTest {
                 .expectStatus()
                 .isOk
 
-        val statuses = agentStatusRepository.findAll()
-
         assertTrue(
-                statuses
-                    .filter { it.state == AgentState.IDLE }
+                agentStatusRepository
+                    .findAll()
+                    .filter { it.state == AgentState.IDLE && it.agent.containerId == "container-2" }
                     .size == 1
         )
     }
