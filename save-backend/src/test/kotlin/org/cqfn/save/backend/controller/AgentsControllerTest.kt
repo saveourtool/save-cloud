@@ -23,6 +23,7 @@ import javax.transaction.Transactional
 @SpringBootTest(classes = [SaveApplication::class])
 @AutoConfigureWebTestClient
 @ExtendWith(MySqlExtension::class)
+@Transactional
 class AgentsControllerTest {
     @Autowired
     lateinit var webTestClient: WebTestClient
@@ -48,7 +49,6 @@ class AgentsControllerTest {
     }
 
     @Test
-    @Transactional
     @Suppress("TOO_LONG_FUNCTION")
     fun `check that agent statuses are updated`() {
         webTestClient
@@ -116,7 +116,7 @@ class AgentsControllerTest {
                 requireNotNull(statuses)
                 Assertions.assertEquals(2, statuses.size)
                 Assertions.assertEquals(AgentState.IDLE, statuses.first()!!.state)
-                Assertions.assertEquals(AgentState.BUSY, statuses[1]!!.state)
+                Assertions.assertEquals(AgentState.IDLE, statuses[1]!!.state)
             }
     }
 }
