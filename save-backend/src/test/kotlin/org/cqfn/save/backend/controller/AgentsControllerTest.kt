@@ -18,7 +18,6 @@ import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
 import java.time.LocalDateTime
-import javax.transaction.Transactional
 
 @SpringBootTest(classes = [SaveApplication::class])
 @AutoConfigureWebTestClient
@@ -39,7 +38,7 @@ class AgentsControllerTest {
             .accept(MediaType.APPLICATION_JSON)
             .body(BodyInserters.fromValue(
                 listOf(
-                    AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "container-1")
+                    AgentStatusDto(LocalDateTime.now(), LocalDateTime.now(), AgentState.IDLE, "container-1")
                 )
             ))
             .exchange()
@@ -57,7 +56,7 @@ class AgentsControllerTest {
             .accept(MediaType.APPLICATION_JSON)
             .body(BodyInserters.fromValue(
                 listOf(
-                    AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "container-2")
+                    AgentStatusDto(LocalDateTime.now(), LocalDateTime.now(), AgentState.IDLE, "container-2")
                 )
             ))
             .exchange()
@@ -71,7 +70,7 @@ class AgentsControllerTest {
             .accept(MediaType.APPLICATION_JSON)
             .body(BodyInserters.fromValue(
                 listOf(
-                    AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "container-2")
+                    AgentStatusDto(LocalDateTime.now(), LocalDateTime.now(), AgentState.IDLE, "container-2")
                 )
             ))
             .exchange()
@@ -85,7 +84,7 @@ class AgentsControllerTest {
             .accept(MediaType.APPLICATION_JSON)
             .body(BodyInserters.fromValue(
                 listOf(
-                    AgentStatusDto(LocalDateTime.now(), AgentState.BUSY, "container-2")
+                    AgentStatusDto(LocalDateTime.now(), LocalDateTime.now(), AgentState.BUSY, "container-2")
                 )
             ))
             .exchange()
