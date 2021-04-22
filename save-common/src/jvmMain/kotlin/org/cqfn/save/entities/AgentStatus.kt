@@ -38,10 +38,9 @@ class AgentStatus(
 }
 
 /**
- * @property startTime staring time of status
- * @property endTime time of update
  * @property state current state of the agent
  * @property containerId id of the agent's container
+ * @property time
  */
 class AgentStatusDto(
     val time: LocalDateTime,

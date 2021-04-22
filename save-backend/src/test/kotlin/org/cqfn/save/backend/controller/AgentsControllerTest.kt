@@ -67,8 +67,8 @@ class AgentsControllerTest {
             .isOk
 
         val firstIdle = agentStatusRepository
-                .findAll()
-                .first { it.state == AgentState.IDLE && it.agent.containerId == "container-2" }
+            .findAll()
+            .first { it.state == AgentState.IDLE && it.agent.containerId == "container-2" }
 
         webTestClient
             .method(HttpMethod.POST)
@@ -106,12 +106,12 @@ class AgentsControllerTest {
         )
 
         val lastUpdatedIdle = agentStatusRepository
-                .findAll()
-                .first { it.state == AgentState.IDLE && it.agent.containerId == "container-2" }
+            .findAll()
+            .first { it.state == AgentState.IDLE && it.agent.containerId == "container-2" }
 
         assertTrue(
-                lastUpdatedIdle.startTime == firstIdle.startTime &&
-                        lastUpdatedIdle.endTime != firstIdle.endTime
+            lastUpdatedIdle.startTime.withNano(0) == firstIdle.startTime.withNano(0) &&
+                    lastUpdatedIdle.endTime.withNano(0) != firstIdle.endTime.withNano(0)
         )
     }
 
