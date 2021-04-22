@@ -18,6 +18,7 @@ import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
 import java.time.LocalDateTime
+import java.time.Month
 import javax.transaction.Transactional
 
 @SpringBootTest(classes = [SaveApplication::class])
@@ -66,8 +67,8 @@ class AgentsControllerTest {
             .isOk
 
         val firstIdle = agentStatusRepository
-                .findAll()
-                .first { it.state == AgentState.IDLE && it.agent.containerId == "container-2" }
+            .findAll()
+            .first { it.state == AgentState.IDLE && it.agent.containerId == "container-2" }
 
         webTestClient
             .method(HttpMethod.POST)
@@ -76,7 +77,7 @@ class AgentsControllerTest {
             .accept(MediaType.APPLICATION_JSON)
             .body(BodyInserters.fromValue(
                 listOf(
-                    AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "container-2")
+                    AgentStatusDto(LocalDateTime.of(2022, Month.MAY, 10, 16, 30, 20), AgentState.IDLE, "container-2")
                 )
             ))
             .exchange()
@@ -105,12 +106,12 @@ class AgentsControllerTest {
         )
 
         val lastUpdatedIdle = agentStatusRepository
-                .findAll()
-                .first { it.state == AgentState.IDLE && it.agent.containerId == "container-2" }
+            .findAll()
+            .first { it.state == AgentState.IDLE && it.agent.containerId == "container-2" }
 
         assertTrue(
-                lastUpdatedIdle.startTime == firstIdle.startTime &&
-                        lastUpdatedIdle.endTime != firstIdle.endTime
+            lastUpdatedIdle.startTime.withNano(0) == firstIdle.startTime.withNano(0) &&
+                    lastUpdatedIdle.endTime.withNano(0) != firstIdle.endTime.withNano(0)
         )
     }
 
