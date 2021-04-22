@@ -40,7 +40,7 @@ class AgentsControllerTest {
             .accept(MediaType.APPLICATION_JSON)
             .body(BodyInserters.fromValue(
                 listOf(
-                    AgentStatusDto(LocalDateTime.now(), LocalDateTime.now(), AgentState.IDLE, "container-1")
+                    AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "container-1")
                 )
             ))
             .exchange()
@@ -58,7 +58,25 @@ class AgentsControllerTest {
             .accept(MediaType.APPLICATION_JSON)
             .body(BodyInserters.fromValue(
                 listOf(
-                    AgentStatusDto(LocalDateTime.now(), LocalDateTime.now(), AgentState.IDLE, "container-2")
+                    AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "container-2")
+                )
+            ))
+            .exchange()
+            .expectStatus()
+            .isOk
+
+        val firstIdle = agentStatusRepository
+                .findAll()
+                .first { it.state == AgentState.IDLE && it.agent.containerId == "container-2" }
+
+        webTestClient
+            .method(HttpMethod.POST)
+            .uri("/updateAgentStatusesWithDto")
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
+            .body(BodyInserters.fromValue(
+                listOf(
+                    AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "container-2")
                 )
             ))
             .exchange()
@@ -72,21 +90,7 @@ class AgentsControllerTest {
             .accept(MediaType.APPLICATION_JSON)
             .body(BodyInserters.fromValue(
                 listOf(
-                    AgentStatusDto(LocalDateTime.now(), LocalDateTime.now(), AgentState.IDLE, "container-2")
-                )
-            ))
-            .exchange()
-            .expectStatus()
-            .isOk
-
-        webTestClient
-            .method(HttpMethod.POST)
-            .uri("/updateAgentStatusesWithDto")
-            .contentType(MediaType.APPLICATION_JSON)
-            .accept(MediaType.APPLICATION_JSON)
-            .body(BodyInserters.fromValue(
-                listOf(
-                    AgentStatusDto(LocalDateTime.now(), LocalDateTime.now(), AgentState.BUSY, "container-2")
+                    AgentStatusDto(LocalDateTime.now(), AgentState.BUSY, "container-2")
                 )
             ))
             .exchange()
@@ -98,6 +102,15 @@ class AgentsControllerTest {
                 .findAll()
                 .filter { it.state == AgentState.IDLE && it.agent.containerId == "container-2" }
                 .size == 1
+        )
+
+        val lastUpdatedIdle = agentStatusRepository
+                .findAll()
+                .first { it.state == AgentState.IDLE && it.agent.containerId == "container-2" }
+
+        assertTrue(
+                lastUpdatedIdle.startTime == firstIdle.startTime &&
+                        lastUpdatedIdle.endTime != firstIdle.endTime
         )
     }
 

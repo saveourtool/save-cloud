@@ -34,7 +34,7 @@ class AgentStatus(
     /**
      * @return this object converted to [AgentStatusDto]
      */
-    fun toDto() = AgentStatusDto(startTime, endTime, state, agent.containerId)
+    fun toDto() = AgentStatusDto(endTime, state, agent.containerId)
 }
 
 /**
@@ -44,8 +44,7 @@ class AgentStatus(
  * @property containerId id of the agent's container
  */
 class AgentStatusDto(
-    val startTime: LocalDateTime,
-    val endTime: LocalDateTime,
+    val time: LocalDateTime,
     val state: AgentState,
     val containerId: String,
 )

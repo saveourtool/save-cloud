@@ -47,7 +47,7 @@ class HeartbeatController(private val agentService: AgentService,
         // store new state into DB
         agentService.updateAgentStatusesWithDto(
             listOf(
-                AgentStatusDto(LocalDateTime.now(), LocalDateTime.now(), heartbeat.state, heartbeat.agentId)
+                AgentStatusDto(LocalDateTime.now(), heartbeat.state, heartbeat.agentId)
             )
         )
         return when (heartbeat.state) {
