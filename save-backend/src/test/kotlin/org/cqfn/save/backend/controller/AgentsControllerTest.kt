@@ -67,49 +67,25 @@ class AgentsControllerTest {
     @Test
     @Suppress("TOO_LONG_FUNCTION")
     fun `check that agent statuses are updated`() {
-        webTestClient
-            .method(HttpMethod.POST)
-            .uri("/updateAgentStatusesWithDto")
-            .contentType(MediaType.APPLICATION_JSON)
-            .accept(MediaType.APPLICATION_JSON)
-            .body(BodyInserters.fromValue(
-                listOf(
-                    AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "container-2")
-                )
-            ))
-            .exchange()
-            .expectStatus()
-            .isOk
+        updateAgentStatuses(
+            listOf(
+                AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "container-2")
+            )
+        )
 
         val firstAgentIdle = getLastIdleForSecondContainer()
 
-        webTestClient
-            .method(HttpMethod.POST)
-            .uri("/updateAgentStatusesWithDto")
-            .contentType(MediaType.APPLICATION_JSON)
-            .accept(MediaType.APPLICATION_JSON)
-            .body(BodyInserters.fromValue(
-                listOf(
-                    AgentStatusDto(LocalDateTime.of(2022, Month.MAY, 10, 16, 30, 20), AgentState.IDLE, "container-2")
-                )
-            ))
-            .exchange()
-            .expectStatus()
-            .isOk
+        updateAgentStatuses(
+            listOf(
+                AgentStatusDto(LocalDateTime.of(2022, Month.MAY, 10, 16, 30, 20), AgentState.IDLE, "container-2")
+            )
+        )
 
-        webTestClient
-            .method(HttpMethod.POST)
-            .uri("/updateAgentStatusesWithDto")
-            .contentType(MediaType.APPLICATION_JSON)
-            .accept(MediaType.APPLICATION_JSON)
-            .body(BodyInserters.fromValue(
-                listOf(
-                    AgentStatusDto(LocalDateTime.now(), AgentState.BUSY, "container-2")
-                )
-            ))
-            .exchange()
-            .expectStatus()
-            .isOk
+        updateAgentStatuses(
+            listOf(
+                AgentStatusDto(LocalDateTime.now(), AgentState.BUSY, "container-2")
+            )
+        )
 
         assertTrue(
             transactionTemplate.execute {
@@ -145,6 +121,20 @@ class AgentsControllerTest {
                 Assertions.assertEquals(AgentState.IDLE, statuses.first()!!.state)
                 Assertions.assertEquals(AgentState.IDLE, statuses[1]!!.state)
             }
+    }
+
+    private fun updateAgentStatuses(body: Any) {
+        webTestClient
+            .method(HttpMethod.POST)
+            .uri("/updateAgentStatusesWithDto")
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
+            .body(BodyInserters.fromValue(
+                body
+            ))
+            .exchange()
+            .expectStatus()
+            .isOk
     }
 
     private fun getLastIdleForSecondContainer() =
