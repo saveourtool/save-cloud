@@ -39,7 +39,6 @@ class AgentsController(private val agentStatusRepository: AgentStatusRepository,
      * @param agentStates list of [AgentStatus]es to update in the DB
      */
     @PostMapping("/updateAgentStatusesWithDto")
-    @Transactional
     fun updateAgentStatusesWithDto(@RequestBody agentStates: List<AgentStatusDto>) {
         agentStates.forEach { dto ->
             val agentStatus = agentStatusRepository.findTopByAgentContainerIdOrderByEndTimeDesc(dto.containerId)
