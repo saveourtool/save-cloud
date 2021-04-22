@@ -18,6 +18,7 @@ import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
 import java.time.LocalDateTime
+import java.time.Month
 import javax.transaction.Transactional
 
 @SpringBootTest(classes = [SaveApplication::class])
@@ -90,7 +91,7 @@ class AgentsControllerTest {
             .accept(MediaType.APPLICATION_JSON)
             .body(BodyInserters.fromValue(
                 listOf(
-                    AgentStatusDto(LocalDateTime.now(), AgentState.BUSY, "container-2")
+                    AgentStatusDto(LocalDateTime.of(2020, Month.APRIL, 10, 16, 30, 20), AgentState.BUSY, "container-2")
                 )
             ))
             .exchange()
