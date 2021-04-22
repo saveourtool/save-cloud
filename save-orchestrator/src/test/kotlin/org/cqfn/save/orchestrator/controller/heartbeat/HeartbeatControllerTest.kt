@@ -96,8 +96,8 @@ class HeartbeatControllerTest {
     fun `should not shutdown any agents when not all of them are IDLE`() {
         testHeartbeat(
             agentStatusDtos = listOf(
-                AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "test-1"),
-                AgentStatusDto(LocalDateTime.now(), AgentState.BUSY, "test-2"),
+                AgentStatusDto(LocalDateTime.now(), LocalDateTime.now(), AgentState.IDLE, "test-1"),
+                AgentStatusDto(LocalDateTime.now(), LocalDateTime.now(), AgentState.BUSY, "test-2"),
             ),
             heartbeat = Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100)),
             tests = emptyList(),
@@ -111,8 +111,8 @@ class HeartbeatControllerTest {
     fun `should not shutdown any agents when all agents are IDLE but there are more tests left`() {
         testHeartbeat(
             agentStatusDtos = listOf(
-                AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "test-1"),
-                AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "test-2"),
+                AgentStatusDto(LocalDateTime.now(), LocalDateTime.now(), AgentState.IDLE, "test-1"),
+                AgentStatusDto(LocalDateTime.now(), LocalDateTime.now(), AgentState.IDLE, "test-2"),
             ),
             heartbeat = Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100)),
             tests = listOf(
@@ -130,8 +130,8 @@ class HeartbeatControllerTest {
     fun `should shutdown idle agents when there are no tests left`() {
         testHeartbeat(
             agentStatusDtos = listOf(
-                AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "test-1"),
-                AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "test-2"),
+                AgentStatusDto(LocalDateTime.now(), LocalDateTime.now(), AgentState.IDLE, "test-1"),
+                AgentStatusDto(LocalDateTime.now(), LocalDateTime.now(), AgentState.IDLE, "test-2"),
             ),
             heartbeat = Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100)),
             tests = emptyList(),
