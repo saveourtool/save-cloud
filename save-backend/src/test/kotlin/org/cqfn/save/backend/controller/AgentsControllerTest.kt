@@ -77,7 +77,7 @@ class AgentsControllerTest {
             .accept(MediaType.APPLICATION_JSON)
             .body(BodyInserters.fromValue(
                 listOf(
-                    AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "container-2")
+                    AgentStatusDto(LocalDateTime.of(2022, Month.MAY, 10, 16, 30, 20), AgentState.IDLE, "container-2")
                 )
             ))
             .exchange()
@@ -91,7 +91,7 @@ class AgentsControllerTest {
             .accept(MediaType.APPLICATION_JSON)
             .body(BodyInserters.fromValue(
                 listOf(
-                    AgentStatusDto(LocalDateTime.of(2020, Month.APRIL, 10, 16, 30, 20), AgentState.BUSY, "container-2")
+                    AgentStatusDto(LocalDateTime.now(), AgentState.BUSY, "container-2")
                 )
             ))
             .exchange()
