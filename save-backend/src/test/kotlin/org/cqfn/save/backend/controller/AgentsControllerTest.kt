@@ -81,14 +81,7 @@ class AgentsControllerTest {
             .expectStatus()
             .isOk
 
-        val firstAgentIdle = transactionTemplate.execute {
-            entityManager.createNativeQuery("select * from agent_status", AgentStatus::class.java)
-                .resultList
-                .first {
-                    (it as AgentStatus).state == AgentState.IDLE && it.agent.containerId == "container-2"
-                }
-                as AgentStatus
-        }!!
+        val firstAgentIdle = getLastIdleForSecondContainer()
 
         webTestClient
             .method(HttpMethod.POST)
@@ -127,14 +120,7 @@ class AgentsControllerTest {
             }!!
         )
 
-        val lastUpdatedIdle = transactionTemplate.execute {
-            entityManager.createNativeQuery("select * from agent_status", AgentStatus::class.java)
-                .resultList
-                .first {
-                    (it as AgentStatus).state == AgentState.IDLE && it.agent.containerId == "container-2"
-                }
-                as AgentStatus
-        }!!
+        val lastUpdatedIdle = getLastIdleForSecondContainer()
 
         assertTrue(
             lastUpdatedIdle.startTime.withNano(0) == firstAgentIdle.startTime.withNano(0) &&
@@ -160,4 +146,14 @@ class AgentsControllerTest {
                 Assertions.assertEquals(AgentState.IDLE, statuses[1]!!.state)
             }
     }
+
+    private fun getLastIdleForSecondContainer() =
+            transactionTemplate.execute {
+                entityManager.createNativeQuery("select * from agent_status", AgentStatus::class.java)
+                    .resultList
+                    .first {
+                        (it as AgentStatus).state == AgentState.IDLE && it.agent.containerId == "container-2"
+                    }
+                    as AgentStatus
+            }!!
 }
