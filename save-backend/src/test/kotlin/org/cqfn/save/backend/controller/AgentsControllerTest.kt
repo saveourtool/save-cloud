@@ -4,9 +4,11 @@ import org.cqfn.save.agent.AgentState
 import org.cqfn.save.backend.SaveApplication
 import org.cqfn.save.backend.repository.AgentStatusRepository
 import org.cqfn.save.backend.utils.MySqlExtension
+import org.cqfn.save.entities.AgentStatus
 import org.cqfn.save.entities.AgentStatusDto
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
@@ -16,21 +18,34 @@ import org.springframework.http.HttpMethod
 import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
+import org.springframework.transaction.PlatformTransactionManager
+import org.springframework.transaction.support.TransactionTemplate
 import org.springframework.web.reactive.function.BodyInserters
 import java.time.LocalDateTime
 import java.time.Month
-import javax.transaction.Transactional
+import javax.persistence.EntityManager
 
 @SpringBootTest(classes = [SaveApplication::class])
 @AutoConfigureWebTestClient
 @ExtendWith(MySqlExtension::class)
-@Transactional
 class AgentsControllerTest {
     @Autowired
     lateinit var webTestClient: WebTestClient
 
     @Autowired
     lateinit var agentStatusRepository: AgentStatusRepository
+
+    @Autowired
+    private lateinit var transactionManager: PlatformTransactionManager
+
+    @Autowired
+    private lateinit var entityManager: EntityManager
+    private lateinit var transactionTemplate: TransactionTemplate
+
+    @BeforeEach
+    fun setUp() {
+        transactionTemplate = TransactionTemplate(transactionManager)
+    }
 
     @Test
     fun `should save agent statuses`() {
@@ -66,9 +81,14 @@ class AgentsControllerTest {
             .expectStatus()
             .isOk
 
-        val firstIdle = agentStatusRepository
-            .findAll()
-            .first { it.state == AgentState.IDLE && it.agent.containerId == "container-2" }
+        val firstAgentIdle = transactionTemplate.execute {
+            entityManager.createNativeQuery("select * from agent_status", AgentStatus::class.java)
+                .resultList
+                .first {
+                    (it as AgentStatus).state == AgentState.IDLE && it.agent.containerId == "container-2"
+                }
+                as AgentStatus
+        }!!
 
         webTestClient
             .method(HttpMethod.POST)
@@ -99,19 +119,26 @@ class AgentsControllerTest {
             .isOk
 
         assertTrue(
-            agentStatusRepository
-                .findAll()
-                .filter { it.state == AgentState.IDLE && it.agent.containerId == "container-2" }
-                .size == 1
+            transactionTemplate.execute {
+                agentStatusRepository
+                    .findAll()
+                    .filter { it.state == AgentState.IDLE && it.agent.containerId == "container-2" }
+                    .size == 1
+            }!!
         )
 
-        val lastUpdatedIdle = agentStatusRepository
-            .findAll()
-            .first { it.state == AgentState.IDLE && it.agent.containerId == "container-2" }
+        val lastUpdatedIdle = transactionTemplate.execute {
+            entityManager.createNativeQuery("select * from agent_status", AgentStatus::class.java)
+                .resultList
+                .first {
+                    (it as AgentStatus).state == AgentState.IDLE && it.agent.containerId == "container-2"
+                }
+                as AgentStatus
+        }!!
 
         assertTrue(
-            lastUpdatedIdle.startTime.withNano(0) == firstIdle.startTime.withNano(0) &&
-                    lastUpdatedIdle.endTime.withNano(0) != firstIdle.endTime.withNano(0)
+            lastUpdatedIdle.startTime.withNano(0) == firstAgentIdle.startTime.withNano(0) &&
+                    lastUpdatedIdle.endTime.withNano(0) != firstAgentIdle.endTime.withNano(0)
         )
     }
 
@@ -130,7 +157,7 @@ class AgentsControllerTest {
                 requireNotNull(statuses)
                 Assertions.assertEquals(2, statuses.size)
                 Assertions.assertEquals(AgentState.IDLE, statuses.first()!!.state)
-                Assertions.assertEquals(AgentState.BUSY, statuses[1]!!.state)
+                Assertions.assertEquals(AgentState.IDLE, statuses[1]!!.state)
             }
     }
 }
