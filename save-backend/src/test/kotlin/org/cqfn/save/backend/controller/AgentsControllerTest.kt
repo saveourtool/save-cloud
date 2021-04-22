@@ -23,7 +23,6 @@ import javax.transaction.Transactional
 @SpringBootTest(classes = [SaveApplication::class])
 @AutoConfigureWebTestClient
 @ExtendWith(MySqlExtension::class)
-@Transactional
 class AgentsControllerTest {
     @Autowired
     lateinit var webTestClient: WebTestClient
