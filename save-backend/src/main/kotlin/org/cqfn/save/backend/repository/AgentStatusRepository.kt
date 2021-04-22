@@ -27,4 +27,12 @@ interface AgentStatusRepository : BaseEntityRepository<AgentStatus>, JpaSpecific
  * JPA repository for agents.
  */
 @Repository
-interface AgentRepository : BaseEntityRepository<Agent>, JpaSpecificationExecutor<Agent>
+interface AgentRepository : BaseEntityRepository<Agent>, JpaSpecificationExecutor<Agent> {
+    /**
+     * Find agent by its agent id
+     *
+     * @param agentId agent id
+     * @return [Agent]
+     */
+    fun findByAgentId(agentId: String): Agent?
+}

@@ -51,7 +51,7 @@ class HeartbeatController(private val agentService: AgentService,
             )
         )
         return when (heartbeat.state) {
-            AgentState.IDLE -> agentService.setNewTestsIds().subscribeOn(scheduler)
+            AgentState.IDLE -> agentService.setNewTestsIds(heartbeat.agentId).subscribeOn(scheduler)
                 .doOnNext {
                     if (it is WaitResponse) {
                         // If agent was IDLE and there are no new tests - we check if the Execution is completed.
