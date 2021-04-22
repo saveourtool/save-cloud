@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
+import java.time.LocalDateTime
 
 /**
  * Controller to manipulate with Agent related data
@@ -39,17 +40,18 @@ class AgentsController(private val agentStatusRepository: AgentStatusRepository,
      * @param agentStates list of [AgentStatus]es to update in the DB
      */
     @PostMapping("/updateAgentStatusesWithDto")
+    @Transactional
     fun updateAgentStatusesWithDto(@RequestBody agentStates: List<AgentStatusDto>) {
         agentStates.forEach { dto ->
-            val agent = getAgentByContainerId(dto.containerId)
-            val agentStatus = agentStatusRepository.findTopByAgentContainerIdOrderByTimeDesc(dto.containerId)
+            val agentStatus = agentStatusRepository.findTopByAgentContainerIdOrderByEndTimeDesc(dto.containerId)
             if (agentStatus != null && agentStatus.state == dto.state) {
                 // updating time
-                agentStatus.time = dto.time
+                agentStatus.endTime = dto.time
                 agentStatusRepository.save(agentStatus)
             } else {
                 // insert new agent status
-                agentStatusRepository.save(AgentStatus(dto.time, dto.state, agent))
+                val agent = getAgentByContainerId(dto.containerId)
+                agentStatusRepository.save(AgentStatus(LocalDateTime.now(), dto.time, dto.state, agent))
             }
         }
     }
@@ -67,7 +69,7 @@ class AgentsController(private val agentStatusRepository: AgentStatusRepository,
             agentRepository.findAll { root, cq, cb ->
                 cb.equal(root.get<Execution>("execution"), getAgentByContainerId(agentId).execution)
             }.map {
-                agentStatusRepository.findTopByAgentContainerIdOrderByTimeDesc(it.containerId)?.toDto()
+                agentStatusRepository.findTopByAgentContainerIdOrderByEndTimeDesc(it.containerId)?.toDto()
             }
 
     /**

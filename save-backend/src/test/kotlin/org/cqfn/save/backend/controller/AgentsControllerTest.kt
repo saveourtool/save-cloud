@@ -65,6 +65,10 @@ class AgentsControllerTest {
             .expectStatus()
             .isOk
 
+        val firstIdle = agentStatusRepository
+                .findAll()
+                .first { it.state == AgentState.IDLE && it.agent.containerId == "container-2" }
+
         webTestClient
             .method(HttpMethod.POST)
             .uri("/updateAgentStatusesWithDto")
@@ -99,6 +103,15 @@ class AgentsControllerTest {
                 .filter { it.state == AgentState.IDLE && it.agent.containerId == "container-2" }
                 .size == 1
         )
+
+        val lastUpdatedIdle = agentStatusRepository
+                .findAll()
+                .first { it.state == AgentState.IDLE && it.agent.containerId == "container-2" }
+
+        assertTrue(
+                lastUpdatedIdle.startTime == firstIdle.startTime &&
+                        lastUpdatedIdle.endTime != firstIdle.endTime
+        )
     }
 
     @Test
@@ -116,7 +129,7 @@ class AgentsControllerTest {
                 requireNotNull(statuses)
                 Assertions.assertEquals(2, statuses.size)
                 Assertions.assertEquals(AgentState.IDLE, statuses.first()!!.state)
-                Assertions.assertEquals(AgentState.IDLE, statuses[1]!!.state)
+                Assertions.assertEquals(AgentState.BUSY, statuses[1]!!.state)
             }
     }
 }

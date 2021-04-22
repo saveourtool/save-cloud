@@ -14,13 +14,15 @@ import javax.persistence.JoinColumn
 import javax.persistence.ManyToOne
 
 /**
- * @property time time of update
+ * @property startTime staring time of status
+ * @property endTime time of update
  * @property state current state of the agent
  * @property agent agent who's state is described
  */
 @Entity
 class AgentStatus(
-    var time: LocalDateTime,
+    var startTime: LocalDateTime,
+    var endTime: LocalDateTime,
 
     @Enumerated(EnumType.STRING)
     var state: AgentState,
@@ -32,11 +34,12 @@ class AgentStatus(
     /**
      * @return this object converted to [AgentStatusDto]
      */
-    fun toDto() = AgentStatusDto(time, state, agent.containerId)
+    fun toDto() = AgentStatusDto(endTime, state, agent.containerId)
 }
 
 /**
- * @property time time of update
+ * @property startTime staring time of status
+ * @property endTime time of update
  * @property state current state of the agent
  * @property containerId id of the agent's container
  */
