@@ -32,6 +32,7 @@ class AgentService(configProperties: ConfigProperties) {
     /**
      * Sets new tests ids
      *
+     * @param agentId
      * @return Mono<NewJobResponse>
      */
     fun setNewTestsIds(agentId: String): Mono<out HeartbeatResponse> =

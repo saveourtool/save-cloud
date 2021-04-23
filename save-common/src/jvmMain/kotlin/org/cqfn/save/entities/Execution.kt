@@ -14,6 +14,8 @@ import javax.persistence.ManyToOne
  * @property endTime
  * @property status
  * @property testSuiteIds
+ * @property offset
+ * @property limit
  * @property resourcesRootPath path to test resources, relative to shared volume mount point
  */
 @Suppress("USE_DATA_CLASS")
@@ -34,5 +36,9 @@ class Execution(
     var testSuiteIds: String,
 
     var resourcesRootPath: String,
+
+    var offset: Int,
+
+    var executionLimit: Int,
 
 ) : BaseEntity()

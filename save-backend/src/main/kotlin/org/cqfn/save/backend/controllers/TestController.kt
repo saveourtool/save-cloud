@@ -26,6 +26,7 @@ class TestController {
     }
 
     /**
+     * @param agentId
      * @return test batches
      */
     @GetMapping("/getTestBatches")

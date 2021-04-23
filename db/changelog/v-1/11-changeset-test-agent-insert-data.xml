@@ -29,6 +29,8 @@
             <column name="status" value="RUNNING" />
             <column name="test_suite_ids" value="1, 2, 3" />
             <column name="resources_root_path" value="resources_root_path" />
+            <column name="offset" value="0" />
+            <column name="execution_limit" value="20" />
         </insert>
     </changeSet>
 

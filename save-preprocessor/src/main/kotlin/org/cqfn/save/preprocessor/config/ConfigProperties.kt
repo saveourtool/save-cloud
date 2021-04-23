@@ -16,4 +16,5 @@ data class ConfigProperties(
     val repository: String,
     val backend: String,
     val orchestrator: String,
+    val executionLimit: Int,
 )

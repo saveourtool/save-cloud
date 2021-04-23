@@ -33,6 +33,12 @@
             <column name="resources_root_path" type="varchar(255)">
                 <constraints nullable="false"/>
             </column>
+            <column name="offset" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="execution_limit" type="integer">
+                <constraints nullable="false"/>
+            </column>
         </createTable>
 
         <rollback>
