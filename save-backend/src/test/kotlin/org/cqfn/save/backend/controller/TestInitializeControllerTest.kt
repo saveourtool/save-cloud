@@ -93,7 +93,7 @@ class TestInitializeControllerTest {
             .expectBody<List<TestDto>>()
             .consumeWith {
                 println(it.responseBody)
-                assertTrue(it.responseBody!!.isNotEmpty() && it.responseBody!!.size == 2)
+                assertTrue(it.responseBody!!.isNotEmpty() && it.responseBody!!.size == 1)
             }
     }
 }
