@@ -15,8 +15,8 @@ import javax.persistence.ManyToOne
  * @property status
  * @property testSuiteIds
  * @property offset
- * @property limit
  * @property resourcesRootPath path to test resources, relative to shared volume mount point
+ * @property executionLimit
  */
 @Suppress("USE_DATA_CLASS")
 @Entity

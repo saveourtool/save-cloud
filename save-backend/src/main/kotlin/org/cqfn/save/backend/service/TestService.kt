@@ -11,9 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import reactor.core.publisher.Mono
-import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.ConcurrentMap
-import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * Service that is used for manipulating data with tests

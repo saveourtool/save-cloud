@@ -10,6 +10,10 @@ import org.springframework.stereotype.Repository
  */
 @Repository
 interface ExecutionRepository : BaseEntityRepository<Execution> {
+    /**
+     * @param offset
+     * @param id
+     */
     @Modifying
     @Query("update execution set execution.offset = ?1 where execution.id = ?2", nativeQuery = true)
     fun setNewOffset(offset: Int, id: Long)
