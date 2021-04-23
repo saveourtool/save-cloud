@@ -49,7 +49,8 @@ class TestService(private val configProperties: ConfigProperties) {
             TestDto(it.filePath, it.testSuite.id!!, it.id!!)
         }
         log.debug("Increasing offset of execution - ${agent.execution}")
-        executionRepository.setNewOffset(execution.offset + execution.executionLimit, execution.id!!)
+        execution.offset += execution.executionLimit
+        executionRepository.save(execution)
         return Mono.just(tests)
     }
 }

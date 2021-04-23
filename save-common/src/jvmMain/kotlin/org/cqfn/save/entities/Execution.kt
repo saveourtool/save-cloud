@@ -11,12 +11,12 @@ import javax.persistence.ManyToOne
 /**
  * @property project
  * @property startTime
- * @property endTime
+ * @property endTime If the state is RUNNING we are not considering it, so it can never be null
  * @property status
  * @property testSuiteIds
  * @property offset
  * @property resourcesRootPath path to test resources, relative to shared volume mount point
- * @property executionLimit
+ * @property executionLimit Maximum number of returning tests per execution
  */
 @Suppress("USE_DATA_CLASS")
 @Entity
