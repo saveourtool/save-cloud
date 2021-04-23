@@ -6,8 +6,10 @@ import org.cqfn.save.backend.repository.TestRepository
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.Test
 import org.cqfn.save.test.TestDto
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import reactor.core.publisher.Mono
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -16,9 +18,9 @@ import java.util.concurrent.atomic.AtomicInteger
  */
 @Service
 class TestService(private val configProperties: ConfigProperties) {
-    // This field should be a map <Execution, Int>. Int is offset.
-    // Also getTestBatches should receive the execution.
-    private var offset = mutableMapOf<Execution, AtomicInteger>()
+    private val log = LoggerFactory.getLogger(TestService::class.java)
+    // May be better to keep offset in database in Execution
+    private var offset = mutableMapOf<Long, AtomicInteger>()
 
     @Autowired
     private lateinit var testRepository: TestRepository
@@ -36,16 +38,21 @@ class TestService(private val configProperties: ConfigProperties) {
     /**
      * @return Test batches
      */
+    @Transactional
     fun getTestBatches(agentId: String): Mono<List<TestDto>> {
-        val agent = agentRepository.findByAgentId(agentId) ?: error("The specified agent does not exist")
-        val execution = agent.execution
-        if (!offset.contains(execution)) {
-            offset[execution] = AtomicInteger(0)
+        val agent = agentRepository.findByContainerId(agentId) ?: error("The specified agent does not exist")
+        log.info("Agent found: $agent")
+        val executionId = agent.execution.id
+        if (!offset.contains(executionId)) {
+            offset[executionId!!] = AtomicInteger(0)
         }
-        val tests = testRepository.retrieveBatches(configProperties.limit, offset[execution]!!.get()).map {
+        log.info("Retrieving tests")
+        val tests = testRepository.retrieveBatches(configProperties.limit, offset[executionId]!!.get()).map {
             TestDto(it.filePath, it.testSuite.id!!, it.id!!)
         }
-        offset[execution]!!.addAndGet(configProperties.limit)
+        offset[executionId]!!.addAndGet(configProperties.limit)
+        log.info("Increasing offset of execution - ${agent.execution}")
+        log.info(offset.keys.toString())
         return Mono.just(tests)
     }
 }
