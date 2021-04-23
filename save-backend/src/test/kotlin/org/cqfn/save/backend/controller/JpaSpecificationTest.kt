@@ -19,11 +19,11 @@ class JpaSpecificationTest {
 
     @Test
     fun testFindList() {
-        val agentStatusToId = agentStatusRepository.findById(7).get()
+        val agentStatusToId = agentStatusRepository.findById(4).get()
 
         val agentStatusToList = agentStatusRepository.findOne { root, query, cb ->
             cb.and(
-                cb.equal(root.get<Long>("id"), 7),
+                cb.equal(root.get<Long>("id"), 4),
                 cb.equal(root.get<AgentState>("state"), AgentState.FINISHED)
             )
         }.get()
