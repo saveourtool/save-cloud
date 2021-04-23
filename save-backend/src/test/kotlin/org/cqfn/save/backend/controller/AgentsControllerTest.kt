@@ -90,7 +90,7 @@ class AgentsControllerTest {
             .accept(MediaType.APPLICATION_JSON)
             .body(BodyInserters.fromValue(
                 listOf(
-                    AgentStatusDto(LocalDateTime.of(2022, Month.MAY, 10, 16, 30, 20), AgentState.IDLE, "container-2")
+                    AgentStatusDto(LocalDateTime.of(2020, Month.MAY, 10, 16, 30, 20), AgentState.IDLE, "container-2")
                 )
             ))
             .exchange()
@@ -143,7 +143,7 @@ class AgentsControllerTest {
                 requireNotNull(statuses)
                 Assertions.assertEquals(2, statuses.size)
                 Assertions.assertEquals(AgentState.IDLE, statuses.first()!!.state)
-                Assertions.assertEquals(AgentState.IDLE, statuses[1]!!.state)
+                Assertions.assertEquals(AgentState.BUSY, statuses[1]!!.state)
             }
     }
 
