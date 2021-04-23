@@ -45,7 +45,7 @@ class TestService(private val configProperties: ConfigProperties) {
         log.debug("Agent found: $agent")
         val execution = agent.execution
         log.debug("Retrieving tests")
-        val tests = testRepository.retrieveBatches(execution.executionLimit, execution.offset).map {
+        val tests = testRepository.retrieveBatches(execution.executionLimit, execution.offset, execution.id!!).map {
             TestDto(it.filePath, it.testSuite.id!!, it.id!!)
         }
         log.debug("Increasing offset of execution - ${agent.execution}")
