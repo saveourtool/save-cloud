@@ -1,11 +1,13 @@
 package org.cqfn.save.preprocessor.controllers
 
-import org.cqfn.save.entities.Execution
-import org.cqfn.save.entities.ExecutionRequest
-import org.cqfn.save.entities.Project
+import org.cqfn.save.entities.*
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.preprocessor.Response
 import org.cqfn.save.preprocessor.config.ConfigProperties
+import org.cqfn.save.preprocessor.utils.toHash
+import org.cqfn.save.test.TestDto
+import org.cqfn.save.testsuite.TestSuiteDto
+import org.cqfn.save.testsuite.TestSuiteType
 
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.api.errors.GitAPIException
@@ -21,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
+import org.springframework.web.reactive.function.client.bodyToMono
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
@@ -79,7 +82,7 @@ class DownloadProjectController(val configProperties: ConfigProperties) {
                     // Post request to backend to create PENDING executions
                     // Fixme: need to initialize test suite ids
                     project?.let {
-                        sendToBackendAndOrchestrator(it, tmpDir.relativeTo(File(configProperties.repository)).normalize().path)
+                        sendToBackendAndOrchestrator(it, tmpDir.path)
                     }
                         ?: run {
                             throw ResponseStatusException(
@@ -99,8 +102,10 @@ class DownloadProjectController(val configProperties: ConfigProperties) {
         }
     }
 
+    @Suppress("TooGenericExceptionCaught", "TOO_LONG_FUNCTION")
     private fun sendToBackendAndOrchestrator(project: Project, path: String) {
         val execution = Execution(project, LocalDateTime.now(), LocalDateTime.now(), ExecutionStatus.PENDING, "1", path)
+        var execId: Long
         log.debug("Knock-Knock Backend")
         webClientBackend
             .post()
@@ -115,17 +120,61 @@ class DownloadProjectController(val configProperties: ConfigProperties) {
                 )
             }
             .bodyToMono(Long::class.java)
-            .doOnNext { executionId ->
-                // Post request to orchestrator to initiate its work
-                log.debug("Knock-Knock Orchestrator")
-                webClientOrchestrator
-                    .post()
-                    .uri("/initializeAgents")
-                    .body(BodyInserters.fromValue(execution.also { it.id = executionId }))
+            .doOnNext {
+                execId = it
+                webClientBackend.
+                    post()
+                    .uri("/saveTestSuites")
+                    .body(BodyInserters.fromValue(getAllTestSuits(project)))
                     .retrieve()
-                    .toEntity(HttpStatus::class.java)
-                    .subscribe()
+                    .onStatus({status -> status != HttpStatus.OK }) {
+                    log.error("Backend internal error: ${it.statusCode()}")
+                    throw ResponseStatusException(
+                        HttpStatus.INTERNAL_SERVER_ERROR,
+                        "Backend internal error"
+                    )
+                }
+                .bodyToMono<List<TestSuite>>()
+                .doOnNext {
+                    webClientBackend.
+                    post()
+                        .uri("/initializeTests")
+                        .body(BodyInserters.fromValue(getAllTests(path, it)))
+                        .retrieve()
+                        .onStatus({status -> status != HttpStatus.OK }) {
+                            log.error("Backend internal error: ${it.statusCode()}")
+                            throw ResponseStatusException(
+                                HttpStatus.INTERNAL_SERVER_ERROR,
+                                "Backend internal error"
+                            )
+                        }
+                        .bodyToMono(HttpStatus::class.java)
+                        .doOnNext {
+                            // Post request to orchestrator to initiate its work
+                            log.debug("Knock-Knock Orchestrator")
+                            webClientOrchestrator
+                                .post()
+                                .uri("/initializeAgents")
+                                .body(BodyInserters.fromValue(execution.also { it.id = execId }))
+                                .retrieve()
+                                .toEntity(HttpStatus::class.java)
+                                .subscribe()
+                        }.subscribe()
+                }.subscribe()
+            }.subscribe()
+    }
+
+    private fun getAllTestSuits(project: Project): List<TestSuiteDto> {
+        return listOf(TestSuiteDto(TestSuiteType.PROJECT, "test", project))
+    }
+
+    private fun getAllTests(path: String, testSuites: List<TestSuite>): List<TestDto> {
+        return File(path)
+            .walkTopDown()
+            .filter { it.isFile }
+            .map {
+                TestDto(it.path, it.toHash(), testSuites[0].id!!)
             }
-            .subscribe()
+            .toList()
     }
 }

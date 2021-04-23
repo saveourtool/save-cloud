@@ -29,7 +29,7 @@ class TestExecution(
 
     @ManyToOne
     @JoinColumn(name = "agent_id")
-    var agent: Agent,
+    var agent: Agent?,
 
     @ManyToOne
     @JoinColumn(name = "project_id")
@@ -38,8 +38,8 @@ class TestExecution(
     @Enumerated(EnumType.STRING)
     var status: TestResultStatus,
 
-    var startTime: LocalDateTime,
+    var startTime: LocalDateTime?,
 
-    var endTime: LocalDateTime,
+    var endTime: LocalDateTime?,
 
 ) : BaseEntity()

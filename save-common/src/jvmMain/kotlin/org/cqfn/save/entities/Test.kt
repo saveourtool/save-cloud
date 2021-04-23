@@ -6,12 +6,15 @@ import javax.persistence.JoinColumn
 import javax.persistence.ManyToOne
 
 /**
+ * @property hash
  * @property filePath
  * @property dateAdded
  * @property testSuite
  */
 @Entity
 class Test(
+
+    var hash: String,
 
     var filePath: String,
 

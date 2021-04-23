@@ -19,7 +19,7 @@
                 <constraints foreignKeyName="fk_test_execution_test" references="test(id)" nullable="false"/>
             </column>
             <column name="agent_id" type="bigint">
-                <constraints nullable="false" />
+                <constraints nullable="true" />
             </column>
             <column name="project_id" type="bigint">
                 <constraints foreignKeyName="fk_test_execution_project" references="project(id)" nullable="false"/>
@@ -31,10 +31,10 @@
                 <constraints nullable="false"/>
             </column>
             <column name="start_time" type="DATETIME">
-                <constraints nullable="false"/>
+                <constraints nullable="true"/>
             </column>
             <column name="end_time" type="DATETIME">
-                <constraints nullable="false" />
+                <constraints nullable="true" />
             </column>
         </createTable>
 

@@ -4,7 +4,9 @@ import org.cqfn.save.backend.SaveApplication
 import org.cqfn.save.backend.repository.TestRepository
 import org.cqfn.save.backend.repository.TestSuiteRepository
 import org.cqfn.save.backend.utils.MySqlExtension
+import org.cqfn.save.test.TestBatchDto
 import org.cqfn.save.test.TestDto
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -36,10 +38,10 @@ class TestInitializeControllerTest {
     @Test
     fun testConnection() {
         val testSuite = testSuiteRepository.findById(2).get()
-        val test = org.cqfn.save.entities.Test(
+        val test = TestDto(
             "testPath",
-            testLocalDateTime,
-            testSuite,
+            "newHash",
+            testSuite.id!!,
         )
 
         webClient.post()
@@ -49,15 +51,17 @@ class TestInitializeControllerTest {
             .exchange()
             .expectStatus()
             .isOk
+
+        assertTrue(testInitRepository.findByHash("newHash").isPresent)
     }
 
     @Test
     fun checkDataSave() {
         val testSuite = testSuiteRepository.findById(2).get()
-        val test = org.cqfn.save.entities.Test(
+        val test = TestDto(
             "testPath",
-            testLocalDateTime,
-            testSuite,
+            "newHash2",
+            testSuite.id!!,
         )
         webClient.post()
             .uri("/initializeTests")
@@ -69,7 +73,7 @@ class TestInitializeControllerTest {
 
         val databaseData = testInitRepository.findAll()
 
-        assertTrue(databaseData.any { it.testSuite.id == test.testSuite.id && it.filePath == test.filePath })
+        assertTrue(databaseData.any { it.testSuite.id == test.testSuiteId && it.filePath == test.filePath && it.hash == test.hash })
     }
 
     @Test
@@ -79,7 +83,7 @@ class TestInitializeControllerTest {
             .exchange()
             .expectStatus()
             .isOk
-            .expectBody<List<TestDto>>()
+            .expectBody<List<TestBatchDto>>()
             .consumeWith {
                 println(it.responseBody)
                 assertTrue(it.responseBody!!.isNotEmpty() && it.responseBody!!.size == 20)
@@ -90,10 +94,10 @@ class TestInitializeControllerTest {
             .exchange()
             .expectStatus()
             .isOk
-            .expectBody<List<TestDto>>()
+            .expectBody<List<TestBatchDto>>()
             .consumeWith {
                 println(it.responseBody)
-                assertTrue(it.responseBody!!.isNotEmpty() && it.responseBody!!.size == 1)
+                assertTrue(it.responseBody!!.isNotEmpty())
             }
     }
 }
