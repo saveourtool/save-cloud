@@ -34,7 +34,7 @@ class AgentsControllerTest {
     @Test
     fun checkPostResponseIsOk() {
         val project = Project("Huawei", "huaweiName", "manual", "huaweiUrl", "description")
-        val execution = Execution(project, stubTime, stubTime, ExecutionStatus.PENDING, "stub", "stub").apply {
+        val execution = Execution(project, stubTime, stubTime, ExecutionStatus.PENDING, "stub", "stub",0, 20).apply {
             id = 42L
         }
         whenever(dockerService.buildAndCreateContainers(any())).thenReturn(listOf("test-agent-id-1", "test-agent-id-2"))
@@ -53,7 +53,7 @@ class AgentsControllerTest {
     @Test
     fun checkPostResponseIsNotOk() {
         val project = Project("Huawei", "huaweiName", "manual", "huaweiUrl", "description")
-        val execution = Execution(project, stubTime, stubTime, ExecutionStatus.RUNNING, "stub", "stub")
+        val execution = Execution(project, stubTime, stubTime, ExecutionStatus.RUNNING, "stub", "stub",0,20)
         webClient
             .post()
             .uri("/initializeAgents")
