@@ -39,10 +39,19 @@ class AgentsController(private val agentStatusRepository: AgentStatusRepository,
      * @param agentStates list of [AgentStatus]es to update in the DB
      */
     @PostMapping("/updateAgentStatusesWithDto")
+    @Transactional
     fun updateAgentStatusesWithDto(@RequestBody agentStates: List<AgentStatusDto>) {
-        agentStates.forEach {
-            val agent = getAgentByContainerId(it.containerId)
-            agentStatusRepository.save(AgentStatus(it.time, it.state, agent))
+        agentStates.forEach { dto ->
+            val agentStatus = agentStatusRepository.findTopByAgentContainerIdOrderByEndTimeDesc(dto.containerId)
+            if (agentStatus != null && agentStatus.state == dto.state) {
+                // updating time
+                agentStatus.endTime = dto.time
+                agentStatusRepository.save(agentStatus)
+            } else {
+                // insert new agent status
+                val agent = getAgentByContainerId(dto.containerId)
+                agentStatusRepository.save(AgentStatus(dto.time, dto.time, dto.state, agent))
+            }
         }
     }
 
@@ -59,7 +68,7 @@ class AgentsController(private val agentStatusRepository: AgentStatusRepository,
             agentRepository.findAll { root, cq, cb ->
                 cb.equal(root.get<Execution>("execution"), getAgentByContainerId(agentId).execution)
             }.map {
-                agentStatusRepository.findTopByAgentContainerIdOrderByTimeDesc(it.containerId)?.toDto()
+                agentStatusRepository.findTopByAgentContainerIdOrderByEndTimeDesc(it.containerId)?.toDto()
             }
 
     /**
