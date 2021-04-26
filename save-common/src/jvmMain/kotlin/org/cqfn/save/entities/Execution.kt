@@ -14,7 +14,7 @@ import javax.persistence.ManyToOne
  * @property endTime
  * @property status
  * @property testSuiteIds
- * @property offset
+ * @property page
  * @property resourcesRootPath path to test resources, relative to shared volume mount point
  * @property executionLimit
  */
@@ -37,7 +37,7 @@ class Execution(
 
     var resourcesRootPath: String,
 
-    var offset: Int,
+    var page: Int,
 
     var executionLimit: Int,
 
