@@ -36,7 +36,7 @@
             <column name="page" type="integer">
                 <constraints nullable="false"/>
             </column>
-            <column name="execution_limit" type="integer">
+            <column name="batch_size" type="integer">
                 <constraints nullable="false"/>
             </column>
         </createTable>

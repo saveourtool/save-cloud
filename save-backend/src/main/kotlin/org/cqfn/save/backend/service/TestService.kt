@@ -54,11 +54,11 @@ class TestService(private val configProperties: ConfigProperties) {
         val tests = testExecutionRepository.findAllByStatusEqualsAndTestSuiteExecutionIdEquals(
             TestResultStatus.READY,
             execution.id!!,
-            PageRequest.of(execution.page, execution.executionLimit)
+            PageRequest.of(execution.page, execution.batchSize)
         ).map {
             TestDto(it.test.filePath, it.test.testSuite.id!!, it.test.id!!)
         }
-        log.debug("Increasing batch size of execution - ${agent.execution}")
+        log.debug("Increasing offset of the execution - ${agent.execution}")
         ++execution.page
         executionRepository.save(execution)
         return Mono.just(tests)

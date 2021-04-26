@@ -16,7 +16,7 @@ import javax.persistence.ManyToOne
  * @property testSuiteIds
  * @property page
  * @property resourcesRootPath path to test resources, relative to shared volume mount point
- * @property executionLimit Maximum number of returning tests per execution
+ * @property batchSize Maximum number of returning tests per execution
  */
 @Suppress("USE_DATA_CLASS")
 @Entity
@@ -39,6 +39,6 @@ class Execution(
 
     var page: Int,
 
-    var executionLimit: Int,
+    var batchSize: Int,
 
 ) : BaseEntity()
