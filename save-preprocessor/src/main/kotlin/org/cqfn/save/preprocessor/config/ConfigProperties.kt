@@ -9,6 +9,7 @@ import org.springframework.boot.context.properties.ConstructorBinding
  * @property repository path to save repository
  * @property backend
  * @property orchestrator
+ * @property executionLimit
  */
 @ConstructorBinding
 @ConfigurationProperties(prefix = "save")
@@ -16,4 +17,5 @@ data class ConfigProperties(
     val repository: String,
     val backend: String,
     val orchestrator: String,
+    val executionLimit: Int,
 )

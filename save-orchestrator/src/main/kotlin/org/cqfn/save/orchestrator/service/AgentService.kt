@@ -32,12 +32,13 @@ class AgentService(configProperties: ConfigProperties) {
     /**
      * Sets new tests ids
      *
+     * @param agentId
      * @return Mono<NewJobResponse>
      */
-    fun setNewTestsIds(): Mono<out HeartbeatResponse> =
+    fun setNewTestsIds(agentId: String): Mono<out HeartbeatResponse> =
             webClientBackend
                 .get()
-                .uri("/getTestBatches")
+                .uri("/getTestBatches?agentId=$agentId")
                 .retrieve()
                 .bodyToMono<List<TestDto>>()
                 .map {

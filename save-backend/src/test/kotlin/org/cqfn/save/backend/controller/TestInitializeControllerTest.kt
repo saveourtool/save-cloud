@@ -75,7 +75,7 @@ class TestInitializeControllerTest {
     @Test
     fun checkServiceData() {
         webClient.get()
-            .uri("/getTestBatches")
+            .uri("/getTestBatches?agentId=container-1")
             .exchange()
             .expectStatus()
             .isOk
@@ -86,7 +86,21 @@ class TestInitializeControllerTest {
             }
 
         webClient.get()
-            .uri("/getTestBatches")
+            .uri("/getTestBatches?agentId=container-1")
+            .exchange()
+            .expectStatus()
+            .isOk
+            .expectBody<List<TestDto>>()
+            .consumeWith {
+                println(it.responseBody)
+                assertTrue(it.responseBody!!.isNotEmpty() && it.responseBody!!.size == 1)
+            }
+    }
+
+    @Test
+    fun checkDifferentExecutions() {
+        webClient.get()
+            .uri("/getTestBatches?agentId=container-3")
             .exchange()
             .expectStatus()
             .isOk

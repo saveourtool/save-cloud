@@ -59,6 +59,6 @@ class CloneRepoTest {
                 .isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR)
         }
         val projects = projectRepository.findAll()
-        Assertions.assertTrue(projects.size == 2)
+        Assertions.assertTrue(projects.size == 3)
     }
 }
