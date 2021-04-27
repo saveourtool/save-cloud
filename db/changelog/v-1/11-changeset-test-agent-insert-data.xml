@@ -14,7 +14,6 @@
             <column header="end_time" name="end_time" type="DATE" />
             <column header="test_id" name="test_id" type="NUMERIC" />
             <column header="agent_id" name="agent_id" type="NUMERIC" />
-            <column header="project_id" name="project_id" type="NUMERIC" />
             <column header="test_suite_execution_id" name="test_suite_execution_id" type="NUMERIC" />
         </loadData>
 

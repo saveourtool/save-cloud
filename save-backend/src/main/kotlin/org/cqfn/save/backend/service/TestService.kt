@@ -49,8 +49,8 @@ class TestService(private val configProperties: ConfigProperties) {
             testRepository.findByHash(testDto.hash)?.let { testsId.add(it.id!!) } ?: {
                 testSuiteRepository.findById(testDto.testSuiteId).ifPresent { testSuite ->
                     Test(testDto.hash, testDto.filePath, LocalDateTime.now(), testSuite).run {
-                        testsId.add(this.id!!)
                         testRepository.save(this)
+                        testsId.add(this.id!!)
                     }
                 }
             }

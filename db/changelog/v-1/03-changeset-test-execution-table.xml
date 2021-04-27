@@ -21,9 +21,6 @@
             <column name="agent_id" type="bigint">
                 <constraints nullable="true" />
             </column>
-            <column name="project_id" type="bigint">
-                <constraints foreignKeyName="fk_test_execution_project" references="project(id)" nullable="false"/>
-            </column>
             <column name="test_suite_execution_id" type="bigint">
                 <constraints nullable="false" />
             </column>
