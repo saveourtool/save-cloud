@@ -54,25 +54,12 @@ class TestService(private val configProperties: ConfigProperties) {
         }
     }
 
-    /*
-    /**
-     * @return Test batches
-     */
-    fun getTestBatches(): Mono<List<TestBatchDto>> {
-        val tests = testRepository.retrieveBatches(configProperties.limit, offset.get()).map {
-            TestBatchDto(it.filePath, it.testSuite.id!!, it.id!!)
-        }
-        offset.addAndGet(configProperties.limit)
-        return Mono.just(tests)
-    }
-     */
-
     /**
      * @param agentId
      * @return Test batches
      */
     @Transactional
-    fun getTestBatches(agentId: String): Mono<List<TestDto>> {
+    fun getTestBatches(agentId: String): Mono<List<TestBatchDto>> {
         val agent = agentRepository.findByContainerId(agentId) ?: error("The specified agent does not exist")
         log.debug("Agent found: $agent")
         val execution = agent.execution
@@ -82,7 +69,7 @@ class TestService(private val configProperties: ConfigProperties) {
             execution.id!!,
             PageRequest.of(execution.page, execution.batchSize)
         ).map {
-            TestDto(it.test.filePath, it.test.testSuite.id!!, it.test.id!!)
+            TestBatchDto(it.test.filePath, it.test.testSuite.id!!, it.test.id!!)
         }
         log.debug("Increasing offset of the execution - ${agent.execution}")
         ++execution.page

@@ -3,6 +3,7 @@ package org.cqfn.save.preprocessor.controllers
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.Project
+import org.cqfn.save.entities.TestSuite
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.preprocessor.Response
 import org.cqfn.save.preprocessor.config.ConfigProperties
@@ -96,7 +97,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
         }
     }
 
-    @Suppress("TooGenericExceptionCaught", "TOO_LONG_FUNCTION")
+    @Suppress("LongMethod", "ThrowsCount", "TooGenericExceptionCaught", "TOO_LONG_FUNCTION")
     private fun sendToBackendAndOrchestrator(project: Project, path: String) {
         val execution = Execution(project, LocalDateTime.now(), LocalDateTime.now(),
             ExecutionStatus.PENDING, "1", path, 0, configProperties.executionLimit)
