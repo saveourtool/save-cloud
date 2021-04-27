@@ -94,7 +94,7 @@ class TestInitializeControllerTest {
             .exchange()
             .expectStatus()
             .isOk
-            .expectBody<List<TestDto>>()
+            .expectBody<List<TestBatchDto>>()
             .consumeWith {
                 println(it.responseBody)
                 assertTrue(it.responseBody!!.isNotEmpty() && it.responseBody!!.size == 1)
