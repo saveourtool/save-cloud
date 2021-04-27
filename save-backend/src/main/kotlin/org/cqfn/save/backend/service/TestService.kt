@@ -46,7 +46,7 @@ class TestService(private val configProperties: ConfigProperties) {
     fun saveTests(tests: List<TestDto>): List<Long> {
         val testsId = mutableListOf<Long>()
         tests.map { testDto ->
-            testRepository.findByHash(testDto.hash)?.let { testsId.add(it.id!!) } ?: {
+            testRepository.findByHash(testDto.hash)?.let { testsId.add(it.id!!) } ?: run {
                 testSuiteRepository.findById(testDto.testSuiteId).ifPresent { testSuite ->
                     Test(testDto.hash, testDto.filePath, LocalDateTime.now(), testSuite).run {
                         testRepository.save(this)

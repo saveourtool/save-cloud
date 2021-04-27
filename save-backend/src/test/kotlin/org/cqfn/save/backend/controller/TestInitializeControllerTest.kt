@@ -72,9 +72,7 @@ class TestInitializeControllerTest {
 
         val databaseData = testInitRepository.findAll()
 
-        assertTrue(databaseData.any { it.testSuite.id == test.testSuiteId})
-        assertTrue(databaseData.any { it.filePath == test.filePath })
-        assertTrue(databaseData.any { it.hash == test.hash })
+        assertTrue(databaseData.any { it.testSuite.id == test.testSuiteId && it.filePath == test.filePath && it.hash == test.hash })
     }
 
     @Test
