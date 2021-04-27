@@ -50,15 +50,12 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
         return lostTests
     }
 
-    fun saveTestExecution(testDtos: List<TestDto>) {
-        testDtos.map { testDto ->
-            testRepository.findByHash(testDto.hash).ifPresentOrElse(
-                { test ->
-                    testSuiteRepository.findById(testDto.testSuiteId).ifPresent {
-                        testExecutionRepository.save(TestExecution(test, testDto.testSuiteId, null, it.project!!, TestResultStatus.READY, null, null))
-                    }
-                },
-                { log.error("Can't find test with hash = ${testDto.hash} to save in testExecution") }
+    fun saveTestExecution(testsId: List<Long>) {
+        testsId.map { testId ->
+            testRepository.findById(testId).ifPresentOrElse({ test ->
+                testExecutionRepository.save(TestExecution(test, test.testSuite.id!!, null, test.testSuite.project!!, TestResultStatus.READY, null, null))
+            },
+            { log.error("Can't find test with id = $testId to save in testExecution") }
             )
         }
     }

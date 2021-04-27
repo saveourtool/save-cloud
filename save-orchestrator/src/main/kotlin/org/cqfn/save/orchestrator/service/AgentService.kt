@@ -8,7 +8,7 @@ import org.cqfn.save.entities.Agent
 import org.cqfn.save.entities.AgentStatus
 import org.cqfn.save.entities.AgentStatusDto
 import org.cqfn.save.orchestrator.config.ConfigProperties
-import org.cqfn.save.test.TestBatchDto
+import org.cqfn.save.test.TestDtoForBatch
 
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
@@ -40,7 +40,7 @@ class AgentService(configProperties: ConfigProperties) {
                 .get()
                 .uri("/getTestBatches?agentId=$agentId")
                 .retrieve()
-                .bodyToMono<List<TestBatchDto>>()
+                .bodyToMono<List<TestDtoForBatch>>()
                 .map {
                     if (it.isNotEmpty()) {
                         NewJobResponse(it)

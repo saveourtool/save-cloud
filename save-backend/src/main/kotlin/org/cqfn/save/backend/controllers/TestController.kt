@@ -27,8 +27,8 @@ class TestController {
      */
     @PostMapping("/initializeTests")
     fun initializeTests(@RequestBody testDtos: List<TestDto>) {
-        testService.saveTests(testDtos)
-        testExecutionService.saveTestExecution(testDtos)
+        val testsId = testService.saveTests(testDtos)
+        testExecutionService.saveTestExecution(testsId)
     }
 
     /**

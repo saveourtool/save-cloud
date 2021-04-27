@@ -8,7 +8,7 @@ import kotlinx.serialization.Serializable
  * @property id
  */
 @Serializable
-data class TestBatchDto(
+data class TestDtoForBatch(
     var filePath: String,
     var testSuiteId: Long,
     var id: Long

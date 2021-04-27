@@ -4,9 +4,8 @@ import org.cqfn.save.backend.SaveApplication
 import org.cqfn.save.backend.repository.TestRepository
 import org.cqfn.save.backend.repository.TestSuiteRepository
 import org.cqfn.save.backend.utils.MySqlExtension
-import org.cqfn.save.test.TestBatchDto
+import org.cqfn.save.test.TestDtoForBatch
 import org.cqfn.save.test.TestDto
-import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -52,7 +51,7 @@ class TestInitializeControllerTest {
             .expectStatus()
             .isOk
 
-        assertTrue(testInitRepository.findByHash("newHash").isPresent)
+        assertTrue(testInitRepository.findByHash("newHash") != null)
     }
 
     @Test
@@ -83,7 +82,7 @@ class TestInitializeControllerTest {
             .exchange()
             .expectStatus()
             .isOk
-            .expectBody<List<TestBatchDto>>()
+            .expectBody<List<TestDtoForBatch>>()
             .consumeWith {
                 println(it.responseBody)
                 assertTrue(it.responseBody!!.isNotEmpty() && it.responseBody!!.size == 20)
@@ -94,7 +93,7 @@ class TestInitializeControllerTest {
             .exchange()
             .expectStatus()
             .isOk
-            .expectBody<List<TestBatchDto>>()
+            .expectBody<List<TestDtoForBatch>>()
             .consumeWith {
                 println(it.responseBody)
                 assertTrue(it.responseBody!!.isNotEmpty() && it.responseBody!!.size == 1)
@@ -108,7 +107,7 @@ class TestInitializeControllerTest {
             .exchange()
             .expectStatus()
             .isOk
-            .expectBody<List<TestBatchDto>>()
+            .expectBody<List<TestDtoForBatch>>()
             .consumeWith {
                 println(it.responseBody)
                 assertTrue(it.responseBody!!.isNotEmpty())

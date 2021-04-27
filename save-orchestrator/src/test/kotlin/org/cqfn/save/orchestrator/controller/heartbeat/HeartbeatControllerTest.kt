@@ -8,7 +8,7 @@ import org.cqfn.save.entities.AgentStatusDto
 import org.cqfn.save.orchestrator.config.Beans
 import org.cqfn.save.orchestrator.service.AgentService
 import org.cqfn.save.orchestrator.service.DockerService
-import org.cqfn.save.test.TestBatchDto
+import org.cqfn.save.test.TestDtoForBatch
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import okhttp3.mockwebserver.MockResponse
@@ -80,7 +80,7 @@ class HeartbeatControllerTest {
 
     @Test
     fun checkNewJobResponse() {
-        val list = listOf(TestBatchDto("qwe", 0, 1))
+        val list = listOf(TestDtoForBatch("qwe", 0, 1))
         mockServer.enqueue(
             MockResponse()
                 .setBody(Json.encodeToString(list))
@@ -116,9 +116,9 @@ class HeartbeatControllerTest {
             ),
             heartbeat = Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100)),
             tests = listOf(
-                TestBatchDto("/path/to/test-1", 1, 1),
-                TestBatchDto("/path/to/test-2", 1, 2),
-                TestBatchDto("/path/to/test-3", 1, 3),
+                TestDtoForBatch("/path/to/test-1", 1, 1),
+                TestDtoForBatch("/path/to/test-2", 1, 2),
+                TestDtoForBatch("/path/to/test-3", 1, 3),
             ),
             mockAgentStatuses = false,
         ) {
@@ -153,7 +153,7 @@ class HeartbeatControllerTest {
     private fun testHeartbeat(
         agentStatusDtos: List<AgentStatusDto>,
         heartbeat: Heartbeat,
-        tests: List<TestBatchDto>,
+        tests: List<TestDtoForBatch>,
         mockAgentStatuses: Boolean = false,
         verification: () -> Unit,
     ) {

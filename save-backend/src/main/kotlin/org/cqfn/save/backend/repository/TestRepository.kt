@@ -9,5 +9,5 @@ import java.util.*
  */
 @Repository
 interface TestRepository : BaseEntityRepository<Test> {
-    fun findByHash(hash: String): Optional<Test>
+    fun findByHash(hash: String): Test?
 }

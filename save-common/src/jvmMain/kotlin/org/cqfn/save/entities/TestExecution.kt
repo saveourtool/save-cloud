@@ -13,7 +13,6 @@ import javax.persistence.ManyToOne
  * @property test id of test
  * @property testSuiteExecutionId test suite execution id
  * @property agent agent id
- * @property project project id
  * @property status status of test execution
  * @property startTime start time
  * @property endTime finish time
@@ -30,10 +29,6 @@ class TestExecution(
     @ManyToOne
     @JoinColumn(name = "agent_id")
     var agent: Agent?,
-
-    @ManyToOne
-    @JoinColumn(name = "project_id")
-    var project: Project,
 
     @Enumerated(EnumType.STRING)
     var status: TestResultStatus,

@@ -121,7 +121,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
                 webClientBackend.
                     post()
                     .uri("/saveTestSuites")
-                    .body(BodyInserters.fromValue(getAllTestSuits(project)))
+                    .body(BodyInserters.fromValue(getAllTestSuites(project)))
                     .retrieve()
                     .onStatus({status -> status != HttpStatus.OK }) {
                     log.error("Backend internal error: ${it.statusCode()}")
@@ -160,11 +160,12 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
             }.subscribe()
     }
 
-    private fun getAllTestSuits(project: Project): List<TestSuiteDto> {
+    private fun getAllTestSuites(project: Project): List<TestSuiteDto> {
         return listOf(TestSuiteDto(TestSuiteType.PROJECT, "test", project))
     }
 
     private fun getAllTests(path: String, testSuites: List<TestSuite>): List<TestDto> {
+        // todo Save should find and create correct TestDtos. Not it's just a stub
         return File(path)
             .walkTopDown()
             .filter { it.isFile }
