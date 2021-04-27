@@ -1,5 +1,6 @@
 package org.cqfn.save.preprocessor
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.Project
 import org.cqfn.save.preprocessor.config.ConfigProperties
@@ -9,6 +10,8 @@ import org.cqfn.save.repository.GitRepository
 
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
+import org.cqfn.save.entities.TestSuite
+import org.cqfn.save.testsuite.TestSuiteType
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
@@ -27,6 +30,7 @@ import org.springframework.web.reactive.function.BodyInserters
 
 import java.io.File
 import java.time.Duration
+import java.time.LocalDateTime
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
 
@@ -38,6 +42,7 @@ import kotlin.io.path.ExperimentalPathApi
 class DownloadProjectTest(
     @Autowired private val webClient: WebTestClient,
     @Autowired private val configProperties: ConfigProperties,
+    @Autowired private val objectMapper: ObjectMapper
 ) : RepositoryVolume {
     @BeforeEach
     fun webClientSetUp() {
@@ -74,7 +79,18 @@ class DownloadProjectTest(
             MockResponse()
                 .setResponseCode(200)
                 .setHeader("Content-Type", "application/json")
-                .setBody("42")
+                .setBody("42"),
+        )
+        mockServerBackend.enqueue(
+            MockResponse()
+                .setResponseCode(200)
+                .setHeader("Content-Type", "application/json")
+                .setBody(objectMapper.writeValueAsString(listOf(TestSuite(TestSuiteType.PROJECT, "", project, LocalDateTime.now())))),
+        )
+        mockServerBackend.enqueue(
+            MockResponse()
+                .setResponseCode(200)
+//                .setHeader("Content-Type", "application/json")
         )
         mockServerOrchestrator.enqueue(
             MockResponse()
@@ -82,6 +98,8 @@ class DownloadProjectTest(
         )
         val assertions = CompletableFuture.supplyAsync {
             listOf(
+                mockServerBackend.takeRequest(60, TimeUnit.SECONDS),
+                mockServerBackend.takeRequest(60, TimeUnit.SECONDS),
                 mockServerBackend.takeRequest(60, TimeUnit.SECONDS),
                 mockServerOrchestrator.takeRequest(60, TimeUnit.SECONDS)
             )

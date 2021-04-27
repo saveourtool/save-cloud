@@ -148,7 +148,7 @@ class DownloadProjectController(val configProperties: ConfigProperties) {
                                 "Backend internal error"
                             )
                         }
-                        .bodyToMono(HttpStatus::class.java)
+                        .toBodilessEntity()
                         .doOnNext {
                             // Post request to orchestrator to initiate its work
                             log.debug("Knock-Knock Orchestrator")
@@ -173,7 +173,7 @@ class DownloadProjectController(val configProperties: ConfigProperties) {
             .walkTopDown()
             .filter { it.isFile }
             .map {
-                TestDto(it.path, it.toHash(), testSuites[0].id!!)
+                TestDto(it.path, it.toHash(), testSuites[0].id ?: 1)
             }
             .toList()
     }
