@@ -97,7 +97,12 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
         }
     }
 
-    @Suppress("LongMethod", "ThrowsCount", "TooGenericExceptionCaught", "TOO_LONG_FUNCTION")
+    @Suppress(
+        "LongMethod",
+        "ThrowsCount",
+        "TooGenericExceptionCaught",
+        "TOO_LONG_FUNCTION",
+        "LOCAL_VARIABLE_EARLY_DECLARATION")
     private fun sendToBackendAndOrchestrator(project: Project, path: String) {
         val execution = Execution(project, LocalDateTime.now(), LocalDateTime.now(),
             ExecutionStatus.PENDING, "1", path, 0, configProperties.executionLimit)
@@ -108,61 +113,59 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
             .uri("/createExecution")
             .body(BodyInserters.fromValue(execution))
             .retrieve()
-            .onStatus({status -> status != HttpStatus.OK }) {
-                log.error("Backend internal error: ${it.statusCode()}")
+            .onStatus({status -> status != HttpStatus.OK }) { clientResponse ->
+                log.error("Backend internal error: ${clientResponse.statusCode()}")
                 throw ResponseStatusException(
                     HttpStatus.INTERNAL_SERVER_ERROR,
                     "Backend internal error"
                 )
             }
             .bodyToMono(Long::class.java)
-            .doOnNext {
-                execId = it
-                webClientBackend.
-                    post()
+            .doOnNext { executionId ->
+                execId = executionId
+                webClientBackend
+                    .post()
                     .uri("/saveTestSuites")
                     .body(BodyInserters.fromValue(getAllTestSuites(project)))
                     .retrieve()
-                    .onStatus({status -> status != HttpStatus.OK }) {
-                    log.error("Backend internal error: ${it.statusCode()}")
-                    throw ResponseStatusException(
-                        HttpStatus.INTERNAL_SERVER_ERROR,
-                        "Backend internal error"
-                    )
-                }
-                .bodyToMono<List<TestSuite>>()
-                .doOnNext {
-                    webClientBackend.
-                    post()
-                        .uri("/initializeTests")
-                        .body(BodyInserters.fromValue(getAllTests(path, it)))
-                        .retrieve()
-                        .onStatus({status -> status != HttpStatus.OK }) {
-                            log.error("Backend internal error: ${it.statusCode()}")
-                            throw ResponseStatusException(
-                                HttpStatus.INTERNAL_SERVER_ERROR,
-                                "Backend internal error"
-                            )
-                        }
-                        .toBodilessEntity()
-                        .doOnNext {
-                            // Post request to orchestrator to initiate its work
-                            log.debug("Knock-Knock Orchestrator")
-                            webClientOrchestrator
-                                .post()
-                                .uri("/initializeAgents")
-                                .body(BodyInserters.fromValue(execution.also { it.id = execId }))
-                                .retrieve()
-                                .toEntity(HttpStatus::class.java)
-                                .subscribe()
-                        }.subscribe()
-                }.subscribe()
+                    .onStatus({status -> status != HttpStatus.OK }) { clientResponse ->
+                        log.error("Backend internal error: ${clientResponse.statusCode()}")
+                        throw ResponseStatusException(
+                            HttpStatus.INTERNAL_SERVER_ERROR,
+                            "Backend internal error"
+                        )
+                    }
+                    .bodyToMono<List<TestSuite>>()
+                    .doOnNext { testSuiteList ->
+                        webClientBackend
+                            .post()
+                            .uri("/initializeTests")
+                            .body(BodyInserters.fromValue(getAllTests(path, testSuiteList)))
+                            .retrieve()
+                            .onStatus({status -> status != HttpStatus.OK }) { clientResponse ->
+                                log.error("Backend internal error: ${clientResponse.statusCode()}")
+                                throw ResponseStatusException(
+                                    HttpStatus.INTERNAL_SERVER_ERROR,
+                                    "Backend internal error"
+                                )
+                            }
+                            .toBodilessEntity()
+                            .doOnNext {
+                                // Post request to orchestrator to initiate its work
+                                log.debug("Knock-Knock Orchestrator")
+                                webClientOrchestrator
+                                    .post()
+                                    .uri("/initializeAgents")
+                                    .body(BodyInserters.fromValue(execution.also { it.id = execId }))
+                                    .retrieve()
+                                    .toEntity(HttpStatus::class.java)
+                                    .subscribe()
+                            }.subscribe()
+                    }.subscribe()
             }.subscribe()
     }
 
-    private fun getAllTestSuites(project: Project): List<TestSuiteDto> {
-        return listOf(TestSuiteDto(TestSuiteType.PROJECT, "test", project))
-    }
+    private fun getAllTestSuites(project: Project) = listOf(TestSuiteDto(TestSuiteType.PROJECT, "test", project))
 
     private fun getAllTests(path: String, testSuites: List<TestSuite>): List<TestDto> {
         // todo Save should find and create correct TestDtos. Not it's just a stub

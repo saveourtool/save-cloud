@@ -5,17 +5,19 @@ import org.cqfn.save.backend.repository.AgentRepository
 import org.cqfn.save.backend.repository.ExecutionRepository
 import org.cqfn.save.backend.repository.TestExecutionRepository
 import org.cqfn.save.backend.repository.TestRepository
-import org.cqfn.save.domain.TestResultStatus
 import org.cqfn.save.backend.repository.TestSuiteRepository
+import org.cqfn.save.domain.TestResultStatus
 import org.cqfn.save.entities.Test
-import org.cqfn.save.test.TestDtoForBatch
 import org.cqfn.save.test.TestDto
+import org.cqfn.save.test.TestDtoForBatch
+
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import reactor.core.publisher.Mono
+
 import java.time.LocalDateTime
 
 /**
@@ -42,9 +44,10 @@ class TestService(private val configProperties: ConfigProperties) {
 
     /**
      * @param tests
+     * @return list tests id's
      */
     fun saveTests(tests: List<TestDto>): List<Long> {
-        val testsId = mutableListOf<Long>()
+        val testsId: MutableCollection<Long> = mutableListOf()
         tests.map { testDto ->
             testRepository.findByHash(testDto.hash)?.let { testsId.add(it.id!!) } ?: run {
                 testSuiteRepository.findById(testDto.testSuiteId).ifPresent { testSuite ->
@@ -55,7 +58,7 @@ class TestService(private val configProperties: ConfigProperties) {
                 }
             }
         }
-        return testsId
+        return testsId.toList()
     }
 
     /**
@@ -63,7 +66,7 @@ class TestService(private val configProperties: ConfigProperties) {
      * @return Test batches
      */
     @Transactional
-    fun getTestBatches(agentId: String): Mono<List<TestDtoForBatch>> {
+    fun getTestBatches(agentId: String): monoBatchTests {
         val agent = agentRepository.findByContainerId(agentId) ?: error("The specified agent does not exist")
         log.debug("Agent found: $agent")
         val execution = agent.execution
@@ -81,3 +84,5 @@ class TestService(private val configProperties: ConfigProperties) {
         return Mono.just(tests)
     }
 }
+
+typealias monoBatchTests = Mono<List<TestDtoForBatch>>

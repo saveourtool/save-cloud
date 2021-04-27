@@ -1,17 +1,17 @@
 package org.cqfn.save.preprocessor
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.Project
+import org.cqfn.save.entities.TestSuite
 import org.cqfn.save.preprocessor.config.ConfigProperties
 import org.cqfn.save.preprocessor.controllers.DownloadProjectController
 import org.cqfn.save.preprocessor.utils.RepositoryVolume
 import org.cqfn.save.repository.GitRepository
+import org.cqfn.save.testsuite.TestSuiteType
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
-import org.cqfn.save.entities.TestSuite
-import org.cqfn.save.testsuite.TestSuiteType
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
@@ -68,6 +68,7 @@ class DownloadProjectTest(
     /**
      * This one covers logic of connecting to services
      */
+    @Suppress("TOO_LONG_FUNCTION")
     @Test
     fun testCorrectDownload() {
         val validRepo = GitRepository("https://github.com/cqfn/save-cloud.git")
@@ -90,7 +91,7 @@ class DownloadProjectTest(
         mockServerBackend.enqueue(
             MockResponse()
                 .setResponseCode(200)
-//                .setHeader("Content-Type", "application/json")
+            // .setHeader("Content-Type", "application/json")
         )
         mockServerOrchestrator.enqueue(
             MockResponse()

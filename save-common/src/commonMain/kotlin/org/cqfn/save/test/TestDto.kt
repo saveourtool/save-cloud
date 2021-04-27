@@ -1,12 +1,11 @@
 package org.cqfn.save.test
 
 import kotlinx.serialization.Serializable
-import org.cqfn.save.testsuite.TestSuiteDto
 
 /**
  * @property filePath
- * @property testSuiteDto
  * @property hash
+ * @property testSuiteId
  */
 @Serializable
 data class TestDto(

@@ -19,10 +19,9 @@ class TestSuitesController {
 
     /**
      * @param testSuiteDtos
-     *
      * @return mono list of TestSuite
      */
     @PostMapping("/saveTestSuites")
     fun saveTestSuite(@RequestBody testSuiteDtos: List<TestSuiteDto>): Mono<List<TestSuite>> =
-        Mono.just(testSuitesService.saveTestSuite(testSuiteDtos))
+            Mono.just(testSuitesService.saveTestSuite(testSuiteDtos))
 }

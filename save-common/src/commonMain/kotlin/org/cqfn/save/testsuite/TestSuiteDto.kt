@@ -1,7 +1,8 @@
 package org.cqfn.save.testsuite
 
-import kotlinx.serialization.Serializable
 import org.cqfn.save.entities.Project
+
+import kotlinx.serialization.Serializable
 
 /**
  * @property type
