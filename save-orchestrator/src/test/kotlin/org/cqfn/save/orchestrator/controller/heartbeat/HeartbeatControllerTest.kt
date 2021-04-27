@@ -87,7 +87,7 @@ class HeartbeatControllerTest {
                 .addHeader("Content-Type", "application/json")
         )
 
-        val monoResponse = agentService.setNewTestsIds().block() as NewJobResponse
+        val monoResponse = agentService.setNewTestsIds("container-1").block() as NewJobResponse
 
         assertTrue(monoResponse.ids.isNotEmpty() && monoResponse.ids.first().filePath == "qwe")
     }

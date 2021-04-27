@@ -11,8 +11,16 @@
             <column name="owner" value="Huawei" />
             <column name="name" value="huaweiName" />
             <column name="type" value="manual" />
-            <column name="url" value="huaweiUrl" />
+            <column name="url" value="huawei.com" />
             <column name="description" value="test description" />
+        </insert>
+        <insert dbms="mysql" tableName="project">
+            <column name="id" value="2" />
+            <column name="owner" value="Huawei" />
+            <column name="name" value="huaweiName 2" />
+            <column name="type" value="manual" />
+            <column name="url" value="example.com" />
+            <column name="description" value="test description 2" />
         </insert>
     </changeSet>
 

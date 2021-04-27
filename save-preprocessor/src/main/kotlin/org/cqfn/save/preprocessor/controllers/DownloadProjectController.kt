@@ -1,6 +1,8 @@
 package org.cqfn.save.preprocessor.controllers
 
-import org.cqfn.save.entities.*
+import org.cqfn.save.entities.Execution
+import org.cqfn.save.entities.ExecutionRequest
+import org.cqfn.save.entities.Project
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.preprocessor.Response
 import org.cqfn.save.preprocessor.config.ConfigProperties
@@ -36,7 +38,7 @@ import java.time.LocalDateTime
  * @property configProperties config properties
  */
 @RestController
-class DownloadProjectController(val configProperties: ConfigProperties) {
+class DownloadProjectController(private val configProperties: ConfigProperties) {
     private val log = LoggerFactory.getLogger(DownloadProjectController::class.java)
     private val webClientBackend = WebClient.create(configProperties.backend)
     private val webClientOrchestrator = WebClient.create(configProperties.orchestrator)
@@ -81,15 +83,7 @@ class DownloadProjectController(val configProperties: ConfigProperties) {
                     log.info("Repository cloned: ${gitRepository.url}")
                     // Post request to backend to create PENDING executions
                     // Fixme: need to initialize test suite ids
-                    project?.let {
-                        sendToBackendAndOrchestrator(it, tmpDir.path)
-                    }
-                        ?: run {
-                            throw ResponseStatusException(
-                                HttpStatus.INTERNAL_SERVER_ERROR,
-                                "Project id should not be empty"
-                            )
-                        }
+                    sendToBackendAndOrchestrator(project, tmpDir.relativeTo(File(configProperties.repository)).normalize().path)
                 }
         } catch (exception: Exception) {
             tmpDir.deleteRecursively()
@@ -104,7 +98,8 @@ class DownloadProjectController(val configProperties: ConfigProperties) {
 
     @Suppress("TooGenericExceptionCaught", "TOO_LONG_FUNCTION")
     private fun sendToBackendAndOrchestrator(project: Project, path: String) {
-        val execution = Execution(project, LocalDateTime.now(), LocalDateTime.now(), ExecutionStatus.PENDING, "1", path)
+        val execution = Execution(project, LocalDateTime.now(), LocalDateTime.now(),
+            ExecutionStatus.PENDING, "1", path, 0, configProperties.executionLimit)
         var execId: Long
         log.debug("Knock-Knock Backend")
         webClientBackend

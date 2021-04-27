@@ -33,6 +33,12 @@
             <column name="resources_root_path" type="varchar(255)">
                 <constraints nullable="false"/>
             </column>
+            <column name="page" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="batch_size" type="integer">
+                <constraints nullable="false"/>
+            </column>
         </createTable>
 
         <rollback>
