@@ -52,9 +52,8 @@ class TestSuitesControllerTest {
             .body(BodyInserters.fromValue(listOf(testSuite)))
             .exchange()
             .toMono()
-            .subscribe { response ->
-                response
-                    .expectBody(ParameterizedTypeReference.forType<List<TestSuite>>(List::class.java))
+            .subscribe {
+                it.expectBody(ParameterizedTypeReference.forType<List<TestSuite>>(List::class.java))
                     .value<Nothing> {
                         Assert.assertEquals(it.size, listOf(testSuite).size)
                         Assert.assertEquals(it[0].name, testSuite.name)

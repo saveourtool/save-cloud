@@ -8,8 +8,8 @@ import org.cqfn.save.backend.repository.TestRepository
 import org.cqfn.save.backend.repository.TestSuiteRepository
 import org.cqfn.save.domain.TestResultStatus
 import org.cqfn.save.entities.Test
+import org.cqfn.save.entities.TestSuite
 import org.cqfn.save.test.TestDto
-import org.cqfn.save.test.TestDtoForBatch
 
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -48,13 +48,14 @@ class TestService(private val configProperties: ConfigProperties) {
      */
     fun saveTests(tests: List<TestDto>): List<Long> {
         val testsId: MutableCollection<Long> = mutableListOf()
-        tests.map { testDto ->
-            testRepository.findByHash(testDto.hash)?.let { testsId.add(it.id!!) } ?: run {
-                testSuiteRepository.findById(testDto.testSuiteId).ifPresent { testSuite ->
-                    Test(testDto.hash, testDto.filePath, LocalDateTime.now(), testSuite).run {
-                        testRepository.save(this)
-                        testsId.add(this.id!!)
-                    }
+        tests.forEach { testDto ->
+            testRepository.findByHash(testDto.hash!!)?.let { testsId.add(it.id!!) } ?: run {
+                val testSuite = TestSuite().apply {
+                    id = testDto.testSuiteId
+                }
+                Test(testDto.hash!!, testDto.filePath, LocalDateTime.now(), testSuite).run {
+                    testRepository.save(this)
+                    testsId.add(this.id!!)
                 }
             }
         }
@@ -76,7 +77,7 @@ class TestService(private val configProperties: ConfigProperties) {
             execution.id!!,
             PageRequest.of(execution.page, execution.batchSize)
         ).map {
-            TestDtoForBatch(it.test.filePath, it.test.testSuite.id!!, it.test.id!!)
+            TestDto(it.test.filePath, it.test.testSuite.id!!, null)
         }
         log.debug("Increasing offset of the execution - ${agent.execution}")
         ++execution.page
@@ -85,4 +86,4 @@ class TestService(private val configProperties: ConfigProperties) {
     }
 }
 
-typealias monoBatchTests = Mono<List<TestDtoForBatch>>
+typealias monoBatchTests = Mono<List<TestDto>>

@@ -4,7 +4,7 @@
 
 package org.cqfn.save.agent
 
-import org.cqfn.save.test.TestDtoForBatch
+import org.cqfn.save.test.TestDto
 
 import kotlinx.serialization.Serializable
 
@@ -42,4 +42,4 @@ data class Heartbeat(val agentId: String,
 /**
  * @property ids a list of new jobs for this agent
  */
-@Serializable data class NewJobResponse(val ids: List<TestDtoForBatch>) : HeartbeatResponse()
+@Serializable data class NewJobResponse(val ids: List<TestDto>) : HeartbeatResponse()

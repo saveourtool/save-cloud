@@ -11,7 +11,7 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class TestSuiteDto(
-    var type: TestSuiteType,
+    val type: TestSuiteType,
     var name: String,
     var project: Project? = null,
 )

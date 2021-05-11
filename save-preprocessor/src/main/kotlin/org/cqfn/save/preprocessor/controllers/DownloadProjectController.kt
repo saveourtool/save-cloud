@@ -20,10 +20,12 @@ import org.eclipse.jgit.transport.CredentialsProvider
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
+import org.springframework.http.ReactiveHttpOutputMessage
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.reactive.function.BodyInserter
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
@@ -108,48 +110,12 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
             ExecutionStatus.PENDING, "1", path, 0, configProperties.executionLimit)
         var execId: Long
         log.debug("Knock-Knock Backend")
-        webClientBackend
-            .post()
-            .uri("/createExecution")
-            .body(BodyInserters.fromValue(execution))
-            .retrieve()
-            .onStatus({status -> status != HttpStatus.OK }) { clientResponse ->
-                log.error("Backend internal error: ${clientResponse.statusCode()}")
-                throw ResponseStatusException(
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    "Backend internal error"
-                )
-            }
-            .bodyToMono(Long::class.java)
+        makeRequest(BodyInserters.fromValue(execution), "/createExecution") { it.bodyToMono(Long::class.java) }
             .doOnNext { executionId ->
                 execId = executionId
-                webClientBackend
-                    .post()
-                    .uri("/saveTestSuites")
-                    .body(BodyInserters.fromValue(getAllTestSuites(project)))
-                    .retrieve()
-                    .onStatus({status -> status != HttpStatus.OK }) { clientResponse ->
-                        log.error("Backend internal error: ${clientResponse.statusCode()}")
-                        throw ResponseStatusException(
-                            HttpStatus.INTERNAL_SERVER_ERROR,
-                            "Backend internal error"
-                        )
-                    }
-                    .bodyToMono<List<TestSuite>>()
+                makeRequest(BodyInserters.fromValue(getAllTestSuites(project)), "/saveTestSuites") { it.bodyToMono<List<TestSuite>>() }
                     .doOnNext { testSuiteList ->
-                        webClientBackend
-                            .post()
-                            .uri("/initializeTests")
-                            .body(BodyInserters.fromValue(getAllTests(path, testSuiteList)))
-                            .retrieve()
-                            .onStatus({status -> status != HttpStatus.OK }) { clientResponse ->
-                                log.error("Backend internal error: ${clientResponse.statusCode()}")
-                                throw ResponseStatusException(
-                                    HttpStatus.INTERNAL_SERVER_ERROR,
-                                    "Backend internal error"
-                                )
-                            }
-                            .toBodilessEntity()
+                        makeRequest(BodyInserters.fromValue(getAllTests(path, testSuiteList)), "/initializeTests") { it.toBodilessEntity() }
                             .doOnNext {
                                 // Post request to orchestrator to initiate its work
                                 log.debug("Knock-Knock Orchestrator")
@@ -165,6 +131,26 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
             }.subscribe()
     }
 
+    private fun <M, T> makeRequest(
+        body: BodyInserter<M, ReactiveHttpOutputMessage>,
+        uri: String,
+        toBody: (WebClient.ResponseSpec) -> Mono<T>
+    ): Mono<T> {
+        val responseSpec = webClientBackend
+            .post()
+            .uri(uri)
+            .body(body)
+            .retrieve()
+            .onStatus({status -> status != HttpStatus.OK }) { clientResponse ->
+                log.error("Backend internal error: ${clientResponse.statusCode()}")
+                throw ResponseStatusException(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Backend internal error"
+                )
+            }
+        return toBody(responseSpec)
+    }
+
     private fun getAllTestSuites(project: Project) = listOf(TestSuiteDto(TestSuiteType.PROJECT, "test", project))
 
     private fun getAllTests(path: String, testSuites: List<TestSuite>): List<TestDto> {
@@ -173,7 +159,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
             .walkTopDown()
             .filter { it.isFile }
             .map {
-                TestDto(it.path, it.toHash(), testSuites[0].id ?: 1)
+                TestDto(it.path, testSuites[0].id ?: 1, it.toHash())
             }
             .toList()
     }

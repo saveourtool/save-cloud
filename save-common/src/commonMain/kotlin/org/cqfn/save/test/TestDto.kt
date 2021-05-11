@@ -10,6 +10,6 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class TestDto(
     var filePath: String,
-    var hash: String,
     var testSuiteId: Long,
+    var hash: String?,
 )

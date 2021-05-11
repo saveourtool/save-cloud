@@ -12,7 +12,7 @@ import javax.persistence.ManyToOne
 /**
  * @property test id of test
  * @property testSuiteExecutionId test suite execution id
- * @property agent agent id
+ * @property agent agent id is nullable because agent isn't created at the time when test execution is created
  * @property status status of test execution
  * @property startTime start time
  * @property endTime finish time
