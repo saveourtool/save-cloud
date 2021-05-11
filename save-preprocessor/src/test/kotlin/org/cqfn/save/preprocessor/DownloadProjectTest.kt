@@ -91,7 +91,6 @@ class DownloadProjectTest(
         mockServerBackend.enqueue(
             MockResponse()
                 .setResponseCode(200)
-            // .setHeader("Content-Type", "application/json")
         )
         mockServerOrchestrator.enqueue(
             MockResponse()
