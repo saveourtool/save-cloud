@@ -5,15 +5,20 @@ import org.cqfn.save.backend.repository.AgentRepository
 import org.cqfn.save.backend.repository.ExecutionRepository
 import org.cqfn.save.backend.repository.TestExecutionRepository
 import org.cqfn.save.backend.repository.TestRepository
+import org.cqfn.save.backend.repository.TestSuiteRepository
 import org.cqfn.save.domain.TestResultStatus
 import org.cqfn.save.entities.Test
+import org.cqfn.save.entities.TestSuite
 import org.cqfn.save.test.TestDto
+
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import reactor.core.publisher.Mono
+
+import java.time.LocalDateTime
 
 /**
  * Service that is used for manipulating data with tests
@@ -34,11 +39,27 @@ class TestService(private val configProperties: ConfigProperties) {
     @Autowired
     private lateinit var testExecutionRepository: TestExecutionRepository
 
+    @Autowired
+    private lateinit var testSuiteRepository: TestSuiteRepository
+
     /**
      * @param tests
+     * @return list tests id's
      */
-    fun saveTests(tests: List<Test>) {
-        testRepository.saveAll(tests)
+    fun saveTests(tests: List<TestDto>): List<Long> {
+        val testsId: MutableCollection<Long> = mutableListOf()
+        tests.forEach { testDto ->
+            testRepository.findByHash(testDto.hash!!)?.let { testsId.add(it.id!!) } ?: run {
+                val testSuite = TestSuite().apply {
+                    id = testDto.testSuiteId
+                }
+                Test(testDto.hash!!, testDto.filePath, LocalDateTime.now(), testSuite).run {
+                    testRepository.save(this)
+                    testsId.add(this.id!!)
+                }
+            }
+        }
+        return testsId.toList()
     }
 
     /**
@@ -46,7 +67,7 @@ class TestService(private val configProperties: ConfigProperties) {
      * @return Test batches
      */
     @Transactional
-    fun getTestBatches(agentId: String): Mono<List<TestDto>> {
+    fun getTestBatches(agentId: String): monoBatchTests {
         val agent = agentRepository.findByContainerId(agentId) ?: error("The specified agent does not exist")
         log.debug("Agent found: $agent")
         val execution = agent.execution
@@ -56,7 +77,7 @@ class TestService(private val configProperties: ConfigProperties) {
             execution.id!!,
             PageRequest.of(execution.page, execution.batchSize)
         ).map {
-            TestDto(it.test.filePath, it.test.testSuite.id!!, it.test.id!!)
+            TestDto(it.test.filePath, it.test.testSuite.id!!, null)
         }
         log.debug("Increasing offset of the execution - ${agent.execution}")
         ++execution.page
@@ -64,3 +85,5 @@ class TestService(private val configProperties: ConfigProperties) {
         return Mono.just(tests)
     }
 }
+
+typealias monoBatchTests = Mono<List<TestDto>>

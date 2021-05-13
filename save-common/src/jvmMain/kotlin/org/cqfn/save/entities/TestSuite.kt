@@ -20,14 +20,14 @@ import javax.persistence.ManyToOne
 class TestSuite(
 
     @Enumerated(EnumType.STRING)
-    var type: TestSuiteType,
+    var type: TestSuiteType? = null,
 
-    var name: String,
+    var name: String = "FB",
 
     @ManyToOne
     @JoinColumn(name = "project_id")
     var project: Project? = null,
 
-    var dateAdded: LocalDateTime
+    var dateAdded: LocalDateTime? = null
 
 ) : BaseEntity()

@@ -1,7 +1,8 @@
 package org.cqfn.save.backend.controllers
 
+import org.cqfn.save.backend.service.TestExecutionService
 import org.cqfn.save.backend.service.TestService
-import org.cqfn.save.entities.Test
+import org.cqfn.save.test.TestDto
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
@@ -17,12 +18,16 @@ class TestController {
     @Autowired
     private lateinit var testService: TestService
 
+    @Autowired
+    private lateinit var testExecutionService: TestExecutionService
+
     /**
-     * @param tests
+     * @param testDtos
      */
     @PostMapping("/initializeTests")
-    fun initializeTests(@RequestBody tests: List<Test>) {
-        testService.saveTests(tests)
+    fun initializeTests(@RequestBody testDtos: List<TestDto>) {
+        val testsIds = testService.saveTests(testDtos)
+        testExecutionService.saveTestExecution(testsIds)
     }
 
     /**

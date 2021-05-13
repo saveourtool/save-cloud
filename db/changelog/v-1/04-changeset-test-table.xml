@@ -18,6 +18,9 @@
             <column name="file_path" type="varchar(255)">
                 <constraints nullable="false"/>
             </column>
+            <column name="hash" type="varchar(255)" defaultValue="hash">
+                <constraints nullable="false"/>
+            </column>
             <column name="date_added" type="DATETIME">
                 <constraints nullable="false"/>
             </column>
