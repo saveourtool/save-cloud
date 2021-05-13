@@ -34,12 +34,14 @@ import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
 import java.io.File
 import java.time.LocalDateTime
+import kotlin.io.path.ExperimentalPathApi
 
 /**
  * A Spring controller for git project downloading
  *
  * @property configProperties config properties
  */
+@ExperimentalPathApi
 @RestController
 class DownloadProjectController(private val configProperties: ConfigProperties) {
     private val log = LoggerFactory.getLogger(DownloadProjectController::class.java)
@@ -86,7 +88,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
                     log.info("Repository cloned: ${gitRepository.url}")
                     // Post request to backend to create PENDING executions
                     // Fixme: need to initialize test suite ids
-                    sendToBackendAndOrchestrator(project, tmpDir.path)
+                    sendToBackendAndOrchestrator(project, tmpDir.relativeTo(File(configProperties.repository)).normalize().path)
                 }
         } catch (exception: Exception) {
             tmpDir.deleteRecursively()
@@ -155,7 +157,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
 
     private fun getAllTests(path: String, testSuites: List<TestSuite>): List<TestDto> {
         // todo Save should find and create correct TestDtos. Not it's just a stub
-        return File(path)
+        return File(configProperties.repository, path)
             .walkTopDown()
             .filter { it.isFile }
             .map {

@@ -47,7 +47,7 @@ class TestSuitesControllerTest {
         )
 
         webClient.post()
-            .uri("/saveTestSuite")
+            .uri("/saveTestSuites")
             .contentType(MediaType.APPLICATION_JSON)
             .body(BodyInserters.fromValue(listOf(testSuite)))
             .exchange()
@@ -73,14 +73,11 @@ class TestSuitesControllerTest {
         )
 
         webClient.post()
-            .uri("/saveTestSuite")
+            .uri("/saveTestSuites")
             .contentType(MediaType.APPLICATION_JSON)
             .body(BodyInserters.fromValue(listOf(testSuite)))
             .exchange()
-            .toMono()
-            .subscribe {
-                it.expectBody(ParameterizedTypeReference.forType<List<TestSuite>>(List::class.java))
-            }
+            .expectBody(ParameterizedTypeReference.forType<List<TestSuite>>(List::class.java))
 
         val databaseData = testSuiteRepository.findAll()
 
