@@ -86,7 +86,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
                     log.info("Repository cloned: ${gitRepository.url}")
                     // Post request to backend to create PENDING executions
                     // Fixme: need to initialize test suite ids
-                    sendToBackendAndOrchestrator(project, tmpDir.relativeTo(File(configProperties.repository)).normalize().path)
+                    sendToBackendAndOrchestrator(project, tmpDir.path)
                 }
         } catch (exception: Exception) {
             tmpDir.deleteRecursively()
