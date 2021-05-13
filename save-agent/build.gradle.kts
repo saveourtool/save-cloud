@@ -21,6 +21,12 @@ kotlin {
             baseName = "save-agent"
         }
     }
+
+    tasks.register<de.undercouch.gradle.tasks.download.Download>("downloadSaveCli") {
+        src("https://docs.gradle.org/current/userguide/custom_tasks.html")
+        dest("$buildDir/classes/kotlin/agent/test")
+    }
+
     sourceSets {
         all {
             languageSettings.useExperimentalAnnotation("kotlin.RequiresOptIn")
@@ -35,6 +41,11 @@ kotlin {
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-properties:${Versions.serialization}")
                 implementation("com.squareup.okio:okio-multiplatform:3.0.0-alpha.1")
                 implementation("org.jetbrains.kotlinx:kotlinx-datetime:${Versions.kotlinxDatetime}")
+                if (os.isWindows) {
+                    implementation("org.cqfn.save:save-core-mingwx64:${Versions.saveCore}")
+                } else if (os.isLinux) {
+                    implementation("org.cqfn.save:save-core-linuxx64:${Versions.saveCore}")
+                }
                 // as for 2.0.4, kotlin-logging doesn't have mingw version and it'll be PITA to use it
 //                implementation("io.github.microutils:kotlin-logging:2.0.4")
             }
@@ -46,6 +57,7 @@ kotlin {
             }
         }
         getByName("${hostTarget.name}Test").dependsOn(nativeTest)
+        tasks.getByName("${hostTarget.name}Test").dependsOn("downloadSaveCli")
     }
 
     val distribution by configurations.creating
@@ -81,6 +93,7 @@ kotlin {
                 }
             }
         }
+        tasks.getByName("${hostTarget.name}Test").dependsOn("downloadSaveCli")
         tasks.getByName("${hostTarget.name}Test").finalizedBy(createCoverageReportTask)
     }
 }

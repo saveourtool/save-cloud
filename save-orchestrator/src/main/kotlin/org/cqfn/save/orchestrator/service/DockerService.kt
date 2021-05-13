@@ -91,6 +91,11 @@ class DockerService(private val configProperties: ConfigProperties) {
             ClassPathResource(SAVE_AGENT_EXECUTABLE_NAME).inputStream,
             File(resourcesPath, SAVE_AGENT_EXECUTABLE_NAME)
         )
+        // include save-cli into the image
+        FileUtils.copyInputStreamToFile(
+            ClassPathResource(SAVE_CLI_EXECUTABLE_NAME).inputStream,
+            File(resourcesPath, SAVE_CLI_EXECUTABLE_NAME)
+        )
         val imageId = containerManager.buildImageWithResources(
             imageName = "save-execution:${execution.id}",
             baseDir = resourcesPath,
@@ -131,5 +136,6 @@ class DockerService(private val configProperties: ConfigProperties) {
     companion object {
         private val log = LoggerFactory.getLogger(DockerService::class.java)
         private const val SAVE_AGENT_EXECUTABLE_NAME = "save-agent.kexe"
+        private const val SAVE_CLI_EXECUTABLE_NAME = "save-cli.kexe"
     }
 }

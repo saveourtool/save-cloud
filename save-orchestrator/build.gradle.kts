@@ -4,6 +4,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("jvm")
+    id("de.undercouch.download")
 }
 
 configureSpringBoot()
@@ -13,6 +14,13 @@ tasks.withType<KotlinCompile> {
         jvmTarget = Versions.jdk
         freeCompilerArgs = freeCompilerArgs + "-Xopt-in=kotlin.RequiresOptIn"
     }
+}
+
+tasks.getByName("classes").dependsOn("downloadSaveCli")
+
+tasks.register<de.undercouch.gradle.tasks.download.Download>("downloadSaveCli") {
+    src("https://docs.gradle.org/current/userguide/custom_tasks.html")
+    dest("$buildDir/tmp")
 }
 
 tasks.withType<Test> {
