@@ -16,11 +16,11 @@ tasks.withType<KotlinCompile> {
     }
 }
 
-tasks.getByName("classes").dependsOn("downloadSaveCli")
+tasks.getByName("processTestResources").dependsOn("downloadSaveCli")
 
 tasks.register<de.undercouch.gradle.tasks.download.Download>("downloadSaveCli") {
     src("https://docs.gradle.org/current/userguide/custom_tasks.html")
-    dest("$buildDir/tmp")
+    dest("$buildDir/resources/main")
 }
 
 tasks.withType<Test> {
