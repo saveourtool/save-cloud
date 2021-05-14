@@ -57,14 +57,14 @@ class SaveAgentTest {
 
     @BeforeTest
     fun `create kexe file`() {
-        platform.posix.system("touch save-cli.kexe")
-        platform.posix.system("echo echo 0 > save-cli.kexe")
-        platform.posix.system("chmod +x save-cli.kexe")
+        platform.posix.system("touch save-0.1.0-alpha.2-linuxX64.kexe")
+        platform.posix.system("echo echo 0 > save-0.1.0-alpha.2-linuxX64.kexe")
+        platform.posix.system("chmod +x save-0.1.0-alpha.2-linuxX64.kexe")
     }
 
     @AfterTest
     fun `delete kexe file`() {
-        platform.posix.system("rm -rf save-cli.kexe")
+        platform.posix.system("rm -rf save-0.1.0-alpha.2-linuxX64.kexe")
     }
 
     @Test
