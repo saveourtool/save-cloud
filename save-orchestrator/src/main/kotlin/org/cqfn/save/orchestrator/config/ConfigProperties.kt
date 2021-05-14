@@ -14,6 +14,7 @@ import org.springframework.boot.context.properties.ConstructorBinding
  * @property testResources configuration for test resources
  * @property docker configuration for docker API
  * @property agentsCount a number of agents to start for every [Execution]
+ * @property agentLogs path to folder to store agent logs
  */
 @ConstructorBinding
 @ConfigurationProperties(prefix = "orchestrator")
@@ -22,6 +23,7 @@ data class ConfigProperties(
     val testResources: TestResources,
     val docker: DockerSettings,
     val agentsCount: Int,
+    val agentLogs: String,
 )
 
 /**

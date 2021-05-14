@@ -1,12 +1,16 @@
 package org.cqfn.save.orchestrator.controller.agents
 
+import org.cqfn.save.agent.ExecutionLogs
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.Project
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.orchestrator.config.Beans
+import org.cqfn.save.orchestrator.config.ConfigProperties
 import org.cqfn.save.orchestrator.controller.AgentsController
 import org.cqfn.save.orchestrator.service.AgentService
 import org.cqfn.save.orchestrator.service.DockerService
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Assertions
 
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers.anyList
@@ -19,6 +23,7 @@ import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.context.annotation.Import
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.web.reactive.function.BodyInserters
+import java.io.File
 
 import java.time.LocalDateTime
 
@@ -29,6 +34,10 @@ class AgentsControllerTest {
 
     @Autowired
     lateinit var webClient: WebTestClient
+
+    @Autowired
+    private lateinit var configProperties: ConfigProperties
+
     @MockBean private lateinit var dockerService: DockerService
 
     @Test
@@ -73,5 +82,24 @@ class AgentsControllerTest {
             .expectStatus()
             .isOk
         verify(dockerService).stopAgents(anyList())
+    }
+
+    @Test
+    fun `should save logs`() {
+        val logs = """
+            first line
+            second line
+        """.trimIndent().split(System.lineSeparator())
+        val executionLogs = ExecutionLogs("1agent", logs)
+        webClient
+            .post()
+            .uri("/executionLogs")
+            .body(BodyInserters.fromValue(executionLogs))
+            .exchange()
+            .expectStatus()
+            .isOk
+        val logFile = File(configProperties.agentLogs + File.separator + "${executionLogs.agentId}.log")
+        Assertions.assertTrue(logFile.exists())
+        Assertions.assertEquals(logFile.readLines(), logs)
     }
 }
