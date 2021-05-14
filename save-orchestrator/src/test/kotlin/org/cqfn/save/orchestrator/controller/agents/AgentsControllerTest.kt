@@ -36,7 +36,6 @@ class AgentsControllerTest {
 
     @Autowired
     private lateinit var configProperties: ConfigProperties
-
     @MockBean private lateinit var dockerService: DockerService
 
     @Test

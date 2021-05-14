@@ -79,8 +79,9 @@ class AgentsController {
     @PostMapping("/executionLogs")
     fun saveAgentsLog(@RequestBody executionLogs: ExecutionLogs) {
         val logFile = File(configProperties.agentLogs + File.separator + "${executionLogs.agentId}.log")
-        if (logFile.exists())
+        if (logFile.exists()) {
             logFile.delete()
+        }
         if (logFile.createNewFile()) {
             log.info("File for ${executionLogs.agentId} agent was created")
             logFile.appendText(executionLogs.cliLogs.joinToString(separator = System.lineSeparator()))
