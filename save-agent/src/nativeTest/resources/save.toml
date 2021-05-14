@@ -1,5 +1,0 @@
-resultOutput=stdout
-parallelMode=true
-language=c++
-testRootPath=~/my_dir/dir_to_tests_root
-reportDir=~/report

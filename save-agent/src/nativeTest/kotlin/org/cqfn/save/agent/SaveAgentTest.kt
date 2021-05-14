@@ -22,6 +22,8 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.properties.Properties
 import kotlinx.serialization.properties.decodeFromStringMap
+import kotlin.test.BeforeClass
+import platform.posix.*
 
 @Suppress("INLINE_CLASS_CAN_BE_USED")
 class SaveAgentTest {
@@ -51,6 +53,11 @@ class SaveAgentTest {
             }
         }
     })
+
+    @BeforeClass
+    fun `create kexe file`() {
+        platform.posix.system("touch save-cli.kexe > echo 0")
+    }
 
     @Test
     fun `agent should send heartbeats`() {

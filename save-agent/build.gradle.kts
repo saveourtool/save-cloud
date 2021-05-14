@@ -22,11 +22,6 @@ kotlin {
         }
     }
 
-    tasks.register<de.undercouch.gradle.tasks.download.Download>("downloadSaveCli") {
-        src("https://docs.gradle.org/current/userguide/custom_tasks.html")
-        dest("$buildDir/classes/kotlin/agent/test")
-    }
-
     sourceSets {
         all {
             languageSettings.useExperimentalAnnotation("kotlin.RequiresOptIn")
@@ -57,7 +52,6 @@ kotlin {
             }
         }
         getByName("${hostTarget.name}Test").dependsOn(nativeTest)
-        tasks.getByName("${hostTarget.name}Test").dependsOn("downloadSaveCli")
     }
 
     val distribution by configurations.creating
@@ -93,7 +87,6 @@ kotlin {
                 }
             }
         }
-        tasks.getByName("${hostTarget.name}Test").dependsOn("downloadSaveCli")
         tasks.getByName("${hostTarget.name}Test").finalizedBy(createCoverageReportTask)
     }
 }
