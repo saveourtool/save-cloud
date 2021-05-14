@@ -136,6 +136,6 @@ class DockerService(private val configProperties: ConfigProperties) {
     companion object {
         private val log = LoggerFactory.getLogger(DockerService::class.java)
         private const val SAVE_AGENT_EXECUTABLE_NAME = "save-agent.kexe"
-        private const val SAVE_CLI_EXECUTABLE_NAME = "save-cli.kexe"
+        private const val SAVE_CLI_EXECUTABLE_NAME = "custom_tasks.html" // Fixme: should be save_cli
     }
 }
