@@ -9,7 +9,6 @@ import org.cqfn.save.orchestrator.config.ConfigProperties
 import org.cqfn.save.orchestrator.controller.AgentsController
 import org.cqfn.save.orchestrator.service.AgentService
 import org.cqfn.save.orchestrator.service.DockerService
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
 
 import org.junit.jupiter.api.Test
