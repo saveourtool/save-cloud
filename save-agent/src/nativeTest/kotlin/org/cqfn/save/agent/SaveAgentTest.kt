@@ -23,6 +23,7 @@ import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.properties.Properties
 import kotlinx.serialization.properties.decodeFromStringMap
 import platform.posix.system
+import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 
 @Suppress("INLINE_CLASS_CAN_BE_USED")
@@ -59,6 +60,11 @@ class SaveAgentTest {
         platform.posix.system("touch save-cli.kexe")
         platform.posix.system("echo echo 0 > save-cli.kexe")
         platform.posix.system("chmod +x save-cli.kexe")
+    }
+
+    @AfterTest
+    fun `delete kexe file`() {
+        platform.posix.system("rm -rf save-cli.kexe")
     }
 
     @Test
