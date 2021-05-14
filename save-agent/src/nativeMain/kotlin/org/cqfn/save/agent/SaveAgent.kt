@@ -132,7 +132,7 @@ class SaveAgent(private val config: AgentConfiguration,
     }
 
     private fun runSave(cliArgs: List<String>): ExecutionResult =
-        ProcessBuilder().exec("./save-cli.kexe", "logs.txt".commonToPath())
+        ProcessBuilder().exec("./save-0.1.0-alpha.2-linuxX64.kexe", "logs.txt".commonToPath())
 
     /**
      * @param executionLogs logs of CLI execution progress that will be sent in a message

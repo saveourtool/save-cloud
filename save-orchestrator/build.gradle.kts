@@ -19,7 +19,7 @@ tasks.withType<KotlinCompile> {
 tasks.getByName("processTestResources").dependsOn("downloadSaveCli")
 
 tasks.register<de.undercouch.gradle.tasks.download.Download>("downloadSaveCli") {
-    src("https://docs.gradle.org/current/userguide/custom_tasks.html")
+    src("https://github.com/cqfn/save/releases/download/v0.1.0-alpha.2/save-0.1.0-alpha.2-linuxX64.kexe")
     dest("$buildDir/resources/main")
 }
 
