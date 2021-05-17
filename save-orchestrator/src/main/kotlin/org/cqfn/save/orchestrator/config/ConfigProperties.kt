@@ -15,6 +15,7 @@ import org.springframework.boot.context.properties.ConstructorBinding
  * @property docker configuration for docker API
  * @property agentsCount a number of agents to start for every [Execution]
  * @property agentLogs path to folder to store agent logs
+ * @property agentLogsFolder correct path to agents logs folder from root dir
  */
 @ConstructorBinding
 @ConfigurationProperties(prefix = "orchestrator")
