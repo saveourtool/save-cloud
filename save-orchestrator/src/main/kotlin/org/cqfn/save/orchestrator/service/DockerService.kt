@@ -6,6 +6,7 @@ import org.cqfn.save.execution.ExecutionUpdateDto
 import org.cqfn.save.orchestrator.config.ConfigProperties
 import org.cqfn.save.orchestrator.docker.ContainerManager
 
+import generated.SAVE_CORE_VERSION
 import org.apache.commons.io.FileUtils
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -136,6 +137,6 @@ class DockerService(private val configProperties: ConfigProperties) {
     companion object {
         private val log = LoggerFactory.getLogger(DockerService::class.java)
         private const val SAVE_AGENT_EXECUTABLE_NAME = "save-agent.kexe"
-        private const val SAVE_CLI_EXECUTABLE_NAME = "save-0.1.0-alpha.2-linuxX64.kexe"
+        private const val SAVE_CLI_EXECUTABLE_NAME = "save-$SAVE_CORE_VERSION-linuxX64.kexe"
     }
 }
