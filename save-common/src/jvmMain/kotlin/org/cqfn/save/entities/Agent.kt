@@ -8,6 +8,7 @@ import javax.persistence.ManyToOne
 /**
  * @property containerId id of the container, inside which the agent is running
  * @property execution id of the execution, which the agent is serving
+ * @property version
  */
 @Entity
 class Agent(

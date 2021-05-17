@@ -18,6 +18,7 @@ import kotlinx.serialization.Serializable
  * @property requestTimeoutMillis timeout for all http request
  * @property executionDataRetryAttempts number of retries when sending execution data
  * @property executionDataInitialRetryMillis interval between successive attempts to send execution data
+ * @property agentVersion
  */
 @Serializable
 data class AgentConfiguration(
