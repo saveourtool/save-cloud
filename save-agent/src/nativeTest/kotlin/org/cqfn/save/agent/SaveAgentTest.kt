@@ -4,6 +4,7 @@ package org.cqfn.save.agent
 
 import org.cqfn.save.agent.utils.readProperties
 
+import generated.SAVE_CORE_VERSION
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
@@ -13,7 +14,10 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
+import platform.posix.system
 
+import kotlin.test.AfterTest
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlinx.coroutines.runBlocking
@@ -22,9 +26,6 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.properties.Properties
 import kotlinx.serialization.properties.decodeFromStringMap
-import platform.posix.system
-import kotlin.test.AfterTest
-import kotlin.test.BeforeTest
 
 @Suppress("INLINE_CLASS_CAN_BE_USED")
 class SaveAgentTest {
@@ -56,15 +57,15 @@ class SaveAgentTest {
     })
 
     @BeforeTest
-    fun `create kexe file`() {
-        platform.posix.system("touch save-0.1.0-alpha.2-linuxX64.kexe")
-        platform.posix.system("echo echo 0 > save-0.1.0-alpha.2-linuxX64.kexe")
-        platform.posix.system("chmod +x save-0.1.0-alpha.2-linuxX64.kexe")
+    fun setUp() {
+        platform.posix.system("touch save-$SAVE_CORE_VERSION-linuxX64.kexe")
+        platform.posix.system("echo echo 0 > save-$SAVE_CORE_VERSION-linuxX64.kexe")
+        platform.posix.system("chmod +x save-$SAVE_CORE_VERSION-linuxX64.kexe")
     }
 
     @AfterTest
-    fun `delete kexe file`() {
-        platform.posix.system("rm -rf save-0.1.0-alpha.2-linuxX64.kexe")
+    fun tearDown() {
+        platform.posix.system("rm -rf save-$SAVE_CORE_VERSION-linuxX64.kexe")
     }
 
     @Test

@@ -1,4 +1,5 @@
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform.getCurrentOperatingSystem
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("multiplatform")
@@ -36,11 +37,7 @@ kotlin {
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-properties:${Versions.serialization}")
                 implementation("com.squareup.okio:okio-multiplatform:3.0.0-alpha.1")
                 implementation("org.jetbrains.kotlinx:kotlinx-datetime:${Versions.kotlinxDatetime}")
-                if (os.isWindows) {
-                    implementation("org.cqfn.save:save-core-mingwx64:${Versions.saveCore}")
-                } else if (os.isLinux) {
-                    implementation("org.cqfn.save:save-core-linuxx64:${Versions.saveCore}")
-                }
+                implementation("org.cqfn.save:save-core:${Versions.saveCore}")
                 // as for 2.0.4, kotlin-logging doesn't have mingw version and it'll be PITA to use it
 //                implementation("io.github.microutils:kotlin-logging:2.0.4")
             }
@@ -93,4 +90,31 @@ kotlin {
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinTest> {
     testLogging.showStandardStreams = true
+}
+
+// todo: this logic is duplicated between agent and frontend, can be moved to a shared plugin in buildSrc
+val generateVersionFileTaskProvider = tasks.register("generateVersionFile") {
+    val versionsFile = File("$buildDir/generated/src/generated/Versions.kt")
+
+    outputs.file(versionsFile)
+
+    doFirst {
+        versionsFile.parentFile.mkdirs()
+        versionsFile.writeText(
+            """
+            package generated
+
+            internal const val SAVE_CORE_VERSION = "${Versions.saveCore}"
+            internal const val SAVE_CLOUD_VERSION = "$version"
+
+            """.trimIndent()
+        )
+    }
+}
+val generatedKotlinSrc = kotlin.sourceSets.create("commonGenerated") {
+    kotlin.srcDir("$buildDir/generated/src")
+}
+kotlin.sourceSets.getByName("nativeMain").dependsOn(generatedKotlinSrc)
+tasks.withType<KotlinCompile>().forEach {
+    it.dependsOn(generateVersionFileTaskProvider)
 }

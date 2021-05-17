@@ -1,3 +1,4 @@
+import de.undercouch.gradle.tasks.download.Download
 import org.cqfn.save.buildutils.configureJacoco
 import org.cqfn.save.buildutils.configureSpringBoot
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -18,8 +19,8 @@ tasks.withType<KotlinCompile> {
 
 tasks.getByName("processTestResources").dependsOn("downloadSaveCli")
 
-tasks.register<de.undercouch.gradle.tasks.download.Download>("downloadSaveCli") {
-    src("https://github.com/cqfn/save/releases/download/v0.1.0-alpha.2/save-0.1.0-alpha.2-linuxX64.kexe")
+tasks.register<Download>("downloadSaveCli") {
+    src("https://github.com/cqfn/save/releases/download/${Versions.saveCore}/save-${Versions.saveCore}-linuxX64.kexe")
     dest("$buildDir/resources/main")
 }
 

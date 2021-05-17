@@ -3,10 +3,11 @@
 package org.cqfn.save.agent
 
 import org.cqfn.save.agent.utils.readFile
-import org.cqfn.save.domain.TestResultStatus
-import org.cqfn.save.core.utils.ProcessBuilder
 import org.cqfn.save.core.utils.ExecutionResult
+import org.cqfn.save.core.utils.ProcessBuilder
+import org.cqfn.save.domain.TestResultStatus
 
+import generated.SAVE_CORE_VERSION
 import io.ktor.client.HttpClient
 import io.ktor.client.features.HttpTimeout
 import io.ktor.client.features.json.JsonFeature
@@ -20,6 +21,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.util.KtorExperimentalAPI
 import okio.ExperimentalFileSystem
+import okio.Path.Companion.toPath
 
 import kotlin.native.concurrent.AtomicReference
 import kotlinx.coroutines.Job
@@ -29,7 +31,6 @@ import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
-import okio.internal.commonToPath
 
 /**
  * A main class for SAVE Agent
@@ -132,7 +133,7 @@ class SaveAgent(private val config: AgentConfiguration,
     }
 
     private fun runSave(cliArgs: List<String>): ExecutionResult =
-        ProcessBuilder().exec("./save-0.1.0-alpha.2-linuxX64.kexe", "logs.txt".commonToPath())
+            ProcessBuilder().exec("./save-$SAVE_CORE_VERSION-linuxX64.kexe", "logs.txt".toPath())
 
     /**
      * @param executionLogs logs of CLI execution progress that will be sent in a message
