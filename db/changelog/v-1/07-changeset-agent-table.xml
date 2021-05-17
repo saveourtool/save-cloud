@@ -21,7 +21,7 @@
             <column name="execution_id" type="bigint">
                 <constraints foreignKeyName="fk_agent_execution" references="execution(id)" nullable="false"/>
             </column>
-            <column name="version" type="varchar(10)">
+            <column name="version" type="varchar(64)">
                 <constraints nullable="true"/>
             </column>
         </createTable>

@@ -66,7 +66,9 @@ class SaveAgent(private val config: AgentConfiguration,
     @Suppress("WHEN_WITHOUT_ELSE")  // when with sealed class
     private suspend fun startHeartbeats() = coroutineScope {
         println("Scheduling heartbeats")
-        sendAgentVersion()
+        runCatching {
+            saveAdditionalData()
+        }
         while (true) {
             val response = runCatching {
                 // TODO: get execution progress here
@@ -144,7 +146,7 @@ class SaveAgent(private val config: AgentConfiguration,
     /**
      * Save agent version
      */
-    private suspend fun sendAgentVersion() = httpClient.post<HttpResponse> {
+    private suspend fun saveAdditionalData() = httpClient.post<HttpResponse> {
         url("${config.backendUrl}/saveAgentVersion")
         contentType(ContentType.Application.Json)
         body = AgentVersion(config.id, config.agentVersion)

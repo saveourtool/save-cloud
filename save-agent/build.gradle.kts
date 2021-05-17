@@ -85,7 +85,6 @@ kotlin {
     }
 }
 
-val agentVersion = "0.0.1"
 val generateVersionFileTaskProvider = tasks.register("generateVersionFile") {
     val versionsFile = File("$buildDir/generated/Versions.kt")
     outputs.file(versionsFile)
@@ -93,7 +92,7 @@ val generateVersionFileTaskProvider = tasks.register("generateVersionFile") {
         versionsFile.parentFile.mkdirs()
         versionsFile.writeText(
             """
-            Agent version: "$agentVersion"
+            Agent version: "${project.version}"
             """.trimIndent()
         )
     }
