@@ -55,28 +55,30 @@ class AgentService(configProperties: ConfigProperties) {
      * @param agents list of [Agent]s to save in the DB
      * @throws WebClientResponseException if any of the requests fails
      */
-    fun saveAgentsWithInitialStatuses(agents: List<Agent>) {
-        webClientBackend
+    fun saveAgentsWithInitialStatuses(agents: List<Agent>): Mono<Void> {
+        return webClientBackend
             .post()
             .uri("/addAgents")
             .body(BodyInserters.fromValue(agents))
             .retrieve()
-            .bodyToMono<String>()
-        updateAgentStatuses(agents.map {
-            AgentStatus(LocalDateTime.now(), LocalDateTime.now(), AgentState.IDLE, it)
-        })
+            .bodyToMono<Void>()
+            .doOnSuccess {
+                updateAgentStatuses(agents.map {
+                    AgentStatus(LocalDateTime.now(), LocalDateTime.now(), AgentState.IDLE, it)
+                })
+            }
     }
 
     /**
      * @param agentStates list of [AgentStatus]es to update in the DB
      */
-    fun updateAgentStatuses(agentStates: List<AgentStatus>) {
-        webClientBackend
+    fun updateAgentStatuses(agentStates: List<AgentStatus>): Mono<String> {
+        return webClientBackend
             .post()
             .uri("/updateAgentStatuses")
             .body(BodyInserters.fromValue(agentStates))
             .retrieve()
-            .bodyToMono<String>()
+            .bodyToMono()
     }
 
     /**
