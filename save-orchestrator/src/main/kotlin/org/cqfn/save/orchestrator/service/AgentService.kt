@@ -53,33 +53,31 @@ class AgentService(configProperties: ConfigProperties) {
      * Save new agents to the DB and insert their statuses. This logic is performed in two consecutive requests.
      *
      * @param agents list of [Agent]s to save in the DB
+     * @return Mono with response body
      * @throws WebClientResponseException if any of the requests fails
      */
-    fun saveAgentsWithInitialStatuses(agents: List<Agent>): Mono<Void> {
-        return webClientBackend
-            .post()
-            .uri("/addAgents")
-            .body(BodyInserters.fromValue(agents))
-            .retrieve()
-            .bodyToMono<Void>()
-            .doOnSuccess {
-                updateAgentStatuses(agents.map {
-                    AgentStatus(LocalDateTime.now(), LocalDateTime.now(), AgentState.IDLE, it)
-                })
-            }
-    }
+    fun saveAgentsWithInitialStatuses(agents: List<Agent>): Mono<Void> = webClientBackend
+        .post()
+        .uri("/addAgents")
+        .body(BodyInserters.fromValue(agents))
+        .retrieve()
+        .bodyToMono<Void>()
+        .then(
+            updateAgentStatuses(agents.map {
+                AgentStatus(LocalDateTime.now(), LocalDateTime.now(), AgentState.IDLE, it)
+            })
+        )
 
     /**
      * @param agentStates list of [AgentStatus]es to update in the DB
+     * @return Mono with response body
      */
-    fun updateAgentStatuses(agentStates: List<AgentStatus>): Mono<String> {
-        return webClientBackend
-            .post()
-            .uri("/updateAgentStatuses")
-            .body(BodyInserters.fromValue(agentStates))
-            .retrieve()
-            .bodyToMono()
-    }
+    fun updateAgentStatuses(agentStates: List<AgentStatus>): Mono<Void> = webClientBackend
+        .post()
+        .uri("/updateAgentStatuses")
+        .body(BodyInserters.fromValue(agentStates))
+        .retrieve()
+        .bodyToMono()
 
     /**
      * @param agentStates list of [AgentStatus]es to update in the DB

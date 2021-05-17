@@ -54,10 +54,7 @@ class AgentsController {
                     Agent(id, execution)
                 }
             )
-                .doOnSuccess {
-                    dockerService.startContainersAndUpdateExecution(execution, agentIds)
-                }
-                .subscribe()
+            dockerService.startContainersAndUpdateExecution(execution, agentIds)
         }
         return response
     }

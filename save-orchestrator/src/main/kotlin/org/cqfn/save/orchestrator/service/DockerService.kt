@@ -66,6 +66,8 @@ class DockerService(private val configProperties: ConfigProperties) {
             .uri("/updateExecution")
             .body(BodyInserters.fromValue(ExecutionUpdateDto(execution.id!!, ExecutionStatus.RUNNING)))
             .retrieve()
+            .toBodilessEntity()
+            .subscribe()
         agentIds.forEach {
             log.info("Starting container id=$it")
             containerManager.dockerClient.startContainerCmd(it).exec()
