@@ -9,6 +9,7 @@ import org.cqfn.save.orchestrator.config.ConfigProperties
 import org.cqfn.save.orchestrator.controller.AgentsController
 import org.cqfn.save.orchestrator.service.AgentService
 import org.cqfn.save.orchestrator.service.DockerService
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
 
 import org.junit.jupiter.api.Test
@@ -37,6 +38,12 @@ class AgentsControllerTest {
     @Autowired
     private lateinit var configProperties: ConfigProperties
     @MockBean private lateinit var dockerService: DockerService
+
+    @AfterEach
+    fun removeLogDirs() {
+        val pathToLogs = System.getProperty("user.home") + configProperties.agentLogs
+        File(pathToLogs).deleteRecursively()
+    }
 
     @Test
     fun checkPostResponseIsOk() {
@@ -88,16 +95,46 @@ class AgentsControllerTest {
             first line
             second line
         """.trimIndent().split(System.lineSeparator())
-        val executionLogs = ExecutionLogs("1agent", logs)
-        webClient
+        makeRequestToSaveLog(logs)
+            .expectStatus()
+            .isOk
+        val logFile = File(System.getProperty("user.home") + configProperties.agentLogs + File.separator + "agent.log")
+        Assertions.assertTrue(logFile.exists())
+        Assertions.assertEquals(logFile.readLines(), logs)
+    }
+
+    @Test
+    fun `check save log if already exist`() {
+        val firstLogs = """
+            first line
+            second line
+        """.trimIndent().split(System.lineSeparator())
+        makeRequestToSaveLog(firstLogs)
+            .expectStatus()
+            .isOk
+        val firstLogFile = File(System.getProperty("user.home") + configProperties.agentLogs + File.separator + "agent.log")
+        Assertions.assertTrue(firstLogFile.exists())
+        Assertions.assertEquals(firstLogFile.readLines(), firstLogs)
+        val secondLogs = """
+            second line
+            first line
+        """.trimIndent().split(System.lineSeparator())
+        makeRequestToSaveLog(secondLogs)
+            .expectStatus()
+            .isOk
+            .expectStatus()
+            .isOk
+        val newFirstLogFile = File(System.getProperty("user.home") + configProperties.agentLogs + File.separator + "agent.log")
+        Assertions.assertTrue(newFirstLogFile.exists())
+        Assertions.assertEquals(newFirstLogFile.readLines(), firstLogs + secondLogs)
+    }
+
+    private fun makeRequestToSaveLog(text: List<String>): WebTestClient.ResponseSpec {
+        val executionLogs = ExecutionLogs("agent", text)
+        return webClient
             .post()
             .uri("/executionLogs")
             .body(BodyInserters.fromValue(executionLogs))
             .exchange()
-            .expectStatus()
-            .isOk
-        val logFile = File(configProperties.agentLogs + File.separator + "${executionLogs.agentId}.log")
-        Assertions.assertTrue(logFile.exists())
-        Assertions.assertEquals(logFile.readLines(), logs)
     }
 }

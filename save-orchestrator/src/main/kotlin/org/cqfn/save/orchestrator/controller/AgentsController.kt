@@ -78,15 +78,18 @@ class AgentsController {
      */
     @PostMapping("/executionLogs")
     fun saveAgentsLog(@RequestBody executionLogs: ExecutionLogs) {
-        val logFile = File(configProperties.agentLogs + File.separator + "${executionLogs.agentId}.log")
-        if (logFile.exists()) {
-            logFile.delete()
+        val logDir = File(System.getProperty("user.home") + configProperties.agentLogs)
+        if (!logDir.exists()) {
+            log.info("Folder to store logs from agents was created")
+            logDir.mkdirs()
         }
-        if (logFile.createNewFile()) {
+        val logFile = File(logDir.path + File.separator + "${executionLogs.agentId}.log")
+        if (!logFile.exists()) {
+            logFile.createNewFile()
             log.info("File for ${executionLogs.agentId} agent was created")
-            logFile.appendText(executionLogs.cliLogs.joinToString(separator = System.lineSeparator()))
-            log.info("Logs were wrote")
         }
+        logFile.appendText(executionLogs.cliLogs.joinToString(separator = System.lineSeparator()) + System.lineSeparator())
+        log.info("Logs were wrote")
     }
 
     companion object {
