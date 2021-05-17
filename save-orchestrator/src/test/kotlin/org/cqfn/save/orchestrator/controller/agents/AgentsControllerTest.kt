@@ -41,7 +41,7 @@ class AgentsControllerTest {
 
     @AfterEach
     fun removeLogDirs() {
-        val pathToLogs = System.getProperty("user.home") + configProperties.agentLogs
+        val pathToLogs = configProperties.agentLogsFolder
         File(pathToLogs).deleteRecursively()
     }
 
@@ -98,7 +98,7 @@ class AgentsControllerTest {
         makeRequestToSaveLog(logs)
             .expectStatus()
             .isOk
-        val logFile = File(System.getProperty("user.home") + configProperties.agentLogs + File.separator + "agent.log")
+        val logFile = File(configProperties.agentLogsFolder + File.separator + "agent.log")
         Assertions.assertTrue(logFile.exists())
         Assertions.assertEquals(logFile.readLines(), logs)
     }
@@ -112,7 +112,7 @@ class AgentsControllerTest {
         makeRequestToSaveLog(firstLogs)
             .expectStatus()
             .isOk
-        val firstLogFile = File(System.getProperty("user.home") + configProperties.agentLogs + File.separator + "agent.log")
+        val firstLogFile = File(configProperties.agentLogsFolder + File.separator + "agent.log")
         Assertions.assertTrue(firstLogFile.exists())
         Assertions.assertEquals(firstLogFile.readLines(), firstLogs)
         val secondLogs = """
@@ -124,7 +124,7 @@ class AgentsControllerTest {
             .isOk
             .expectStatus()
             .isOk
-        val newFirstLogFile = File(System.getProperty("user.home") + configProperties.agentLogs + File.separator + "agent.log")
+        val newFirstLogFile = File(configProperties.agentLogsFolder + File.separator + "agent.log")
         Assertions.assertTrue(newFirstLogFile.exists())
         Assertions.assertEquals(newFirstLogFile.readLines(), firstLogs + secondLogs)
     }

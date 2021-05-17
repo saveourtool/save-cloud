@@ -24,7 +24,9 @@ data class ConfigProperties(
     val docker: DockerSettings,
     val agentsCount: Int,
     val agentLogs: String,
-)
+) {
+    val agentLogsFolder = System.getenv("user.home") + agentLogs
+}
 
 /**
  * @property basePath path to the root directory, where all test resources are stored

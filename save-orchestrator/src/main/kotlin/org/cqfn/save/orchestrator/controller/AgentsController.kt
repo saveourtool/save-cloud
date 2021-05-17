@@ -78,7 +78,7 @@ class AgentsController {
      */
     @PostMapping("/executionLogs")
     fun saveAgentsLog(@RequestBody executionLogs: ExecutionLogs) {
-        val logDir = File(System.getProperty("user.home") + configProperties.agentLogs)
+        val logDir = File(configProperties.agentLogsFolder)
         if (!logDir.exists()) {
             log.info("Folder to store logs from agents was created")
             logDir.mkdirs()
