@@ -4,12 +4,12 @@ import kotlinx.serialization.Serializable
 
 /**
  * @property filePath
+ * @property hash
  * @property testSuiteId
- * @property id
  */
 @Serializable
 data class TestDto(
     var filePath: String,
     var testSuiteId: Long,
-    var id: Long
+    var hash: String?,
 )

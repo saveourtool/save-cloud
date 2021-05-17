@@ -80,7 +80,7 @@ class HeartbeatControllerTest {
 
     @Test
     fun checkNewJobResponse() {
-        val list = listOf(TestDto("qwe", 0, 1))
+        val list = listOf(TestDto("qwe", 0, null))
         mockServer.enqueue(
             MockResponse()
                 .setBody(Json.encodeToString(list))
@@ -116,9 +116,9 @@ class HeartbeatControllerTest {
             ),
             heartbeat = Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100)),
             tests = listOf(
-                TestDto("/path/to/test-1", 1, 1),
-                TestDto("/path/to/test-2", 1, 2),
-                TestDto("/path/to/test-3", 1, 3),
+                TestDto("/path/to/test-1", 1, null),
+                TestDto("/path/to/test-2", 1, null),
+                TestDto("/path/to/test-3", 1, null),
             ),
             mockAgentStatuses = false,
         ) {

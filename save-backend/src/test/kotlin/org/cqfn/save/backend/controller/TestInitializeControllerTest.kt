@@ -5,6 +5,8 @@ import org.cqfn.save.backend.repository.TestRepository
 import org.cqfn.save.backend.repository.TestSuiteRepository
 import org.cqfn.save.backend.utils.MySqlExtension
 import org.cqfn.save.test.TestDto
+
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -15,6 +17,7 @@ import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
+
 import java.time.LocalDateTime
 import java.time.Month
 
@@ -36,10 +39,10 @@ class TestInitializeControllerTest {
     @Test
     fun testConnection() {
         val testSuite = testSuiteRepository.findById(2).get()
-        val test = org.cqfn.save.entities.Test(
+        val test = TestDto(
             "testPath",
-            testLocalDateTime,
-            testSuite,
+            testSuite.id!!,
+            "newHash",
         )
 
         webClient.post()
@@ -49,15 +52,18 @@ class TestInitializeControllerTest {
             .exchange()
             .expectStatus()
             .isOk
+
+        assertNotNull(testInitRepository.findByHash("newHash") != null)
     }
 
     @Test
     fun checkDataSave() {
         val testSuite = testSuiteRepository.findById(2).get()
-        val test = org.cqfn.save.entities.Test(
+        val test = TestDto(
             "testPath",
-            testLocalDateTime,
-            testSuite,
+            testSuite.id!!,
+            "newHash2",
+
         )
         webClient.post()
             .uri("/initializeTests")
@@ -69,7 +75,7 @@ class TestInitializeControllerTest {
 
         val databaseData = testInitRepository.findAll()
 
-        assertTrue(databaseData.any { it.testSuite.id == test.testSuite.id && it.filePath == test.filePath })
+        assertTrue(databaseData.any { it.testSuite.id == test.testSuiteId && it.filePath == test.filePath && it.hash == test.hash })
     }
 
     @Test
@@ -107,7 +113,7 @@ class TestInitializeControllerTest {
             .expectBody<List<TestDto>>()
             .consumeWith {
                 println(it.responseBody)
-                assertTrue(it.responseBody!!.isNotEmpty() && it.responseBody!!.size == 1)
+                assertTrue(it.responseBody!!.isNotEmpty())
             }
     }
 }

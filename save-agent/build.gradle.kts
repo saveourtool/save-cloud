@@ -115,6 +115,4 @@ val generatedKotlinSrc = kotlin.sourceSets.create("commonGenerated") {
     kotlin.srcDir("$buildDir/generated/src")
 }
 kotlin.sourceSets.getByName("nativeMain").dependsOn(generatedKotlinSrc)
-tasks.withType<KotlinCompile>().forEach {
-    it.dependsOn(generateVersionFileTaskProvider)
-}
+tasks.getByName("compileKotlinAgent").dependsOn(generateVersionFileTaskProvider)

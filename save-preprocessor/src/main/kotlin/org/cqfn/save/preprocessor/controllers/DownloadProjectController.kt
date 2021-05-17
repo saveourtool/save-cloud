@@ -3,9 +3,14 @@ package org.cqfn.save.preprocessor.controllers
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.Project
+import org.cqfn.save.entities.TestSuite
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.preprocessor.Response
 import org.cqfn.save.preprocessor.config.ConfigProperties
+import org.cqfn.save.preprocessor.utils.toHash
+import org.cqfn.save.test.TestDto
+import org.cqfn.save.testsuite.TestSuiteDto
+import org.cqfn.save.testsuite.TestSuiteType
 
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.api.errors.GitAPIException
@@ -15,23 +20,28 @@ import org.eclipse.jgit.transport.CredentialsProvider
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
+import org.springframework.http.ReactiveHttpOutputMessage
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.reactive.function.BodyInserter
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
+import org.springframework.web.reactive.function.client.bodyToMono
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
 import java.io.File
 import java.time.LocalDateTime
+import kotlin.io.path.ExperimentalPathApi
 
 /**
  * A Spring controller for git project downloading
  *
  * @property configProperties config properties
  */
+@ExperimentalPathApi
 @RestController
 class DownloadProjectController(private val configProperties: ConfigProperties) {
     private val log = LoggerFactory.getLogger(DownloadProjectController::class.java)
@@ -91,34 +101,68 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
         }
     }
 
+    @Suppress(
+        "LongMethod",
+        "ThrowsCount",
+        "TooGenericExceptionCaught",
+        "TOO_LONG_FUNCTION",
+        "LOCAL_VARIABLE_EARLY_DECLARATION")
     private fun sendToBackendAndOrchestrator(project: Project, path: String) {
         val execution = Execution(project, LocalDateTime.now(), LocalDateTime.now(),
             ExecutionStatus.PENDING, "1", path, 0, configProperties.executionLimit)
+        var execId: Long
         log.debug("Knock-Knock Backend")
-        webClientBackend
+        makeRequest(BodyInserters.fromValue(execution), "/createExecution") { it.bodyToMono(Long::class.java) }
+            .doOnNext { executionId ->
+                execId = executionId
+                makeRequest(BodyInserters.fromValue(getAllTestSuites(project)), "/saveTestSuites") { it.bodyToMono<List<TestSuite>>() }
+                    .doOnNext { testSuiteList ->
+                        makeRequest(BodyInserters.fromValue(getAllTests(path, testSuiteList)), "/initializeTests") { it.toBodilessEntity() }
+                            .doOnNext {
+                                // Post request to orchestrator to initiate its work
+                                log.debug("Knock-Knock Orchestrator")
+                                webClientOrchestrator
+                                    .post()
+                                    .uri("/initializeAgents")
+                                    .body(BodyInserters.fromValue(execution.also { it.id = execId }))
+                                    .retrieve()
+                                    .toEntity(HttpStatus::class.java)
+                                    .subscribe()
+                            }.subscribe()
+                    }.subscribe()
+            }.subscribe()
+    }
+
+    private fun <M, T> makeRequest(
+        body: BodyInserter<M, ReactiveHttpOutputMessage>,
+        uri: String,
+        toBody: (WebClient.ResponseSpec) -> Mono<T>
+    ): Mono<T> {
+        val responseSpec = webClientBackend
             .post()
-            .uri("/createExecution")
-            .body(BodyInserters.fromValue(execution))
+            .uri(uri)
+            .body(body)
             .retrieve()
-            .onStatus({status -> status != HttpStatus.OK }) {
-                log.error("Backend internal error: ${it.statusCode()}")
+            .onStatus({status -> status != HttpStatus.OK }) { clientResponse ->
+                log.error("Backend internal error: ${clientResponse.statusCode()}")
                 throw ResponseStatusException(
                     HttpStatus.INTERNAL_SERVER_ERROR,
                     "Backend internal error"
                 )
             }
-            .bodyToMono(Long::class.java)
-            .doOnNext { executionId ->
-                // Post request to orchestrator to initiate its work
-                log.debug("Knock-Knock Orchestrator")
-                webClientOrchestrator
-                    .post()
-                    .uri("/initializeAgents")
-                    .body(BodyInserters.fromValue(execution.also { it.id = executionId }))
-                    .retrieve()
-                    .toEntity(HttpStatus::class.java)
-                    .subscribe()
+        return toBody(responseSpec)
+    }
+
+    private fun getAllTestSuites(project: Project) = listOf(TestSuiteDto(TestSuiteType.PROJECT, "test", project))
+
+    private fun getAllTests(path: String, testSuites: List<TestSuite>): List<TestDto> {
+        // todo Save should find and create correct TestDtos. Not it's just a stub
+        return File(configProperties.repository, path)
+            .walkTopDown()
+            .filter { it.isFile }
+            .map {
+                TestDto(it.path, testSuites[0].id ?: 1, it.toHash())
             }
-            .subscribe()
+            .toList()
     }
 }

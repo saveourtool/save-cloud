@@ -12,8 +12,7 @@ import javax.persistence.ManyToOne
 /**
  * @property test id of test
  * @property testSuiteExecutionId test suite execution id
- * @property agent agent id
- * @property project project id
+ * @property agent agent id is nullable because agent isn't created at the time when test execution is created
  * @property status status of test execution
  * @property startTime start time
  * @property endTime finish time
@@ -29,17 +28,13 @@ class TestExecution(
 
     @ManyToOne
     @JoinColumn(name = "agent_id")
-    var agent: Agent,
-
-    @ManyToOne
-    @JoinColumn(name = "project_id")
-    var project: Project,
+    var agent: Agent?,
 
     @Enumerated(EnumType.STRING)
     var status: TestResultStatus,
 
-    var startTime: LocalDateTime,
+    var startTime: LocalDateTime?,
 
-    var endTime: LocalDateTime,
+    var endTime: LocalDateTime?,
 
 ) : BaseEntity()
