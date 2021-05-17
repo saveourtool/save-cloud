@@ -28,6 +28,7 @@ data class AgentConfiguration(
     val requestTimeoutMillis: Long,
     val executionDataRetryAttempts: Int,
     val executionDataInitialRetryMillis: Long,
+    val agentVersion: String,
 )
 
 /**

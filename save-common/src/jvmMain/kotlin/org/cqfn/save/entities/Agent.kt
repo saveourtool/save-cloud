@@ -16,4 +16,6 @@ class Agent(
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "execution_id")
     var execution: Execution,
+
+    var version: String? = null,
 ) : BaseEntity()

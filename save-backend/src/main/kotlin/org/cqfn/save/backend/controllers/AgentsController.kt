@@ -1,5 +1,6 @@
 package org.cqfn.save.backend.controllers
 
+import org.cqfn.save.agent.AgentVersion
 import org.cqfn.save.backend.repository.AgentRepository
 import org.cqfn.save.backend.repository.AgentStatusRepository
 import org.cqfn.save.entities.Agent
@@ -33,6 +34,17 @@ class AgentsController(private val agentStatusRepository: AgentStatusRepository,
     @PostMapping("/updateAgentStatuses")
     fun updateAgentStatuses(@RequestBody agentStates: List<AgentStatus>) {
         agentStatusRepository.saveAll(agentStates)
+    }
+
+    /**
+     * @param agentVersion [AgentVersion] to update agent version
+     */
+    @PostMapping("/saveAgentVersion")
+    fun updateAgentVersion(@RequestBody agentVersion: AgentVersion) {
+        agentRepository.findByContainerId(agentVersion.containerId)?.let {
+            it.version = agentVersion.version
+            agentRepository.save(it)
+        }
     }
 
     /**
