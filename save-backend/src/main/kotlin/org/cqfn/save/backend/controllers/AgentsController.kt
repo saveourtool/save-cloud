@@ -6,6 +6,7 @@ import org.cqfn.save.entities.Agent
 import org.cqfn.save.entities.AgentStatus
 import org.cqfn.save.entities.AgentStatusDto
 import org.cqfn.save.entities.Execution
+import org.slf4j.LoggerFactory
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
@@ -24,6 +25,7 @@ class AgentsController(private val agentStatusRepository: AgentStatusRepository,
      */
     @PostMapping("/addAgents")
     fun addAgents(@RequestBody agents: List<Agent>) {
+        log.debug("Saving agents $agents")
         agentRepository.saveAll(agents)
     }
 
@@ -82,5 +84,9 @@ class AgentsController(private val agentStatusRepository: AgentStatusRepository,
             cb.equal(root.get<String>("containerId"), containerId)
         }
         return agent.orElseThrow { IllegalStateException("Agent with containerId=$containerId not found in the DB") }
+    }
+
+    companion object {
+        private val log = LoggerFactory.getLogger(AgentsController::class.java)
     }
 }
