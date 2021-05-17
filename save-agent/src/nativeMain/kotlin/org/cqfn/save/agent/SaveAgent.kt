@@ -7,7 +7,6 @@ import org.cqfn.save.core.utils.ExecutionResult
 import org.cqfn.save.core.utils.ProcessBuilder
 import org.cqfn.save.domain.TestResultStatus
 
-import generated.SAVE_CORE_VERSION
 import io.ktor.client.HttpClient
 import io.ktor.client.features.HttpTimeout
 import io.ktor.client.features.json.JsonFeature
@@ -128,12 +127,15 @@ class SaveAgent(private val config: AgentConfiguration,
                     }
                 state.value = AgentState.FINISHED
             }
-            else -> state.value = AgentState.CLI_FAILED
+            else -> {
+                println("SAVE has exited abnormally with status ${executionResult.code}")
+                state.value = AgentState.CLI_FAILED
+            }
         }
     }
 
     private fun runSave(cliArgs: List<String>): ExecutionResult =
-            ProcessBuilder().exec("./save-$SAVE_CORE_VERSION-linuxX64.kexe", "logs.txt".toPath())
+            ProcessBuilder().exec(config.cliCommand, "logs.txt".toPath())
 
     /**
      * @param executionLogs logs of CLI execution progress that will be sent in a message

@@ -30,7 +30,9 @@ import kotlinx.serialization.properties.decodeFromStringMap
 @Suppress("INLINE_CLASS_CAN_BE_USED")
 class SaveAgentTest {
     @OptIn(ExperimentalSerializationApi::class)
-    private val configuration: AgentConfiguration = Properties.decodeFromStringMap(readProperties("src/nativeMain/resources/agent.properties"))
+    private val configuration: AgentConfiguration = Properties.decodeFromStringMap<AgentConfiguration>(readProperties("src/nativeMain/resources/agent.properties")).let {
+        if (Platform.osFamily == OsFamily.WINDOWS) it.copy(cliCommand = "save-$SAVE_CORE_VERSION-linuxX64.bat") else it
+    }
     private val saveAgentForTest = SaveAgent(configuration, httpClient = HttpClient(MockEngine) {
         install(JsonFeature) {
             serializer = KotlinxSerializer(Json {
@@ -58,9 +60,12 @@ class SaveAgentTest {
 
     @BeforeTest
     fun setUp() {
-        platform.posix.system("touch save-$SAVE_CORE_VERSION-linuxX64.kexe")
-        platform.posix.system("echo echo 0 > save-$SAVE_CORE_VERSION-linuxX64.kexe")
-        platform.posix.system("chmod +x save-$SAVE_CORE_VERSION-linuxX64.kexe")
+        if (Platform.osFamily != OsFamily.WINDOWS) {
+            platform.posix.system("echo echo 0 > save-$SAVE_CORE_VERSION-linuxX64.kexe")
+            platform.posix.system("chmod +x save-$SAVE_CORE_VERSION-linuxX64.kexe")
+        } else {
+            platform.posix.system("echo echo 0 > save-$SAVE_CORE_VERSION-linuxX64.bat")
+        }
     }
 
     @AfterTest

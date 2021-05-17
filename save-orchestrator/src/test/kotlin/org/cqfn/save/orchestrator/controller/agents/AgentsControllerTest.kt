@@ -10,6 +10,7 @@ import org.cqfn.save.orchestrator.service.DockerService
 
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
+import okhttp3.mockwebserver.QueueDispatcher
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
@@ -115,6 +116,7 @@ class AgentsControllerTest {
         fun properties(registry: DynamicPropertyRegistry) {
             // todo: should be initialized in @BeforeAll, but it gets called after @DynamicPropertySource
             mockServer = MockWebServer()
+            (mockServer.dispatcher as QueueDispatcher).setFailFast(true)
             mockServer.start()
             registry.add("orchestrator.backendUrl") { "http://localhost:${mockServer.port}" }
         }
