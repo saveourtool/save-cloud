@@ -15,7 +15,6 @@ import org.springframework.boot.context.properties.ConstructorBinding
  * @property docker configuration for docker API
  * @property agentsCount a number of agents to start for every [Execution]
  * @property agentLogs path to folder to store agent logs
- * @property agentLogsFolder correct path to agents logs folder from root dir
  */
 @ConstructorBinding
 @ConfigurationProperties(prefix = "orchestrator")
@@ -26,6 +25,9 @@ data class ConfigProperties(
     val agentsCount: Int,
     val agentLogs: String,
 ) {
+    /**
+     * Correct path to agents logs folder from root dir
+     */
     val agentLogsFolder = System.getenv("user.home") + agentLogs
 }
 
