@@ -22,7 +22,8 @@ class TestController {
     private lateinit var testExecutionService: TestExecutionService
 
     /**
-     * @param testDtos
+     * @param testDtos list of [TestDto]s to save into the DB
+     * @param executionId ID of the [Execution], during which these tests will be executed
      */
     @PostMapping("/initializeTests")
     fun initializeTests(@RequestBody testDtos: List<TestDto>, @RequestParam executionId: Long) {

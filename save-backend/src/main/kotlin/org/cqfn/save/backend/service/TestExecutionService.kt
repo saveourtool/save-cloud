@@ -6,8 +6,6 @@ import org.cqfn.save.backend.repository.TestRepository
 import org.cqfn.save.backend.repository.TestSuiteRepository
 import org.cqfn.save.backend.utils.toLocalDateTime
 import org.cqfn.save.domain.TestResultStatus
-import org.cqfn.save.entities.Execution
-import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.TestExecution
 
 import org.slf4j.LoggerFactory
@@ -52,7 +50,8 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
     }
 
     /**
-     * @param testsId
+     * @param testsId IDs of the tests, which will be executed
+     * @param executionId ID of the [Execution], during which these tests will be executed
      */
     fun saveTestExecution(executionId: Long, testsId: List<Long>) {
         testsId.map { testId ->

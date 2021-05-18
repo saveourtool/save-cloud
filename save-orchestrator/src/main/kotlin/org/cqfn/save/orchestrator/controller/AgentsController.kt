@@ -47,7 +47,8 @@ class AgentsController {
         val response = Mono.just(ResponseEntity.ok(HttpStatus.OK))
             .subscribeOn(Schedulers.boundedElastic())
         response.subscribe {
-            log.info("Starting preparations for launching execution [project=${execution.project}, id=${execution.id}, status=${execution.status}, resourcesRootPath=${execution.resourcesRootPath}]")
+            log.info("Starting preparations for launching execution [project=${execution.project}, id=${execution.id}, " +
+                    "status=${execution.status}, resourcesRootPath=${execution.resourcesRootPath}]")
             val agentIds = dockerService.buildAndCreateContainers(execution)
             agentService.saveAgentsWithInitialStatuses(
                 agentIds.map { id ->

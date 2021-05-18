@@ -22,6 +22,7 @@ class AgentsController(private val agentStatusRepository: AgentStatusRepository,
 ) {
     /**
      * @param agents list of [Agent]s to save into the DB
+     * @return a list of IDs, assigned to the agents
      */
     @PostMapping("/addAgents")
     fun addAgents(@RequestBody agents: List<Agent>): List<Long> {
