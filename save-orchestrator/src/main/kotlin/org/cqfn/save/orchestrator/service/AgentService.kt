@@ -121,8 +121,7 @@ class AgentService(configProperties: ConfigProperties) {
         // check other agents status
         return webClientBackend
             .method(HttpMethod.GET)
-            .uri("/getAgentsStatusesForSameExecution")
-            .body(BodyInserters.fromValue(agentId))
+            .uri("/getAgentsStatusesForSameExecution?agentId=$agentId")
             .retrieve()
             .bodyToMono<List<AgentStatusDto>>()
             .map { agentStatuses ->
