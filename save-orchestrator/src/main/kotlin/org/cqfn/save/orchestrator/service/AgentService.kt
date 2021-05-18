@@ -63,13 +63,13 @@ class AgentService(configProperties: ConfigProperties) {
         .uri("/addAgents")
         .body(BodyInserters.fromValue(agents))
         .retrieve()
-        .bodyToMono<Void>()
+        .bodyToMono<List<Long>>()
         .log(log, Level.INFO, true)
-        .then(
-            updateAgentStatuses(agents.map {
-                AgentStatus(LocalDateTime.now(), LocalDateTime.now(), AgentState.IDLE, it)
+        .flatMap { agentIds ->
+            updateAgentStatuses(agents.zip(agentIds).map { (agent, id) ->
+                AgentStatus(LocalDateTime.now(), LocalDateTime.now(), AgentState.IDLE, agent.also { it.id = id })
             })
-        )
+        }
 
     /**
      * @param agentStates list of [AgentStatus]es to update in the DB

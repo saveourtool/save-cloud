@@ -24,9 +24,9 @@ class AgentsController(private val agentStatusRepository: AgentStatusRepository,
      * @param agents list of [Agent]s to save into the DB
      */
     @PostMapping("/addAgents")
-    fun addAgents(@RequestBody agents: List<Agent>) {
+    fun addAgents(@RequestBody agents: List<Agent>): List<Long> {
         log.debug("Saving agents $agents")
-        agentRepository.saveAll(agents)
+        return agentRepository.saveAll(agents).map { it.id!! }
     }
 
     /**
