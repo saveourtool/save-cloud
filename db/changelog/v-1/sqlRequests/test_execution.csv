@@ -1,4 +1,4 @@
-id;status;start_time;end_time;test_id;agent_id;test_suite_execution_id
+id;status;start_time;end_time;test_id;agent_id;execution_id
 "APP_SEQ";"IGNORED";"2021-01-01 00:00:00";"2021-01-01 00:00:01";"1";1;1
 "APP_SEQ";"READY";"2021-01-01 00:00:00";"2021-01-01 00:00:01";"2";1;1
 "APP_SEQ";"READY";"2021-01-01 00:00:00";"2021-01-01 00:00:01";"3";1;1

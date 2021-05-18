@@ -117,7 +117,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
                 execId = executionId
                 makeRequest(BodyInserters.fromValue(getAllTestSuites(project)), "/saveTestSuites") { it.bodyToMono<List<TestSuite>>() }
                     .doOnNext { testSuiteList ->
-                        makeRequest(BodyInserters.fromValue(getAllTests(path, testSuiteList)), "/initializeTests") { it.toBodilessEntity() }
+                        makeRequest(BodyInserters.fromValue(getAllTests(path, testSuiteList)), "/initializeTests?executionId=$executionId") { it.toBodilessEntity() }
                             .doOnNext {
                                 // Post request to orchestrator to initiate its work
                                 log.debug("Knock-Knock Orchestrator")

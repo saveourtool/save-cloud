@@ -6,10 +6,12 @@ import org.cqfn.save.entities.Agent
 import org.cqfn.save.entities.AgentStatus
 import org.cqfn.save.entities.AgentStatusDto
 import org.cqfn.save.entities.Execution
+import org.slf4j.LoggerFactory
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 /**
@@ -21,10 +23,12 @@ class AgentsController(private val agentStatusRepository: AgentStatusRepository,
 ) {
     /**
      * @param agents list of [Agent]s to save into the DB
+     * @return a list of IDs, assigned to the agents
      */
     @PostMapping("/addAgents")
-    fun addAgents(@RequestBody agents: List<Agent>) {
-        agentRepository.saveAll(agents)
+    fun addAgents(@RequestBody agents: List<Agent>): List<Long> {
+        log.debug("Saving agents $agents")
+        return agentRepository.saveAll(agents).map { it.id!! }
     }
 
     /**
@@ -64,7 +68,7 @@ class AgentsController(private val agentStatusRepository: AgentStatusRepository,
      */
     @GetMapping("/getAgentsStatusesForSameExecution")
     @Transactional
-    fun findAllAgentStatusesForSameExecution(@RequestBody agentId: String): List<AgentStatusDto?> =
+    fun findAllAgentStatusesForSameExecution(@RequestParam agentId: String): List<AgentStatusDto?> =
             agentRepository.findAll { root, cq, cb ->
                 cb.equal(root.get<Execution>("execution"), getAgentByContainerId(agentId).execution)
             }.map {
@@ -82,5 +86,9 @@ class AgentsController(private val agentStatusRepository: AgentStatusRepository,
             cb.equal(root.get<String>("containerId"), containerId)
         }
         return agent.orElseThrow { IllegalStateException("Agent with containerId=$containerId not found in the DB") }
+    }
+
+    companion object {
+        private val log = LoggerFactory.getLogger(AgentsController::class.java)
     }
 }

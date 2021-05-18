@@ -5,6 +5,7 @@ version: '3.9'
 services:
   orchestrator:
     image: 127.0.0.1:6000/save-orchestrator:{{project.version}}
+    user: root  # to access host's docker socket
     environment:
       - "SPRING_PROFILES_ACTIVE={{profile}}"
     ports:

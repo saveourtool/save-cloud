@@ -17,8 +17,10 @@ import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Mono
+import reactor.util.Loggers
 
 import java.time.LocalDateTime
+import java.util.logging.Level
 
 /**
  * Service for work with agents and backend
@@ -53,31 +55,33 @@ class AgentService(configProperties: ConfigProperties) {
      * Save new agents to the DB and insert their statuses. This logic is performed in two consecutive requests.
      *
      * @param agents list of [Agent]s to save in the DB
+     * @return Mono with response body
      * @throws WebClientResponseException if any of the requests fails
      */
-    fun saveAgentsWithInitialStatuses(agents: List<Agent>) {
-        webClientBackend
-            .post()
-            .uri("/addAgents")
-            .body(BodyInserters.fromValue(agents))
-            .retrieve()
-            .bodyToMono<String>()
-        updateAgentStatuses(agents.map {
-            AgentStatus(LocalDateTime.now(), LocalDateTime.now(), AgentState.IDLE, it)
-        })
-    }
+    fun saveAgentsWithInitialStatuses(agents: List<Agent>): Mono<Void> = webClientBackend
+        .post()
+        .uri("/addAgents")
+        .body(BodyInserters.fromValue(agents))
+        .retrieve()
+        .bodyToMono<List<Long>>()
+        .log(log, Level.INFO, true)
+        .flatMap { agentIds ->
+            updateAgentStatuses(agents.zip(agentIds).map { (agent, id) ->
+                AgentStatus(LocalDateTime.now(), LocalDateTime.now(), AgentState.IDLE, agent.also { it.id = id })
+            })
+        }
 
     /**
      * @param agentStates list of [AgentStatus]es to update in the DB
+     * @return Mono with response body
      */
-    fun updateAgentStatuses(agentStates: List<AgentStatus>) {
-        webClientBackend
-            .post()
-            .uri("/updateAgentStatuses")
-            .body(BodyInserters.fromValue(agentStates))
-            .retrieve()
-            .bodyToMono<String>()
-    }
+    fun updateAgentStatuses(agentStates: List<AgentStatus>): Mono<Void> = webClientBackend
+        .post()
+        .uri("/updateAgentStatuses")
+        .body(BodyInserters.fromValue(agentStates))
+        .retrieve()
+        .bodyToMono<Void>()
+        .log(log, Level.INFO, true)
 
     /**
      * @param agentStates list of [AgentStatus]es to update in the DB
@@ -116,7 +120,7 @@ class AgentService(configProperties: ConfigProperties) {
         // check other agents status
         return webClientBackend
             .get()
-            .uri("/getAgentsStatusesForSameExecution")
+            .uri("/getAgentsStatusesForSameExecution?agentId=$agentId")
             .retrieve()
             .bodyToMono<List<AgentStatusDto>>()
             .map { agentStatuses ->
@@ -126,5 +130,9 @@ class AgentService(configProperties: ConfigProperties) {
                     emptyList()
                 }
             }
+    }
+
+    companion object {
+        private val log = Loggers.getLogger(AgentService::class.java)
     }
 }

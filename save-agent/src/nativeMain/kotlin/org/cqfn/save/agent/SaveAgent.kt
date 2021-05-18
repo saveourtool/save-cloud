@@ -3,6 +3,8 @@
 package org.cqfn.save.agent
 
 import org.cqfn.save.agent.utils.readFile
+import org.cqfn.save.core.utils.ExecutionResult
+import org.cqfn.save.core.utils.ProcessBuilder
 import org.cqfn.save.domain.TestResultStatus
 
 import io.ktor.client.HttpClient
@@ -18,7 +20,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.util.KtorExperimentalAPI
 import okio.ExperimentalFileSystem
-import platform.posix.system
+import okio.Path.Companion.toPath
 
 import kotlin.native.concurrent.AtomicReference
 import kotlinx.coroutines.Job
@@ -104,8 +106,8 @@ class SaveAgent(private val config: AgentConfiguration,
     internal suspend fun startSaveProcess() = coroutineScope {
         // blocking execution of OS process
         state.value = AgentState.BUSY
-        val code = runSave(emptyList())
-        when (code) {
+        val executionResult = runSave(emptyList())
+        when (executionResult.code) {
             0 -> {
                 val executionLogs = ExecutionLogs(config.id, readFile("logs.txt"))
                 if (executionLogs.cliLogs.isEmpty()) {
@@ -125,11 +127,15 @@ class SaveAgent(private val config: AgentConfiguration,
                     }
                 state.value = AgentState.FINISHED
             }
-            else -> state.value = AgentState.CLI_FAILED
+            else -> {
+                println("SAVE has exited abnormally with status ${executionResult.code}")
+                state.value = AgentState.CLI_FAILED
+            }
         }
     }
 
-    private fun runSave(cliArgs: List<String>) = platform.posix.system("echo \"Hello world\" > logs.txt")  // fixme: actually run save CLI here
+    private fun runSave(cliArgs: List<String>): ExecutionResult =
+            ProcessBuilder().exec(config.cliCommand, "logs.txt".toPath())
 
     /**
      * @param executionLogs logs of CLI execution progress that will be sent in a message

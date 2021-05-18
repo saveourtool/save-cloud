@@ -11,8 +11,8 @@ import javax.persistence.ManyToOne
 
 /**
  * @property test id of test
- * @property testSuiteExecutionId test suite execution id
- * @property agent agent id is nullable because agent isn't created at the time when test execution is created
+ * @property executionId id of the Execution during which this TestExecution should take place. todo: change to Execution
+ * @property agent Id of the agent which will execute this TestExecution. Agent id is nullable because agent isn't created at the time when test execution is created
  * @property status status of test execution
  * @property startTime start time
  * @property endTime finish time
@@ -24,7 +24,7 @@ class TestExecution(
     @JoinColumn(name = "test_id")
     var test: Test,
 
-    var testSuiteExecutionId: Long,
+    var executionId: Long,
 
     @ManyToOne
     @JoinColumn(name = "agent_id")

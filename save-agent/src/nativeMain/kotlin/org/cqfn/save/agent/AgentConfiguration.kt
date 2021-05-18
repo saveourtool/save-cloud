@@ -6,6 +6,7 @@
 
 package org.cqfn.save.agent
 
+import generated.SAVE_CORE_VERSION
 import kotlinx.serialization.Serializable
 
 /**
@@ -18,6 +19,7 @@ import kotlinx.serialization.Serializable
  * @property requestTimeoutMillis timeout for all http request
  * @property executionDataRetryAttempts number of retries when sending execution data
  * @property executionDataInitialRetryMillis interval between successive attempts to send execution data
+ * @property cliCommand a command that agent will use to run SAVE cli
  */
 @Serializable
 data class AgentConfiguration(
@@ -28,6 +30,7 @@ data class AgentConfiguration(
     val requestTimeoutMillis: Long,
     val executionDataRetryAttempts: Int,
     val executionDataInitialRetryMillis: Long,
+    val cliCommand: String = "./save-$SAVE_CORE_VERSION-linuxX64.kexe",
 )
 
 /**
