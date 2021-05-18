@@ -15,7 +15,7 @@ import java.io.File
  * @property testResources configuration for test resources
  * @property docker configuration for docker API
  * @property agentsCount a number of agents to start for every [Execution]
- * @property agentLogsRelativePath  relative path to folder to store agent logs
+ * @property agentLogsRelativePath relative path to folder to store agent logs
  */
 @ConstructorBinding
 @ConfigurationProperties(prefix = "orchestrator")
