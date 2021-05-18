@@ -32,6 +32,9 @@ import kotlinx.datetime.Clock
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 
+typealias requestExecutionData = suspend (testExecutionDto: TestExecutionDto) -> HttpResponse
+typealias requestAdditionalData = suspend () -> HttpResponse
+
 /**
  * A main class for SAVE Agent
  */
@@ -121,7 +124,7 @@ class SaveAgent(private val config: AgentConfiguration,
                 // todo: parse test executions from files
                 val currentTime = Clock.System.now().toEpochMilliseconds()
                 val testExecutionDtoExample = TestExecutionDto(0L, 0L, TestResultStatus.PASSED, currentTime, currentTime)
-                sendExecutionData(testExecutionDtoExample)
+                sendAdditionalDataToBackend(::postExecutionData, ::saveAdditionalData, testExecutionDtoExample)
                 runCatching {
                     sendLogs(executionLogs)
                 }
@@ -151,15 +154,6 @@ class SaveAgent(private val config: AgentConfiguration,
     }
 
     /**
-     * Save agent version
-     */
-    private suspend fun saveAdditionalData() = httpClient.post<HttpResponse> {
-        url("${config.backendUrl}/saveAgentVersion")
-        contentType(ContentType.Application.Json)
-        body = AgentVersion(config.id, SAVE_CORE_VERSION)
-    }
-
-    /**
      * @param executionProgress execution progress that will be sent in a heartbeat message
      * @return a [HeartbeatResponse] from Orchestrator
      */
@@ -176,11 +170,16 @@ class SaveAgent(private val config: AgentConfiguration,
     /**
      * Attempt to send execution data to backend, will retry several times, while increasing delay 2 times on each iteration.
      */
-    private suspend fun sendExecutionData(testExecutionDto: TestExecutionDto): Unit = coroutineScope {
+    private suspend fun sendAdditionalDataToBackend(
+        sendExecution: requestExecutionData,
+        sendAdditional: requestAdditionalData,
+        testExecutionDto: TestExecutionDto
+    ) = coroutineScope {
         var retryInterval = config.executionDataInitialRetryMillis
         repeat(config.executionDataRetryAttempts) { attempt ->
             val result = runCatching {
-                postExecutionData(testExecutionDto)
+                sendExecution(testExecutionDto)
+                sendAdditional()
             }
             if (result.isSuccess && result.getOrNull()?.status == HttpStatusCode.OK) {
                 return@repeat
@@ -203,5 +202,11 @@ class SaveAgent(private val config: AgentConfiguration,
         url("${config.backendUrl}/executionData")
         contentType(ContentType.Application.Json)
         body = testExecutionDto
+    }
+
+    private suspend fun saveAdditionalData() = httpClient.post<HttpResponse> {
+        url("${config.backendUrl}/saveAgentVersion")
+        contentType(ContentType.Application.Json)
+        body = AgentVersion(config.id, SAVE_CORE_VERSION)
     }
 }
