@@ -16,6 +16,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class ExecutionProgress(val percentCompletion: Int) {
     init {
+        @Suppress("MAGIC_NUMBER", "MagicNumber")
         require(percentCompletion in 0..100) { "percentCompletion should be in 0..100, but is $percentCompletion" }
     }
 }

@@ -37,6 +37,7 @@ class TestInitializeControllerTest {
     lateinit var testSuiteRepository: TestSuiteRepository
 
     @Test
+    @Suppress("UnsafeCallOnNullableType")
     fun testConnection() {
         val testSuite = testSuiteRepository.findById(2).get()
         val test = TestDto(
@@ -57,6 +58,7 @@ class TestInitializeControllerTest {
     }
 
     @Test
+    @Suppress("UnsafeCallOnNullableType")
     fun checkDataSave() {
         val testSuite = testSuiteRepository.findById(2).get()
         val test = TestDto(

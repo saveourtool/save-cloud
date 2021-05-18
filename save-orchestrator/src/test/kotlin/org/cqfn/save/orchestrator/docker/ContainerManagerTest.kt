@@ -37,9 +37,9 @@ class ContainerManagerTest {
             .withTag("latest")
             .exec(PullImageResultCallback())
             .awaitCompletion()
-        baseImageId = containerManager.dockerClient.listImagesCmd().exec().find {
+        baseImageId = containerManager.dockerClient.listImagesCmd().exec().first {
             it.repoTags!!.contains("ubuntu:latest")
-        }!!
+        }
             .id
     }
 
@@ -67,6 +67,7 @@ class ContainerManagerTest {
     }
 
     @Test
+    @Suppress("UnsafeCallOnNullableType")
     fun `should build an image with provided resources`() {
         val resourcesDir = createTempDirectory()
         repeat(5) { createTempFile(resourcesDir) }

@@ -49,6 +49,7 @@ class DockerServiceTest {
     private lateinit var testContainerId: String
 
     @Test
+    @Suppress("UnsafeCallOnNullableType")
     fun `should create a container with save agent and test resources and start it`() {
         // build base image
         val project = Project("Huawei", "huaweiName", "manual", "huaweiUrl", "description")
