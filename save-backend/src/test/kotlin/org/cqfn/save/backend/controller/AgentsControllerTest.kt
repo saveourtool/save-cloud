@@ -121,10 +121,9 @@ class AgentsControllerTest {
     fun `should return latest status by container id`() {
         webTestClient
             .method(HttpMethod.GET)
-            .uri("/getAgentsStatusesForSameExecution")
+            .uri("/getAgentsStatusesForSameExecution?agentId=container-1")
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
-            .bodyValue("container-1")
             .exchange()
             .expectBody<List<AgentStatusDto?>>()
             .consumeWith {

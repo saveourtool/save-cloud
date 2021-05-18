@@ -16,5 +16,5 @@ interface TestExecutionRepository : BaseEntityRepository<TestExecution> {
      * @param pageable
      * @return list of test executions
      */
-    fun findByStatusAndTestSuiteExecutionId(status: TestResultStatus, id: Long, pageable: Pageable): List<TestExecution>
+    fun findByStatusAndExecutionId(status: TestResultStatus, id: Long, pageable: Pageable): List<TestExecution>
 }

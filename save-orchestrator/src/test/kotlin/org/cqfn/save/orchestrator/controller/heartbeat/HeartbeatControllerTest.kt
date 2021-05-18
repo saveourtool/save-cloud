@@ -194,7 +194,7 @@ class HeartbeatControllerTest {
 
     companion object {
         @JvmStatic
-        lateinit var mockServer: MockWebServer
+        private lateinit var mockServer: MockWebServer
 
         @AfterAll
         fun tearDown() {

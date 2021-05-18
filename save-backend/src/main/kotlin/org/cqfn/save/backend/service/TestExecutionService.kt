@@ -50,12 +50,17 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
     }
 
     /**
-     * @param testsId
+     * @param testsId IDs of the tests, which will be executed
+     * @param executionId ID of the [Execution], during which these tests will be executed
      */
-    fun saveTestExecution(testsId: List<Long>) {
+    fun saveTestExecution(executionId: Long, testsId: List<Long>) {
         testsId.map { testId ->
             testRepository.findById(testId).ifPresentOrElse({ test ->
-                testExecutionRepository.save(TestExecution(test, test.testSuite.id!!, null, TestResultStatus.READY, null, null))
+                testExecutionRepository.save(
+                    TestExecution(test,
+                        executionId,
+                        null, TestResultStatus.READY, null, null)
+                )
             },
                 { log.error("Can't find test with id = $testId to save in testExecution") }
             )

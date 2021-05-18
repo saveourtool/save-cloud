@@ -1,9 +1,11 @@
+import de.undercouch.gradle.tasks.download.Download
 import org.cqfn.save.buildutils.configureJacoco
 import org.cqfn.save.buildutils.configureSpringBoot
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("jvm")
+    id("de.undercouch.download")
 }
 
 configureSpringBoot()
@@ -13,6 +15,13 @@ tasks.withType<KotlinCompile> {
         jvmTarget = Versions.jdk
         freeCompilerArgs = freeCompilerArgs + "-Xopt-in=kotlin.RequiresOptIn"
     }
+}
+
+tasks.getByName("processResources").finalizedBy("downloadSaveCli")
+tasks.register<Download>("downloadSaveCli") {
+    dependsOn("processResources")
+    src("https://github.com/cqfn/save/releases/download/v${Versions.saveCore}/save-${Versions.saveCore}-linuxX64.kexe")
+    dest("$buildDir/resources/main")
 }
 
 tasks.withType<Test> {
@@ -35,3 +44,30 @@ dependencies {
 }
 
 configureJacoco()
+
+// todo: this logic is duplicated between agent and frontend, can be moved to a shared plugin in buildSrc
+val generateVersionFileTaskProvider = tasks.register("generateVersionFile") {
+    val versionsFile = File("$buildDir/generated/src/generated/Versions.kt")
+
+    outputs.file(versionsFile)
+
+    doFirst {
+        versionsFile.parentFile.mkdirs()
+        versionsFile.writeText(
+            """
+            package generated
+
+            internal const val SAVE_CORE_VERSION = "${Versions.saveCore}"
+            internal const val SAVE_CLOUD_VERSION = "$version"
+
+            """.trimIndent()
+        )
+    }
+}
+val generatedKotlinSrc = kotlin.sourceSets.create("generated") {
+    kotlin.srcDir("$buildDir/generated/src")
+}
+kotlin.sourceSets.getByName("main").dependsOn(generatedKotlinSrc)
+tasks.withType<KotlinCompile>().forEach {
+    it.dependsOn(generateVersionFileTaskProvider)
+}
