@@ -6,7 +6,6 @@ import org.cqfn.save.backend.utils.MySqlExtension
 import org.cqfn.save.backend.utils.toLocalDateTime
 import org.cqfn.save.domain.TestResultStatus
 
-import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -52,8 +51,9 @@ class SaveResultTest {
 
     @Test
     fun `should not save data if provided IDs are invalid`() {
+        val invalidId = 999L
         val testExecutionDto = TestExecutionDto(
-            999,
+            invalidId,
             1,
             TestResultStatus.FAILED,
             DEFAULT_DATE_TEST_EXECUTION,
@@ -67,9 +67,8 @@ class SaveResultTest {
             .isEqualTo(HttpStatus.BAD_REQUEST)
             .expectBody<String>()
             .isEqualTo("Some ids don't exist")
-        val tests = testExecutionRepository.findAll()
-        assertFalse(tests.any { it.startTime == testExecutionDto.startTime.toLocalDateTime().withNano(0) })
-        assertFalse(tests.any { it.endTime == testExecutionDto.endTime.toLocalDateTime().withNano(0) })
+        val testExecutions = testExecutionRepository.findAll()
+        assertTrue(testExecutions.none { it.id == invalidId })
     }
 
     companion object {

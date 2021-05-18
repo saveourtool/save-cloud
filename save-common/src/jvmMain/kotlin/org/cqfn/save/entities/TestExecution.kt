@@ -11,7 +11,7 @@ import javax.persistence.ManyToOne
 
 /**
  * @property test id of test
- * @property executionId id of the Execution during which this TestExecution should take place
+ * @property executionId id of the Execution during which this TestExecution should take place. todo: change to Execution
  * @property agent Id of the agent which will execute this TestExecution. Agent id is nullable because agent isn't created at the time when test execution is created
  * @property status status of test execution
  * @property startTime start time

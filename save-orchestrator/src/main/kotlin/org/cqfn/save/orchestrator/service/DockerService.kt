@@ -17,6 +17,7 @@ import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 
 import java.io.File
+import java.util.concurrent.atomic.AtomicBoolean
 
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.createTempDirectory
@@ -32,6 +33,7 @@ class DockerService(private val configProperties: ConfigProperties) {
      */
     internal val containerManager = ContainerManager(configProperties.docker.host)
     private val executionDir = "/run/save-execution"
+    private val isAgentStoppingInProgress = AtomicBoolean(false)
 
     @Autowired
     @Qualifier("webClientBackend")
@@ -79,8 +81,13 @@ class DockerService(private val configProperties: ConfigProperties) {
      * @param agentIds list of IDs of agents to stop
      */
     fun stopAgents(agentIds: List<String>) {
-        agentIds.forEach {
-            containerManager.dockerClient.stopContainerCmd(it).exec()
+        if (isAgentStoppingInProgress.compareAndSet(false, true)) {
+            agentIds.forEach {
+                log.info("Stopping agent with id=$it")
+                containerManager.dockerClient.stopContainerCmd(it).exec()
+                log.info("Agent with id=$it has been stopped")
+            }
+            isAgentStoppingInProgress.lazySet(false)
         }
     }
 

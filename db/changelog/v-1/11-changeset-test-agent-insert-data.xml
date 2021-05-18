@@ -4,21 +4,6 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
-
-    <changeSet id="test_execution-insert" author="frolov" context="dev">
-
-        <loadData tableName="test_execution" encoding="UTF-8" separator=";" quotchar="&quot;" file="db/changelog/v-1/sqlRequests/test_execution.csv">
-            <column header="id" name="id" type="SEQUENCE" />
-            <column header="status" name="status" type="STRING" />
-            <column header="start_time" name="start_time" type="DATE" />
-            <column header="end_time" name="end_time" type="DATE" />
-            <column header="test_id" name="test_id" type="NUMERIC" />
-            <column header="agent_id" name="agent_id" type="NUMERIC" />
-            <column header="execution_id" name="execution_id" type="NUMERIC" />
-        </loadData>
-
-    </changeSet>
-
     <changeSet id="pr-90-1" author="frolov" context="dev">
         <insert dbms="mysql" tableName="execution">
             <column name="id" value="1" />
@@ -42,6 +27,18 @@
             <column name="page" value="0" />
             <column name="batch_size" value="20" />
         </insert>
+    </changeSet>
+
+    <changeSet id="test_execution-insert" author="frolov" context="dev">
+        <loadData tableName="test_execution" encoding="UTF-8" separator=";" quotchar="&quot;" file="db/changelog/v-1/sqlRequests/test_execution.csv">
+            <column header="id" name="id" type="SEQUENCE" />
+            <column header="status" name="status" type="STRING" />
+            <column header="start_time" name="start_time" type="DATE" />
+            <column header="end_time" name="end_time" type="DATE" />
+            <column header="test_id" name="test_id" type="NUMERIC" />
+            <column header="agent_id" name="agent_id" type="NUMERIC" />
+            <column header="execution_id" name="execution_id" type="NUMERIC" />
+        </loadData>
     </changeSet>
 
     <changeSet id="pr-90-2" author="frolov" context="dev">
@@ -74,6 +71,5 @@
             <column header="agent_id" name="agent_id" type="NUMERIC" />
         </loadData>
     </changeSet>
-
 
 </databaseChangeLog>
