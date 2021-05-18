@@ -6,6 +6,7 @@ package org.cqfn.save.orchestrator.config
 
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding
+import java.io.File
 
 /**
  * Class for properties
@@ -14,7 +15,7 @@ import org.springframework.boot.context.properties.ConstructorBinding
  * @property testResources configuration for test resources
  * @property docker configuration for docker API
  * @property agentsCount a number of agents to start for every [Execution]
- * @property agentLogs path to folder to store agent logs
+ * @property agentLogsRelativePath  relative path to folder to store agent logs
  */
 @ConstructorBinding
 @ConfigurationProperties(prefix = "orchestrator")
@@ -23,12 +24,12 @@ data class ConfigProperties(
     val testResources: TestResources,
     val docker: DockerSettings,
     val agentsCount: Int,
-    val agentLogs: String,
+    val agentLogsRelativePath: String,
 ) {
     /**
      * Correct path to agents logs folder from root dir
      */
-    val agentLogsFolder = System.getenv("user.home") + agentLogs
+    val agentLogsFolder = System.getenv("user.home") + File.separator + agentLogsRelativePath
 }
 
 /**
