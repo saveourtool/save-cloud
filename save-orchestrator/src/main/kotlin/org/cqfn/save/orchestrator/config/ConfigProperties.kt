@@ -24,7 +24,7 @@ data class ConfigProperties(
     val testResources: TestResources,
     val docker: DockerSettings,
     val agentsCount: Int,
-    val agentLogsRelativePath: String,
+    private val agentLogsRelativePath: String,
 ) {
     /**
      * Correct path to agents logs folder from root dir

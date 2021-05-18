@@ -80,7 +80,7 @@ class AgentsController {
     fun saveAgentsLog(@RequestBody executionLogs: ExecutionLogs) {
         val logDir = File(configProperties.agentLogsFolder)
         if (!logDir.exists()) {
-            log.info("Folder to store logs from agents was created")
+            log.info("Folder to store logs from agents was created: ${logDir.name}")
             logDir.mkdirs()
         }
         val logFile = File(logDir.path + File.separator + "${executionLogs.agentId}.log")
@@ -88,7 +88,7 @@ class AgentsController {
             logFile.createNewFile()
             log.info("File for ${executionLogs.agentId} agent was created")
         }
-        logFile.appendText(executionLogs.cliLogs.joinToString(separator = System.lineSeparator()) + System.lineSeparator())
+        logFile.appendText(executionLogs.cliLogs.joinToString(separator = System.lineSeparator(), postfix = System.lineSeparator()))
         log.info("Logs were wrote")
     }
 
