@@ -88,23 +88,6 @@ kotlin {
     }
 }
 
-val generateVersionFileTaskProvider = tasks.register("generateVersionFile") {
-    val versionsFile = File("$buildDir/generated/Versions.kt")
-    outputs.file(versionsFile)
-    doFirst {
-        versionsFile.parentFile.mkdirs()
-        versionsFile.writeText(
-            """
-            Agent version: "${project.version}"
-            """.trimIndent()
-        )
-    }
-}
-
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinNativeCompile> {
-    dependsOn(generateVersionFileTaskProvider)
-}
-
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinTest> {
     testLogging.showStandardStreams = true
 }

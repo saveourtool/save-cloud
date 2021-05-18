@@ -2,6 +2,7 @@
 
 package org.cqfn.save.agent
 
+import generated.SAVE_CORE_VERSION
 import org.cqfn.save.agent.utils.readFile
 import org.cqfn.save.core.utils.ExecutionResult
 import org.cqfn.save.core.utils.ProcessBuilder
@@ -155,7 +156,7 @@ class SaveAgent(private val config: AgentConfiguration,
     private suspend fun saveAdditionalData() = httpClient.post<HttpResponse> {
         url("${config.backendUrl}/saveAgentVersion")
         contentType(ContentType.Application.Json)
-        body = AgentVersion(config.id, config.agentVersion)
+        body = AgentVersion(config.id, SAVE_CORE_VERSION)
     }
 
     /**
