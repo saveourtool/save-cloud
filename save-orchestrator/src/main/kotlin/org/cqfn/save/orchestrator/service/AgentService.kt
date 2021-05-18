@@ -12,7 +12,6 @@ import org.cqfn.save.test.TestDto
 
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
-import org.springframework.http.HttpMethod
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
@@ -120,7 +119,7 @@ class AgentService(configProperties: ConfigProperties) {
         // If we call this method, then there are no unfinished TestExecutions.
         // check other agents status
         return webClientBackend
-            .method(HttpMethod.GET)
+            .get()
             .uri("/getAgentsStatusesForSameExecution?agentId=$agentId")
             .retrieve()
             .bodyToMono<List<AgentStatusDto>>()
