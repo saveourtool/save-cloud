@@ -6,6 +6,8 @@ import org.cqfn.save.backend.repository.TestRepository
 import org.cqfn.save.backend.repository.TestSuiteRepository
 import org.cqfn.save.backend.utils.toLocalDateTime
 import org.cqfn.save.domain.TestResultStatus
+import org.cqfn.save.entities.Execution
+import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.TestExecution
 
 import org.slf4j.LoggerFactory
@@ -52,10 +54,14 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
     /**
      * @param testsId
      */
-    fun saveTestExecution(testsId: List<Long>) {
+    fun saveTestExecution(executionId: Long, testsId: List<Long>) {
         testsId.map { testId ->
             testRepository.findById(testId).ifPresentOrElse({ test ->
-                testExecutionRepository.save(TestExecution(test, test.testSuite.id!!, null, TestResultStatus.READY, null, null))
+                testExecutionRepository.save(
+                    TestExecution(test,
+                        executionId,
+                        null, TestResultStatus.READY, null, null)
+                )
             },
                 { log.error("Can't find test with id = $testId to save in testExecution") }
             )
