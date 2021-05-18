@@ -68,7 +68,7 @@ fun Project.createStackDeployTask(profile: String) {
 
     tasks.register<Exec>("stopDockerStack") {
         description = "Completely stop all services in docker swarm. NOT NEEDED FOR REDEPLOYING! Use only to explicitly stop everything."
-        commandLine("docker", "stack", "rm", "--compose-file", "$buildDir/docker-compose.yaml", "save")
+        commandLine("docker", "stack", "rm", "save")
     }
 
     tasks.register<Exec>("startMysqlDb") {

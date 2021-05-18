@@ -6,6 +6,7 @@ import org.cqfn.save.execution.ExecutionUpdateDto
 import org.cqfn.save.orchestrator.config.ConfigProperties
 import org.cqfn.save.orchestrator.docker.ContainerManager
 
+import generated.SAVE_CORE_VERSION
 import org.apache.commons.io.FileUtils
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -16,6 +17,7 @@ import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 
 import java.io.File
+import java.util.concurrent.atomic.AtomicBoolean
 
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.createTempDirectory
@@ -31,6 +33,7 @@ class DockerService(private val configProperties: ConfigProperties) {
      */
     internal val containerManager = ContainerManager(configProperties.docker.host)
     private val executionDir = "/run/save-execution"
+    private val isAgentStoppingInProgress = AtomicBoolean(false)
 
     @Autowired
     @Qualifier("webClientBackend")
@@ -65,6 +68,8 @@ class DockerService(private val configProperties: ConfigProperties) {
             .uri("/updateExecution")
             .body(BodyInserters.fromValue(ExecutionUpdateDto(execution.id!!, ExecutionStatus.RUNNING)))
             .retrieve()
+            .toBodilessEntity()
+            .subscribe()
         agentIds.forEach {
             log.info("Starting container id=$it")
             containerManager.dockerClient.startContainerCmd(it).exec()
@@ -76,8 +81,13 @@ class DockerService(private val configProperties: ConfigProperties) {
      * @param agentIds list of IDs of agents to stop
      */
     fun stopAgents(agentIds: List<String>) {
-        agentIds.forEach {
-            containerManager.dockerClient.stopContainerCmd(it).exec()
+        if (isAgentStoppingInProgress.compareAndSet(false, true)) {
+            agentIds.forEach {
+                log.info("Stopping agent with id=$it")
+                containerManager.dockerClient.stopContainerCmd(it).exec()
+                log.info("Agent with id=$it has been stopped")
+            }
+            isAgentStoppingInProgress.lazySet(false)
         }
     }
 
@@ -91,12 +101,18 @@ class DockerService(private val configProperties: ConfigProperties) {
             ClassPathResource(SAVE_AGENT_EXECUTABLE_NAME).inputStream,
             File(resourcesPath, SAVE_AGENT_EXECUTABLE_NAME)
         )
+        // include save-cli into the image
+        FileUtils.copyInputStreamToFile(
+            ClassPathResource(SAVE_CLI_EXECUTABLE_NAME).inputStream,
+            File(resourcesPath, SAVE_CLI_EXECUTABLE_NAME)
+        )
         val imageId = containerManager.buildImageWithResources(
             imageName = "save-execution:${execution.id}",
             baseDir = resourcesPath,
             resourcesPath = executionDir,
             runCmd = """RUN apt-get update && apt-get install -y libcurl4-openssl-dev && rm -rf /var/lib/apt/lists/*
                     |RUN chmod +x $executionDir/$SAVE_AGENT_EXECUTABLE_NAME
+                    |RUN chmod +x $executionDir/$SAVE_CLI_EXECUTABLE_NAME
                 """
         )
         return imageId
@@ -131,5 +147,6 @@ class DockerService(private val configProperties: ConfigProperties) {
     companion object {
         private val log = LoggerFactory.getLogger(DockerService::class.java)
         private const val SAVE_AGENT_EXECUTABLE_NAME = "save-agent.kexe"
+        private const val SAVE_CLI_EXECUTABLE_NAME = "save-$SAVE_CORE_VERSION-linuxX64.kexe"
     }
 }

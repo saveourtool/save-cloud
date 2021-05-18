@@ -46,7 +46,7 @@ class TestInitializeControllerTest {
         )
 
         webClient.post()
-            .uri("/initializeTests")
+            .uri("/initializeTests?executionId=1")
             .contentType(MediaType.APPLICATION_JSON)
             .body(BodyInserters.fromValue(listOf(test)))
             .exchange()
@@ -66,7 +66,7 @@ class TestInitializeControllerTest {
 
         )
         webClient.post()
-            .uri("/initializeTests")
+            .uri("/initializeTests?executionId=1")
             .contentType(MediaType.APPLICATION_JSON)
             .body(BodyInserters.fromValue(listOf(test)))
             .exchange()
@@ -98,8 +98,7 @@ class TestInitializeControllerTest {
             .isOk
             .expectBody<List<TestDto>>()
             .consumeWith {
-                println(it.responseBody)
-                assertTrue(it.responseBody!!.isNotEmpty() && it.responseBody!!.size == 1)
+                assertTrue(it.responseBody!!.size == 3) { "Expected 3 tests, but got ${it.responseBody} instead" }
             }
     }
 

@@ -72,7 +72,7 @@ class TestService(private val configProperties: ConfigProperties) {
         log.debug("Agent found: $agent")
         val execution = agent.execution
         log.debug("Retrieving tests")
-        val tests = testExecutionRepository.findByStatusAndTestSuiteExecutionId(
+        val tests = testExecutionRepository.findByStatusAndExecutionId(
             TestResultStatus.READY,
             execution.id!!,
             PageRequest.of(execution.page, execution.batchSize)
