@@ -51,7 +51,7 @@ class SaveResultTest {
     }
 
     @Test
-    fun checkErrorRequest() {
+    fun `should not save data if provided IDs are invalid`() {
         val testExecutionDto = TestExecutionDto(
             999,
             1,
