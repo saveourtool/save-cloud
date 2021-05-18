@@ -2,12 +2,12 @@
 
 package org.cqfn.save.agent
 
-import generated.SAVE_CORE_VERSION
 import org.cqfn.save.agent.utils.readFile
 import org.cqfn.save.core.utils.ExecutionResult
 import org.cqfn.save.core.utils.ProcessBuilder
 import org.cqfn.save.domain.TestResultStatus
 
+import generated.SAVE_CORE_VERSION
 import io.ktor.client.HttpClient
 import io.ktor.client.features.HttpTimeout
 import io.ktor.client.features.json.JsonFeature
