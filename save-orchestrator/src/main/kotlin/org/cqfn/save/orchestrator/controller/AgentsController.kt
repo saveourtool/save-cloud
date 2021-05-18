@@ -88,10 +88,10 @@ class AgentsController {
         val logFile = File(logDir.path + File.separator + "${executionLogs.agentId}.log")
         if (!logFile.exists()) {
             logFile.createNewFile()
-            log.info("File for ${executionLogs.agentId} agent was created")
+            log.info("Log file for ${executionLogs.agentId} agent was created")
         }
         logFile.appendText(executionLogs.cliLogs.joinToString(separator = System.lineSeparator(), postfix = System.lineSeparator()))
-        log.info("Logs were wrote")
+        log.info("Logs of agent id = ${executionLogs.agentId} were written")
     }
 
     companion object {
