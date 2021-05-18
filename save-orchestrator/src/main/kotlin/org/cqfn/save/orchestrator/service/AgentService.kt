@@ -17,8 +17,10 @@ import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Mono
+import reactor.util.Loggers
 
 import java.time.LocalDateTime
+import java.util.logging.Level
 
 /**
  * Service for work with agents and backend
@@ -62,6 +64,7 @@ class AgentService(configProperties: ConfigProperties) {
         .body(BodyInserters.fromValue(agents))
         .retrieve()
         .bodyToMono<Void>()
+        .log(log, Level.INFO, true)
         .then(
             updateAgentStatuses(agents.map {
                 AgentStatus(LocalDateTime.now(), LocalDateTime.now(), AgentState.IDLE, it)
@@ -77,7 +80,8 @@ class AgentService(configProperties: ConfigProperties) {
         .uri("/updateAgentStatuses")
         .body(BodyInserters.fromValue(agentStates))
         .retrieve()
-        .bodyToMono()
+        .bodyToMono<Void>()
+        .log(log, Level.INFO, true)
 
     /**
      * @param agentStates list of [AgentStatus]es to update in the DB
@@ -126,5 +130,9 @@ class AgentService(configProperties: ConfigProperties) {
                     emptyList()
                 }
             }
+    }
+
+    companion object {
+        private val log = Loggers.getLogger(AgentService::class.java)
     }
 }
