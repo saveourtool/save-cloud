@@ -34,11 +34,11 @@ import org.springframework.web.reactive.function.BodyInserters
 import java.io.File
 import java.nio.charset.Charset
 import java.time.LocalDateTime
+import kotlin.io.path.ExperimentalPathApi
+import kotlin.io.path.createTempDirectory
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import kotlin.io.path.ExperimentalPathApi
-import kotlin.io.path.createTempDirectory
 
 @WebFluxTest(controllers = [AgentsController::class])
 @Import(AgentService::class, Beans::class)
@@ -171,13 +171,13 @@ class AgentsControllerTest {
     }
 
     companion object {
-        @JvmStatic
-        private lateinit var mockServer: MockWebServer
-
         @OptIn(ExperimentalPathApi::class)
         private val volume: String by lazy {
             createTempDirectory("agentLogs").toAbsolutePath().toString()
         }
+
+        @JvmStatic
+        private lateinit var mockServer: MockWebServer
 
         @AfterAll
         fun tearDown() {
