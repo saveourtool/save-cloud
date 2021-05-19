@@ -37,6 +37,8 @@ import java.time.LocalDateTime
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import kotlin.io.path.ExperimentalPathApi
+import kotlin.io.path.createTempDirectory
 
 @WebFluxTest(controllers = [AgentsController::class])
 @Import(AgentService::class, Beans::class)
@@ -61,7 +63,7 @@ class AgentsControllerTest {
                         "status: ${mockResponse.status}"
             }
         }
-        val pathToLogs = configProperties.agentLogsFolder
+        val pathToLogs = configProperties.agentLogs
         File(pathToLogs).deleteRecursively()
     }
 
@@ -128,7 +130,7 @@ class AgentsControllerTest {
         makeRequestToSaveLog(logs)
             .expectStatus()
             .isOk
-        val logFile = File(configProperties.agentLogsFolder + File.separator + "agent.log")
+        val logFile = File(configProperties.agentLogs + File.separator + "agent.log")
         Assertions.assertTrue(logFile.exists())
         Assertions.assertEquals(logFile.readLines(), logs)
     }
@@ -142,7 +144,7 @@ class AgentsControllerTest {
         makeRequestToSaveLog(firstLogs)
             .expectStatus()
             .isOk
-        val firstLogFile = File(configProperties.agentLogsFolder + File.separator + "agent.log")
+        val firstLogFile = File(configProperties.agentLogs + File.separator + "agent.log")
         Assertions.assertTrue(firstLogFile.exists())
         Assertions.assertEquals(firstLogFile.readLines(), firstLogs)
         val secondLogs = """
@@ -154,7 +156,7 @@ class AgentsControllerTest {
             .isOk
             .expectStatus()
             .isOk
-        val newFirstLogFile = File(configProperties.agentLogsFolder + File.separator + "agent.log")
+        val newFirstLogFile = File(configProperties.agentLogs + File.separator + "agent.log")
         Assertions.assertTrue(newFirstLogFile.exists())
         Assertions.assertEquals(newFirstLogFile.readLines(), firstLogs + secondLogs)
     }
@@ -172,6 +174,11 @@ class AgentsControllerTest {
         @JvmStatic
         private lateinit var mockServer: MockWebServer
 
+        @OptIn(ExperimentalPathApi::class)
+        private val volume: String by lazy {
+            createTempDirectory("agentLogs").toAbsolutePath().toString()
+        }
+
         @AfterAll
         fun tearDown() {
             mockServer.shutdown()
@@ -185,6 +192,7 @@ class AgentsControllerTest {
             (mockServer.dispatcher as QueueDispatcher).setFailFast(true)
             mockServer.start()
             registry.add("orchestrator.backendUrl") { "http://localhost:${mockServer.port}" }
+            registry.add("orchestrator.agentLogs") { volume }
         }
     }
 }

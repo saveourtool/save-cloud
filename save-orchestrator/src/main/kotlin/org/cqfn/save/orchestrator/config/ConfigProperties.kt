@@ -15,7 +15,7 @@ import java.io.File
  * @property testResources configuration for test resources
  * @property docker configuration for docker API
  * @property agentsCount a number of agents to start for every [Execution]
- * @property agentLogsRelativePath relative path to folder to store agent logs
+ * @property agentLogs path to folder to store agent logs
  */
 @ConstructorBinding
 @ConfigurationProperties(prefix = "orchestrator")
@@ -24,13 +24,8 @@ data class ConfigProperties(
     val testResources: TestResources,
     val docker: DockerSettings,
     val agentsCount: Int,
-    private val agentLogsRelativePath: String,
-) {
-    /**
-     * Correct path to agents logs folder from root dir
-     */
-    val agentLogsFolder = System.getenv("user.home") + File.separator + agentLogsRelativePath
-}
+    val agentLogs: String,
+)
 
 /**
  * @property basePath path to the root directory, where all test resources are stored
