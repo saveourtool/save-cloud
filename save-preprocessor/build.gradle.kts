@@ -9,6 +9,8 @@ configureSpringBoot()
 
 dependencies {
     implementation(project(":save-common"))
+    implementation("org.cqfn.save:save-common-jvm:${Versions.saveCore}")  // todo: awful naming
+    implementation("org.cqfn.save:save-core-jvm:${Versions.saveCore}")
     implementation("org.eclipse.jgit:org.eclipse.jgit:${Versions.jgit}")
     implementation("org.jetbrains.kotlin:kotlin-reflect:${Versions.kotlin}")
     testImplementation("com.squareup.okhttp3:okhttp:${Versions.okhttp3}")

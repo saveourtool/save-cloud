@@ -7,10 +7,7 @@ import org.cqfn.save.entities.TestSuite
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.preprocessor.Response
 import org.cqfn.save.preprocessor.config.ConfigProperties
-import org.cqfn.save.preprocessor.utils.toHash
-import org.cqfn.save.test.TestDto
-import org.cqfn.save.testsuite.TestSuiteDto
-import org.cqfn.save.testsuite.TestSuiteType
+import org.cqfn.save.preprocessor.service.TestDiscoveringService
 
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.api.errors.GitAPIException
@@ -19,6 +16,7 @@ import org.eclipse.jgit.api.errors.TransportException
 import org.eclipse.jgit.transport.CredentialsProvider
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ReactiveHttpOutputMessage
 import org.springframework.http.ResponseEntity
@@ -47,6 +45,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
     private val log = LoggerFactory.getLogger(DownloadProjectController::class.java)
     private val webClientBackend = WebClient.create(configProperties.backend)
     private val webClientOrchestrator = WebClient.create(configProperties.orchestrator)
+    @Autowired private lateinit var testDiscoveringService: TestDiscoveringService
 
     /**
      * @param executionRequest - Dto of repo information to clone and project info
@@ -86,8 +85,6 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
                 .setDirectory(tmpDir)
                 .call().use {
                     log.info("Repository cloned: ${gitRepository.url}")
-                    // Post request to backend to create PENDING executions
-                    // Fixme: need to initialize test suite ids
                     sendToBackendAndOrchestrator(project, tmpDir.relativeTo(File(configProperties.repository)).normalize().path)
                 }
         } catch (exception: Exception) {
@@ -101,6 +98,13 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
         }
     }
 
+    /**
+     * - Post request to backend to create PENDING executions
+     * - Discover all test suites in the cloned project
+     * - Post request to backend to save all test suites
+     * - Discover all tests in the cloned project
+     * - Post request to backend to save all tests and create TestExecutions for them
+     */
     @Suppress(
         "LongMethod",
         "ThrowsCount",
@@ -115,9 +119,13 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
         makeRequest(BodyInserters.fromValue(execution), "/createExecution") { it.bodyToMono(Long::class.java) }
             .doOnNext { executionId ->
                 execId = executionId
-                makeRequest(BodyInserters.fromValue(getAllTestSuites(project)), "/saveTestSuites") { it.bodyToMono<List<TestSuite>>() }
+                makeRequest(BodyInserters.fromValue(testDiscoveringService.getAllTestSuites(project, path)), "/saveTestSuites") {
+                    it.bodyToMono<List<TestSuite>>()
+                }
                     .doOnNext { testSuiteList ->
-                        makeRequest(BodyInserters.fromValue(getAllTests(path, testSuiteList)), "/initializeTests?executionId=$executionId") { it.toBodilessEntity() }
+                        makeRequest(BodyInserters.fromValue(testDiscoveringService.getAllTests(path, testSuiteList)), "/initializeTests?executionId=$executionId") {
+                            it.toBodilessEntity()
+                        }
                             .doOnNext {
                                 // Post request to orchestrator to initiate its work
                                 log.debug("Knock-Knock Orchestrator")
@@ -151,18 +159,5 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
                 )
             }
         return toBody(responseSpec)
-    }
-
-    private fun getAllTestSuites(project: Project) = listOf(TestSuiteDto(TestSuiteType.PROJECT, "test", project))
-
-    private fun getAllTests(path: String, testSuites: List<TestSuite>): List<TestDto> {
-        // todo Save should find and create correct TestDtos. Not it's just a stub
-        return File(configProperties.repository, path)
-            .walkTopDown()
-            .filter { it.isFile }
-            .map {
-                TestDto(it.path, testSuites[0].id ?: 1, it.toHash())
-            }
-            .toList()
     }
 }
