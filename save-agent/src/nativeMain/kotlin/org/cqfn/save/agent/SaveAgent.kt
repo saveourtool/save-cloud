@@ -71,7 +71,7 @@ class SaveAgent(private val config: AgentConfiguration,
     @Suppress("WHEN_WITHOUT_ELSE")  // when with sealed class
     private suspend fun startHeartbeats() = coroutineScope {
         println("Scheduling heartbeats")
-        sendAdditionalDataToBackend { saveAdditionalData() }
+        sendDataToBackend { saveAdditionalData() }
         while (true) {
             val response = runCatching {
                 // TODO: get execution progress here
@@ -121,7 +121,7 @@ class SaveAgent(private val config: AgentConfiguration,
                 // todo: parse test executions from files
                 val currentTime = Clock.System.now().toEpochMilliseconds()
                 val testExecutionDtoExample = TestExecutionDto(0L, 0L, TestResultStatus.PASSED, currentTime, currentTime)
-                sendAdditionalDataToBackend {
+                sendDataToBackend {
                     postExecutionData(testExecutionDtoExample)
                 }
                 runCatching {
@@ -169,7 +169,7 @@ class SaveAgent(private val config: AgentConfiguration,
     /**
      * Attempt to send execution data to backend, will retry several times, while increasing delay 2 times on each iteration.
      */
-    private suspend fun sendAdditionalDataToBackend(
+    private suspend fun sendDataToBackend(
         requestToBackend: requestType
     ) = coroutineScope {
         var retryInterval = config.executionDataInitialRetryMillis
