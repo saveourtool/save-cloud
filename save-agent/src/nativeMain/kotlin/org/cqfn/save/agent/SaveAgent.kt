@@ -194,8 +194,8 @@ class SaveAgent(private val config: AgentConfiguration,
     }
 
     private suspend fun makeRequestToBackend(testExecutionDto: TestExecutionDto?) = testExecutionDto?.let {
-            return postExecutionData(it)
-        } ?: saveAdditionalData()
+        return postExecutionData(it)
+    } ?: saveAdditionalData()
 
     private suspend fun postExecutionData(testExecutionDto: TestExecutionDto) = httpClient.post<HttpResponse> {
         url("${config.backendUrl}/executionData")
