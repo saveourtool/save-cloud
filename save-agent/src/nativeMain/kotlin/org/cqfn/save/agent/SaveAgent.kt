@@ -32,8 +32,6 @@ import kotlinx.datetime.Clock
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 
-typealias requestType = suspend () -> HttpResponse
-
 /**
  * A main class for SAVE Agent
  */
@@ -170,7 +168,7 @@ class SaveAgent(private val config: AgentConfiguration,
      * Attempt to send execution data to backend, will retry several times, while increasing delay 2 times on each iteration.
      */
     private suspend fun sendDataToBackend(
-        requestToBackend: requestType
+        requestToBackend: suspend () -> HttpResponse
     ) = coroutineScope {
         var retryInterval = config.executionDataInitialRetryMillis
         repeat(config.executionDataRetryAttempts) { attempt ->
