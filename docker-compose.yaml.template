@@ -21,6 +21,7 @@ services:
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
       - save:/home/cnb
+      - /home/saveu/executionLogs:/home/cnb/executionLogs/
     deploy:
       labels:
         - "prometheus-job=save-orchestrator"
