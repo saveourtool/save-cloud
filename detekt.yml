@@ -638,10 +638,7 @@ style:
     active: false
     includeLineWrapping: false
   ForbiddenComment:
-    excludes: ['**/resources/**']
-    active: true
-    values: ['TODO:', 'STOPSHIP:']
-    allowedPatterns: ''
+    active: false
   ForbiddenImport:
     excludes: ['**/resources/**']
     active: false

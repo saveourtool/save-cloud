@@ -88,7 +88,11 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
                     log.info("Repository cloned: ${gitRepository.url}")
                     // Post request to backend to create PENDING executions
                     // Fixme: need to initialize test suite ids
-                    sendToBackendAndOrchestrator(project, tmpDir.relativeTo(File(configProperties.repository)).normalize().path)
+                    sendToBackendAndOrchestrator(
+                        project,
+                        executionRequest.propertiesRelativePath,
+                        tmpDir.relativeTo(File(configProperties.repository)).normalize().path
+                    )
                 }
         } catch (exception: Exception) {
             tmpDir.deleteRecursively()
@@ -107,17 +111,17 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
         "TooGenericExceptionCaught",
         "TOO_LONG_FUNCTION",
         "LOCAL_VARIABLE_EARLY_DECLARATION")
-    private fun sendToBackendAndOrchestrator(project: Project, path: String) {
+    private fun sendToBackendAndOrchestrator(project: Project, propertiesRelativePath: String, resourcesRootPath: String) {
         val execution = Execution(project, LocalDateTime.now(), LocalDateTime.now(),
-            ExecutionStatus.PENDING, "1", path, 0, configProperties.executionLimit)
+            ExecutionStatus.PENDING, "1", resourcesRootPath, 0, configProperties.executionLimit)
         var execId: Long
         log.debug("Knock-Knock Backend")
         makeRequest(BodyInserters.fromValue(execution), "/createExecution") { it.bodyToMono(Long::class.java) }
             .doOnNext { executionId ->
                 execId = executionId
-                makeRequest(BodyInserters.fromValue(getAllTestSuites(project)), "/saveTestSuites") { it.bodyToMono<List<TestSuite>>() }
+                makeRequest(BodyInserters.fromValue(getAllTestSuites(project, propertiesRelativePath)), "/saveTestSuites") { it.bodyToMono<List<TestSuite>>() }
                     .doOnNext { testSuiteList ->
-                        makeRequest(BodyInserters.fromValue(getAllTests(path, testSuiteList)), "/initializeTests?executionId=$executionId") { it.toBodilessEntity() }
+                        makeRequest(BodyInserters.fromValue(getAllTests(resourcesRootPath, testSuiteList)), "/initializeTests?executionId=$executionId") { it.toBodilessEntity() }
                             .doOnNext {
                                 // Post request to orchestrator to initiate its work
                                 log.debug("Knock-Knock Orchestrator")
@@ -153,7 +157,8 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
         return toBody(responseSpec)
     }
 
-    private fun getAllTestSuites(project: Project) = listOf(TestSuiteDto(TestSuiteType.PROJECT, "test", project))
+    private fun getAllTestSuites(project: Project, propertiesRelativePath: String) =
+            listOf(TestSuiteDto(TestSuiteType.PROJECT, "test", project, propertiesRelativePath))
 
     private fun getAllTests(path: String, testSuites: List<TestSuite>): List<TestDto> {
         // todo Save should find and create correct TestDtos. Not it's just a stub
