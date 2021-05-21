@@ -68,11 +68,6 @@ talaiot {
 
 allprojects {
     repositories {
-        mavenLocal {
-            content {
-                includeGroup("org.cqfn.save")
-            }
-        }
         mavenCentral()
         maven("https://maven.pkg.jetbrains.space/public/p/kotlinx-html/maven") {  // detekt requires kotlinx.html
             content {
