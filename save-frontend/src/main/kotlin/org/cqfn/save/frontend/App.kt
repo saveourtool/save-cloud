@@ -60,12 +60,12 @@ class App : RComponent<RProps, AppState>() {
                 div("container-fluid") {
                     switch {
                         route("/", exact = true, component = CollectionView::class)
-                        route<ProjectRouteProps>("/:type/:owner/:name", exact = true) { routeResultProps ->
+                        route<ProjectExecutionRouteProps>("/:type/:owner/:name", exact = true) { routeResultProps ->
                             child(ProjectView::class) {
-                                attrs.project = routeResultProps.match.params.toProject()
+                                attrs.executionRequest = routeResultProps.match.params.toExecutionRequest()
                             }
                         }
-                        route<ProjectRouteProps>("/:type/:owner/:name/history", exact = true) { routeResultProps ->
+                        route<ProjectExecutionRouteProps>("/:type/:owner/:name/history", exact = true) { routeResultProps ->
                             child(HistoryView::class) {
                                 attrs.project = routeResultProps.match.params.toProject()
                             }
@@ -76,7 +76,6 @@ class App : RComponent<RProps, AppState>() {
                                 attrs.executionId = props.match.params.executionId
                             }
                         }
-                        route("/newProject", exact = true, component = NewProject::class)
                         route("*", component = FallbackView::class)
                     }
                 }
