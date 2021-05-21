@@ -85,7 +85,7 @@ class TestService(private val configProperties: ConfigProperties) {
         ++execution.page
         executionRepository.save(execution)
         return Mono.just(TestBatch(testDtos, tests.map { it.test.testSuite }.associate {
-            it.id!! to it.propertiesRelativePath
+            it.id!! to "--properties-file ${it.propertiesRelativePath}"
         }))
     }
 }
