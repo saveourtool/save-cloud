@@ -9,6 +9,7 @@ import org.cqfn.save.backend.repository.TestSuiteRepository
 import org.cqfn.save.domain.TestResultStatus
 import org.cqfn.save.entities.Test
 import org.cqfn.save.entities.TestSuite
+import org.cqfn.save.test.TestBatch
 import org.cqfn.save.test.TestDto
 
 import org.slf4j.LoggerFactory
@@ -50,7 +51,7 @@ class TestService(private val configProperties: ConfigProperties) {
         val testsId: MutableCollection<Long> = mutableListOf()
         tests.forEach { testDto ->
             testRepository.findByHash(testDto.hash!!)?.let { testsId.add(it.id!!) } ?: run {
-                val testSuite = TestSuite().apply {
+                val testSuite = TestSuite(propertiesRelativePath = "FB").apply {
                     id = testDto.testSuiteId
                 }
                 Test(testDto.hash!!, testDto.filePath, LocalDateTime.now(), testSuite).run {
@@ -67,7 +68,7 @@ class TestService(private val configProperties: ConfigProperties) {
      * @return Test batches
      */
     @Transactional
-    fun getTestBatches(agentId: String): monoBatchTests {
+    fun getTestBatches(agentId: String): Mono<TestBatch> {
         val agent = agentRepository.findByContainerId(agentId) ?: error("The specified agent does not exist")
         log.debug("Agent found: $agent")
         val execution = agent.execution
@@ -76,14 +77,15 @@ class TestService(private val configProperties: ConfigProperties) {
             TestResultStatus.READY,
             execution.id!!,
             PageRequest.of(execution.page, execution.batchSize)
-        ).map {
+        )
+        val testDtos = tests.map {
             TestDto(it.test.filePath, it.test.testSuite.id!!, null)
         }
         log.debug("Increasing offset of the execution - ${agent.execution}")
         ++execution.page
         executionRepository.save(execution)
-        return Mono.just(tests)
+        return Mono.just(TestBatch(testDtos, tests.map { it.test.testSuite }.associate {
+            it.id!! to it.propertiesRelativePath
+        }))
     }
 }
-
-typealias monoBatchTests = Mono<List<TestDto>>
