@@ -40,6 +40,7 @@ import java.time.LocalDateTime
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.cqfn.save.test.TestBatch
 
 @WebFluxTest
 @Import(Beans::class, AgentService::class)
@@ -81,9 +82,10 @@ class HeartbeatControllerTest {
     @Test
     fun checkNewJobResponse() {
         val list = listOf(TestDto("qwe", 0, null))
+        // /getTestBatches
         mockServer.enqueue(
             MockResponse()
-                .setBody(Json.encodeToString(list))
+                .setBody(Json.encodeToString(TestBatch(list, mapOf(0L to ""))))
                 .addHeader("Content-Type", "application/json")
         )
 
@@ -100,7 +102,7 @@ class HeartbeatControllerTest {
                 AgentStatusDto(LocalDateTime.now(), AgentState.BUSY, "test-2"),
             ),
             heartbeat = Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100)),
-            tests = emptyList(),
+            testBatch = TestBatch(emptyList(), emptyMap()),
             mockAgentStatuses = true,
         ) {
             verify(dockerService, times(0)).stopAgents(any())
@@ -115,10 +117,13 @@ class HeartbeatControllerTest {
                 AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "test-2"),
             ),
             heartbeat = Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100)),
-            tests = listOf(
-                TestDto("/path/to/test-1", 1, null),
-                TestDto("/path/to/test-2", 1, null),
-                TestDto("/path/to/test-3", 1, null),
+            testBatch = TestBatch(
+                listOf(
+                    TestDto("/path/to/test-1", 1, null),
+                    TestDto("/path/to/test-2", 1, null),
+                    TestDto("/path/to/test-3", 1, null),
+                ),
+                mapOf(1L to "")
             ),
             mockAgentStatuses = false,
         ) {
@@ -134,7 +139,7 @@ class HeartbeatControllerTest {
                 AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "test-2"),
             ),
             heartbeat = Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100)),
-            tests = emptyList(),
+            testBatch = TestBatch(emptyList(), emptyMap()),
             mockAgentStatuses = true,
         ) {
             verify(dockerService, times(1)).stopAgents(any())
@@ -153,7 +158,7 @@ class HeartbeatControllerTest {
     private fun testHeartbeat(
         agentStatusDtos: List<AgentStatusDto>,
         heartbeat: Heartbeat,
-        tests: List<TestDto>,
+        testBatch: TestBatch,
         mockAgentStatuses: Boolean = false,
         verification: () -> Unit,
     ) {
@@ -164,7 +169,7 @@ class HeartbeatControllerTest {
         // /getTestBatches
         mockServer.enqueue(
             MockResponse()
-                .setBody(Json.encodeToString(tests))
+                .setBody(Json.encodeToString(testBatch))
                 .addHeader("Content-Type", "application/json")
         )
         if (mockAgentStatuses) {

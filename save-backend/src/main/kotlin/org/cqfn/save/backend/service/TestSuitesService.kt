@@ -20,7 +20,7 @@ class TestSuitesService {
      * @return list of TestSuites
      */
     fun saveTestSuite(testSuitesDto: List<TestSuiteDto>): List<TestSuite> {
-        val testSuites = testSuitesDto.map { TestSuite(it.type, it.name, it.project, LocalDateTime.now()) }
+        val testSuites = testSuitesDto.map { TestSuite(it.type, it.name, it.project, LocalDateTime.now(), "save.properties") }
         testSuiteRepository.saveAll(testSuites)
         return testSuites
     }

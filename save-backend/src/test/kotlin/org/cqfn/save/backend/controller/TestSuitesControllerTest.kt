@@ -17,6 +17,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.WebTestClient
+import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
 import reactor.kotlin.core.publisher.toMono
 import java.time.LocalDateTime
@@ -38,12 +39,13 @@ class TestSuitesControllerTest {
     lateinit var projectRepository: ProjectRepository
 
     @Test
-    fun testConnection() {
+    fun `should accept test suites and return saved test suites`() {
         val project = projectRepository.findById(1).get()
         val testSuite = TestSuiteDto(
             TestSuiteType.PROJECT,
             "test",
-            project
+            project,
+            "save.properties"
         )
 
         webClient.post()
@@ -51,15 +53,13 @@ class TestSuitesControllerTest {
             .contentType(MediaType.APPLICATION_JSON)
             .body(BodyInserters.fromValue(listOf(testSuite)))
             .exchange()
-            .toMono()
-            .subscribe {
-                it.expectBody(ParameterizedTypeReference.forType<List<TestSuite>>(List::class.java))
-                    .value<Nothing> {
-                        Assert.assertEquals(it.size, listOf(testSuite).size)
-                        Assert.assertEquals(it[0].name, testSuite.name)
-                        Assert.assertEquals(it[0].project, testSuite.project)
-                        Assert.assertEquals(it[0].type, testSuite.type)
-                    }
+            .expectBody<List<TestSuite>>()
+            .consumeWith {
+                val body = it.responseBody
+                Assert.assertEquals(body.size, listOf(testSuite).size)
+                Assert.assertEquals(body[0].name, testSuite.name)
+                Assert.assertEquals(body[0].project, testSuite.project)
+                Assert.assertEquals(body[0].type, testSuite.type)
             }
     }
 
@@ -69,7 +69,8 @@ class TestSuitesControllerTest {
         val testSuite = TestSuiteDto(
             TestSuiteType.PROJECT,
             "test",
-            project
+            project,
+            "save.properties"
         )
 
         webClient.post()
@@ -77,7 +78,7 @@ class TestSuitesControllerTest {
             .contentType(MediaType.APPLICATION_JSON)
             .body(BodyInserters.fromValue(listOf(testSuite)))
             .exchange()
-            .expectBody(ParameterizedTypeReference.forType<List<TestSuite>>(List::class.java))
+            .expectBody<List<TestSuite>>()
 
         val databaseData = testSuiteRepository.findAll()
 

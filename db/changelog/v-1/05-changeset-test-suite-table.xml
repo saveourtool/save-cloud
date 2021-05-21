@@ -27,6 +27,9 @@
             <column name="date_added" type="DATETIME">
                 <constraints nullable="false" />
             </column>
+            <column name="properties_relative_path" type="varchar(256)">
+                <constraints nullable="false" />
+            </column>
         </createTable>
 
         <rollback>

@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.RequestPart
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
 import java.io.File
+import kotlin.io.path.ExperimentalPathApi
+import kotlin.io.path.createTempFile
 
 /**
  * A Spring controller for file downloading
@@ -21,9 +23,10 @@ class DownloadFilesController {
     /**
      * @return [Mono] with file contents
      */
+    @OptIn(ExperimentalPathApi::class)  // todo: this method is unused now, so tmp file is for tests only
     @GetMapping(value = ["/download"], produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
     fun download() = Mono.fromCallable {
-        val file = File("test.txt")
+        val file = createTempFile("stub").toFile()
         file.createNewFile()
         file.bufferedWriter().use {
             it.write("qweqwe")
