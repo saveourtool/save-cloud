@@ -24,7 +24,7 @@ Deployment is performed on server via docker swarm or locally via docker-compose
 * Run `./gradlew deployLocal -Pprofile=dev` to start only some components.
 
 ## Ports allocation
-| port | descritpion |
+| port | description |
 | ---- | ----------- |
 | 3306 | database (locally) |
 | 5000 | save-backend |
@@ -38,3 +38,8 @@ Deployment is performed on server via docker swarm or locally via docker-compose
 ## Secrets
 * Liquibase is reading secrets from the secrets file located on the server in the `home` directory.
 * PostProcessor is reading secrets for database connection from the docker secrets and fills the spring datasource. (DockerSecretsDatabaseProcessor class)
+
+# Server configuration
+## Nginx
+Nginx is used as a reverse proxy, which allows access from external network to backend and some other services.
+File `save-deploy/reverse-proxy.conf` should be copied to `/etc/nginx/sites-available`.
