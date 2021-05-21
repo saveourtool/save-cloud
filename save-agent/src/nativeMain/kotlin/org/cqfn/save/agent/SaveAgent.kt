@@ -3,6 +3,8 @@
 package org.cqfn.save.agent
 
 import org.cqfn.save.agent.utils.readFile
+import org.cqfn.save.core.logging.logError
+import org.cqfn.save.core.logging.logInfo
 import org.cqfn.save.core.utils.ExecutionResult
 import org.cqfn.save.core.utils.ProcessBuilder
 import org.cqfn.save.domain.TestResultStatus
@@ -53,6 +55,8 @@ class SaveAgent(private val config: AgentConfiguration,
                     }
                 }
 ) {
+    private val logFilePath = "logs.txt"
+
     /**
      * The current [AgentState] of this agent
      */
@@ -63,14 +67,14 @@ class SaveAgent(private val config: AgentConfiguration,
      * @return Unit
      */
     suspend fun start() = coroutineScope {
-        println("Starting agent")
+        logInfo("Starting agent")
         val heartbeatsJob = launch { startHeartbeats() }
         heartbeatsJob.join()
     }
 
     @Suppress("WHEN_WITHOUT_ELSE")  // when with sealed class
     private suspend fun startHeartbeats() = coroutineScope {
-        println("Scheduling heartbeats")
+        logInfo("Scheduling heartbeats")
         sendDataToBackend { saveAdditionalData() }
         while (true) {
             val response = runCatching {
@@ -84,17 +88,17 @@ class SaveAgent(private val config: AgentConfiguration,
                     ContinueResponse -> Unit  // do nothing
                 }
             } else {
-                println("Exception during heartbeat: ${response.exceptionOrNull()?.message}")
+                logError("Exception during heartbeat: ${response.exceptionOrNull()?.message}")
             }
             // todo: start waiting after request was sent, not after response?
-            println("Waiting for ${config.heartbeat.interval} sec")
+            logInfo("Waiting for ${config.heartbeat.interval} sec")
             delay(config.heartbeat.interval)
         }
     }
 
     private suspend fun maybeStartSaveProcess(cliArgs: String) = coroutineScope {
         if (saveProcessJob?.isCompleted == false) {
-            println("Shouldn't start new process when there is the previous running")
+            logError("Shouldn't start new process when there is the previous running")
         } else {
             saveProcessJob = launch {
                 // new job received from Orchestrator, spawning SAVE CLI process
@@ -112,9 +116,18 @@ class SaveAgent(private val config: AgentConfiguration,
         // blocking execution of OS process
         state.value = AgentState.BUSY
         val executionResult = runSave(cliArgs)
+        val executionLogs = ExecutionLogs(config.id, readFile(logFilePath))
+        val logsSending = launch {
+            runCatching {
+                sendLogs(executionLogs)
+            }
+                .exceptionOrNull()
+                ?.let {
+                    logError("Couldn't send logs, reason: ${it.message}")
+                }
+        }
         when (executionResult.code) {
             0 -> {
-                val executionLogs = ExecutionLogs(config.id, readFile("logs.txt"))
                 if (executionLogs.cliLogs.isEmpty()) {
                     state.value = AgentState.CLI_FAILED
                     return@coroutineScope
@@ -125,24 +138,18 @@ class SaveAgent(private val config: AgentConfiguration,
                 sendDataToBackend {
                     postExecutionData(testExecutionDtoExample)
                 }
-                runCatching {
-                    sendLogs(executionLogs)
-                }
-                    .exceptionOrNull()
-                    ?.let {
-                        println("Couldn't send logs, reason: ${it.message}")
-                    }
                 state.value = AgentState.FINISHED
             }
             else -> {
-                println("SAVE has exited abnormally with status ${executionResult.code}")
+                logError("SAVE has exited abnormally with status ${executionResult.code}")
                 state.value = AgentState.CLI_FAILED
             }
         }
+        logsSending.join()
     }
 
     private fun runSave(cliArgs: String): ExecutionResult =
-            ProcessBuilder().exec(config.cliCommand.let { if (cliArgs.isNotEmpty()) "$it $cliArgs" else it }, "logs.txt".toPath())
+            ProcessBuilder().exec(config.cliCommand.let { if (cliArgs.isNotEmpty()) "$it $cliArgs" else it }, logFilePath.toPath())
 
     /**
      * @param executionLogs logs of CLI execution progress that will be sent in a message
@@ -188,7 +195,7 @@ class SaveAgent(private val config: AgentConfiguration,
                     state.value = AgentState.BACKEND_UNREACHABLE
                     "Backend is unreachable, ${result.exceptionOrNull()?.message}"
                 }
-                println("Cannot post execution data (x$attempt), will retry in $retryInterval second. Reason: $reason")
+                logError("Cannot post execution data (x$attempt), will retry in $retryInterval second. Reason: $reason")
                 delay(retryInterval)
                 retryInterval *= 2
             }
