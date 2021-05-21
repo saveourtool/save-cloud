@@ -3,6 +3,8 @@
 package org.cqfn.save.agent
 
 import org.cqfn.save.agent.utils.readFile
+import org.cqfn.save.core.logging.logError
+import org.cqfn.save.core.logging.logInfo
 import org.cqfn.save.core.utils.ExecutionResult
 import org.cqfn.save.core.utils.ProcessBuilder
 import org.cqfn.save.domain.TestResultStatus
@@ -65,14 +67,14 @@ class SaveAgent(private val config: AgentConfiguration,
      * @return Unit
      */
     suspend fun start() = coroutineScope {
-        println("Starting agent")
+        logInfo("Starting agent")
         val heartbeatsJob = launch { startHeartbeats() }
         heartbeatsJob.join()
     }
 
     @Suppress("WHEN_WITHOUT_ELSE")  // when with sealed class
     private suspend fun startHeartbeats() = coroutineScope {
-        println("Scheduling heartbeats")
+        logInfo("Scheduling heartbeats")
         sendDataToBackend { saveAdditionalData() }
         while (true) {
             val response = runCatching {
@@ -86,17 +88,17 @@ class SaveAgent(private val config: AgentConfiguration,
                     ContinueResponse -> Unit  // do nothing
                 }
             } else {
-                println("Exception during heartbeat: ${response.exceptionOrNull()?.message}")
+                logError("Exception during heartbeat: ${response.exceptionOrNull()?.message}")
             }
             // todo: start waiting after request was sent, not after response?
-            println("Waiting for ${config.heartbeat.interval} sec")
+            logInfo("Waiting for ${config.heartbeat.interval} sec")
             delay(config.heartbeat.interval)
         }
     }
 
     private suspend fun maybeStartSaveProcess(cliArgs: String) = coroutineScope {
         if (saveProcessJob?.isCompleted == false) {
-            println("Shouldn't start new process when there is the previous running")
+            logError("Shouldn't start new process when there is the previous running")
         } else {
             saveProcessJob = launch {
                 // new job received from Orchestrator, spawning SAVE CLI process
@@ -121,7 +123,7 @@ class SaveAgent(private val config: AgentConfiguration,
             }
                 .exceptionOrNull()
                 ?.let {
-                    println("Couldn't send logs, reason: ${it.message}")
+                    logError("Couldn't send logs, reason: ${it.message}")
                 }
         }
         when (executionResult.code) {
@@ -139,7 +141,7 @@ class SaveAgent(private val config: AgentConfiguration,
                 state.value = AgentState.FINISHED
             }
             else -> {
-                println("SAVE has exited abnormally with status ${executionResult.code}")
+                logError("SAVE has exited abnormally with status ${executionResult.code}")
                 state.value = AgentState.CLI_FAILED
             }
         }
@@ -193,7 +195,7 @@ class SaveAgent(private val config: AgentConfiguration,
                     state.value = AgentState.BACKEND_UNREACHABLE
                     "Backend is unreachable, ${result.exceptionOrNull()?.message}"
                 }
-                println("Cannot post execution data (x$attempt), will retry in $retryInterval second. Reason: $reason")
+                logError("Cannot post execution data (x$attempt), will retry in $retryInterval second. Reason: $reason")
                 delay(retryInterval)
                 retryInterval *= 2
             }
