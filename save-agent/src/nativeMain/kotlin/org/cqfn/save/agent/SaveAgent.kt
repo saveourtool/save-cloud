@@ -53,6 +53,8 @@ class SaveAgent(private val config: AgentConfiguration,
                     }
                 }
 ) {
+    private val logFilePath = "logs.txt"
+
     /**
      * The current [AgentState] of this agent
      */
@@ -112,9 +114,18 @@ class SaveAgent(private val config: AgentConfiguration,
         // blocking execution of OS process
         state.value = AgentState.BUSY
         val executionResult = runSave(cliArgs)
+        val executionLogs = ExecutionLogs(config.id, readFile(logFilePath))
+        val logsSending = launch {
+            runCatching {
+                sendLogs(executionLogs)
+            }
+                .exceptionOrNull()
+                ?.let {
+                    println("Couldn't send logs, reason: ${it.message}")
+                }
+        }
         when (executionResult.code) {
             0 -> {
-                val executionLogs = ExecutionLogs(config.id, readFile("logs.txt"))
                 if (executionLogs.cliLogs.isEmpty()) {
                     state.value = AgentState.CLI_FAILED
                     return@coroutineScope
@@ -125,13 +136,6 @@ class SaveAgent(private val config: AgentConfiguration,
                 sendDataToBackend {
                     postExecutionData(testExecutionDtoExample)
                 }
-                runCatching {
-                    sendLogs(executionLogs)
-                }
-                    .exceptionOrNull()
-                    ?.let {
-                        println("Couldn't send logs, reason: ${it.message}")
-                    }
                 state.value = AgentState.FINISHED
             }
             else -> {
@@ -139,10 +143,11 @@ class SaveAgent(private val config: AgentConfiguration,
                 state.value = AgentState.CLI_FAILED
             }
         }
+        logsSending.join()
     }
 
     private fun runSave(cliArgs: String): ExecutionResult =
-            ProcessBuilder().exec(config.cliCommand.let { if (cliArgs.isNotEmpty()) "$it $cliArgs" else it }, "logs.txt".toPath())
+            ProcessBuilder().exec(config.cliCommand.let { if (cliArgs.isNotEmpty()) "$it $cliArgs" else it }, logFilePath.toPath())
 
     /**
      * @param executionLogs logs of CLI execution progress that will be sent in a message
