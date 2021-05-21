@@ -8,6 +8,7 @@ import org.cqfn.save.entities.AgentStatusDto
 import org.cqfn.save.orchestrator.config.Beans
 import org.cqfn.save.orchestrator.service.AgentService
 import org.cqfn.save.orchestrator.service.DockerService
+import org.cqfn.save.test.TestBatch
 import org.cqfn.save.test.TestDto
 
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -40,7 +41,6 @@ import java.time.LocalDateTime
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.cqfn.save.test.TestBatch
 
 @WebFluxTest
 @Import(Beans::class, AgentService::class)
