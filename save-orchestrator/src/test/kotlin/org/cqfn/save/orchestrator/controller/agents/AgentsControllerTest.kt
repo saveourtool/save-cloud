@@ -126,7 +126,7 @@ class AgentsControllerTest {
         val logs = """
             first line
             second line
-        """.trimIndent().split(System.lineSeparator())
+        """.trimIndent().lines()
         makeRequestToSaveLog(logs)
             .expectStatus()
             .isOk
@@ -140,17 +140,18 @@ class AgentsControllerTest {
         val firstLogs = """
             first line
             second line
-        """.trimIndent().split(System.lineSeparator())
+        """.trimIndent().lines()
         makeRequestToSaveLog(firstLogs)
             .expectStatus()
             .isOk
         val firstLogFile = File(configProperties.executionLogs + File.separator + "agent.log")
         Assertions.assertTrue(firstLogFile.exists())
         Assertions.assertEquals(firstLogFile.readLines(), firstLogs)
+
         val secondLogs = """
             second line
             first line
-        """.trimIndent().split(System.lineSeparator())
+        """.trimIndent().lines()
         makeRequestToSaveLog(secondLogs)
             .expectStatus()
             .isOk
