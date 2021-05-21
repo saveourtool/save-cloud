@@ -86,7 +86,11 @@ class DownloadProjectTest(
             MockResponse()
                 .setResponseCode(200)
                 .setHeader("Content-Type", "application/json")
-                .setBody(objectMapper.writeValueAsString(listOf(TestSuite(TestSuiteType.PROJECT, "", project, LocalDateTime.now())))),
+                .setBody(objectMapper.writeValueAsString(
+                    listOf(
+                        TestSuite(TestSuiteType.PROJECT, "", project, LocalDateTime.now(), "save.properties")
+                    )
+                )),
         )
         mockServerBackend.enqueue(
             MockResponse()

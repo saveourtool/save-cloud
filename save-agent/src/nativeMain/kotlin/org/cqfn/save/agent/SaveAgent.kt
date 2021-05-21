@@ -76,8 +76,8 @@ class SaveAgent(private val config: AgentConfiguration,
                 sendHeartbeat(ExecutionProgress(0))
             }
             if (response.isSuccess) {
-                when (response.getOrNull()) {
-                    is NewJobResponse -> maybeStartSaveProcess()
+                when (val heartbeatResponse = response.getOrNull()) {
+                    is NewJobResponse -> maybeStartSaveProcess(heartbeatResponse.cliArgs)
                     WaitResponse -> state.value = AgentState.IDLE
                     ContinueResponse -> Unit  // do nothing
                 }
@@ -90,25 +90,26 @@ class SaveAgent(private val config: AgentConfiguration,
         }
     }
 
-    private suspend fun maybeStartSaveProcess() = coroutineScope {
+    private suspend fun maybeStartSaveProcess(cliArgs: String) = coroutineScope {
         if (saveProcessJob?.isCompleted == false) {
             println("Shouldn't start new process when there is the previous running")
         } else {
             saveProcessJob = launch {
                 // new job received from Orchestrator, spawning SAVE CLI process
-                startSaveProcess()
+                startSaveProcess(cliArgs)
             }
         }
     }
 
     /**
+     * @param cliArgs arguments for SAVE process
      * @return Unit
      */
     @Suppress("MAGIC_NUMBER")  // todo: unsuppress when mocked data is substituted by actual
-    internal suspend fun startSaveProcess() = coroutineScope {
+    internal suspend fun startSaveProcess(cliArgs: String) = coroutineScope {
         // blocking execution of OS process
         state.value = AgentState.BUSY
-        val executionResult = runSave(emptyList())
+        val executionResult = runSave(cliArgs)
         when (executionResult.code) {
             0 -> {
                 val executionLogs = ExecutionLogs(config.id, readFile("logs.txt"))
@@ -138,8 +139,8 @@ class SaveAgent(private val config: AgentConfiguration,
         }
     }
 
-    private fun runSave(cliArgs: List<String>): ExecutionResult =
-            ProcessBuilder().exec(config.cliCommand, "logs.txt".toPath())
+    private fun runSave(cliArgs: String): ExecutionResult =
+            ProcessBuilder().exec(config.cliCommand.let { if (cliArgs.isNotEmpty()) "$it $cliArgs" else it }, "logs.txt".toPath())
 
     /**
      * @param executionLogs logs of CLI execution progress that will be sent in a message

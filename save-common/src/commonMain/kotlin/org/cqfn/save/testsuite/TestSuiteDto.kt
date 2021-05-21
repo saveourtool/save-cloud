@@ -5,13 +5,15 @@ import org.cqfn.save.entities.Project
 import kotlinx.serialization.Serializable
 
 /**
- * @property type
- * @property name
- * @property project
+ * @property type [TestSuite.type]
+ * @property name [TestSuite.name]
+ * @property project [TestSuite.project]
+ * @property propertiesRelativePath [TestSuite.propertiesRelativePath]
  */
 @Serializable
 data class TestSuiteDto(
     val type: TestSuiteType,
-    var name: String,
-    var project: Project? = null,
+    val name: String,
+    val project: Project? = null,
+    val propertiesRelativePath: String,
 )

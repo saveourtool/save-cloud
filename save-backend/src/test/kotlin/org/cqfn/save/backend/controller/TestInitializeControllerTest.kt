@@ -4,6 +4,7 @@ import org.cqfn.save.backend.SaveApplication
 import org.cqfn.save.backend.repository.TestRepository
 import org.cqfn.save.backend.repository.TestSuiteRepository
 import org.cqfn.save.backend.utils.MySqlExtension
+import org.cqfn.save.test.TestBatch
 import org.cqfn.save.test.TestDto
 
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -87,10 +88,10 @@ class TestInitializeControllerTest {
             .exchange()
             .expectStatus()
             .isOk
-            .expectBody<List<TestDto>>()
+            .expectBody<TestBatch>()
             .consumeWith {
                 println(it.responseBody)
-                assertTrue(it.responseBody!!.isNotEmpty() && it.responseBody!!.size == 20)
+                assertTrue(it.responseBody!!.tests.isNotEmpty() && it.responseBody!!.tests.size == 20)
             }
 
         webClient.get()
@@ -98,9 +99,9 @@ class TestInitializeControllerTest {
             .exchange()
             .expectStatus()
             .isOk
-            .expectBody<List<TestDto>>()
+            .expectBody<TestBatch>()
             .consumeWith {
-                assertTrue(it.responseBody!!.size == 3) { "Expected 3 tests, but got ${it.responseBody} instead" }
+                assertTrue(it.responseBody!!.tests.size == 3) { "Expected 3 tests, but got ${it.responseBody.tests} instead" }
             }
     }
 
@@ -111,10 +112,10 @@ class TestInitializeControllerTest {
             .exchange()
             .expectStatus()
             .isOk
-            .expectBody<List<TestDto>>()
+            .expectBody<TestBatch>()
             .consumeWith {
                 println(it.responseBody)
-                assertTrue(it.responseBody!!.isNotEmpty())
+                assertTrue(it.responseBody!!.tests.isNotEmpty())
             }
     }
 }

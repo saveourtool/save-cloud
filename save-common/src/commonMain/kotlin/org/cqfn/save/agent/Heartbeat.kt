@@ -42,5 +42,6 @@ data class Heartbeat(val agentId: String,
 
 /**
  * @property ids a list of new jobs for this agent
+ * @property cliArgs command line arguments for SAVE launch
  */
-@Serializable data class NewJobResponse(val ids: List<TestDto>) : HeartbeatResponse()
+@Serializable data class NewJobResponse(val ids: List<TestDto>, val cliArgs: String) : HeartbeatResponse()
