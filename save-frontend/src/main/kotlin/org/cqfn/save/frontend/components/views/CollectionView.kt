@@ -6,17 +6,19 @@ import org.cqfn.save.frontend.utils.get
 import org.cqfn.save.frontend.utils.unsafeMap
 
 import org.w3c.fetch.Headers
+import react.RBuilder
+import react.RComponent
+import react.RProps
+import react.RState
+import react.child
+import react.dom.a
+import react.dom.button
+import react.dom.div
+import react.dom.td
 import react.table.columns
 
-import kotlinx.browser.window
 import kotlinx.coroutines.await
 import kotlinx.html.ButtonType
-import kotlinx.html.js.onClickFunction
-import org.cqfn.save.frontend.externals.modal.modal
-import org.w3c.fetch.RequestInit
-import react.*
-import react.dom.*
-
 
 /**
  * A view with collection of projects
@@ -24,7 +26,6 @@ import react.dom.*
 @OptIn(ExperimentalJsExport::class)
 @JsExport
 class CollectionView : RComponent<RProps, RState>() {
-
     @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR", "TOO_LONG_FUNCTION", "MAGIC_NUMBER")
     override fun RBuilder.render() {
         div {

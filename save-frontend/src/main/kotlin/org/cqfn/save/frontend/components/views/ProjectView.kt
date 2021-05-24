@@ -4,27 +4,35 @@
 
 package org.cqfn.save.frontend.components.views
 
-import kotlinx.browser.window
+import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.Project
 import org.cqfn.save.frontend.components.basic.cardComponent
 import org.cqfn.save.frontend.externals.modal.modal
+import org.cqfn.save.repository.GitRepository
 
+import org.w3c.dom.HTMLInputElement
+import org.w3c.fetch.Headers
+import org.w3c.fetch.RequestInit
 import react.RBuilder
 import react.RComponent
 import react.RProps
 import react.RState
 import react.child
+import react.dom.a
+import react.dom.button
+import react.dom.div
+import react.dom.h1
+import react.dom.h2
+import react.dom.h6
+import react.dom.input
+import react.dom.p
 import react.setState
 
+import kotlinx.browser.window
 import kotlinx.html.ButtonType
+import kotlinx.html.InputType
+import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
-import org.cqfn.save.entities.ExecutionRequest
-import org.cqfn.save.repository.GitRepository
-import org.w3c.fetch.Headers
-import org.w3c.fetch.RequestInit
-import react.dom.*
-import kotlin.js.Json
-import kotlin.js.json
 
 /**
  * [RProps] for project view
@@ -50,9 +58,14 @@ external interface ProjectExecutionRouteProps : RProps {
  */
 external interface ProjectViewState : RState {
     /**
-     * Whether modal for tests execution request submission is visible
+     * Whether error modal from backend is visible
      */
-    var isModalOpen: Boolean
+    var isErrorOpen: Boolean
+
+    /**
+     * Whether error text from backend is visible
+     */
+    var errorText: String
 }
 
 /**
@@ -63,12 +76,20 @@ external interface ProjectViewState : RState {
 @OptIn(ExperimentalJsExport::class)
 @JsExport
 class ProjectView : RComponent<ProjectProps, ProjectViewState>() {
+    private var pathToProperty: String? = null
+
     init {
-        state.isModalOpen = false
+        state.isErrorOpen = false
+        state.errorText = ""
     }
 
-    fun submitExecutionRequest() {
-        val jsonExecution = JSON.stringify(props.executionRequest)
+    private fun submitExecutionRequest() {
+        val executionRequest = ExecutionRequest(
+            project = props.executionRequest.project,
+            gitRepository = props.executionRequest.gitRepository,
+            propertiesRelativePath = pathToProperty ?: "save.properties"
+        )
+        val jsonExecution = JSON.stringify(executionRequest)
         val headers = Headers().also {
             it.set("Accept", "application/json")
             it.set("Content-Type", "application/json")
@@ -77,14 +98,23 @@ class ProjectView : RComponent<ProjectProps, ProjectViewState>() {
             method = "POST",
             body = jsonExecution,
             headers = headers
-        )).then { it.status }
-        window.location.href = "http://localhost:8080/#/"
+        )).then {
+            if (it.ok) {
+                // fixme redirect to tests info
+                window.location.href = "${window.location.origin}/history"
+            } else {
+                setState {
+                    isErrorOpen = true
+                    errorText = it.statusText
+                }
+            }
+        }
     }
 
     @Suppress("TOO_LONG_FUNCTION")
     override fun RBuilder.render() {
         // modal window for configuring tests run - initially hidden
-
+        runErrorModel()
         // Page Heading
         div("d-sm-flex align-items-center justify-content-between mb-4") {
             h1("h3 mb-0 text-gray-800") {
@@ -99,14 +129,18 @@ class ProjectView : RComponent<ProjectProps, ProjectViewState>() {
                         h6(classes = "d-inline") {
                             +"Path to property file: "
                         }
-                        input {
-                            attrs.placeholder = "save.property"
+                        input(type = InputType.text, name = "itemText") {
+                            attrs {
+                                placeholder = "save.properties"
+                                onChangeFunction = {
+                                    val target = it.target as HTMLInputElement
+                                    pathToProperty = target.value
+                                }
+                            }
                         }
                     }
                     button(type = ButtonType.button, classes = "btn btn-primary") {
-                        attrs.onClickFunction = {
-                            submitExecutionRequest()
-                        }
+                        attrs.onClickFunction = { submitExecutionRequest() }
                         +"Run tests now"
                     }
                 }
@@ -141,6 +175,22 @@ class ProjectView : RComponent<ProjectProps, ProjectViewState>() {
             }
         }
     }
+
+    private fun RBuilder.runErrorModel() = modal {
+        attrs {
+            isOpen = state.isErrorOpen
+            contentLabel = "Error from backend"
+        }
+        div {
+            h2("h3 mb-0 text-gray-800") {
+                +state.errorText
+            }
+        }
+        button(type = ButtonType.button, classes = "btn btn-primary") {
+            attrs.onClickFunction = { setState { isErrorOpen = false } }
+            +"Close"
+        }
+    }
 }
 
 /**
@@ -148,13 +198,21 @@ class ProjectView : RComponent<ProjectProps, ProjectViewState>() {
  */
 @Suppress("EXTENSION_FUNCTION_WITH_CLASS")
 fun ProjectExecutionRouteProps.toProject() = Project(
-      owner = owner,
-      name = name,
-      type = type,
-      description = "Todo: fetch description",
-      url = "Todo: fetch URL",
-  )
+    owner = owner,
+    name = name,
+    type = type,
+    description = "Todo: fetch description",
+    url = "Todo: fetch URL",
+)
 
+/**
+ * @return git repository
+ */
+@Suppress("EXTENSION_FUNCTION_WITH_CLASS")
 fun ProjectExecutionRouteProps.toGitRepository() = GitRepository(url = "url")
 
+/**
+ * @return execution request
+ */
+@Suppress("EXTENSION_FUNCTION_WITH_CLASS")
 fun ProjectExecutionRouteProps.toExecutionRequest() = ExecutionRequest(this.toProject(), this.toGitRepository())
