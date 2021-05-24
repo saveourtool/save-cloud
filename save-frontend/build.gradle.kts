@@ -29,7 +29,7 @@ kotlin {
             implementation("org.jetbrains:kotlin-react:${Versions.kotlinReact}")
             implementation("org.jetbrains:kotlin-react-dom:${Versions.kotlinReact}")
             implementation("org.jetbrains:kotlin-react-router-dom:5.2.0${Versions.kotlinJsWrappersSuffix}")
-            implementation("org.jetbrains:kotlin-react-table:7.6.3${Versions.kotlinJsWrappersSuffix}")
+            implementation("org.jetbrains:kotlin-react-table:7.7.0${Versions.kotlinJsWrappersSuffix}")
             implementation(npm("jquery", "3.5.1"))
             implementation(npm("popper.js", "1.16.1"))  // peer dependency for bootstrap
             implementation(npm("bootstrap", "4.6.0"))

@@ -47,6 +47,7 @@ class TestService(private val configProperties: ConfigProperties) {
      * @param tests
      * @return list tests id's
      */
+    @Suppress("UnsafeCallOnNullableType")
     fun saveTests(tests: List<TestDto>): List<Long> {
         val testsId: MutableCollection<Long> = mutableListOf()
         tests.forEach { testDto ->
@@ -68,6 +69,7 @@ class TestService(private val configProperties: ConfigProperties) {
      * @return Test batches
      */
     @Transactional
+    @Suppress("UnsafeCallOnNullableType")
     fun getTestBatches(agentId: String): Mono<TestBatch> {
         val agent = agentRepository.findByContainerId(agentId) ?: error("The specified agent does not exist")
         log.debug("Agent found: $agent")
