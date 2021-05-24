@@ -18,7 +18,7 @@ import javax.persistence.ManyToOne
  * @property resourcesRootPath path to test resources, relative to shared volume mount point
  * @property batchSize Maximum number of returning tests per execution
  */
-@Suppress("USE_DATA_CLASS")
+@Suppress("USE_DATA_CLASS", "LongParameterList")
 @Entity
 class Execution(
 

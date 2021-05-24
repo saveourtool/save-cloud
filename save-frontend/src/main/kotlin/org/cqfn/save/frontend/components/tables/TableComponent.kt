@@ -9,6 +9,7 @@ package org.cqfn.save.frontend.components.tables
 import org.cqfn.save.frontend.components.modal.errorModal
 import org.cqfn.save.frontend.utils.spread
 
+import kotlinext.js.jsObject
 import react.RProps
 import react.dom.button
 import react.dom.div
@@ -69,7 +70,7 @@ fun <D : Any> tableComponent(columns: Array<out Column<D, *>>,
     val (isModalOpen, setIsModalOpen) = useState(false)
     val (dataAccessException, setDataAccessException) = useState<Exception?>(null)
 
-    val tableInstance: TableInstance<D> = useTable(useSortBy, usePagination) {
+    val tableInstance: TableInstance<D> = useTable(options = jsObject {
         this.columns = useMemo { columns }
         this.data = data
         this.initialState = json(
@@ -77,7 +78,7 @@ fun <D : Any> tableComponent(columns: Array<out Column<D, *>>,
             "pageIndex" to 0,
             "manualPagination" to useServerPaging
         ).unsafeCast<TableState<D>>()
-    }
+    }, plugins = arrayOf(useSortBy, usePagination))
 
     // list of entities, updates of which will cause update of the data retrieving effect
     val dependencies = if (useServerPaging) {

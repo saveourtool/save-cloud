@@ -118,6 +118,7 @@ class AgentsControllerTest {
     }
 
     @Test
+    @Suppress("UnsafeCallOnNullableType")
     fun `should return latest status by container id`() {
         webTestClient
             .method(HttpMethod.GET)
