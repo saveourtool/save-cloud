@@ -29,9 +29,11 @@ class SaveResultTest {
     private lateinit var testExecutionRepository: TestExecutionRepository
 
     @Test
+    @Suppress("UnsafeCallOnNullableType")
     fun `should save TestExecutionDto into the DB`() {
         val testExecutionDto = TestExecutionDto(
             1,
+            "testFilePath",
             1,
             TestResultStatus.FAILED,
             DEFAULT_DATE_TEST_EXECUTION,
@@ -45,8 +47,8 @@ class SaveResultTest {
             .expectBody<String>()
             .isEqualTo("Saved")
         val tests = testExecutionRepository.findAll()
-        assertTrue(tests.any { it.startTime == testExecutionDto.startTimeSeconds.toLocalDateTime().withNano(0) })
-        assertTrue(tests.any { it.endTime == testExecutionDto.endTimeSeconds.toLocalDateTime().withNano(0) })
+        assertTrue(tests.any { it.startTime == testExecutionDto.startTimeSeconds!!.toLocalDateTime().withNano(0) })
+        assertTrue(tests.any { it.endTime == testExecutionDto.endTimeSeconds!!.toLocalDateTime().withNano(0) })
     }
 
     @Test
@@ -54,6 +56,7 @@ class SaveResultTest {
         val invalidId = 999L
         val testExecutionDto = TestExecutionDto(
             invalidId,
+            "testFilePath",
             1,
             TestResultStatus.FAILED,
             DEFAULT_DATE_TEST_EXECUTION,

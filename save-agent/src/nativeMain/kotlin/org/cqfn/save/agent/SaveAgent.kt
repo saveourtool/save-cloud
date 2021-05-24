@@ -132,7 +132,7 @@ class SaveAgent(private val config: AgentConfiguration,
                 }
                 // todo: parse test executions from files
                 val currentTime = Clock.System.now().toEpochMilliseconds()
-                val testExecutionDtoExample = TestExecutionDto(0L, 0L, TestResultStatus.PASSED, currentTime, currentTime)
+                val testExecutionDtoExample = TestExecutionDto(0L, "testFilePath", 0L, TestResultStatus.PASSED, currentTime, currentTime)
                 sendDataToBackend {
                     postExecutionData(testExecutionDtoExample)
                 }

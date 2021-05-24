@@ -45,6 +45,7 @@ class TestExecution(
      *
      * @return a new [TestExecutionDto]
      */
+    @Suppress("UnsafeCallOnNullableType")
     fun toDto() = TestExecutionDto(
         id!!,
         test.filePath,
