@@ -12,7 +12,7 @@ import reactor.core.publisher.Mono
  * Component to frontend
  */
 @Component
-@Suppress("LONG_LINE")
+@Suppress("MaxLineLength", "LONG_LINE")
 class CorsFilter : WebFilter {
     override fun filter(exchange: ServerWebExchange, chain: WebFilterChain): Mono<Void> {
         exchange.response.headers.add("Access-Control-Allow-Origin", "*")
