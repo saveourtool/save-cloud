@@ -20,6 +20,11 @@ id;status;start_time;end_time;test_id;agent_id;execution_id
 "APP_SEQ";"READY";null;null;"19";null;1
 "APP_SEQ";"READY";null;null;"20";null;1
 "APP_SEQ";"READY";null;null;"21";null;1
-"APP_SEQ";"FAILED";null;null;"22";null;1
+"APP_SEQ";"READY";null;null;"22";null;1
 "APP_SEQ";"READY";null;null;"23";null;1
-"APP_SEQ";"READY";null;null;"24";null;2
+"APP_SEQ";"READY";null;null;"24";null;1
+"APP_SEQ";"READY";null;null;"25";null;1
+"APP_SEQ";"READY";null;null;"26";null;1
+"APP_SEQ";"READY";null;null;"27";null;1
+"APP_SEQ";"READY";null;null;"28";null;1
+"APP_SEQ";"READY";null;null;"29";null;2

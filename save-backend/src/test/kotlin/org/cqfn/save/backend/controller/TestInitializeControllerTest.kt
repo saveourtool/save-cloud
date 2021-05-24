@@ -6,6 +6,7 @@ import org.cqfn.save.backend.repository.TestSuiteRepository
 import org.cqfn.save.backend.utils.MySqlExtension
 import org.cqfn.save.test.TestBatch
 import org.cqfn.save.test.TestDto
+import org.junit.jupiter.api.Assertions.assertEquals
 
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -91,7 +92,8 @@ class TestInitializeControllerTest {
             .expectBody<TestBatch>()
             .consumeWith {
                 println(it.responseBody)
-                assertTrue(it.responseBody!!.tests.isNotEmpty() && it.responseBody!!.tests.size == 20)
+                assertTrue(it.responseBody!!.tests.isNotEmpty())
+                assertEquals(10, it.responseBody!!.tests.size)
             }
 
         webClient.get()
@@ -101,7 +103,7 @@ class TestInitializeControllerTest {
             .isOk
             .expectBody<TestBatch>()
             .consumeWith {
-                assertTrue(it.responseBody!!.tests.size == 3) { "Expected 3 tests, but got ${it.responseBody.tests} instead" }
+                assertTrue(it.responseBody!!.tests.size == 5) { "Expected 5 tests, but got ${it.responseBody.tests} instead" }
             }
     }
 
