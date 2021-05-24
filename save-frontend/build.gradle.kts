@@ -12,6 +12,9 @@ kotlin {
             }
         }
         binaries.executable()  // already default for LEGACY, but explicitly needed for IR
+        sourceSets.all {
+            languageSettings.useExperimentalAnnotation("kotlin.RequiresOptIn")
+        }
         sourceSets["main"].dependencies {
             implementation(project(":save-common"))
 
@@ -38,6 +41,8 @@ kotlin {
             implementation(npm("react-modal", "3.12.1"))
 
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${Versions.coroutines}")
+            implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:${Versions.serialization}")
+            implementation("org.jetbrains.kotlinx:kotlinx-datetime:${Versions.kotlinxDatetime}")
         }
         sourceSets["test"].dependencies {
             implementation(kotlin("test-js"))

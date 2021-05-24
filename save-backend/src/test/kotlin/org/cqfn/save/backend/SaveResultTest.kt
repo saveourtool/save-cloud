@@ -45,8 +45,8 @@ class SaveResultTest {
             .expectBody<String>()
             .isEqualTo("Saved")
         val tests = testExecutionRepository.findAll()
-        assertTrue(tests.any { it.startTime == testExecutionDto.startTime.toLocalDateTime().withNano(0) })
-        assertTrue(tests.any { it.endTime == testExecutionDto.endTime.toLocalDateTime().withNano(0) })
+        assertTrue(tests.any { it.startTime == testExecutionDto.startTimeSeconds.toLocalDateTime().withNano(0) })
+        assertTrue(tests.any { it.endTime == testExecutionDto.endTimeSeconds.toLocalDateTime().withNano(0) })
     }
 
     @Test

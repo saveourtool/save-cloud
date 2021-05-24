@@ -7,6 +7,7 @@
 package org.cqfn.save.frontend.components.tables
 
 import org.cqfn.save.frontend.components.modal.errorModal
+import org.cqfn.save.frontend.utils.get
 import org.cqfn.save.frontend.utils.spread
 
 import kotlinext.js.jsObject
@@ -33,7 +34,9 @@ import react.useMemo
 import react.useState
 
 import kotlin.js.json
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.html.ButtonType
 import kotlinx.html.js.onClickFunction
@@ -55,30 +58,53 @@ external interface TableProps : RProps {
  * @param getData a function to retrieve data for the table, returns an array of data of type [out D] that will be inserted into the table
  * @param initialPageSize initial size of table page
  * @param useServerPaging whether data is split into pages server-side or in browser
+ * @param getPageCount a function to retrieve number of pages of data, is [useServerPaging] is `true`
  * @return a functional react component
  */
+@OptIn(ExperimentalCoroutinesApi::class)
 @Suppress("TOO_LONG_FUNCTION",
+    "TYPE_ALIAS",
     "ForbiddenComment",
     "LongMethod",
     "TooGenericExceptionCaught")
 fun <D : Any> tableComponent(columns: Array<out Column<D, *>>,
                              initialPageSize: Int = 10,
                              useServerPaging: Boolean = false,
-                             getData: suspend () -> Array<out D>,
+                             getPageCount: (suspend (pageSize: Int) -> Int)? = null,
+                             getData: suspend (pageIndex: Int, pageSize: Int) -> Array<out D>,
 ) = functionalComponent<TableProps> { props ->
+    require(useServerPaging xor (getPageCount == null)) {
+        "Either use client-side paging or provide a function to get page count"
+    }
+
     val (data, setData) = useState<Array<out D>>(emptyArray())
+    val (pageCount, setPageCount) = useState(0)
+    val (pageIndex, setPageIndex) = useState(0)
     val (isModalOpen, setIsModalOpen) = useState(false)
     val (dataAccessException, setDataAccessException) = useState<Exception?>(null)
 
     val tableInstance: TableInstance<D> = useTable(options = jsObject {
         this.columns = useMemo { columns }
         this.data = data
+        this.manualPagination = useServerPaging
+        if (useServerPaging) {
+            this.pageCount = pageCount
+        }
         this.initialState = json(
             "pageSize" to initialPageSize,
-            "pageIndex" to 0,
-            "manualPagination" to useServerPaging
-        ).unsafeCast<TableState<D>>()
+            "pageIndex" to pageIndex,
+        )
+            .unsafeCast<TableState<D>>()
     }, plugins = arrayOf(useSortBy, usePagination))
+
+    useEffect(emptyList()) {
+        val pageCountDeferred = GlobalScope.async {
+            getPageCount!!.invoke(tableInstance.state.pageSize)
+        }
+        pageCountDeferred.invokeOnCompletion {
+            setPageCount(pageCountDeferred.getCompleted())
+        }
+    }
 
     // list of entities, updates of which will cause update of the data retrieving effect
     val dependencies = if (useServerPaging) {
@@ -90,7 +116,7 @@ fun <D : Any> tableComponent(columns: Array<out Column<D, *>>,
     useEffect(dependencies) {
         GlobalScope.launch {
             try {
-                setData(getData())
+                setData(getData(tableInstance.state.pageIndex, tableInstance.state.pageSize))
             } catch (e: Exception) {
                 setIsModalOpen(true)
                 setDataAccessException(e)
@@ -154,6 +180,7 @@ fun <D : Any> tableComponent(columns: Array<out Column<D, *>>,
                     div {
                         button(type = ButtonType.button, classes = "btn btn-link") {
                             attrs.onClickFunction = {
+                                setPageIndex(pageIndex - 1)
                                 tableInstance.previousPage()
                             }
                             attrs.disabled = !tableInstance.canPreviousPage
@@ -161,6 +188,7 @@ fun <D : Any> tableComponent(columns: Array<out Column<D, *>>,
                         }
                         button(type = ButtonType.button, classes = "btn btn-link") {
                             attrs.onClickFunction = {
+                                setPageIndex(pageIndex + 1)
                                 tableInstance.nextPage()
                             }
                             attrs.disabled = !tableInstance.canNextPage

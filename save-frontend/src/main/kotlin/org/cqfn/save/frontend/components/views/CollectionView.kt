@@ -50,7 +50,7 @@ class CollectionView : RComponent<RProps, RState>() {
             },
             initialPageSize = 10,
             useServerPaging = false,
-        ) {
+        ) { _, _ ->
             get(
                 url = "${window.location.origin}/projects",
                 headers = Headers().also {
