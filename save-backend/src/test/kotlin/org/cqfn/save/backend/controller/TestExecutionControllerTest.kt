@@ -36,7 +36,7 @@ class TestExecutionControllerTest {
             .uri("/testExecutionsCount?executionId=1")
             .exchange()
             .expectBody<Int>()
-            .isEqualTo(28)
+            .isEqualTo(30)
     }
 
     @Test
