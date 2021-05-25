@@ -36,7 +36,7 @@ class TestExecutionControllerTest {
             .uri("/testExecutionsCount?executionId=1")
             .exchange()
             .expectBody<Int>()
-            .isEqualTo(30)
+            .isEqualTo(28)
     }
 
     @Test
@@ -54,7 +54,7 @@ class TestExecutionControllerTest {
     @Suppress("UnsafeCallOnNullableType")
     fun `should save TestExecutionDto into the DB`() {
         val testExecutionDto = TestExecutionDto(
-            1,
+            2,
             "testFilePath",
             1,
             TestResultStatus.FAILED,

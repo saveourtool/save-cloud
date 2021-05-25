@@ -49,7 +49,7 @@ class TestInitializeControllerTest {
         )
 
         webClient.post()
-            .uri("/initializeTests?executionId=1")
+            .uri("/initializeTests?executionId=2")
             .contentType(MediaType.APPLICATION_JSON)
             .body(BodyInserters.fromValue(listOf(test)))
             .exchange()
@@ -70,7 +70,7 @@ class TestInitializeControllerTest {
 
         )
         webClient.post()
-            .uri("/initializeTests?executionId=1")
+            .uri("/initializeTests?executionId=2")
             .contentType(MediaType.APPLICATION_JSON)
             .body(BodyInserters.fromValue(listOf(test)))
             .exchange()
