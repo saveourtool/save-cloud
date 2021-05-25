@@ -1,11 +1,13 @@
-package org.cqfn.save.backend
+package org.cqfn.save.backend.controller
 
 import org.cqfn.save.agent.TestExecutionDto
+import org.cqfn.save.backend.SaveApplication
 import org.cqfn.save.backend.repository.TestExecutionRepository
 import org.cqfn.save.backend.utils.MySqlExtension
 import org.cqfn.save.backend.utils.toLocalDateTime
 import org.cqfn.save.domain.TestResultStatus
 
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -21,12 +23,32 @@ import org.springframework.web.reactive.function.BodyInserters
 @SpringBootTest(classes = [SaveApplication::class])
 @AutoConfigureWebTestClient
 @ExtendWith(MySqlExtension::class)
-class SaveResultTest {
+class TestExecutionControllerTest {
     @Autowired
     private lateinit var webClient: WebTestClient
 
     @Autowired
     private lateinit var testExecutionRepository: TestExecutionRepository
+
+    @Test
+    fun `should count TestExecutions for a particular Execution`() {
+        webClient.get()
+            .uri("/testExecutionsCount?executionId=1")
+            .exchange()
+            .expectBody<Int>()
+            .isEqualTo(28)
+    }
+
+    @Test
+    fun `should return a page of TestExecutions for a particular Execution`() {
+        webClient.get()
+            .uri("/testExecutions?executionId=1&page=0&size=20")
+            .exchange()
+            .expectBody<List<TestExecutionDto>>()
+            .consumeWith {
+                Assertions.assertEquals(20, it.responseBody.size)
+            }
+    }
 
     @Test
     @Suppress("UnsafeCallOnNullableType")
@@ -60,7 +82,8 @@ class SaveResultTest {
             1,
             TestResultStatus.FAILED,
             DEFAULT_DATE_TEST_EXECUTION,
-            DEFAULT_DATE_TEST_EXECUTION)
+            DEFAULT_DATE_TEST_EXECUTION
+        )
         webClient.post()
             .uri("/saveTestResult")
             .contentType(MediaType.APPLICATION_JSON)
