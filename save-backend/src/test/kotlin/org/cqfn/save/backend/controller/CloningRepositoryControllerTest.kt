@@ -9,6 +9,7 @@ import org.cqfn.save.backend.repository.TestExecutionRepository
 import org.cqfn.save.backend.repository.TestRepository
 import org.cqfn.save.backend.repository.TestSuiteRepository
 import org.cqfn.save.backend.service.ProjectService
+import org.cqfn.save.entities.BinaryExecutionRequest
 import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.Project
 import org.cqfn.save.repository.GitRepository
@@ -16,6 +17,7 @@ import org.cqfn.save.repository.GitRepository
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -25,12 +27,14 @@ import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.boot.test.mock.mockito.MockBeans
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
+import org.springframework.http.client.MultipartBodyBuilder
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
 
+import java.io.File
 import java.time.Duration
 
 @WebFluxTest(controllers = [CloneRepositoryController::class])
@@ -52,6 +56,13 @@ class CloningRepositoryControllerTest {
     @BeforeEach
     fun webClientSetUp() {
         webTestClient.mutate().responseTimeout(Duration.ofSeconds(2)).build()
+    }
+
+    @BeforeAll
+    fun createBinFileAndProperties() {
+        File(BIN_FOLDER).mkdir()
+        File(propertyPath).createNewFile()
+        File(binFilePath).createNewFile()
     }
 
     @Test
@@ -76,7 +87,44 @@ class CloningRepositoryControllerTest {
             .isEqualTo("Clone pending")
     }
 
+    @Test
+    fun checkNewJobResponseForBin() {
+        val binFile = File(binFilePath)
+        val property = File(propertyPath)
+        val project = Project("noname", "1", "1", "1", "1")
+        val request = BinaryExecutionRequest(project, emptyList())
+        val bodyBuilder = MultipartBodyBuilder()
+        bodyBuilder.part("binaryExecutionRequest", request)
+        bodyBuilder.part("property", property)
+        bodyBuilder.part("binFile", binFile)
+
+        mockServerPreprocessor.enqueue(
+            MockResponse()
+                .setResponseCode(202)
+                .setBody("Clone pending")
+                .addHeader("Content-Type", "application/json")
+        )
+
+        webTestClient.post()
+            .uri("/submitExecutionRequestBin")
+            .contentType(MediaType.MULTIPART_FORM_DATA)
+            .body(BodyInserters.fromMultipartData(bodyBuilder.build()))
+            .exchange()
+            .expectStatus()
+            .isEqualTo(HttpStatus.ACCEPTED)
+            .expectBody<String>()
+            .isEqualTo("Clone pending")
+    }
+
+    @AfterAll
+    fun removeBinDir() {
+        File(BIN_FOLDER).deleteRecursively()
+    }
+
     companion object {
+        const val BIN_FOLDER = "binFolder"
+        val binFilePath = BIN_FOLDER + File.separator + "program"
+        val propertyPath = BIN_FOLDER + File.separator + "save.property"
         @JvmStatic lateinit var mockServerPreprocessor: MockWebServer
 
         @AfterAll

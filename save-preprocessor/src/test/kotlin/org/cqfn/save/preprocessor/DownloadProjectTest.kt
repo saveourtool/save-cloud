@@ -1,5 +1,6 @@
 package org.cqfn.save.preprocessor
 
+import org.cqfn.save.entities.BinaryExecutionRequest
 import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.TestSuite
@@ -15,6 +16,7 @@ import okhttp3.mockwebserver.MockWebServer
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -22,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
+import org.springframework.http.client.MultipartBodyBuilder
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.web.reactive.server.WebTestClient
@@ -47,6 +50,13 @@ class DownloadProjectTest(
     @BeforeEach
     fun webClientSetUp() {
         webClient.mutate().responseTimeout(Duration.ofSeconds(2)).build()
+    }
+
+    @BeforeAll
+    fun createBinFileAndProperties() {
+        File(BIN_FOLDER).mkdir()
+        File(propertyPath).createNewFile()
+        File(binFilePath).createNewFile()
     }
 
     @Test
@@ -121,12 +131,83 @@ class DownloadProjectTest(
         assertions.orTimeout(60, TimeUnit.SECONDS).join().forEach { Assertions.assertNotNull(it) }
     }
 
+    @Suppress("TOO_LONG_FUNCTION")
+    @Test
+    fun testSaveProjectAsBinaryFile() {
+        val binFile = File(binFilePath)
+        val property = File(propertyPath)
+        val project = Project("owner", "someName", "type", null, "descr").apply {
+            id = 42L
+        }
+        val request = BinaryExecutionRequest(project, emptyList())
+        val bodyBuilder = MultipartBodyBuilder()
+        bodyBuilder.part("binaryExecutionRequest", request)
+        bodyBuilder.part("property", property)
+        bodyBuilder.part("binFile", binFile)
+
+        mockServerBackend.enqueue(
+            MockResponse()
+                .setResponseCode(200)
+                .setHeader("Content-Type", "application/json")
+                .setBody("42"),
+        )
+        mockServerBackend.enqueue(
+            MockResponse()
+                .setResponseCode(200)
+                .setHeader("Content-Type", "application/json")
+                .setBody(objectMapper.writeValueAsString(
+                    listOf(
+                        TestSuite(TestSuiteType.PROJECT, "", project, LocalDateTime.now(), "save.properties")
+                    )
+                )),
+        )
+        mockServerBackend.enqueue(
+            MockResponse()
+                .setResponseCode(200)
+        )
+        mockServerOrchestrator.enqueue(
+            MockResponse()
+                .setResponseCode(200)
+        )
+        val assertions = CompletableFuture.supplyAsync {
+            listOf(
+                mockServerBackend.takeRequest(60, TimeUnit.SECONDS),
+                mockServerBackend.takeRequest(60, TimeUnit.SECONDS),
+                mockServerBackend.takeRequest(60, TimeUnit.SECONDS),
+                mockServerOrchestrator.takeRequest(60, TimeUnit.SECONDS)
+            )
+        }
+
+        webClient.post()
+            .uri("/uploadBin")
+            .contentType(MediaType.MULTIPART_FORM_DATA)
+            .body(BodyInserters.fromMultipartData(bodyBuilder.build()))
+            .exchange()
+            .expectStatus()
+            .isAccepted
+            .expectBody<String>()
+            .isEqualTo("Clone pending")
+        Thread.sleep(2500)
+
+        Assertions.assertTrue(File("${configProperties.repository}/${binFile.name.hashCode()}").exists())
+        assertions.orTimeout(60, TimeUnit.SECONDS).join().forEach { Assertions.assertNotNull(it) }
+    }
+
     @AfterEach
     fun removeTestDir() {
         File(configProperties.repository).deleteRecursively()
     }
 
+    @AfterAll
+    fun removeBinDir() {
+        File(BIN_FOLDER).deleteRecursively()
+    }
+
     companion object {
+        const val BIN_FOLDER = "binFolder"
+        val binFilePath = BIN_FOLDER + File.separator + "program"
+        val propertyPath = BIN_FOLDER + File.separator + "save.property"
+
         @JvmStatic
         lateinit var mockServerBackend: MockWebServer
 

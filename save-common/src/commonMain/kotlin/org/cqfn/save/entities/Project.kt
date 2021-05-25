@@ -15,7 +15,7 @@ data class Project(
     var owner: String,
     var name: String,
     var type: String,
-    var url: String,
+    var url: String?,
     var description: String?,
 ) {
     /**

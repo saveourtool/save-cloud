@@ -1,5 +1,6 @@
 package org.cqfn.save.preprocessor.controllers
 
+import org.cqfn.save.entities.BinaryExecutionRequest
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.Project
@@ -24,7 +25,9 @@ import org.springframework.http.ReactiveHttpOutputMessage
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestPart
 import org.springframework.web.bind.annotation.RestController
+
 import org.springframework.web.reactive.function.BodyInserter
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
@@ -32,8 +35,10 @@ import org.springframework.web.reactive.function.client.bodyToMono
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
+
 import java.io.File
 import java.time.LocalDateTime
+
 import kotlin.io.path.ExperimentalPathApi
 
 /**
@@ -62,18 +67,35 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
             }
         }
 
+    /**
+     * @param binaryExecutionRequest - Dto of binary file, test suites names and project info
+     * @param property
+     * @param binaryFile
+     * @return response entity with text
+     */
+    @Suppress("TooGenericExceptionCaught")
+    @PostMapping(value = ["/uploadBin"], consumes = ["multipart/form-data"])
+    fun uploadBin(
+        @RequestPart binaryExecutionRequest: BinaryExecutionRequest,
+        @RequestPart("property", required = true) property: Mono<File>,
+        @RequestPart("binFile", required = true) binaryFile: Mono<File>,
+    ) = Mono.just(ResponseEntity("Clone pending", HttpStatus.ACCEPTED))
+        .subscribeOn(Schedulers.boundedElastic())
+        .also {
+            it.subscribe {
+                binaryFile.subscribe { binFile ->
+                    property.subscribe { propFile ->
+                        saveBinaryFile(binaryExecutionRequest, propFile, binFile)
+                    }
+                }
+            }
+        }
+
     @Suppress("TooGenericExceptionCaught", "TOO_LONG_FUNCTION")
     private fun downLoadRepository(executionRequest: ExecutionRequest) {
         val gitRepository = executionRequest.gitRepository
         val project = executionRequest.project
-        val urlHash = gitRepository.url.hashCode()
-        val tmpDir = File("${configProperties.repository}/$urlHash")
-        if (tmpDir.exists()) {
-            tmpDir.deleteRecursively()
-            log.info("For ${gitRepository.url} repository: dir $urlHash was deleted")
-        }
-        tmpDir.mkdirs()
-        log.info("For ${gitRepository.url} repository: dir $urlHash was created")
+        val tmpDir = generateDirectory(gitRepository.url.hashCode(), gitRepository.url)
         val userCredentials = if (gitRepository.username != null && gitRepository.password != null) {
             UsernamePasswordCredentialsProvider(gitRepository.username, gitRepository.password)
         } else {
@@ -91,7 +113,8 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
                     sendToBackendAndOrchestrator(
                         project,
                         executionRequest.propertiesRelativePath,
-                        tmpDir.relativeTo(File(configProperties.repository)).normalize().path
+                        tmpDir.relativeTo(File(configProperties.repository)).normalize().path,
+                        null
                     )
                 }
         } catch (exception: Exception) {
@@ -105,13 +128,47 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
         }
     }
 
+    private fun saveBinaryFile(
+        binaryExecutionRequest: BinaryExecutionRequest,
+        property: File,
+        binFile: File,
+    ) {
+        val tmpDir = generateDirectory(binFile.name.hashCode(), binFile.name)
+        val pathToProperties = tmpDir.path + File.separator + property.name
+        property.copyTo(File(pathToProperties))
+        binFile.copyTo(File(tmpDir.path + File.separator + binFile.name))
+        val project = binaryExecutionRequest.project
+        sendToBackendAndOrchestrator(
+            project,
+            pathToProperties,
+            tmpDir.relativeTo(File(configProperties.repository)).normalize().path,
+            binaryExecutionRequest.testsSuites.map { TestSuiteDto(TestSuiteType.STANDARD, it, project, pathToProperties) }
+        )
+    }
+
+    private fun generateDirectory(hashName: Int, dirName: String): File {
+        val tmpDir = File("${configProperties.repository}/$hashName")
+        if (tmpDir.exists()) {
+            tmpDir.deleteRecursively()
+            log.info("For $dirName file: dir $hashName was deleted")
+        }
+        tmpDir.mkdirs()
+        log.info("For $dirName repository: dir $hashName was created")
+        return tmpDir
+    }
+
     @Suppress(
         "LongMethod",
         "ThrowsCount",
         "TooGenericExceptionCaught",
         "TOO_LONG_FUNCTION",
         "LOCAL_VARIABLE_EARLY_DECLARATION")
-    private fun sendToBackendAndOrchestrator(project: Project, propertiesRelativePath: String, resourcesRootPath: String) {
+    private fun sendToBackendAndOrchestrator(
+        project: Project,
+        propertiesRelativePath: String,
+        resourcesRootPath: String,
+        testSuitesDto: List<TestSuiteDto>?
+    ) {
         val execution = Execution(project, LocalDateTime.now(), LocalDateTime.now(),
             ExecutionStatus.PENDING, "1", resourcesRootPath, 0, configProperties.executionLimit)
         var execId: Long
@@ -119,7 +176,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
         makeRequest(BodyInserters.fromValue(execution), "/createExecution") { it.bodyToMono(Long::class.java) }
             .doOnNext { executionId ->
                 execId = executionId
-                makeRequest(BodyInserters.fromValue(getAllTestSuites(project, propertiesRelativePath)), "/saveTestSuites") { it.bodyToMono<List<TestSuite>>() }
+                makeRequest(BodyInserters.fromValue(testSuitesDto ?: getAllTestSuites(project, propertiesRelativePath)), "/saveTestSuites") { it.bodyToMono<List<TestSuite>>() }
                     .doOnNext { testSuiteList ->
                         makeRequest(BodyInserters.fromValue(getAllTests(resourcesRootPath, testSuiteList)), "/initializeTests?executionId=$executionId") { it.toBodilessEntity() }
                             .doOnNext {
