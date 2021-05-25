@@ -50,6 +50,11 @@ class TestExecutionControllerTest {
             }
     }
 
+    /**
+     * Don't forget: SpringBootTest with controllers doesn't rollback transactions like test with repositories only.
+     * Should be using different execution id for newly inserted data in order not to clash with tests
+     * that check data read.
+     */
     @Test
     @Suppress("UnsafeCallOnNullableType")
     fun `should save TestExecutionDto into the DB`() {
