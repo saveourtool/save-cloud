@@ -14,7 +14,6 @@ import kotlinx.serialization.Serializable
 data class Project(
     var owner: String,
     var name: String,
-    var type: String,
     var url: String?,
     var description: String?,
 ) {

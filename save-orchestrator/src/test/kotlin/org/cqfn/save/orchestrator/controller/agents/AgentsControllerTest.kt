@@ -39,6 +39,7 @@ import kotlin.io.path.createTempDirectory
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.cqfn.save.execution.ExecutionType
 
 @WebFluxTest(controllers = [AgentsController::class])
 @Import(AgentService::class, Beans::class)
@@ -69,8 +70,8 @@ class AgentsControllerTest {
 
     @Test
     fun `should build image, query backend and start containers`() {
-        val project = Project("Huawei", "huaweiName", "manual", "huaweiUrl", "description")
-        val execution = Execution(project, stubTime, stubTime, ExecutionStatus.PENDING, "stub", "stub", 0, 20).apply {
+        val project = Project("Huawei", "huaweiName", "huaweiUrl", "description")
+        val execution = Execution(project, stubTime, stubTime, ExecutionStatus.PENDING, "stub", "stub", 0, 20, ExecutionType.MANUAL).apply {
             id = 42L
         }
         whenever(dockerService.buildAndCreateContainers(any())).thenReturn(listOf("test-agent-id-1", "test-agent-id-2"))
@@ -98,8 +99,8 @@ class AgentsControllerTest {
 
     @Test
     fun checkPostResponseIsNotOk() {
-        val project = Project("Huawei", "huaweiName", "manual", "huaweiUrl", "description")
-        val execution = Execution(project, stubTime, stubTime, ExecutionStatus.RUNNING, "stub", "stub", 0, 20)
+        val project = Project("Huawei", "huaweiName", "huaweiUrl", "description")
+        val execution = Execution(project, stubTime, stubTime, ExecutionStatus.RUNNING, "stub", "stub", 0, 20, ExecutionType.MANUAL)
         webClient
             .post()
             .uri("/initializeAgents")

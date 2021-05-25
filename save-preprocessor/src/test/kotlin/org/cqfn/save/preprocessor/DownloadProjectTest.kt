@@ -62,7 +62,7 @@ class DownloadProjectTest(
     @Test
     fun testBadRequest() {
         val wrongRepo = GitRepository("wrongGit")
-        val project = Project("owner", "someName", "type", wrongRepo.url, "descr")
+        val project = Project("owner", "someName", wrongRepo.url, "descr")
         val request = ExecutionRequest(project, wrongRepo)
         webClient.post()
             .uri("/upload")
@@ -82,7 +82,7 @@ class DownloadProjectTest(
     @Test
     fun testCorrectDownload() {
         val validRepo = GitRepository("https://github.com/cqfn/save-cloud.git")
-        val project = Project("owner", "someName", "type", validRepo.url, "descr").apply {
+        val project = Project("owner", "someName", validRepo.url, "descr").apply {
             id = 42L
         }
         val request = ExecutionRequest(project, validRepo)
@@ -136,7 +136,7 @@ class DownloadProjectTest(
     fun testSaveProjectAsBinaryFile() {
         val binFile = File(binFilePath)
         val property = File(propertyPath)
-        val project = Project("owner", "someName", "type", null, "descr").apply {
+        val project = Project("owner", "someName", null, "descr").apply {
             id = 42L
         }
         val request = BinaryExecutionRequest(project, emptyList())

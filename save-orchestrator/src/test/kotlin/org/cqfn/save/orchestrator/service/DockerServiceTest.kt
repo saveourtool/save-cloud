@@ -9,6 +9,7 @@ import org.cqfn.save.orchestrator.controller.AgentsController
 
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
+import org.cqfn.save.execution.ExecutionType
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -52,8 +53,8 @@ class DockerServiceTest {
     @Suppress("UnsafeCallOnNullableType")
     fun `should create a container with save agent and test resources and start it`() {
         // build base image
-        val project = Project("Huawei", "huaweiName", "manual", "huaweiUrl", "description")
-        val testExecution = Execution(project, LocalDateTime.now(), LocalDateTime.now(), ExecutionStatus.PENDING, "1", "foo", 0, 20).apply {
+        val project = Project("Huawei", "huaweiName", "huaweiUrl", "description")
+        val testExecution = Execution(project, LocalDateTime.now(), LocalDateTime.now(), ExecutionStatus.PENDING, "1", "foo", 0, 20, ExecutionType.MANUAL).apply {
             id = 42L
         }
         testContainerId = dockerService.buildAndCreateContainers(testExecution).single()

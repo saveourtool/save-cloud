@@ -29,7 +29,7 @@ class CloneRepoTest {
 
     @Test
     fun checkSaveProject() {
-        val project = Project("noname", "1", "1", "1", "1")
+        val project = Project("noname", "1", "1", "1")
         val gitRepo = GitRepository("1")
         val executionRequest = ExecutionRequest(project, gitRepo)
         webClient.post()
@@ -45,7 +45,7 @@ class CloneRepoTest {
 
     @Test
     fun checkSaveExistingProject() {
-        val project = Project("noname", "1", "1", "1", "1")
+        val project = Project("noname", "1", "1", "1")
         val gitRepo = GitRepository("1")
         val executionRequest = ExecutionRequest(project, gitRepo)
         val executionsClones = listOf(executionRequest, executionRequest, executionRequest)

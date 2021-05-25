@@ -73,7 +73,7 @@ class CloningRepositoryControllerTest {
                 .setBody("Clone pending")
                 .addHeader("Content-Type", "application/json")
         )
-        val project = Project("noname", "1", "1", "1", "1")
+        val project = Project("noname", "1", "1", "1")
         val gitRepo = GitRepository("1")
         val executionRequest = ExecutionRequest(project, gitRepo)
         webTestClient.post()
@@ -91,7 +91,7 @@ class CloningRepositoryControllerTest {
     fun checkNewJobResponseForBin() {
         val binFile = File(binFilePath)
         val property = File(propertyPath)
-        val project = Project("noname", "1", "1", "1", "1")
+        val project = Project("noname", "1", "1", "1")
         val request = BinaryExecutionRequest(project, emptyList())
         val bodyBuilder = MultipartBodyBuilder()
         bodyBuilder.part("binaryExecutionRequest", request)

@@ -99,12 +99,12 @@ class ProjectView : RComponent<ProjectProps, ProjectViewState>() {
                     +"Description: ${props.project.description}"
                 }
                 p("small") {
-                    a(href = "#/${props.project.type}/${props.project.owner}/${props.project.name}/history/latest") {
+                    a(href = "#/${props.project.owner}/${props.project.name}/history/latest") {
                         +"Latest test execution: N/A"
                     }
                 }
                 p("small") {
-                    a(href = "#/${props.project.type}/${props.project.owner}/${props.project.name}/history") {
+                    a(href = "#/${props.project.owner}/${props.project.name}/history") {
                         +"Execution history"
                     }
                 }
@@ -152,7 +152,6 @@ class ProjectView : RComponent<ProjectProps, ProjectViewState>() {
 fun ProjectRouteProps.toProject() = Project(
     owner = owner,
     name = name,
-    type = type,
     description = "Todo: fetch description",
     url = "Todo: fetch URL",
 )

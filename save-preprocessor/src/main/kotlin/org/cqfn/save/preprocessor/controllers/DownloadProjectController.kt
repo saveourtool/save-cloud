@@ -6,6 +6,7 @@ import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.TestSuite
 import org.cqfn.save.execution.ExecutionStatus
+import org.cqfn.save.execution.ExecutionType
 import org.cqfn.save.preprocessor.Response
 import org.cqfn.save.preprocessor.config.ConfigProperties
 import org.cqfn.save.preprocessor.utils.toHash
@@ -114,6 +115,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
                         project,
                         executionRequest.propertiesRelativePath,
                         tmpDir.relativeTo(File(configProperties.repository)).normalize().path,
+                        ExecutionType.MANUAL,
                         null
                     )
                 }
@@ -142,6 +144,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
             project,
             pathToProperties,
             tmpDir.relativeTo(File(configProperties.repository)).normalize().path,
+            ExecutionType.STANDARD,
             binaryExecutionRequest.testsSuites.map { TestSuiteDto(TestSuiteType.STANDARD, it, project, pathToProperties) }
         )
     }
@@ -167,10 +170,11 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
         project: Project,
         propertiesRelativePath: String,
         resourcesRootPath: String,
+        executionType: ExecutionType,
         testSuitesDto: List<TestSuiteDto>?
     ) {
         val execution = Execution(project, LocalDateTime.now(), LocalDateTime.now(),
-            ExecutionStatus.PENDING, "1", resourcesRootPath, 0, configProperties.executionLimit)
+            ExecutionStatus.PENDING, "1", resourcesRootPath, 0, configProperties.executionLimit, executionType)
         var execId: Long
         log.debug("Knock-Knock Backend")
         makeRequest(BodyInserters.fromValue(execution), "/createExecution") { it.bodyToMono(Long::class.java) }

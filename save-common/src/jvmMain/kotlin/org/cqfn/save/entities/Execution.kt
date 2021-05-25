@@ -1,6 +1,7 @@
 package org.cqfn.save.entities
 
 import org.cqfn.save.execution.ExecutionStatus
+import org.cqfn.save.execution.ExecutionType
 import java.time.LocalDateTime
 import javax.persistence.Entity
 import javax.persistence.EnumType
@@ -40,5 +41,8 @@ class Execution(
     var page: Int,
 
     var batchSize: Int,
+
+    @Enumerated(EnumType.STRING)
+    var type: ExecutionType
 
 ) : BaseEntity()

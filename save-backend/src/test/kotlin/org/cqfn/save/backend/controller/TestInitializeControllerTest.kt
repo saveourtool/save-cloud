@@ -101,7 +101,7 @@ class TestInitializeControllerTest {
             .isOk
             .expectBody<TestBatch>()
             .consumeWith {
-                assertTrue(it.responseBody!!.tests.size == 3) { "Expected 3 tests, but got ${it.responseBody.tests} instead" }
+                assertTrue(it.responseBody!!.tests.size == 3) { "Expected 3 tests, but got ${it.responseBody!!.tests} instead" }
             }
     }
 
