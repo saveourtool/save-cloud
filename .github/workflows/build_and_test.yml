@@ -52,7 +52,7 @@ jobs:
             buildSrc/**/Versions.kt
       # Workaround for bug in gradle-cache-action + detekt
       - name: Run gradle command
-        run: ./gradlew build
+        run: ./gradlew build -x detektAll
       - name: Upload gradle reports
         if: ${{ always() }}
         uses: actions/upload-artifact@v2

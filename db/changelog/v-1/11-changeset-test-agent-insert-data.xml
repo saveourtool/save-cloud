@@ -14,7 +14,7 @@
             <column name="test_suite_ids" value="1, 2, 3" />
             <column name="resources_root_path" value="resources_root_path" />
             <column name="page" value="0" />
-            <column name="batch_size" value="20" />
+            <column name="batch_size" value="10" />
         </insert>
         <insert dbms="mysql" tableName="execution">
             <column name="id" value="2" />

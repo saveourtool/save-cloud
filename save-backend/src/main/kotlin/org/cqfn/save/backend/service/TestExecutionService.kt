@@ -10,6 +10,7 @@ import org.cqfn.save.entities.TestExecution
 
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
 
 /**
@@ -26,6 +27,27 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
     private lateinit var testSuiteRepository: TestSuiteRepository
 
     /**
+     * Returns a page of [TestExecution]s with [executionId]
+     *
+     * @param executionId an ID of Execution to group TestExecutions
+     * @param page a zero-based index of page of data
+     * @param pageSize size of page
+     * @param pageSize
+     * @return a list of [TestExecutionDto]s
+     */
+    internal fun getTestExecutions(executionId: Long, page: Int, pageSize: Int) = testExecutionRepository
+        .findByExecutionId(executionId, PageRequest.of(page, pageSize))
+
+    /**
+     * Returns number of TestExecutions with this [executionId]
+     *
+     * @param executionId an ID of Execution to group TestExecutions
+     * @return number of TestExecutions
+     */
+    internal fun getTestExecutionsCount(executionId: Long) = testExecutionRepository
+        .countByExecutionId(executionId)
+
+    /**
      * @param testExecutionsDtos
      * @return list of lost tests
      */
@@ -35,8 +57,8 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
             val foundTestExec = testExecutionRepository.findById(testExecDto.id)
             foundTestExec.ifPresentOrElse({
                 it.run {
-                    this.startTime = testExecDto.startTime.toLocalDateTime()
-                    this.endTime = testExecDto.endTime.toLocalDateTime()
+                    this.startTime = testExecDto.startTimeSeconds?.toLocalDateTime()
+                    this.endTime = testExecDto.endTimeSeconds?.toLocalDateTime()
                     this.status = testExecDto.status
                     testExecutionRepository.save(this)
                 }
