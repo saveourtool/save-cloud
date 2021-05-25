@@ -86,6 +86,7 @@ class ExecutionControllerTest {
     }
 
     @Test
+    @Suppress("TOO_LONG_FUNCTION")
     fun testUpdateExecution() {
         val project = projectRepository.findById(1).get()
         val execution = Execution(

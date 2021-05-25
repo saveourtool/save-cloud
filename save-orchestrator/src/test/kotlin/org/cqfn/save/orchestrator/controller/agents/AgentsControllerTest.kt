@@ -4,6 +4,7 @@ import org.cqfn.save.agent.ExecutionLogs
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.Project
 import org.cqfn.save.execution.ExecutionStatus
+import org.cqfn.save.execution.ExecutionType
 import org.cqfn.save.orchestrator.config.Beans
 import org.cqfn.save.orchestrator.config.ConfigProperties
 import org.cqfn.save.orchestrator.controller.AgentsController
@@ -34,12 +35,11 @@ import org.springframework.web.reactive.function.BodyInserters
 import java.io.File
 import java.nio.charset.Charset
 import java.time.LocalDateTime
+
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.createTempDirectory
-
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.cqfn.save.execution.ExecutionType
 
 @WebFluxTest(controllers = [AgentsController::class])
 @Import(AgentService::class, Beans::class)

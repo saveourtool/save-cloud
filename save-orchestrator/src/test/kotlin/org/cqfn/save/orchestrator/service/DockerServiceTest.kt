@@ -3,13 +3,13 @@ package org.cqfn.save.orchestrator.service
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.Project
 import org.cqfn.save.execution.ExecutionStatus
+import org.cqfn.save.execution.ExecutionType
 import org.cqfn.save.orchestrator.config.Beans
 import org.cqfn.save.orchestrator.config.ConfigProperties
 import org.cqfn.save.orchestrator.controller.AgentsController
 
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
-import org.cqfn.save.execution.ExecutionType
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
