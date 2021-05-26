@@ -60,6 +60,7 @@ class DownloadProjectTest(
         File(binFolder).mkdir()
         File(propertyPath).createNewFile()
         File(binFilePath).createNewFile()
+        File(binFilePath).writeText("echo 0")
     }
 
     @Test
@@ -194,6 +195,7 @@ class DownloadProjectTest(
 
         Assertions.assertTrue(File("${configProperties.repository}/${binFile.name.hashCode()}").exists())
         assertions.orTimeout(60, TimeUnit.SECONDS).join().forEach { Assertions.assertNotNull(it) }
+        Assertions.assertEquals(File("${configProperties.repository}/${binFile.name.hashCode()}/program").readText(), "echo 0")
     }
 
     @AfterEach
