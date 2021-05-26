@@ -172,6 +172,9 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
         executionType: ExecutionType,
         testSuitesDto: List<TestSuiteDto>?
     ) {
+        testSuitesDto?.let {
+            require(executionType == ExecutionType.STANDARD)
+        } ?: require(executionType == ExecutionType.GIT)
         val execution = Execution(project, LocalDateTime.now(), LocalDateTime.now(),
             ExecutionStatus.PENDING, "1", resourcesRootPath, 0, configProperties.executionLimit, executionType)
         var execId: Long

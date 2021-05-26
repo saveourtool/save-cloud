@@ -58,13 +58,6 @@ class CloningRepositoryControllerTest {
         webTestClient.mutate().responseTimeout(Duration.ofSeconds(2)).build()
     }
 
-    @BeforeAll
-    fun createBinFileAndProperties() {
-        File(BIN_FOLDER).mkdir()
-        File(propertyPath).createNewFile()
-        File(binFilePath).createNewFile()
-    }
-
     @Test
     fun checkNewJobResponse() {
         mockServerPreprocessor.enqueue(
@@ -89,8 +82,8 @@ class CloningRepositoryControllerTest {
 
     @Test
     fun checkNewJobResponseForBin() {
-        val binFile = File(binFilePath)
-        val property = File(propertyPath)
+        val binFile = File("binFilePath")
+        val property = File("propertyPath")
         val project = Project("noname", "1", "1", "1")
         val request = ExecutionRequestForStandardSuites(project, emptyList())
         val bodyBuilder = MultipartBodyBuilder()
@@ -116,15 +109,7 @@ class CloningRepositoryControllerTest {
             .isEqualTo("Clone pending")
     }
 
-    @AfterAll
-    fun removeBinDir() {
-        File(BIN_FOLDER).deleteRecursively()
-    }
-
     companion object {
-        const val BIN_FOLDER = "binFolder"
-        val binFilePath = BIN_FOLDER + File.separator + "program"
-        val propertyPath = BIN_FOLDER + File.separator + "save.property"
         @JvmStatic lateinit var mockServerPreprocessor: MockWebServer
 
         @AfterAll

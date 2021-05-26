@@ -49,7 +49,7 @@ class DownloadProjectTest(
 ) : RepositoryVolume {
     private val binFolder = "${configProperties.repository}/binFolder"
     private val binFilePath = "$binFolder/program"
-    private val propertyPath = "$binFolder/save.property"
+    private val propertyPath = "$binFolder/save.properties"
     @BeforeEach
     fun webClientSetUp() {
         webClient.mutate().responseTimeout(Duration.ofSeconds(2)).build()
