@@ -92,7 +92,7 @@ class CloneRepositoryController(
         }
         log.info("Sending request to preprocessor to start save file for project id=$projectId")
         val bodyBuilder = MultipartBodyBuilder()
-        bodyBuilder.part("binaryExecutionRequest", executionRequestForStandardSuites)
+        bodyBuilder.part("executionRequestForStandardSuites", executionRequestForStandardSuites)
         binaryFile.subscribe { binFile ->
             bodyBuilder.part("binFile", binFile)
             propertyFile.subscribe { propFile ->

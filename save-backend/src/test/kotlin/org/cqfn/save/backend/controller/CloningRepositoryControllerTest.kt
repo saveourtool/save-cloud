@@ -94,7 +94,7 @@ class CloningRepositoryControllerTest {
         val project = Project("noname", "1", "1", "1")
         val request = ExecutionRequestForStandardSuites(project, emptyList())
         val bodyBuilder = MultipartBodyBuilder()
-        bodyBuilder.part("binaryExecutionRequest", request)
+        bodyBuilder.part("executionRequestForStandardSuites", request)
         bodyBuilder.part("property", property)
         bodyBuilder.part("binFile", binFile)
 
