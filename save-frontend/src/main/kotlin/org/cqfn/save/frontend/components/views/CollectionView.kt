@@ -1,5 +1,6 @@
 package org.cqfn.save.frontend.components.views
 
+import kotlinx.browser.window
 import org.cqfn.save.entities.Project
 import org.cqfn.save.frontend.components.tables.tableComponent
 import org.cqfn.save.frontend.utils.get
@@ -61,7 +62,7 @@ class CollectionView : RComponent<RProps, RState>() {
             useServerPaging = false,
         ) { _, _ ->
             get(
-                url = "http://localhost:5000/projects",
+                url = "${window.location.origin}/projects",
                 headers = Headers().also {
                     it.set("Accept", "application/json")
                 },

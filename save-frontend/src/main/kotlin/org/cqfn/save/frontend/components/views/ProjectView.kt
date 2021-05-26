@@ -12,7 +12,6 @@ import org.cqfn.save.repository.GitRepository
 
 import org.w3c.dom.HTMLInputElement
 import org.w3c.fetch.Headers
-import org.w3c.fetch.RequestInit
 import react.RBuilder
 import react.RComponent
 import react.RProps
@@ -29,10 +28,14 @@ import react.dom.p
 import react.setState
 
 import kotlinx.browser.window
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import kotlinx.html.ButtonType
 import kotlinx.html.InputType
 import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
+import org.cqfn.save.frontend.utils.post
+import org.w3c.fetch.Response
 
 /**
  * [RProps] for project view
@@ -40,6 +43,7 @@ import kotlinx.html.js.onClickFunction
 @Suppress("MISSING_KDOC_CLASS_ELEMENTS")
 external interface ProjectProps : RProps {
     var executionRequest: ExecutionRequest
+    var url: String?
 }
 
 /**
@@ -49,8 +53,7 @@ external interface ProjectProps : RProps {
 external interface ProjectExecutionRouteProps : RProps {
     var name: String
     var owner: String
-    var type: String
-    var url: String
+    var url: String?
 }
 
 /**
@@ -76,7 +79,8 @@ external interface ProjectViewState : RState {
 @OptIn(ExperimentalJsExport::class)
 @JsExport
 class ProjectView : RComponent<ProjectProps, ProjectViewState>() {
-    private var pathToProperty: String? = null
+    private var pathToPropertyFile: String? = null
+    private lateinit var responseFromExecutionRequest: Response
 
     init {
         state.isErrorOpen = false
@@ -87,25 +91,22 @@ class ProjectView : RComponent<ProjectProps, ProjectViewState>() {
         val executionRequest = ExecutionRequest(
             project = props.executionRequest.project,
             gitRepository = props.executionRequest.gitRepository,
-            propertiesRelativePath = pathToProperty ?: "save.properties"
+            propertiesRelativePath = pathToPropertyFile ?: "save.properties"
         )
         val jsonExecution = JSON.stringify(executionRequest)
         val headers = Headers().also {
             it.set("Accept", "application/json")
             it.set("Content-Type", "application/json")
         }
-        window.fetch("http://localhost:5000/submitExecutionRequest", RequestInit(
-            method = "POST",
-            body = jsonExecution,
-            headers = headers
-        )).then {
-            if (it.ok) {
-                // fixme redirect to tests info
+        GlobalScope.launch {
+            responseFromExecutionRequest = post("${window.location.origin}/submitExecutionRequest", headers, jsonExecution)
+        }.invokeOnCompletion {
+            if (responseFromExecutionRequest.ok) {
                 window.location.href = "${window.location.origin}/history"
             } else {
                 setState {
                     isErrorOpen = true
-                    errorText = it.statusText
+                    errorText = responseFromExecutionRequest.statusText
                 }
             }
         }
@@ -114,7 +115,7 @@ class ProjectView : RComponent<ProjectProps, ProjectViewState>() {
     @Suppress("TOO_LONG_FUNCTION")
     override fun RBuilder.render() {
         // modal window for configuring tests run - initially hidden
-        runErrorModel()
+        runErrorModal()
         // Page Heading
         div("d-sm-flex align-items-center justify-content-between mb-4") {
             h1("h3 mb-0 text-gray-800") {
@@ -134,7 +135,7 @@ class ProjectView : RComponent<ProjectProps, ProjectViewState>() {
                                 placeholder = "save.properties"
                                 onChangeFunction = {
                                     val target = it.target as HTMLInputElement
-                                    pathToProperty = target.value
+                                    pathToPropertyFile = target.value
                                 }
                             }
                         }
@@ -159,12 +160,12 @@ class ProjectView : RComponent<ProjectProps, ProjectViewState>() {
                     +"Description: ${props.executionRequest.project.description}"
                 }
                 p("small") {
-                    a(href = "#/${props.executionRequest.project.owner}/${props.project.name}/history/latest") {
+                    a(href = "#/${props.executionRequest.project.owner}/${props.executionRequest.project.name}/history/latest") {
                         +"Latest test execution: N/A"
                     }
                 }
                 p("small") {
-                    a(href = "#/${props.executionRequest.project.owner}/${props.project.name}/history") {
+                    a(href = "#/${props.executionRequest.project.owner}/${props.executionRequest.project.name}/history") {
                         +"Execution history"
                     }
                 }
@@ -176,7 +177,7 @@ class ProjectView : RComponent<ProjectProps, ProjectViewState>() {
         }
     }
 
-    private fun RBuilder.runErrorModel() = modal {
+    private fun RBuilder.runErrorModal() = modal {
         attrs {
             isOpen = state.isErrorOpen
             contentLabel = "Error from backend"
@@ -208,7 +209,7 @@ fun ProjectExecutionRouteProps.toProject() = Project(
  * @return git repository
  */
 @Suppress("EXTENSION_FUNCTION_WITH_CLASS")
-fun ProjectExecutionRouteProps.toGitRepository() = GitRepository(url = "url")
+fun ProjectExecutionRouteProps.toGitRepository() = GitRepository(url = this.url ?: "url")
 
 /**
  * @return execution request

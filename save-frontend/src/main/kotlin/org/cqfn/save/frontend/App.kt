@@ -71,6 +71,7 @@ class App : RComponent<RProps, AppState>() {
                         route<ProjectExecutionRouteProps>("/:type/:owner/:name", exact = true) { routeResultProps ->
                             child(ProjectView::class) {
                                 attrs.executionRequest = routeResultProps.match.params.toExecutionRequest()
+                                attrs.url = routeResultProps.match.params.url
                             }
                         }
                         route<ProjectExecutionRouteProps>("/:type/:owner/:name/history", exact = true) { routeResultProps ->
