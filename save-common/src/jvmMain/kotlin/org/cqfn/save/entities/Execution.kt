@@ -44,6 +44,8 @@ class Execution(
     var batchSize: Int,
 
     @Enumerated(EnumType.STRING)
-    var type: ExecutionType
+    var type: ExecutionType,
+
+    var version: String
 
 ) : BaseEntity()

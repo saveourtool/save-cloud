@@ -112,6 +112,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
                         executionRequest.propertiesRelativePath,
                         tmpDir.relativeTo(File(configProperties.repository)).normalize().path,
                         ExecutionType.GIT,
+                        it.log().call().first().name,
                         null
                     )
                 }
@@ -141,6 +142,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
             pathToProperties,
             tmpDir.relativeTo(File(configProperties.repository)).normalize().path,
             ExecutionType.STANDARD,
+            binFile.name,
             executionRequestForStandardSuites.testsSuites.map { TestSuiteDto(TestSuiteType.STANDARD, it, project, pathToProperties) }
         )
     }
@@ -170,13 +172,14 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
         propertiesRelativePath: String,
         resourcesRootPath: String,
         executionType: ExecutionType,
+        executionVersion: String,
         testSuitesDto: List<TestSuiteDto>?
     ) {
         testSuitesDto?.let {
             require(executionType == ExecutionType.STANDARD)
         } ?: require(executionType == ExecutionType.GIT)
         val execution = Execution(project, LocalDateTime.now(), LocalDateTime.now(),
-            ExecutionStatus.PENDING, "1", resourcesRootPath, 0, configProperties.executionLimit, executionType)
+            ExecutionStatus.PENDING, "1", resourcesRootPath, 0, configProperties.executionLimit, executionType, executionVersion)
         var execId: Long
         log.debug("Knock-Knock Backend")
         makeRequest(BodyInserters.fromValue(execution), "/createExecution") { it.bodyToMono(Long::class.java) }
