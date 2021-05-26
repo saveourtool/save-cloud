@@ -1,6 +1,5 @@
 package org.cqfn.save.frontend.components.views
 
-import kotlinx.browser.window
 import org.cqfn.save.entities.Project
 import org.cqfn.save.frontend.components.tables.tableComponent
 import org.cqfn.save.frontend.utils.get
@@ -18,6 +17,7 @@ import react.dom.div
 import react.dom.td
 import react.table.columns
 
+import kotlinx.browser.window
 import kotlinx.coroutines.await
 import kotlinx.html.ButtonType
 

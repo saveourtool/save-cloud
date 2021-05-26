@@ -8,10 +8,12 @@ import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.Project
 import org.cqfn.save.frontend.components.basic.cardComponent
 import org.cqfn.save.frontend.externals.modal.modal
+import org.cqfn.save.frontend.utils.post
 import org.cqfn.save.repository.GitRepository
 
 import org.w3c.dom.HTMLInputElement
 import org.w3c.fetch.Headers
+import org.w3c.fetch.Response
 import react.RBuilder
 import react.RComponent
 import react.RProps
@@ -34,8 +36,6 @@ import kotlinx.html.ButtonType
 import kotlinx.html.InputType
 import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
-import org.cqfn.save.frontend.utils.post
-import org.w3c.fetch.Response
 
 /**
  * [RProps] for project view
