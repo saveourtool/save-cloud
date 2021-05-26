@@ -62,11 +62,12 @@ class DockerService(private val configProperties: ConfigProperties) {
      * @param agentIds list of IDs of agents (==containers) for this execution
      */
     fun startContainersAndUpdateExecution(execution: Execution, agentIds: List<String>) {
-        log.info("Sending request to make execution.id=${execution.id} RUNNING")
+        val executionId = requireNotNull(execution.id) { "For project=${execution.project} method has been called with execution with id=null" }
+        log.info("Sending request to make execution.id=$executionId RUNNING")
         webClientBackend
             .post()
             .uri("/updateExecution")
-            .body(BodyInserters.fromValue(ExecutionUpdateDto(execution.id!!, ExecutionStatus.RUNNING)))
+            .body(BodyInserters.fromValue(ExecutionUpdateDto(executionId, ExecutionStatus.RUNNING)))
             .retrieve()
             .toBodilessEntity()
             .subscribe()
@@ -74,7 +75,7 @@ class DockerService(private val configProperties: ConfigProperties) {
             log.info("Starting container id=$it")
             containerManager.dockerClient.startContainerCmd(it).exec()
         }
-        log.info("Successfully started all containers for execution.id=${execution.id}")
+        log.info("Successfully started all containers for execution.id=$executionId")
     }
 
     /**

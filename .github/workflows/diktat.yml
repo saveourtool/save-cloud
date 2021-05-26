@@ -17,13 +17,12 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: 1.11
-      - name: Cache gradle caches
-        uses: actions/cache@v2
+      - uses: burrunan/gradle-cache-action@v1
         with:
-          path: |
-            ~/.gradle/caches/
-            ~/.gradle/wrapper/
-          key: ${{ runner.os }}-gradle-diktat-${{ hashFiles('**/*.gradle*') }}
-          restore-keys: ${{ runner.os }}-gradle-diktat
-      - name: Run diktat
+          gradle-version: wrapper
+          # additional files to calculate key for dependency cache
+          gradle-dependencies-cache-key: |
+            buildSrc/**/Versions.kt
+      # Workaround for bug in gradle-cache-action + detekt
+      - name: Run gradle command
         run: ./gradlew diktatCheckAll

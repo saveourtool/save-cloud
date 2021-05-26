@@ -26,7 +26,7 @@ class ProjectService(private val projectRepository: ProjectRepository) {
             val savedProject = projectRepository.save(project)
             projectId = savedProject.id
         })
-        return projectId!!
+        return requireNotNull(projectId) { "Should have gotten an ID for project from the database" }
     }
 
     /**

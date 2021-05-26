@@ -18,6 +18,7 @@ class ExecutionService(private val executionRepository: ExecutionRepository) {
      * @param execution
      * @return id of the created [Execution]
      */
+    @Suppress("UnsafeCallOnNullableType")  // hibernate should always assign ids
     fun saveExecution(execution: Execution): Long = executionRepository.save(execution).id!!
 
     /**

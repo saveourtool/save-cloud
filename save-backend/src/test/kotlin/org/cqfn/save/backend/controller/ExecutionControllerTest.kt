@@ -6,6 +6,7 @@ import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.utils.MySqlExtension
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.execution.ExecutionStatus
+import org.cqfn.save.execution.ExecutionType
 import org.cqfn.save.execution.ExecutionUpdateDto
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -45,7 +46,8 @@ class ExecutionControllerTest {
             "0,1,2",
             "stub",
             0,
-            20
+            20,
+            ExecutionType.GIT
         )
         webClient.post()
             .uri("/createExecution")
@@ -67,7 +69,8 @@ class ExecutionControllerTest {
             "0,1,2",
             "stub",
             0,
-            20
+            20,
+            ExecutionType.GIT
         )
         webClient.post()
             .uri("/createExecution")
@@ -83,6 +86,7 @@ class ExecutionControllerTest {
     }
 
     @Test
+    @Suppress("TOO_LONG_FUNCTION")
     fun testUpdateExecution() {
         val project = projectRepository.findById(1).get()
         val execution = Execution(
@@ -93,7 +97,8 @@ class ExecutionControllerTest {
             "0,1,2",
             "stub",
             0,
-            20
+            20,
+            ExecutionType.GIT
         )
 
         webClient.post()

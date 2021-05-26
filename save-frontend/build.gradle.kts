@@ -12,6 +12,9 @@ kotlin {
             }
         }
         binaries.executable()  // already default for LEGACY, but explicitly needed for IR
+        sourceSets.all {
+            languageSettings.useExperimentalAnnotation("kotlin.RequiresOptIn")
+        }
         sourceSets["main"].dependencies {
             implementation(project(":save-common"))
 
@@ -29,7 +32,7 @@ kotlin {
             implementation("org.jetbrains:kotlin-react:${Versions.kotlinReact}")
             implementation("org.jetbrains:kotlin-react-dom:${Versions.kotlinReact}")
             implementation("org.jetbrains:kotlin-react-router-dom:5.2.0${Versions.kotlinJsWrappersSuffix}")
-            implementation("org.jetbrains:kotlin-react-table:7.6.3${Versions.kotlinJsWrappersSuffix}")
+            implementation("org.jetbrains:kotlin-react-table:7.7.0${Versions.kotlinJsWrappersSuffix}")
             implementation(npm("jquery", "3.5.1"))
             implementation(npm("popper.js", "1.16.1"))  // peer dependency for bootstrap
             implementation(npm("bootstrap", "4.6.0"))
@@ -38,6 +41,8 @@ kotlin {
             implementation(npm("react-modal", "3.12.1"))
 
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${Versions.coroutines}")
+            implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:${Versions.serialization}")
+            implementation("org.jetbrains.kotlinx:kotlinx-datetime:${Versions.kotlinxDatetime}")
         }
         sourceSets["test"].dependencies {
             implementation(kotlin("test-js"))

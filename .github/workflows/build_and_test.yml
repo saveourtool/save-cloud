@@ -44,18 +44,15 @@ jobs:
           sudo mv runsc containerd-shim-runsc-v1 /usr/local/bin
           sudo /usr/local/bin/runsc install
           sudo systemctl reload docker
-      - name: Gradle build with remote cache
-        uses: burrunan/gradle-cache-action@v1
+      - uses: burrunan/gradle-cache-action@v1
         with:
-          arguments: |
-            build
-            -x detekt
-          properties: |
-            org.gradle.caching=true
           gradle-version: wrapper
           # additional files to calculate key for dependency cache
           gradle-dependencies-cache-key: |
             buildSrc/**/Versions.kt
+      # Workaround for bug in gradle-cache-action + detekt
+      - name: Run gradle command
+        run: ./gradlew build -x detektAll
       - name: Upload gradle reports
         if: ${{ always() }}
         uses: actions/upload-artifact@v2

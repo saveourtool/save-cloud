@@ -27,6 +27,7 @@ class AgentsController(private val agentStatusRepository: AgentStatusRepository,
      * @return a list of IDs, assigned to the agents
      */
     @PostMapping("/addAgents")
+    @Suppress("UnsafeCallOnNullableType")  // hibernate should always assign ids
     fun addAgents(@RequestBody agents: List<Agent>): List<Long> {
         log.debug("Saving agents $agents")
         return agentRepository.saveAll(agents).map { it.id!! }
