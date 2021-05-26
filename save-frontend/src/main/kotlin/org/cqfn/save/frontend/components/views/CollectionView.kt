@@ -35,14 +35,14 @@ class CollectionView : RComponent<RProps, RState>() {
                 }
                 column(id = "name", header = "Name") {
                     td {
-                        a(href = "#/${it.value.type}/${it.value.owner}/${it.value.name}") {
+                        a(href = "#/${it.value.owner}/${it.value.name}") {
                             +it.value.name
                         }
                     }
                 }
                 column(id = "passed", header = "Tests passed") {
                     td {
-                        a(href = "#/${it.value.type}/${it.value.owner}/${it.value.name}/history") {
+                        a(href = "#/${it.value.owner}/${it.value.name}/history") {
                             +(it.value.description ?: "Description N/A")
                         }
                     }

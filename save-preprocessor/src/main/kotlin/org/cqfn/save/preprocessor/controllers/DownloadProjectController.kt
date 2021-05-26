@@ -2,9 +2,11 @@ package org.cqfn.save.preprocessor.controllers
 
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.ExecutionRequest
+import org.cqfn.save.entities.ExecutionRequestForStandardSuites
 import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.TestSuite
 import org.cqfn.save.execution.ExecutionStatus
+import org.cqfn.save.execution.ExecutionType
 import org.cqfn.save.preprocessor.Response
 import org.cqfn.save.preprocessor.config.ConfigProperties
 import org.cqfn.save.preprocessor.utils.toHash
@@ -24,6 +26,7 @@ import org.springframework.http.ReactiveHttpOutputMessage
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestPart
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.reactive.function.BodyInserter
 import org.springframework.web.reactive.function.BodyInserters
@@ -32,8 +35,10 @@ import org.springframework.web.reactive.function.client.bodyToMono
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
+
 import java.io.File
 import java.time.LocalDateTime
+
 import kotlin.io.path.ExperimentalPathApi
 
 /**
@@ -62,18 +67,32 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
             }
         }
 
+    /**
+     * @param executionRequestForStandardSuites - Dto of binary file, test suites names and project info
+     * @param propertyFile
+     * @param binaryFile
+     * @return response entity with text
+     */
+    @PostMapping(value = ["/uploadBin"], consumes = ["multipart/form-data"])
+    fun uploadBin(
+        @RequestPart executionRequestForStandardSuites: ExecutionRequestForStandardSuites,
+        @RequestPart("property", required = true) propertyFile: Mono<File>,
+        @RequestPart("binFile", required = true) binaryFile: Mono<File>,
+    ) = Mono.just(ResponseEntity("Clone pending", HttpStatus.ACCEPTED))
+        .subscribeOn(Schedulers.boundedElastic())
+        .also {
+            it.subscribe {
+                Mono.zip(propertyFile, binaryFile).subscribe {
+                    saveBinaryFile(executionRequestForStandardSuites, it.t1, it.t2)
+                }
+            }
+        }
+
     @Suppress("TooGenericExceptionCaught", "TOO_LONG_FUNCTION")
     private fun downLoadRepository(executionRequest: ExecutionRequest) {
         val gitRepository = executionRequest.gitRepository
         val project = executionRequest.project
-        val urlHash = gitRepository.url.hashCode()
-        val tmpDir = File("${configProperties.repository}/$urlHash")
-        if (tmpDir.exists()) {
-            tmpDir.deleteRecursively()
-            log.info("For ${gitRepository.url} repository: dir $urlHash was deleted")
-        }
-        tmpDir.mkdirs()
-        log.info("For ${gitRepository.url} repository: dir $urlHash was created")
+        val tmpDir = generateDirectory(gitRepository.url.hashCode(), gitRepository.url)
         val userCredentials = if (gitRepository.username != null && gitRepository.password != null) {
             UsernamePasswordCredentialsProvider(gitRepository.username, gitRepository.password)
         } else {
@@ -91,7 +110,9 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
                     sendToBackendAndOrchestrator(
                         project,
                         executionRequest.propertiesRelativePath,
-                        tmpDir.relativeTo(File(configProperties.repository)).normalize().path
+                        tmpDir.relativeTo(File(configProperties.repository)).normalize().path,
+                        ExecutionType.GIT,
+                        null
                     )
                 }
         } catch (exception: Exception) {
@@ -105,21 +126,63 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
         }
     }
 
+    private fun saveBinaryFile(
+        executionRequestForStandardSuites: ExecutionRequestForStandardSuites,
+        propertyFile: File,
+        binFile: File,
+    ) {
+        val tmpDir = generateDirectory(binFile.name.hashCode(), binFile.name)
+        val pathToProperties = tmpDir.path + File.separator + propertyFile.name
+        propertyFile.copyTo(File(pathToProperties))
+        binFile.copyTo(File(tmpDir.path + File.separator + binFile.name))
+        val project = executionRequestForStandardSuites.project
+        sendToBackendAndOrchestrator(
+            project,
+            pathToProperties,
+            tmpDir.relativeTo(File(configProperties.repository)).normalize().path,
+            ExecutionType.STANDARD,
+            executionRequestForStandardSuites.testsSuites.map { TestSuiteDto(TestSuiteType.STANDARD, it, project, pathToProperties) }
+        )
+    }
+
+    private fun generateDirectory(hashName: Int, dirName: String): File {
+        val tmpDir = File("${configProperties.repository}/$hashName")
+        if (tmpDir.exists()) {
+            tmpDir.deleteRecursively()
+            log.info("For $dirName file: dir $hashName was deleted")
+        }
+        tmpDir.mkdirs()
+        log.info("For $dirName repository: dir $hashName was created")
+        return tmpDir
+    }
+
+    /**
+     * We have not null list of TestSuite only, if execute type is STANDARD ()
+     */
     @Suppress(
         "LongMethod",
         "ThrowsCount",
         "TooGenericExceptionCaught",
         "TOO_LONG_FUNCTION",
         "LOCAL_VARIABLE_EARLY_DECLARATION")
-    private fun sendToBackendAndOrchestrator(project: Project, propertiesRelativePath: String, resourcesRootPath: String) {
+    private fun sendToBackendAndOrchestrator(
+        project: Project,
+        propertiesRelativePath: String,
+        resourcesRootPath: String,
+        executionType: ExecutionType,
+        testSuitesDto: List<TestSuiteDto>?
+    ) {
+        testSuitesDto?.let {
+            require(executionType == ExecutionType.STANDARD)
+        } ?: require(executionType == ExecutionType.GIT)
         val execution = Execution(project, LocalDateTime.now(), LocalDateTime.now(),
-            ExecutionStatus.PENDING, "1", resourcesRootPath, 0, configProperties.executionLimit)
+            ExecutionStatus.PENDING, "1", resourcesRootPath, 0, configProperties.executionLimit, executionType)
         var execId: Long
         log.debug("Knock-Knock Backend")
         makeRequest(BodyInserters.fromValue(execution), "/createExecution") { it.bodyToMono(Long::class.java) }
             .doOnNext { executionId ->
                 execId = executionId
-                makeRequest(BodyInserters.fromValue(getAllTestSuites(project, propertiesRelativePath)), "/saveTestSuites") { it.bodyToMono<List<TestSuite>>() }
+                makeRequest(BodyInserters.fromValue(testSuitesDto ?: getAllTestSuites(project, propertiesRelativePath)), "/saveTestSuites") { it.bodyToMono<List<TestSuite>>() }
                     .doOnNext { testSuiteList ->
                         makeRequest(BodyInserters.fromValue(getAllTests(resourcesRootPath, testSuiteList)), "/initializeTests?executionId=$executionId") { it.toBodilessEntity() }
                             .doOnNext {
