@@ -1,13 +1,13 @@
 id;file_path;date_added;test_suite_id
-1;"testPath";"2021-01-01 00:00:00";2
-2;"testPath2";"2021-01-01 00:00:00";3
-3;"testPath2";"2021-01-01 00:00:00";3
-4;"testPath2";"2021-01-01 00:00:00";3
-5;"testPath2";"2021-01-01 00:00:00";3
-6;"testPath2";"2021-01-01 00:00:00";3
-7;"testPath2";"2021-01-01 00:00:00";3
-8;"testPath2";"2021-01-01 00:00:00";3
-9;"testPath2";"2021-01-01 00:00:00";3
+1;"src/test/suite1/testPath";"2021-01-01 00:00:00";2
+2;"src/test/suite1/testPath2";"2021-01-01 00:00:00";3
+3;"src/test/suite1/testPath3";"2021-01-01 00:00:00";3
+4;"src/test/suite2/testPath";"2021-01-01 00:00:00";3
+5;"src/test/suite2/testPath2";"2021-01-01 00:00:00";3
+6;"src/test/suite2/testPath3";"2021-01-01 00:00:00";3
+7;"src/test/suite2/testPath4";"2021-01-01 00:00:00";3
+8;"src/test/suite3/testPath";"2021-01-01 00:00:00";3
+9;"src/test/suite3/testPath1";"2021-01-01 00:00:00";3
 10;"testPath2";"2021-01-01 00:00:00";3
 11;"testPath2";"2021-01-01 00:00:00";3
 12;"testPath2";"2021-01-01 00:00:00";3
@@ -24,3 +24,7 @@ id;file_path;date_added;test_suite_id
 23;"testPath2";"2021-01-01 00:00:00";3
 24;"testPath2";"2021-01-01 00:00:00";3
 25;"testPath3";"2021-01-01 00:00:00";4
+26;"testPath3";"2021-01-01 00:00:00";4
+27;"testPath3";"2021-01-01 00:00:00";4
+28;"testPath3";"2021-01-01 00:00:00";4
+29;"testPath3";"2021-01-01 00:00:00";4

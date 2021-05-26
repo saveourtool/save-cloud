@@ -59,7 +59,7 @@ class HistoryView : RComponent<HistoryProps, RState>() {
                     }
                 }
             }
-        ) {
+        ) { _, _ ->
             // todo: fetch data from backend using `window.location.origin`
             arrayOf(
                 json("date" to "26-Jan-2016", "passed" to "26", "failed" to "17", "skipped" to "36"),

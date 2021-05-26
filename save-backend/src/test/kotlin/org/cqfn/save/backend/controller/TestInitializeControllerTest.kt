@@ -6,6 +6,7 @@ import org.cqfn.save.backend.repository.TestSuiteRepository
 import org.cqfn.save.backend.utils.MySqlExtension
 import org.cqfn.save.test.TestBatch
 import org.cqfn.save.test.TestDto
+import org.junit.jupiter.api.Assertions.assertEquals
 
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -48,7 +49,7 @@ class TestInitializeControllerTest {
         )
 
         webClient.post()
-            .uri("/initializeTests?executionId=1")
+            .uri("/initializeTests?executionId=2")
             .contentType(MediaType.APPLICATION_JSON)
             .body(BodyInserters.fromValue(listOf(test)))
             .exchange()
@@ -69,7 +70,7 @@ class TestInitializeControllerTest {
 
         )
         webClient.post()
-            .uri("/initializeTests?executionId=1")
+            .uri("/initializeTests?executionId=2")
             .contentType(MediaType.APPLICATION_JSON)
             .body(BodyInserters.fromValue(listOf(test)))
             .exchange()
@@ -91,7 +92,8 @@ class TestInitializeControllerTest {
             .expectBody<TestBatch>()
             .consumeWith {
                 println(it.responseBody)
-                assertTrue(it.responseBody!!.tests.isNotEmpty() && it.responseBody!!.tests.size == 20)
+                assertTrue(it.responseBody!!.tests.isNotEmpty())
+                assertEquals(10, it.responseBody!!.tests.size)
             }
 
         webClient.get()
