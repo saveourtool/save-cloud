@@ -10,7 +10,7 @@ enum class ExecutionType {
     /**
      * project from git
      */
-    MANUAL,
+    GIT,
 
     /**
      * Project by binary file

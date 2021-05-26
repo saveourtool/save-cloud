@@ -3,8 +3,8 @@ package org.cqfn.save.backend.controllers
 import org.cqfn.save.backend.StringResponse
 import org.cqfn.save.backend.configs.ConfigProperties
 import org.cqfn.save.backend.service.ProjectService
-import org.cqfn.save.entities.BinaryExecutionRequest
 import org.cqfn.save.entities.ExecutionRequest
+import org.cqfn.save.entities.ExecutionRequestForStandardSuites
 
 import org.slf4j.LoggerFactory
 import org.springframework.dao.DataAccessException
@@ -20,6 +20,7 @@ import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
+
 import java.io.File
 
 /**
@@ -68,33 +69,33 @@ class CloneRepositoryController(
     /**
      * Endpoint to save project as binary file
      *
-     * @param binaryExecutionRequest information about project
-     * @param property file with save properties
+     * @param executionRequestForStandardSuites information about project
+     * @param propertyFile file with save properties
      * @param binaryFile binary project file
      * @return mono string
      */
     @PostMapping(value = ["/submitExecutionRequestBin"], consumes = ["multipart/form-data"])
     fun submitExecutionRequestByBin(
-        @RequestPart binaryExecutionRequest: BinaryExecutionRequest,
-        @RequestPart("property", required = true) property: Mono<File>,
+        @RequestPart executionRequestForStandardSuites: ExecutionRequestForStandardSuites,
+        @RequestPart("property", required = true) propertyFile: Mono<File>,
         @RequestPart("binFile", required = true) binaryFile: Mono<File>,
     ): Mono<StringResponse> {
-        val project = binaryExecutionRequest.project
+        val project = executionRequestForStandardSuites.project
         val projectId: Long
         try {
             projectId = projectService.saveProject(project)
-            binaryExecutionRequest.project.id = projectId
+            executionRequestForStandardSuites.project.id = projectId
             log.info("Project $projectId saved")
         } catch (exception: DataAccessException) {
-            log.error("Error when saving project for execution request $binaryExecutionRequest", exception)
-            return Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error to save binary file"))
+            log.error("Error when saving project for execution request $executionRequestForStandardSuites", exception)
+            return Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error to save project $project"))
         }
         log.info("Sending request to preprocessor to start save file for project id=$projectId")
         val bodyBuilder = MultipartBodyBuilder()
-        bodyBuilder.part("binaryExecutionRequest", binaryExecutionRequest)
+        bodyBuilder.part("binaryExecutionRequest", executionRequestForStandardSuites)
         binaryFile.subscribe { binFile ->
             bodyBuilder.part("binFile", binFile)
-            property.subscribe { propFile ->
+            propertyFile.subscribe { propFile ->
                 bodyBuilder.part("property", propFile)
             }
         }

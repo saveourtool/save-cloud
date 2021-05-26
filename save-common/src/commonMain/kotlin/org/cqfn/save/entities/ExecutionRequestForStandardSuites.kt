@@ -7,7 +7,7 @@ import kotlinx.serialization.Serializable
  * @property testsSuites
  */
 @Serializable
-data class BinaryExecutionRequest(
+data class ExecutionRequestForStandardSuites(
     val project: Project,
     val testsSuites: List<String>,
 )

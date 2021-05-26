@@ -1,7 +1,7 @@
 package org.cqfn.save.preprocessor
 
-import org.cqfn.save.entities.BinaryExecutionRequest
 import org.cqfn.save.entities.ExecutionRequest
+import org.cqfn.save.entities.ExecutionRequestForStandardSuites
 import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.TestSuite
 import org.cqfn.save.preprocessor.config.ConfigProperties
@@ -47,6 +47,9 @@ class DownloadProjectTest(
     @Autowired private val configProperties: ConfigProperties,
     @Autowired private val objectMapper: ObjectMapper
 ) : RepositoryVolume {
+    private val binFolder = "${configProperties.repository}/binFolder"
+    private val binFilePath = "$binFolder/program"
+    private val propertyPath = "$binFolder/save.property"
     @BeforeEach
     fun webClientSetUp() {
         webClient.mutate().responseTimeout(Duration.ofSeconds(2)).build()
@@ -54,7 +57,7 @@ class DownloadProjectTest(
 
     @BeforeAll
     fun createBinFileAndProperties() {
-        File(BIN_FOLDER).mkdir()
+        File(binFolder).mkdir()
         File(propertyPath).createNewFile()
         File(binFilePath).createNewFile()
     }
@@ -139,7 +142,7 @@ class DownloadProjectTest(
         val project = Project("owner", "someName", null, "descr").apply {
             id = 42L
         }
-        val request = BinaryExecutionRequest(project, emptyList())
+        val request = ExecutionRequestForStandardSuites(project, emptyList())
         val bodyBuilder = MultipartBodyBuilder()
         bodyBuilder.part("binaryExecutionRequest", request)
         bodyBuilder.part("property", property)
@@ -200,14 +203,10 @@ class DownloadProjectTest(
 
     @AfterAll
     fun removeBinDir() {
-        File(BIN_FOLDER).deleteRecursively()
+        File(binFolder).deleteRecursively()
     }
 
     companion object {
-        const val BIN_FOLDER = "binFolder"
-        val binFilePath = BIN_FOLDER + File.separator + "program"
-        val propertyPath = BIN_FOLDER + File.separator + "save.property"
-
         @JvmStatic
         lateinit var mockServerBackend: MockWebServer
 

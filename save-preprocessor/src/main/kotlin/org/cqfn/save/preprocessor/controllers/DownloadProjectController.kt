@@ -1,8 +1,8 @@
 package org.cqfn.save.preprocessor.controllers
 
-import org.cqfn.save.entities.BinaryExecutionRequest
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.ExecutionRequest
+import org.cqfn.save.entities.ExecutionRequestForStandardSuites
 import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.TestSuite
 import org.cqfn.save.execution.ExecutionStatus
@@ -28,7 +28,6 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestPart
 import org.springframework.web.bind.annotation.RestController
-
 import org.springframework.web.reactive.function.BodyInserter
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
@@ -69,25 +68,22 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
         }
 
     /**
-     * @param binaryExecutionRequest - Dto of binary file, test suites names and project info
-     * @param property
+     * @param executionRequestForStandardSuites - Dto of binary file, test suites names and project info
+     * @param propertyFile
      * @param binaryFile
      * @return response entity with text
      */
-    @Suppress("TooGenericExceptionCaught")
     @PostMapping(value = ["/uploadBin"], consumes = ["multipart/form-data"])
     fun uploadBin(
-        @RequestPart binaryExecutionRequest: BinaryExecutionRequest,
-        @RequestPart("property", required = true) property: Mono<File>,
+        @RequestPart executionRequestForStandardSuites: ExecutionRequestForStandardSuites,
+        @RequestPart("property", required = true) propertyFile: Mono<File>,
         @RequestPart("binFile", required = true) binaryFile: Mono<File>,
     ) = Mono.just(ResponseEntity("Clone pending", HttpStatus.ACCEPTED))
         .subscribeOn(Schedulers.boundedElastic())
         .also {
             it.subscribe {
-                binaryFile.subscribe { binFile ->
-                    property.subscribe { propFile ->
-                        saveBinaryFile(binaryExecutionRequest, propFile, binFile)
-                    }
+                Mono.zip(propertyFile, binaryFile).subscribe {
+                    saveBinaryFile(executionRequestForStandardSuites, it.t1, it.t2)
                 }
             }
         }
@@ -115,7 +111,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
                         project,
                         executionRequest.propertiesRelativePath,
                         tmpDir.relativeTo(File(configProperties.repository)).normalize().path,
-                        ExecutionType.MANUAL,
+                        ExecutionType.GIT,
                         null
                     )
                 }
@@ -131,21 +127,21 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
     }
 
     private fun saveBinaryFile(
-        binaryExecutionRequest: BinaryExecutionRequest,
-        property: File,
+        executionRequestForStandardSuites: ExecutionRequestForStandardSuites,
+        propertyFile: File,
         binFile: File,
     ) {
         val tmpDir = generateDirectory(binFile.name.hashCode(), binFile.name)
-        val pathToProperties = tmpDir.path + File.separator + property.name
-        property.copyTo(File(pathToProperties))
+        val pathToProperties = tmpDir.path + File.separator + propertyFile.name
+        propertyFile.copyTo(File(pathToProperties))
         binFile.copyTo(File(tmpDir.path + File.separator + binFile.name))
-        val project = binaryExecutionRequest.project
+        val project = executionRequestForStandardSuites.project
         sendToBackendAndOrchestrator(
             project,
             pathToProperties,
             tmpDir.relativeTo(File(configProperties.repository)).normalize().path,
             ExecutionType.STANDARD,
-            binaryExecutionRequest.testsSuites.map { TestSuiteDto(TestSuiteType.STANDARD, it, project, pathToProperties) }
+            executionRequestForStandardSuites.testsSuites.map { TestSuiteDto(TestSuiteType.STANDARD, it, project, pathToProperties) }
         )
     }
 
@@ -160,6 +156,9 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
         return tmpDir
     }
 
+    /**
+     * We have not null list of TestSuite only, if execute type is STANDARD ()
+     */
     @Suppress(
         "LongMethod",
         "ThrowsCount",

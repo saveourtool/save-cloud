@@ -9,8 +9,8 @@ import org.cqfn.save.backend.repository.TestExecutionRepository
 import org.cqfn.save.backend.repository.TestRepository
 import org.cqfn.save.backend.repository.TestSuiteRepository
 import org.cqfn.save.backend.service.ProjectService
-import org.cqfn.save.entities.BinaryExecutionRequest
 import org.cqfn.save.entities.ExecutionRequest
+import org.cqfn.save.entities.ExecutionRequestForStandardSuites
 import org.cqfn.save.entities.Project
 import org.cqfn.save.repository.GitRepository
 
@@ -92,7 +92,7 @@ class CloningRepositoryControllerTest {
         val binFile = File(binFilePath)
         val property = File(propertyPath)
         val project = Project("noname", "1", "1", "1")
-        val request = BinaryExecutionRequest(project, emptyList())
+        val request = ExecutionRequestForStandardSuites(project, emptyList())
         val bodyBuilder = MultipartBodyBuilder()
         bodyBuilder.part("binaryExecutionRequest", request)
         bodyBuilder.part("property", property)

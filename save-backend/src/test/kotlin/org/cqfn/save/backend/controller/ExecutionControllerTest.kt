@@ -47,7 +47,7 @@ class ExecutionControllerTest {
             "stub",
             0,
             20,
-            ExecutionType.MANUAL
+            ExecutionType.GIT
         )
         webClient.post()
             .uri("/createExecution")
@@ -70,7 +70,7 @@ class ExecutionControllerTest {
             "stub",
             0,
             20,
-            ExecutionType.MANUAL
+            ExecutionType.GIT
         )
         webClient.post()
             .uri("/createExecution")
@@ -98,7 +98,7 @@ class ExecutionControllerTest {
             "stub",
             0,
             20,
-            ExecutionType.MANUAL
+            ExecutionType.GIT
         )
 
         webClient.post()
