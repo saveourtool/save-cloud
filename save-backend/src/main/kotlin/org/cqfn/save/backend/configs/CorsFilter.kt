@@ -15,8 +15,8 @@ import reactor.core.publisher.Mono
 @Component
 @Profile("dev")
 class CorsFilter : WebFilter {
-    override fun filter(ctx: ServerWebExchange?, chain: WebFilterChain?) =
-            ctx?.let {
+    override fun filter(ctx: ServerWebExchange, chain: WebFilterChain) =
+            ctx.let {
                 ctx.response.headers.add("Access-Control-Allow-Origin", "*")
                 ctx.response.headers.add("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE, OPTIONS")
                 ctx.response.headers.add("Access-Control-Allow-Headers",
@@ -28,8 +28,7 @@ class CorsFilter : WebFilter {
                 } else {
                     ctx.response.headers.add("Access-Control-Expose-Headers",
                         "DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Content-Range,Range")
-                    chain?.filter(ctx) ?: Mono.empty()
+                    chain.filter(ctx) ?: Mono.empty()
                 }
             }
-                ?: Mono.empty()
 }
