@@ -75,6 +75,11 @@ allprojects {
                 includeModule("org.jetbrains.kotlinx", "kotlinx-html-jvm")
             }
         }
+        maven("https://oss.sonatype.org/content/repositories/snapshots") {
+            content {
+                includeGroup("org.cqfn.save")
+            }
+        }
     }
     configureDiktat()
     configureDetekt()

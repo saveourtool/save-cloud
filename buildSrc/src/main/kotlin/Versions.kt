@@ -7,7 +7,7 @@ object Versions {
     const val coroutines = "1.4.3"
     const val serialization = "1.1.0"  // serialization is compiled by 1.4.30 since version 1.1.0 and for native ABI is different. We can update serialization only after we update kotlin.
     const val kotlinxDatetime = "0.1.1"
-    const val saveCore = "0.1.0-alpha.3"
+    const val saveCore = "0.1.0-SNAPSHOT"
 
     // microservices
     const val springBoot = "2.4.4"
