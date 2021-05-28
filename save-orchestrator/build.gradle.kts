@@ -2,6 +2,8 @@ import de.undercouch.gradle.tasks.download.Download
 import org.cqfn.save.buildutils.configureJacoco
 import org.cqfn.save.buildutils.configureSpringBoot
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import java.net.URL
+import org.codehaus.groovy.runtime.ResourceGroovyMethods
 
 plugins {
     kotlin("jvm")
@@ -20,7 +22,18 @@ tasks.withType<KotlinCompile> {
 tasks.getByName("processResources").finalizedBy("downloadSaveCli")
 tasks.register<Download>("downloadSaveCli") {
     dependsOn("processResources")
-    src("https://github.com/cqfn/save/releases/download/v${Versions.saveCore}/save-${Versions.saveCore}-linuxX64.kexe")
+    val latestVersion: String = if (Versions.saveCore.endsWith("SNAPSHOT")) {
+        // fixme: we will probably need snapshot of CLI too
+        val latestRelease = ResourceGroovyMethods.getText(
+            URL("https://api.github.com/repos/cqfn/save/releases/latest")
+        )
+        (groovy.json.JsonSlurper().parseText(latestRelease) as Map<String, Any>)["tag_name"].let {
+            (it as String).trim('v')
+        }
+    } else {
+        Versions.saveCore
+    }
+    src("https://github.com/cqfn/save/releases/download/v$latestVersion/save-$latestVersion-linuxX64.kexe")
     dest("$buildDir/resources/main")
 }
 
