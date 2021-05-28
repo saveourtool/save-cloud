@@ -8,8 +8,8 @@ plugins {
 configureSpringBoot()
 
 dependencies {
-    implementation(project(":save-common"))
-    implementation("org.cqfn.save:save-common-jvm:${Versions.saveCore}")  // todo: awful naming
+    implementation(project(":save-cloud-common"))
+    implementation("org.cqfn.save:save-common-jvm:${Versions.saveCore}")
     implementation("org.cqfn.save:save-core-jvm:${Versions.saveCore}")
     implementation("org.eclipse.jgit:org.eclipse.jgit:${Versions.jgit}")
     implementation("org.jetbrains.kotlin:kotlin-reflect:${Versions.kotlin}")

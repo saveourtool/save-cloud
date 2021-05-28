@@ -30,8 +30,9 @@ kotlin {
         }
         val nativeMain by creating {
             dependencies {
-                implementation(project(":save-common"))
+                implementation(project(":save-cloud-common"))
                 implementation("org.cqfn.save:save-common:${Versions.saveCore}")
+                implementation("org.cqfn.save:save-core:${Versions.saveCore}")
                 implementation("io.ktor:ktor-client-core:${Versions.ktor}")
                 implementation("io.ktor:ktor-client-curl:${Versions.ktor}")
                 implementation("io.ktor:ktor-client-serialization:${Versions.ktor}")

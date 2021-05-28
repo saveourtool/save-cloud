@@ -42,7 +42,7 @@ tasks.withType<Test> {
 }
 
 dependencies {
-    api(project(":save-common"))
+    api(project(":save-cloud-common"))
     runtimeOnly(project(":save-agent", "distribution"))
     implementation("org.slf4j:slf4j-api:${Versions.slf4j}")
     implementation("ch.qos.logback:logback-core:${Versions.logback}")
