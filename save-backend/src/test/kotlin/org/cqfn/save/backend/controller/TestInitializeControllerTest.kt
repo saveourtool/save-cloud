@@ -4,7 +4,9 @@ import org.cqfn.save.backend.SaveApplication
 import org.cqfn.save.backend.repository.TestRepository
 import org.cqfn.save.backend.repository.TestSuiteRepository
 import org.cqfn.save.backend.utils.MySqlExtension
+import org.cqfn.save.test.TestBatch
 import org.cqfn.save.test.TestDto
+import org.junit.jupiter.api.Assertions.assertEquals
 
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -37,6 +39,7 @@ class TestInitializeControllerTest {
     lateinit var testSuiteRepository: TestSuiteRepository
 
     @Test
+    @Suppress("UnsafeCallOnNullableType")
     fun testConnection() {
         val testSuite = testSuiteRepository.findById(2).get()
         val test = TestDto(
@@ -46,7 +49,7 @@ class TestInitializeControllerTest {
         )
 
         webClient.post()
-            .uri("/initializeTests?executionId=1")
+            .uri("/initializeTests?executionId=2")
             .contentType(MediaType.APPLICATION_JSON)
             .body(BodyInserters.fromValue(listOf(test)))
             .exchange()
@@ -57,6 +60,7 @@ class TestInitializeControllerTest {
     }
 
     @Test
+    @Suppress("UnsafeCallOnNullableType")
     fun checkDataSave() {
         val testSuite = testSuiteRepository.findById(2).get()
         val test = TestDto(
@@ -66,7 +70,7 @@ class TestInitializeControllerTest {
 
         )
         webClient.post()
-            .uri("/initializeTests?executionId=1")
+            .uri("/initializeTests?executionId=2")
             .contentType(MediaType.APPLICATION_JSON)
             .body(BodyInserters.fromValue(listOf(test)))
             .exchange()
@@ -85,10 +89,11 @@ class TestInitializeControllerTest {
             .exchange()
             .expectStatus()
             .isOk
-            .expectBody<List<TestDto>>()
+            .expectBody<TestBatch>()
             .consumeWith {
                 println(it.responseBody)
-                assertTrue(it.responseBody!!.isNotEmpty() && it.responseBody!!.size == 20)
+                assertTrue(it.responseBody!!.tests.isNotEmpty())
+                assertEquals(10, it.responseBody!!.tests.size)
             }
 
         webClient.get()
@@ -96,9 +101,9 @@ class TestInitializeControllerTest {
             .exchange()
             .expectStatus()
             .isOk
-            .expectBody<List<TestDto>>()
+            .expectBody<TestBatch>()
             .consumeWith {
-                assertTrue(it.responseBody!!.size == 3) { "Expected 3 tests, but got ${it.responseBody} instead" }
+                assertTrue(it.responseBody!!.tests.size == 3) { "Expected 3 tests, but got ${it.responseBody!!.tests} instead" }
             }
     }
 
@@ -109,10 +114,10 @@ class TestInitializeControllerTest {
             .exchange()
             .expectStatus()
             .isOk
-            .expectBody<List<TestDto>>()
+            .expectBody<TestBatch>()
             .consumeWith {
                 println(it.responseBody)
-                assertTrue(it.responseBody!!.isNotEmpty())
+                assertTrue(it.responseBody!!.tests.isNotEmpty())
             }
     }
 }

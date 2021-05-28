@@ -31,13 +31,13 @@ kotlin {
         val nativeMain by creating {
             dependencies {
                 implementation(project(":save-common"))
+                implementation("org.cqfn.save:save-core:${Versions.saveCore}")
                 implementation("io.ktor:ktor-client-core:${Versions.ktor}")
                 implementation("io.ktor:ktor-client-curl:${Versions.ktor}")
                 implementation("io.ktor:ktor-client-serialization:${Versions.ktor}")
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-properties:${Versions.serialization}")
                 implementation("com.squareup.okio:okio-multiplatform:3.0.0-alpha.1")
                 implementation("org.jetbrains.kotlinx:kotlinx-datetime:${Versions.kotlinxDatetime}")
-                implementation("org.cqfn.save:save-core:${Versions.saveCore}")
                 // as for 2.0.4, kotlin-logging doesn't have mingw version and it'll be PITA to use it
 //                implementation("io.github.microutils:kotlin-logging:2.0.4")
             }

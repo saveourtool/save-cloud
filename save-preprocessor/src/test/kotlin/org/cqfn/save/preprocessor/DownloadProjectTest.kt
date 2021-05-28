@@ -1,6 +1,7 @@
 package org.cqfn.save.preprocessor
 
 import org.cqfn.save.entities.ExecutionRequest
+import org.cqfn.save.entities.ExecutionRequestForStandardSuites
 import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.TestSuite
 import org.cqfn.save.preprocessor.config.ConfigProperties
@@ -15,6 +16,7 @@ import okhttp3.mockwebserver.MockWebServer
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -22,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
+import org.springframework.http.client.MultipartBodyBuilder
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.web.reactive.server.WebTestClient
@@ -44,15 +47,26 @@ class DownloadProjectTest(
     @Autowired private val configProperties: ConfigProperties,
     @Autowired private val objectMapper: ObjectMapper
 ) : RepositoryVolume {
+    private val binFolder = "${configProperties.repository}/binFolder"
+    private val binFilePath = "$binFolder/program"
+    private val propertyPath = "$binFolder/save.properties"
     @BeforeEach
     fun webClientSetUp() {
         webClient.mutate().responseTimeout(Duration.ofSeconds(2)).build()
     }
 
+    @BeforeAll
+    fun createBinFileAndProperties() {
+        File(binFolder).mkdir()
+        File(propertyPath).createNewFile()
+        File(binFilePath).createNewFile()
+        File(binFilePath).writeText("echo 0")
+    }
+
     @Test
     fun testBadRequest() {
         val wrongRepo = GitRepository("wrongGit")
-        val project = Project("owner", "someName", "type", wrongRepo.url, "descr")
+        val project = Project("owner", "someName", wrongRepo.url, "descr")
         val request = ExecutionRequest(project, wrongRepo)
         webClient.post()
             .uri("/upload")
@@ -72,7 +86,7 @@ class DownloadProjectTest(
     @Test
     fun testCorrectDownload() {
         val validRepo = GitRepository("https://github.com/cqfn/save-cloud.git")
-        val project = Project("owner", "someName", "type", validRepo.url, "descr").apply {
+        val project = Project("owner", "someName", validRepo.url, "descr").apply {
             id = 42L
         }
         val request = ExecutionRequest(project, validRepo)
@@ -86,7 +100,11 @@ class DownloadProjectTest(
             MockResponse()
                 .setResponseCode(200)
                 .setHeader("Content-Type", "application/json")
-                .setBody(objectMapper.writeValueAsString(listOf(TestSuite(TestSuiteType.PROJECT, "", project, LocalDateTime.now())))),
+                .setBody(objectMapper.writeValueAsString(
+                    listOf(
+                        TestSuite(TestSuiteType.PROJECT, "", project, LocalDateTime.now(), "save.properties")
+                    )
+                )),
         )
         mockServerBackend.enqueue(
             MockResponse()
@@ -117,9 +135,77 @@ class DownloadProjectTest(
         assertions.orTimeout(60, TimeUnit.SECONDS).join().forEach { Assertions.assertNotNull(it) }
     }
 
+    @Suppress("TOO_LONG_FUNCTION")
+    @Test
+    fun testSaveProjectAsBinaryFile() {
+        val binFile = File(binFilePath)
+        val property = File(propertyPath)
+        val project = Project("owner", "someName", null, "descr").apply {
+            id = 42L
+        }
+        val request = ExecutionRequestForStandardSuites(project, emptyList())
+        val bodyBuilder = MultipartBodyBuilder()
+        bodyBuilder.part("executionRequestForStandardSuites", request)
+        bodyBuilder.part("property", property)
+        bodyBuilder.part("binFile", binFile)
+
+        mockServerBackend.enqueue(
+            MockResponse()
+                .setResponseCode(200)
+                .setHeader("Content-Type", "application/json")
+                .setBody("42"),
+        )
+        mockServerBackend.enqueue(
+            MockResponse()
+                .setResponseCode(200)
+                .setHeader("Content-Type", "application/json")
+                .setBody(objectMapper.writeValueAsString(
+                    listOf(
+                        TestSuite(TestSuiteType.PROJECT, "", project, LocalDateTime.now(), "save.properties")
+                    )
+                )),
+        )
+        mockServerBackend.enqueue(
+            MockResponse()
+                .setResponseCode(200)
+        )
+        mockServerOrchestrator.enqueue(
+            MockResponse()
+                .setResponseCode(200)
+        )
+        val assertions = CompletableFuture.supplyAsync {
+            listOf(
+                mockServerBackend.takeRequest(60, TimeUnit.SECONDS),
+                mockServerBackend.takeRequest(60, TimeUnit.SECONDS),
+                mockServerBackend.takeRequest(60, TimeUnit.SECONDS),
+                mockServerOrchestrator.takeRequest(60, TimeUnit.SECONDS)
+            )
+        }
+
+        webClient.post()
+            .uri("/uploadBin")
+            .contentType(MediaType.MULTIPART_FORM_DATA)
+            .body(BodyInserters.fromMultipartData(bodyBuilder.build()))
+            .exchange()
+            .expectStatus()
+            .isAccepted
+            .expectBody<String>()
+            .isEqualTo("Clone pending")
+        Thread.sleep(2500)
+
+        Assertions.assertTrue(File("${configProperties.repository}/${binFile.name.hashCode()}").exists())
+        assertions.orTimeout(60, TimeUnit.SECONDS).join().forEach { Assertions.assertNotNull(it) }
+        Assertions.assertEquals(File("${configProperties.repository}/${binFile.name.hashCode()}/program").readText(), "echo 0")
+    }
+
     @AfterEach
     fun removeTestDir() {
         File(configProperties.repository).deleteRecursively()
+    }
+
+    @AfterAll
+    fun removeBinDir() {
+        File(binFolder).deleteRecursively()
     }
 
     companion object {

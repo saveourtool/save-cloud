@@ -1,6 +1,7 @@
 package org.cqfn.save.entities
 
 import org.cqfn.save.execution.ExecutionStatus
+import org.cqfn.save.execution.ExecutionType
 import java.time.LocalDateTime
 import javax.persistence.Entity
 import javax.persistence.EnumType
@@ -17,8 +18,9 @@ import javax.persistence.ManyToOne
  * @property page
  * @property resourcesRootPath path to test resources, relative to shared volume mount point
  * @property batchSize Maximum number of returning tests per execution
+ * @property type
  */
-@Suppress("USE_DATA_CLASS")
+@Suppress("USE_DATA_CLASS", "LongParameterList")
 @Entity
 class Execution(
 
@@ -40,5 +42,8 @@ class Execution(
     var page: Int,
 
     var batchSize: Int,
+
+    @Enumerated(EnumType.STRING)
+    var type: ExecutionType
 
 ) : BaseEntity()

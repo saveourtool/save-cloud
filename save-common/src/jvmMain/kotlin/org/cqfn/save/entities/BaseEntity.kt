@@ -8,6 +8,7 @@ import javax.persistence.MappedSuperclass
  * base class for all entities
  */
 @MappedSuperclass
+@Suppress("UnnecessaryAbstractClass")
 abstract class BaseEntity {
     /**
      * generate a unique id

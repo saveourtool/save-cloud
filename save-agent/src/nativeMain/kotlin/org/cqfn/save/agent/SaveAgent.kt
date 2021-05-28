@@ -3,10 +3,13 @@
 package org.cqfn.save.agent
 
 import org.cqfn.save.agent.utils.readFile
+import org.cqfn.save.core.logging.logError
+import org.cqfn.save.core.logging.logInfo
 import org.cqfn.save.core.utils.ExecutionResult
 import org.cqfn.save.core.utils.ProcessBuilder
 import org.cqfn.save.domain.TestResultStatus
 
+import generated.SAVE_CORE_VERSION
 import io.ktor.client.HttpClient
 import io.ktor.client.features.HttpTimeout
 import io.ktor.client.features.json.JsonFeature
@@ -50,6 +53,8 @@ class SaveAgent(private val config: AgentConfiguration,
                     }
                 }
 ) {
+    private val logFilePath = "logs.txt"
+
     /**
      * The current [AgentState] of this agent
      */
@@ -60,82 +65,89 @@ class SaveAgent(private val config: AgentConfiguration,
      * @return Unit
      */
     suspend fun start() = coroutineScope {
-        println("Starting agent")
+        logInfo("Starting agent")
         val heartbeatsJob = launch { startHeartbeats() }
         heartbeatsJob.join()
     }
 
     @Suppress("WHEN_WITHOUT_ELSE")  // when with sealed class
     private suspend fun startHeartbeats() = coroutineScope {
-        println("Scheduling heartbeats")
+        logInfo("Scheduling heartbeats")
+        sendDataToBackend { saveAdditionalData() }
         while (true) {
             val response = runCatching {
                 // TODO: get execution progress here
                 sendHeartbeat(ExecutionProgress(0))
             }
             if (response.isSuccess) {
-                when (response.getOrNull()) {
-                    is NewJobResponse -> maybeStartSaveProcess()
+                when (val heartbeatResponse = response.getOrNull()) {
+                    is NewJobResponse -> maybeStartSaveProcess(heartbeatResponse.cliArgs)
                     WaitResponse -> state.value = AgentState.IDLE
                     ContinueResponse -> Unit  // do nothing
                 }
             } else {
-                println("Exception during heartbeat: ${response.exceptionOrNull()?.message}")
+                logError("Exception during heartbeat: ${response.exceptionOrNull()?.message}")
             }
             // todo: start waiting after request was sent, not after response?
-            println("Waiting for ${config.heartbeat.interval} sec")
+            logInfo("Waiting for ${config.heartbeat.interval} sec")
             delay(config.heartbeat.interval)
         }
     }
 
-    private suspend fun maybeStartSaveProcess() = coroutineScope {
+    private suspend fun maybeStartSaveProcess(cliArgs: String) = coroutineScope {
         if (saveProcessJob?.isCompleted == false) {
-            println("Shouldn't start new process when there is the previous running")
+            logError("Shouldn't start new process when there is the previous running")
         } else {
             saveProcessJob = launch {
                 // new job received from Orchestrator, spawning SAVE CLI process
-                startSaveProcess()
+                startSaveProcess(cliArgs)
             }
         }
     }
 
     /**
+     * @param cliArgs arguments for SAVE process
      * @return Unit
      */
     @Suppress("MAGIC_NUMBER")  // todo: unsuppress when mocked data is substituted by actual
-    internal suspend fun startSaveProcess() = coroutineScope {
+    internal suspend fun startSaveProcess(cliArgs: String) = coroutineScope {
         // blocking execution of OS process
         state.value = AgentState.BUSY
-        val executionResult = runSave(emptyList())
+        val executionResult = runSave(cliArgs)
+        val executionLogs = ExecutionLogs(config.id, readFile(logFilePath))
+        val logsSending = launch {
+            runCatching {
+                sendLogs(executionLogs)
+            }
+                .exceptionOrNull()
+                ?.let {
+                    logError("Couldn't send logs, reason: ${it.message}")
+                }
+        }
         when (executionResult.code) {
             0 -> {
-                val executionLogs = ExecutionLogs(config.id, readFile("logs.txt"))
                 if (executionLogs.cliLogs.isEmpty()) {
                     state.value = AgentState.CLI_FAILED
                     return@coroutineScope
                 }
                 // todo: parse test executions from files
                 val currentTime = Clock.System.now().toEpochMilliseconds()
-                val testExecutionDtoExample = TestExecutionDto(0L, 0L, TestResultStatus.PASSED, currentTime, currentTime)
-                sendExecutionData(testExecutionDtoExample)
-                runCatching {
-                    sendLogs(executionLogs)
+                val testExecutionDtoExample = TestExecutionDto(0L, "testFilePath", 0L, TestResultStatus.PASSED, currentTime, currentTime)
+                sendDataToBackend {
+                    postExecutionData(testExecutionDtoExample)
                 }
-                    .exceptionOrNull()
-                    ?.let {
-                        println("Couldn't send logs, reason: ${it.message}")
-                    }
                 state.value = AgentState.FINISHED
             }
             else -> {
-                println("SAVE has exited abnormally with status ${executionResult.code}")
+                logError("SAVE has exited abnormally with status ${executionResult.code}")
                 state.value = AgentState.CLI_FAILED
             }
         }
+        logsSending.join()
     }
 
-    private fun runSave(cliArgs: List<String>): ExecutionResult =
-            ProcessBuilder().exec(config.cliCommand, "logs.txt".toPath())
+    private fun runSave(cliArgs: String): ExecutionResult =
+            ProcessBuilder().exec(config.cliCommand.let { if (cliArgs.isNotEmpty()) "$it $cliArgs" else it }, logFilePath.toPath())
 
     /**
      * @param executionLogs logs of CLI execution progress that will be sent in a message
@@ -163,11 +175,13 @@ class SaveAgent(private val config: AgentConfiguration,
     /**
      * Attempt to send execution data to backend, will retry several times, while increasing delay 2 times on each iteration.
      */
-    private suspend fun sendExecutionData(testExecutionDto: TestExecutionDto): Unit = coroutineScope {
+    private suspend fun sendDataToBackend(
+        requestToBackend: suspend () -> HttpResponse
+    ) = coroutineScope {
         var retryInterval = config.executionDataInitialRetryMillis
         repeat(config.executionDataRetryAttempts) { attempt ->
             val result = runCatching {
-                postExecutionData(testExecutionDto)
+                requestToBackend()
             }
             if (result.isSuccess && result.getOrNull()?.status == HttpStatusCode.OK) {
                 return@repeat
@@ -179,7 +193,7 @@ class SaveAgent(private val config: AgentConfiguration,
                     state.value = AgentState.BACKEND_UNREACHABLE
                     "Backend is unreachable, ${result.exceptionOrNull()?.message}"
                 }
-                println("Cannot post execution data (x$attempt), will retry in $retryInterval second. Reason: $reason")
+                logError("Cannot post execution data (x$attempt), will retry in $retryInterval second. Reason: $reason")
                 delay(retryInterval)
                 retryInterval *= 2
             }
@@ -190,5 +204,11 @@ class SaveAgent(private val config: AgentConfiguration,
         url("${config.backendUrl}/executionData")
         contentType(ContentType.Application.Json)
         body = testExecutionDto
+    }
+
+    private suspend fun saveAdditionalData() = httpClient.post<HttpResponse> {
+        url("${config.backendUrl}/saveAgentVersion")
+        contentType(ContentType.Application.Json)
+        body = AgentVersion(config.id, SAVE_CORE_VERSION)
     }
 }

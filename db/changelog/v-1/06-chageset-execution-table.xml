@@ -39,6 +39,9 @@
             <column name="batch_size" type="integer">
                 <constraints nullable="false"/>
             </column>
+            <column name="type" type="varchar(100)">
+                <constraints nullable="false" />
+            </column>
         </createTable>
 
         <rollback>

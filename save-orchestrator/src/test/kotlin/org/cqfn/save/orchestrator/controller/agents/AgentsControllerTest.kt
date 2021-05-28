@@ -4,6 +4,7 @@ import org.cqfn.save.agent.ExecutionLogs
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.Project
 import org.cqfn.save.execution.ExecutionStatus
+import org.cqfn.save.execution.ExecutionType
 import org.cqfn.save.orchestrator.config.Beans
 import org.cqfn.save.orchestrator.config.ConfigProperties
 import org.cqfn.save.orchestrator.controller.AgentsController
@@ -34,9 +35,9 @@ import org.springframework.web.reactive.function.BodyInserters
 import java.io.File
 import java.nio.charset.Charset
 import java.time.LocalDateTime
+
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.createTempDirectory
-
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -69,8 +70,8 @@ class AgentsControllerTest {
 
     @Test
     fun `should build image, query backend and start containers`() {
-        val project = Project("Huawei", "huaweiName", "manual", "huaweiUrl", "description")
-        val execution = Execution(project, stubTime, stubTime, ExecutionStatus.PENDING, "stub", "stub", 0, 20).apply {
+        val project = Project("Huawei", "huaweiName", "huaweiUrl", "description")
+        val execution = Execution(project, stubTime, stubTime, ExecutionStatus.PENDING, "stub", "stub", 0, 20, ExecutionType.GIT).apply {
             id = 42L
         }
         whenever(dockerService.buildAndCreateContainers(any())).thenReturn(listOf("test-agent-id-1", "test-agent-id-2"))
@@ -98,8 +99,8 @@ class AgentsControllerTest {
 
     @Test
     fun checkPostResponseIsNotOk() {
-        val project = Project("Huawei", "huaweiName", "manual", "huaweiUrl", "description")
-        val execution = Execution(project, stubTime, stubTime, ExecutionStatus.RUNNING, "stub", "stub", 0, 20)
+        val project = Project("Huawei", "huaweiName", "huaweiUrl", "description")
+        val execution = Execution(project, stubTime, stubTime, ExecutionStatus.RUNNING, "stub", "stub", 0, 20, ExecutionType.GIT)
         webClient
             .post()
             .uri("/initializeAgents")
@@ -126,7 +127,7 @@ class AgentsControllerTest {
         val logs = """
             first line
             second line
-        """.trimIndent().split(System.lineSeparator())
+        """.trimIndent().lines()
         makeRequestToSaveLog(logs)
             .expectStatus()
             .isOk
@@ -140,17 +141,18 @@ class AgentsControllerTest {
         val firstLogs = """
             first line
             second line
-        """.trimIndent().split(System.lineSeparator())
+        """.trimIndent().lines()
         makeRequestToSaveLog(firstLogs)
             .expectStatus()
             .isOk
         val firstLogFile = File(configProperties.executionLogs + File.separator + "agent.log")
         Assertions.assertTrue(firstLogFile.exists())
         Assertions.assertEquals(firstLogFile.readLines(), firstLogs)
+
         val secondLogs = """
             second line
             first line
-        """.trimIndent().split(System.lineSeparator())
+        """.trimIndent().lines()
         makeRequestToSaveLog(secondLogs)
             .expectStatus()
             .isOk

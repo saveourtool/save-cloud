@@ -1,8 +1,10 @@
 package org.cqfn.save.entities
 
+import org.cqfn.save.agent.TestExecutionDto
 import org.cqfn.save.domain.TestResultStatus
 
 import java.time.LocalDateTime
+import java.time.ZoneOffset
 import javax.persistence.Entity
 import javax.persistence.EnumType
 import javax.persistence.Enumerated
@@ -37,4 +39,19 @@ class TestExecution(
 
     var endTime: LocalDateTime?,
 
-) : BaseEntity()
+) : BaseEntity() {
+    /**
+     * Converts `this` to [TestExecutionDto]
+     *
+     * @return a new [TestExecutionDto]
+     */
+    @Suppress("UnsafeCallOnNullableType")
+    fun toDto() = TestExecutionDto(
+        id!!,
+        test.filePath,
+        agent?.id,
+        status,
+        startTime?.toEpochSecond(ZoneOffset.UTC),
+        endTime?.toEpochSecond(ZoneOffset.UTC),
+    )
+}
