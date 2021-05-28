@@ -10,6 +10,8 @@ import org.cqfn.save.execution.ExecutionType
 import org.cqfn.save.preprocessor.Response
 import org.cqfn.save.preprocessor.config.ConfigProperties
 import org.cqfn.save.preprocessor.service.TestDiscoveringService
+import org.cqfn.save.testsuite.TestSuiteDto
+import org.cqfn.save.testsuite.TestSuiteType
 
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.api.errors.GitAPIException
