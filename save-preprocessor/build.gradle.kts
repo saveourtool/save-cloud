@@ -8,7 +8,7 @@ plugins {
 configureSpringBoot()
 
 dependencies {
-    implementation(project(":save-common"))
+    implementation(project(":save-cloud-common"))
     implementation("org.eclipse.jgit:org.eclipse.jgit:${Versions.jgit}")
     implementation("org.jetbrains.kotlin:kotlin-reflect:${Versions.kotlin}")
     testImplementation("com.squareup.okhttp3:okhttp:${Versions.okhttp3}")
