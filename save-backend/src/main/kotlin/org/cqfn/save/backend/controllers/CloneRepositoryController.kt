@@ -12,11 +12,11 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.http.client.MultipartBodyBuilder
+import org.springframework.http.codec.multipart.FilePart
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestPart
 import org.springframework.web.bind.annotation.RestController
-import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
@@ -76,10 +76,10 @@ class CloneRepositoryController(
      */
     @PostMapping(value = ["/submitExecutionRequestBin"], consumes = ["multipart/form-data"])
     fun submitExecutionRequestByBin(
-        @RequestPart executionRequestForStandardSuites: ExecutionRequestForStandardSuites,
-        @RequestPart("property", required = true) propertyFile: Mono<File>,
-        @RequestPart("binFile", required = true) binaryFile: Mono<File>,
-    ): Mono<StringResponse> {
+        @RequestPart("execution", required = true) executionRequestForStandardSuites: ExecutionRequestForStandardSuites,
+        @RequestPart("property", required = true) propertyFile: Mono<FilePart>,
+        @RequestPart("binFile", required = true) binaryFile: Mono<FilePart>,
+    ) {
         val project = executionRequestForStandardSuites.project
         val projectId: Long
         try {
@@ -88,7 +88,8 @@ class CloneRepositoryController(
             log.info("Project $projectId saved")
         } catch (exception: DataAccessException) {
             log.error("Error when saving project for execution request $executionRequestForStandardSuites", exception)
-            return Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error to save project $project"))
+            return
+            //return Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error to save project $project"))
         }
         log.info("Sending request to preprocessor to start save file for project id=$projectId")
         val bodyBuilder = MultipartBodyBuilder()
@@ -99,13 +100,18 @@ class CloneRepositoryController(
                 bodyBuilder.part("property", propFile)
             }
         }
-        return preprocessorWebClient
+        /*return preprocessorWebClient
             .post()
             .uri("/uploadBin")
             .contentType(MediaType.MULTIPART_FORM_DATA)
             .body(BodyInserters.fromMultipartData(bodyBuilder.build()))
             .retrieve()
             .toEntity(String::class.java)
-            .toMono()
+            .toMono()*/
+    }
+
+    private fun qwe(f1: File, f2: File) {
+        println(f1.name)
+        println(f2.name)
     }
 }

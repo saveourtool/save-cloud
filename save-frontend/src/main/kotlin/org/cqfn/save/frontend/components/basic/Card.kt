@@ -43,7 +43,7 @@ external interface CardProps : RProps {
  */
 @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
 fun cardComponent(contentBuilder: RDOMBuilder<DIV>.() -> Unit) = functionalComponent<CardProps> { props ->
-    div("col-xl-3 col-md-6 mb-4") {
+    div("col-xl-4 col-md-6 mb-4") {
         div("card border-left-${props.leftBorderColor} shadow h-100 py-2") {
             div("card-body") {
                 div("row no-gutters align-items-center") {

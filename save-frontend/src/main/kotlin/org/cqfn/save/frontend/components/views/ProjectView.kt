@@ -5,6 +5,7 @@
 package org.cqfn.save.frontend.components.views
 
 import org.cqfn.save.entities.ExecutionRequest
+import org.cqfn.save.entities.ExecutionRequestForStandardSuites
 import org.cqfn.save.entities.Project
 import org.cqfn.save.frontend.components.basic.cardComponent
 import org.cqfn.save.frontend.externals.modal.modal
@@ -14,6 +15,11 @@ import org.cqfn.save.repository.GitRepository
 import org.w3c.dom.HTMLInputElement
 import org.w3c.fetch.Headers
 import org.w3c.fetch.Response
+import org.w3c.files.Blob
+import org.w3c.files.BlobPropertyBag
+import org.w3c.files.File
+import org.w3c.files.get
+import org.w3c.xhr.FormData
 import react.RBuilder
 import react.RComponent
 import react.RProps
@@ -34,8 +40,10 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.html.ButtonType
 import kotlinx.html.InputType
+import kotlinx.html.id
 import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
+import kotlinx.html.role
 
 /**
  * [RProps] for project view
@@ -43,7 +51,6 @@ import kotlinx.html.js.onClickFunction
 @Suppress("MISSING_KDOC_CLASS_ELEMENTS")
 external interface ProjectProps : RProps {
     var executionRequest: ExecutionRequest
-    var url: String?
 }
 
 /**
@@ -51,9 +58,8 @@ external interface ProjectProps : RProps {
  */
 @Suppress("MISSING_KDOC_CLASS_ELEMENTS")
 external interface ProjectExecutionRouteProps : RProps {
-    var name: String
-    var owner: String
-    var url: String?
+    var project: Project
+    var gitRepository: GitRepository
 }
 
 /**
@@ -63,12 +69,47 @@ external interface ProjectViewState : RState {
     /**
      * Whether error modal from backend is visible
      */
-    var isErrorOpen: Boolean
+    var isErrorFromBackend: Boolean
 
     /**
      * Whether error text from backend is visible
      */
-    var errorText: String
+    var errorTextFromBackend: String
+
+    /**
+     * Flag to open test suites
+     */
+    var isTestTypesOpen: Boolean
+
+    /**
+     * Whether error is both types of project were openned
+     */
+    var isBothProjectOpen: Boolean
+
+    /**
+     * Whether error if testSuites empty
+     */
+    var isTestTypesEmpty: Boolean
+
+    /**
+     * Whether error non project types
+     */
+    var isNoneProjectOpen: Boolean
+
+    /**
+     * Whether error if no binary file
+     */
+    var isBinaryFileNotSelect: Boolean
+
+    /**
+     * Whether error if no property file
+     */
+    var isPropertyFileNotSelect: Boolean
+
+    /**
+     * List of selected test suites
+     */
+    var selectedTypes: MutableList<String>
 }
 
 /**
@@ -78,16 +119,71 @@ external interface ProjectViewState : RState {
  */
 @OptIn(ExperimentalJsExport::class)
 @JsExport
+@Suppress("CUSTOM_GETTERS_SETTERS")
 class ProjectView : RComponent<ProjectProps, ProjectViewState>() {
     private var pathToPropertyFile: String? = null
+    private var gitUrl: String? = null
+        get() = props.executionRequest.gitRepository.url
+    private var binaryFile: File? = null
+    private var propertyFile: File? = null
+    private val testTypesList = listOf("Class", "Comment", "Function", "Variable", "Enum", "Space", "Style", "Another")
+    private var isProjectAsGitOpen = true
+    private var isProjectAsBinaryFile = true
     private lateinit var responseFromExecutionRequest: Response
 
     init {
-        state.isErrorOpen = false
-        state.errorText = ""
+        state.isErrorFromBackend = false
+        state.isTestTypesOpen = false
+        state.isBothProjectOpen = false
+        state.isNoneProjectOpen = false
+        state.isTestTypesEmpty = false
+        state.isBinaryFileNotSelect = false
+        state.isPropertyFileNotSelect = false
+        state.selectedTypes = mutableListOf()
+        state.errorTextFromBackend = ""
     }
 
     private fun submitExecutionRequest() {
+        if (isProjectAsBinaryFile && isProjectAsGitOpen) {
+            setState { isBothProjectOpen = true }
+            return
+        } else if (!isProjectAsBinaryFile && !isProjectAsGitOpen) {
+            setState { isNoneProjectOpen = true }
+            return
+        }
+        if (isProjectAsGitOpen) {
+            submitExecutionRequestGit()
+        } else {
+            if (state.selectedTypes.isEmpty()) {
+                setState { isTestTypesEmpty = true }
+                return
+            }
+            binaryFile ?: run {
+                setState { isBinaryFileNotSelect = true }
+                return
+            }
+            propertyFile ?: run {
+                setState { isPropertyFileNotSelect = true }
+                return
+            }
+            submitExecutionRequestBinFile()
+        }
+    }
+
+    private fun submitExecutionRequestBinFile() {
+        val headers = Headers().also {
+            it.set("Accept", "application/json")
+        }
+        val formData = FormData()
+        val request = ExecutionRequestForStandardSuites(props.executionRequest.project, state.selectedTypes)
+        console.log(JSON.stringify(request))
+        formData.append("execution", Blob(arrayOf(JSON.stringify(request)), BlobPropertyBag("application/json")))
+        binaryFile?.let { formData.append("property", it) }
+        binaryFile?.let { formData.append("binFile", it) }
+        submitRequest("submitExecutionRequestBin", headers, formData)
+    }
+
+    private fun submitExecutionRequestGit() {
         val executionRequest = ExecutionRequest(
             project = props.executionRequest.project,
             gitRepository = props.executionRequest.gitRepository,
@@ -98,24 +194,34 @@ class ProjectView : RComponent<ProjectProps, ProjectViewState>() {
             it.set("Accept", "application/json")
             it.set("Content-Type", "application/json")
         }
+        submitRequest("submitExecutionRequest", headers, jsonExecution)
+    }
+
+    private fun submitRequest(url: String, headers: Headers, body: dynamic) {
         GlobalScope.launch {
-            responseFromExecutionRequest = post("${window.location.origin}/submitExecutionRequest", headers, jsonExecution)
+            responseFromExecutionRequest = post("http://localhost:5000/$url", headers, body)
         }.invokeOnCompletion {
             if (responseFromExecutionRequest.ok) {
                 window.location.href = "${window.location.origin}/history"
             } else {
                 setState {
-                    isErrorOpen = true
-                    errorText = responseFromExecutionRequest.statusText
+                    isErrorFromBackend = true
+                    errorTextFromBackend = responseFromExecutionRequest.statusText
                 }
             }
         }
     }
 
-    @Suppress("TOO_LONG_FUNCTION")
+    @Suppress("TOO_LONG_FUNCTION", "LongMethod")
     override fun RBuilder.render() {
         // modal window for configuring tests run - initially hidden
-        runErrorModal()
+        runTestTypesModal()
+        runErrorFromBackendModal()
+        runErrorEmptyTestTypesModal()
+        runErrorBothProjectTypesModal()
+        runErrorNoneTypeProjectModal()
+        runErrorNoneBinaryFile()
+        runErrorNonePropertyFile()
         // Page Heading
         div("d-sm-flex align-items-center justify-content-between mb-4") {
             h1("h3 mb-0 text-gray-800") {
@@ -126,16 +232,114 @@ class ProjectView : RComponent<ProjectProps, ProjectViewState>() {
         div("row") {
             child(cardComponent {
                 div("text-center") {
-                    div("pb-4") {
-                        h6(classes = "d-inline") {
-                            +"Path to property file: "
-                        }
-                        input(type = InputType.text, name = "itemText") {
+                    div("card shadow mb-4") {
+                        a(href = "#collapseCardGitProject", classes = "d-block card-header py-3") {
+                            attrs["data-toggle"] = "collapse"
+                            attrs["aria-expanded"] = false
+                            attrs["aria-controls"] = "collapseCardGitProject"
                             attrs {
-                                placeholder = "save.properties"
-                                onChangeFunction = {
-                                    val target = it.target as HTMLInputElement
-                                    pathToPropertyFile = target.value
+                                role = "button"
+                                onClickFunction = { isProjectAsGitOpen = !isProjectAsGitOpen }
+                            }
+                            h6("m-0 font-weight-bold text-primary") {
+                                +"Upload project as git url"
+                            }
+                        }
+                        // Collapse card to load git url
+                        div(classes = "collapse show") {
+                            attrs.id = "collapseCardGitProject"
+                            div("card-body") {
+                                div("pb-3") {
+                                    div("d-inline-block") {
+                                        h6(classes = "d-inline") {
+                                            +"Git url: "
+                                        }
+                                    }
+                                    div("d-inline-block ml-2") {
+                                        input(type = InputType.text) {
+                                            attrs {
+                                                gitUrl?.let {
+                                                    value = it
+                                                } ?: run {
+                                                    placeholder = "https://github.com/"
+                                                }
+                                                onChangeFunction = {
+                                                    val target = it.target as HTMLInputElement
+                                                    gitUrl = target.value
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
+                                div("pb-3") {
+                                    div("d-inline-block") {
+                                        h6(classes = "d-inline") {
+                                            +"Path to property file: "
+                                        }
+                                    }
+                                    div("d-inline-block ml-2") {
+                                        input(type = InputType.text) {
+                                            attrs {
+                                                placeholder = "save.properties"
+                                                onChangeFunction = {
+                                                    val target = it.target as HTMLInputElement
+                                                    pathToPropertyFile = target.value
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // Collapse card to load binary file
+                    div("card shadow mb-4") {
+                        a(href = "#collapseCardBinFiles", classes = "d-block card-header py-3") {
+                            attrs["data-toggle"] = "collapse"
+                            attrs["aria-expanded"] = "false"
+                            attrs["aria-controls"] = "collapseCardBinFiles"
+                            attrs {
+                                role = "button"
+                                onClickFunction = { isProjectAsBinaryFile = !isProjectAsBinaryFile }
+                            }
+                            h6("m-0 font-weight-bold text-primary") {
+                                +"Upload project as binary file"
+                            }
+                        }
+                        div(classes = "collapse show") {
+                            attrs.id = "collapseCardBinFiles"
+                            div("card-body") {
+                                div("mb-3") {
+                                    h6(classes = "d-inline mr-3") {
+                                        +"Binary file: "
+                                    }
+                                    input(type = InputType.file) {
+                                        attrs {
+                                            onChangeFunction = { event ->
+                                                val target = event.target as HTMLInputElement
+                                                binaryFile = target.files?.let { it[0] }
+                                            }
+                                        }
+                                    }
+                                }
+                                div {
+                                    h6(classes = "d-inline mr-3") {
+                                        +"Properties : "
+                                    }
+                                    input(type = InputType.file) {
+                                        attrs {
+                                            onChangeFunction = { event ->
+                                                val target = event.target as HTMLInputElement
+                                                propertyFile = target.files?.let { it[0] }
+                                            }
+                                        }
+                                    }
+                                }
+                                button(type = ButtonType.button, classes = "btn btn-primary mt-3") {
+                                    attrs.onClickFunction = { setState { isTestTypesOpen = true } }
+                                    +"Select test types"
                                 }
                             }
                         }
@@ -177,18 +381,129 @@ class ProjectView : RComponent<ProjectProps, ProjectViewState>() {
         }
     }
 
-    private fun RBuilder.runErrorModal() = modal {
+    private fun RBuilder.runTestTypesModal() = modal {
         attrs {
-            isOpen = state.isErrorOpen
+            isOpen = state.isTestTypesOpen
+            contentLabel = "Select test types"
+        }
+        div {
+            testTypesList.forEach { type ->
+                div("mb-3") {
+                    +type
+                    input(type = InputType.checkBox, classes = "ml-3") {
+                        attrs.onClickFunction = {
+                            val copyOfTypes = state.selectedTypes
+                            if (!copyOfTypes.contains(type)) {
+                                copyOfTypes.add(type)
+                            } else {
+                                copyOfTypes.remove(type)
+                            }
+                            setState {
+                                selectedTypes = copyOfTypes
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        button(type = ButtonType.button, classes = "btn btn-primary") {
+            attrs.onClickFunction = { setState { isTestTypesOpen = false } }
+            +"Close"
+        }
+    }
+
+    private fun RBuilder.runErrorEmptyTestTypesModal() = modal {
+        attrs {
+            isOpen = state.isTestTypesEmpty
+            contentLabel = "Empty Test types"
+        }
+        div {
+            h2("h3 mb-0 text-gray-800") {
+                +"Please select at least one type"
+            }
+        }
+        button(type = ButtonType.button, classes = "btn btn-primary") {
+            attrs.onClickFunction = { setState { isTestTypesEmpty = false } }
+            +"Close"
+        }
+    }
+
+    private fun RBuilder.runErrorBothProjectTypesModal() = modal {
+        attrs {
+            isOpen = state.isBothProjectOpen
+            contentLabel = "Both type of project"
+        }
+        div {
+            h2("h3 mb-0 text-gray-800") {
+                +"Please close one of type project"
+            }
+        }
+        button(type = ButtonType.button, classes = "btn btn-primary") {
+            attrs.onClickFunction = { setState { isBothProjectOpen = false } }
+            +"Close"
+        }
+    }
+
+    private fun RBuilder.runErrorFromBackendModal() = modal {
+        attrs {
+            isOpen = state.isErrorFromBackend
             contentLabel = "Error from backend"
         }
         div {
             h2("h3 mb-0 text-gray-800") {
-                +state.errorText
+                +state.errorTextFromBackend
             }
         }
         button(type = ButtonType.button, classes = "btn btn-primary") {
-            attrs.onClickFunction = { setState { isErrorOpen = false } }
+            attrs.onClickFunction = { setState { isErrorFromBackend = false } }
+            +"Close"
+        }
+    }
+
+    private fun RBuilder.runErrorNoneTypeProjectModal() = modal {
+        attrs {
+            isOpen = state.isNoneProjectOpen
+            contentLabel = "No type has been selected"
+        }
+        div {
+            h2("h3 mb-0 text-gray-800") {
+                +"Please select one of project type"
+            }
+        }
+        button(type = ButtonType.button, classes = "btn btn-primary") {
+            attrs.onClickFunction = { setState { isNoneProjectOpen = false } }
+            +"Close"
+        }
+    }
+
+    private fun RBuilder.runErrorNonePropertyFile() = modal {
+        attrs {
+            isOpen = state.isPropertyFileNotSelect
+            contentLabel = "No property file has been selected"
+        }
+        div {
+            h2("h3 mb-0 text-gray-800") {
+                +"Please select property file"
+            }
+        }
+        button(type = ButtonType.button, classes = "btn btn-primary") {
+            attrs.onClickFunction = { setState { isPropertyFileNotSelect = false } }
+            +"Close"
+        }
+    }
+
+    private fun RBuilder.runErrorNoneBinaryFile() = modal {
+        attrs {
+            isOpen = state.isBinaryFileNotSelect
+            contentLabel = "No binary file has been selected"
+        }
+        div {
+            h2("h3 mb-0 text-gray-800") {
+                +"Please select binary file"
+            }
+        }
+        button(type = ButtonType.button, classes = "btn btn-primary") {
+            attrs.onClickFunction = { setState { isBinaryFileNotSelect = false } }
             +"Close"
         }
     }
@@ -199,8 +514,8 @@ class ProjectView : RComponent<ProjectProps, ProjectViewState>() {
  */
 @Suppress("EXTENSION_FUNCTION_WITH_CLASS")
 fun ProjectExecutionRouteProps.toProject() = Project(
-    owner = owner,
-    name = name,
+    owner = "owner",  // this.project.owner,
+    name = "name",  // this.project.name,
     description = "Todo: fetch description",
     url = "Todo: fetch URL",
 )
@@ -209,7 +524,7 @@ fun ProjectExecutionRouteProps.toProject() = Project(
  * @return git repository
  */
 @Suppress("EXTENSION_FUNCTION_WITH_CLASS")
-fun ProjectExecutionRouteProps.toGitRepository() = GitRepository(url = this.url ?: "url")
+fun ProjectExecutionRouteProps.toGitRepository() = GitRepository(url = "gti")  // this.gitRepository.url)
 
 /**
  * @return execution request
