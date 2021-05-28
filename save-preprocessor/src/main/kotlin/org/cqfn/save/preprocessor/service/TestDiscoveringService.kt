@@ -37,8 +37,8 @@ class TestDiscoveringService(private val configProperties: ConfigProperties) {
         val absolutePath = File(configProperties.repository, path).absolutePath
         val rootTestConfig = configDetector.configFromFile(absolutePath.toPath()) ?: error("SAVE config not found in $absolutePath")
         return rootTestConfig.mapDescendants {
-            val generalConfig = GeneralConfig("stub")  // todo: discover general config
-            TestSuiteDto(TestSuiteType.PROJECT, generalConfig.suiteName, project)
+            val generalConfig = GeneralConfig("stub", "stub", "stub")  // todo: discover general config
+            TestSuiteDto(TestSuiteType.PROJECT, generalConfig.suiteName, project, path)
         }
             .toList()
     }
@@ -57,7 +57,7 @@ class TestDiscoveringService(private val configProperties: ConfigProperties) {
         return rootTestConfig.flatMapDescendants { config ->
             // todo: should get a list of plugins from config
             val plugins: List<Plugin> = emptyList()
-            val generalConfig = GeneralConfig("stub")  // todo: discover general config
+            val generalConfig = GeneralConfig("stub", "stub", "stub")  // todo: discover general config
             val testSuite = testSuites.first { it.name == generalConfig.suiteName }
             plugins.flatMap {
                 it.discoverTestFiles(absolutePath.toPath()).map {
