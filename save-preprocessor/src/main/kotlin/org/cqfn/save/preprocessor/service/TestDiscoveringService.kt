@@ -51,16 +51,17 @@ class TestDiscoveringService(private val configProperties: ConfigProperties) {
      * @return a list of [TestDto]s
      */
     @OptIn(ExperimentalFileSystem::class)
+    @Suppress("UnsafeCallOnNullableType")
     fun getAllTests(path: String, testSuites: List<TestSuite>): List<TestDto> {
         val absolutePath = File(configProperties.repository, path).absolutePath
         val rootTestConfig = configDetector.configFromFile(absolutePath.toPath()) ?: error("SAVE config not found in $absolutePath")
-        return rootTestConfig.flatMapDescendants { config ->
+        return rootTestConfig.flatMapDescendants { _ ->
             // todo: should get a list of plugins from config
             val plugins: List<Plugin> = emptyList()
             val generalConfig = GeneralConfig("stub", "stub", "stub")  // todo: discover general config
             val testSuite = testSuites.first { it.name == generalConfig.suiteName }
-            plugins.flatMap {
-                it.discoverTestFiles(absolutePath.toPath()).map {
+            plugins.flatMap { plugin ->
+                plugin.discoverTestFiles(absolutePath.toPath()).map {
                     TestDto(it.first().name, testSuite.id!!, it.first().toFile().toHash())
                 }
             }
