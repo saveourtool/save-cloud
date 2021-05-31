@@ -68,12 +68,12 @@ class TestDiscoveringService(private val configProperties: ConfigProperties) {
     }
 
     /**
-     * Applies the transformation to all descendant [TestConfig]s
+     * Applies the transformation to all descendant [TestConfig]s.
+     * FixMe: Use configs traversal after it's implemented is SAVE.
      *
      * @param transform a function to invoke on all configs
      * @return a sequence of transformed configs
      */
-    // todo: implement in SAVE?
     fun <T> TestConfig.mapDescendants(transform: (TestConfig) -> T): Sequence<T> = sequence {
         yield(transform(this@mapDescendants))
         childConfigs.map {
@@ -82,12 +82,12 @@ class TestDiscoveringService(private val configProperties: ConfigProperties) {
     }
 
     /**
-     * Applies the transformation to all descendant [TestConfig]s and returns a flattened sequence
+     * Applies the transformation to all descendant [TestConfig]s and returns a flattened sequence.
+     * FixMe: Use configs traversal after it's implemented is SAVE.
      *
      * @param transform a function to invoke on all configs
      * @return a sequence of transformed configs
      */
-    // todo: implement in SAVE?
     fun <T> TestConfig.flatMapDescendants(transform: (TestConfig) -> Iterable<T>): Sequence<T> = sequence {
         yieldAll(transform(this@flatMapDescendants))
         childConfigs.map {

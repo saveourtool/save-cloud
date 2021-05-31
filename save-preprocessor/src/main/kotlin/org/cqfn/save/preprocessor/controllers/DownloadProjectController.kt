@@ -135,15 +135,17 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
         binFile: File,
     ) {
         val tmpDir = generateDirectory(binFile.name.hashCode(), binFile.name)
-        propertyFile.copyTo(tmpDir.resolve(propertyFile.name))
+        val pathToProperties = tmpDir.resolve(propertyFile.name)
+        propertyFile.copyTo(pathToProperties)
         binFile.copyTo(tmpDir.resolve(binFile.name))
         val project = executionRequestForStandardSuites.project
+        val propertiesRelativePath = pathToProperties.relativeTo(tmpDir).name
         sendToBackendAndOrchestrator(
             project,
-            propertyFile.name,
+            propertiesRelativePath,
             tmpDir.relativeTo(File(configProperties.repository)).normalize().path,
             ExecutionType.STANDARD,
-            executionRequestForStandardSuites.testsSuites.map { TestSuiteDto(TestSuiteType.STANDARD, it, project, propertyFile.name) }
+            executionRequestForStandardSuites.testsSuites.map { TestSuiteDto(TestSuiteType.STANDARD, it, project, propertiesRelativePath) }
         )
     }
 
@@ -178,9 +180,9 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
         propertiesRelativePath: String,
         resourcesRootRelativePath: String,
         executionType: ExecutionType,
-        testSuitesDto: List<TestSuiteDto>?
+        testSuiteDtos: List<TestSuiteDto>?
     ) {
-        testSuitesDto?.let {
+        testSuiteDtos?.let {
             require(executionType == ExecutionType.STANDARD) { "Test suites shouldn't be provided unless ExecutionType is STANDARD (actual: $executionType)" }
         } ?: require(executionType == ExecutionType.GIT) { "Test suites are not provided, but should for executionType=$executionType" }
 
@@ -188,20 +190,23 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
             ExecutionStatus.PENDING, "ALL", resourcesRootRelativePath, 0, configProperties.executionLimit, executionType)
         webClientBackend.makeRequest(BodyInserters.fromValue(execution), "/createExecution") { it.bodyToMono<Long>() }
             .flatMap { executionId ->
-                val testResourcesRootPath = getTestResourcesRoot(propertiesRelativePath, resourcesRootRelativePath)
-                discoverAndSaveTestSuites(project, testResourcesRootPath, propertiesRelativePath)
-                    .flatMap { testSuiteList ->
-                        initializeTests(testSuiteList, testResourcesRootPath, executionId)
+                val testResourcesRootAbsolutePath = getTestResourcesRootAbsolutePath(propertiesRelativePath, resourcesRootRelativePath)
+                discoverAndSaveTestSuites(project, testResourcesRootAbsolutePath, propertiesRelativePath)
+                    .flatMap { testSuites ->
+                        initializeTests(testSuites, testResourcesRootAbsolutePath, executionId)
                             .then(initializeAgents(execution, executionId))
                     }
             }
             .subscribe()
     }
 
-    private fun getTestResourcesRoot(propertiesRelativePath: String,
-                                     resourcesRootRelativePath: String): String {
-        val saveProperties: SaveProperties = decodeFromPropertiesFile(File(configProperties.repository, resourcesRootRelativePath)
-            .resolve(propertiesRelativePath))
+    @Suppress("UnsafeCallOnNullableType")
+    private fun getTestResourcesRootAbsolutePath(propertiesRelativePath: String,
+                                                 resourcesRootRelativePath: String): String {
+        val saveProperties: SaveProperties = decodeFromPropertiesFile(
+            File(configProperties.repository, resourcesRootRelativePath)
+                .resolve(propertiesRelativePath)
+        )
         return File(configProperties.repository, resourcesRootRelativePath)
             .resolve(saveProperties.testConfigPath!!)
             .absolutePath

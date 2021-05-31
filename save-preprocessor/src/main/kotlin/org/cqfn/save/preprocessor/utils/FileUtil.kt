@@ -31,6 +31,7 @@ fun File.toHash(): String {
  * @return a deserialized instance of [T]
  */
 @OptIn(ExperimentalSerializationApi::class)
+@Suppress("UNCHECKED_CAST")
 inline fun <reified T> decodeFromPropertiesFile(file: File): T {
     val rawProperties = Properties().apply {
         load(file.inputStream())
