@@ -36,7 +36,6 @@ inline fun <reified T> decodeFromPropertiesFile(file: File): T {
         load(file.inputStream())
     }
     return kotlinx.serialization.properties.Properties.decodeFromMap(
-        // todo: workaround to pass tests until https://github.com/cqfn/save/issues/104
-        rawProperties.mapValues { (it.value as String).toUpperCase() } as Map<String, Any>
+        rawProperties as Map<String, Any>
     )
 }

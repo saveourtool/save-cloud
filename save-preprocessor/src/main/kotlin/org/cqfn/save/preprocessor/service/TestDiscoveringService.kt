@@ -27,16 +27,17 @@ class TestDiscoveringService(private val configProperties: ConfigProperties) {
      * Discover all test suites in the project
      *
      * @param project a [Project] corresponding to analyzed data
-     * @param path absolute path to the root of test resources
+     * @param testResourcesRootPath absolute path to the root of test resources
+     * @param propertiesRelativePath path to save.properties file relative to repository root
      * @return a list of [TestSuiteDto]s
      * @throws IllegalArgumentException when provided path doesn't point to a valid config file
      */
     @OptIn(ExperimentalFileSystem::class)
-    fun getAllTestSuites(project: Project, path: String): List<TestSuiteDto> {
-        val rootTestConfig = configDetector.configFromFile(path.toPath())
+    fun getAllTestSuites(project: Project, testResourcesRootPath: String, propertiesRelativePath: String): List<TestSuiteDto> {
+        val rootTestConfig = configDetector.configFromFile(testResourcesRootPath.toPath())
         return rootTestConfig.mapDescendants {
             val generalConfig = GeneralConfig("stub", "stub", "stub")  // todo: discover general config
-            TestSuiteDto(TestSuiteType.PROJECT, generalConfig.suiteName, project, path)
+            TestSuiteDto(TestSuiteType.PROJECT, generalConfig.suiteName, project, propertiesRelativePath)
         }
             .distinct()
             .toList()
@@ -45,21 +46,21 @@ class TestDiscoveringService(private val configProperties: ConfigProperties) {
     /**
      * Discover all tests in the project
      *
-     * @param path path to the root of test resources
      * @param testSuites testSuites in this project
+     * @param testResourcesRootPath absolute path to the root of test resources
      * @return a list of [TestDto]s
      */
     @OptIn(ExperimentalFileSystem::class)
     @Suppress("UnsafeCallOnNullableType")
-    fun getAllTests(path: String, testSuites: List<TestSuite>): List<TestDto> {
-        val rootTestConfig = configDetector.configFromFile(path.toPath())  // if we are here, then we have already validated this path in `getAllTestSuites`
+    fun getAllTests(testResourcesRootPath: String, testSuites: List<TestSuite>): List<TestDto> {
+        val rootTestConfig = configDetector.configFromFile(testResourcesRootPath.toPath())  // if we are here, then we have already validated this path in `getAllTestSuites`
         return rootTestConfig.flatMapDescendants { _ ->
             // todo: should get a list of plugins from config
             val plugins: List<Plugin> = emptyList()
             val generalConfig = GeneralConfig("stub", "stub", "stub")  // todo: discover general config
             val testSuite = testSuites.first { it.name == generalConfig.suiteName }
             plugins.flatMap { plugin ->
-                plugin.discoverTestFiles(path.toPath()).map {
+                plugin.discoverTestFiles(testResourcesRootPath.toPath()).map {
                     TestDto(it.first().name, testSuite.id!!, it.first().toFile().toHash())
                 }
             }

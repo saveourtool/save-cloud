@@ -1,7 +1,9 @@
 package org.cqfn.save.preprocessor.service
 
 import org.cqfn.save.entities.Project
+import org.cqfn.save.entities.TestSuite
 import org.cqfn.save.preprocessor.config.ConfigProperties
+import org.cqfn.save.testsuite.TestSuiteType
 import org.eclipse.jgit.api.Git
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions
@@ -45,7 +47,8 @@ class TestDiscoveringServiceTest {
     fun `should discover test suites`() {
         val testSuites = testDiscoveringService.getAllTestSuites(
             Project("stub", "stub", "stub", null),
-            (tmpDir.resolve("examples")).toString()
+            (tmpDir.resolve("examples")).toString(),
+            "examples/save.properties"
         )
 
         Assertions.assertTrue(testSuites.isNotEmpty())  // fixme: check actual test suites when we properly use GeneralConfig in service
@@ -56,8 +59,21 @@ class TestDiscoveringServiceTest {
         assertThrows<IllegalArgumentException> {
             testDiscoveringService.getAllTestSuites(
                 Project("stub", "stub", "stub", null),
-                (tmpDir.resolve("buildSrc")).toString()
+                (tmpDir.resolve("buildSrc")).toString(),
+                "examples/save.properties"
             )
         }
+    }
+
+    @Test
+    fun `should discover tests`() {
+        val testDtos = testDiscoveringService.getAllTests(
+            tmpDir.resolve("examples").toString(),
+            listOf(
+                TestSuite(TestSuiteType.PROJECT, "stub", null, null, "examples/save.properties")
+            )
+        )
+
+        Assertions.assertTrue(testDtos.isEmpty())  // fixme: check actual tests when the rest of the logic is implemented
     }
 }

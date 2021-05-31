@@ -189,7 +189,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
         webClientBackend.makeRequest(BodyInserters.fromValue(execution), "/createExecution") { it.bodyToMono<Long>() }
             .flatMap { executionId ->
                 val testResourcesRootPath = getTestResourcesRoot(propertiesRelativePath, resourcesRootRelativePath)
-                discoverAndSaveTestSuites(project, testResourcesRootPath)
+                discoverAndSaveTestSuites(project, testResourcesRootPath, propertiesRelativePath)
                     .flatMap { testSuiteList ->
                         initializeTests(testSuiteList, testResourcesRootPath, executionId)
                             .then(initializeAgents(execution, executionId))
@@ -198,7 +198,8 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
             .subscribe()
     }
 
-    private fun getTestResourcesRoot(propertiesRelativePath: String, resourcesRootRelativePath: String): String {
+    private fun getTestResourcesRoot(propertiesRelativePath: String,
+                                     resourcesRootRelativePath: String): String {
         val saveProperties: SaveProperties = decodeFromPropertiesFile(File(configProperties.repository, resourcesRootRelativePath)
             .resolve(propertiesRelativePath))
         return File(configProperties.repository, resourcesRootRelativePath)
@@ -206,9 +207,11 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
             .absolutePath
     }
 
-    private fun discoverAndSaveTestSuites(project: Project, testResourcesRootPath: String): Mono<List<TestSuite>> {
+    private fun discoverAndSaveTestSuites(project: Project,
+                                          testResourcesRootPath: String,
+                                          propertiesRelativePath: String): Mono<List<TestSuite>> {
         val testSuites: List<TestSuiteDto> = try {
-            testDiscoveringService.getAllTestSuites(project, testResourcesRootPath)
+            testDiscoveringService.getAllTestSuites(project, testResourcesRootPath, propertiesRelativePath)
         } catch (iae: IllegalArgumentException) {
             log.error("Couldn't discover test suites, aborting: ", iae)
             throw iae
