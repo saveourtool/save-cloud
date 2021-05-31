@@ -13,3 +13,6 @@ run SAVE. These tests will then be executed server-side, providing you access to
 
 ## Build
 To build the project and run all tests, execute `./gradlew build`. For more detailed instructions, including deployment instructions, see [save-deploy/README.md](save-deploy/README.md).
+
+## Architecture and design
+<img src="/save.svg" width="1024px"/>
