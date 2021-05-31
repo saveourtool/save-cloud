@@ -13,6 +13,7 @@ dependencies {
     implementation("org.cqfn.save:save-core-jvm:${Versions.saveCore}")
     implementation("org.eclipse.jgit:org.eclipse.jgit:${Versions.jgit}")
     implementation("org.jetbrains.kotlin:kotlin-reflect:${Versions.kotlin}")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-properties:${Versions.serialization}")
     testImplementation("com.squareup.okhttp3:okhttp:${Versions.okhttp3}")
     testImplementation("com.squareup.okhttp3:mockwebserver:${Versions.okhttp3}")
 }

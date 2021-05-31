@@ -16,8 +16,6 @@ import okio.ExperimentalFileSystem
 import okio.Path.Companion.toPath
 import org.springframework.stereotype.Service
 
-import java.io.File
-
 /**
  * A service that call SAVE core to discover test suites and tests
  */
@@ -29,17 +27,18 @@ class TestDiscoveringService(private val configProperties: ConfigProperties) {
      * Discover all test suites in the project
      *
      * @param project a [Project] corresponding to analyzed data
-     * @param path path to the root of test resources
+     * @param path absolute path to the root of test resources
      * @return a list of [TestSuiteDto]s
+     * @throws IllegalArgumentException when provided path doesn't point to a valid config file
      */
     @OptIn(ExperimentalFileSystem::class)
     fun getAllTestSuites(project: Project, path: String): List<TestSuiteDto> {
-        val absolutePath = File(configProperties.repository, path).absolutePath
-        val rootTestConfig = configDetector.configFromFile(absolutePath.toPath()) ?: error("SAVE config not found in $absolutePath")
+        val rootTestConfig = configDetector.configFromFile(path.toPath())
         return rootTestConfig.mapDescendants {
             val generalConfig = GeneralConfig("stub", "stub", "stub")  // todo: discover general config
             TestSuiteDto(TestSuiteType.PROJECT, generalConfig.suiteName, project, path)
         }
+            .distinct()
             .toList()
     }
 
@@ -53,15 +52,14 @@ class TestDiscoveringService(private val configProperties: ConfigProperties) {
     @OptIn(ExperimentalFileSystem::class)
     @Suppress("UnsafeCallOnNullableType")
     fun getAllTests(path: String, testSuites: List<TestSuite>): List<TestDto> {
-        val absolutePath = File(configProperties.repository, path).absolutePath
-        val rootTestConfig = configDetector.configFromFile(absolutePath.toPath()) ?: error("SAVE config not found in $absolutePath")
+        val rootTestConfig = configDetector.configFromFile(path.toPath())  // if we are here, then we have already validated this path in `getAllTestSuites`
         return rootTestConfig.flatMapDescendants { _ ->
             // todo: should get a list of plugins from config
             val plugins: List<Plugin> = emptyList()
             val generalConfig = GeneralConfig("stub", "stub", "stub")  // todo: discover general config
             val testSuite = testSuites.first { it.name == generalConfig.suiteName }
             plugins.flatMap { plugin ->
-                plugin.discoverTestFiles(absolutePath.toPath()).map {
+                plugin.discoverTestFiles(path.toPath()).map {
                     TestDto(it.first().name, testSuite.id!!, it.first().toFile().toHash())
                 }
             }

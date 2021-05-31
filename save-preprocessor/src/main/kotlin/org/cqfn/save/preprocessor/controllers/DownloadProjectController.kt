@@ -1,5 +1,6 @@
 package org.cqfn.save.preprocessor.controllers
 
+import org.cqfn.save.core.config.SaveProperties
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.ExecutionRequestForStandardSuites
@@ -38,8 +39,10 @@ import reactor.core.scheduler.Schedulers
 
 import java.io.File
 import java.time.LocalDateTime
+import java.util.Properties
 
 import kotlin.io.path.ExperimentalPathApi
+import kotlinx.serialization.properties.decodeFromMap
 
 /**
  * A Spring controller for git project downloading
@@ -183,16 +186,28 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
         } ?: require(executionType == ExecutionType.GIT)
         val execution = Execution(project, LocalDateTime.now(), LocalDateTime.now(),
             ExecutionStatus.PENDING, "1", resourcesRootPath, 0, configProperties.executionLimit, executionType)
-        var execId: Long
         log.debug("Knock-Knock Backend")
         makeRequest(BodyInserters.fromValue(execution), "/createExecution") { it.bodyToMono(Long::class.java) }
             .doOnNext { executionId ->
-                execId = executionId
-                makeRequest(BodyInserters.fromValue(testDiscoveringService.getAllTestSuites(project, propertiesRelativePath)), "/saveTestSuites") {
+                val rawProperties = Properties().apply {
+                    load(File(configProperties.repository, propertiesRelativePath).inputStream())
+                }
+                val saveProperties: SaveProperties = kotlinx.serialization.properties.Properties.decodeFromMap(rawProperties as Map<String, Any>)
+                val testResourcesRootPath = File(configProperties.repository, saveProperties.testConfigPath!!).absolutePath
+                val testSuites: List<TestSuiteDto> = try {
+                    testDiscoveringService.getAllTestSuites(project, testResourcesRootPath)
+                } catch (iae: IllegalArgumentException) {
+                    log.error("Couldn't discover test suites, aborting: ", iae)
+                    return@doOnNext
+                }
+                makeRequest(BodyInserters.fromValue(testSuites), "/saveTestSuites") {
                     it.bodyToMono<List<TestSuite>>()
                 }
                     .doOnNext { testSuiteList ->
-                        makeRequest(BodyInserters.fromValue(testDiscoveringService.getAllTests(resourcesRootPath, testSuiteList)), "/initializeTests?executionId=$executionId") {
+                        makeRequest(
+                            BodyInserters.fromValue(testDiscoveringService.getAllTests(testResourcesRootPath, testSuiteList)),
+                            "/initializeTests?executionId=$executionId"
+                        ) {
                             it.toBodilessEntity()
                         }
                             .doOnNext {
@@ -201,7 +216,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
                                 webClientOrchestrator
                                     .post()
                                     .uri("/initializeAgents")
-                                    .body(BodyInserters.fromValue(execution.also { it.id = execId }))
+                                    .body(BodyInserters.fromValue(execution.also { it.id = executionId }))
                                     .retrieve()
                                     .toEntity(HttpStatus::class.java)
                                     .subscribe()
