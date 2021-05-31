@@ -20,30 +20,14 @@ import org.w3c.files.BlobPropertyBag
 import org.w3c.files.File
 import org.w3c.files.get
 import org.w3c.xhr.FormData
-import react.RBuilder
-import react.RComponent
-import react.RProps
-import react.RState
-import react.child
-import react.dom.a
-import react.dom.button
-import react.dom.div
-import react.dom.h1
-import react.dom.h2
-import react.dom.h6
-import react.dom.input
-import react.dom.p
-import react.setState
 
 import kotlinx.browser.window
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import kotlinx.html.ButtonType
-import kotlinx.html.InputType
-import kotlinx.html.id
-import kotlinx.html.js.onChangeFunction
-import kotlinx.html.js.onClickFunction
-import kotlinx.html.role
+import kotlinx.html.*
+import kotlinx.html.js.*
+import react.*
+import react.dom.*
 
 /**
  * [RProps] for project view
@@ -76,24 +60,24 @@ external interface ProjectViewState : RState {
      */
     var errorTextFromBackend: String
 
-    /**
-     * Flag to open test suites
-     */
-    var isTestTypesOpen: Boolean
+    var isNoGitUrl: Boolean
 
     /**
      * Whether error is both types of project were openned
      */
-    var isBothProjectOpen: Boolean
+    var isProjectAsGitUrl: Boolean
 
-    /**
-     * Whether error if testSuites empty
-     */
-    var isTestTypesEmpty: Boolean
+    var pathToProperty: String?
+
+    var gitUrlProject: String?
 
     /**
      * Whether error non project types
      */
+    var isProjectAsBinaryFile: Boolean
+
+    var isBothProjectOpen: Boolean
+
     var isNoneProjectOpen: Boolean
 
     /**
@@ -107,9 +91,17 @@ external interface ProjectViewState : RState {
     var isPropertyFileNotSelect: Boolean
 
     /**
-     * List of selected test suites
+     * Whether error if testSuites empty
      */
+    var isTestTypesEmpty: Boolean
+
     var selectedTypes: MutableList<String>
+
+    var editableUrlInput: Boolean
+
+    var binaryFile: File?
+
+    var propertyFile: File?
 }
 
 /**
@@ -121,48 +113,61 @@ external interface ProjectViewState : RState {
 @JsExport
 @Suppress("CUSTOM_GETTERS_SETTERS")
 class ProjectView : RComponent<ProjectProps, ProjectViewState>() {
-    private var pathToPropertyFile: String? = null
-    private var gitUrl: String? = null
-        get() = props.executionRequest.gitRepository.url
-    private var binaryFile: File? = null
-    private var propertyFile: File? = null
     private val testTypesList = listOf("Class", "Comment", "Function", "Variable", "Enum", "Space", "Style", "Another")
-    private var isProjectAsGitOpen = true
-    private var isProjectAsBinaryFile = true
     private lateinit var responseFromExecutionRequest: Response
 
     init {
-        state.isErrorFromBackend = false
-        state.isTestTypesOpen = false
-        state.isBothProjectOpen = false
-        state.isNoneProjectOpen = false
+        // Project as git
+        state.isProjectAsGitUrl = false
+        state.pathToProperty = null
+        state.gitUrlProject = null
+
+        // Project as file
+        state.isProjectAsBinaryFile = false
         state.isTestTypesEmpty = false
+        state.selectedTypes = mutableListOf()
         state.isBinaryFileNotSelect = false
         state.isPropertyFileNotSelect = false
-        state.selectedTypes = mutableListOf()
+
+        // Error cards
+        state.isErrorFromBackend = false
+        state.isBothProjectOpen = false
+        state.isNoneProjectOpen = false
         state.errorTextFromBackend = ""
+        state.isNoGitUrl = false
+
+        state.editableUrlInput = true
     }
 
     private fun submitExecutionRequest() {
-        if (isProjectAsBinaryFile && isProjectAsGitOpen) {
+        console.log(state.gitUrlProject)
+        if (state.isProjectAsBinaryFile && state.isProjectAsGitUrl) {
             setState { isBothProjectOpen = true }
             return
-        } else if (!isProjectAsBinaryFile && !isProjectAsGitOpen) {
+        } else if (!state.isProjectAsBinaryFile && !state.isProjectAsGitUrl) {
             setState { isNoneProjectOpen = true }
             return
         }
-        if (isProjectAsGitOpen) {
-            submitExecutionRequestGit()
+        if (state.isProjectAsGitUrl) {
+            state.gitUrlProject?.let {
+
+            } ?: run {
+                props.executionRequest.gitRepository.url?.let {
+                    submitExecutionRequestGit()
+                } ?: {
+                    setState { isNoGitUrl = true }
+                }
+            }
         } else {
             if (state.selectedTypes.isEmpty()) {
                 setState { isTestTypesEmpty = true }
                 return
             }
-            binaryFile ?: run {
+            state.binaryFile ?: run {
                 setState { isBinaryFileNotSelect = true }
                 return
             }
-            propertyFile ?: run {
+            state.propertyFile ?: run {
                 setState { isPropertyFileNotSelect = true }
                 return
             }
@@ -171,23 +176,21 @@ class ProjectView : RComponent<ProjectProps, ProjectViewState>() {
     }
 
     private fun submitExecutionRequestBinFile() {
-        val headers = Headers().also {
-            it.set("Accept", "application/json")
-        }
+        val headers = Headers()
         val formData = FormData()
         val request = ExecutionRequestForStandardSuites(props.executionRequest.project, state.selectedTypes)
         console.log(JSON.stringify(request))
         formData.append("execution", Blob(arrayOf(JSON.stringify(request)), BlobPropertyBag("application/json")))
-        binaryFile?.let { formData.append("property", it) }
-        binaryFile?.let { formData.append("binFile", it) }
+        state.propertyFile?.let { formData.append("property", it) }
+        state.binaryFile?.let { formData.append("binFile", it) }
         submitRequest("submitExecutionRequestBin", headers, formData)
     }
 
     private fun submitExecutionRequestGit() {
         val executionRequest = ExecutionRequest(
             project = props.executionRequest.project,
-            gitRepository = props.executionRequest.gitRepository,
-            propertiesRelativePath = pathToPropertyFile ?: "save.properties"
+            gitRepository = GitRepository(url = state.gitUrlProject ?: props.executionRequest.gitRepository.url), // init another fields
+            propertiesRelativePath = state.pathToProperty ?: "save.properties"
         )
         val jsonExecution = JSON.stringify(executionRequest)
         val headers = Headers().also {
@@ -215,8 +218,8 @@ class ProjectView : RComponent<ProjectProps, ProjectViewState>() {
     @Suppress("TOO_LONG_FUNCTION", "LongMethod")
     override fun RBuilder.render() {
         // modal window for configuring tests run - initially hidden
-        runTestTypesModal()
         runErrorFromBackendModal()
+        runErrorNotGitUrl()
         runErrorEmptyTestTypesModal()
         runErrorBothProjectTypesModal()
         runErrorNoneTypeProjectModal()
@@ -233,21 +236,17 @@ class ProjectView : RComponent<ProjectProps, ProjectViewState>() {
             child(cardComponent {
                 div("text-center") {
                     div("card shadow mb-4") {
-                        a(href = "#collapseCardGitProject", classes = "d-block card-header py-3") {
-                            attrs["data-toggle"] = "collapse"
-                            attrs["aria-expanded"] = false
-                            attrs["aria-controls"] = "collapseCardGitProject"
+                        a(classes = "d-block card-header py-3") {
                             attrs {
-                                role = "button"
-                                onClickFunction = { isProjectAsGitOpen = !isProjectAsGitOpen }
+                                onClickFunction = { setState { isProjectAsGitUrl = !isProjectAsGitUrl } }
                             }
                             h6("m-0 font-weight-bold text-primary") {
                                 +"Upload project as git url"
                             }
                         }
                         // Collapse card to load git url
-                        div(classes = "collapse show") {
-                            attrs.id = "collapseCardGitProject"
+                        div {
+                            attrs.classes = if (state.isProjectAsGitUrl) setOf("collapse", "show") else setOf("collapse")
                             div("card-body") {
                                 div("pb-3") {
                                     div("d-inline-block") {
@@ -256,16 +255,24 @@ class ProjectView : RComponent<ProjectProps, ProjectViewState>() {
                                         }
                                     }
                                     div("d-inline-block ml-2") {
-                                        input(type = InputType.text) {
+                                        input(type = InputType.text, name = "itemText2") {
+                                            this.key ="itemText2"
                                             attrs {
-                                                gitUrl?.let {
+                                                attrs.autoFocus = state.editableUrlInput
+                                                state.gitUrlProject?.let {
                                                     value = it
                                                 } ?: run {
-                                                    placeholder = "https://github.com/"
+                                                    props.executionRequest.gitRepository.url?.let {
+                                                        value = it
+                                                    }
                                                 }
+                                                placeholder = "https://github.com/"
                                                 onChangeFunction = {
                                                     val target = it.target as HTMLInputElement
-                                                    gitUrl = target.value
+                                                    setState {
+                                                        gitUrlProject = target.value
+                                                        editableUrlInput = true
+                                                    }
                                                 }
                                             }
                                         }
@@ -279,12 +286,21 @@ class ProjectView : RComponent<ProjectProps, ProjectViewState>() {
                                         }
                                     }
                                     div("d-inline-block ml-2") {
-                                        input(type = InputType.text) {
+                                        input(type = InputType.text, name = "itemText") {
+                                            key = "itemText"
                                             attrs {
-                                                placeholder = "save.properties"
+                                                attrs.autoFocus = !state.editableUrlInput
+                                                state.pathToProperty?.let {
+                                                    value = it
+                                                } ?: run {
+                                                    placeholder = "save.properties"
+                                                }
                                                 onChangeFunction = {
                                                     val target = it.target as HTMLInputElement
-                                                    pathToPropertyFile = target.value
+                                                    setState {
+                                                        pathToProperty = target.value
+                                                        editableUrlInput = false
+                                                    }
                                                 }
                                             }
                                         }
@@ -296,31 +312,36 @@ class ProjectView : RComponent<ProjectProps, ProjectViewState>() {
 
                     // Collapse card to load binary file
                     div("card shadow mb-4") {
-                        a(href = "#collapseCardBinFiles", classes = "d-block card-header py-3") {
-                            attrs["data-toggle"] = "collapse"
-                            attrs["aria-expanded"] = "false"
-                            attrs["aria-controls"] = "collapseCardBinFiles"
-                            attrs {
-                                role = "button"
-                                onClickFunction = { isProjectAsBinaryFile = !isProjectAsBinaryFile }
+                        a(classes = "d-block card-header py-3") {
+                            attrs{
+                                onClickFunction = {
+                                    setState { isProjectAsBinaryFile = !state.isProjectAsBinaryFile}
+                                }
                             }
                             h6("m-0 font-weight-bold text-primary") {
                                 +"Upload project as binary file"
                             }
                         }
-                        div(classes = "collapse show") {
-                            attrs.id = "collapseCardBinFiles"
+                        div {
+                            attrs.classes = if (state.isProjectAsBinaryFile) setOf("collapse", "show") else setOf("collapse")
                             div("card-body") {
                                 div("mb-3") {
                                     h6(classes = "d-inline mr-3") {
                                         +"Binary file: "
                                     }
-                                    input(type = InputType.file) {
-                                        attrs {
-                                            onChangeFunction = { event ->
-                                                val target = event.target as HTMLInputElement
-                                                binaryFile = target.files?.let { it[0] }
+                                    div {
+                                        label {
+                                            input(type = InputType.file) {
+                                                attrs.hidden = true
+                                                attrs {
+                                                    onChangeFunction = { event ->
+                                                        val target = event.target as HTMLInputElement
+                                                        setState { binaryFile = target.files?.let { it[0] } }
+                                                    }
+                                                }
                                             }
+                                            strong { + "Choose binary file:" }
+                                            +(state.binaryFile?.name ?: "")
                                         }
                                     }
                                 }
@@ -328,18 +349,45 @@ class ProjectView : RComponent<ProjectProps, ProjectViewState>() {
                                     h6(classes = "d-inline mr-3") {
                                         +"Properties : "
                                     }
-                                    input(type = InputType.file) {
-                                        attrs {
-                                            onChangeFunction = { event ->
-                                                val target = event.target as HTMLInputElement
-                                                propertyFile = target.files?.let { it[0] }
+                                    div {
+                                        label {
+                                            input(type = InputType.file) {
+                                                attrs.hidden = true
+                                                attrs {
+                                                    onChangeFunction = { event ->
+                                                        val target = event.target as HTMLInputElement
+                                                        setState { propertyFile = target.files?.let { it[0] } }
+                                                    }
+                                                }
                                             }
+                                            strong { +"Choose property file: " }
+                                            +(state.propertyFile?.name ?: "")
                                         }
                                     }
                                 }
-                                button(type = ButtonType.button, classes = "btn btn-primary mt-3") {
-                                    attrs.onClickFunction = { setState { isTestTypesOpen = true } }
-                                    +"Select test types"
+                            }
+                            div {
+                                testTypesList.chunked(4).forEach { rowTypes ->
+                                    div("row") {
+                                        rowTypes.forEach { typeName ->
+                                            div("col") {
+                                                +typeName
+                                                input(type = InputType.checkBox, classes = "ml-3") {
+                                                    attrs.defaultChecked = state.selectedTypes.contains(typeName)
+                                                    attrs.onClickFunction = {
+                                                        val newSelectedList = state.selectedTypes
+                                                        if (state.selectedTypes.contains(typeName)){
+                                                            newSelectedList.remove(typeName)
+                                                            setState { selectedTypes = newSelectedList }
+                                                        } else {
+                                                            newSelectedList.add(typeName)
+                                                            setState { selectedTypes = newSelectedList }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -381,37 +429,6 @@ class ProjectView : RComponent<ProjectProps, ProjectViewState>() {
         }
     }
 
-    private fun RBuilder.runTestTypesModal() = modal {
-        attrs {
-            isOpen = state.isTestTypesOpen
-            contentLabel = "Select test types"
-        }
-        div {
-            testTypesList.forEach { type ->
-                div("mb-3") {
-                    +type
-                    input(type = InputType.checkBox, classes = "ml-3") {
-                        attrs.onClickFunction = {
-                            val copyOfTypes = state.selectedTypes
-                            if (!copyOfTypes.contains(type)) {
-                                copyOfTypes.add(type)
-                            } else {
-                                copyOfTypes.remove(type)
-                            }
-                            setState {
-                                selectedTypes = copyOfTypes
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        button(type = ButtonType.button, classes = "btn btn-primary") {
-            attrs.onClickFunction = { setState { isTestTypesOpen = false } }
-            +"Close"
-        }
-    }
-
     private fun RBuilder.runErrorEmptyTestTypesModal() = modal {
         attrs {
             isOpen = state.isTestTypesEmpty
@@ -424,6 +441,22 @@ class ProjectView : RComponent<ProjectProps, ProjectViewState>() {
         }
         button(type = ButtonType.button, classes = "btn btn-primary") {
             attrs.onClickFunction = { setState { isTestTypesEmpty = false } }
+            +"Close"
+        }
+    }
+
+    private fun RBuilder.runErrorNotGitUrl() = modal {
+        attrs {
+            isOpen = state.isNoGitUrl
+            contentLabel = "No git url"
+        }
+        div {
+            h2("h3 mb-0 text-gray-800") {
+                +"Please provide a git url"
+            }
+        }
+        button(type = ButtonType.button, classes = "btn btn-primary") {
+            attrs.onClickFunction = { setState { isNoGitUrl = false } }
             +"Close"
         }
     }

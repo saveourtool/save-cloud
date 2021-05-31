@@ -92,7 +92,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
     private fun downLoadRepository(executionRequest: ExecutionRequest) {
         val gitRepository = executionRequest.gitRepository
         val project = executionRequest.project
-        val tmpDir = generateDirectory(gitRepository.url.hashCode(), gitRepository.url)
+        val tmpDir = generateDirectory(gitRepository.url.hashCode(), gitRepository.url!!)
         val userCredentials = if (gitRepository.username != null && gitRepository.password != null) {
             UsernamePasswordCredentialsProvider(gitRepository.username, gitRepository.password)
         } else {
