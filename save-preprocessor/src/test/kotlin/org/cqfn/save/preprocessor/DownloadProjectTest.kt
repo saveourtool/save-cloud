@@ -89,11 +89,11 @@ class DownloadProjectTest(
     @Suppress("TOO_LONG_FUNCTION")
     @Test
     fun testCorrectDownload() {
-        val validRepo = GitRepository("https://github.com/cqfn/save-cloud.git")
+        val validRepo = GitRepository("https://github.com/cqfn/save.git")
         val project = Project("owner", "someName", validRepo.url, "descr").apply {
             id = 42L
         }
-        val request = ExecutionRequest(project, validRepo)
+        val request = ExecutionRequest(project, validRepo, "examples/save.properties")
         mockServerBackend.enqueue(
             MockResponse()
                 .setResponseCode(200)

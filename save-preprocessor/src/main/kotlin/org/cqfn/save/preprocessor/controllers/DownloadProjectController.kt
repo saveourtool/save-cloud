@@ -11,6 +11,7 @@ import org.cqfn.save.execution.ExecutionType
 import org.cqfn.save.preprocessor.Response
 import org.cqfn.save.preprocessor.config.ConfigProperties
 import org.cqfn.save.preprocessor.service.TestDiscoveringService
+import org.cqfn.save.preprocessor.utils.decodeFromPropertiesFile
 import org.cqfn.save.testsuite.TestSuiteDto
 import org.cqfn.save.testsuite.TestSuiteType
 
@@ -33,16 +34,15 @@ import org.springframework.web.reactive.function.BodyInserter
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
+import org.springframework.web.reactive.function.client.toEntity
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
 
 import java.io.File
 import java.time.LocalDateTime
-import java.util.Properties
 
 import kotlin.io.path.ExperimentalPathApi
-import kotlinx.serialization.properties.decodeFromMap
 
 /**
  * A Spring controller for git project downloading
@@ -135,16 +135,15 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
         binFile: File,
     ) {
         val tmpDir = generateDirectory(binFile.name.hashCode(), binFile.name)
-        val pathToProperties = tmpDir.path + File.separator + propertyFile.name
-        propertyFile.copyTo(File(pathToProperties))
-        binFile.copyTo(File(tmpDir.path + File.separator + binFile.name))
+        propertyFile.copyTo(tmpDir.resolve(propertyFile.name))
+        binFile.copyTo(tmpDir.resolve(binFile.name))
         val project = executionRequestForStandardSuites.project
         sendToBackendAndOrchestrator(
             project,
-            pathToProperties,
+            propertyFile.name,
             tmpDir.relativeTo(File(configProperties.repository)).normalize().path,
             ExecutionType.STANDARD,
-            executionRequestForStandardSuites.testsSuites.map { TestSuiteDto(TestSuiteType.STANDARD, it, project, pathToProperties) }
+            executionRequestForStandardSuites.testsSuites.map { TestSuiteDto(TestSuiteType.STANDARD, it, project, propertyFile.name) }
         )
     }
 
@@ -177,71 +176,77 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
     private fun sendToBackendAndOrchestrator(
         project: Project,
         propertiesRelativePath: String,
-        resourcesRootPath: String,
+        resourcesRootRelativePath: String,
         executionType: ExecutionType,
         testSuitesDto: List<TestSuiteDto>?
     ) {
         testSuitesDto?.let {
-            require(executionType == ExecutionType.STANDARD)
-        } ?: require(executionType == ExecutionType.GIT)
+            require(executionType == ExecutionType.STANDARD) { "Test suites shouldn't be provided unless ExecutionType is STANDARD (actual: $executionType)" }
+        } ?: require(executionType == ExecutionType.GIT) { "Test suites are not provided, but should for executionType=$executionType" }
+
         val execution = Execution(project, LocalDateTime.now(), LocalDateTime.now(),
-            ExecutionStatus.PENDING, "1", resourcesRootPath, 0, configProperties.executionLimit, executionType)
-        log.debug("Knock-Knock Backend")
-        makeRequest(BodyInserters.fromValue(execution), "/createExecution") { it.bodyToMono(Long::class.java) }
+            ExecutionStatus.PENDING, "1", resourcesRootRelativePath, 0, configProperties.executionLimit, executionType)
+        webClientBackend.makeRequest(BodyInserters.fromValue(execution), "/createExecution") { it.bodyToMono<Long>() }
             .doOnNext { executionId ->
-                val rawProperties = Properties().apply {
-                    load(File(configProperties.repository, propertiesRelativePath).inputStream())
-                }
-                val saveProperties: SaveProperties = kotlinx.serialization.properties.Properties.decodeFromMap(rawProperties as Map<String, Any>)
-                val testResourcesRootPath = File(configProperties.repository, saveProperties.testConfigPath!!).absolutePath
+                val saveProperties: SaveProperties = decodeFromPropertiesFile(File(configProperties.repository, resourcesRootRelativePath)
+                    .resolve(propertiesRelativePath))
+                val testResourcesRootPath = File(configProperties.repository, resourcesRootRelativePath).resolve(saveProperties.testConfigPath!!).absolutePath
                 val testSuites: List<TestSuiteDto> = try {
                     testDiscoveringService.getAllTestSuites(project, testResourcesRootPath)
                 } catch (iae: IllegalArgumentException) {
                     log.error("Couldn't discover test suites, aborting: ", iae)
                     return@doOnNext
                 }
-                makeRequest(BodyInserters.fromValue(testSuites), "/saveTestSuites") {
+                webClientBackend.makeRequest(BodyInserters.fromValue(testSuites), "/saveTestSuites") {
                     it.bodyToMono<List<TestSuite>>()
                 }
-                    .doOnNext { testSuiteList ->
-                        makeRequest(
-                            BodyInserters.fromValue(testDiscoveringService.getAllTests(testResourcesRootPath, testSuiteList)),
-                            "/initializeTests?executionId=$executionId"
-                        ) {
-                            it.toBodilessEntity()
-                        }
-                            .doOnNext {
-                                // Post request to orchestrator to initiate its work
-                                log.debug("Knock-Knock Orchestrator")
-                                webClientOrchestrator
-                                    .post()
-                                    .uri("/initializeAgents")
-                                    .body(BodyInserters.fromValue(execution.also { it.id = executionId }))
-                                    .retrieve()
-                                    .toEntity(HttpStatus::class.java)
-                                    .subscribe()
-                            }.subscribe()
-                    }.subscribe()
-            }.subscribe()
+                    .flatMap { testSuiteList ->
+                        initializeTests(testSuiteList, testResourcesRootPath, executionId)
+                            .then(initializeAgents(execution, executionId))
+                    }
+                    .subscribe()
+            }
+            .subscribe()
     }
 
-    private fun <M, T> makeRequest(
+    /**
+     * Discover tests and send them to backend
+     */
+    private fun initializeTests(testSuites: List<TestSuite>,
+                                testResourcesRootPath: String,
+                                executionId: Long) = webClientBackend.makeRequest(
+        BodyInserters.fromValue(testDiscoveringService.getAllTests(testResourcesRootPath, testSuites)),
+        "/initializeTests?executionId=$executionId"
+    ) {
+        it.toBodilessEntity()
+    }
+
+    /**
+     * Post request to orchestrator to initiate its work
+     */
+    private fun initializeAgents(execution: Execution, executionId: Long) =
+            webClientOrchestrator.makeRequest(
+                BodyInserters.fromValue(execution.also { it.id = executionId }),
+                "/initializeAgents"
+            ) { it.toEntity<HttpStatus>() }
+
+    private fun <M, T> WebClient.makeRequest(
         body: BodyInserter<M, ReactiveHttpOutputMessage>,
         uri: String,
         toBody: (WebClient.ResponseSpec) -> Mono<T>
     ): Mono<T> {
-        val responseSpec = webClientBackend
+        val responseSpec = this
             .post()
             .uri(uri)
             .body(body)
             .retrieve()
             .onStatus({status -> status != HttpStatus.OK }) { clientResponse ->
-                log.error("Backend internal error: ${clientResponse.statusCode()}")
+                log.error("Error when making request to $uri: ${clientResponse.statusCode()}")
                 throw ResponseStatusException(
                     HttpStatus.INTERNAL_SERVER_ERROR,
-                    "Backend internal error"
+                    "Upstream request error"
                 )
             }
-        return toBody(responseSpec)
+        return toBody(responseSpec).log()
     }
 }
