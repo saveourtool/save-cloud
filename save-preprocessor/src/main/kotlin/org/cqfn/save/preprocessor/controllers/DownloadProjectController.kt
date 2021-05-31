@@ -185,28 +185,37 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
         } ?: require(executionType == ExecutionType.GIT) { "Test suites are not provided, but should for executionType=$executionType" }
 
         val execution = Execution(project, LocalDateTime.now(), LocalDateTime.now(),
-            ExecutionStatus.PENDING, "1", resourcesRootRelativePath, 0, configProperties.executionLimit, executionType)
+            ExecutionStatus.PENDING, "ALL", resourcesRootRelativePath, 0, configProperties.executionLimit, executionType)
         webClientBackend.makeRequest(BodyInserters.fromValue(execution), "/createExecution") { it.bodyToMono<Long>() }
-            .doOnNext { executionId ->
-                val saveProperties: SaveProperties = decodeFromPropertiesFile(File(configProperties.repository, resourcesRootRelativePath)
-                    .resolve(propertiesRelativePath))
-                val testResourcesRootPath = File(configProperties.repository, resourcesRootRelativePath).resolve(saveProperties.testConfigPath!!).absolutePath
-                val testSuites: List<TestSuiteDto> = try {
-                    testDiscoveringService.getAllTestSuites(project, testResourcesRootPath)
-                } catch (iae: IllegalArgumentException) {
-                    log.error("Couldn't discover test suites, aborting: ", iae)
-                    return@doOnNext
-                }
-                webClientBackend.makeRequest(BodyInserters.fromValue(testSuites), "/saveTestSuites") {
-                    it.bodyToMono<List<TestSuite>>()
-                }
+            .flatMap { executionId ->
+                val testResourcesRootPath = getTestResourcesRoot(propertiesRelativePath, resourcesRootRelativePath)
+                discoverAndSaveTestSuites(project, testResourcesRootPath)
                     .flatMap { testSuiteList ->
                         initializeTests(testSuiteList, testResourcesRootPath, executionId)
                             .then(initializeAgents(execution, executionId))
                     }
-                    .subscribe()
             }
             .subscribe()
+    }
+
+    private fun getTestResourcesRoot(propertiesRelativePath: String, resourcesRootRelativePath: String): String {
+        val saveProperties: SaveProperties = decodeFromPropertiesFile(File(configProperties.repository, resourcesRootRelativePath)
+            .resolve(propertiesRelativePath))
+        return File(configProperties.repository, resourcesRootRelativePath)
+            .resolve(saveProperties.testConfigPath!!)
+            .absolutePath
+    }
+
+    private fun discoverAndSaveTestSuites(project: Project, testResourcesRootPath: String): Mono<List<TestSuite>> {
+        val testSuites: List<TestSuiteDto> = try {
+            testDiscoveringService.getAllTestSuites(project, testResourcesRootPath)
+        } catch (iae: IllegalArgumentException) {
+            log.error("Couldn't discover test suites, aborting: ", iae)
+            throw iae
+        }
+        return webClientBackend.makeRequest(BodyInserters.fromValue(testSuites), "/saveTestSuites") {
+            it.bodyToMono()
+        }
     }
 
     /**
@@ -224,11 +233,13 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
     /**
      * Post request to orchestrator to initiate its work
      */
-    private fun initializeAgents(execution: Execution, executionId: Long) =
-            webClientOrchestrator.makeRequest(
-                BodyInserters.fromValue(execution.also { it.id = executionId }),
-                "/initializeAgents"
-            ) { it.toEntity<HttpStatus>() }
+    private fun initializeAgents(execution: Execution,
+                                 executionId: Long) = webClientOrchestrator.makeRequest(
+        BodyInserters.fromValue(execution.also { it.id = executionId }),
+        "/initializeAgents"
+    ) {
+        it.toEntity<HttpStatus>()
+    }
 
     private fun <M, T> WebClient.makeRequest(
         body: BodyInserter<M, ReactiveHttpOutputMessage>,
