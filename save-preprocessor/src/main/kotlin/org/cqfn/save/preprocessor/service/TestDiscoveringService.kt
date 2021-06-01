@@ -27,14 +27,14 @@ class TestDiscoveringService(private val configProperties: ConfigProperties) {
      * Discover all test suites in the project
      *
      * @param project a [Project] corresponding to analyzed data
-     * @param testResourcesRootPath absolute path to the root of test resources
+     * @param testResourcesRootAbsolutePath absolute path to the root of test resources
      * @param propertiesRelativePath path to save.properties file relative to repository root
      * @return a list of [TestSuiteDto]s
      * @throws IllegalArgumentException when provided path doesn't point to a valid config file
      */
     @OptIn(ExperimentalFileSystem::class)
-    fun getAllTestSuites(project: Project, testResourcesRootPath: String, propertiesRelativePath: String): List<TestSuiteDto> {
-        val rootTestConfig = configDetector.configFromFile(testResourcesRootPath.toPath())
+    fun getAllTestSuites(project: Project, testResourcesRootAbsolutePath: String, propertiesRelativePath: String): List<TestSuiteDto> {
+        val rootTestConfig = configDetector.configFromFile(testResourcesRootAbsolutePath.toPath() / propertiesRelativePath)
         return rootTestConfig.mapDescendants {
             val generalConfig = GeneralConfig("stub", "stub", "stub")  // todo: discover general config
             TestSuiteDto(TestSuiteType.PROJECT, generalConfig.suiteName, project, propertiesRelativePath)
