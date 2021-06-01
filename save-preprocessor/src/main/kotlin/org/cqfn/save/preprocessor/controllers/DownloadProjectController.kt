@@ -88,7 +88,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
             }
         }
 
-    @Suppress("TooGenericExceptionCaught", "TOO_LONG_FUNCTION")
+    @Suppress("TooGenericExceptionCaught", "TOO_LONG_FUNCTION", "UnsafeCallOnNullableType")
     private fun downLoadRepository(executionRequest: ExecutionRequest) {
         val gitRepository = executionRequest.gitRepository
         val project = executionRequest.project
