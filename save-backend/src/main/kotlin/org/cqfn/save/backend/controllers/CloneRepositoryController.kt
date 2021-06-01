@@ -79,7 +79,7 @@ class CloneRepositoryController(
         @RequestPart("execution", required = true) executionRequestForStandardSuites: ExecutionRequestForStandardSuites,
         @RequestPart("property", required = true) propertyFile: Mono<File>,
         @RequestPart("binFile", required = true) binaryFile: Mono<File>,
-    ): Mono<ResponseEntity<String>> {
+    ): Mono<StringResponse> {
         val project = executionRequestForStandardSuites.project
         val projectId: Long
         try {

@@ -4,15 +4,6 @@
 
 package org.cqfn.save.frontend.components.views
 
-import kotlinx.browser.window
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import kotlinx.html.ButtonType
-import kotlinx.html.InputType
-import kotlinx.html.classes
-import kotlinx.html.hidden
-import kotlinx.html.js.onChangeFunction
-import kotlinx.html.js.onClickFunction
 import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.ExecutionRequestForStandardSuites
 import org.cqfn.save.entities.Project
@@ -20,6 +11,7 @@ import org.cqfn.save.frontend.components.basic.cardComponent
 import org.cqfn.save.frontend.externals.modal.modal
 import org.cqfn.save.frontend.utils.post
 import org.cqfn.save.repository.GitRepository
+
 import org.w3c.dom.HTMLInputElement
 import org.w3c.fetch.Headers
 import org.w3c.fetch.Response
@@ -34,16 +26,26 @@ import react.RProps
 import react.RState
 import react.child
 import react.dom.a
-import react.dom.label
-import react.dom.strong
 import react.dom.button
 import react.dom.div
 import react.dom.h1
 import react.dom.h2
 import react.dom.h6
 import react.dom.input
+import react.dom.label
 import react.dom.p
+import react.dom.strong
 import react.setState
+
+import kotlinx.browser.window
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.html.ButtonType
+import kotlinx.html.InputType
+import kotlinx.html.classes
+import kotlinx.html.hidden
+import kotlinx.html.js.onChangeFunction
+import kotlinx.html.js.onClickFunction
 
 /**
  * [RProps] for project view
@@ -76,47 +78,74 @@ external interface ProjectViewState : RState {
      */
     var errorTextFromBackend: String
 
+    /**
+     * Flag to check for git url
+     */
     var isNoGitUrl: Boolean
 
     /**
-     * Whether error is both types of project were openned
+     * Flag to check that project have been presented as url
      */
     var isProjectAsGitUrl: Boolean
 
+    /**
+     * Path to property file
+     */
     var pathToProperty: String?
 
+    /**
+     * Url of project's git
+     */
     var gitUrlProject: String?
 
     /**
-     * Whether error non project types
+     * Flag to check that project have been presented as binary file
      */
     var isProjectAsBinaryFile: Boolean
 
+    /**
+     * Flag to check that both cards have been opened
+     */
     var isBothProjectOpen: Boolean
 
+    /**
+     * Flag to check that none cards have been opened
+     */
     var isNoneProjectOpen: Boolean
 
     /**
-     * Whether error if no binary file
+     * Flag to check that binary file haven't been selected
      */
     var isBinaryFileNotSelect: Boolean
 
     /**
-     * Whether error if no property file
+     * Flag to check that property file haven't been selected
      */
     var isPropertyFileNotSelect: Boolean
 
     /**
-     * Whether error if testSuites empty
+     * Flag to check that test types haven't been selected
      */
     var isTestTypesEmpty: Boolean
 
+    /**
+     * List of selected types
+     */
     var selectedTypes: MutableList<String>
 
+    /**
+     * Flag to control editable input
+     */
     var editableUrlInput: Boolean
 
+    /**
+     * Binary file of project
+     */
     var binaryFile: File?
 
+    /**
+     * Property file for project
+     */
     var propertyFile: File?
 }
 
@@ -167,7 +196,7 @@ class ProjectView : RComponent<ProjectProps, ProjectViewState>() {
         }
         if (state.isProjectAsGitUrl) {
             state.gitUrlProject?.let {
-
+                submitExecutionRequestGit()
             } ?: run {
                 props.executionRequest.gitRepository.url?.let {
                     submitExecutionRequestGit()
@@ -206,7 +235,7 @@ class ProjectView : RComponent<ProjectProps, ProjectViewState>() {
     private fun submitExecutionRequestGit() {
         val executionRequest = ExecutionRequest(
             project = props.executionRequest.project,
-            gitRepository = GitRepository(url = state.gitUrlProject ?: props.executionRequest.gitRepository.url), // init another fields
+            gitRepository = GitRepository(url = state.gitUrlProject ?: props.executionRequest.gitRepository.url),  // init another fields
             propertiesRelativePath = state.pathToProperty ?: "save.properties"
         )
         val jsonExecution = JSON.stringify(executionRequest)
@@ -273,7 +302,7 @@ class ProjectView : RComponent<ProjectProps, ProjectViewState>() {
                                     }
                                     div("d-inline-block ml-2") {
                                         input(type = InputType.text, name = "itemText2") {
-                                            this.key ="itemText2"
+                                            this.key = "itemText2"
                                             attrs {
                                                 attrs.autoFocus = state.editableUrlInput
                                                 state.gitUrlProject?.let {
@@ -330,9 +359,9 @@ class ProjectView : RComponent<ProjectProps, ProjectViewState>() {
                     // Collapse card to load binary file
                     div("card shadow mb-4") {
                         a(classes = "d-block card-header py-3") {
-                            attrs{
+                            attrs {
                                 onClickFunction = {
-                                    setState { isProjectAsBinaryFile = !state.isProjectAsBinaryFile}
+                                    setState { isProjectAsBinaryFile = !state.isProjectAsBinaryFile }
                                 }
                             }
                             h6("m-0 font-weight-bold text-primary") {
@@ -357,7 +386,7 @@ class ProjectView : RComponent<ProjectProps, ProjectViewState>() {
                                                     }
                                                 }
                                             }
-                                            strong { + "Choose binary file:" }
+                                            strong { +"Choose binary file:" }
                                             +(state.binaryFile?.name ?: "")
                                         }
                                     }
@@ -384,7 +413,7 @@ class ProjectView : RComponent<ProjectProps, ProjectViewState>() {
                                 }
                             }
                             div {
-                                testTypesList.chunked(4).forEach { rowTypes ->
+                                testTypesList.chunked(TEST_SUITE_ROW).forEach { rowTypes ->
                                     div("row") {
                                         rowTypes.forEach { typeName ->
                                             div("col") {
@@ -393,7 +422,7 @@ class ProjectView : RComponent<ProjectProps, ProjectViewState>() {
                                                     attrs.defaultChecked = state.selectedTypes.contains(typeName)
                                                     attrs.onClickFunction = {
                                                         val newSelectedList = state.selectedTypes
-                                                        if (state.selectedTypes.contains(typeName)){
+                                                        if (state.selectedTypes.contains(typeName)) {
                                                             newSelectedList.remove(typeName)
                                                             setState { selectedTypes = newSelectedList }
                                                         } else {
@@ -556,6 +585,10 @@ class ProjectView : RComponent<ProjectProps, ProjectViewState>() {
             attrs.onClickFunction = { setState { isBinaryFileNotSelect = false } }
             +"Close"
         }
+    }
+
+    companion object {
+        const val TEST_SUITE_ROW = 4
     }
 }
 
