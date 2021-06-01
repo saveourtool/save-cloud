@@ -4,6 +4,15 @@
 
 package org.cqfn.save.frontend.components.views
 
+import kotlinx.browser.window
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.html.ButtonType
+import kotlinx.html.InputType
+import kotlinx.html.classes
+import kotlinx.html.hidden
+import kotlinx.html.js.onChangeFunction
+import kotlinx.html.js.onClickFunction
 import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.ExecutionRequestForStandardSuites
 import org.cqfn.save.entities.Project
@@ -11,7 +20,6 @@ import org.cqfn.save.frontend.components.basic.cardComponent
 import org.cqfn.save.frontend.externals.modal.modal
 import org.cqfn.save.frontend.utils.post
 import org.cqfn.save.repository.GitRepository
-
 import org.w3c.dom.HTMLInputElement
 import org.w3c.fetch.Headers
 import org.w3c.fetch.Response
@@ -20,14 +28,22 @@ import org.w3c.files.BlobPropertyBag
 import org.w3c.files.File
 import org.w3c.files.get
 import org.w3c.xhr.FormData
-
-import kotlinx.browser.window
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import kotlinx.html.*
-import kotlinx.html.js.*
-import react.*
-import react.dom.*
+import react.RBuilder
+import react.RComponent
+import react.RProps
+import react.RState
+import react.child
+import react.dom.a
+import react.dom.label
+import react.dom.strong
+import react.dom.button
+import react.dom.div
+import react.dom.h1
+import react.dom.h2
+import react.dom.h6
+import react.dom.input
+import react.dom.p
+import react.setState
 
 /**
  * [RProps] for project view
@@ -139,6 +155,7 @@ class ProjectView : RComponent<ProjectProps, ProjectViewState>() {
         state.editableUrlInput = true
     }
 
+    @Suppress("ComplexMethod")
     private fun submitExecutionRequest() {
         console.log(state.gitUrlProject)
         if (state.isProjectAsBinaryFile && state.isProjectAsGitUrl) {
@@ -215,7 +232,7 @@ class ProjectView : RComponent<ProjectProps, ProjectViewState>() {
         }
     }
 
-    @Suppress("TOO_LONG_FUNCTION", "LongMethod")
+    @Suppress("TOO_LONG_FUNCTION", "LongMethod", "ComplexMethod")
     override fun RBuilder.render() {
         // modal window for configuring tests run - initially hidden
         runErrorFromBackendModal()
