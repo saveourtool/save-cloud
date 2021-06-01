@@ -34,7 +34,7 @@ class TestDiscoveringService(private val configProperties: ConfigProperties) {
      */
     @OptIn(ExperimentalFileSystem::class)
     fun getAllTestSuites(project: Project, testResourcesRootAbsolutePath: String, propertiesRelativePath: String): List<TestSuiteDto> {
-        val rootTestConfig = configDetector.configFromFile(testResourcesRootAbsolutePath.toPath() / propertiesRelativePath)
+        val rootTestConfig = configDetector.configFromFile(testResourcesRootAbsolutePath.toPath())
         return rootTestConfig.mapDescendants {
             val generalConfig = GeneralConfig("stub", "stub", "stub")  // todo: discover general config
             TestSuiteDto(TestSuiteType.PROJECT, generalConfig.suiteName, project, propertiesRelativePath)

@@ -211,11 +211,10 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
     @Suppress("UnsafeCallOnNullableType")
     private fun getTestResourcesRootAbsolutePath(propertiesRelativePath: String,
                                                  projectRootRelativePath: String): String {
-        val saveProperties: SaveProperties = decodeFromPropertiesFile(
-            File(configProperties.repository, projectRootRelativePath)
-                .resolve(propertiesRelativePath)
-        )
-        return File(configProperties.repository, projectRootRelativePath)
+        val propertiesFile = File(configProperties.repository, projectRootRelativePath)
+            .resolve(propertiesRelativePath)
+        val saveProperties: SaveProperties = decodeFromPropertiesFile(propertiesFile)
+        return propertiesFile.parentFile
             .resolve(saveProperties.testConfigPath!!)
             .absolutePath
     }
