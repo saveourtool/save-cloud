@@ -8,6 +8,7 @@ import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.TestSuite
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionType
+import org.cqfn.save.execution.ExecutionUpdateDto
 import org.cqfn.save.preprocessor.Response
 import org.cqfn.save.preprocessor.config.ConfigProperties
 import org.cqfn.save.preprocessor.service.TestDiscoveringService
@@ -168,6 +169,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
      * - Post request to backend to save all test suites
      * - Discover all tests in the cloned project
      * - Post request to backend to save all tests and create TestExecutions for them
+     * - Send a request to orchestrator to initialize agents and start tests execution
      */
     @Suppress(
         "LongMethod",
@@ -178,7 +180,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
     private fun sendToBackendAndOrchestrator(
         project: Project,
         propertiesRelativePath: String,
-        resourcesRootRelativePath: String,
+        projectRootRelativePath: String,
         executionType: ExecutionType,
         testSuiteDtos: List<TestSuiteDto>?
     ) {
@@ -187,14 +189,20 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
         } ?: require(executionType == ExecutionType.GIT) { "Test suites are not provided, but should for executionType=$executionType" }
 
         val execution = Execution(project, LocalDateTime.now(), LocalDateTime.now(),
-            ExecutionStatus.PENDING, "ALL", resourcesRootRelativePath, 0, configProperties.executionLimit, executionType)
+            ExecutionStatus.PENDING, "ALL", projectRootRelativePath, 0, configProperties.executionLimit, executionType)
         webClientBackend.makeRequest(BodyInserters.fromValue(execution), "/createExecution") { it.bodyToMono<Long>() }
             .flatMap { executionId ->
-                val testResourcesRootAbsolutePath = getTestResourcesRootAbsolutePath(propertiesRelativePath, resourcesRootRelativePath)
+                val testResourcesRootAbsolutePath = getTestResourcesRootAbsolutePath(propertiesRelativePath, projectRootRelativePath)
                 discoverAndSaveTestSuites(project, testResourcesRootAbsolutePath, propertiesRelativePath)
                     .flatMap { testSuites ->
                         initializeTests(testSuites, testResourcesRootAbsolutePath, executionId)
                             .then(initializeAgents(execution, executionId))
+                    }
+                    .onErrorResume { ex ->
+                        log.error("Error during resources discovering, will mark execution.id=$executionId as failed; error: ", ex)
+                        webClientBackend.makeRequest(
+                            BodyInserters.fromValue(ExecutionUpdateDto(executionId, ExecutionStatus.ERROR)), "/updateExecution"
+                        ) { it.toEntity<HttpStatus>() }
                     }
             }
             .subscribe()
@@ -202,12 +210,12 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
 
     @Suppress("UnsafeCallOnNullableType")
     private fun getTestResourcesRootAbsolutePath(propertiesRelativePath: String,
-                                                 resourcesRootRelativePath: String): String {
+                                                 projectRootRelativePath: String): String {
         val saveProperties: SaveProperties = decodeFromPropertiesFile(
-            File(configProperties.repository, resourcesRootRelativePath)
+            File(configProperties.repository, projectRootRelativePath)
                 .resolve(propertiesRelativePath)
         )
-        return File(configProperties.repository, resourcesRootRelativePath)
+        return File(configProperties.repository, projectRootRelativePath)
             .resolve(saveProperties.testConfigPath!!)
             .absolutePath
     }
@@ -215,12 +223,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
     private fun discoverAndSaveTestSuites(project: Project,
                                           testResourcesRootPath: String,
                                           propertiesRelativePath: String): Mono<List<TestSuite>> {
-        val testSuites: List<TestSuiteDto> = try {
-            testDiscoveringService.getAllTestSuites(project, testResourcesRootPath, propertiesRelativePath)
-        } catch (iae: IllegalArgumentException) {
-            log.error("Couldn't discover test suites, aborting: ", iae)
-            throw iae
-        }
+        val testSuites: List<TestSuiteDto> = testDiscoveringService.getAllTestSuites(project, testResourcesRootPath, propertiesRelativePath)
         return webClientBackend.makeRequest(BodyInserters.fromValue(testSuites), "/saveTestSuites") {
             it.bodyToMono()
         }
