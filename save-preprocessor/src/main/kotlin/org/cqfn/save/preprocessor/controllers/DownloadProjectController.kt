@@ -192,12 +192,13 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
             ExecutionStatus.PENDING, "ALL", projectRootRelativePath, 0, configProperties.executionLimit, executionType)
         webClientBackend.makeRequest(BodyInserters.fromValue(execution), "/createExecution") { it.bodyToMono<Long>() }
             .flatMap { executionId ->
-                val testResourcesRootAbsolutePath = getTestResourcesRootAbsolutePath(propertiesRelativePath, projectRootRelativePath)
-                discoverAndSaveTestSuites(project, testResourcesRootAbsolutePath, propertiesRelativePath)
-                    .flatMap { testSuites ->
-                        initializeTests(testSuites, testResourcesRootAbsolutePath, executionId)
-                            .then(initializeAgents(execution, executionId))
-                    }
+                Mono.just(getTestResourcesRootAbsolutePath(propertiesRelativePath, projectRootRelativePath)).flatMap { testResourcesRootAbsolutePath ->
+                    discoverAndSaveTestSuites(project, testResourcesRootAbsolutePath, propertiesRelativePath)
+                        .flatMap { testSuites ->
+                            initializeTests(testSuites, testResourcesRootAbsolutePath, executionId)
+                                .then(initializeAgents(execution, executionId))
+                        }
+                }
                     .onErrorResume { ex ->
                         log.error("Error during resources discovering, will mark execution.id=$executionId as failed; error: ", ex)
                         webClientBackend.makeRequest(
