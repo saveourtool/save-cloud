@@ -192,7 +192,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
             ExecutionStatus.PENDING, "ALL", projectRootRelativePath, 0, configProperties.executionLimit, executionType)
         webClientBackend.makeRequest(BodyInserters.fromValue(execution), "/createExecution") { it.bodyToMono<Long>() }
             .flatMap { executionId ->
-                Mono.create<String> {
+                Mono.fromCallable {
                     getTestResourcesRootAbsolutePath(propertiesRelativePath, projectRootRelativePath)
                 }
                     .flatMap { testResourcesRootAbsolutePath ->
