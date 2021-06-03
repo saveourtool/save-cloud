@@ -67,17 +67,17 @@ class App : RComponent<RProps, AppState>() {
                 div("container-fluid") {
                     switch {
                         route("/", exact = true, component = CollectionView::class)
-                        route<ProjectRouteProps>("/:type/:owner/:name", exact = true) { routeResultProps ->
+                        route<ProjectRouteProps>("/:owner/:name", exact = true) { routeResultProps ->
                             child(ProjectView::class) {
                                 attrs.project = routeResultProps.match.params.toProject()
                             }
                         }
-                        route<ProjectRouteProps>("/:type/:owner/:name/history", exact = true) { routeResultProps ->
+                        route<ProjectRouteProps>("/:owner/:name/history", exact = true) { routeResultProps ->
                             child(HistoryView::class) {
                                 attrs.project = routeResultProps.match.params.toProject()
                             }
                         }
-                        route<ExecutionProps>("/:type/:owner/:name/history/:executionId") { props ->
+                        route<ExecutionProps>("/:owner/:name/history/:executionId") { props ->
                             // executionId might be `latest`
                             child(ExecutionView::class) {
                                 attrs.executionId = props.match.params.executionId

@@ -1,5 +1,6 @@
 package org.cqfn.save.entities
 
+import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionType
 import java.time.LocalDateTime
@@ -19,6 +20,7 @@ import javax.persistence.ManyToOne
  * @property resourcesRootPath path to test resources, relative to shared volume mount point
  * @property batchSize Maximum number of returning tests per execution
  * @property type
+ * @property version
  */
 @Suppress("USE_DATA_CLASS", "LongParameterList")
 @Entity
@@ -48,4 +50,9 @@ class Execution(
 
     var version: String
 
-) : BaseEntity()
+) : BaseEntity() {
+    /**
+     * @return Execution dto
+     */
+    fun toDto() = ExecutionDto(version)
+}

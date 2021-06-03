@@ -88,7 +88,10 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
             }
         }
 
-    @Suppress("TooGenericExceptionCaught", "TOO_LONG_FUNCTION")
+    @Suppress(
+        "TooGenericExceptionCaught",
+        "TOO_LONG_FUNCTION",
+        "TOO_MANY_LINES_IN_LAMBDA")
     private fun downLoadRepository(executionRequest: ExecutionRequest) {
         val gitRepository = executionRequest.gitRepository
         val project = executionRequest.project
@@ -112,7 +115,8 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
                         executionRequest.propertiesRelativePath,
                         tmpDir.relativeTo(File(configProperties.repository)).normalize().path,
                         ExecutionType.GIT,
-                        it.log().call().first().name,
+                        it.log().call().first()
+                            .name,
                         null
                     )
                 }
@@ -166,7 +170,9 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
         "ThrowsCount",
         "TooGenericExceptionCaught",
         "TOO_LONG_FUNCTION",
-        "LOCAL_VARIABLE_EARLY_DECLARATION")
+        "LOCAL_VARIABLE_EARLY_DECLARATION",
+        "LongParameterList",
+        "TOO_MANY_PARAMETERS")
     private fun sendToBackendAndOrchestrator(
         project: Project,
         propertiesRelativePath: String,
