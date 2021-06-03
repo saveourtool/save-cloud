@@ -16,7 +16,7 @@ kotlin {
             languageSettings.useExperimentalAnnotation("kotlin.RequiresOptIn")
         }
         sourceSets["main"].dependencies {
-            implementation(project(":save-common"))
+            implementation(project(":save-cloud-common"))
 
             // devDependencies for webpack. As for kotlin 1.4.31, kotlin bundles webpack 4.x, and some
             //  latest ersions of dependencies already require webpack ^5. These versions are fixed on the last compatible.

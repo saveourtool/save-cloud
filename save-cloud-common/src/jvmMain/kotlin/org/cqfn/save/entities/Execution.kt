@@ -15,7 +15,7 @@ import javax.persistence.ManyToOne
  * @property startTime
  * @property endTime If the state is RUNNING we are not considering it, so it can never be null
  * @property status
- * @property testSuiteIds
+ * @property testSuiteIds a list of test suite IDs, that should be executed under this Execution.
  * @property page
  * @property resourcesRootPath path to test resources, relative to shared volume mount point
  * @property batchSize Maximum number of returning tests per execution

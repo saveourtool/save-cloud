@@ -2,6 +2,8 @@ import de.undercouch.gradle.tasks.download.Download
 import org.cqfn.save.buildutils.configureJacoco
 import org.cqfn.save.buildutils.configureSpringBoot
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import java.net.URL
+import org.codehaus.groovy.runtime.ResourceGroovyMethods
 
 plugins {
     kotlin("jvm")
@@ -18,9 +20,20 @@ tasks.withType<KotlinCompile> {
 }
 
 tasks.getByName("processResources").finalizedBy("downloadSaveCli")
+val saveCliVersion: String = if (Versions.saveCore.endsWith("SNAPSHOT")) {
+    // fixme: we will probably need snapshot of CLI too
+    val latestRelease = ResourceGroovyMethods.getText(
+        URL("https://api.github.com/repos/cqfn/save/releases/latest")
+    )
+    (groovy.json.JsonSlurper().parseText(latestRelease) as Map<String, Any>)["tag_name"].let {
+        (it as String).trim('v')
+    }
+} else {
+    Versions.saveCore
+}
 tasks.register<Download>("downloadSaveCli") {
     dependsOn("processResources")
-    src("https://github.com/cqfn/save/releases/download/v${Versions.saveCore}/save-${Versions.saveCore}-linuxX64.kexe")
+    src("https://github.com/cqfn/save/releases/download/v$saveCliVersion/save-$saveCliVersion-linuxX64.kexe")
     dest("$buildDir/resources/main")
 }
 
@@ -29,7 +42,7 @@ tasks.withType<Test> {
 }
 
 dependencies {
-    api(project(":save-common"))
+    api(project(":save-cloud-common"))
     runtimeOnly(project(":save-agent", "distribution"))
     implementation("org.slf4j:slf4j-api:${Versions.slf4j}")
     implementation("ch.qos.logback:logback-core:${Versions.logback}")
@@ -57,7 +70,7 @@ val generateVersionFileTaskProvider = tasks.register("generateVersionFile") {
             """
             package generated
 
-            internal const val SAVE_CORE_VERSION = "${Versions.saveCore}"
+            internal const val SAVE_CORE_VERSION = "$saveCliVersion"
             internal const val SAVE_CLOUD_VERSION = "$version"
 
             """.trimIndent()

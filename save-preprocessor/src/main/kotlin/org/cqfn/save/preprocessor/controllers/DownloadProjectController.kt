@@ -1,5 +1,6 @@
 package org.cqfn.save.preprocessor.controllers
 
+import org.cqfn.save.core.config.SaveProperties
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.ExecutionRequestForStandardSuites
@@ -7,10 +8,11 @@ import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.TestSuite
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionType
+import org.cqfn.save.execution.ExecutionUpdateDto
 import org.cqfn.save.preprocessor.Response
 import org.cqfn.save.preprocessor.config.ConfigProperties
-import org.cqfn.save.preprocessor.utils.toHash
-import org.cqfn.save.test.TestDto
+import org.cqfn.save.preprocessor.service.TestDiscoveringService
+import org.cqfn.save.preprocessor.utils.decodeFromPropertiesFile
 import org.cqfn.save.testsuite.TestSuiteDto
 import org.cqfn.save.testsuite.TestSuiteType
 
@@ -21,6 +23,7 @@ import org.eclipse.jgit.api.errors.TransportException
 import org.eclipse.jgit.transport.CredentialsProvider
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ReactiveHttpOutputMessage
 import org.springframework.http.ResponseEntity
@@ -32,6 +35,7 @@ import org.springframework.web.reactive.function.BodyInserter
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
+import org.springframework.web.reactive.function.client.toEntity
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
@@ -52,6 +56,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
     private val log = LoggerFactory.getLogger(DownloadProjectController::class.java)
     private val webClientBackend = WebClient.create(configProperties.backend)
     private val webClientOrchestrator = WebClient.create(configProperties.orchestrator)
+    @Autowired private lateinit var testDiscoveringService: TestDiscoveringService
 
     /**
      * @param executionRequest - Dto of repo information to clone and project info
@@ -109,7 +114,6 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
                 .call().use {
                     log.info("Repository cloned: ${gitRepository.url}")
                     // Post request to backend to create PENDING executions
-                    // Fixme: need to initialize test suite ids
                     sendToBackendAndOrchestrator(
                         project,
                         executionRequest.propertiesRelativePath,
@@ -137,17 +141,17 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
         binFile: File,
     ) {
         val tmpDir = generateDirectory(binFile.name.hashCode(), binFile.name)
-        val pathToProperties = tmpDir.path + File.separator + propertyFile.name
-        propertyFile.copyTo(File(pathToProperties))
-        binFile.copyTo(File(tmpDir.path + File.separator + binFile.name))
+        val pathToProperties = tmpDir.resolve(propertyFile.name)
+        propertyFile.copyTo(pathToProperties)
+        binFile.copyTo(tmpDir.resolve(binFile.name))
         val project = executionRequestForStandardSuites.project
+        val propertiesRelativePath = pathToProperties.relativeTo(tmpDir).name
         sendToBackendAndOrchestrator(
             project,
-            pathToProperties,
+            propertiesRelativePath,
             tmpDir.relativeTo(File(configProperties.repository)).normalize().path,
             ExecutionType.STANDARD,
-            binFile.name,
-            executionRequestForStandardSuites.testsSuites.map { TestSuiteDto(TestSuiteType.STANDARD, it, project, pathToProperties) }
+            executionRequestForStandardSuites.testsSuites.map { TestSuiteDto(TestSuiteType.STANDARD, it, project, propertiesRelativePath) }
         )
     }
 
@@ -163,7 +167,14 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
     }
 
     /**
-     * We have not null list of TestSuite only, if execute type is STANDARD ()
+     * Note: We have not null list of TestSuite only, if execute type is STANDARD ()
+     *
+     * - Post request to backend to create PENDING executions
+     * - Discover all test suites in the cloned project
+     * - Post request to backend to save all test suites
+     * - Discover all tests in the cloned project
+     * - Post request to backend to save all tests and create TestExecutions for them
+     * - Send a request to orchestrator to initialize agents and start tests execution
      */
     @Suppress(
         "LongMethod",
@@ -176,70 +187,99 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
     private fun sendToBackendAndOrchestrator(
         project: Project,
         propertiesRelativePath: String,
-        resourcesRootPath: String,
+        projectRootRelativePath: String,
         executionType: ExecutionType,
         executionVersion: String,
-        testSuitesDto: List<TestSuiteDto>?
+        testSuiteDtos: List<TestSuiteDto>?
     ) {
-        testSuitesDto?.let {
-            require(executionType == ExecutionType.STANDARD)
-        } ?: require(executionType == ExecutionType.GIT)
+        testSuiteDtos?.let {
+            require(executionType == ExecutionType.STANDARD) { "Test suites shouldn't be provided unless ExecutionType is STANDARD (actual: $executionType)" }
+        } ?: require(executionType == ExecutionType.GIT) { "Test suites are not provided, but should for executionType=$executionType" }
+
         val execution = Execution(project, LocalDateTime.now(), LocalDateTime.now(),
-            ExecutionStatus.PENDING, "1", resourcesRootPath, 0, configProperties.executionLimit, executionType, executionVersion)
-        var execId: Long
-        log.debug("Knock-Knock Backend")
-        makeRequest(BodyInserters.fromValue(execution), "/createExecution") { it.bodyToMono(Long::class.java) }
-            .doOnNext { executionId ->
-                execId = executionId
-                makeRequest(BodyInserters.fromValue(testSuitesDto ?: getAllTestSuites(project, propertiesRelativePath)), "/saveTestSuites") { it.bodyToMono<List<TestSuite>>() }
-                    .doOnNext { testSuiteList ->
-                        makeRequest(BodyInserters.fromValue(getAllTests(resourcesRootPath, testSuiteList)), "/initializeTests?executionId=$executionId") { it.toBodilessEntity() }
-                            .doOnNext {
-                                // Post request to orchestrator to initiate its work
-                                log.debug("Knock-Knock Orchestrator")
-                                webClientOrchestrator
-                                    .post()
-                                    .uri("/initializeAgents")
-                                    .body(BodyInserters.fromValue(execution.also { it.id = execId }))
-                                    .retrieve()
-                                    .toEntity(HttpStatus::class.java)
-                                    .subscribe()
-                            }.subscribe()
-                    }.subscribe()
-            }.subscribe()
+            ExecutionStatus.PENDING, "ALL", projectRootRelativePath, 0, configProperties.executionLimit, executionType, executionVersion)
+        webClientBackend.makeRequest(BodyInserters.fromValue(execution), "/createExecution") { it.bodyToMono<Long>() }
+            .flatMap { executionId ->
+                Mono.fromCallable {
+                    getTestResourcesRootAbsolutePath(propertiesRelativePath, projectRootRelativePath)
+                }
+                    .flatMap { testResourcesRootAbsolutePath ->
+                        discoverAndSaveTestSuites(project, testResourcesRootAbsolutePath, propertiesRelativePath)
+                            .flatMap { testSuites ->
+                                initializeTests(testSuites, testResourcesRootAbsolutePath, executionId)
+                                    .then(initializeAgents(execution, executionId))
+                            }
+                    }
+                    .onErrorResume { ex ->
+                        log.error("Error during resources discovering, will mark execution.id=$executionId as failed; error: ", ex)
+                        webClientBackend.makeRequest(
+                            BodyInserters.fromValue(ExecutionUpdateDto(executionId, ExecutionStatus.ERROR)), "/updateExecution"
+                        ) { it.toEntity<HttpStatus>() }
+                    }
+            }
+            .subscribe()
     }
 
-    private fun <M, T> makeRequest(
+    @Suppress("UnsafeCallOnNullableType")
+    private fun getTestResourcesRootAbsolutePath(propertiesRelativePath: String,
+                                                 projectRootRelativePath: String): String {
+        val propertiesFile = File(configProperties.repository, projectRootRelativePath)
+            .resolve(propertiesRelativePath)
+        val saveProperties: SaveProperties = decodeFromPropertiesFile(propertiesFile)
+        return propertiesFile.parentFile
+            .resolve(saveProperties.testConfigPath!!)
+            .absolutePath
+    }
+
+    private fun discoverAndSaveTestSuites(project: Project,
+                                          testResourcesRootAbsolutePath: String,
+                                          propertiesRelativePath: String): Mono<List<TestSuite>> {
+        val testSuites: List<TestSuiteDto> = testDiscoveringService.getAllTestSuites(project, testResourcesRootAbsolutePath, propertiesRelativePath)
+        return webClientBackend.makeRequest(BodyInserters.fromValue(testSuites), "/saveTestSuites") {
+            it.bodyToMono()
+        }
+    }
+
+    /**
+     * Discover tests and send them to backend
+     */
+    private fun initializeTests(testSuites: List<TestSuite>,
+                                testResourcesRootPath: String,
+                                executionId: Long) = webClientBackend.makeRequest(
+        BodyInserters.fromValue(testDiscoveringService.getAllTests(testResourcesRootPath, testSuites)),
+        "/initializeTests?executionId=$executionId"
+    ) {
+        it.toBodilessEntity()
+    }
+
+    /**
+     * Post request to orchestrator to initiate its work
+     */
+    private fun initializeAgents(execution: Execution,
+                                 executionId: Long) = webClientOrchestrator.makeRequest(
+        BodyInserters.fromValue(execution.also { it.id = executionId }),
+        "/initializeAgents"
+    ) {
+        it.toEntity<HttpStatus>()
+    }
+
+    private fun <M, T> WebClient.makeRequest(
         body: BodyInserter<M, ReactiveHttpOutputMessage>,
         uri: String,
         toBody: (WebClient.ResponseSpec) -> Mono<T>
     ): Mono<T> {
-        val responseSpec = webClientBackend
+        val responseSpec = this
             .post()
             .uri(uri)
             .body(body)
             .retrieve()
             .onStatus({status -> status != HttpStatus.OK }) { clientResponse ->
-                log.error("Backend internal error: ${clientResponse.statusCode()}")
+                log.error("Error when making request to $uri: ${clientResponse.statusCode()}")
                 throw ResponseStatusException(
                     HttpStatus.INTERNAL_SERVER_ERROR,
-                    "Backend internal error"
+                    "Upstream request error"
                 )
             }
-        return toBody(responseSpec)
-    }
-
-    private fun getAllTestSuites(project: Project, propertiesRelativePath: String) =
-            listOf(TestSuiteDto(TestSuiteType.PROJECT, "test", project, propertiesRelativePath))
-
-    private fun getAllTests(path: String, testSuites: List<TestSuite>): List<TestDto> {
-        // todo Save should find and create correct TestDtos. Not it's just a stub
-        return File(configProperties.repository, path)
-            .walkTopDown()
-            .filter { it.isFile }
-            .map {
-                TestDto(it.path, testSuites[0].id ?: 1, it.toHash())
-            }
-            .toList()
+        return toBody(responseSpec).log()
     }
 }
