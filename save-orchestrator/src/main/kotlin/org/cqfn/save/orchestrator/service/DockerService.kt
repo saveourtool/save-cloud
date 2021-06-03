@@ -111,7 +111,8 @@ class DockerService(private val configProperties: ConfigProperties) {
             imageName = "save-execution:${execution.id}",
             baseDir = resourcesPath,
             resourcesPath = executionDir,
-            runCmd = """RUN apt-get update && apt-get install -y libcurl4-openssl-dev && rm -rf /var/lib/apt/lists/*
+            runCmd = """RUN apt-get update && env DEBIAN_FRONTEND="noninteractive" apt-get install -y libcurl4-openssl-dev tzdata && rm -rf /var/lib/apt/lists/*
+                    |RUN ln -fs /usr/share/zoneinfo/UTC /etc/localtime
                     |RUN chmod +x $executionDir/$SAVE_AGENT_EXECUTABLE_NAME
                     |RUN chmod +x $executionDir/$SAVE_CLI_EXECUTABLE_NAME
                 """

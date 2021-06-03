@@ -36,7 +36,7 @@ class TestDiscoveringService(private val configProperties: ConfigProperties) {
     fun getAllTestSuites(project: Project, testResourcesRootAbsolutePath: String, propertiesRelativePath: String): List<TestSuiteDto> {
         val rootTestConfig = configDetector.configFromFile(testResourcesRootAbsolutePath.toPath())
         return rootTestConfig.mapDescendants {
-            val generalConfig = GeneralConfig("stub", "stub", "stub")  // todo: discover general config
+            val generalConfig = GeneralConfig("stub", "stub", "stub", "stub")  // todo: discover general config
             TestSuiteDto(TestSuiteType.PROJECT, generalConfig.suiteName, project, propertiesRelativePath)
         }
             .distinct()
@@ -57,7 +57,7 @@ class TestDiscoveringService(private val configProperties: ConfigProperties) {
         return rootTestConfig.flatMapDescendants { _ ->
             // todo: should get a list of plugins from config
             val plugins: List<Plugin> = emptyList()
-            val generalConfig = GeneralConfig("stub", "stub", "stub")  // todo: discover general config
+            val generalConfig = GeneralConfig("stub", "stub", "stub", "stub")  // todo: discover general config
             val testSuite = testSuites.first { it.name == generalConfig.suiteName }
             plugins.flatMap { plugin ->
                 plugin.discoverTestFiles(testResourcesRootPath.toPath()).map {

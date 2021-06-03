@@ -8,6 +8,7 @@ import org.cqfn.save.orchestrator.config.Beans
 import org.cqfn.save.orchestrator.config.ConfigProperties
 import org.cqfn.save.orchestrator.controller.AgentsController
 
+import com.github.dockerjava.core.command.LogContainerResultCallback
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.jupiter.api.AfterEach
@@ -71,7 +72,14 @@ class DockerServiceTest {
         Thread.sleep(2_500)  // waiting for container to start
         val inspectContainerResponse = dockerService.containerManager.dockerClient.inspectContainerCmd(testContainerId).exec()
         testImageId = inspectContainerResponse.imageId
-        Assertions.assertTrue(inspectContainerResponse.state.running!!) { "container $testContainerId is not running, actual state ${inspectContainerResponse.state}" }
+        Assertions.assertTrue(inspectContainerResponse.state.running!!) {
+            dockerService.containerManager.dockerClient.logContainerCmd(testContainerId)
+                .withStdOut(true)
+                .withStdErr(true)
+                .exec(LogContainerResultCallback())
+                .awaitCompletion()
+            "container $testContainerId is not running, actual state ${inspectContainerResponse.state}"
+        }
 
         // tear down
         dockerService.stopAgents(listOf(testContainerId))
