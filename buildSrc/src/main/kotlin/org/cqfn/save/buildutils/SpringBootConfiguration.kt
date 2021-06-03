@@ -5,13 +5,16 @@ import org.gradle.kotlin.dsl.apply
 import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.dependencies
 import org.gradle.kotlin.dsl.named
+import org.jetbrains.kotlin.allopen.gradle.AllOpenExtension
+import org.jetbrains.kotlin.allopen.gradle.AllOpenGradleSubplugin
+import org.jetbrains.kotlin.allopen.gradle.SpringGradleSubplugin
 import org.springframework.boot.gradle.dsl.SpringBootExtension
 import org.springframework.boot.gradle.plugin.SpringBootPlugin
 import org.springframework.boot.gradle.tasks.bundling.BootBuildImage
-import org.jetbrains.kotlin.allopen.gradle.AllOpenGradleSubplugin
-import org.jetbrains.kotlin.allopen.gradle.AllOpenExtension
-import org.jetbrains.kotlin.allopen.gradle.SpringGradleSubplugin
 
+/**
+ * @param withSpringDataJpa whether spring-data related dependencies should be included
+ */
 fun Project.configureSpringBoot(withSpringDataJpa: Boolean = false) {
     apply<SpringBootPlugin>()
 

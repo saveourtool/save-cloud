@@ -5,11 +5,14 @@ import org.gradle.api.tasks.Exec
 import org.gradle.kotlin.dsl.register
 import org.gradle.kotlin.dsl.withType
 import org.springframework.boot.gradle.tasks.bundling.BootBuildImage
-import java.io.File
 import java.io.ByteArrayOutputStream
 
 const val MYSQL_STARTUP_DELAY_MILLIS = 10_000L
 
+/**
+ * @param profile deployment profile, used, for example, to start SQL database in dev profile only
+ */
+@Suppress("TOO_LONG_FUNCTION", "TOO_MANY_LINES_IN_LAMBDA")
 fun Project.createStackDeployTask(profile: String) {
     tasks.register<Exec>("startLocalDockerRegistry") {
         enabled = false
@@ -58,12 +61,12 @@ fun Project.createStackDeployTask(profile: String) {
         }
         description = "Deploy to docker swarm. If swarm contains more than one node, some registry for built images is requried."
         commandLine("docker", "stack", "deploy", "--compose-file", "$buildDir/docker-compose.yaml", "save")
-//        doLast {
-//            exec {
-//                description = "Stop local docker registry"
-//                commandLine("docker", "service", "rm", "registry")
-//            }
-//        }
+        // doLast {
+        // exec {
+        // description = "Stop local docker registry"
+        // commandLine("docker", "service", "rm", "registry")
+        // }
+        // }
     }
 
     tasks.register<Exec>("stopDockerStack") {

@@ -1,7 +1,8 @@
 import org.cqfn.save.buildutils.configureJacoco
 import org.cqfn.save.buildutils.configureSpringBoot
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 import org.gradle.testing.jacoco.plugins.JacocoTaskExtension
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("jvm")
