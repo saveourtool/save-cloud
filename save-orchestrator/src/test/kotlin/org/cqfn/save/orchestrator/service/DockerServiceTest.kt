@@ -1,6 +1,5 @@
 package org.cqfn.save.orchestrator.service
 
-import com.github.dockerjava.core.command.LogContainerResultCallback
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.Project
 import org.cqfn.save.execution.ExecutionStatus
@@ -9,6 +8,7 @@ import org.cqfn.save.orchestrator.config.Beans
 import org.cqfn.save.orchestrator.config.ConfigProperties
 import org.cqfn.save.orchestrator.controller.AgentsController
 
+import com.github.dockerjava.core.command.LogContainerResultCallback
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.jupiter.api.AfterEach
@@ -74,6 +74,8 @@ class DockerServiceTest {
         testImageId = inspectContainerResponse.imageId
         Assertions.assertTrue(inspectContainerResponse.state.running!!) {
             dockerService.containerManager.dockerClient.logContainerCmd(testContainerId)
+                .withStdOut(true)
+                .withStdErr(true)
                 .exec(LogContainerResultCallback())
                 .awaitCompletion()
             "container $testContainerId is not running, actual state ${inspectContainerResponse.state}"
