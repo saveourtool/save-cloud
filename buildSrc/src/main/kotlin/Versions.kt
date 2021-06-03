@@ -2,11 +2,11 @@ object Versions {
     // core dependencies
     const val jdk = "11"  // jdk version that will be used as kotlin compiler target
     const val BP_JVM_VERSION = "11"  // jvm version for spring boot image build
-    const val kotlin = "1.4.32"
-    const val ktor = "1.5.4"
-    const val coroutines = "1.4.3"
-    const val serialization = "1.1.0"  // serialization is compiled by 1.4.30 since version 1.1.0 and for native ABI is different. We can update serialization only after we update kotlin.
-    const val kotlinxDatetime = "0.1.1"
+    const val kotlin = "1.5.0"
+    const val ktor = "1.6.0"
+    const val coroutines = "1.5.0"
+    const val serialization = "1.1.0"
+    const val kotlinxDatetime = "0.2.0"
     const val saveCore = "0.1.0-SNAPSHOT"
 
     // microservices
@@ -30,6 +30,6 @@ object Versions {
 
     // frontend
     const val react = "17.0.2"
-    const val kotlinJsWrappersSuffix = "-pre.155-kotlin-1.4.32"
+    const val kotlinJsWrappersSuffix = "-pre.156-kotlin-1.5.0"
     const val kotlinReact = "$react$kotlinJsWrappersSuffix"
 }
