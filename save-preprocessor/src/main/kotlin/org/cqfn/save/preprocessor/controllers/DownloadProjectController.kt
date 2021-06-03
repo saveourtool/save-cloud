@@ -151,6 +151,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
             propertiesRelativePath,
             tmpDir.relativeTo(File(configProperties.repository)).normalize().path,
             ExecutionType.STANDARD,
+            binFile.name,
             executionRequestForStandardSuites.testsSuites.map { TestSuiteDto(TestSuiteType.STANDARD, it, project, propertiesRelativePath) }
         )
     }
