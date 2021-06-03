@@ -1,5 +1,6 @@
 package org.cqfn.save.orchestrator.service
 
+import com.github.dockerjava.core.command.LogContainerResultCallback
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.Project
 import org.cqfn.save.execution.ExecutionStatus
@@ -71,7 +72,12 @@ class DockerServiceTest {
         Thread.sleep(2_500)  // waiting for container to start
         val inspectContainerResponse = dockerService.containerManager.dockerClient.inspectContainerCmd(testContainerId).exec()
         testImageId = inspectContainerResponse.imageId
-        Assertions.assertTrue(inspectContainerResponse.state.running!!) { "container $testContainerId is not running, actual state ${inspectContainerResponse.state}" }
+        Assertions.assertTrue(inspectContainerResponse.state.running!!) {
+            dockerService.containerManager.dockerClient.logContainerCmd(testContainerId)
+                .exec(LogContainerResultCallback())
+                .awaitCompletion()
+            "container $testContainerId is not running, actual state ${inspectContainerResponse.state}"
+        }
 
         // tear down
         dockerService.stopAgents(listOf(testContainerId))
