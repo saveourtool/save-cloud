@@ -1,3 +1,7 @@
+/**
+ * Configuration for docker swarm deployment
+ */
+
 package org.cqfn.save.buildutils
 
 import org.gradle.api.Project

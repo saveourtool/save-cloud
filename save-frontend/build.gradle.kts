@@ -83,9 +83,9 @@ val copyWebfontsTaskProvider = tasks.register("copyWebfonts", Copy::class) {
     from("$rootDir/build/js/node_modules/@fortawesome/fontawesome-free/webfonts")
     into("$buildDir/processedResources/js/main/webfonts")
 }
-tasks.withType<org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack>().forEach {
-    it.dependsOn(copyWebfontsTaskProvider)
-    it.doFirst {
+tasks.withType<org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack>().forEach { kotlinWebpack ->
+    kotlinWebpack.dependsOn(copyWebfontsTaskProvider)
+    kotlinWebpack.doFirst {
         val additionalWebpackResources = fileTree("$buildDir/processedResources/js/main/") {
             include("scss/**")
             include("webfonts/**")

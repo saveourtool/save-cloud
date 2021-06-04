@@ -1,3 +1,7 @@
+/**
+ * Configuration utilities for spring boot projects
+ */
+
 package org.cqfn.save.buildutils
 
 import org.gradle.api.Project
@@ -13,8 +17,11 @@ import org.springframework.boot.gradle.plugin.SpringBootPlugin
 import org.springframework.boot.gradle.tasks.bundling.BootBuildImage
 
 /**
+ * Adds necessary spring boot dependencies for [this] project
+ *
  * @param withSpringDataJpa whether spring-data related dependencies should be included
  */
+@Suppress("TOO_LONG_FUNCTION")
 fun Project.configureSpringBoot(withSpringDataJpa: Boolean = false) {
     apply<SpringBootPlugin>()
 
