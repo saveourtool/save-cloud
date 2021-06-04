@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
-
 /**
  * Controller that accepts executions
  */
@@ -40,7 +39,7 @@ class ExecutionController(private val executionService: ExecutionService) {
      */
     @GetMapping("/executionDto")
     fun getExecutionDto(@RequestParam executionId: Long): ResponseEntity<ExecutionDto> =
-        executionService.getExecutionDto(executionId)?.let {
-            ResponseEntity.status(HttpStatus.OK).body(it)
-        } ?: ResponseEntity.status(HttpStatus.NOT_FOUND).build()
+            executionService.getExecutionDto(executionId)?.let {
+                ResponseEntity.status(HttpStatus.OK).body(it)
+            } ?: ResponseEntity.status(HttpStatus.NOT_FOUND).build()
 }

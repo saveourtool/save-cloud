@@ -1,8 +1,6 @@
 package org.cqfn.save.execution
 
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 
 /**
  * @property version
