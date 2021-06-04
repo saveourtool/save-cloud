@@ -5,9 +5,12 @@ import org.cqfn.save.backend.repository.ExecutionRepository
 import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.utils.MySqlExtension
 import org.cqfn.save.entities.Execution
+import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionType
 import org.cqfn.save.execution.ExecutionUpdateDto
+
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -16,7 +19,9 @@ import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWeb
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.WebTestClient
+import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
+
 import java.time.LocalDateTime
 import java.time.Month
 
@@ -47,7 +52,8 @@ class ExecutionControllerTest {
             "stub",
             0,
             20,
-            ExecutionType.GIT
+            ExecutionType.GIT,
+            "0.0.1"
         )
         webClient.post()
             .uri("/createExecution")
@@ -70,7 +76,8 @@ class ExecutionControllerTest {
             "stub",
             0,
             20,
-            ExecutionType.GIT
+            ExecutionType.GIT,
+            "0.0.1"
         )
         webClient.post()
             .uri("/createExecution")
@@ -98,7 +105,8 @@ class ExecutionControllerTest {
             "stub",
             0,
             20,
-            ExecutionType.GIT
+            ExecutionType.GIT,
+            "0.0.1"
         )
 
         webClient.post()
@@ -142,5 +150,19 @@ class ExecutionControllerTest {
             .exchange()
             .expectStatus()
             .isNotFound
+    }
+
+    @Test
+    fun checkExecutionDto() {
+        webClient.get()
+            .uri("/executionDto?executionId=1")
+            .exchange()
+            .expectStatus()
+            .isOk
+            .expectBody<ExecutionDto>()
+            .consumeWith {
+                requireNotNull(it.responseBody)
+                assertEquals("0.0.1", it.responseBody!!.version)
+            }
     }
 }

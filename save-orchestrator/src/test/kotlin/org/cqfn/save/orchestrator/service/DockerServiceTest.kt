@@ -55,7 +55,7 @@ class DockerServiceTest {
     fun `should create a container with save agent and test resources and start it`() {
         // build base image
         val project = Project("Huawei", "huaweiName", "huaweiUrl", "description")
-        val testExecution = Execution(project, LocalDateTime.now(), LocalDateTime.now(), ExecutionStatus.PENDING, "1", "foo", 0, 20, ExecutionType.GIT).apply {
+        val testExecution = Execution(project, LocalDateTime.now(), LocalDateTime.now(), ExecutionStatus.PENDING, "1", "foo", 0, 20, ExecutionType.GIT, "0.0.1").apply {
             id = 42L
         }
         testContainerId = dockerService.buildAndCreateContainers(testExecution).single()
