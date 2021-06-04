@@ -1,5 +1,6 @@
 package org.cqfn.save.entities
 
+import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionType
 import java.time.LocalDateTime
@@ -14,11 +15,12 @@ import javax.persistence.ManyToOne
  * @property startTime
  * @property endTime If the state is RUNNING we are not considering it, so it can never be null
  * @property status
- * @property testSuiteIds
+ * @property testSuiteIds a list of test suite IDs, that should be executed under this Execution.
  * @property page
  * @property resourcesRootPath path to test resources, relative to shared volume mount point
  * @property batchSize Maximum number of returning tests per execution
  * @property type
+ * @property version
  */
 @Suppress("USE_DATA_CLASS", "LongParameterList")
 @Entity
@@ -44,6 +46,13 @@ class Execution(
     var batchSize: Int,
 
     @Enumerated(EnumType.STRING)
-    var type: ExecutionType
+    var type: ExecutionType,
 
-) : BaseEntity()
+    var version: String
+
+) : BaseEntity() {
+    /**
+     * @return Execution dto
+     */
+    fun toDto() = ExecutionDto(status, type, version)
+}

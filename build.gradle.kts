@@ -7,7 +7,7 @@ import org.cqfn.save.buildutils.createStackDeployTask
 import org.cqfn.save.buildutils.installGitHooks
 
 plugins {
-    id("com.github.ben-manes.versions") version "0.38.0"
+    id("com.github.ben-manes.versions") version "0.39.0"
     id("com.cdsap.talaiot.plugin.base") version "1.4.2"
     id("org.liquibase.gradle") version Versions.liquibaseGradlePlugin
 }
@@ -72,6 +72,11 @@ allprojects {
         maven("https://maven.pkg.jetbrains.space/public/p/kotlinx-html/maven") {  // detekt requires kotlinx.html
             content {
                 includeModule("org.jetbrains.kotlinx", "kotlinx-html-jvm")
+            }
+        }
+        maven("https://oss.sonatype.org/content/repositories/snapshots") {
+            content {
+                includeGroup("org.cqfn.save")
             }
         }
     }

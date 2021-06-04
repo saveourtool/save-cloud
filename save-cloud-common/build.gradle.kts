@@ -31,6 +31,9 @@ kotlin {
     }
 
     sourceSets {
+        sourceSets.all {
+            languageSettings.useExperimentalAnnotation("kotlin.RequiresOptIn")
+        }
         commonMain {
             dependencies {
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:${Versions.serialization}")

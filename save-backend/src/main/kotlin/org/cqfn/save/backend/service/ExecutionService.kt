@@ -2,8 +2,10 @@ package org.cqfn.save.backend.service
 
 import org.cqfn.save.backend.repository.ExecutionRepository
 import org.cqfn.save.entities.Execution
+import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionUpdateDto
+import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
@@ -14,6 +16,8 @@ import java.time.LocalDateTime
  */
 @Service
 class ExecutionService(private val executionRepository: ExecutionRepository) {
+    private val log = LoggerFactory.getLogger(ExecutionService::class.java)
+
     /**
      * @param execution
      * @return id of the created [Execution]
@@ -35,5 +39,19 @@ class ExecutionService(private val executionRepository: ExecutionRepository) {
         }) {
             throw ResponseStatusException(HttpStatus.NOT_FOUND)
         }
+    }
+
+    /**
+     * @param executionId id of execution
+     * @return execution dto based on id
+     */
+    fun getExecutionDto(executionId: Long): ExecutionDto? {
+        var executionDto: ExecutionDto? = null
+        executionRepository.findById(executionId).ifPresentOrElse({
+            executionDto = it.toDto()
+        }) {
+            log.error("Can't find execution by id = $executionId")
+        }
+        return executionDto
     }
 }

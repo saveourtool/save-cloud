@@ -6,6 +6,7 @@ import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.TestSuite
 import org.cqfn.save.preprocessor.config.ConfigProperties
 import org.cqfn.save.preprocessor.controllers.DownloadProjectController
+import org.cqfn.save.preprocessor.service.TestDiscoveringService
 import org.cqfn.save.preprocessor.utils.RepositoryVolume
 import org.cqfn.save.repository.GitRepository
 import org.cqfn.save.testsuite.TestSuiteType
@@ -22,6 +23,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
+import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.client.MultipartBodyBuilder
@@ -50,6 +52,8 @@ class DownloadProjectTest(
     private val binFolder = "${configProperties.repository}/binFolder"
     private val binFilePath = "$binFolder/program"
     private val propertyPath = "$binFolder/save.properties"
+    @MockBean private lateinit var testDiscoveringService: TestDiscoveringService
+
     @BeforeEach
     fun webClientSetUp() {
         webClient.mutate().responseTimeout(Duration.ofSeconds(2)).build()
@@ -85,11 +89,11 @@ class DownloadProjectTest(
     @Suppress("TOO_LONG_FUNCTION")
     @Test
     fun testCorrectDownload() {
-        val validRepo = GitRepository("https://github.com/cqfn/save-cloud.git")
+        val validRepo = GitRepository("https://github.com/cqfn/save.git")
         val project = Project("owner", "someName", validRepo.url, "descr").apply {
             id = 42L
         }
-        val request = ExecutionRequest(project, validRepo)
+        val request = ExecutionRequest(project, validRepo, "examples/save.properties")
         mockServerBackend.enqueue(
             MockResponse()
                 .setResponseCode(200)
