@@ -25,9 +25,6 @@ import org.springframework.web.reactive.function.BodyInserters
 import java.time.LocalDateTime
 import java.time.Month
 
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.json.Json
-
 @SpringBootTest(classes = [SaveApplication::class])
 @AutoConfigureWebTestClient
 @ExtendWith(MySqlExtension::class)
@@ -162,11 +159,10 @@ class ExecutionControllerTest {
             .exchange()
             .expectStatus()
             .isOk
-            .expectBody<String>()
+            .expectBody<ExecutionDto>()
             .consumeWith {
                 requireNotNull(it.responseBody)
-                val executionDto: ExecutionDto = Json.decodeFromString(it.responseBody!!)
-                assertEquals("0.0.1", executionDto.version)
+                assertEquals("0.0.1", it.responseBody!!.version)
             }
     }
 }

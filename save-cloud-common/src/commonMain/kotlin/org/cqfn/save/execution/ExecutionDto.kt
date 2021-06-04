@@ -14,6 +14,4 @@ class ExecutionDto(
     val status: ExecutionStatus,
     val type: ExecutionType,
     val version: String,
-) {
-    override fun toString() = Json.encodeToString(this)
-}
+)
