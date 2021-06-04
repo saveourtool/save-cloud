@@ -151,6 +151,7 @@ external interface ProjectViewState : RState {
 
 /**
  * A functional RComponent for project view
+ * Each modal opening call re render full page, that why we need to use state for all fields
  *
  * @return a functional component
  */
@@ -186,7 +187,6 @@ class ProjectView : RComponent<ProjectProps, ProjectViewState>() {
 
     @Suppress("ComplexMethod")
     private fun submitExecutionRequest() {
-        console.log(state.gitUrlProject)
         if (state.isProjectAsBinaryFile && state.isProjectAsGitUrl) {
             setState { isBothProjectOpen = true }
             return
@@ -225,7 +225,6 @@ class ProjectView : RComponent<ProjectProps, ProjectViewState>() {
         val headers = Headers()
         val formData = FormData()
         val request = ExecutionRequestForStandardSuites(props.executionRequest.project, state.selectedTypes)
-        console.log(JSON.stringify(request))
         formData.append("execution", Blob(arrayOf(JSON.stringify(request)), BlobPropertyBag("application/json")))
         state.propertyFile?.let { formData.append("property", it) }
         state.binaryFile?.let { formData.append("binFile", it) }
@@ -248,7 +247,7 @@ class ProjectView : RComponent<ProjectProps, ProjectViewState>() {
 
     private fun submitRequest(url: String, headers: Headers, body: dynamic) {
         GlobalScope.launch {
-            responseFromExecutionRequest = post("http://localhost:5000/$url", headers, body)
+            responseFromExecutionRequest = post(window.location.origin + "/" + url, headers, body)
         }.invokeOnCompletion {
             if (responseFromExecutionRequest.ok) {
                 window.location.href = "${window.location.origin}/history"
@@ -597,8 +596,8 @@ class ProjectView : RComponent<ProjectProps, ProjectViewState>() {
  */
 @Suppress("EXTENSION_FUNCTION_WITH_CLASS")
 fun ProjectExecutionRouteProps.toProject() = Project(
-    owner = "owner",  // this.project.owner,
-    name = "name",  // this.project.name,
+    owner = this.project.owner,
+    name = this.project.name,
     description = "Todo: fetch description",
     url = "Todo: fetch URL",
 )
@@ -607,7 +606,12 @@ fun ProjectExecutionRouteProps.toProject() = Project(
  * @return git repository
  */
 @Suppress("EXTENSION_FUNCTION_WITH_CLASS")
-fun ProjectExecutionRouteProps.toGitRepository() = GitRepository(url = "gti")  // this.gitRepository.url)
+fun ProjectExecutionRouteProps.toGitRepository() = GitRepository(
+    url = this.gitRepository.url,
+    username = this.gitRepository.username,
+    password = this.gitRepository.password,
+    branch = this.gitRepository.branch
+)
 
 /**
  * @return execution request
