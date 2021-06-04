@@ -6,6 +6,8 @@ import kotlinx.serialization.json.Json
 
 /**
  * @property version
+ * @property status
+ * @property type
  */
 @Serializable
 class ExecutionDto(

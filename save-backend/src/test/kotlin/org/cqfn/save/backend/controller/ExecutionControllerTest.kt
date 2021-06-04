@@ -1,7 +1,5 @@
 package org.cqfn.save.backend.controller
 
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.json.Json
 import org.cqfn.save.backend.SaveApplication
 import org.cqfn.save.backend.repository.ExecutionRepository
 import org.cqfn.save.backend.repository.ProjectRepository
@@ -11,6 +9,7 @@ import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionType
 import org.cqfn.save.execution.ExecutionUpdateDto
+
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -22,8 +21,12 @@ import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
+
 import java.time.LocalDateTime
 import java.time.Month
+
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
 
 @SpringBootTest(classes = [SaveApplication::class])
 @AutoConfigureWebTestClient
@@ -162,7 +165,7 @@ class ExecutionControllerTest {
             .expectBody<String>()
             .consumeWith {
                 requireNotNull(it.responseBody)
-                val executionDto = Json.decodeFromString<ExecutionDto>(it.responseBody!!)
+                val executionDto: ExecutionDto = Json.decodeFromString(it.responseBody!!)
                 assertEquals("0.0.1", executionDto.version)
             }
     }

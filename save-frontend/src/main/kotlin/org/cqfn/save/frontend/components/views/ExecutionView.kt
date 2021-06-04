@@ -4,7 +4,6 @@
 
 package org.cqfn.save.frontend.components.views
 
-import kotlinext.js.asJsObject
 import org.cqfn.save.agent.TestExecutionDto
 import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.frontend.components.tables.tableComponent
@@ -63,10 +62,10 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
     override fun componentDidMount() {
         GlobalScope.launch {
             val headers = Headers().also { it.set("Accept", "application/json") }
-             val executionDtoFromBackend = get("${window.location.origin}/executionDto?executionId=${props.executionId}", headers)
-                 .json()
-                 .await()
-                 .unsafeCast<ExecutionDto>()
+            val executionDtoFromBackend: ExecutionDto = get("${window.location.origin}/executionDto?executionId=${props.executionId}", headers)
+                .json()
+                .await()
+                .unsafeCast<ExecutionDto>()
             setState { executionDto = executionDtoFromBackend }
         }
     }
