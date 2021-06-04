@@ -54,5 +54,5 @@ class Execution(
     /**
      * @return Execution dto
      */
-    fun toDto() = ExecutionDto(version)
+    fun toDto() = ExecutionDto(status, type, version)
 }

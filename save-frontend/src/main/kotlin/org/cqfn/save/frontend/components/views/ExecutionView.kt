@@ -4,6 +4,7 @@
 
 package org.cqfn.save.frontend.components.views
 
+import kotlinext.js.asJsObject
 import org.cqfn.save.agent.TestExecutionDto
 import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.frontend.components.tables.tableComponent
@@ -62,20 +63,18 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
     override fun componentDidMount() {
         GlobalScope.launch {
             val headers = Headers().also { it.set("Accept", "application/json") }
-            get("http://localhost:5000/getDto?executionId=${props.executionId}", headers)
-                .json()
-                .await()
-                .unsafeCast<ExecutionDto?>()
-                ?.let {
-                    setState { executionDto = it }
-                }
+             val executionDtoFromBackend = get("${window.location.origin}/executionDto?executionId=${props.executionId}", headers)
+                 .json()
+                 .await()
+                 .unsafeCast<ExecutionDto>()
+            setState { executionDto = executionDtoFromBackend }
         }
     }
 
     @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR", "TOO_LONG_FUNCTION")
     override fun RBuilder.render() {
         div {
-            +("Project version: ${(state.executionDto?.version ?: "None")}")
+            +("Project version: ${(state.executionDto?.version ?: "N/A")}")
         }
         child(tableComponent(
             columns = columns {

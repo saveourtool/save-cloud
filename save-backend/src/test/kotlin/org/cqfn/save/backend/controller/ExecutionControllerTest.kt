@@ -1,5 +1,7 @@
 package org.cqfn.save.backend.controller
 
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
 import org.cqfn.save.backend.SaveApplication
 import org.cqfn.save.backend.repository.ExecutionRepository
 import org.cqfn.save.backend.repository.ProjectRepository
@@ -153,13 +155,15 @@ class ExecutionControllerTest {
     @Test
     fun checkExecutionDto() {
         webClient.get()
-            .uri("/getDto?executionId=1")
+            .uri("/executionDto?executionId=1")
             .exchange()
             .expectStatus()
             .isOk
-            .expectBody<ExecutionDto>()
+            .expectBody<String>()
             .consumeWith {
-                assertEquals("0.0.1", it.responseBody!!.version)
+                requireNotNull(it.responseBody)
+                val executionDto = Json.decodeFromString<ExecutionDto>(it.responseBody!!)
+                assertEquals("0.0.1", executionDto.version)
             }
     }
 }

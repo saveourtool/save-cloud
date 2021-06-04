@@ -1,11 +1,17 @@
 package org.cqfn.save.execution
 
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 /**
  * @property version
  */
 @Serializable
 class ExecutionDto(
-    val version: String
-)
+    val status: ExecutionStatus,
+    val type: ExecutionType,
+    val version: String,
+) {
+    override fun toString() = Json.encodeToString(this)
+}
