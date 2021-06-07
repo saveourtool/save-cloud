@@ -23,6 +23,18 @@ import react.RComponent
 import react.RProps
 import react.RState
 import react.child
+import react.dom.a
+import react.dom.button
+import react.dom.div
+import react.dom.h1
+import react.dom.h2
+import react.dom.h6
+import react.dom.input
+import react.dom.p
+import react.dom.span
+import react.dom.strong
+import react.dom.label
+import react.dom.defaultValue
 import react.setState
 
 import kotlinx.browser.window
@@ -34,7 +46,6 @@ import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
 import org.cqfn.save.entities.Project
 import org.cqfn.save.frontend.utils.get
-import react.dom.*
 
 /**
  * [RProps] for project view
