@@ -33,4 +33,6 @@ class ProjectService(private val projectRepository: ProjectRepository) {
      * @return list of all projects
      */
     fun getProjects(): List<Project> = projectRepository.findAll()
+
+    fun getProjectByNameAndOwner(name: String, owner: String) = projectRepository.findByNameAndOwner(name, owner)
 }

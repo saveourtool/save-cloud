@@ -4,6 +4,7 @@
 
 package org.cqfn.save.frontend.components.views
 
+import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.Project
 import org.cqfn.save.frontend.components.tables.tableComponent
 import react.RBuilder
@@ -22,7 +23,8 @@ external interface HistoryProps : RProps {
     /**
      * An active [Project]
      */
-    var project: Project
+    var owner: String
+    var name: String
 }
 
 /**

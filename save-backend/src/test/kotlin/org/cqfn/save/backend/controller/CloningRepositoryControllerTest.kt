@@ -12,10 +12,11 @@ import org.cqfn.save.backend.service.ProjectService
 import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.ExecutionRequestForStandardSuites
 import org.cqfn.save.entities.Project
-import org.cqfn.save.repository.GitRepository
+
 
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
+import org.cqfn.save.entities.GitDto
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -66,7 +67,7 @@ class CloningRepositoryControllerTest {
                 .addHeader("Content-Type", "application/json")
         )
         val project = Project("noname", "1", "1", "1")
-        val gitRepo = GitRepository("1")
+        val gitRepo = GitDto("1", project = project)
         val executionRequest = ExecutionRequest(project, gitRepo)
         webTestClient.post()
             .uri("/submitExecutionRequest")

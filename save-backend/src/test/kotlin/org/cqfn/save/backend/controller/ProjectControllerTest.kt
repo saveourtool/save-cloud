@@ -35,4 +35,19 @@ class ProjectControllerTest {
                 Assertions.assertTrue(it.isNotEmpty())
             }
     }
+
+    @Test
+    fun `should return projet based on name and owner`() {
+        webClient
+            .get()
+            .uri("/getProject?name=huaweiName&owner=Huawei")
+            .accept(MediaType.APPLICATION_JSON)
+            .exchange()
+            .expectStatus()
+            .isOk
+            .expectBody(Project::class.java)
+            .value<Nothing> {
+                Assertions.assertEquals(it.url, "huawei.com")
+            }
+    }
 }

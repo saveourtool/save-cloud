@@ -99,9 +99,9 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
         "TOO_MANY_LINES_IN_LAMBDA",
         "UnsafeCallOnNullableType")
     private fun downLoadRepository(executionRequest: ExecutionRequest) {
-        val gitRepository = executionRequest.gitRepository
+        val gitRepository = executionRequest.gitDto!!
         val project = executionRequest.project
-        val tmpDir = generateDirectory(gitRepository.url.hashCode(), gitRepository.url!!)
+        val tmpDir = generateDirectory(gitRepository.url.hashCode(), gitRepository.url)
         val userCredentials = if (gitRepository.username != null && gitRepository.password != null) {
             UsernamePasswordCredentialsProvider(gitRepository.username, gitRepository.password)
         } else {

@@ -14,8 +14,6 @@ import org.cqfn.save.frontend.components.views.FallbackView
 import org.cqfn.save.frontend.components.views.HistoryView
 import org.cqfn.save.frontend.components.views.ProjectExecutionRouteProps
 import org.cqfn.save.frontend.components.views.ProjectView
-import org.cqfn.save.frontend.components.views.toExecutionRequest
-import org.cqfn.save.frontend.components.views.toProject
 import org.cqfn.save.frontend.externals.modal.ReactModal
 
 import org.w3c.dom.HTMLElement
@@ -31,7 +29,15 @@ import react.router.dom.route
 import react.router.dom.switch
 
 import kotlinx.browser.document
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.await
+import kotlinx.coroutines.launch
 import kotlinx.html.id
+import org.cqfn.save.entities.ExecutionRequest
+import org.cqfn.save.entities.Project
+import org.cqfn.save.frontend.utils.get
+import org.cqfn.save.frontend.utils.post
+import org.w3c.fetch.Headers
 
 /**
  * Top-level state of the whole App
@@ -70,12 +76,14 @@ class App : RComponent<RProps, AppState>() {
                         route("/", exact = true, component = CollectionView::class)
                         route<ProjectExecutionRouteProps>("/:owner/:name", exact = true) { routeResultProps ->
                             child(ProjectView::class) {
-                                attrs.executionRequest = routeResultProps.match.params.toExecutionRequest()
+                                attrs.name = routeResultProps.match.params.name
+                                attrs.owner = routeResultProps.match.params.owner
                             }
                         }
                         route<ProjectExecutionRouteProps>("/:owner/:name/history", exact = true) { routeResultProps ->
                             child(HistoryView::class) {
-                                attrs.project = routeResultProps.match.params.toProject()
+                                attrs.name = routeResultProps.match.params.name
+                                attrs.owner = routeResultProps.match.params.owner
                             }
                         }
                         route<ExecutionProps>("/:owner/:name/history/:executionId") { props ->
@@ -92,6 +100,8 @@ class App : RComponent<RProps, AppState>() {
         }
         child(scrollToTopButton()) {}
     }
+
+
 }
 
 @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")

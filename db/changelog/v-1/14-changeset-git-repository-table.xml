@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="add-git-repository-table" author="kentr0w" context="dev or prod">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="git"/>
+            </not>
+        </preConditions>
+        <createTable tableName="git">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="url" type="varchar(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="username" type="varchar(100)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="password" type="varchar(100)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="branch" type="varchar(100)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="project_id" type="bigint">
+                <constraints foreignKeyName="fk_git_project" references="project(id)" nullable="false"/>
+            </column>
+        </createTable>
+
+        <rollback>
+            <dropTable
+                    cascadeConstraints="true"
+                    tableName="git" />
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>
