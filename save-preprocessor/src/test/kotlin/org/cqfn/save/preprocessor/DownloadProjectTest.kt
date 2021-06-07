@@ -1,19 +1,15 @@
 package org.cqfn.save.preprocessor
 
-import org.cqfn.save.entities.ExecutionRequest
-import org.cqfn.save.entities.ExecutionRequestForStandardSuites
-import org.cqfn.save.entities.Project
-import org.cqfn.save.entities.TestSuite
 import org.cqfn.save.preprocessor.config.ConfigProperties
 import org.cqfn.save.preprocessor.controllers.DownloadProjectController
 import org.cqfn.save.preprocessor.service.TestDiscoveringService
 import org.cqfn.save.preprocessor.utils.RepositoryVolume
-import org.cqfn.save.repository.GitRepository
 import org.cqfn.save.testsuite.TestSuiteType
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
+import org.cqfn.save.entities.*
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
@@ -69,8 +65,8 @@ class DownloadProjectTest(
 
     @Test
     fun testBadRequest() {
-        val wrongRepo = GitRepository("wrongGit")
-        val project = Project("owner", "someName", wrongRepo.url, "descr")
+        val project = Project("owner", "someName", "wrongGit", "descr")
+        val wrongRepo = GitDto("wrongGit", project = project)
         val request = ExecutionRequest(project, wrongRepo)
         webClient.post()
             .uri("/upload")
@@ -89,10 +85,10 @@ class DownloadProjectTest(
     @Suppress("TOO_LONG_FUNCTION")
     @Test
     fun testCorrectDownload() {
-        val validRepo = GitRepository("https://github.com/cqfn/save.git")
-        val project = Project("owner", "someName", validRepo.url, "descr").apply {
+        val project = Project("owner", "someName", "https://github.com/cqfn/save.git", "descr").apply {
             id = 42L
         }
+        val validRepo = GitDto("https://github.com/cqfn/save.git", project = project)
         val request = ExecutionRequest(project, validRepo, "examples/save.properties")
         mockServerBackend.enqueue(
             MockResponse()
