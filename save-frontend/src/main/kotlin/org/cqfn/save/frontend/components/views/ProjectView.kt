@@ -41,7 +41,11 @@ import kotlinx.browser.window
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
-import kotlinx.html.*
+import kotlinx.html.InputType
+import kotlinx.html.id
+import kotlinx.html.hidden
+import kotlinx.html.ButtonType
+import kotlinx.html.role
 import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
 import org.cqfn.save.entities.Project
