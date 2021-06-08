@@ -2,7 +2,6 @@ package org.cqfn.save.entities
 
 import javax.persistence.Entity
 import javax.persistence.JoinColumn
-import kotlinx.serialization.Serializable
 import javax.persistence.OneToOne
 
 /**
@@ -15,24 +14,16 @@ import javax.persistence.OneToOne
  * @property branch branch to clone
  */
 @Entity
-@Serializable
-data class Git(
-    val url: String,
-    val username: String? = null,
-    val password: String? = null,
-    val branch: String? = null,
+class Git(
+    var url: String,
+    var username: String? = null,
+    var password: String? = null,
+    var branch: String? = null,
 
     @OneToOne
     @JoinColumn(name = "project_id")
-    val project: Project,
-) {
-    /**
-     * id of project
-     */
-    @Id
-    @GeneratedValue
-    var id: Long? = null
-
+    var project: Project,
+): BaseEntity() {
     fun toDto() = GitDto(
         this.url,
         this.username,

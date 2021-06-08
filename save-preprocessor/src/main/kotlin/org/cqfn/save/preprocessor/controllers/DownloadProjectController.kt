@@ -99,21 +99,21 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
         "TOO_MANY_LINES_IN_LAMBDA",
         "UnsafeCallOnNullableType")
     private fun downLoadRepository(executionRequest: ExecutionRequest) {
-        val gitRepository = executionRequest.gitDto!!
+        val gitDto = executionRequest.gitDto!!
         val project = executionRequest.project
-        val tmpDir = generateDirectory(gitRepository.url.hashCode(), gitRepository.url)
-        val userCredentials = if (gitRepository.username != null && gitRepository.password != null) {
-            UsernamePasswordCredentialsProvider(gitRepository.username, gitRepository.password)
+        val tmpDir = generateDirectory(gitDto.url.hashCode(), gitDto.url)
+        val userCredentials = if (gitDto.username != null && gitDto.password != null) {
+            UsernamePasswordCredentialsProvider(gitDto.username, gitDto.password)
         } else {
             CredentialsProvider.getDefault()
         }
         try {
             Git.cloneRepository()
-                .setURI(gitRepository.url)
+                .setURI(gitDto.url)
                 .setCredentialsProvider(userCredentials)
                 .setDirectory(tmpDir)
                 .call().use {
-                    log.info("Repository cloned: ${gitRepository.url}")
+                    log.info("Repository cloned: ${gitDto.url}")
                     // Post request to backend to create PENDING executions
                     sendToBackendAndOrchestrator(
                         project,
@@ -130,8 +130,8 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
             when (exception) {
                 is InvalidRemoteException,
                 is TransportException,
-                is GitAPIException -> log.warn("Error with git API while cloning ${gitRepository.url} repository", exception)
-                else -> log.warn("Cloning ${gitRepository.url} repository failed", exception)
+                is GitAPIException -> log.warn("Error with git API while cloning ${gitDto.url} repository", exception)
+                else -> log.warn("Cloning ${gitDto.url} repository failed", exception)
             }
         }
     }

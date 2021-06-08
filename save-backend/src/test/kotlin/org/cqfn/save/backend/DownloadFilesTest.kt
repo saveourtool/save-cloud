@@ -4,6 +4,7 @@ import org.cqfn.save.backend.controllers.DownloadFilesController
 import org.cqfn.save.backend.repository.AgentRepository
 import org.cqfn.save.backend.repository.AgentStatusRepository
 import org.cqfn.save.backend.repository.ExecutionRepository
+import org.cqfn.save.backend.repository.GitRepository
 import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.repository.TestExecutionRepository
 import org.cqfn.save.backend.repository.TestRepository
@@ -33,6 +34,7 @@ import kotlin.io.path.ExperimentalPathApi
     MockBean(TestExecutionRepository::class),
     MockBean(TestRepository::class),
     MockBean(TestSuiteRepository::class),
+    MockBean(GitRepository::class),
 )
 class DownloadFilesTest {
     @Autowired
