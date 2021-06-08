@@ -68,7 +68,7 @@ class CloningRepositoryControllerTest {
                 .addHeader("Content-Type", "application/json")
         )
         val project = Project("noname", "1", "1", "1")
-        val gitRepo = GitDto("1", project = project)
+        val gitRepo = GitDto("1")
         val executionRequest = ExecutionRequest(project, gitRepo)
         webTestClient.post()
             .uri("/submitExecutionRequest")

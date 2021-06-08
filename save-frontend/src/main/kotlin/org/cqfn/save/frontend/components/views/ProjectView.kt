@@ -113,7 +113,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
     private var gitDto: GitDto? = null
 
     private var numberOpenningCard: Int = 1  // 1 - first card, 2 - second card, 3 - none card was opened
-    private lateinit var project: Project
+    private var project = Project("stub", "stub", "stub", "stub")
     private lateinit var responseFromExecutionRequest: Response
 
     init {
@@ -153,18 +153,14 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
             }
         } else if (numberOpenningCard == 1) {
             gitUrlProject?.let {
-                val newGitDto = GitDto(url = it, project = project)
+                val newGitDto = GitDto(url = it)
                 submitExecutionRequestGit(newGitDto)
-            } ?: run {
-                gitDto?.let {
-                    submitExecutionRequestGit(it)
-                } ?: {
-                    setState {
-                        isErrorOpen = true
-                        errorLabel = "No git url"
-                        errorMessage = "Please provide a git url"
-                    }
-                }
+            } ?: gitDto?.let {
+                submitExecutionRequestGit(it)
+            } ?: setState {
+                isErrorOpen = true
+                errorLabel = "No git url"
+                errorMessage = "Please provide a git url"
             }
         } else {
             if (selectedTypes.isEmpty()) {
@@ -206,8 +202,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
     }
 
     private fun submitExecutionRequestGit(correctGitDto: GitDto) {
-        val executionRequest = ExecutionRequest(project, correctGitDto)
-        pathToProperty?.let { executionRequest.propertiesRelativePath = it }
+        val executionRequest = pathToProperty?.let { ExecutionRequest(project, correctGitDto, it) } ?: ExecutionRequest(project, correctGitDto)
         val jsonExecution = JSON.stringify(executionRequest)
         val headers = Headers().also {
             it.set("Accept", "application/json")
@@ -236,7 +231,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
     override fun RBuilder.render() {
         // modal window for configuring tests run - initially hidden
         runErrorModel()
-        runLoadingModel()
+        runLoadingModal()
         numberOpenningCard = 1
         // Page Heading
         div("d-sm-flex align-items-center justify-content-between mb-4") {
@@ -468,7 +463,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
         }
     }
 
-    private fun RBuilder.runLoadingModel() = modal {
+    private fun RBuilder.runLoadingModal() = modal {
         attrs {
             isOpen = state.isLoading
             contentLabel = "Loading"

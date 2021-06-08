@@ -40,5 +40,5 @@ class ProjectController {
      * @param project
      */
     @PostMapping("/getGit")
-    fun getRequest(@RequestBody project: Project) = gitService.getRepositoryByProject(project)
+    fun getRepositoryDtoByProject(@RequestBody project: Project) = gitService.getRepositoryDtoByProject(project)
 }

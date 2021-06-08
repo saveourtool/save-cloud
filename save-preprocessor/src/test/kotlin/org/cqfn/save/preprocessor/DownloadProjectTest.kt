@@ -70,7 +70,7 @@ class DownloadProjectTest(
     @Test
     fun testBadRequest() {
         val project = Project("owner", "someName", "wrongGit", "descr")
-        val wrongRepo = GitDto("wrongGit", project = project)
+        val wrongRepo = GitDto("wrongGit")
         val request = ExecutionRequest(project, wrongRepo)
         webClient.post()
             .uri("/upload")
@@ -92,7 +92,7 @@ class DownloadProjectTest(
         val project = Project("owner", "someName", "https://github.com/cqfn/save.git", "descr").apply {
             id = 42L
         }
-        val validRepo = GitDto("https://github.com/cqfn/save.git", project = project)
+        val validRepo = GitDto("https://github.com/cqfn/save.git")
         val request = ExecutionRequest(project, validRepo, "examples/save.properties")
         mockServerBackend.enqueue(
             MockResponse()

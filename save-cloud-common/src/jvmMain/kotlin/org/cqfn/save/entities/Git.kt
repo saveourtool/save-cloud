@@ -33,6 +33,5 @@ class Git(
         this.username,
         this.password,
         this.branch,
-        this.project
     )
 }

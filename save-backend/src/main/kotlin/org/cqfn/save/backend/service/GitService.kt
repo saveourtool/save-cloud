@@ -13,5 +13,5 @@ class GitService(private val gitRepository: GitRepository) {
      * @param project
      * @return git dto by project if exists
      */
-    fun getRepositoryByProject(project: Project) = gitRepository.findByProject(project)?.toDto()
+    fun getRepositoryDtoByProject(project: Project) = gitRepository.findByProject(project)?.toDto()
 }
