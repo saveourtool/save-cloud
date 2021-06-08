@@ -10,7 +10,10 @@ object Versions {
     const val coroutines = "1.5.0"
     const val serialization = "1.1.0"
     const val kotlinxDatetime = "0.2.0"
-    const val saveCore = "0.1.0-SNAPSHOT"
+
+    // Publications for different platforms (Linux, MacOS, Win) have slightly different timestamps,
+    // so we use the upper bound here for sort of fixed SNAPSHOT version.
+    const val saveCore = "(,0.1.0-20210604.131640-15]"
 
     // microservices
     const val springBoot = "2.5.0"
