@@ -4,20 +4,19 @@ import org.cqfn.save.backend.controllers.CloneRepositoryController
 import org.cqfn.save.backend.repository.AgentRepository
 import org.cqfn.save.backend.repository.AgentStatusRepository
 import org.cqfn.save.backend.repository.ExecutionRepository
+import org.cqfn.save.backend.repository.GitRepository
 import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.repository.TestExecutionRepository
 import org.cqfn.save.backend.repository.TestRepository
 import org.cqfn.save.backend.repository.TestSuiteRepository
-import org.cqfn.save.backend.repository.GitRepository
 import org.cqfn.save.backend.service.ProjectService
 import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.ExecutionRequestForStandardSuites
+import org.cqfn.save.entities.GitDto
 import org.cqfn.save.entities.Project
-
 
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
-import org.cqfn.save.entities.GitDto
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -80,6 +79,21 @@ class CloningRepositoryControllerTest {
             .isEqualTo(HttpStatus.ACCEPTED)
             .expectBody<String>()
             .isEqualTo("Clone pending")
+    }
+
+    @Test
+    fun checkBadRequest() {
+        val project = Project("noname", "1", "1", "1")
+        val executionRequest = ExecutionRequest(project, null)
+        webTestClient.post()
+            .uri("/submitExecutionRequest")
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(BodyInserters.fromValue(executionRequest))
+            .exchange()
+            .expectStatus()
+            .isEqualTo(HttpStatus.BAD_REQUEST)
+            .expectBody<String>()
+            .isEqualTo("No git url for project")
     }
 
     @Test

@@ -16,10 +16,10 @@
 
         <insert dbms="mysql" tableName="git">
             <column name="id" value="2" />
-            <column name="url" value="github" />
-            <column name="username" value="admin" />
-            <column name="password" value="12345" />
-            <column name="branch" value="master" />
+            <column name="url" value="https://github.com/cqfn/save-cloud" />
+            <column name="username" value="kentr0w" />
+            <column name="password" value="pass" />
+            <column name="branch" value="feature/create-backend" />
             <column name="project_id" value="2"/>
         </insert>
     </changeSet>

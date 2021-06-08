@@ -10,5 +10,10 @@ import org.springframework.stereotype.Repository
  */
 @Repository
 interface ProjectRepository : JpaRepository<Project, Long>, QueryByExampleExecutor<Project> {
+    /**
+     * @param name
+     * @param owner
+     * @return project by name and owner
+     */
     fun findByNameAndOwner(name: String, owner: String): Project
 }

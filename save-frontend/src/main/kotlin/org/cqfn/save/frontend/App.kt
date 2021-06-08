@@ -15,6 +15,7 @@ import org.cqfn.save.frontend.components.views.HistoryView
 import org.cqfn.save.frontend.components.views.ProjectExecutionRouteProps
 import org.cqfn.save.frontend.components.views.ProjectView
 import org.cqfn.save.frontend.externals.modal.ReactModal
+import org.cqfn.save.frontend.utils.get
 
 import org.w3c.dom.HTMLElement
 import react.RBuilder
@@ -29,15 +30,7 @@ import react.router.dom.route
 import react.router.dom.switch
 
 import kotlinx.browser.document
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.await
-import kotlinx.coroutines.launch
 import kotlinx.html.id
-import org.cqfn.save.entities.ExecutionRequest
-import org.cqfn.save.entities.Project
-import org.cqfn.save.frontend.utils.get
-import org.cqfn.save.frontend.utils.post
-import org.w3c.fetch.Headers
 
 /**
  * Top-level state of the whole App
@@ -100,8 +93,6 @@ class App : RComponent<RProps, AppState>() {
         }
         child(scrollToTopButton()) {}
     }
-
-
 }
 
 @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")

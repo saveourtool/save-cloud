@@ -1,6 +1,5 @@
 package org.cqfn.save.entities
 
-
 import kotlinx.serialization.Serializable
 
 /**

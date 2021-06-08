@@ -12,6 +12,7 @@ import javax.persistence.OneToOne
  * @property username username to credential
  * @property password password to credential
  * @property branch branch to clone
+ * @property project
  */
 @Entity
 class Git(
@@ -23,7 +24,10 @@ class Git(
     @OneToOne
     @JoinColumn(name = "project_id")
     var project: Project,
-): BaseEntity() {
+) : BaseEntity() {
+    /**
+     * @return git dto
+     */
     fun toDto() = GitDto(
         this.url,
         this.username,

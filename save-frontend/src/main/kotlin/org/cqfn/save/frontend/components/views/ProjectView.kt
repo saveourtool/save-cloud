@@ -6,8 +6,11 @@ package org.cqfn.save.frontend.components.views
 
 import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.ExecutionRequestForStandardSuites
+import org.cqfn.save.entities.GitDto
+import org.cqfn.save.entities.Project
 import org.cqfn.save.frontend.components.basic.cardComponent
 import org.cqfn.save.frontend.externals.modal.modal
+import org.cqfn.save.frontend.utils.get
 import org.cqfn.save.frontend.utils.post
 
 import org.w3c.dom.HTMLInputElement
@@ -25,31 +28,29 @@ import react.RState
 import react.child
 import react.dom.a
 import react.dom.button
+import react.dom.defaultValue
 import react.dom.div
 import react.dom.h1
 import react.dom.h2
 import react.dom.h6
 import react.dom.input
+import react.dom.label
 import react.dom.p
 import react.dom.span
 import react.dom.strong
-import react.dom.label
-import react.dom.defaultValue
 import react.setState
 
 import kotlinx.browser.window
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
-import kotlinx.html.InputType
-import kotlinx.html.id
-import kotlinx.html.hidden
 import kotlinx.html.ButtonType
-import kotlinx.html.role
+import kotlinx.html.InputType
+import kotlinx.html.hidden
+import kotlinx.html.id
 import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
-import org.cqfn.save.entities.Project
-import org.cqfn.save.frontend.utils.get
+import kotlinx.html.role
 
 /**
  * [RProps] for project view
@@ -72,12 +73,6 @@ external interface ProjectExecutionRouteProps : RProps {
  * [RState] of project view component
  */
 external interface ProjectViewState : RState {
-
-    /**
-     * Flag to check that project have been presented as binary file
-     */
-
-
     /**
      * Binary file of project
      */
@@ -88,10 +83,24 @@ external interface ProjectViewState : RState {
      */
     var propertyFile: File?
 
+    /**
+     * Message of error
+     */
     var errorMessage: String
+
+    /**
+     * Flag to handle error
+     */
     var isErrorOpen: Boolean
+
+    /**
+     * Error label
+     */
     var errorLabel: String
 
+    /**
+     * Flag to handle loading
+     */
     var isLoading: Boolean
 }
 
@@ -106,12 +115,13 @@ external interface ProjectViewState : RState {
 @Suppress("CUSTOM_GETTERS_SETTERS")
 class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
     private val testTypesList = listOf("Class", "Comment", "Function", "Variable", "Enum", "Space", "Style", "Another")
-    private lateinit var responseFromExecutionRequest: Response
     private var pathToProperty: String? = null
     private var gitUrlProject: String? = null
     private val selectedTypes: MutableList<String> = mutableListOf()
     private var executionRequest: ExecutionRequest? = null
-    private var numberOpenningCard: Int = 1 // 1 - first card, 2 - second card, 3 - none card was opened
+
+    private var numberOpenningCard: Int = 1  // 1 - first card, 2 - second card, 3 - none card was opened
+    private lateinit var responseFromExecutionRequest: Response
 
     init {
         state.isErrorOpen = false
@@ -127,20 +137,21 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                 it.set("Accept", "application/json")
                 it.set("Content-Type", "application/json")
             }
-            val project = get("http://localhost:5000/getProject?name=${props.name}&owner=${props.owner}", headers)
+            val project: Project = get("${window.location.origin}/getProject?name=${props.name}&owner=${props.owner}", headers)
                 .json()
                 .await()
                 .unsafeCast<Project>()
             val jsonProject = JSON.stringify(project)
-            executionRequest = post("http://localhost:5000/executionRequest", headers, jsonProject)
+            val gitDto: GitDto? = post("${window.location.origin}/getGit", headers, jsonProject)
                 .json()
                 .await()
-                .unsafeCast<ExecutionRequest>()
+                .unsafeCast<GitDto?>()
+            executionRequest = ExecutionRequest(project, gitDto)
             setState { isLoading = false }
         }
     }
 
-    @Suppress("ComplexMethod")
+    @Suppress("ComplexMethod", "TOO_LONG_FUNCTION")
     private fun submitExecutionRequest() {
         if (numberOpenningCard == 0) {
             setState {
@@ -200,7 +211,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
         }
         state.propertyFile?.let { formData.append("property", it) }
         state.binaryFile?.let { formData.append("binFile", it) }
-        submitRequest("submitExecutionRequestBin", headers, formData)
+        submitRequest("/submitExecutionRequestBin", headers, formData)
     }
 
     private fun submitExecutionRequestGit() {
@@ -210,12 +221,12 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
             it.set("Accept", "application/json")
             it.set("Content-Type", "application/json")
         }
-        submitRequest("submitExecutionRequest", headers, jsonExecution)
+        submitRequest("/submitExecutionRequest", headers, jsonExecution)
     }
 
     private fun submitRequest(url: String, headers: Headers, body: dynamic) {
         GlobalScope.launch {
-            responseFromExecutionRequest = post("http://localhost:5000" + "/" + url, headers, body)
+            responseFromExecutionRequest = post(window.location.origin + url, headers, body)
         }.invokeOnCompletion {
             if (responseFromExecutionRequest.ok) {
                 window.location.href = "${window.location.origin}/history"
@@ -258,10 +269,11 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                                     +"Upload project as git url"
                                 }
                                 attrs.onClickFunction = {
-                                    if (numberOpenningCard == 1)
+                                    if (numberOpenningCard == 1) {
                                         numberOpenningCard = 0
-                                    else
+                                    } else {
                                         numberOpenningCard = 1
+                                    }
                                 }
                             }
                         }
@@ -334,10 +346,11 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                                     +"Upload project as binary file"
                                 }
                                 attrs.onClickFunction = {
-                                    if (numberOpenningCard == 2)
+                                    if (numberOpenningCard == 2) {
                                         numberOpenningCard = 0
-                                    else
+                                    } else {
                                         numberOpenningCard = 2
+                                    }
                                 }
                             }
                         }
