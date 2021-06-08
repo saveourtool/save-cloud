@@ -110,10 +110,10 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
     private var pathToProperty: String? = null
     private var gitUrlProject: String? = null
     private val selectedTypes: MutableList<String> = mutableListOf()
-    private lateinit var project: Project
     private var gitDto: GitDto? = null
 
     private var numberOpenningCard: Int = 1  // 1 - first card, 2 - second card, 3 - none card was opened
+    private lateinit var project: Project
     private lateinit var responseFromExecutionRequest: Response
 
     init {
