@@ -82,21 +82,6 @@ class CloningRepositoryControllerTest {
     }
 
     @Test
-    fun checkBadRequest() {
-        val project = Project("noname", "1", "1", "1")
-        val executionRequest = ExecutionRequest(project, null)
-        webTestClient.post()
-            .uri("/submitExecutionRequest")
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(BodyInserters.fromValue(executionRequest))
-            .exchange()
-            .expectStatus()
-            .isEqualTo(HttpStatus.BAD_REQUEST)
-            .expectBody<String>()
-            .isEqualTo("No git url for project")
-    }
-
-    @Test
     fun checkNewJobResponseForBin() {
         val binFile = File("binFilePath")
         val property = File("propertyPath")

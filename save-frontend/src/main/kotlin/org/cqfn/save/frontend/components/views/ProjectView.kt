@@ -53,14 +53,6 @@ import kotlinx.html.js.onClickFunction
 import kotlinx.html.role
 
 /**
- * [RProps] for project view
- */
-@Suppress("MISSING_KDOC_CLASS_ELEMENTS")
-external interface ProjectProps : RProps {
-    var executionRequest: ExecutionRequest
-}
-
-/**
  * [RProps] retrieved from router
  */
 @Suppress("MISSING_KDOC_CLASS_ELEMENTS")
@@ -118,7 +110,8 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
     private var pathToProperty: String? = null
     private var gitUrlProject: String? = null
     private val selectedTypes: MutableList<String> = mutableListOf()
-    private var executionRequest: ExecutionRequest? = null
+    private lateinit var project: Project
+    private var gitDto: GitDto? = null
 
     private var numberOpenningCard: Int = 1  // 1 - first card, 2 - second card, 3 - none card was opened
     private lateinit var responseFromExecutionRequest: Response
@@ -137,16 +130,15 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                 it.set("Accept", "application/json")
                 it.set("Content-Type", "application/json")
             }
-            val project: Project = get("${window.location.origin}/getProject?name=${props.name}&owner=${props.owner}", headers)
+            project = get("${window.location.origin}/getProject?name=${props.name}&owner=${props.owner}", headers)
                 .json()
                 .await()
                 .unsafeCast<Project>()
             val jsonProject = JSON.stringify(project)
-            val gitDto: GitDto? = post("${window.location.origin}/getGit", headers, jsonProject)
+            gitDto = post("${window.location.origin}/getGit", headers, jsonProject)
                 .json()
                 .await()
                 .unsafeCast<GitDto?>()
-            executionRequest = ExecutionRequest(project, gitDto)
             setState { isLoading = false }
         }
     }
@@ -161,10 +153,11 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
             }
         } else if (numberOpenningCard == 1) {
             gitUrlProject?.let {
-                submitExecutionRequestGit()
+                val newGitDto = GitDto(url = it, project = project)
+                submitExecutionRequestGit(newGitDto)
             } ?: run {
-                executionRequest?.gitDto?.let {
-                    submitExecutionRequestGit()
+                gitDto?.let {
+                    submitExecutionRequestGit(it)
                 } ?: {
                     setState {
                         isErrorOpen = true
@@ -205,17 +198,16 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
     private fun submitExecutionRequestBinFile() {
         val headers = Headers()
         val formData = FormData()
-        executionRequest?.let {
-            val request = ExecutionRequestForStandardSuites(it.project, selectedTypes)
-            formData.append("execution", Blob(arrayOf(JSON.stringify(request)), BlobPropertyBag("application/json")))
-        }
+        val request = ExecutionRequestForStandardSuites(project, selectedTypes)
+        formData.append("execution", Blob(arrayOf(JSON.stringify(request)), BlobPropertyBag("application/json")))
         state.propertyFile?.let { formData.append("property", it) }
         state.binaryFile?.let { formData.append("binFile", it) }
         submitRequest("/submitExecutionRequestBin", headers, formData)
     }
 
-    private fun submitExecutionRequestGit() {
-        pathToProperty?.let { executionRequest?.propertiesRelativePath = it }
+    private fun submitExecutionRequestGit(correctGitDto: GitDto) {
+        val executionRequest = ExecutionRequest(project, correctGitDto)
+        pathToProperty?.let { executionRequest.propertiesRelativePath = it }
         val jsonExecution = JSON.stringify(executionRequest)
         val headers = Headers().also {
             it.set("Accept", "application/json")
@@ -249,7 +241,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
         // Page Heading
         div("d-sm-flex align-items-center justify-content-between mb-4") {
             h1("h3 mb-0 text-gray-800") {
-                +"Project ${executionRequest?.project?.name}"
+                +"Project ${project.name}"
             }
         }
 
@@ -294,8 +286,8 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                                             attrs {
                                                 gitUrlProject?.let {
                                                     defaultValue = it
-                                                } ?: executionRequest?.gitDto?.let {
-                                                    defaultValue = it.url
+                                                } ?: gitDto?.url?.let {
+                                                    defaultValue = it
                                                 }
                                                 placeholder = "https://github.com/"
                                                 onChangeFunction = {
@@ -437,18 +429,18 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
 
             child(cardComponent {
                 p("small") {
-                    +"Name: ${executionRequest?.project?.name}"
+                    +"Name: ${project.name}"
                 }
                 p("small") {
-                    +"Description: ${executionRequest?.project?.description}"
+                    +"Description: ${project.description}"
                 }
                 p("small") {
-                    a(href = "#/${executionRequest?.project?.owner}/${executionRequest?.project?.name}/history/latest") {
+                    a(href = "#/${project.owner}/${project.name}/history/latest") {
                         +"Latest test execution: N/A"
                     }
                 }
                 p("small") {
-                    a(href = "#/${executionRequest?.project?.owner}/${executionRequest?.project?.name}/history") {
+                    a(href = "#/${project.owner}/${project.name}/history") {
                         +"Execution history"
                     }
                 }

@@ -48,9 +48,6 @@ class CloneRepositoryController(
     fun submitExecutionRequest(@RequestBody executionRequest: ExecutionRequest): Mono<StringResponse> {
         val project = executionRequest.project
         val projectId: Long
-        requireNotNull(executionRequest.gitDto) {
-            return Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).body("No git url for project"))
-        }
         try {
             projectId = projectService.saveProject(project)
             executionRequest.project.id = projectId
