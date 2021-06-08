@@ -8,7 +8,7 @@ import org.cqfn.save.buildutils.getDatabaseCredentials
 import org.cqfn.save.buildutils.installGitHooks
 
 plugins {
-    id("com.github.ben-manes.versions") version "0.38.0"
+    id("com.github.ben-manes.versions") version "0.39.0"
     id("com.cdsap.talaiot.plugin.base") version "1.4.2"
     id("org.liquibase.gradle") version Versions.liquibaseGradlePlugin
 }

@@ -5,6 +5,7 @@
 package org.cqfn.save.frontend.components.views
 
 import org.cqfn.save.agent.TestExecutionDto
+import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.frontend.components.tables.tableComponent
 import org.cqfn.save.frontend.utils.get
 import org.cqfn.save.frontend.utils.unsafeMap
@@ -15,11 +16,15 @@ import react.RComponent
 import react.RProps
 import react.RState
 import react.child
+import react.dom.div
 import react.dom.td
+import react.setState
 import react.table.columns
 
 import kotlinx.browser.window
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.await
+import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
@@ -35,13 +40,41 @@ external interface ExecutionProps : RProps {
 }
 
 /**
+ * A state of execution view
+ */
+external interface ExecutionState : RState {
+    /**
+     * Execution dto
+     */
+    var executionDto: ExecutionDto?
+}
+
+/**
  * A [RComponent] for execution view
  */
 @OptIn(ExperimentalJsExport::class)
 @JsExport
-class ExecutionView : RComponent<ExecutionProps, RState>() {
+class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
+    init {
+        state.executionDto = null
+    }
+
+    override fun componentDidMount() {
+        GlobalScope.launch {
+            val headers = Headers().also { it.set("Accept", "application/json") }
+            val executionDtoFromBackend: ExecutionDto = get("${window.location.origin}/executionDto?executionId=${props.executionId}", headers)
+                .json()
+                .await()
+                .unsafeCast<ExecutionDto>()
+            setState { executionDto = executionDtoFromBackend }
+        }
+    }
+
     @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR", "TOO_LONG_FUNCTION")
     override fun RBuilder.render() {
+        div {
+            +("Project version: ${(state.executionDto?.version ?: "N/A")}")
+        }
         child(tableComponent(
             columns = columns {
                 column(id = "index", header = "#") {

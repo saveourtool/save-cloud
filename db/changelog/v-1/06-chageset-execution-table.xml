@@ -42,6 +42,9 @@
             <column name="type" type="varchar(100)">
                 <constraints nullable="false" />
             </column>
+            <column name="version" type="varchar(255)">
+                <constraints nullable="false" />
+            </column>
         </createTable>
 
         <rollback>

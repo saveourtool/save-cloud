@@ -93,7 +93,10 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
             }
         }
 
-    @Suppress("TooGenericExceptionCaught", "TOO_LONG_FUNCTION")
+    @Suppress(
+        "TooGenericExceptionCaught",
+        "TOO_LONG_FUNCTION",
+        "TOO_MANY_LINES_IN_LAMBDA")
     private fun downLoadRepository(executionRequest: ExecutionRequest) {
         val gitRepository = executionRequest.gitRepository
         val project = executionRequest.project
@@ -116,6 +119,8 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
                         executionRequest.propertiesRelativePath,
                         tmpDir.relativeTo(File(configProperties.repository)).normalize().path,
                         ExecutionType.GIT,
+                        it.log().call().first()
+                            .name,
                         null
                     )
                 }
@@ -146,6 +151,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
             propertiesRelativePath,
             tmpDir.relativeTo(File(configProperties.repository)).normalize().path,
             ExecutionType.STANDARD,
+            binFile.name,
             executionRequestForStandardSuites.testsSuites.map { TestSuiteDto(TestSuiteType.STANDARD, it, project, propertiesRelativePath) }
         )
     }
@@ -176,12 +182,15 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
         "ThrowsCount",
         "TooGenericExceptionCaught",
         "TOO_LONG_FUNCTION",
-        "LOCAL_VARIABLE_EARLY_DECLARATION")
+        "LOCAL_VARIABLE_EARLY_DECLARATION",
+        "LongParameterList",
+        "TOO_MANY_PARAMETERS")
     private fun sendToBackendAndOrchestrator(
         project: Project,
         propertiesRelativePath: String,
         projectRootRelativePath: String,
         executionType: ExecutionType,
+        executionVersion: String,
         testSuiteDtos: List<TestSuiteDto>?
     ) {
         testSuiteDtos?.let {
@@ -189,7 +198,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
         } ?: require(executionType == ExecutionType.GIT) { "Test suites are not provided, but should for executionType=$executionType" }
 
         val execution = Execution(project, LocalDateTime.now(), LocalDateTime.now(),
-            ExecutionStatus.PENDING, "ALL", projectRootRelativePath, 0, configProperties.executionLimit, executionType)
+            ExecutionStatus.PENDING, "ALL", projectRootRelativePath, 0, configProperties.executionLimit, executionType, executionVersion)
         webClientBackend.makeRequest(BodyInserters.fromValue(execution), "/createExecution") { it.bodyToMono<Long>() }
             .flatMap { executionId ->
                 Mono.fromCallable {
