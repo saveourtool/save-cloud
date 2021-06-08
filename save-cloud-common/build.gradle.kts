@@ -4,8 +4,6 @@ plugins {
     kotlin("plugin.allopen")
     kotlin("plugin.jpa") version Versions.kotlin
 }
-
-
 kotlin {
     allOpen {
         annotation("javax.persistence.Entity")

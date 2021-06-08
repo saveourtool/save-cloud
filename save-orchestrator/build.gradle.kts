@@ -1,9 +1,11 @@
-import de.undercouch.gradle.tasks.download.Download
 import org.cqfn.save.buildutils.configureJacoco
 import org.cqfn.save.buildutils.configureSpringBoot
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import java.net.URL
+
+import de.undercouch.gradle.tasks.download.Download
 import org.codehaus.groovy.runtime.ResourceGroovyMethods
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
+import java.net.URL
 
 plugins {
     kotlin("jvm")

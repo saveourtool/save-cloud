@@ -1,5 +1,4 @@
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform.getCurrentOperatingSystem
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("multiplatform")
@@ -39,7 +38,7 @@ kotlin {
                 implementation("com.squareup.okio:okio-multiplatform:3.0.0-alpha.1")
                 implementation("org.jetbrains.kotlinx:kotlinx-datetime:${Versions.kotlinxDatetime}")
                 // as for 2.0.4, kotlin-logging doesn't have mingw version and it'll be PITA to use it
-//                implementation("io.github.microutils:kotlin-logging:2.0.4")
+                // implementation("io.github.microutils:kotlin-logging:2.0.4")
             }
         }
         getByName("${hostTarget.name}Main").dependsOn(nativeMain)
@@ -64,8 +63,10 @@ kotlin {
         builtBy(copyAgentDistribution)
     }
 
-    // code coverage: https://github.com/JetBrains/kotlin/blob/master/kotlin-native/CODE_COVERAGE.md, https://github.com/JetBrains/kotlin/blob/master/kotlin-native/samples/coverage/build.gradle.kts
-    if (false /*os.isLinux*/) {  // this doesn't work for 1.4.31, maybe will be fixed later
+    // code coverage: https://github.com/JetBrains/kotlin/blob/master/kotlin-native/CODE_COVERAGE.md,
+    // https://github.com/JetBrains/kotlin/blob/master/kotlin-native/samples/coverage/build.gradle.kts
+    if (false) {
+        // this doesn't work for 1.4.31, maybe will be fixed later
         hostTarget.binaries.getTest("DEBUG").apply {
             freeCompilerArgs = freeCompilerArgs + listOf("-Xlibrary-to-cover=${hostTarget.compilations["main"].output.classesDirs.singleFile.absolutePath}")
         }
@@ -80,7 +81,7 @@ kotlin {
                     commandLine("$llvmPath/llvm-profdata", "merge", "$testDebugBinary.profraw", "-o", "$testDebugBinary.profdata")
                 }
                 exec {
-                    commandLine("$llvmPath/llvm-cov", "show", "$testDebugBinary", "-instr-profile", "$testDebugBinary.profdata")
+                    commandLine("$llvmPath/llvm-cov", "show", testDebugBinary, "-instr-profile", "$testDebugBinary.profdata")
                 }
             }
         }

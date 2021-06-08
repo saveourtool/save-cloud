@@ -2,7 +2,7 @@
   enabled: true
   configuration:
     domainName: org.cqfn.save
-    kotlinVersion: 1.4
+    kotlinVersion: 1.5
     srcDirectories: "main,nativeMain"
     testDirs: "test,nativeTest"
 - name: ENUM_VALUE

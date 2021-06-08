@@ -1,3 +1,7 @@
+/**
+ * Configuration for project versioning
+ */
+
 package org.cqfn.save.buildutils
 
 import org.ajoberstar.reckon.gradle.ReckonExtension
@@ -6,6 +10,9 @@ import org.gradle.api.Project
 import org.gradle.kotlin.dsl.apply
 import org.gradle.kotlin.dsl.configure
 
+/**
+ * Configures reckon plugin for [this] project, should be applied for root project only
+ */
 fun Project.configureVersioning() {
     apply<ReckonPlugin>()
 

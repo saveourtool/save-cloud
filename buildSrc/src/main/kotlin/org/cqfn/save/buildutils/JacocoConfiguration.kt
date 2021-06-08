@@ -1,3 +1,7 @@
+/**
+ * Configuration for code coverage calculation via Jacoco
+ */
+
 package org.cqfn.save.buildutils
 
 import org.gradle.api.Project
@@ -9,6 +13,9 @@ import org.gradle.testing.jacoco.plugins.JacocoPlugin
 import org.gradle.testing.jacoco.plugins.JacocoPluginExtension
 import org.gradle.testing.jacoco.tasks.JacocoReport
 
+/**
+ * Configure jacoco for [this] project
+ */
 fun Project.configureJacoco() {
     apply<JacocoPlugin>()
 

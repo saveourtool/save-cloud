@@ -65,7 +65,4 @@ jobs:
           name: save-frontend
           path: 'save-frontend/build/libs/save-frontend-*-distribution.jar'
       - name: Code coverage report
-        uses: codecov/codecov-action@v1
-        with:
-          flags: unittests
-          fail_ci_if_error: true # optional (default = false)
+        run: bash <(curl -s https://codecov.io/bash)
