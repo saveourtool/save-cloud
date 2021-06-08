@@ -22,7 +22,7 @@ tasks.withType<KotlinCompile> {
 }
 
 tasks.getByName("processResources").finalizedBy("downloadSaveCli")
-val saveCliVersion: String = if (Versions.saveCore.endsWith("SNAPSHOT") || Versions.saveCore.endsWith("]")) {
+val saveCliVersion: String = if (Versions.saveCore.endsWith("SNAPSHOT")) {
     // fixme: we will probably need snapshot of CLI too
     val latestRelease = ResourceGroovyMethods.getText(
         URL("https://api.github.com/repos/cqfn/save/releases/latest")
