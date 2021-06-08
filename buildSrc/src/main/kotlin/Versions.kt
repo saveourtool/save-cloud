@@ -9,7 +9,9 @@ object Versions {
     const val ktor = "1.5.4"
     const val coroutines = "1.4.3"
 
-    const val serialization = "1.1.0"  // serialization is compiled by 1.4.30 since version 1.1.0 and for native ABI is different. We can update serialization only after we update kotlin.
+    // serialization is compiled by 1.4.30 since version 1.1.0 and for native ABI is different.
+    // We can update serialization only after we update kotlin.
+    const val serialization = "1.1.0"
     const val kotlinxDatetime = "0.1.1"
     const val saveCore = "0.1.0-SNAPSHOT"
 
