@@ -3,7 +3,8 @@ plugins {
 }
 
 kotlin {
-    js(LEGACY) {  // as for `-pre.148-kotlin-1.4.21`, react-table gives errors with IR
+    js(LEGACY) {
+        // as for `-pre.148-kotlin-1.4.21`, react-table gives errors with IR
         browser {
             repositories {
                 mavenCentral()
@@ -19,7 +20,7 @@ kotlin {
             implementation(project(":save-cloud-common"))
 
             // devDependencies for webpack. As for kotlin 1.4.31, kotlin bundles webpack 4.x, and some
-            //  latest ersions of dependencies already require webpack ^5. These versions are fixed on the last compatible.
+            // latest ersions of dependencies already require webpack ^5. These versions are fixed on the last compatible.
             compileOnly(devNpm("node-sass", "5.0.0"))
             compileOnly(devNpm("sass-loader", "10.1.1"))
             compileOnly(devNpm("style-loader", "*"))
@@ -82,9 +83,9 @@ val copyWebfontsTaskProvider = tasks.register("copyWebfonts", Copy::class) {
     from("$rootDir/build/js/node_modules/@fortawesome/fontawesome-free/webfonts")
     into("$buildDir/processedResources/js/main/webfonts")
 }
-tasks.withType<org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack>().forEach {
-    it.dependsOn(copyWebfontsTaskProvider)
-    it.doFirst {
+tasks.withType<org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack>().forEach { kotlinWebpack ->
+    kotlinWebpack.dependsOn(copyWebfontsTaskProvider)
+    kotlinWebpack.doFirst {
         val additionalWebpackResources = fileTree("$buildDir/processedResources/js/main/") {
             include("scss/**")
             include("webfonts/**")

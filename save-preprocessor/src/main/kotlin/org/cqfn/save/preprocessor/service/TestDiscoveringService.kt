@@ -33,11 +33,12 @@ class TestDiscoveringService(private val configProperties: ConfigProperties) {
      * @throws IllegalArgumentException when provided path doesn't point to a valid config file
      */
     @OptIn(ExperimentalFileSystem::class)
+    @Suppress("UnsafeCallOnNullableType")
     fun getAllTestSuites(project: Project, testResourcesRootAbsolutePath: String, propertiesRelativePath: String): List<TestSuiteDto> {
         val rootTestConfig = configDetector.configFromFile(testResourcesRootAbsolutePath.toPath())
         return rootTestConfig.mapDescendants {
             val generalConfig = GeneralConfig("stub", "stub", "stub", "stub")  // todo: discover general config
-            TestSuiteDto(TestSuiteType.PROJECT, generalConfig.suiteName, project, propertiesRelativePath)
+            TestSuiteDto(TestSuiteType.PROJECT, generalConfig.suiteName!!, project, propertiesRelativePath)
         }
             .distinct()
             .toList()
