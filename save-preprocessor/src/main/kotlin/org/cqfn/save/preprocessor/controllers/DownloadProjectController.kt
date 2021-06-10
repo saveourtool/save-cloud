@@ -27,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ReactiveHttpOutputMessage
 import org.springframework.http.ResponseEntity
+import org.springframework.http.codec.multipart.FilePart
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestPart
@@ -78,19 +79,26 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
      * @param binaryFile
      * @return response entity with text
      */
+    @Suppress("TOO_MANY_LINES_IN_LAMBDA")
     @PostMapping(value = ["/uploadBin"], consumes = ["multipart/form-data"])
     fun uploadBin(
         @RequestPart executionRequestForStandardSuites: ExecutionRequestForStandardSuites,
-        @RequestPart("property", required = true) propertyFile: Mono<File>,
-        @RequestPart("binFile", required = true) binaryFile: Mono<File>,
+        @RequestPart("property", required = true) propertyFile: Mono<FilePart>,
+        @RequestPart("binFile", required = true) binaryFile: Mono<FilePart>,
     ) = Mono.just(ResponseEntity("Clone pending", HttpStatus.ACCEPTED))
         .subscribeOn(Schedulers.boundedElastic())
         .also {
-            it.subscribe {
-                Mono.zip(propertyFile, binaryFile).subscribe {
-                    saveBinaryFile(executionRequestForStandardSuites, it.t1, it.t2)
+            it.flatMap {
+                val binFile = File("program")
+                val propFile = File("save.properties")
+                Mono.zip(
+                    propertyFile.flatMap { it.transferTo(propFile) },
+                    binaryFile.flatMap { it.transferTo(binFile) }
+                ).doOnSuccess {
+                    saveBinaryFile(executionRequestForStandardSuites, propFile, binFile)
                 }
             }
+                .subscribe()
         }
 
     @Suppress(

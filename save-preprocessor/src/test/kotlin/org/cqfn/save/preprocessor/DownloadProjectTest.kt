@@ -24,6 +24,7 @@ import org.junit.jupiter.api.TestInstance
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
 import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.core.io.FileSystemResource
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.client.MultipartBodyBuilder
@@ -150,8 +151,8 @@ class DownloadProjectTest(
         val request = ExecutionRequestForStandardSuites(project, emptyList())
         val bodyBuilder = MultipartBodyBuilder()
         bodyBuilder.part("executionRequestForStandardSuites", request)
-        bodyBuilder.part("property", property)
-        bodyBuilder.part("binFile", binFile)
+        bodyBuilder.part("property", FileSystemResource(property))
+        bodyBuilder.part("binFile", FileSystemResource(binFile))
 
         mockServerBackend.enqueue(
             MockResponse()
@@ -199,7 +200,7 @@ class DownloadProjectTest(
 
         Assertions.assertTrue(File("${configProperties.repository}/${binFile.name.hashCode()}").exists())
         assertions.orTimeout(60, TimeUnit.SECONDS).join().forEach { Assertions.assertNotNull(it) }
-        Assertions.assertEquals(File("${configProperties.repository}/${binFile.name.hashCode()}/program").readText(), "echo 0")
+        Assertions.assertEquals("echo 0", File("${configProperties.repository}/${binFile.name.hashCode()}/program").readText())
     }
 
     @AfterEach

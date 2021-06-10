@@ -21,20 +21,24 @@ import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
+import org.mockito.kotlin.given
+import org.mockito.kotlin.mock
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.boot.test.mock.mockito.MockBeans
+import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.client.MultipartBodyBuilder
+import org.springframework.http.codec.multipart.FilePart
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
+import reactor.core.publisher.Flux
 
-import java.io.File
 import java.time.Duration
 
 @WebFluxTest(controllers = [CloneRepositoryController::class])
@@ -83,8 +87,16 @@ class CloningRepositoryControllerTest {
 
     @Test
     fun checkNewJobResponseForBin() {
-        val binFile = File("binFilePath")
-        val property = File("propertyPath")
+        val binFile: FilePart = mock()
+        val property: FilePart = mock()
+
+        given(binFile.filename()).willReturn("binFile")
+        given(property.filename()).willReturn("property")
+        given(binFile.content()).willReturn(Flux.empty())
+        given(property.content()).willReturn(Flux.empty())
+        given(binFile.headers()).willReturn(HttpHeaders())
+        given(property.headers()).willReturn(HttpHeaders())
+
         val project = Project("noname", "1", "1", "1")
         val request = ExecutionRequestForStandardSuites(project, emptyList())
         val bodyBuilder = MultipartBodyBuilder()

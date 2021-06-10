@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.http.client.MultipartBodyBuilder
+import org.springframework.http.codec.multipart.FilePart
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestPart
@@ -20,8 +21,6 @@ import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
-
-import java.io.File
 
 /**
  * Controller to save project
@@ -77,8 +76,8 @@ class CloneRepositoryController(
     @PostMapping(value = ["/submitExecutionRequestBin"], consumes = ["multipart/form-data"])
     fun submitExecutionRequestByBin(
         @RequestPart("execution", required = true) executionRequestForStandardSuites: ExecutionRequestForStandardSuites,
-        @RequestPart("property", required = true) propertyFile: Mono<File>,
-        @RequestPart("binFile", required = true) binaryFile: Mono<File>,
+        @RequestPart("property", required = true) propertyFile: Mono<FilePart>,
+        @RequestPart("binFile", required = true) binaryFile: Mono<FilePart>,
     ): Mono<StringResponse> {
         val project = executionRequestForStandardSuites.project
         val projectId: Long
@@ -93,18 +92,17 @@ class CloneRepositoryController(
         log.info("Sending request to preprocessor to start save file for project id=$projectId")
         val bodyBuilder = MultipartBodyBuilder()
         bodyBuilder.part("executionRequestForStandardSuites", executionRequestForStandardSuites)
-        return binaryFile
-            .map { bodyBuilder.part("binFile", it) }
-            .then(propertyFile.map { bodyBuilder.part("property", it) })
-            .then(
-                preprocessorWebClient
-                    .post()
-                    .uri("/uploadBin")
-                    .contentType(MediaType.MULTIPART_FORM_DATA)
-                    .body(BodyInserters.fromMultipartData(bodyBuilder.build()))
-                    .retrieve()
-                    .toEntity(String::class.java)
-                    .toMono()
-            )
+        return Mono.zip(propertyFile, binaryFile).map {
+            bodyBuilder.part("property", it.t1)
+            bodyBuilder.part("binFile", it.t2)
+        }.then(
+            preprocessorWebClient
+                .post()
+                .uri("/uploadBin")
+                .contentType(MediaType.MULTIPART_FORM_DATA)
+                .body(BodyInserters.fromMultipartData(bodyBuilder.build()))
+                .retrieve()
+                .toEntity(String::class.java)
+                .toMono())
     }
 }
