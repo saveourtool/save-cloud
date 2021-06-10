@@ -93,15 +93,18 @@ class CloneRepositoryController(
         log.info("Sending request to preprocessor to start save file for project id=$projectId")
         val bodyBuilder = MultipartBodyBuilder()
         bodyBuilder.part("executionRequestForStandardSuites", executionRequestForStandardSuites)
-        binaryFile.flatMap { Mono.just(bodyBuilder.part("binFile", it)) }
-        binaryFile.flatMap { Mono.just(bodyBuilder.part("property", it)) }
-        return preprocessorWebClient
-            .post()
-            .uri("/uploadBin")
-            .contentType(MediaType.MULTIPART_FORM_DATA)
-            .body(BodyInserters.fromMultipartData(bodyBuilder.build()))
-            .retrieve()
-            .toEntity(String::class.java)
-            .toMono()
+        return binaryFile
+            .map { bodyBuilder.part("binFile", it) }
+            .then(propertyFile.map { bodyBuilder.part("property", it) })
+            .then(
+                preprocessorWebClient
+                    .post()
+                    .uri("/uploadBin")
+                    .contentType(MediaType.MULTIPART_FORM_DATA)
+                    .body(BodyInserters.fromMultipartData(bodyBuilder.build()))
+                    .retrieve()
+                    .toEntity(String::class.java)
+                    .toMono()
+            )
     }
 }
