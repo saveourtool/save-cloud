@@ -33,6 +33,7 @@ import react.dom.div
 import react.dom.h1
 import react.dom.h2
 import react.dom.h6
+import react.dom.img
 import react.dom.input
 import react.dom.label
 import react.dom.p
@@ -46,6 +47,7 @@ import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
 import kotlinx.html.ButtonType
 import kotlinx.html.InputType
+import kotlinx.html.classes
 import kotlinx.html.hidden
 import kotlinx.html.id
 import kotlinx.html.js.onChangeFunction
@@ -108,7 +110,7 @@ external interface ProjectViewState : RState {
 class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
     private val testTypesList = listOf("Class", "Comment", "Function", "Variable", "Enum", "Space", "Style", "Another")
     private var pathToProperty: String? = null
-    private var gitUrlProject: String? = null
+    private var gitUrlFromInputField: String? = null
     private val selectedTypes: MutableList<String> = mutableListOf()
     private var gitDto: GitDto? = null
 
@@ -126,19 +128,19 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
 
     override fun componentDidMount() {
         GlobalScope.launch {
-            val headers = Headers().also {
-                it.set("Accept", "application/json")
-                it.set("Content-Type", "application/json")
-            }
-            project = get("${window.location.origin}/getProject?name=${props.name}&owner=${props.owner}", headers)
+            project = get("${window.location.origin}/getProject?name=${props.name}&owner=${props.owner}", Headers())
                 .json()
                 .await()
                 .unsafeCast<Project>()
             val jsonProject = JSON.stringify(project)
+            val headers = Headers().also {
+                it.set("Accept", "application/json")
+                it.set("Content-Type", "application/json")
+            }
             gitDto = post("${window.location.origin}/getGit", headers, jsonProject)
                 .json()
                 .await()
-                .unsafeCast<GitDto?>()
+                .unsafeCast<GitDto>()
             setState { isLoading = false }
         }
     }
@@ -152,7 +154,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                 errorMessage = "Please choose one of the project types"
             }
         } else if (numberOpenningCard == 1) {
-            gitUrlProject?.let {
+            gitUrlFromInputField?.let {
                 val newGitDto = GitDto(url = it)
                 submitExecutionRequestGit(newGitDto)
             } ?: gitDto?.let {
@@ -183,7 +185,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                 setState {
                     isErrorOpen = true
                     errorLabel = "No property file has been selected"
-                    errorMessage = "Please select property file"
+                    errorMessage = "Please upload save.properties file"
                 }
                 return
             }
@@ -191,13 +193,14 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
         }
     }
 
+    @Suppress("UnsafeCallOnNullableType")
     private fun submitExecutionRequestBinFile() {
         val headers = Headers()
         val formData = FormData()
         val request = ExecutionRequestForStandardSuites(project, selectedTypes)
         formData.append("execution", Blob(arrayOf(JSON.stringify(request)), BlobPropertyBag("application/json")))
-        state.propertyFile?.let { formData.append("property", it) }
-        state.binaryFile?.let { formData.append("binFile", it) }
+        formData.append("property", state.propertyFile!!)
+        formData.append("binFile", state.binaryFile!!)
         submitRequest("/submitExecutionRequestBin", headers, formData)
     }
 
@@ -229,10 +232,9 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
 
     @Suppress("TOO_LONG_FUNCTION", "LongMethod", "ComplexMethod")
     override fun RBuilder.render() {
-        // modal window for configuring tests run - initially hidden
-        runErrorModel()
+        // modal windows are initially hidden
+        runErrorModal()
         runLoadingModal()
-        numberOpenningCard = 1
         // Page Heading
         div("d-sm-flex align-items-center justify-content-between mb-4") {
             h1("h3 mb-0 text-gray-800") {
@@ -265,7 +267,8 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                             }
                         }
                         // Collapse card to load git url
-                        div("collapse show") {
+                        div {
+                            attrs.classes = if (numberOpenningCard == 1) setOf("collapse", "show") else setOf("collapse")
                             attrs.id = "collapseFirst"
                             attrs["aria-labelledby"] = "headingFirst"
                             attrs["data-parent"] = "#accordion"
@@ -279,7 +282,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                                     div("d-inline-block ml-2") {
                                         input(type = InputType.text) {
                                             attrs {
-                                                gitUrlProject?.let {
+                                                gitUrlFromInputField?.let {
                                                     defaultValue = it
                                                 } ?: gitDto?.url?.let {
                                                     defaultValue = it
@@ -287,7 +290,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                                                 placeholder = "https://github.com/"
                                                 onChangeFunction = {
                                                     val target = it.target as HTMLInputElement
-                                                    gitUrlProject = target.value
+                                                    gitUrlFromInputField = target.value
                                                 }
                                             }
                                         }
@@ -327,7 +330,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                             button(classes = "btn btn-link collapsed") {
                                 attrs["data-toggle"] = "collapse"
                                 attrs["data-target"] = "#collapseSecond"
-                                attrs["aria-expanded"] = "false"
+                                attrs["aria-expanded"] = "true"
                                 attrs["aria-controls"] = "collapseSecond"
                                 h6("m-0 font-weight-bold text-primary") {
                                     +"Upload project as binary file"
@@ -341,7 +344,8 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                                 }
                             }
                         }
-                        div("collapse") {
+                        div {
+                            attrs.classes = if (numberOpenningCard == 2) setOf("collapse", "show") else setOf("collapse")
                             attrs.id = "collapseSecond"
                             attrs["aria-labelledby"] = "headingSecond"
                             attrs["data-parent"] = "#accordion"
@@ -361,7 +365,8 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                                                     }
                                                 }
                                             }
-                                            strong { +"Choose binary file:" }
+                                            img(classes = "img-upload", src = "img/upload.svg") {}
+                                            strong { +"Upload binary file:" }
                                             +(state.binaryFile?.name ?: "")
                                         }
                                     }
@@ -381,7 +386,8 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                                                     }
                                                 }
                                             }
-                                            strong { +"Choose property file: " }
+                                            img(classes = "img-upload", src = "img/upload.svg") {}
+                                            strong { +"Upload property file: " }
                                             +(state.propertyFile?.name ?: "")
                                         }
                                     }
@@ -447,7 +453,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
         }
     }
 
-    private fun RBuilder.runErrorModel() = modal {
+    private fun RBuilder.runErrorModal() = modal {
         attrs {
             isOpen = state.isErrorOpen
             contentLabel = state.errorLabel
