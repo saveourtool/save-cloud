@@ -14,9 +14,8 @@ import org.cqfn.save.frontend.components.views.FallbackView
 import org.cqfn.save.frontend.components.views.HistoryView
 import org.cqfn.save.frontend.components.views.ProjectExecutionRouteProps
 import org.cqfn.save.frontend.components.views.ProjectView
-import org.cqfn.save.frontend.components.views.toExecutionRequest
-import org.cqfn.save.frontend.components.views.toProject
 import org.cqfn.save.frontend.externals.modal.ReactModal
+import org.cqfn.save.frontend.utils.get
 
 import org.w3c.dom.HTMLElement
 import react.RBuilder
@@ -68,18 +67,19 @@ class App : RComponent<RProps, AppState>() {
                 div("container-fluid") {
                     switch {
                         route("/", exact = true, component = CollectionView::class)
-                        route<ProjectExecutionRouteProps>("/:type/:owner/:name", exact = true) { routeResultProps ->
+                        route<ProjectExecutionRouteProps>("/:owner/:name", exact = true) { routeResultProps ->
                             child(ProjectView::class) {
-                                attrs.executionRequest = routeResultProps.match.params.toExecutionRequest()
-                                attrs.url = routeResultProps.match.params.url
+                                attrs.name = routeResultProps.match.params.name
+                                attrs.owner = routeResultProps.match.params.owner
                             }
                         }
-                        route<ProjectExecutionRouteProps>("/:type/:owner/:name/history", exact = true) { routeResultProps ->
+                        route<ProjectExecutionRouteProps>("/:owner/:name/history", exact = true) { routeResultProps ->
                             child(HistoryView::class) {
-                                attrs.project = routeResultProps.match.params.toProject()
+                                attrs.name = routeResultProps.match.params.name
+                                attrs.owner = routeResultProps.match.params.owner
                             }
                         }
-                        route<ExecutionProps>("/:type/:owner/:name/history/:executionId") { props ->
+                        route<ExecutionProps>("/:owner/:name/history/:executionId") { props ->
                             // executionId might be `latest`
                             child(ExecutionView::class) {
                                 attrs.executionId = props.match.params.executionId

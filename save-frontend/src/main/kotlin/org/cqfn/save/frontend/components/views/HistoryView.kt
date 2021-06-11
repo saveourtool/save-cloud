@@ -4,7 +4,6 @@
 
 package org.cqfn.save.frontend.components.views
 
-import org.cqfn.save.entities.Project
 import org.cqfn.save.frontend.components.tables.tableComponent
 import react.RBuilder
 import react.RComponent
@@ -20,9 +19,14 @@ import kotlin.js.json
  */
 external interface HistoryProps : RProps {
     /**
-     * An active [Project]
+     * Project owner
      */
-    var project: Project
+    var owner: String
+
+    /**
+     * Project name
+     */
+    var name: String
 }
 
 /**

@@ -3,8 +3,8 @@ package org.cqfn.save.backend
 import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.utils.MySqlExtension
 import org.cqfn.save.entities.ExecutionRequest
+import org.cqfn.save.entities.GitDto
 import org.cqfn.save.entities.Project
-import org.cqfn.save.repository.GitRepository
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -30,7 +30,7 @@ class CloneRepoTest {
     @Test
     fun checkSaveProject() {
         val project = Project("noname", "1", "1", "1")
-        val gitRepo = GitRepository("1")
+        val gitRepo = GitDto("1")
         val executionRequest = ExecutionRequest(project, gitRepo)
         webClient.post()
             .uri("/submitExecutionRequest")
@@ -46,7 +46,7 @@ class CloneRepoTest {
     @Test
     fun checkSaveExistingProject() {
         val project = Project("noname", "1", "1", "1")
-        val gitRepo = GitRepository("1")
+        val gitRepo = GitDto("1")
         val executionRequest = ExecutionRequest(project, gitRepo)
         val executionsClones = listOf(executionRequest, executionRequest, executionRequest)
         executionsClones.forEach {

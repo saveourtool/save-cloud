@@ -67,6 +67,10 @@
 
     <include file="11-changeset-test-agent-insert-data.xml" relativeToChangelogFile="true"/>
 
+    <include file="14-changeset-git-repository-table.xml" relativeToChangelogFile="true"/>
+
+    <include file="15-changeset-git-repository-insert.xml" relativeToChangelogFile="true"/>
+
     <changeSet id="adding-event" author="aktsay">
         <tagDatabase tag="v1.0 adding event on deleting test_executions"/>
     </changeSet>

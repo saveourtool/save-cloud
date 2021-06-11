@@ -9,4 +9,11 @@ import org.springframework.stereotype.Repository
  * The repository of project entities
  */
 @Repository
-interface ProjectRepository : JpaRepository<Project, Long>, QueryByExampleExecutor<Project>
+interface ProjectRepository : JpaRepository<Project, Long>, QueryByExampleExecutor<Project> {
+    /**
+     * @param name
+     * @param owner
+     * @return project by name and owner
+     */
+    fun findByNameAndOwner(name: String, owner: String): Project
+}

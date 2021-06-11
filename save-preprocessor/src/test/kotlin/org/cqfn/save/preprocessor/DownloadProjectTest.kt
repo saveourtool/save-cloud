@@ -2,13 +2,13 @@ package org.cqfn.save.preprocessor
 
 import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.ExecutionRequestForStandardSuites
+import org.cqfn.save.entities.GitDto
 import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.TestSuite
 import org.cqfn.save.preprocessor.config.ConfigProperties
 import org.cqfn.save.preprocessor.controllers.DownloadProjectController
 import org.cqfn.save.preprocessor.service.TestDiscoveringService
 import org.cqfn.save.preprocessor.utils.RepositoryVolume
-import org.cqfn.save.repository.GitRepository
 import org.cqfn.save.testsuite.TestSuiteType
 
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -24,6 +24,7 @@ import org.junit.jupiter.api.TestInstance
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
 import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.core.io.FileSystemResource
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.client.MultipartBodyBuilder
@@ -69,8 +70,8 @@ class DownloadProjectTest(
 
     @Test
     fun testBadRequest() {
-        val wrongRepo = GitRepository("wrongGit")
-        val project = Project("owner", "someName", wrongRepo.url, "descr")
+        val project = Project("owner", "someName", "wrongGit", "descr")
+        val wrongRepo = GitDto("wrongGit")
         val request = ExecutionRequest(project, wrongRepo)
         webClient.post()
             .uri("/upload")
@@ -89,10 +90,10 @@ class DownloadProjectTest(
     @Suppress("TOO_LONG_FUNCTION")
     @Test
     fun testCorrectDownload() {
-        val validRepo = GitRepository("https://github.com/cqfn/save.git")
-        val project = Project("owner", "someName", validRepo.url, "descr").apply {
+        val project = Project("owner", "someName", "https://github.com/cqfn/save.git", "descr").apply {
             id = 42L
         }
+        val validRepo = GitDto("https://github.com/cqfn/save.git")
         val request = ExecutionRequest(project, validRepo, "examples/save.properties")
         mockServerBackend.enqueue(
             MockResponse()
@@ -150,8 +151,8 @@ class DownloadProjectTest(
         val request = ExecutionRequestForStandardSuites(project, emptyList())
         val bodyBuilder = MultipartBodyBuilder()
         bodyBuilder.part("executionRequestForStandardSuites", request)
-        bodyBuilder.part("property", property)
-        bodyBuilder.part("binFile", binFile)
+        bodyBuilder.part("property", FileSystemResource(property))
+        bodyBuilder.part("binFile", FileSystemResource(binFile))
 
         mockServerBackend.enqueue(
             MockResponse()
@@ -199,7 +200,7 @@ class DownloadProjectTest(
 
         Assertions.assertTrue(File("${configProperties.repository}/${binFile.name.hashCode()}").exists())
         assertions.orTimeout(60, TimeUnit.SECONDS).join().forEach { Assertions.assertNotNull(it) }
-        Assertions.assertEquals(File("${configProperties.repository}/${binFile.name.hashCode()}/program").readText(), "echo 0")
+        Assertions.assertEquals("echo 0", File("${configProperties.repository}/${binFile.name.hashCode()}/program").readText())
     }
 
     @AfterEach

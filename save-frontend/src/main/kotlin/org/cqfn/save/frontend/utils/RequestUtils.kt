@@ -41,7 +41,7 @@ suspend fun get(url: String, headers: Headers) = request(url, "GET", headers)
  * @param body request body
  * @return [Response] instance
  */
-suspend fun post(url: String, headers: Headers, body: dynamic) = request(url, "GET", headers, body)
+suspend fun post(url: String, headers: Headers, body: dynamic) = request(url, "POST", headers, body)
 
 /**
  * Perform an HTTP request using Fetch API. Suspending function that returns a [Response] - a JS promise with result.

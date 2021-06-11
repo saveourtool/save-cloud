@@ -1,7 +1,9 @@
 package org.cqfn.save.backend.controller
 
 import org.cqfn.save.backend.SaveApplication
+import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.utils.MySqlExtension
+import org.cqfn.save.entities.GitDto
 import org.cqfn.save.entities.Project
 
 import org.junit.jupiter.api.Assertions
@@ -13,11 +15,16 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.WebTestClient
+import org.springframework.test.web.reactive.server.expectBody
+import org.springframework.web.reactive.function.BodyInserters
 
 @SpringBootTest(classes = [SaveApplication::class])
 @AutoConfigureWebTestClient
 @ExtendWith(MySqlExtension::class)
 class ProjectControllerTest {
+    @Autowired
+    private lateinit var projectRepository: ProjectRepository
+
     @Autowired
     lateinit var webClient: WebTestClient
 
@@ -34,5 +41,42 @@ class ProjectControllerTest {
             .value<Nothing> {
                 Assertions.assertTrue(it.isNotEmpty())
             }
+    }
+
+    @Test
+    @Suppress("UnsafeCallOnNullableType")
+    fun `should return project based on name and owner`() {
+        webClient
+            .get()
+            .uri("/getProject?name=huaweiName&owner=Huawei")
+            .accept(MediaType.APPLICATION_JSON)
+            .exchange()
+            .expectStatus()
+            .isOk
+            .expectBody<Project>()
+            .consumeWith {
+                requireNotNull(it.responseBody)
+                Assertions.assertEquals(it.responseBody!!.url, "huawei.com")
+            }
+    }
+
+    @Test
+    @Suppress("UnsafeCallOnNullableType", "TOO_MANY_LINES_IN_LAMBDA")
+    fun `check git from project`() {
+        projectRepository.findById(1).ifPresent {
+            webClient
+                .post()
+                .uri("/getGit")
+                .body(BodyInserters.fromValue(it))
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
+                .expectStatus()
+                .isOk
+                .expectBody<GitDto>()
+                .consumeWith {
+                    requireNotNull(it.responseBody)
+                    Assertions.assertEquals(it.responseBody!!.url, "github")
+                }
+        }
     }
 }

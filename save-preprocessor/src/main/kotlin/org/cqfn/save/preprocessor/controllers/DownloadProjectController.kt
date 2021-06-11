@@ -27,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ReactiveHttpOutputMessage
 import org.springframework.http.ResponseEntity
+import org.springframework.http.codec.multipart.FilePart
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestPart
@@ -78,19 +79,28 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
      * @param binaryFile
      * @return response entity with text
      */
+    @Suppress("TOO_MANY_LINES_IN_LAMBDA")
     @PostMapping(value = ["/uploadBin"], consumes = ["multipart/form-data"])
     fun uploadBin(
         @RequestPart executionRequestForStandardSuites: ExecutionRequestForStandardSuites,
-        @RequestPart("property", required = true) propertyFile: Mono<File>,
-        @RequestPart("binFile", required = true) binaryFile: Mono<File>,
+        @RequestPart("property", required = true) propertyFile: Mono<FilePart>,
+        @RequestPart("binFile", required = true) binaryFile: Mono<FilePart>,
     ) = Mono.just(ResponseEntity("Clone pending", HttpStatus.ACCEPTED))
         .subscribeOn(Schedulers.boundedElastic())
         .also {
-            it.subscribe {
-                Mono.zip(propertyFile, binaryFile).subscribe {
-                    saveBinaryFile(executionRequestForStandardSuites, it.t1, it.t2)
+            it.flatMap {
+                val binFile = File("program")
+                val propFile = File("save.properties")
+                Mono.zip(
+                    propertyFile.flatMapMany { it.content() }.collectList(),
+                    binaryFile.flatMapMany { it.content() }.collectList()
+                ).map { tupleContent ->
+                    tupleContent.t1.map { dtBuffer -> propFile.outputStream().use { dtBuffer.asInputStream().copyTo(it) } }
+                    tupleContent.t2.map { dtBuffer -> binFile.outputStream().use { dtBuffer.asInputStream().copyTo(it) } }
+                    saveBinaryFile(executionRequestForStandardSuites, propFile, binFile)
                 }
             }
+                .subscribe()
         }
 
     @Suppress(
@@ -98,21 +108,21 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
         "TOO_LONG_FUNCTION",
         "TOO_MANY_LINES_IN_LAMBDA")
     private fun downLoadRepository(executionRequest: ExecutionRequest) {
-        val gitRepository = executionRequest.gitRepository
+        val gitDto = executionRequest.gitDto
         val project = executionRequest.project
-        val tmpDir = generateDirectory(gitRepository.url.hashCode(), gitRepository.url)
-        val userCredentials = if (gitRepository.username != null && gitRepository.password != null) {
-            UsernamePasswordCredentialsProvider(gitRepository.username, gitRepository.password)
+        val tmpDir = generateDirectory(gitDto.url.hashCode(), gitDto.url)
+        val userCredentials = if (gitDto.username != null && gitDto.password != null) {
+            UsernamePasswordCredentialsProvider(gitDto.username, gitDto.password)
         } else {
             CredentialsProvider.getDefault()
         }
         try {
             Git.cloneRepository()
-                .setURI(gitRepository.url)
+                .setURI(gitDto.url)
                 .setCredentialsProvider(userCredentials)
                 .setDirectory(tmpDir)
                 .call().use {
-                    log.info("Repository cloned: ${gitRepository.url}")
+                    log.info("Repository cloned: ${gitDto.url}")
                     // Post request to backend to create PENDING executions
                     sendToBackendAndOrchestrator(
                         project,
@@ -129,8 +139,8 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
             when (exception) {
                 is InvalidRemoteException,
                 is TransportException,
-                is GitAPIException -> log.warn("Error with git API while cloning ${gitRepository.url} repository", exception)
-                else -> log.warn("Cloning ${gitRepository.url} repository failed", exception)
+                is GitAPIException -> log.warn("Error with git API while cloning ${gitDto.url} repository", exception)
+                else -> log.warn("Cloning ${gitDto.url} repository failed", exception)
             }
         }
     }

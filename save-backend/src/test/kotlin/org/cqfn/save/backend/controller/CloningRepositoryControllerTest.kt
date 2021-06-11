@@ -4,6 +4,7 @@ import org.cqfn.save.backend.controllers.CloneRepositoryController
 import org.cqfn.save.backend.repository.AgentRepository
 import org.cqfn.save.backend.repository.AgentStatusRepository
 import org.cqfn.save.backend.repository.ExecutionRepository
+import org.cqfn.save.backend.repository.GitRepository
 import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.repository.TestExecutionRepository
 import org.cqfn.save.backend.repository.TestRepository
@@ -11,8 +12,8 @@ import org.cqfn.save.backend.repository.TestSuiteRepository
 import org.cqfn.save.backend.service.ProjectService
 import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.ExecutionRequestForStandardSuites
+import org.cqfn.save.entities.GitDto
 import org.cqfn.save.entities.Project
-import org.cqfn.save.repository.GitRepository
 
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
@@ -20,20 +21,24 @@ import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
+import org.mockito.kotlin.given
+import org.mockito.kotlin.mock
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.boot.test.mock.mockito.MockBeans
+import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.client.MultipartBodyBuilder
+import org.springframework.http.codec.multipart.FilePart
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
+import reactor.core.publisher.Flux
 
-import java.io.File
 import java.time.Duration
 
 @WebFluxTest(controllers = [CloneRepositoryController::class])
@@ -47,6 +52,7 @@ import java.time.Duration
     MockBean(TestRepository::class),
     MockBean(TestSuiteRepository::class),
     MockBean(ProjectService::class),
+    MockBean(GitRepository::class),
 )
 class CloningRepositoryControllerTest {
     @Autowired
@@ -66,7 +72,7 @@ class CloningRepositoryControllerTest {
                 .addHeader("Content-Type", "application/json")
         )
         val project = Project("noname", "1", "1", "1")
-        val gitRepo = GitRepository("1")
+        val gitRepo = GitDto("1")
         val executionRequest = ExecutionRequest(project, gitRepo)
         webTestClient.post()
             .uri("/submitExecutionRequest")
@@ -81,12 +87,20 @@ class CloningRepositoryControllerTest {
 
     @Test
     fun checkNewJobResponseForBin() {
-        val binFile = File("binFilePath")
-        val property = File("propertyPath")
+        val binFile: FilePart = mock()
+        val property: FilePart = mock()
+
+        given(binFile.filename()).willReturn("binFile")
+        given(property.filename()).willReturn("property")
+        given(binFile.content()).willReturn(Flux.empty())
+        given(property.content()).willReturn(Flux.empty())
+        given(binFile.headers()).willReturn(HttpHeaders())
+        given(property.headers()).willReturn(HttpHeaders())
+
         val project = Project("noname", "1", "1", "1")
         val request = ExecutionRequestForStandardSuites(project, emptyList())
         val bodyBuilder = MultipartBodyBuilder()
-        bodyBuilder.part("executionRequestForStandardSuites", request)
+        bodyBuilder.part("execution", request)
         bodyBuilder.part("property", property)
         bodyBuilder.part("binFile", binFile)
 
