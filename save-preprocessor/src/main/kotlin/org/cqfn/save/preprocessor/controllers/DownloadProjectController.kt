@@ -96,14 +96,14 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
                 Mono.zip(
                     propertyFile.map { it.content() },
                     binaryFile.map { it.content() }
-                ).log().flatMap { tupleContent ->
+                ).flatMap { tupleContent ->
                     propertyFile.map { DataBufferUtils.write(tupleContent.t1, propFile.outputStream()).subscribe(DataBufferUtils.releaseConsumer()) }
                     binaryFile.map { DataBufferUtils.write(tupleContent.t2, binFile.outputStream()).subscribe(DataBufferUtils.releaseConsumer()) }
-                }.doOnSuccess {
+                }.doOnNext {
                     saveBinaryFile(executionRequestForStandardSuites, propFile, binFile)
                 }
             }
-                .subscribe()
+            .subscribe()
         }
 
     @Suppress(
@@ -156,7 +156,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
         val tmpDir = generateDirectory(binFile.name.hashCode(), binFile.name)
         val pathToProperties = tmpDir.resolve(propertyFile.name)
         propertyFile.copyTo(pathToProperties)
-        binFile.copyTo(tmpDir.resolve(binFile.name), true)
+        binFile.copyTo(tmpDir.resolve(binFile.name))
         val project = executionRequestForStandardSuites.project
         val propertiesRelativePath = pathToProperties.relativeTo(tmpDir).name
         sendToBackendAndOrchestrator(
