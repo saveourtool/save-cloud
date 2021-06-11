@@ -24,7 +24,6 @@ import org.eclipse.jgit.transport.CredentialsProvider
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.core.io.buffer.DataBufferUtils
 import org.springframework.http.HttpStatus
 import org.springframework.http.ReactiveHttpOutputMessage
 import org.springframework.http.ResponseEntity
@@ -39,12 +38,10 @@ import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
 import org.springframework.web.reactive.function.client.toEntity
 import org.springframework.web.server.ResponseStatusException
-import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
 
 import java.io.File
-import java.io.FileOutputStream
 import java.time.LocalDateTime
 
 import kotlin.io.path.ExperimentalPathApi
@@ -101,10 +98,9 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
                     tupleContent.t1.map { dtBuffer -> propFile.outputStream().use { dtBuffer.asInputStream().copyTo(it) } }
                     tupleContent.t2.map { dtBuffer -> binFile.outputStream().use { dtBuffer.asInputStream().copyTo(it) } }
                     saveBinaryFile(executionRequestForStandardSuites, propFile, binFile)
-
                 }
             }
-            .subscribe()
+                .subscribe()
         }
 
     @Suppress(
