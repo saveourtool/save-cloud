@@ -39,10 +39,12 @@ import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
 import org.springframework.web.reactive.function.client.toEntity
 import org.springframework.web.server.ResponseStatusException
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
 
 import java.io.File
+import java.io.FileOutputStream
 import java.time.LocalDateTime
 
 import kotlin.io.path.ExperimentalPathApi
@@ -93,13 +95,13 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
                 val binFile = File("program")
                 val propFile = File("save.properties")
                 Mono.zip(
-                    propertyFile.map { it.content() },
-                    binaryFile.map { it.content() }
-                ).flatMap { tupleContent ->
-                    propertyFile.map { DataBufferUtils.write(tupleContent.t1, propFile.outputStream()).subscribe(DataBufferUtils.releaseConsumer()) }
-                    binaryFile.map { DataBufferUtils.write(tupleContent.t2, binFile.outputStream()).subscribe(DataBufferUtils.releaseConsumer()) }
-                }.doOnNext {
+                    propertyFile.flatMapMany { it.content() }.collectList(),
+                    binaryFile.flatMapMany { it.content() }.collectList()
+                ).map { tupleContent ->
+                    tupleContent.t1.map { dtBuffer -> propFile.outputStream().use { dtBuffer.asInputStream().copyTo(it) } }
+                    tupleContent.t2.map { dtBuffer -> binFile.outputStream().use { dtBuffer.asInputStream().copyTo(it) } }
                     saveBinaryFile(executionRequestForStandardSuites, propFile, binFile)
+
                 }
             }
             .subscribe()
