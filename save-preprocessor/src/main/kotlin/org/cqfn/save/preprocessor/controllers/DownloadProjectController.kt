@@ -24,6 +24,7 @@ import org.eclipse.jgit.transport.CredentialsProvider
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.core.io.buffer.DataBufferUtils
 import org.springframework.http.HttpStatus
 import org.springframework.http.ReactiveHttpOutputMessage
 import org.springframework.http.ResponseEntity
@@ -38,6 +39,7 @@ import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
 import org.springframework.web.reactive.function.client.toEntity
 import org.springframework.web.server.ResponseStatusException
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
 
@@ -92,9 +94,12 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
                 val binFile = File("program")
                 val propFile = File("save.properties")
                 Mono.zip(
-                    propertyFile.flatMap { it.transferTo(propFile) },
-                    binaryFile.flatMap { it.transferTo(binFile) }
-                ).doOnSuccess {
+                    propertyFile.map { it.content() },
+                    binaryFile.map { it.content() }
+                ).log().flatMap { tupleContent ->
+                    propertyFile.map { DataBufferUtils.write(tupleContent.t1, propFile.outputStream()).subscribe(DataBufferUtils.releaseConsumer()) }
+                    binaryFile.map { DataBufferUtils.write(tupleContent.t2, binFile.outputStream()).subscribe(DataBufferUtils.releaseConsumer()) }
+                }.doOnSuccess {
                     saveBinaryFile(executionRequestForStandardSuites, propFile, binFile)
                 }
             }
@@ -151,7 +156,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
         val tmpDir = generateDirectory(binFile.name.hashCode(), binFile.name)
         val pathToProperties = tmpDir.resolve(propertyFile.name)
         propertyFile.copyTo(pathToProperties)
-        binFile.copyTo(tmpDir.resolve(binFile.name))
+        binFile.copyTo(tmpDir.resolve(binFile.name), true)
         val project = executionRequestForStandardSuites.project
         val propertiesRelativePath = pathToProperties.relativeTo(tmpDir).name
         sendToBackendAndOrchestrator(
