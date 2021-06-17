@@ -44,7 +44,7 @@ class ExecutionController(private val executionService: ExecutionService) {
                 ResponseEntity.status(HttpStatus.OK).body(it)
             } ?: ResponseEntity.status(HttpStatus.NOT_FOUND).build()
 
-    @PostMapping("executionDtoByProject")
+    @PostMapping("/executionDtoByProject")
     fun getExecutionByProject(@RequestBody project: Project): ResponseEntity<List<ExecutionDto>> =
             executionService.getExecutionDtoByProject(project)?.let {
                 ResponseEntity.status(HttpStatus.OK).body(it)
