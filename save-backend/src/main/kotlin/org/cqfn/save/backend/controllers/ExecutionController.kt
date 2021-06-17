@@ -2,6 +2,7 @@ package org.cqfn.save.backend.controllers
 
 import org.cqfn.save.backend.service.ExecutionService
 import org.cqfn.save.entities.Execution
+import org.cqfn.save.entities.Project
 import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.execution.ExecutionUpdateDto
 
@@ -40,6 +41,12 @@ class ExecutionController(private val executionService: ExecutionService) {
     @GetMapping("/executionDto")
     fun getExecutionDto(@RequestParam executionId: Long): ResponseEntity<ExecutionDto> =
             executionService.getExecutionDto(executionId)?.let {
+                ResponseEntity.status(HttpStatus.OK).body(it)
+            } ?: ResponseEntity.status(HttpStatus.NOT_FOUND).build()
+
+    @PostMapping("executionDtoByProject")
+    fun getExecutionByProject(@RequestBody project: Project): ResponseEntity<List<ExecutionDto>> =
+            executionService.getExecutionDtoByProject(project)?.let {
                 ResponseEntity.status(HttpStatus.OK).body(it)
             } ?: ResponseEntity.status(HttpStatus.NOT_FOUND).build()
 }

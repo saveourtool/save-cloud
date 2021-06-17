@@ -5,6 +5,7 @@ import org.cqfn.save.backend.repository.ExecutionRepository
 import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.utils.MySqlExtension
 import org.cqfn.save.entities.Execution
+import org.cqfn.save.entities.Project
 import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionType
@@ -21,6 +22,7 @@ import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
+import org.springframework.web.reactive.function.client.bodyToMono
 
 import java.time.LocalDateTime
 import java.time.Month
@@ -53,7 +55,10 @@ class ExecutionControllerTest {
             0,
             20,
             ExecutionType.GIT,
-            "0.0.1"
+            "0.0.1",
+            0,
+            0,
+            0
         )
         webClient.post()
             .uri("/createExecution")
@@ -77,7 +82,10 @@ class ExecutionControllerTest {
             0,
             20,
             ExecutionType.GIT,
-            "0.0.1"
+            "0.0.1",
+            0,
+            0,
+            0,
         )
         webClient.post()
             .uri("/createExecution")
@@ -106,7 +114,10 @@ class ExecutionControllerTest {
             0,
             20,
             ExecutionType.GIT,
-            "0.0.1"
+            "0.0.1",
+            0,
+            0,
+            0,
         )
 
         webClient.post()
@@ -163,6 +174,23 @@ class ExecutionControllerTest {
             .consumeWith {
                 requireNotNull(it.responseBody)
                 assertEquals("0.0.1", it.responseBody!!.version)
+            }
+    }
+
+    @Test
+    fun checkExecutionDtoByProject() {
+        val project = projectRepository.findById(1).get()
+        webClient.post()
+            .uri("/executionDtoByProject")
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(BodyInserters.fromValue(project))
+            .exchange()
+            .expectStatus()
+            .isOk
+            .expectBody<List<ExecutionDto>>()
+            .consumeWith {
+                requireNotNull(it.responseBody)
+                assertEquals(1, it.responseBody!!.size)
             }
     }
 }

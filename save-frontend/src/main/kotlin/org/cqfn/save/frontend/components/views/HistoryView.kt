@@ -4,7 +4,14 @@
 
 package org.cqfn.save.frontend.components.views
 
+import kotlinx.browser.window
+import kotlinx.coroutines.await
+import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.frontend.components.tables.tableComponent
+import org.cqfn.save.frontend.utils.getProject
+import org.cqfn.save.frontend.utils.post
+import org.cqfn.save.frontend.utils.unsafeMap
+import org.w3c.fetch.Headers
 import react.RBuilder
 import react.RComponent
 import react.RProps
@@ -12,7 +19,6 @@ import react.RState
 import react.child
 import react.dom.td
 import react.table.columns
-import kotlin.js.json
 
 /**
  * [RProps] for tests execution history
@@ -33,6 +39,7 @@ external interface HistoryProps : RProps {
  * A table to display execution results for a certain project.
  */
 class HistoryView : RComponent<HistoryProps, RState>() {
+
     @Suppress("TOO_LONG_FUNCTION", "ForbiddenComment")
     override fun RBuilder.render() {
         child(tableComponent(
@@ -42,36 +49,45 @@ class HistoryView : RComponent<HistoryProps, RState>() {
                         +"${it.row.index}"
                     }
                 }
-                column("date", "Date") {
+                column("status", "Status") {
                     td {
-                        +"${it.value["date"]}"
+                        +"${it.value.status}"
                     }
                 }
                 column("passed", "Passed") {
                     td {
-                        +"${it.value["passed"]}"
+                        +"${it.value.passedTests}"
                     }
                 }
                 column("failed", "Failed") {
                     td {
-                        +"${it.value["failed"]}"
+                        +"${it.value.failedTests}"
                     }
                 }
                 column("skipped", "Skipped") {
                     td {
-                        +"${it.value["skipped"]}"
+                        +"${it.value.skippedTests}"
                     }
                 }
             }
         ) { _, _ ->
-            // todo: fetch data from backend using `window.location.origin`
-            arrayOf(
-                json("date" to "26-Jan-2016", "passed" to "26", "failed" to "17", "skipped" to "36"),
-                json("date" to "76-Jun-2019", "passed" to "67", "failed" to "75", "skipped" to "236"),
+
+            post(
+                url = "${window.location.origin}/executionDtoByProject",
+                headers = Headers().also {
+                    it.set("Accept", "application/json")
+                    it.set("Content-Type", "application/json")
+                },
+                body = JSON.stringify(getProject(props.name, props.owner))
             )
+                .unsafeMap {
+                    it.json()
+                        .await()
+                        .unsafeCast<Array<ExecutionDto>>()
+                }
         }
         ) {
-            attrs.tableHeader = "Execution details"
+            attrs.tableHeader = "Executions details"
         }
     }
 }

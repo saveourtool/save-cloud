@@ -2,6 +2,7 @@ package org.cqfn.save.backend.controller
 
 import org.cqfn.save.agent.TestExecutionDto
 import org.cqfn.save.backend.SaveApplication
+import org.cqfn.save.backend.repository.AgentRepository
 import org.cqfn.save.backend.repository.TestExecutionRepository
 import org.cqfn.save.backend.utils.MySqlExtension
 import org.cqfn.save.backend.utils.toLocalDateTime
@@ -14,6 +15,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.WebTestClient
@@ -29,6 +31,9 @@ class TestExecutionControllerTest {
 
     @Autowired
     private lateinit var testExecutionRepository: TestExecutionRepository
+
+    @Autowired
+    private lateinit var agentRepository: AgentRepository
 
     @Test
     fun `should count TestExecutions for a particular Execution`() {
@@ -58,7 +63,7 @@ class TestExecutionControllerTest {
     @Test
     @Suppress("UnsafeCallOnNullableType")
     fun `should save TestExecutionDto into the DB`() {
-        val testExecutionDto = TestExecutionDto(
+        val testExecutionDtoFirst = TestExecutionDto(
             2,
             "testFilePath",
             1,
@@ -66,16 +71,30 @@ class TestExecutionControllerTest {
             DEFAULT_DATE_TEST_EXECUTION,
             DEFAULT_DATE_TEST_EXECUTION
         )
+        val testExecutionDtoSecond = TestExecutionDto(
+            2,
+            "testFilePath",
+            1,
+            TestResultStatus.PASSED,
+            DEFAULT_DATE_TEST_EXECUTION,
+            DEFAULT_DATE_TEST_EXECUTION
+        )
+        val passedTestsBefore = agentRepository.findByIdOrNull(testExecutionDtoFirst.agentId)!!.execution.passedTests
+        val failedTestsBefore = agentRepository.findByIdOrNull(testExecutionDtoFirst.agentId)!!.execution.failedTests
         webClient.post()
             .uri("/saveTestResult")
             .contentType(MediaType.APPLICATION_JSON)
-            .body(BodyInserters.fromValue(listOf(testExecutionDto)))
+            .body(BodyInserters.fromValue(listOf(testExecutionDtoFirst, testExecutionDtoSecond)))
             .exchange()
             .expectBody<String>()
             .isEqualTo("Saved")
         val tests = testExecutionRepository.findAll()
-        assertTrue(tests.any { it.startTime == testExecutionDto.startTimeSeconds!!.toLocalDateTime().withNano(0) })
-        assertTrue(tests.any { it.endTime == testExecutionDto.endTimeSeconds!!.toLocalDateTime().withNano(0) })
+        val passedTestsAfter = agentRepository.findByIdOrNull(testExecutionDtoFirst.agentId)!!.execution.passedTests
+        val failedTestsAfter = agentRepository.findByIdOrNull(testExecutionDtoFirst.agentId)!!.execution.failedTests
+        assertTrue(tests.any { it.startTime == testExecutionDtoFirst.startTimeSeconds!!.toLocalDateTime().withNano(0) })
+        assertTrue(tests.any { it.endTime == testExecutionDtoFirst.endTimeSeconds!!.toLocalDateTime().withNano(0) })
+        Assertions.assertEquals(passedTestsBefore, passedTestsAfter - 1)
+        Assertions.assertEquals(failedTestsBefore, failedTestsAfter - 1)
     }
 
     @Test

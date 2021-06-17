@@ -53,6 +53,7 @@ import kotlinx.html.id
 import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
 import kotlinx.html.role
+import org.cqfn.save.frontend.utils.getProject
 
 /**
  * [RProps] retrieved from router
@@ -128,10 +129,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
 
     override fun componentDidMount() {
         GlobalScope.launch {
-            project = get("${window.location.origin}/getProject?name=${props.name}&owner=${props.owner}", Headers())
-                .json()
-                .await()
-                .unsafeCast<Project>()
+            project = getProject(props.name, props.owner)
             val jsonProject = JSON.stringify(project)
             val headers = Headers().also {
                 it.set("Accept", "application/json")

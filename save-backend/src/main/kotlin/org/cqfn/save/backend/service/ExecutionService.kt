@@ -2,6 +2,7 @@ package org.cqfn.save.backend.service
 
 import org.cqfn.save.backend.repository.ExecutionRepository
 import org.cqfn.save.entities.Execution
+import org.cqfn.save.entities.Project
 import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionUpdateDto
@@ -54,4 +55,7 @@ class ExecutionService(private val executionRepository: ExecutionRepository) {
         }
         return executionDto
     }
+
+    fun getExecutionDtoByProject(project: Project) = executionRepository
+        .getAllByProject(project)?.map { it.toDto()}
 }

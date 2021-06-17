@@ -48,11 +48,17 @@ class Execution(
     @Enumerated(EnumType.STRING)
     var type: ExecutionType,
 
-    var version: String
+    var version: String,
+
+    var passedTests: Long,
+
+    var failedTests: Long,
+
+    var skippedTests: Long,
 
 ) : BaseEntity() {
     /**
      * @return Execution dto
      */
-    fun toDto() = ExecutionDto(status, type, version)
+    fun toDto() = ExecutionDto(status, type, version, passedTests, failedTests, skippedTests)
 }

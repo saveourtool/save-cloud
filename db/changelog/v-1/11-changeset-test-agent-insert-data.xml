@@ -17,6 +17,9 @@
             <column name="batch_size" value="10" />
             <column name="type" value="GIT" />
             <column name="version" value="0.0.1" />
+            <column name="passed_tests" value="0" />
+            <column name="failed_tests" value="0" />
+            <column name="skipped_tests" value="0" />
         </insert>
         <insert dbms="mysql" tableName="execution">
             <column name="id" value="2" />
@@ -30,6 +33,9 @@
             <column name="batch_size" value="20" />
             <column name="type" value="GIT" />
             <column name="version" value="0.0.1" />
+            <column name="passed_tests" value="0" />
+            <column name="failed_tests" value="0" />
+            <column name="skipped_tests" value="0" />
         </insert>
     </changeSet>
 
