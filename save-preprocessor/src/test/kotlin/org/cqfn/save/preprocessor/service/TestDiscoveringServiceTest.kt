@@ -1,5 +1,6 @@
 package org.cqfn.save.preprocessor.service
 
+import org.cqfn.save.core.config.TestConfig
 import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.TestSuite
 import org.cqfn.save.preprocessor.config.ConfigProperties
@@ -17,6 +18,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Import
 import org.springframework.test.context.TestPropertySource
 import org.springframework.test.context.junit.jupiter.SpringExtension
+import java.io.File
 import java.nio.file.Files.createTempDirectory
 import java.nio.file.Path
 
@@ -28,6 +30,7 @@ import java.nio.file.Path
 class TestDiscoveringServiceTest {
     @Autowired private lateinit var testDiscoveringService: TestDiscoveringService
     private lateinit var tmpDir: Path
+    private lateinit var rootTestConfig: TestConfig
 
     @BeforeAll
     fun setUp() {
@@ -36,6 +39,7 @@ class TestDiscoveringServiceTest {
             .setURI("https://github.com/cqfn/save")
             .setDirectory(tmpDir.toFile())
             .call()
+        rootTestConfig = testDiscoveringService.getRootTestConfig(tmpDir.resolve("examples").toString())
     }
 
     @AfterAll
@@ -47,11 +51,13 @@ class TestDiscoveringServiceTest {
     fun `should discover test suites`() {
         val testSuites = testDiscoveringService.getAllTestSuites(
             Project("stub", "stub", "stub", null),
-            (tmpDir.resolve("examples")).toString(),
+            rootTestConfig,
             "examples/save.properties"
         )
 
-        Assertions.assertTrue(testSuites.isNotEmpty())  // fixme: check actual test suites when we properly use GeneralConfig in service
+        println("Discovered test suites: $testSuites")
+        Assertions.assertTrue(testSuites.isNotEmpty())
+        Assertions.assertEquals("\"DocsCheck\"", testSuites.first().name)
     }
 
     @Test
@@ -59,7 +65,7 @@ class TestDiscoveringServiceTest {
         assertThrows<IllegalArgumentException> {
             testDiscoveringService.getAllTestSuites(
                 Project("stub", "stub", "stub", null),
-                (tmpDir.resolve("buildSrc")).toString(),
+                testDiscoveringService.getRootTestConfig(tmpDir.resolve("buildSrc").toString()),
                 "examples/save.properties"
             )
         }
@@ -68,12 +74,16 @@ class TestDiscoveringServiceTest {
     @Test
     fun `should discover tests`() {
         val testDtos = testDiscoveringService.getAllTests(
-            tmpDir.resolve("examples").toString(),
+            rootTestConfig,
             listOf(
-                TestSuite(TestSuiteType.PROJECT, "stub", null, null, "examples/save.properties")
+                TestSuite(TestSuiteType.PROJECT, "\"DocsCheck\"", null, null, "examples/save.properties").apply {
+                    id = 1
+                }
             )
         )
 
-        Assertions.assertTrue(testDtos.isEmpty())  // fixme: check actual tests when the rest of the logic is implemented
+        println(testDtos)
+        Assertions.assertEquals(2, testDtos.size)
+        Assertions.assertEquals("MyTest.java", File(testDtos.first().filePath).name)
     }
 }

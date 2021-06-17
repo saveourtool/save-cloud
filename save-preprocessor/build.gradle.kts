@@ -11,6 +11,8 @@ dependencies {
     implementation(project(":save-cloud-common"))
     implementation("org.cqfn.save:save-common-jvm:${Versions.saveCore}")
     implementation("org.cqfn.save:save-core-jvm:${Versions.saveCore}")
+    implementation("org.cqfn.save:warn-plugin-jvm:${Versions.saveCore}")
+    implementation("org.cqfn.save:fix-plugin-jvm:${Versions.saveCore}")
     implementation("org.eclipse.jgit:org.eclipse.jgit:${Versions.jgit}")
     implementation("org.jetbrains.kotlin:kotlin-reflect:${Versions.kotlin}")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-properties:${Versions.serialization}")
