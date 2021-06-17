@@ -80,7 +80,7 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
                     when(testExecDto.status) {
                         TestResultStatus.PASSED -> execution.passedTests += 1
                         TestResultStatus.FAILED -> execution.failedTests += 1
-                        TestResultStatus.IGNORED -> execution.skippedTests += 1
+                        else -> execution.skippedTests += 1
                     }
                     testExecutionRepository.save(this)
                 }
