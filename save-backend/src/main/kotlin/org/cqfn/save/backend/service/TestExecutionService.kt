@@ -1,7 +1,11 @@
 package org.cqfn.save.backend.service
 
 import org.cqfn.save.agent.TestExecutionDto
-import org.cqfn.save.backend.repository.*
+import org.cqfn.save.backend.repository.AgentRepository
+import org.cqfn.save.backend.repository.TestExecutionRepository
+import org.cqfn.save.backend.repository.TestRepository
+import org.cqfn.save.backend.repository.TestSuiteRepository
+import org.cqfn.save.backend.repository.ExecutionRepository
 import org.cqfn.save.backend.utils.toLocalDateTime
 import org.cqfn.save.domain.TestResultStatus
 import org.cqfn.save.entities.TestExecution
