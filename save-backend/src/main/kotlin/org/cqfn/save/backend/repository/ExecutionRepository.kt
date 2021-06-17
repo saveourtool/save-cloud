@@ -9,5 +9,9 @@ import org.springframework.stereotype.Repository
  */
 @Repository
 interface ExecutionRepository : BaseEntityRepository<Execution> {
+    /**
+     * @param project
+     * @return list of executions
+     */
     fun getAllByProject(project: Project): List<Execution>?
 }

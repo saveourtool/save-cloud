@@ -4,13 +4,12 @@
 
 package org.cqfn.save.frontend.components.views
 
-import kotlinx.browser.window
-import kotlinx.coroutines.await
 import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.frontend.components.tables.tableComponent
 import org.cqfn.save.frontend.utils.getProject
 import org.cqfn.save.frontend.utils.post
 import org.cqfn.save.frontend.utils.unsafeMap
+
 import org.w3c.fetch.Headers
 import react.RBuilder
 import react.RComponent
@@ -19,6 +18,9 @@ import react.RState
 import react.child
 import react.dom.td
 import react.table.columns
+
+import kotlinx.browser.window
+import kotlinx.coroutines.await
 
 /**
  * [RProps] for tests execution history
@@ -39,7 +41,6 @@ external interface HistoryProps : RProps {
  * A table to display execution results for a certain project.
  */
 class HistoryView : RComponent<HistoryProps, RState>() {
-
     @Suppress("TOO_LONG_FUNCTION", "ForbiddenComment")
     override fun RBuilder.render() {
         child(tableComponent(

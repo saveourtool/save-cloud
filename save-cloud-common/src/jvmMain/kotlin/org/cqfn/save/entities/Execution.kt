@@ -21,6 +21,9 @@ import javax.persistence.ManyToOne
  * @property batchSize Maximum number of returning tests per execution
  * @property type
  * @property version
+ * @property passedTests
+ * @property failedTests
+ * @property skippedTests
  */
 @Suppress("USE_DATA_CLASS", "LongParameterList")
 @Entity

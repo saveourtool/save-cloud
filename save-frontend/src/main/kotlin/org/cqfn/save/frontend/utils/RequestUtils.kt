@@ -4,13 +4,14 @@
 
 package org.cqfn.save.frontend.utils
 
+import org.cqfn.save.entities.Project
+
 import org.w3c.fetch.Headers
 import org.w3c.fetch.RequestInit
 import org.w3c.fetch.Response
 
 import kotlinx.browser.window
 import kotlinx.coroutines.await
-import org.cqfn.save.entities.Project
 
 /**
  * Perform a mapping operation on a [Response] if it's status is OK or throw an exception otherwise.
@@ -67,8 +68,12 @@ suspend fun request(url: String,
 )
     .await()
 
+/**
+ * @param name
+ * @param owner
+ */
 suspend fun getProject(name: String, owner: String) =
-    get("${window.location.origin}/getProject?name=${name}&owner=${owner}", Headers())
-        .json()
-        .await()
-        .unsafeCast<Project>()
+        get("${window.location.origin}/getProject?name=$name&owner=$owner", Headers())
+            .json()
+            .await()
+            .unsafeCast<Project>()

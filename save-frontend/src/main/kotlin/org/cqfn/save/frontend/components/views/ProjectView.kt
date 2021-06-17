@@ -11,6 +11,7 @@ import org.cqfn.save.entities.Project
 import org.cqfn.save.frontend.components.basic.cardComponent
 import org.cqfn.save.frontend.externals.modal.modal
 import org.cqfn.save.frontend.utils.get
+import org.cqfn.save.frontend.utils.getProject
 import org.cqfn.save.frontend.utils.post
 
 import org.w3c.dom.HTMLInputElement
@@ -53,7 +54,6 @@ import kotlinx.html.id
 import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
 import kotlinx.html.role
-import org.cqfn.save.frontend.utils.getProject
 
 /**
  * [RProps] retrieved from router

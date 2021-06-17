@@ -56,6 +56,10 @@ class ExecutionService(private val executionRepository: ExecutionRepository) {
         return executionDto
     }
 
+    /**
+     * @param project
+     * @return list of execution dtos
+     */
     fun getExecutionDtoByProject(project: Project) = executionRepository
-        .getAllByProject(project)?.map { it.toDto()}
+        .getAllByProject(project)?.map { it.toDto() }
 }

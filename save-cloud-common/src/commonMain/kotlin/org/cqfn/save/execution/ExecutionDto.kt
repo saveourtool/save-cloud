@@ -6,6 +6,9 @@ import kotlinx.serialization.Serializable
  * @property version
  * @property status
  * @property type
+ * @property passedTests
+ * @property failedTests
+ * @property skippedTests
  */
 @Serializable
 class ExecutionDto(

@@ -2,10 +2,10 @@ package org.cqfn.save.backend.service
 
 import org.cqfn.save.agent.TestExecutionDto
 import org.cqfn.save.backend.repository.AgentRepository
+import org.cqfn.save.backend.repository.ExecutionRepository
 import org.cqfn.save.backend.repository.TestExecutionRepository
 import org.cqfn.save.backend.repository.TestRepository
 import org.cqfn.save.backend.repository.TestSuiteRepository
-import org.cqfn.save.backend.repository.ExecutionRepository
 import org.cqfn.save.backend.utils.toLocalDateTime
 import org.cqfn.save.domain.TestResultStatus
 import org.cqfn.save.entities.TestExecution
@@ -35,7 +35,6 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
     @Autowired
     private lateinit var executionRepository: ExecutionRepository
 
-
     /**
      * Returns a page of [TestExecution]s with [executionId]
      *
@@ -61,10 +60,11 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
      * @param testExecutionsDtos
      * @return list of lost tests
      */
+    @Suppress("TOO_MANY_LINES_IN_LAMBDA")
     fun saveTestResult(testExecutionsDtos: List<TestExecutionDto>): List<TestExecutionDto> {
         val lostTests: MutableList<TestExecutionDto> = mutableListOf()
         val execution = agentRepository
-            .findByIdOrNull(testExecutionsDtos.first().agentId) // we take agent id only from first element, because all test executions have same execution
+            .findByIdOrNull(testExecutionsDtos.first().agentId)  // we take agent id only from first element, because all test executions have same execution
             ?.execution
             ?: run {
                 log.error("Agent with id=[${testExecutionsDtos.first().agentId}] was not found in the DB")
@@ -77,7 +77,7 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
                     this.startTime = testExecDto.startTimeSeconds?.toLocalDateTime()
                     this.endTime = testExecDto.endTimeSeconds?.toLocalDateTime()
                     this.status = testExecDto.status
-                    when(testExecDto.status) {
+                    when (testExecDto.status) {
                         TestResultStatus.PASSED -> execution.passedTests += 1
                         TestResultStatus.FAILED -> execution.failedTests += 1
                         else -> execution.skippedTests += 1
