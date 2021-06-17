@@ -180,6 +180,7 @@ class ExecutionControllerTest {
     @Test
     fun checkExecutionDtoByProject() {
         val project = projectRepository.findById(1).get()
+        val executionCounts = executionRepository.findAll().filter { it.project == project }.count()
         webClient.post()
             .uri("/executionDtoByProject")
             .contentType(MediaType.APPLICATION_JSON)
@@ -190,7 +191,7 @@ class ExecutionControllerTest {
             .expectBody<List<ExecutionDto>>()
             .consumeWith {
                 requireNotNull(it.responseBody)
-                assertEquals(1, it.responseBody!!.size)
+                assertEquals(executionCounts, it.responseBody!!.size)
             }
     }
 }
