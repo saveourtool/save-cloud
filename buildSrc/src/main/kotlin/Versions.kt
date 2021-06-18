@@ -13,7 +13,7 @@ object Versions {
     const val saveCore = "0.1.0-SNAPSHOT"
 
     // microservices
-    const val springBoot = "2.5.0"
+    const val springBoot = "2.5.1"
     const val reactor = "1.1.3"
     const val springSecurity = "5.5.0"
     const val slf4j = "1.7.30"

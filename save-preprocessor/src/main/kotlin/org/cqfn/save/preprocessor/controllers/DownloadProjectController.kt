@@ -43,6 +43,7 @@ import org.springframework.web.reactive.function.client.toEntity
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
+// for these imports we need to suppress UNUSED_IMPORT until https://github.com/cqfn/diKTat/issues/837
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
 
