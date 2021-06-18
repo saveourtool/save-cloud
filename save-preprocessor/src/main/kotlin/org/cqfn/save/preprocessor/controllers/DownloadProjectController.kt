@@ -1,3 +1,5 @@
+@file:Suppress("UNUSED_IMPORT")
+
 package org.cqfn.save.preprocessor.controllers
 
 import org.cqfn.save.core.config.SaveProperties
@@ -41,6 +43,8 @@ import org.springframework.web.reactive.function.client.toEntity
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
+import reactor.kotlin.core.util.function.component1
+import reactor.kotlin.core.util.function.component2
 
 import java.io.File
 import java.time.LocalDateTime
