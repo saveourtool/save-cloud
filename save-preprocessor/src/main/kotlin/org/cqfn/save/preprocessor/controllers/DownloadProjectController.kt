@@ -95,9 +95,9 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
                 Mono.zip(
                     propertyFile.flatMapMany { it.content() }.collectList(),
                     binaryFile.flatMapMany { it.content() }.collectList()
-                ).map { tupleContent ->
-                    tupleContent.t1.map { dtBuffer -> propFile.outputStream().use { dtBuffer.asInputStream().copyTo(it) } }
-                    tupleContent.t2.map { dtBuffer -> binFile.outputStream().use { dtBuffer.asInputStream().copyTo(it) } }
+                ).map { (propertyFileContent, binaryFileContent) ->
+                    propertyFileContent.map { dtBuffer -> propFile.outputStream().use { dtBuffer.asInputStream().copyTo(it) } }
+                    binaryFileContent.map { dtBuffer -> binFile.outputStream().use { dtBuffer.asInputStream().copyTo(it) } }
                     saveBinaryFile(executionRequestForStandardSuites, propFile, binFile)
                 }
             }
@@ -213,16 +213,17 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
         webClientBackend.makeRequest(BodyInserters.fromValue(execution), "/createExecution") { it.bodyToMono<Long>() }
             .flatMap { executionId ->
                 Mono.fromCallable {
-                    getTestResourcesRootAbsolutePath(propertiesRelativePath, projectRootRelativePath)
+                    val testResourcesRootAbsolutePath = getTestResourcesRootAbsolutePath(propertiesRelativePath, projectRootRelativePath)
+                    testDiscoveringService.getRootTestConfig(testResourcesRootAbsolutePath)
                 }
-                    .flatMap { testResourcesRootAbsolutePath ->
-                        val rootTestConfig = testDiscoveringService.getRootTestConfig(testResourcesRootAbsolutePath)
+                    .log()
+                    .zipWhen { rootTestConfig ->
                         discoverAndSaveTestSuites(project, rootTestConfig, propertiesRelativePath)
-                            .flatMap { testSuites ->
-                                initializeTests(testSuites, rootTestConfig, executionId)
-                            }
-                            .then(initializeAgents(execution, executionId))
                     }
+                    .flatMap { (rootTestConfig, testSuites) ->
+                        initializeTests(testSuites, rootTestConfig, executionId)
+                    }
+                    .then(initializeAgents(execution, executionId))
                     .onErrorResume { ex ->
                         log.error("Error during resources discovering, will mark execution.id=$executionId as failed; error: ", ex)
                         webClientBackend.makeRequest(

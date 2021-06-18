@@ -14,6 +14,7 @@ import org.cqfn.save.testsuite.TestSuiteType
 import com.fasterxml.jackson.databind.ObjectMapper
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
+import okhttp3.mockwebserver.QueueDispatcher
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
@@ -21,6 +22,10 @@ import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.times
+import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
 import org.springframework.boot.test.mock.mockito.MockBean
@@ -58,10 +63,11 @@ class DownloadProjectTest(
     @BeforeEach
     fun webClientSetUp() {
         webClient.mutate().responseTimeout(Duration.ofSeconds(2)).build()
+        whenever(testDiscoveringService.getRootTestConfig(any())).thenReturn(mock())
     }
 
     @BeforeAll
-    fun createBinFileAndProperties() {
+    fun setUp() {
         File(binFolder).mkdir()
         File(propertyPath).createNewFile()
         File(binFilePath).createNewFile()
@@ -95,12 +101,14 @@ class DownloadProjectTest(
         }
         val validRepo = GitDto("https://github.com/cqfn/save.git")
         val request = ExecutionRequest(project, validRepo, "examples/save.properties")
+        // /createExecution
         mockServerBackend.enqueue(
             MockResponse()
                 .setResponseCode(200)
                 .setHeader("Content-Type", "application/json")
                 .setBody("42"),
         )
+        // /saveTestSuites
         mockServerBackend.enqueue(
             MockResponse()
                 .setResponseCode(200)
@@ -111,10 +119,12 @@ class DownloadProjectTest(
                     )
                 )),
         )
+        // /initializeTests?executionId=$executionId
         mockServerBackend.enqueue(
             MockResponse()
                 .setResponseCode(200)
         )
+        // /initializeAgents
         mockServerOrchestrator.enqueue(
             MockResponse()
                 .setResponseCode(200)
@@ -230,8 +240,10 @@ class DownloadProjectTest(
         @JvmStatic
         fun properties(registry: DynamicPropertyRegistry) {
             mockServerBackend = MockWebServer()
+            (mockServerBackend.dispatcher as QueueDispatcher).setFailFast(true)
             mockServerBackend.start()
             mockServerOrchestrator = MockWebServer()
+            (mockServerOrchestrator.dispatcher as QueueDispatcher).setFailFast(true)
             mockServerOrchestrator.start()
             registry.add("save.backend") { "http://localhost:${mockServerBackend.port}" }
             registry.add("save.orchestrator") { "http://localhost:${mockServerOrchestrator.port}" }
