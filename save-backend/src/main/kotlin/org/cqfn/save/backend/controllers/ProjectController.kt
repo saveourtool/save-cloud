@@ -34,7 +34,7 @@ class ProjectController {
     /**
      * @param name name of project
      * @param owner owner of project
-     * @return
+     * @return project by name and owner
      */
     @GetMapping("/getProject")
     fun geProjectByNameAndOwner(@RequestParam name: String, @RequestParam owner: String) =
