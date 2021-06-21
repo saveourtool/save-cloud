@@ -11,6 +11,7 @@ import kotlinx.serialization.Serializable
  * @property skippedTests
  */
 @Serializable
+@Suppress("LongParameterList")
 class ExecutionDto(
     val status: ExecutionStatus,
     val type: ExecutionType,
