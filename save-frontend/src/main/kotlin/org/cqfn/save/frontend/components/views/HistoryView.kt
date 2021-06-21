@@ -4,10 +4,9 @@
 
 package org.cqfn.save.frontend.components.views
 
+import kotlinx.browser.window
 import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.frontend.components.tables.tableComponent
-import org.cqfn.save.frontend.utils.getProject
-import org.cqfn.save.frontend.utils.post
 import org.cqfn.save.frontend.utils.unsafeMap
 
 import org.w3c.fetch.Headers
@@ -19,8 +18,8 @@ import react.child
 import react.dom.td
 import react.table.columns
 
-import kotlinx.browser.window
 import kotlinx.coroutines.await
+import org.cqfn.save.frontend.utils.get
 
 /**
  * [RProps] for tests execution history
@@ -55,6 +54,11 @@ class HistoryView : RComponent<HistoryProps, RState>() {
                         +"${it.value.status}"
                     }
                 }
+                column("date", "Date") {
+                    td {
+                        +(it.value.endTime ?: "RUNNING")
+                    }
+                }
                 column("passed", "Passed") {
                     td {
                         +"${it.value.passedTests}"
@@ -73,13 +77,12 @@ class HistoryView : RComponent<HistoryProps, RState>() {
             }
         ) { _, _ ->
 
-            post(
-                url = "${window.location.origin}/executionDtoByProject",
+            get(
+                url = "${window.location.origin}/executionDtoByNameAndOwner?name=${props.name}&owner=${props.owner}",
                 headers = Headers().also {
                     it.set("Accept", "application/json")
                     it.set("Content-Type", "application/json")
                 },
-                body = JSON.stringify(getProject(props.name, props.owner))
             )
                 .unsafeMap {
                     it.json()

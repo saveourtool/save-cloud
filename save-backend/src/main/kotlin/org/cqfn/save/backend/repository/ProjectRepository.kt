@@ -15,5 +15,5 @@ interface ProjectRepository : JpaRepository<Project, Long>, QueryByExampleExecut
      * @param owner
      * @return project by name and owner
      */
-    fun findByNameAndOwner(name: String, owner: String): Project
+    fun findByNameAndOwner(name: String, owner: String): Project?
 }

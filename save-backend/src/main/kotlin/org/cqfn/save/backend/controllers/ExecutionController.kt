@@ -8,6 +8,7 @@ import org.cqfn.save.execution.ExecutionUpdateDto
 
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -48,9 +49,10 @@ class ExecutionController(private val executionService: ExecutionService) {
      * @param project
      * @return list of execution dtos
      */
-    @PostMapping("/executionDtoByProject")
-    fun getExecutionByProject(@RequestBody project: Project): ExecutionDtoListResponse =
-            executionService.getExecutionDtoByProject(project)?.let {
+    @GetMapping("/executionDtoByNameAndOwner")
+    @Transactional
+    fun getExecutionByProject(@RequestParam name: String, @RequestParam owner: String): ExecutionDtoListResponse =
+            executionService.getExecutionDtoByNameAndOwner(name, owner)?.let {
                 ResponseEntity.status(HttpStatus.OK).body(it)
             } ?: ResponseEntity.status(HttpStatus.NOT_FOUND).build()
 }

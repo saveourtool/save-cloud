@@ -4,11 +4,14 @@ import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionType
 import java.time.LocalDateTime
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
+import java.time.temporal.TemporalQueries.localDate
+import javax.persistence.*
 import javax.persistence.Entity
-import javax.persistence.EnumType
-import javax.persistence.Enumerated
 import javax.persistence.JoinColumn
 import javax.persistence.ManyToOne
+
 
 /**
  * @property project
@@ -35,7 +38,7 @@ class Execution(
 
     var startTime: LocalDateTime,
 
-    var endTime: LocalDateTime,
+    var endTime: LocalDateTime?,
 
     @Enumerated(EnumType.STRING)
     var status: ExecutionStatus,
@@ -63,5 +66,5 @@ class Execution(
     /**
      * @return Execution dto
      */
-    fun toDto() = ExecutionDto(status, type, version, passedTests, failedTests, skippedTests)
+    fun toDto() = ExecutionDto(status, type, version, endTime?.format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss")), passedTests, failedTests, skippedTests)
 }

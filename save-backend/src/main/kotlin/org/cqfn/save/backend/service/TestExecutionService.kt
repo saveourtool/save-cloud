@@ -67,23 +67,21 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
             .findByIdOrNull(testExecutionsDtos.first().agentId)  // we take agent id only from first element, because all test executions have same execution
             ?.execution
             ?: run {
-                log.error("Agent with id=[${testExecutionsDtos.first().agentId}] was not found in the DB")
+                log.error("Agent with id=[${testExecutionsDtos.first().agentId}] was not found in the DB or doesn't have valid execution")
                 return lostTests
             }
         testExecutionsDtos.forEach { testExecDto ->
             val foundTestExec = testExecutionRepository.findById(testExecDto.id)
             foundTestExec.ifPresentOrElse({
-                it.run {
-                    this.startTime = testExecDto.startTimeSeconds?.toLocalDateTime()
-                    this.endTime = testExecDto.endTimeSeconds?.toLocalDateTime()
-                    this.status = testExecDto.status
-                    when (testExecDto.status) {
-                        TestResultStatus.PASSED -> execution.passedTests += 1
-                        TestResultStatus.FAILED -> execution.failedTests += 1
-                        else -> execution.skippedTests += 1
-                    }
-                    testExecutionRepository.save(this)
+                it.startTime = testExecDto.startTimeSeconds?.toLocalDateTime()
+                it.endTime = testExecDto.endTimeSeconds?.toLocalDateTime()
+                it.status = testExecDto.status
+                when (testExecDto.status) {
+                    TestResultStatus.PASSED -> execution.passedTests += 1
+                    TestResultStatus.FAILED -> execution.failedTests += 1
+                    else -> execution.skippedTests += 1
                 }
+                testExecutionRepository.save(it)
             },
                 {
                     lostTests.add(testExecDto)
