@@ -4,6 +4,7 @@ import org.cqfn.save.agent.TestExecutionDto
 import org.cqfn.save.backend.SaveApplication
 import org.cqfn.save.backend.repository.AgentRepository
 import org.cqfn.save.backend.repository.TestExecutionRepository
+import org.cqfn.save.backend.utils.MySqlExtension
 import org.cqfn.save.backend.utils.toLocalDateTime
 import org.cqfn.save.domain.TestResultStatus
 
@@ -11,6 +12,7 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.boot.test.context.SpringBootTest
