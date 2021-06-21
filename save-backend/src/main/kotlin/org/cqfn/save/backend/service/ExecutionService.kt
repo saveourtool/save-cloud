@@ -18,11 +18,10 @@ import java.time.LocalDateTime
  */
 @Service
 class ExecutionService(private val executionRepository: ExecutionRepository) {
+    private val log = LoggerFactory.getLogger(ExecutionService::class.java)
 
     @Autowired
     private lateinit var projectRepository: ProjectRepository
-
-    private val log = LoggerFactory.getLogger(ExecutionService::class.java)
 
     /**
      * @param execution
@@ -62,7 +61,8 @@ class ExecutionService(private val executionRepository: ExecutionRepository) {
     }
 
     /**
-     * @param project
+     * @param name name of project
+     * @param owner owner of project
      * @return list of execution dtos
      */
     fun getExecutionDtoByNameAndOwner(name: String, owner: String) =

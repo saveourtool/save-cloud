@@ -45,7 +45,8 @@ class ExecutionController(private val executionService: ExecutionService) {
             } ?: ResponseEntity.status(HttpStatus.NOT_FOUND).build()
 
     /**
-     * @param project
+     * @param name
+     * @param owner
      * @return list of execution dtos
      */
     @GetMapping("/executionDtoByNameAndOwner")

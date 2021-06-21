@@ -94,7 +94,7 @@ class DownloadProjectTest(
             id = 42L
         }
         val validRepo = GitDto("https://github.com/cqfn/save.git")
-        val request = ExecutionRequest(project, validRepo, "examples/save.properties")
+        val request = ExecutionRequest(project, validRepo, "examples/discovery-test/save.properties")
         mockServerBackend.enqueue(
             MockResponse()
                 .setResponseCode(200)

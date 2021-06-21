@@ -37,8 +37,8 @@ class TestExecutionControllerTest {
 
     @Autowired
     private lateinit var agentRepository: AgentRepository
-
     private lateinit var transactionTemplate: TransactionTemplate
+
     @Autowired
     private lateinit var transactionManager: PlatformTransactionManager
 
@@ -142,10 +142,11 @@ class TestExecutionControllerTest {
     @Suppress("UnsafeCallOnNullableType")
     private fun getExecutionsTestsResultByAgentId(id: Long, isPassed: Boolean) =
             transactionTemplate.execute {
-                if (isPassed)
+                if (isPassed) {
                     agentRepository.findByIdOrNull(id)!!.execution.passedTests
-                else
+                } else {
                     agentRepository.findByIdOrNull(id)!!.execution.failedTests
+                }
             }!!
 
     companion object {

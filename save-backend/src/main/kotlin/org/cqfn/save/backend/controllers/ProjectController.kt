@@ -32,8 +32,9 @@ class ProjectController {
     fun getProjects() = projectService.getProjects()
 
     /**
-     * @param name
-     * @param owner
+     * @param name name of project
+     * @param owner owner of project
+     * @return
      */
     @GetMapping("/getProject")
     fun geProjectByNameAndOwner(@RequestParam name: String, @RequestParam owner: String) =

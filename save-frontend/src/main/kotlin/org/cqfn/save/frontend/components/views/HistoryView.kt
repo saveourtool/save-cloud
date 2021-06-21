@@ -4,9 +4,9 @@
 
 package org.cqfn.save.frontend.components.views
 
-import kotlinx.browser.window
 import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.frontend.components.tables.tableComponent
+import org.cqfn.save.frontend.utils.get
 import org.cqfn.save.frontend.utils.unsafeMap
 
 import org.w3c.fetch.Headers
@@ -18,8 +18,8 @@ import react.child
 import react.dom.td
 import react.table.columns
 
+import kotlinx.browser.window
 import kotlinx.coroutines.await
-import org.cqfn.save.frontend.utils.get
 
 /**
  * [RProps] for tests execution history

@@ -47,8 +47,8 @@ class TestDiscoveringServiceTest {
     fun `should discover test suites`() {
         val testSuites = testDiscoveringService.getAllTestSuites(
             Project("stub", "stub", "stub", null),
-            (tmpDir.resolve("examples")).toString(),
-            "examples/save.properties"
+            (tmpDir.resolve("examples/discovery-test")).toString(),
+            "examples/discovery-test/save.properties"
         )
 
         Assertions.assertTrue(testSuites.isNotEmpty())  // fixme: check actual test suites when we properly use GeneralConfig in service
@@ -68,9 +68,9 @@ class TestDiscoveringServiceTest {
     @Test
     fun `should discover tests`() {
         val testDtos = testDiscoveringService.getAllTests(
-            tmpDir.resolve("examples").toString(),
+            tmpDir.resolve("examples/discovery-test").toString(),
             listOf(
-                TestSuite(TestSuiteType.PROJECT, "stub", null, null, "examples/save.properties")
+                TestSuite(TestSuiteType.PROJECT, "stub", null, null, "examples/discovery-test/save.properties")
             )
         )
 
