@@ -4,14 +4,13 @@ import org.cqfn.save.agent.TestExecutionDto
 import org.cqfn.save.backend.SaveApplication
 import org.cqfn.save.backend.repository.AgentRepository
 import org.cqfn.save.backend.repository.TestExecutionRepository
-import org.cqfn.save.backend.utils.MySqlExtension
 import org.cqfn.save.backend.utils.toLocalDateTime
 import org.cqfn.save.domain.TestResultStatus
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.boot.test.context.SpringBootTest
@@ -20,7 +19,8 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
-import org.springframework.transaction.annotation.Transactional
+import org.springframework.transaction.PlatformTransactionManager
+import org.springframework.transaction.support.TransactionTemplate
 import org.springframework.web.reactive.function.BodyInserters
 
 @SpringBootTest(classes = [SaveApplication::class])
@@ -35,6 +35,15 @@ class TestExecutionControllerTest {
 
     @Autowired
     private lateinit var agentRepository: AgentRepository
+
+    private lateinit var transactionTemplate: TransactionTemplate
+    @Autowired
+    private lateinit var transactionManager: PlatformTransactionManager
+
+    @BeforeEach
+    fun setUp() {
+        transactionTemplate = TransactionTemplate(transactionManager)
+    }
 
     @Test
     fun `should count TestExecutions for a particular Execution`() {
@@ -62,7 +71,6 @@ class TestExecutionControllerTest {
      * that check data read.
      */
     @Test
-    @Transactional
     @Suppress("UnsafeCallOnNullableType")
     fun `should save TestExecutionDto into the DB`() {
         val testExecutionDtoFirst = TestExecutionDto(
@@ -81,8 +89,8 @@ class TestExecutionControllerTest {
             DEFAULT_DATE_TEST_EXECUTION,
             DEFAULT_DATE_TEST_EXECUTION
         )
-        val passedTestsBefore = agentRepository.findByIdOrNull(testExecutionDtoSecond.agentId)!!.execution.passedTests
-        val failedTestsBefore = agentRepository.findByIdOrNull(testExecutionDtoFirst.agentId)!!.execution.failedTests
+        val passedTestsBefore = getExecutionsTestsResultByAgentId(testExecutionDtoSecond.agentId!!, true)
+        val failedTestsBefore = getExecutionsTestsResultByAgentId(testExecutionDtoFirst.agentId!!, false)
         webClient.post()
             .uri("/saveTestResult")
             .contentType(MediaType.APPLICATION_JSON)
@@ -90,9 +98,9 @@ class TestExecutionControllerTest {
             .exchange()
             .expectBody<String>()
             .isEqualTo("Saved")
-        val tests = testExecutionRepository.findAll()
-        val passedTestsAfter = agentRepository.findByIdOrNull(testExecutionDtoSecond.agentId)!!.execution.passedTests
-        val failedTestsAfter = agentRepository.findByIdOrNull(testExecutionDtoFirst.agentId)!!.execution.failedTests
+        val tests = getAllTestExecutions()
+        val passedTestsAfter = getExecutionsTestsResultByAgentId(testExecutionDtoSecond.agentId!!, true)
+        val failedTestsAfter = getExecutionsTestsResultByAgentId(testExecutionDtoFirst.agentId!!, false)
         assertTrue(tests.any { it.startTime == testExecutionDtoFirst.startTimeSeconds!!.toLocalDateTime().withNano(0) })
         assertTrue(tests.any { it.endTime == testExecutionDtoFirst.endTimeSeconds!!.toLocalDateTime().withNano(0) })
         Assertions.assertEquals(passedTestsBefore, passedTestsAfter - 1)
@@ -122,6 +130,19 @@ class TestExecutionControllerTest {
         val testExecutions = testExecutionRepository.findAll()
         assertTrue(testExecutions.none { it.id == invalidId })
     }
+
+    private fun getAllTestExecutions() =
+            transactionTemplate.execute {
+                testExecutionRepository.findAll()
+            }!!
+
+    private fun getExecutionsTestsResultByAgentId(id: Long, isPassed: Boolean) =
+            transactionTemplate.execute {
+                if (isPassed)
+                    agentRepository.findByIdOrNull(id)!!.execution.passedTests
+                else
+                    agentRepository.findByIdOrNull(id)!!.execution.failedTests
+            }!!
 
     companion object {
         private const val DEFAULT_DATE_TEST_EXECUTION = 1L
