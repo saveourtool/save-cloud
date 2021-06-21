@@ -133,11 +133,13 @@ class TestExecutionControllerTest {
         assertTrue(testExecutions.none { it.id == invalidId })
     }
 
+    @Suppress("UnsafeCallOnNullableType")
     private fun getAllTestExecutions() =
             transactionTemplate.execute {
                 testExecutionRepository.findAll()
             }!!
 
+    @Suppress("UnsafeCallOnNullableType")
     private fun getExecutionsTestsResultByAgentId(id: Long, isPassed: Boolean) =
             transactionTemplate.execute {
                 if (isPassed)
