@@ -179,10 +179,8 @@ class ExecutionControllerTest {
     fun checkExecutionDtoByProject() {
         val project = projectRepository.findById(1).get()
         val executionCounts = executionRepository.findAll().filter { it.project == project }.count()
-        webClient.post()
-            .uri("/executionDtoByProject")
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(BodyInserters.fromValue(project))
+        webClient.get()
+            .uri("/executionDtoByNameAndOwner?name=${project.name}&owner=${project.owner}")
             .exchange()
             .expectStatus()
             .isOk

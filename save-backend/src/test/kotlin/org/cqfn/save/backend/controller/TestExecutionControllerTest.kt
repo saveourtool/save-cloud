@@ -20,6 +20,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
+import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.reactive.function.BodyInserters
 
 @SpringBootTest(classes = [SaveApplication::class])
@@ -61,10 +62,11 @@ class TestExecutionControllerTest {
      * that check data read.
      */
     @Test
+    @Transactional
     @Suppress("UnsafeCallOnNullableType")
     fun `should save TestExecutionDto into the DB`() {
         val testExecutionDtoFirst = TestExecutionDto(
-            2,
+            1,
             "testFilePath",
             1,
             TestResultStatus.FAILED,
@@ -79,7 +81,7 @@ class TestExecutionControllerTest {
             DEFAULT_DATE_TEST_EXECUTION,
             DEFAULT_DATE_TEST_EXECUTION
         )
-        val passedTestsBefore = agentRepository.findByIdOrNull(testExecutionDtoFirst.agentId)!!.execution.passedTests
+        val passedTestsBefore = agentRepository.findByIdOrNull(testExecutionDtoSecond.agentId)!!.execution.passedTests
         val failedTestsBefore = agentRepository.findByIdOrNull(testExecutionDtoFirst.agentId)!!.execution.failedTests
         webClient.post()
             .uri("/saveTestResult")
@@ -89,7 +91,7 @@ class TestExecutionControllerTest {
             .expectBody<String>()
             .isEqualTo("Saved")
         val tests = testExecutionRepository.findAll()
-        val passedTestsAfter = agentRepository.findByIdOrNull(testExecutionDtoFirst.agentId)!!.execution.passedTests
+        val passedTestsAfter = agentRepository.findByIdOrNull(testExecutionDtoSecond.agentId)!!.execution.passedTests
         val failedTestsAfter = agentRepository.findByIdOrNull(testExecutionDtoFirst.agentId)!!.execution.failedTests
         assertTrue(tests.any { it.startTime == testExecutionDtoFirst.startTimeSeconds!!.toLocalDateTime().withNano(0) })
         assertTrue(tests.any { it.endTime == testExecutionDtoFirst.endTimeSeconds!!.toLocalDateTime().withNano(0) })
