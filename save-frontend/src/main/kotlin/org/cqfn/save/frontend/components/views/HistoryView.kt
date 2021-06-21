@@ -78,7 +78,7 @@ class HistoryView : RComponent<HistoryProps, RState>() {
         ) { _, _ ->
 
             get(
-                url = "${window.location.origin}/executionDtoByNameAndOwner?name=${props.name}&owner=${props.owner}",
+                url = "${window.location.origin}/executionDtoList?name=${props.name}&owner=${props.owner}",
                 headers = Headers().also {
                     it.set("Accept", "application/json")
                     it.set("Content-Type", "application/json")

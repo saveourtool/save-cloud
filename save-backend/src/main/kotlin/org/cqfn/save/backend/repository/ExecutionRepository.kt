@@ -1,7 +1,6 @@
 package org.cqfn.save.backend.repository
 
 import org.cqfn.save.entities.Execution
-import org.cqfn.save.entities.Project
 import org.springframework.stereotype.Repository
 
 /**
@@ -10,8 +9,9 @@ import org.springframework.stereotype.Repository
 @Repository
 interface ExecutionRepository : BaseEntityRepository<Execution> {
     /**
-     * @param project
+     * @param name name of project
+     * @param owner owner of project
      * @return list of executions
      */
-    fun getAllByProject(project: Project): List<Execution>
+    fun getAllByProjectNameAndProjectOwner(name: String, owner: String): List<Execution>
 }

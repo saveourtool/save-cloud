@@ -49,12 +49,12 @@ class ExecutionController(private val executionService: ExecutionService) {
      * @param owner
      * @return list of execution dtos
      */
-    @GetMapping("/executionDtoByNameAndOwner")
+    @GetMapping("/executionDtoList")
     @Transactional
     fun getExecutionByProject(@RequestParam name: String, @RequestParam owner: String): ExecutionDtoListResponse =
-            executionService.getExecutionDtoByNameAndOwner(name, owner)?.let {
-                ResponseEntity.status(HttpStatus.OK).body(it)
-            } ?: ResponseEntity.status(HttpStatus.NOT_FOUND).build()
+            ResponseEntity
+                .status(HttpStatus.OK)
+                .body(executionService.getExecutionDtoByNameAndOwner(name, owner))
 }
 
 typealias ExecutionDtoListResponse = ResponseEntity<List<ExecutionDto>>

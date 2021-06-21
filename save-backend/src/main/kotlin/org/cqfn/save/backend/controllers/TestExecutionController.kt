@@ -49,7 +49,6 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
      * @return response
      */
     @PostMapping(value = ["/saveTestResult"])
-    @Transactional
     fun saveTestResult(@RequestBody testExecutionsDto: List<TestExecutionDto>) = try {
         if (testExecutionService.saveTestResult(testExecutionsDto).isEmpty()) {
             ResponseEntity.status(HttpStatus.OK).body("Saved")

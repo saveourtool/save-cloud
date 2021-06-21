@@ -66,7 +66,5 @@ class ExecutionService(private val executionRepository: ExecutionRepository) {
      * @return list of execution dtos
      */
     fun getExecutionDtoByNameAndOwner(name: String, owner: String) =
-            projectRepository.findByNameAndOwner(name, owner)?.let { project ->
-                executionRepository.getAllByProject(project).map { it.toDto() }
-            }
+            executionRepository.getAllByProjectNameAndProjectOwner(name, owner).map { it.toDto() }
 }
