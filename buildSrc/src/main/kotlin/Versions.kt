@@ -23,7 +23,7 @@ object Versions {
     // database
     const val jpa = "1.0.2"
     const val hibernate = "5.4.2.Final"
-    const val liquibase = "4.4.0"
+    const val liquibase = "4.3.5"
     const val mySql = "8.0.20"
     const val liquibaseGradlePlugin = "2.0.4"
     const val testcontainers = "1.15.3"
