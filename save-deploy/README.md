@@ -23,6 +23,10 @@ Deployment is performed on server via docker swarm or locally via docker-compose
 * Ensure that docker daemon is running and docker-compose is installed.
 * Run `./gradlew deployLocal -Pprofile=dev` to start only some components.
 
+#### Note:
+If a snapshot version of save-cli is required (i.e., the one which is not available on GitHub releases), then it can be
+manually placed in `save-orchestrator/build/resources/main` before build, and it's version should be provided via `-PsaveCliVersion=...` when executing gradle.
+
 ## Ports allocation
 | port | description |
 | ---- | ----------- |

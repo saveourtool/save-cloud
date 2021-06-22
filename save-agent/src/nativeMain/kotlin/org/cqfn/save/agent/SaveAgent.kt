@@ -37,7 +37,7 @@ import kotlinx.serialization.modules.SerializersModule
 /**
  * A main class for SAVE Agent
  */
-@OptIn(KtorExperimentalAPI::class, ExperimentalFileSystem::class)
+@OptIn(ExperimentalFileSystem::class)
 class SaveAgent(private val config: AgentConfiguration,
                 private val httpClient: HttpClient = HttpClient {
                     install(JsonFeature) {
@@ -109,7 +109,6 @@ class SaveAgent(private val config: AgentConfiguration,
      * @param cliArgs arguments for SAVE process
      * @return Unit
      */
-    @Suppress("MAGIC_NUMBER")  // todo: unsuppress when mocked data is substituted by actual
     internal suspend fun startSaveProcess(cliArgs: String) = coroutineScope {
         // blocking execution of OS process
         state.value = AgentState.BUSY
