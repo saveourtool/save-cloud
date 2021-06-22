@@ -37,7 +37,7 @@ class AgentService(configProperties: ConfigProperties) {
      * @param agentId
      * @return Mono<NewJobResponse>
      */
-    fun setNewTestsIds(agentId: String): Mono<out HeartbeatResponse> =
+    fun getNewTestsIds(agentId: String): Mono<HeartbeatResponse> =
             webClientBackend
                 .get()
                 .uri("/getTestBatches?agentId=$agentId")
@@ -45,9 +45,14 @@ class AgentService(configProperties: ConfigProperties) {
                 .bodyToMono<TestBatch>()
                 .map { batch ->
                     if (batch.tests.isNotEmpty()) {
-                        // fixme: support different args for different test suites
-                        NewJobResponse(batch.tests, batch.suitesToArgs.values.first())
+                        // fixme: https://github.com/cqfn/save/issues/137
+                        // fixme: do we still need suitesToArgs, since we have execFlags in save.toml?
+                        NewJobResponse(
+                            batch.tests,
+                            batch.suitesToArgs.values.first() + " " + batch.tests.joinToString(separator = " ") { it.filePath }
+                        )
                     } else {
+                        log.info("Next test batch for agentId=$agentId is empty, setting it to wait")
                         WaitResponse
                     }
                 }
@@ -87,14 +92,13 @@ class AgentService(configProperties: ConfigProperties) {
     /**
      * @param agentStates list of [AgentStatus]es to update in the DB
      */
-    fun updateAgentStatusesWithDto(agentStates: List<AgentStatusDto>) {
-        webClientBackend
-            .post()
-            .uri("/updateAgentStatusesWithDto")
-            .body(BodyInserters.fromValue(agentStates))
-            .retrieve()
-            .bodyToMono<String>()
-    }
+    fun updateAgentStatusesWithDto(agentStates: List<AgentStatusDto>) =
+            webClientBackend
+                .post()
+                .uri("/updateAgentStatusesWithDto")
+                .body(BodyInserters.fromValue(agentStates))
+                .retrieve()
+                .toBodilessEntity()
 
     /**
      * @return nothing for now Fixme

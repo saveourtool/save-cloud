@@ -45,32 +45,34 @@ class HeartbeatController(private val agentService: AgentService,
     fun acceptHeartbeat(@RequestBody heartbeat: Heartbeat): Mono<out HeartbeatResponse> {
         logger.info("Got heartbeat state: ${heartbeat.state.name} from ${heartbeat.agentId}")
         // store new state into DB
-        agentService.updateAgentStatusesWithDto(
+        return agentService.updateAgentStatusesWithDto(
             listOf(
                 AgentStatusDto(LocalDateTime.now(), heartbeat.state, heartbeat.agentId)
             )
         )
-        return when (heartbeat.state) {
-            AgentState.IDLE -> agentService.setNewTestsIds(heartbeat.agentId).subscribeOn(scheduler)
-                .doOnNext {
-                    if (it is WaitResponse) {
-                        // If agent was IDLE and there are no new tests - we check if the Execution is completed.
-                        agentService.getAgentsAwaitingStop(heartbeat.agentId).subscribeOn(scheduler).subscribe { finishedAgentIds ->
-                            if (finishedAgentIds.isNotEmpty()) {
-                                dockerService.stopAgents(finishedAgentIds)
+            .then(
+                when (heartbeat.state) {
+                    AgentState.IDLE -> agentService.getNewTestsIds(heartbeat.agentId).subscribeOn(scheduler)
+                        .doOnSuccess {
+                            if (it is WaitResponse) {
+                                // If agent was IDLE and there are no new tests - we check if the Execution is completed.
+                                agentService.getAgentsAwaitingStop(heartbeat.agentId).subscribeOn(scheduler).subscribe { finishedAgentIds ->
+                                    if (finishedAgentIds.isNotEmpty()) {
+                                        logger.info("Agents ids=$finishedAgentIds have completed execution and will be terminated")
+                                        dockerService.stopAgents(finishedAgentIds)
+                                    }
+                                }
                             }
                         }
+                    AgentState.FINISHED -> {
+                        agentService.checkSavedData()
+                        Mono.just(WaitResponse)
                     }
+                    AgentState.BUSY -> Mono.just(ContinueResponse)
+                    AgentState.BACKEND_FAILURE -> Mono.just(WaitResponse)
+                    AgentState.BACKEND_UNREACHABLE -> Mono.just(WaitResponse)
+                    AgentState.CLI_FAILED -> Mono.just(WaitResponse)
                 }
-                .apply { subscribe() }
-            AgentState.FINISHED -> {
-                agentService.checkSavedData()
-                Mono.just(WaitResponse)
-            }
-            AgentState.BUSY -> Mono.just(ContinueResponse)
-            AgentState.BACKEND_FAILURE -> Mono.just(WaitResponse)
-            AgentState.BACKEND_UNREACHABLE -> Mono.just(WaitResponse)
-            AgentState.CLI_FAILED -> Mono.just(WaitResponse)
-        }
+            )
     }
 }

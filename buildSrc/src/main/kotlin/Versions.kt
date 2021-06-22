@@ -23,14 +23,14 @@ object Versions {
     // database
     const val jpa = "1.0.2"
     const val hibernate = "5.4.2.Final"
-    const val liquibase = "4.3.5"
+    const val liquibase = "4.4.0"
     const val mySql = "8.0.20"
     const val liquibaseGradlePlugin = "2.0.4"
     const val testcontainers = "1.15.3"
 
     // other JVM dependencies
-    const val dockerJavaApi = "3.2.8"
-    const val jgit = "5.11.1.202105131744-r"
+    const val dockerJavaApi = "3.2.10"
+    const val jgit = "5.12.0.202106070339-r"
     const val okhttp3 = "4.9.1"
 
     // frontend
