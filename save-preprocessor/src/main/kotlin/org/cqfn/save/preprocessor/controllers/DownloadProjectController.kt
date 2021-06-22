@@ -1,7 +1,7 @@
 package org.cqfn.save.preprocessor.controllers
 
-import org.cqfn.save.core.config.defaultConfig
 import org.cqfn.save.core.config.SaveProperties
+import org.cqfn.save.core.config.defaultConfig
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.ExecutionRequestForStandardSuites
@@ -237,7 +237,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
                                                  projectRootRelativePath: String): String {
         val propertiesFile = File(configProperties.repository, projectRootRelativePath)
             .resolve(propertiesRelativePath)
-        val saveProperties: SaveProperties = decodeFromPropertiesFile(propertiesFile)
+        val saveProperties: SaveProperties = decodeFromPropertiesFile<SaveProperties>(propertiesFile)
             .mergeConfigWithPriorityToThis(defaultConfig())
         return propertiesFile.parentFile
             .resolve(saveProperties.testConfigPath!!)
