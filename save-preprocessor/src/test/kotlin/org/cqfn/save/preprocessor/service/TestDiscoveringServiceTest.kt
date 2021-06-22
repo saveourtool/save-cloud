@@ -28,6 +28,7 @@ import java.nio.file.Path
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @Import(TestDiscoveringService::class)
 class TestDiscoveringServiceTest {
+    private val propertiesRelativePath = "examples/kotlin-diktat/save.properties"
     @Autowired private lateinit var testDiscoveringService: TestDiscoveringService
     private lateinit var tmpDir: Path
     private lateinit var rootTestConfig: TestConfig
@@ -39,7 +40,7 @@ class TestDiscoveringServiceTest {
             .setURI("https://github.com/cqfn/save")
             .setDirectory(tmpDir.toFile())
             .call()
-        rootTestConfig = testDiscoveringService.getRootTestConfig(tmpDir.resolve("examples").toString())
+        rootTestConfig = testDiscoveringService.getRootTestConfig(tmpDir.resolve("examples/kotlin-diktat").toString())
     }
 
     @AfterAll
@@ -52,12 +53,12 @@ class TestDiscoveringServiceTest {
         val testSuites = testDiscoveringService.getAllTestSuites(
             Project("stub", "stub", "stub", null),
             rootTestConfig,
-            "examples/save.properties"
+            propertiesRelativePath
         )
 
         println("Discovered test suites: $testSuites")
         Assertions.assertTrue(testSuites.isNotEmpty())
-        Assertions.assertEquals("\"DocsCheck\"", testSuites.first().name)
+        Assertions.assertEquals("autofix", testSuites.first().name)
     }
 
     @Test
@@ -66,7 +67,7 @@ class TestDiscoveringServiceTest {
             testDiscoveringService.getAllTestSuites(
                 Project("stub", "stub", "stub", null),
                 testDiscoveringService.getRootTestConfig(tmpDir.resolve("buildSrc").toString()),
-                "examples/save.properties"
+                propertiesRelativePath
             )
         }
     }
@@ -76,14 +77,18 @@ class TestDiscoveringServiceTest {
         val testDtos = testDiscoveringService.getAllTests(
             rootTestConfig,
             listOf(
-                TestSuite(TestSuiteType.PROJECT, "\"DocsCheck\"", null, null, "examples/save.properties").apply {
-                    id = 1
-                }
+                createTestSuiteStub("smoke tests", 1),
+                createTestSuiteStub("autofix", 2),
+                createTestSuiteStub("DocsCheck", 3),
             )
         )
 
-        println(testDtos)
+        println("Discovered the following tests: $testDtos")
         Assertions.assertEquals(2, testDtos.size)
-        Assertions.assertEquals("MyTest.java", File(testDtos.first().filePath).name)
+        Assertions.assertEquals("Example1Expected.kt", File(testDtos.first().filePath).name)
+    }
+
+    private fun createTestSuiteStub(name: String, id: Long) = TestSuite(TestSuiteType.PROJECT, name, null, null, propertiesRelativePath).apply {
+        this.id = id
     }
 }
