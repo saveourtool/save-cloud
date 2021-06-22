@@ -71,7 +71,8 @@ class AgentsControllerTest {
     @Test
     fun `should build image, query backend and start containers`() {
         val project = Project("Huawei", "huaweiName", "huaweiUrl", "description")
-        val execution = Execution(project, stubTime, stubTime, ExecutionStatus.PENDING, "stub", "stub", 0, 20, ExecutionType.GIT, "0.0.1").apply {
+        val execution = Execution(project, stubTime, stubTime, ExecutionStatus.PENDING, "stub",
+            "stub", 0, 20, ExecutionType.GIT, "0.0.1", 0, 0, 0).apply {
             id = 42L
         }
         whenever(dockerService.buildAndCreateContainers(any())).thenReturn(listOf("test-agent-id-1", "test-agent-id-2"))
@@ -100,7 +101,8 @@ class AgentsControllerTest {
     @Test
     fun checkPostResponseIsNotOk() {
         val project = Project("Huawei", "huaweiName", "huaweiUrl", "description")
-        val execution = Execution(project, stubTime, stubTime, ExecutionStatus.RUNNING, "stub", "stub", 0, 20, ExecutionType.GIT, "0.0.1")
+        val execution = Execution(project, stubTime, stubTime, ExecutionStatus.RUNNING, "stub",
+            "stub", 0, 20, ExecutionType.GIT, "0.0.1", 0, 0, 0)
         webClient
             .post()
             .uri("/initializeAgents")

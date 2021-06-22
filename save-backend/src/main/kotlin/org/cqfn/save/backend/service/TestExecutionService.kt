@@ -1,6 +1,8 @@
 package org.cqfn.save.backend.service
 
 import org.cqfn.save.agent.TestExecutionDto
+import org.cqfn.save.backend.repository.AgentRepository
+import org.cqfn.save.backend.repository.ExecutionRepository
 import org.cqfn.save.backend.repository.TestExecutionRepository
 import org.cqfn.save.backend.repository.TestRepository
 import org.cqfn.save.backend.repository.TestSuiteRepository
@@ -11,6 +13,7 @@ import org.cqfn.save.entities.TestExecution
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.PageRequest
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 
 /**
@@ -25,6 +28,12 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
 
     @Autowired
     private lateinit var testSuiteRepository: TestSuiteRepository
+
+    @Autowired
+    private lateinit var agentRepository: AgentRepository
+
+    @Autowired
+    private lateinit var executionRepository: ExecutionRepository
 
     /**
      * Returns a page of [TestExecution]s with [executionId]
@@ -51,23 +60,35 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
      * @param testExecutionsDtos
      * @return list of lost tests
      */
+    @Suppress("TOO_MANY_LINES_IN_LAMBDA")
     fun saveTestResult(testExecutionsDtos: List<TestExecutionDto>): List<TestExecutionDto> {
         val lostTests: MutableList<TestExecutionDto> = mutableListOf()
+        val execution = agentRepository
+            .findByIdOrNull(testExecutionsDtos.first().agentId)  // we take agent id only from first element, because all test executions have same execution
+            ?.execution
+            ?: run {
+                log.error("Agent with id=[${testExecutionsDtos.first().agentId}] was not found in the DB or doesn't have valid execution")
+                return lostTests
+            }
         testExecutionsDtos.forEach { testExecDto ->
             val foundTestExec = testExecutionRepository.findById(testExecDto.id)
             foundTestExec.ifPresentOrElse({
-                it.run {
-                    this.startTime = testExecDto.startTimeSeconds?.toLocalDateTime()
-                    this.endTime = testExecDto.endTimeSeconds?.toLocalDateTime()
-                    this.status = testExecDto.status
-                    testExecutionRepository.save(this)
+                it.startTime = testExecDto.startTimeSeconds?.toLocalDateTime()
+                it.endTime = testExecDto.endTimeSeconds?.toLocalDateTime()
+                it.status = testExecDto.status
+                when (testExecDto.status) {
+                    TestResultStatus.PASSED -> execution.passedTests += 1
+                    TestResultStatus.FAILED -> execution.failedTests += 1
+                    else -> execution.skippedTests += 1
                 }
+                testExecutionRepository.save(it)
             },
                 {
                     lostTests.add(testExecDto)
                     log.error("Test execution with id=[${testExecDto.id}] was not found in the DB")
                 })
         }
+        executionRepository.save(execution)
         return lostTests
     }
 

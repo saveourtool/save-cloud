@@ -4,6 +4,8 @@
 
 package org.cqfn.save.frontend.utils
 
+import org.cqfn.save.entities.Project
+
 import org.w3c.fetch.Headers
 import org.w3c.fetch.RequestInit
 import org.w3c.fetch.Response
@@ -65,3 +67,13 @@ suspend fun request(url: String,
     )
 )
     .await()
+
+/**
+ * @param name
+ * @param owner
+ */
+suspend fun getProject(name: String, owner: String) =
+        get("${window.location.origin}/getProject?name=$name&owner=$owner", Headers())
+            .json()
+            .await()
+            .unsafeCast<Project>()

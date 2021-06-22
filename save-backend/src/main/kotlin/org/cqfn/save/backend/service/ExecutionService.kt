@@ -1,11 +1,13 @@
 package org.cqfn.save.backend.service
 
 import org.cqfn.save.backend.repository.ExecutionRepository
+import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionUpdateDto
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
@@ -17,6 +19,9 @@ import java.time.LocalDateTime
 @Service
 class ExecutionService(private val executionRepository: ExecutionRepository) {
     private val log = LoggerFactory.getLogger(ExecutionService::class.java)
+
+    @Autowired
+    private lateinit var projectRepository: ProjectRepository
 
     /**
      * @param execution
@@ -54,4 +59,12 @@ class ExecutionService(private val executionRepository: ExecutionRepository) {
         }
         return executionDto
     }
+
+    /**
+     * @param name name of project
+     * @param owner owner of project
+     * @return list of execution dtos
+     */
+    fun getExecutionDtoByNameAndOwner(name: String, owner: String) =
+            executionRepository.getAllByProjectNameAndProjectOwner(name, owner).map { it.toDto() }
 }
