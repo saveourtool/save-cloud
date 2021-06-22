@@ -93,12 +93,12 @@ class AgentService(configProperties: ConfigProperties) {
      * @param agentStates list of [AgentStatus]es to update in the DB
      */
     fun updateAgentStatusesWithDto(agentStates: List<AgentStatusDto>) =
-        webClientBackend
-            .post()
-            .uri("/updateAgentStatusesWithDto")
-            .body(BodyInserters.fromValue(agentStates))
-            .retrieve()
-            .toBodilessEntity()
+            webClientBackend
+                .post()
+                .uri("/updateAgentStatusesWithDto")
+                .body(BodyInserters.fromValue(agentStates))
+                .retrieve()
+                .toBodilessEntity()
 
     /**
      * @return nothing for now Fixme

@@ -14,7 +14,15 @@ import org.cqfn.save.test.TestDto
 import com.fasterxml.jackson.databind.ObjectMapper
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
+import okhttp3.mockwebserver.QueueDispatcher
+import okhttp3.mockwebserver.RecordedRequest
+import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
 import org.mockito.kotlin.any
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
@@ -33,15 +41,11 @@ import reactor.core.publisher.Mono
 import java.nio.charset.Charset
 import java.time.Duration
 import java.time.LocalDateTime
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.TimeUnit
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import okhttp3.mockwebserver.QueueDispatcher
-import okhttp3.mockwebserver.RecordedRequest
-import org.junit.jupiter.api.*
-import org.mockito.kotlin.mock
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.TimeUnit
 
 @WebFluxTest
 @Import(Beans::class, AgentService::class)
@@ -161,6 +165,7 @@ class HeartbeatControllerTest {
      * @param verification a lambda for test assertions
      */
     @OptIn(ExperimentalStdlibApi::class)
+    @Suppress("TOO_LONG_FUNCTION")
     private fun testHeartbeat(
         agentStatusDtos: List<AgentStatusDto>,
         heartbeat: Heartbeat,

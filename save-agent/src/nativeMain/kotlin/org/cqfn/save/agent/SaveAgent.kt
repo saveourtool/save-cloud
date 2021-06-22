@@ -21,7 +21,6 @@ import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
-import io.ktor.util.KtorExperimentalAPI
 import okio.ExperimentalFileSystem
 import okio.Path.Companion.toPath
 
@@ -109,6 +108,7 @@ class SaveAgent(private val config: AgentConfiguration,
      * @param cliArgs arguments for SAVE process
      * @return Unit
      */
+    @Suppress("MAGIC_NUMBER")  // todo: unsuppress when mocked data is substituted by actual
     internal suspend fun startSaveProcess(cliArgs: String) = coroutineScope {
         // blocking execution of OS process
         state.value = AgentState.BUSY
