@@ -20,6 +20,7 @@ import react.table.columns
 
 import kotlinx.browser.window
 import kotlinx.coroutines.await
+import kotlinx.datetime.Instant
 
 /**
  * [RProps] for tests execution history
@@ -56,7 +57,11 @@ class HistoryView : RComponent<HistoryProps, RState>() {
                 }
                 column("date", "Date") {
                     td {
-                        +(it.value.endTime ?: "RUNNING")
+                        +(it.value.endTime?.let {
+                            Instant.fromEpochSeconds(it.toString().toLong()) // there is some bug with parse endTime to Instant - that why this crutch
+                                .toString()
+                                .replace("[TZ]".toRegex(), " ")
+                        } ?: "RUNNING")
                     }
                 }
                 column("passed", "Passed") {

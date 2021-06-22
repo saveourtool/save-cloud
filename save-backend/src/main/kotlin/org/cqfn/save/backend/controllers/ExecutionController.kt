@@ -7,7 +7,6 @@ import org.cqfn.save.execution.ExecutionUpdateDto
 
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -50,7 +49,6 @@ class ExecutionController(private val executionService: ExecutionService) {
      * @return list of execution dtos
      */
     @GetMapping("/executionDtoList")
-    @Transactional
     fun getExecutionByProject(@RequestParam name: String, @RequestParam owner: String): ExecutionDtoListResponse =
             ResponseEntity
                 .status(HttpStatus.OK)

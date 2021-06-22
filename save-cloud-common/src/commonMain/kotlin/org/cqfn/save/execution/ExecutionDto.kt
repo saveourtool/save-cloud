@@ -17,7 +17,7 @@ class ExecutionDto(
     val status: ExecutionStatus,
     val type: ExecutionType,
     val version: String,
-    val endTime: String?,
+    val endTime: Long?,
     val passedTests: Long,
     val failedTests: Long,
     val skippedTests: Long,

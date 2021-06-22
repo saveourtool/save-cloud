@@ -4,7 +4,7 @@ import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionType
 import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
+import java.time.ZoneOffset
 import javax.persistence.Entity
 import javax.persistence.EnumType
 import javax.persistence.Enumerated
@@ -64,5 +64,5 @@ class Execution(
     /**
      * @return Execution dto
      */
-    fun toDto() = ExecutionDto(status, type, version, endTime?.format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss")), passedTests, failedTests, skippedTests)
+    fun toDto() = ExecutionDto(status, type, version, endTime?.toEpochSecond(ZoneOffset.UTC), passedTests, failedTests, skippedTests)
 }
