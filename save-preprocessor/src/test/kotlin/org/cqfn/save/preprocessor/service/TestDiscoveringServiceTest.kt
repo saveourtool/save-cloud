@@ -26,6 +26,7 @@ import java.nio.file.Path
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @Import(TestDiscoveringService::class)
 class TestDiscoveringServiceTest {
+    private val testRootRelativePath = "examples/discovery-test"
     @Autowired private lateinit var testDiscoveringService: TestDiscoveringService
     private lateinit var tmpDir: Path
 
@@ -47,8 +48,8 @@ class TestDiscoveringServiceTest {
     fun `should discover test suites`() {
         val testSuites = testDiscoveringService.getAllTestSuites(
             Project("stub", "stub", "stub", null),
-            (tmpDir.resolve("examples/discovery-test")).toString(),
-            "examples/discovery-test/save.properties"
+            (tmpDir.resolve(testRootRelativePath)).toString(),
+            "$testRootRelativePath/save.properties"
         )
 
         Assertions.assertTrue(testSuites.isNotEmpty())  // fixme: check actual test suites when we properly use GeneralConfig in service
@@ -60,7 +61,7 @@ class TestDiscoveringServiceTest {
             testDiscoveringService.getAllTestSuites(
                 Project("stub", "stub", "stub", null),
                 (tmpDir.resolve("buildSrc")).toString(),
-                "examples/save.properties"
+                "$testRootRelativePath/save.properties"
             )
         }
     }
@@ -68,9 +69,9 @@ class TestDiscoveringServiceTest {
     @Test
     fun `should discover tests`() {
         val testDtos = testDiscoveringService.getAllTests(
-            tmpDir.resolve("examples/discovery-test").toString(),
+            tmpDir.resolve(testRootRelativePath).toString(),
             listOf(
-                TestSuite(TestSuiteType.PROJECT, "stub", null, null, "examples/discovery-test/save.properties")
+                TestSuite(TestSuiteType.PROJECT, "stub", null, null, "$testRootRelativePath/save.properties")
             )
         )
 
