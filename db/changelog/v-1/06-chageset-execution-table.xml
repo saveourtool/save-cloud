@@ -45,6 +45,15 @@
             <column name="version" type="varchar(255)">
                 <constraints nullable="false" />
             </column>
+            <column name="passed_tests" type="bigint">
+                <constraints nullable="false" />
+            </column>
+            <column name="failed_tests" type="bigint">
+                <constraints nullable="false" />
+            </column>
+            <column name="skipped_tests" type="bigint">
+                <constraints nullable="false" />
+            </column>
         </createTable>
 
         <rollback>

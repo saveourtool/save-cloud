@@ -1,6 +1,7 @@
 package org.cqfn.save.preprocessor.controllers
 
 import org.cqfn.save.core.config.SaveProperties
+import org.cqfn.save.core.config.defaultConfig
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.ExecutionRequestForStandardSuites
@@ -207,8 +208,8 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
             require(executionType == ExecutionType.STANDARD) { "Test suites shouldn't be provided unless ExecutionType is STANDARD (actual: $executionType)" }
         } ?: require(executionType == ExecutionType.GIT) { "Test suites are not provided, but should for executionType=$executionType" }
 
-        val execution = Execution(project, LocalDateTime.now(), LocalDateTime.now(),
-            ExecutionStatus.PENDING, "ALL", projectRootRelativePath, 0, configProperties.executionLimit, executionType, executionVersion)
+        val execution = Execution(project, LocalDateTime.now(), null, ExecutionStatus.PENDING, "ALL",
+            projectRootRelativePath, 0, configProperties.executionLimit, executionType, executionVersion, 0, 0, 0)
         webClientBackend.makeRequest(BodyInserters.fromValue(execution), "/createExecution") { it.bodyToMono<Long>() }
             .flatMap { executionId ->
                 Mono.fromCallable {
@@ -236,7 +237,8 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
                                                  projectRootRelativePath: String): String {
         val propertiesFile = File(configProperties.repository, projectRootRelativePath)
             .resolve(propertiesRelativePath)
-        val saveProperties: SaveProperties = decodeFromPropertiesFile(propertiesFile)
+        val saveProperties: SaveProperties = decodeFromPropertiesFile<SaveProperties>(propertiesFile)
+            .mergeConfigWithPriorityToThis(defaultConfig())
         return propertiesFile.parentFile
             .resolve(saveProperties.testConfigPath!!)
             .absolutePath

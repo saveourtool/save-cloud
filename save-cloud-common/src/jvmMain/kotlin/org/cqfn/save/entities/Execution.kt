@@ -4,6 +4,7 @@ import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionType
 import java.time.LocalDateTime
+import java.time.ZoneOffset
 import javax.persistence.Entity
 import javax.persistence.EnumType
 import javax.persistence.Enumerated
@@ -21,6 +22,9 @@ import javax.persistence.ManyToOne
  * @property batchSize Maximum number of returning tests per execution
  * @property type
  * @property version
+ * @property passedTests
+ * @property failedTests
+ * @property skippedTests
  */
 @Suppress("USE_DATA_CLASS", "LongParameterList")
 @Entity
@@ -32,7 +36,7 @@ class Execution(
 
     var startTime: LocalDateTime,
 
-    var endTime: LocalDateTime,
+    var endTime: LocalDateTime?,
 
     @Enumerated(EnumType.STRING)
     var status: ExecutionStatus,
@@ -48,11 +52,17 @@ class Execution(
     @Enumerated(EnumType.STRING)
     var type: ExecutionType,
 
-    var version: String
+    var version: String,
+
+    var passedTests: Long,
+
+    var failedTests: Long,
+
+    var skippedTests: Long,
 
 ) : BaseEntity() {
     /**
      * @return Execution dto
      */
-    fun toDto() = ExecutionDto(status, type, version)
+    fun toDto() = ExecutionDto(status, type, version, endTime?.toEpochSecond(ZoneOffset.UTC), passedTests, failedTests, skippedTests)
 }

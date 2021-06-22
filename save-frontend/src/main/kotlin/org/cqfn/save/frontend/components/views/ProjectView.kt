@@ -11,6 +11,7 @@ import org.cqfn.save.entities.Project
 import org.cqfn.save.frontend.components.basic.cardComponent
 import org.cqfn.save.frontend.externals.modal.modal
 import org.cqfn.save.frontend.utils.get
+import org.cqfn.save.frontend.utils.getProject
 import org.cqfn.save.frontend.utils.post
 
 import org.w3c.dom.HTMLInputElement
@@ -128,10 +129,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
 
     override fun componentDidMount() {
         GlobalScope.launch {
-            project = get("${window.location.origin}/getProject?name=${props.name}&owner=${props.owner}", Headers())
-                .json()
-                .await()
-                .unsafeCast<Project>()
+            project = getProject(props.name, props.owner)
             val jsonProject = JSON.stringify(project)
             val headers = Headers().also {
                 it.set("Accept", "application/json")
@@ -219,7 +217,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
             responseFromExecutionRequest = post(window.location.origin + url, headers, body)
         }.invokeOnCompletion {
             if (responseFromExecutionRequest.ok) {
-                window.location.href = "${window.location.origin}/history"
+                window.location.href = "${window.location.origin}/${project.owner}/${project.name}/history"
             } else {
                 setState {
                     isErrorOpen = true

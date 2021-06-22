@@ -53,7 +53,10 @@ class ExecutionControllerTest {
             0,
             20,
             ExecutionType.GIT,
-            "0.0.1"
+            "0.0.1",
+            0,
+            0,
+            0
         )
         webClient.post()
             .uri("/createExecution")
@@ -77,7 +80,10 @@ class ExecutionControllerTest {
             0,
             20,
             ExecutionType.GIT,
-            "0.0.1"
+            "0.0.1",
+            0,
+            0,
+            0,
         )
         webClient.post()
             .uri("/createExecution")
@@ -106,7 +112,10 @@ class ExecutionControllerTest {
             0,
             20,
             ExecutionType.GIT,
-            "0.0.1"
+            "0.0.1",
+            0,
+            0,
+            0,
         )
 
         webClient.post()
@@ -163,6 +172,22 @@ class ExecutionControllerTest {
             .consumeWith {
                 requireNotNull(it.responseBody)
                 assertEquals("0.0.1", it.responseBody!!.version)
+            }
+    }
+
+    @Test
+    fun checkExecutionDtoByProject() {
+        val project = projectRepository.findById(1).get()
+        val executionCounts = executionRepository.findAll().filter { it.project == project }.count()
+        webClient.get()
+            .uri("/executionDtoList?name=${project.name}&owner=${project.owner}")
+            .exchange()
+            .expectStatus()
+            .isOk
+            .expectBody<List<ExecutionDto>>()
+            .consumeWith {
+                requireNotNull(it.responseBody)
+                assertEquals(executionCounts, it.responseBody!!.size)
             }
     }
 }
