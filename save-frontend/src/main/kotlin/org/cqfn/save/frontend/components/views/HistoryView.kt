@@ -58,7 +58,7 @@ class HistoryView : RComponent<HistoryProps, RState>() {
                 column("date", "Date") {
                     td {
                         +(it.value.endTime?.let {
-                            Instant.fromEpochSeconds(it.toString().toLong())  // there is some bug with parse endTime to Instant - that why this crutch
+                            Instant.fromEpochSeconds(it, 0)
                                 .toString()
                                 .replace("[TZ]".toRegex(), " ")
                         } ?: "RUNNING")
