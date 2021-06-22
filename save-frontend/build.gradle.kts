@@ -9,7 +9,6 @@ kotlin {
             repositories {
                 mavenCentral()
                 maven("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/kotlin-js-wrappers/")
-                maven("https://maven.pkg.jetbrains.space/public/p/kotlinx-html/maven")
             }
         }
         binaries.executable()  // already default for LEGACY, but explicitly needed for IR
@@ -92,7 +91,7 @@ tasks.withType<org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack>().f
         }
         copy {
             from(additionalWebpackResources)
-            into("${rootProject.buildDir}/js/packages/save-${project.name}")
+            into("${rootProject.buildDir}/js/packages/${rootProject.name}-${project.name}")
         }
     }
 }

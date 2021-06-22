@@ -14,8 +14,11 @@ import org.cqfn.save.test.TestDto
 import com.fasterxml.jackson.databind.ObjectMapper
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
+import okhttp3.mockwebserver.QueueDispatcher
+import okhttp3.mockwebserver.RecordedRequest
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -38,6 +41,8 @@ import reactor.core.publisher.Mono
 import java.nio.charset.Charset
 import java.time.Duration
 import java.time.LocalDateTime
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.TimeUnit
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -69,6 +74,10 @@ class HeartbeatControllerTest {
     @Test
     fun checkAcceptingHeartbeat() {
         val heartBeatBusy = Heartbeat("test", AgentState.BUSY, ExecutionProgress(0))
+        // /updateAgentStatusesWithDto
+        mockServer.enqueue(
+            MockResponse().setResponseCode(200)
+        )
 
         webClient.post()
             .uri("/heartbeat")
@@ -89,7 +98,7 @@ class HeartbeatControllerTest {
                 .addHeader("Content-Type", "application/json")
         )
 
-        val monoResponse = agentService.setNewTestsIds("container-1").block() as NewJobResponse
+        val monoResponse = agentService.getNewTestsIds("container-1").block() as NewJobResponse
 
         assertTrue(monoResponse.ids.isNotEmpty() && monoResponse.ids.first().filePath == "qwe")
     }
@@ -155,6 +164,8 @@ class HeartbeatControllerTest {
      * @param mockAgentStatuses whether a mocked response for `/getAgentsStatusesForSameExecution` should be added to queue
      * @param verification a lambda for test assertions
      */
+    @OptIn(ExperimentalStdlibApi::class)
+    @Suppress("TOO_LONG_FUNCTION")
     private fun testHeartbeat(
         agentStatusDtos: List<AgentStatusDto>,
         heartbeat: Heartbeat,
@@ -182,6 +193,15 @@ class HeartbeatControllerTest {
                     .addHeader("Content-Type", "application/json")
             )
         }
+        val assertions = CompletableFuture.supplyAsync {
+            buildList<RecordedRequest?> {
+                mockServer.takeRequest(60, TimeUnit.SECONDS)
+                mockServer.takeRequest(60, TimeUnit.SECONDS)
+                if (mockAgentStatuses) {
+                    mockServer.takeRequest(60, TimeUnit.SECONDS)
+                }
+            }
+        }
 
         webClient.post()
             .uri("/heartbeat")
@@ -194,6 +214,7 @@ class HeartbeatControllerTest {
         // wait for background tasks
         Thread.sleep(2_000)
 
+        assertions.orTimeout(60, TimeUnit.SECONDS).join().forEach { Assertions.assertNotNull(it) }
         verification.invoke()
     }
 
@@ -211,6 +232,7 @@ class HeartbeatControllerTest {
         fun properties(registry: DynamicPropertyRegistry) {
             // todo: should be initialized in @BeforeAll, but it gets called after @DynamicPropertySource
             mockServer = MockWebServer()
+            (mockServer.dispatcher as QueueDispatcher).setFailFast(true)
             mockServer.start()
             registry.add("orchestrator.backendUrl") { "http://localhost:${mockServer.port}" }
         }

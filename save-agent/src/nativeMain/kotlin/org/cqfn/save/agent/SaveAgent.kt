@@ -21,7 +21,6 @@ import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
-import io.ktor.util.KtorExperimentalAPI
 import okio.ExperimentalFileSystem
 import okio.Path.Companion.toPath
 
@@ -37,7 +36,7 @@ import kotlinx.serialization.modules.SerializersModule
 /**
  * A main class for SAVE Agent
  */
-@OptIn(KtorExperimentalAPI::class, ExperimentalFileSystem::class)
+@OptIn(ExperimentalFileSystem::class)
 class SaveAgent(private val config: AgentConfiguration,
                 private val httpClient: HttpClient = HttpClient {
                     install(JsonFeature) {

@@ -1,4 +1,4 @@
-rootProject.name = "save"
+rootProject.name = "save-cloud"
 
 include("save-backend")
 include("save-orchestrator")
