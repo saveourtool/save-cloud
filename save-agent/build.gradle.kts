@@ -1,3 +1,5 @@
+import org.cqfn.save.buildutils.getSaveCliVersion
+
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform.getCurrentOperatingSystem
 
 plugins {
@@ -105,7 +107,7 @@ val generateVersionFileTaskProvider = tasks.register("generateVersionFile") {
             """
             package generated
 
-            internal const val SAVE_CORE_VERSION = "${Versions.saveCore}"
+            internal const val SAVE_CORE_VERSION = "${getSaveCliVersion()}"
             internal const val SAVE_CLOUD_VERSION = "$version"
 
             """.trimIndent()
