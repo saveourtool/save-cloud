@@ -150,8 +150,8 @@ class SaveAgent(private val config: AgentConfiguration,
         logsSending.join()
     }
 
-    private fun runSave(cliArgs: String): ExecutionResult =
-            ProcessBuilder(true).exec(config.cliCommand.let { if (cliArgs.isNotEmpty()) "$it $cliArgs" else it }, logFilePath.toPath())
+    private fun runSave(cliArgs: String): ExecutionResult = ProcessBuilder(true)
+        .exec(config.cliCommand.let { if (cliArgs.isNotEmpty()) "$it $cliArgs" else it }, logFilePath.toPath())
 
     /**
      * @param executionLogs logs of CLI execution progress that will be sent in a message

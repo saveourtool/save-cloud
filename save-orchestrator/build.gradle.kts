@@ -56,7 +56,8 @@ configureJacoco()
 val generateVersionFileTaskProvider = tasks.register("generateVersionFile") {
     val versionsFile = File("$buildDir/generated/src/generated/Versions.kt")
 
-    outputs.file(versionsFile)
+//    inputs.property("saveCliVersion", null)  // todo is it correct? will it run when property is not set?
+//    outputs.file(versionsFile)
 
     doFirst {
         versionsFile.parentFile.mkdirs()
