@@ -19,17 +19,15 @@ tasks.withType<KotlinCompile> {
     }
 }
 
-tasks.getByName("processResources").finalizedBy("downloadSaveCli")
+// if required, file can be provided manually
 val saveCliVersion = getSaveCliVersion()
-tasks.register<Download>("downloadSaveCli") {
-    dependsOn("processResources")
-    // if required, file can be provided manually
-    if (file("$buildDir/resources/main/save-$saveCliVersion-linuxX64.kexe").exists()) {
-        src(file("$buildDir/resources/main/save-$saveCliVersion-linuxX64.kexe").toURI().toURL())
-    } else {
+if (!file("$buildDir/resources/main/save-$saveCliVersion-linuxX64.kexe").exists()) {
+    tasks.getByName("processResources").finalizedBy("downloadSaveCli")
+    tasks.register<Download>("downloadSaveCli") {
+        dependsOn("processResources")
         src("https://github.com/cqfn/save/releases/download/v$saveCliVersion/save-$saveCliVersion-linuxX64.kexe")
+        dest("$buildDir/resources/main")
     }
-    dest("$buildDir/resources/main")
 }
 
 tasks.withType<Test> {

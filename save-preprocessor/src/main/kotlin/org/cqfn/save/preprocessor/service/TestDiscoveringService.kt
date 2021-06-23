@@ -26,6 +26,7 @@ class TestDiscoveringService {
      *
      * @param testResourcesRootAbsolutePath path to directory with root config
      * @return a root [TestConfig]
+     * @throws IllegalArgumentException in case of invalid testConfig file
      */
     @OptIn(ExperimentalFileSystem::class)
     fun getRootTestConfig(testResourcesRootAbsolutePath: String): TestConfig =
