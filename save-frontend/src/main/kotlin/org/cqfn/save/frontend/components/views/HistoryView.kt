@@ -21,6 +21,7 @@ import react.table.columns
 import kotlinx.browser.window
 import kotlinx.coroutines.await
 import kotlinx.datetime.Instant
+import react.dom.a
 
 /**
  * [RProps] for tests execution history
@@ -47,36 +48,48 @@ class HistoryView : RComponent<HistoryProps, RState>() {
             columns = columns {
                 column("index", "#") {
                     td {
-                        +"${it.row.index}"
+                        a(href = "${window.location}/${it.value.id}") {
+                            +"${it.row.index}"
+                        }
                     }
                 }
                 column("status", "Status") {
                     td {
-                        +"${it.value.status}"
+                        a(href = "${window.location}/${it.value.id}") {
+                            +"${it.value.status}"
+                        }
                     }
                 }
                 column("date", "Date") {
                     td {
-                        +(it.value.endTime?.let {
-                            Instant.fromEpochSeconds(it, 0)
-                                .toString()
-                                .replace("[TZ]".toRegex(), " ")
-                        } ?: "RUNNING")
+                        a(href = "${window.location}/${it.value.id}") {
+                            +(it.value.endTime?.let {
+                                Instant.fromEpochSeconds(it, 0)
+                                    .toString()
+                                    .replace("[TZ]".toRegex(), " ")
+                            } ?: "RUNNING")
+                        }
                     }
                 }
                 column("passed", "Passed") {
                     td {
-                        +"${it.value.passedTests}"
+                        a(href = "${window.location}/${it.value.id}") {
+                            +"${it.value.passedTests}"
+                        }
                     }
                 }
                 column("failed", "Failed") {
                     td {
-                        +"${it.value.failedTests}"
+                        a(href = "${window.location}/${it.value.id}") {
+                            +"${it.value.failedTests}"
+                        }
                     }
                 }
                 column("skipped", "Skipped") {
                     td {
-                        +"${it.value.skippedTests}"
+                        a(href = "${window.location}/${it.value.id}") {
+                            +"${it.value.skippedTests}"
+                        }
                     }
                 }
             }
