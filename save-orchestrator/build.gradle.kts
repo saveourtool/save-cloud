@@ -21,6 +21,7 @@ tasks.withType<KotlinCompile> {
 
 // if required, file can be provided manually
 val saveCliVersion = getSaveCliVersion()
+@Suppress("RUN_IN_SCRIPT")
 if (!file("$buildDir/resources/main/save-$saveCliVersion-linuxX64.kexe").exists()) {
     tasks.getByName("processResources").finalizedBy("downloadSaveCli")
     tasks.register<Download>("downloadSaveCli") {
