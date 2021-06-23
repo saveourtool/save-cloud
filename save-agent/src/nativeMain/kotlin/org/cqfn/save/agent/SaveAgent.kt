@@ -33,6 +33,7 @@ import kotlinx.datetime.Clock
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import org.cqfn.save.core.logging.isDebugEnabled
+import org.cqfn.save.core.logging.logDebug
 
 /**
  * A main class for SAVE Agent
@@ -115,6 +116,8 @@ class SaveAgent(private val config: AgentConfiguration,
         // blocking execution of OS process
         state.value = AgentState.BUSY
         val executionResult = runSave(cliArgs)
+        logDebug("Executed SAVE, here is stdout: ${executionResult.stdout}")
+        logDebug("Executed SAVE, here is stderr: ${executionResult.stderr}")
         val executionLogs = ExecutionLogs(config.id, readFile(logFilePath))
         val logsSending = launch {
             runCatching {
