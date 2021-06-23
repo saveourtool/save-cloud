@@ -15,13 +15,13 @@ import react.RComponent
 import react.RProps
 import react.RState
 import react.child
+import react.dom.a
 import react.dom.td
 import react.table.columns
 
 import kotlinx.browser.window
 import kotlinx.coroutines.await
 import kotlinx.datetime.Instant
-import react.dom.a
 
 /**
  * [RProps] for tests execution history
@@ -42,7 +42,7 @@ external interface HistoryProps : RProps {
  * A table to display execution results for a certain project.
  */
 class HistoryView : RComponent<HistoryProps, RState>() {
-    @Suppress("TOO_LONG_FUNCTION", "ForbiddenComment")
+    @Suppress("TOO_LONG_FUNCTION", "ForbiddenComment", "LongMethod")
     override fun RBuilder.render() {
         child(tableComponent(
             columns = columns {
