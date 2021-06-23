@@ -64,6 +64,7 @@ class Execution(
     /**
      * @return Execution dto
      */
+    @Suppress("UnsafeCallOnNullableType")
     fun toDto() = ExecutionDto(
         id!!,
         status,
