@@ -1,6 +1,9 @@
+@file:Suppress("UNUSED_IMPORT")
+
 package org.cqfn.save.preprocessor.controllers
 
 import org.cqfn.save.core.config.SaveProperties
+import org.cqfn.save.core.config.TestConfig
 import org.cqfn.save.core.config.defaultConfig
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.ExecutionRequest
@@ -41,6 +44,9 @@ import org.springframework.web.reactive.function.client.toEntity
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
+// for these imports we need to suppress UNUSED_IMPORT until https://github.com/cqfn/diKTat/issues/837
+import reactor.kotlin.core.util.function.component1
+import reactor.kotlin.core.util.function.component2
 
 import java.io.File
 import java.time.LocalDateTime
@@ -95,9 +101,9 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
                 Mono.zip(
                     propertyFile.flatMapMany { it.content() }.collectList(),
                     binaryFile.flatMapMany { it.content() }.collectList()
-                ).map { tupleContent ->
-                    tupleContent.t1.map { dtBuffer -> propFile.outputStream().use { dtBuffer.asInputStream().copyTo(it) } }
-                    tupleContent.t2.map { dtBuffer -> binFile.outputStream().use { dtBuffer.asInputStream().copyTo(it) } }
+                ).map { (propertyFileContent, binaryFileContent) ->
+                    propertyFileContent.map { dtBuffer -> propFile.outputStream().use { dtBuffer.asInputStream().copyTo(it) } }
+                    binaryFileContent.map { dtBuffer -> binFile.outputStream().use { dtBuffer.asInputStream().copyTo(it) } }
                     saveBinaryFile(executionRequestForStandardSuites, propFile, binFile)
                 }
             }
@@ -213,15 +219,17 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
         webClientBackend.makeRequest(BodyInserters.fromValue(execution), "/createExecution") { it.bodyToMono<Long>() }
             .flatMap { executionId ->
                 Mono.fromCallable {
-                    getTestResourcesRootAbsolutePath(propertiesRelativePath, projectRootRelativePath)
+                    val testResourcesRootAbsolutePath = getTestResourcesRootAbsolutePath(propertiesRelativePath, projectRootRelativePath)
+                    testDiscoveringService.getRootTestConfig(testResourcesRootAbsolutePath)
                 }
-                    .flatMap { testResourcesRootAbsolutePath ->
-                        discoverAndSaveTestSuites(project, testResourcesRootAbsolutePath, propertiesRelativePath)
-                            .flatMap { testSuites ->
-                                initializeTests(testSuites, testResourcesRootAbsolutePath, executionId)
-                                    .then(initializeAgents(execution, executionId))
-                            }
+                    .log()
+                    .zipWhen { rootTestConfig ->
+                        discoverAndSaveTestSuites(project, rootTestConfig, propertiesRelativePath)
                     }
+                    .flatMap { (rootTestConfig, testSuites) ->
+                        initializeTests(testSuites, rootTestConfig, executionId)
+                    }
+                    .then(initializeAgents(execution, executionId))
                     .onErrorResume { ex ->
                         log.error("Error during resources discovering, will mark execution.id=$executionId as failed; error: ", ex)
                         webClientBackend.makeRequest(
@@ -241,13 +249,14 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
             .mergeConfigWithPriorityToThis(defaultConfig())
         return propertiesFile.parentFile
             .resolve(saveProperties.testConfigPath!!)
+            .parentFile
             .absolutePath
     }
 
     private fun discoverAndSaveTestSuites(project: Project,
-                                          testResourcesRootAbsolutePath: String,
+                                          rootTestConfig: TestConfig,
                                           propertiesRelativePath: String): Mono<List<TestSuite>> {
-        val testSuites: List<TestSuiteDto> = testDiscoveringService.getAllTestSuites(project, testResourcesRootAbsolutePath, propertiesRelativePath)
+        val testSuites: List<TestSuiteDto> = testDiscoveringService.getAllTestSuites(project, rootTestConfig, propertiesRelativePath)
         return webClientBackend.makeRequest(BodyInserters.fromValue(testSuites), "/saveTestSuites") {
             it.bodyToMono()
         }
@@ -257,9 +266,9 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
      * Discover tests and send them to backend
      */
     private fun initializeTests(testSuites: List<TestSuite>,
-                                testResourcesRootPath: String,
+                                rootTestConfig: TestConfig,
                                 executionId: Long) = webClientBackend.makeRequest(
-        BodyInserters.fromValue(testDiscoveringService.getAllTests(testResourcesRootPath, testSuites)),
+        BodyInserters.fromValue(testDiscoveringService.getAllTests(rootTestConfig, testSuites)),
         "/initializeTests?executionId=$executionId"
     ) {
         it.toBodilessEntity()

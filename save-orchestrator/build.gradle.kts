@@ -1,11 +1,9 @@
 import org.cqfn.save.buildutils.configureJacoco
 import org.cqfn.save.buildutils.configureSpringBoot
+import org.cqfn.save.buildutils.getSaveCliVersion
 
 import de.undercouch.gradle.tasks.download.Download
-import org.codehaus.groovy.runtime.ResourceGroovyMethods
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
-import java.net.URL
 
 plugins {
     kotlin("jvm")
@@ -21,30 +19,16 @@ tasks.withType<KotlinCompile> {
     }
 }
 
-tasks.getByName("processResources").finalizedBy("downloadSaveCli")
-val saveCliVersion: String = if (Versions.saveCore.endsWith("SNAPSHOT")) {
-    // try to get the required version of cli
-    findProperty("saveCliVersion") as String? ?: run {
-        // as fallback, use latest release to allow the project to build successfully
-        val latestRelease = ResourceGroovyMethods.getText(
-            URL("https://api.github.com/repos/cqfn/save/releases/latest")
-        )
-        (groovy.json.JsonSlurper().parseText(latestRelease) as Map<String, Any>)["tag_name"].let {
-            (it as String).trim('v')
-        }
-    }
-} else {
-    Versions.saveCore
-}
-tasks.register<Download>("downloadSaveCli") {
-    dependsOn("processResources")
-    // if required, file can be provided manually
-    if (file("$buildDir/resources/main/save-$saveCliVersion-linuxX64.kexe").exists()) {
-        src(file("$buildDir/resources/main/save-$saveCliVersion-linuxX64.kexe").toURI().toURL())
-    } else {
+// if required, file can be provided manually
+val saveCliVersion = getSaveCliVersion()
+@Suppress("RUN_IN_SCRIPT")
+if (!file("$buildDir/resources/main/save-$saveCliVersion-linuxX64.kexe").exists()) {
+    tasks.getByName("processResources").finalizedBy("downloadSaveCli")
+    tasks.register<Download>("downloadSaveCli") {
+        dependsOn("processResources")
         src("https://github.com/cqfn/save/releases/download/v$saveCliVersion/save-$saveCliVersion-linuxX64.kexe")
+        dest("$buildDir/resources/main")
     }
-    dest("$buildDir/resources/main")
 }
 
 tasks.withType<Test> {

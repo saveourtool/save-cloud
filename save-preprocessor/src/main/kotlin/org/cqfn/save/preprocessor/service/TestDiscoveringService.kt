@@ -3,10 +3,10 @@ package org.cqfn.save.preprocessor.service
 import org.cqfn.save.core.config.TestConfig
 import org.cqfn.save.core.files.ConfigDetector
 import org.cqfn.save.core.plugin.GeneralConfig
-import org.cqfn.save.core.plugin.Plugin
+import org.cqfn.save.core.utils.buildActivePlugins
+import org.cqfn.save.core.utils.processInPlace
 import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.TestSuite
-import org.cqfn.save.preprocessor.config.ConfigProperties
 import org.cqfn.save.preprocessor.utils.toHash
 import org.cqfn.save.test.TestDto
 import org.cqfn.save.testsuite.TestSuiteDto
@@ -20,79 +20,67 @@ import org.springframework.stereotype.Service
  * A service that call SAVE core to discover test suites and tests
  */
 @Service
-class TestDiscoveringService(private val configProperties: ConfigProperties) {
-    private val configDetector = ConfigDetector()
+class TestDiscoveringService {
+    /**
+     * Returns a root config of hierarchy; this config will already have all descendants merged with their parents.
+     *
+     * @param testResourcesRootAbsolutePath path to directory with root config
+     * @return a root [TestConfig]
+     * @throws IllegalArgumentException in case of invalid testConfig file
+     */
+    @OptIn(ExperimentalFileSystem::class)
+    fun getRootTestConfig(testResourcesRootAbsolutePath: String): TestConfig =
+            ConfigDetector().configFromFile(testResourcesRootAbsolutePath.toPath()).apply {
+                getAllTestConfigs().onEach {
+                    it.processInPlace()
+                }
+            }
 
     /**
      * Discover all test suites in the project
      *
      * @param project a [Project] corresponding to analyzed data
-     * @param testResourcesRootAbsolutePath absolute path to the root of test resources
      * @param propertiesRelativePath path to save.properties file relative to repository root
+     * @param rootTestConfig root config of SAVE configs hierarchy
      * @return a list of [TestSuiteDto]s
      * @throws IllegalArgumentException when provided path doesn't point to a valid config file
      */
-    @OptIn(ExperimentalFileSystem::class)
-    @Suppress("UnsafeCallOnNullableType")
-    fun getAllTestSuites(project: Project, testResourcesRootAbsolutePath: String, propertiesRelativePath: String): List<TestSuiteDto> {
-        val rootTestConfig = configDetector.configFromFile(testResourcesRootAbsolutePath.toPath())
-        return rootTestConfig.mapDescendants {
-            val generalConfig = GeneralConfig("stub", "stub", "stub", "stub")  // todo: discover general config
-            TestSuiteDto(TestSuiteType.PROJECT, generalConfig.suiteName!!, project, propertiesRelativePath)
+    fun getAllTestSuites(project: Project, rootTestConfig: TestConfig, propertiesRelativePath: String) = rootTestConfig
+        .getAllTestConfigs()
+        .mapNotNull { it.getGeneralConfigOrNull()?.suiteName }
+        .map { suiteName ->
+            // we operate here with suite names from only those TestConfigs, that have General section with suiteName key
+            TestSuiteDto(TestSuiteType.PROJECT, suiteName, project, propertiesRelativePath)
         }
-            .distinct()
-            .toList()
-    }
+        .distinct()
 
     /**
      * Discover all tests in the project
      *
      * @param testSuites testSuites in this project
-     * @param testResourcesRootPath absolute path to the root of test resources
+     * @param rootTestConfig root config of SAVE configs hierarchy
      * @return a list of [TestDto]s
+     * @throws PluginException if configs use unknown plugin
      */
     @OptIn(ExperimentalFileSystem::class)
     @Suppress("UnsafeCallOnNullableType")
-    fun getAllTests(testResourcesRootPath: String, testSuites: List<TestSuite>): List<TestDto> {
-        val rootTestConfig = configDetector.configFromFile(testResourcesRootPath.toPath())  // if we are here, then we have already validated this path in `getAllTestSuites`
-        return rootTestConfig.flatMapDescendants { _ ->
-            // todo: should get a list of plugins from config
-            val plugins: List<Plugin> = emptyList()
-            val generalConfig = GeneralConfig("stub", "stub", "stub", "stub")  // todo: discover general config
-            val testSuite = testSuites.first { it.name == generalConfig.suiteName }
-            plugins.flatMap { plugin ->
-                plugin.discoverTestFiles(testResourcesRootPath.toPath()).map {
-                    TestDto(it.first().name, testSuite.id!!, it.first().toFile().toHash())
-                }
+    fun getAllTests(rootTestConfig: TestConfig, testSuites: List<TestSuite>) = rootTestConfig
+        .getAllTestConfigs()
+        .flatMap { testConfig ->
+            val plugins = testConfig.buildActivePlugins()
+            val generalConfig = testConfig.getGeneralConfigOrNull()
+            if (plugins.isEmpty() || generalConfig == null) {
+                return@flatMap emptyList()
             }
-        }.toList()
-    }
-
-    /**
-     * Applies the transformation to all descendant [TestConfig]s.
-     * FixMe: Use configs traversal after it's implemented is SAVE.
-     *
-     * @param transform a function to invoke on all configs
-     * @return a sequence of transformed configs
-     */
-    fun <T> TestConfig.mapDescendants(transform: (TestConfig) -> T): Sequence<T> = sequence {
-        yield(transform(this@mapDescendants))
-        childConfigs.map {
-            yieldAll(it.mapDescendants(transform))
+            val testSuite = testSuites.firstOrNull { it.name == generalConfig.suiteName }
+            requireNotNull(testSuite) {
+                "No test suite matching name=${generalConfig.suiteName} is provided. Provided names are: ${testSuites.map { it.name }}"
+            }
+            plugins.flatMap { it.discoverTestFiles(testConfig.directory) }
+                .map {
+                    TestDto(it.first().toString(), testSuite.id!!, it.first().toFile().toHash())
+                }
         }
-    }
 
-    /**
-     * Applies the transformation to all descendant [TestConfig]s and returns a flattened sequence.
-     * FixMe: Use configs traversal after it's implemented is SAVE.
-     *
-     * @param transform a function to invoke on all configs
-     * @return a sequence of transformed configs
-     */
-    fun <T> TestConfig.flatMapDescendants(transform: (TestConfig) -> Iterable<T>): Sequence<T> = sequence {
-        yieldAll(transform(this@flatMapDescendants))
-        childConfigs.map {
-            yieldAll(it.flatMapDescendants(transform))
-        }
-    }
+    private fun TestConfig.getGeneralConfigOrNull() = pluginConfigs.filterIsInstance<GeneralConfig>().singleOrNull()
 }

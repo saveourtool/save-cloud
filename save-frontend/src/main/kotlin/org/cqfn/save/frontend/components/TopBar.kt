@@ -138,7 +138,6 @@ class TopBar : RComponent<TopBarProps, TopBarState>() {
         }
     }
 
-    @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR", "ForbiddenComment")  // todo: https://github.com/cqfn/diKTat/issues/796
     private fun RBuilder.dropdownEntry(faIcon: String, text: String, handler: RDOMBuilder<BUTTON>.() -> Unit = { }) =
             button(type = ButtonType.button, classes = "btn btn-no-outline dropdown-item rounded-0 shadow-none") {
                 i("fas $faIcon fa-sm fa-fw mr-2 text-gray-400") {

@@ -1,5 +1,6 @@
 package org.cqfn.save.preprocessor.service
 
+import org.cqfn.save.core.config.TestConfig
 import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.TestSuite
 import org.cqfn.save.preprocessor.config.ConfigProperties
@@ -17,6 +18,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Import
 import org.springframework.test.context.TestPropertySource
 import org.springframework.test.context.junit.jupiter.SpringExtension
+import java.io.File
 import java.nio.file.Files.createTempDirectory
 import java.nio.file.Path
 
@@ -26,9 +28,10 @@ import java.nio.file.Path
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @Import(TestDiscoveringService::class)
 class TestDiscoveringServiceTest {
-    private val testRootRelativePath = "examples/discovery-test"
+    private val propertiesRelativePath = "examples/kotlin-diktat/save.properties"
     @Autowired private lateinit var testDiscoveringService: TestDiscoveringService
     private lateinit var tmpDir: Path
+    private lateinit var rootTestConfig: TestConfig
 
     @BeforeAll
     fun setUp() {
@@ -37,6 +40,7 @@ class TestDiscoveringServiceTest {
             .setURI("https://github.com/cqfn/save")
             .setDirectory(tmpDir.toFile())
             .call()
+        rootTestConfig = testDiscoveringService.getRootTestConfig(tmpDir.resolve("examples/kotlin-diktat").toString())
     }
 
     @AfterAll
@@ -48,11 +52,13 @@ class TestDiscoveringServiceTest {
     fun `should discover test suites`() {
         val testSuites = testDiscoveringService.getAllTestSuites(
             Project("stub", "stub", "stub", null),
-            (tmpDir.resolve(testRootRelativePath)).toString(),
-            "$testRootRelativePath/save.properties"
+            rootTestConfig,
+            propertiesRelativePath
         )
 
-        Assertions.assertTrue(testSuites.isNotEmpty())  // fixme: check actual test suites when we properly use GeneralConfig in service
+        println("Discovered test suites: $testSuites")
+        Assertions.assertTrue(testSuites.isNotEmpty())
+        Assertions.assertEquals("autofix", testSuites.first().name)
     }
 
     @Test
@@ -60,8 +66,8 @@ class TestDiscoveringServiceTest {
         assertThrows<IllegalArgumentException> {
             testDiscoveringService.getAllTestSuites(
                 Project("stub", "stub", "stub", null),
-                (tmpDir.resolve("buildSrc")).toString(),
-                "$testRootRelativePath/save.properties"
+                testDiscoveringService.getRootTestConfig(tmpDir.resolve("buildSrc").toString()),
+                propertiesRelativePath
             )
         }
     }
@@ -69,12 +75,20 @@ class TestDiscoveringServiceTest {
     @Test
     fun `should discover tests`() {
         val testDtos = testDiscoveringService.getAllTests(
-            tmpDir.resolve(testRootRelativePath).toString(),
+            rootTestConfig,
             listOf(
-                TestSuite(TestSuiteType.PROJECT, "stub", null, null, "$testRootRelativePath/save.properties")
+                createTestSuiteStub("smoke tests", 1),
+                createTestSuiteStub("autofix", 2),
+                createTestSuiteStub("DocsCheck", 3),
             )
         )
 
-        Assertions.assertTrue(testDtos.isEmpty())  // fixme: check actual tests when the rest of the logic is implemented
+        println("Discovered the following tests: $testDtos")
+        Assertions.assertEquals(2, testDtos.size)
+        Assertions.assertEquals("Example1Expected.kt", File(testDtos.first().filePath).name)
+    }
+
+    private fun createTestSuiteStub(name: String, id: Long) = TestSuite(TestSuiteType.PROJECT, name, null, null, propertiesRelativePath).apply {
+        this.id = id
     }
 }
