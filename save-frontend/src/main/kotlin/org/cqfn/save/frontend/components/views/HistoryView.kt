@@ -49,7 +49,7 @@ class HistoryView : RComponent<HistoryProps, RState>() {
                 column("index", "#") {
                     td {
                         a(href = "${window.location}/${it.value.id}") {
-                            +"${it.row.index}"
+                            +"${it.row.index + 1}"
                         }
                     }
                 }
