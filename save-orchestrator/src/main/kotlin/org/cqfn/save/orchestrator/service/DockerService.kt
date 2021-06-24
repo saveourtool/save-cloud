@@ -91,7 +91,7 @@ class DockerService(private val configProperties: ConfigProperties) {
         isAgentStoppingInProgress.lazySet(false)
         true
     } else {
-        log.info("Agents stopping is already in progress, skipping")
+        log.debug("Agents stopping is already in progress, skipping")
         false
     }
 

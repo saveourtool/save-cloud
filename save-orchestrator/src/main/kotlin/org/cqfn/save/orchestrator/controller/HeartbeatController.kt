@@ -81,9 +81,10 @@ class HeartbeatController(private val agentService: AgentService,
         agentService.getAgentsAwaitingStop(agentId).doOnSuccess { (executionId, finishedAgentIds) ->
             scheduler.schedule {
                 if (finishedAgentIds.isNotEmpty()) {
-                    logger.info("Agents ids=$finishedAgentIds have completed execution, will make an attempt to terminate them")
+                    logger.debug("Agents ids=$finishedAgentIds have completed execution, will make an attempt to terminate them")
                     val areAgentsStopped = dockerService.stopAgents(finishedAgentIds)
                     if (areAgentsStopped) {
+                        logger.info("Agents have been stopped, will mark execution id=$executionId and agents $finishedAgentIds as FINISHED")
                         agentService
                             .markAgentsAndExecutionAsFinished(executionId, finishedAgentIds)
                             .block()
