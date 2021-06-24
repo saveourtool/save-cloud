@@ -68,7 +68,11 @@ fun Project.configureSpringBoot(withSpringDataJpa: Boolean = false) {
         dependsOn(rootProject.tasks.getByName("startLocalDockerRegistry"))
         // `host.docker.internal` for win 10?
         imageName = "127.0.0.1:6000/${project.name}:${project.versionForDockerImages()}"
-        environment = mapOf("BP_JVM_VERSION" to Versions.BP_JVM_VERSION)
+        environment = mapOf(
+            "BP_JVM_VERSION" to Versions.BP_JVM_VERSION,
+            "BPE_DELIM_JAVA_TOOL_OPTIONS" to " ",
+            "BPE_APPEND_JAVA_TOOL_OPTIONS" to "-Dreactor.netty.pool.maxIdleTime=60000 -Dreactor.netty.pool.leasingStrategy=lifo"
+        )
         isPublish = false
     }
 }
