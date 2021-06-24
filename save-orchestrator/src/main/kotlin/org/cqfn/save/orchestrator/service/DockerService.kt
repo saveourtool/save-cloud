@@ -6,6 +6,7 @@ import org.cqfn.save.execution.ExecutionUpdateDto
 import org.cqfn.save.orchestrator.config.ConfigProperties
 import org.cqfn.save.orchestrator.docker.ContainerManager
 
+import com.github.dockerjava.api.exception.DockerException
 import generated.SAVE_CORE_VERSION
 import org.apache.commons.io.FileUtils
 import org.slf4j.LoggerFactory
@@ -82,18 +83,25 @@ class DockerService(private val configProperties: ConfigProperties) {
      * @param agentIds list of IDs of agents to stop
      * @return true if agents have been stopped, false if another thread is already stopping them
      */
-    fun stopAgents(agentIds: List<String>) = if (isAgentStoppingInProgress.compareAndSet(false, true)) {
-        agentIds.forEach {
-            log.info("Stopping agent with id=$it")
-            containerManager.dockerClient.stopContainerCmd(it).exec()
-            log.info("Agent with id=$it has been stopped")
-        }
-        isAgentStoppingInProgress.lazySet(false)
-        true
-    } else {
-        log.debug("Agents stopping is already in progress, skipping")
-        false
-    }
+    fun stopAgents(agentIds: List<String>) =
+            if (isAgentStoppingInProgress.compareAndSet(false, true)) {
+                try {
+                    agentIds.forEach {
+                        log.info("Stopping agent with id=$it")
+                        containerManager.dockerClient.stopContainerCmd(it).exec()
+                        log.info("Agent with id=$it has been stopped")
+                    }
+                    true
+                } catch (dex: DockerException) {
+                    log.error("Error while stopping agents $agentIds", dex)
+                    false
+                } finally {
+                    isAgentStoppingInProgress.lazySet(false)
+                }
+            } else {
+                log.debug("Agents stopping is already in progress, skipping")
+                false
+            }
 
     private fun buildBaseImageForExecution(execution: Execution): String {
         val resourcesPath = File(

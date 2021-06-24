@@ -126,18 +126,19 @@ class AgentService(configProperties: ConfigProperties) {
      * @param finishedAgentIds agents that should be updated
      * @return a bodiless response entity
      */
-    fun markAgentsAndExecutionAsFinished(executionId: Long, finishedAgentIds: List<String>): Mono<BodilessResponseEntity> = updateAgentStatusesWithDto(
-        finishedAgentIds.map { agentId ->
-            AgentStatusDto(LocalDateTime.now(), AgentState.FINISHED, agentId)
-        }
-    )
-        .then(
-            webClientBackend.post()
-                .uri("/updateExecution")
-                .bodyValue(ExecutionUpdateDto(executionId, ExecutionStatus.FINISHED))  // todo: status based on results
-                .retrieve()
-                .toBodilessEntity()
-        )
+    fun markAgentsAndExecutionAsFinished(executionId: Long, finishedAgentIds: List<String>): Mono<BodilessResponseEntity> =
+            updateAgentStatusesWithDto(
+                finishedAgentIds.map { agentId ->
+                    AgentStatusDto(LocalDateTime.now(), AgentState.FINISHED, agentId)
+                }
+            )
+                .then(
+                    webClientBackend.post()
+                        .uri("/updateExecution")
+                        .bodyValue(ExecutionUpdateDto(executionId, ExecutionStatus.FINISHED))  // todo: status based on results
+                        .retrieve()
+                        .toBodilessEntity()
+                )
 
     /**
      * Get list of agent ids (containerIds) for agents that have completed their jobs.
