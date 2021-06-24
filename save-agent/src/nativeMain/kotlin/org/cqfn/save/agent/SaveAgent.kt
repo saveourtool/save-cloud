@@ -11,7 +11,7 @@ import org.cqfn.save.core.utils.ExecutionResult
 import org.cqfn.save.core.utils.ProcessBuilder
 import org.cqfn.save.domain.TestResultStatus
 
-import generated.SAVE_CORE_VERSION
+import generated.SAVE_CLOUD_VERSION
 import io.ktor.client.HttpClient
 import io.ktor.client.features.HttpTimeout
 import io.ktor.client.features.json.JsonFeature
@@ -213,6 +213,6 @@ class SaveAgent(private val config: AgentConfiguration,
     private suspend fun saveAdditionalData() = httpClient.post<HttpResponse> {
         url("${config.backendUrl}/saveAgentVersion")
         contentType(ContentType.Application.Json)
-        body = AgentVersion(config.id, SAVE_CORE_VERSION)
+        body = AgentVersion(config.id, SAVE_CLOUD_VERSION)
     }
 }
