@@ -10,12 +10,12 @@ import org.cqfn.save.entities.AgentStatusDto
 import org.cqfn.save.entities.AgentStatusesForExecution
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionUpdateDto
+import org.cqfn.save.orchestrator.BodilessResponseEntity
 import org.cqfn.save.orchestrator.config.ConfigProperties
 import org.cqfn.save.test.TestBatch
 
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
-import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
@@ -97,7 +97,7 @@ class AgentService(configProperties: ConfigProperties) {
      * @param agentStates list of [AgentStatus]es to update in the DB
      * @return as bodiless entity of response
      */
-    fun updateAgentStatusesWithDto(agentStates: List<AgentStatusDto>): Mono<ResponseEntity<Void>> =
+    fun updateAgentStatusesWithDto(agentStates: List<AgentStatusDto>): Mono<BodilessResponseEntity> =
             webClientBackend
                 .post()
                 .uri("/updateAgentStatusesWithDto")
@@ -126,7 +126,7 @@ class AgentService(configProperties: ConfigProperties) {
      * @param finishedAgentIds agents that should be updated
      * @return a bodiless response entity
      */
-    fun markAgentsAndExecutionAsFinished(executionId: Long, finishedAgentIds: List<String>): Mono<ResponseEntity<Void>> = updateAgentStatusesWithDto(
+    fun markAgentsAndExecutionAsFinished(executionId: Long, finishedAgentIds: List<String>): Mono<BodilessResponseEntity> = updateAgentStatusesWithDto(
         finishedAgentIds.map { agentId ->
             AgentStatusDto(LocalDateTime.now(), AgentState.FINISHED, agentId)
         }
@@ -145,6 +145,7 @@ class AgentService(configProperties: ConfigProperties) {
      * @param agentId containerId of an agent
      * @return Mono with list of agent ids for agents that can be shut down.
      */
+    @Suppress("TYPE_ALIAS")
     fun getAgentsAwaitingStop(agentId: String): Mono<Pair<Long, List<String>>> {
         // If we call this method, then there are no unfinished TestExecutions.
         // check other agents status

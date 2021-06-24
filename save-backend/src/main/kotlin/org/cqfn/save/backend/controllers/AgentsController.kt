@@ -82,6 +82,7 @@ class AgentsController(private val agentStatusRepository: AgentStatusRepository,
      */
     @GetMapping("/getAgentsStatusesForSameExecution")
     @Transactional
+    @Suppress("UnsafeCallOnNullableType")  // id will be available because it's retrieved from DB
     fun findAllAgentStatusesForSameExecution(@RequestParam agentId: String): AgentStatusesForExecution {
         val execution = getAgentByContainerId(agentId).execution
         val agentStatuses = agentRepository.findAll { root, cq, cb ->

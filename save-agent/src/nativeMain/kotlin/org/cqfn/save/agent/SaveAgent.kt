@@ -3,6 +3,8 @@
 package org.cqfn.save.agent
 
 import org.cqfn.save.agent.utils.readFile
+import org.cqfn.save.core.logging.isDebugEnabled
+import org.cqfn.save.core.logging.logDebug
 import org.cqfn.save.core.logging.logError
 import org.cqfn.save.core.logging.logInfo
 import org.cqfn.save.core.utils.ExecutionResult
@@ -32,8 +34,6 @@ import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
-import org.cqfn.save.core.logging.isDebugEnabled
-import org.cqfn.save.core.logging.logDebug
 
 /**
  * A main class for SAVE Agent

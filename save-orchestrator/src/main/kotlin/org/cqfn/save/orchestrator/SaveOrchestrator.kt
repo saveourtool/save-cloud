@@ -4,6 +4,7 @@ import org.cqfn.save.orchestrator.config.ConfigProperties
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.context.properties.EnableConfigurationProperties
+import org.springframework.http.ResponseEntity
 import org.springframework.web.reactive.config.EnableWebFlux
 
 /**
@@ -13,6 +14,8 @@ import org.springframework.web.reactive.config.EnableWebFlux
 @EnableWebFlux
 @EnableConfigurationProperties(ConfigProperties::class)
 open class SaveOrchestrator
+
+internal typealias BodilessResponseEntity = ResponseEntity<Void>
 
 fun main(args: Array<String>) {
     SpringApplication.run(SaveOrchestrator::class.java, *args)

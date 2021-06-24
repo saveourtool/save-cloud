@@ -20,6 +20,7 @@ import kotlinx.serialization.Serializable
  * @property executionDataRetryAttempts number of retries when sending execution data
  * @property executionDataInitialRetryMillis interval between successive attempts to send execution data
  * @property cliCommand a command that agent will use to run SAVE cli
+ * @property debug whether debug logging should be enabled
  */
 @Serializable
 data class AgentConfiguration(
