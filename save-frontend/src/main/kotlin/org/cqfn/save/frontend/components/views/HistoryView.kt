@@ -48,21 +48,21 @@ class HistoryView : RComponent<HistoryProps, RState>() {
             columns = columns {
                 column("index", "#") {
                     td {
-                        a(href = "${window.location}/${it.value.id}") {
+                        a(href = getHrefToExecution(it.value.id)) {
                             +"${it.row.index + 1}"
                         }
                     }
                 }
                 column("status", "Status") {
                     td {
-                        a(href = "${window.location}/${it.value.id}") {
+                        a(href = getHrefToExecution(it.value.id)) {
                             +"${it.value.status}"
                         }
                     }
                 }
                 column("date", "Date") {
                     td {
-                        a(href = "${window.location}/${it.value.id}") {
+                        a(href = getHrefToExecution(it.value.id)) {
                             +(it.value.endTime?.let {
                                 Instant.fromEpochSeconds(it, 0)
                                     .toString()
@@ -73,21 +73,21 @@ class HistoryView : RComponent<HistoryProps, RState>() {
                 }
                 column("passed", "Passed") {
                     td {
-                        a(href = "${window.location}/${it.value.id}") {
+                        a(href = getHrefToExecution(it.value.id)) {
                             +"${it.value.passedTests}"
                         }
                     }
                 }
                 column("failed", "Failed") {
                     td {
-                        a(href = "${window.location}/${it.value.id}") {
+                        a(href = getHrefToExecution(it.value.id)) {
                             +"${it.value.failedTests}"
                         }
                     }
                 }
                 column("skipped", "Skipped") {
                     td {
-                        a(href = "${window.location}/${it.value.id}") {
+                        a(href = getHrefToExecution(it.value.id)) {
                             +"${it.value.skippedTests}"
                         }
                     }
@@ -112,4 +112,6 @@ class HistoryView : RComponent<HistoryProps, RState>() {
             attrs.tableHeader = "Executions details"
         }
     }
+
+    private fun getHrefToExecution(id: Long) = "${window.location}/$id"
 }
