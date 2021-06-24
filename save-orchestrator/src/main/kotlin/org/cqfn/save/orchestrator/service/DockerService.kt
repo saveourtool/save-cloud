@@ -80,18 +80,19 @@ class DockerService(private val configProperties: ConfigProperties) {
 
     /**
      * @param agentIds list of IDs of agents to stop
+     * @return true if agents have been stopped, false if another thread is already stopping them
      */
-    fun stopAgents(agentIds: List<String>) {
-        if (isAgentStoppingInProgress.compareAndSet(false, true)) {
-            agentIds.forEach {
-                log.info("Stopping agent with id=$it")
-                containerManager.dockerClient.stopContainerCmd(it).exec()
-                log.info("Agent with id=$it has been stopped")
-            }
-            isAgentStoppingInProgress.lazySet(false)
-        } else {
-            log.info("Agents stopping is already in progress, skipping")
+    fun stopAgents(agentIds: List<String>) = if (isAgentStoppingInProgress.compareAndSet(false, true)) {
+        agentIds.forEach {
+            log.info("Stopping agent with id=$it")
+            containerManager.dockerClient.stopContainerCmd(it).exec()
+            log.info("Agent with id=$it has been stopped")
         }
+        isAgentStoppingInProgress.lazySet(false)
+        true
+    } else {
+        log.info("Agents stopping is already in progress, skipping")
+        false
     }
 
     private fun buildBaseImageForExecution(execution: Execution): String {

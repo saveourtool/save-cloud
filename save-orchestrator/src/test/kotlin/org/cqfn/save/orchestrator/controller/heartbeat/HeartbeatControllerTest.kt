@@ -5,6 +5,7 @@ import org.cqfn.save.agent.ExecutionProgress
 import org.cqfn.save.agent.Heartbeat
 import org.cqfn.save.agent.NewJobResponse
 import org.cqfn.save.entities.AgentStatusDto
+import org.cqfn.save.entities.AgentStatusesForExecution
 import org.cqfn.save.orchestrator.config.Beans
 import org.cqfn.save.orchestrator.service.AgentService
 import org.cqfn.save.orchestrator.service.DockerService
@@ -188,7 +189,9 @@ class HeartbeatControllerTest {
             mockServer.enqueue(
                 MockResponse()
                     .setBody(
-                        objectMapper.writeValueAsString(agentStatusDtos)
+                        objectMapper.writeValueAsString(
+                            AgentStatusesForExecution(0, agentStatusDtos)
+                        )
                     )
                     .addHeader("Content-Type", "application/json")
             )
