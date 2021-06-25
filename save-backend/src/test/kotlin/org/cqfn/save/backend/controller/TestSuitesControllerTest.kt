@@ -8,6 +8,7 @@ import org.cqfn.save.entities.TestSuite
 import org.cqfn.save.testsuite.TestSuiteDto
 import org.cqfn.save.testsuite.TestSuiteType
 import org.junit.Assert
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -42,19 +43,16 @@ class TestSuitesControllerTest {
             "save.properties"
         )
 
-        webClient.post()
-            .uri("/saveTestSuites")
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(BodyInserters.fromValue(listOf(testSuite)))
-            .exchange()
-            .expectBody<List<TestSuite>>()
-            .consumeWith {
-                val body = it.responseBody!!
-                Assert.assertEquals(listOf(testSuite).size, body.size)
-                Assert.assertEquals(testSuite.name, body[0].name)
-                Assert.assertEquals(testSuite.project, body[0].project)
-                Assert.assertEquals(testSuite.type, body[0].type)
-            }
+        saveTestSuites(listOf(testSuite)) {
+            expectBody<List<TestSuite>>()
+                .consumeWith {
+                    val body = it.responseBody!!
+                    Assert.assertEquals(listOf(testSuite).size, body.size)
+                    Assert.assertEquals(testSuite.name, body[0].name)
+                    Assert.assertEquals(testSuite.project, body[0].project)
+                    Assert.assertEquals(testSuite.type, body[0].type)
+                }
+        }
     }
 
     @Test
@@ -67,15 +65,48 @@ class TestSuitesControllerTest {
             "save.properties"
         )
 
+        saveTestSuites(listOf(testSuite)) {
+            expectBody<List<TestSuite>>()
+        }
+
+        val databaseData = testSuiteRepository.findAll()
+        assertTrue(databaseData.any { it.project?.id == testSuite.project?.id && it.name == testSuite.name })
+    }
+
+    @Test
+    fun `should save only new test suites`() {
+        val project = projectRepository.findById(1).get()
+        val testSuite = TestSuiteDto(
+            TestSuiteType.PROJECT,
+            "test",
+            project,
+            "save.properties"
+        )
+        saveTestSuites(listOf(testSuite)) {
+            expectBody<List<TestSuite>>().consumeWith {
+                assertEquals(1, it.responseBody!!.size)
+            }
+        }
+
+        val testSuite2 = TestSuiteDto(
+            TestSuiteType.PROJECT,
+            "test2",
+            project,
+            "save.properties"
+        )
+        saveTestSuites(listOf(testSuite, testSuite2)) {
+            expectBody<List<TestSuite>>().consumeWith {
+                assertEquals(2, it.responseBody!!.size)
+            }
+        }
+    }
+
+    private fun saveTestSuites(testSuites: List<TestSuiteDto>, spec: WebTestClient.ResponseSpec.() -> Unit) {
         webClient.post()
             .uri("/saveTestSuites")
             .contentType(MediaType.APPLICATION_JSON)
-            .body(BodyInserters.fromValue(listOf(testSuite)))
+            .body(BodyInserters.fromValue(testSuites))
             .exchange()
-            .expectBody<List<TestSuite>>()
-
-        val databaseData = testSuiteRepository.findAll()
-
-        assertTrue(databaseData.any { it.project?.id == testSuite.project?.id && it.name == testSuite.name })
+            .spec()
     }
 }

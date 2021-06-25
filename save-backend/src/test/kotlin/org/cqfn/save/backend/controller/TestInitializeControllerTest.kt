@@ -33,7 +33,7 @@ class TestInitializeControllerTest {
     lateinit var webClient: WebTestClient
 
     @Autowired
-    lateinit var testInitRepository: TestRepository
+    lateinit var testRepository: TestRepository
 
     @Autowired
     lateinit var testSuiteRepository: TestSuiteRepository
@@ -56,7 +56,7 @@ class TestInitializeControllerTest {
             .expectStatus()
             .isOk
 
-        assertNotNull(testInitRepository.findByHash("newHash") != null)
+        assertNotNull(testRepository.findByHash("newHash") != null)
     }
 
     @Test
@@ -77,7 +77,7 @@ class TestInitializeControllerTest {
             .expectStatus()
             .isOk
 
-        val databaseData = testInitRepository.findAll()
+        val databaseData = testRepository.findAll()
 
         assertTrue(databaseData.any { it.testSuite.id == test.testSuiteId && it.filePath == test.filePath && it.hash == test.hash })
     }

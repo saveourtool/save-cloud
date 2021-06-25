@@ -81,7 +81,7 @@ class DockerServiceTest {
                 .withStdErr(true)
                 .exec(object : ResultCallback.Adapter<Frame>() {
                     override fun onNext(frame: Frame?) {
-                        logger.info("$frame")
+                        logger.info(frame.toString())
                     }
                 })
                 .awaitCompletion()

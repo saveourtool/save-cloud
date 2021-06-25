@@ -18,8 +18,10 @@ class TestSuitesController {
     private lateinit var testSuitesService: TestSuitesService
 
     /**
+     * Save new test suites into DB
+     *
      * @param testSuiteDtos
-     * @return mono list of TestSuite
+     * @return mono list of *all* TestSuite
      */
     @PostMapping("/saveTestSuites")
     fun saveTestSuite(@RequestBody testSuiteDtos: List<TestSuiteDto>): Mono<List<TestSuite>> =
