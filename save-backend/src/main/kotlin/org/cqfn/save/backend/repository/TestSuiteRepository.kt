@@ -10,7 +10,16 @@ import org.springframework.stereotype.Repository
  */
 @Repository
 interface TestSuiteRepository : BaseEntityRepository<TestSuite> {
-    fun findByTypeAndNameAndProjectAndPropertiesRelativePath (
-        type: TestSuiteType, name: String, project: Project, propertiesRelativePath: String,
+    /**
+     * Find TestSuite by a set of fields
+     *
+     * @return test suite or null
+     */
+    @Suppress("KDOC_WITHOUT_PARAM_TAG")
+    fun findByTypeAndNameAndProjectAndPropertiesRelativePath(
+        type: TestSuiteType,
+        name: String,
+        project: Project,
+        propertiesRelativePath: String,
     ): TestSuite?
 }
