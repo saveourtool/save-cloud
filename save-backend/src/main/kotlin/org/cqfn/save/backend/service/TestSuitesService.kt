@@ -25,13 +25,14 @@ class TestSuitesService {
     fun saveTestSuite(testSuitesDto: List<TestSuiteDto>): List<TestSuite> {
         val testSuites = testSuitesDto
             .map { TestSuite(it.type, it.name, it.project, LocalDateTime.now(), "save.properties") }
-        val existingTestSuites = testSuites.mapNotNull {
-            testSuiteRepository.findByTypeAndNameAndProjectAndPropertiesRelativePath(
-                it.type!!, it.name, it.project!!, it.propertiesRelativePath
-            )
-        }
-        val newTestSuites = testSuites.filter { it.id == null }
+            .map { testSuite ->
+                testSuiteRepository.findByTypeAndNameAndProjectAndPropertiesRelativePath(
+                    testSuite.type!!, testSuite.name, testSuite.project!!, testSuite.propertiesRelativePath
+                )
+                    ?: testSuite
+            }
+        testSuites.filter { it.id == null }
             .let { testSuiteRepository.saveAll(it) }
-        return newTestSuites + existingTestSuites
+        return testSuites.toList()
     }
 }

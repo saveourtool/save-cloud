@@ -18,15 +18,11 @@ import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
-import java.time.LocalDateTime
-import java.time.Month
 
 @SpringBootTest(classes = [SaveApplication::class])
 @AutoConfigureWebTestClient
 @ExtendWith(MySqlExtension::class)
 class TestSuitesControllerTest {
-    private val testLocalDateTime = LocalDateTime.of(2020, Month.APRIL, 10, 16, 30, 20)
-
     @Autowired
     lateinit var webClient: WebTestClient
 
@@ -53,16 +49,16 @@ class TestSuitesControllerTest {
             .exchange()
             .expectBody<List<TestSuite>>()
             .consumeWith {
-                val body = it.responseBody
-                Assert.assertEquals(body.size, listOf(testSuite).size)
-                Assert.assertEquals(body[0].name, testSuite.name)
-                Assert.assertEquals(body[0].project, testSuite.project)
-                Assert.assertEquals(body[0].type, testSuite.type)
+                val body = it.responseBody!!
+                Assert.assertEquals(listOf(testSuite).size, body.size)
+                Assert.assertEquals(testSuite.name, body[0].name)
+                Assert.assertEquals(testSuite.project, body[0].project)
+                Assert.assertEquals(testSuite.type, body[0].type)
             }
     }
 
     @Test
-    fun checkDataSave() {
+    fun `saved test suites should be persisted in the DB`() {
         val project = projectRepository.findById(1).get()
         val testSuite = TestSuiteDto(
             TestSuiteType.PROJECT,
