@@ -3,6 +3,7 @@ package org.cqfn.save.execution
 import kotlinx.serialization.Serializable
 
 /**
+ * @property id
  * @property version
  * @property status
  * @property type
@@ -14,6 +15,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 @Suppress("LongParameterList")
 class ExecutionDto(
+    val id: Long,
     val status: ExecutionStatus,
     val type: ExecutionType,
     val version: String,
