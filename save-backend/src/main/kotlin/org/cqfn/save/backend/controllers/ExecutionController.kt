@@ -52,7 +52,7 @@ class ExecutionController(private val executionService: ExecutionService) {
     fun getExecutionByProject(@RequestParam name: String, @RequestParam owner: String): ExecutionDtoListResponse =
             ResponseEntity
                 .status(HttpStatus.OK)
-                .body(executionService.getExecutionDtoByNameAndOwner(name, owner))
+                .body(executionService.getExecutionDtoByNameAndOwner(name, owner).reversed())
 }
 
 typealias ExecutionDtoListResponse = ResponseEntity<List<ExecutionDto>>
