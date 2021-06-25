@@ -21,6 +21,7 @@ class TestSuitesService {
      * @param testSuitesDto test suites, that should be checked and possibly saved
      * @return list of *all* TestSuites
      */
+    @Suppress("UnsafeCallOnNullableType")
     fun saveTestSuite(testSuitesDto: List<TestSuiteDto>): List<TestSuite> {
         val testSuites = testSuitesDto
             .map { TestSuite(it.type, it.name, it.project, LocalDateTime.now(), "save.properties") }
