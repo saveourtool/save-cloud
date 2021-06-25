@@ -4,6 +4,7 @@ import org.cqfn.save.backend.repository.TestSuiteRepository
 import org.cqfn.save.entities.TestSuite
 import org.cqfn.save.testsuite.TestSuiteDto
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.data.domain.Example
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
 
@@ -24,12 +25,17 @@ class TestSuitesService {
     @Suppress("UnsafeCallOnNullableType")
     fun saveTestSuite(testSuitesDto: List<TestSuiteDto>): List<TestSuite> {
         val testSuites = testSuitesDto
-            .map { TestSuite(it.type, it.name, it.project, LocalDateTime.now(), "save.properties") }
+            .map { TestSuite(it.type, it.name, it.project, null, "save.properties") }
             .map { testSuite ->
-                testSuiteRepository.findByTypeAndNameAndProjectAndPropertiesRelativePath(
-                    testSuite.type!!, testSuite.name, testSuite.project!!, testSuite.propertiesRelativePath
+                // try to find TestSuite in the DB based on all non-null properties of `testSuite`
+                // NB: that's why `dateAdded` is null in the mapping above
+                testSuiteRepository.findOne(
+                    Example.of(testSuite)
                 )
-                    ?: testSuite
+                    // if testSuite is not present in the DB, we will save it with current timestamp
+                    .orElse(testSuite.apply {
+                        dateAdded = LocalDateTime.now()
+                    })
             }
         testSuites.filter { it.id == null }
             .let { testSuiteRepository.saveAll(it) }
