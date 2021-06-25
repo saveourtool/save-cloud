@@ -5,7 +5,6 @@ import org.cqfn.save.backend.repository.AgentRepository
 import org.cqfn.save.backend.repository.ExecutionRepository
 import org.cqfn.save.backend.repository.TestExecutionRepository
 import org.cqfn.save.backend.repository.TestRepository
-import org.cqfn.save.backend.repository.TestSuiteRepository
 import org.cqfn.save.backend.utils.toLocalDateTime
 import org.cqfn.save.domain.TestResultStatus
 import org.cqfn.save.entities.TestExecution
@@ -25,9 +24,6 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
 
     @Autowired
     private lateinit var testRepository: TestRepository
-
-    @Autowired
-    private lateinit var testSuiteRepository: TestSuiteRepository
 
     @Autowired
     private lateinit var agentRepository: AgentRepository
@@ -93,11 +89,12 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
     }
 
     /**
-     * @param testsId IDs of the tests, which will be executed
+     * @param testIds IDs of the tests, which will be executed
      * @param executionId ID of the [Execution], during which these tests will be executed
      */
-    fun saveTestExecution(executionId: Long, testsId: List<Long>) {
-        testsId.map { testId ->
+    fun saveTestExecution(executionId: Long, testIds: List<Long>) {
+        log.debug("Will create test executions for executionId=$executionId for tests $testIds")
+        testIds.map { testId ->
             testRepository.findById(testId).ifPresentOrElse({ test ->
                 testExecutionRepository.save(
                     TestExecution(test,

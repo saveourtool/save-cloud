@@ -16,12 +16,21 @@ class TestSuitesService {
     private lateinit var testSuiteRepository: TestSuiteRepository
 
     /**
-     * @param testSuitesDto
-     * @return list of TestSuites
+     * Save new test suites to DB
+     *
+     * @param testSuitesDto test suites, that should be checked and possibly saved
+     * @return list of *all* TestSuites
      */
     fun saveTestSuite(testSuitesDto: List<TestSuiteDto>): List<TestSuite> {
-        val testSuites = testSuitesDto.map { TestSuite(it.type, it.name, it.project, LocalDateTime.now(), "save.properties") }
-        testSuiteRepository.saveAll(testSuites)
-        return testSuites
+        val testSuites = testSuitesDto
+            .map { TestSuite(it.type, it.name, it.project, LocalDateTime.now(), "save.properties") }
+        val existingTestSuites = testSuites.mapNotNull {
+                testSuiteRepository.findByTypeAndNameAndProjectAndPropertiesRelativePath(
+                    it.type!!, it.name, it.project!!, it.propertiesRelativePath
+                )
+             }
+        val newTestSuites = testSuites.filter { it.id == null }
+            .let { testSuiteRepository.saveAll(it) }
+        return newTestSuites + existingTestSuites
     }
 }

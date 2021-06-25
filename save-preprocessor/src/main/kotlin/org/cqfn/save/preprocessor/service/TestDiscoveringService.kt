@@ -14,6 +14,7 @@ import org.cqfn.save.testsuite.TestSuiteType
 
 import okio.ExperimentalFileSystem
 import okio.Path.Companion.toPath
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 
 /**
@@ -81,6 +82,13 @@ class TestDiscoveringService {
                     TestDto(it.first().toString(), testSuite.id!!, it.first().toFile().toHash())
                 }
         }
+        .also {
+            log.info("Discovered the following test: $it")
+        }
 
     private fun TestConfig.getGeneralConfigOrNull() = pluginConfigs.filterIsInstance<GeneralConfig>().singleOrNull()
+
+    companion object {
+        private val log = LoggerFactory.getLogger(TestDiscoveringService::class.java)
+    }
 }
