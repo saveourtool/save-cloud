@@ -8,7 +8,8 @@ import org.cqfn.save.orchestrator.config.Beans
 import org.cqfn.save.orchestrator.config.ConfigProperties
 import org.cqfn.save.orchestrator.controller.AgentsController
 
-import com.github.dockerjava.core.command.LogContainerResultCallback
+import com.github.dockerjava.api.async.ResultCallback
+import com.github.dockerjava.api.model.Frame
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.jupiter.api.AfterEach
@@ -17,6 +18,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.DisabledOnOs
 import org.junit.jupiter.api.condition.OS
 import org.junit.jupiter.api.extension.ExtendWith
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
@@ -77,7 +79,11 @@ class DockerServiceTest {
             dockerService.containerManager.dockerClient.logContainerCmd(testContainerId)
                 .withStdOut(true)
                 .withStdErr(true)
-                .exec(LogContainerResultCallback())
+                .exec(object : ResultCallback.Adapter<Frame>() {
+                    override fun onNext(frame: Frame?) {
+                        logger.info("$frame")
+                    }
+                })
                 .awaitCompletion()
             "container $testContainerId is not running, actual state ${inspectContainerResponse.state}"
         }
@@ -97,6 +103,8 @@ class DockerServiceTest {
     }
 
     companion object {
+        private val logger = LoggerFactory.getLogger(DockerServiceTest::class.java)
+
         @JvmStatic
         private val mockServer = MockWebServer()
 
