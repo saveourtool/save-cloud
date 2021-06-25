@@ -217,7 +217,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
             responseFromExecutionRequest = post(window.location.origin + url, headers, body)
         }.invokeOnCompletion {
             if (responseFromExecutionRequest.ok) {
-                window.location.href = "${window.location.origin}/#/${project.owner}/${project.name}/history"
+                window.location.href = "${window.location}/history"
             } else {
                 setState {
                     isErrorOpen = true
