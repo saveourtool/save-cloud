@@ -20,7 +20,9 @@ private const val RADIX = 16
  */
 fun File.toHash(): String {
     val md = MessageDigest.getInstance("MD5")
-    Files.newInputStream(Paths.get(this.path)).use { inputStream -> DigestInputStream(inputStream, md) }
+    Files.newInputStream(Paths.get(this.path)).use { inputStream ->
+        DigestInputStream(inputStream, md).readAllBytes()
+    }
     return BigInteger(1, md.digest()).toString(RADIX)
 }
 
