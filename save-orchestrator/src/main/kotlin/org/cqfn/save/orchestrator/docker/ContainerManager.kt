@@ -55,7 +55,7 @@ class ContainerManager(private val dockerHost: String) {
      */
     internal fun createContainerFromImage(baseImageId: String,
                                           workingDir: String,
-                                          runCmd: List<String>,
+                                          runCmd: String,
                                           containerName: String): String {
         val baseImage = dockerClient.listImagesCmd().exec().find {
             // fixme: sometimes createImageCmd returns short id without prefix, sometimes full and with prefix.
