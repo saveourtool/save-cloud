@@ -42,8 +42,19 @@ class AgentStatus(
  * @property containerId id of the agent's container
  * @property time
  */
-class AgentStatusDto(
+data class AgentStatusDto(
     val time: LocalDateTime,
     val state: AgentState,
     val containerId: String,
+)
+
+/**
+ * Statuses of a group of agents for a single Execution
+ *
+ * @property executionId id of Execution
+ * @property agentStatuses list of [AgentStatusDto]s
+ */
+data class AgentStatusesForExecution(
+    val executionId: Long,
+    val agentStatuses: List<AgentStatusDto>,
 )

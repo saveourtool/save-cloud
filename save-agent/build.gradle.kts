@@ -99,6 +99,9 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinTest> {
 val generateVersionFileTaskProvider = tasks.register("generateVersionFile") {
     val versionsFile = File("$buildDir/generated/src/generated/Versions.kt")
 
+    val saveCliVersion = getSaveCliVersion()
+    inputs.property("Version of save-cli", saveCliVersion)
+    inputs.property("project version", version.toString())
     outputs.file(versionsFile)
 
     doFirst {
@@ -107,7 +110,7 @@ val generateVersionFileTaskProvider = tasks.register("generateVersionFile") {
             """
             package generated
 
-            internal const val SAVE_CORE_VERSION = "${getSaveCliVersion()}"
+            internal const val SAVE_CORE_VERSION = "$saveCliVersion"
             internal const val SAVE_CLOUD_VERSION = "$version"
 
             """.trimIndent()

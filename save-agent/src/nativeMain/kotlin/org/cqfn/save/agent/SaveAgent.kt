@@ -3,13 +3,15 @@
 package org.cqfn.save.agent
 
 import org.cqfn.save.agent.utils.readFile
+import org.cqfn.save.core.logging.isDebugEnabled
+import org.cqfn.save.core.logging.logDebug
 import org.cqfn.save.core.logging.logError
 import org.cqfn.save.core.logging.logInfo
 import org.cqfn.save.core.utils.ExecutionResult
 import org.cqfn.save.core.utils.ProcessBuilder
 import org.cqfn.save.domain.TestResultStatus
 
-import generated.SAVE_CORE_VERSION
+import generated.SAVE_CLOUD_VERSION
 import io.ktor.client.HttpClient
 import io.ktor.client.features.HttpTimeout
 import io.ktor.client.features.json.JsonFeature
@@ -64,6 +66,7 @@ class SaveAgent(private val config: AgentConfiguration,
      * @return Unit
      */
     suspend fun start() = coroutineScope {
+        isDebugEnabled = config.debug
         logInfo("Starting agent")
         val heartbeatsJob = launch { startHeartbeats() }
         heartbeatsJob.join()
@@ -113,6 +116,8 @@ class SaveAgent(private val config: AgentConfiguration,
         // blocking execution of OS process
         state.value = AgentState.BUSY
         val executionResult = runSave(cliArgs)
+        logDebug("Executed SAVE, here is stdout: ${executionResult.stdout}")
+        logDebug("Executed SAVE, here is stderr: ${executionResult.stderr}")
         val executionLogs = ExecutionLogs(config.id, readFile(logFilePath))
         val logsSending = launch {
             runCatching {
@@ -145,8 +150,8 @@ class SaveAgent(private val config: AgentConfiguration,
         logsSending.join()
     }
 
-    private fun runSave(cliArgs: String): ExecutionResult =
-            ProcessBuilder(true).exec(config.cliCommand.let { if (cliArgs.isNotEmpty()) "$it $cliArgs" else it }, logFilePath.toPath())
+    private fun runSave(cliArgs: String): ExecutionResult = ProcessBuilder(true)
+        .exec(config.cliCommand.let { if (cliArgs.isNotEmpty()) "$it $cliArgs" else it }, logFilePath.toPath())
 
     /**
      * @param executionLogs logs of CLI execution progress that will be sent in a message
@@ -208,6 +213,6 @@ class SaveAgent(private val config: AgentConfiguration,
     private suspend fun saveAdditionalData() = httpClient.post<HttpResponse> {
         url("${config.backendUrl}/saveAgentVersion")
         contentType(ContentType.Application.Json)
-        body = AgentVersion(config.id, SAVE_CORE_VERSION)
+        body = AgentVersion(config.id, SAVE_CLOUD_VERSION)
     }
 }

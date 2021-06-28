@@ -54,6 +54,7 @@ kotlin {
 val generateVersionFileTaskProvider = tasks.register("generateVersionFile") {
     val versionsFile = File("$buildDir/generated/src/generated/Versions.kt")
 
+    inputs.property("project version", version.toString())
     outputs.file(versionsFile)
 
     doFirst {
