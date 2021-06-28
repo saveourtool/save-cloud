@@ -127,8 +127,8 @@ class DockerService(private val configProperties: ConfigProperties) {
 
     private fun createContainerForExecution(
         imageId: String,
-        runCmd: String,
         containerNumber: String,
+        runCmd: String,
     ): String {
         val containerId = containerManager.createContainerFromImage(
             imageId,
