@@ -83,7 +83,7 @@ class TestDiscoveringService {
                 }
         }
         .also {
-            log.info("Discovered the following test: $it")
+            log.debug("Discovered the following tests: $it")
         }
 
     private fun TestConfig.getGeneralConfigOrNull() = pluginConfigs.filterIsInstance<GeneralConfig>().singleOrNull()

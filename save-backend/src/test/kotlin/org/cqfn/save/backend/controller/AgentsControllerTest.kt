@@ -8,6 +8,7 @@ import org.cqfn.save.backend.repository.AgentStatusRepository
 import org.cqfn.save.backend.utils.MySqlExtension
 import org.cqfn.save.entities.AgentStatus
 import org.cqfn.save.entities.AgentStatusDto
+import org.cqfn.save.entities.AgentStatusesForExecution
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
@@ -126,13 +127,12 @@ class AgentsControllerTest {
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
             .exchange()
-            .expectBody<List<AgentStatusDto?>>()
+            .expectBody<AgentStatusesForExecution>()
             .consumeWith {
-                val statuses = it.responseBody
-                requireNotNull(statuses)
+                val statuses = requireNotNull(it.responseBody).agentStatuses
                 Assertions.assertEquals(2, statuses.size)
-                Assertions.assertEquals(AgentState.IDLE, statuses.first()!!.state)
-                Assertions.assertEquals(AgentState.BUSY, statuses[1]!!.state)
+                Assertions.assertEquals(AgentState.IDLE, statuses.first().state)
+                Assertions.assertEquals(AgentState.BUSY, statuses[1].state)
             }
     }
 
@@ -151,7 +151,7 @@ class AgentsControllerTest {
         Assertions.assertEquals(agentRepository.findByContainerId(agentVersion.containerId)?.version, agentVersion.version)
     }
 
-    private fun updateAgentStatuses(body: Any) {
+    private fun updateAgentStatuses(body: List<AgentStatusDto>) {
         webTestClient
             .method(HttpMethod.POST)
             .uri("/updateAgentStatusesWithDto")

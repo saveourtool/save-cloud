@@ -6,6 +6,7 @@ import org.cqfn.save.backend.repository.AgentStatusRepository
 import org.cqfn.save.entities.Agent
 import org.cqfn.save.entities.AgentStatus
 import org.cqfn.save.entities.AgentStatusDto
+import org.cqfn.save.entities.AgentStatusesForExecution
 import org.cqfn.save.entities.Execution
 import org.slf4j.LoggerFactory
 import org.springframework.transaction.annotation.Transactional
@@ -81,12 +82,21 @@ class AgentsController(private val agentStatusRepository: AgentStatusRepository,
      */
     @GetMapping("/getAgentsStatusesForSameExecution")
     @Transactional
-    fun findAllAgentStatusesForSameExecution(@RequestParam agentId: String): List<AgentStatusDto?> =
-            agentRepository.findAll { root, cq, cb ->
-                cb.equal(root.get<Execution>("execution"), getAgentByContainerId(agentId).execution)
-            }.map {
-                agentStatusRepository.findTopByAgentContainerIdOrderByEndTimeDesc(it.containerId)?.toDto()
+    @Suppress("UnsafeCallOnNullableType")  // id will be available because it's retrieved from DB
+    fun findAllAgentStatusesForSameExecution(@RequestParam agentId: String): AgentStatusesForExecution {
+        val execution = getAgentByContainerId(agentId).execution
+        val agentStatuses = agentRepository.findAll { root, cq, cb ->
+            cb.equal(root.get<Execution>("execution"), execution)
+        }.map { agent ->
+            val latestStatus = requireNotNull(
+                agentStatusRepository.findTopByAgentContainerIdOrderByEndTimeDesc(agent.containerId)
+            ) {
+                "AgentStatus not found for agent id=${agent.containerId}"
             }
+            latestStatus.toDto()
+        }
+        return AgentStatusesForExecution(execution.id!!, agentStatuses)
+    }
 
     /**
      * Get agent by containerId.

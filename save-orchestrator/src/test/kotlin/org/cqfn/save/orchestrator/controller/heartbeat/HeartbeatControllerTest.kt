@@ -5,6 +5,7 @@ import org.cqfn.save.agent.ExecutionProgress
 import org.cqfn.save.agent.Heartbeat
 import org.cqfn.save.agent.NewJobResponse
 import org.cqfn.save.entities.AgentStatusDto
+import org.cqfn.save.entities.AgentStatusesForExecution
 import org.cqfn.save.orchestrator.config.Beans
 import org.cqfn.save.orchestrator.service.AgentService
 import org.cqfn.save.orchestrator.service.DockerService
@@ -26,6 +27,7 @@ import org.junit.jupiter.api.TestInstance
 import org.mockito.kotlin.any
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
 import org.springframework.boot.test.mock.mockito.MockBean
@@ -142,6 +144,7 @@ class HeartbeatControllerTest {
 
     @Test
     fun `should shutdown idle agents when there are no tests left`() {
+        whenever(dockerService.stopAgents(any())).thenReturn(true)
         testHeartbeat(
             agentStatusDtos = listOf(
                 AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "test-1"),
@@ -150,6 +153,17 @@ class HeartbeatControllerTest {
             heartbeat = Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100)),
             testBatch = TestBatch(emptyList(), emptyMap()),
             mockAgentStatuses = true,
+            {
+                // additional setup for marking stuff as FINISHED
+                // /updateAgentStatuses
+                mockServer.enqueue(
+                    MockResponse().setResponseCode(200)
+                )
+                // /updateExecution
+                mockServer.enqueue(
+                    MockResponse().setResponseCode(200)
+                )
+            }
         ) {
             verify(dockerService, times(1)).stopAgents(any())
         }
@@ -158,19 +172,21 @@ class HeartbeatControllerTest {
     /**
      * Test logic triggered by a heartbeat.
      *
-     * @param agentStatuses agent statuses that are returned from backend (mocked response)
+     * @param agentStatusDtos agent statuses that are returned from backend (mocked response)
      * @param heartbeat a [Heartbeat] that is received by orchestrator
-     * @param tests a batch of tests returned from backend (mocked response)
+     * @param testBatch a batch of tests returned from backend (mocked response)
      * @param mockAgentStatuses whether a mocked response for `/getAgentsStatusesForSameExecution` should be added to queue
+     * @param additionalSetup is executed before the request is performed
      * @param verification a lambda for test assertions
      */
     @OptIn(ExperimentalStdlibApi::class)
-    @Suppress("TOO_LONG_FUNCTION")
+    @Suppress("TOO_LONG_FUNCTION", "TOO_MANY_PARAMETERS", "LongParameterList")
     private fun testHeartbeat(
         agentStatusDtos: List<AgentStatusDto>,
         heartbeat: Heartbeat,
         testBatch: TestBatch,
         mockAgentStatuses: Boolean = false,
+        additionalSetup: () -> Unit = {},
         verification: () -> Unit,
     ) {
         // /updateAgentStatuses
@@ -188,11 +204,14 @@ class HeartbeatControllerTest {
             mockServer.enqueue(
                 MockResponse()
                     .setBody(
-                        objectMapper.writeValueAsString(agentStatusDtos)
+                        objectMapper.writeValueAsString(
+                            AgentStatusesForExecution(0, agentStatusDtos)
+                        )
                     )
                     .addHeader("Content-Type", "application/json")
             )
         }
+        additionalSetup()
         val assertions = CompletableFuture.supplyAsync {
             buildList<RecordedRequest?> {
                 mockServer.takeRequest(60, TimeUnit.SECONDS)

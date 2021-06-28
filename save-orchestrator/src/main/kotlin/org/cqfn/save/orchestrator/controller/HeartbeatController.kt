@@ -53,16 +53,10 @@ class HeartbeatController(private val agentService: AgentService,
         )
             .then(
                 when (heartbeat.state) {
-                    AgentState.IDLE -> agentService.getNewTestsIds(heartbeat.agentId).subscribeOn(scheduler)
+                    AgentState.IDLE -> agentService.getNewTestsIds(heartbeat.agentId)
                         .doOnSuccess {
                             if (it is WaitResponse) {
-                                // If agent was IDLE and there are no new tests - we check if the Execution is completed.
-                                agentService.getAgentsAwaitingStop(heartbeat.agentId).subscribeOn(scheduler).subscribe { finishedAgentIds ->
-                                    if (finishedAgentIds.isNotEmpty()) {
-                                        logger.info("Agents ids=$finishedAgentIds have completed execution and will be terminated")
-                                        dockerService.stopAgents(finishedAgentIds)
-                                    }
-                                }
+                                initiateShutdownSequence(heartbeat.agentId)
                             } else if (it is NewJobResponse) {
                                 logger.debug("Agent ${heartbeat.agentId} will receive the following job: $it")
                             }
@@ -77,5 +71,31 @@ class HeartbeatController(private val agentService: AgentService,
                     AgentState.CLI_FAILED -> Mono.just(WaitResponse)
                 }
             )
+    }
+
+    /**
+     * If agent was IDLE and there are no new tests - we check if the Execution is completed.
+     * We get all agents for the same execution, if they are all done.
+     * Then we stop them via DockerService and update necessary statuses in DB via AgentService.
+     *
+     * @param agentId an ID of the agent from the execution, that will be checked.
+     */
+    private fun initiateShutdownSequence(agentId: String) {
+        agentService.getAgentsAwaitingStop(agentId).doOnSuccess { (executionId, finishedAgentIds) ->
+            scheduler.schedule {
+                if (finishedAgentIds.isNotEmpty()) {
+                    logger.debug("Agents ids=$finishedAgentIds have completed execution, will make an attempt to terminate them")
+                    val areAgentsStopped = dockerService.stopAgents(finishedAgentIds)
+                    if (areAgentsStopped) {
+                        logger.info("Agents have been stopped, will mark execution id=$executionId and agents $finishedAgentIds as FINISHED")
+                        agentService
+                            .markAgentsAndExecutionAsFinished(executionId, finishedAgentIds)
+                            .block()
+                    }
+                }
+            }
+        }
+            .subscribeOn(scheduler)
+            .subscribe()
     }
 }
