@@ -108,7 +108,11 @@ class DockerService(private val configProperties: ConfigProperties) {
             configProperties.testResources.basePath,
             execution.resourcesRootPath,
         )
-        val runCmd = "${if (File(resourcesPath, "run.sh").exists()) "./run.sh || " else ""}./$SAVE_AGENT_EXECUTABLE_NAME"
+        val runCmd = if (File(resourcesPath, "run.sh").exists()) {
+            "./run.sh"
+        } else {
+            "./$SAVE_AGENT_EXECUTABLE_NAME\""
+        }
         // include save-agent into the image
         FileUtils.copyInputStreamToFile(
             ClassPathResource(SAVE_AGENT_EXECUTABLE_NAME).inputStream,
