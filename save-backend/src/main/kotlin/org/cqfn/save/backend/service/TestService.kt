@@ -51,7 +51,11 @@ class TestService(private val configProperties: ConfigProperties) {
     fun saveTests(tests: List<TestDto>): List<Long> {
         val testsId: MutableCollection<Long> = mutableListOf()
         tests.forEach { testDto ->
-            testRepository.findByHash(testDto.hash!!)?.let { testsId.add(it.id!!) } ?: run {
+            testRepository.findByHash(testDto.hash!!)?.let {
+                log.debug("Test $testDto is already present with id=${it.id}")
+                testsId.add(it.id!!)
+            } ?: run {
+                log.debug("Test $testDto is not found in the DB, will save it")
                 val testSuite = TestSuite(propertiesRelativePath = "FB").apply {
                     id = testDto.testSuiteId
                 }
@@ -89,5 +93,9 @@ class TestService(private val configProperties: ConfigProperties) {
         return Mono.just(TestBatch(testDtos, tests.map { it.test.testSuite }.associate {
             it.id!! to "--properties-file ${it.propertiesRelativePath}"
         }))
+    }
+
+    companion object {
+        private val log = LoggerFactory.getLogger(TestService::class.java)
     }
 }

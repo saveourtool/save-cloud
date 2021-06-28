@@ -8,6 +8,7 @@ import org.cqfn.save.entities.TestSuite
 import org.cqfn.save.testsuite.TestSuiteDto
 import org.cqfn.save.testsuite.TestSuiteType
 import org.junit.Assert
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -18,15 +19,11 @@ import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
-import java.time.LocalDateTime
-import java.time.Month
 
 @SpringBootTest(classes = [SaveApplication::class])
 @AutoConfigureWebTestClient
 @ExtendWith(MySqlExtension::class)
 class TestSuitesControllerTest {
-    private val testLocalDateTime = LocalDateTime.of(2020, Month.APRIL, 10, 16, 30, 20)
-
     @Autowired
     lateinit var webClient: WebTestClient
 
@@ -46,23 +43,20 @@ class TestSuitesControllerTest {
             "save.properties"
         )
 
-        webClient.post()
-            .uri("/saveTestSuites")
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(BodyInserters.fromValue(listOf(testSuite)))
-            .exchange()
-            .expectBody<List<TestSuite>>()
-            .consumeWith {
-                val body = it.responseBody
-                Assert.assertEquals(body.size, listOf(testSuite).size)
-                Assert.assertEquals(body[0].name, testSuite.name)
-                Assert.assertEquals(body[0].project, testSuite.project)
-                Assert.assertEquals(body[0].type, testSuite.type)
-            }
+        saveTestSuites(listOf(testSuite)) {
+            expectBody<List<TestSuite>>()
+                .consumeWith {
+                    val body = it.responseBody!!
+                    Assert.assertEquals(listOf(testSuite).size, body.size)
+                    Assert.assertEquals(testSuite.name, body[0].name)
+                    Assert.assertEquals(testSuite.project, body[0].project)
+                    Assert.assertEquals(testSuite.type, body[0].type)
+                }
+        }
     }
 
     @Test
-    fun checkDataSave() {
+    fun `saved test suites should be persisted in the DB`() {
         val project = projectRepository.findById(1).get()
         val testSuite = TestSuiteDto(
             TestSuiteType.PROJECT,
@@ -71,15 +65,48 @@ class TestSuitesControllerTest {
             "save.properties"
         )
 
+        saveTestSuites(listOf(testSuite)) {
+            expectBody<List<TestSuite>>()
+        }
+
+        val databaseData = testSuiteRepository.findAll()
+        assertTrue(databaseData.any { it.project?.id == testSuite.project?.id && it.name == testSuite.name })
+    }
+
+    @Test
+    fun `should save only new test suites`() {
+        val project = projectRepository.findById(1).get()
+        val testSuite = TestSuiteDto(
+            TestSuiteType.PROJECT,
+            "test",
+            project,
+            "save.properties"
+        )
+        saveTestSuites(listOf(testSuite)) {
+            expectBody<List<TestSuite>>().consumeWith {
+                assertEquals(1, it.responseBody!!.size)
+            }
+        }
+
+        val testSuite2 = TestSuiteDto(
+            TestSuiteType.PROJECT,
+            "test2",
+            project,
+            "save.properties"
+        )
+        saveTestSuites(listOf(testSuite, testSuite2)) {
+            expectBody<List<TestSuite>>().consumeWith {
+                assertEquals(2, it.responseBody!!.size)
+            }
+        }
+    }
+
+    private fun saveTestSuites(testSuites: List<TestSuiteDto>, spec: WebTestClient.ResponseSpec.() -> Unit) {
         webClient.post()
             .uri("/saveTestSuites")
             .contentType(MediaType.APPLICATION_JSON)
-            .body(BodyInserters.fromValue(listOf(testSuite)))
+            .body(BodyInserters.fromValue(testSuites))
             .exchange()
-            .expectBody<List<TestSuite>>()
-
-        val databaseData = testSuiteRepository.findAll()
-
-        assertTrue(databaseData.any { it.project?.id == testSuite.project?.id && it.name == testSuite.name })
+            .spec()
     }
 }

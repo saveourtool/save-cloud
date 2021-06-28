@@ -4,6 +4,7 @@ import org.cqfn.save.agent.AgentState
 import org.cqfn.save.agent.ContinueResponse
 import org.cqfn.save.agent.Heartbeat
 import org.cqfn.save.agent.HeartbeatResponse
+import org.cqfn.save.agent.NewJobResponse
 import org.cqfn.save.agent.WaitResponse
 import org.cqfn.save.entities.AgentStatusDto
 import org.cqfn.save.orchestrator.config.ConfigProperties
@@ -56,6 +57,8 @@ class HeartbeatController(private val agentService: AgentService,
                         .doOnSuccess {
                             if (it is WaitResponse) {
                                 initiateShutdownSequence(heartbeat.agentId)
+                            } else if (it is NewJobResponse) {
+                                logger.debug("Agent ${heartbeat.agentId} will receive the following job: $it")
                             }
                         }
                     AgentState.FINISHED -> {

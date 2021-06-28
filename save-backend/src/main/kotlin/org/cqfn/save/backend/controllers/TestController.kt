@@ -3,6 +3,7 @@ package org.cqfn.save.backend.controllers
 import org.cqfn.save.backend.service.TestExecutionService
 import org.cqfn.save.backend.service.TestService
 import org.cqfn.save.test.TestDto
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
@@ -27,6 +28,7 @@ class TestController {
      */
     @PostMapping("/initializeTests")
     fun initializeTests(@RequestBody testDtos: List<TestDto>, @RequestParam executionId: Long) {
+        log.debug("Received the following tests for initialization under executionId=$executionId: $testDtos")
         val testsIds = testService.saveTests(testDtos)
         testExecutionService.saveTestExecution(executionId, testsIds)
     }
@@ -37,4 +39,8 @@ class TestController {
      */
     @GetMapping("/getTestBatches")
     fun testBatches(@RequestParam agentId: String) = testService.getTestBatches(agentId)
+
+    companion object {
+        private val log = LoggerFactory.getLogger(TestController::class.java)
+    }
 }
