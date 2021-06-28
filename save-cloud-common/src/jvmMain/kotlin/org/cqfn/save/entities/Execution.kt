@@ -64,5 +64,15 @@ class Execution(
     /**
      * @return Execution dto
      */
-    fun toDto() = ExecutionDto(status, type, version, endTime?.toEpochSecond(ZoneOffset.UTC), passedTests, failedTests, skippedTests)
+    @Suppress("UnsafeCallOnNullableType")
+    fun toDto() = ExecutionDto(
+        id!!,
+        status,
+        type,
+        version,
+        endTime?.toEpochSecond(ZoneOffset.UTC),
+        passedTests,
+        failedTests,
+        skippedTests
+    )
 }

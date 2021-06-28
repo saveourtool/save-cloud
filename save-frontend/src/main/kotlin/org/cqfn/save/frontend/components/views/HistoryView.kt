@@ -15,6 +15,7 @@ import react.RComponent
 import react.RProps
 import react.RState
 import react.child
+import react.dom.a
 import react.dom.td
 import react.table.columns
 
@@ -41,42 +42,54 @@ external interface HistoryProps : RProps {
  * A table to display execution results for a certain project.
  */
 class HistoryView : RComponent<HistoryProps, RState>() {
-    @Suppress("TOO_LONG_FUNCTION", "ForbiddenComment")
+    @Suppress("TOO_LONG_FUNCTION", "ForbiddenComment", "LongMethod")
     override fun RBuilder.render() {
         child(tableComponent(
             columns = columns {
                 column("index", "#") {
                     td {
-                        +"${it.row.index}"
+                        a(href = getHrefToExecution(it.value.id)) {
+                            +"${it.row.index + 1}"
+                        }
                     }
                 }
                 column("status", "Status") {
                     td {
-                        +"${it.value.status}"
+                        a(href = getHrefToExecution(it.value.id)) {
+                            +"${it.value.status}"
+                        }
                     }
                 }
                 column("date", "Date") {
                     td {
-                        +(it.value.endTime?.let {
-                            Instant.fromEpochSeconds(it, 0)
-                                .toString()
-                                .replace("[TZ]".toRegex(), " ")
-                        } ?: "RUNNING")
+                        a(href = getHrefToExecution(it.value.id)) {
+                            +(it.value.endTime?.let {
+                                Instant.fromEpochSeconds(it, 0)
+                                    .toString()
+                                    .replace("[TZ]".toRegex(), " ")
+                            } ?: "RUNNING")
+                        }
                     }
                 }
                 column("passed", "Passed") {
                     td {
-                        +"${it.value.passedTests}"
+                        a(href = getHrefToExecution(it.value.id)) {
+                            +"${it.value.passedTests}"
+                        }
                     }
                 }
                 column("failed", "Failed") {
                     td {
-                        +"${it.value.failedTests}"
+                        a(href = getHrefToExecution(it.value.id)) {
+                            +"${it.value.failedTests}"
+                        }
                     }
                 }
                 column("skipped", "Skipped") {
                     td {
-                        +"${it.value.skippedTests}"
+                        a(href = getHrefToExecution(it.value.id)) {
+                            +"${it.value.skippedTests}"
+                        }
                     }
                 }
             }
@@ -99,4 +112,6 @@ class HistoryView : RComponent<HistoryProps, RState>() {
             attrs.tableHeader = "Executions details"
         }
     }
+
+    private fun getHrefToExecution(id: Long) = "${window.location}/$id"
 }
