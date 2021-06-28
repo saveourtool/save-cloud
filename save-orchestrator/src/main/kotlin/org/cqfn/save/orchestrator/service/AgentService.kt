@@ -7,6 +7,10 @@ import org.cqfn.save.agent.WaitResponse
 import org.cqfn.save.entities.Agent
 import org.cqfn.save.entities.AgentStatus
 import org.cqfn.save.entities.AgentStatusDto
+import org.cqfn.save.entities.AgentStatusesForExecution
+import org.cqfn.save.execution.ExecutionStatus
+import org.cqfn.save.execution.ExecutionUpdateDto
+import org.cqfn.save.orchestrator.BodilessResponseEntity
 import org.cqfn.save.orchestrator.config.ConfigProperties
 import org.cqfn.save.test.TestBatch
 
@@ -91,8 +95,9 @@ class AgentService(configProperties: ConfigProperties) {
 
     /**
      * @param agentStates list of [AgentStatus]es to update in the DB
+     * @return as bodiless entity of response
      */
-    fun updateAgentStatusesWithDto(agentStates: List<AgentStatusDto>) =
+    fun updateAgentStatusesWithDto(agentStates: List<AgentStatusDto>): Mono<BodilessResponseEntity> =
             webClientBackend
                 .post()
                 .uri("/updateAgentStatusesWithDto")
@@ -115,21 +120,43 @@ class AgentService(configProperties: ConfigProperties) {
     }
 
     /**
+     * Marks agent states and then execution state as FINISHED
+     *
+     * @param executionId execution that should be updated
+     * @param finishedAgentIds agents that should be updated
+     * @return a bodiless response entity
+     */
+    fun markAgentsAndExecutionAsFinished(executionId: Long, finishedAgentIds: List<String>): Mono<BodilessResponseEntity> =
+            updateAgentStatusesWithDto(
+                finishedAgentIds.map { agentId ->
+                    AgentStatusDto(LocalDateTime.now(), AgentState.FINISHED, agentId)
+                }
+            )
+                .then(
+                    webClientBackend.post()
+                        .uri("/updateExecution")
+                        .bodyValue(ExecutionUpdateDto(executionId, ExecutionStatus.FINISHED))  // todo: status based on results
+                        .retrieve()
+                        .toBodilessEntity()
+                )
+
+    /**
      * Get list of agent ids (containerIds) for agents that have completed their jobs.
      *
      * @param agentId containerId of an agent
      * @return Mono with list of agent ids for agents that can be shut down.
      */
-    fun getAgentsAwaitingStop(agentId: String): Mono<List<String>> {
+    @Suppress("TYPE_ALIAS")
+    fun getAgentsAwaitingStop(agentId: String): Mono<Pair<Long, List<String>>> {
         // If we call this method, then there are no unfinished TestExecutions.
         // check other agents status
         return webClientBackend
             .get()
             .uri("/getAgentsStatusesForSameExecution?agentId=$agentId")
             .retrieve()
-            .bodyToMono<List<AgentStatusDto>>()
-            .map { agentStatuses ->
-                if (agentStatuses.all { it.state == AgentState.IDLE }) {
+            .bodyToMono<AgentStatusesForExecution>()
+            .map { (executionId, agentStatuses) ->
+                executionId to if (agentStatuses.all { it.state == AgentState.IDLE }) {
                     agentStatuses.map { it.containerId }
                 } else {
                     emptyList()
