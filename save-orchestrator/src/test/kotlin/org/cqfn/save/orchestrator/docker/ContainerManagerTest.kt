@@ -50,7 +50,7 @@ class ContainerManagerTest {
         testContainerId = containerManager.createContainerFromImage(
             baseImageId,
             "/",
-            listOf("./script.sh"),
+            "./script.sh",
             "testContainer"
         )
         val inspectContainerResponse = containerManager.dockerClient

@@ -47,11 +47,11 @@ class DockerService(private val configProperties: ConfigProperties) {
      */
     fun buildAndCreateContainers(execution: Execution): List<String> {
         log.info("Building base image for execution.id=${execution.id}")
-        val imageId = buildBaseImageForExecution(execution)
+        val (imageId, runCmd) = buildBaseImageForExecution(execution)
         log.info("Built base image for execution.id=${execution.id}")
         return (1..configProperties.agentsCount).map { number ->
             log.info("Building container #$number for execution.id=${execution.id}")
-            createContainerForExecution(imageId, "${execution.id}-$number").also {
+            createContainerForExecution(imageId, "${execution.id}-$number", runCmd).also {
                 log.info("Built container id=$it for execution.id=${execution.id}")
             }
         }
@@ -92,11 +92,16 @@ class DockerService(private val configProperties: ConfigProperties) {
         }
     }
 
-    private fun buildBaseImageForExecution(execution: Execution): String {
+    private fun buildBaseImageForExecution(execution: Execution): Pair<String, String> {
         val resourcesPath = File(
             configProperties.testResources.basePath,
             execution.resourcesRootPath,
         )
+        val runCmd = if (File(resourcesPath, "run.sh").exists()) {
+                "./run.sh || ./$SAVE_AGENT_EXECUTABLE_NAME"
+        } else {
+            "./$SAVE_AGENT_EXECUTABLE_NAME"
+        }
         // include save-agent into the image
         FileUtils.copyInputStreamToFile(
             ClassPathResource(SAVE_AGENT_EXECUTABLE_NAME).inputStream,
@@ -117,14 +122,18 @@ class DockerService(private val configProperties: ConfigProperties) {
                     |RUN chmod +x $executionDir/$SAVE_CLI_EXECUTABLE_NAME
                 """
         )
-        return imageId
+        return Pair(imageId, runCmd)
     }
 
-    private fun createContainerForExecution(imageId: String, containerNumber: String): String {
+    private fun createContainerForExecution(
+        imageId: String,
+        runCmd: String,
+        containerNumber: String,
+    ): String {
         val containerId = containerManager.createContainerFromImage(
             imageId,
             executionDir,
-            listOf("./$SAVE_AGENT_EXECUTABLE_NAME"),
+            runCmd,
             "save-execution-$containerNumber",
         )
         val agentPropertiesFile = createTempDirectory("agent")
