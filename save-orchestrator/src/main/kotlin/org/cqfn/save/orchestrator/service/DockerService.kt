@@ -109,7 +109,7 @@ class DockerService(private val configProperties: ConfigProperties) {
             execution.resourcesRootPath,
         )
         val runCmd = if (File(resourcesPath, "run.sh").exists()) {
-                "./run.sh || ./$SAVE_AGENT_EXECUTABLE_NAME"
+            "./run.sh || ./$SAVE_AGENT_EXECUTABLE_NAME"
         } else {
             "./$SAVE_AGENT_EXECUTABLE_NAME"
         }
