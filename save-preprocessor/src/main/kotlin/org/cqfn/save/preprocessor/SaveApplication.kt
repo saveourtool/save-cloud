@@ -8,6 +8,8 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.reactive.config.EnableWebFlux
 import reactor.core.publisher.Mono
 
+typealias Response = Mono<ResponseEntity<String>>
+
 /**
  * An entrypoint for spring for save-preprocessor
  */
@@ -19,5 +21,3 @@ class SaveApplication
 fun main(args: Array<String>) {
     SpringApplication.run(SaveApplication::class.java, *args)
 }
-
-typealias Response = Mono<ResponseEntity<String>>

@@ -9,6 +9,8 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories
 import org.springframework.http.ResponseEntity
 import org.springframework.web.reactive.config.EnableWebFlux
 
+typealias StringResponse = ResponseEntity<String>
+
 /**
  * An entrypoint for spring for save-backend
  */
@@ -22,5 +24,3 @@ open class SaveApplication
 fun main(args: Array<String>) {
     SpringApplication.run(SaveApplication::class.java, *args)
 }
-
-typealias StringResponse = ResponseEntity<String>

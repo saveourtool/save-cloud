@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
+typealias ExecutionDtoListResponse = ResponseEntity<List<ExecutionDto>>
+
 /**
  * Controller that accepts executions
  */
@@ -54,5 +56,3 @@ class ExecutionController(private val executionService: ExecutionService) {
                 .status(HttpStatus.OK)
                 .body(executionService.getExecutionDtoByNameAndOwner(name, owner).reversed())
 }
-
-typealias ExecutionDtoListResponse = ResponseEntity<List<ExecutionDto>>
