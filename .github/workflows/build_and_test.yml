@@ -50,9 +50,11 @@ jobs:
           # additional files to calculate key for dependency cache
           gradle-dependencies-cache-key: |
             buildSrc/**/Versions.kt
-      # Workaround for bug in gradle-cache-action + detekt
-      - name: Run gradle command
-        run: ./gradlew build -x detektAll
+          arguments: |
+            build
+            -x detektAll
+          properties: |
+            org.gradle.caching=true
       - name: Upload gradle reports
         if: ${{ always() }}
         uses: actions/upload-artifact@v2
