@@ -22,22 +22,6 @@ fun Project.configureDetekt() {
         config = rootProject.files("detekt.yml")
         buildUponDefaultConfig = true
     }
-    // extremely awful hack to get to the point, when `DetektMultiplatform` has registered all the tasks
-    // related issue: https://github.com/detekt/detekt/issues/3927
-    afterEvaluate {
-        // detekt registers tasks after Kotlin plugin has set up all targets
-        afterEvaluate {
-            // but they also use a nested `afterEvaluate` for interop with Android Gradle Plugin
-            afterEvaluate {
-                // so we need a third `afterEvaluate`, so that all detekt tasks are already registered
-                tasks.matching { it.name == "check" }.configureEach {
-                    dependsOn.removeIf {
-                        it is TaskProvider<*> && it.name.startsWith("detekt")
-                    }
-                }
-            }
-        }
-    }
 }
 
 /**

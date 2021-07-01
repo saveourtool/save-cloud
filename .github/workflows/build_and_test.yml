@@ -52,9 +52,9 @@ jobs:
             buildSrc/**/Versions.kt
           arguments: |
             build
-            -x detektAll
           properties: |
             org.gradle.caching=true
+            detekt.multiplatform.disabled=true
       - name: Upload gradle reports
         if: ${{ always() }}
         uses: actions/upload-artifact@v2
