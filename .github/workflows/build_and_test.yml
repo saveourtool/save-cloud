@@ -52,7 +52,6 @@ jobs:
             buildSrc/**/Versions.kt
           arguments: |
             build
-            -x linkReleaseExecutableAgent
             -x detektAll
           properties: |
             org.gradle.caching=true
