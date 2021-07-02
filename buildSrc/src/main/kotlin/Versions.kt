@@ -10,15 +10,15 @@ object Versions {
     const val coroutines = "1.5.0"
     const val serialization = "1.1.0"
     const val kotlinxDatetime = "0.2.0"
-    const val saveCore = "0.1.0-SNAPSHOT"
+    const val saveCore = "0.1.0"
 
     // microservices
-    const val springBoot = "2.5.1"
+    const val springBoot = "2.5.2"
     const val reactor = "1.1.3"
-    const val springSecurity = "5.5.0"
+    const val springSecurity = "5.5.1"
     const val slf4j = "1.7.30"
     const val logback = "1.2.3"
-    const val micrometer = "1.7.0"
+    const val micrometer = "1.7.1"
 
     // database
     const val jpa = "1.0.2"
@@ -29,7 +29,7 @@ object Versions {
     const val testcontainers = "1.15.3"
 
     // other JVM dependencies
-    const val dockerJavaApi = "3.2.10"
+    const val dockerJavaApi = "3.2.11"
     const val jgit = "5.12.0.202106070339-r"
     const val okhttp3 = "4.9.1"
 

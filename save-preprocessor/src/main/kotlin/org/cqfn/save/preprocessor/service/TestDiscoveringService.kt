@@ -68,7 +68,7 @@ class TestDiscoveringService {
     fun getAllTests(rootTestConfig: TestConfig, testSuites: List<TestSuite>) = rootTestConfig
         .getAllTestConfigs()
         .flatMap { testConfig ->
-            val plugins = testConfig.buildActivePlugins()
+            val plugins = testConfig.buildActivePlugins(emptyList())
             val generalConfig = testConfig.getGeneralConfigOrNull()
             if (plugins.isEmpty() || generalConfig == null) {
                 return@flatMap emptyList()

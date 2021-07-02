@@ -23,6 +23,7 @@ jobs:
           # additional files to calculate key for dependency cache
           gradle-dependencies-cache-key: |
             buildSrc/**/Versions.kt
-      # Workaround for bug in gradle-cache-action + detekt
-      - name: Run gradle command
-        run: ./gradlew diktatCheckAll
+          arguments: |
+            diktatCheckAll
+          properties: |
+            detekt.multiplatform.disabled=true
