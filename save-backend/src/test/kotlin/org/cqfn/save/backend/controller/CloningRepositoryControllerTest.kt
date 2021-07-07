@@ -16,6 +16,7 @@ import org.cqfn.save.entities.GitDto
 
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
+import org.cqfn.save.entities.Project
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -49,15 +50,13 @@ import java.time.Duration
     MockBean(TestExecutionRepository::class),
     MockBean(TestRepository::class),
     MockBean(TestSuiteRepository::class),
+    MockBean(ProjectRepository::class),
     MockBean(ProjectService::class),
     MockBean(GitRepository::class),
 )
 class CloningRepositoryControllerTest {
     @Autowired
     lateinit var webTestClient: WebTestClient
-
-    @Autowired
-    lateinit var projectRepository: ProjectRepository
 
     @BeforeEach
     fun webClientSetUp() {
@@ -72,7 +71,7 @@ class CloningRepositoryControllerTest {
                 .setBody("Clone pending")
                 .addHeader("Content-Type", "application/json")
         )
-        val project = projectRepository.findAll().first()
+        val project = Project("Huawei", "huaweiName", "huawei.com", "test description")
         val gitRepo = GitDto("1")
         val executionRequest = ExecutionRequest(project, gitRepo)
         webTestClient.post()
@@ -98,7 +97,7 @@ class CloningRepositoryControllerTest {
         given(binFile.headers()).willReturn(HttpHeaders())
         given(property.headers()).willReturn(HttpHeaders())
 
-        val project = projectRepository.findAll().first()
+        val project = Project("Huawei", "huaweiName", "huawei.com", "test description")
         val request = ExecutionRequestForStandardSuites(project, emptyList())
         val bodyBuilder = MultipartBodyBuilder()
         bodyBuilder.part("execution", request)
