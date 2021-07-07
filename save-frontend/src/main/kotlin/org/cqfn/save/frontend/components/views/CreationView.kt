@@ -99,7 +99,7 @@ class CreationView : RComponent<RProps, ProjectSaveViewState>() {
         }
     }
 
-    @Suppress("TOO_LONG_FUNCTION", "EMPTY_BLOCK_STRUCTURE_ERROR")
+    @Suppress("TOO_LONG_FUNCTION", "EMPTY_BLOCK_STRUCTURE_ERROR", "LongMethod")
     override fun RBuilder.render() {
         runErrorModal()
         div("container card o-hidden border-0 shadow-lg my-5 card-body p-0") {
