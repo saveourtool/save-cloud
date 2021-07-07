@@ -12,6 +12,6 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class ExecutionRequest(
     val project: Project,
-    val gitDto: GitDto,
+    val gitDto: GitDto?,
     val propertiesRelativePath: String = "save.properties",
 )

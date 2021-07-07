@@ -113,9 +113,10 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
     @Suppress(
         "TooGenericExceptionCaught",
         "TOO_LONG_FUNCTION",
-        "TOO_MANY_LINES_IN_LAMBDA")
+        "TOO_MANY_LINES_IN_LAMBDA",
+        "UnsafeCallOnNullableType")
     private fun downLoadRepository(executionRequest: ExecutionRequest) {
-        val gitDto = executionRequest.gitDto
+        val gitDto = executionRequest.gitDto!!
         val project = executionRequest.project
         val tmpDir = generateDirectory(gitDto.url.hashCode(), gitDto.url)
         val userCredentials = if (gitDto.username != null && gitDto.password != null) {

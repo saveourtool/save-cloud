@@ -2,8 +2,11 @@ package org.cqfn.save.backend.controllers
 
 import org.cqfn.save.backend.service.GitService
 import org.cqfn.save.backend.service.ProjectService
+import org.cqfn.save.domain.ProjectSaveStatus
+import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.GitDto
 import org.cqfn.save.entities.Project
+import org.slf4j.LoggerFactory
 
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
@@ -51,4 +54,27 @@ class ProjectController {
             gitService.getRepositoryDtoByProject(project)?.let {
                 ResponseEntity.status(HttpStatus.OK).body(it)
             } ?: ResponseEntity.status(HttpStatus.NOT_FOUND).build()
+
+    /**
+     * @param executionRequest
+     * @return response
+     */
+    @PostMapping("/saveProject")
+    fun saveProject(@RequestBody executionRequest: ExecutionRequest): ResponseEntity<String>? {
+        val (projectId, projectStatus) = projectService.saveProject(executionRequest.project)
+        if (projectStatus == ProjectSaveStatus.EXIST) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(projectStatus.message)
+        }
+        log.info("Save new project id = $projectId")
+        executionRequest.project.id = projectId
+        executionRequest.gitDto?.let {
+            val saveGit = gitService.saveGit(it, executionRequest.project)
+            log.info("Save new git id = ${saveGit.id}")
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(projectStatus.message)
+    }
+
+    companion object {
+        private val log = LoggerFactory.getLogger(ProjectController::class.java)
+    }
 }

@@ -8,6 +8,7 @@ import org.cqfn.save.frontend.components.Footer
 import org.cqfn.save.frontend.components.TopBar
 import org.cqfn.save.frontend.components.basic.scrollToTopButton
 import org.cqfn.save.frontend.components.views.CollectionView
+import org.cqfn.save.frontend.components.views.CreationView
 import org.cqfn.save.frontend.components.views.ExecutionProps
 import org.cqfn.save.frontend.components.views.ExecutionView
 import org.cqfn.save.frontend.components.views.FallbackView
@@ -15,7 +16,6 @@ import org.cqfn.save.frontend.components.views.HistoryView
 import org.cqfn.save.frontend.components.views.ProjectExecutionRouteProps
 import org.cqfn.save.frontend.components.views.ProjectView
 import org.cqfn.save.frontend.externals.modal.ReactModal
-import org.cqfn.save.frontend.utils.get
 
 import org.w3c.dom.HTMLElement
 import react.RBuilder
@@ -67,6 +67,7 @@ class App : RComponent<RProps, AppState>() {
                 div("container-fluid") {
                     switch {
                         route("/", exact = true, component = CollectionView::class)
+                        route("/creation", exact = true, component = CreationView::class)
                         route<ProjectExecutionRouteProps>("/:owner/:name", exact = true) { routeResultProps ->
                             child(ProjectView::class) {
                                 attrs.name = routeResultProps.match.params.name
