@@ -1,5 +1,6 @@
 package org.cqfn.save.backend.controller
 
+import org.cqfn.save.backend.configs.ConfigProperties
 import org.cqfn.save.backend.controllers.CloneRepositoryController
 import org.cqfn.save.backend.repository.AgentRepository
 import org.cqfn.save.backend.repository.AgentStatusRepository
@@ -13,17 +14,19 @@ import org.cqfn.save.backend.service.ProjectService
 import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.ExecutionRequestForStandardSuites
 import org.cqfn.save.entities.GitDto
+import org.cqfn.save.entities.Project
 
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
-import org.cqfn.save.entities.Project
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
+import org.mockito.Mockito
 import org.mockito.kotlin.given
 import org.mockito.kotlin.mock
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.boot.test.mock.mockito.MockBeans
@@ -42,6 +45,7 @@ import reactor.core.publisher.Flux
 import java.time.Duration
 
 @WebFluxTest(controllers = [CloneRepositoryController::class])
+@EnableConfigurationProperties(ConfigProperties::class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @MockBeans(
     MockBean(AgentStatusRepository::class),
@@ -51,12 +55,14 @@ import java.time.Duration
     MockBean(TestRepository::class),
     MockBean(TestSuiteRepository::class),
     MockBean(ProjectRepository::class),
-    MockBean(ProjectService::class),
     MockBean(GitRepository::class),
 )
 class CloningRepositoryControllerTest {
     @Autowired
     lateinit var webTestClient: WebTestClient
+
+    @MockBean
+    lateinit var projectService: ProjectService
 
     @BeforeEach
     fun webClientSetUp() {
@@ -72,6 +78,9 @@ class CloningRepositoryControllerTest {
                 .addHeader("Content-Type", "application/json")
         )
         val project = Project("Huawei", "huaweiName", "huawei.com", "test description")
+        Mockito
+            .`when`(projectService.getProjectByNameAndOwner("huaweiName", "Huawei"))
+            .thenReturn(project)
         val gitRepo = GitDto("1")
         val executionRequest = ExecutionRequest(project, gitRepo)
         webTestClient.post()
@@ -110,6 +119,9 @@ class CloningRepositoryControllerTest {
                 .setBody("Clone pending")
                 .addHeader("Content-Type", "application/json")
         )
+        Mockito
+            .`when`(projectService.getProjectByNameAndOwner("huaweiName", "Huawei"))
+            .thenReturn(project)
 
         webTestClient.post()
             .uri("/submitExecutionRequestBin")
