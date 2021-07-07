@@ -46,7 +46,6 @@ import java.time.Duration
     MockBean(AgentStatusRepository::class),
     MockBean(AgentRepository::class),
     MockBean(ExecutionRepository::class),
-    MockBean(ProjectRepository::class),
     MockBean(TestExecutionRepository::class),
     MockBean(TestRepository::class),
     MockBean(TestSuiteRepository::class),
