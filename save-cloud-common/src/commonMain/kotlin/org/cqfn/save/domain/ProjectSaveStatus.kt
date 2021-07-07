@@ -1,5 +1,7 @@
 package org.cqfn.save.domain
 
+import kotlinx.serialization.Serializable
+
 /**
  * Enum of project save status
  */
