@@ -7,7 +7,7 @@ import javax.persistence.ManyToOne
 
 /**
  * @property hash
- * @property filePath
+ * @property filePath path to this test relative to the project root
  * @property dateAdded
  * @property testSuite
  */
