@@ -13,7 +13,6 @@ import org.cqfn.save.backend.service.ProjectService
 import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.ExecutionRequestForStandardSuites
 import org.cqfn.save.entities.GitDto
-import org.cqfn.save.entities.Project
 
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
@@ -58,6 +57,9 @@ class CloningRepositoryControllerTest {
     @Autowired
     lateinit var webTestClient: WebTestClient
 
+    @Autowired
+    lateinit var projectRepository: ProjectRepository
+
     @BeforeEach
     fun webClientSetUp() {
         webTestClient.mutate().responseTimeout(Duration.ofSeconds(2)).build()
@@ -71,7 +73,7 @@ class CloningRepositoryControllerTest {
                 .setBody("Clone pending")
                 .addHeader("Content-Type", "application/json")
         )
-        val project = Project("noname", "1", "1", "1")
+        val project = projectRepository.findAll().first()
         val gitRepo = GitDto("1")
         val executionRequest = ExecutionRequest(project, gitRepo)
         webTestClient.post()
@@ -97,7 +99,7 @@ class CloningRepositoryControllerTest {
         given(binFile.headers()).willReturn(HttpHeaders())
         given(property.headers()).willReturn(HttpHeaders())
 
-        val project = Project("noname", "1", "1", "1")
+        val project = projectRepository.findAll().first()
         val request = ExecutionRequestForStandardSuites(project, emptyList())
         val bodyBuilder = MultipartBodyBuilder()
         bodyBuilder.part("execution", request)
