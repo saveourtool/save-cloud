@@ -115,8 +115,8 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
             console.log("Querying test executions for page $page with size $size")
             get(
                 url = "${window.location.origin}/testExecutions?executionId=${props.executionId}&page=$page&size=$size",
-                headers = Headers().also {
-                    it.set("Accept", "application/json")
+                headers = Headers().apply {
+                    set("Accept", "application/json")
                 },
             )
                 .unsafeMap {
