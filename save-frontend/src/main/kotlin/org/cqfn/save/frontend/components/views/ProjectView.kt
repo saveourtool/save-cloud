@@ -436,16 +436,25 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                 }
                 p("small") {
                     button(classes = "btn btn-link btn-sm") {
-                        +"Latest test execution"
+                        +"Latest execution"
                         attrs.onClickFunction = {
                             GlobalScope.launch {
-                                val headers = Headers().also { it.set("Accept", "application/json") }
-                                val latestExecutionId = get("${window.location.origin}/latestExecution?name=${project.name}&owner=${project.owner}", headers)
-                                    .json()
-                                    .await()
-                                    .unsafeCast<ExecutionDto>()
-                                    .id
-                                window.location.href = "${window.location}/history/$latestExecutionId"
+                                val headers = Headers().apply { set("Accept", "application/json") }
+                                val response = get("${window.location.origin}/latestExecution?name=${project.name}&owner=${project.owner}", headers)
+                                if (!response.ok) {
+                                    setState {
+                                        errorLabel = "Failed to fetch latest execution"
+                                        errorMessage = "Failed to fetch latest execution: ${response.status} ${response.statusText}"
+                                        isErrorOpen = true
+                                    }
+                                } else {
+                                    val latestExecutionId = response
+                                        .json()
+                                        .await()
+                                        .unsafeCast<ExecutionDto>()
+                                        .id
+                                    window.location.href = "${window.location}/history/$latestExecutionId"
+                                }
                             }
                         }
                     }
