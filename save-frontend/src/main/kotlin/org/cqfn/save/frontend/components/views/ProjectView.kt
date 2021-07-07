@@ -8,6 +8,7 @@ import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.ExecutionRequestForStandardSuites
 import org.cqfn.save.entities.GitDto
 import org.cqfn.save.entities.Project
+import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.frontend.components.basic.cardComponent
 import org.cqfn.save.frontend.externals.modal.modal
 import org.cqfn.save.frontend.utils.get
@@ -434,12 +435,23 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                     +"Description: ${project.description}"
                 }
                 p("small") {
-                    a(href = "#/${project.owner}/${project.name}/history/latest") {
-                        +"Latest test execution: N/A"
+                    button(classes = "btn btn-link btn-sm") {
+                        +"Latest test execution"
+                        attrs.onClickFunction = {
+                            GlobalScope.launch {
+                                val headers = Headers().also { it.set("Accept", "application/json") }
+                                val latestExecutionId = get("${window.location.origin}/latestExecution?name=${project.name}&owner=${project.owner}", headers)
+                                    .json()
+                                    .await()
+                                    .unsafeCast<ExecutionDto>()
+                                    .id
+                                window.location.href = "${window.location}/history/$latestExecutionId"
+                            }
+                        }
                     }
                 }
                 p("small") {
-                    a(href = "#/${project.owner}/${project.name}/history") {
+                    a(href = "#/${project.owner}/${project.name}/history", classes = "btn btn-link btn-sm") {
                         +"Execution history"
                     }
                 }

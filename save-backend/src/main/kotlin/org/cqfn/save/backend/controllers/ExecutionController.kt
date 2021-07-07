@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.server.ResponseStatusException
+import reactor.core.publisher.Mono
 
 typealias ExecutionDtoListResponse = ResponseEntity<List<ExecutionDto>>
 
@@ -55,4 +57,17 @@ class ExecutionController(private val executionService: ExecutionService) {
             ResponseEntity
                 .status(HttpStatus.OK)
                 .body(executionService.getExecutionDtoByNameAndOwner(name, owner).reversed())
+
+    /**
+     * Get latest (by start time an) execution by project name and project owner
+     *
+     * @param name project name
+     * @param owner project owner
+     * @return Execution
+     * @throws ResponseStatusException if execution is not found
+     */
+    @GetMapping("/latestExecution")
+    fun getLatestExecutionForProject(@RequestParam name: String, @RequestParam owner: String): Mono<ExecutionDto> =
+            Mono.fromCallable { executionService.getLatestExecutionByProjectNameAndProjectOwner(name, owner) }
+                .map { it?.toDto() ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Execution not found for project (name=$name, owner=$owner)") }
 }
