@@ -1,4 +1,4 @@
-@file:Suppress("PACKAGE_NAME_MISSING", "CONSTANT_UPPERCASE")
+@file:Suppress("CONSTANT_UPPERCASE")
 
 object Versions {
     // core dependencies
