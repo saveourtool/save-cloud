@@ -14,8 +14,13 @@ import org.cqfn.save.frontend.components.views.FallbackView
 import org.cqfn.save.frontend.components.views.HistoryView
 import org.cqfn.save.frontend.components.views.ProjectExecutionRouteProps
 import org.cqfn.save.frontend.components.views.ProjectView
+import org.cqfn.save.frontend.externals.fontawesome.faAngleUp
+import org.cqfn.save.frontend.externals.fontawesome.faCogs
+import org.cqfn.save.frontend.externals.fontawesome.faSignOutAlt
+import org.cqfn.save.frontend.externals.fontawesome.faUser
+import org.cqfn.save.frontend.externals.fontawesome.fas
+import org.cqfn.save.frontend.externals.fontawesome.library
 import org.cqfn.save.frontend.externals.modal.ReactModal
-import org.cqfn.save.frontend.utils.get
 
 import org.w3c.dom.HTMLElement
 import react.RBuilder
@@ -99,6 +104,7 @@ class App : RComponent<RProps, AppState>() {
 fun main() {
     kotlinext.js.require("../scss/save-frontend.scss")  // this is needed for webpack to include resource
     kotlinext.js.require("bootstrap")  // this is needed for webpack to include bootstrap
+    library.add(fas, faUser, faCogs, faSignOutAlt, faAngleUp)
     ReactModal.setAppElement(document.getElementById("wrapper") as HTMLElement)  // required for accessibility in react-modal
 
     render(document.getElementById("wrapper")) {

@@ -28,7 +28,9 @@ kotlin {
             compileOnly(devNpm("file-loader", "*"))
 
             // web-specific dependencies
-            compileOnly(npm("@fortawesome/fontawesome-free", "5.15.1"))  // needed to copy fonts to resources, not needed in runtime
+            implementation(npm("@fortawesome/fontawesome-svg-core", "1.2.35"))
+            implementation(npm("@fortawesome/free-solid-svg-icons", "5.15.3"))
+            implementation(npm("@fortawesome/react-fontawesome", "0.1.14"))
             implementation("org.jetbrains:kotlin-react:${Versions.kotlinReact}")
             implementation("org.jetbrains:kotlin-react-dom:${Versions.kotlinReact}")
             implementation("org.jetbrains:kotlin-react-router-dom:5.2.0${Versions.kotlinJsWrappersSuffix}")

@@ -4,12 +4,13 @@
 
 package org.cqfn.save.frontend.components.basic
 
+import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
+
 import org.w3c.dom.SMOOTH
 import org.w3c.dom.ScrollBehavior
 import org.w3c.dom.ScrollToOptions
 import react.RProps
 import react.dom.a
-import react.dom.i
 import react.functionalComponent
 import react.useEffect
 import react.useState
@@ -38,7 +39,7 @@ fun scrollToTopButton() = functionalComponent<RProps> {
             attrs.onClickFunction = {
                 window.scrollTo(ScrollToOptions(top = 0.0, behavior = ScrollBehavior.SMOOTH))
             }
-            i("fas fa-angle-up") {}
+            fontAwesomeIcon(icon = "angle-up")
         }
     }
 }
