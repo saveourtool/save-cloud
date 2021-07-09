@@ -1,3 +1,4 @@
+@file:Suppress("FILE_NAME_INCORRECT")
 /**
  * Utilities for kotlin-js RBuilder
  */
@@ -20,7 +21,7 @@ import kotlinx.html.js.onClickFunction
  * @param errorLabel label of error
  * @param errorMessage message of error
  * @param handler handler to close
- * @return
+ * @return modal
  */
 fun RBuilder.runErrorModal(
     isErrorOpen: Boolean,
