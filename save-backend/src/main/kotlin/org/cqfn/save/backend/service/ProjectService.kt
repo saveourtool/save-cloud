@@ -20,23 +20,18 @@ class ProjectService(private val projectRepository: ProjectRepository) {
      * @param project a [Project] to store
      * @return project's id, should never return null
      */
-    @Suppress("UnsafeCallOnNullableType")
     fun saveProject(project: Project): Pair<Long, ProjectSaveStatus> {
         val exampleMatcher = ExampleMatcher.matchingAll()
             .withMatcher("name", ExampleMatcher.GenericPropertyMatchers.exact())
             .withMatcher("owner", ExampleMatcher.GenericPropertyMatchers.exact())
-        var projectId: Long? = null
-        var projectSaveStatus: ProjectSaveStatus? = null
-        projectRepository.findOne(Example.of(project, exampleMatcher)).ifPresentOrElse({
-            projectId = it.id
-            projectSaveStatus = ProjectSaveStatus.EXIST
-        }, {
+        val (projectId,projectSaveStatus) = projectRepository.findOne(Example.of(project, exampleMatcher)).map {
             val savedProject = projectRepository.save(project)
-            projectId = savedProject.id
-            projectSaveStatus = ProjectSaveStatus.NEW
-        })
+            Pair(savedProject.id, ProjectSaveStatus.NEW)
+        }.orElseGet {
+            Pair(project.id, ProjectSaveStatus.EXIST)
+        }
         requireNotNull(projectId) { "Should have gotten an ID for project from the database" }
-        return Pair(projectId!!, projectSaveStatus!!)
+        return Pair(projectId, projectSaveStatus)
     }
 
     /**

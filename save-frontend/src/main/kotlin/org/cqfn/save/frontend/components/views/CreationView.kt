@@ -60,7 +60,7 @@ external interface ProjectSaveViewState : RState {
 class CreationView : RComponent<RProps, ProjectSaveViewState>() {
     private val projectFieldsMap: MutableMap<String, String> = mutableMapOf()
     private val gitFieldsMap: MutableMap<String, String> = mutableMapOf()
-    private lateinit var responseFromExecutionRequest: Response
+    private lateinit var responseFromCreationProject: Response
 
     init {
         state.isErrorWithProjectSave = false
@@ -84,12 +84,12 @@ class CreationView : RComponent<RProps, ProjectSaveViewState>() {
             it.set("Content-Type", "application/json")
         }
         GlobalScope.launch {
-            responseFromExecutionRequest = post("http://localhost:5000/saveProject", headers, JSON.stringify(executionRequest))
+            responseFromCreationProject = post("${window.location.origin}/saveProject", headers, JSON.stringify(executionRequest))
         }.invokeOnCompletion {
-            if (responseFromExecutionRequest.ok) {
+            if (responseFromCreationProject.ok) {
                 window.location.href = "${window.location.origin}#/${executionRequest.project.owner}/${executionRequest.project.name}"
             } else {
-                responseFromExecutionRequest.text().then {
+                responseFromCreationProject.text().then {
                     setState {
                         isErrorWithProjectSave = true
                         errorMessage = it
@@ -105,7 +105,7 @@ class CreationView : RComponent<RProps, ProjectSaveViewState>() {
         div("container card o-hidden border-0 shadow-lg my-5 card-body p-0") {
             div("p-5 text-center") {
                 h1("h4 text-gray-900 mb-4") {
-                    +"Create a project"
+                    +"Add a new project"
                 }
                 form(classes = "user") {
                     div("form-group row") {

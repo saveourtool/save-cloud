@@ -7,26 +7,15 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 @Suppress("CUSTOM_GETTERS_SETTERS")
-enum class ProjectSaveStatus {
+enum class ProjectSaveStatus(val message: String) {
     /**
      * Project exist
      */
-    EXIST {
-        override val message: String
-            get() = "Project already exist"
-    },
+    EXIST("Project already exist"),
 
     /**
      * New project
      */
-    NEW {
-        override val message: String
-            get() = "Project saved successfully"
-    },
+    NEW("Project saved successfully"),
     ;
-
-    /**
-     * Message to front
-     */
-    abstract val message: String
 }

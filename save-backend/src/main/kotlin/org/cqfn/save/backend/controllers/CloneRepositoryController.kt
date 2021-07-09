@@ -46,16 +46,16 @@ class CloneRepositoryController(
     fun submitExecutionRequest(@RequestBody executionRequest: ExecutionRequest): Mono<StringResponse> {
         val projectExecution = executionRequest.project
         val project = projectService.getProjectByNameAndOwner(projectExecution.name, projectExecution.owner)
-        project?.let {
+        return project?.let {
             log.info("Sending request to preprocessor to start cloning project id=${it.id}")
-            return preprocessorWebClient
+            preprocessorWebClient
                 .post()
                 .uri("/upload")
                 .body(Mono.just(executionRequest), ExecutionRequest::class.java)
                 .retrieve()
                 .toEntity(String::class.java)
                 .toMono()
-        } ?: return Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Project doesn't exist"))
+        } ?: Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Project doesn't exist"))
     }
 
     /**
