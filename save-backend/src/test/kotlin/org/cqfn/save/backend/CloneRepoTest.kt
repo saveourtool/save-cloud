@@ -6,7 +6,9 @@ import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.GitDto
 import org.cqfn.save.entities.Project
 
-import org.junit.jupiter.api.Assertions
+import okhttp3.mockwebserver.MockResponse
+import okhttp3.mockwebserver.MockWebServer
+import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
@@ -14,6 +16,8 @@ import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWeb
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
+import org.springframework.test.context.DynamicPropertyRegistry
+import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.web.reactive.function.BodyInserters
 
@@ -29,7 +33,13 @@ class CloneRepoTest {
 
     @Test
     fun checkSaveProject() {
-        val project = Project("noname", "1", "1", "1")
+        mockServerPreprocessor.enqueue(
+            MockResponse()
+                .setResponseCode(202)
+                .setBody("Clone pending")
+                .addHeader("Content-Type", "application/json")
+        )
+        val project = projectRepository.findAll().first()
         val gitRepo = GitDto("1")
         val executionRequest = ExecutionRequest(project, gitRepo)
         webClient.post()
@@ -38,13 +48,11 @@ class CloneRepoTest {
             .body(BodyInserters.fromValue(executionRequest))
             .exchange()
             .expectStatus()
-            .isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR)  // because this post call preprocessor
-        val projects = projectRepository.findAll()
-        Assertions.assertTrue(projects.any { it.owner == project.owner })
+            .isEqualTo(HttpStatus.ACCEPTED)
     }
 
     @Test
-    fun checkSaveExistingProject() {
+    fun checkNonExistingProject() {
         val project = Project("noname", "1", "1", "1")
         val gitRepo = GitDto("1")
         val executionRequest = ExecutionRequest(project, gitRepo)
@@ -56,9 +64,24 @@ class CloneRepoTest {
                 .body(BodyInserters.fromValue(it))
                 .exchange()
                 .expectStatus()
-                .isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR)
+                .isEqualTo(HttpStatus.BAD_REQUEST)
         }
-        val projects = projectRepository.findAll()
-        Assertions.assertTrue(projects.size == 3)
+    }
+
+    companion object {
+        @JvmStatic lateinit var mockServerPreprocessor: MockWebServer
+
+        @AfterAll
+        fun tearDown() {
+            mockServerPreprocessor.shutdown()
+        }
+
+        @DynamicPropertySource
+        @JvmStatic
+        fun properties(registry: DynamicPropertyRegistry) {
+            mockServerPreprocessor = MockWebServer()
+            mockServerPreprocessor.start()
+            registry.add("backend.preprocessorUrl") { "http://localhost:${mockServerPreprocessor.port}" }
+        }
     }
 }
