@@ -55,6 +55,7 @@ class AgentService(configProperties: ConfigProperties) {
                             batch.tests,
                             batch.suitesToArgs.values.first() +
                                     " --report-type json " +
+                                    " --result-output file " +
                                     " " + batch.tests.joinToString(separator = " ") { it.filePath }
                         )
                     } else {

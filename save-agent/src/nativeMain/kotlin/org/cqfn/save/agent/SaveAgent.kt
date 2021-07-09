@@ -223,6 +223,7 @@ class SaveAgent(private val config: AgentConfiguration,
     }
 
     private suspend fun postExecutionData(testExecutionDtos: List<TestExecutionDto>) = httpClient.post<HttpResponse> {
+        logInfo("Posting execution data to backend, ${testExecutionDtos.size} test executions")
         url("${config.backendUrl}/executionData")
         contentType(ContentType.Application.Json)
         body = testExecutionDtos
