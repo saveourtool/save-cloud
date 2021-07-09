@@ -214,7 +214,8 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
             require(executionType == ExecutionType.STANDARD) { "Test suites shouldn't be provided unless ExecutionType is STANDARD (actual: $executionType)" }
         } ?: require(executionType == ExecutionType.GIT) { "Test suites are not provided, but should for executionType=$executionType" }
 
-        val execution = Execution(project, LocalDateTime.now(), null, ExecutionStatus.PENDING, "ALL",
+        // Execution.endTime is not nullable, but it will be set to correct value later. endTime == startTime indicates work in progress
+        val execution = Execution(project, LocalDateTime.now(), LocalDateTime.now(), ExecutionStatus.PENDING, "ALL",
             projectRootRelativePath, 0, configProperties.executionLimit, executionType, executionVersion, 0, 0, 0)
         webClientBackend.makeRequest(BodyInserters.fromValue(execution), "/createExecution") { it.bodyToMono<Long>() }
             .flatMap { executionId ->
