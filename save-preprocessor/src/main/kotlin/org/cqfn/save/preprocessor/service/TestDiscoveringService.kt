@@ -79,7 +79,10 @@ class TestDiscoveringService {
             }
             plugins.flatMap { it.discoverTestFiles(testConfig.directory) }
                 .map {
-                    TestDto(it.first().toString(), testSuite.id!!, it.first().toFile().toHash())
+                    val testRelativePath = it.first().toFile()
+                        .relativeTo(rootTestConfig.directory.toFile())
+                        .path
+                    TestDto(testRelativePath, testSuite.id!!, it.first().toFile().toHash())
                 }
         }
         .also {

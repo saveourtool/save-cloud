@@ -88,6 +88,9 @@ class TestDiscoveringServiceTest {
         Assertions.assertEquals(testDtos.size, testDtos.map { it.hash }.distinct().size) {
             "Some tests have the same hash in $testDtos"
         }
+        Assertions.assertTrue(testDtos.none { File(it.filePath).isAbsolute }) {
+            "Test should be stored with paths relative to their root config, but some are stored with absolute paths: $testDtos"
+        }
         Assertions.assertEquals("Example1Expected.kt", File(testDtos.first().filePath).name)
     }
 

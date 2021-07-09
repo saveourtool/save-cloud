@@ -2,8 +2,6 @@
  * Main entrypoint for SAVE Agent
  */
 
-@file:Suppress("PACKAGE_NAME_INCORRECT_PATH")
-
 package org.cqfn.save.agent
 
 import org.cqfn.save.agent.utils.readProperties
