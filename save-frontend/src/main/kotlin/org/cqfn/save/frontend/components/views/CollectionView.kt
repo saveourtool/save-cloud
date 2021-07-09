@@ -30,8 +30,8 @@ class CollectionView : RComponent<RProps, RState>() {
     @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR", "TOO_LONG_FUNCTION", "MAGIC_NUMBER")
     override fun RBuilder.render() {
         div {
-            button(type = ButtonType.button, classes = "btn btn-primary btn-lg") {
-                a(classes = "text-light", href = "#/newProject/") {
+            button(type = ButtonType.button, classes = "btn btn-primary btn-lg mb-2") {
+                a(classes = "text-light", href = "#/creation/") {
                     +"New project"
                 }
             }

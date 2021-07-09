@@ -7,7 +7,6 @@ import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.ExecutionRequestForStandardSuites
 
 import org.slf4j.LoggerFactory
-import org.springframework.dao.DataAccessException
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -45,24 +44,18 @@ class CloneRepositoryController(
      */
     @PostMapping(value = ["/submitExecutionRequest"])
     fun submitExecutionRequest(@RequestBody executionRequest: ExecutionRequest): Mono<StringResponse> {
-        val project = executionRequest.project
-        val projectId: Long
-        try {
-            projectId = projectService.saveProject(project)
-            executionRequest.project.id = projectId
-            log.info("Project $projectId saved")
-        } catch (exception: DataAccessException) {
-            log.error("Error when saving project for execution request $executionRequest", exception)
-            return Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error to clone repo"))
-        }
-        log.info("Sending request to preprocessor to start cloning project id=$projectId")
-        return preprocessorWebClient
-            .post()
-            .uri("/upload")
-            .body(Mono.just(executionRequest), ExecutionRequest::class.java)
-            .retrieve()
-            .toEntity(String::class.java)
-            .toMono()
+        val projectExecution = executionRequest.project
+        val project = projectService.getProjectByNameAndOwner(projectExecution.name, projectExecution.owner)
+        return project?.let {
+            log.info("Sending request to preprocessor to start cloning project id=${it.id}")
+            preprocessorWebClient
+                .post()
+                .uri("/upload")
+                .body(Mono.just(executionRequest), ExecutionRequest::class.java)
+                .retrieve()
+                .toEntity(String::class.java)
+                .toMono()
+        } ?: Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Project doesn't exist"))
     }
 
     /**
@@ -79,30 +72,24 @@ class CloneRepositoryController(
         @RequestPart("property", required = true) propertyFile: Mono<FilePart>,
         @RequestPart("binFile", required = true) binaryFile: Mono<FilePart>,
     ): Mono<StringResponse> {
-        val project = executionRequestForStandardSuites.project
-        val projectId: Long
-        try {
-            projectId = projectService.saveProject(project)
-            executionRequestForStandardSuites.project.id = projectId
-            log.info("Project $projectId saved")
-        } catch (exception: DataAccessException) {
-            log.error("Error when saving project for execution request $executionRequestForStandardSuites", exception)
-            return Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error to save project $project"))
-        }
-        log.info("Sending request to preprocessor to start save file for project id=$projectId")
-        val bodyBuilder = MultipartBodyBuilder()
-        bodyBuilder.part("executionRequestForStandardSuites", executionRequestForStandardSuites)
-        return Mono.zip(propertyFile, binaryFile).map {
-            bodyBuilder.part("property", it.t1)
-            bodyBuilder.part("binFile", it.t2)
-        }.then(
-            preprocessorWebClient
-                .post()
-                .uri("/uploadBin")
-                .contentType(MediaType.MULTIPART_FORM_DATA)
-                .body(BodyInserters.fromMultipartData(bodyBuilder.build()))
-                .retrieve()
-                .toEntity(String::class.java)
-                .toMono())
+        val projectExecution = executionRequestForStandardSuites.project
+        val project = projectService.getProjectByNameAndOwner(projectExecution.name, projectExecution.owner)
+        project?.let { proj ->
+            log.info("Sending request to preprocessor to start save file for project id=${proj.id}")
+            val bodyBuilder = MultipartBodyBuilder()
+            bodyBuilder.part("executionRequestForStandardSuites", executionRequestForStandardSuites)
+            return Mono.zip(propertyFile, binaryFile).map {
+                bodyBuilder.part("property", it.t1)
+                bodyBuilder.part("binFile", it.t2)
+            }.then(
+                preprocessorWebClient
+                    .post()
+                    .uri("/uploadBin")
+                    .contentType(MediaType.MULTIPART_FORM_DATA)
+                    .body(BodyInserters.fromMultipartData(bodyBuilder.build()))
+                    .retrieve()
+                    .toEntity(String::class.java)
+                    .toMono())
+        } ?: return Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Project doesn't exist"))
     }
 }

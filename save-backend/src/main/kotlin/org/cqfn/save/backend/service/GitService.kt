@@ -1,6 +1,8 @@
 package org.cqfn.save.backend.service
 
 import org.cqfn.save.backend.repository.GitRepository
+import org.cqfn.save.entities.Git
+import org.cqfn.save.entities.GitDto
 import org.cqfn.save.entities.Project
 import org.springframework.stereotype.Service
 
@@ -14,4 +16,11 @@ class GitService(private val gitRepository: GitRepository) {
      * @return git dto by project if exists
      */
     fun getRepositoryDtoByProject(project: Project) = gitRepository.findByProject(project)?.toDto()
+
+    /**
+     * @param gitDto
+     * @param project
+     */
+    fun saveGit(gitDto: GitDto, project: Project) =
+            gitRepository.save(Git(gitDto.url, gitDto.username, gitDto.password, gitDto.branch, project))
 }
