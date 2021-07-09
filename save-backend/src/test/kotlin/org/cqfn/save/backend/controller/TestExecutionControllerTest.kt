@@ -5,7 +5,6 @@ import org.cqfn.save.backend.SaveApplication
 import org.cqfn.save.backend.repository.AgentRepository
 import org.cqfn.save.backend.repository.TestExecutionRepository
 import org.cqfn.save.backend.utils.MySqlExtension
-import org.cqfn.save.backend.utils.toLocalDateTime
 import org.cqfn.save.domain.TestResultStatus
 
 import org.junit.jupiter.api.Assertions
@@ -103,8 +102,8 @@ class TestExecutionControllerTest {
         val tests = getAllTestExecutions()
         val passedTestsAfter = getExecutionsTestsResultByAgentId(testExecutionDtoSecond.agentId!!, true)
         val failedTestsAfter = getExecutionsTestsResultByAgentId(testExecutionDtoFirst.agentId!!, false)
-        assertTrue(tests.any { it.startTime == testExecutionDtoFirst.startTimeSeconds!!.toLocalDateTime().withNano(0) })
-        assertTrue(tests.any { it.endTime == testExecutionDtoFirst.endTimeSeconds!!.toLocalDateTime().withNano(0) })
+        assertTrue(tests.any { it.startTime == testExecutionDtoFirst.startTime!!.toLocalDateTime().withNano(0) })
+        assertTrue(tests.any { it.endTime == testExecutionDtoFirst.endTime!!.toLocalDateTime().withNano(0) })
         Assertions.assertEquals(passedTestsBefore, passedTestsAfter - 1)
         Assertions.assertEquals(failedTestsBefore, failedTestsAfter - 1)
     }

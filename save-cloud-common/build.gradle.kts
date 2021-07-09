@@ -34,7 +34,8 @@ kotlin {
         }
         commonMain {
             dependencies {
-                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:${Versions.serialization}")
+                api("org.jetbrains.kotlinx:kotlinx-serialization-core:${Versions.serialization}")
+                api("org.jetbrains.kotlinx:kotlinx-datetime:${Versions.kotlinxDatetime}")
             }
         }
         val jvmMain by getting {

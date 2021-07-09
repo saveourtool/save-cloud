@@ -84,7 +84,7 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
                 }
                 column(id = "startTime", header = "Start time") {
                     td {
-                        +"${it.value.startTimeSeconds?.let { Instant.fromEpochSeconds(it, 0) }}"
+                        +"${it.value.startTime}"
                     }
                 }
                 column(id = "status", header = "Status") {

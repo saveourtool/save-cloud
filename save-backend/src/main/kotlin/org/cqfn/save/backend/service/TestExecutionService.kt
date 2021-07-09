@@ -1,18 +1,19 @@
 package org.cqfn.save.backend.service
 
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toJavaLocalDateTime
+import kotlinx.datetime.toLocalDateTime
 import org.cqfn.save.agent.TestExecutionDto
 import org.cqfn.save.backend.repository.AgentRepository
 import org.cqfn.save.backend.repository.ExecutionRepository
 import org.cqfn.save.backend.repository.TestExecutionRepository
 import org.cqfn.save.backend.repository.TestRepository
-import org.cqfn.save.backend.utils.toLocalDateTime
 import org.cqfn.save.domain.TestResultStatus
 import org.cqfn.save.entities.TestExecution
 
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.PageRequest
-import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 
 /**
@@ -59,18 +60,19 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
     @Suppress("TOO_MANY_LINES_IN_LAMBDA")
     fun saveTestResult(testExecutionsDtos: List<TestExecutionDto>): List<TestExecutionDto> {
         val lostTests: MutableList<TestExecutionDto> = mutableListOf()
-        val execution = agentRepository
-            .findByIdOrNull(testExecutionsDtos.first().agentId)  // we take agent id only from first element, because all test executions have same execution
-            ?.execution
-            ?: run {
-                log.error("Agent with id=[${testExecutionsDtos.first().agentId}] was not found in the DB or doesn't have valid execution")
-                return lostTests
-            }
+        // we take agent id only from first element, because all test executions have same execution
+        val agentContainerId = requireNotNull(testExecutionsDtos.first().agentContainerId) {
+            "Attempt to save test results without assigned agent. testExecutionDtos=$testExecutionsDtos"
+        }
+        val agent = requireNotNull(agentRepository.findByContainerId(agentContainerId)) {
+            "Agent with containerId=[$agentContainerId] was not found in the DB"
+        }
+        val execution = agent.execution
         testExecutionsDtos.forEach { testExecDto ->
-            val foundTestExec = testExecutionRepository.findById(testExecDto.id)
+            val foundTestExec = testExecutionRepository.findByExecutionIdAndAgentIdAndTestFilePath(execution.id!!, agent.id!!, testExecDto.filePath)
             foundTestExec.ifPresentOrElse({
-                it.startTime = testExecDto.startTimeSeconds?.toLocalDateTime()
-                it.endTime = testExecDto.endTimeSeconds?.toLocalDateTime()
+                it.startTime = testExecDto.startTime?.toLocalDateTime(TimeZone.UTC)?.toJavaLocalDateTime()
+                it.endTime = testExecDto.endTime?.toLocalDateTime(TimeZone.UTC)?.toJavaLocalDateTime()
                 it.status = testExecDto.status
                 when (testExecDto.status) {
                     TestResultStatus.PASSED -> execution.passedTests += 1
@@ -81,7 +83,7 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
             },
                 {
                     lostTests.add(testExecDto)
-                    log.error("Test execution with id=[${testExecDto.id}] was not found in the DB")
+                    log.error("Test execution $testExecDto was not found in the DB")
                 })
         }
         executionRepository.save(execution)

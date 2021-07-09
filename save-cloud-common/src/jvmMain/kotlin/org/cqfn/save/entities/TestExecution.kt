@@ -1,5 +1,8 @@
 package org.cqfn.save.entities
 
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toInstant
+import kotlinx.datetime.toKotlinLocalDateTime
 import org.cqfn.save.agent.TestExecutionDto
 import org.cqfn.save.domain.TestResultStatus
 
@@ -47,11 +50,10 @@ class TestExecution(
      */
     @Suppress("UnsafeCallOnNullableType")
     fun toDto() = TestExecutionDto(
-        id!!,
         test.filePath,
-        agent?.id,
+        agent?.containerId,
         status,
-        startTime?.toEpochSecond(ZoneOffset.UTC),
-        endTime?.toEpochSecond(ZoneOffset.UTC),
+        startTime?.toKotlinLocalDateTime()?.toInstant(TimeZone.UTC),
+        endTime?.toKotlinLocalDateTime()?.toInstant(TimeZone.UTC),
     )
 }

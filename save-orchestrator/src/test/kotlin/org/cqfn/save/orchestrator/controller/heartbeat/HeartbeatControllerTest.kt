@@ -102,7 +102,7 @@ class HeartbeatControllerTest {
 
         val monoResponse = agentService.getNewTestsIds("container-1").block() as NewJobResponse
 
-        assertTrue(monoResponse.ids.isNotEmpty() && monoResponse.ids.first().filePath == "qwe")
+        assertTrue(monoResponse.tests.isNotEmpty() && monoResponse.tests.first().filePath == "qwe")
     }
 
     @Test

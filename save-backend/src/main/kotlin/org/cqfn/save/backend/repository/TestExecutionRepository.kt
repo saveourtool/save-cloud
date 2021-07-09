@@ -4,6 +4,7 @@ import org.cqfn.save.domain.TestResultStatus
 import org.cqfn.save.entities.TestExecution
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Repository
+import java.util.*
 
 /**
  * Repository of execution
@@ -34,4 +35,6 @@ interface TestExecutionRepository : BaseEntityRepository<TestExecution> {
      * @return a list of [TestExecutionDto]s
      */
     fun findByExecutionId(executionId: Long, pageable: Pageable): List<TestExecution>
+
+    fun findByExecutionIdAndAgentIdAndTestFilePath(executionId: Long, agentId: Long, filePath: String): Optional<TestExecution>
 }

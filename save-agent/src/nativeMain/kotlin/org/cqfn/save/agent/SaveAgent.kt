@@ -30,8 +30,14 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
+import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
+import org.cqfn.save.core.result.Crash
+import org.cqfn.save.core.result.Fail
+import org.cqfn.save.core.result.Ignored
+import org.cqfn.save.core.result.Pass
+import org.cqfn.save.reporter.Report
 
 /**
  * A main class for SAVE Agent
@@ -132,11 +138,25 @@ class SaveAgent(private val config: AgentConfiguration,
                     state.value = AgentState.CLI_FAILED
                     return@coroutineScope
                 }
-                // todo: parse test executions from files
-                val currentTime = Clock.System.now().toEpochMilliseconds()
-                val testExecutionDtoExample = TestExecutionDto(0L, "testFilePath", 0L, TestResultStatus.PASSED, currentTime, currentTime)
+                // todo: startTime
+                val currentTime = Clock.System.now()
+                val jsonReport = "save.out.json"
+                val report = Json.decodeFromString<Report>(
+                    readFile(jsonReport).joinToString(separator = "")
+                )
+                val testExecutionDtos = report.pluginExecutions.flatMap { pluginExecution ->
+                    pluginExecution.testResults.map {
+                        val testResultStatus = when (it.status) {
+                            is Pass -> TestResultStatus.PASSED
+                            is Fail -> TestResultStatus.FAILED
+                            is Ignored -> TestResultStatus.IGNORED
+                            is Crash -> TestResultStatus.TEST_ERROR
+                        }
+                        TestExecutionDto(it.resources.first().name, config.id, testResultStatus, currentTime, currentTime)
+                    }
+                }
                 sendDataToBackend {
-                    postExecutionData(testExecutionDtoExample)
+                    postExecutionData(testExecutionDtos)
                 }
                 state.value = AgentState.FINISHED
             }
@@ -202,10 +222,10 @@ class SaveAgent(private val config: AgentConfiguration,
         }
     }
 
-    private suspend fun postExecutionData(testExecutionDto: TestExecutionDto) = httpClient.post<HttpResponse> {
+    private suspend fun postExecutionData(testExecutionDtos: List<TestExecutionDto>) = httpClient.post<HttpResponse> {
         url("${config.backendUrl}/executionData")
         contentType(ContentType.Application.Json)
-        body = testExecutionDto
+        body = testExecutionDtos
     }
 
     private suspend fun saveAdditionalData() = httpClient.post<HttpResponse> {
