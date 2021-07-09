@@ -3,7 +3,6 @@ package org.cqfn.save.backend.controllers
 import org.cqfn.save.backend.service.GitService
 import org.cqfn.save.backend.service.ProjectService
 import org.cqfn.save.domain.ProjectSaveStatus
-import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.GitDto
 import org.cqfn.save.entities.NewProjectDto
 import org.cqfn.save.entities.Project
@@ -57,7 +56,7 @@ class ProjectController {
             } ?: ResponseEntity.status(HttpStatus.NOT_FOUND).build()
 
     /**
-     * @param executionRequest
+     * @param newProjectDto newProjectDto
      * @return response
      */
     @PostMapping("/saveProject")

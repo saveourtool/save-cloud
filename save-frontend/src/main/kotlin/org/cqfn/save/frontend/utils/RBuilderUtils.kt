@@ -1,14 +1,27 @@
+/**
+ * Utilities for kotlin-js RBuilder
+ */
+
 package org.cqfn.save.frontend.utils
 
-import kotlinx.html.ButtonType
-import kotlinx.html.js.onClickFunction
 import org.cqfn.save.frontend.externals.modal.modal
+
 import org.w3c.dom.events.Event
 import react.RBuilder
 import react.dom.button
 import react.dom.div
 import react.dom.h2
 
+import kotlinx.html.ButtonType
+import kotlinx.html.js.onClickFunction
+
+/**
+ * @param isErrorOpen flag to handle error
+ * @param errorLabel label of error
+ * @param errorMessage message of error
+ * @param handler handler to close
+ * @return
+ */
 fun RBuilder.runErrorModal(
     isErrorOpen: Boolean,
     errorLabel: String,

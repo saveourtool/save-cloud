@@ -4,6 +4,7 @@ import kotlinx.serialization.Serializable
 
 /**
  * Enum of project save status
+ * @property message
  */
 @Serializable
 @Suppress("CUSTOM_GETTERS_SETTERS")

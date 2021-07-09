@@ -5,8 +5,10 @@
 package org.cqfn.save.frontend.components.views
 
 import org.cqfn.save.entities.GitDto
+import org.cqfn.save.entities.NewProjectDto
 import org.cqfn.save.entities.Project
 import org.cqfn.save.frontend.utils.post
+import org.cqfn.save.frontend.utils.runErrorModal
 
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.HTMLTextAreaElement
@@ -33,8 +35,6 @@ import kotlinx.html.ButtonType
 import kotlinx.html.InputType
 import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
-import org.cqfn.save.entities.NewProjectDto
-import org.cqfn.save.frontend.utils.runErrorModal
 
 /**
  * [RState] of project creation view component

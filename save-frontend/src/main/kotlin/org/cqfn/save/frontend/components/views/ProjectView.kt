@@ -12,6 +12,7 @@ import org.cqfn.save.frontend.components.basic.cardComponent
 import org.cqfn.save.frontend.externals.modal.modal
 import org.cqfn.save.frontend.utils.getProject
 import org.cqfn.save.frontend.utils.post
+import org.cqfn.save.frontend.utils.runErrorModal
 
 import org.w3c.dom.HTMLInputElement
 import org.w3c.fetch.Headers
@@ -31,7 +32,6 @@ import react.dom.button
 import react.dom.defaultValue
 import react.dom.div
 import react.dom.h1
-import react.dom.h2
 import react.dom.h6
 import react.dom.img
 import react.dom.input
@@ -53,7 +53,6 @@ import kotlinx.html.id
 import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
 import kotlinx.html.role
-import org.cqfn.save.frontend.utils.runErrorModal
 
 /**
  * [RProps] retrieved from router
