@@ -4,10 +4,8 @@
 
 package org.cqfn.save.frontend.components.views
 
-import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.GitDto
 import org.cqfn.save.entities.Project
-import org.cqfn.save.frontend.externals.modal.modal
 import org.cqfn.save.frontend.utils.post
 
 import org.w3c.dom.HTMLInputElement
@@ -23,7 +21,6 @@ import react.dom.button
 import react.dom.div
 import react.dom.form
 import react.dom.h1
-import react.dom.h2
 import react.dom.hr
 import react.dom.input
 import react.dom.textarea
@@ -36,6 +33,8 @@ import kotlinx.html.ButtonType
 import kotlinx.html.InputType
 import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
+import org.cqfn.save.entities.NewProjectDto
+import org.cqfn.save.frontend.utils.runErrorModal
 
 /**
  * [RState] of project creation view component
@@ -74,7 +73,7 @@ class CreationView : RComponent<RProps, ProjectSaveViewState>() {
 
     @Suppress("UnsafeCallOnNullableType")
     private fun saveProject() {
-        val executionRequest = ExecutionRequest(
+        val executionRequest = NewProjectDto(
             Project(projectFieldsMap["owner"]!!, projectFieldsMap["name"]!!, projectFieldsMap["url"], projectFieldsMap["description"]),
             gitFieldsMap["url"]?.let { GitDto(it, gitFieldsMap["username"], gitFieldsMap["password"], gitFieldsMap["branch"]) }
         )
@@ -101,7 +100,13 @@ class CreationView : RComponent<RProps, ProjectSaveViewState>() {
 
     @Suppress("TOO_LONG_FUNCTION", "EMPTY_BLOCK_STRUCTURE_ERROR", "LongMethod")
     override fun RBuilder.render() {
-        runErrorModal()
+        runErrorModal(
+            state.isErrorWithProjectSave,
+            "Error with project creation",
+            state.errorMessage
+        ) {
+            setState { isErrorWithProjectSave = false }
+        }
         div("container card o-hidden border-0 shadow-lg my-5 card-body p-0") {
             div("p-5 text-center") {
                 h1("h4 text-gray-900 mb-4") {
@@ -192,22 +197,6 @@ class CreationView : RComponent<RProps, ProjectSaveViewState>() {
                     }
                 }
             }
-        }
-    }
-
-    private fun RBuilder.runErrorModal() = modal {
-        attrs {
-            isOpen = state.isErrorWithProjectSave
-            contentLabel = "Error with project creation"
-        }
-        div {
-            h2("h3 mb-0 text-gray-800") {
-                +(state.errorMessage)
-            }
-        }
-        button(type = ButtonType.button, classes = "btn btn-primary") {
-            attrs.onClickFunction = { setState { isErrorWithProjectSave = false } }
-            +"Close"
         }
     }
 }

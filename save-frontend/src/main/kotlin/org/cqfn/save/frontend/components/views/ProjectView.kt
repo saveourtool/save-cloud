@@ -53,6 +53,7 @@ import kotlinx.html.id
 import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
 import kotlinx.html.role
+import org.cqfn.save.frontend.utils.runErrorModal
 
 /**
  * [RProps] retrieved from router
@@ -230,7 +231,9 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
     @Suppress("TOO_LONG_FUNCTION", "LongMethod", "ComplexMethod")
     override fun RBuilder.render() {
         // modal windows are initially hidden
-        runErrorModal()
+        runErrorModal(state.isErrorOpen, state.errorLabel, state.errorMessage) {
+            setState { isErrorOpen = false }
+        }
         runLoadingModal()
         // Page Heading
         div("d-sm-flex align-items-center justify-content-between mb-4") {
@@ -447,22 +450,6 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                     header = "Project info"
                 }
             }
-        }
-    }
-
-    private fun RBuilder.runErrorModal() = modal {
-        attrs {
-            isOpen = state.isErrorOpen
-            contentLabel = state.errorLabel
-        }
-        div {
-            h2("h3 mb-0 text-gray-800") {
-                +(state.errorMessage)
-            }
-        }
-        button(type = ButtonType.button, classes = "btn btn-primary") {
-            attrs.onClickFunction = { setState { isErrorOpen = false } }
-            +"Close"
         }
     }
 

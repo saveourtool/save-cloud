@@ -5,6 +5,7 @@ import org.cqfn.save.backend.service.ProjectService
 import org.cqfn.save.domain.ProjectSaveStatus
 import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.GitDto
+import org.cqfn.save.entities.NewProjectDto
 import org.cqfn.save.entities.Project
 import org.slf4j.LoggerFactory
 
@@ -60,16 +61,16 @@ class ProjectController {
      * @return response
      */
     @PostMapping("/saveProject")
-    fun saveProject(@RequestBody executionRequest: ExecutionRequest): ResponseEntity<String>? {
-        val (projectId, projectStatus) = projectService.saveProject(executionRequest.project)
+    fun saveProject(@RequestBody newProjectDto: NewProjectDto): ResponseEntity<String>? {
+        val (projectId, projectStatus) = projectService.saveProject(newProjectDto.project)
         if (projectStatus == ProjectSaveStatus.EXIST) {
             log.warn("Project with id = $projectId already exist")
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(projectStatus.message)
         }
         log.info("Save new project id = $projectId")
-        executionRequest.project.id = projectId
-        executionRequest.gitDto?.let {
-            val saveGit = gitService.saveGit(it, executionRequest.project)
+        newProjectDto.project.id = projectId
+        newProjectDto.gitDto?.let {
+            val saveGit = gitService.saveGit(it, newProjectDto.project)
             log.info("Save new git id = ${saveGit.id}")
         }
         return ResponseEntity.status(HttpStatus.OK).body(projectStatus.message)
