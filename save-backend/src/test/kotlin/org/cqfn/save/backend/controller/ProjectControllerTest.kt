@@ -4,8 +4,8 @@ import org.cqfn.save.backend.SaveApplication
 import org.cqfn.save.backend.repository.GitRepository
 import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.utils.MySqlExtension
-import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.GitDto
+import org.cqfn.save.entities.NewProjectDto
 import org.cqfn.save.entities.Project
 
 import org.junit.jupiter.api.Assertions
@@ -90,7 +90,7 @@ class ProjectControllerTest {
     fun `check save new project`() {
         val gitDto = GitDto("qweqwe")
         val project = Project("I", "Name", "uurl", "nullsss")
-        val executionRequest = ExecutionRequest(
+        val executionRequest = NewProjectDto(
             project,
             gitDto
         )
