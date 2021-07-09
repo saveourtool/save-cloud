@@ -2,8 +2,6 @@
  * Configuration classes for save-agent
  */
 
-@file:Suppress("PACKAGE_NAME_INCORRECT_PATH")
-
 package org.cqfn.save.agent
 
 import generated.SAVE_CORE_VERSION
