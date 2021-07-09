@@ -14,4 +14,13 @@ interface ExecutionRepository : BaseEntityRepository<Execution> {
      * @return list of executions
      */
     fun getAllByProjectNameAndProjectOwner(name: String, owner: String): List<Execution>
+
+    /**
+     * Get latest (by start time an) execution by project name and project owner
+     *
+     * @param name name of project
+     * @param owner owner of project
+     * @return execution or null if it was not found
+     */
+    fun findTopByProjectNameAndProjectOwnerOrderByStartTimeDesc(name: String, owner: String): Execution?
 }
