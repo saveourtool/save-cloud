@@ -1,7 +1,8 @@
-@file:Suppress("FILE_NAME_INCORRECT")
 /**
  * Utilities for kotlin-js RBuilder
  */
+
+@file:Suppress("FILE_NAME_INCORRECT")
 
 package org.cqfn.save.frontend.utils
 
