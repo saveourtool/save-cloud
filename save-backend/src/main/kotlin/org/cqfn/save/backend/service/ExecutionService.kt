@@ -67,4 +67,14 @@ class ExecutionService(private val executionRepository: ExecutionRepository) {
      */
     fun getExecutionDtoByNameAndOwner(name: String, owner: String) =
             executionRepository.getAllByProjectNameAndProjectOwner(name, owner).map { it.toDto() }
+
+    /**
+     * Get latest (by start time an) execution by project name and project owner
+     *
+     * @param name name of project
+     * @param owner owner of project
+     * @return execution or null if it was not found
+     */
+    fun getLatestExecutionByProjectNameAndProjectOwner(name: String, owner: String): Execution? =
+            executionRepository.findTopByProjectNameAndProjectOwnerOrderByStartTimeDesc(name, owner)
 }
