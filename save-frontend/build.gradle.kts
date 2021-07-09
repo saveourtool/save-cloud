@@ -26,6 +26,10 @@ kotlin {
             compileOnly(devNpm("css-loader", "*"))
             compileOnly(devNpm("url-loader", "*"))
             compileOnly(devNpm("file-loader", "*"))
+            // these dependenceies are bound to postcss 7.x instead of 8.x, because bootstrap 4.x guide uses them
+            compileOnly(devNpm("postcss-loader", "3.*"))
+            compileOnly(devNpm("postcss", "7.*"))
+            compileOnly(devNpm("autoprefixer", "9.*"))
 
             // web-specific dependencies
             implementation(npm("@fortawesome/fontawesome-svg-core", "1.2.35"))
