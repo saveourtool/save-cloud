@@ -83,18 +83,10 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.Kotlin2JsCompile>().forEach {
     it.dependsOn(generateVersionFileTaskProvider)
 }
 
-val copyWebfontsTaskProvider = tasks.register("copyWebfonts", Copy::class) {
-    // add fontawesome font into the build
-    dependsOn(rootProject.tasks.getByName("kotlinNpmInstall"))  // to have dependencies downloaded
-    from("$rootDir/build/js/node_modules/@fortawesome/fontawesome-free/webfonts")
-    into("$buildDir/processedResources/js/main/webfonts")
-}
 tasks.withType<org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack>().forEach { kotlinWebpack ->
-    kotlinWebpack.dependsOn(copyWebfontsTaskProvider)
     kotlinWebpack.doFirst {
         val additionalWebpackResources = fileTree("$buildDir/processedResources/js/main/") {
             include("scss/**")
-            include("webfonts/**")
         }
         copy {
             from(additionalWebpackResources)
@@ -109,7 +101,7 @@ val distributionJarTask by tasks.registering(Jar::class) {
     archiveClassifier.set("distribution")
     from("$buildDir/distributions")
     into("static")
-    exclude("scss", "webfonts")
+    exclude("scss")
 }
 artifacts.add(distribution.name, distributionJarTask.get().archiveFile) {
     builtBy(distributionJarTask)
