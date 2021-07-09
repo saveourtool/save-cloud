@@ -90,14 +90,14 @@ class ProjectControllerTest {
     fun `check save new project`() {
         val gitDto = GitDto("qweqwe")
         val project = Project("I", "Name", "uurl", "nullsss")
-        val executionRequest = NewProjectDto(
+        val newProject = NewProjectDto(
             project,
             gitDto
         )
         webClient
             .post()
             .uri("/saveProject")
-            .body(BodyInserters.fromValue(executionRequest))
+            .body(BodyInserters.fromValue(newProject))
             .accept(MediaType.APPLICATION_JSON)
             .exchange()
             .expectStatus()

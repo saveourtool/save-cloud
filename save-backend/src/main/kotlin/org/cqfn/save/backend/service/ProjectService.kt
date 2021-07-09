@@ -25,10 +25,10 @@ class ProjectService(private val projectRepository: ProjectRepository) {
             .withMatcher("name", ExampleMatcher.GenericPropertyMatchers.exact())
             .withMatcher("owner", ExampleMatcher.GenericPropertyMatchers.exact())
         val (projectId, projectSaveStatus) = projectRepository.findOne(Example.of(project, exampleMatcher)).map {
+            Pair(it.id, ProjectSaveStatus.EXIST)
+        }.orElseGet {
             val savedProject = projectRepository.save(project)
             Pair(savedProject.id, ProjectSaveStatus.NEW)
-        }.orElseGet {
-            Pair(project.id, ProjectSaveStatus.EXIST)
         }
         requireNotNull(projectId) { "Should have gotten an ID for project from the database" }
         return Pair(projectId, projectSaveStatus)
