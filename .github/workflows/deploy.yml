@@ -1,0 +1,16 @@
+name: Deploy
+
+on:
+  pull_request:
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: [self-hosted, linux, x64]
+
+    steps:
+      - uses: actions/checkout@v2
+      - run: |
+          pwd
+          ls -l
+          uname -a
