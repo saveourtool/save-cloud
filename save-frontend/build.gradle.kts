@@ -30,6 +30,7 @@ kotlin {
             compileOnly(devNpm("postcss-loader", "3.*"))
             compileOnly(devNpm("postcss", "7.*"))
             compileOnly(devNpm("autoprefixer", "9.*"))
+            compileOnly(devNpm("webpack-bundle-analyzer", "*"))
 
             // web-specific dependencies
             implementation(npm("@fortawesome/fontawesome-svg-core", "1.2.35"))
