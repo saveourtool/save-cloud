@@ -108,8 +108,14 @@ class SaveAgent(private val config: AgentConfiguration,
             logError("Shouldn't start new process when there is the previous running")
         } else {
             saveProcessJob = launch {
-                // new job received from Orchestrator, spawning SAVE CLI process
-                startSaveProcess(cliArgs)
+                runCatching {
+                    // new job received from Orchestrator, spawning SAVE CLI process
+                    startSaveProcess(cliArgs)
+                }
+                    .exceptionOrNull()
+                    ?.let {
+                        logError("Error executing SAVE: ${it.describe()}")
+                    }
             }
         }
     }
@@ -230,7 +236,7 @@ class SaveAgent(private val config: AgentConfiguration,
                     state.value = AgentState.BACKEND_UNREACHABLE
                     "Backend is unreachable, ${result.exceptionOrNull()?.message}"
                 }
-                logError("Cannot post execution data (x$attempt), will retry in $retryInterval second. Reason: $reason")
+                logError("Cannot post data (x$attempt), will retry in $retryInterval second. Reason: $reason")
                 delay(retryInterval)
                 retryInterval *= 2
             }
