@@ -1,7 +1,6 @@
 package org.cqfn.save.agent
 
 import org.cqfn.save.agent.utils.readFile
-import org.cqfn.save.core.logging.isDebugEnabled
 import org.cqfn.save.core.logging.logDebug
 import org.cqfn.save.core.logging.logError
 import org.cqfn.save.core.logging.logInfo
@@ -33,6 +32,8 @@ import kotlinx.datetime.Clock
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
+import okio.Path
+import org.cqfn.save.core.logging.describe
 import org.cqfn.save.core.result.Crash
 import org.cqfn.save.core.result.Fail
 import org.cqfn.save.core.result.Ignored
@@ -70,7 +71,6 @@ class SaveAgent(private val config: AgentConfiguration,
      * @return Unit
      */
     suspend fun start() = coroutineScope {
-        isDebugEnabled = config.debug
         logInfo("Starting agent")
         val heartbeatsJob = launch { startHeartbeats() }
         heartbeatsJob.join()
@@ -82,11 +82,14 @@ class SaveAgent(private val config: AgentConfiguration,
         sendDataToBackend { saveAdditionalData() }
         while (true) {
             val response = runCatching {
-                // TODO: get execution progress here
+                // TODO: get execution progress here. However, with current implementation JSON report won't be valid
+                //  until all tests are finished.
                 sendHeartbeat(ExecutionProgress(0))
             }
             if (response.isSuccess) {
-                when (val heartbeatResponse = response.getOrNull()) {
+                when (val heartbeatResponse = response.getOrNull().also {
+                    logDebug("Got heartbeat response $it")
+                }) {
                     is NewJobResponse -> maybeStartSaveProcess(heartbeatResponse.cliArgs)
                     WaitResponse -> state.value = AgentState.IDLE
                     ContinueResponse -> Unit  // do nothing
@@ -95,8 +98,8 @@ class SaveAgent(private val config: AgentConfiguration,
                 logError("Exception during heartbeat: ${response.exceptionOrNull()?.message}")
             }
             // todo: start waiting after request was sent, not after response?
-            logInfo("Waiting for ${config.heartbeat.interval} sec")
-            delay(config.heartbeat.interval)
+            logInfo("Waiting for ${config.heartbeat.intervalMillis} ms")
+            delay(config.heartbeat.intervalMillis)
         }
     }
 
@@ -119,9 +122,11 @@ class SaveAgent(private val config: AgentConfiguration,
     internal suspend fun startSaveProcess(cliArgs: String) = coroutineScope {
         // blocking execution of OS process
         state.value = AgentState.BUSY
+        logInfo("Starting SAVE with provided args $cliArgs")
         val executionResult = runSave(cliArgs)
-        logDebug("Executed SAVE, here is stdout: ${executionResult.stdout}")
-        logDebug("Executed SAVE, here is stderr: ${executionResult.stderr}")
+        logInfo("SAVE has completed execution with status ${executionResult.code}")
+//        logDebug("Executed SAVE, here is stdout: ${executionResult.stdout}")
+//        logDebug("Executed SAVE, here is stderr: ${executionResult.stderr}")
         val executionLogs = ExecutionLogs(config.id, readFile(logFilePath))
         val logsSending = launch {
             runCatching {
@@ -138,25 +143,16 @@ class SaveAgent(private val config: AgentConfiguration,
                     state.value = AgentState.CLI_FAILED
                     return@coroutineScope
                 }
-                // todo: startTime
-                val currentTime = Clock.System.now()
                 val jsonReport = "save.out.json"
-                val report = Json.decodeFromString<Report>(
-                    readFile(jsonReport).joinToString(separator = "")
-                )
-                val testExecutionDtos = report.pluginExecutions.flatMap { pluginExecution ->
-                    pluginExecution.testResults.map {
-                        val testResultStatus = when (it.status) {
-                            is Pass -> TestResultStatus.PASSED
-                            is Fail -> TestResultStatus.FAILED
-                            is Ignored -> TestResultStatus.IGNORED
-                            is Crash -> TestResultStatus.TEST_ERROR
-                        }
-                        TestExecutionDto(it.resources.first().name, config.id, testResultStatus, currentTime, currentTime)
-                    }
+                val testExecutionDtos = runCatching {
+                    readExecutionResults(jsonReport)
                 }
-                sendDataToBackend {
-                    postExecutionData(testExecutionDtos)
+                if (testExecutionDtos.isFailure) {
+                    logError("Couldn't read execution results from JSON report, reason: ${testExecutionDtos.exceptionOrNull()?.describe()}")
+                } else {
+                    sendDataToBackend {
+                        postExecutionData(testExecutionDtos.getOrThrow())
+                    }
                 }
                 state.value = AgentState.FINISHED
             }
@@ -170,6 +166,25 @@ class SaveAgent(private val config: AgentConfiguration,
 
     private fun runSave(cliArgs: String): ExecutionResult = ProcessBuilder(true)
         .exec(config.cliCommand.let { if (cliArgs.isNotEmpty()) "$it $cliArgs" else it }, logFilePath.toPath())
+
+    private fun readExecutionResults(jsonFile: String): List<TestExecutionDto> {
+        // todo: startTime
+        val currentTime = Clock.System.now()
+        val report = Json.decodeFromString<Report>(
+            readFile(jsonFile).joinToString(separator = "")
+        )
+        return report.pluginExecutions.flatMap { pluginExecution ->
+            pluginExecution.testResults.map {
+                val testResultStatus = when (it.status) {
+                    is Pass -> TestResultStatus.PASSED
+                    is Fail -> TestResultStatus.FAILED
+                    is Ignored -> TestResultStatus.IGNORED
+                    is Crash -> TestResultStatus.TEST_ERROR
+                }
+                TestExecutionDto(it.resources.first().name, config.id, testResultStatus, currentTime, currentTime)
+            }
+        }
+    }
 
     /**
      * @param executionLogs logs of CLI execution progress that will be sent in a message
@@ -230,6 +245,7 @@ class SaveAgent(private val config: AgentConfiguration,
     }
 
     private suspend fun saveAdditionalData() = httpClient.post<HttpResponse> {
+        logInfo("Posting additional data to backend")
         url("${config.backendUrl}/saveAgentVersion")
         contentType(ContentType.Application.Json)
         body = AgentVersion(config.id, SAVE_CLOUD_VERSION)
