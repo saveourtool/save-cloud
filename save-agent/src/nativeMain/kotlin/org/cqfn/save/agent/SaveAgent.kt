@@ -32,7 +32,6 @@ import kotlinx.datetime.Clock
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
-import okio.Path
 import org.cqfn.save.core.logging.describe
 import org.cqfn.save.core.result.Crash
 import org.cqfn.save.core.result.Fail
@@ -176,18 +175,20 @@ class SaveAgent(private val config: AgentConfiguration,
     private fun readExecutionResults(jsonFile: String): List<TestExecutionDto> {
         // todo: startTime
         val currentTime = Clock.System.now()
-        val report = Json.decodeFromString<Report>(
+        val reports = Json.decodeFromString<List<Report>>(
             readFile(jsonFile).joinToString(separator = "")
         )
-        return report.pluginExecutions.flatMap { pluginExecution ->
-            pluginExecution.testResults.map {
-                val testResultStatus = when (it.status) {
-                    is Pass -> TestResultStatus.PASSED
-                    is Fail -> TestResultStatus.FAILED
-                    is Ignored -> TestResultStatus.IGNORED
-                    is Crash -> TestResultStatus.TEST_ERROR
+        return reports.flatMap { report ->
+            report.pluginExecutions.flatMap { pluginExecution ->
+                pluginExecution.testResults.map {
+                    val testResultStatus = when (it.status) {
+                        is Pass -> TestResultStatus.PASSED
+                        is Fail -> TestResultStatus.FAILED
+                        is Ignored -> TestResultStatus.IGNORED
+                        is Crash -> TestResultStatus.TEST_ERROR
+                    }
+                    TestExecutionDto(it.resources.first().name, config.id, testResultStatus, currentTime, currentTime)
                 }
-                TestExecutionDto(it.resources.first().name, config.id, testResultStatus, currentTime, currentTime)
             }
         }
     }
@@ -227,7 +228,7 @@ class SaveAgent(private val config: AgentConfiguration,
                 requestToBackend()
             }
             if (result.isSuccess && result.getOrNull()?.status == HttpStatusCode.OK) {
-                return@repeat
+                return@coroutineScope
             } else {
                 val reason = if (result.isSuccess && result.getOrNull()?.status != HttpStatusCode.OK) {
                     state.value = AgentState.BACKEND_FAILURE
