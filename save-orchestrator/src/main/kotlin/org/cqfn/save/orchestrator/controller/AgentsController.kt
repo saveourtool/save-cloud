@@ -16,6 +16,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.reactive.function.server.ServerResponse
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
@@ -72,29 +73,31 @@ class AgentsController {
 
     // todo: remove
     @PostMapping("/startTestAgent")
-    fun buildTestContainers() {
-        val ids = dockerService.buildAndCreateContainers(
-            Execution(
-                Project("test", "test", null, null).apply {
-                    id = -1
-                },
-                LocalDateTime.now(),
-                null,
-                ExecutionStatus.PENDING,
-                "1,2,3",
-                "examples/kotlin-diktat",
-                0,
-                10,
-                ExecutionType.GIT,
-                "0.0.1",
-                0,
-                0,
-                0,
-            ).apply {
-                id = -1
-            }
-        )
-        ids.forEach { dockerService.containerManager.dockerClient.startContainerCmd(it).exec() }
+    fun buildTestContainers(): Mono<Mono<ServerResponse>> {
+        return Mono.fromCallable { ServerResponse.ok().build() }.doOnSuccess {
+            val ids = dockerService.buildAndCreateContainers(
+                Execution(
+                    Project("test", "test", null, null).apply {
+                        id = 48
+                    },
+                    LocalDateTime.now(),
+                    null,
+                    ExecutionStatus.PENDING,
+                    "1,2,3",
+                    "examples/kotlin-diktat",
+                    0,
+                    10,
+                    ExecutionType.GIT,
+                    "0.0.1",
+                    0,
+                    0,
+                    0,
+                ).apply {
+                    id = 48
+                }
+            )
+            ids.forEach { dockerService.containerManager.dockerClient.startContainerCmd(it).exec() }
+        }
     }
 
     /**
