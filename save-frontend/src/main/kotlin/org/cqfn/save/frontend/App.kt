@@ -8,6 +8,7 @@ import org.cqfn.save.frontend.components.Footer
 import org.cqfn.save.frontend.components.TopBar
 import org.cqfn.save.frontend.components.basic.scrollToTopButton
 import org.cqfn.save.frontend.components.views.CollectionView
+import org.cqfn.save.frontend.components.views.CreationView
 import org.cqfn.save.frontend.components.views.ExecutionProps
 import org.cqfn.save.frontend.components.views.ExecutionView
 import org.cqfn.save.frontend.components.views.FallbackView
@@ -72,6 +73,7 @@ class App : RComponent<RProps, AppState>() {
                 div("container-fluid") {
                     switch {
                         route("/", exact = true, component = CollectionView::class)
+                        route("/creation", exact = true, component = CreationView::class)
                         route<ProjectExecutionRouteProps>("/:owner/:name", exact = true) { routeResultProps ->
                             child(ProjectView::class) {
                                 attrs.name = routeResultProps.match.params.name
