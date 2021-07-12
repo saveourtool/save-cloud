@@ -3,7 +3,9 @@ package org.cqfn.save.orchestrator.controller
 import org.cqfn.save.agent.ExecutionLogs
 import org.cqfn.save.entities.Agent
 import org.cqfn.save.entities.Execution
+import org.cqfn.save.entities.Project
 import org.cqfn.save.execution.ExecutionStatus
+import org.cqfn.save.execution.ExecutionType
 import org.cqfn.save.orchestrator.config.ConfigProperties
 import org.cqfn.save.orchestrator.service.AgentService
 import org.cqfn.save.orchestrator.service.DockerService
@@ -18,6 +20,7 @@ import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
 import java.io.File
+import java.time.LocalDateTime
 
 typealias Status = Mono<ResponseEntity<HttpStatus>>
 
@@ -65,6 +68,33 @@ class AgentsController {
             dockerService.startContainersAndUpdateExecution(execution, agentIds)
         }
         return response
+    }
+
+    // todo: remove
+    @PostMapping("/startTestAgent")
+    fun buildTestContainers() {
+        val ids = dockerService.buildAndCreateContainers(
+            Execution(
+                Project("test", "test", null, null).apply {
+                    id = -1
+                },
+                LocalDateTime.now(),
+                null,
+                ExecutionStatus.PENDING,
+                "1,2,3",
+                "examples/kotlin-diktat",
+                0,
+                10,
+                ExecutionType.GIT,
+                "0.0.1",
+                0,
+                0,
+                0,
+            ).apply {
+                id = -1
+            }
+        )
+        ids.forEach { dockerService.containerManager.dockerClient.startContainerCmd(it).exec() }
     }
 
     /**
