@@ -169,6 +169,28 @@ class HeartbeatControllerTest {
         }
     }
 
+    @Test
+    fun `should not shutdown any agents when they are STARTING`() {
+        testHeartbeat(
+            agentStatusDtos = listOf(
+                AgentStatusDto(LocalDateTime.now(), AgentState.STARTING, "test-1"),
+                AgentStatusDto(LocalDateTime.now(), AgentState.STARTING, "test-2"),
+            ),
+            heartbeat = Heartbeat("test-1", AgentState.STARTING, ExecutionProgress(0)),
+            testBatch = TestBatch(
+                listOf(
+                    TestDto("/path/to/test-1", 1, null),
+                    TestDto("/path/to/test-2", 1, null),
+                    TestDto("/path/to/test-3", 1, null),
+                ),
+                mapOf(1L to "")
+            ),
+            mockAgentStatuses = false,
+        ) {
+            verify(dockerService, times(0)).stopAgents(any())
+        }
+    }
+
     /**
      * Test logic triggered by a heartbeat.
      *

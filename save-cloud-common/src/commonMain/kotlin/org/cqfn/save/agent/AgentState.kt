@@ -37,6 +37,9 @@ enum class AgentState {
      */
     IDLE,
 
+    /**
+     * Agent has just started and hasn't received any heartbeats yet
+     */
     STARTING,
     ;
 }

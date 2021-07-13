@@ -53,7 +53,9 @@ class HeartbeatController(private val agentService: AgentService,
         )
             .then(
                 when (heartbeat.state) {
+                    // if agent sends the first heartbeat, we try to assign work for it
                     AgentState.STARTING -> agentService.getNewTestsIds(heartbeat.agentId)
+                    // if agent idles, we try to assign work, but also check if it should be terminated
                     AgentState.IDLE -> agentService.getNewTestsIds(heartbeat.agentId)
                         .doOnSuccess {
                             if (it is WaitResponse) {
