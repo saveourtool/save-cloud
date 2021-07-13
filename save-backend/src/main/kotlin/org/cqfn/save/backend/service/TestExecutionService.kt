@@ -5,6 +5,7 @@ import org.cqfn.save.backend.repository.AgentRepository
 import org.cqfn.save.backend.repository.ExecutionRepository
 import org.cqfn.save.backend.repository.TestExecutionRepository
 import org.cqfn.save.backend.repository.TestRepository
+import org.cqfn.save.backend.utils.toLocalDateTime
 import org.cqfn.save.domain.TestResultStatus
 import org.cqfn.save.entities.TestExecution
 
@@ -12,10 +13,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
-
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toJavaLocalDateTime
-import kotlinx.datetime.toLocalDateTime
 
 /**
  * Service for test result
@@ -72,8 +69,8 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
         testExecutionsDtos.forEach { testExecDto ->
             val foundTestExec = testExecutionRepository.findByExecutionIdAndAgentIdAndTestFilePath(execution.id!!, agent.id!!, testExecDto.filePath)
             foundTestExec.ifPresentOrElse({
-                it.startTime = testExecDto.startTime?.toLocalDateTime(TimeZone.UTC)?.toJavaLocalDateTime()
-                it.endTime = testExecDto.endTime?.toLocalDateTime(TimeZone.UTC)?.toJavaLocalDateTime()
+                it.startTime = testExecDto.startTimeSeconds?.toLocalDateTime()
+                it.endTime = testExecDto.endTimeSeconds?.toLocalDateTime()
                 it.status = testExecDto.status
                 when (testExecDto.status) {
                     TestResultStatus.PASSED -> execution.passedTests += 1

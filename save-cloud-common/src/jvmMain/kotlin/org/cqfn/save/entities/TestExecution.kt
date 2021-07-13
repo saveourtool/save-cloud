@@ -4,15 +4,12 @@ import org.cqfn.save.agent.TestExecutionDto
 import org.cqfn.save.domain.TestResultStatus
 
 import java.time.LocalDateTime
+import java.time.ZoneOffset
 import javax.persistence.Entity
 import javax.persistence.EnumType
 import javax.persistence.Enumerated
 import javax.persistence.JoinColumn
 import javax.persistence.ManyToOne
-
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toInstant
-import kotlinx.datetime.toKotlinLocalDateTime
 
 /**
  * @property test id of test
@@ -53,7 +50,7 @@ class TestExecution(
         test.filePath,
         agent?.containerId,
         status,
-        startTime?.toKotlinLocalDateTime()?.toInstant(TimeZone.UTC),
-        endTime?.toKotlinLocalDateTime()?.toInstant(TimeZone.UTC),
+        startTime?.toEpochSecond(ZoneOffset.UTC),
+        endTime?.toEpochSecond(ZoneOffset.UTC),
     )
 }

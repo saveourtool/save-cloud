@@ -50,7 +50,8 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
      */
     @PostMapping(value = ["/saveTestResult"])
     fun saveTestResult(@RequestBody testExecutionsDto: List<TestExecutionDto>) = try {
-        if (testExecutionService.saveTestResult(testExecutionsDto).isEmpty()) {
+        val lostTests = testExecutionService.saveTestResult(testExecutionsDto)
+        if (lostTests.isEmpty()) {
             ResponseEntity.status(HttpStatus.OK).body("Saved")
         } else {
             ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Some ids don't exist")
