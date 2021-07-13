@@ -4,7 +4,7 @@ import org.cqfn.save.domain.TestResultStatus
 import org.cqfn.save.entities.TestExecution
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Repository
-import java.util.*
+import java.util.Optional
 
 /**
  * Repository of execution

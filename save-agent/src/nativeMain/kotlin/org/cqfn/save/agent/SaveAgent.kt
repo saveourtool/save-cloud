@@ -30,6 +30,7 @@ import okio.ExperimentalFileSystem
 import okio.Path.Companion.toPath
 
 import kotlin.native.concurrent.AtomicReference
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
@@ -81,8 +82,7 @@ class SaveAgent(private val config: AgentConfiguration,
         sendDataToBackend { saveAdditionalData() }
         while (true) {
             val response = runCatching {
-                // TODO: get execution progress here. However, with current implementation JSON report won't be valid
-                //  until all tests are finished.
+                // TODO: get execution progress here. However, with current implementation JSON report won't be valid until all tests are finished.
                 sendHeartbeat(ExecutionProgress(0))
             }
             if (response.isSuccess) {
@@ -130,35 +130,13 @@ class SaveAgent(private val config: AgentConfiguration,
         logInfo("Starting SAVE with provided args $cliArgs")
         val executionResult = runSave(cliArgs)
         logInfo("SAVE has completed execution with status ${executionResult.code}")
-//        logDebug("Executed SAVE, here is stdout: ${executionResult.stdout}")
-//        logDebug("Executed SAVE, here is stderr: ${executionResult.stderr}")
         val executionLogs = ExecutionLogs(config.id, readFile(logFilePath))
-        val logsSending = launch {
-            runCatching {
-                sendLogs(executionLogs)
-            }
-                .exceptionOrNull()
-                ?.let {
-                    logError("Couldn't send logs, reason: ${it.message}")
-                }
-        }
+        val logsSendingJob = launchLogSendingJob(executionLogs)
         when (executionResult.code) {
-            0 -> {
-                if (executionLogs.cliLogs.isEmpty()) {
-                    state.value = AgentState.CLI_FAILED
-                    return@coroutineScope
-                }
-                val jsonReport = "save.out.json"
-                val testExecutionDtos = runCatching {
-                    readExecutionResults(jsonReport)
-                }
-                if (testExecutionDtos.isFailure) {
-                    logError("Couldn't read execution results from JSON report, reason: ${testExecutionDtos.exceptionOrNull()?.describe()}")
-                } else {
-                    sendDataToBackend {
-                        postExecutionData(testExecutionDtos.getOrThrow())
-                    }
-                }
+            0 -> if (executionLogs.cliLogs.isEmpty()) {
+                state.value = AgentState.CLI_FAILED
+            } else {
+                handleSuccessfulExit()
                 state.value = AgentState.FINISHED
             }
             else -> {
@@ -166,7 +144,7 @@ class SaveAgent(private val config: AgentConfiguration,
                 state.value = AgentState.CLI_FAILED
             }
         }
-        logsSending.join()
+        logsSendingJob.join()
     }
 
     private fun runSave(cliArgs: String): ExecutionResult = ProcessBuilder(true)
@@ -189,6 +167,30 @@ class SaveAgent(private val config: AgentConfiguration,
                     }
                     TestExecutionDto(it.resources.first().name, config.id, testResultStatus, currentTime, currentTime)
                 }
+            }
+        }
+    }
+
+    private fun CoroutineScope.launchLogSendingJob(executionLogs: ExecutionLogs) = launch {
+        runCatching {
+            sendLogs(executionLogs)
+        }
+            .exceptionOrNull()
+            ?.let {
+                logError("Couldn't send logs, reason: ${it.message}")
+            }
+    }
+
+    private suspend fun handleSuccessfulExit() {
+        val jsonReport = "save.out.json"
+        val testExecutionDtos = runCatching {
+            readExecutionResults(jsonReport)
+        }
+        if (testExecutionDtos.isFailure) {
+            logError("Couldn't read execution results from JSON report, reason: ${testExecutionDtos.exceptionOrNull()?.describe()}")
+        } else {
+            sendDataToBackend {
+                postExecutionData(testExecutionDtos.getOrThrow())
             }
         }
     }
