@@ -15,7 +15,6 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.WebTestClient
@@ -112,6 +111,7 @@ class TestExecutionControllerTest {
     }
 
     @Test
+    @Suppress("UnsafeCallOnNullableType")
     fun `should not save data if provided fields are invalid`() {
         val testExecutionDto = TestExecutionDto(
             "testFilePath",
