@@ -25,6 +25,9 @@ import org.springframework.transaction.support.TransactionTemplate
 import org.springframework.web.reactive.function.BodyInserters
 
 import kotlinx.datetime.Instant
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toJavaLocalDateTime
+import kotlinx.datetime.toLocalDateTime
 
 @SpringBootTest(classes = [SaveApplication::class])
 @AutoConfigureWebTestClient
@@ -80,18 +83,18 @@ class TestExecutionControllerTest {
             "testFilePath",
             "test",
             TestResultStatus.FAILED,
-            DEFAULT_DATE_TEST_EXECUTION,
-            DEFAULT_DATE_TEST_EXECUTION
+            defaultDateTestExecution,
+            defaultDateTestExecution
         )
         val testExecutionDtoSecond = TestExecutionDto(
             "testFilePath",
             "test",
             TestResultStatus.PASSED,
-            DEFAULT_DATE_TEST_EXECUTION,
-            DEFAULT_DATE_TEST_EXECUTION
+            defaultDateTestExecution,
+            defaultDateTestExecution
         )
-        val passedTestsBefore = getExecutionsTestsResultByAgentId(testExecutionDtoSecond.agentId!!, true)
-        val failedTestsBefore = getExecutionsTestsResultByAgentId(testExecutionDtoFirst.agentId!!, false)
+        val passedTestsBefore = getExecutionsTestsResultByAgentContainerId(testExecutionDtoSecond.agentContainerId!!, true)
+        val failedTestsBefore = getExecutionsTestsResultByAgentContainerId(testExecutionDtoFirst.agentContainerId!!, false)
         webClient.post()
             .uri("/saveTestResult")
             .contentType(MediaType.APPLICATION_JSON)
@@ -100,10 +103,10 @@ class TestExecutionControllerTest {
             .expectBody<String>()
             .isEqualTo("Saved")
         val tests = getAllTestExecutions()
-        val passedTestsAfter = getExecutionsTestsResultByAgentId(testExecutionDtoSecond.agentId!!, true)
-        val failedTestsAfter = getExecutionsTestsResultByAgentId(testExecutionDtoFirst.agentId!!, false)
-        assertTrue(tests.any { it.startTime == testExecutionDtoFirst.startTime!!.toLocalDateTime().withNano(0) })
-        assertTrue(tests.any { it.endTime == testExecutionDtoFirst.endTime!!.toLocalDateTime().withNano(0) })
+        val passedTestsAfter = getExecutionsTestsResultByAgentContainerId(testExecutionDtoSecond.agentContainerId!!, true)
+        val failedTestsAfter = getExecutionsTestsResultByAgentContainerId(testExecutionDtoFirst.agentContainerId!!, false)
+        assertTrue(tests.any { it.startTime == testExecutionDtoFirst.startTime!!.toLocalDateTime(TimeZone.UTC).toJavaLocalDateTime() })
+        assertTrue(tests.any { it.endTime == testExecutionDtoFirst.endTime!!.toLocalDateTime(TimeZone.UTC).toJavaLocalDateTime() })
         Assertions.assertEquals(passedTestsBefore, passedTestsAfter - 1)
         Assertions.assertEquals(failedTestsBefore, failedTestsAfter - 1)
     }
@@ -114,8 +117,8 @@ class TestExecutionControllerTest {
             "testFilePath",
             "test-not-exists",
             TestResultStatus.FAILED,
-            DEFAULT_DATE_TEST_EXECUTION,
-            DEFAULT_DATE_TEST_EXECUTION
+            defaultDateTestExecution,
+            defaultDateTestExecution
         )
         webClient.post()
             .uri("/saveTestResult")
@@ -137,12 +140,12 @@ class TestExecutionControllerTest {
             }!!
 
     @Suppress("UnsafeCallOnNullableType")
-    private fun getExecutionsTestsResultByAgentId(id: Long, isPassed: Boolean) =
+    private fun getExecutionsTestsResultByAgentContainerId(id: String, isPassed: Boolean) =
             transactionTemplate.execute {
                 if (isPassed) {
-                    agentRepository.findByIdOrNull(id)!!.execution.passedTests
+                    agentRepository.findByContainerId(id)!!.execution.passedTests
                 } else {
-                    agentRepository.findByIdOrNull(id)!!.execution.failedTests
+                    agentRepository.findByContainerId(id)!!.execution.failedTests
                 }
             }!!
 
