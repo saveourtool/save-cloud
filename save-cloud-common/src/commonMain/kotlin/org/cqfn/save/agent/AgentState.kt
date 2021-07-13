@@ -36,5 +36,7 @@ enum class AgentState {
      * Agent is doing nothing
      */
     IDLE,
+
+    STARTING,
     ;
 }

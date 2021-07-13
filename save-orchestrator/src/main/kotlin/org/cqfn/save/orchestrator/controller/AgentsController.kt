@@ -74,7 +74,7 @@ class AgentsController {
     // todo: remove
     @PostMapping("/startTestAgent")
     fun buildTestContainers(): Mono<Mono<ServerResponse>> {
-        return Mono.fromCallable { ServerResponse.ok().build() }.doOnSuccess {
+        return Mono.fromCallable { ServerResponse.ok().build() }.subscribeOn(Schedulers.boundedElastic()).doOnSuccess {
             val ids = dockerService.buildAndCreateContainers(
                 Execution(
                     Project("test", "test", null, null).apply {

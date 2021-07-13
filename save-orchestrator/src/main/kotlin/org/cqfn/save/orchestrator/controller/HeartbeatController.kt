@@ -53,6 +53,7 @@ class HeartbeatController(private val agentService: AgentService,
         )
             .then(
                 when (heartbeat.state) {
+                    AgentState.STARTING -> agentService.getNewTestsIds(heartbeat.agentId)
                     AgentState.IDLE -> agentService.getNewTestsIds(heartbeat.agentId)
                         .doOnSuccess {
                             if (it is WaitResponse) {
