@@ -237,7 +237,7 @@ class SaveAgent(private val config: AgentConfiguration,
                     state.value = AgentState.BACKEND_UNREACHABLE
                     "Backend is unreachable, ${result.exceptionOrNull()?.message}"
                 }
-                logError("Cannot post data (x$attempt), will retry in $retryInterval second. Reason: $reason")
+                logError("Cannot post data (x${attempt + 1}), will retry in $retryInterval second. Reason: $reason")
                 delay(retryInterval)
                 retryInterval *= 2
             }
