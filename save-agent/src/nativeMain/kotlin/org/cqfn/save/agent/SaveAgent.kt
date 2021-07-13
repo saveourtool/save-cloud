@@ -57,7 +57,7 @@ class SaveAgent(private val config: AgentConfiguration,
     /**
      * The current [AgentState] of this agent
      */
-    val state = AtomicReference(AgentState.IDLE)
+    val state = AtomicReference(AgentState.STARTING)
     private var saveProcessJob: Job? = null
 
     /**
