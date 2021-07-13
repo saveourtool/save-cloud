@@ -36,6 +36,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
@@ -65,7 +66,7 @@ class SaveAgent(private val config: AgentConfiguration,
      * The current [AgentState] of this agent
      */
     val state = AtomicReference(AgentState.STARTING)
-    private val executionStart = AtomicReference(Clock.System.now())
+    private val executionStart = AtomicReference(Instant.DISTANT_PAST)
     private var saveProcessJob: Job? = null
 
     /**
