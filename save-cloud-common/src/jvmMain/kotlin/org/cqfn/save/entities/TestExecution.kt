@@ -1,18 +1,18 @@
 package org.cqfn.save.entities
 
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toInstant
-import kotlinx.datetime.toKotlinLocalDateTime
 import org.cqfn.save.agent.TestExecutionDto
 import org.cqfn.save.domain.TestResultStatus
 
 import java.time.LocalDateTime
-import java.time.ZoneOffset
 import javax.persistence.Entity
 import javax.persistence.EnumType
 import javax.persistence.Enumerated
 import javax.persistence.JoinColumn
 import javax.persistence.ManyToOne
+
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toInstant
+import kotlinx.datetime.toKotlinLocalDateTime
 
 /**
  * @property test id of test

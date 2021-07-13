@@ -36,5 +36,13 @@ interface TestExecutionRepository : BaseEntityRepository<TestExecution> {
      */
     fun findByExecutionId(executionId: Long, pageable: Pageable): List<TestExecution>
 
+    /**
+     * Returns a TestExecution matched by a set of fields
+     *
+     * @param executionId if of execution
+     * @param agentId id of an agent (numeric, as in the DB)
+     * @param filePath path to test file
+     * @return Optional TestExecution
+     */
     fun findByExecutionIdAndAgentIdAndTestFilePath(executionId: Long, agentId: Long, filePath: String): Optional<TestExecution>
 }

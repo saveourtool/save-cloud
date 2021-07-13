@@ -1,8 +1,5 @@
 package org.cqfn.save.backend.service
 
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toJavaLocalDateTime
-import kotlinx.datetime.toLocalDateTime
 import org.cqfn.save.agent.TestExecutionDto
 import org.cqfn.save.backend.repository.AgentRepository
 import org.cqfn.save.backend.repository.ExecutionRepository
@@ -15,6 +12,10 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
+
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toJavaLocalDateTime
+import kotlinx.datetime.toLocalDateTime
 
 /**
  * Service for test result
@@ -59,7 +60,6 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
      */
     @Suppress("TOO_MANY_LINES_IN_LAMBDA")
     fun saveTestResult(testExecutionsDtos: List<TestExecutionDto>): List<TestExecutionDto> {
-        val lostTests: MutableList<TestExecutionDto> = mutableListOf()
         // we take agent id only from first element, because all test executions have same execution
         val agentContainerId = requireNotNull(testExecutionsDtos.first().agentContainerId) {
             "Attempt to save test results without assigned agent. testExecutionDtos=$testExecutionsDtos"
@@ -68,6 +68,7 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
             "Agent with containerId=[$agentContainerId] was not found in the DB"
         }
         val execution = agent.execution
+        val lostTests: MutableList<TestExecutionDto> = mutableListOf()
         testExecutionsDtos.forEach { testExecDto ->
             val foundTestExec = testExecutionRepository.findByExecutionIdAndAgentIdAndTestFilePath(execution.id!!, agent.id!!, testExecDto.filePath)
             foundTestExec.ifPresentOrElse({

@@ -1,12 +1,18 @@
 package org.cqfn.save.agent
 
 import org.cqfn.save.agent.utils.readFile
+import org.cqfn.save.core.logging.describe
 import org.cqfn.save.core.logging.logDebug
 import org.cqfn.save.core.logging.logError
 import org.cqfn.save.core.logging.logInfo
+import org.cqfn.save.core.result.Crash
+import org.cqfn.save.core.result.Fail
+import org.cqfn.save.core.result.Ignored
+import org.cqfn.save.core.result.Pass
 import org.cqfn.save.core.utils.ExecutionResult
 import org.cqfn.save.core.utils.ProcessBuilder
 import org.cqfn.save.domain.TestResultStatus
+import org.cqfn.save.reporter.Report
 
 import generated.SAVE_CLOUD_VERSION
 import io.ktor.client.HttpClient
@@ -32,12 +38,6 @@ import kotlinx.datetime.Clock
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
-import org.cqfn.save.core.logging.describe
-import org.cqfn.save.core.result.Crash
-import org.cqfn.save.core.result.Fail
-import org.cqfn.save.core.result.Ignored
-import org.cqfn.save.core.result.Pass
-import org.cqfn.save.reporter.Report
 
 /**
  * A main class for SAVE Agent
@@ -175,7 +175,7 @@ class SaveAgent(private val config: AgentConfiguration,
     private fun readExecutionResults(jsonFile: String): List<TestExecutionDto> {
         // todo: startTime
         val currentTime = Clock.System.now()
-        val reports = Json.decodeFromString<List<Report>>(
+        val reports: List<Report> = Json.decodeFromString(
             readFile(jsonFile).joinToString(separator = "")
         )
         return reports.flatMap { report ->

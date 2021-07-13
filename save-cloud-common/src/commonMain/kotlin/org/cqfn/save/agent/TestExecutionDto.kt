@@ -1,8 +1,8 @@
 package org.cqfn.save.agent
 
-import kotlinx.datetime.Instant
 import org.cqfn.save.domain.TestResultStatus
 
+import kotlinx.datetime.Instant
 import kotlinx.serialization.Serializable
 
 /**
