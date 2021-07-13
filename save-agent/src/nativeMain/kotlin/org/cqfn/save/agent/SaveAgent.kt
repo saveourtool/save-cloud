@@ -166,7 +166,7 @@ class SaveAgent(private val config: AgentConfiguration,
                         is Ignored -> TestResultStatus.IGNORED
                         is Crash -> TestResultStatus.TEST_ERROR
                     }
-                    TestExecutionDto(it.resources.first().name, config.id, testResultStatus, executionStart.value, currentTime)
+                    TestExecutionDto(it.resources.first().name, config.id, testResultStatus, executionStart.value.epochSeconds, currentTime.epochSeconds)
                 }
             }
         }
