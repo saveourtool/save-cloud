@@ -26,9 +26,16 @@ kotlin {
             compileOnly(devNpm("css-loader", "*"))
             compileOnly(devNpm("url-loader", "*"))
             compileOnly(devNpm("file-loader", "*"))
+            // these dependenceies are bound to postcss 7.x instead of 8.x, because bootstrap 4.x guide uses them
+            compileOnly(devNpm("postcss-loader", "3.*"))
+            compileOnly(devNpm("postcss", "7.*"))
+            compileOnly(devNpm("autoprefixer", "9.*"))
+            compileOnly(devNpm("webpack-bundle-analyzer", "*"))
 
             // web-specific dependencies
-            compileOnly(npm("@fortawesome/fontawesome-free", "5.15.1"))  // needed to copy fonts to resources, not needed in runtime
+            implementation(npm("@fortawesome/fontawesome-svg-core", "1.2.35"))
+            implementation(npm("@fortawesome/free-solid-svg-icons", "5.15.3"))
+            implementation(npm("@fortawesome/react-fontawesome", "0.1.14"))
             implementation("org.jetbrains:kotlin-react:${Versions.kotlinReact}")
             implementation("org.jetbrains:kotlin-react-dom:${Versions.kotlinReact}")
             implementation("org.jetbrains:kotlin-react-router-dom:5.2.0${Versions.kotlinJsWrappersSuffix}")
@@ -77,18 +84,10 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.Kotlin2JsCompile>().forEach {
     it.dependsOn(generateVersionFileTaskProvider)
 }
 
-val copyWebfontsTaskProvider = tasks.register("copyWebfonts", Copy::class) {
-    // add fontawesome font into the build
-    dependsOn(rootProject.tasks.getByName("kotlinNpmInstall"))  // to have dependencies downloaded
-    from("$rootDir/build/js/node_modules/@fortawesome/fontawesome-free/webfonts")
-    into("$buildDir/processedResources/js/main/webfonts")
-}
 tasks.withType<org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack>().forEach { kotlinWebpack ->
-    kotlinWebpack.dependsOn(copyWebfontsTaskProvider)
     kotlinWebpack.doFirst {
         val additionalWebpackResources = fileTree("$buildDir/processedResources/js/main/") {
             include("scss/**")
-            include("webfonts/**")
         }
         copy {
             from(additionalWebpackResources)
@@ -103,7 +102,7 @@ val distributionJarTask by tasks.registering(Jar::class) {
     archiveClassifier.set("distribution")
     from("$buildDir/distributions")
     into("static")
-    exclude("scss", "webfonts")
+    exclude("scss")
 }
 artifacts.add(distribution.name, distributionJarTask.get().archiveFile) {
     builtBy(distributionJarTask)

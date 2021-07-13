@@ -5,6 +5,7 @@
 package org.cqfn.save.frontend.components
 
 import org.cqfn.save.frontend.components.modal.logoutModal
+import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
 
 import react.RBuilder
 import react.RComponent
@@ -14,7 +15,6 @@ import react.dom.RDOMBuilder
 import react.dom.a
 import react.dom.button
 import react.dom.div
-import react.dom.i
 import react.dom.img
 import react.dom.li
 import react.dom.nav
@@ -118,9 +118,9 @@ class TopBar : RComponent<TopBarProps, TopBarState>() {
                     // Dropdown - User Information
                     div("dropdown-menu dropdown-menu-right shadow animated--grow-in") {
                         attrs["aria-labelledby"] = "userDropdown"
-                        dropdownEntry("fa-user", "Profile")
-                        dropdownEntry("fa-cogs", "Settings")
-                        dropdownEntry("fa-sign-out-alt", "Log out") {
+                        dropdownEntry("user", "Profile")
+                        dropdownEntry("cogs", "Settings")
+                        dropdownEntry("sign-out-alt", "Log out") {
                             attrs.onClickFunction = {
                                 setState {
                                     isLogoutModalOpen = true
@@ -140,9 +140,11 @@ class TopBar : RComponent<TopBarProps, TopBarState>() {
 
     private fun RBuilder.dropdownEntry(faIcon: String, text: String, handler: RDOMBuilder<BUTTON>.() -> Unit = { }) =
             button(type = ButtonType.button, classes = "btn btn-no-outline dropdown-item rounded-0 shadow-none") {
-                i("fas $faIcon fa-sm fa-fw mr-2 text-gray-400") {
-                    +text
+                fontAwesomeIcon {
+                    attrs.icon = faIcon
+                    attrs.className = "fas fa-sm fa-fw mr-2 text-gray-400"
                 }
+                +text
                 handler(this)
             }
 }

@@ -6,10 +6,11 @@
 
 package org.cqfn.save.frontend.components.basic
 
+import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
+
 import react.RProps
 import react.dom.RDOMBuilder
 import react.dom.div
-import react.dom.i
 import react.functionalComponent
 
 import kotlinx.html.DIV
@@ -56,7 +57,7 @@ fun cardComponent(contentBuilder: RDOMBuilder<DIV>.() -> Unit) = functionalCompo
                         }
                     }
                     div("col-auto") {
-                        i("fas ${props.faIcon} fa-2x text-gray-300") {}
+                        fontAwesomeIcon(icon = props.faIcon, classes = "fas fa-2x text-gray-300")
                     }
                 }
             }
