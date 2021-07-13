@@ -49,13 +49,12 @@ class AgentService(configProperties: ConfigProperties) {
                 .bodyToMono<TestBatch>()
                 .map { batch ->
                     if (batch.tests.isNotEmpty()) {
-                        // fixme: https://github.com/cqfn/save/issues/137
                         // fixme: do we still need suitesToArgs, since we have execFlags in save.toml?
                         NewJobResponse(
                             batch.tests,
                             batch.suitesToArgs.values.first() +
-                                    " --report-type json " +
-                                    " --result-output file " +
+                                    " --report-type json" +
+                                    " --result-output file" +
                                     " " + batch.tests.joinToString(separator = " ") { it.filePath }
                         )
                     } else {

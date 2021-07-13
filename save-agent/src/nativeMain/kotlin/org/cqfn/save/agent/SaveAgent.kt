@@ -65,6 +65,7 @@ class SaveAgent(private val config: AgentConfiguration,
      * The current [AgentState] of this agent
      */
     val state = AtomicReference(AgentState.STARTING)
+    private val executionStart = AtomicReference(Clock.System.now())
     private var saveProcessJob: Job? = null
 
     /**
@@ -127,6 +128,7 @@ class SaveAgent(private val config: AgentConfiguration,
     internal suspend fun startSaveProcess(cliArgs: String) = coroutineScope {
         // blocking execution of OS process
         state.value = AgentState.BUSY
+        executionStart.value = Clock.System.now()
         logInfo("Starting SAVE with provided args $cliArgs")
         val executionResult = runSave(cliArgs)
         logInfo("SAVE has completed execution with status ${executionResult.code}")
@@ -151,7 +153,6 @@ class SaveAgent(private val config: AgentConfiguration,
         .exec(config.cliCommand.let { if (cliArgs.isNotEmpty()) "$it $cliArgs" else it }, logFilePath.toPath())
 
     private fun readExecutionResults(jsonFile: String): List<TestExecutionDto> {
-        // todo: startTime
         val currentTime = Clock.System.now()
         val reports: List<Report> = Json.decodeFromString(
             readFile(jsonFile).joinToString(separator = "")
@@ -165,7 +166,7 @@ class SaveAgent(private val config: AgentConfiguration,
                         is Ignored -> TestResultStatus.IGNORED
                         is Crash -> TestResultStatus.TEST_ERROR
                     }
-                    TestExecutionDto(it.resources.first().name, config.id, testResultStatus, currentTime, currentTime)
+                    TestExecutionDto(it.resources.first().name, config.id, testResultStatus, executionStart.value, currentTime)
                 }
             }
         }

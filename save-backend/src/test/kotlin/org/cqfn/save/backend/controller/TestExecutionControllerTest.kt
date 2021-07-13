@@ -24,6 +24,8 @@ import org.springframework.transaction.PlatformTransactionManager
 import org.springframework.transaction.support.TransactionTemplate
 import org.springframework.web.reactive.function.BodyInserters
 
+import kotlinx.datetime.Instant
+
 @SpringBootTest(classes = [SaveApplication::class])
 @AutoConfigureWebTestClient
 @ExtendWith(MySqlExtension::class)
@@ -75,17 +77,15 @@ class TestExecutionControllerTest {
     @Suppress("UnsafeCallOnNullableType")
     fun `should save TestExecutionDto into the DB`() {
         val testExecutionDtoFirst = TestExecutionDto(
-            1,
             "testFilePath",
-            1,
+            "test",
             TestResultStatus.FAILED,
             DEFAULT_DATE_TEST_EXECUTION,
             DEFAULT_DATE_TEST_EXECUTION
         )
         val testExecutionDtoSecond = TestExecutionDto(
-            2,
             "testFilePath",
-            1,
+            "test",
             TestResultStatus.PASSED,
             DEFAULT_DATE_TEST_EXECUTION,
             DEFAULT_DATE_TEST_EXECUTION
@@ -109,12 +109,10 @@ class TestExecutionControllerTest {
     }
 
     @Test
-    fun `should not save data if provided IDs are invalid`() {
-        val invalidId = 999L
+    fun `should not save data if provided fields are invalid`() {
         val testExecutionDto = TestExecutionDto(
-            invalidId,
             "testFilePath",
-            1,
+            "test-not-exists",
             TestResultStatus.FAILED,
             DEFAULT_DATE_TEST_EXECUTION,
             DEFAULT_DATE_TEST_EXECUTION
@@ -129,7 +127,7 @@ class TestExecutionControllerTest {
             .expectBody<String>()
             .isEqualTo("Some ids don't exist")
         val testExecutions = testExecutionRepository.findAll()
-        assertTrue(testExecutions.none { it.id == invalidId })
+        assertTrue(testExecutions.none { it.agent!!.containerId == "test-not-exists" })
     }
 
     @Suppress("UnsafeCallOnNullableType")
@@ -149,6 +147,6 @@ class TestExecutionControllerTest {
             }!!
 
     companion object {
-        private const val DEFAULT_DATE_TEST_EXECUTION = 1L
+        private val defaultDateTestExecution = Instant.fromEpochSeconds(1L)
     }
 }
