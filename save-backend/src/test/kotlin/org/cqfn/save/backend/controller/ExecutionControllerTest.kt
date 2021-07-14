@@ -194,6 +194,7 @@ class ExecutionControllerTest {
     }
 
     @Test
+    @Suppress("UnsafeCallOnNullableType")
     fun checkUpdateNewExecution() {
         val execution = executionRepository.findByIdOrNull(2)!!
         val executionUpdate = ExecutionUpdateCreationDto(execution.project, "ALL", "testPath", 20, "executionVersion")
