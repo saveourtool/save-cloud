@@ -7,6 +7,7 @@ import org.cqfn.save.backend.service.ProjectService
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.ExecutionRequestForStandardSuites
+import org.cqfn.save.entities.Project
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionType
 
@@ -54,10 +55,7 @@ class CloneRepositoryController(
         val projectExecution = executionRequest.project
         val project = projectService.getProjectByNameAndOwner(projectExecution.name, projectExecution.owner)
         return project?.let {
-            val execution = Execution(project, LocalDateTime.now(), null, ExecutionStatus.PENDING, null,
-                null, 0, null, ExecutionType.GIT, null, 0, 0, 0)
-            log.info("Saving execution id=${execution.id}")
-            executionService.saveExecution(execution)
+            saveExecution(it, ExecutionType.GIT)
             log.info("Sending request to preprocessor to start cloning project id=${it.id}")
             preprocessorWebClient
                 .post()
@@ -86,10 +84,7 @@ class CloneRepositoryController(
         val projectExecution = executionRequestForStandardSuites.project
         val project = projectService.getProjectByNameAndOwner(projectExecution.name, projectExecution.owner)
         project?.let { proj ->
-            val execution = Execution(project, LocalDateTime.now(), null, ExecutionStatus.PENDING, null,
-                null, 0, null, ExecutionType.STANDARD, null, 0, 0, 0)
-            log.info("Saving execution id=${execution.id}")
-            executionService.saveExecution(execution)
+            saveExecution(proj, ExecutionType.STANDARD)
             log.info("Sending request to preprocessor to start save file for project id=${proj.id}")
             val bodyBuilder = MultipartBodyBuilder()
             bodyBuilder.part("executionRequestForStandardSuites", executionRequestForStandardSuites)
@@ -106,5 +101,12 @@ class CloneRepositoryController(
                     .toEntity(String::class.java)
                     .toMono())
         } ?: return Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Project doesn't exist"))
+    }
+
+    private fun saveExecution(project: Project, type: ExecutionType) {
+        val execution = Execution(project, LocalDateTime.now(), null, ExecutionStatus.PENDING, null,
+            null, 0, null, type, null, 0, 0, 0)
+        log.info("Creating a new execution id=${execution.id} for project id=${project.id}")
+        executionService.saveExecution(execution)
     }
 }

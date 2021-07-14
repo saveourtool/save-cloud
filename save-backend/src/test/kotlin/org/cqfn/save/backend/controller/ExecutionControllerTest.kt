@@ -6,9 +6,9 @@ import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.utils.MySqlExtension
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.execution.ExecutionDto
+import org.cqfn.save.execution.ExecutionInitializationDto
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionType
-import org.cqfn.save.execution.ExecutionUpdateCreationDto
 import org.cqfn.save.execution.ExecutionUpdateDto
 
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -197,7 +197,7 @@ class ExecutionControllerTest {
     @Suppress("UnsafeCallOnNullableType")
     fun checkUpdateNewExecution() {
         val execution = executionRepository.findByIdOrNull(2)!!
-        val executionUpdate = ExecutionUpdateCreationDto(execution.project, "ALL", "testPath", 20, "executionVersion")
+        val executionUpdate = ExecutionInitializationDto(execution.project, "ALL", "testPath", 20, "executionVersion")
         webClient.post()
             .uri("/updateNewExecution")
             .contentType(MediaType.APPLICATION_JSON)

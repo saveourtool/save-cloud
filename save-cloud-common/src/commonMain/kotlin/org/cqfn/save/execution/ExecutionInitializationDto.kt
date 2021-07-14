@@ -11,7 +11,7 @@ import kotlinx.serialization.Serializable
  * @property version
  */
 @Serializable
-data class ExecutionUpdateCreationDto(
+data class ExecutionInitializationDto(
     val project: Project,
     val testSuiteIds: String,
     val resourcesRootPath: String,

@@ -2,6 +2,7 @@
 
 package org.cqfn.save.preprocessor.controllers
 
+// for these imports we need to suppress UNUSED_IMPORT until https://github.com/cqfn/diKTat/issues/837
 import org.cqfn.save.core.config.SaveProperties
 import org.cqfn.save.core.config.TestConfig
 import org.cqfn.save.core.config.defaultConfig
@@ -10,9 +11,9 @@ import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.ExecutionRequestForStandardSuites
 import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.TestSuite
+import org.cqfn.save.execution.ExecutionInitializationDto
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionType
-import org.cqfn.save.execution.ExecutionUpdateCreationDto
 import org.cqfn.save.execution.ExecutionUpdateDto
 import org.cqfn.save.preprocessor.Response
 import org.cqfn.save.preprocessor.config.ConfigProperties
@@ -45,12 +46,10 @@ import org.springframework.web.reactive.function.client.toEntity
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
-// for these imports we need to suppress UNUSED_IMPORT until https://github.com/cqfn/diKTat/issues/837
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
 
 import java.io.File
-import java.time.LocalDateTime
 
 import kotlin.io.path.ExperimentalPathApi
 
@@ -217,9 +216,9 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
             require(executionType == ExecutionType.STANDARD) { "Test suites shouldn't be provided unless ExecutionType is STANDARD (actual: $executionType)" }
         } ?: require(executionType == ExecutionType.GIT) { "Test suites are not provided, but should for executionType=$executionType" }
 
-        val executionUpdate = ExecutionUpdateCreationDto(project, "ALL", projectRootRelativePath, configProperties.executionLimit, executionVersion)
+        val executionUpdate = ExecutionInitializationDto(project, "ALL", projectRootRelativePath, configProperties.executionLimit, executionVersion)
         webClientBackend.makeRequest(BodyInserters.fromValue(executionUpdate), "/updateNewExecution") { it.bodyToMono<Execution>() }
-            .flatMap { exec ->
+            .flatMap { execution ->
                 Mono.fromCallable {
                     val testResourcesRootAbsolutePath = getTestResourcesRootAbsolutePath(propertiesRelativePath, projectRootRelativePath)
                     testDiscoveringService.getRootTestConfig(testResourcesRootAbsolutePath)
@@ -229,13 +228,13 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
                         discoverAndSaveTestSuites(project, rootTestConfig, propertiesRelativePath)
                     }
                     .flatMap { (rootTestConfig, testSuites) ->
-                        initializeTests(testSuites, rootTestConfig, exec.id!!)
+                        initializeTests(testSuites, rootTestConfig, execution.id!!)
                     }
-                    .then(initializeAgents(exec))
+                    .then(initializeAgents(execution))
                     .onErrorResume { ex ->
-                        log.error("Error during resources discovering, will mark execution.id=${exec.id} as failed; error: ", ex)
+                        log.error("Error during resources discovering, will mark execution.id=${execution.id} as failed; error: ", ex)
                         webClientBackend.makeRequest(
-                            BodyInserters.fromValue(ExecutionUpdateDto(exec.id!!, ExecutionStatus.ERROR)), "/updateExecution"
+                            BodyInserters.fromValue(ExecutionUpdateDto(execution.id!!, ExecutionStatus.ERROR)), "/updateExecution"
                         ) { it.toEntity<HttpStatus>() }
                     }
             }

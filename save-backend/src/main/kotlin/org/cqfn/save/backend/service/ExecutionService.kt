@@ -4,14 +4,16 @@ import org.cqfn.save.backend.repository.ExecutionRepository
 import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.execution.ExecutionDto
+import org.cqfn.save.execution.ExecutionInitializationDto
 import org.cqfn.save.execution.ExecutionStatus
-import org.cqfn.save.execution.ExecutionUpdateCreationDto
 import org.cqfn.save.execution.ExecutionUpdateDto
+
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
+
 import java.time.LocalDateTime
 
 /**
@@ -80,15 +82,16 @@ class ExecutionService(private val executionRepository: ExecutionRepository) {
             executionRepository.findTopByProjectNameAndProjectOwnerOrderByStartTimeDesc(name, owner)
 
     /**
-     * @param executionUpdateCreationDto execution dto to update
+     * @param executionInitializationDto execution dto to update
      * @return execution
      */
-    fun updateNewExecution(executionUpdateCreationDto: ExecutionUpdateCreationDto) =
-            executionRepository.findTopByProjectOrderByStartTimeDesc(executionUpdateCreationDto.project)?.let {
-                it.version = executionUpdateCreationDto.version
-                it.batchSize = executionUpdateCreationDto.batchSize
-                it.testSuiteIds = executionUpdateCreationDto.testSuiteIds
-                it.resourcesRootPath = executionUpdateCreationDto.resourcesRootPath
+    fun updateNewExecution(executionInitializationDto: ExecutionInitializationDto) =
+            executionRepository.findTopByProjectOrderByStartTimeDesc(executionInitializationDto.project)?.let {
+                assert(it.version == null) { "Execution was already updated" }
+                it.version = executionInitializationDto.version
+                it.batchSize = executionInitializationDto.batchSize
+                it.testSuiteIds = executionInitializationDto.testSuiteIds
+                it.resourcesRootPath = executionInitializationDto.resourcesRootPath
                 executionRepository.save(it)
             }
 }
