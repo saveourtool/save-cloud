@@ -7,8 +7,6 @@ import org.cqfn.save.preprocessor.utils.RepositoryVolume
 import org.cqfn.save.testsuite.TestSuiteType
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import okhttp3.mockwebserver.QueueDispatcher
@@ -110,7 +108,7 @@ class DownloadProjectTest(
             MockResponse()
                 .setResponseCode(200)
                 .setHeader("Content-Type", "application/json")
-                .setBody(Json.encodeToString(execution))
+                .setBody(objectMapper.writeValueAsString(execution))
         )
         // /saveTestSuites
         mockServerBackend.enqueue(
@@ -176,7 +174,7 @@ class DownloadProjectTest(
             MockResponse()
                 .setResponseCode(200)
                 .setHeader("Content-Type", "application/json")
-                .setBody(Json.encodeToString(execution)),
+                .setBody(objectMapper.writeValueAsString(execution))
         )
         mockServerBackend.enqueue(
             MockResponse()
