@@ -218,7 +218,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
 
         val executionUpdate = ExecutionInitializationDto(project, "ALL", projectRootRelativePath, configProperties.executionLimit, executionVersion)
         webClientBackend.makeRequest(BodyInserters.fromValue(executionUpdate), "/updateNewExecution") {
-            it.onStatus({status -> status != HttpStatus.NOT_FOUND }) { clientResponse ->
+            it.onStatus({status -> status != HttpStatus.OK }) { clientResponse ->
                 log.error("Error when making update to execution fro project id = ${project.id} ${clientResponse.statusCode()}")
                 throw ResponseStatusException(
                     HttpStatus.INTERNAL_SERVER_ERROR,
