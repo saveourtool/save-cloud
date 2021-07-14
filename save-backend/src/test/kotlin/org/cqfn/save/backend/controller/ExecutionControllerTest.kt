@@ -195,7 +195,7 @@ class ExecutionControllerTest {
     @Test
     fun checkUpdateNewExecution() {
         val execution = executionRepository.findAll().last()
-        val executionUpdate = ExecutionUpdateCreationDto(execution.project, "ALL", "testPath", 3, "executionVersion")
+        val executionUpdate = ExecutionUpdateCreationDto(execution.project, "ALL", "testPath", 21, "executionVersion")
         webClient.post()
             .uri("/updateNewExecution")
             .contentType(MediaType.APPLICATION_JSON)
@@ -208,13 +208,13 @@ class ExecutionControllerTest {
                 requireNotNull(it.responseBody)
                 assertEquals(it.responseBody.testSuiteIds, "ALL")
                 assertEquals(it.responseBody.resourcesRootPath, "testPath")
-                assertEquals(it.responseBody.batchSize, 3)
+                assertEquals(it.responseBody.batchSize, 21)
                 assertEquals(it.responseBody.version, "executionVersion")
             }
         val isUpdatedExecution = executionRepository.findAll().any {
             it.testSuiteIds == "ALL" &&
                     it.resourcesRootPath == "testPath" &&
-                    it.batchSize == 3 &&
+                    it.batchSize == 21 &&
                     it.version == "executionVersion"
         }
         assertTrue(isUpdatedExecution)
