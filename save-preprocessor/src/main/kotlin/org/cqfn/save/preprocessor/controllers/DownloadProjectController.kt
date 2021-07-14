@@ -202,7 +202,9 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
         "TOO_LONG_FUNCTION",
         "LOCAL_VARIABLE_EARLY_DECLARATION",
         "LongParameterList",
-        "TOO_MANY_PARAMETERS")
+        "TOO_MANY_PARAMETERS",
+        "UnsafeCallOnNullableType"
+    )
     private fun sendToBackendAndOrchestrator(
         project: Project,
         propertiesRelativePath: String,
