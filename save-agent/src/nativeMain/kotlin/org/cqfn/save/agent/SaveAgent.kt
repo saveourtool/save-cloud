@@ -36,7 +36,6 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
@@ -66,7 +65,10 @@ class SaveAgent(private val config: AgentConfiguration,
      * The current [AgentState] of this agent
      */
     val state = AtomicReference(AgentState.STARTING)
-    private val executionStart = AtomicReference(Instant.DISTANT_PAST)
+
+    // fixme: can't use atomic reference to Instant here, because when using `Clock.System.now()` as an assined value
+    // Kotlin throws `kotlin.native.concurrent.InvalidMutabilityException: mutation attempt of frozen kotlinx.datetime.Instant...`
+    private val executionStartSeconds: AtomicReference<Long> = AtomicReference(0)
     private var saveProcessJob: Job? = null
 
     /**
@@ -129,7 +131,7 @@ class SaveAgent(private val config: AgentConfiguration,
     internal suspend fun startSaveProcess(cliArgs: String) = coroutineScope {
         // blocking execution of OS process
         state.value = AgentState.BUSY
-        executionStart.value = Clock.System.now()
+        executionStartSeconds.value = Clock.System.now().epochSeconds
         logInfo("Starting SAVE with provided args $cliArgs")
         val executionResult = runSave(cliArgs)
         logInfo("SAVE has completed execution with status ${executionResult.code}")
@@ -167,7 +169,7 @@ class SaveAgent(private val config: AgentConfiguration,
                         is Ignored -> TestResultStatus.IGNORED
                         is Crash -> TestResultStatus.TEST_ERROR
                     }
-                    TestExecutionDto(it.resources.first().name, config.id, testResultStatus, executionStart.value.epochSeconds, currentTime.epochSeconds)
+                    TestExecutionDto(it.resources.first().name, config.id, testResultStatus, executionStartSeconds.value, currentTime.epochSeconds)
                 }
             }
         }
