@@ -42,9 +42,8 @@ class ExecutionController(private val executionService: ExecutionService) {
      * @param executionInitializationDto
      */
     @PostMapping("/updateNewExecution")
-    fun updateNewExecution(@RequestBody executionInitializationDto: ExecutionInitializationDto) {
+    fun updateNewExecution(@RequestBody executionInitializationDto: ExecutionInitializationDto) =
         executionService.updateNewExecution(executionInitializationDto)
-    }
 
     /**
      * @param executionId
