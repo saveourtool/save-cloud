@@ -10,7 +10,7 @@ object Versions {
     const val coroutines = "1.5.0"
     const val serialization = "1.1.0"
     const val kotlinxDatetime = "0.2.0"
-    const val saveCore = "0.1.0"
+    const val saveCore = "0.2.0-SNAPSHOT"
 
     // microservices
     const val springBoot = "2.5.2"
