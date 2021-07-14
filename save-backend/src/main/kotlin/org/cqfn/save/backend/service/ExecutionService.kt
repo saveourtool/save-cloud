@@ -79,13 +79,16 @@ class ExecutionService(private val executionRepository: ExecutionRepository) {
     fun getLatestExecutionByProjectNameAndProjectOwner(name: String, owner: String): Execution? =
             executionRepository.findTopByProjectNameAndProjectOwnerOrderByStartTimeDesc(name, owner)
 
-    fun updateNewExecution(executionUpdateCreationDto: ExecutionUpdateCreationDto): Execution? {
-        return executionRepository.findTopByProjectOrderByStartTimeDesc(executionUpdateCreationDto.project)?.let {
-            it.version = executionUpdateCreationDto.version
-            it.batchSize = executionUpdateCreationDto.batchSize
-            it.testSuiteIds = executionUpdateCreationDto.testSuiteIds
-            it.resourcesRootPath = executionUpdateCreationDto.resourcesRootPath
-            executionRepository.save(it)
-        }
-    }
+    /**
+     * @param executionUpdateCreationDto execution dto to update
+     * @return execution
+     */
+    fun updateNewExecution(executionUpdateCreationDto: ExecutionUpdateCreationDto) =
+            executionRepository.findTopByProjectOrderByStartTimeDesc(executionUpdateCreationDto.project)?.let {
+                it.version = executionUpdateCreationDto.version
+                it.batchSize = executionUpdateCreationDto.batchSize
+                it.testSuiteIds = executionUpdateCreationDto.testSuiteIds
+                it.resourcesRootPath = executionUpdateCreationDto.resourcesRootPath
+                executionRepository.save(it)
+            }
 }

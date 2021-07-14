@@ -48,6 +48,7 @@ class CloneRepositoryController(
      * @param executionRequest information about project
      * @return mono string
      */
+    @Suppress("TOO_MANY_LINES_IN_LAMBDA")
     @PostMapping(value = ["/submitExecutionRequest"])
     fun submitExecutionRequest(@RequestBody executionRequest: ExecutionRequest): Mono<StringResponse> {
         val projectExecution = executionRequest.project

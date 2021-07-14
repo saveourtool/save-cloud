@@ -38,9 +38,12 @@ class ExecutionController(private val executionService: ExecutionService) {
         executionService.updateExecution(executionUpdateDto)
     }
 
+    /**
+     * @param executionUpdateCreationDto
+     */
     @PostMapping("/updateNewExecution")
     fun updateNewExecution(@RequestBody executionUpdateCreationDto: ExecutionUpdateCreationDto) =
-        executionService.updateNewExecution(executionUpdateCreationDto)
+            executionService.updateNewExecution(executionUpdateCreationDto)
 
     /**
      * @param executionId

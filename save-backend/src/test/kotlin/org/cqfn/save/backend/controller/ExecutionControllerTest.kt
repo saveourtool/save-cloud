@@ -5,9 +5,11 @@ import org.cqfn.save.backend.repository.ExecutionRepository
 import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.utils.MySqlExtension
 import org.cqfn.save.entities.Execution
-import org.cqfn.save.execution.*
-import org.cqfn.save.test.TestBatch
-import org.junit.jupiter.api.Assertions
+import org.cqfn.save.execution.ExecutionDto
+import org.cqfn.save.execution.ExecutionStatus
+import org.cqfn.save.execution.ExecutionType
+import org.cqfn.save.execution.ExecutionUpdateCreationDto
+import org.cqfn.save.execution.ExecutionUpdateDto
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -211,9 +213,9 @@ class ExecutionControllerTest {
             }
         val isUpdatedExecution = executionRepository.findAll().any {
             it.testSuiteIds == "ALL" &&
-            it.resourcesRootPath == "testPath" &&
-            it.batchSize == 3 &&
-            it.version == "executionVersion"
+                    it.resourcesRootPath == "testPath" &&
+                    it.batchSize == 3 &&
+                    it.version == "executionVersion"
         }
         assertTrue(isUpdatedExecution)
     }

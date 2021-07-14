@@ -25,5 +25,9 @@ interface ExecutionRepository : BaseEntityRepository<Execution> {
      */
     fun findTopByProjectNameAndProjectOwnerOrderByStartTimeDesc(name: String, owner: String): Execution?
 
+    /**
+     * @param project to find execution
+     * @return execution
+     */
     fun findTopByProjectOrderByStartTimeDesc(project: Project): Execution?
 }
