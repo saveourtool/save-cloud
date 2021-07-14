@@ -18,6 +18,7 @@ import org.cqfn.save.entities.Project
 
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
+import org.cqfn.save.backend.service.ExecutionService
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -51,6 +52,7 @@ import java.time.Duration
     MockBean(AgentStatusRepository::class),
     MockBean(AgentRepository::class),
     MockBean(ExecutionRepository::class),
+    MockBean(ExecutionService::class),
     MockBean(TestExecutionRepository::class),
     MockBean(TestRepository::class),
     MockBean(TestSuiteRepository::class),
