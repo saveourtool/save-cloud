@@ -18,6 +18,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
@@ -28,7 +29,7 @@ import java.time.Month
 
 @SpringBootTest(classes = [SaveApplication::class])
 @AutoConfigureWebTestClient
-@ExtendWith(MySqlExtension::class)
+//@ExtendWith(MySqlExtension::class)
 class ExecutionControllerTest {
     private val testLocalDateTime = LocalDateTime.of(2020, Month.APRIL, 10, 16, 30, 20)
 
@@ -165,14 +166,14 @@ class ExecutionControllerTest {
     @Test
     fun checkExecutionDto() {
         webClient.get()
-            .uri("/executionDto?executionId=2")
+            .uri("/executionDto?executionId=1")
             .exchange()
             .expectStatus()
             .isOk
             .expectBody<ExecutionDto>()
             .consumeWith {
                 requireNotNull(it.responseBody)
-                assertEquals("0.0.1", it.responseBody!!.version)
+                assertEquals(ExecutionType.GIT, it.responseBody!!.type)
             }
     }
 
@@ -194,7 +195,7 @@ class ExecutionControllerTest {
 
     @Test
     fun checkUpdateNewExecution() {
-        val execution = executionRepository.findAll().last()
+        val execution = executionRepository.findByIdOrNull(2)!!
         val executionUpdate = ExecutionUpdateCreationDto(execution.project, "ALL", "testPath", 20, "executionVersion")
         webClient.post()
             .uri("/updateNewExecution")
