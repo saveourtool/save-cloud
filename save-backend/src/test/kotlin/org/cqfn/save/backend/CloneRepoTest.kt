@@ -23,7 +23,7 @@ import org.springframework.web.reactive.function.BodyInserters
 
 @SpringBootTest(classes = [SaveApplication::class])
 @AutoConfigureWebTestClient
-@ExtendWith(MySqlExtension::class)
+//@ExtendWith(MySqlExtension::class)
 class CloneRepoTest {
     @Autowired
     private lateinit var webClient: WebTestClient

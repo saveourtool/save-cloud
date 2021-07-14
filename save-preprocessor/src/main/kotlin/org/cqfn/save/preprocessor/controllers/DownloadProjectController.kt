@@ -12,6 +12,7 @@ import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.TestSuite
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionType
+import org.cqfn.save.execution.ExecutionUpdateCreationDto
 import org.cqfn.save.execution.ExecutionUpdateDto
 import org.cqfn.save.preprocessor.Response
 import org.cqfn.save.preprocessor.config.ConfigProperties
@@ -214,10 +215,9 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
             require(executionType == ExecutionType.STANDARD) { "Test suites shouldn't be provided unless ExecutionType is STANDARD (actual: $executionType)" }
         } ?: require(executionType == ExecutionType.GIT) { "Test suites are not provided, but should for executionType=$executionType" }
 
-        val execution = Execution(project, LocalDateTime.now(), null, ExecutionStatus.PENDING, "ALL",
-            projectRootRelativePath, 0, configProperties.executionLimit, executionType, executionVersion, 0, 0, 0)
-        webClientBackend.makeRequest(BodyInserters.fromValue(execution), "/createExecution") { it.bodyToMono<Long>() }
-            .flatMap { executionId ->
+        val executionUpdate = ExecutionUpdateCreationDto(project, "ALL", projectRootRelativePath, configProperties.executionLimit, executionVersion)
+        webClientBackend.makeRequest(BodyInserters.fromValue(executionUpdate), "/updateNewExecution") { it.bodyToMono<Execution>() }
+            .flatMap { exec ->
                 Mono.fromCallable {
                     val testResourcesRootAbsolutePath = getTestResourcesRootAbsolutePath(propertiesRelativePath, projectRootRelativePath)
                     testDiscoveringService.getRootTestConfig(testResourcesRootAbsolutePath)
@@ -227,13 +227,13 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
                         discoverAndSaveTestSuites(project, rootTestConfig, propertiesRelativePath)
                     }
                     .flatMap { (rootTestConfig, testSuites) ->
-                        initializeTests(testSuites, rootTestConfig, executionId)
+                        initializeTests(testSuites, rootTestConfig, exec.id!!)
                     }
-                    .then(initializeAgents(execution, executionId))
+                    .then(initializeAgents(exec))
                     .onErrorResume { ex ->
-                        log.error("Error during resources discovering, will mark execution.id=$executionId as failed; error: ", ex)
+                        log.error("Error during resources discovering, will mark execution.id=${exec.id} as failed; error: ", ex)
                         webClientBackend.makeRequest(
-                            BodyInserters.fromValue(ExecutionUpdateDto(executionId, ExecutionStatus.ERROR)), "/updateExecution"
+                            BodyInserters.fromValue(ExecutionUpdateDto(exec.id!!, ExecutionStatus.ERROR)), "/updateExecution"
                         ) { it.toEntity<HttpStatus>() }
                     }
             }
@@ -277,9 +277,8 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
     /**
      * Post request to orchestrator to initiate its work
      */
-    private fun initializeAgents(execution: Execution,
-                                 executionId: Long) = webClientOrchestrator.makeRequest(
-        BodyInserters.fromValue(execution.also { it.id = executionId }),
+    private fun initializeAgents(execution: Execution) = webClientOrchestrator.makeRequest(
+        BodyInserters.fromValue(execution),
         "/initializeAgents"
     ) {
         it.toEntity<HttpStatus>()

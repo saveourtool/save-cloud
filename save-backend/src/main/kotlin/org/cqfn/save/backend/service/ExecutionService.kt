@@ -5,6 +5,7 @@ import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.execution.ExecutionStatus
+import org.cqfn.save.execution.ExecutionUpdateCreationDto
 import org.cqfn.save.execution.ExecutionUpdateDto
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -77,4 +78,15 @@ class ExecutionService(private val executionRepository: ExecutionRepository) {
      */
     fun getLatestExecutionByProjectNameAndProjectOwner(name: String, owner: String): Execution? =
             executionRepository.findTopByProjectNameAndProjectOwnerOrderByStartTimeDesc(name, owner)
+
+    fun updateNewExecution(executionUpdateCreationDto: ExecutionUpdateCreationDto): Execution? {
+        return executionRepository.findTopByProjectOrderByStartTimeDesc(executionUpdateCreationDto.project)?.let {
+            it.version = executionUpdateCreationDto.version
+            it.type = executionUpdateCreationDto.type
+            it.batchSize = executionUpdateCreationDto.batchSize
+            it.testSuiteIds = executionUpdateCreationDto.testSuiteIds
+            it.resourcesRootPath = executionUpdateCreationDto.resourcesRootPath
+            executionRepository.save(it)
+        }
+    }
 }

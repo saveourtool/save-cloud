@@ -190,4 +190,20 @@ class ExecutionControllerTest {
                 assertEquals(executionCounts, it.responseBody!!.size)
             }
     }
+
+    @Test
+    fun checkUpdateNewExecution() {
+        val project = projectRepository.findById(1).get()
+        val executionCounts = executionRepository.findAll().filter { it.project == project }.count()
+        webClient.get()
+            .uri("/executionDtoList?name=${project.name}&owner=${project.owner}")
+            .exchange()
+            .expectStatus()
+            .isOk
+            .expectBody<List<ExecutionDto>>()
+            .consumeWith {
+                requireNotNull(it.responseBody)
+                assertEquals(executionCounts, it.responseBody!!.size)
+            }
+    }
 }

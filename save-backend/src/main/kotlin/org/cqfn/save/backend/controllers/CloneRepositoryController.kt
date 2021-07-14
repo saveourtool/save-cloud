@@ -2,9 +2,13 @@ package org.cqfn.save.backend.controllers
 
 import org.cqfn.save.backend.StringResponse
 import org.cqfn.save.backend.configs.ConfigProperties
+import org.cqfn.save.backend.service.ExecutionService
 import org.cqfn.save.backend.service.ProjectService
+import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.ExecutionRequestForStandardSuites
+import org.cqfn.save.execution.ExecutionStatus
+import org.cqfn.save.execution.ExecutionType
 
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -20,6 +24,7 @@ import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
+import java.time.LocalDateTime
 
 /**
  * Controller to save project
@@ -31,6 +36,7 @@ import reactor.kotlin.core.publisher.toMono
 @RestController
 class CloneRepositoryController(
     private val projectService: ProjectService,
+    private val executionService: ExecutionService,
     configProperties: ConfigProperties,
 ) {
     private val log = LoggerFactory.getLogger(CloneRepositoryController::class.java)
@@ -47,6 +53,10 @@ class CloneRepositoryController(
         val projectExecution = executionRequest.project
         val project = projectService.getProjectByNameAndOwner(projectExecution.name, projectExecution.owner)
         return project?.let {
+            val execution = Execution(project, LocalDateTime.now(), null, ExecutionStatus.PENDING, null,
+                null, 0, null, ExecutionType.GIT, null, 0, 0, 0)
+            log.info("Saving execution id=${execution.id}")
+            executionService.saveExecution(execution)
             log.info("Sending request to preprocessor to start cloning project id=${it.id}")
             preprocessorWebClient
                 .post()
@@ -75,6 +85,10 @@ class CloneRepositoryController(
         val projectExecution = executionRequestForStandardSuites.project
         val project = projectService.getProjectByNameAndOwner(projectExecution.name, projectExecution.owner)
         project?.let { proj ->
+            val execution = Execution(project, LocalDateTime.now(), null, ExecutionStatus.PENDING, null,
+                null, 0, null, ExecutionType.STANDARD, null, 0, 0, 0)
+            log.info("Saving execution id=${execution.id}")
+            executionService.saveExecution(execution)
             log.info("Sending request to preprocessor to start save file for project id=${proj.id}")
             val bodyBuilder = MultipartBodyBuilder()
             bodyBuilder.part("executionRequestForStandardSuites", executionRequestForStandardSuites)
