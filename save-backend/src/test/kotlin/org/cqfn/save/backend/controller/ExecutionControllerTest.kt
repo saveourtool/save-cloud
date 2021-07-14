@@ -5,10 +5,9 @@ import org.cqfn.save.backend.repository.ExecutionRepository
 import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.utils.MySqlExtension
 import org.cqfn.save.entities.Execution
-import org.cqfn.save.execution.ExecutionDto
-import org.cqfn.save.execution.ExecutionStatus
-import org.cqfn.save.execution.ExecutionType
-import org.cqfn.save.execution.ExecutionUpdateDto
+import org.cqfn.save.execution.*
+import org.cqfn.save.test.TestBatch
+import org.junit.jupiter.api.Assertions
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -164,7 +163,7 @@ class ExecutionControllerTest {
     @Test
     fun checkExecutionDto() {
         webClient.get()
-            .uri("/executionDto?executionId=1")
+            .uri("/executionDto?executionId=2")
             .exchange()
             .expectStatus()
             .isOk
@@ -193,17 +192,29 @@ class ExecutionControllerTest {
 
     @Test
     fun checkUpdateNewExecution() {
-        val project = projectRepository.findById(1).get()
-        val executionCounts = executionRepository.findAll().filter { it.project == project }.count()
-        webClient.get()
-            .uri("/executionDtoList?name=${project.name}&owner=${project.owner}")
+        val execution = executionRepository.findAll().last()
+        val executionUpdate = ExecutionUpdateCreationDto(execution.project, "ALL", "testPath", 3, "executionVersion")
+        webClient.post()
+            .uri("/updateNewExecution")
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(BodyInserters.fromValue(executionUpdate))
             .exchange()
             .expectStatus()
             .isOk
-            .expectBody<List<ExecutionDto>>()
+            .expectBody<Execution>()
             .consumeWith {
                 requireNotNull(it.responseBody)
-                assertEquals(executionCounts, it.responseBody!!.size)
+                assertEquals(it.responseBody.testSuiteIds, "ALL")
+                assertEquals(it.responseBody.resourcesRootPath, "testPath")
+                assertEquals(it.responseBody.batchSize, 3)
+                assertEquals(it.responseBody.version, "executionVersion")
             }
+        val isUpdatedExecution = executionRepository.findAll().any {
+            it.testSuiteIds == "ALL" &&
+            it.resourcesRootPath == "testPath" &&
+            it.batchSize == 3 &&
+            it.version == "executionVersion"
+        }
+        assertTrue(isUpdatedExecution)
     }
 }

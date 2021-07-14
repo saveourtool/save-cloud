@@ -82,7 +82,6 @@ class ExecutionService(private val executionRepository: ExecutionRepository) {
     fun updateNewExecution(executionUpdateCreationDto: ExecutionUpdateCreationDto): Execution? {
         return executionRepository.findTopByProjectOrderByStartTimeDesc(executionUpdateCreationDto.project)?.let {
             it.version = executionUpdateCreationDto.version
-            it.type = executionUpdateCreationDto.type
             it.batchSize = executionUpdateCreationDto.batchSize
             it.testSuiteIds = executionUpdateCreationDto.testSuiteIds
             it.resourcesRootPath = executionUpdateCreationDto.resourcesRootPath
