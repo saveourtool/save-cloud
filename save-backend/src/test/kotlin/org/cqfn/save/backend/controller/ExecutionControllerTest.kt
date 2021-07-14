@@ -18,7 +18,6 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
@@ -196,7 +195,16 @@ class ExecutionControllerTest {
     @Test
     @Suppress("UnsafeCallOnNullableType")
     fun checkUpdateNewExecution() {
-        val execution = executionRepository.findByIdOrNull(2)!!
+        val execution = Execution(projectRepository.findAll().first(), LocalDateTime.now(), null, ExecutionStatus.PENDING, null,
+            null, 0, null, ExecutionType.GIT, null, 0, 0, 0)
+        webClient.post()
+            .uri("/createExecution")
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(BodyInserters.fromValue(execution))
+            .exchange()
+            .expectStatus()
+            .isOk
+
         val executionUpdate = ExecutionInitializationDto(execution.project, "ALL", "testPath", 20, "executionVersion")
         webClient.post()
             .uri("/updateNewExecution")

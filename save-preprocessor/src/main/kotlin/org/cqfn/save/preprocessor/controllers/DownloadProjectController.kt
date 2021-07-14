@@ -217,7 +217,15 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
         } ?: require(executionType == ExecutionType.GIT) { "Test suites are not provided, but should for executionType=$executionType" }
 
         val executionUpdate = ExecutionInitializationDto(project, "ALL", projectRootRelativePath, configProperties.executionLimit, executionVersion)
-        webClientBackend.makeRequest(BodyInserters.fromValue(executionUpdate), "/updateNewExecution") { it.bodyToMono<Execution>() }
+        webClientBackend.makeRequest(BodyInserters.fromValue(executionUpdate), "/updateNewExecution") {
+            it.onStatus({status -> status != HttpStatus.NOT_FOUND }) { clientResponse ->
+                log.error("Error when making update to execution fro project id = ${project.id} ${clientResponse.statusCode()}")
+                throw ResponseStatusException(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Execution not found")
+            }
+            it.bodyToMono<Execution>()
+        }
             .flatMap { execution ->
                 Mono.fromCallable {
                     val testResourcesRootAbsolutePath = getTestResourcesRootAbsolutePath(propertiesRelativePath, projectRootRelativePath)

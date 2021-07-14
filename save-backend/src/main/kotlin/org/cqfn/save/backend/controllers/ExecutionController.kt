@@ -42,8 +42,10 @@ class ExecutionController(private val executionService: ExecutionService) {
      * @param executionInitializationDto
      */
     @PostMapping("/updateNewExecution")
-    fun updateNewExecution(@RequestBody executionInitializationDto: ExecutionInitializationDto) =
-        executionService.updateNewExecution(executionInitializationDto)
+    fun updateNewExecution(@RequestBody executionInitializationDto: ExecutionInitializationDto): ResponseEntity<Execution> =
+            executionService.updateNewExecution(executionInitializationDto)?.let {
+                ResponseEntity.status(HttpStatus.OK).body(it)
+            } ?: ResponseEntity.status(HttpStatus.NOT_FOUND).build()
 
     /**
      * @param executionId
