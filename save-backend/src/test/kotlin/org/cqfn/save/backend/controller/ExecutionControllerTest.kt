@@ -29,7 +29,7 @@ import java.time.Month
 
 @SpringBootTest(classes = [SaveApplication::class])
 @AutoConfigureWebTestClient
-//@ExtendWith(MySqlExtension::class)
+@ExtendWith(MySqlExtension::class)
 class ExecutionControllerTest {
     private val testLocalDateTime = LocalDateTime.of(2020, Month.APRIL, 10, 16, 30, 20)
 
