@@ -1,10 +1,5 @@
 package org.cqfn.save.preprocessor
 
-import org.cqfn.save.entities.ExecutionRequest
-import org.cqfn.save.entities.ExecutionRequestForStandardSuites
-import org.cqfn.save.entities.GitDto
-import org.cqfn.save.entities.Project
-import org.cqfn.save.entities.TestSuite
 import org.cqfn.save.preprocessor.config.ConfigProperties
 import org.cqfn.save.preprocessor.controllers.DownloadProjectController
 import org.cqfn.save.preprocessor.service.TestDiscoveringService
@@ -12,9 +7,14 @@ import org.cqfn.save.preprocessor.utils.RepositoryVolume
 import org.cqfn.save.testsuite.TestSuiteType
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import okhttp3.mockwebserver.QueueDispatcher
+import org.cqfn.save.entities.*
+import org.cqfn.save.execution.ExecutionStatus
+import org.cqfn.save.execution.ExecutionType
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
@@ -102,11 +102,15 @@ class DownloadProjectTest(
         val validRepo = GitDto("https://github.com/cqfn/save.git")
         val request = ExecutionRequest(project, validRepo, "examples/kotlin-diktat/save.properties")
         // /createExecution
+        val execution = Execution(project, LocalDateTime.now(), LocalDateTime.now(), ExecutionStatus.PENDING, "1",
+            "foo", 0, 20, ExecutionType.GIT, "0.0.1", 0, 0, 0).apply {
+            id = 99L
+        }
         mockServerBackend.enqueue(
             MockResponse()
                 .setResponseCode(200)
                 .setHeader("Content-Type", "application/json")
-                .setBody("42"),
+                .setBody(Json.encodeToString(execution))
         )
         // /saveTestSuites
         mockServerBackend.enqueue(
@@ -158,6 +162,10 @@ class DownloadProjectTest(
         val project = Project("owner", "someName", null, "descr").apply {
             id = 42L
         }
+        val execution = Execution(project, LocalDateTime.now(), LocalDateTime.now(), ExecutionStatus.PENDING, "1",
+            "foo", 0, 20, ExecutionType.GIT, "0.0.1", 0, 0, 0).apply {
+            id = 98L
+        }
         val request = ExecutionRequestForStandardSuites(project, emptyList())
         val bodyBuilder = MultipartBodyBuilder()
         bodyBuilder.part("executionRequestForStandardSuites", request)
@@ -168,7 +176,7 @@ class DownloadProjectTest(
             MockResponse()
                 .setResponseCode(200)
                 .setHeader("Content-Type", "application/json")
-                .setBody("42"),
+                .setBody(Json.encodeToString(execution)),
         )
         mockServerBackend.enqueue(
             MockResponse()
