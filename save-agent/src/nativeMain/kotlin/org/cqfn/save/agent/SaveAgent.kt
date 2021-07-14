@@ -29,6 +29,7 @@ import io.ktor.http.contentType
 import okio.ExperimentalFileSystem
 import okio.Path.Companion.toPath
 
+import kotlin.native.concurrent.AtomicLong
 import kotlin.native.concurrent.AtomicReference
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -68,7 +69,7 @@ class SaveAgent(private val config: AgentConfiguration,
 
     // fixme: can't use atomic reference to Instant here, because when using `Clock.System.now()` as an assined value
     // Kotlin throws `kotlin.native.concurrent.InvalidMutabilityException: mutation attempt of frozen kotlinx.datetime.Instant...`
-    private val executionStartSeconds: AtomicReference<Long> = AtomicReference(0)
+    private val executionStartSeconds = AtomicLong()
     private var saveProcessJob: Job? = null
 
     /**
