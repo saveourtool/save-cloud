@@ -16,7 +16,6 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.WebTestClient
@@ -76,23 +75,21 @@ class TestExecutionControllerTest {
     @Suppress("UnsafeCallOnNullableType")
     fun `should save TestExecutionDto into the DB`() {
         val testExecutionDtoFirst = TestExecutionDto(
-            1,
-            "testFilePath",
-            1,
+            "src/test/suite1/testPath",
+            "container-1",
             TestResultStatus.FAILED,
             DEFAULT_DATE_TEST_EXECUTION,
             DEFAULT_DATE_TEST_EXECUTION
         )
         val testExecutionDtoSecond = TestExecutionDto(
-            2,
-            "testFilePath",
-            1,
+            "src/test/suite1/testPath2",
+            "container-1",
             TestResultStatus.PASSED,
             DEFAULT_DATE_TEST_EXECUTION,
             DEFAULT_DATE_TEST_EXECUTION
         )
-        val passedTestsBefore = getExecutionsTestsResultByAgentId(testExecutionDtoSecond.agentId!!, true)
-        val failedTestsBefore = getExecutionsTestsResultByAgentId(testExecutionDtoFirst.agentId!!, false)
+        val passedTestsBefore = getExecutionsTestsResultByAgentContainerId(testExecutionDtoSecond.agentContainerId!!, true)
+        val failedTestsBefore = getExecutionsTestsResultByAgentContainerId(testExecutionDtoFirst.agentContainerId!!, false)
         webClient.post()
             .uri("/saveTestResult")
             .contentType(MediaType.APPLICATION_JSON)
@@ -101,8 +98,8 @@ class TestExecutionControllerTest {
             .expectBody<String>()
             .isEqualTo("Saved")
         val tests = getAllTestExecutions()
-        val passedTestsAfter = getExecutionsTestsResultByAgentId(testExecutionDtoSecond.agentId!!, true)
-        val failedTestsAfter = getExecutionsTestsResultByAgentId(testExecutionDtoFirst.agentId!!, false)
+        val passedTestsAfter = getExecutionsTestsResultByAgentContainerId(testExecutionDtoSecond.agentContainerId!!, true)
+        val failedTestsAfter = getExecutionsTestsResultByAgentContainerId(testExecutionDtoFirst.agentContainerId!!, false)
         assertTrue(tests.any { it.startTime == testExecutionDtoFirst.startTimeSeconds!!.toLocalDateTime().withNano(0) })
         assertTrue(tests.any { it.endTime == testExecutionDtoFirst.endTimeSeconds!!.toLocalDateTime().withNano(0) })
         Assertions.assertEquals(passedTestsBefore, passedTestsAfter - 1)
@@ -110,12 +107,11 @@ class TestExecutionControllerTest {
     }
 
     @Test
-    fun `should not save data if provided IDs are invalid`() {
-        val invalidId = 999L
+    @Suppress("UnsafeCallOnNullableType")
+    fun `should not save data if provided fields are invalid`() {
         val testExecutionDto = TestExecutionDto(
-            invalidId,
-            "testFilePath",
-            1,
+            "test-not-exists",
+            "container-1",
             TestResultStatus.FAILED,
             DEFAULT_DATE_TEST_EXECUTION,
             DEFAULT_DATE_TEST_EXECUTION
@@ -130,7 +126,7 @@ class TestExecutionControllerTest {
             .expectBody<String>()
             .isEqualTo("Some ids don't exist")
         val testExecutions = testExecutionRepository.findAll()
-        assertTrue(testExecutions.none { it.id == invalidId })
+        assertTrue(testExecutions.none { it.test.filePath == "test-not-exists" })
     }
 
     @Suppress("UnsafeCallOnNullableType")
@@ -140,12 +136,12 @@ class TestExecutionControllerTest {
             }!!
 
     @Suppress("UnsafeCallOnNullableType")
-    private fun getExecutionsTestsResultByAgentId(id: Long, isPassed: Boolean) =
+    private fun getExecutionsTestsResultByAgentContainerId(id: String, isPassed: Boolean) =
             transactionTemplate.execute {
                 if (isPassed) {
-                    agentRepository.findByIdOrNull(id)!!.execution.passedTests
+                    agentRepository.findByContainerId(id)!!.execution.passedTests
                 } else {
-                    agentRepository.findByIdOrNull(id)!!.execution.failedTests
+                    agentRepository.findByContainerId(id)!!.execution.failedTests
                 }
             }!!
 

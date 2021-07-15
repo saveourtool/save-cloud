@@ -34,9 +34,9 @@ data class AgentConfiguration(
 )
 
 /**
- * @property interval interval between heartbeats to orchestrator in milliseconds
+ * @property intervalMillis interval between heartbeats to orchestrator in milliseconds
  */
 @Serializable
 data class HeartbeatConfig(
-    val interval: Long,
+    val intervalMillis: Long,
 )

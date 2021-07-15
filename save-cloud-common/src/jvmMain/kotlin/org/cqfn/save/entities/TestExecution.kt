@@ -47,9 +47,8 @@ class TestExecution(
      */
     @Suppress("UnsafeCallOnNullableType")
     fun toDto() = TestExecutionDto(
-        id!!,
         test.filePath,
-        agent?.id,
+        agent?.containerId,
         status,
         startTime?.toEpochSecond(ZoneOffset.UTC),
         endTime?.toEpochSecond(ZoneOffset.UTC),

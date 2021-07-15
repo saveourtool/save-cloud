@@ -33,6 +33,7 @@ kotlin {
             dependencies {
                 implementation(project(":save-cloud-common"))
                 implementation("org.cqfn.save:save-common:${Versions.saveCore}")
+                implementation("org.cqfn.save:save-reporters:${Versions.saveCore}")
                 implementation("io.ktor:ktor-client-core:${Versions.ktor}")
                 implementation("io.ktor:ktor-client-curl:${Versions.ktor}")
                 implementation("io.ktor:ktor-client-serialization:${Versions.ktor}")
@@ -121,4 +122,6 @@ val generatedKotlinSrc = kotlin.sourceSets.create("commonGenerated") {
     kotlin.srcDir("$buildDir/generated/src")
 }
 kotlin.sourceSets.getByName("nativeMain").dependsOn(generatedKotlinSrc)
-tasks.getByName("compileKotlinAgent").dependsOn(generateVersionFileTaskProvider)
+tasks.withType<org.jetbrains.kotlin.gradle.dsl.KotlinCompile<*>>().configureEach {
+    dependsOn(generateVersionFileTaskProvider)
+}
