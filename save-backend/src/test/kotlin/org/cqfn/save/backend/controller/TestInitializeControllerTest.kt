@@ -51,7 +51,7 @@ class TestInitializeControllerTest {
             .expectStatus()
             .isOk
 
-        assertNotNull(testRepository.findByHashAndFilePath("newHash", "testPath"))
+        assertNotNull(testRepository.findByHashAndFilePathAndTestSuiteId("newHash", "testPath", 2))
     }
 
     @Test
