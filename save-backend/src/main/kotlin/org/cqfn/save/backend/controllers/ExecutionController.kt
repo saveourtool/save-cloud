@@ -3,6 +3,7 @@ package org.cqfn.save.backend.controllers
 import org.cqfn.save.backend.service.ExecutionService
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.execution.ExecutionDto
+import org.cqfn.save.execution.ExecutionInitializationDto
 import org.cqfn.save.execution.ExecutionUpdateDto
 
 import org.springframework.http.HttpStatus
@@ -36,6 +37,16 @@ class ExecutionController(private val executionService: ExecutionService) {
     fun updateExecution(@RequestBody executionUpdateDto: ExecutionUpdateDto) {
         executionService.updateExecution(executionUpdateDto)
     }
+
+    /**
+     * @param executionInitializationDto
+     * @return execution
+     */
+    @PostMapping("/updateNewExecution")
+    fun updateNewExecution(@RequestBody executionInitializationDto: ExecutionInitializationDto): ResponseEntity<Execution> =
+            executionService.updateNewExecution(executionInitializationDto)?.let {
+                ResponseEntity.status(HttpStatus.OK).body(it)
+            } ?: ResponseEntity.status(HttpStatus.NOT_FOUND).build()
 
     /**
      * @param executionId

@@ -2,6 +2,7 @@
 
 package org.cqfn.save.preprocessor.controllers
 
+// for these imports we need to suppress UNUSED_IMPORT until https://github.com/cqfn/diKTat/issues/837
 import org.cqfn.save.core.config.SaveProperties
 import org.cqfn.save.core.config.TestConfig
 import org.cqfn.save.core.config.defaultConfig
@@ -10,6 +11,7 @@ import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.ExecutionRequestForStandardSuites
 import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.TestSuite
+import org.cqfn.save.execution.ExecutionInitializationDto
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionType
 import org.cqfn.save.execution.ExecutionUpdateDto
@@ -44,12 +46,10 @@ import org.springframework.web.reactive.function.client.toEntity
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
-// for these imports we need to suppress UNUSED_IMPORT until https://github.com/cqfn/diKTat/issues/837
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
 
 import java.io.File
-import java.time.LocalDateTime
 
 import kotlin.io.path.ExperimentalPathApi
 
@@ -201,7 +201,9 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
         "TOO_LONG_FUNCTION",
         "LOCAL_VARIABLE_EARLY_DECLARATION",
         "LongParameterList",
-        "TOO_MANY_PARAMETERS")
+        "TOO_MANY_PARAMETERS",
+        "UnsafeCallOnNullableType"
+    )
     private fun sendToBackendAndOrchestrator(
         project: Project,
         propertiesRelativePath: String,
@@ -214,10 +216,17 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
             require(executionType == ExecutionType.STANDARD) { "Test suites shouldn't be provided unless ExecutionType is STANDARD (actual: $executionType)" }
         } ?: require(executionType == ExecutionType.GIT) { "Test suites are not provided, but should for executionType=$executionType" }
 
-        val execution = Execution(project, LocalDateTime.now(), null, ExecutionStatus.PENDING, "ALL",
-            projectRootRelativePath, 0, configProperties.executionLimit, executionType, executionVersion, 0, 0, 0)
-        webClientBackend.makeRequest(BodyInserters.fromValue(execution), "/createExecution") { it.bodyToMono<Long>() }
-            .flatMap { executionId ->
+        val executionUpdate = ExecutionInitializationDto(project, "ALL", projectRootRelativePath, configProperties.executionLimit, executionVersion)
+        webClientBackend.makeRequest(BodyInserters.fromValue(executionUpdate), "/updateNewExecution") {
+            it.onStatus({status -> status != HttpStatus.OK }) { clientResponse ->
+                log.error("Error when making update to execution fro project id = ${project.id} ${clientResponse.statusCode()}")
+                throw ResponseStatusException(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Execution not found")
+            }
+            it.bodyToMono<Execution>()
+        }
+            .flatMap { execution ->
                 Mono.fromCallable {
                     val testResourcesRootAbsolutePath = getTestResourcesRootAbsolutePath(propertiesRelativePath, projectRootRelativePath)
                     testDiscoveringService.getRootTestConfig(testResourcesRootAbsolutePath)
@@ -227,13 +236,13 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
                         discoverAndSaveTestSuites(project, rootTestConfig, propertiesRelativePath)
                     }
                     .flatMap { (rootTestConfig, testSuites) ->
-                        initializeTests(testSuites, rootTestConfig, executionId)
+                        initializeTests(testSuites, rootTestConfig, execution.id!!)
                     }
-                    .then(initializeAgents(execution, executionId))
+                    .then(initializeAgents(execution))
                     .onErrorResume { ex ->
-                        log.error("Error during resources discovering, will mark execution.id=$executionId as failed; error: ", ex)
+                        log.error("Error during resources discovering, will mark execution.id=${execution.id} as failed; error: ", ex)
                         webClientBackend.makeRequest(
-                            BodyInserters.fromValue(ExecutionUpdateDto(executionId, ExecutionStatus.ERROR)), "/updateExecution"
+                            BodyInserters.fromValue(ExecutionUpdateDto(execution.id!!, ExecutionStatus.ERROR)), "/updateExecution"
                         ) { it.toEntity<HttpStatus>() }
                     }
             }
@@ -277,9 +286,8 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
     /**
      * Post request to orchestrator to initiate its work
      */
-    private fun initializeAgents(execution: Execution,
-                                 executionId: Long) = webClientOrchestrator.makeRequest(
-        BodyInserters.fromValue(execution.also { it.id = executionId }),
+    private fun initializeAgents(execution: Execution) = webClientOrchestrator.makeRequest(
+        BodyInserters.fromValue(execution),
         "/initializeAgents"
     ) {
         it.toEntity<HttpStatus>()

@@ -1,10 +1,13 @@
 package org.cqfn.save.preprocessor
 
+import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.ExecutionRequestForStandardSuites
 import org.cqfn.save.entities.GitDto
 import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.TestSuite
+import org.cqfn.save.execution.ExecutionStatus
+import org.cqfn.save.execution.ExecutionType
 import org.cqfn.save.preprocessor.config.ConfigProperties
 import org.cqfn.save.preprocessor.controllers.DownloadProjectController
 import org.cqfn.save.preprocessor.service.TestDiscoveringService
@@ -102,11 +105,15 @@ class DownloadProjectTest(
         val validRepo = GitDto("https://github.com/cqfn/save.git")
         val request = ExecutionRequest(project, validRepo, "examples/kotlin-diktat/save.properties")
         // /createExecution
+        val execution = Execution(project, LocalDateTime.now(), LocalDateTime.now(), ExecutionStatus.PENDING, "1",
+            "foo", 0, 20, ExecutionType.GIT, "0.0.1", 0, 0, 0).apply {
+            id = 99L
+        }
         mockServerBackend.enqueue(
             MockResponse()
                 .setResponseCode(200)
                 .setHeader("Content-Type", "application/json")
-                .setBody("42"),
+                .setBody(objectMapper.writeValueAsString(execution))
         )
         // /saveTestSuites
         mockServerBackend.enqueue(
@@ -150,13 +157,17 @@ class DownloadProjectTest(
         assertions.orTimeout(60, TimeUnit.SECONDS).join().forEach { Assertions.assertNotNull(it) }
     }
 
-    @Suppress("TOO_LONG_FUNCTION")
+    @Suppress("TOO_LONG_FUNCTION", "LongMethod")
     @Test
     fun testSaveProjectAsBinaryFile() {
         val binFile = File(binFilePath)
         val property = File(propertyPath)
         val project = Project("owner", "someName", null, "descr").apply {
             id = 42L
+        }
+        val execution = Execution(project, LocalDateTime.now(), LocalDateTime.now(), ExecutionStatus.PENDING, "1",
+            "foo", 0, 20, ExecutionType.GIT, "0.0.1", 0, 0, 0).apply {
+            id = 98L
         }
         val request = ExecutionRequestForStandardSuites(project, emptyList())
         val bodyBuilder = MultipartBodyBuilder()
@@ -168,7 +179,7 @@ class DownloadProjectTest(
             MockResponse()
                 .setResponseCode(200)
                 .setHeader("Content-Type", "application/json")
-                .setBody("42"),
+                .setBody(objectMapper.writeValueAsString(execution))
         )
         mockServerBackend.enqueue(
             MockResponse()
