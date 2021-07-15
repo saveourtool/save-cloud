@@ -87,7 +87,7 @@ class ExecutionService(private val executionRepository: ExecutionRepository) {
      */
     fun updateNewExecution(executionInitializationDto: ExecutionInitializationDto) =
             executionRepository.findTopByProjectOrderByStartTimeDesc(executionInitializationDto.project)?.let {
-                assert(it.version == null) { "Execution was already updated" }
+                require(it.version == null) { "Execution was already updated" }
                 it.version = executionInitializationDto.version
                 it.batchSize = executionInitializationDto.batchSize
                 it.testSuiteIds = executionInitializationDto.testSuiteIds

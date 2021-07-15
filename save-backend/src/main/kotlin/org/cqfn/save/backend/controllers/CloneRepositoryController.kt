@@ -83,9 +83,9 @@ class CloneRepositoryController(
     ): Mono<StringResponse> {
         val projectExecution = executionRequestForStandardSuites.project
         val project = projectService.getProjectByNameAndOwner(projectExecution.name, projectExecution.owner)
-        project?.let { proj ->
-            saveExecution(proj, ExecutionType.STANDARD)
-            log.info("Sending request to preprocessor to start save file for project id=${proj.id}")
+        project?.let {
+            saveExecution(project, ExecutionType.STANDARD)
+            log.info("Sending request to preprocessor to start save file for project id=${project.id}")
             val bodyBuilder = MultipartBodyBuilder()
             bodyBuilder.part("executionRequestForStandardSuites", executionRequestForStandardSuites)
             return Mono.zip(propertyFile, binaryFile).map {
