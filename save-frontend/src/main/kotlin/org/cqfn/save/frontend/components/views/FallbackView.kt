@@ -26,7 +26,7 @@ class FallbackView : RComponent<RProps, RState>() {
             }
             child(LinkComponent::class) {
                 attrs.to = "/"
-                +"&larr; Back to the main page"
+                +"← Back to the main page"
             }
         }
     }
