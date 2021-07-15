@@ -82,7 +82,7 @@ class TestService(private val configProperties: ConfigProperties) {
         val tests = testExecutionRepository.findByStatusAndExecutionId(
             TestResultStatus.READY,
             execution.id!!,
-            PageRequest.of(execution.page, execution.batchSize)
+            PageRequest.of(execution.page, execution.batchSize!!)
         )
         val testDtos = tests.map {
             TestDto(it.test.filePath, it.test.testSuite.id!!, null)
