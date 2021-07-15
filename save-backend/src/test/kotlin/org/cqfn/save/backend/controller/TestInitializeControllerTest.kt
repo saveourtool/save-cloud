@@ -20,15 +20,10 @@ import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
 
-import java.time.LocalDateTime
-import java.time.Month
-
 @SpringBootTest(classes = [SaveApplication::class])
 @AutoConfigureWebTestClient
 @ExtendWith(MySqlExtension::class)
 class TestInitializeControllerTest {
-    private val testLocalDateTime = LocalDateTime.of(2020, Month.APRIL, 10, 16, 30, 20)
-
     @Autowired
     lateinit var webClient: WebTestClient
 
@@ -56,7 +51,7 @@ class TestInitializeControllerTest {
             .expectStatus()
             .isOk
 
-        assertNotNull(testRepository.findByHash("newHash") != null)
+        assertNotNull(testRepository.findByHashAndFilePathAndTestSuiteId("newHash", "testPath", 2))
     }
 
     @Test

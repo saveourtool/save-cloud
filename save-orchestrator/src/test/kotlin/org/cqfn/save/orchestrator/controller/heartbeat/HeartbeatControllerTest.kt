@@ -92,7 +92,7 @@ class HeartbeatControllerTest {
 
     @Test
     fun checkNewJobResponse() {
-        val list = listOf(TestDto("qwe", 0, null))
+        val list = listOf(TestDto("qwe", 0, "hash"))
         // /getTestBatches
         mockServer.enqueue(
             MockResponse()
@@ -130,9 +130,9 @@ class HeartbeatControllerTest {
             heartbeat = Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100)),
             testBatch = TestBatch(
                 listOf(
-                    TestDto("/path/to/test-1", 1, null),
-                    TestDto("/path/to/test-2", 1, null),
-                    TestDto("/path/to/test-3", 1, null),
+                    TestDto("/path/to/test-1", 1, "hash1"),
+                    TestDto("/path/to/test-2", 1, "hash2"),
+                    TestDto("/path/to/test-3", 1, "hash3"),
                 ),
                 mapOf(1L to "")
             ),
@@ -179,9 +179,9 @@ class HeartbeatControllerTest {
             heartbeat = Heartbeat("test-1", AgentState.STARTING, ExecutionProgress(0)),
             testBatch = TestBatch(
                 listOf(
-                    TestDto("/path/to/test-1", 1, null),
-                    TestDto("/path/to/test-2", 1, null),
-                    TestDto("/path/to/test-3", 1, null),
+                    TestDto("/path/to/test-1", 1, "hash1"),
+                    TestDto("/path/to/test-2", 1, "hash2"),
+                    TestDto("/path/to/test-3", 1, "hash3"),
                 ),
                 mapOf(1L to "")
             ),

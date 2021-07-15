@@ -1,11 +1,9 @@
 package org.cqfn.save.backend.service
 
-import org.cqfn.save.backend.configs.ConfigProperties
 import org.cqfn.save.backend.repository.AgentRepository
 import org.cqfn.save.backend.repository.ExecutionRepository
 import org.cqfn.save.backend.repository.TestExecutionRepository
 import org.cqfn.save.backend.repository.TestRepository
-import org.cqfn.save.backend.repository.TestSuiteRepository
 import org.cqfn.save.domain.TestResultStatus
 import org.cqfn.save.entities.Test
 import org.cqfn.save.entities.TestSuite
@@ -25,7 +23,7 @@ import java.time.LocalDateTime
  * Service that is used for manipulating data with tests
  */
 @Service
-class TestService(private val configProperties: ConfigProperties) {
+class TestService {
     private val log = LoggerFactory.getLogger(TestService::class.java)
 
     @Autowired
@@ -40,32 +38,27 @@ class TestService(private val configProperties: ConfigProperties) {
     @Autowired
     private lateinit var testExecutionRepository: TestExecutionRepository
 
-    @Autowired
-    private lateinit var testSuiteRepository: TestSuiteRepository
-
     /**
      * @param tests
      * @return list tests id's
      */
     @Suppress("UnsafeCallOnNullableType")
-    fun saveTests(tests: List<TestDto>): List<Long> {
-        val testsId: MutableCollection<Long> = mutableListOf()
-        tests.forEach { testDto ->
-            testRepository.findByHash(testDto.hash!!)?.let {
-                log.debug("Test $testDto is already present with id=${it.id}")
-                testsId.add(it.id!!)
-            } ?: run {
+    fun saveTests(tests: List<TestDto>): List<Long> = tests.map { testDto ->
+        // only match fields that are present in DTO
+        testRepository.findByHashAndFilePathAndTestSuiteId(testDto.hash, testDto.filePath, testDto.testSuiteId).map {
+            log.debug("Test $testDto is already present with id=${it.id} and testSuiteId=${it.testSuite.id}")
+            it
+        }
+            .orElseGet {
                 log.debug("Test $testDto is not found in the DB, will save it")
-                val testSuite = TestSuite(propertiesRelativePath = "FB").apply {
+                val testSuiteStub = TestSuite(propertiesRelativePath = "FB").apply {
                     id = testDto.testSuiteId
                 }
-                Test(testDto.hash!!, testDto.filePath, LocalDateTime.now(), testSuite).run {
-                    testRepository.save(this)
-                    testsId.add(this.id!!)
-                }
+                testRepository.save(
+                    Test(testDto.hash, testDto.filePath, LocalDateTime.now(), testSuiteStub)
+                )
             }
-        }
-        return testsId.toList()
+            .id!!
     }
 
     /**
@@ -82,10 +75,10 @@ class TestService(private val configProperties: ConfigProperties) {
         val tests = testExecutionRepository.findByStatusAndExecutionId(
             TestResultStatus.READY,
             execution.id!!,
-            PageRequest.of(execution.page, execution.batchSize)
+            PageRequest.of(execution.page, execution.batchSize!!)
         )
         val testDtos = tests.map {
-            TestDto(it.test.filePath, it.test.testSuite.id!!, null)
+            TestDto(it.test.filePath, it.test.testSuite.id!!, it.test.hash)
         }
         log.debug("Increasing offset of the execution - ${agent.execution}")
         ++execution.page

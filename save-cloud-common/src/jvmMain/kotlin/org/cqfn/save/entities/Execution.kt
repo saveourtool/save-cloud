@@ -41,18 +41,18 @@ class Execution(
     @Enumerated(EnumType.STRING)
     var status: ExecutionStatus,
 
-    var testSuiteIds: String,
+    var testSuiteIds: String?,
 
-    var resourcesRootPath: String,
+    var resourcesRootPath: String?,
 
     var page: Int,
 
-    var batchSize: Int,
+    var batchSize: Int?,
 
     @Enumerated(EnumType.STRING)
     var type: ExecutionType,
 
-    var version: String,
+    var version: String?,
 
     var passedTests: Long,
 
