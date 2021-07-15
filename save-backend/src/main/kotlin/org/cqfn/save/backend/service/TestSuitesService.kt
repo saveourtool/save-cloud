@@ -33,9 +33,11 @@ class TestSuitesService {
                     Example.of(testSuite)
                 )
                     // if testSuite is not present in the DB, we will save it with current timestamp
-                    .orElse(testSuite.apply {
-                        dateAdded = LocalDateTime.now()
-                    })
+                    .orElseGet {
+                        testSuite.apply {
+                            dateAdded = LocalDateTime.now()
+                        }
+                    }
             }
         testSuites.filter { it.id == null }
             .let { testSuiteRepository.saveAll(it) }

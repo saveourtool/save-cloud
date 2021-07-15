@@ -7,15 +7,15 @@ package org.cqfn.save.test
 import kotlinx.serialization.Serializable
 
 /**
- * @property filePath
- * @property hash
- * @property testSuiteId
+ * @property filePath path to a test file
+ * @property hash hash of file content
+ * @property testSuiteId id of test suite, which this test belongs to
  */
 @Serializable
 data class TestDto(
-    var filePath: String,
-    var testSuiteId: Long,
-    var hash: String?,
+    val filePath: String,
+    val testSuiteId: Long,
+    val hash: String,
 )
 
 /**
