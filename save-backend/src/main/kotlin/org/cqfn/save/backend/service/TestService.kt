@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import reactor.core.publisher.Mono
 
+import java.io.File
 import java.time.LocalDateTime
 
 /**
@@ -84,7 +85,7 @@ class TestService {
         ++execution.page
         executionRepository.save(execution)
         return Mono.just(TestBatch(testDtos, tests.map { it.test.testSuite }.associate {
-            it.id!! to "--properties-file ${it.propertiesRelativePath}"
+            it.id!! to "--test-root-path ${File(it.propertiesRelativePath).parent}"
         }))
     }
 
