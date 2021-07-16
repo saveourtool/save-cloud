@@ -8,7 +8,7 @@ import kotlinx.serialization.Serializable
  * @property project project
  * @property gitDto github repository
  * @property propertiesRelativePath location of save.properties file to start the execution, relative to project's root directory
- * @property executionId
+ * @property executionId id of execution. It will change after execution will created. This need to update execution status, if there will be problem with git cloning
  */
 @Serializable
 data class ExecutionRequest(
