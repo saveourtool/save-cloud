@@ -41,7 +41,7 @@ class CloneRepoTest {
         )
         val project = projectRepository.findAll().first()
         val gitRepo = GitDto("1")
-        val executionRequest = ExecutionRequest(project, gitRepo)
+        val executionRequest = ExecutionRequest(project, gitRepo, executionId = null)
         webClient.post()
             .uri("/submitExecutionRequest")
             .contentType(MediaType.APPLICATION_JSON)
@@ -55,7 +55,7 @@ class CloneRepoTest {
     fun checkNonExistingProject() {
         val project = Project("noname", "1", "1", "1")
         val gitRepo = GitDto("1")
-        val executionRequest = ExecutionRequest(project, gitRepo)
+        val executionRequest = ExecutionRequest(project, gitRepo, executionId = null)
         val executionsClones = listOf(executionRequest, executionRequest, executionRequest)
         executionsClones.forEach {
             webClient.post()

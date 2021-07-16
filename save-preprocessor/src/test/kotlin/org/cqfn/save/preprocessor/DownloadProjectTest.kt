@@ -81,7 +81,11 @@ class DownloadProjectTest(
     fun testBadRequest() {
         val project = Project("owner", "someName", "wrongGit", "descr")
         val wrongRepo = GitDto("wrongGit")
-        val request = ExecutionRequest(project, wrongRepo)
+        val execution = Execution(project, LocalDateTime.now(), LocalDateTime.now(), ExecutionStatus.PENDING, "1",
+            "foo", 0, 20, ExecutionType.GIT, "0.0.1", 0, 0, 0).apply {
+            id = 97L
+        }
+        val request = ExecutionRequest(project, wrongRepo, executionId = execution.id)
         webClient.post()
             .uri("/upload")
             .contentType(MediaType.APPLICATION_JSON)
@@ -102,13 +106,13 @@ class DownloadProjectTest(
         val project = Project("owner", "someName", "https://github.com/cqfn/save.git", "descr").apply {
             id = 42L
         }
-        val validRepo = GitDto("https://github.com/cqfn/save.git")
-        val request = ExecutionRequest(project, validRepo, "examples/kotlin-diktat/save.properties")
-        // /createExecution
         val execution = Execution(project, LocalDateTime.now(), LocalDateTime.now(), ExecutionStatus.PENDING, "1",
             "foo", 0, 20, ExecutionType.GIT, "0.0.1", 0, 0, 0).apply {
             id = 99L
         }
+        val validRepo = GitDto("https://github.com/cqfn/save.git")
+        val request = ExecutionRequest(project, validRepo, "examples/kotlin-diktat/save.properties", execution.id)
+        // /createExecution
         mockServerBackend.enqueue(
             MockResponse()
                 .setResponseCode(200)

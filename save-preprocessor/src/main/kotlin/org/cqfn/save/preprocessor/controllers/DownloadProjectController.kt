@@ -113,7 +113,8 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
     @Suppress(
         "TooGenericExceptionCaught",
         "TOO_LONG_FUNCTION",
-        "TOO_MANY_LINES_IN_LAMBDA")
+        "TOO_MANY_LINES_IN_LAMBDA",
+        "UnsafeCallOnNullableType")
     private fun downLoadRepository(executionRequest: ExecutionRequest) {
         val gitDto = executionRequest.gitDto
         val project = executionRequest.project
@@ -149,6 +150,9 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
                 is GitAPIException -> log.warn("Error with git API while cloning ${gitDto.url} repository", exception)
                 else -> log.warn("Cloning ${gitDto.url} repository failed", exception)
             }
+            webClientBackend.makeRequest(
+                BodyInserters.fromValue(ExecutionUpdateDto(executionRequest.executionId!!, ExecutionStatus.ERROR)), "/updateExecution"
+            ) { it.toEntity<HttpStatus>() }
         }
     }
 

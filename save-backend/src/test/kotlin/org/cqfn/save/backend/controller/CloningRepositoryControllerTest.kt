@@ -84,7 +84,7 @@ class CloningRepositoryControllerTest {
             .`when`(projectService.getProjectByNameAndOwner("huaweiName", "Huawei"))
             .thenReturn(project)
         val gitRepo = GitDto("1")
-        val executionRequest = ExecutionRequest(project, gitRepo)
+        val executionRequest = ExecutionRequest(project, gitRepo, executionId = null)
         webTestClient.post()
             .uri("/submitExecutionRequest")
             .contentType(MediaType.APPLICATION_JSON)
