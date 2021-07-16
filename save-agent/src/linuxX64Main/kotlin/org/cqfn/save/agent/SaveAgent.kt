@@ -32,6 +32,9 @@ import okio.Path.Companion.toPath
 
 import kotlin.native.concurrent.AtomicLong
 import kotlin.native.concurrent.AtomicReference
+import kotlinx.cinterop.ByteVar
+import kotlinx.cinterop.allocArray
+import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.toKString
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -163,7 +166,9 @@ class SaveAgent(private val config: AgentConfiguration,
         val reports: List<Report> = Json.decodeFromString(
             readFile(jsonFile).joinToString(separator = "")
         )
-        val pwd: String = platform.posix.getwd(null)!!.toKString()
+        val pwd: String = memScoped {
+            platform.posix.getwd(allocArray<ByteVar>(platform.posix.PATH_MAX))!!.toKString()
+        }
         return reports.flatMap { report ->
             report.pluginExecutions.flatMap { pluginExecution ->
                 pluginExecution.testResults.map {
