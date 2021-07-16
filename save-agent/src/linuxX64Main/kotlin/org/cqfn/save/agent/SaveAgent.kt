@@ -1,6 +1,7 @@
 package org.cqfn.save.agent
 
 import org.cqfn.save.agent.utils.readFile
+import org.cqfn.save.core.files.createRelativePathToTheRoot
 import org.cqfn.save.core.logging.describe
 import org.cqfn.save.core.logging.logDebug
 import org.cqfn.save.core.logging.logError
@@ -31,6 +32,7 @@ import okio.Path.Companion.toPath
 
 import kotlin.native.concurrent.AtomicLong
 import kotlin.native.concurrent.AtomicReference
+import kotlinx.cinterop.toKString
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
@@ -161,6 +163,7 @@ class SaveAgent(private val config: AgentConfiguration,
         val reports: List<Report> = Json.decodeFromString(
             readFile(jsonFile).joinToString(separator = "")
         )
+        val pwd: String = platform.posix.getwd(null)!!.toKString()
         return reports.flatMap { report ->
             report.pluginExecutions.flatMap { pluginExecution ->
                 pluginExecution.testResults.map {
@@ -170,7 +173,13 @@ class SaveAgent(private val config: AgentConfiguration,
                         is Ignored -> TestResultStatus.IGNORED
                         is Crash -> TestResultStatus.TEST_ERROR
                     }
-                    TestExecutionDto(it.resources.first().name, config.id, testResultStatus, executionStartSeconds.value, currentTime.epochSeconds)
+                    TestExecutionDto(
+                        it.resources.first().createRelativePathToTheRoot(pwd.toPath()),
+                        config.id,
+                        testResultStatus,
+                        executionStartSeconds.value,
+                        currentTime.epochSeconds
+                    )
                 }
             }
         }
