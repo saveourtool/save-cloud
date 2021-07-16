@@ -253,14 +253,14 @@ class SaveAgent(private val config: AgentConfiguration,
 
     private suspend fun postExecutionData(testExecutionDtos: List<TestExecutionDto>) = httpClient.post<HttpResponse> {
         logInfo("Posting execution data to backend, ${testExecutionDtos.size} test executions")
-        url("${config.backendUrl}/executionData")
+        url("${config.backend.url}/${config.backend.executionDataEndpoint}")
         contentType(ContentType.Application.Json)
         body = testExecutionDtos
     }
 
     private suspend fun saveAdditionalData() = httpClient.post<HttpResponse> {
         logInfo("Posting additional data to backend")
-        url("${config.backendUrl}/saveAgentVersion")
+        url("${config.backend.url}/${config.backend.additionalDataEndpoint}")
         contentType(ContentType.Application.Json)
         body = AgentVersion(config.id, SAVE_CLOUD_VERSION)
     }
