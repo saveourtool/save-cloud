@@ -204,7 +204,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
     }
 
     private fun submitExecutionRequestGit(correctGitDto: GitDto) {
-        val executionRequest = pathToProperty?.let { ExecutionRequest(project, correctGitDto, it) } ?: ExecutionRequest(project, correctGitDto)
+        val executionRequest = pathToProperty?.let { ExecutionRequest(project, correctGitDto, it, null) } ?: ExecutionRequest(project, correctGitDto, executionId = null)
         val jsonExecution = JSON.stringify(executionRequest)
         val headers = Headers().also {
             it.set("Accept", "application/json")

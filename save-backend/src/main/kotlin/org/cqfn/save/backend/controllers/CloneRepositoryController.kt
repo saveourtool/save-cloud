@@ -55,7 +55,7 @@ class CloneRepositoryController(
         val projectExecution = executionRequest.project
         val project = projectService.getProjectByNameAndOwner(projectExecution.name, projectExecution.owner)
         return project?.let {
-            saveExecution(it, ExecutionType.GIT)
+            executionRequest.executionId = saveExecution(it, ExecutionType.GIT)
             log.info("Sending request to preprocessor to start cloning project id=${it.id}")
             preprocessorWebClient
                 .post()
@@ -103,10 +103,10 @@ class CloneRepositoryController(
         } ?: return Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Project doesn't exist"))
     }
 
-    private fun saveExecution(project: Project, type: ExecutionType) {
+    private fun saveExecution(project: Project, type: ExecutionType): Long {
         val execution = Execution(project, LocalDateTime.now(), null, ExecutionStatus.PENDING, null,
             null, 0, null, type, null, 0, 0, 0)
         log.info("Creating a new execution id=${execution.id} for project id=${project.id}")
-        executionService.saveExecution(execution)
+        return executionService.saveExecution(execution)
     }
 }
