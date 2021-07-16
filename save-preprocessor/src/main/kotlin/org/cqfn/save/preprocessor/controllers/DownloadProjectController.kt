@@ -149,6 +149,9 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
                 is GitAPIException -> log.warn("Error with git API while cloning ${gitDto.url} repository", exception)
                 else -> log.warn("Cloning ${gitDto.url} repository failed", exception)
             }
+            webClientBackend.makeRequest(
+                BodyInserters.fromValue(ExecutionUpdateDto(executionRequest.executionId!!, ExecutionStatus.ERROR)), "/updateExecution"
+            ) { it.toEntity<HttpStatus>() }
         }
     }
 
