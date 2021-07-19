@@ -1,7 +1,6 @@
 package org.cqfn.save.agent
 
 import org.cqfn.save.agent.utils.readFile
-import org.cqfn.save.core.files.createRelativePathToTheRoot
 import org.cqfn.save.core.logging.describe
 import org.cqfn.save.core.logging.logDebug
 import org.cqfn.save.core.logging.logError
