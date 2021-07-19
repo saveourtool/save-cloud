@@ -243,7 +243,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
             .subscribe()
     }
 
-    @Suppress("TYPE_ALIAS")
+    @Suppress("TYPE_ALIAS", "UnsafeCallOnNullableType")
     private fun prepareForExecutionFromGit(project: Project,
                                            execution: Execution,
                                            propertiesRelativePath: String,
