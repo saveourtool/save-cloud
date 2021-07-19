@@ -1,5 +1,8 @@
 package org.cqfn.save.orchestrator.service
 
+import org.cqfn.save.domain.Jdk
+import org.cqfn.save.domain.Python
+import org.cqfn.save.domain.Sdk
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionUpdateDto
@@ -44,11 +47,12 @@ class DockerService(private val configProperties: ConfigProperties) {
      * Function that builds a base image with test resources and then creates containers with agents.
      *
      * @param execution [Execution] from which this workflow is started
+     * @param sdk SDK that should be included into the image
      * @return list of IDs of created containers
      */
-    fun buildAndCreateContainers(execution: Execution): List<String> {
+    fun buildAndCreateContainers(execution: Execution, sdk: Sdk): List<String> {
         log.info("Building base image for execution.id=${execution.id}")
-        val (imageId, runCmd) = buildBaseImageForExecution(execution)
+        val (imageId, runCmd) = buildBaseImageForExecution(execution, sdk)
         log.info("Built base image for execution.id=${execution.id}")
         return (1..configProperties.agentsCount).map { number ->
             log.info("Building container #$number for execution.id=${execution.id}")
@@ -103,7 +107,8 @@ class DockerService(private val configProperties: ConfigProperties) {
                 false
             }
 
-    private fun buildBaseImageForExecution(execution: Execution): Pair<String, String> {
+    @Suppress("TOO_LONG_FUNCTION")
+    private fun buildBaseImageForExecution(execution: Execution, sdk: Sdk): Pair<String, String> {
         val resourcesPath = File(
             configProperties.testResources.basePath,
             execution.resourcesRootPath,
@@ -123,7 +128,14 @@ class DockerService(private val configProperties: ConfigProperties) {
             ClassPathResource(SAVE_CLI_EXECUTABLE_NAME).inputStream,
             File(resourcesPath, SAVE_CLI_EXECUTABLE_NAME)
         )
+        val baseImage = when (sdk) {
+            is Jdk -> "openjdk:${sdk.version}"
+            is Python -> "python:${sdk.version}"
+            Sdk.Default -> "ubuntu:latest"
+            else -> error("Unsupported SDK of type ${sdk::class.simpleName} $sdk")
+        }
         val imageId = containerManager.buildImageWithResources(
+            baseImage = baseImage,
             imageName = "save-execution:${execution.id}",
             baseDir = resourcesPath,
             resourcesPath = executionDir,

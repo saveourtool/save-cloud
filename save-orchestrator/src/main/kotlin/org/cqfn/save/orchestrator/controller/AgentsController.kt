@@ -1,6 +1,7 @@
 package org.cqfn.save.orchestrator.controller
 
 import org.cqfn.save.agent.ExecutionLogs
+import org.cqfn.save.domain.Sdk
 import org.cqfn.save.entities.Agent
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.execution.ExecutionStatus
@@ -55,7 +56,8 @@ class AgentsController {
         response.subscribe {
             log.info("Starting preparations for launching execution [project=${execution.project}, id=${execution.id}, " +
                     "status=${execution.status}, resourcesRootPath=${execution.resourcesRootPath}]")
-            val agentIds = dockerService.buildAndCreateContainers(execution)
+            // todo: pass SDK via request body
+            val agentIds = dockerService.buildAndCreateContainers(execution, Sdk.Default)
             agentService.saveAgentsWithInitialStatuses(
                 agentIds.map { id ->
                     Agent(id, execution)
