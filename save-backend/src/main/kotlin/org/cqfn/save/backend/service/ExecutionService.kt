@@ -39,10 +39,11 @@ class ExecutionService(private val executionRepository: ExecutionRepository) {
      */
     fun updateExecution(execution: ExecutionUpdateDto) {
         executionRepository.findById(execution.id).ifPresentOrElse({
-            if (it.status == ExecutionStatus.FINISHED) {
+            it.status = execution.status
+            if (it.status == ExecutionStatus.FINISHED || it.status == ExecutionStatus.ERROR) {
+                // execution is completed, we can update end time
                 it.endTime = LocalDateTime.now()
             }
-            it.status = execution.status
             executionRepository.save(it)
         }) {
             throw ResponseStatusException(HttpStatus.NOT_FOUND)

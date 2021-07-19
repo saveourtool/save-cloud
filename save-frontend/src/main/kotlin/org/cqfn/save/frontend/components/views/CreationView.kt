@@ -77,7 +77,6 @@ class CreationView : RComponent<RProps, ProjectSaveViewState>() {
             Project(projectFieldsMap["owner"]!!, projectFieldsMap["name"]!!, projectFieldsMap["url"], projectFieldsMap["description"]),
             gitFieldsMap["url"]?.let { GitDto(it, gitFieldsMap["username"], gitFieldsMap["password"], gitFieldsMap["branch"]) }
         )
-        // console.log(JSON.stringify(executionRequest))
         val headers = Headers().also {
             it.set("Accept", "application/json")
             it.set("Content-Type", "application/json")
@@ -191,7 +190,7 @@ class CreationView : RComponent<RProps, ProjectSaveViewState>() {
                             }
                         }
                     }
-                    button(type = ButtonType.submit, classes = "btn btn-primary") {
+                    button(type = ButtonType.button, classes = "btn btn-primary") {
                         +"Create"
                         attrs.onClickFunction = { saveProject() }
                     }

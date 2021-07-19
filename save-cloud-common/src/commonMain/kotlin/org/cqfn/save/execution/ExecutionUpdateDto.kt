@@ -9,5 +9,5 @@ import kotlinx.serialization.Serializable
 @Serializable
 class ExecutionUpdateDto(
     val id: Long,
-    val status: ExecutionStatus
+    val status: ExecutionStatus,
 )

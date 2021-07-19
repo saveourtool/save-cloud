@@ -69,7 +69,7 @@ class Execution(
         id!!,
         status,
         type,
-        version!!,
+        version,
         endTime?.toEpochSecond(ZoneOffset.UTC),
         passedTests,
         failedTests,
