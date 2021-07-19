@@ -195,10 +195,7 @@ class DownloadProjectTest(
                     )
                 )),
         )
-        mockServerBackend.enqueue(
-            MockResponse()
-                .setResponseCode(200)
-        )
+        // fixme: preprocessor should initialize tests for execution here
         mockServerOrchestrator.enqueue(
             MockResponse()
                 .setResponseCode(200)
@@ -207,7 +204,7 @@ class DownloadProjectTest(
             listOf(
                 mockServerBackend.takeRequest(60, TimeUnit.SECONDS),
                 mockServerBackend.takeRequest(60, TimeUnit.SECONDS),
-                mockServerBackend.takeRequest(60, TimeUnit.SECONDS),
+//                mockServerBackend.takeRequest(60, TimeUnit.SECONDS),
                 mockServerOrchestrator.takeRequest(60, TimeUnit.SECONDS)
             )
         }
