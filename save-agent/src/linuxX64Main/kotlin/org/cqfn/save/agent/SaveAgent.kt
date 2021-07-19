@@ -9,6 +9,7 @@ import org.cqfn.save.core.result.Crash
 import org.cqfn.save.core.result.Fail
 import org.cqfn.save.core.result.Ignored
 import org.cqfn.save.core.result.Pass
+import org.cqfn.save.core.result.TestStatus
 import org.cqfn.save.core.utils.ExecutionResult
 import org.cqfn.save.core.utils.ProcessBuilder
 import org.cqfn.save.domain.TestResultStatus
@@ -164,12 +165,7 @@ class SaveAgent(private val config: AgentConfiguration,
         return reports.flatMap { report ->
             report.pluginExecutions.flatMap { pluginExecution ->
                 pluginExecution.testResults.map {
-                    val testResultStatus = when (it.status) {
-                        is Pass -> TestResultStatus.PASSED
-                        is Fail -> TestResultStatus.FAILED
-                        is Ignored -> TestResultStatus.IGNORED
-                        is Crash -> TestResultStatus.TEST_ERROR
-                    }
+                    val testResultStatus = it.status.toTestResultStatus()
                     TestExecutionDto(
                         it.resources.first().toString(),
                         config.id,
@@ -269,5 +265,13 @@ class SaveAgent(private val config: AgentConfiguration,
         url("${config.backend.url}/${config.backend.additionalDataEndpoint}")
         contentType(ContentType.Application.Json)
         body = AgentVersion(config.id, SAVE_CLOUD_VERSION)
+    }
+
+    private fun TestStatus.toTestResultStatus() = when (this) {
+        is Pass -> TestResultStatus.PASSED
+        is Fail -> TestResultStatus.FAILED
+        is Ignored -> TestResultStatus.IGNORED
+        is Crash -> TestResultStatus.TEST_ERROR
+        else -> error("Unknown test status ${this}")
     }
 }

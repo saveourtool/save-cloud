@@ -1,7 +1,5 @@
 import org.cqfn.save.buildutils.getSaveCliVersion
 
-import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform.getCurrentOperatingSystem
-
 plugins {
     kotlin("multiplatform")
     kotlin("plugin.serialization") version Versions.kotlin

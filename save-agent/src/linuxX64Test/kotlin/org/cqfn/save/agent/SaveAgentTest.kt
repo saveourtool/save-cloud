@@ -25,7 +25,6 @@ import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.properties.Properties
 import kotlinx.serialization.properties.decodeFromStringMap
 
-@Suppress("INLINE_CLASS_CAN_BE_USED")
 class SaveAgentTest {
     @OptIn(ExperimentalSerializationApi::class)
     private val configuration: AgentConfiguration = Properties.decodeFromStringMap<AgentConfiguration>(readProperties("src/nativeMain/resources/agent.properties")).let {

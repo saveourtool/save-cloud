@@ -3,8 +3,8 @@
   configuration:
     domainName: org.cqfn.save
     kotlinVersion: 1.5
-    srcDirectories: "main,nativeMain"
-    testDirs: "test,nativeTest"
+    srcDirectories: "main,nativeMain,linuxX64Main"
+    testDirs: "test,nativeTest,linuxX64Test"
 - name: ENUM_VALUE
   enabled: true
   configuration:
