@@ -5,7 +5,7 @@ import org.cqfn.save.backend.repository.AgentRepository
 import org.cqfn.save.backend.repository.ExecutionRepository
 import org.cqfn.save.backend.repository.TestExecutionRepository
 import org.cqfn.save.backend.repository.TestRepository
-import org.cqfn.save.backend.utils.toLocalDateTime
+import org.cqfn.save.backend.utils.secondsToLocalDateTime
 import org.cqfn.save.domain.TestResultStatus
 import org.cqfn.save.entities.TestExecution
 
@@ -69,8 +69,8 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
         testExecutionsDtos.forEach { testExecDto ->
             val foundTestExec = testExecutionRepository.findByExecutionIdAndTestFilePath(execution.id!!, testExecDto.filePath)
             foundTestExec.ifPresentOrElse({
-                it.startTime = testExecDto.startTimeSeconds?.toLocalDateTime()
-                it.endTime = testExecDto.endTimeSeconds?.toLocalDateTime()
+                it.startTime = testExecDto.startTimeSeconds?.secondsToLocalDateTime()
+                it.endTime = testExecDto.endTimeSeconds?.secondsToLocalDateTime()
                 it.status = testExecDto.status
                 when (testExecDto.status) {
                     TestResultStatus.PASSED -> execution.passedTests += 1
