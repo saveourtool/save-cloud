@@ -204,7 +204,6 @@ class DownloadProjectTest(
             listOf(
                 mockServerBackend.takeRequest(60, TimeUnit.SECONDS),
                 mockServerBackend.takeRequest(60, TimeUnit.SECONDS),
-//                mockServerBackend.takeRequest(60, TimeUnit.SECONDS),
                 mockServerOrchestrator.takeRequest(60, TimeUnit.SECONDS)
             )
         }
