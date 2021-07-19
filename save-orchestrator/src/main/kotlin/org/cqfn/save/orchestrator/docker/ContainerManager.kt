@@ -118,6 +118,8 @@ class ContainerManager(private val dockerHost: String) {
         val dockerFileAsText =
                 """
                     |FROM $baseImage
+                    |FROM openjdk:11
+                    |RUN apt-get install -y python3
                     |COPY resources $resourcesPath
                     |$runCmd
                 """.trimMargin()
