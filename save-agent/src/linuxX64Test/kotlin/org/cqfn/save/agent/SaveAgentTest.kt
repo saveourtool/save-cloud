@@ -27,7 +27,7 @@ import kotlinx.serialization.properties.decodeFromStringMap
 
 class SaveAgentTest {
     @OptIn(ExperimentalSerializationApi::class)
-    private val configuration: AgentConfiguration = Properties.decodeFromStringMap<AgentConfiguration>(readProperties("src/nativeMain/resources/agent.properties")).let {
+    private val configuration: AgentConfiguration = Properties.decodeFromStringMap<AgentConfiguration>(readProperties("src/linuxX64Main/resources/agent.properties")).let {
         if (Platform.osFamily == OsFamily.WINDOWS) it.copy(cliCommand = "save-$SAVE_CORE_VERSION-linuxX64.bat") else it
     }
     private val saveAgentForTest = SaveAgent(configuration, httpClient = HttpClient(MockEngine) {
