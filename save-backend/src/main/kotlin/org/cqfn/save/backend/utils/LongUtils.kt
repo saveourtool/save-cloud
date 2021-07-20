@@ -9,6 +9,8 @@ import java.time.LocalDateTime
 import java.time.ZoneOffset
 
 /**
- * Function to convert long to LocalDateTime
+ * Function to convert long number of seconds to LocalDateTime
+ *
+ * @return an instance of LocalDateTime
  */
-fun Long.toLocalDateTime() = LocalDateTime.ofInstant(Instant.ofEpochMilli(this), ZoneOffset.UTC)
+fun Long.secondsToLocalDateTime(): LocalDateTime = LocalDateTime.ofInstant(Instant.ofEpochSecond(this), ZoneOffset.UTC)
