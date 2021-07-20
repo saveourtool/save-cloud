@@ -12,8 +12,5 @@
         <addColumn tableName="test">
             <column name="plugin_name" type="varchar(250)" value="N/A"/>
         </addColumn>
-        <rollback>
-            <dropColumn tableName="test" columnName="plugin_name"/>
-        </rollback>
     </changeSet>
 </databaseChangeLog>
