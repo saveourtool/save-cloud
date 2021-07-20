@@ -41,7 +41,8 @@ interface TestExecutionRepository : BaseEntityRepository<TestExecution> {
      *
      * @param executionId if of execution
      * @param filePath path to test file
+     * @param pluginName name of the plugin from test execution
      * @return Optional TestExecution
      */
-    fun findByExecutionIdAndTestFilePath(executionId: Long, filePath: String): Optional<TestExecution>
+    fun findByExecutionIdAndTestPluginNameAndTestFilePath(executionId: Long, pluginName: String, filePath: String): Optional<TestExecution>
 }
