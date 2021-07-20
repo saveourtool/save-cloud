@@ -76,6 +76,7 @@ class TestExecutionControllerTest {
     fun `should save TestExecutionDto into the DB`() {
         val testExecutionDtoFirst = TestExecutionDto(
             "src/test/suite1/testPath",
+            "WarnPlugin",
             "container-1",
             TestResultStatus.FAILED,
             DEFAULT_DATE_TEST_EXECUTION,
@@ -83,6 +84,7 @@ class TestExecutionControllerTest {
         )
         val testExecutionDtoSecond = TestExecutionDto(
             "src/test/suite1/testPath2",
+            "WarnPlugin",
             "container-1",
             TestResultStatus.PASSED,
             DEFAULT_DATE_TEST_EXECUTION,
@@ -111,6 +113,7 @@ class TestExecutionControllerTest {
     fun `should not save data if provided fields are invalid`() {
         val testExecutionDto = TestExecutionDto(
             "test-not-exists",
+            "WarnPlugin",
             "container-1",
             TestResultStatus.FAILED,
             DEFAULT_DATE_TEST_EXECUTION,

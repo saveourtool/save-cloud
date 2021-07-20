@@ -77,13 +77,15 @@ class TestDiscoveringService {
             requireNotNull(testSuite) {
                 "No test suite matching name=${generalConfig.suiteName} is provided. Provided names are: ${testSuites.map { it.name }}"
             }
-            plugins.flatMap { it.discoverTestFiles(testConfig.directory) }
-                .map {
-                    val testRelativePath = it.first().toFile()
-                        .relativeTo(rootTestConfig.directory.toFile())
-                        .path
-                    TestDto(testRelativePath, testSuite.id!!, it.first().toFile().toHash())
-                }
+            plugins.flatMap { plugin ->
+                plugin.discoverTestFiles(testConfig.directory)
+                    .map {
+                        val testRelativePath = it.first().toFile()
+                            .relativeTo(rootTestConfig.directory.toFile())
+                            .path
+                        TestDto(testRelativePath, plugin::class.simpleName!!, testSuite.id!!, it.first().toFile().toHash())
+                    }
+            }
         }
         .also {
             log.debug("Discovered the following tests: $it")

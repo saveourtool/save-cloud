@@ -10,6 +10,7 @@ import javax.persistence.ManyToOne
  * @property filePath path to this test relative to the project root
  * @property dateAdded
  * @property testSuite
+ * @property pluginName name of a plugin which this test belongs to
  */
 @Entity
 class Test(
@@ -17,6 +18,8 @@ class Test(
     var hash: String,
 
     var filePath: String,
+
+    var pluginName: String,
 
     var dateAdded: LocalDateTime,
 

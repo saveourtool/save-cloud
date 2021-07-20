@@ -157,6 +157,7 @@ class SaveAgent(private val config: AgentConfiguration,
     private fun runSave(cliArgs: String): ExecutionResult = ProcessBuilder(true)
         .exec(config.cliCommand.let { if (cliArgs.isNotEmpty()) "$it $cliArgs" else it }, logFilePath.toPath())
 
+    @Suppress("TOO_MANY_LINES_IN_LAMBDA")
     private fun readExecutionResults(jsonFile: String): List<TestExecutionDto> {
         val currentTime = Clock.System.now()
         val reports: List<Report> = Json.decodeFromString(
@@ -168,6 +169,7 @@ class SaveAgent(private val config: AgentConfiguration,
                     val testResultStatus = it.status.toTestResultStatus()
                     TestExecutionDto(
                         it.resources.first().toString(),
+                        pluginExecution.plugin,
                         config.id,
                         testResultStatus,
                         executionStartSeconds.value,

@@ -10,10 +10,12 @@ import kotlinx.serialization.Serializable
  * @property filePath path to a test file
  * @property hash hash of file content
  * @property testSuiteId id of test suite, which this test belongs to
+ * @property pluginName name of a plugin which this test belongs to
  */
 @Serializable
 data class TestDto(
     val filePath: String,
+    val pluginName: String,
     val testSuiteId: Long,
     val hash: String,
 )
