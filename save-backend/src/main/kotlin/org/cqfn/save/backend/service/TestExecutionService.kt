@@ -67,7 +67,11 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
         val execution = agent.execution
         val lostTests: MutableList<TestExecutionDto> = mutableListOf()
         testExecutionsDtos.forEach { testExecDto ->
-            val foundTestExec = testExecutionRepository.findByExecutionIdAndTestFilePath(execution.id!!, testExecDto.filePath)
+            val foundTestExec = testExecutionRepository.findByExecutionIdAndTestPluginNameAndTestFilePath(
+                execution.id!!,
+                testExecDto.pluginName,
+                testExecDto.filePath
+            )
             foundTestExec.ifPresentOrElse({
                 it.startTime = testExecDto.startTimeSeconds?.secondsToLocalDateTime()
                 it.endTime = testExecDto.endTimeSeconds?.secondsToLocalDateTime()

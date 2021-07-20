@@ -10,10 +10,12 @@ import kotlinx.serialization.Serializable
  * @property startTimeSeconds
  * @property endTimeSeconds
  * @property filePath
+ * @property pluginName name of a plugin which will execute test at [filePath]
  */
 @Serializable
 data class TestExecutionDto(
     val filePath: String,
+    val pluginName: String,
     val agentContainerId: String?,
     val status: TestResultStatus,
     val startTimeSeconds: Long?,

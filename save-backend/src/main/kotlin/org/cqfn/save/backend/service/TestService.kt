@@ -56,7 +56,7 @@ class TestService {
                     id = testDto.testSuiteId
                 }
                 testRepository.save(
-                    Test(testDto.hash, testDto.filePath, LocalDateTime.now(), testSuiteStub)
+                    Test(testDto.hash, testDto.filePath, testDto.pluginName, LocalDateTime.now(), testSuiteStub)
                 )
             }
             .id!!
@@ -79,7 +79,7 @@ class TestService {
             PageRequest.of(execution.page, execution.batchSize!!)
         )
         val testDtos = tests.map {
-            TestDto(it.test.filePath, it.test.testSuite.id!!, it.test.hash)
+            TestDto(it.test.filePath, it.test.pluginName, it.test.testSuite.id!!, it.test.hash)
         }
         log.debug("Increasing offset of the execution - ${agent.execution}")
         ++execution.page
