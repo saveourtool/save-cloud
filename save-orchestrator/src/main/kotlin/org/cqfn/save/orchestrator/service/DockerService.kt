@@ -1,8 +1,5 @@
 package org.cqfn.save.orchestrator.service
 
-import org.cqfn.save.domain.Jdk
-import org.cqfn.save.domain.Python
-import org.cqfn.save.domain.Sdk
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionUpdateDto
@@ -47,7 +44,6 @@ class DockerService(private val configProperties: ConfigProperties) {
      * Function that builds a base image with test resources and then creates containers with agents.
      *
      * @param execution [Execution] from which this workflow is started
-     * @param sdk SDK that should be included into the image
      * @return list of IDs of created containers
      */
     fun buildAndCreateContainers(execution: Execution): List<String> {

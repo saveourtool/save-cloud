@@ -8,6 +8,7 @@ import kotlinx.serialization.Serializable
 
 /**
  * @property name name of the SDK
+ * @property version
  */
 @Serializable
 open class Sdk(val name: String, open val version: String) {
@@ -16,9 +17,7 @@ open class Sdk(val name: String, open val version: String) {
      */
     object Default : Sdk("ubuntu", "latest")
 
-    override fun toString(): String {
-        return "$name:$version"
-    }
+    override fun toString() = "$name:$version"
 }
 
 /**
@@ -31,10 +30,13 @@ class Jdk(override val version: String) : Sdk("openjdk", version)
  */
 class Python(override val version: String) : Sdk("python", version)
 
+/**
+ * Parse string to sdk
+ */
 fun String.toSdk() =
-    when(this) {
-        "Java 11" -> Jdk("11-jdk")
-        "Java 8" -> Jdk("8-jdk")
-        "Python 3.7" -> Python("3.7")
-        else -> Sdk.Default
-    }
+        when (this) {
+            "Java 11" -> Jdk("11-jdk")
+            "Java 8" -> Jdk("8-jdk")
+            "Python 3.7" -> Python("3.7")
+            else -> Sdk.Default
+        }

@@ -1,11 +1,13 @@
 package org.cqfn.save.entities
 
-import kotlinx.serialization.Serializable
 import org.cqfn.save.domain.Sdk
+
+import kotlinx.serialization.Serializable
 
 /**
  * @property project
  * @property testsSuites
+ * @property sdk
  */
 @Serializable
 data class ExecutionRequestForStandardSuites(

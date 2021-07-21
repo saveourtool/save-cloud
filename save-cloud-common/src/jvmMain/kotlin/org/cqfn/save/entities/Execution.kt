@@ -25,6 +25,7 @@ import javax.persistence.ManyToOne
  * @property passedTests
  * @property failedTests
  * @property skippedTests
+ * @property sdk
  */
 @Suppress("USE_DATA_CLASS", "LongParameterList")
 @Entity
