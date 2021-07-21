@@ -39,6 +39,7 @@ class TestInitializeControllerTest {
         val testSuite = testSuiteRepository.findById(2).get()
         val test = TestDto(
             "testPath",
+            "WarnPlugin",
             testSuite.id!!,
             "newHash",
         )
@@ -60,6 +61,7 @@ class TestInitializeControllerTest {
         val testSuite = testSuiteRepository.findById(2).get()
         val test = TestDto(
             "testPath",
+            "WarnPlugin",
             testSuite.id!!,
             "newHash2",
 

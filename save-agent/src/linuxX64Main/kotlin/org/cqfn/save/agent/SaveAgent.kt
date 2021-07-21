@@ -9,6 +9,7 @@ import org.cqfn.save.core.result.Crash
 import org.cqfn.save.core.result.Fail
 import org.cqfn.save.core.result.Ignored
 import org.cqfn.save.core.result.Pass
+import org.cqfn.save.core.result.TestStatus
 import org.cqfn.save.core.utils.ExecutionResult
 import org.cqfn.save.core.utils.ProcessBuilder
 import org.cqfn.save.domain.TestResultStatus
@@ -156,6 +157,7 @@ class SaveAgent(private val config: AgentConfiguration,
     private fun runSave(cliArgs: String): ExecutionResult = ProcessBuilder(true)
         .exec(config.cliCommand.let { if (cliArgs.isNotEmpty()) "$it $cliArgs" else it }, logFilePath.toPath())
 
+    @Suppress("TOO_MANY_LINES_IN_LAMBDA")
     private fun readExecutionResults(jsonFile: String): List<TestExecutionDto> {
         val currentTime = Clock.System.now()
         val reports: List<Report> = Json.decodeFromString(
@@ -164,13 +166,15 @@ class SaveAgent(private val config: AgentConfiguration,
         return reports.flatMap { report ->
             report.pluginExecutions.flatMap { pluginExecution ->
                 pluginExecution.testResults.map {
-                    val testResultStatus = when (it.status) {
-                        is Pass -> TestResultStatus.PASSED
-                        is Fail -> TestResultStatus.FAILED
-                        is Ignored -> TestResultStatus.IGNORED
-                        is Crash -> TestResultStatus.TEST_ERROR
-                    }
-                    TestExecutionDto(it.resources.first().name, config.id, testResultStatus, executionStartSeconds.value, currentTime.epochSeconds)
+                    val testResultStatus = it.status.toTestResultStatus()
+                    TestExecutionDto(
+                        it.resources.first().toString(),
+                        pluginExecution.plugin,
+                        config.id,
+                        testResultStatus,
+                        executionStartSeconds.value,
+                        currentTime.epochSeconds
+                    )
                 }
             }
         }
@@ -253,15 +257,23 @@ class SaveAgent(private val config: AgentConfiguration,
 
     private suspend fun postExecutionData(testExecutionDtos: List<TestExecutionDto>) = httpClient.post<HttpResponse> {
         logInfo("Posting execution data to backend, ${testExecutionDtos.size} test executions")
-        url("${config.backendUrl}/executionData")
+        url("${config.backend.url}/${config.backend.executionDataEndpoint}")
         contentType(ContentType.Application.Json)
         body = testExecutionDtos
     }
 
     private suspend fun saveAdditionalData() = httpClient.post<HttpResponse> {
         logInfo("Posting additional data to backend")
-        url("${config.backendUrl}/saveAgentVersion")
+        url("${config.backend.url}/${config.backend.additionalDataEndpoint}")
         contentType(ContentType.Application.Json)
         body = AgentVersion(config.id, SAVE_CLOUD_VERSION)
+    }
+
+    private fun TestStatus.toTestResultStatus() = when (this) {
+        is Pass -> TestResultStatus.PASSED
+        is Fail -> TestResultStatus.FAILED
+        is Ignored -> TestResultStatus.IGNORED
+        is Crash -> TestResultStatus.TEST_ERROR
+        else -> error("Unknown test status ${this}")
     }
 }

@@ -5,7 +5,7 @@ import org.cqfn.save.backend.SaveApplication
 import org.cqfn.save.backend.repository.AgentRepository
 import org.cqfn.save.backend.repository.TestExecutionRepository
 import org.cqfn.save.backend.utils.MySqlExtension
-import org.cqfn.save.backend.utils.toLocalDateTime
+import org.cqfn.save.backend.utils.secondsToLocalDateTime
 import org.cqfn.save.domain.TestResultStatus
 
 import org.junit.jupiter.api.Assertions
@@ -76,6 +76,7 @@ class TestExecutionControllerTest {
     fun `should save TestExecutionDto into the DB`() {
         val testExecutionDtoFirst = TestExecutionDto(
             "src/test/suite1/testPath",
+            "WarnPlugin",
             "container-1",
             TestResultStatus.FAILED,
             DEFAULT_DATE_TEST_EXECUTION,
@@ -83,6 +84,7 @@ class TestExecutionControllerTest {
         )
         val testExecutionDtoSecond = TestExecutionDto(
             "src/test/suite1/testPath2",
+            "WarnPlugin",
             "container-1",
             TestResultStatus.PASSED,
             DEFAULT_DATE_TEST_EXECUTION,
@@ -100,8 +102,8 @@ class TestExecutionControllerTest {
         val tests = getAllTestExecutions()
         val passedTestsAfter = getExecutionsTestsResultByAgentContainerId(testExecutionDtoSecond.agentContainerId!!, true)
         val failedTestsAfter = getExecutionsTestsResultByAgentContainerId(testExecutionDtoFirst.agentContainerId!!, false)
-        assertTrue(tests.any { it.startTime == testExecutionDtoFirst.startTimeSeconds!!.toLocalDateTime().withNano(0) })
-        assertTrue(tests.any { it.endTime == testExecutionDtoFirst.endTimeSeconds!!.toLocalDateTime().withNano(0) })
+        assertTrue(tests.any { it.startTime == testExecutionDtoFirst.startTimeSeconds!!.secondsToLocalDateTime().withNano(0) })
+        assertTrue(tests.any { it.endTime == testExecutionDtoFirst.endTimeSeconds!!.secondsToLocalDateTime().withNano(0) })
         Assertions.assertEquals(passedTestsBefore, passedTestsAfter - 1)
         Assertions.assertEquals(failedTestsBefore, failedTestsAfter - 1)
     }
@@ -111,6 +113,7 @@ class TestExecutionControllerTest {
     fun `should not save data if provided fields are invalid`() {
         val testExecutionDto = TestExecutionDto(
             "test-not-exists",
+            "WarnPlugin",
             "container-1",
             TestResultStatus.FAILED,
             DEFAULT_DATE_TEST_EXECUTION,

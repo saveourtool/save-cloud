@@ -231,26 +231,54 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
             it.bodyToMono<Execution>()
         }
             .flatMap { execution ->
-                Mono.fromCallable {
-                    val testResourcesRootAbsolutePath = getTestResourcesRootAbsolutePath(propertiesRelativePath, projectRootRelativePath)
-                    testDiscoveringService.getRootTestConfig(testResourcesRootAbsolutePath)
+                if (executionType == ExecutionType.GIT) {
+                    prepareForExecutionFromGit(project, execution, propertiesRelativePath, projectRootRelativePath)
+                } else {
+                    prepareExecutionForStandard(project, execution, testSuiteDtos!!)
                 }
-                    .log()
-                    .zipWhen { rootTestConfig ->
-                        discoverAndSaveTestSuites(project, rootTestConfig, propertiesRelativePath)
-                    }
-                    .flatMap { (rootTestConfig, testSuites) ->
-                        initializeTests(testSuites, rootTestConfig, execution.id!!)
-                    }
                     .then(initializeAgents(execution))
                     .onErrorResume { ex ->
-                        log.error("Error during resources discovering, will mark execution.id=${execution.id} as failed; error: ", ex)
+                        log.error(
+                            "Error during preprocessing, will mark execution.id=${execution.id} as failed; error: ",
+                            ex
+                        )
                         webClientBackend.makeRequest(
-                            BodyInserters.fromValue(ExecutionUpdateDto(execution.id!!, ExecutionStatus.ERROR)), "/updateExecution"
+                            BodyInserters.fromValue(ExecutionUpdateDto(execution.id!!, ExecutionStatus.ERROR)),
+                            "/updateExecution"
                         ) { it.toEntity<HttpStatus>() }
                     }
             }
             .subscribe()
+    }
+
+    @Suppress("TYPE_ALIAS", "UnsafeCallOnNullableType")
+    private fun prepareForExecutionFromGit(project: Project,
+                                           execution: Execution,
+                                           propertiesRelativePath: String,
+                                           projectRootRelativePath: String): Mono<*> = Mono.fromCallable {
+        val testResourcesRootAbsolutePath =
+                getTestResourcesRootAbsolutePath(propertiesRelativePath, projectRootRelativePath)
+        testDiscoveringService.getRootTestConfig(testResourcesRootAbsolutePath)
+    }
+        .log()
+        .zipWhen { rootTestConfig ->
+            discoverAndSaveTestSuites(project, rootTestConfig, propertiesRelativePath)
+        }
+        .flatMap { (rootTestConfig, testSuites) ->
+            initializeTests(testSuites, rootTestConfig, execution.id!!)
+        }
+    
+    private fun prepareExecutionForStandard(project: Project,
+                                            execution: Execution,
+                                            testSuiteDtos: List<TestSuiteDto>): Mono<*> {
+        return webClientBackend.makeRequest<List<TestSuiteDto>?, List<TestSuite>>(
+            BodyInserters.fromValue(
+                testSuiteDtos
+            ), "/saveTestSuites"
+        ) {
+            it.bodyToMono()
+        }
+        // fixme: should also initialize tests from standard suites
     }
 
     @Suppress("UnsafeCallOnNullableType")
@@ -261,8 +289,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
         val saveProperties: SaveProperties = decodeFromPropertiesFile<SaveProperties>(propertiesFile)
             .mergeConfigWithPriorityToThis(defaultConfig())
         return propertiesFile.parentFile
-            .resolve(saveProperties.testConfigPath!!)
-            .parentFile
+            .resolve(saveProperties.testRootPath!!)
             .absolutePath
     }
 

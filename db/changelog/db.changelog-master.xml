@@ -19,4 +19,5 @@
         <tagDatabase tag="v1.0"/>
     </changeSet>
 
+    <include file="v-2/db.changelog-v-2.xml" relativeToChangelogFile="true"/>
 </databaseChangeLog>

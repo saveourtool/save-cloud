@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import reactor.core.publisher.Mono
 
+import java.io.File
 import java.time.LocalDateTime
 
 /**
@@ -55,7 +56,7 @@ class TestService {
                     id = testDto.testSuiteId
                 }
                 testRepository.save(
-                    Test(testDto.hash, testDto.filePath, LocalDateTime.now(), testSuiteStub)
+                    Test(testDto.hash, testDto.filePath, testDto.pluginName, LocalDateTime.now(), testSuiteStub)
                 )
             }
             .id!!
@@ -78,13 +79,13 @@ class TestService {
             PageRequest.of(execution.page, execution.batchSize!!)
         )
         val testDtos = tests.map {
-            TestDto(it.test.filePath, it.test.testSuite.id!!, it.test.hash)
+            TestDto(it.test.filePath, it.test.pluginName, it.test.testSuite.id!!, it.test.hash)
         }
         log.debug("Increasing offset of the execution - ${agent.execution}")
         ++execution.page
         executionRepository.save(execution)
         return Mono.just(TestBatch(testDtos, tests.map { it.test.testSuite }.associate {
-            it.id!! to "--properties-file ${it.propertiesRelativePath}"
+            it.id!! to "--test-root-path ${File(it.propertiesRelativePath).parent}"
         }))
     }
 
