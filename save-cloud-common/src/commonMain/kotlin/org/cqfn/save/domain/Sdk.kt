@@ -24,20 +24,12 @@ open class Sdk(val name: String, open val version: String) {
 /**
  * @property version version of JDK
  */
-data class Jdk(override val version: String) : Sdk("openjdk", version) {
-    override fun toString(): String {
-        return super.toString()
-    }
-}
+class Jdk(override val version: String) : Sdk("openjdk", version)
 
 /**
  * @property version version of Python
  */
-data class Python(override val version: String) : Sdk("python", version) {
-    override fun toString(): String {
-        return super.toString()
-    }
-}
+class Python(override val version: String) : Sdk("python", version)
 
 fun String.toSdk() =
     when(this) {
