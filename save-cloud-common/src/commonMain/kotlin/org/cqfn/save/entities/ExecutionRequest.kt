@@ -1,6 +1,7 @@
 package org.cqfn.save.entities
 
 import kotlinx.serialization.Serializable
+import org.cqfn.save.domain.Sdk
 
 /**
  * Data class of information about project
@@ -15,5 +16,6 @@ data class ExecutionRequest(
     val project: Project,
     val gitDto: GitDto,
     val propertiesRelativePath: String = "save.properties",
+    val sdk: List<Sdk>,
     var executionId: Long?,
 )

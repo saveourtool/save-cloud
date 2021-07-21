@@ -60,6 +60,8 @@ class Execution(
 
     var skippedTests: Long,
 
+    var sdk: String,
+
 ) : BaseEntity() {
     /**
      * @return Execution dto

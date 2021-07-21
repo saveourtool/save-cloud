@@ -50,9 +50,9 @@ class DockerService(private val configProperties: ConfigProperties) {
      * @param sdk SDK that should be included into the image
      * @return list of IDs of created containers
      */
-    fun buildAndCreateContainers(execution: Execution, sdk: Sdk): List<String> {
+    fun buildAndCreateContainers(execution: Execution): List<String> {
         log.info("Building base image for execution.id=${execution.id}")
-        val (imageId, runCmd) = buildBaseImageForExecution(execution, sdk)
+        val (imageId, runCmd) = buildBaseImageForExecution(execution)
         log.info("Built base image for execution.id=${execution.id}")
         return (1..configProperties.agentsCount).map { number ->
             log.info("Building container #$number for execution.id=${execution.id}")
@@ -108,7 +108,7 @@ class DockerService(private val configProperties: ConfigProperties) {
             }
 
     @Suppress("TOO_LONG_FUNCTION")
-    private fun buildBaseImageForExecution(execution: Execution, sdk: Sdk): Pair<String, String> {
+    private fun buildBaseImageForExecution(execution: Execution): Pair<String, String> {
         val resourcesPath = File(
             configProperties.testResources.basePath,
             execution.resourcesRootPath,
@@ -128,12 +128,10 @@ class DockerService(private val configProperties: ConfigProperties) {
             ClassPathResource(SAVE_CLI_EXECUTABLE_NAME).inputStream,
             File(resourcesPath, SAVE_CLI_EXECUTABLE_NAME)
         )
-        val baseImage = when (sdk) {
-            is Jdk -> "openjdk:${sdk.version}"
-            is Python -> "python:${sdk.version}"
-            Sdk.Default -> "ubuntu:latest"
-            else -> error("Unsupported SDK of type ${sdk::class.simpleName} $sdk")
-        }
+        val baseImage = execution
+            .sdk
+            .split(";")
+            .joinToString("\n") { "FROM $it" }
         val imageId = containerManager.buildImageWithResources(
             baseImage = baseImage,
             imageName = "save-execution:${execution.id}",

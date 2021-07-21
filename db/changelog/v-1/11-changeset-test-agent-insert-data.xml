@@ -20,6 +20,7 @@
             <column name="passed_tests" value="0" />
             <column name="failed_tests" value="0" />
             <column name="skipped_tests" value="0" />
+            <column name="sdk" value="ubuntu:latest" />
         </insert>
         <insert dbms="mysql" tableName="execution">
             <column name="id" value="2" />
@@ -36,6 +37,7 @@
             <column name="passed_tests" value="0" />
             <column name="failed_tests" value="0" />
             <column name="skipped_tests" value="0" />
+            <column name="sdk" value="ubuntu:latest" />
         </insert>
         <insert dbms="mysql" tableName="execution">
             <column name="id" value="3" />
@@ -52,6 +54,7 @@
             <column name="passed_tests" value="0" />
             <column name="failed_tests" value="0" />
             <column name="skipped_tests" value="0" />
+            <column name="sdk" value="ubuntu:latest" />
         </insert>
     </changeSet>
 

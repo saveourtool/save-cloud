@@ -8,7 +8,11 @@ import org.cqfn.save.entities.Project
 
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
+import org.cqfn.save.backend.repository.ExecutionRepository
+import org.cqfn.save.domain.Jdk
+import org.cqfn.save.execution.ExecutionType
 import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
@@ -31,8 +35,12 @@ class CloneRepoTest {
     @Autowired
     private lateinit var projectRepository: ProjectRepository
 
+    @Autowired
+    private lateinit var executionRepository: ExecutionRepository
+
     @Test
     fun checkSaveProject() {
+        val sdk = listOf(Jdk("8"))
         mockServerPreprocessor.enqueue(
             MockResponse()
                 .setResponseCode(202)
@@ -41,7 +49,7 @@ class CloneRepoTest {
         )
         val project = projectRepository.findAll().first()
         val gitRepo = GitDto("1")
-        val executionRequest = ExecutionRequest(project, gitRepo, executionId = null)
+        val executionRequest = ExecutionRequest(project, gitRepo, executionId = null, sdk = sdk)
         webClient.post()
             .uri("/submitExecutionRequest")
             .contentType(MediaType.APPLICATION_JSON)
@@ -49,13 +57,28 @@ class CloneRepoTest {
             .exchange()
             .expectStatus()
             .isEqualTo(HttpStatus.ACCEPTED)
+        executionRepository.findAll().forEach {
+            println(it.project.name)
+            println(it.project.owner)
+            println(it.type)
+            println(it.sdk)
+        }
+        Assertions.assertTrue(
+            executionRepository.findAll().any {
+                it.project.name == project.name &&
+                        it.project.owner == project.owner &&
+                        it.type == ExecutionType.GIT &&
+                        it.sdk == sdk.first().toString()
+            }
+        )
     }
 
     @Test
     fun checkNonExistingProject() {
+        val sdk = listOf(Jdk("11"))
         val project = Project("noname", "1", "1", "1")
         val gitRepo = GitDto("1")
-        val executionRequest = ExecutionRequest(project, gitRepo, executionId = null)
+        val executionRequest = ExecutionRequest(project, gitRepo, executionId = null, sdk = sdk)
         val executionsClones = listOf(executionRequest, executionRequest, executionRequest)
         executionsClones.forEach {
             webClient.post()

@@ -54,6 +54,9 @@
             <column name="skipped_tests" type="bigint">
                 <constraints nullable="false" />
             </column>
+            <column name="sdk" type="varchar(255)">
+                <constraints nullable="false" />
+            </column>
         </createTable>
 
         <rollback>
