@@ -71,6 +71,7 @@ external interface TableProps : RProps {
     "LAMBDA_IS_NOT_LAST_PARAMETER",
     "ForbiddenComment",
     "LongMethod",
+    "LongParameterList",
     "TooGenericExceptionCaught")
 fun <D : Any> tableComponent(columns: Array<out Column<D, *>>,
                              initialPageSize: Int = 10,
