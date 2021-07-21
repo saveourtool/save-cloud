@@ -20,6 +20,7 @@ import react.RState
 import react.child
 import react.dom.a
 import react.dom.td
+import react.table.TableRowProps
 import react.table.columns
 
 import kotlinx.browser.window
@@ -101,9 +102,19 @@ class HistoryView : RComponent<HistoryProps, RState>() {
                         }
                     }
                 }
+            },
+            getRowProps = { row ->
+                val tmp = row.original
+                val isCrashed = tmp.status == ExecutionStatus.ERROR
+                // fixme: since kotlin-js-wrappers pre-210 `style` is mutable in TableRowProps, should use `jsObject<TableRowProps>` here
+                val props = if (isCrashed || tmp.failedTests > 0L) {
+                    js("({ style: { background: 'rgba(245, 50, 50, 0.1)' } })")
+                } else {
+                    js("({ style: { background: 'rgba(139, 237, 78, 0.1)' } })")
+                }
+                props.unsafeCast<TableRowProps>()
             }
         ) { _, _ ->
-
             get(
                 url = "${window.location.origin}/executionDtoList?name=${props.name}&owner=${props.owner}",
                 headers = Headers().also {

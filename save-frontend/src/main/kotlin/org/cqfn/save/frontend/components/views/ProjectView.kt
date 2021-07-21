@@ -134,7 +134,6 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
     override fun componentDidMount() {
         GlobalScope.launch {
             project = getProject(props.name, props.owner)
-            console.log("Got project $project")
             val jsonProject = Json.encodeToString(project)
             val headers = Headers().also {
                 it.set("Accept", "application/json")
