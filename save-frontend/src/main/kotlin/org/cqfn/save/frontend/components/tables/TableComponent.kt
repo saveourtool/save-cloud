@@ -98,11 +98,14 @@ fun <D : Any> tableComponent(columns: Array<out Column<D, *>>,
     }, plugins = arrayOf(useSortBy, usePagination))
 
     useEffect(emptyList()) {
-        val pageCountDeferred = GlobalScope.async {
-            getPageCount!!.invoke(tableInstance.state.pageSize)
-        }
-        pageCountDeferred.invokeOnCompletion {
-            setPageCount(pageCountDeferred.getCompleted())
+        if (useServerPaging) {
+            val pageCountDeferred = GlobalScope.async {
+                getPageCount!!.invoke(tableInstance.state.pageSize).also {
+                }
+            }
+            pageCountDeferred.invokeOnCompletion {
+                setPageCount(pageCountDeferred.getCompleted())
+            }
         }
     }
 

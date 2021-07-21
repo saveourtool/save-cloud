@@ -37,6 +37,8 @@ import react.router.dom.switch
 
 import kotlinx.browser.document
 import kotlinx.html.id
+import org.cqfn.save.frontend.externals.fontawesome.faCheck
+import org.cqfn.save.frontend.externals.fontawesome.faExclamationTriangle
 
 /**
  * Top-level state of the whole App
@@ -106,7 +108,7 @@ class App : RComponent<RProps, AppState>() {
 fun main() {
     kotlinext.js.require("../scss/save-frontend.scss")  // this is needed for webpack to include resource
     kotlinext.js.require("bootstrap")  // this is needed for webpack to include bootstrap
-    library.add(fas, faUser, faCogs, faSignOutAlt, faAngleUp)
+    library.add(fas, faUser, faCogs, faSignOutAlt, faAngleUp, faCheck, faExclamationTriangle)
     ReactModal.setAppElement(document.getElementById("wrapper") as HTMLElement)  // required for accessibility in react-modal
 
     render(document.getElementById("wrapper")) {

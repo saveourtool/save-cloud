@@ -20,8 +20,10 @@ import react.dom.td
 import react.table.columns
 
 import kotlinx.browser.window
-import kotlinx.coroutines.await
 import kotlinx.datetime.Instant
+import org.cqfn.save.execution.ExecutionStatus
+import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
+import org.cqfn.save.frontend.utils.decodeFromJsonString
 
 /**
  * [RProps] for tests execution history
@@ -46,10 +48,13 @@ class HistoryView : RComponent<HistoryProps, RState>() {
     override fun RBuilder.render() {
         child(tableComponent(
             columns = columns {
-                column("index", "#") {
+                column("result", "") {
+                    val isCrashed = it.value.status == ExecutionStatus.ERROR
+                    val color = if (isCrashed || it.value.failedTests > 0L) "text-danger" else "text-success"
+                    val icon = if (isCrashed || it.value.failedTests > 0L) "exclamation-triangle" else "check"
                     td {
                         a(href = getHrefToExecution(it.value.id)) {
-                            +"${it.row.index + 1}"
+                            fontAwesomeIcon(icon, classes = color)
                         }
                     }
                 }
