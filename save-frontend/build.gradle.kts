@@ -8,7 +8,6 @@ kotlin {
         browser {
             repositories {
                 mavenCentral()
-                maven("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/kotlin-js-wrappers/")
             }
         }
         binaries.executable()  // already default for LEGACY, but explicitly needed for IR
@@ -36,10 +35,10 @@ kotlin {
             implementation(npm("@fortawesome/fontawesome-svg-core", "1.2.35"))
             implementation(npm("@fortawesome/free-solid-svg-icons", "5.15.3"))
             implementation(npm("@fortawesome/react-fontawesome", "0.1.14"))
-            implementation("org.jetbrains:kotlin-react:${Versions.kotlinReact}")
-            implementation("org.jetbrains:kotlin-react-dom:${Versions.kotlinReact}")
-            implementation("org.jetbrains:kotlin-react-router-dom:5.2.0${Versions.kotlinJsWrappersSuffix}")
-            implementation("org.jetbrains:kotlin-react-table:7.7.0${Versions.kotlinJsWrappersSuffix}")
+            implementation("org.jetbrains.kotlin-wrappers:kotlin-react:${Versions.kotlinReact}")
+            implementation("org.jetbrains.kotlin-wrappers:kotlin-react-dom:${Versions.kotlinReact}")
+            implementation("org.jetbrains.kotlin-wrappers:kotlin-react-router-dom:5.2.0${Versions.kotlinJsWrappersSuffix}")
+            implementation("org.jetbrains.kotlin-wrappers:kotlin-react-table:7.7.0${Versions.kotlinJsWrappersSuffix}")
             implementation(npm("jquery", "3.5.1"))
             implementation(npm("popper.js", "1.16.1"))  // peer dependency for bootstrap
             implementation(npm("bootstrap", "4.6.0"))
