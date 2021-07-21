@@ -100,8 +100,7 @@ fun <D : Any> tableComponent(columns: Array<out Column<D, *>>,
     useEffect(emptyList()) {
         if (useServerPaging) {
             val pageCountDeferred = GlobalScope.async {
-                getPageCount!!.invoke(tableInstance.state.pageSize).also {
-                }
+                getPageCount!!.invoke(tableInstance.state.pageSize)
             }
             pageCountDeferred.invokeOnCompletion {
                 setPageCount(pageCountDeferred.getCompleted())

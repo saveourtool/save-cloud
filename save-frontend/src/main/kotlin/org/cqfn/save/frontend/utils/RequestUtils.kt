@@ -12,6 +12,8 @@ import org.w3c.fetch.Response
 
 import kotlinx.browser.window
 import kotlinx.coroutines.await
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
 
 /**
  * Perform a mapping operation on a [Response] if it's status is OK or throw an exception otherwise.
@@ -25,6 +27,11 @@ suspend fun <T> Response.unsafeMap(map: suspend (Response) -> T) = if (this.ok) 
 } else {
     error("$status $statusText")
 }
+
+/**
+ * Read [this] Response body as text and deserialize it using [Json] as type [T]
+ */
+suspend inline fun <reified T> Response.decodeFromJsonString() = Json.decodeFromString<T>(text().await())
 
 /**
  * Perform GET request.
@@ -73,7 +80,7 @@ suspend fun request(url: String,
  * @param owner
  */
 suspend fun getProject(name: String, owner: String) =
-        get("${window.location.origin}/getProject?name=$name&owner=$owner", Headers())
-            .json()
-            .await()
-            .unsafeCast<Project>()
+        get("${window.location.origin}/getProject?name=$name&owner=$owner", Headers().apply {
+            set("Accept", "application/json")
+        })
+            .decodeFromJsonString<Project>()

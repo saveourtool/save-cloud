@@ -16,7 +16,9 @@ import org.cqfn.save.frontend.components.views.HistoryView
 import org.cqfn.save.frontend.components.views.ProjectExecutionRouteProps
 import org.cqfn.save.frontend.components.views.ProjectView
 import org.cqfn.save.frontend.externals.fontawesome.faAngleUp
+import org.cqfn.save.frontend.externals.fontawesome.faCheck
 import org.cqfn.save.frontend.externals.fontawesome.faCogs
+import org.cqfn.save.frontend.externals.fontawesome.faExclamationTriangle
 import org.cqfn.save.frontend.externals.fontawesome.faSignOutAlt
 import org.cqfn.save.frontend.externals.fontawesome.faUser
 import org.cqfn.save.frontend.externals.fontawesome.fas
@@ -37,8 +39,6 @@ import react.router.dom.switch
 
 import kotlinx.browser.document
 import kotlinx.html.id
-import org.cqfn.save.frontend.externals.fontawesome.faCheck
-import org.cqfn.save.frontend.externals.fontawesome.faExclamationTriangle
 
 /**
  * Top-level state of the whole App

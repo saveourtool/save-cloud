@@ -5,7 +5,10 @@
 package org.cqfn.save.frontend.components.views
 
 import org.cqfn.save.execution.ExecutionDto
+import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.frontend.components.tables.tableComponent
+import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
+import org.cqfn.save.frontend.utils.decodeFromJsonString
 import org.cqfn.save.frontend.utils.get
 import org.cqfn.save.frontend.utils.unsafeMap
 
@@ -21,9 +24,6 @@ import react.table.columns
 
 import kotlinx.browser.window
 import kotlinx.datetime.Instant
-import org.cqfn.save.execution.ExecutionStatus
-import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
-import org.cqfn.save.frontend.utils.decodeFromJsonString
 
 /**
  * [RProps] for tests execution history
@@ -44,7 +44,11 @@ external interface HistoryProps : RProps {
  * A table to display execution results for a certain project.
  */
 class HistoryView : RComponent<HistoryProps, RState>() {
-    @Suppress("TOO_LONG_FUNCTION", "ForbiddenComment", "LongMethod")
+    @Suppress(
+        "TOO_LONG_FUNCTION",
+        "MAGIC_NUMBER",
+        "ForbiddenComment",
+        "LongMethod")
     override fun RBuilder.render() {
         child(tableComponent(
             columns = columns {
@@ -108,9 +112,7 @@ class HistoryView : RComponent<HistoryProps, RState>() {
                 },
             )
                 .unsafeMap {
-                    it.json()
-                        .await()
-                        .unsafeCast<Array<ExecutionDto>>()
+                    it.decodeFromJsonString<Array<ExecutionDto>>()
                 }
         }
         ) {

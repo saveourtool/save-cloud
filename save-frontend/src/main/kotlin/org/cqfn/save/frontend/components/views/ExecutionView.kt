@@ -7,6 +7,7 @@ package org.cqfn.save.frontend.components.views
 import org.cqfn.save.agent.TestExecutionDto
 import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.frontend.components.tables.tableComponent
+import org.cqfn.save.frontend.utils.decodeFromJsonString
 import org.cqfn.save.frontend.utils.get
 import org.cqfn.save.frontend.utils.unsafeMap
 
@@ -63,9 +64,7 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
         GlobalScope.launch {
             val headers = Headers().also { it.set("Accept", "application/json") }
             val executionDtoFromBackend: ExecutionDto = get("${window.location.origin}/executionDto?executionId=${props.executionId}", headers)
-                .json()
-                .await()
-                .unsafeCast<ExecutionDto>()
+                .decodeFromJsonString<ExecutionDto>()
             setState { executionDto = executionDtoFromBackend }
         }
     }
