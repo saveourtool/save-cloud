@@ -13,6 +13,7 @@ import react.RProps
 import react.RState
 import react.dom.RDOMBuilder
 import react.dom.a
+import react.dom.attrs
 import react.dom.button
 import react.dom.div
 import react.dom.img
