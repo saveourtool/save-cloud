@@ -3,6 +3,7 @@ package org.cqfn.save.backend.repository
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.Project
 import org.springframework.stereotype.Repository
+import java.util.Optional
 
 /**
  * Repository of execution
@@ -23,7 +24,7 @@ interface ExecutionRepository : BaseEntityRepository<Execution> {
      * @param owner owner of project
      * @return execution or null if it was not found
      */
-    fun findTopByProjectNameAndProjectOwnerOrderByStartTimeDesc(name: String, owner: String): Execution?
+    fun findTopByProjectNameAndProjectOwnerOrderByStartTimeDesc(name: String, owner: String): Optional<Execution>
 
     /**
      * @param project to find execution
