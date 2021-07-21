@@ -260,7 +260,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
         runErrorModal(state.isErrorOpen, state.errorLabel, state.errorMessage) {
             setState { isErrorOpen = false }
         }
-        // runLoadingModal()
+        runLoadingModal()
         // Page Heading
         div("d-sm-flex align-items-center justify-content-between mb-4") {
             h1("h3 mb-0 text-gray-800") {
@@ -448,7 +448,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                             state.sdk.forEach { sdkItem ->
                                 button(
                                     type = ButtonType.button,
-                                    classes = "btn btn-primary btn-icon-split btn-sm ml-1 mb-1"
+                                    classes = "btn btn-success btn-icon-split btn-sm ml-1 mb-1"
                                 ) {
                                     span("icon text-white-50") {
                                         i("fas fa-flag") {}
@@ -472,7 +472,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                             .forEach { sdkItem ->
                                 button(
                                     type = ButtonType.button,
-                                    classes = "btn btn-primary btn-icon-split btn-sm ml-1 mb-1"
+                                    classes = "btn btn-secondary btn-icon-split btn-sm ml-1 mb-1"
                                 ) {
                                     span("icon text-white-50") {
                                         i("fas fa-flag") {}
