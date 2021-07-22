@@ -13,6 +13,7 @@ import org.cqfn.save.testsuite.TestSuiteDto
 import org.cqfn.save.testsuite.TestSuiteType
 
 import okio.ExperimentalFileSystem
+import okio.FileSystem
 import okio.Path.Companion.toPath
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -31,7 +32,7 @@ class TestDiscoveringService {
      */
     @OptIn(ExperimentalFileSystem::class)
     fun getRootTestConfig(testResourcesRootAbsolutePath: String): TestConfig =
-            ConfigDetector().configFromFile(testResourcesRootAbsolutePath.toPath()).apply {
+            ConfigDetector(FileSystem.SYSTEM).configFromFile(testResourcesRootAbsolutePath.toPath()).apply {
                 getAllTestConfigs().onEach {
                     it.processInPlace()
                 }
