@@ -28,6 +28,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import okio.ExperimentalFileSystem
+import okio.FileSystem
 import okio.Path.Companion.toPath
 
 import kotlin.native.concurrent.AtomicLong
@@ -154,7 +155,7 @@ class SaveAgent(private val config: AgentConfiguration,
         logsSendingJob.join()
     }
 
-    private fun runSave(cliArgs: String): ExecutionResult = ProcessBuilder(true)
+    private fun runSave(cliArgs: String): ExecutionResult = ProcessBuilder(true, FileSystem.SYSTEM)
         .exec(config.cliCommand.let { if (cliArgs.isNotEmpty()) "$it $cliArgs" else it }, logFilePath.toPath())
 
     @Suppress("TOO_MANY_LINES_IN_LAMBDA")
