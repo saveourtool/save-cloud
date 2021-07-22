@@ -4,6 +4,8 @@
 
 package org.cqfn.save.domain
 
+import kotlinx.serialization.Serializable
+
 /**
  * @property name name of the SDK
  * @property version
