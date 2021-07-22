@@ -6,7 +6,7 @@ package org.cqfn.save.domain
 
 import kotlinx.serialization.Serializable
 
-val sdks = listOf("Default", "Java", "Python")
+val sdks = listOf("Default", Jdk.NAME, Python.NAME)
 
 /**
  * @property name name of the SDK
@@ -27,6 +27,7 @@ open class Sdk(val name: String, open val version: String) {
  */
 class Jdk(override val version: String) : Sdk("openjdk", version) {
     companion object {
+        const val NAME = "Java"
         val versions = listOf("8", "9", "10", "11", "12", "13", "14", "15", "16")
     }
 }
@@ -36,6 +37,7 @@ class Jdk(override val version: String) : Sdk("openjdk", version) {
  */
 class Python(override val version: String) : Sdk("python", version) {
     companion object {
+        const val NAME = "Python"
         val versions = listOf("2.7", "3.2", "3.3", "3.4", "3.5", "3.6", "3.7", "3.8", "3.9")
     }
 }
@@ -50,8 +52,8 @@ fun String.toSdk(): Sdk {
     require(splitSdk.size == 2) { "Cant find correct sdk and version" }
     val (sdkType, sdkVersion) = splitSdk.run { this.first() to this.last() }
     return when (sdkType) {
-        "Java" -> Jdk(sdkVersion)
-        "Python" -> Python(sdkVersion)
+        Jdk.NAME -> Jdk(sdkVersion)
+        Python.NAME -> Python(sdkVersion)
         else -> Sdk.Default
     }
 }
@@ -61,7 +63,7 @@ fun String.toSdk(): Sdk {
  */
 fun String.getSdkVersion(): List<String> =
         when (this) {
-            "Java" -> Jdk.versions
-            "Python" -> Python.versions
+            Jdk.NAME -> Jdk.versions
+            Python.NAME -> Python.versions
             else -> listOf("latest")
         }
