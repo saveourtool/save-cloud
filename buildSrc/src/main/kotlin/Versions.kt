@@ -35,6 +35,6 @@ object Versions {
 
     // frontend
     const val react = "17.0.2"
-    const val kotlinJsWrappersSuffix = "-pre.204-kotlin-1.5.0"
+    const val kotlinJsWrappersSuffix = "-pre.221-kotlin-1.5.21"
     const val kotlinReact = "$react$kotlinJsWrappersSuffix"
 }
