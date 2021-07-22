@@ -6,6 +6,8 @@ package org.cqfn.save.domain
 
 import kotlinx.serialization.Serializable
 
+val sdks = listOf("Default", "Java", "Python")
+
 /**
  * @property name name of the SDK
  * @property version
@@ -18,10 +20,6 @@ open class Sdk(val name: String, open val version: String) {
     object Default : Sdk("ubuntu", "latest")
 
     override fun toString() = "$name:$version"
-
-    companion object {
-        val sdks = listOf("Default", "Java", "Python")
-    }
 }
 
 /**

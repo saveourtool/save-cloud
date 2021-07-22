@@ -4,8 +4,8 @@
 
 package org.cqfn.save.frontend.components.views
 
-import org.cqfn.save.domain.Sdk
 import org.cqfn.save.domain.getSdkVersion
+import org.cqfn.save.domain.sdks
 import org.cqfn.save.domain.toSdk
 import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.ExecutionRequestForStandardSuites
@@ -135,7 +135,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
 
     private var numberOpenningCard: Int = 1  // 1 - first card, 2 - second card, 3 - none card was opened
     private var project = Project("stub", "stub", "stub", "stub")
-    private val allSdks = Sdk.sdks
+    private val allSdks = sdks
     private lateinit var responseFromExecutionRequest: Response
 
     init {

@@ -80,6 +80,7 @@ class TestDiscoveringServiceTest {
                 createTestSuiteStub("smoke tests", 1),
                 createTestSuiteStub("autofix", 2),
                 createTestSuiteStub("DocsCheck", 3),
+                createTestSuiteStub("autofix and warn", 4),
             )
         )
 
