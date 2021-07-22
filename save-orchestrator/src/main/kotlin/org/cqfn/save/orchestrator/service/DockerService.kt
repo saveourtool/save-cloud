@@ -124,10 +124,7 @@ class DockerService(private val configProperties: ConfigProperties) {
             ClassPathResource(SAVE_CLI_EXECUTABLE_NAME).inputStream,
             File(resourcesPath, SAVE_CLI_EXECUTABLE_NAME)
         )
-        val baseImage = execution
-            .sdk
-            .split(";")
-            .joinToString("\n") { "FROM $it" }
+        val baseImage = execution.sdk
         val imageId = containerManager.buildImageWithResources(
             baseImage = baseImage,
             imageName = "save-execution:${execution.id}",

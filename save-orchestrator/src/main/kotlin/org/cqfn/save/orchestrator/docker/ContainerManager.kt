@@ -107,7 +107,7 @@ class ContainerManager(private val dockerHost: String) {
      * @throws DockerException
      */
     @OptIn(ExperimentalPathApi::class)
-    internal fun buildImageWithResources(baseImage: String = "FROM ubuntu:latest",
+    internal fun buildImageWithResources(baseImage: String = "ubuntu:latest",
                                          imageName: String,
                                          baseDir: File,
                                          resourcesPath: String,
@@ -117,7 +117,7 @@ class ContainerManager(private val dockerHost: String) {
         baseDir.copyRecursively(File(tmpDir, "resources"))
         val dockerFileAsText =
                 """
-                    |$baseImage
+                    |FROM $baseImage
                     |COPY resources $resourcesPath
                     |$runCmd
                 """.trimMargin()

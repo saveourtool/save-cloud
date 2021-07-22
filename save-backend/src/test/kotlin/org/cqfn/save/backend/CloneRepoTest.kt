@@ -40,7 +40,7 @@ class CloneRepoTest {
 
     @Test
     fun checkSaveProject() {
-        val sdk = listOf(Jdk("8"))
+        val sdk = Jdk("8")
         mockServerPreprocessor.enqueue(
             MockResponse()
                 .setResponseCode(202)
@@ -57,25 +57,19 @@ class CloneRepoTest {
             .exchange()
             .expectStatus()
             .isEqualTo(HttpStatus.ACCEPTED)
-        executionRepository.findAll().forEach {
-            println(it.project.name)
-            println(it.project.owner)
-            println(it.type)
-            println(it.sdk)
-        }
         Assertions.assertTrue(
             executionRepository.findAll().any {
                 it.project.name == project.name &&
                         it.project.owner == project.owner &&
                         it.type == ExecutionType.GIT &&
-                        it.sdk == sdk.first().toString()
+                        it.sdk == sdk.toString()
             }
         )
     }
 
     @Test
     fun checkNonExistingProject() {
-        val sdk = listOf(Jdk("11"))
+        val sdk = Jdk("11")
         val project = Project("noname", "1", "1", "1")
         val gitRepo = GitDto("1")
         val executionRequest = ExecutionRequest(project, gitRepo, executionId = null, sdk = sdk)

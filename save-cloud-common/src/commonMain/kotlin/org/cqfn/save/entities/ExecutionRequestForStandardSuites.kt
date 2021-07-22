@@ -13,5 +13,5 @@ import kotlinx.serialization.Serializable
 data class ExecutionRequestForStandardSuites(
     val project: Project,
     val testsSuites: List<String>,
-    val sdk: List<Sdk>,
+    val sdk: Sdk,
 )

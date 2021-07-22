@@ -84,7 +84,7 @@ class CloningRepositoryControllerTest {
         Mockito
             .`when`(projectService.getProjectByNameAndOwner("huaweiName", "Huawei"))
             .thenReturn(project)
-        val sdk = listOf(Jdk("8"))
+        val sdk = Jdk("8")
         val gitRepo = GitDto("1")
         val executionRequest = ExecutionRequest(project, gitRepo, sdk = sdk, executionId = null)
         webTestClient.post()
@@ -111,7 +111,7 @@ class CloningRepositoryControllerTest {
         given(property.headers()).willReturn(HttpHeaders())
 
         val project = Project("Huawei", "huaweiName", "huawei.com", "test description")
-        val sdk = listOf(Jdk("8"))
+        val sdk = Jdk("8")
         val request = ExecutionRequestForStandardSuites(project, emptyList(), sdk)
         val bodyBuilder = MultipartBodyBuilder()
         bodyBuilder.part("execution", request)

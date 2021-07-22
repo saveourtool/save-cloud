@@ -18,6 +18,6 @@ data class ExecutionRequest(
     val project: Project,
     val gitDto: GitDto,
     val propertiesRelativePath: String = "save.properties",
-    val sdk: List<Sdk>,
+    val sdk: Sdk,
     var executionId: Long?,
 )

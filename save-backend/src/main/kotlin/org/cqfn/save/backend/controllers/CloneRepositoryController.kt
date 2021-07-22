@@ -104,10 +104,9 @@ class CloneRepositoryController(
         } ?: return Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Project doesn't exist"))
     }
 
-    private fun saveExecution(project: Project, type: ExecutionType, sdk: List<Sdk>): Long {
-        val sdks = sdk.joinToString(";") { it.toString() }
+    private fun saveExecution(project: Project, type: ExecutionType, sdk: Sdk): Long {
         val execution = Execution(project, LocalDateTime.now(), null, ExecutionStatus.PENDING, null,
-            null, 0, null, type, null, 0, 0, 0, sdks)
+            null, 0, null, type, null, 0, 0, 0, sdk.toString())
         log.info("Creating a new execution id=${execution.id} for project id=${project.id}")
         return executionService.saveExecution(execution)
     }

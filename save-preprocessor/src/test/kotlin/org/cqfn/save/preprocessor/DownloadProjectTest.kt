@@ -86,7 +86,7 @@ class DownloadProjectTest(
             "foo", 0, 20, ExecutionType.GIT, "0.0.1", 0, 0, 0, Sdk.Default.toString()).apply {
             id = 97L
         }
-        val request = ExecutionRequest(project, wrongRepo, sdk = listOf(Sdk.Default), executionId = execution.id)
+        val request = ExecutionRequest(project, wrongRepo, sdk = Sdk.Default, executionId = execution.id)
         webClient.post()
             .uri("/upload")
             .contentType(MediaType.APPLICATION_JSON)
@@ -112,7 +112,7 @@ class DownloadProjectTest(
             id = 99L
         }
         val validRepo = GitDto("https://github.com/cqfn/save.git")
-        val request = ExecutionRequest(project, validRepo, "examples/kotlin-diktat/save.properties", listOf(Sdk.Default), execution.id)
+        val request = ExecutionRequest(project, validRepo, "examples/kotlin-diktat/save.properties", Sdk.Default, execution.id)
         // /createExecution
         mockServerBackend.enqueue(
             MockResponse()
@@ -174,7 +174,7 @@ class DownloadProjectTest(
             "foo", 0, 20, ExecutionType.GIT, "0.0.1", 0, 0, 0, Sdk.Default.toString()).apply {
             id = 98L
         }
-        val request = ExecutionRequestForStandardSuites(project, emptyList(), listOf(Sdk.Default))
+        val request = ExecutionRequestForStandardSuites(project, emptyList(), Sdk.Default)
         val bodyBuilder = MultipartBodyBuilder()
         bodyBuilder.part("executionRequestForStandardSuites", request)
         bodyBuilder.part("property", FileSystemResource(property))
