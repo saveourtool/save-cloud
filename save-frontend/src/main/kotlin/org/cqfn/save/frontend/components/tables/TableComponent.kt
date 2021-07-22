@@ -104,7 +104,7 @@ fun <D : Any> tableComponent(columns: Array<out Column<D, *>>,
             .unsafeCast<TableState<D>>()
     }, plugins = arrayOf(useSortBy, usePagination))
 
-    useEffect(emptyList()) {
+    useEffect(emptyList<dynamic>()) {
         if (useServerPaging) {
             val pageCountDeferred = GlobalScope.async {
                 getPageCount!!.invoke(tableInstance.state.pageSize)
