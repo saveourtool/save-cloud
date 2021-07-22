@@ -29,7 +29,7 @@ open class Sdk(val name: String, open val version: String) {
  */
 class Jdk(override val version: String) : Sdk("openjdk", version) {
     companion object {
-        val versions = listOf("8", "11")
+        val versions = listOf("8", "9", "10", "11", "12", "13", "14", "15", "16")
     }
 }
 
@@ -38,7 +38,7 @@ class Jdk(override val version: String) : Sdk("openjdk", version) {
  */
 class Python(override val version: String) : Sdk("python", version) {
     companion object {
-        val versions = listOf("2.7", "3.7")
+        val versions = listOf("2.7", "3.2", "3.3", "3.4", "3.5", "3.6", "3.7", "3.8", "3.9")
     }
 }
 
@@ -48,7 +48,7 @@ class Python(override val version: String) : Sdk("python", version) {
  * @return sdk by string
  */
 fun String.toSdk(): Sdk {
-    val splitSdk = this.split("$")
+    val splitSdk = this.split(":")
     require(splitSdk.size == 2) { "Cant find correct sdk and version" }
     val (sdkType, sdkVersion) = splitSdk.run { this.first() to this.last() }
     return when (sdkType) {

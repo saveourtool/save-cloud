@@ -114,7 +114,7 @@ external interface ProjectViewState : RState {
     /**
      * Selected version
      */
-    var selectedVersion: String
+    var selectedSdkVersion: String
 }
 
 /**
@@ -146,7 +146,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
         state.isLoading = true
 
         state.selectedSdk = "Default"
-        state.selectedVersion = "latest"
+        state.selectedSdkVersion = "latest"
     }
 
     override fun componentDidMount() {
@@ -217,7 +217,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
     private fun submitExecutionRequestBinFile() {
         val headers = Headers()
         val formData = FormData()
-        val selectedSdk = "${state.selectedSdk}\$${state.selectedVersion}".toSdk()
+        val selectedSdk = "${state.selectedSdk}:${state.selectedSdkVersion}".toSdk()
         val request = ExecutionRequestForStandardSuites(project, selectedTypes, selectedSdk)
         formData.append("execution", Blob(arrayOf(JSON.stringify(request)), BlobPropertyBag("application/json")))
         formData.append("property", state.propertyFile!!)
@@ -226,7 +226,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
     }
 
     private fun submitExecutionRequestGit(correctGitDto: GitDto) {
-        val selectedSdk = "${state.selectedSdk}\$${state.selectedVersion}".toSdk()
+        val selectedSdk = "${state.selectedSdk}:${state.selectedSdkVersion}".toSdk()
         val executionRequest = pathToProperty?.let {
             ExecutionRequest(
                 project,
@@ -467,7 +467,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                                         val target = it.target as HTMLSelectElement
                                         setState {
                                             selectedSdk = target.value
-                                            selectedVersion = selectedSdk.getSdkVersion().first()
+                                            selectedSdkVersion = selectedSdk.getSdkVersion().first()
                                         }
                                     }
                                     allSdks.forEach {
@@ -489,10 +489,10 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                             }
                             div("d-inline-block ml-2") {
                                 select("form-select form-select-sm mb-3") {
-                                    attrs.value = state.selectedVersion
+                                    attrs.value = state.selectedSdkVersion
                                     attrs.onChangeFunction = {
                                         val target = it.target as HTMLSelectElement
-                                        setState { selectedVersion = target.value }
+                                        setState { selectedSdkVersion = target.value }
                                     }
                                     state.selectedSdk.getSdkVersion().forEach {
                                         option {
