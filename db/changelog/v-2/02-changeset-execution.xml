@@ -10,7 +10,7 @@
             <tableExists tableName="execution"/>
         </preConditions>
         <addColumn tableName="execution">
-            <column name="sdk" type="varchar(255)">
+            <column name="sdk" type="varchar(255)" defaultValue="ubuntu:latest">
                 <constraints nullable="false" />
             </column>
         </addColumn>
