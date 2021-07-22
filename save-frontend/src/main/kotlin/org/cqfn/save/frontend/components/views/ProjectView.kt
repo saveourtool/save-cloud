@@ -14,6 +14,7 @@ import org.cqfn.save.entities.Project
 import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.frontend.components.basic.cardComponent
 import org.cqfn.save.frontend.externals.modal.modal
+import org.cqfn.save.frontend.utils.decodeFromJsonString
 import org.cqfn.save.frontend.utils.get
 import org.cqfn.save.frontend.utils.getProject
 import org.cqfn.save.frontend.utils.post
@@ -34,6 +35,7 @@ import react.RProps
 import react.RState
 import react.child
 import react.dom.a
+import react.dom.attrs
 import react.dom.button
 import react.dom.defaultValue
 import react.dom.div
@@ -52,7 +54,6 @@ import react.setState
 
 import kotlinx.browser.window
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
 import kotlinx.html.ButtonType
 import kotlinx.html.InputType
@@ -62,6 +63,8 @@ import kotlinx.html.id
 import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
 import kotlinx.html.role
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 /**
  * [RProps] retrieved from router
@@ -152,15 +155,13 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
     override fun componentDidMount() {
         GlobalScope.launch {
             project = getProject(props.name, props.owner)
-            val jsonProject = JSON.stringify(project)
+            val jsonProject = Json.encodeToString(project)
             val headers = Headers().also {
                 it.set("Accept", "application/json")
                 it.set("Content-Type", "application/json")
             }
             gitDto = post("${window.location.origin}/getGit", headers, jsonProject)
-                .json()
-                .await()
-                .unsafeCast<GitDto>()
+                .decodeFromJsonString<GitDto>()
             setState { isLoading = false }
         }
     }
@@ -541,9 +542,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                                     }
                                 } else {
                                     val latestExecutionId = response
-                                        .json()
-                                        .await()
-                                        .unsafeCast<ExecutionDto>()
+                                        .decodeFromJsonString<ExecutionDto>()
                                         .id
                                     window.location.href = "${window.location}/history/$latestExecutionId"
                                 }

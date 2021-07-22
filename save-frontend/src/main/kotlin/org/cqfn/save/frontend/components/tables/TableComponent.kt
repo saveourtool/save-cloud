@@ -7,7 +7,6 @@
 package org.cqfn.save.frontend.components.tables
 
 import org.cqfn.save.frontend.components.modal.errorModal
-import org.cqfn.save.frontend.utils.get
 import org.cqfn.save.frontend.utils.spread
 
 import kotlinext.js.jsObject
@@ -24,7 +23,9 @@ import react.dom.thead
 import react.dom.tr
 import react.functionalComponent
 import react.table.Column
+import react.table.Row
 import react.table.TableInstance
+import react.table.TableRowProps
 import react.table.TableState
 import react.table.usePagination
 import react.table.useSortBy
@@ -57,19 +58,25 @@ external interface TableProps : RProps {
  * @param columns columns as an array of [Column]
  * @param getData a function to retrieve data for the table, returns an array of data of type [out D] that will be inserted into the table
  * @param initialPageSize initial size of table page
+ * @param getRowProps a function returning `TableRowProps` for customization of table row, defaults to empty
  * @param useServerPaging whether data is split into pages server-side or in browser
  * @param getPageCount a function to retrieve number of pages of data, is [useServerPaging] is `true`
  * @return a functional react component
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 @Suppress("TOO_LONG_FUNCTION",
+    "TOO_MANY_PARAMETERS",
     "TYPE_ALIAS",
+    // https://github.com/cqfn/diKTat/issues/992
+    "LAMBDA_IS_NOT_LAST_PARAMETER",
     "ForbiddenComment",
     "LongMethod",
+    "LongParameterList",
     "TooGenericExceptionCaught")
 fun <D : Any> tableComponent(columns: Array<out Column<D, *>>,
                              initialPageSize: Int = 10,
                              useServerPaging: Boolean = false,
+                             getRowProps: ((Row<D>) -> TableRowProps) = { jsObject() },
                              getPageCount: (suspend (pageSize: Int) -> Int)? = null,
                              getData: suspend (pageIndex: Int, pageSize: Int) -> Array<out D>,
 ) = functionalComponent<TableProps> { props ->
@@ -98,11 +105,13 @@ fun <D : Any> tableComponent(columns: Array<out Column<D, *>>,
     }, plugins = arrayOf(useSortBy, usePagination))
 
     useEffect(emptyList()) {
-        val pageCountDeferred = GlobalScope.async {
-            getPageCount!!.invoke(tableInstance.state.pageSize)
-        }
-        pageCountDeferred.invokeOnCompletion {
-            setPageCount(pageCountDeferred.getCompleted())
+        if (useServerPaging) {
+            val pageCountDeferred = GlobalScope.async {
+                getPageCount!!.invoke(tableInstance.state.pageSize)
+            }
+            pageCountDeferred.invokeOnCompletion {
+                setPageCount(pageCountDeferred.getCompleted())
+            }
         }
     }
 
@@ -162,7 +171,7 @@ fun <D : Any> tableComponent(columns: Array<out Column<D, *>>,
                         tableInstance.page.map { row ->
                             tableInstance.prepareRow(row)
                             tr {
-                                spread(row.getRowProps())
+                                spread(row.getRowProps(getRowProps(row)))
                                 row.cells.map { cell ->
                                     // fixme: userProps are not present in actual html, but .render("Cell") produces td, so can't wrap
                                     child(cell.render("Cell", userProps = json().apply {

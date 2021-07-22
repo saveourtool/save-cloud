@@ -12,3 +12,5 @@ external val faUser: dynamic
 external val faCogs: dynamic
 external val faSignOutAlt: dynamic
 external val faAngleUp: dynamic
+external val faCheck: dynamic
+external val faExclamationTriangle: dynamic

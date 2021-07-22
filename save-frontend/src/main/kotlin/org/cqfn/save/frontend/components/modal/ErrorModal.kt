@@ -9,6 +9,7 @@ import org.cqfn.save.frontend.externals.modal.modal
 
 import react.RBuilder
 import react.RHandler
+import react.dom.attrs
 import react.dom.button
 import react.dom.div
 import react.dom.h5

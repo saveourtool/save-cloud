@@ -2,6 +2,7 @@ package org.cqfn.save.frontend.components.views
 
 import org.cqfn.save.entities.Project
 import org.cqfn.save.frontend.components.tables.tableComponent
+import org.cqfn.save.frontend.utils.decodeFromJsonString
 import org.cqfn.save.frontend.utils.get
 import org.cqfn.save.frontend.utils.unsafeMap
 
@@ -18,7 +19,6 @@ import react.dom.td
 import react.table.columns
 
 import kotlinx.browser.window
-import kotlinx.coroutines.await
 import kotlinx.html.ButtonType
 
 /**
@@ -68,9 +68,7 @@ class CollectionView : RComponent<RProps, RState>() {
                 },
             )
                 .unsafeMap {
-                    it.json()
-                        .await()
-                        .unsafeCast<Array<Project>>()
+                    it.decodeFromJsonString<Array<Project>>()
                 }
         }) { }
     }

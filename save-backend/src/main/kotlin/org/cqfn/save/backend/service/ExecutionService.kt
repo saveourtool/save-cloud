@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
 
 import java.time.LocalDateTime
+import java.util.Optional
 
 /**
  * Service that is used to manipulate executions
@@ -79,7 +80,7 @@ class ExecutionService(private val executionRepository: ExecutionRepository) {
      * @param owner owner of project
      * @return execution or null if it was not found
      */
-    fun getLatestExecutionByProjectNameAndProjectOwner(name: String, owner: String): Execution? =
+    fun getLatestExecutionByProjectNameAndProjectOwner(name: String, owner: String): Optional<Execution> =
             executionRepository.findTopByProjectNameAndProjectOwnerOrderByStartTimeDesc(name, owner)
 
     /**
