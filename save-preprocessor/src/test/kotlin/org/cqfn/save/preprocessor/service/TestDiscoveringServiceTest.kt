@@ -80,11 +80,12 @@ class TestDiscoveringServiceTest {
                 createTestSuiteStub("smoke tests", 1),
                 createTestSuiteStub("autofix", 2),
                 createTestSuiteStub("DocsCheck", 3),
+                createTestSuiteStub("autofix and warn", 4),
             )
         )
 
         println("Discovered the following tests: $testDtos")
-        Assertions.assertEquals(3, testDtos.size)
+        Assertions.assertEquals(4, testDtos.size)
         Assertions.assertEquals(testDtos.size, testDtos.map { it.hash }.distinct().size) {
             "Some tests have the same hash in $testDtos"
         }
