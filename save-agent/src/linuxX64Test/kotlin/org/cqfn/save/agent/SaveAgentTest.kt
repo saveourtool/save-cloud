@@ -21,7 +21,6 @@ import kotlin.test.assertEquals
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.properties.Properties
 import kotlinx.serialization.properties.decodeFromStringMap
 
@@ -32,12 +31,7 @@ class SaveAgentTest {
     }
     private val saveAgentForTest = SaveAgent(configuration, httpClient = HttpClient(MockEngine) {
         install(JsonFeature) {
-            serializer = KotlinxSerializer(Json {
-                serializersModule = SerializersModule {
-                    // for some reason for K/N it's needed explicitly, at least for ktor 1.5.1, kotlin 1.4.21
-                    contextual(HeartbeatResponse::class, HeartbeatResponse.serializer())
-                }
-            })
+            serializer = KotlinxSerializer()
         }
         engine {
             addHandler { request ->
