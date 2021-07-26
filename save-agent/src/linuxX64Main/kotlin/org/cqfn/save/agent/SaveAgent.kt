@@ -47,14 +47,7 @@ import kotlinx.serialization.json.Json
  */
 @OptIn(ExperimentalFileSystem::class)
 class SaveAgent(private val config: AgentConfiguration,
-                private val httpClient: HttpClient = HttpClient {
-                    install(JsonFeature) {
-                        serializer = KotlinxSerializer()
-                    }
-                    install(HttpTimeout) {
-                        requestTimeoutMillis = config.requestTimeoutMillis
-                    }
-                }
+                private val httpClient: HttpClient
 ) {
     private val logFilePath = "logs.txt"
 
