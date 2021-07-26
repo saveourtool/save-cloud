@@ -23,12 +23,14 @@ import kotlinx.serialization.properties.Properties
 import kotlinx.serialization.properties.decodeFromStringMap
 
 @ThreadLocal
-val json: Json = Json {
-    serializersModule = SerializersModule {
-        polymorphic(HeartbeatResponse::class) {
-            subclass(WaitResponse::class)
-            subclass(ContinueResponse::class)
-            subclass(NewJobResponse::class)
+object MyHttpClient {
+    val json: Json = Json {
+        serializersModule = SerializersModule {
+            polymorphic(HeartbeatResponse::class) {
+                subclass(WaitResponse::class)
+                subclass(ContinueResponse::class)
+                subclass(NewJobResponse::class)
+            }
         }
     }
 }
@@ -42,7 +44,7 @@ fun main() {
     logDebug("Instantiating save-agent version $SAVE_CLOUD_VERSION with config $config")
     val httpClient = HttpClient {
         install(JsonFeature) {
-            serializer = KotlinxSerializer(json)
+            serializer = KotlinxSerializer(MyHttpClient.json)
         }
         install(HttpTimeout) {
             requestTimeoutMillis = config.requestTimeoutMillis
