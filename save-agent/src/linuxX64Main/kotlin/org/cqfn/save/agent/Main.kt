@@ -16,16 +16,20 @@ import org.cqfn.save.core.logging.logDebug
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonConfiguration
-import kotlinx.serialization.modules.EmptySerializersModule
 import kotlinx.serialization.modules.SerializersModule
+import kotlinx.serialization.modules.polymorphic
+import kotlinx.serialization.modules.subclass
 import kotlinx.serialization.properties.Properties
 import kotlinx.serialization.properties.decodeFromStringMap
 
 @ThreadLocal
 val json: Json = Json {
     serializersModule = SerializersModule {
-        contextual(HeartbeatResponse::class, HeartbeatResponse.serializer())
+        polymorphic(HeartbeatResponse::class) {
+            subclass(WaitResponse::class)
+            subclass(ContinueResponse::class)
+            subclass(NewJobResponse::class)
+        }
     }
 }
 
