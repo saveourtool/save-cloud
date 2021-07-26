@@ -15,6 +15,8 @@ import org.cqfn.save.core.logging.logDebug
 
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.properties.Properties
 import kotlinx.serialization.properties.decodeFromStringMap
 
@@ -27,7 +29,11 @@ fun main() {
     logDebug("Instantiating save-agent version $SAVE_CLOUD_VERSION with config $config")
     val httpClient = HttpClient {
         install(JsonFeature) {
-            serializer = KotlinxSerializer()
+            serializer = KotlinxSerializer(Json {
+                serializersModule = SerializersModule {
+                    contextual(HeartbeatResponse::class, HeartbeatResponse.serializer())
+                }
+            })
         }
         install(HttpTimeout) {
             requestTimeoutMillis = config.requestTimeoutMillis
