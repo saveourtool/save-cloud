@@ -35,6 +35,7 @@ import react.RProps
 import react.RState
 import react.child
 import react.dom.a
+import react.dom.attrs
 import react.dom.button
 import react.dom.defaultValue
 import react.dom.div
