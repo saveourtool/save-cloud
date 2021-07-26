@@ -11,7 +11,7 @@ import org.w3c.dom.ScrollBehavior
 import org.w3c.dom.ScrollToOptions
 import react.RProps
 import react.dom.a
-import react.functionalComponent
+import react.fc
 import react.useEffect
 import react.useState
 
@@ -25,10 +25,10 @@ import kotlinx.html.js.onClickFunction
  * @return a functional component
  */
 @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
-fun scrollToTopButton() = functionalComponent<RProps> {
+fun scrollToTopButton() = fc<RProps> {
     val (isVisible, setIsVisible) = useState(false)
 
-    useEffect(emptyList()) {
+    useEffect(emptyList<dynamic>()) {
         document.addEventListener("scroll", callback = {
             setIsVisible(window.pageYOffset > 100)
         })

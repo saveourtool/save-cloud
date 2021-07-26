@@ -41,7 +41,6 @@ import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.modules.SerializersModule
 
 /**
  * A main class for SAVE Agent
@@ -50,12 +49,7 @@ import kotlinx.serialization.modules.SerializersModule
 class SaveAgent(private val config: AgentConfiguration,
                 private val httpClient: HttpClient = HttpClient {
                     install(JsonFeature) {
-                        serializer = KotlinxSerializer(Json {
-                            serializersModule = SerializersModule {
-                                // for some reason for K/N it's needed explicitly, at least for ktor 1.5.1, kotlin 1.4.21
-                                contextual(HeartbeatResponse::class, HeartbeatResponse.serializer())
-                            }
-                        })
+                        serializer = KotlinxSerializer()
                     }
                     install(HttpTimeout) {
                         requestTimeoutMillis = config.requestTimeoutMillis

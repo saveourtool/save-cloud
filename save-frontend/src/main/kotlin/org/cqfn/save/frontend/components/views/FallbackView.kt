@@ -1,5 +1,6 @@
 package org.cqfn.save.frontend.components.views
 
+import kotlinext.js.jsObject
 import react.RBuilder
 import react.RComponent
 import react.RProps
@@ -24,7 +25,7 @@ class FallbackView : RComponent<RProps, RState>() {
             p("lead text-gray-800 mb-5") {
                 +"Page not found"
             }
-            child(LinkComponent::class) {
+            child(type = LinkComponent, props = jsObject()) {
                 attrs.to = "/"
                 +"← Back to the main page"
             }

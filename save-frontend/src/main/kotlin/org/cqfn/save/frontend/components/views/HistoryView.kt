@@ -12,6 +12,7 @@ import org.cqfn.save.frontend.utils.decodeFromJsonString
 import org.cqfn.save.frontend.utils.get
 import org.cqfn.save.frontend.utils.unsafeMap
 
+import kotlinext.js.jsObject
 import org.w3c.fetch.Headers
 import react.RBuilder
 import react.RComponent
@@ -23,6 +24,7 @@ import react.dom.td
 import react.table.TableRowProps
 import react.table.columns
 
+import kotlin.js.json
 import kotlinx.browser.window
 import kotlinx.datetime.Instant
 
@@ -106,13 +108,10 @@ class HistoryView : RComponent<HistoryProps, RState>() {
             getRowProps = { row ->
                 val tmp = row.original
                 val isCrashed = tmp.status == ExecutionStatus.ERROR
-                // fixme: since kotlin-js-wrappers pre-210 `style` is mutable in TableRowProps, should use `jsObject<TableRowProps>` here
-                val props = if (isCrashed || tmp.failedTests > 0L) {
-                    js("({ style: { background: 'rgba(245, 50, 50, 0.1)' } })")
-                } else {
-                    js("({ style: { background: 'rgba(139, 237, 78, 0.1)' } })")
+                val color = if (isCrashed || tmp.failedTests > 0L) "rgba(245, 50, 50, 0.1)" else "rgba(139, 237, 78, 0.1)"
+                jsObject<TableRowProps> {
+                    style = json("background" to color)
                 }
-                props.unsafeCast<TableRowProps>()
             }
         ) { _, _ ->
             get(
