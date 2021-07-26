@@ -4,6 +4,9 @@
 
 package org.cqfn.save.frontend.components.views
 
+import org.cqfn.save.domain.getSdkVersion
+import org.cqfn.save.domain.sdks
+import org.cqfn.save.domain.toSdk
 import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.ExecutionRequestForStandardSuites
 import org.cqfn.save.entities.GitDto
@@ -18,6 +21,7 @@ import org.cqfn.save.frontend.utils.post
 import org.cqfn.save.frontend.utils.runErrorModal
 
 import org.w3c.dom.HTMLInputElement
+import org.w3c.dom.HTMLSelectElement
 import org.w3c.fetch.Headers
 import org.w3c.fetch.Response
 import org.w3c.files.Blob
@@ -36,11 +40,14 @@ import react.dom.button
 import react.dom.defaultValue
 import react.dom.div
 import react.dom.h1
+import react.dom.h5
 import react.dom.h6
 import react.dom.img
 import react.dom.input
 import react.dom.label
+import react.dom.option
 import react.dom.p
+import react.dom.select
 import react.dom.span
 import react.dom.strong
 import react.setState
@@ -101,6 +108,16 @@ external interface ProjectViewState : RState {
      * Flag to handle loading
      */
     var isLoading: Boolean
+
+    /**
+     * Selected sdk
+     */
+    var selectedSdk: String
+
+    /**
+     * Selected version
+     */
+    var selectedSdkVersion: String
 }
 
 /**
@@ -121,6 +138,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
 
     private var numberOpenningCard: Int = 1  // 1 - first card, 2 - second card, 3 - none card was opened
     private var project = Project("stub", "stub", "stub", "stub")
+    private val allSdks = sdks
     private lateinit var responseFromExecutionRequest: Response
 
     init {
@@ -129,6 +147,9 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
         state.errorLabel = ""
 
         state.isLoading = true
+
+        state.selectedSdk = "Default"
+        state.selectedSdkVersion = "latest"
     }
 
     override fun componentDidMount() {
@@ -197,7 +218,8 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
     private fun submitExecutionRequestBinFile() {
         val headers = Headers()
         val formData = FormData()
-        val request = ExecutionRequestForStandardSuites(project, selectedTypes)
+        val selectedSdk = "${state.selectedSdk}:${state.selectedSdkVersion}".toSdk()
+        val request = ExecutionRequestForStandardSuites(project, selectedTypes, selectedSdk)
         formData.append("execution", Blob(arrayOf(JSON.stringify(request)), BlobPropertyBag("application/json")))
         formData.append("property", state.propertyFile!!)
         formData.append("binFile", state.binaryFile!!)
@@ -205,7 +227,20 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
     }
 
     private fun submitExecutionRequestGit(correctGitDto: GitDto) {
-        val executionRequest = pathToProperty?.let { ExecutionRequest(project, correctGitDto, it, null) } ?: ExecutionRequest(project, correctGitDto, executionId = null)
+        val selectedSdk = "${state.selectedSdk}:${state.selectedSdkVersion}".toSdk()
+        val executionRequest = pathToProperty?.let {
+            ExecutionRequest(
+                project,
+                correctGitDto,
+                it,
+                selectedSdk,
+                null
+            )
+        } ?: ExecutionRequest(
+            project,
+            correctGitDto,
+            sdk = selectedSdk,
+            executionId = null)
         val jsonExecution = JSON.stringify(executionRequest)
         val headers = Headers().also {
             it.set("Accept", "application/json")
@@ -418,9 +453,64 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                             }
                         }
                     }
-                    button(type = ButtonType.button, classes = "btn btn-primary") {
-                        attrs.onClickFunction = { submitExecutionRequest() }
-                        +"Run tests now"
+
+                    div {
+                        div {
+                            div("d-inline-block") {
+                                h5 {
+                                    +"SDK:"
+                                }
+                            }
+                            div("d-inline-block ml-2") {
+                                select("form-control form-control mb-3") {
+                                    attrs.value = state.selectedSdk
+                                    attrs.onChangeFunction = {
+                                        val target = it.target as HTMLSelectElement
+                                        setState {
+                                            selectedSdk = target.value
+                                            selectedSdkVersion = selectedSdk.getSdkVersion().first()
+                                        }
+                                    }
+                                    allSdks.forEach {
+                                        option {
+                                            attrs.value = it
+                                            +it
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        div {
+                            attrs.classes = if (state.selectedSdk == "Default") setOf("d-none") else setOf()
+                            div("d-inline-block") {
+                                h6 {
+                                    +"Version:"
+                                }
+                            }
+                            div("d-inline-block ml-2") {
+                                select("form-select form-select-sm mb-3") {
+                                    attrs.value = state.selectedSdkVersion
+                                    attrs.onChangeFunction = {
+                                        val target = it.target as HTMLSelectElement
+                                        setState { selectedSdkVersion = target.value }
+                                    }
+                                    state.selectedSdk.getSdkVersion().forEach {
+                                        option {
+                                            attrs.value = it
+                                            +it
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    div {
+                        button(type = ButtonType.button, classes = "btn btn-primary") {
+                            attrs.onClickFunction = { submitExecutionRequest() }
+                            +"Run tests now"
+                        }
                     }
                 }
             }) {

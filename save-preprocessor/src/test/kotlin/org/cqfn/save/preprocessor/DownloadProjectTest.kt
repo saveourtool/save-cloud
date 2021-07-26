@@ -1,5 +1,6 @@
 package org.cqfn.save.preprocessor
 
+import org.cqfn.save.domain.Sdk
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.ExecutionRequestForStandardSuites
@@ -82,10 +83,10 @@ class DownloadProjectTest(
         val project = Project("owner", "someName", "wrongGit", "descr")
         val wrongRepo = GitDto("wrongGit")
         val execution = Execution(project, LocalDateTime.now(), LocalDateTime.now(), ExecutionStatus.PENDING, "1",
-            "foo", 0, 20, ExecutionType.GIT, "0.0.1", 0, 0, 0).apply {
+            "foo", 0, 20, ExecutionType.GIT, "0.0.1", 0, 0, 0, Sdk.Default.toString()).apply {
             id = 97L
         }
-        val request = ExecutionRequest(project, wrongRepo, executionId = execution.id)
+        val request = ExecutionRequest(project, wrongRepo, sdk = Sdk.Default, executionId = execution.id)
         webClient.post()
             .uri("/upload")
             .contentType(MediaType.APPLICATION_JSON)
@@ -107,11 +108,11 @@ class DownloadProjectTest(
             id = 42L
         }
         val execution = Execution(project, LocalDateTime.now(), LocalDateTime.now(), ExecutionStatus.PENDING, "1",
-            "foo", 0, 20, ExecutionType.GIT, "0.0.1", 0, 0, 0).apply {
+            "foo", 0, 20, ExecutionType.GIT, "0.0.1", 0, 0, 0, Sdk.Default.toString()).apply {
             id = 99L
         }
         val validRepo = GitDto("https://github.com/cqfn/save.git")
-        val request = ExecutionRequest(project, validRepo, "examples/kotlin-diktat/save.properties", execution.id)
+        val request = ExecutionRequest(project, validRepo, "examples/kotlin-diktat/save.properties", Sdk.Default, execution.id)
         // /createExecution
         mockServerBackend.enqueue(
             MockResponse()
@@ -170,10 +171,10 @@ class DownloadProjectTest(
             id = 42L
         }
         val execution = Execution(project, LocalDateTime.now(), LocalDateTime.now(), ExecutionStatus.PENDING, "1",
-            "foo", 0, 20, ExecutionType.GIT, "0.0.1", 0, 0, 0).apply {
+            "foo", 0, 20, ExecutionType.GIT, "0.0.1", 0, 0, 0, Sdk.Default.toString()).apply {
             id = 98L
         }
-        val request = ExecutionRequestForStandardSuites(project, emptyList())
+        val request = ExecutionRequestForStandardSuites(project, emptyList(), Sdk.Default)
         val bodyBuilder = MultipartBodyBuilder()
         bodyBuilder.part("executionRequestForStandardSuites", request)
         bodyBuilder.part("property", FileSystemResource(property))

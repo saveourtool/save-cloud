@@ -1,6 +1,7 @@
 package org.cqfn.save.orchestrator.controller.agents
 
 import org.cqfn.save.agent.ExecutionLogs
+import org.cqfn.save.domain.Sdk
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.Project
 import org.cqfn.save.execution.ExecutionStatus
@@ -72,7 +73,7 @@ class AgentsControllerTest {
     fun `should build image, query backend and start containers`() {
         val project = Project("Huawei", "huaweiName", "huaweiUrl", "description")
         val execution = Execution(project, stubTime, stubTime, ExecutionStatus.PENDING, "stub",
-            "stub", 0, 20, ExecutionType.GIT, "0.0.1", 0, 0, 0).apply {
+            "stub", 0, 20, ExecutionType.GIT, "0.0.1", 0, 0, 0, Sdk.Default.toString()).apply {
             id = 42L
         }
         whenever(dockerService.buildAndCreateContainers(any())).thenReturn(listOf("test-agent-id-1", "test-agent-id-2"))
@@ -102,7 +103,7 @@ class AgentsControllerTest {
     fun checkPostResponseIsNotOk() {
         val project = Project("Huawei", "huaweiName", "huaweiUrl", "description")
         val execution = Execution(project, stubTime, stubTime, ExecutionStatus.RUNNING, "stub",
-            "stub", 0, 20, ExecutionType.GIT, "0.0.1", 0, 0, 0)
+            "stub", 0, 20, ExecutionType.GIT, "0.0.1", 0, 0, 0, Sdk.Default.toString())
         webClient
             .post()
             .uri("/initializeAgents")

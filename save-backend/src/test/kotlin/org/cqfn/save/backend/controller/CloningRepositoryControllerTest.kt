@@ -12,6 +12,7 @@ import org.cqfn.save.backend.repository.TestRepository
 import org.cqfn.save.backend.repository.TestSuiteRepository
 import org.cqfn.save.backend.service.ExecutionService
 import org.cqfn.save.backend.service.ProjectService
+import org.cqfn.save.domain.Jdk
 import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.ExecutionRequestForStandardSuites
 import org.cqfn.save.entities.GitDto
@@ -83,8 +84,9 @@ class CloningRepositoryControllerTest {
         Mockito
             .`when`(projectService.getProjectByNameAndOwner("huaweiName", "Huawei"))
             .thenReturn(project)
+        val sdk = Jdk("8")
         val gitRepo = GitDto("1")
-        val executionRequest = ExecutionRequest(project, gitRepo, executionId = null)
+        val executionRequest = ExecutionRequest(project, gitRepo, sdk = sdk, executionId = null)
         webTestClient.post()
             .uri("/submitExecutionRequest")
             .contentType(MediaType.APPLICATION_JSON)
@@ -109,7 +111,8 @@ class CloningRepositoryControllerTest {
         given(property.headers()).willReturn(HttpHeaders())
 
         val project = Project("Huawei", "huaweiName", "huawei.com", "test description")
-        val request = ExecutionRequestForStandardSuites(project, emptyList())
+        val sdk = Jdk("8")
+        val request = ExecutionRequestForStandardSuites(project, emptyList(), sdk)
         val bodyBuilder = MultipartBodyBuilder()
         bodyBuilder.part("execution", request)
         bodyBuilder.part("property", property)

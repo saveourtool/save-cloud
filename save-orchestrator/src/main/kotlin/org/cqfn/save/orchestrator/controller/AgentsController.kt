@@ -55,6 +55,7 @@ class AgentsController {
         response.subscribe {
             log.info("Starting preparations for launching execution [project=${execution.project}, id=${execution.id}, " +
                     "status=${execution.status}, resourcesRootPath=${execution.resourcesRootPath}]")
+            // todo: pass SDK via request body
             val agentIds = dockerService.buildAndCreateContainers(execution)
             agentService.saveAgentsWithInitialStatuses(
                 agentIds.map { id ->

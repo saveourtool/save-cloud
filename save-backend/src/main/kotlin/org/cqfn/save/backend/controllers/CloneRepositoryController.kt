@@ -4,6 +4,7 @@ import org.cqfn.save.backend.StringResponse
 import org.cqfn.save.backend.configs.ConfigProperties
 import org.cqfn.save.backend.service.ExecutionService
 import org.cqfn.save.backend.service.ProjectService
+import org.cqfn.save.domain.Sdk
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.ExecutionRequestForStandardSuites
@@ -55,7 +56,7 @@ class CloneRepositoryController(
         val projectExecution = executionRequest.project
         val project = projectService.getProjectByNameAndOwner(projectExecution.name, projectExecution.owner)
         return project?.let {
-            executionRequest.executionId = saveExecution(it, ExecutionType.GIT)
+            executionRequest.executionId = saveExecution(it, ExecutionType.GIT, executionRequest.sdk)
             log.info("Sending request to preprocessor to start cloning project id=${it.id}")
             preprocessorWebClient
                 .post()
@@ -84,7 +85,7 @@ class CloneRepositoryController(
         val projectExecution = executionRequestForStandardSuites.project
         val project = projectService.getProjectByNameAndOwner(projectExecution.name, projectExecution.owner)
         project?.let {
-            saveExecution(project, ExecutionType.STANDARD)
+            saveExecution(project, ExecutionType.STANDARD, executionRequestForStandardSuites.sdk)
             log.info("Sending request to preprocessor to start save file for project id=${project.id}")
             val bodyBuilder = MultipartBodyBuilder()
             bodyBuilder.part("executionRequestForStandardSuites", executionRequestForStandardSuites)
@@ -103,9 +104,9 @@ class CloneRepositoryController(
         } ?: return Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Project doesn't exist"))
     }
 
-    private fun saveExecution(project: Project, type: ExecutionType): Long {
+    private fun saveExecution(project: Project, type: ExecutionType, sdk: Sdk): Long {
         val execution = Execution(project, LocalDateTime.now(), null, ExecutionStatus.PENDING, null,
-            null, 0, null, type, null, 0, 0, 0)
+            null, 0, null, type, null, 0, 0, 0, sdk.toString())
         log.info("Creating a new execution id=${execution.id} for project id=${project.id}")
         return executionService.saveExecution(execution)
     }

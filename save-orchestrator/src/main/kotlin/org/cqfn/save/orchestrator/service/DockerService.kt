@@ -103,6 +103,7 @@ class DockerService(private val configProperties: ConfigProperties) {
                 false
             }
 
+    @Suppress("TOO_LONG_FUNCTION")
     private fun buildBaseImageForExecution(execution: Execution): Pair<String, String> {
         val resourcesPath = File(
             configProperties.testResources.basePath,
@@ -123,7 +124,9 @@ class DockerService(private val configProperties: ConfigProperties) {
             ClassPathResource(SAVE_CLI_EXECUTABLE_NAME).inputStream,
             File(resourcesPath, SAVE_CLI_EXECUTABLE_NAME)
         )
+        val baseImage = execution.sdk
         val imageId = containerManager.buildImageWithResources(
+            baseImage = baseImage,
             imageName = "save-execution:${execution.id}",
             baseDir = resourcesPath,
             resourcesPath = executionDir,
