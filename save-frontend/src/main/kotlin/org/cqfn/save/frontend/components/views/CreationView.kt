@@ -36,6 +36,8 @@ import kotlinx.html.ButtonType
 import kotlinx.html.InputType
 import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 /**
  * [RState] of project creation view component
@@ -74,7 +76,7 @@ class CreationView : RComponent<RProps, ProjectSaveViewState>() {
 
     @Suppress("UnsafeCallOnNullableType")
     private fun saveProject() {
-        val executionRequest = NewProjectDto(
+        val newProjectRequest = NewProjectDto(
             Project(projectFieldsMap["owner"]!!, projectFieldsMap["name"]!!, projectFieldsMap["url"], projectFieldsMap["description"]),
             gitFieldsMap["url"]?.let { GitDto(it, gitFieldsMap["username"], gitFieldsMap["password"], gitFieldsMap["branch"]) }
         )
@@ -83,10 +85,10 @@ class CreationView : RComponent<RProps, ProjectSaveViewState>() {
             it.set("Content-Type", "application/json")
         }
         GlobalScope.launch {
-            responseFromCreationProject = post("${window.location.origin}/saveProject", headers, JSON.stringify(executionRequest))
+            responseFromCreationProject = post("${window.location.origin}/saveProject", headers, Json.encodeToString(newProjectRequest))
         }.invokeOnCompletion {
             if (responseFromCreationProject.ok) {
-                window.location.href = "${window.location.origin}#/${executionRequest.project.owner}/${executionRequest.project.name}"
+                window.location.href = "${window.location.origin}#/${newProjectRequest.project.owner}/${newProjectRequest.project.name}"
             } else {
                 responseFromCreationProject.text().then {
                     setState {
