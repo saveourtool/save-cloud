@@ -38,7 +38,7 @@ class SaveAgentTest {
             addHandler { request ->
                 when (request.url.encodedPath) {
                     "/heartbeat" -> respond(
-                        Json.encodeToString(PolymorphicSerializer(HeartbeatResponse::class), ContinueResponse()),
+                        json.encodeToString(PolymorphicSerializer(HeartbeatResponse::class), ContinueResponse()),
                         HttpStatusCode.OK,
                         headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString())
                     )
