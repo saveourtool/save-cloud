@@ -30,17 +30,18 @@ fun main() {
     )
     isDebugEnabled = config.debug
     logDebug("Instantiating save-agent version $SAVE_CLOUD_VERSION with config $config")
+    val json = Json {
+        serializersModule = SerializersModule {
+            polymorphic(HeartbeatResponse::class) {
+                subclass(NewJobResponse::class)
+                subclass(ContinueResponse::class)
+                subclass(WaitResponse::class)
+            }
+        }
+    }
     val httpClient = HttpClient {
         install(JsonFeature) {
-            serializer = KotlinxSerializer(Json {
-                serializersModule = SerializersModule {
-                    polymorphic(HeartbeatResponse::class) {
-                        subclass(NewJobResponse::class)
-                        subclass(ContinueResponse::class)
-                        subclass(WaitResponse::class)
-                    }
-                }
-            })
+            serializer = KotlinxSerializer(json)
         }
         install(HttpTimeout) {
             requestTimeoutMillis = 15000
