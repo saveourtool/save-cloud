@@ -30,6 +30,7 @@ fun main() {
     )
     isDebugEnabled = config.debug
     logDebug("Instantiating save-agent version $SAVE_CLOUD_VERSION with config $config")
+    logDebug("Serializer: ${ContinueResponse.serializer()}")
     val json = Json {
         serializersModule = SerializersModule {
             polymorphic(HeartbeatResponse::class) {
