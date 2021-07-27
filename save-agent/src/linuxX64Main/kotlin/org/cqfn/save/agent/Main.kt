@@ -15,6 +15,7 @@ import org.cqfn.save.core.logging.logDebug
 
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.PolymorphicSerializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
@@ -27,9 +28,12 @@ val json: Json = Json {
     serializersModule = SerializersModule {
         polymorphic(HeartbeatResponse::class) {
             subclass(NewJobResponse::class)
-            subclass(ContinueResponse.serializer())
-            subclass(WaitResponse.serializer())
+            subclass(ContinueResponse::class)
+            subclass(WaitResponse::class)
         }
+        contextual(NewJobResponse::class) { PolymorphicSerializer(HeartbeatResponse::class) }
+        contextual(ContinueResponse::class) { PolymorphicSerializer(HeartbeatResponse::class) }
+        contextual(WaitResponse::class) { PolymorphicSerializer(HeartbeatResponse::class) }
     }
 }
 
