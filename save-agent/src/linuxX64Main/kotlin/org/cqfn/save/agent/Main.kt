@@ -39,9 +39,6 @@ fun main() {
                         subclass(ContinueResponse::class)
                         subclass(WaitResponse::class)
                     }
-                    contextual(NewJobResponse::class) { PolymorphicSerializer(HeartbeatResponse::class) }
-                    contextual(ContinueResponse::class) { PolymorphicSerializer(HeartbeatResponse::class) }
-                    contextual(WaitResponse::class) { PolymorphicSerializer(HeartbeatResponse::class) }
                 }
             })
         }
