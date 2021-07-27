@@ -59,7 +59,7 @@ class AgentService(configProperties: ConfigProperties) {
                         )
                     } else {
                         log.info("Next test batch for agentId=$agentId is empty, setting it to wait")
-                        WaitResponse
+                        WaitResponse()
                     }
                 }
 
