@@ -107,8 +107,9 @@ class CloneRepositoryController(
     @Suppress("UnsafeCallOnNullableType")
     private fun saveExecution(project: Project, type: ExecutionType, sdk: Sdk): Long {
         val execution = Execution(project, LocalDateTime.now(), null, ExecutionStatus.PENDING, null,
-            null, 0, null, type, null, 0, 0, 0, sdk.toString())
-        execution.id = executionService.saveExecution(execution)
+            null, 0, null, type, null, 0, 0, 0, sdk.toString()).apply {
+            id = executionService.saveExecution(this)
+        }
         log.info("Creating a new execution id=${execution.id} for project id=${project.id}")
         return execution.id!!
     }
