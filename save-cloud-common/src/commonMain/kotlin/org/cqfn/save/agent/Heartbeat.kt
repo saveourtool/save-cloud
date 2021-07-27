@@ -37,8 +37,8 @@ data class Heartbeat(val agentId: String,
  * A response from Orchestrator to Agent
  */
 @Serializable sealed class HeartbeatResponse
-@Serializable object WaitResponse : HeartbeatResponse()
-@Serializable object ContinueResponse : HeartbeatResponse()
+@Serializable class WaitResponse : HeartbeatResponse()
+@Serializable class ContinueResponse : HeartbeatResponse()
 
 /**
  * @property tests a list of new jobs for this agent

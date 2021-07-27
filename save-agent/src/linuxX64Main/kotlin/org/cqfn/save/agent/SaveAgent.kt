@@ -84,8 +84,8 @@ class SaveAgent(private val config: AgentConfiguration,
                     logDebug("Got heartbeat response $it")
                 }) {
                     is NewJobResponse -> maybeStartSaveProcess(heartbeatResponse.cliArgs)
-                    WaitResponse -> state.value = AgentState.IDLE
-                    ContinueResponse -> Unit  // do nothing
+                    is WaitResponse -> state.value = AgentState.IDLE
+                    is ContinueResponse -> Unit  // do nothing
                 }
             } else {
                 logError("Exception during heartbeat: ${response.exceptionOrNull()?.message}")
