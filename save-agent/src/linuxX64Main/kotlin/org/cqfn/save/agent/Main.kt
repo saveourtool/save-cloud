@@ -27,8 +27,8 @@ val json: Json = Json {
     serializersModule = SerializersModule {
         polymorphic(HeartbeatResponse::class) {
             subclass(NewJobResponse::class)
-            subclass(WaitResponse::class)
-            subclass(ContinueResponse::class)
+            subclass(ContinueResponse.serializer())
+            subclass(WaitResponse.serializer())
         }
     }
 }
