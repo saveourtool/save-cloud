@@ -23,30 +23,6 @@ import kotlinx.serialization.modules.subclass
 import kotlinx.serialization.properties.Properties
 import kotlinx.serialization.properties.decodeFromStringMap
 
-@ThreadLocal
-val json: Json = Json {
-    serializersModule = SerializersModule {
-        polymorphic(HeartbeatResponse::class) {
-            subclass(NewJobResponse::class)
-            subclass(ContinueResponse::class)
-            subclass(WaitResponse::class)
-        }
-        contextual(NewJobResponse::class) { PolymorphicSerializer(HeartbeatResponse::class) }
-        contextual(ContinueResponse::class) { PolymorphicSerializer(HeartbeatResponse::class) }
-        contextual(WaitResponse::class) { PolymorphicSerializer(HeartbeatResponse::class) }
-    }
-}
-
-@ThreadLocal
-val httpClient = HttpClient {
-    install(JsonFeature) {
-        serializer = KotlinxSerializer(json)
-    }
-    install(HttpTimeout) {
-        requestTimeoutMillis = 15000
-    }
-}
-
 @OptIn(ExperimentalSerializationApi::class)
 fun main() {
     val config: AgentConfiguration = Properties.decodeFromStringMap(
@@ -54,6 +30,25 @@ fun main() {
     )
     isDebugEnabled = config.debug
     logDebug("Instantiating save-agent version $SAVE_CLOUD_VERSION with config $config")
+    val httpClient = HttpClient {
+        install(JsonFeature) {
+            serializer = KotlinxSerializer(Json {
+                serializersModule = SerializersModule {
+                    polymorphic(HeartbeatResponse::class) {
+                        subclass(NewJobResponse::class)
+                        subclass(ContinueResponse::class)
+                        subclass(WaitResponse::class)
+                    }
+                    contextual(NewJobResponse::class) { PolymorphicSerializer(HeartbeatResponse::class) }
+                    contextual(ContinueResponse::class) { PolymorphicSerializer(HeartbeatResponse::class) }
+                    contextual(WaitResponse::class) { PolymorphicSerializer(HeartbeatResponse::class) }
+                }
+            })
+        }
+        install(HttpTimeout) {
+            requestTimeoutMillis = 15000
+        }
+    }
     val saveAgent = SaveAgent(config, httpClient)
     runBlocking {
         saveAgent.start()
