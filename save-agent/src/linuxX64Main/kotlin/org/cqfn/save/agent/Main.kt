@@ -4,18 +4,18 @@
 
 package org.cqfn.save.agent
 
+import org.cqfn.save.agent.utils.readProperties
+import org.cqfn.save.core.logging.isDebugEnabled
+import org.cqfn.save.core.logging.logDebug
+
 import generated.SAVE_CLOUD_VERSION
 import io.ktor.client.HttpClient
 import io.ktor.client.features.HttpTimeout
 import io.ktor.client.features.json.JsonFeature
 import io.ktor.client.features.json.serializer.KotlinxSerializer
-import org.cqfn.save.agent.utils.readProperties
-import org.cqfn.save.core.logging.isDebugEnabled
-import org.cqfn.save.core.logging.logDebug
 
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.PolymorphicSerializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
@@ -46,7 +46,7 @@ fun main() {
             serializer = KotlinxSerializer(json)
         }
         install(HttpTimeout) {
-            requestTimeoutMillis = 15000
+            requestTimeoutMillis = config.requestTimeoutMillis
         }
     }
     val saveAgent = SaveAgent(config, httpClient)
