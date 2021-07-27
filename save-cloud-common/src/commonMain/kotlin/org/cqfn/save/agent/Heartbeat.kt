@@ -38,12 +38,15 @@ data class Heartbeat(val agentId: String,
  */
 @Serializable sealed class HeartbeatResponse
 
-// fixme: there are some complications when using serializable objects on Native with ktor (ktor 1.6.1, kx.s 1.2.2, kotlin 1.5.21)
+// fixme: there are some complications when using serializable objects on Native
+// https://github.com/Kotlin/kotlinx.serialization/issues/1616
 @Serializable
-object WaitResponse : HeartbeatResponse()
+@Suppress("CanSealedSubClassBeObject")
+class WaitResponse : HeartbeatResponse()
 
 @Serializable
-object ContinueResponse : HeartbeatResponse()
+@Suppress("CanSealedSubClassBeObject")
+class ContinueResponse : HeartbeatResponse()
 
 /**
  * @property tests a list of new jobs for this agent

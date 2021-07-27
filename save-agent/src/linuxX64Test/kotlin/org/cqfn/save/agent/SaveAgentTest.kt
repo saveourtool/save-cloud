@@ -31,7 +31,7 @@ class SaveAgentTest {
     }
     private val saveAgentForTest = SaveAgent(configuration, httpClient = HttpClient(MockEngine) {
         install(JsonFeature) {
-            serializer = KotlinxSerializer()
+            serializer = KotlinxSerializer(json)
         }
         engine {
             addHandler { request ->

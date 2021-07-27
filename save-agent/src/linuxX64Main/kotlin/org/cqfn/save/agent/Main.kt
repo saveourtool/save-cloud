@@ -23,6 +23,16 @@ import kotlinx.serialization.modules.subclass
 import kotlinx.serialization.properties.Properties
 import kotlinx.serialization.properties.decodeFromStringMap
 
+internal val json = Json {
+    serializersModule = SerializersModule {
+        polymorphic(HeartbeatResponse::class) {
+            subclass(NewJobResponse::class)
+            subclass(ContinueResponse::class)
+            subclass(WaitResponse::class)
+        }
+    }
+}
+
 @OptIn(ExperimentalSerializationApi::class)
 fun main() {
     val config: AgentConfiguration = Properties.decodeFromStringMap(
@@ -31,15 +41,6 @@ fun main() {
     isDebugEnabled = config.debug
     logDebug("Instantiating save-agent version $SAVE_CLOUD_VERSION with config $config")
     logDebug("Serializer: ${ContinueResponse.serializer()}")
-    val json = Json {
-        serializersModule = SerializersModule {
-            polymorphic(HeartbeatResponse::class) {
-                subclass(NewJobResponse::class)
-                subclass(ContinueResponse::class)
-                subclass(WaitResponse::class)
-            }
-        }
-    }
     val httpClient = HttpClient {
         install(JsonFeature) {
             serializer = KotlinxSerializer(json)
