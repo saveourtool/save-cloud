@@ -26,9 +26,9 @@ import kotlinx.serialization.properties.decodeFromStringMap
 val json: Json = Json {
     serializersModule = SerializersModule {
         polymorphic(HeartbeatResponse::class) {
+            subclass(NewJobResponse::class)
             subclass(WaitResponse::class)
             subclass(ContinueResponse::class)
-            subclass(NewJobResponse::class)
         }
     }
 }
