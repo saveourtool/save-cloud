@@ -223,7 +223,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
         val formData = FormData()
         val selectedSdk = "${state.selectedSdk}:${state.selectedSdkVersion}".toSdk()
         val request = ExecutionRequestForStandardSuites(project, selectedTypes, selectedSdk)
-        formData.append("execution", Blob(arrayOf(JSON.stringify(request)), BlobPropertyBag("application/json")))
+        formData.append("execution", Blob(arrayOf(Json.encodeToString(request)), BlobPropertyBag("application/json")))
         formData.append("property", state.propertyFile!!)
         formData.append("binFile", state.binaryFile!!)
         submitRequest("/submitExecutionRequestBin", headers, formData)
@@ -244,7 +244,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
             correctGitDto,
             sdk = selectedSdk,
             executionId = null)
-        val jsonExecution = JSON.stringify(executionRequest)
+        val jsonExecution = Json.encodeToString(executionRequest)
         val headers = Headers().also {
             it.set("Accept", "application/json")
             it.set("Content-Type", "application/json")
