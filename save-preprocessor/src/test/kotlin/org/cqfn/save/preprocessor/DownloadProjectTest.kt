@@ -31,6 +31,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
 import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.core.io.FileSystemResource
@@ -54,6 +55,7 @@ import kotlin.io.path.ExperimentalPathApi
 @ExperimentalPathApi
 @WebFluxTest(controllers = [DownloadProjectController::class])
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@AutoConfigureWebTestClient(timeout = "15000")//10 seconds
 class DownloadProjectTest(
     @Autowired private val webClient: WebTestClient,
     @Autowired private val configProperties: ConfigProperties,
@@ -224,6 +226,20 @@ class DownloadProjectTest(
         assertions.orTimeout(60, TimeUnit.SECONDS).join().forEach { Assertions.assertNotNull(it) }
         Assertions.assertEquals("echo 0", File("${configProperties.repository}/${binFile.name.hashCode()}/program").readText())
     }
+
+    @Test
+    fun testStandardTestSuites() {
+        webClient.post()
+            .uri("/uploadStandardTestSuite")
+            .exchange()
+            .expectStatus()
+            .isAccepted
+            .expectBody<String>()
+            .isEqualTo("Clone pending")
+        Thread.sleep(2500)
+        Assertions.assertTrue(File("${configProperties.repository}/${configProperties.standardTestRepository.hashCode()}").exists())
+    }
+
 
     @AfterEach
     fun removeTestDir() {

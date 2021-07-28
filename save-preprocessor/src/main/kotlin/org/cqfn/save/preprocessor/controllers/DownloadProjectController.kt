@@ -110,6 +110,34 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
                 .subscribe()
         }
 
+    @PostMapping("/uploadStandardTestSuite")
+    fun uploadStandardTestSuite()  = Mono.just(ResponseEntity("Clone pending", HttpStatus.ACCEPTED))
+        .subscribeOn(Schedulers.boundedElastic())
+        .also {
+            val tmpDir = generateDirectory(configProperties.standardTestRepository)
+            Git.cloneRepository()
+                .setURI(configProperties.standardTestRepository)
+                .setDirectory(tmpDir)
+                .call().use {
+                    log.info("Starting to discover root test config")
+                    val rootTestConfig = testDiscoveringService.getRootTestConfig(tmpDir.resolve("examples/kotlin-diktat").toString()) // fixme remove `replace` when project will exist
+                    log.info("Starting to discover standard test suites")
+                    val tests = testDiscoveringService.getAllTestSuites(null, rootTestConfig, "stub")
+                    log.info("Starting to save new test suites")
+                    webClientBackend.makeRequest(BodyInserters.fromValue(tests), "/saveTestSuites") {
+                        it.bodyToMono<List<TestSuite>>()
+                    }
+                        .flatMap { testSuites ->
+                            log.info("Starting to save new tests")
+                            webClientBackend.makeRequest(
+                                BodyInserters.fromValue(testDiscoveringService.getAllTests(rootTestConfig, testSuites)),
+                                "/initializeTests"
+                            ) { it.toBodilessEntity() }
+                        }
+                        .subscribe()
+                }
+    }
+
     @Suppress(
         "TooGenericExceptionCaught",
         "TOO_LONG_FUNCTION",
@@ -118,7 +146,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
     private fun downLoadRepository(executionRequest: ExecutionRequest) {
         val gitDto = executionRequest.gitDto
         val project = executionRequest.project
-        val tmpDir = generateDirectory(gitDto.url.hashCode(), gitDto.url)
+        val tmpDir = generateDirectory(gitDto.url)
         val userCredentials = if (gitDto.username != null && gitDto.password != null) {
             UsernamePasswordCredentialsProvider(gitDto.username, gitDto.password)
         } else {
@@ -161,7 +189,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
         propertyFile: File,
         binFile: File,
     ) {
-        val tmpDir = generateDirectory(binFile.name.hashCode(), binFile.name)
+        val tmpDir = generateDirectory(binFile.name)
         val pathToProperties = tmpDir.resolve(propertyFile.name)
         propertyFile.copyTo(pathToProperties)
         binFile.copyTo(tmpDir.resolve(binFile.name))
@@ -177,8 +205,9 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
         )
     }
 
-    private fun generateDirectory(hashName: Int, dirName: String): File {
-        val tmpDir = File("${configProperties.repository}/$hashName")
+    private fun generateDirectory(dirName: String): File {
+        val hashName = dirName.hashCode()
+        val tmpDir = File("${configProperties.repository}/${hashName}")
         if (tmpDir.exists()) {
             tmpDir.deleteRecursively()
             log.info("For $dirName file: dir $hashName was deleted")
@@ -293,7 +322,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
             .absolutePath
     }
 
-    private fun discoverAndSaveTestSuites(project: Project,
+    private fun discoverAndSaveTestSuites(project: Project?,
                                           rootTestConfig: TestConfig,
                                           propertiesRelativePath: String): Mono<List<TestSuite>> {
         val testSuites: List<TestSuiteDto> = testDiscoveringService.getAllTestSuites(project, rootTestConfig, propertiesRelativePath)

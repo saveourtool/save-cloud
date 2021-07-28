@@ -22,7 +22,7 @@ import org.springframework.web.reactive.function.BodyInserters
 
 @SpringBootTest(classes = [SaveApplication::class])
 @AutoConfigureWebTestClient
-@ExtendWith(MySqlExtension::class)
+//@ExtendWith(MySqlExtension::class)
 class TestSuitesControllerTest {
     @Autowired
     lateinit var webClient: WebTestClient
@@ -108,5 +108,32 @@ class TestSuitesControllerTest {
             .body(BodyInserters.fromValue(testSuites))
             .exchange()
             .spec()
+    }
+
+    @Test
+    fun testAllStandardTestSuites() {
+        val project = projectRepository.findById(1).get()
+        val testSuite = TestSuiteDto(
+            TestSuiteType.STANDARD,
+            "tester",
+            project,
+            "save.properties"
+        )
+        saveTestSuites(listOf(testSuite)) {
+            expectBody<List<TestSuite>>().consumeWith {
+                assertEquals(1, it.responseBody!!.size)
+            }
+        }
+        val allStandardTestSuite = testSuiteRepository.findAll().count { it.type == TestSuiteType.STANDARD }
+        webClient.get()
+            .uri("/allStandardTestSuites")
+            .exchange()
+            .expectStatus()
+            .isOk
+            .expectBody<List<TestSuiteDto>>()
+            .consumeWith {
+                require(it.responseBody != null)
+                assertEquals(it.responseBody!!.size, allStandardTestSuite)
+            }
     }
 }

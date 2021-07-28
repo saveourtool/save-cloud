@@ -18,4 +18,5 @@ data class ConfigProperties(
     val backend: String,
     val orchestrator: String,
     val executionLimit: Int,
+    val standardTestRepository: String,
 )

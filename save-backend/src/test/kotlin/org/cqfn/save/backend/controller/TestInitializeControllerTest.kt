@@ -22,7 +22,7 @@ import org.springframework.web.reactive.function.BodyInserters
 
 @SpringBootTest(classes = [SaveApplication::class])
 @AutoConfigureWebTestClient
-@ExtendWith(MySqlExtension::class)
+//@ExtendWith(MySqlExtension::class)
 class TestInitializeControllerTest {
     @Autowired
     lateinit var webClient: WebTestClient
@@ -68,6 +68,30 @@ class TestInitializeControllerTest {
         )
         webClient.post()
             .uri("/initializeTests?executionId=2")
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(BodyInserters.fromValue(listOf(test)))
+            .exchange()
+            .expectStatus()
+            .isOk
+
+        val databaseData = testRepository.findAll()
+
+        assertTrue(databaseData.any { it.testSuite.id == test.testSuiteId && it.filePath == test.filePath && it.hash == test.hash })
+    }
+
+    @Test
+    @Suppress("UnsafeCallOnNullableType")
+    fun checkInitializeWithoutExecution() {
+        val testSuite = testSuiteRepository.findById(2).get()
+        val test = TestDto(
+            "testWithoutExecution",
+            "WarnPlugin",
+            testSuite.id!!,
+            "newHash123",
+
+            )
+        webClient.post()
+            .uri("/initializeTests")
             .contentType(MediaType.APPLICATION_JSON)
             .body(BodyInserters.fromValue(listOf(test)))
             .exchange()

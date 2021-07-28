@@ -3,6 +3,7 @@ package org.cqfn.save.backend.service
 import org.cqfn.save.backend.repository.TestSuiteRepository
 import org.cqfn.save.entities.TestSuite
 import org.cqfn.save.testsuite.TestSuiteDto
+import org.cqfn.save.testsuite.TestSuiteType
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.Example
 import org.springframework.stereotype.Service
@@ -42,5 +43,9 @@ class TestSuitesService {
         testSuites.filter { it.id == null }
             .let { testSuiteRepository.saveAll(it) }
         return testSuites.toList()
+    }
+
+    fun getStandardTestSuites(): List<TestSuiteDto> {
+        return testSuiteRepository.findAllByTypeIs(TestSuiteType.STANDARD).map { it.toDto() }
     }
 }

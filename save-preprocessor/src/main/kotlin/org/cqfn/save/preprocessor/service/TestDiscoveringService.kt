@@ -47,7 +47,7 @@ class TestDiscoveringService {
      * @return a list of [TestSuiteDto]s
      * @throws IllegalArgumentException when provided path doesn't point to a valid config file
      */
-    fun getAllTestSuites(project: Project, rootTestConfig: TestConfig, propertiesRelativePath: String) = rootTestConfig
+    fun getAllTestSuites(project: Project?, rootTestConfig: TestConfig, propertiesRelativePath: String) = rootTestConfig
         .getAllTestConfigs()
         .mapNotNull { it.getGeneralConfigOrNull()?.suiteName }
         .map { suiteName ->
