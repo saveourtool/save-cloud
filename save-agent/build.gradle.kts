@@ -1,13 +1,22 @@
 import org.cqfn.save.buildutils.getSaveCliVersion
 
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform.getCurrentOperatingSystem
+
 plugins {
     kotlin("multiplatform")
     kotlin("plugin.serialization") version Versions.kotlin
 }
 
 kotlin {
+    val os = getCurrentOperatingSystem()
     // Create a target for the host platform.
-    val hostTarget = linuxX64 {
+    val hostTarget = when {
+        os.isLinux -> linuxX64("agent")
+        os.isWindows -> mingwX64("agent")  // you'll need to install msys2 and run `pacman -S mingw-w64-x86_64-curl` to have libcurl for ktor-client
+        os.isMacOsX -> macosX64("agent")
+        else -> throw GradleException("Host OS '${os.name}' is not supported in Kotlin/Native $project.")
+    }
+    configure(listOf(hostTarget)) {
         binaries.executable {
             entryPoint = "org.cqfn.save.agent.main"
             baseName = "save-agent"
@@ -19,7 +28,7 @@ kotlin {
             languageSettings.useExperimentalAnnotation("kotlin.RequiresOptIn")
             languageSettings.useExperimentalAnnotation("okio.ExperimentalFileSystem")
         }
-        val linuxX64Main by getting {
+        val nativeMain by creating {
             dependencies {
                 implementation(project(":save-cloud-common"))
                 implementation("org.cqfn.save:save-common:${Versions.saveCore}")
@@ -34,21 +43,23 @@ kotlin {
                 // implementation("io.github.microutils:kotlin-logging:2.0.4")
             }
         }
-        val linuxX64Test by getting {
+        getByName("${hostTarget.name}Main").dependsOn(nativeMain)
+        val nativeTest by creating {
             dependencies {
                 implementation("io.ktor:ktor-client-mock:${Versions.ktor}")
             }
         }
+        getByName("${hostTarget.name}Test").dependsOn(nativeTest)
     }
 
     val distribution by configurations.creating
     val copyAgentDistribution by tasks.registering(Jar::class) {
-        dependsOn("linkReleaseExecutableLinuxX64")
+        dependsOn("linkReleaseExecutableAgent")
         archiveClassifier.set("distribution")
-        from(file("$buildDir/bin/linuxX64/releaseExecutable")) {
+        from(file("$buildDir/bin/agent/releaseExecutable")) {
             include("*")
         }
-        from(file("$projectDir/src/linuxX64Main/resources/agent.properties"))
+        from(file("$projectDir/src/nativeMain/resources/agent.properties"))
     }
     artifacts.add(distribution.name, file("$buildDir/libs/${project.name}-${project.version}-distribution.jar")) {
         builtBy(copyAgentDistribution)
@@ -109,7 +120,7 @@ val generateVersionFileTaskProvider = tasks.register("generateVersionFile") {
 val generatedKotlinSrc = kotlin.sourceSets.create("commonGenerated") {
     kotlin.srcDir("$buildDir/generated/src")
 }
-kotlin.sourceSets.getByName("linuxX64Main").dependsOn(generatedKotlinSrc)
+kotlin.sourceSets.getByName("nativeMain").dependsOn(generatedKotlinSrc)
 tasks.withType<org.jetbrains.kotlin.gradle.dsl.KotlinCompile<*>>().configureEach {
     dependsOn(generateVersionFileTaskProvider)
 }

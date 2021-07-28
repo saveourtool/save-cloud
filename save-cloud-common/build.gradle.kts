@@ -20,7 +20,13 @@ kotlin {
     js(BOTH).browser()
 
     // setup native compilation
-    linuxX64()
+    val os = org.gradle.nativeplatform.platform.internal.DefaultNativePlatform.getCurrentOperatingSystem()
+    val hostTarget = when {
+        os.isLinux -> linuxX64()
+        os.isWindows -> mingwX64()
+        os.isMacOsX -> macosX64()
+        else -> throw GradleException("Host OS '${os.name}' is not supported in Kotlin/Native $project.")
+    }
 
     sourceSets {
         sourceSets.all {
