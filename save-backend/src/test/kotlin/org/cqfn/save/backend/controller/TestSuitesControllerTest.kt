@@ -3,26 +3,34 @@ package org.cqfn.save.backend.controller
 import org.cqfn.save.backend.SaveApplication
 import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.repository.TestSuiteRepository
-import org.cqfn.save.backend.utils.MySqlExtension
 import org.cqfn.save.entities.TestSuite
 import org.cqfn.save.testsuite.TestSuiteDto
 import org.cqfn.save.testsuite.TestSuiteType
+
+import okhttp3.mockwebserver.MockResponse
+import okhttp3.mockwebserver.MockWebServer
+import okhttp3.mockwebserver.QueueDispatcher
 import org.junit.Assert
+import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.core.io.ClassPathResource
 import org.springframework.http.MediaType
+import org.springframework.test.context.DynamicPropertyRegistry
+import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
 
+import java.net.HttpURLConnection
+
 @SpringBootTest(classes = [SaveApplication::class])
 @AutoConfigureWebTestClient
-@ExtendWith(MySqlExtension::class)
+// @ExtendWith(MySqlExtension::class)
 class TestSuitesControllerTest {
     @Autowired
     lateinit var webClient: WebTestClient
@@ -135,5 +143,50 @@ class TestSuitesControllerTest {
                 requireNotNull(it.responseBody)
                 assertEquals(it.responseBody!!.size, allStandardTestSuite)
             }
+    }
+
+    @Test
+    fun testUpdateStandardTestSuites() {
+        repeat(
+            ClassPathResource("TestSuitesRepos")
+                .file
+                .readText()
+                .split("\n")
+                .size
+        ) {
+            mockServerPreprocessor.enqueue(
+                MockResponse()
+                    .setResponseCode(202)
+                    .setBody("Clone pending")
+                    .addHeader("Content-Type", "application/json")
+            )
+        }
+        webClient.post()
+            .uri("/updateStandardTestSuites")
+            .exchange()
+            .expectStatus()
+            .isOk
+        Thread.sleep(2500)
+        assertEquals((mockServerPreprocessor.dispatcher as QueueDispatcher).peek().status, MockResponse().setResponseCode(HttpURLConnection.HTTP_NOT_FOUND).status)
+    }
+
+    companion object {
+        @JvmStatic lateinit var mockServerPreprocessor: MockWebServer
+
+        @AfterAll
+        fun tearDown() {
+            mockServerPreprocessor.shutdown()
+        }
+
+        @DynamicPropertySource
+        @JvmStatic
+        fun properties(registry: DynamicPropertyRegistry) {
+            mockServerPreprocessor = MockWebServer()
+            (mockServerPreprocessor.dispatcher as QueueDispatcher).setFailFast(
+                MockResponse().setResponseCode(HttpURLConnection.HTTP_NOT_FOUND)
+            )
+            mockServerPreprocessor.start()
+            registry.add("backend.preprocessorUrl") { "http://localhost:${mockServerPreprocessor.port}" }
+        }
     }
 }

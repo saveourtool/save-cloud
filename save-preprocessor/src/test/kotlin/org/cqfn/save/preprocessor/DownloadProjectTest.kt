@@ -230,10 +230,13 @@ class DownloadProjectTest(
     }
 
     @Test
+    @Suppress("TOO_LONG_FUNCTION")
     fun testStandardTestSuites() {
         val project = Project("owner", "someName", null, "descr").apply {
             id = 42L
         }
+
+        val gitDto = GitDto("https://github.com/cqfn/save")
         mockServerBackend.enqueue(
             MockResponse()
                 .setResponseCode(200)
@@ -258,6 +261,7 @@ class DownloadProjectTest(
 
         webClient.post()
             .uri("/uploadStandardTestSuite")
+            .body(BodyInserters.fromValue(gitDto))
             .exchange()
             .expectStatus()
             .isAccepted
@@ -265,7 +269,7 @@ class DownloadProjectTest(
             .isEqualTo("Clone pending")
         Thread.sleep(2500)
         assertions.orTimeout(60, TimeUnit.SECONDS).join().forEach { Assertions.assertNotNull(it) }
-        Assertions.assertTrue(File("${configProperties.repository}/${configProperties.standardTestRepository.hashCode()}").exists())
+        Assertions.assertTrue(File("${configProperties.repository}/${gitDto.url.hashCode()}").exists())
     }
 
     @AfterEach

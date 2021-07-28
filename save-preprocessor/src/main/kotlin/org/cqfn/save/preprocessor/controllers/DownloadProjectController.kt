@@ -9,6 +9,7 @@ import org.cqfn.save.core.config.defaultConfig
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.ExecutionRequestForStandardSuites
+import org.cqfn.save.entities.GitDto
 import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.TestSuite
 import org.cqfn.save.execution.ExecutionInitializationDto
@@ -113,15 +114,16 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
     /**
      * Controller to download standard test suites
      *
+     * @param gitDto dto of git with standard test suites
      * @return response entity with text
      */
     @PostMapping("/uploadStandardTestSuite")
-    fun uploadStandardTestSuite() = Mono.just(ResponseEntity("Clone pending", HttpStatus.ACCEPTED))
+    fun uploadStandardTestSuite(@RequestBody gitDto: GitDto) = Mono.just(ResponseEntity("Clone pending", HttpStatus.ACCEPTED))
         .subscribeOn(Schedulers.boundedElastic())
         .also {
-            val tmpDir = generateDirectory(configProperties.standardTestRepository)
+            val tmpDir = generateDirectory(gitDto.url)
             Git.cloneRepository()
-                .setURI(configProperties.standardTestRepository)
+                .setURI(gitDto.url)
                 .setDirectory(tmpDir)
                 .call().use {
                     log.info("Starting to discover root test config")
