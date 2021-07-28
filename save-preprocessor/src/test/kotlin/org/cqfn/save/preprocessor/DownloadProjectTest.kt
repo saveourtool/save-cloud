@@ -55,7 +55,7 @@ import kotlin.io.path.ExperimentalPathApi
 @ExperimentalPathApi
 @WebFluxTest(controllers = [DownloadProjectController::class])
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@AutoConfigureWebTestClient(timeout = "15000")
+@AutoConfigureWebTestClient(timeout = "60000")
 class DownloadProjectTest(
     @Autowired private val webClient: WebTestClient,
     @Autowired private val configProperties: ConfigProperties,
@@ -74,10 +74,7 @@ class DownloadProjectTest(
 
     @BeforeAll
     fun setUp() {
-        File(binFolder).mkdir()
-        File(propertyPath).createNewFile()
-        File(binFilePath).createNewFile()
-        File(binFilePath).writeText("echo 0")
+        File(binFolder).mkdirs()
     }
 
     @Test
@@ -167,6 +164,11 @@ class DownloadProjectTest(
     @Suppress("TOO_LONG_FUNCTION", "LongMethod")
     @Test
     fun testSaveProjectAsBinaryFile() {
+        File(binFolder).mkdirs()
+        File(propertyPath).createNewFile()
+        File(binFilePath).createNewFile()
+        File(binFilePath).writeText("echo 0")
+
         val binFile = File(binFilePath)
         val property = File(propertyPath)
         val project = Project("owner", "someName", null, "descr").apply {
@@ -242,10 +244,17 @@ class DownloadProjectTest(
                     )
                 )),
         )
-        mockServerOrchestrator.enqueue(
+        mockServerBackend.enqueue(
             MockResponse()
                 .setResponseCode(200)
         )
+
+        val assertions = CompletableFuture.supplyAsync {
+            listOf(
+                mockServerBackend.takeRequest(60, TimeUnit.SECONDS),
+                mockServerBackend.takeRequest(60, TimeUnit.SECONDS),
+            )
+        }
 
         webClient.post()
             .uri("/uploadStandardTestSuite")
@@ -255,6 +264,7 @@ class DownloadProjectTest(
             .expectBody<String>()
             .isEqualTo("Clone pending")
         Thread.sleep(2500)
+        assertions.orTimeout(60, TimeUnit.SECONDS).join().forEach { Assertions.assertNotNull(it) }
         Assertions.assertTrue(File("${configProperties.repository}/${configProperties.standardTestRepository.hashCode()}").exists())
     }
 

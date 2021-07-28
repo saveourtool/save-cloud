@@ -125,7 +125,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
                 .setDirectory(tmpDir)
                 .call().use {
                     log.info("Starting to discover root test config")
-                    // fixme remove `replace` when project will exist
+                    // fixme remove `resolve` when project will exist
                     val rootTestConfig = testDiscoveringService.getRootTestConfig(tmpDir.resolve("examples/kotlin-diktat").toString())
                     log.info("Starting to discover standard test suites")
                     val tests = testDiscoveringService.getAllTestSuites(null, rootTestConfig, "stub")
