@@ -109,8 +109,9 @@ class DockerService(private val configProperties: ConfigProperties) {
             configProperties.testResources.basePath,
             execution.resourcesRootPath,
         )
-        val runCmd = if (File(resourcesPath, "run.sh").exists()) {
-            "./run.sh"
+        // todo: un-hardcode path
+        val runCmd = if (File(resourcesPath, "examples/kotlin-diktat/run.sh").exists()) {
+            "./examples/kotlin-diktat/run.sh"
         } else {
             "./$SAVE_AGENT_EXECUTABLE_NAME"
         }
@@ -134,6 +135,7 @@ class DockerService(private val configProperties: ConfigProperties) {
                     |RUN ln -fs /usr/share/zoneinfo/UTC /etc/localtime
                     |RUN chmod +x $executionDir/$SAVE_AGENT_EXECUTABLE_NAME
                     |RUN chmod +x $executionDir/$SAVE_CLI_EXECUTABLE_NAME
+                    |RUN chmod +x $executionDir/examples/kotlin-diktat/run.sh
                 """
         )
         return Pair(imageId, runCmd)
