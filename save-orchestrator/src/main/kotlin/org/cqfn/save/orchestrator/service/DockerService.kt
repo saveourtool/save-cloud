@@ -158,17 +158,16 @@ class DockerService(private val configProperties: ConfigProperties) {
             configProperties.testResources.basePath,
             execution.resourcesRootPath,
         )
+        agentPropertiesFile.writeText(
+            agentPropertiesFile.readLines().joinToString(System.lineSeparator()) {
+                if (it.startsWith("id=")) "id=$containerId" else it
+            }
+        )
         // todo: un-hardcode script
         val cliCommand = if (File(resourcesPath, "examples/kotlin-diktat/run.sh").exists()) {
             "bash ./examples/kotlin-diktat/run.sh"
         } else null
-        agentPropertiesFile.writeText(
-            agentPropertiesFile.readLines().joinToString(System.lineSeparator()) {
-                if (it.startsWith("id=")) "id=$containerId"
-                else if (it.startsWith("cliCommand=") && cliCommand != null) "cliCommand=$cliCommand"
-                else it
-            }
-        )
+        if (cliCommand != null) agentPropertiesFile.appendText("\ncliCommand=$cliCommand\n")
         containerManager.copyResourcesIntoContainer(
             containerId, executionDir,
             listOf(agentPropertiesFile)
