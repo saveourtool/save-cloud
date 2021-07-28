@@ -229,6 +229,24 @@ class DownloadProjectTest(
 
     @Test
     fun testStandardTestSuites() {
+        val project = Project("owner", "someName", null, "descr").apply {
+            id = 42L
+        }
+        mockServerBackend.enqueue(
+            MockResponse()
+                .setResponseCode(200)
+                .setHeader("Content-Type", "application/json")
+                .setBody(objectMapper.writeValueAsString(
+                    listOf(
+                        TestSuite(TestSuiteType.PROJECT, "", project, LocalDateTime.now(), "save.properties")
+                    )
+                )),
+        )
+        mockServerOrchestrator.enqueue(
+            MockResponse()
+                .setResponseCode(200)
+        )
+
         webClient.post()
             .uri("/uploadStandardTestSuite")
             .exchange()
