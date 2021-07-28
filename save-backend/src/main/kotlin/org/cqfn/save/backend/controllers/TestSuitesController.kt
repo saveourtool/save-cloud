@@ -26,7 +26,9 @@ typealias ResponseListTestSuites = ResponseEntity<List<TestSuiteDto>>
  * Controller for test suites
  */
 @RestController
-class TestSuitesController(configProperties: ConfigProperties) {
+class TestSuitesController(
+    private val configProperties: ConfigProperties
+) {
     private val log = LoggerFactory.getLogger(TestSuitesController::class.java)
     private val preprocessorWebClient = WebClient.create(configProperties.preprocessorUrl)
 
@@ -55,7 +57,7 @@ class TestSuitesController(configProperties: ConfigProperties) {
      */
     @PostMapping("/updateStandardTestSuites")
     fun updateStandardTestSuites(): StringResponse {
-        val repos = ClassPathResource("TestSuitesRepos")
+        val repos = ClassPathResource(configProperties.reposFileName)
             .file
             .readText()
             .split("\n")

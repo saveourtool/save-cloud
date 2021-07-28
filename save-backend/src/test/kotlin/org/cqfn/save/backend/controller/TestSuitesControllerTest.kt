@@ -1,8 +1,10 @@
 package org.cqfn.save.backend.controller
 
 import org.cqfn.save.backend.SaveApplication
+import org.cqfn.save.backend.configs.ConfigProperties
 import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.repository.TestSuiteRepository
+import org.cqfn.save.backend.utils.MySqlExtension
 import org.cqfn.save.entities.TestSuite
 import org.cqfn.save.testsuite.TestSuiteDto
 import org.cqfn.save.testsuite.TestSuiteType
@@ -15,6 +17,7 @@ import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.boot.test.context.SpringBootTest
@@ -30,8 +33,11 @@ import java.net.HttpURLConnection
 
 @SpringBootTest(classes = [SaveApplication::class])
 @AutoConfigureWebTestClient
-// @ExtendWith(MySqlExtension::class)
+@ExtendWith(MySqlExtension::class)
 class TestSuitesControllerTest {
+    @Autowired
+    lateinit var configProperties: ConfigProperties
+
     @Autowired
     lateinit var webClient: WebTestClient
 
@@ -148,7 +154,7 @@ class TestSuitesControllerTest {
     @Test
     fun testUpdateStandardTestSuites() {
         repeat(
-            ClassPathResource("TestSuitesRepos")
+            ClassPathResource(configProperties.reposFileName)
                 .file
                 .readText()
                 .split("\n")
