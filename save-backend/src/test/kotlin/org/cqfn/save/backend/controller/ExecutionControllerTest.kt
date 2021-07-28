@@ -4,6 +4,7 @@ import org.cqfn.save.backend.SaveApplication
 import org.cqfn.save.backend.repository.ExecutionRepository
 import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.utils.MySqlExtension
+import org.cqfn.save.domain.Sdk
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.execution.ExecutionInitializationDto
@@ -57,7 +58,8 @@ class ExecutionControllerTest {
             "0.0.1",
             0,
             0,
-            0
+            0,
+            Sdk.Default.toString()
         )
         webClient.post()
             .uri("/createExecution")
@@ -85,6 +87,7 @@ class ExecutionControllerTest {
             0,
             0,
             0,
+            Sdk.Default.toString()
         )
         webClient.post()
             .uri("/createExecution")
@@ -117,6 +120,7 @@ class ExecutionControllerTest {
             0,
             0,
             0,
+            Sdk.Default.toString()
         )
 
         webClient.post()
@@ -196,7 +200,7 @@ class ExecutionControllerTest {
     @Suppress("UnsafeCallOnNullableType")
     fun checkUpdateNewExecution() {
         val execution = Execution(projectRepository.findAll().first(), LocalDateTime.now(), null, ExecutionStatus.PENDING, null,
-            null, 0, null, ExecutionType.GIT, null, 0, 0, 0)
+            null, 0, null, ExecutionType.GIT, null, 0, 0, 0, Sdk.Default.toString())
         webClient.post()
             .uri("/createExecution")
             .contentType(MediaType.APPLICATION_JSON)
