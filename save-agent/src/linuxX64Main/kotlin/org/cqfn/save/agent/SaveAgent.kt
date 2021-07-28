@@ -86,6 +86,7 @@ class SaveAgent(private val config: AgentConfiguration,
                 }
             } else {
                 logError("Exception during heartbeat: ${response.exceptionOrNull()?.message}")
+                response.exceptionOrNull()?.printStackTrace()
             }
             // todo: start waiting after request was sent, not after response?
             logInfo("Waiting for ${config.heartbeat.intervalMillis} ms")

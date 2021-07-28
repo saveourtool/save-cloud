@@ -43,7 +43,7 @@ class HeartbeatController(private val agentService: AgentService,
      * @return Answer for agent
      */
     @PostMapping("/heartbeat")
-    fun acceptHeartbeat(@RequestBody heartbeat: Heartbeat): Mono<out HeartbeatResponse> {
+    fun acceptHeartbeat(@RequestBody heartbeat: Heartbeat): Mono<String> {
         logger.info("Got heartbeat state: ${heartbeat.state.name} from ${heartbeat.agentId}")
         // store new state into DB
         return agentService.updateAgentStatusesWithDto(
@@ -74,6 +74,10 @@ class HeartbeatController(private val agentService: AgentService,
                     AgentState.CLI_FAILED -> Mono.just(WaitResponse())
                 }
             )
+            .map {
+                Json.encodeToString(it)
+            }
+            .log()
     }
 
     /**

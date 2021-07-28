@@ -16,6 +16,7 @@ import io.ktor.client.features.json.serializer.KotlinxSerializer
 
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.PolymorphicSerializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
@@ -25,6 +26,7 @@ import kotlinx.serialization.properties.decodeFromStringMap
 
 internal val json = Json {
     serializersModule = SerializersModule {
+        contextual(HeartbeatResponse::class, PolymorphicSerializer(HeartbeatResponse::class))
         polymorphic(HeartbeatResponse::class) {
             subclass(NewJobResponse::class)
             subclass(ContinueResponse::class)
@@ -40,7 +42,6 @@ fun main() {
     )
     isDebugEnabled = config.debug
     logDebug("Instantiating save-agent version $SAVE_CLOUD_VERSION with config $config")
-    logDebug("Serializer: ${ContinueResponse.serializer()}")
     val httpClient = HttpClient {
         install(JsonFeature) {
             serializer = KotlinxSerializer(json)
