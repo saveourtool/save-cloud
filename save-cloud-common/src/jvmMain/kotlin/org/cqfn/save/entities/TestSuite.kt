@@ -33,10 +33,13 @@ class TestSuite(
 
     var propertiesRelativePath: String,
 ) : BaseEntity() {
+    /**
+     * @return Dto of testSuite
+     */
     fun toDto() =
-        TestSuiteDto(
-            this.type,
-            this.name,
-            this.project,
-            this.propertiesRelativePath)
+            TestSuiteDto(
+                this.type,
+                this.name,
+                this.project,
+                this.propertiesRelativePath)
 }

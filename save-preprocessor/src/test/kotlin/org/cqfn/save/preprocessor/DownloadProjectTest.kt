@@ -55,7 +55,7 @@ import kotlin.io.path.ExperimentalPathApi
 @ExperimentalPathApi
 @WebFluxTest(controllers = [DownloadProjectController::class])
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@AutoConfigureWebTestClient(timeout = "15000")//10 seconds
+@AutoConfigureWebTestClient(timeout = "15000")  // 10 seconds
 class DownloadProjectTest(
     @Autowired private val webClient: WebTestClient,
     @Autowired private val configProperties: ConfigProperties,
@@ -239,7 +239,6 @@ class DownloadProjectTest(
         Thread.sleep(2500)
         Assertions.assertTrue(File("${configProperties.repository}/${configProperties.standardTestRepository.hashCode()}").exists())
     }
-
 
     @AfterEach
     fun removeTestDir() {

@@ -19,6 +19,7 @@ import org.cqfn.save.frontend.utils.get
 import org.cqfn.save.frontend.utils.getProject
 import org.cqfn.save.frontend.utils.post
 import org.cqfn.save.frontend.utils.runErrorModal
+import org.cqfn.save.testsuite.TestSuiteDto
 
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.HTMLSelectElement
@@ -65,7 +66,6 @@ import kotlinx.html.js.onClickFunction
 import kotlinx.html.role
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.cqfn.save.testsuite.TestSuiteDto
 
 /**
  * [RProps] retrieved from router
@@ -131,7 +131,7 @@ external interface ProjectViewState : RState {
 @JsExport
 @Suppress("CUSTOM_GETTERS_SETTERS")
 class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
-    private var testTypesList = listOf<TestSuiteDto>()
+    private var testTypesList: List<TestSuiteDto> = listOf()
     private var pathToProperty: String? = null
     private var gitUrlFromInputField: String? = null
     private val selectedTypes: MutableList<String> = mutableListOf()
@@ -163,7 +163,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
             }
             gitDto = post("${window.location.origin}/getGit", headers, jsonProject)
                 .decodeFromJsonString<GitDto>()
-            testTypesList = get("http://localhost:5000/allStandardTestSuites", headers)
+            testTypesList = get("${window.location.origin}/allStandardTestSuites", headers)
                 .decodeFromJsonString()
             setState { isLoading = false }
         }
@@ -456,7 +456,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                                             }
                                         }
                                     }
-                                }
+                            }
                         }
                     }
 

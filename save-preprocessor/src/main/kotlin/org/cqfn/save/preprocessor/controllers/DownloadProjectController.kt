@@ -110,8 +110,13 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
                 .subscribe()
         }
 
+    /**
+     * Controller to download standard test suites
+     *
+     * @return response entity with text
+     */
     @PostMapping("/uploadStandardTestSuite")
-    fun uploadStandardTestSuite()  = Mono.just(ResponseEntity("Clone pending", HttpStatus.ACCEPTED))
+    fun uploadStandardTestSuite() = Mono.just(ResponseEntity("Clone pending", HttpStatus.ACCEPTED))
         .subscribeOn(Schedulers.boundedElastic())
         .also {
             val tmpDir = generateDirectory(configProperties.standardTestRepository)
@@ -120,7 +125,8 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
                 .setDirectory(tmpDir)
                 .call().use {
                     log.info("Starting to discover root test config")
-                    val rootTestConfig = testDiscoveringService.getRootTestConfig(tmpDir.resolve("examples/kotlin-diktat").toString()) // fixme remove `replace` when project will exist
+                    // fixme remove `replace` when project will exist
+                    val rootTestConfig = testDiscoveringService.getRootTestConfig(tmpDir.resolve("examples/kotlin-diktat").toString())
                     log.info("Starting to discover standard test suites")
                     val tests = testDiscoveringService.getAllTestSuites(null, rootTestConfig, "stub")
                     log.info("Starting to save new test suites")
@@ -136,7 +142,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
                         }
                         .subscribe()
                 }
-    }
+        }
 
     @Suppress(
         "TooGenericExceptionCaught",
@@ -207,7 +213,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
 
     private fun generateDirectory(dirName: String): File {
         val hashName = dirName.hashCode()
-        val tmpDir = File("${configProperties.repository}/${hashName}")
+        val tmpDir = File("${configProperties.repository}/$hashName")
         if (tmpDir.exists()) {
             tmpDir.deleteRecursively()
             log.info("For $dirName file: dir $hashName was deleted")

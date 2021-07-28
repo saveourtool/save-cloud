@@ -10,5 +10,9 @@ import org.springframework.stereotype.Repository
  */
 @Repository
 interface TestSuiteRepository : BaseEntityRepository<TestSuite>, QueryByExampleExecutor<TestSuite> {
+    /**
+     * @param testSuiteType
+     * @return list of test suites by type
+     */
     fun findAllByTypeIs(testSuiteType: TestSuiteType): List<TestSuite>
 }

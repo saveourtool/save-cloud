@@ -3,7 +3,6 @@ package org.cqfn.save.backend.controller
 import org.cqfn.save.backend.SaveApplication
 import org.cqfn.save.backend.repository.TestRepository
 import org.cqfn.save.backend.repository.TestSuiteRepository
-import org.cqfn.save.backend.utils.MySqlExtension
 import org.cqfn.save.test.TestBatch
 import org.cqfn.save.test.TestDto
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -11,7 +10,6 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.boot.test.context.SpringBootTest
@@ -22,7 +20,7 @@ import org.springframework.web.reactive.function.BodyInserters
 
 @SpringBootTest(classes = [SaveApplication::class])
 @AutoConfigureWebTestClient
-//@ExtendWith(MySqlExtension::class)
+// @ExtendWith(MySqlExtension::class)
 class TestInitializeControllerTest {
     @Autowired
     lateinit var webClient: WebTestClient
@@ -89,7 +87,7 @@ class TestInitializeControllerTest {
             testSuite.id!!,
             "newHash123",
 
-            )
+        )
         webClient.post()
             .uri("/initializeTests")
             .contentType(MediaType.APPLICATION_JSON)

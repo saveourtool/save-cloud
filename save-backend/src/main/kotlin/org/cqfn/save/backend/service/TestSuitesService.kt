@@ -45,7 +45,9 @@ class TestSuitesService {
         return testSuites.toList()
     }
 
-    fun getStandardTestSuites(): List<TestSuiteDto> {
-        return testSuiteRepository.findAllByTypeIs(TestSuiteType.STANDARD).map { it.toDto() }
-    }
+    /**
+     * @return all standard test suites
+     */
+    fun getStandardTestSuites() =
+            testSuiteRepository.findAllByTypeIs(TestSuiteType.STANDARD).map { it.toDto() }
 }

@@ -10,6 +10,7 @@ import org.springframework.boot.context.properties.ConstructorBinding
  * @property backend
  * @property orchestrator
  * @property executionLimit
+ * @property standardTestRepository
  */
 @ConstructorBinding
 @ConfigurationProperties(prefix = "save")
