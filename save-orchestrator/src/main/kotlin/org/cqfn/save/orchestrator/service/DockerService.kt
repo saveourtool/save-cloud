@@ -52,7 +52,7 @@ class DockerService(private val configProperties: ConfigProperties) {
         log.info("Built base image for execution.id=${execution.id}")
         return (1..configProperties.agentsCount).map { number ->
             log.info("Building container #$number for execution.id=${execution.id}")
-            createContainerForExecution(imageId, "${execution.id}-$number", runCmd).also {
+            createContainerForExecution(execution, imageId, "${execution.id}-$number", runCmd).also {
                 log.info("Built container id=$it for execution.id=${execution.id}")
             }
         }
@@ -109,11 +109,7 @@ class DockerService(private val configProperties: ConfigProperties) {
             configProperties.testResources.basePath,
             execution.resourcesRootPath,
         )
-        val runCmd = if (File(resourcesPath, "run.sh").exists()) {
-            "./run.sh"
-        } else {
-            "./$SAVE_AGENT_EXECUTABLE_NAME"
-        }
+        val runCmd = "./$SAVE_AGENT_EXECUTABLE_NAME"
         // include save-agent into the image
         FileUtils.copyInputStreamToFile(
             ClassPathResource(SAVE_AGENT_EXECUTABLE_NAME).inputStream,
@@ -140,6 +136,7 @@ class DockerService(private val configProperties: ConfigProperties) {
     }
 
     private fun createContainerForExecution(
+        execution: Execution,
         imageId: String,
         containerNumber: String,
         runCmd: String,
@@ -157,11 +154,20 @@ class DockerService(private val configProperties: ConfigProperties) {
             ClassPathResource("agent.properties").inputStream,
             agentPropertiesFile
         )
+        val resourcesPath = File(
+            configProperties.testResources.basePath,
+            execution.resourcesRootPath,
+        )
         agentPropertiesFile.writeText(
             agentPropertiesFile.readLines().joinToString(System.lineSeparator()) {
                 if (it.startsWith("id=")) "id=$containerId" else it
             }
         )
+        // todo: un-hardcode script
+        if (File(resourcesPath, "examples/kotlin-diktat/run.sh").exists()) {
+            val cliCommand = "bash ./examples/kotlin-diktat/run.sh || ./$SAVE_CLI_EXECUTABLE_NAME"
+            agentPropertiesFile.appendText("\ncliCommand=$cliCommand\n")
+        }
         containerManager.copyResourcesIntoContainer(
             containerId, executionDir,
             listOf(agentPropertiesFile)

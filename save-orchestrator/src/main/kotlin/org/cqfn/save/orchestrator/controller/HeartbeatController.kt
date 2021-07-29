@@ -3,20 +3,24 @@ package org.cqfn.save.orchestrator.controller
 import org.cqfn.save.agent.AgentState
 import org.cqfn.save.agent.ContinueResponse
 import org.cqfn.save.agent.Heartbeat
-import org.cqfn.save.agent.HeartbeatResponse
 import org.cqfn.save.agent.NewJobResponse
 import org.cqfn.save.agent.WaitResponse
 import org.cqfn.save.entities.AgentStatusDto
 import org.cqfn.save.orchestrator.config.ConfigProperties
 import org.cqfn.save.orchestrator.service.AgentService
 import org.cqfn.save.orchestrator.service.DockerService
+
 import org.slf4j.LoggerFactory
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
+
 import java.time.LocalDateTime
+
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 /**
  * Controller for heartbeat
@@ -43,7 +47,7 @@ class HeartbeatController(private val agentService: AgentService,
      * @return Answer for agent
      */
     @PostMapping("/heartbeat")
-    fun acceptHeartbeat(@RequestBody heartbeat: Heartbeat): Mono<out HeartbeatResponse> {
+    fun acceptHeartbeat(@RequestBody heartbeat: Heartbeat): Mono<String> {
         logger.info("Got heartbeat state: ${heartbeat.state.name} from ${heartbeat.agentId}")
         // store new state into DB
         return agentService.updateAgentStatusesWithDto(
@@ -66,14 +70,18 @@ class HeartbeatController(private val agentService: AgentService,
                         }
                     AgentState.FINISHED -> {
                         agentService.checkSavedData()
-                        Mono.just(WaitResponse)
+                        Mono.just(WaitResponse())
                     }
-                    AgentState.BUSY -> Mono.just(ContinueResponse)
-                    AgentState.BACKEND_FAILURE -> Mono.just(WaitResponse)
-                    AgentState.BACKEND_UNREACHABLE -> Mono.just(WaitResponse)
-                    AgentState.CLI_FAILED -> Mono.just(WaitResponse)
+                    AgentState.BUSY -> Mono.just(ContinueResponse())
+                    AgentState.BACKEND_FAILURE -> Mono.just(WaitResponse())
+                    AgentState.BACKEND_UNREACHABLE -> Mono.just(WaitResponse())
+                    AgentState.CLI_FAILED -> Mono.just(WaitResponse())
                 }
             )
+            .map {
+                Json.encodeToString(it)
+            }
+            .log()
     }
 
     /**
