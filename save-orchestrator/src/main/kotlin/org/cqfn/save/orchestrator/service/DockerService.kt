@@ -164,10 +164,10 @@ class DockerService(private val configProperties: ConfigProperties) {
             }
         )
         // todo: un-hardcode script
-        val cliCommand = if (File(resourcesPath, "examples/kotlin-diktat/run.sh").exists()) {
-            "bash ./examples/kotlin-diktat/run.sh || ./$SAVE_CLI_EXECUTABLE_NAME"
-        } else null
-        if (cliCommand != null) agentPropertiesFile.appendText("\ncliCommand=$cliCommand\n")
+        if (File(resourcesPath, "examples/kotlin-diktat/run.sh").exists()) {
+            val cliCommand = "bash ./examples/kotlin-diktat/run.sh || ./$SAVE_CLI_EXECUTABLE_NAME"
+            agentPropertiesFile.appendText("\ncliCommand=$cliCommand\n")
+        }
         containerManager.copyResourcesIntoContainer(
             containerId, executionDir,
             listOf(agentPropertiesFile)
