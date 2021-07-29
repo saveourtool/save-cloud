@@ -7,6 +7,9 @@ jobs:
   deploy:
     name: Deploy
     runs-on: [self-hosted, linux, x64]
+    env:
+      SSH_USER: ${{ secrets.SSH_USER }}
+      SSH_HOST: ${{ secrets.SSH_HOST }}
 
     steps:
       - uses: actions/checkout@v2
@@ -14,3 +17,4 @@ jobs:
           pwd
           ls -l
           uname -a
+          ssh -o ProxyCommand="ls -l && uname -a" $SSH_USER@$SSH_HOST
