@@ -204,7 +204,7 @@ class SaveAgent(private val config: AgentConfiguration,
      * @return a [HeartbeatResponse] from Orchestrator
      */
     internal suspend fun sendHeartbeat(executionProgress: ExecutionProgress): HeartbeatResponse {
-        // log.trace("Sending heartbeat to $orchestratorUrl")
+         logDebug("Sending heartbeat to ${config.orchestratorUrl}")
         // if current state is IDLE or FINISHED, should accept new jobs as a response
         return httpClient.post("${config.orchestratorUrl}/heartbeat") {
             contentType(ContentType.Application.Json)

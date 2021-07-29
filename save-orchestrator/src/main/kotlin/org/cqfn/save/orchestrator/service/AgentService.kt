@@ -79,7 +79,7 @@ class AgentService(configProperties: ConfigProperties) {
         .log(log, Level.INFO, true)
         .flatMap { agentIds ->
             updateAgentStatuses(agents.zip(agentIds).map { (agent, id) ->
-                AgentStatus(LocalDateTime.now(), LocalDateTime.now(), AgentState.IDLE, agent.also { it.id = id })
+                AgentStatus(LocalDateTime.now(), LocalDateTime.now(), AgentState.STARTING, agent.also { it.id = id })
             })
         }
 
