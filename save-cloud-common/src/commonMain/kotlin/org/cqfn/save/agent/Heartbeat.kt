@@ -37,8 +37,23 @@ data class Heartbeat(val agentId: String,
  * A response from Orchestrator to Agent
  */
 @Serializable sealed class HeartbeatResponse
-@Serializable object WaitResponse : HeartbeatResponse()
-@Serializable object ContinueResponse : HeartbeatResponse()
+
+// fixme: there are some complications when using serializable objects on Native
+// https://github.com/Kotlin/kotlinx.serialization/issues/1616
+
+/**
+ * A response that indicates that agent should wait
+ */
+@Serializable
+@Suppress("CanSealedSubClassBeObject")
+class WaitResponse : HeartbeatResponse()
+
+/**
+ * A response that indicates that agent should continue what it is doing
+ */
+@Serializable
+@Suppress("CanSealedSubClassBeObject")
+class ContinueResponse : HeartbeatResponse()
 
 /**
  * @property tests a list of new jobs for this agent

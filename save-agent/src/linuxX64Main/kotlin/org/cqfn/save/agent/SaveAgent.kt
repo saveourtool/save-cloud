@@ -17,9 +17,6 @@ import org.cqfn.save.reporter.Report
 
 import generated.SAVE_CLOUD_VERSION
 import io.ktor.client.HttpClient
-import io.ktor.client.features.HttpTimeout
-import io.ktor.client.features.json.JsonFeature
-import io.ktor.client.features.json.serializer.KotlinxSerializer
 import io.ktor.client.request.accept
 import io.ktor.client.request.post
 import io.ktor.client.request.url
@@ -47,14 +44,7 @@ import kotlinx.serialization.json.Json
  */
 @OptIn(ExperimentalFileSystem::class)
 class SaveAgent(private val config: AgentConfiguration,
-                private val httpClient: HttpClient = HttpClient {
-                    install(JsonFeature) {
-                        serializer = KotlinxSerializer()
-                    }
-                    install(HttpTimeout) {
-                        requestTimeoutMillis = config.requestTimeoutMillis
-                    }
-                }
+                private val httpClient: HttpClient
 ) {
     private val logFilePath = "logs.txt"
 
@@ -91,11 +81,12 @@ class SaveAgent(private val config: AgentConfiguration,
                     logDebug("Got heartbeat response $it")
                 }) {
                     is NewJobResponse -> maybeStartSaveProcess(heartbeatResponse.cliArgs)
-                    WaitResponse -> state.value = AgentState.IDLE
-                    ContinueResponse -> Unit  // do nothing
+                    is WaitResponse -> state.value = AgentState.IDLE
+                    is ContinueResponse -> Unit  // do nothing
                 }
             } else {
                 logError("Exception during heartbeat: ${response.exceptionOrNull()?.message}")
+                response.exceptionOrNull()?.printStackTrace()
             }
             // todo: start waiting after request was sent, not after response?
             logInfo("Waiting for ${config.heartbeat.intervalMillis} ms")
@@ -213,7 +204,7 @@ class SaveAgent(private val config: AgentConfiguration,
      * @return a [HeartbeatResponse] from Orchestrator
      */
     internal suspend fun sendHeartbeat(executionProgress: ExecutionProgress): HeartbeatResponse {
-        // log.trace("Sending heartbeat to $orchestratorUrl")
+        logDebug("Sending heartbeat to ${config.orchestratorUrl}")
         // if current state is IDLE or FINISHED, should accept new jobs as a response
         return httpClient.post("${config.orchestratorUrl}/heartbeat") {
             contentType(ContentType.Application.Json)
