@@ -13,7 +13,7 @@ plugins {
     id("org.liquibase.gradle") version Versions.liquibaseGradlePlugin
 }
 
-val profile = properties.getOrDefault("profile", "dev") as String
+val profile = properties.getOrDefault("save.profile", "dev") as String
 val databaseCredentials = getDatabaseCredentials(profile)
 
 liquibase {
