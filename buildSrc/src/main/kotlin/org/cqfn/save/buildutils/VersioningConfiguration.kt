@@ -18,10 +18,10 @@ import java.net.URL
 fun Project.configureVersioning() {
     apply<ReckonPlugin>()
 
-    val isSnapshot = hasProperty("save.development") && property("save.development") == "true"
+    val isDevelopmentVersion = hasProperty("save.profile") && property("save.profile") == "dev"
     configure<ReckonExtension> {
         scopeFromProp()
-        if (isSnapshot) {
+        if (isDevelopmentVersion) {
             // this should be used during local development most of the time, so that constantly changing version
             // on a dirty git tree doesn't cause other task updates
             snapshotFromProp()
