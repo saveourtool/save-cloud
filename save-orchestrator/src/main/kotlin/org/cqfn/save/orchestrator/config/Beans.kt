@@ -11,6 +11,8 @@ import org.springframework.web.reactive.function.client.WebClient
 class Beans(private val configProperties: ConfigProperties) {
     /**
      * Used to send requests to backend
+     *
+     * @return [WebClient] with backend URL
      */
     @Bean
     fun webClientBackend() = WebClient.create(configProperties.backendUrl)
