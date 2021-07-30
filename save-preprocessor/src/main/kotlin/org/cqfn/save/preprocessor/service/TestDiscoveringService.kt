@@ -41,7 +41,7 @@ class TestDiscoveringService {
     /**
      * Discover all test suites in the project
      *
-     * @param project a [Project] corresponding to analyzed data
+     * @param project a [Project] corresponding to analyzed data. If it null - standard test suites
      * @param propertiesRelativePath path to save.properties file relative to repository root
      * @param rootTestConfig root config of SAVE configs hierarchy
      * @return a list of [TestSuiteDto]s
@@ -52,7 +52,7 @@ class TestDiscoveringService {
         .mapNotNull { it.getGeneralConfigOrNull()?.suiteName }
         .map { suiteName ->
             // we operate here with suite names from only those TestConfigs, that have General section with suiteName key
-            TestSuiteDto(TestSuiteType.PROJECT, suiteName, project, propertiesRelativePath)
+            TestSuiteDto(project?.let { TestSuiteType.PROJECT } ?: TestSuiteType.STANDARD, suiteName, project, propertiesRelativePath)
         }
         .distinct()
 

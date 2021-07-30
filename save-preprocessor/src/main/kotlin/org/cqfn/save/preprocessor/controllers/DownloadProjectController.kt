@@ -21,6 +21,7 @@ import org.cqfn.save.preprocessor.config.ConfigProperties
 import org.cqfn.save.preprocessor.service.TestDiscoveringService
 import org.cqfn.save.preprocessor.utils.decodeFromPropertiesFile
 import org.cqfn.save.testsuite.TestSuiteDto
+import org.cqfn.save.testsuite.TestSuiteRepo
 import org.cqfn.save.testsuite.TestSuiteType
 
 import org.eclipse.jgit.api.Git
@@ -45,6 +46,7 @@ import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
 import org.springframework.web.reactive.function.client.toEntity
 import org.springframework.web.server.ResponseStatusException
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
 import reactor.kotlin.core.util.function.component1
@@ -114,23 +116,22 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
     /**
      * Controller to download standard test suites
      *
-     * @param gitDto dto of git with standard test suites
+     * @param testSuiteRepo info about test suites
      * @return response entity with text
      */
     @PostMapping("/uploadStandardTestSuite")
-    fun uploadStandardTestSuite(@RequestBody gitDto: GitDto) = Mono.just(ResponseEntity("Clone pending", HttpStatus.ACCEPTED))
+    fun uploadStandardTestSuite(@RequestBody testSuiteRepo: TestSuiteRepo) = Mono.just(ResponseEntity("Clone pending", HttpStatus.ACCEPTED))
         .subscribeOn(Schedulers.boundedElastic())
         .also {
-            val tmpDir = generateDirectory(gitDto.url)
-            Git.cloneRepository()
-                .setURI(gitDto.url)
-                .setDirectory(tmpDir)
-                .call().use {
+            val tmpDir = generateDirectory(testSuiteRepo.gitUrl)
+            cloneFromGit(GitDto(testSuiteRepo.gitUrl), tmpDir).use {
+                Flux.fromIterable(testSuiteRepo.propertiesRelativePaths).flatMap { propPath ->
                     log.info("Starting to discover root test config")
-                    // fixme remove `resolve` when project will exist
-                    val rootTestConfig = testDiscoveringService.getRootTestConfig(tmpDir.resolve("examples/kotlin-diktat").toString())
+                    val testResourcesRootAbsolutePath = File(tmpDir.relativeTo(File(configProperties.repository)).normalize().path, propPath).absolutePath
+                    val rootTestConfig = testDiscoveringService.getRootTestConfig(testResourcesRootAbsolutePath)
                     log.info("Starting to discover standard test suites")
                     val tests = testDiscoveringService.getAllTestSuites(null, rootTestConfig, "stub")
+                    log.info("Test suites size = ${tests.size}")
                     log.info("Starting to save new test suites")
                     webClientBackend.makeRequest(BodyInserters.fromValue(tests), "/saveTestSuites") {
                         it.bodyToMono<List<TestSuite>>()
@@ -138,13 +139,32 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
                         .flatMap { testSuites ->
                             log.info("Starting to save new tests")
                             webClientBackend.makeRequest(
-                                BodyInserters.fromValue(testDiscoveringService.getAllTests(rootTestConfig, testSuites)),
+                                BodyInserters.fromValue(
+                                    testDiscoveringService.getAllTests(
+                                        rootTestConfig,
+                                        testSuites
+                                    )
+                                ),
                                 "/initializeTests"
                             ) { it.toBodilessEntity() }
                         }
-                        .subscribe()
                 }
+                    .subscribe()
+            }
         }
+
+    private fun cloneFromGit(gitDto: GitDto, tmpDir: File): Git? {
+        val userCredentials = if (gitDto.username != null && gitDto.password != null) {
+            UsernamePasswordCredentialsProvider(gitDto.username, gitDto.password)
+        } else {
+            CredentialsProvider.getDefault()
+        }
+        return Git.cloneRepository()
+            .setURI(gitDto.url)
+            .setCredentialsProvider(userCredentials)
+            .setDirectory(tmpDir)
+            .call()
+    }
 
     @Suppress(
         "TooGenericExceptionCaught",
@@ -161,23 +181,19 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
             CredentialsProvider.getDefault()
         }
         try {
-            Git.cloneRepository()
-                .setURI(gitDto.url)
-                .setCredentialsProvider(userCredentials)
-                .setDirectory(tmpDir)
-                .call().use {
-                    log.info("Repository cloned: ${gitDto.url}")
-                    // Post request to backend to create PENDING executions
-                    sendToBackendAndOrchestrator(
-                        project,
-                        executionRequest.propertiesRelativePath,
-                        tmpDir.relativeTo(File(configProperties.repository)).normalize().path,
-                        ExecutionType.GIT,
-                        it.log().call().first()
-                            .name,
-                        null
-                    )
-                }
+            cloneFromGit(gitDto, tmpDir)?.use {
+                log.info("Repository cloned: ${gitDto.url}")
+                // Post request to backend to create PENDING executions
+                sendToBackendAndOrchestrator(
+                    project,
+                    executionRequest.propertiesRelativePath,
+                    tmpDir.relativeTo(File(configProperties.repository)).normalize().path,
+                    ExecutionType.GIT,
+                    it.log().call().first()
+                        .name,
+                    null
+                )
+            }
         } catch (exception: Exception) {
             tmpDir.deleteRecursively()
             when (exception) {

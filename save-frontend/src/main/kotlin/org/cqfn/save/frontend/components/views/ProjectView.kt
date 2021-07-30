@@ -131,7 +131,7 @@ external interface ProjectViewState : RState {
 @JsExport
 @Suppress("CUSTOM_GETTERS_SETTERS")
 class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
-    private var testTypesList: List<TestSuiteDto> = listOf()
+    private var testTypesList: List<TestSuiteDto> = emptyList()
     private var pathToProperty: String? = null
     private var gitUrlFromInputField: String? = null
     private val selectedTypes: MutableList<String> = mutableListOf()

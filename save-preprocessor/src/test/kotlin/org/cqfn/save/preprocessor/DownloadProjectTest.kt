@@ -13,6 +13,7 @@ import org.cqfn.save.preprocessor.config.ConfigProperties
 import org.cqfn.save.preprocessor.controllers.DownloadProjectController
 import org.cqfn.save.preprocessor.service.TestDiscoveringService
 import org.cqfn.save.preprocessor.utils.RepositoryVolume
+import org.cqfn.save.testsuite.TestSuiteRepo
 import org.cqfn.save.testsuite.TestSuiteType
 
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -236,7 +237,7 @@ class DownloadProjectTest(
             id = 42L
         }
 
-        val gitDto = GitDto("https://github.com/cqfn/save")
+        val testSuiteRepo = TestSuiteRepo("https://github.com/cqfn/save", listOf("examples/kotlin-diktat", "examples/discovery-test"))
         mockServerBackend.enqueue(
             MockResponse()
                 .setResponseCode(200)
@@ -261,7 +262,7 @@ class DownloadProjectTest(
 
         webClient.post()
             .uri("/uploadStandardTestSuite")
-            .body(BodyInserters.fromValue(gitDto))
+            .body(BodyInserters.fromValue(testSuiteRepo))
             .exchange()
             .expectStatus()
             .isAccepted
@@ -269,7 +270,7 @@ class DownloadProjectTest(
             .isEqualTo("Clone pending")
         Thread.sleep(2500)
         assertions.orTimeout(60, TimeUnit.SECONDS).join().forEach { Assertions.assertNotNull(it) }
-        Assertions.assertTrue(File("${configProperties.repository}/${gitDto.url.hashCode()}").exists())
+        Assertions.assertTrue(File("${configProperties.repository}/${testSuiteRepo.gitUrl.hashCode()}").exists())
     }
 
     @AfterEach

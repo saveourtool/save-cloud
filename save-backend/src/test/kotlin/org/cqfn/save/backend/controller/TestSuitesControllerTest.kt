@@ -157,7 +157,7 @@ class TestSuitesControllerTest {
             ClassPathResource(configProperties.reposFileName)
                 .file
                 .readText()
-                .split("\n")
+                .lines()
                 .size
         ) {
             mockServerPreprocessor.enqueue(
