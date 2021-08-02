@@ -24,6 +24,7 @@ data class ConfigProperties(
     val docker: DockerSettings,
     val agentsCount: Int,
     val executionLogs: String,
+    var workDir: String,
 )
 
 /**

@@ -20,7 +20,8 @@ fun Project.configureVersioning() {
 
     configure<ReckonExtension> {
         scopeFromProp()
-        stageFromProp("alpha", "final")  // use -Preckon.stage=final for release; otherwise version string will be based on commit hash
+//        stageFromProp("alpha", "final")  // use -Preckon.stage=final for release; otherwise version string will be based on commit hash
+        snapshotFromProp()
     }
 }
 

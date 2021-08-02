@@ -105,20 +105,27 @@ class DockerService(private val configProperties: ConfigProperties) {
 
     @Suppress("TOO_LONG_FUNCTION")
     private fun buildBaseImageForExecution(execution: Execution): Pair<String, String> {
+        println("\nconfigProperties.testResources.basePath ${configProperties.testResources.basePath}")
+        println("execution.resourcesRootPath ${execution.resourcesRootPath}")
+        println("execution.workDir ${configProperties.workDir}")
         val resourcesPath = File(
             configProperties.testResources.basePath,
             execution.resourcesRootPath,
         )
         val runCmd = "./$SAVE_AGENT_EXECUTABLE_NAME"
         // include save-agent into the image
+        println("PATH 1: ${ClassPathResource(SAVE_AGENT_EXECUTABLE_NAME)}")
+        println("PATH 2: ${resourcesPath}")
+        val saveAgent = File(resourcesPath, SAVE_AGENT_EXECUTABLE_NAME)
         FileUtils.copyInputStreamToFile(
             ClassPathResource(SAVE_AGENT_EXECUTABLE_NAME).inputStream,
-            File(resourcesPath, SAVE_AGENT_EXECUTABLE_NAME)
+            saveAgent
         )
         // include save-cli into the image
+        val saveCli = File(resourcesPath, SAVE_CLI_EXECUTABLE_NAME)
         FileUtils.copyInputStreamToFile(
             ClassPathResource(SAVE_CLI_EXECUTABLE_NAME).inputStream,
-            File(resourcesPath, SAVE_CLI_EXECUTABLE_NAME)
+            saveCli
         )
         val baseImage = execution.sdk
         val imageId = containerManager.buildImageWithResources(
@@ -132,6 +139,8 @@ class DockerService(private val configProperties: ConfigProperties) {
                     |RUN chmod +x $executionDir/$SAVE_CLI_EXECUTABLE_NAME
                 """
         )
+        saveAgent.delete()
+        saveCli.delete()
         return Pair(imageId, runCmd)
     }
 
