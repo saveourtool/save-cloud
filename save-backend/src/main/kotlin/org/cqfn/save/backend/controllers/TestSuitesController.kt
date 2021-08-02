@@ -1,24 +1,19 @@
 package org.cqfn.save.backend.controllers
 
-import org.cqfn.save.backend.StringResponse
 import org.cqfn.save.backend.configs.ConfigProperties
 import org.cqfn.save.backend.service.TestSuitesService
 import org.cqfn.save.entities.TestSuite
 import org.cqfn.save.testsuite.TestSuiteDto
-import org.cqfn.save.testsuite.TestSuiteRepo
 import org.slf4j.LoggerFactory
 
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.core.io.ClassPathResource
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
-import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
-import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
 typealias ResponseListTestSuites = ResponseEntity<List<TestSuiteDto>>
@@ -57,28 +52,13 @@ class TestSuitesController(
      * @return response entity
      */
     @PostMapping("/updateStandardTestSuites")
-    fun updateStandardTestSuites(): StringResponse {
-        val repos = ClassPathResource(configProperties.reposFileName)
-            .file
-            .readText()
-            .lines()
-            .map {
-                val splitRow = it.split("\\s".toRegex())
-                require(splitRow.size == 2)
-                TestSuiteRepo(splitRow.first(), splitRow[1].split(";"))
-            }
-        log.info("Will update test suites from ${repos.size} repos")
-        Flux.fromIterable(repos).flatMap {
-            log.info("Update test suite from ${it.gitUrl}")
-            preprocessorWebClient
-                .post()
-                .uri("/uploadStandardTestSuite")
-                .body(BodyInserters.fromValue(it))
-                .retrieve()
-                .toBodilessEntity()
-        }
+    fun updateStandardTestSuites(): ResponseEntity<String> {
+        preprocessorWebClient
+            .post()
+            .uri("/uploadStandardTestSuite")
+            .retrieve()
+            .toBodilessEntity()
             .subscribe()
-        log.info("Updated")
         return ResponseEntity.status(HttpStatus.OK).body("Updated")
     }
 }

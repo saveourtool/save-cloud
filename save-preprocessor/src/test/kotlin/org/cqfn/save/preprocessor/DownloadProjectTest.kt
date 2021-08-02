@@ -13,7 +13,6 @@ import org.cqfn.save.preprocessor.config.ConfigProperties
 import org.cqfn.save.preprocessor.controllers.DownloadProjectController
 import org.cqfn.save.preprocessor.service.TestDiscoveringService
 import org.cqfn.save.preprocessor.utils.RepositoryVolume
-import org.cqfn.save.testsuite.TestSuiteRepo
 import org.cqfn.save.testsuite.TestSuiteType
 
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -34,6 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
 import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.core.io.ClassPathResource
 import org.springframework.core.io.FileSystemResource
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -232,44 +232,47 @@ class DownloadProjectTest(
     @Test
     @Suppress("TOO_LONG_FUNCTION")
     fun testStandardTestSuites() {
-        val project = Project("owner", "someName", null, "descr").apply {
-            id = 42L
+        repeat(
+            ClassPathResource(configProperties.reposFileName)
+                .file
+                .readText()
+                .lines()
+                .flatMap { it.split(";") }
+                .size
+        ) {
+            val project = Project("owner", "someName", null, "descr").apply {
+                id = 42L
+            }
+            mockServerBackend.enqueue(
+                MockResponse()
+                    .setResponseCode(200)
+                    .setHeader("Content-Type", "application/json")
+                    .setBody(
+                        objectMapper.writeValueAsString(
+                            listOf(
+                                TestSuite(TestSuiteType.PROJECT, "", project, LocalDateTime.now(), "save.properties")
+                            )
+                        )
+                    ),
+            )
+            mockServerBackend.enqueue(
+                MockResponse()
+                    .setResponseCode(200)
+            )
         }
 
-        val testSuiteRepo = TestSuiteRepo("https://github.com/cqfn/save", listOf("examples/kotlin-diktat", "examples/discovery-test"))
-        mockServerBackend.enqueue(
-            MockResponse()
-                .setResponseCode(200)
-                .setHeader("Content-Type", "application/json")
-                .setBody(objectMapper.writeValueAsString(
-                    listOf(
-                        TestSuite(TestSuiteType.PROJECT, "", project, LocalDateTime.now(), "save.properties")
-                    )
-                )),
-        )
-        mockServerBackend.enqueue(
-            MockResponse()
-                .setResponseCode(200)
-        )
-
         val assertions = CompletableFuture.supplyAsync {
-            listOf(
-                mockServerBackend.takeRequest(60, TimeUnit.SECONDS),
-                mockServerBackend.takeRequest(60, TimeUnit.SECONDS),
-            )
+            List(2) { mockServerBackend.takeRequest(60, TimeUnit.SECONDS) }
         }
 
         webClient.post()
             .uri("/uploadStandardTestSuite")
-            .body(BodyInserters.fromValue(testSuiteRepo))
             .exchange()
             .expectStatus()
-            .isAccepted
-            .expectBody<String>()
-            .isEqualTo("Clone pending")
+            .isOk
         Thread.sleep(2500)
         assertions.orTimeout(60, TimeUnit.SECONDS).join().forEach { Assertions.assertNotNull(it) }
-        Assertions.assertTrue(File("${configProperties.repository}/${testSuiteRepo.gitUrl.hashCode()}").exists())
+        Assertions.assertTrue(File("${configProperties.repository}/${"https://github.com/cqfn/save".hashCode()}").exists())
     }
 
     @AfterEach

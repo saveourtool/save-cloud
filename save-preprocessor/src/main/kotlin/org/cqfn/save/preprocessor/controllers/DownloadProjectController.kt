@@ -18,7 +18,6 @@ import org.cqfn.save.preprocessor.config.ConfigProperties
 import org.cqfn.save.preprocessor.service.TestDiscoveringService
 import org.cqfn.save.preprocessor.utils.decodeFromPropertiesFile
 import org.cqfn.save.testsuite.TestSuiteDto
-import org.cqfn.save.testsuite.TestSuiteRepo
 import org.cqfn.save.testsuite.TestSuiteType
 
 import org.eclipse.jgit.api.Git
@@ -29,6 +28,7 @@ import org.eclipse.jgit.transport.CredentialsProvider
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.core.io.ClassPathResource
 import org.springframework.http.HttpStatus
 import org.springframework.http.ReactiveHttpOutputMessage
 import org.springframework.http.ResponseEntity
@@ -112,19 +112,21 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
 
     /**
      * Controller to download standard test suites
-     *
-     * @param testSuiteRepo info about test suites
-     * @return response entity with text
      */
+    @Suppress("TOO_LONG_FUNCTION")
     @PostMapping("/uploadStandardTestSuite")
-    fun uploadStandardTestSuite(@RequestBody testSuiteRepo: TestSuiteRepo) = Mono.just(ResponseEntity("Clone pending", HttpStatus.ACCEPTED))
-        .subscribeOn(Schedulers.boundedElastic())
-        .also {
-            val tmpDir = generateDirectory(testSuiteRepo.gitUrl)
-            cloneFromGit(GitDto(testSuiteRepo.gitUrl), tmpDir).use {
-                Flux.fromIterable(testSuiteRepo.propertiesRelativePaths).flatMap { propPath ->
+    fun uploadStandardTestSuite() {
+        readStandardTestSuitesFile().forEach { (testSuiteUrl, testSuitesPath) ->
+            log.info("Starting clone repository = $testSuiteUrl for standard test suites")
+            val tmpDir = generateDirectory(testSuiteUrl)
+            cloneFromGit(GitDto(testSuiteUrl), tmpDir).use {
+                Flux.fromIterable(testSuitesPath).flatMap { propPath ->
                     log.info("Starting to discover root test config")
-                    val testResourcesRootAbsolutePath = File(tmpDir.relativeTo(File(configProperties.repository)).normalize().path, propPath).absolutePath
+                    val testResourcesRootAbsolutePath =
+                            File(
+                                tmpDir.relativeTo(File(configProperties.repository)).normalize().path,
+                                propPath
+                            ).absolutePath
                     val rootTestConfig = testDiscoveringService.getRootTestConfig(testResourcesRootAbsolutePath)
                     log.info("Starting to discover standard test suites")
                     val tests = testDiscoveringService.getAllTestSuites(null, rootTestConfig, "stub")
@@ -146,9 +148,24 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
                             ) { it.toBodilessEntity() }
                         }
                 }
+                    .doOnError {
+                        log.error("Error to update test with url = $testSuiteUrl")
+                    }
                     .subscribe()
             }
         }
+    }
+
+    private fun readStandardTestSuitesFile() =
+            ClassPathResource(configProperties.reposFileName)
+                .file
+                .readText()
+                .lines()
+                .associate {
+                    val splitRow = it.split("\\s".toRegex())
+                    require(splitRow.size == 2)
+                    splitRow.first() to splitRow[1].split(";")
+                }
 
     private fun cloneFromGit(gitDto: GitDto, tmpDir: File): Git? {
         val userCredentials = if (gitDto.username != null && gitDto.password != null) {

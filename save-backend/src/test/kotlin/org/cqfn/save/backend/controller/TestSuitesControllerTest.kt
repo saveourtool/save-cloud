@@ -1,7 +1,6 @@
 package org.cqfn.save.backend.controller
 
 import org.cqfn.save.backend.SaveApplication
-import org.cqfn.save.backend.configs.ConfigProperties
 import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.repository.TestSuiteRepository
 import org.cqfn.save.backend.utils.MySqlExtension
@@ -21,7 +20,6 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.core.io.ClassPathResource
 import org.springframework.http.MediaType
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
@@ -35,9 +33,6 @@ import java.net.HttpURLConnection
 @AutoConfigureWebTestClient
 @ExtendWith(MySqlExtension::class)
 class TestSuitesControllerTest {
-    @Autowired
-    lateinit var configProperties: ConfigProperties
-
     @Autowired
     lateinit var webClient: WebTestClient
 
@@ -153,27 +148,15 @@ class TestSuitesControllerTest {
 
     @Test
     fun testUpdateStandardTestSuites() {
-        repeat(
-            ClassPathResource(configProperties.reposFileName)
-                .file
-                .readText()
-                .lines()
-                .size
-        ) {
-            mockServerPreprocessor.enqueue(
-                MockResponse()
-                    .setResponseCode(202)
-                    .setBody("Clone pending")
-                    .addHeader("Content-Type", "application/json")
-            )
-        }
+        mockServerPreprocessor.enqueue(MockResponse().setResponseCode(200))
         webClient.post()
             .uri("/updateStandardTestSuites")
             .exchange()
             .expectStatus()
             .isOk
-        Thread.sleep(2500)
-        assertEquals((mockServerPreprocessor.dispatcher as QueueDispatcher).peek().status, MockResponse().setResponseCode(HttpURLConnection.HTTP_NOT_FOUND).status)
+            .expectBody<String>()
+            .isEqualTo("Updated")
+        assertEquals(MockResponse().setResponseCode(HttpURLConnection.HTTP_NOT_FOUND).status, (mockServerPreprocessor.dispatcher as QueueDispatcher).peek().status)
     }
 
     companion object {
