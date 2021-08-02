@@ -74,6 +74,7 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
         div {
             +("Project version: ${(state.executionDto?.version ?: "N/A")}")
         }
+        // fixme: table is rendered twice because of state change when `executionDto` is fetched
         child(tableComponent(
             columns = columns {
                 column(id = "index", header = "#") {
