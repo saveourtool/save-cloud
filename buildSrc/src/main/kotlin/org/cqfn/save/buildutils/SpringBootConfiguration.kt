@@ -46,7 +46,7 @@ fun Project.configureSpringBoot(withSpringDataJpa: Boolean = false) {
     if (withSpringDataJpa) {
         apply<AllOpenGradleSubplugin>()
 
-        configure<AllOpenExtension>() {
+        configure<AllOpenExtension> {
             annotation("javax.persistence.Entity")
             annotation("javax.persistence.Embeddable")
             annotation("javax.persistence.MappedSuperclass")

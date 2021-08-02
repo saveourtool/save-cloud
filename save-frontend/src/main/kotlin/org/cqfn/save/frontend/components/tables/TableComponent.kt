@@ -66,8 +66,6 @@ external interface TableProps : RProps {
 @Suppress("TOO_LONG_FUNCTION",
     "TOO_MANY_PARAMETERS",
     "TYPE_ALIAS",
-    // https://github.com/cqfn/diKTat/issues/992
-    "LAMBDA_IS_NOT_LAST_PARAMETER",
     "ForbiddenComment",
     "LongMethod",
     "LongParameterList",
