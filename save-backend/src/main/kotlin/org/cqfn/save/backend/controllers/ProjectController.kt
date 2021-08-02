@@ -30,6 +30,8 @@ class ProjectController {
 
     /**
      * Get all projects.
+     *
+     * @return a list of projects
      */
     @GetMapping("/projects")
     fun getProjects() = projectService.getProjects()

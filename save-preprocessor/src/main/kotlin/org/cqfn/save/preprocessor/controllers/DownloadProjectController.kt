@@ -1,8 +1,5 @@
-@file:Suppress("UNUSED_IMPORT")
-
 package org.cqfn.save.preprocessor.controllers
 
-// for these imports we need to suppress UNUSED_IMPORT until https://github.com/cqfn/diKTat/issues/837
 import org.cqfn.save.core.config.SaveProperties
 import org.cqfn.save.core.config.TestConfig
 import org.cqfn.save.core.config.defaultConfig
