@@ -53,9 +53,9 @@ class TestSuitesController(
      */
     @PostMapping("/updateStandardTestSuites")
     fun updateStandardTestSuites() =
-        preprocessorWebClient
-            .post()
-            .uri("/uploadStandardTestSuite")
-            .retrieve()
-            .toBodilessEntity()
+            preprocessorWebClient
+                .post()
+                .uri("/uploadStandardTestSuite")
+                .retrieve()
+                .toBodilessEntity()
 }
