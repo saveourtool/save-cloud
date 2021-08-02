@@ -52,13 +52,10 @@ class TestSuitesController(
      * @return response entity
      */
     @PostMapping("/updateStandardTestSuites")
-    fun updateStandardTestSuites(): ResponseEntity<String> {
+    fun updateStandardTestSuites() =
         preprocessorWebClient
             .post()
             .uri("/uploadStandardTestSuite")
             .retrieve()
             .toBodilessEntity()
-            .subscribe()
-        return ResponseEntity.status(HttpStatus.OK).body("Updated")
-    }
 }

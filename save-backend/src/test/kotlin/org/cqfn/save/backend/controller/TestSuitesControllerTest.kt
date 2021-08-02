@@ -154,8 +154,6 @@ class TestSuitesControllerTest {
             .exchange()
             .expectStatus()
             .isOk
-            .expectBody<String>()
-            .isEqualTo("Updated")
         assertEquals(MockResponse().setResponseCode(HttpURLConnection.HTTP_NOT_FOUND).status, (mockServerPreprocessor.dispatcher as QueueDispatcher).peek().status)
     }
 
