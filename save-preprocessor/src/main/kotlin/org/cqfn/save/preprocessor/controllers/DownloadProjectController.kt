@@ -131,12 +131,12 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
                     log.info("Starting to discover standard test suites")
                     val tests = testDiscoveringService.getAllTestSuites(null, rootTestConfig, "stub")
                     log.info("Test suites size = ${tests.size}")
-                    log.info("Starting to save new test suites")
+                    log.info("Starting to save new test suites for $propPath")
                     webClientBackend.makeRequest(BodyInserters.fromValue(tests), "/saveTestSuites") {
                         it.bodyToMono<List<TestSuite>>()
                     }
                         .flatMap { testSuites ->
-                            log.info("Starting to save new tests")
+                            log.info("Starting to save new tests for $propPath")
                             webClientBackend.makeRequest(
                                 BodyInserters.fromValue(
                                     testDiscoveringService.getAllTests(

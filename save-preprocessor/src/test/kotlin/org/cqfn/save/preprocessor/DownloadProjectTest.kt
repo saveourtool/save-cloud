@@ -232,14 +232,13 @@ class DownloadProjectTest(
     @Test
     @Suppress("TOO_LONG_FUNCTION")
     fun testStandardTestSuites() {
-        repeat(
-            ClassPathResource(configProperties.reposFileName)
-                .file
-                .readText()
-                .lines()
-                .flatMap { it.split(";") }
-                .size
-        ) {
+        val requestSize = ClassPathResource(configProperties.reposFileName)
+            .file
+            .readText()
+            .lines()
+            .flatMap { it.split(";") }
+            .size
+        repeat(requestSize) {
             val project = Project("owner", "someName", null, "descr").apply {
                 id = 42L
             }
@@ -262,7 +261,7 @@ class DownloadProjectTest(
         }
 
         val assertions = CompletableFuture.supplyAsync {
-            List(2) { mockServerBackend.takeRequest(60, TimeUnit.SECONDS) }
+            List(requestSize*2) { mockServerBackend.takeRequest(60, TimeUnit.SECONDS) }
         }
 
         webClient.post()
