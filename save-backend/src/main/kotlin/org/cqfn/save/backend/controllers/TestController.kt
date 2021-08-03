@@ -24,13 +24,13 @@ class TestController {
 
     /**
      * @param testDtos list of [TestDto]s to save into the DB
-     * @param executionId ID of the [Execution], during which these tests will be executed
+     * @param executionId ID of the [Execution], during which these tests will be executed. It might be not required if there are standard test suites
      */
     @PostMapping("/initializeTests")
-    fun initializeTests(@RequestBody testDtos: List<TestDto>, @RequestParam executionId: Long) {
+    fun initializeTests(@RequestBody testDtos: List<TestDto>, @RequestParam(required = false) executionId: Long?) {
         log.debug("Received the following tests for initialization under executionId=$executionId: $testDtos")
         val testsIds = testService.saveTests(testDtos)
-        testExecutionService.saveTestExecution(executionId, testsIds)
+        executionId?.let { testExecutionService.saveTestExecution(executionId, testsIds) }
     }
 
     /**

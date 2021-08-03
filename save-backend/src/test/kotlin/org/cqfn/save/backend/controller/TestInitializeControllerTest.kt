@@ -80,6 +80,30 @@ class TestInitializeControllerTest {
     }
 
     @Test
+    @Suppress("UnsafeCallOnNullableType")
+    fun checkInitializeWithoutExecution() {
+        val testSuite = testSuiteRepository.findById(2).get()
+        val test = TestDto(
+            "testWithoutExecution",
+            "WarnPlugin",
+            testSuite.id!!,
+            "newHash123",
+
+        )
+        webClient.post()
+            .uri("/initializeTests")
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(BodyInserters.fromValue(listOf(test)))
+            .exchange()
+            .expectStatus()
+            .isOk
+
+        val databaseData = testRepository.findAll()
+
+        assertTrue(databaseData.any { it.testSuite.id == test.testSuiteId && it.filePath == test.filePath && it.hash == test.hash })
+    }
+
+    @Test
     fun checkServiceData() {
         webClient.get()
             .uri("/getTestBatches?agentId=container-1")
