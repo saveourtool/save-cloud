@@ -50,6 +50,7 @@ import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
 
 import java.io.File
+import java.util.stream.Collectors
 
 import kotlin.io.path.ExperimentalPathApi
 
@@ -116,27 +117,27 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
     @Suppress("TOO_LONG_FUNCTION")
     @PostMapping("/uploadStandardTestSuite")
     fun uploadStandardTestSuite() {
-        readStandardTestSuitesFile().forEach { (testSuiteUrl, testSuitesPath) ->
+        readStandardTestSuitesFile(configProperties.reposFileName).forEach { (testSuiteUrl, testSuitePaths) ->
             log.info("Starting clone repository = $testSuiteUrl for standard test suites")
             val tmpDir = generateDirectory(testSuiteUrl)
             cloneFromGit(GitDto(testSuiteUrl), tmpDir).use {
-                Flux.fromIterable(testSuitesPath).flatMap { propPath ->
-                    log.info("Starting to discover root test config")
+                Flux.fromIterable(testSuitePaths).flatMap { testRootPath ->
+                    log.info("Starting to discover root test config for test root $testRootPath")
                     val testResourcesRootAbsolutePath =
                             File(
                                 tmpDir.relativeTo(File(configProperties.repository)).normalize().path,
-                                propPath
+                                testRootPath
                             ).absolutePath
                     val rootTestConfig = testDiscoveringService.getRootTestConfig(testResourcesRootAbsolutePath)
-                    log.info("Starting to discover standard test suites")
+                    log.info("Starting to discover standard test suites for config test root $testRootPath")
                     val tests = testDiscoveringService.getAllTestSuites(null, rootTestConfig, "stub")
                     log.info("Test suites size = ${tests.size}")
-                    log.info("Starting to save new test suites for $propPath")
+                    log.info("Starting to save new test suites for config test root $testRootPath")
                     webClientBackend.makeRequest(BodyInserters.fromValue(tests), "/saveTestSuites") {
                         it.bodyToMono<List<TestSuite>>()
                     }
                         .flatMap { testSuites ->
-                            log.info("Starting to save new tests for $propPath")
+                            log.info("Starting to save new tests for config test root $testRootPath")
                             webClientBackend.makeRequest(
                                 BodyInserters.fromValue(
                                     testDiscoveringService.getAllTests(
@@ -151,21 +152,11 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
                     .doOnError {
                         log.error("Error to update test with url = $testSuiteUrl")
                     }
+                    .collect(Collectors.toList())
                     .subscribe()
             }
         }
     }
-
-    private fun readStandardTestSuitesFile() =
-            ClassPathResource(configProperties.reposFileName)
-                .file
-                .readText()
-                .lines()
-                .associate {
-                    val splitRow = it.split("\\s".toRegex())
-                    require(splitRow.size == 2)
-                    splitRow.first() to splitRow[1].split(";")
-                }
 
     private fun cloneFromGit(gitDto: GitDto, tmpDir: File): Git? {
         val userCredentials = if (gitDto.username != null && gitDto.password != null) {
@@ -411,3 +402,18 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
         return toBody(responseSpec).log()
     }
 }
+
+/**
+ * @param name file name to read
+ * @return map repository to paths to test configs
+ */
+fun readStandardTestSuitesFile(name: String) =
+        ClassPathResource(name)
+            .file
+            .readText()
+            .lines()
+            .associate {
+                val splitRow = it.split("\\s".toRegex())
+                require(splitRow.size == 2)
+                splitRow.first() to splitRow[1].split(";")
+            }

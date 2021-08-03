@@ -11,6 +11,7 @@ import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionType
 import org.cqfn.save.preprocessor.config.ConfigProperties
 import org.cqfn.save.preprocessor.controllers.DownloadProjectController
+import org.cqfn.save.preprocessor.controllers.readStandardTestSuitesFile
 import org.cqfn.save.preprocessor.service.TestDiscoveringService
 import org.cqfn.save.preprocessor.utils.RepositoryVolume
 import org.cqfn.save.testsuite.TestSuiteType
@@ -33,7 +34,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
 import org.springframework.boot.test.mock.mockito.MockBean
-import org.springframework.core.io.ClassPathResource
 import org.springframework.core.io.FileSystemResource
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -232,11 +232,9 @@ class DownloadProjectTest(
     @Test
     @Suppress("TOO_LONG_FUNCTION")
     fun testStandardTestSuites() {
-        val requestSize = ClassPathResource(configProperties.reposFileName)
-            .file
-            .readText()
-            .lines()
-            .flatMap { it.split(";") }
+        val requestSize = readStandardTestSuitesFile(configProperties.reposFileName)
+            .toList()
+            .flatMap { it.second }
             .size
         repeat(requestSize) {
             val project = Project("owner", "someName", null, "descr").apply {
@@ -254,6 +252,8 @@ class DownloadProjectTest(
                         )
                     ),
             )
+        }
+        repeat(requestSize) {
             mockServerBackend.enqueue(
                 MockResponse()
                     .setResponseCode(200)
@@ -261,7 +261,7 @@ class DownloadProjectTest(
         }
 
         val assertions = CompletableFuture.supplyAsync {
-            List(requestSize*2) { mockServerBackend.takeRequest(60, TimeUnit.SECONDS) }
+            List(requestSize * 2) { mockServerBackend.takeRequest(60, TimeUnit.SECONDS) }
         }
 
         webClient.post()
