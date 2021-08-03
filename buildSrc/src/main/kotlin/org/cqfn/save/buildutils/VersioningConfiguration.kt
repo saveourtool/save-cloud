@@ -26,7 +26,8 @@ fun Project.configureVersioning() {
             // on a dirty git tree doesn't cause other task updates
             snapshotFromProp()
         } else {
-            stageFromProp("alpha", "rc", "final")
+            //stageFromProp("alpha", "rc", "final")
+            snapshotFromProp()
         }
     }
 }

@@ -115,6 +115,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
     private fun downLoadRepository(executionRequest: ExecutionRequest) {
         val gitDto = executionRequest.gitDto
         val project = executionRequest.project
+        println("gitDto.url: ${gitDto.url} ${gitDto.url.hashCode()}")
         val tmpDir = generateDirectory(gitDto.url.hashCode(), gitDto.url)
         val userCredentials = if (gitDto.username != null && gitDto.password != null) {
             UsernamePasswordCredentialsProvider(gitDto.username, gitDto.password)
@@ -255,6 +256,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
                                            projectRootRelativePath: String): Mono<*> = Mono.fromCallable {
         val testResourcesRootAbsolutePath =
                 getTestResourcesRootAbsolutePath(propertiesRelativePath, projectRootRelativePath)
+        println("\n\ntestResourcesRootAbsolutePath: ${testResourcesRootAbsolutePath}\n\n")
         testDiscoveringService.getRootTestConfig(testResourcesRootAbsolutePath)
     }
         .log()
@@ -281,6 +283,8 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
     @Suppress("UnsafeCallOnNullableType")
     private fun getTestResourcesRootAbsolutePath(propertiesRelativePath: String,
                                                  projectRootRelativePath: String): String {
+        // TODO 1) FILE NOT FOUND? - create logic
+        // TODO 2) what if path - to dir?
         val propertiesFile = File(configProperties.repository, projectRootRelativePath)
             .resolve(propertiesRelativePath)
         val saveProperties: SaveProperties = decodeFromPropertiesFile<SaveProperties>(propertiesFile)
