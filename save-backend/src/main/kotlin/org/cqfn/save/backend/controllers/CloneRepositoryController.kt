@@ -56,12 +56,15 @@ class CloneRepositoryController(
         val projectExecution = executionRequest.project
         val project = projectService.getProjectByNameAndOwner(projectExecution.name, projectExecution.owner)
         return project?.let {
-            executionRequest.executionId = saveExecution(it, ExecutionType.GIT, configProperties.initialBatchSize, executionRequest.sdk)
+            val newExecutionId = saveExecution(it, ExecutionType.GIT, configProperties.initialBatchSize, executionRequest.sdk)
             log.info("Sending request to preprocessor to start cloning project id=${it.id}")
             preprocessorWebClient
                 .post()
                 .uri("/upload")
-                .body(Mono.just(executionRequest), ExecutionRequest::class.java)
+                .body(
+                    Mono.just(executionRequest.copy(executionId = newExecutionId)),
+                    ExecutionRequest::class.java
+                )
                 .retrieve()
                 .toEntity(String::class.java)
                 .toMono()
@@ -105,7 +108,12 @@ class CloneRepositoryController(
     }
 
     @Suppress("UnsafeCallOnNullableType")
-    private fun saveExecution(project: Project, type: ExecutionType, batchSize: Int, sdk: Sdk): Long {
+    private fun saveExecution(
+        project: Project,
+        type: ExecutionType,
+        batchSize: Int,
+        sdk: Sdk
+    ): Long {
         val execution = Execution(project, LocalDateTime.now(), null, ExecutionStatus.PENDING, null,
             null, 0, batchSize, type, null, 0, 0, 0, sdk.toString()).apply {
             id = executionService.saveExecution(this)

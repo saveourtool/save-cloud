@@ -39,6 +39,13 @@ class ExecutionController(private val executionService: ExecutionService) {
     }
 
     /**
+     * @param id
+     * @return
+     */
+    @GetMapping("/execution")
+    fun getExecution(@RequestParam id: Long) = executionService.getExecution(id)
+
+    /**
      * @param executionInitializationDto
      * @return execution
      */
