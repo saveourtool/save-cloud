@@ -18,15 +18,23 @@ import java.net.URL
 fun Project.configureVersioning() {
     apply<ReckonPlugin>()
 
+    val isDevelopmentVersion = hasProperty("save.profile") && property("save.profile") == "dev"
     configure<ReckonExtension> {
         scopeFromProp()
-//        stageFromProp("alpha", "final")  // use -Preckon.stage=final for release; otherwise version string will be based on commit hash
-        snapshotFromProp()
+        if (isDevelopmentVersion) {
+            // this should be used during local development most of the time, so that constantly changing version
+            // on a dirty git tree doesn't cause other task updates
+            snapshotFromProp()
+        } else {
+            stageFromProp("alpha", "rc", "final")
+        }
     }
 }
 
 /**
  * Docker tags cannot contain `+`, so we change it.
+ *
+ * @return correctly formatted version
  */
 fun Project.versionForDockerImages() = version.toString().replace("+", "-")
 

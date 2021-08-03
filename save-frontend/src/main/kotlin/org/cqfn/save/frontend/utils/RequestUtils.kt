@@ -30,6 +30,8 @@ suspend fun <T> Response.unsafeMap(map: suspend (Response) -> T) = if (this.ok) 
 
 /**
  * Read [this] Response body as text and deserialize it using [Json] as type [T]
+ *
+ * @return response body deserialized as [T]
  */
 suspend inline fun <reified T> Response.decodeFromJsonString() = Json.decodeFromString<T>(text().await())
 
@@ -78,6 +80,7 @@ suspend fun request(url: String,
 /**
  * @param name
  * @param owner
+ * @return project
  */
 suspend fun getProject(name: String, owner: String) =
         get("${window.location.origin}/getProject?name=$name&owner=$owner", Headers().apply {

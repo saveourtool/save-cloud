@@ -21,12 +21,11 @@ import react.dom.tbody
 import react.dom.th
 import react.dom.thead
 import react.dom.tr
-import react.functionalComponent
+import react.fc
 import react.table.Column
 import react.table.Row
 import react.table.TableInstance
 import react.table.TableRowProps
-import react.table.TableState
 import react.table.usePagination
 import react.table.useSortBy
 import react.table.useTable
@@ -67,8 +66,6 @@ external interface TableProps : RProps {
 @Suppress("TOO_LONG_FUNCTION",
     "TOO_MANY_PARAMETERS",
     "TYPE_ALIAS",
-    // https://github.com/cqfn/diKTat/issues/992
-    "LAMBDA_IS_NOT_LAST_PARAMETER",
     "ForbiddenComment",
     "LongMethod",
     "LongParameterList",
@@ -79,13 +76,13 @@ fun <D : Any> tableComponent(columns: Array<out Column<D, *>>,
                              getRowProps: ((Row<D>) -> TableRowProps) = { jsObject() },
                              getPageCount: (suspend (pageSize: Int) -> Int)? = null,
                              getData: suspend (pageIndex: Int, pageSize: Int) -> Array<out D>,
-) = functionalComponent<TableProps> { props ->
+) = fc<TableProps> { props ->
     require(useServerPaging xor (getPageCount == null)) {
         "Either use client-side paging or provide a function to get page count"
     }
 
     val (data, setData) = useState<Array<out D>>(emptyArray())
-    val (pageCount, setPageCount) = useState(0)
+    val (pageCount, setPageCount) = useState(1)
     val (pageIndex, setPageIndex) = useState(0)
     val (isModalOpen, setIsModalOpen) = useState(false)
     val (dataAccessException, setDataAccessException) = useState<Exception?>(null)
@@ -97,14 +94,13 @@ fun <D : Any> tableComponent(columns: Array<out Column<D, *>>,
         if (useServerPaging) {
             this.pageCount = pageCount
         }
-        this.initialState = json(
-            "pageSize" to initialPageSize,
-            "pageIndex" to pageIndex,
-        )
-            .unsafeCast<TableState<D>>()
+        this.initialState = jsObject {
+            this.pageSize = initialPageSize
+            this.pageIndex = pageIndex
+        }
     }, plugins = arrayOf(useSortBy, usePagination))
 
-    useEffect(emptyList<dynamic>()) {
+    useEffect(arrayOf<dynamic>(tableInstance.state.pageSize, pageCount)) {
         if (useServerPaging) {
             val pageCountDeferred = GlobalScope.async {
                 getPageCount!!.invoke(tableInstance.state.pageSize)
@@ -116,13 +112,13 @@ fun <D : Any> tableComponent(columns: Array<out Column<D, *>>,
     }
 
     // list of entities, updates of which will cause update of the data retrieving effect
-    val dependencies = if (useServerPaging) {
-        listOf(tableInstance.state.pageIndex, tableInstance.state.pageSize)
+    val dependencies: Array<dynamic> = if (useServerPaging) {
+        arrayOf(tableInstance.state.pageIndex, tableInstance.state.pageSize, pageCount)
     } else {
         // when all data is already available, we don't need to repeat `getData` calls
-        emptyList()
+        emptyArray()
     }
-    useEffect(dependencies) {
+    useEffect(*dependencies) {
         GlobalScope.launch {
             try {
                 setData(getData(tableInstance.state.pageIndex, tableInstance.state.pageSize))

@@ -81,18 +81,20 @@ class TestDiscoveringServiceTest {
                 createTestSuiteStub("autofix", 2),
                 createTestSuiteStub("DocsCheck", 3),
                 createTestSuiteStub("autofix and warn", 4),
+                createTestSuiteStub("Chapter1", 5),
+                createTestSuiteStub("Chapter2", 6),
+                createTestSuiteStub("Chapter3", 7),
             )
         )
 
         println("Discovered the following tests: $testDtos")
-        Assertions.assertEquals(4, testDtos.size)
-        Assertions.assertEquals(testDtos.size, testDtos.map { it.hash }.distinct().size) {
-            "Some tests have the same hash in $testDtos"
+        Assertions.assertEquals(9, testDtos.size)
+        Assertions.assertEquals(testDtos.size, testDtos.map { it.hash + it.filePath + it.testSuiteId }.distinct().size) {
+            "Some tests have the same hash/filePath/testSuiteId combination in $testDtos"
         }
         Assertions.assertTrue(testDtos.none { File(it.filePath).isAbsolute }) {
             "Test should be stored with paths relative to their root config, but some are stored with absolute paths: $testDtos"
         }
-        Assertions.assertEquals("Example1Expected.kt", File(testDtos.first().filePath).name)
     }
 
     private fun createTestSuiteStub(name: String, id: Long) = TestSuite(TestSuiteType.PROJECT, name, null, null, propertiesRelativePath).apply {
