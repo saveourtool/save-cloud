@@ -67,8 +67,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
      * @param executionRequest - Dto of repo information to clone and project info
      * @return response entity with text
      */
-    @Suppress("TooGenericExceptionCaught")
-    @PostMapping(value = ["/upload"])
+    @PostMapping("/upload")
     fun upload(@RequestBody executionRequest: ExecutionRequest): Response = Mono.just(ResponseEntity("Clone pending", HttpStatus.ACCEPTED))
         .subscribeOn(Schedulers.boundedElastic())
         .also {
@@ -217,7 +216,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
             require(executionType == ExecutionType.STANDARD) { "Test suites shouldn't be provided unless ExecutionType is STANDARD (actual: $executionType)" }
         } ?: require(executionType == ExecutionType.GIT) { "Test suites are not provided, but should for executionType=$executionType" }
 
-        val executionUpdate = ExecutionInitializationDto(project, "ALL", projectRootRelativePath, configProperties.executionLimit, executionVersion)
+        val executionUpdate = ExecutionInitializationDto(project, "ALL", projectRootRelativePath, executionVersion)
         webClientBackend.makeRequest(BodyInserters.fromValue(executionUpdate), "/updateNewExecution") {
             it.onStatus({status -> status != HttpStatus.OK }) { clientResponse ->
                 log.error("Error when making update to execution fro project id = ${project.id} ${clientResponse.statusCode()}")

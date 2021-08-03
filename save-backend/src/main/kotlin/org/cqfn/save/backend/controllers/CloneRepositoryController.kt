@@ -39,7 +39,7 @@ import java.time.LocalDateTime
 class CloneRepositoryController(
     private val projectService: ProjectService,
     private val executionService: ExecutionService,
-    configProperties: ConfigProperties,
+    private val configProperties: ConfigProperties,
 ) {
     private val log = LoggerFactory.getLogger(CloneRepositoryController::class.java)
     private val preprocessorWebClient = WebClient.create(configProperties.preprocessorUrl)
@@ -56,7 +56,7 @@ class CloneRepositoryController(
         val projectExecution = executionRequest.project
         val project = projectService.getProjectByNameAndOwner(projectExecution.name, projectExecution.owner)
         return project?.let {
-            executionRequest.executionId = saveExecution(it, ExecutionType.GIT, executionRequest.sdk)
+            executionRequest.executionId = saveExecution(it, ExecutionType.GIT, configProperties.initialBatchSize, executionRequest.sdk)
             log.info("Sending request to preprocessor to start cloning project id=${it.id}")
             preprocessorWebClient
                 .post()
@@ -85,7 +85,7 @@ class CloneRepositoryController(
         val projectExecution = executionRequestForStandardSuites.project
         val project = projectService.getProjectByNameAndOwner(projectExecution.name, projectExecution.owner)
         project?.let {
-            saveExecution(project, ExecutionType.STANDARD, executionRequestForStandardSuites.sdk)
+            saveExecution(project, ExecutionType.STANDARD, configProperties.initialBatchSize, executionRequestForStandardSuites.sdk)
             log.info("Sending request to preprocessor to start save file for project id=${project.id}")
             val bodyBuilder = MultipartBodyBuilder()
             bodyBuilder.part("executionRequestForStandardSuites", executionRequestForStandardSuites)
@@ -105,9 +105,9 @@ class CloneRepositoryController(
     }
 
     @Suppress("UnsafeCallOnNullableType")
-    private fun saveExecution(project: Project, type: ExecutionType, sdk: Sdk): Long {
+    private fun saveExecution(project: Project, type: ExecutionType, batchSize: Int, sdk: Sdk): Long {
         val execution = Execution(project, LocalDateTime.now(), null, ExecutionStatus.PENDING, null,
-            null, 0, null, type, null, 0, 0, 0, sdk.toString()).apply {
+            null, 0, batchSize, type, null, 0, 0, 0, sdk.toString()).apply {
             id = executionService.saveExecution(this)
         }
         log.info("Creating a new execution id=${execution.id} for project id=${project.id}")

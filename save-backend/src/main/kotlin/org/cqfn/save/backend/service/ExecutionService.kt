@@ -91,7 +91,6 @@ class ExecutionService(private val executionRepository: ExecutionRepository) {
             executionRepository.findTopByProjectOrderByStartTimeDesc(executionInitializationDto.project)?.let {
                 require(it.version == null) { "Execution was already updated" }
                 it.version = executionInitializationDto.version
-                it.batchSize = executionInitializationDto.batchSize
                 it.testSuiteIds = executionInitializationDto.testSuiteIds
                 it.resourcesRootPath = executionInitializationDto.resourcesRootPath
                 executionRepository.save(it)
