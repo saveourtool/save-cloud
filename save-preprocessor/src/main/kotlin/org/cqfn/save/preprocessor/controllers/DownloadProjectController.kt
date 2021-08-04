@@ -130,18 +130,14 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
     @PostMapping("/uploadStandardTestSuite")
     fun uploadStandardTestSuite() {
         readStandardTestSuitesFile(configProperties.reposFileName).forEach { (testSuiteUrl, testSuitePaths) ->
-            log.info("Starting clone repository = $testSuiteUrl for standard test suites")
+            log.info("Starting clone repository url=$testSuiteUrl for standard test suites")
             val tmpDir = generateDirectory(testSuiteUrl)
-            cloneFromGit(GitDto(testSuiteUrl), tmpDir).use {
+            cloneFromGit(GitDto(testSuiteUrl), tmpDir)?.use {
                 Flux.fromIterable(testSuitePaths).flatMap { testRootPath ->
                     log.info("Starting to discover root test config for test root $testRootPath")
-                    val testResourcesRootAbsolutePath =
-                            File(
-                                tmpDir.relativeTo(File(configProperties.repository)).normalize().path,
-                                testRootPath
-                            ).absolutePath
+                    val testResourcesRootAbsolutePath = tmpDir.resolve(testRootPath).absolutePath
                     val rootTestConfig = testDiscoveringService.getRootTestConfig(testResourcesRootAbsolutePath)
-                    log.info("Starting to discover standard test suites for config test root $testRootPath")
+                    log.info("Starting to discover standard test suites for config test root $testRootPath in $testResourcesRootAbsolutePath")
                     val tests = testDiscoveringService.getAllTestSuites(null, rootTestConfig, "stub")
                     log.info("Test suites size = ${tests.size}")
                     log.info("Starting to save new test suites for config test root $testRootPath")
@@ -162,7 +158,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                         }
                 }
                     .doOnError {
-                        log.error("Error to update test with url = $testSuiteUrl")
+                        log.error("Error to update test with url=$testSuiteUrl, path=$testSuitePaths")
                     }
                     .collect(Collectors.toList())
                     .subscribe()
@@ -260,10 +256,10 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         val tmpDir = File("${configProperties.repository}/$hashName")
         if (tmpDir.exists()) {
             tmpDir.deleteRecursively()
-            log.info("For $dirName file: dir $hashName was deleted")
+            log.info("For $dirName file: dir $tmpDir was deleted")
         }
         tmpDir.mkdirs()
-        log.info("For $dirName repository: dir $hashName was created")
+        log.info("For $dirName repository: dir $tmpDir was created")
         return tmpDir
     }
 
