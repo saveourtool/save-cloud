@@ -4,7 +4,6 @@
 
 package org.cqfn.save.frontend.components.views
 
-import kotlinx.browser.document
 import org.cqfn.save.domain.getSdkVersion
 import org.cqfn.save.domain.sdks
 import org.cqfn.save.domain.toSdk
@@ -36,18 +35,38 @@ import react.RComponent
 import react.RProps
 import react.RState
 import react.child
+import react.dom.a
+import react.dom.attrs
+import react.dom.button
+import react.dom.defaultValue
+import react.dom.div
+import react.dom.h1
+import react.dom.h4
+import react.dom.h5
+import react.dom.h6
+import react.dom.img
+import react.dom.input
+import react.dom.label
+import react.dom.option
+import react.dom.p
+import react.dom.select
+import react.dom.span
+import react.dom.strong
 import react.setState
 
 import kotlinx.browser.window
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import kotlinx.html.*
-import kotlinx.html.h4
+import kotlinx.html.ButtonType
+import kotlinx.html.InputType
+import kotlinx.html.classes
+import kotlinx.html.hidden
+import kotlinx.html.id
 import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
+import kotlinx.html.role
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import react.dom.*
 
 /**
  * [RProps] retrieved from router
@@ -537,9 +556,9 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                 child(cardComponent {
                     div("text-center") {
                         div {
-                             h6("d-inline") {
-                                 +"Name: "
-                             }
+                            h6("d-inline") {
+                                +"Name: "
+                            }
                             h4("d-inline") {
                                 +project.name
                             }
