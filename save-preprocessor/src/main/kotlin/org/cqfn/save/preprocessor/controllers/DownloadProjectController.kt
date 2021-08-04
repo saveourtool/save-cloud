@@ -14,6 +14,7 @@ import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionType
 import org.cqfn.save.execution.ExecutionUpdateDto
 import org.cqfn.save.preprocessor.EmptyResponse
+import org.cqfn.save.preprocessor.StatusResponse
 import org.cqfn.save.preprocessor.TextResponse
 import org.cqfn.save.preprocessor.config.ConfigProperties
 import org.cqfn.save.preprocessor.service.TestDiscoveringService
@@ -228,7 +229,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         executionRequestForStandardSuites: ExecutionRequestForStandardSuites,
         propertyFile: File,
         binFile: File,
-    ): Mono<Any> {
+    ): Mono<StatusResponse> {
         val tmpDir = generateDirectory(binFile.name)
         val pathToProperties = tmpDir.resolve(propertyFile.name)
         propertyFile.copyTo(pathToProperties)
@@ -277,7 +278,6 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
      * - Send a request to orchestrator to initialize agents and start tests execution
      */
     @Suppress(
-        "TYPE_ALIAS",
         "LongParameterList",
         "TOO_MANY_PARAMETERS",
         "UnsafeCallOnNullableType"
@@ -288,7 +288,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         propertiesRelativePath: String,
         projectRootRelativePath: String,
         testSuiteDtos: List<TestSuiteDto>?,
-    ): Mono<ResponseEntity<HttpStatus>> {
+    ): Mono<StatusResponse> {
         val executionType = execution.type
         testSuiteDtos?.let {
             require(executionType == ExecutionType.STANDARD) { "Test suites shouldn't be provided unless ExecutionType is STANDARD (actual: $executionType)" }
