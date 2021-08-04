@@ -83,7 +83,7 @@ suspend fun request(url: String,
  * @return project
  */
 suspend fun getProject(name: String, owner: String) =
-        get("http://localhost:5000/getProject?name=$name&owner=$owner", Headers().apply {
+        get("${window.location.origin}/getProject?name=$name&owner=$owner", Headers().apply {
             set("Accept", "application/json")
         })
             .decodeFromJsonString<Project>()

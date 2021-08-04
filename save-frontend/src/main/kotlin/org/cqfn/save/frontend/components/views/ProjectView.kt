@@ -4,6 +4,7 @@
 
 package org.cqfn.save.frontend.components.views
 
+import kotlinx.browser.document
 import org.cqfn.save.domain.getSdkVersion
 import org.cqfn.save.domain.sdks
 import org.cqfn.save.domain.toSdk
@@ -35,37 +36,18 @@ import react.RComponent
 import react.RProps
 import react.RState
 import react.child
-import react.dom.a
-import react.dom.attrs
-import react.dom.button
-import react.dom.defaultValue
-import react.dom.div
-import react.dom.h1
-import react.dom.h5
-import react.dom.h6
-import react.dom.img
-import react.dom.input
-import react.dom.label
-import react.dom.option
-import react.dom.p
-import react.dom.select
-import react.dom.span
-import react.dom.strong
 import react.setState
 
 import kotlinx.browser.window
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import kotlinx.html.ButtonType
-import kotlinx.html.InputType
-import kotlinx.html.classes
-import kotlinx.html.hidden
-import kotlinx.html.id
+import kotlinx.html.*
+import kotlinx.html.h4
 import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
-import kotlinx.html.role
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import react.dom.*
 
 /**
  * [RProps] retrieved from router
@@ -120,7 +102,10 @@ external interface ProjectViewState : RState {
      */
     var selectedSdkVersion: String
 
-    var numberOpenningCard: Int
+    /**
+     * Number of opening card. 1 - first card was opened, 2 - second card was opened, 0 - none card was opened
+     */
+    var numberOpeningCard: Int
 }
 
 /**
@@ -138,8 +123,6 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
     private var gitUrlFromInputField: String? = null
     private val selectedTypes: MutableList<String> = mutableListOf()
     private var gitDto: GitDto? = null
-
-    //private var numberOpenningCard: Int = 1  // 1 - first card, 2 - second card, 3 - none card was opened
     private var project = Project("stub", "stub", "stub", "stub")
     private val allSdks = sdks
     private lateinit var responseFromExecutionRequest: Response
@@ -149,7 +132,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
         state.errorMessage = ""
         state.errorLabel = ""
 
-        state.numberOpenningCard = 1
+        state.numberOpeningCard = 1
 
         state.isLoading = true
 
@@ -165,9 +148,9 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                 it.set("Accept", "application/json")
                 it.set("Content-Type", "application/json")
             }
-            gitDto = post("http://localhost:5000/getGit", headers, jsonProject)
+            gitDto = post("${window.location.origin}/getGit", headers, jsonProject)
                 .decodeFromJsonString<GitDto>()
-            testTypesList = get("http://localhost:5000/allStandardTestSuites", headers)
+            testTypesList = get("${window.location.origin}/allStandardTestSuites", headers)
                 .decodeFromJsonString()
             setState { isLoading = false }
         }
@@ -175,13 +158,13 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
 
     @Suppress("ComplexMethod", "TOO_LONG_FUNCTION")
     private fun submitExecutionRequest() {
-        if (state.numberOpenningCard == 0) {
+        if (state.numberOpeningCard == 0) {
             setState {
                 isErrorOpen = true
                 errorLabel = "No project type"
                 errorMessage = "Please choose one of the project types"
             }
-        } else if (state.numberOpenningCard == 1) {
+        } else if (state.numberOpeningCard == 1) {
             gitUrlFromInputField?.let {
                 val newGitDto = GitDto(url = it)
                 submitExecutionRequestGit(newGitDto)
@@ -294,7 +277,13 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                             attrs.id = "accordion"
                             div("row") {
                                 div {
-                                    attrs.classes = if (state.numberOpenningCard == 0) setOf("col-6") else if(state.numberOpenningCard == 1) setOf("col-8") else setOf("col-4")
+                                    attrs.classes = if (state.numberOpeningCard == 0) {
+                                        setOf("col-6")
+                                    } else if (state.numberOpeningCard == 1) {
+                                        setOf("col-8")
+                                    } else {
+                                        setOf("col-4")
+                                    }
                                     div("card shadow mb-4") {
                                         div("card-header") {
                                             button(classes = "btn btn-link collapsed") {
@@ -303,10 +292,10 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                                                 }
                                                 attrs.onClickFunction = {
                                                     setState {
-                                                        if (numberOpenningCard == 1) {
-                                                            numberOpenningCard = 0
+                                                        if (numberOpeningCard == 1) {
+                                                            numberOpeningCard = 0
                                                         } else {
-                                                            numberOpenningCard = 1
+                                                            numberOpeningCard = 1
                                                         }
                                                     }
                                                 }
@@ -314,10 +303,14 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                                         }
                                         // Collapse card to load git url
                                         div {
-                                            attrs.classes = if (state.numberOpenningCard == 1) setOf(
-                                                "collapse",
-                                                "show"
-                                            ) else setOf("collapse")
+                                            attrs.classes = if (state.numberOpeningCard == 1) {
+                                                setOf(
+                                                    "collapse",
+                                                    "show"
+                                                )
+                                            } else {
+                                                setOf("collapse")
+                                            }
                                             div("card-body") {
                                                 div("pb-3") {
                                                     div("d-inline-block") {
@@ -370,8 +363,14 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                                     }
                                 }
 
-                                div{
-                                    attrs.classes = if (state.numberOpenningCard == 0) setOf("col-6") else if(state.numberOpenningCard == 2) setOf("col-8") else setOf("col-4")
+                                div {
+                                    attrs.classes = if (state.numberOpeningCard == 0) {
+                                        setOf("col-6")
+                                    } else if (state.numberOpeningCard == 2) {
+                                        setOf("col-8")
+                                    } else {
+                                        setOf("col-4")
+                                    }
                                     div("card shadow mb-4") {
                                         div("card-header") {
                                             button(classes = "btn btn-link collapsed") {
@@ -380,10 +379,10 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                                                 }
                                                 attrs.onClickFunction = {
                                                     setState {
-                                                        if (numberOpenningCard == 2) {
-                                                            numberOpenningCard = 0
+                                                        if (numberOpeningCard == 2) {
+                                                            numberOpeningCard = 0
                                                         } else {
-                                                            numberOpenningCard = 2
+                                                            numberOpeningCard = 2
                                                         }
                                                     }
                                                 }
@@ -391,7 +390,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                                         }
                                         div {
                                             attrs.classes =
-                                                if (state.numberOpenningCard == 2) setOf("collapse", "show") else setOf("collapse")
+                                                    if (state.numberOpeningCard == 2) setOf("collapse", "show") else setOf("collapse")
                                             div("card-body") {
                                                 div("mb-3") {
                                                     h6(classes = "d-inline mr-3") {
@@ -467,8 +466,9 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                             div {
                                 div("d-inline") {
                                     div("d-inline-block") {
+                                        // data-toggle="tooltip" data-placement="top" title="Tooltip on top"
                                         h5 {
-                                            +"SDK:"
+                                            +"Choose SDK:"
                                         }
                                     }
                                     div("d-inline-block ml-2") {
@@ -493,10 +493,10 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
 
                                 div {
                                     attrs.classes =
-                                        if (state.selectedSdk == "Default") setOf("d-none") else setOf("d-inline ml-3")
+                                            if (state.selectedSdk == "Default") setOf("d-none") else setOf("d-inline ml-3")
                                     div("d-inline-block") {
                                         h6 {
-                                            +"Version:"
+                                            +"SDK's version:"
                                         }
                                     }
                                     div("d-inline-block ml-2") {
@@ -523,28 +523,37 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                                     +"Run tests now"
                                 }
                             }
-                    // Collapse card to load binary file
-
+                            // Collapse card to load binary file
                         }
                     }) {
-                    attrs {
-                        header = "Run tests"
-                        leftBorderColor = "primary"
+                        attrs {
+                            header = "Run tests"
+                            leftBorderColor = "primary"
+                        }
                     }
-                }
                 }
             }
             div("col-3") {
                 child(cardComponent {
                     div("text-center") {
-                        p("small") {
-                            +"Name: ${project.name}"
+                        div {
+                             h6("d-inline") {
+                                 +"Name: "
+                             }
+                            h4("d-inline") {
+                                +project.name
+                            }
                         }
-                        p("small") {
-                            +"Description: ${project.description}"
+                        div {
+                            h6("d-inline") {
+                                +"Description: "
+                            }
+                            h4("d-inline") {
+                                +"${project.description}"
+                            }
                         }
-                        p("small") {
-                            button(classes = "btn btn-link btn-sm") {
+                        p {
+                            button(classes = "btn btn-link btn-lg") {
                                 +"Latest execution"
                                 attrs.onClickFunction = {
                                     GlobalScope.launch {
@@ -557,7 +566,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                                             setState {
                                                 errorLabel = "Failed to fetch latest execution"
                                                 errorMessage =
-                                                    "Failed to fetch latest execution: ${response.status} ${response.statusText}"
+                                                        "Failed to fetch latest execution: ${response.status} ${response.statusText}"
                                                 isErrorOpen = true
                                             }
                                         } else {
@@ -570,8 +579,8 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                                 }
                             }
                         }
-                        p("small") {
-                            a(href = "#/${project.owner}/${project.name}/history", classes = "btn btn-link btn-sm") {
+                        p {
+                            a(href = "#/${project.owner}/${project.name}/history", classes = "btn btn-link btn-lg") {
                                 +"Execution history"
                             }
                         }
