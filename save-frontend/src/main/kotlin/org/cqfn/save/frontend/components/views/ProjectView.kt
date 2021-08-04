@@ -19,6 +19,7 @@ import org.cqfn.save.frontend.utils.get
 import org.cqfn.save.frontend.utils.getProject
 import org.cqfn.save.frontend.utils.post
 import org.cqfn.save.frontend.utils.runErrorModal
+import org.cqfn.save.testsuite.TestSuiteDto
 
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.HTMLSelectElement
@@ -34,6 +35,22 @@ import react.RComponent
 import react.RProps
 import react.RState
 import react.child
+import react.dom.a
+import react.dom.attrs
+import react.dom.button
+import react.dom.defaultValue
+import react.dom.div
+import react.dom.h1
+import react.dom.h5
+import react.dom.h6
+import react.dom.img
+import react.dom.input
+import react.dom.label
+import react.dom.option
+import react.dom.p
+import react.dom.select
+import react.dom.span
+import react.dom.strong
 import react.setState
 
 import kotlinx.browser.window
@@ -44,11 +61,11 @@ import kotlinx.html.InputType
 import kotlinx.html.classes
 import kotlinx.html.hidden
 import kotlinx.html.id
-import kotlinx.html.js.*
+import kotlinx.html.js.onChangeFunction
+import kotlinx.html.js.onClickFunction
 import kotlinx.html.role
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import react.dom.*
 
 /**
  * [RProps] retrieved from router
@@ -114,7 +131,7 @@ external interface ProjectViewState : RState {
 @JsExport
 @Suppress("CUSTOM_GETTERS_SETTERS")
 class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
-    private val testTypesList = listOf("Class", "Comment", "Function", "Variable", "Enum", "Space", "Style", "Another")
+    private var testTypesList: List<TestSuiteDto> = emptyList()
     private var pathToProperty: String? = null
     private var gitUrlFromInputField: String? = null
     private val selectedTypes: MutableList<String> = mutableListOf()
@@ -146,6 +163,8 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
             }
             gitDto = post("${window.location.origin}/getGit", headers, jsonProject)
                 .decodeFromJsonString<GitDto>()
+            testTypesList = get("${window.location.origin}/allStandardTestSuites", headers)
+                .decodeFromJsonString()
             setState { isLoading = false }
         }
     }
@@ -255,14 +274,13 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
         runErrorModal(state.isErrorOpen, state.errorLabel, state.errorMessage) {
             setState { isErrorOpen = false }
         }
-        // runLoadingModal()
+        runLoadingModal()
         // Page Heading
         div("d-sm-flex align-items-center justify-content-between mb-4") {
             h1("h3 mb-0 text-gray-800") {
                 +"Project ${project.name}"
             }
         }
-
 
         div("row") {
             div("col-12 col-sm-6 col-md-8") {
@@ -350,98 +368,92 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                                     }
                                 }
 
-                                // Collapse card to load binary file
-                                div("card shadow mb-4") {
-                                    div("card-header") {
-                                        attrs.id = "headingSecond"
-                                        button(classes = "btn btn-link collapsed") {
-                                            attrs["data-toggle"] = "collapse"
-                                            attrs["data-target"] = "#collapseSecond"
-                                            attrs["aria-expanded"] = "true"
-                                            attrs["aria-controls"] = "collapseSecond"
-                                            h6("m-0 font-weight-bold text-primary") {
-                                                +"Upload project as binary file"
-                                            }
-                                            attrs.onClickFunction = {
-                                                if (numberOpenningCard == 2) {
-                                                    numberOpenningCard = 0
-                                                } else {
-                                                    numberOpenningCard = 2
-                                                }
-                                            }
-                                        }
+                    // Collapse card to load binary file
+                    div("card shadow mb-4") {
+                        div("card-header") {
+                            attrs.id = "headingSecond"
+                            button(classes = "btn btn-link collapsed") {
+                                attrs["data-toggle"] = "collapse"
+                                attrs["data-target"] = "#collapseSecond"
+                                attrs["aria-expanded"] = "true"
+                                attrs["aria-controls"] = "collapseSecond"
+                                h6("m-0 font-weight-bold text-primary") {
+                                    +"Upload project as binary file"
+                                }
+                                attrs.onClickFunction = {
+                                    if (numberOpenningCard == 2) {
+                                        numberOpenningCard = 0
+                                    } else {
+                                        numberOpenningCard = 2
+                                    }
+                                }
+                            }
+                        }
+                        div {
+                            attrs.classes = if (numberOpenningCard == 2) setOf("collapse", "show") else setOf("collapse")
+                            attrs.id = "collapseSecond"
+                            attrs["aria-labelledby"] = "headingSecond"
+                            attrs["data-parent"] = "#accordion"
+                            div("card-body") {
+                                div("mb-3") {
+                                    h6(classes = "d-inline mr-3") {
+                                        +"Binary file: "
                                     }
                                     div {
-                                        attrs.classes = if (numberOpenningCard == 2) setOf(
-                                            "collapse",
-                                            "show"
-                                        ) else setOf("collapse")
-                                        attrs.id = "collapseSecond"
-                                        attrs["aria-labelledby"] = "headingSecond"
-                                        attrs["data-parent"] = "#accordion"
-                                        div("card-body") {
-                                            div("mb-3") {
-                                                h6(classes = "d-inline mr-3") {
-                                                    +"Binary file: "
-                                                }
-                                                div {
-                                                    label {
-                                                        input(type = InputType.file) {
-                                                            attrs.hidden = true
-                                                            attrs {
-                                                                onChangeFunction = { event ->
-                                                                    val target = event.target as HTMLInputElement
-                                                                    setState {
-                                                                        binaryFile = target.files?.let { it[0] }
-                                                                    }
-                                                                }
-                                                            }
-                                                        }
-                                                        img(classes = "img-upload", src = "img/upload.svg") {}
-                                                        strong { +"Upload binary file:" }
-                                                        +(state.binaryFile?.name ?: "")
+                                        label {
+                                            input(type = InputType.file) {
+                                                attrs.hidden = true
+                                                attrs {
+                                                    onChangeFunction = { event ->
+                                                        val target = event.target as HTMLInputElement
+                                                        setState { binaryFile = target.files?.let { it[0] } }
                                                     }
                                                 }
                                             }
-                                            div {
-                                                h6(classes = "d-inline mr-3") {
-                                                    +"Properties : "
-                                                }
-                                                div {
-                                                    label {
-                                                        input(type = InputType.file) {
-                                                            attrs.hidden = true
-                                                            attrs {
-                                                                onChangeFunction = { event ->
-                                                                    val target = event.target as HTMLInputElement
-                                                                    setState {
-                                                                        propertyFile = target.files?.let { it[0] }
-                                                                    }
-                                                                }
-                                                            }
-                                                        }
-                                                        img(classes = "img-upload", src = "img/upload.svg") {}
-                                                        strong { +"Upload property file: " }
-                                                        +(state.propertyFile?.name ?: "")
-                                                    }
-                                                }
-                                            }
+                                            img(classes = "img-upload", src = "img/upload.svg") {}
+                                            strong { +"Upload binary file:" }
+                                            +(state.binaryFile?.name ?: "")
                                         }
-                                        div {
-                                            testTypesList.chunked(TEST_SUITE_ROW).forEach { rowTypes ->
-                                                div("row") {
-                                                    rowTypes.forEach { typeName ->
-                                                        div("col") {
-                                                            +typeName
-                                                            input(type = InputType.checkBox, classes = "ml-3") {
-                                                                attrs.defaultChecked = selectedTypes.contains(typeName)
-                                                                attrs.onClickFunction = {
-                                                                    if (selectedTypes.contains(typeName)) {
-                                                                        selectedTypes.remove(typeName)
-                                                                    } else {
-                                                                        selectedTypes.add(typeName)
-                                                                    }
-                                                                }
+                                    }
+                                }
+                                div {
+                                    h6(classes = "d-inline mr-3") {
+                                        +"Properties : "
+                                    }
+                                    div {
+                                        label {
+                                            input(type = InputType.file) {
+                                                attrs.hidden = true
+                                                attrs {
+                                                    onChangeFunction = { event ->
+                                                        val target = event.target as HTMLInputElement
+                                                        setState { propertyFile = target.files?.let { it[0] } }
+                                                    }
+                                                }
+                                            }
+                                            img(classes = "img-upload", src = "img/upload.svg") {}
+                                            strong { +"Upload property file: " }
+                                            +(state.propertyFile?.name ?: "")
+                                        }
+                                    }
+                                }
+                            }
+                            div {
+                                testTypesList
+                                    .map { it.name }
+                                    .chunked(TEST_SUITE_ROW)
+                                    .forEach { rowTypes ->
+                                        div("row") {
+                                            rowTypes.forEach { typeName ->
+                                                div("col") {
+                                                    +typeName
+                                                    input(type = InputType.checkBox, classes = "ml-3") {
+                                                        attrs.defaultChecked = selectedTypes.contains(typeName)
+                                                        attrs.onClickFunction = {
+                                                            if (selectedTypes.contains(typeName)) {
+                                                                selectedTypes.remove(typeName)
+                                                            } else {
+                                                                selectedTypes.add(typeName)
                                                             }
                                                         }
                                                     }
@@ -449,6 +461,9 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                                             }
                                         }
                                     }
+                            }
+                        }
+                    }
 
                                     div {
                                         div {
@@ -570,7 +585,6 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                 }
             }
         }
-
     }
 
     private fun RBuilder.runLoadingModal() = modal {

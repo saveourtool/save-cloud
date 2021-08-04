@@ -1,5 +1,6 @@
 package org.cqfn.save.entities
 
+import org.cqfn.save.testsuite.TestSuiteDto
 import org.cqfn.save.testsuite.TestSuiteType
 
 import java.time.LocalDateTime
@@ -31,4 +32,14 @@ class TestSuite(
     var dateAdded: LocalDateTime? = null,
 
     var propertiesRelativePath: String,
-) : BaseEntity()
+) : BaseEntity() {
+    /**
+     * @return Dto of testSuite
+     */
+    fun toDto() =
+            TestSuiteDto(
+                this.type,
+                this.name,
+                this.project,
+                this.propertiesRelativePath)
+}
