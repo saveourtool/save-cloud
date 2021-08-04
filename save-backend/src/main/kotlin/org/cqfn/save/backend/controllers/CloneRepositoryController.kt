@@ -92,7 +92,7 @@ class CloneRepositoryController(
             return Mono.zip(propertyFile, binaryFile).map {
                 bodyBuilder.part("property", it.t1)
                 bodyBuilder.part("binFile", it.t2)
-            }.then(
+            }.flatMap {
                 preprocessorWebClient
                     .post()
                     .uri("/uploadBin")
@@ -100,7 +100,8 @@ class CloneRepositoryController(
                     .body(BodyInserters.fromMultipartData(bodyBuilder.build()))
                     .retrieve()
                     .toEntity(String::class.java)
-                    .toMono())
+                    .toMono()
+            }
         } ?: return Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Project doesn't exist"))
     }
 
