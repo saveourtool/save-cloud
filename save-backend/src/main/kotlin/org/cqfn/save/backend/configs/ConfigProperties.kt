@@ -11,5 +11,5 @@ import org.springframework.boot.context.properties.ConstructorBinding
 @ConstructorBinding
 @ConfigurationProperties(prefix = "backend")
 data class ConfigProperties(
-    val preprocessorUrl: String
+    val preprocessorUrl: String,
 )
