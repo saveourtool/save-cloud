@@ -17,7 +17,7 @@ import java.net.URL
  */
 fun Project.configureVersioning() {
     apply<ReckonPlugin>()
-
+    // should be provided in the gradle.properties
     val isDevelopmentVersion = hasProperty("save.profile") && property("save.profile") == "dev"
     configure<ReckonExtension> {
         scopeFromProp()
@@ -26,8 +26,7 @@ fun Project.configureVersioning() {
             // on a dirty git tree doesn't cause other task updates
             snapshotFromProp()
         } else {
-            //stageFromProp("alpha", "rc", "final")
-            snapshotFromProp()
+            stageFromProp("alpha", "rc", "final")
         }
     }
 }

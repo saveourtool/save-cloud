@@ -96,13 +96,22 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
     ) = Mono.just(ResponseEntity("Clone pending", HttpStatus.ACCEPTED))
         .subscribeOn(Schedulers.boundedElastic())
         .also {
+            println("Receiving files")
             it.flatMap {
                 val binFile = File("program")
                 val propFile = File("save.properties")
+                println("Statuc code: ${it.statusCodeValue}")
+                println("Body: ${it.body}")
+                println("Bin: ")
+                println(binaryFile.block().filename())
+                println("Property: ")
+                println(propertyFile.block().filename())
                 Mono.zip(
                     propertyFile.flatMapMany { it.content() }.collectList(),
                     binaryFile.flatMapMany { it.content() }.collectList()
                 ).map { (propertyFileContent, binaryFileContent) ->
+                    println("Property content: ${propertyFileContent.size}")
+                    println("binaryFileContent: ${binaryFileContent.size}")
                     propertyFileContent.map { dtBuffer -> propFile.outputStream().use { dtBuffer.asInputStream().copyTo(it) } }
                     binaryFileContent.map { dtBuffer -> binFile.outputStream().use { dtBuffer.asInputStream().copyTo(it) } }
                     saveBinaryFile(executionRequestForStandardSuites, propFile, binFile)
@@ -289,6 +298,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties) 
             it.bodyToMono<Execution>()
         }
             .flatMap { execution ->
+                println("\nCurrent execution: ${execution}\n")
                 if (executionType == ExecutionType.GIT) {
                     prepareForExecutionFromGit(project, execution, propertiesRelativePath, projectRootRelativePath)
                 } else {

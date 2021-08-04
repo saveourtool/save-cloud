@@ -26,6 +26,7 @@ import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
+import java.io.File
 import java.time.LocalDateTime
 
 /**
@@ -92,7 +93,7 @@ class CloneRepositoryController(
             return Mono.zip(propertyFile, binaryFile).map {
                 bodyBuilder.part("property", it.t1)
                 bodyBuilder.part("binFile", it.t2)
-            }.then(
+            }.flatMap {
                 preprocessorWebClient
                     .post()
                     .uri("/uploadBin")
@@ -100,7 +101,8 @@ class CloneRepositoryController(
                     .body(BodyInserters.fromMultipartData(bodyBuilder.build()))
                     .retrieve()
                     .toEntity(String::class.java)
-                    .toMono())
+                    .toMono()
+            }
         } ?: return Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Project doesn't exist"))
     }
 
