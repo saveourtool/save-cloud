@@ -1,6 +1,5 @@
 package org.cqfn.save.backend.controllers
 
-import org.cqfn.save.backend.configs.ConfigProperties
 import org.cqfn.save.backend.service.ExecutionService
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.execution.ExecutionDto
@@ -23,9 +22,7 @@ typealias ExecutionDtoListResponse = ResponseEntity<List<ExecutionDto>>
  * Controller that accepts executions
  */
 @RestController
-class ExecutionController(private val executionService: ExecutionService,
-                          config: ConfigProperties,
-) {
+class ExecutionController(private val executionService: ExecutionService) {
     /**
      * @param execution
      * @return id of created [Execution]
@@ -40,15 +37,6 @@ class ExecutionController(private val executionService: ExecutionService,
     fun updateExecution(@RequestBody executionUpdateDto: ExecutionUpdateDto) {
         executionService.updateExecution(executionUpdateDto)
     }
-
-    /**
-     * Get execution by id
-     *
-     * @param id id of execution
-     * @return execution if it has been found
-     */
-    @GetMapping("/execution")
-    fun getExecution(@RequestParam id: Long) = executionService.getExecution(id)
 
     /**
      * @param executionInitializationDto
