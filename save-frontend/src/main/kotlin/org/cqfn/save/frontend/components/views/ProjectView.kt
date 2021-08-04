@@ -119,6 +119,8 @@ external interface ProjectViewState : RState {
      * Selected version
      */
     var selectedSdkVersion: String
+
+    var numberOpenningCard: Int
 }
 
 /**
@@ -137,7 +139,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
     private val selectedTypes: MutableList<String> = mutableListOf()
     private var gitDto: GitDto? = null
 
-    private var numberOpenningCard: Int = 1  // 1 - first card, 2 - second card, 3 - none card was opened
+    //private var numberOpenningCard: Int = 1  // 1 - first card, 2 - second card, 3 - none card was opened
     private var project = Project("stub", "stub", "stub", "stub")
     private val allSdks = sdks
     private lateinit var responseFromExecutionRequest: Response
@@ -146,6 +148,8 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
         state.isErrorOpen = false
         state.errorMessage = ""
         state.errorLabel = ""
+
+        state.numberOpenningCard = 1
 
         state.isLoading = true
 
@@ -161,9 +165,9 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                 it.set("Accept", "application/json")
                 it.set("Content-Type", "application/json")
             }
-            gitDto = post("${window.location.origin}/getGit", headers, jsonProject)
+            gitDto = post("http://localhost:5000/getGit", headers, jsonProject)
                 .decodeFromJsonString<GitDto>()
-            testTypesList = get("${window.location.origin}/allStandardTestSuites", headers)
+            testTypesList = get("http://localhost:5000/allStandardTestSuites", headers)
                 .decodeFromJsonString()
             setState { isLoading = false }
         }
@@ -171,13 +175,13 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
 
     @Suppress("ComplexMethod", "TOO_LONG_FUNCTION")
     private fun submitExecutionRequest() {
-        if (numberOpenningCard == 0) {
+        if (state.numberOpenningCard == 0) {
             setState {
                 isErrorOpen = true
                 errorLabel = "No project type"
                 errorMessage = "Please choose one of the project types"
             }
-        } else if (numberOpenningCard == 1) {
+        } else if (state.numberOpenningCard == 1) {
             gitUrlFromInputField?.let {
                 val newGitDto = GitDto(url = it)
                 submitExecutionRequestGit(newGitDto)
@@ -283,259 +287,254 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
         }
 
         div("row") {
-            div("col-12 col-sm-6 col-md-8") {
+            div("col-9") {
                 div {
-                        child(cardComponent {
-                            div("text-center") {
-                                //attrs.id = "accordion"
-                                div("card shadow mb-4") {
-                                    div("card-header") {
-                                        attrs.id = "headingFirst"
-                                        button(classes = "btn btn-link collapsed") {
-                                            attrs["data-toggle"] = "collapse"
-                                            attrs["data-target"] = "#collapseFirst"
-                                            attrs["aria-expanded"] = "true"
-                                            attrs["aria-controls"] = "collapseFirst"
-                                            h6("m-0 font-weight-bold text-primary") {
-                                                +"Upload project as git url"
-                                            }
-                                            attrs.onClickFunction = {
-                                                if (numberOpenningCard == 1) {
-                                                    numberOpenningCard = 0
-                                                } else {
-                                                    numberOpenningCard = 1
-                                                }
-                                            }
-                                        }
-                                    }
-                                    // Collapse card to load git url
-                                    div {
-                                        attrs.classes = if (numberOpenningCard == 1) setOf(
-                                            "collapse",
-                                            "show"
-                                        ) else setOf("collapse")
-                                        attrs.id = "collapseFirst"
-                                        attrs["aria-labelledby"] = "headingFirst"
-                                        attrs["data-parent"] = "#accordion"
-                                        div("card-body") {
-                                            div("pb-3") {
-                                                div("d-inline-block") {
-                                                    h6(classes = "d-inline") {
-                                                        +"Git url: "
-                                                    }
-                                                }
-                                                div("d-inline-block ml-2") {
-                                                    input(type = InputType.text) {
-                                                        attrs {
-                                                            gitUrlFromInputField?.let {
-                                                                defaultValue = it
-                                                            } ?: gitDto?.url?.let {
-                                                                defaultValue = it
-                                                            }
-                                                            placeholder = "https://github.com/"
-                                                            onChangeFunction = {
-                                                                val target = it.target as HTMLInputElement
-                                                                gitUrlFromInputField = target.value
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-
-                                            div("pb-3") {
-                                                div("d-inline-block") {
-                                                    h6(classes = "d-inline") {
-                                                        +"Path to property file: "
-                                                    }
-                                                }
-                                                div("d-inline-block ml-2") {
-                                                    input(type = InputType.text, name = "itemText") {
-                                                        key = "itemText"
-                                                        attrs {
-                                                            pathToProperty?.let {
-                                                                value = it
-                                                            }
-                                                            placeholder = "save.properties"
-                                                            onChangeFunction = {
-                                                                val target = it.target as HTMLInputElement
-                                                                pathToProperty = target.value
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-
-                    // Collapse card to load binary file
-                    div("card shadow mb-4") {
-                        div("card-header") {
-                            attrs.id = "headingSecond"
-                            button(classes = "btn btn-link collapsed") {
-                                attrs["data-toggle"] = "collapse"
-                                attrs["data-target"] = "#collapseSecond"
-                                attrs["aria-expanded"] = "true"
-                                attrs["aria-controls"] = "collapseSecond"
-                                h6("m-0 font-weight-bold text-primary") {
-                                    +"Upload project as binary file"
-                                }
-                                attrs.onClickFunction = {
-                                    if (numberOpenningCard == 2) {
-                                        numberOpenningCard = 0
-                                    } else {
-                                        numberOpenningCard = 2
-                                    }
-                                }
-                            }
-                        }
-                        div {
-                            attrs.classes = if (numberOpenningCard == 2) setOf("collapse", "show") else setOf("collapse")
-                            attrs.id = "collapseSecond"
-                            attrs["aria-labelledby"] = "headingSecond"
-                            attrs["data-parent"] = "#accordion"
-                            div("card-body") {
-                                div("mb-3") {
-                                    h6(classes = "d-inline mr-3") {
-                                        +"Binary file: "
-                                    }
-                                    div {
-                                        label {
-                                            input(type = InputType.file) {
-                                                attrs.hidden = true
-                                                attrs {
-                                                    onChangeFunction = { event ->
-                                                        val target = event.target as HTMLInputElement
-                                                        setState { binaryFile = target.files?.let { it[0] } }
-                                                    }
-                                                }
-                                            }
-                                            img(classes = "img-upload", src = "img/upload.svg") {}
-                                            strong { +"Upload binary file:" }
-                                            +(state.binaryFile?.name ?: "")
-                                        }
-                                    }
-                                }
+                    child(cardComponent {
+                        div("text-center") {
+                            attrs.id = "accordion"
+                            div("row") {
                                 div {
-                                    h6(classes = "d-inline mr-3") {
-                                        +"Properties : "
-                                    }
-                                    div {
-                                        label {
-                                            input(type = InputType.file) {
-                                                attrs.hidden = true
-                                                attrs {
-                                                    onChangeFunction = { event ->
-                                                        val target = event.target as HTMLInputElement
-                                                        setState { propertyFile = target.files?.let { it[0] } }
+                                    attrs.classes = if (state.numberOpenningCard == 0) setOf("col-6") else if(state.numberOpenningCard == 1) setOf("col-8") else setOf("col-4")
+                                    div("card shadow mb-4") {
+                                        div("card-header") {
+                                            button(classes = "btn btn-link collapsed") {
+                                                h6("m-0 font-weight-bold text-primary") {
+                                                    +"Upload project as git url"
+                                                }
+                                                attrs.onClickFunction = {
+                                                    setState {
+                                                        if (numberOpenningCard == 1) {
+                                                            numberOpenningCard = 0
+                                                        } else {
+                                                            numberOpenningCard = 1
+                                                        }
                                                     }
                                                 }
                                             }
-                                            img(classes = "img-upload", src = "img/upload.svg") {}
-                                            strong { +"Upload property file: " }
-                                            +(state.propertyFile?.name ?: "")
+                                        }
+                                        // Collapse card to load git url
+                                        div {
+                                            attrs.classes = if (state.numberOpenningCard == 1) setOf(
+                                                "collapse",
+                                                "show"
+                                            ) else setOf("collapse")
+                                            div("card-body") {
+                                                div("pb-3") {
+                                                    div("d-inline-block") {
+                                                        h6(classes = "d-inline") {
+                                                            +"Git url: "
+                                                        }
+                                                    }
+                                                    div("d-inline-block ml-2") {
+                                                        input(type = InputType.text) {
+                                                            attrs {
+                                                                gitUrlFromInputField?.let {
+                                                                    defaultValue = it
+                                                                } ?: gitDto?.url?.let {
+                                                                    defaultValue = it
+                                                                }
+                                                                placeholder = "https://github.com/"
+                                                                onChangeFunction = {
+                                                                    val target = it.target as HTMLInputElement
+                                                                    gitUrlFromInputField = target.value
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+
+                                                div("pb-3") {
+                                                    div("d-inline-block") {
+                                                        h6(classes = "d-inline") {
+                                                            +"Path to property file: "
+                                                        }
+                                                    }
+                                                    div("d-inline-block ml-2") {
+                                                        input(type = InputType.text, name = "itemText") {
+                                                            key = "itemText"
+                                                            attrs {
+                                                                pathToProperty?.let {
+                                                                    value = it
+                                                                }
+                                                                placeholder = "save.properties"
+                                                                onChangeFunction = {
+                                                                    val target = it.target as HTMLInputElement
+                                                                    pathToProperty = target.value
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
+                                div{
+                                    attrs.classes = if (state.numberOpenningCard == 0) setOf("col-6") else if(state.numberOpenningCard == 2) setOf("col-8") else setOf("col-4")
+                                    div("card shadow mb-4") {
+                                        div("card-header") {
+                                            button(classes = "btn btn-link collapsed") {
+                                                h6("m-0 font-weight-bold text-primary") {
+                                                    +"Upload project as binary file"
+                                                }
+                                                attrs.onClickFunction = {
+                                                    setState {
+                                                        if (numberOpenningCard == 2) {
+                                                            numberOpenningCard = 0
+                                                        } else {
+                                                            numberOpenningCard = 2
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        div {
+                                            attrs.classes =
+                                                if (state.numberOpenningCard == 2) setOf("collapse", "show") else setOf("collapse")
+                                            div("card-body") {
+                                                div("mb-3") {
+                                                    h6(classes = "d-inline mr-3") {
+                                                        +"Binary file: "
+                                                    }
+                                                    div {
+                                                        label {
+                                                            input(type = InputType.file) {
+                                                                attrs.hidden = true
+                                                                attrs {
+                                                                    onChangeFunction = { event ->
+                                                                        val target = event.target as HTMLInputElement
+                                                                        setState { binaryFile = target.files?.let { it[0] } }
+                                                                    }
+                                                                }
+                                                            }
+                                                            img(classes = "img-upload", src = "img/upload.svg") {}
+                                                            strong { +"Upload binary file:" }
+                                                            +(state.binaryFile?.name ?: "")
+                                                        }
+                                                    }
+                                                }
+                                                div {
+                                                    h6(classes = "d-inline mr-3") {
+                                                        +"Properties : "
+                                                    }
+                                                    div {
+                                                        label {
+                                                            input(type = InputType.file) {
+                                                                attrs.hidden = true
+                                                                attrs {
+                                                                    onChangeFunction = { event ->
+                                                                        val target = event.target as HTMLInputElement
+                                                                        setState { propertyFile = target.files?.let { it[0] } }
+                                                                    }
+                                                                }
+                                                            }
+                                                            img(classes = "img-upload", src = "img/upload.svg") {}
+                                                            strong { +"Upload property file: " }
+                                                            +(state.propertyFile?.name ?: "")
+                                                        }
+                                                    }
+                                                }
+                                                div {
+                                                    testTypesList
+                                                        .map { it.name }
+                                                        .chunked(TEST_SUITE_ROW)
+                                                        .forEach { rowTypes ->
+                                                            div("row") {
+                                                                rowTypes.forEach { typeName ->
+                                                                    div("col") {
+                                                                        +typeName
+                                                                        input(type = InputType.checkBox, classes = "ml-3") {
+                                                                            attrs.defaultChecked = selectedTypes.contains(typeName)
+                                                                            attrs.onClickFunction = {
+                                                                                if (selectedTypes.contains(typeName)) {
+                                                                                    selectedTypes.remove(typeName)
+                                                                                } else {
+                                                                                    selectedTypes.add(typeName)
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                }
+                                            }
                                         }
                                     }
                                 }
                             }
                             div {
-                                testTypesList
-                                    .map { it.name }
-                                    .chunked(TEST_SUITE_ROW)
-                                    .forEach { rowTypes ->
-                                        div("row") {
-                                            rowTypes.forEach { typeName ->
-                                                div("col") {
-                                                    +typeName
-                                                    input(type = InputType.checkBox, classes = "ml-3") {
-                                                        attrs.defaultChecked = selectedTypes.contains(typeName)
-                                                        attrs.onClickFunction = {
-                                                            if (selectedTypes.contains(typeName)) {
-                                                                selectedTypes.remove(typeName)
-                                                            } else {
-                                                                selectedTypes.add(typeName)
-                                                            }
-                                                        }
-                                                    }
+                                div("d-inline") {
+                                    div("d-inline-block") {
+                                        h5 {
+                                            +"SDK:"
+                                        }
+                                    }
+                                    div("d-inline-block ml-2") {
+                                        select("form-control form-control mb-3") {
+                                            attrs.value = state.selectedSdk
+                                            attrs.onChangeFunction = {
+                                                val target = it.target as HTMLSelectElement
+                                                setState {
+                                                    selectedSdk = target.value
+                                                    selectedSdkVersion = selectedSdk.getSdkVersion().first()
+                                                }
+                                            }
+                                            allSdks.forEach {
+                                                option {
+                                                    attrs.value = it
+                                                    +it
                                                 }
                                             }
                                         }
                                     }
-                            }
-                        }
-                    }
+                                }
 
-                                    div {
-                                        div {
-                                            div("d-inline-block") {
-                                                h5 {
-                                                    +"SDK:"
-                                                }
-                                            }
-                                            div("d-inline-block ml-2") {
-                                                select("form-control form-control mb-3") {
-                                                    attrs.value = state.selectedSdk
-                                                    attrs.onChangeFunction = {
-                                                        val target = it.target as HTMLSelectElement
-                                                        setState {
-                                                            selectedSdk = target.value
-                                                            selectedSdkVersion = selectedSdk.getSdkVersion().first()
-                                                        }
-                                                    }
-                                                    allSdks.forEach {
-                                                        option {
-                                                            attrs.value = it
-                                                            +it
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-
-                                        div {
-                                            attrs.classes =
-                                                if (state.selectedSdk == "Default") setOf("d-none") else setOf()
-                                            div("d-inline-block") {
-                                                h6 {
-                                                    +"Version:"
-                                                }
-                                            }
-                                            div("d-inline-block ml-2") {
-                                                select("form-select form-select-sm mb-3") {
-                                                    attrs.value = state.selectedSdkVersion
-                                                    attrs.onChangeFunction = {
-                                                        val target = it.target as HTMLSelectElement
-                                                        setState { selectedSdkVersion = target.value }
-                                                    }
-                                                    state.selectedSdk.getSdkVersion().forEach {
-                                                        option {
-                                                            attrs.value = it
-                                                            +it
-                                                        }
-                                                    }
-                                                }
-                                            }
+                                div {
+                                    attrs.classes =
+                                        if (state.selectedSdk == "Default") setOf("d-none") else setOf("d-inline ml-3")
+                                    div("d-inline-block") {
+                                        h6 {
+                                            +"Version:"
                                         }
                                     }
-
-                                    div {
-                                        button(type = ButtonType.button, classes = "btn btn-primary") {
-                                            attrs.onClickFunction = { submitExecutionRequest() }
-                                            +"Run tests now"
+                                    div("d-inline-block ml-2") {
+                                        select("form-select form-select-sm mb-3") {
+                                            attrs.value = state.selectedSdkVersion
+                                            attrs.onChangeFunction = {
+                                                val target = it.target as HTMLSelectElement
+                                                setState { selectedSdkVersion = target.value }
+                                            }
+                                            state.selectedSdk.getSdkVersion().forEach {
+                                                option {
+                                                    attrs.value = it
+                                                    +it
+                                                }
+                                            }
                                         }
                                     }
                                 }
                             }
-                        }
-                            ) {
-                            attrs {
-                                header = "Run tests"
-                                leftBorderColor = "primary"
+
+                            div {
+                                button(type = ButtonType.button, classes = "btn btn-primary") {
+                                    attrs.onClickFunction = { submitExecutionRequest() }
+                                    +"Run tests now"
+                                }
                             }
+                    // Collapse card to load binary file
+
                         }
+                    }) {
+                    attrs {
+                        header = "Run tests"
+                        leftBorderColor = "primary"
+                    }
+                }
                 }
             }
-            div("col-6 col-md-4") {
+            div("col-3") {
                 child(cardComponent {
                     div("text-center") {
                         p("small") {
@@ -579,7 +578,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                     }
                 }) {
                     attrs {
-                        header = "Run tests"
+                        header = "Information"
                         leftBorderColor = "primary"
                     }
                 }
