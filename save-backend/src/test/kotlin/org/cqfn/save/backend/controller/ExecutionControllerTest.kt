@@ -12,9 +12,6 @@ import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionType
 import org.cqfn.save.execution.ExecutionUpdateDto
 
-import okhttp3.mockwebserver.MockResponse
-import okhttp3.mockwebserver.MockWebServer
-import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -23,8 +20,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
-import org.springframework.test.context.DynamicPropertyRegistry
-import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
@@ -237,34 +232,5 @@ class ExecutionControllerTest {
                     it.version == "executionVersion"
         }
         assertTrue(isUpdatedExecution)
-    }
-
-    @Test
-    fun `should send request to preprocessor to rerun execution`() {
-        mockServerPreprocessor.enqueue(
-            MockResponse().setResponseCode(200)
-        )
-        webClient.post()
-            .uri("/rerunExecution?id=1")
-            .exchange()
-            .expectStatus()
-            .isOk
-    }
-
-    companion object {
-        @JvmStatic lateinit var mockServerPreprocessor: MockWebServer
-
-        @AfterAll
-        fun tearDown() {
-            mockServerPreprocessor.shutdown()
-        }
-
-        @DynamicPropertySource
-        @JvmStatic
-        fun properties(registry: DynamicPropertyRegistry) {
-            mockServerPreprocessor = MockWebServer()
-            mockServerPreprocessor.start()
-            registry.add("backend.preprocessorUrl") { "http://localhost:${mockServerPreprocessor.port}" }
-        }
     }
 }

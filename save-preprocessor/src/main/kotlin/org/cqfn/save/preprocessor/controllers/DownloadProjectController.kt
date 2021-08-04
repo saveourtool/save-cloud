@@ -13,6 +13,7 @@ import org.cqfn.save.execution.ExecutionInitializationDto
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionType
 import org.cqfn.save.execution.ExecutionUpdateDto
+import org.cqfn.save.preprocessor.TextResponse
 import org.cqfn.save.preprocessor.config.ConfigProperties
 import org.cqfn.save.preprocessor.service.TestDiscoveringService
 import org.cqfn.save.preprocessor.utils.decodeFromPropertiesFile
@@ -26,7 +27,6 @@ import org.eclipse.jgit.api.errors.TransportException
 import org.eclipse.jgit.transport.CredentialsProvider
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.ClassPathResource
 import org.springframework.http.HttpStatus
 import org.springframework.http.ReactiveHttpOutputMessage
@@ -72,7 +72,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
      * @return response entity with text
      */
     @PostMapping("/upload")
-    fun upload(@RequestBody executionRequest: ExecutionRequest): Mono<ResponseEntity<String>> = Mono.just(ResponseEntity("Clone pending", HttpStatus.ACCEPTED))
+    fun upload(@RequestBody executionRequest: ExecutionRequest): Mono<TextResponse> = Mono.just(ResponseEntity("Clone pending", HttpStatus.ACCEPTED))
         .doOnSuccess {
             downLoadRepository(executionRequest)
                 .flatMap { (location, version) ->
@@ -117,33 +117,6 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                 binaryFileContent.map { dtBuffer -> binFile.outputStream().use { dtBuffer.asInputStream().copyTo(it) } }
                 saveBinaryFile(executionRequestForStandardSuites, propFile, binFile)
             }
-                .subscribeOn(Schedulers.boundedElastic())
-                .subscribe()
-        }
-
-    /**
-     * @param executionRerunRequest
-     * @return
-     */
-    fun rerunExecution(@RequestBody executionRerunRequest: ExecutionRequest) = Mono.create<ResponseEntity<String>> {
-        requireNotNull(executionRerunRequest.executionId) { "Can't rerun execution with unknown id" }
-        ResponseEntity("Clone pending", HttpStatus.ACCEPTED)
-    }
-        .doOnSuccess {
-            downLoadRepository(executionRerunRequest).flatMap { (location, _) ->
-                getExecution(executionRerunRequest.executionId!!).map { execution ->
-                    execution to location
-                }
-            }
-            .flatMap { (execution, location) ->
-                    sendToBackendAndOrchestrator(
-                        execution,
-                        execution.project,  // todo!
-                        executionRerunRequest.propertiesRelativePath,
-                        location,
-                        null
-                    )
-                }
                 .subscribeOn(Schedulers.boundedElastic())
                 .subscribe()
         }
@@ -209,7 +182,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
     }
 
     @Suppress(
-        "TooGenericExceptionCaught",
+        "TYPE_ALIAS",
         "TOO_LONG_FUNCTION",
         "TOO_MANY_LINES_IN_LAMBDA",
         "UnsafeCallOnNullableType")
@@ -224,14 +197,14 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         }
         return Mono.fromCallable {
             cloneFromGit(gitDto, tmpDir)?.use { git ->
-                    executionRequest.gitDto.hash?.let { hash ->
-                        git.checkout().setName(hash).call()
-                    }
-                    val version = git.log().call().first()
-                        .name
-                    log.info("Cloned repository ${gitDto.url}, head is at $version")
-                    return@fromCallable tmpDir.relativeTo(File(configProperties.repository)).normalize().path to version
+                executionRequest.gitDto.hash?.let { hash ->
+                    git.checkout().setName(hash).call()
                 }
+                val version = git.log().call().first()
+                    .name
+                log.info("Cloned repository ${gitDto.url}, head is at $version")
+                return@fromCallable tmpDir.relativeTo(File(configProperties.repository)).normalize().path to version
+            }
         }
             .onErrorResume { exception ->
                 tmpDir.deleteRecursively()
@@ -355,11 +328,6 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
             it.bodyToMono()
         }
     }
-
-    private fun getExecution(executionId: Long) = webClientBackend.get()
-        .uri("${configProperties.backend}/execution?id=$executionId")
-        .retrieve()
-        .bodyToMono<Execution>()
 
     @Suppress("TYPE_ALIAS", "UnsafeCallOnNullableType")
     private fun prepareForExecutionFromGit(project: Project,

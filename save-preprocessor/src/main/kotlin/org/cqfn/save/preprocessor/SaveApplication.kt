@@ -4,7 +4,10 @@ import org.cqfn.save.preprocessor.config.ConfigProperties
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.context.properties.EnableConfigurationProperties
+import org.springframework.http.ResponseEntity
 import org.springframework.web.reactive.config.EnableWebFlux
+
+typealias TextResponse = ResponseEntity<String>
 
 /**
  * An entrypoint for spring for save-preprocessor

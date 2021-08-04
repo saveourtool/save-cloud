@@ -2,17 +2,13 @@ package org.cqfn.save.backend.controllers
 
 import org.cqfn.save.backend.configs.ConfigProperties
 import org.cqfn.save.backend.service.ExecutionService
-import org.cqfn.save.domain.toSdk
 import org.cqfn.save.entities.Execution
-import org.cqfn.save.entities.ExecutionRequest
-import org.cqfn.save.entities.GitDto
 import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.execution.ExecutionInitializationDto
 import org.cqfn.save.execution.ExecutionUpdateDto
 
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -48,6 +44,12 @@ class ExecutionController(private val executionService: ExecutionService,
         executionService.updateExecution(executionUpdateDto)
     }
 
+    /**
+     * Get execution by id
+     *
+     * @param id id of execution
+     * @return execution if it has been found
+     */
     @GetMapping("/execution")
     fun getExecution(@RequestParam id: Long) = executionService.getExecution(id)
 
@@ -98,29 +100,4 @@ class ExecutionController(private val executionService: ExecutionService,
                         ResponseStatusException(HttpStatus.NOT_FOUND, "Execution not found for project (name=$name, owner=$owner)")
                     }
                 }
-    
-    /**
-     * Accepts a request to rerun an existing execution
-     *
-     * @param id id of an existing execution
-     * @return bodiless response
-     */
-    @PostMapping("/rerunExecution")
-    @Transactional
-    fun rerunExecution(@RequestParam id: Long): Mono<ResponseEntity<Void>> {
-        val execution = requireNotNull(executionService.getExecution(id)) {
-            "Can't rerun execution $id, because it does not exist"
-        }
-        val executionRequest = ExecutionRequest(
-            project = execution.project,
-            gitDto = GitDto(execution.project.url!!, hash = execution.version),
-            sdk = execution.sdk.toSdk(),
-            executionId = execution.id
-        )
-        return preprocessorWebClient.post()
-            .uri("/rerunExecution")
-            .bodyValue(executionRequest)
-            .retrieve()
-            .toBodilessEntity()
-    }
 }
