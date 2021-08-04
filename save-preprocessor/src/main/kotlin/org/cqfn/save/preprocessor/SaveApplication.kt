@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.reactive.config.EnableWebFlux
 
 typealias TextResponse = ResponseEntity<String>
+typealias EmptyResponse = ResponseEntity<Void>
 
 /**
  * An entrypoint for spring for save-preprocessor

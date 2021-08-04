@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
-import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
 
@@ -27,8 +26,6 @@ typealias ExecutionDtoListResponse = ResponseEntity<List<ExecutionDto>>
 class ExecutionController(private val executionService: ExecutionService,
                           config: ConfigProperties,
 ) {
-    private val preprocessorWebClient = WebClient.create(config.preprocessorUrl)
-
     /**
      * @param execution
      * @return id of created [Execution]

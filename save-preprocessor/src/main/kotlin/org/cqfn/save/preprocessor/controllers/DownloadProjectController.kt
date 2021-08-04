@@ -13,6 +13,7 @@ import org.cqfn.save.execution.ExecutionInitializationDto
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionType
 import org.cqfn.save.execution.ExecutionUpdateDto
+import org.cqfn.save.preprocessor.EmptyResponse
 import org.cqfn.save.preprocessor.TextResponse
 import org.cqfn.save.preprocessor.config.ConfigProperties
 import org.cqfn.save.preprocessor.service.TestDiscoveringService
@@ -276,11 +277,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
      * - Send a request to orchestrator to initialize agents and start tests execution
      */
     @Suppress(
-        "LongMethod",
-        "ThrowsCount",
-        "TooGenericExceptionCaught",
-        "TOO_LONG_FUNCTION",
-        "LOCAL_VARIABLE_EARLY_DECLARATION",
+        "TYPE_ALIAS",
         "LongParameterList",
         "TOO_MANY_PARAMETERS",
         "UnsafeCallOnNullableType"
@@ -291,7 +288,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         propertiesRelativePath: String,
         projectRootRelativePath: String,
         testSuiteDtos: List<TestSuiteDto>?,
-    ): Mono<*> {
+    ): Mono<ResponseEntity<HttpStatus>> {
         val executionType = execution.type
         testSuiteDtos?.let {
             require(executionType == ExecutionType.STANDARD) { "Test suites shouldn't be provided unless ExecutionType is STANDARD (actual: $executionType)" }
@@ -300,7 +297,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         return if (executionType == ExecutionType.GIT) {
             prepareForExecutionFromGit(project, execution, propertiesRelativePath, projectRootRelativePath)
         } else {
-            prepareExecutionForStandard(project, execution, testSuiteDtos!!)
+            prepareExecutionForStandard(testSuiteDtos!!)
         }
             .then(initializeAgents(execution))
             .onErrorResume { ex ->
@@ -329,11 +326,11 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         }
     }
 
-    @Suppress("TYPE_ALIAS", "UnsafeCallOnNullableType")
+    @Suppress("UnsafeCallOnNullableType")
     private fun prepareForExecutionFromGit(project: Project,
                                            execution: Execution,
                                            propertiesRelativePath: String,
-                                           projectRootRelativePath: String): Mono<*> = Mono.fromCallable {
+                                           projectRootRelativePath: String): Mono<EmptyResponse> = Mono.fromCallable {
         val testResourcesRootAbsolutePath =
                 getTestResourcesRootAbsolutePath(propertiesRelativePath, projectRootRelativePath)
         testDiscoveringService.getRootTestConfig(testResourcesRootAbsolutePath)
@@ -346,9 +343,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
             initializeTests(testSuites, rootTestConfig, execution.id!!)
         }
     
-    private fun prepareExecutionForStandard(project: Project,
-                                            execution: Execution,
-                                            testSuiteDtos: List<TestSuiteDto>): Mono<*> {
+    private fun prepareExecutionForStandard(testSuiteDtos: List<TestSuiteDto>): Mono<List<TestSuite>> {
         return webClientBackend.makeRequest<List<TestSuiteDto>?, List<TestSuite>>(
             BodyInserters.fromValue(
                 testSuiteDtos
