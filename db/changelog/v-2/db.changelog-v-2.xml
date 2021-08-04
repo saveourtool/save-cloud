@@ -8,6 +8,7 @@
     <include file="01-changeset-test.xml" relativeToChangelogFile="true"/>
     <include file="10-test-update-data.xml" relativeToChangelogFile="true"/>
     <include file="02-changeset-execution.xml" relativeToChangelogFile="true"/>
+    <include file="03-changeset-test-suite.xml" relativeToChangelogFile="true"/>
 
     <changeSet id="1" author="petertrr">
         <tagDatabase tag="v2.0"/>
