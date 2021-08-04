@@ -19,6 +19,7 @@ import org.cqfn.save.frontend.utils.get
 import org.cqfn.save.frontend.utils.getProject
 import org.cqfn.save.frontend.utils.post
 import org.cqfn.save.frontend.utils.runErrorModal
+import org.cqfn.save.testsuite.TestSuiteDto
 
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.HTMLSelectElement
@@ -130,7 +131,7 @@ external interface ProjectViewState : RState {
 @JsExport
 @Suppress("CUSTOM_GETTERS_SETTERS")
 class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
-    private val testTypesList = listOf("Class", "Comment", "Function", "Variable", "Enum", "Space", "Style", "Another")
+    private var testTypesList: List<TestSuiteDto> = emptyList()
     private var pathToProperty: String? = null
     private var gitUrlFromInputField: String? = null
     private val selectedTypes: MutableList<String> = mutableListOf()
@@ -162,6 +163,8 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
             }
             gitDto = post("${window.location.origin}/getGit", headers, jsonProject)
                 .decodeFromJsonString<GitDto>()
+            testTypesList = get("${window.location.origin}/allStandardTestSuites", headers)
+                .decodeFromJsonString()
             setState { isLoading = false }
         }
     }
@@ -431,25 +434,28 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                                 }
                             }
                             div {
-                                testTypesList.chunked(TEST_SUITE_ROW).forEach { rowTypes ->
-                                    div("row") {
-                                        rowTypes.forEach { typeName ->
-                                            div("col") {
-                                                +typeName
-                                                input(type = InputType.checkBox, classes = "ml-3") {
-                                                    attrs.defaultChecked = selectedTypes.contains(typeName)
-                                                    attrs.onClickFunction = {
-                                                        if (selectedTypes.contains(typeName)) {
-                                                            selectedTypes.remove(typeName)
-                                                        } else {
-                                                            selectedTypes.add(typeName)
+                                testTypesList
+                                    .map { it.name }
+                                    .chunked(TEST_SUITE_ROW)
+                                    .forEach { rowTypes ->
+                                        div("row") {
+                                            rowTypes.forEach { typeName ->
+                                                div("col") {
+                                                    +typeName
+                                                    input(type = InputType.checkBox, classes = "ml-3") {
+                                                        attrs.defaultChecked = selectedTypes.contains(typeName)
+                                                        attrs.onClickFunction = {
+                                                            if (selectedTypes.contains(typeName)) {
+                                                                selectedTypes.remove(typeName)
+                                                            } else {
+                                                                selectedTypes.add(typeName)
+                                                            }
                                                         }
                                                     }
                                                 }
                                             }
                                         }
                                     }
-                                }
                             }
                         }
                     }

@@ -214,7 +214,7 @@ class ExecutionControllerTest {
             .expectStatus()
             .isOk
 
-        val executionUpdate = ExecutionInitializationDto(execution.project, "ALL", "testPath", 20, "executionVersion")
+        val executionUpdate = ExecutionInitializationDto(execution.project, "ALL", "testPath", "executionVersion")
         webClient.post()
             .uri("/updateNewExecution")
             .contentType(MediaType.APPLICATION_JSON)

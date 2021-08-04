@@ -12,7 +12,7 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class TestSuiteDto(
-    val type: TestSuiteType,
+    val type: TestSuiteType?,
     val name: String,
     val project: Project? = null,
     val propertiesRelativePath: String,

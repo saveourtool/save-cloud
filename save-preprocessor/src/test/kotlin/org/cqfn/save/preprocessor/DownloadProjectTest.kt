@@ -11,6 +11,7 @@ import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionType
 import org.cqfn.save.preprocessor.config.ConfigProperties
 import org.cqfn.save.preprocessor.controllers.DownloadProjectController
+import org.cqfn.save.preprocessor.controllers.readStandardTestSuitesFile
 import org.cqfn.save.preprocessor.service.TestDiscoveringService
 import org.cqfn.save.preprocessor.utils.RepositoryVolume
 import org.cqfn.save.testsuite.TestSuiteType
@@ -30,6 +31,7 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.core.io.FileSystemResource
@@ -52,6 +54,7 @@ import kotlin.io.path.ExperimentalPathApi
 @ExperimentalPathApi
 @WebFluxTest(controllers = [DownloadProjectController::class])
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@AutoConfigureWebTestClient(timeout = "60000")
 class DownloadProjectTest(
     @Autowired private val webClient: WebTestClient,
     @Autowired private val configProperties: ConfigProperties,
@@ -70,10 +73,7 @@ class DownloadProjectTest(
 
     @BeforeAll
     fun setUp() {
-        File(binFolder).mkdir()
-        File(propertyPath).createNewFile()
-        File(binFilePath).createNewFile()
-        File(binFilePath).writeText("echo 0")
+        File(binFolder).mkdirs()
     }
 
     @Test
@@ -168,6 +168,11 @@ class DownloadProjectTest(
     @Suppress("TOO_LONG_FUNCTION", "LongMethod")
     @Test
     fun testSaveProjectAsBinaryFile() {
+        File(binFolder).mkdirs()
+        File(propertyPath).createNewFile()
+        File(binFilePath).createNewFile()
+        File(binFilePath).writeText("echo 0")
+
         val binFile = File(binFilePath)
         val property = File(propertyPath)
         val project = Project("owner", "someName", null, "descr").apply {
@@ -226,6 +231,51 @@ class DownloadProjectTest(
         Assertions.assertTrue(File("${configProperties.repository}/${binFile.name.hashCode()}").exists())
         assertions.orTimeout(60, TimeUnit.SECONDS).join().forEach { Assertions.assertNotNull(it) }
         Assertions.assertEquals("echo 0", File("${configProperties.repository}/${binFile.name.hashCode()}/program").readText())
+    }
+
+    @Test
+    @Suppress("TOO_LONG_FUNCTION")
+    fun testStandardTestSuites() {
+        val requestSize = readStandardTestSuitesFile(configProperties.reposFileName)
+            .toList()
+            .flatMap { it.second }
+            .size
+        repeat(requestSize) {
+            val project = Project("owner", "someName", null, "descr").apply {
+                id = 42L
+            }
+            mockServerBackend.enqueue(
+                MockResponse()
+                    .setResponseCode(200)
+                    .setHeader("Content-Type", "application/json")
+                    .setBody(
+                        objectMapper.writeValueAsString(
+                            listOf(
+                                TestSuite(TestSuiteType.PROJECT, "", project, LocalDateTime.now(), "save.properties")
+                            )
+                        )
+                    ),
+            )
+        }
+        repeat(requestSize) {
+            mockServerBackend.enqueue(
+                MockResponse()
+                    .setResponseCode(200)
+            )
+        }
+
+        val assertions = CompletableFuture.supplyAsync {
+            List(requestSize * 2) { mockServerBackend.takeRequest(60, TimeUnit.SECONDS) }
+        }
+
+        webClient.post()
+            .uri("/uploadStandardTestSuite")
+            .exchange()
+            .expectStatus()
+            .isOk
+        Thread.sleep(2500)
+        assertions.orTimeout(60, TimeUnit.SECONDS).join().forEach { Assertions.assertNotNull(it) }
+        Assertions.assertTrue(File("${configProperties.repository}/${"https://github.com/cqfn/save".hashCode()}").exists())
     }
 
     @AfterEach
