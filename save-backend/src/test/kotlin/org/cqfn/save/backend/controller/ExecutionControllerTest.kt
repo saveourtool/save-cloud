@@ -200,7 +200,7 @@ class ExecutionControllerTest {
     @Suppress("UnsafeCallOnNullableType")
     fun checkUpdateNewExecution() {
         val execution = Execution(projectRepository.findAll().first(), LocalDateTime.now(), null, ExecutionStatus.PENDING, null,
-            null, 0, null, ExecutionType.GIT, null, 0, 0, 0, Sdk.Default.toString())
+            null, 0, 20, ExecutionType.GIT, null, 0, 0, 0, Sdk.Default.toString())
         webClient.post()
             .uri("/createExecution")
             .contentType(MediaType.APPLICATION_JSON)
@@ -220,10 +220,10 @@ class ExecutionControllerTest {
             .expectBody<Execution>()
             .consumeWith {
                 requireNotNull(it.responseBody)
-                assertEquals(it.responseBody.testSuiteIds, "ALL")
-                assertEquals(it.responseBody.resourcesRootPath, "testPath")
-                assertEquals(it.responseBody.batchSize, 20)
-                assertEquals(it.responseBody.version, "executionVersion")
+                assertEquals("ALL", it.responseBody.testSuiteIds)
+                assertEquals("testPath", it.responseBody.resourcesRootPath)
+                assertEquals(20, it.responseBody.batchSize)
+                assertEquals("executionVersion", it.responseBody.version)
             }
         val isUpdatedExecution = executionRepository.findAll().any {
             it.testSuiteIds == "ALL" &&

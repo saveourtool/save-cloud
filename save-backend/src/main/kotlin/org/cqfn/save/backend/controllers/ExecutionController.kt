@@ -25,7 +25,7 @@ typealias ExecutionDtoListResponse = ResponseEntity<List<ExecutionDto>>
  */
 @RestController
 class ExecutionController(private val executionService: ExecutionService,
-                          private val config: ConfigProperties,
+                          config: ConfigProperties,
 ) {
     private val preprocessorWebClient = WebClient.create(config.preprocessorUrl)
 
