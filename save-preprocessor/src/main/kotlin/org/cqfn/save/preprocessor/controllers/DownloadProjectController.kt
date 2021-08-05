@@ -139,6 +139,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                     log.info("Starting to discover root test config for test root $testRootPath")
                     val testResourcesRootAbsolutePath = tmpDir.resolve(testRootPath).absolutePath
                     val rootTestConfig = testDiscoveringService.getRootTestConfig(testResourcesRootAbsolutePath)
+                    println("rootTestConfig.location: " + rootTestConfig.location)
                     log.info("Starting to discover standard test suites for config test root $testRootPath in $testResourcesRootAbsolutePath")
                     val tests = testDiscoveringService.getAllTestSuites(null, rootTestConfig, "stub")
                     log.info("Test suites size = ${tests.size}")
@@ -147,7 +148,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                         it.bodyToMono<List<TestSuite>>()
                     }
                         .flatMap { testSuites ->
-                            log.info("Starting to save new tests for config test root $testRootPath")
+                            log.info("Starting to save new tests for root test config $testRootPath")
                             webClientBackend.makeRequest(
                                 BodyInserters.fromValue(
                                     testDiscoveringService.getAllTests(
@@ -231,11 +232,13 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         val tmpDir = generateDirectory(binFile.name)
         val pathToProperties = tmpDir.resolve(propertyFile.name)
         propertyFile.copyTo(pathToProperties)
+        propertyFile.delete()
         binFile.copyTo(tmpDir.resolve(binFile.name))
+        binFile.delete()
         val project = executionRequestForStandardSuites.project
         val propertiesRelativePath = pathToProperties.relativeTo(tmpDir).name
         // todo: what's with version?
-        return updateExecution(executionRequestForStandardSuites.project, propertiesRelativePath, binFile.name).flatMap { execution ->
+        return updateExecution(executionRequestForStandardSuites.project, tmpDir.name, binFile.name).flatMap { execution ->
             sendToBackendAndOrchestrator(
                 execution,
                 project,

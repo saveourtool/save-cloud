@@ -105,7 +105,7 @@ class DockerService(private val configProperties: ConfigProperties) {
 
     @Suppress("TOO_LONG_FUNCTION")
     private fun buildBaseImageForExecution(execution: Execution): Pair<String, String> {
-        println("\nconfigProperties.testResources.basePath ${configProperties.testResources.basePath}")
+        println("\n\nconfigProperties.testResources.basePath ${configProperties.testResources.basePath}")
         println("execution.resourcesRootPath ${execution.resourcesRootPath}")
         println("execution.workDir ${configProperties.workDir}")
         val resourcesPath = File(
