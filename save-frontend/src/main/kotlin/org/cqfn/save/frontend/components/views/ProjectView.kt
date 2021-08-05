@@ -274,7 +274,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
         runErrorModal(state.isErrorOpen, state.errorLabel, state.errorMessage) {
             setState { isErrorOpen = false }
         }
-        // runLoadingModal()
+        runLoadingModal()
         // Page Heading
         div("d-sm-flex align-items-center justify-content-between mb-4") {
             h1("h3 mb-0 text-gray-800") {
@@ -285,24 +285,28 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
         div("row") {
             div("col") {
                 child(cardComponent {
-                    div {
-                        button(type = ButtonType.button, classes = "btn btn-link collapsed") {
-                            attrs.onClickFunction = {
-                                setState {
-                                    isFirstTypeUpload = true
+                    div("text-left") {
+                        div {
+                            button(type = ButtonType.button) {
+                                attrs.classes = if (state.isFirstTypeUpload) setOf("btn", "btn-primary") else setOf("btn", "btn-outline-primary")
+                                attrs.onClickFunction = {
+                                    setState {
+                                        isFirstTypeUpload = true
+                                    }
                                 }
+                                +"Upload project as Git"
                             }
-                            +"Upload project as Git"
                         }
-                    }
-                    div("mb-20") {
-                        button(type = ButtonType.button, classes = "btn btn-link collapsed") {
-                            attrs.onClickFunction = {
-                                setState {
-                                    isFirstTypeUpload = false
+                        div("mt-3") {
+                            button(type = ButtonType.button, classes = "btn btn-link collapsed") {
+                                attrs.classes = if (state.isFirstTypeUpload) setOf("btn", "btn-outline-primary") else setOf("btn", "btn-primary")
+                                attrs.onClickFunction = {
+                                    setState {
+                                        isFirstTypeUpload = false
+                                    }
                                 }
+                                +"Upload project as binary file"
                             }
-                            +"Upload project as binary file"
                         }
                     }
                 }) {
@@ -312,190 +316,210 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                     }
                 }
             }
-            div("col-5") {
+            div("col-6") {
                 child(cardComponent {
-                    div("row") {
-                        div {
-                            attrs.classes = if (state.isFirstTypeUpload) setOf("card", "shadow", "mb-4", "w-100") else setOf("d-none")
-                            div("card-body") {
-                                div("pb-3") {
-                                    div("d-inline-block") {
-                                        h6(classes = "d-inline") {
-                                            +"Git url: "
+                    div("text-center") {
+                        div("row") {
+                            div {
+                                attrs.classes = if (state.isFirstTypeUpload) {
+                                    setOf(
+                                        "card",
+                                        "shadow",
+                                        "mb-4",
+                                        "w-100",
+                                    )
+                                } else {
+                                    setOf("d-none")
+                                }
+                                div("card-body") {
+                                    div("pb-3") {
+                                        div("d-inline-block") {
+                                            h6(classes = "d-inline") {
+                                                +"Git url: "
+                                            }
                                         }
-                                    }
-                                    div("d-inline-block ml-2") {
-                                        input(type = InputType.text) {
-                                            attrs {
-                                                gitUrlFromInputField?.let {
-                                                    defaultValue = it
-                                                } ?: gitDto?.url?.let {
-                                                    defaultValue = it
-                                                }
-                                                placeholder = "https://github.com/"
-                                                onChangeFunction = {
-                                                    val target = it.target as HTMLInputElement
-                                                    gitUrlFromInputField = target.value
+                                        div("d-inline-block ml-2") {
+                                            input(type = InputType.text) {
+                                                attrs {
+                                                    gitUrlFromInputField?.let {
+                                                        defaultValue = it
+                                                    } ?: gitDto?.url?.let {
+                                                        defaultValue = it
+                                                    }
+                                                    placeholder = "https://github.com/"
+                                                    onChangeFunction = {
+                                                        val target = it.target as HTMLInputElement
+                                                        gitUrlFromInputField = target.value
+                                                    }
                                                 }
                                             }
                                         }
                                     }
-                                }
 
-                                div("pb-3") {
-                                    div("d-inline-block") {
-                                        h6(classes = "d-inline") {
-                                            +"Path to property file: "
+                                    div("pb-3") {
+                                        div("d-inline-block") {
+                                            h6(classes = "d-inline") {
+                                                +"Path to property file: "
+                                            }
                                         }
-                                    }
-                                    div("d-inline-block ml-2") {
-                                        input(type = InputType.text, name = "itemText") {
-                                            key = "itemText"
-                                            attrs {
-                                                pathToProperty?.let {
-                                                    value = it
-                                                }
-                                                placeholder = "save.properties"
-                                                onChangeFunction = {
-                                                    val target = it.target as HTMLInputElement
-                                                    pathToProperty = target.value
+                                        div("d-inline-block ml-2") {
+                                            input(type = InputType.text, name = "itemText") {
+                                                key = "itemText"
+                                                attrs {
+                                                    pathToProperty?.let {
+                                                        value = it
+                                                    }
+                                                    placeholder = "save.properties"
+                                                    onChangeFunction = {
+                                                        val target = it.target as HTMLInputElement
+                                                        pathToProperty = target.value
+                                                    }
                                                 }
                                             }
                                         }
                                     }
                                 }
                             }
-                        }
 
-                        div {
-                            attrs.classes = if (!state.isFirstTypeUpload) setOf("card", "shadow", "mb-4", "w-100") else setOf("d-none")
-                            div("card-body") {
-                                div("mb-3") {
-                                    h6(classes = "d-inline mr-3") {
-                                        +"Binary file: "
-                                    }
-                                    div {
-                                        label {
-                                            input(type = InputType.file) {
-                                                attrs.hidden = true
-                                                attrs {
-                                                    onChangeFunction = { event ->
-                                                        val target = event.target as HTMLInputElement
-                                                        setState { binaryFile = target.files?.let { it[0] } }
+                            div {
+                                attrs.classes = if (!state.isFirstTypeUpload) {
+                                    setOf(
+                                        "card",
+                                        "shadow",
+                                        "mb-4",
+                                        "w-100",
+                                    )
+                                } else {
+                                    setOf("d-none")
+                                }
+                                div("card-body") {
+                                    div("mb-3") {
+                                        h6(classes = "d-inline mr-3") {
+                                            +"Binary file: "
+                                        }
+                                        div {
+                                            label {
+                                                input(type = InputType.file) {
+                                                    attrs.hidden = true
+                                                    attrs {
+                                                        onChangeFunction = { event ->
+                                                            val target = event.target as HTMLInputElement
+                                                            setState { binaryFile = target.files?.let { it[0] } }
+                                                        }
                                                     }
                                                 }
+                                                img(classes = "img-upload", src = "img/upload.svg") {}
+                                                strong { +"Upload binary file:" }
+                                                +(state.binaryFile?.name ?: "")
                                             }
-                                            img(classes = "img-upload", src = "img/upload.svg") {}
-                                            strong { +"Upload binary file:" }
-                                            +(state.binaryFile?.name ?: "")
                                         }
-                                    }
-                                }
-                                div {
-                                    h6(classes = "d-inline mr-3") {
-                                        +"Properties : "
                                     }
                                     div {
-                                        label {
-                                            input(type = InputType.file) {
-                                                attrs.hidden = true
-                                                attrs {
-                                                    onChangeFunction = { event ->
-                                                        val target = event.target as HTMLInputElement
-                                                        setState { propertyFile = target.files?.let { it[0] } }
+                                        h6(classes = "d-inline mr-3") {
+                                            +"Properties : "
+                                        }
+                                        div {
+                                            label {
+                                                input(type = InputType.file) {
+                                                    attrs.hidden = true
+                                                    attrs {
+                                                        onChangeFunction = { event ->
+                                                            val target = event.target as HTMLInputElement
+                                                            setState { propertyFile = target.files?.let { it[0] } }
+                                                        }
                                                     }
                                                 }
+                                                img(classes = "img-upload", src = "img/upload.svg") {}
+                                                strong { +"Upload property file: " }
+                                                +(state.propertyFile?.name ?: "")
                                             }
-                                            img(classes = "img-upload", src = "img/upload.svg") {}
-                                            strong { +"Upload property file: " }
-                                            +(state.propertyFile?.name ?: "")
                                         }
                                     }
-                                }
-                                div {
-                                    testTypesList
-                                        .map { it.name }
-                                        .chunked(TEST_SUITE_ROW)
-                                        .forEach { rowTypes ->
-                                            div("row") {
-                                                rowTypes.forEach { typeName ->
-                                                    div("col") {
-                                                        +typeName
-                                                        input(type = InputType.checkBox, classes = "ml-3") {
-                                                            attrs.defaultChecked = selectedTypes.contains(typeName)
-                                                            attrs.onClickFunction = {
-                                                                if (selectedTypes.contains(typeName)) {
-                                                                    selectedTypes.remove(typeName)
-                                                                } else {
-                                                                    selectedTypes.add(typeName)
+                                    div {
+                                        testTypesList
+                                            .map { it.name }
+                                            .chunked(TEST_SUITE_ROW)
+                                            .forEach { rowTypes ->
+                                                div("row") {
+                                                    rowTypes.forEach { typeName ->
+                                                        div("col") {
+                                                            +typeName
+                                                            input(type = InputType.checkBox, classes = "ml-3") {
+                                                                attrs.defaultChecked = selectedTypes.contains(typeName)
+                                                                attrs.onClickFunction = {
+                                                                    if (selectedTypes.contains(typeName)) {
+                                                                        selectedTypes.remove(typeName)
+                                                                    } else {
+                                                                        selectedTypes.add(typeName)
+                                                                    }
                                                                 }
                                                             }
                                                         }
                                                     }
                                                 }
                                             }
-                                        }
+                                    }
                                 }
                             }
                         }
-                    }
 
-                    div {
                         div {
-                            div("d-inline-block") {
-                                h5 {
-                                    +"SDK:"
+                            div {
+                                div("d-inline-block") {
+                                    h5 {
+                                        +"SDK:"
+                                    }
                                 }
-                            }
-                            div("d-inline-block ml-2") {
-                                select("form-control form-control mb-3") {
-                                    attrs.value = state.selectedSdk
-                                    attrs.onChangeFunction = {
-                                        val target = it.target as HTMLSelectElement
-                                        setState {
-                                            selectedSdk = target.value
-                                            selectedSdkVersion = selectedSdk.getSdkVersion().first()
+                                div("d-inline-block ml-2") {
+                                    select("form-control form-control mb-3") {
+                                        attrs.value = state.selectedSdk
+                                        attrs.onChangeFunction = {
+                                            val target = it.target as HTMLSelectElement
+                                            setState {
+                                                selectedSdk = target.value
+                                                selectedSdkVersion = selectedSdk.getSdkVersion().first()
+                                            }
+                                        }
+                                        allSdks.forEach {
+                                            option {
+                                                attrs.value = it
+                                                +it
+                                            }
                                         }
                                     }
-                                    allSdks.forEach {
-                                        option {
-                                            attrs.value = it
-                                            +it
+                                }
+                            }
+                            div {
+                                attrs.classes =
+                                        if (state.selectedSdk == "Default") setOf("d-none") else setOf("d-inline ml-3")
+                                div("d-inline-block") {
+                                    h6 {
+                                        +"SDK's version:"
+                                    }
+                                }
+                                div("d-inline-block ml-2") {
+                                    select("form-select form-select-sm mb-3") {
+                                        attrs.value = state.selectedSdkVersion
+                                        attrs.onChangeFunction = {
+                                            val target = it.target as HTMLSelectElement
+                                            setState { selectedSdkVersion = target.value }
+                                        }
+                                        state.selectedSdk.getSdkVersion().forEach {
+                                            option {
+                                                attrs.value = it
+                                                +it
+                                            }
                                         }
                                     }
                                 }
                             }
                         }
-                        div {
-                            attrs.classes =
-                                    if (state.selectedSdk == "Default") setOf("d-none") else setOf("d-inline ml-3")
-                            div("d-inline-block") {
-                                h6 {
-                                    +"SDK's version:"
-                                }
-                            }
-                            div("d-inline-block ml-2") {
-                                select("form-select form-select-sm mb-3") {
-                                    attrs.value = state.selectedSdkVersion
-                                    attrs.onChangeFunction = {
-                                        val target = it.target as HTMLSelectElement
-                                        setState { selectedSdkVersion = target.value }
-                                    }
-                                    state.selectedSdk.getSdkVersion().forEach {
-                                        option {
-                                            attrs.value = it
-                                            +it
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
 
-                    div {
-                        button(type = ButtonType.button, classes = "btn btn-primary") {
-                            attrs.onClickFunction = { submitExecutionRequest() }
-                            +"Run tests now"
+                        div {
+                            button(type = ButtonType.button, classes = "btn btn-primary") {
+                                attrs.onClickFunction = { submitExecutionRequest() }
+                                +"Run tests now"
+                            }
                         }
                     }
                 }) {
@@ -507,7 +531,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
             }
             div("col") {
                 child(cardComponent {
-                    div {
+                    div("ml-3") {
                         h6("d-inline") {
                             +"Name: "
                         }
@@ -515,7 +539,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                             +project.name
                         }
                     }
-                    div {
+                    div("ml-3") {
                         h6("d-inline") {
                             +"Description: "
                         }
