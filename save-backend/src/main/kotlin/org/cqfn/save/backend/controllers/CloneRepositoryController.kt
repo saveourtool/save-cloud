@@ -39,7 +39,7 @@ import java.time.LocalDateTime
 class CloneRepositoryController(
     private val projectService: ProjectService,
     private val executionService: ExecutionService,
-    configProperties: ConfigProperties,
+    private val configProperties: ConfigProperties,
 ) {
     private val log = LoggerFactory.getLogger(CloneRepositoryController::class.java)
     private val preprocessorWebClient = WebClient.create(configProperties.preprocessorUrl)
@@ -56,12 +56,15 @@ class CloneRepositoryController(
         val projectExecution = executionRequest.project
         val project = projectService.getProjectByNameAndOwner(projectExecution.name, projectExecution.owner)
         return project?.let {
-            executionRequest.executionId = saveExecution(it, ExecutionType.GIT, executionRequest.sdk)
+            val newExecutionId = saveExecution(it, ExecutionType.GIT, configProperties.initialBatchSize, executionRequest.sdk)
             log.info("Sending request to preprocessor to start cloning project id=${it.id}")
             preprocessorWebClient
                 .post()
                 .uri("/upload")
-                .body(Mono.just(executionRequest), ExecutionRequest::class.java)
+                .body(
+                    Mono.just(executionRequest.copy(executionId = newExecutionId)),
+                    ExecutionRequest::class.java
+                )
                 .retrieve()
                 .toEntity(String::class.java)
                 .toMono()
@@ -85,14 +88,14 @@ class CloneRepositoryController(
         val projectExecution = executionRequestForStandardSuites.project
         val project = projectService.getProjectByNameAndOwner(projectExecution.name, projectExecution.owner)
         project?.let {
-            saveExecution(project, ExecutionType.STANDARD, executionRequestForStandardSuites.sdk)
+            saveExecution(project, ExecutionType.STANDARD, configProperties.initialBatchSize, executionRequestForStandardSuites.sdk)
             log.info("Sending request to preprocessor to start save file for project id=${project.id}")
             val bodyBuilder = MultipartBodyBuilder()
             bodyBuilder.part("executionRequestForStandardSuites", executionRequestForStandardSuites)
             return Mono.zip(propertyFile, binaryFile).map {
                 bodyBuilder.part("property", it.t1)
                 bodyBuilder.part("binFile", it.t2)
-            }.then(
+            }.flatMap {
                 preprocessorWebClient
                     .post()
                     .uri("/uploadBin")
@@ -100,14 +103,20 @@ class CloneRepositoryController(
                     .body(BodyInserters.fromMultipartData(bodyBuilder.build()))
                     .retrieve()
                     .toEntity(String::class.java)
-                    .toMono())
+                    .toMono()
+            }
         } ?: return Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Project doesn't exist"))
     }
 
     @Suppress("UnsafeCallOnNullableType")
-    private fun saveExecution(project: Project, type: ExecutionType, sdk: Sdk): Long {
+    private fun saveExecution(
+        project: Project,
+        type: ExecutionType,
+        batchSize: Int,
+        sdk: Sdk
+    ): Long {
         val execution = Execution(project, LocalDateTime.now(), null, ExecutionStatus.PENDING, null,
-            null, 0, null, type, null, 0, 0, 0, sdk.toString()).apply {
+            null, 0, batchSize, type, null, 0, 0, 0, sdk.toString()).apply {
             id = executionService.saveExecution(this)
         }
         log.info("Creating a new execution id=${execution.id} for project id=${project.id}")

@@ -9,7 +9,6 @@ import kotlinx.serialization.Serializable
  * @property project project of new execution
  * @property testSuiteIds test suite ids of new execution
  * @property resourcesRootPath path to resources of new execution
- * @property batchSize size of batch of new execution
  * @property version version of new execution
  */
 @Serializable
@@ -17,6 +16,5 @@ data class ExecutionInitializationDto(
     val project: Project,
     val testSuiteIds: String,
     val resourcesRootPath: String,
-    val batchSize: Int,
     val version: String,
 )
