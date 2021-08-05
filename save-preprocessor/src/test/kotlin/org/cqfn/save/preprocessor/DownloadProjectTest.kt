@@ -35,7 +35,6 @@ import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWeb
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.core.io.FileSystemResource
-import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.client.MultipartBodyBuilder
 import org.springframework.test.context.DynamicPropertyRegistry
@@ -86,13 +85,18 @@ class DownloadProjectTest(
             id = 97L
         }
         val request = ExecutionRequest(project, wrongRepo, sdk = Sdk.Default, executionId = execution.id)
+        // /updateExecution
+        mockServerBackend.enqueue(
+            MockResponse().setResponseCode(200)
+        )
+
         webClient.post()
             .uri("/upload")
             .contentType(MediaType.APPLICATION_JSON)
             .body(BodyInserters.fromValue(request))
             .exchange()
             .expectStatus()
-            .isEqualTo(HttpStatus.ACCEPTED)
+            .isAccepted
         Thread.sleep(2000)  // Time for request to delete directory
         Assertions.assertFalse(File("${configProperties.repository}/${wrongRepo.url.hashCode()}").exists())
     }
@@ -175,7 +179,7 @@ class DownloadProjectTest(
             id = 42L
         }
         val execution = Execution(project, LocalDateTime.now(), LocalDateTime.now(), ExecutionStatus.PENDING, "1",
-            "foo", 0, 20, ExecutionType.GIT, "0.0.1", 0, 0, 0, Sdk.Default.toString()).apply {
+            "foo", 0, 20, ExecutionType.STANDARD, "0.0.1", 0, 0, 0, Sdk.Default.toString()).apply {
             id = 98L
         }
         val request = ExecutionRequestForStandardSuites(project, emptyList(), Sdk.Default)
