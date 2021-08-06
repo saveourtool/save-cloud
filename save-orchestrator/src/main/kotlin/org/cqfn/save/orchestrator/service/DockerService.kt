@@ -190,4 +190,4 @@ internal fun imageName(executionId: Long) = "save-execution:$executionId"
 /**
  * @param id
  */
-internal fun containerName(id: Int) = "save-execution-$id"
+internal fun containerName(id: String) = "save-execution-$id"

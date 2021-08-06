@@ -72,7 +72,7 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
         }
     }
 
-    @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR", "TOO_LONG_FUNCTION")
+    @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR", "TOO_LONG_FUNCTION", "LongMethod")
     override fun RBuilder.render() {
         div {
             +("Project version: ${(state.executionDto?.version ?: "N/A")}")
