@@ -1,5 +1,5 @@
 # https://docs.docker.com/engine/swarm/stack-deploy/
-# $ ./gradlew deployDockerStack
+# ./gradlew deployDockerStack
 version: '3.9'
 x-logging:
   &loki-logging-jvm

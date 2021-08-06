@@ -22,6 +22,7 @@ import org.cqfn.save.preprocessor.utils.decodeFromPropertiesFile
 import org.cqfn.save.testsuite.TestSuiteDto
 import org.cqfn.save.testsuite.TestSuiteType
 
+import okio.ExperimentalFileSystem
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.api.errors.GitAPIException
 import org.eclipse.jgit.api.errors.InvalidRemoteException
@@ -126,6 +127,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
     /**
      * Controller to download standard test suites
      */
+    @ExperimentalFileSystem
     @Suppress("TOO_LONG_FUNCTION")
     @PostMapping("/uploadStandardTestSuite")
     fun uploadStandardTestSuite() {
@@ -134,13 +136,14 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
             val tmpDir = generateDirectory(testSuiteUrl)
             cloneFromGit(GitDto(testSuiteUrl), tmpDir)?.use {
                 Flux.fromIterable(testSuitePaths).flatMap { testRootPath ->
-                    log.info("Starting to discover root test config for test root $testRootPath")
+                    log.info("Starting to discover root test config in test root path: $testRootPath")
                     val testResourcesRootAbsolutePath = tmpDir.resolve(testRootPath).absolutePath
                     val rootTestConfig = testDiscoveringService.getRootTestConfig(testResourcesRootAbsolutePath)
-                    log.info("Starting to discover standard test suites for config test root $testRootPath in $testResourcesRootAbsolutePath")
-                    val tests = testDiscoveringService.getAllTestSuites(null, rootTestConfig, "stub")
+                    log.info("Starting to discover standard test suites for root test config ${rootTestConfig.location.name} in $testResourcesRootAbsolutePath")
+                    val propertiesRelativePath = "${rootTestConfig.directory.toFile().relativeTo(tmpDir)}${File.separator}save.properties"
+                    val tests = testDiscoveringService.getAllTestSuites(null, rootTestConfig, propertiesRelativePath)
                     log.info("Test suites size = ${tests.size}")
-                    log.info("Starting to save new test suites for config test root $testRootPath")
+                    log.info("Starting to save new test suites for root test config in $testRootPath")
                     webClientBackend.makeRequest(BodyInserters.fromValue(tests), "/saveTestSuites") {
                         it.bodyToMono<List<TestSuite>>()
                     }
@@ -229,11 +232,13 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         val tmpDir = generateDirectory(binFile.name)
         val pathToProperties = tmpDir.resolve(propertyFile.name)
         propertyFile.copyTo(pathToProperties)
+        propertyFile.delete()
         binFile.copyTo(tmpDir.resolve(binFile.name))
+        binFile.delete()
         val project = executionRequestForStandardSuites.project
         val propertiesRelativePath = pathToProperties.relativeTo(tmpDir).name
         // todo: what's with version?
-        return updateExecution(executionRequestForStandardSuites.project, propertiesRelativePath, binFile.name).flatMap { execution ->
+        return updateExecution(executionRequestForStandardSuites.project, tmpDir.name, binFile.name).flatMap { execution ->
             sendToBackendAndOrchestrator(
                 execution,
                 project,
@@ -353,6 +358,8 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
     @Suppress("UnsafeCallOnNullableType")
     private fun getTestResourcesRootAbsolutePath(propertiesRelativePath: String,
                                                  projectRootRelativePath: String): String {
+        // TODO: File should be provided without explicit naming of `save.propeties`, also
+        // TODO: should be consider case, when file not found
         val propertiesFile = File(configProperties.repository, projectRootRelativePath)
             .resolve(propertiesRelativePath)
         val saveProperties: SaveProperties = decodeFromPropertiesFile<SaveProperties>(propertiesFile)
