@@ -27,8 +27,12 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
+import kotlinx.html.js.onClickFunction
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
+import org.cqfn.save.execution.ExecutionStatus
+import org.cqfn.save.frontend.utils.post
+import react.dom.button
 
 /**
  * [RProps] for execution results view
@@ -73,6 +77,20 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
     override fun RBuilder.render() {
         div {
             +("Project version: ${(state.executionDto?.version ?: "N/A")}")
+            div(classes = "float-right") {
+                +"${state.executionDto?.status ?: "Status N/A"}"
+                button {
+                    +"Rerun execution"
+                    attrs.onClickFunction = {
+                        attrs.disabled = true
+                        GlobalScope.launch {
+                            post("${window.location.origin}/rerunExecution?id=${props.executionId}", Headers(), null)
+                        }.invokeOnCompletion {
+                            window.alert("Rerun request successfully submitted")
+                        }
+                    }
+                }
+            }
         }
         // fixme: table is rendered twice because of state change when `executionDto` is fetched
         child(tableComponent(
