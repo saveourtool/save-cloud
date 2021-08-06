@@ -7,14 +7,18 @@ import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.orchestrator.config.ConfigProperties
 import org.cqfn.save.orchestrator.service.AgentService
 import org.cqfn.save.orchestrator.service.DockerService
+import org.cqfn.save.orchestrator.service.imageName
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
+import reactor.core.publisher.Flux
+import reactor.core.publisher.Flux.fromIterable
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
 import java.io.File
@@ -94,6 +98,24 @@ class AgentsController {
         logFile.appendText(executionLogs.cliLogs.joinToString(separator = System.lineSeparator(), postfix = System.lineSeparator()))
         log.info("Logs of agent id = ${executionLogs.agentId} were written")
     }
+
+    /**
+     * Delete containers and images associated with execution [executionId]
+     */
+    @PostMapping("/cleanup")
+    fun stopAgents(@RequestParam executionId: Long) = Mono.just(ResponseEntity<Void>(HttpStatus.ACCEPTED)).doOnSuccess {
+        agentService.getAgentsForExecution(executionId)
+            .flatMapMany(::fromIterable)
+            .map { id ->
+                dockerService.containerManager.dockerClient.removeContainerCmd(id)
+            }
+            .doOnComplete {
+                dockerService.containerManager.dockerClient.removeImageCmd(imageName(executionId))
+            }
+            .subscribeOn(Schedulers.boundedElastic())
+            .subscribe()
+    }
+
 
     companion object {
         private val log = LoggerFactory.getLogger(AgentsController::class.java)

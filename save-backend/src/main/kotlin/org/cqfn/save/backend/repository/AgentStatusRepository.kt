@@ -35,4 +35,6 @@ interface AgentRepository : BaseEntityRepository<Agent>, JpaSpecificationExecuto
      * @return [Agent]
      */
     fun findByContainerId(agentId: String): Agent?
+
+    fun findByExecutionId(executionId: Long): List<Agent>
 }

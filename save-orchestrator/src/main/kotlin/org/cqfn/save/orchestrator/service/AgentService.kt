@@ -143,6 +143,17 @@ class AgentService(configProperties: ConfigProperties) {
                 )
 
     /**
+     */
+    @Suppress("TYPE_ALIAS")
+    fun getAgentsForExecution(executionId: Long): Mono<List<String>> {
+        return webClientBackend
+            .get()
+            .uri("/getAgentsIdsForExecution?executionId=$executionId")
+            .retrieve()
+            .bodyToMono()
+    }
+
+    /**
      * Get list of agent ids (containerIds) for agents that have completed their jobs.
      *
      * @param agentId containerId of an agent

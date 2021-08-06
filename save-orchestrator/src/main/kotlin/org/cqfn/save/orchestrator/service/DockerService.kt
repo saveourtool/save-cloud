@@ -123,7 +123,7 @@ class DockerService(private val configProperties: ConfigProperties) {
         val baseImage = execution.sdk
         val imageId = containerManager.buildImageWithResources(
             baseImage = baseImage,
-            imageName = "save-execution:${execution.id}",
+            imageName = imageName(execution.id!!),
             baseDir = resourcesPath,
             resourcesPath = executionDir,
             runCmd = """RUN apt-get update && env DEBIAN_FRONTEND="noninteractive" apt-get install -y libcurl4-openssl-dev tzdata && rm -rf /var/lib/apt/lists/*
@@ -145,7 +145,7 @@ class DockerService(private val configProperties: ConfigProperties) {
             imageId,
             executionDir,
             runCmd,
-            "save-execution-$containerNumber",
+            containerName(containerNumber),
         )
         val agentPropertiesFile = createTempDirectory("agent")
             .resolve("agent.properties")
@@ -181,3 +181,6 @@ class DockerService(private val configProperties: ConfigProperties) {
         private const val SAVE_CLI_EXECUTABLE_NAME = "save-$SAVE_CORE_VERSION-linuxX64.kexe"
     }
 }
+
+internal fun imageName(executionId: Long) = "save-execution:$executionId"
+internal fun containerName(id: Int) = "save-execution-$id"
