@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
-import reactor.core.publisher.Flux
 import reactor.core.publisher.Flux.fromIterable
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
@@ -101,6 +100,9 @@ class AgentsController {
 
     /**
      * Delete containers and images associated with execution [executionId]
+     *
+     * @param executionId id of execution
+     * @return empty response
      */
     @PostMapping("/cleanup")
     fun stopAgents(@RequestParam executionId: Long) = Mono.just(ResponseEntity<Void>(HttpStatus.ACCEPTED)).doOnSuccess {
@@ -115,7 +117,6 @@ class AgentsController {
             .subscribeOn(Schedulers.boundedElastic())
             .subscribe()
     }
-
 
     companion object {
         private val log = LoggerFactory.getLogger(AgentsController::class.java)

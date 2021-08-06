@@ -124,8 +124,10 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         }
 
     /**
-     * @param executionRerunRequest
-     * @return
+     * Accept execution rerun request
+     *
+     * @param executionRerunRequest request
+     * @return status 202
      */
     @PostMapping("/rerunExecution")
     fun rerunExecution(@RequestBody executionRerunRequest: ExecutionRequest) = Mono.fromCallable<ResponseEntity<String>> {

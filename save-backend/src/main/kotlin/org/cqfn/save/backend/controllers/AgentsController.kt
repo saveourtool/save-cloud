@@ -99,13 +99,15 @@ class AgentsController(private val agentStatusRepository: AgentStatusRepository,
     }
 
     /**
+     * Returns containerIds for all agents for [executionId]
+     *
+     * @param executionId id of execution
+     * @return list of container ids
      */
     @GetMapping("/getAgentsIdsForExecution")
     @Transactional
-    fun findAgentIdsForExecution(@RequestParam executionId: Long): List<String> {
-        return agentRepository.findByExecutionId(executionId)
-            .map { agent -> agent.containerId }
-    }
+    fun findAgentIdsForExecution(@RequestParam executionId: Long) = agentRepository.findByExecutionId(executionId)
+        .map { agent -> agent.containerId }
 
     /**
      * Get agent by containerId.

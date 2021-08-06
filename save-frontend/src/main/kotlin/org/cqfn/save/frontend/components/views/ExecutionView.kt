@@ -9,6 +9,7 @@ import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.frontend.components.tables.tableComponent
 import org.cqfn.save.frontend.utils.decodeFromJsonString
 import org.cqfn.save.frontend.utils.get
+import org.cqfn.save.frontend.utils.post
 import org.cqfn.save.frontend.utils.unsafeMap
 
 import org.w3c.fetch.Headers
@@ -17,6 +18,7 @@ import react.RComponent
 import react.RProps
 import react.RState
 import react.child
+import react.dom.button
 import react.dom.div
 import react.dom.td
 import react.setState
@@ -30,9 +32,6 @@ import kotlinx.datetime.Instant
 import kotlinx.html.js.onClickFunction
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
-import org.cqfn.save.execution.ExecutionStatus
-import org.cqfn.save.frontend.utils.post
-import react.dom.button
 
 /**
  * [RProps] for execution results view

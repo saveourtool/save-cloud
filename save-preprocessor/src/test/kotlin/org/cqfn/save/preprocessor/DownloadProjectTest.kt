@@ -20,7 +20,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import okhttp3.mockwebserver.QueueDispatcher
-import okhttp3.mockwebserver.RecordedRequest
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
@@ -31,7 +30,6 @@ import org.junit.jupiter.api.TestInstance
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
@@ -58,6 +56,7 @@ import kotlin.io.path.ExperimentalPathApi
 @WebFluxTest(controllers = [DownloadProjectController::class])
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @AutoConfigureWebTestClient(timeout = "60000")
+@Suppress("TOO_LONG_FUNCTION")
 class DownloadProjectTest(
     @Autowired private val webClient: WebTestClient,
     @Autowired private val configProperties: ConfigProperties,
@@ -107,7 +106,6 @@ class DownloadProjectTest(
     /**
      * This one covers logic of connecting to services
      */
-    @Suppress("TOO_LONG_FUNCTION")
     @Test
     fun testCorrectDownload() {
         val project = Project("owner", "someName", "https://github.com/cqfn/save.git", "descr").apply {
@@ -168,7 +166,7 @@ class DownloadProjectTest(
         assertions.orTimeout(60, TimeUnit.SECONDS).join().forEach { Assertions.assertNotNull(it) }
     }
 
-    @Suppress("TOO_LONG_FUNCTION", "LongMethod")
+    @Suppress("LongMethod")
     @Test
     fun testSaveProjectAsBinaryFile() {
         File(binFolder).mkdirs()
@@ -237,7 +235,6 @@ class DownloadProjectTest(
     }
 
     @Test
-    @Suppress("TOO_LONG_FUNCTION")
     fun testStandardTestSuites() {
         val requestSize = readStandardTestSuitesFile(configProperties.reposFileName)
             .toList()
@@ -360,6 +357,8 @@ class DownloadProjectTest(
     }
 
     companion object {
+        private val logger = LoggerFactory.getLogger(DownloadProjectTest::class.java)
+
         @JvmStatic
         lateinit var mockServerBackend: MockWebServer
 

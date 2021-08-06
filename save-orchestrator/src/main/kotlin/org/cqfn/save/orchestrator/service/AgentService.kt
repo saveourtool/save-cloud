@@ -11,6 +11,7 @@ import org.cqfn.save.entities.AgentStatusesForExecution
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionUpdateDto
 import org.cqfn.save.orchestrator.BodilessResponseEntity
+import org.cqfn.save.orchestrator.TextResponse
 import org.cqfn.save.orchestrator.config.ConfigProperties
 import org.cqfn.save.test.TestBatch
 
@@ -143,15 +144,17 @@ class AgentService(configProperties: ConfigProperties) {
                 )
 
     /**
+     * Returns agent for execution with id [executionId]
+     *
+     * @param executionId id of execution
+     * @return agent
      */
     @Suppress("TYPE_ALIAS")
-    fun getAgentsForExecution(executionId: Long): Mono<List<String>> {
-        return webClientBackend
-            .get()
-            .uri("/getAgentsIdsForExecution?executionId=$executionId")
-            .retrieve()
-            .bodyToMono()
-    }
+    fun getAgentsForExecution(executionId: Long): Mono<TextResponse> = webClientBackend
+        .get()
+        .uri("/getAgentsIdsForExecution?executionId=$executionId")
+        .retrieve()
+        .bodyToMono()
 
     /**
      * Get list of agent ids (containerIds) for agents that have completed their jobs.

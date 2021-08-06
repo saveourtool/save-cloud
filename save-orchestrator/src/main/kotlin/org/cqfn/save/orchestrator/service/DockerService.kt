@@ -182,5 +182,12 @@ class DockerService(private val configProperties: ConfigProperties) {
     }
 }
 
+/**
+ * @param executionId
+ */
 internal fun imageName(executionId: Long) = "save-execution:$executionId"
+
+/**
+ * @param id
+ */
 internal fun containerName(id: Int) = "save-execution-$id"

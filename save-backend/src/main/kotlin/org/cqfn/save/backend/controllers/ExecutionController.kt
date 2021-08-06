@@ -1,5 +1,6 @@
 package org.cqfn.save.backend.controllers
 
+import org.cqfn.save.backend.EmptyResponse
 import org.cqfn.save.backend.configs.ConfigProperties
 import org.cqfn.save.backend.service.ExecutionService
 import org.cqfn.save.domain.toSdk
@@ -113,7 +114,7 @@ class ExecutionController(private val executionService: ExecutionService,
      */
     @PostMapping("/rerunExecution")
     @Transactional
-    fun rerunExecution(@RequestParam id: Long): Mono<ResponseEntity<Void>> {
+    fun rerunExecution(@RequestParam id: Long): Mono<EmptyResponse> {
         val execution = requireNotNull(executionService.getExecution(id)) {
             "Can't rerun execution $id, because it does not exist"
         }
