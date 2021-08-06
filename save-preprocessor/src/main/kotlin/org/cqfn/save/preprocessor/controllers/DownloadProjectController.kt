@@ -1,5 +1,6 @@
 package org.cqfn.save.preprocessor.controllers
 
+import okio.ExperimentalFileSystem
 import org.cqfn.save.core.config.SaveProperties
 import org.cqfn.save.core.config.TestConfig
 import org.cqfn.save.core.config.defaultConfig
@@ -128,6 +129,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
     /**
      * Controller to download standard test suites
      */
+    @ExperimentalFileSystem
     @Suppress("TOO_LONG_FUNCTION")
     @PostMapping("/uploadStandardTestSuite")
     fun uploadStandardTestSuite() {
@@ -141,7 +143,12 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                     val rootTestConfig = testDiscoveringService.getRootTestConfig(testResourcesRootAbsolutePath)
                     println("rootTestConfig.location: " + rootTestConfig.location)
                     log.info("Starting to discover standard test suites for config test root $testRootPath in $testResourcesRootAbsolutePath")
-                    val tests = testDiscoveringService.getAllTestSuites(null, rootTestConfig, "stub")
+                    val propertiesRelativePath = rootTestConfig.directory.toFile().relativeTo(tmpDir).toString() + "${File.separator}save.properties"
+                    println("\n\n\nRELATIVE: ${propertiesRelativePath}")
+                    val tests = testDiscoveringService.getAllTestSuites(null, rootTestConfig, propertiesRelativePath)
+                    tests.forEach {
+                        println(it.name)
+                    }
                     log.info("Test suites size = ${tests.size}")
                     log.info("Starting to save new test suites for config test root $testRootPath")
                     webClientBackend.makeRequest(BodyInserters.fromValue(tests), "/saveTestSuites") {
