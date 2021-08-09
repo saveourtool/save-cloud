@@ -17,7 +17,7 @@ import java.net.URL
  */
 fun Project.configureVersioning() {
     apply<ReckonPlugin>()
-
+    // should be provided in the gradle.properties
     val isDevelopmentVersion = hasProperty("save.profile") && property("save.profile") == "dev"
     configure<ReckonExtension> {
         scopeFromProp()
