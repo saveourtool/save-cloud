@@ -323,6 +323,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         projectRootRelativePath: String,
         testSuiteDtos: List<TestSuiteDto>?,
     ): Mono<StatusResponse> {
+        log.info("Processing execution ${execution.toDto()}")
         val executionType = execution.type
         testSuiteDtos?.let {
             require(executionType == ExecutionType.STANDARD) { "Test suites shouldn't be provided unless ExecutionType is STANDARD (actual: $executionType)" }
