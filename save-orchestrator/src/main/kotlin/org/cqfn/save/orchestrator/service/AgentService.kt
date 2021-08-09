@@ -11,7 +11,6 @@ import org.cqfn.save.entities.AgentStatusesForExecution
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionUpdateDto
 import org.cqfn.save.orchestrator.BodilessResponseEntity
-import org.cqfn.save.orchestrator.TextResponse
 import org.cqfn.save.orchestrator.config.ConfigProperties
 import org.cqfn.save.test.TestBatch
 

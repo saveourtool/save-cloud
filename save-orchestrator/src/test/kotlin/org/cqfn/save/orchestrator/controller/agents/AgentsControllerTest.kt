@@ -1,7 +1,5 @@
 package org.cqfn.save.orchestrator.controller.agents
 
-import com.github.dockerjava.api.command.RemoveContainerCmd
-import com.github.dockerjava.api.command.RemoveImageCmd
 import org.cqfn.save.agent.ExecutionLogs
 import org.cqfn.save.domain.Sdk
 import org.cqfn.save.entities.Execution
@@ -22,7 +20,10 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers.anyList
+import org.mockito.ArgumentMatchers.anyString
 import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
@@ -43,9 +44,6 @@ import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.createTempDirectory
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.mockito.ArgumentMatchers.anyString
-import org.mockito.kotlin.mock
-import org.mockito.kotlin.times
 
 @WebFluxTest(controllers = [AgentsController::class])
 @Import(AgentService::class, Beans::class)

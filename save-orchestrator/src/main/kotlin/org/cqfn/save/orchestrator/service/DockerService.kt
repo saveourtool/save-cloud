@@ -1,5 +1,7 @@
 package org.cqfn.save.orchestrator.service
 
+import com.github.dockerjava.api.command.RemoveContainerCmd
+import com.github.dockerjava.api.command.RemoveImageCmd
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionUpdateDto
@@ -103,9 +105,17 @@ class DockerService(private val configProperties: ConfigProperties) {
                 false
             }
 
-    fun removeImage(imageName: String) = containerManager.dockerClient.removeImageCmd(imageName)
+    /**
+     * @param imageName name of the image to remove
+     * @return an instance of docker command
+     */
+    fun removeImage(imageName: String): RemoveImageCmd = containerManager.dockerClient.removeImageCmd(imageName)
 
-    fun removeContainer(containerId: String) = containerManager.dockerClient.removeContainerCmd(containerId)
+    /**
+     * @param containerId id of container to remove
+     * @return an instance of docker command
+     */
+    fun removeContainer(containerId: String): RemoveContainerCmd = containerManager.dockerClient.removeContainerCmd(containerId)
 
     @Suppress("TOO_LONG_FUNCTION")
     private fun buildBaseImageForExecution(execution: Execution): Pair<String, String> {
