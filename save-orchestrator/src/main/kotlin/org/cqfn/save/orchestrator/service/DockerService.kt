@@ -103,6 +103,10 @@ class DockerService(private val configProperties: ConfigProperties) {
                 false
             }
 
+    fun removeImage(imageName: String) = containerManager.dockerClient.removeImageCmd(imageName)
+
+    fun removeContainer(containerId: String) = containerManager.dockerClient.removeContainerCmd(containerId)
+
     @Suppress("TOO_LONG_FUNCTION")
     private fun buildBaseImageForExecution(execution: Execution): Pair<String, String> {
         val resourcesPath = File(

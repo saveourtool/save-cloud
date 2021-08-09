@@ -1,5 +1,7 @@
 package org.cqfn.save.orchestrator.controller.agents
 
+import com.github.dockerjava.api.command.RemoveContainerCmd
+import com.github.dockerjava.api.command.RemoveImageCmd
 import org.cqfn.save.agent.ExecutionLogs
 import org.cqfn.save.domain.Sdk
 import org.cqfn.save.entities.Execution
@@ -41,6 +43,9 @@ import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.createTempDirectory
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.mockito.ArgumentMatchers.anyString
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.times
 
 @WebFluxTest(controllers = [AgentsController::class])
 @Import(AgentService::class, Beans::class)
@@ -164,6 +169,27 @@ class AgentsControllerTest {
         val newFirstLogFile = File(configProperties.executionLogs + File.separator + "agent.log")
         Assertions.assertTrue(newFirstLogFile.exists())
         Assertions.assertEquals(newFirstLogFile.readLines(), firstLogs + secondLogs)
+    }
+
+    @Test
+    fun `should cleanup execution artifacts`() {
+        mockServer.enqueue(
+            MockResponse().setResponseCode(200)
+                .setHeader("Content-Type", "application/json")
+                .setBody(Json.encodeToString(listOf("container-1", "container-2", "container-3")))
+        )
+        whenever(dockerService.removeContainer(any())).thenReturn(mock())
+        whenever(dockerService.removeImage(any())).thenReturn(mock())
+
+        webClient.post()
+            .uri("/cleanup?executionId=42")
+            .exchange()
+            .expectStatus()
+            .isAccepted
+
+        Thread.sleep(2_500)
+        verify(dockerService, times(3)).removeContainer(anyString())
+        verify(dockerService, times(1)).removeImage(anyString())
     }
 
     private fun makeRequestToSaveLog(text: List<String>): WebTestClient.ResponseSpec {
