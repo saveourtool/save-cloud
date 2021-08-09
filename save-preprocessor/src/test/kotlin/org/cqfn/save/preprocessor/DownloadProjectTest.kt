@@ -1,5 +1,6 @@
 package org.cqfn.save.preprocessor
 
+import org.cqfn.save.core.config.TestConfig
 import org.cqfn.save.domain.Sdk
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.ExecutionRequest
@@ -20,6 +21,9 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import okhttp3.mockwebserver.QueueDispatcher
+import okio.ExperimentalFileSystem
+import okio.FileSystem
+import okio.Path.Companion.toPath
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
@@ -234,6 +238,7 @@ class DownloadProjectTest(
         Assertions.assertEquals("echo 0", File("${configProperties.repository}/${binFile.name.hashCode()}/program").readText())
     }
 
+    @ExperimentalFileSystem
     @Test
     fun testStandardTestSuites() {
         val requestSize = readStandardTestSuitesFile(configProperties.reposFileName)
@@ -244,6 +249,20 @@ class DownloadProjectTest(
             val project = Project("owner", "someName", null, "descr").apply {
                 id = 42L
             }
+
+            val tempDir = "${configProperties.repository}/${"https://github.com/cqfn/save".hashCode()}/examples/kotlin-diktat/"
+            val config = "${tempDir}save.toml"
+            File(tempDir).mkdirs()
+            File(config).createNewFile()
+            whenever(testDiscoveringService.getRootTestConfig(any())).thenReturn(
+                TestConfig(
+                    config.toPath(),
+                    null,
+                    mutableListOf(),
+                    FileSystem.SYSTEM
+                )
+            )
+
             mockServerBackend.enqueue(
                 MockResponse()
                     .setResponseCode(200)
