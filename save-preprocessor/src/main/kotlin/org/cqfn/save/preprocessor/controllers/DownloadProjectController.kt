@@ -158,6 +158,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                         null
                     )
                 }
+                .log()
                 .subscribeOn(Schedulers.boundedElastic())
                 .subscribe()
         }
