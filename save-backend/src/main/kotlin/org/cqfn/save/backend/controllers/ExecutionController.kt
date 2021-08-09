@@ -59,8 +59,9 @@ class ExecutionController(private val executionService: ExecutionService,
      */
     @GetMapping("/execution")
     @Transactional(readOnly = true)
-    fun getExecution(@RequestParam id: Long) = executionService.getExecution(id).also {
+    fun getExecution(@RequestParam id: Long) = executionService.getExecution(id).let {
         println(it.project.name)
+        ResponseEntity.status(HttpStatus.OK).body(it)
     }
 
     /**
