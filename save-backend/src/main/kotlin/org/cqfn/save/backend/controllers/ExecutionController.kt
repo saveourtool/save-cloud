@@ -4,6 +4,7 @@ import org.cqfn.save.backend.EmptyResponse
 import org.cqfn.save.backend.configs.ConfigProperties
 import org.cqfn.save.backend.service.ExecutionService
 import org.cqfn.save.backend.service.GitService
+import org.cqfn.save.backend.service.TestSuitesService
 import org.cqfn.save.domain.toSdk
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.ExecutionRequest
@@ -32,6 +33,7 @@ typealias ExecutionDtoListResponse = ResponseEntity<List<ExecutionDto>>
 @RestController
 class ExecutionController(private val executionService: ExecutionService,
                           private val gitService: GitService,
+                          private val testSuitesService: TestSuitesService,
                           config: ConfigProperties,
 ) {
     private val preprocessorWebClient = WebClient.create(config.preprocessorUrl)
@@ -127,10 +129,19 @@ class ExecutionController(private val executionService: ExecutionService,
         val git = requireNotNull(gitService.getRepositoryDtoByProject(execution.project)) {
             "Can't rerun execution $id, project ${execution.project.name} has no associated git address"
         }
+        val propertiesRelativePath = execution.testSuiteIds?.let {
+            require(it == "ALL") { "Only executions with all tests suites from a GIT project are supported now" }
+            testSuitesService.getTestSuitesByProject(execution.project)
+        }!!
+            .map {
+                it.propertiesRelativePath
+            }
+            .distinct()
+            .single()
         val executionRequest = ExecutionRequest(
             project = execution.project,
             gitDto = GitDto(git.url, hash = execution.version),
-            propertiesRelativePath = "${execution.resourcesRootPath}/save.properties",
+            propertiesRelativePath = propertiesRelativePath,
             sdk = execution.sdk.toSdk(),
             executionId = execution.id
         )

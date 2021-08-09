@@ -15,4 +15,6 @@ interface TestSuiteRepository : BaseEntityRepository<TestSuite>, QueryByExampleE
      * @return list of test suites by type
      */
     fun findAllByTypeIs(testSuiteType: TestSuiteType): List<TestSuite>
+
+    fun findByProjectId(projectId: Long): List<TestSuite>
 }
