@@ -59,7 +59,9 @@ class ExecutionController(private val executionService: ExecutionService,
      */
     @GetMapping("/execution")
     @Transactional(readOnly = true)
-    fun getExecution(@RequestParam id: Long): Execution = executionService.getExecution(id).orElseThrow()
+    fun getExecution(@RequestParam id: Long): Execution = executionService.getExecution(id).orElseThrow {
+        ResponseStatusException(HttpStatus.NOT_FOUND, "Execution with id=$id is not found")
+    }
 
     /**
      * @param executionInitializationDto
@@ -119,8 +121,8 @@ class ExecutionController(private val executionService: ExecutionService,
     @Transactional
     @Suppress("UnsafeCallOnNullableType")
     fun rerunExecution(@RequestParam id: Long): Mono<EmptyResponse> {
-        val execution = requireNotNull(executionService.getExecution(id)) {
-            "Can't rerun execution $id, because it does not exist"
+        val execution = executionService.getExecution(id).orElseThrow {
+            IllegalArgumentException("Can't rerun execution $id, because it does not exist")
         }
         val git = requireNotNull(gitService.getRepositoryDtoByProject(execution.project)) {
             "Can't rerun execution $id, project ${execution.project.name} has no associated git address"
@@ -128,6 +130,7 @@ class ExecutionController(private val executionService: ExecutionService,
         val executionRequest = ExecutionRequest(
             project = execution.project,
             gitDto = GitDto(git.url, hash = execution.version),
+            propertiesRelativePath = "${execution.resourcesRootPath}/save.properties",
             sdk = execution.sdk.toSdk(),
             executionId = execution.id
         )

@@ -33,7 +33,7 @@ class ExecutionService(private val executionRepository: ExecutionRepository) {
      * @param id id of execution
      * @return execution if it has been found
      */
-    fun getExecution(id: Long) = executionRepository.getById(id)
+    fun getExecution(id: Long) = executionRepository.findById(id)
 
     /**
      * @param execution
