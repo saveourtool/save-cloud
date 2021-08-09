@@ -83,7 +83,7 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
                     attrs.onClickFunction = {
                         attrs.disabled = true
                         GlobalScope.launch {
-                            post("${window.location.origin}/rerunExecution?id=${props.executionId}", Headers(), null)
+                            post("${window.location.origin}/rerunExecution?id=${props.executionId}", Headers(), undefined)
                         }.invokeOnCompletion {
                             window.alert("Rerun request successfully submitted")
                         }

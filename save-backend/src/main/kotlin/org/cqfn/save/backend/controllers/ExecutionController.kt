@@ -58,8 +58,10 @@ class ExecutionController(private val executionService: ExecutionService,
      * @return execution if it has been found
      */
     @GetMapping("/execution")
-    @Transactional
-    fun getExecution(@RequestParam id: Long) = executionService.getExecution(id)
+    @Transactional(readOnly = true)
+    fun getExecution(@RequestParam id: Long) = executionService.getExecution(id).also {
+        println(it.project.name)
+    }
 
     /**
      * @param executionInitializationDto
