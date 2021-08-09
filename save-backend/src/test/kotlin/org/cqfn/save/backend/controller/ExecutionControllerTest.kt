@@ -16,6 +16,7 @@ import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -31,6 +32,8 @@ import org.springframework.web.reactive.function.BodyInserters
 
 import java.time.LocalDateTime
 import java.time.Month
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.TimeUnit
 
 @SpringBootTest(classes = [SaveApplication::class])
 @AutoConfigureWebTestClient
@@ -244,11 +247,20 @@ class ExecutionControllerTest {
         mockServerPreprocessor.enqueue(
             MockResponse().setResponseCode(200)
         )
+        val assertions = CompletableFuture.supplyAsync {
+            listOf(
+                mockServerPreprocessor.takeRequest(60, TimeUnit.SECONDS),
+            )
+        }
+
         webClient.post()
             .uri("/rerunExecution?id=1")
             .exchange()
             .expectStatus()
             .isOk
+        assertions.orTimeout(60, TimeUnit.SECONDS).join().forEach {
+            assertNotNull(it)
+        }
     }
 
     companion object {

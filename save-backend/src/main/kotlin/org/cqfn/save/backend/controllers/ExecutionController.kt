@@ -58,6 +58,7 @@ class ExecutionController(private val executionService: ExecutionService,
      * @return execution if it has been found
      */
     @GetMapping("/execution")
+    @Transactional
     fun getExecution(@RequestParam id: Long) = executionService.getExecution(id)
 
     /**
