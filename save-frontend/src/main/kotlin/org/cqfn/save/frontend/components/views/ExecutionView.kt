@@ -67,7 +67,7 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
         GlobalScope.launch {
             val headers = Headers().also { it.set("Accept", "application/json") }
             val executionDtoFromBackend: ExecutionDto = get("${window.location.origin}/executionDto?executionId=${props.executionId}", headers)
-                .decodeFromJsonString<ExecutionDto>()
+                .decodeFromJsonString()
             setState { executionDto = executionDtoFromBackend }
         }
     }
