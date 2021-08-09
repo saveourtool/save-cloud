@@ -1,6 +1,7 @@
 package org.cqfn.save.backend.controllers
 
 import org.cqfn.save.backend.EmptyResponse
+import org.cqfn.save.backend.StringResponse
 import org.cqfn.save.backend.configs.ConfigProperties
 import org.cqfn.save.backend.service.ExecutionService
 import org.cqfn.save.backend.service.GitService
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.reactive.function.client.WebClient
+import org.springframework.web.reactive.function.client.bodyToMono
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
 
@@ -122,7 +124,7 @@ class ExecutionController(private val executionService: ExecutionService,
     @PostMapping("/rerunExecution")
     @Transactional
     @Suppress("UnsafeCallOnNullableType")
-    fun rerunExecution(@RequestParam id: Long): Mono<EmptyResponse> {
+    fun rerunExecution(@RequestParam id: Long): Mono<String> {
         val execution = executionService.getExecution(id).orElseThrow {
             IllegalArgumentException("Can't rerun execution $id, because it does not exist")
         }
@@ -149,6 +151,6 @@ class ExecutionController(private val executionService: ExecutionService,
             .uri("/rerunExecution")
             .bodyValue(executionRequest)
             .retrieve()
-            .toBodilessEntity()
+            .bodyToMono()
     }
 }
