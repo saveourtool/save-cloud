@@ -127,7 +127,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
     /**
      * Controller to download standard test suites
      */
-    @ExperimentalFileSystem
+    @OptIn(ExperimentalFileSystem::class)
     @Suppress("TOO_LONG_FUNCTION")
     @PostMapping("/uploadStandardTestSuite")
     fun uploadStandardTestSuite() {
@@ -139,7 +139,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                     log.info("Starting to discover root test config in test root path: $testRootPath")
                     val testResourcesRootAbsolutePath = tmpDir.resolve(testRootPath).absolutePath
                     val rootTestConfig = testDiscoveringService.getRootTestConfig(testResourcesRootAbsolutePath)
-                    log.info("Starting to discover standard test suites for root test config ${rootTestConfig.location.name} in $testResourcesRootAbsolutePath")
+                    log.info("Starting to discover standard test suites for root test config ${rootTestConfig.location}")
                     val propertiesRelativePath = "${rootTestConfig.directory.toFile().relativeTo(tmpDir)}${File.separator}save.properties"
                     val tests = testDiscoveringService.getAllTestSuites(null, rootTestConfig, propertiesRelativePath)
                     log.info("Test suites size = ${tests.size}")
