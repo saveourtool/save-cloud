@@ -3,6 +3,7 @@ package org.cqfn.save.backend.controllers
 import org.cqfn.save.backend.EmptyResponse
 import org.cqfn.save.backend.configs.ConfigProperties
 import org.cqfn.save.backend.service.ExecutionService
+import org.cqfn.save.backend.service.GitService
 import org.cqfn.save.domain.toSdk
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.ExecutionRequest
@@ -30,6 +31,7 @@ typealias ExecutionDtoListResponse = ResponseEntity<List<ExecutionDto>>
  */
 @RestController
 class ExecutionController(private val executionService: ExecutionService,
+                          private val gitService: GitService,
                           config: ConfigProperties,
 ) {
     private val preprocessorWebClient = WebClient.create(config.preprocessorUrl)
@@ -119,9 +121,12 @@ class ExecutionController(private val executionService: ExecutionService,
         val execution = requireNotNull(executionService.getExecution(id)) {
             "Can't rerun execution $id, because it does not exist"
         }
+        val git = requireNotNull(gitService.getRepositoryDtoByProject(execution.project)) {
+            "Can't rerun execution $id, project ${execution.project.name} has no associated git address"
+        }
         val executionRequest = ExecutionRequest(
             project = execution.project,
-            gitDto = GitDto(execution.project.url!!, hash = execution.version),
+            gitDto = GitDto(git.url, hash = execution.version),
             sdk = execution.sdk.toSdk(),
             executionId = execution.id
         )
