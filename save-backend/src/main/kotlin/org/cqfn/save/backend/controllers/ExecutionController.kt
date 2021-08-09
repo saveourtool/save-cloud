@@ -114,6 +114,7 @@ class ExecutionController(private val executionService: ExecutionService,
      */
     @PostMapping("/rerunExecution")
     @Transactional
+    @Suppress("UnsafeCallOnNullableType")
     fun rerunExecution(@RequestParam id: Long): Mono<EmptyResponse> {
         val execution = requireNotNull(executionService.getExecution(id)) {
             "Can't rerun execution $id, because it does not exist"

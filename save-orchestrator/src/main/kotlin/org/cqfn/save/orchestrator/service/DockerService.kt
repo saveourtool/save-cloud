@@ -1,13 +1,13 @@
 package org.cqfn.save.orchestrator.service
 
-import com.github.dockerjava.api.command.RemoveContainerCmd
-import com.github.dockerjava.api.command.RemoveImageCmd
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionUpdateDto
 import org.cqfn.save.orchestrator.config.ConfigProperties
 import org.cqfn.save.orchestrator.docker.ContainerManager
 
+import com.github.dockerjava.api.command.RemoveContainerCmd
+import com.github.dockerjava.api.command.RemoveImageCmd
 import com.github.dockerjava.api.exception.DockerException
 import generated.SAVE_CORE_VERSION
 import org.apache.commons.io.FileUtils
@@ -117,7 +117,7 @@ class DockerService(private val configProperties: ConfigProperties) {
      */
     fun removeContainer(containerId: String): RemoveContainerCmd = containerManager.dockerClient.removeContainerCmd(containerId)
 
-    @Suppress("TOO_LONG_FUNCTION")
+    @Suppress("TOO_LONG_FUNCTION", "UnsafeCallOnNullableType")
     private fun buildBaseImageForExecution(execution: Execution): Pair<String, String> {
         val resourcesPath = File(
             configProperties.testResources.basePath,
