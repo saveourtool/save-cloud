@@ -50,8 +50,10 @@ import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
+import reactor.netty.http.client.HttpClientRequest
 
 import java.io.File
+import java.time.Duration
 import java.util.stream.Collectors
 
 import kotlin.io.path.ExperimentalPathApi
@@ -151,6 +153,11 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                 .flatMap { (execution, location) ->
                     webClientOrchestrator.post()
                         .uri("/cleanup?executionId=${execution.id}")
+                        .httpRequest {
+                            // increased timeout, because orchestrator should finish cleaning up first
+                            it.getNativeRequest<HttpClientRequest>()
+                                .responseTimeout(Duration.ofSeconds(10))
+                        }
                         .retrieve()
                         .toBodilessEntity().map {
                             Pair(execution, location)

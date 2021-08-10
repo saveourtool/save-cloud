@@ -105,7 +105,7 @@ class AgentsController {
      * @return empty response
      */
     @PostMapping("/cleanup")
-    fun cleanup(@RequestParam executionId: Long) = Mono.just(ResponseEntity<Void>(HttpStatus.ACCEPTED)).doOnSuccess {
+    fun cleanup(@RequestParam executionId: Long) =
         agentService.getAgentsForExecution(executionId)
             .flatMapMany(::fromIterable)
             .map { id ->
@@ -114,9 +114,10 @@ class AgentsController {
             .doOnComplete {
                 dockerService.removeImage(imageName(executionId))
             }
-            .subscribeOn(Schedulers.boundedElastic())
-            .subscribe()
-    }
+            .collectList()
+            .flatMap {
+                Mono.just(ResponseEntity<Void>(HttpStatus.OK))
+            }
 
     companion object {
         private val log = LoggerFactory.getLogger(AgentsController::class.java)

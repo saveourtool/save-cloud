@@ -109,13 +109,19 @@ class DockerService(private val configProperties: ConfigProperties) {
      * @param imageName name of the image to remove
      * @return an instance of docker command
      */
-    fun removeImage(imageName: String): RemoveImageCmd = containerManager.dockerClient.removeImageCmd(imageName)
+    fun removeImage(imageName: String): RemoveImageCmd {
+        log.info("Removing image $imageName")
+        return containerManager.dockerClient.removeImageCmd(imageName)
+    }
 
     /**
      * @param containerId id of container to remove
      * @return an instance of docker command
      */
-    fun removeContainer(containerId: String): RemoveContainerCmd = containerManager.dockerClient.removeContainerCmd(containerId)
+    fun removeContainer(containerId: String): RemoveContainerCmd {
+        log.info("Removing container $containerId")
+        return containerManager.dockerClient.removeContainerCmd(containerId)
+    }
 
     @Suppress("TOO_LONG_FUNCTION", "UnsafeCallOnNullableType")
     private fun buildBaseImageForExecution(execution: Execution): Pair<String, String> {
