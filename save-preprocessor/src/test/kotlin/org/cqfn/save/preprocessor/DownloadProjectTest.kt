@@ -298,6 +298,7 @@ class DownloadProjectTest(
     }
 
     @Test
+    @Suppress("LongMethod")
     fun `rerun execution`() {
         val project = Project("owner", "someName", null, "descr").apply {
             id = 42L
