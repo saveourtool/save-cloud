@@ -28,12 +28,12 @@ class ExecutionService(private val executionRepository: ExecutionRepository) {
     private lateinit var projectRepository: ProjectRepository
 
     /**
-     * Get execution by id
+     * Find execution by id
      *
      * @param id id of execution
      * @return execution if it has been found
      */
-    fun getExecution(id: Long) = executionRepository.findById(id)
+    fun findExecution(id: Long) = executionRepository.findById(id)
 
     /**
      * @param execution

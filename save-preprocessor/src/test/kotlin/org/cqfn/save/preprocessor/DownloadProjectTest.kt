@@ -315,7 +315,7 @@ class DownloadProjectTest(
                 .setHeader("Content-Type", "application/json")
                 .setBody(objectMapper.writeValueAsString(execution))
         )
-        // /celanup
+        // /cleanup
         mockServerOrchestrator.enqueue(
             MockResponse()
                 .setResponseCode(200)

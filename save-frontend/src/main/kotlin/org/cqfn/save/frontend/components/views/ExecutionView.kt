@@ -75,11 +75,13 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
     @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR", "TOO_LONG_FUNCTION", "LongMethod")
     override fun RBuilder.render() {
         div {
-            div("flex-auto") {
+            div("p-2 flex-auto") {
                 +("Project version: ${(state.executionDto?.version ?: "N/A")}")
             }
-            div {
-                +"${state.executionDto?.status ?: "Status N/A"}"
+            div("d-flex") {
+                div("p-2 mr-auto") {
+                    +"Status: ${state.executionDto?.status ?: "N/A"}"
+                }
                 button(classes = "btn btn-primary") {
                     +"Rerun execution"
                     attrs.onClickFunction = {

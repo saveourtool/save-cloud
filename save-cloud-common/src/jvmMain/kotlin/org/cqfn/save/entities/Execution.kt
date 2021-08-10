@@ -77,6 +77,5 @@ class Execution(
         passedTests,
         failedTests,
         skippedTests,
-        resourcesRootPath ?: "N/A"
     )
 }

@@ -1,7 +1,5 @@
 package org.cqfn.save.backend.controllers
 
-import org.cqfn.save.backend.EmptyResponse
-import org.cqfn.save.backend.StringResponse
 import org.cqfn.save.backend.configs.ConfigProperties
 import org.cqfn.save.backend.service.ExecutionService
 import org.cqfn.save.backend.service.GitService
@@ -63,7 +61,7 @@ class ExecutionController(private val executionService: ExecutionService,
      */
     @GetMapping("/execution")
     @Transactional(readOnly = true)
-    fun getExecution(@RequestParam id: Long): Execution = executionService.getExecution(id).orElseThrow {
+    fun getExecution(@RequestParam id: Long): Execution = executionService.findExecution(id).orElseThrow {
         ResponseStatusException(HttpStatus.NOT_FOUND, "Execution with id=$id is not found")
     }
 
@@ -125,7 +123,7 @@ class ExecutionController(private val executionService: ExecutionService,
     @Transactional
     @Suppress("UnsafeCallOnNullableType")
     fun rerunExecution(@RequestParam id: Long): Mono<String> {
-        val execution = executionService.getExecution(id).orElseThrow {
+        val execution = executionService.findExecution(id).orElseThrow {
             IllegalArgumentException("Can't rerun execution $id, because it does not exist")
         }
         val git = requireNotNull(gitService.getRepositoryDtoByProject(execution.project)) {
@@ -133,7 +131,7 @@ class ExecutionController(private val executionService: ExecutionService,
         }
         val propertiesRelativePath = execution.testSuiteIds?.let {
             require(it == "ALL") { "Only executions with all tests suites from a GIT project are supported now" }
-            testSuitesService.getTestSuitesByProject(execution.project)
+            testSuitesService.findTestSuitesByProject(execution.project)
         }!!
             .map {
                 it.propertiesRelativePath

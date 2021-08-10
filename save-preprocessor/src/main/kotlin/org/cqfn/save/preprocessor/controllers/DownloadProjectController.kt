@@ -141,29 +141,17 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
             webClientBackend.makeRequest(
                 BodyInserters.fromValue(ExecutionUpdateDto(executionRerunRequest.executionId!!, ExecutionStatus.PENDING)),
                 "/updateExecution"
-            ) {
-                it.toEntity<HttpStatus>()
-            }
-                .then(downLoadRepository(executionRerunRequest))
-                .flatMap { (location, _) ->
-                    getExecution(executionRerunRequest.executionId!!).map { execution ->
-                        Pair(execution, location)
-                    }
+            ) { it.toEntity<HttpStatus>() }
+                .flatMap {
+                    cleanupInOrchestrator(executionRerunRequest.executionId!!)
                 }
-                .flatMap { (execution, location) ->
-                    webClientOrchestrator.post()
-                        .uri("/cleanup?executionId=${execution.id}")
-                        .httpRequest {
-                            // increased timeout, because orchestrator should finish cleaning up first
-                            it.getNativeRequest<HttpClientRequest>()
-                                .responseTimeout(Duration.ofSeconds(10))
-                        }
-                        .retrieve()
-                        .toBodilessEntity().map {
-                            Pair(execution, location)
-                        }
+                .flatMap {
+                    downLoadRepository(executionRerunRequest).map { (location, _) -> location }
                 }
-                .flatMap { (execution, location) ->
+                .zipWith(
+                    getExecution(executionRerunRequest.executionId!!)
+                )
+                .flatMap { (location, execution) ->
                     sendToBackendAndOrchestrator(
                         execution,
                         execution.project,
@@ -378,6 +366,17 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
             it.bodyToMono()
         }
     }
+
+    private fun cleanupInOrchestrator(executionId: Long) =
+            webClientOrchestrator.post()
+                .uri("/cleanup?executionId=$executionId")
+                .httpRequest {
+                    // increased timeout, because orchestrator should finish cleaning up first
+                    it.getNativeRequest<HttpClientRequest>()
+                        .responseTimeout(Duration.ofSeconds(10))
+                }
+                .retrieve()
+                .toBodilessEntity()
 
     @Suppress("UnsafeCallOnNullableType")
     private fun prepareForExecutionFromGit(project: Project,

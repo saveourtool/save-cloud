@@ -106,18 +106,18 @@ class AgentsController {
      */
     @PostMapping("/cleanup")
     fun cleanup(@RequestParam executionId: Long) =
-        agentService.getAgentsForExecution(executionId)
-            .flatMapMany(::fromIterable)
-            .map { id ->
-                dockerService.removeContainer(id)
-            }
-            .doOnComplete {
-                dockerService.removeImage(imageName(executionId))
-            }
-            .collectList()
-            .flatMap {
-                Mono.just(ResponseEntity<Void>(HttpStatus.OK))
-            }
+            agentService.getAgentIdsForExecution(executionId)
+                .flatMapMany(::fromIterable)
+                .map { id ->
+                    dockerService.removeContainer(id)
+                }
+                .doOnComplete {
+                    dockerService.removeImage(imageName(executionId))
+                }
+                .collectList()
+                .flatMap {
+                    Mono.just(ResponseEntity<Void>(HttpStatus.OK))
+                }
 
     companion object {
         private val log = LoggerFactory.getLogger(AgentsController::class.java)

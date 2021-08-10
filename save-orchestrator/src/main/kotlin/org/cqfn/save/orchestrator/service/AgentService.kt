@@ -149,7 +149,7 @@ class AgentService(configProperties: ConfigProperties) {
      * @return agent
      */
     @Suppress("TYPE_ALIAS")
-    fun getAgentsForExecution(executionId: Long): Mono<List<String>> = webClientBackend
+    fun getAgentIdsForExecution(executionId: Long): Mono<List<String>> = webClientBackend
         .get()
         .uri("/getAgentsIdsForExecution?executionId=$executionId")
         .retrieve()

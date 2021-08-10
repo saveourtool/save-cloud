@@ -52,6 +52,10 @@ class TestSuitesService {
     fun getStandardTestSuites() =
             testSuiteRepository.findAllByTypeIs(TestSuiteType.STANDARD).map { it.toDto() }
 
-    fun getTestSuitesByProject(project: Project) =
-        testSuiteRepository.findByProjectId(project.id!!)
+    /**
+     * @param project a project associated with test suites
+     * @return a list of test suites
+     */
+    fun findTestSuitesByProject(project: Project) =
+            testSuiteRepository.findByProjectId(project.id!!)
 }

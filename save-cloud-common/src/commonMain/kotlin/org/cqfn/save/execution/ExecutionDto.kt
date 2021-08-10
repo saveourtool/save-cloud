@@ -23,5 +23,4 @@ data class ExecutionDto(
     val passedTests: Long,
     val failedTests: Long,
     val skippedTests: Long,
-    val resourcesRootPath: String,
 )
