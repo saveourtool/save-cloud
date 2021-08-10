@@ -136,11 +136,18 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         ResponseEntity("Clone pending", HttpStatus.ACCEPTED)
     }
         .doOnSuccess {
-            downLoadRepository(executionRerunRequest).flatMap { (location, _) ->
-                getExecution(executionRerunRequest.executionId!!).map { execution ->
-                    Pair(execution, location)
-                }
+            webClientBackend.makeRequest(
+                BodyInserters.fromValue(ExecutionUpdateDto(executionRerunRequest.executionId!!, ExecutionStatus.PENDING)),
+                "/updateExecution"
+            ) {
+                it.toEntity<HttpStatus>()
             }
+                .then(downLoadRepository(executionRerunRequest))
+                .flatMap { (location, _) ->
+                    getExecution(executionRerunRequest.executionId!!).map { execution ->
+                        Pair(execution, location)
+                    }
+                }
                 .flatMap { (execution, location) ->
                     webClientOrchestrator.post()
                         .uri("/cleanup?executionId=${execution.id}")
@@ -323,7 +330,6 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         projectRootRelativePath: String,
         testSuiteDtos: List<TestSuiteDto>?,
     ): Mono<StatusResponse> {
-        log.info("Processing execution ${execution.toDto()}")
         val executionType = execution.type
         testSuiteDtos?.let {
             require(executionType == ExecutionType.STANDARD) { "Test suites shouldn't be provided unless ExecutionType is STANDARD (actual: $executionType)" }
