@@ -348,12 +348,12 @@ class DownloadProjectTest(
         )
         val assertions = CompletableFuture.supplyAsync {
             sequenceOf(
-                mockServerBackend.takeRequest(60, TimeUnit.SECONDS),
-                mockServerOrchestrator.takeRequest(60, TimeUnit.SECONDS),
-                mockServerBackend.takeRequest(60, TimeUnit.SECONDS),
-                mockServerBackend.takeRequest(60, TimeUnit.SECONDS),
-                mockServerBackend.takeRequest(60, TimeUnit.SECONDS),
-                mockServerOrchestrator.takeRequest(60, TimeUnit.SECONDS),
+                mockServerBackend.takeRequest(360, TimeUnit.SECONDS),
+                mockServerOrchestrator.takeRequest(360, TimeUnit.SECONDS),
+                mockServerBackend.takeRequest(360, TimeUnit.SECONDS),
+                mockServerBackend.takeRequest(360, TimeUnit.SECONDS),
+                mockServerBackend.takeRequest(360, TimeUnit.SECONDS),
+                mockServerOrchestrator.takeRequest(360, TimeUnit.SECONDS),
             ).onEach {
                 logger.info("Request $it")
             }

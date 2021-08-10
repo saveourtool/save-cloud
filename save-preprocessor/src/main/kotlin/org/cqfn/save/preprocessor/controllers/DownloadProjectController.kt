@@ -132,6 +132,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
      * @param executionRerunRequest request
      * @return status 202
      */
+    @Suppress("UnsafeCallOnNullableType")
     @PostMapping("/rerunExecution")
     fun rerunExecution(@RequestBody executionRerunRequest: ExecutionRequest) = Mono.fromCallable {
         requireNotNull(executionRerunRequest.executionId) { "Can't rerun execution with unknown id" }
