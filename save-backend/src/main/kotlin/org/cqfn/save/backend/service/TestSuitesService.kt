@@ -57,5 +57,7 @@ class TestSuitesService {
      * @return a list of test suites
      */
     fun findTestSuitesByProject(project: Project) =
-            testSuiteRepository.findByProjectId(project.id!!)
+            testSuiteRepository.findByProjectId(
+                requireNotNull(project.id) { "Cannot find test suites for project with missing id (name=${project.name}, owner=${project.owner})" }
+            )
 }

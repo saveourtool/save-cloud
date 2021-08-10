@@ -347,14 +347,16 @@ class DownloadProjectTest(
                 .setResponseCode(200)
         )
         val assertions = CompletableFuture.supplyAsync {
-            listOf(
+            sequenceOf(
                 mockServerBackend.takeRequest(60, TimeUnit.SECONDS),
                 mockServerOrchestrator.takeRequest(60, TimeUnit.SECONDS),
                 mockServerBackend.takeRequest(60, TimeUnit.SECONDS),
                 mockServerBackend.takeRequest(60, TimeUnit.SECONDS),
                 mockServerBackend.takeRequest(60, TimeUnit.SECONDS),
                 mockServerOrchestrator.takeRequest(60, TimeUnit.SECONDS),
-            )
+            ).onEach {
+                logger.info("Request $it")
+            }
         }
 
         webClient.post()
@@ -366,9 +368,8 @@ class DownloadProjectTest(
             .isAccepted
             .expectBody<String>()
             .isEqualTo("Clone pending")
-        Thread.sleep(2500)
 
-        assertions.orTimeout(60, TimeUnit.SECONDS).join().forEach { Assertions.assertNotNull(it) }
+        assertions.orTimeout(360, TimeUnit.SECONDS).join().forEach { Assertions.assertNotNull(it) }
     }
 
     @AfterEach
