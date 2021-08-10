@@ -176,14 +176,12 @@ class AgentsControllerTest {
                 .setHeader("Content-Type", "application/json")
                 .setBody(Json.encodeToString(listOf("container-1", "container-2", "container-3")))
         )
-        whenever(dockerService.removeContainer(any())).thenReturn(mock())
-        whenever(dockerService.removeImage(any())).thenReturn(mock())
 
         webClient.post()
             .uri("/cleanup?executionId=42")
             .exchange()
             .expectStatus()
-            .isAccepted
+            .isOk
 
         Thread.sleep(2_500)
         verify(dockerService, times(3)).removeContainer(anyString())

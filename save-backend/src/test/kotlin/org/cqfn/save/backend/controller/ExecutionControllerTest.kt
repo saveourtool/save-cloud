@@ -245,7 +245,10 @@ class ExecutionControllerTest {
     @Test
     fun `should send request to preprocessor to rerun execution`() {
         mockServerPreprocessor.enqueue(
-            MockResponse().setResponseCode(200)
+            MockResponse().setResponseCode(202)
+                .setHeader("Accept", "application/json")
+                .setHeader("Content-Type", "application/json")
+                .setBody("Clone pending")
         )
         val assertions = CompletableFuture.supplyAsync {
             listOf(
@@ -254,7 +257,7 @@ class ExecutionControllerTest {
         }
 
         webClient.post()
-            .uri("/rerunExecution?id=1")
+            .uri("/rerunExecution?id=2")
             .exchange()
             .expectStatus()
             .isOk
