@@ -308,42 +308,31 @@ class DownloadProjectTest(
         }
         val request = ExecutionRequest(project, GitDto("https://github.com/cqfn/save"), "examples/kotlin-diktat/save.properties", Sdk.Default, execution.id)
 
-        // /updateExecution
-        mockServerBackend.enqueue(
+        listOf(
+            // /updateExecution
+            MockResponse().setResponseCode(200),
+            // /execution
             MockResponse().setResponseCode(200)
-        )
-        // /cleanup
-        mockServerOrchestrator.enqueue(
-            MockResponse()
-                .setResponseCode(200)
-        )
-        // /execution
-        mockServerBackend.enqueue(
-            MockResponse()
-                .setResponseCode(200)
                 .setHeader("Content-Type", "application/json")
-                .setBody(objectMapper.writeValueAsString(execution))
-        )
-        // /saveTestSuites
-        mockServerBackend.enqueue(
-            MockResponse()
-                .setResponseCode(200)
+                .setBody(objectMapper.writeValueAsString(execution)),
+            // /saveTestSuites
+            MockResponse().setResponseCode(200)
                 .setHeader("Content-Type", "application/json")
                 .setBody(objectMapper.writeValueAsString(
                     listOf(
                         TestSuite(TestSuiteType.PROJECT, "", project, LocalDateTime.now(), "save.properties")
                     )
                 )),
-        )
-        // /initializeTests?executionId=$executionId
-        mockServerBackend.enqueue(
-            MockResponse()
-                .setResponseCode(200)
+            // /initializeTests?executionId=$executionId
+            MockResponse().setResponseCode(200)
+        ).forEach(mockServerBackend::enqueue)
+        // /cleanup
+        mockServerOrchestrator.enqueue(
+            MockResponse().setResponseCode(200)
         )
         // /initializeAgents
         mockServerOrchestrator.enqueue(
-            MockResponse()
-                .setResponseCode(200)
+            MockResponse().setResponseCode(200)
         )
         val assertions = CompletableFuture.supplyAsync {
             listOf(
@@ -363,8 +352,6 @@ class DownloadProjectTest(
             .exchange()
             .expectStatus()
             .isAccepted
-            .expectBody<String>()
-            .isEqualTo("Clone pending")
         Thread.sleep(2500)
 
         assertions.orTimeout(60, TimeUnit.SECONDS).join().forEach { Assertions.assertNotNull(it) }
