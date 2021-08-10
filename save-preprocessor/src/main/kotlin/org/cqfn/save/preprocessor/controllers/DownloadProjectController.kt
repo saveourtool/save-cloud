@@ -133,7 +133,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
      * @return status 202
      */
     @PostMapping("/rerunExecution")
-    fun rerunExecution(@RequestBody executionRerunRequest: ExecutionRequest) = Mono.fromCallable<ResponseEntity<String>> {
+    fun rerunExecution(@RequestBody executionRerunRequest: ExecutionRequest) = Mono.fromCallable {
         requireNotNull(executionRerunRequest.executionId) { "Can't rerun execution with unknown id" }
         ResponseEntity("Clone pending", HttpStatus.ACCEPTED)
     }
@@ -367,6 +367,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         }
     }
 
+    @Suppress("MagicNumber")
     private fun cleanupInOrchestrator(executionId: Long) =
             webClientOrchestrator.post()
                 .uri("/cleanup?executionId=$executionId")

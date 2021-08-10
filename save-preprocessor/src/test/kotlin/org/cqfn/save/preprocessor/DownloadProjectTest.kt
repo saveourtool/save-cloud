@@ -308,17 +308,21 @@ class DownloadProjectTest(
         }
         val request = ExecutionRequest(project, GitDto("https://github.com/cqfn/save"), "examples/kotlin-diktat/save.properties", Sdk.Default, execution.id)
 
+        // /updateExecution
+        mockServerBackend.enqueue(
+            MockResponse().setResponseCode(200)
+        )
+        // /cleanup
+        mockServerOrchestrator.enqueue(
+            MockResponse()
+                .setResponseCode(200)
+        )
         // /execution
         mockServerBackend.enqueue(
             MockResponse()
                 .setResponseCode(200)
                 .setHeader("Content-Type", "application/json")
                 .setBody(objectMapper.writeValueAsString(execution))
-        )
-        // /cleanup
-        mockServerOrchestrator.enqueue(
-            MockResponse()
-                .setResponseCode(200)
         )
         // /saveTestSuites
         mockServerBackend.enqueue(
@@ -344,9 +348,10 @@ class DownloadProjectTest(
         val assertions = CompletableFuture.supplyAsync {
             listOf(
                 mockServerBackend.takeRequest(60, TimeUnit.SECONDS),
-                mockServerBackend.takeRequest(60, TimeUnit.SECONDS),
-                mockServerBackend.takeRequest(60, TimeUnit.SECONDS),
                 mockServerOrchestrator.takeRequest(60, TimeUnit.SECONDS),
+                mockServerBackend.takeRequest(60, TimeUnit.SECONDS),
+                mockServerBackend.takeRequest(60, TimeUnit.SECONDS),
+                mockServerBackend.takeRequest(60, TimeUnit.SECONDS),
                 mockServerOrchestrator.takeRequest(60, TimeUnit.SECONDS),
             )
         }
