@@ -17,7 +17,8 @@ import org.w3c.fetch.Headers
 import react.RBuilder
 import react.RComponent
 import react.RProps
-import react.RState
+import react.State
+import react.buildElement
 import react.child
 import react.dom.a
 import react.dom.td
@@ -46,7 +47,8 @@ external interface HistoryProps : RProps {
 /**
  * A table to display execution results for a certain project.
  */
-class HistoryView : RComponent<HistoryProps, RState>() {
+@JsExport
+class HistoryView : RComponent<HistoryProps, State>() {
     @Suppress(
         "TOO_LONG_FUNCTION",
         "MAGIC_NUMBER",
@@ -55,52 +57,64 @@ class HistoryView : RComponent<HistoryProps, RState>() {
     override fun RBuilder.render() {
         child(tableComponent(
             columns = columns {
-                column("result", "") {
-                    val isCrashed = it.value.status == ExecutionStatus.ERROR
-                    val color = if (isCrashed || it.value.failedTests > 0L) "text-danger" else "text-success"
-                    val icon = if (isCrashed || it.value.failedTests > 0L) "exclamation-triangle" else "check"
-                    td {
-                        a(href = getHrefToExecution(it.value.id)) {
-                            fontAwesomeIcon(icon, classes = color)
+                column("result", "") { cellProps ->
+                    val isCrashed = cellProps.value.status == ExecutionStatus.ERROR
+                    val color = if (isCrashed || cellProps.value.failedTests > 0L) "text-danger" else "text-success"
+                    val icon = if (isCrashed || cellProps.value.failedTests > 0L) "exclamation-triangle" else "check"
+                    buildElement {
+                        td {
+                            a(href = getHrefToExecution(cellProps.value.id)) {
+                                fontAwesomeIcon(icon, classes = color)
+                            }
                         }
                     }
                 }
                 column("status", "Status") {
-                    td {
-                        a(href = getHrefToExecution(it.value.id)) {
-                            +"${it.value.status}"
+                    buildElement {
+                        td {
+                            a(href = getHrefToExecution(it.value.id)) {
+                                +"${it.value.status}"
+                            }
                         }
                     }
                 }
                 column("date", "Date") {
-                    td {
-                        a(href = getHrefToExecution(it.value.id)) {
-                            +(it.value.endTime?.let {
-                                Instant.fromEpochSeconds(it, 0)
-                                    .toString()
-                                    .replace("[TZ]".toRegex(), " ")
-                            } ?: "RUNNING")
+                    buildElement {
+                        td {
+                            a(href = getHrefToExecution(it.value.id)) {
+                                +(it.value.endTime?.let {
+                                    Instant.fromEpochSeconds(it, 0)
+                                        .toString()
+                                        .replace("[TZ]".toRegex(), " ")
+                                } ?: "RUNNING")
+                            }
                         }
                     }
                 }
                 column("passed", "Passed") {
-                    td {
-                        a(href = getHrefToExecution(it.value.id)) {
-                            +"${it.value.passedTests}"
+                    buildElement {
+                        td {
+                            a(href = getHrefToExecution(it.value.id)) {
+                                +"${it.value.passedTests}"
+                            }
                         }
                     }
                 }
                 column("failed", "Failed") {
-                    td {
-                        a(href = getHrefToExecution(it.value.id)) {
-                            +"${it.value.failedTests}"
+                    buildElement {
+                        td {
+                            a(href = getHrefToExecution(it.value.id)) {
+                                +"${it.value.failedTests}"
+                            }
                         }
                     }
                 }
                 column("skipped", "Skipped") {
-                    td {
-                        a(href = getHrefToExecution(it.value.id)) {
-                            +"${it.value.skippedTests}"
+                    buildElement {
+                        td {
+                            a(href = getHrefToExecution(it.value.id)) {
+                                +"${it.value.skippedTests}"
+                            }
                         }
                     }
                 }

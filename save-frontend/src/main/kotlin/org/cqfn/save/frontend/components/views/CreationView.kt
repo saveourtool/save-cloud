@@ -59,6 +59,7 @@ external interface ProjectSaveViewState : RState {
  *
  * @return a functional component
  */
+@JsExport
 class CreationView : RComponent<RProps, ProjectSaveViewState>() {
     private val projectFieldsMap: MutableMap<String, String> = mutableMapOf()
     private val gitFieldsMap: MutableMap<String, String> = mutableMapOf()

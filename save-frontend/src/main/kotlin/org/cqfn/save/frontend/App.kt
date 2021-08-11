@@ -53,6 +53,7 @@ external interface AppState : RState {
 /**
  * MAin component for the whole App
  */
+@JsExport
 class App : RComponent<RProps, AppState>() {
     init {
         state.userName = "User Name"

@@ -11,6 +11,7 @@ import react.RBuilder
 import react.RComponent
 import react.RProps
 import react.RState
+import react.buildElement
 import react.child
 import react.dom.a
 import react.dom.button
@@ -38,22 +39,19 @@ class CollectionView : RComponent<RProps, RState>() {
         }
         child(tableComponent(
             columns = columns {
-                column(id = "index", header = "#") {
-                    td {
-                        +"${it.row.index}"
-                    }
-                }
-                column(id = "name", header = "Name") {
-                    td {
-                        a(href = "#/${it.value.owner}/${it.value.name}") {
-                            +it.value.name
+                column(id = "index", header = "#") { cell ->
+                    buildElement {
+                        td {
+                            +"${cell.row.index}"
                         }
                     }
                 }
                 column(id = "passed", header = "Tests passed") {
-                    td {
-                        a(href = "#/${it.value.owner}/${it.value.name}/history") {
-                            +(it.value.description ?: "Description N/A")
+                    buildElement {
+                        td {
+                            a(href = "#/${it.value.owner}/${it.value.name}/history") {
+                                +(it.value.description ?: "Description N/A")
+                            }
                         }
                     }
                 }

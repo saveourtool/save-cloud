@@ -7,7 +7,7 @@ import react.RProps
 import react.RState
 import react.dom.div
 import react.dom.p
-import react.router.dom.LinkComponent
+import react.router.dom.Link
 
 /**
  * A [RComponent] representing fallback page with 404 error
@@ -25,7 +25,7 @@ class FallbackView : RComponent<RProps, RState>() {
             p("lead text-gray-800 mb-5") {
                 +"Page not found"
             }
-            child(type = LinkComponent, props = jsObject()) {
+            child(type = Link, props = jsObject()) {
                 attrs.to = "/"
                 +"← Back to the main page"
             }

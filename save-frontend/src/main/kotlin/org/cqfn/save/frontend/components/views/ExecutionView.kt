@@ -15,7 +15,8 @@ import org.w3c.fetch.Headers
 import react.RBuilder
 import react.RComponent
 import react.RProps
-import react.RState
+import react.State
+import react.buildElement
 import react.child
 import react.dom.div
 import react.dom.td
@@ -43,7 +44,7 @@ external interface ExecutionProps : RProps {
 /**
  * A state of execution view
  */
-external interface ExecutionState : RState {
+external interface ExecutionState : State {
     /**
      * Execution dto
      */
@@ -78,23 +79,31 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
         child(tableComponent(
             columns = columns {
                 column(id = "index", header = "#") {
-                    td {
-                        +"${it.row.index}"
+                    buildElement {
+                        td {
+                            +"${it.row.index}"
+                        }
                     }
                 }
                 column(id = "startTime", header = "Start time") {
-                    td {
-                        +"${it.value.startTimeSeconds?.let { Instant.fromEpochSeconds(it, 0) }}"
+                    buildElement {
+                        td {
+                            +"${it.value.startTimeSeconds?.let { Instant.fromEpochSeconds(it, 0) }}"
+                        }
                     }
                 }
                 column(id = "status", header = "Status") {
-                    td {
-                        +"${it.value.status}"
+                    buildElement {
+                        td {
+                            +"${it.value.status}"
+                        }
                     }
                 }
                 column(id = "path", header = "Test file path") {
-                    td {
-                        +it.value.filePath
+                    buildElement {
+                        td {
+                            +it.value.filePath
+                        }
                     }
                 }
             },
