@@ -1,6 +1,7 @@
 package org.cqfn.save.backend.service
 
 import org.cqfn.save.backend.repository.TestSuiteRepository
+import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.TestSuite
 import org.cqfn.save.testsuite.TestSuiteDto
 import org.cqfn.save.testsuite.TestSuiteType
@@ -50,4 +51,13 @@ class TestSuitesService {
      */
     fun getStandardTestSuites() =
             testSuiteRepository.findAllByTypeIs(TestSuiteType.STANDARD).map { it.toDto() }
+
+    /**
+     * @param project a project associated with test suites
+     * @return a list of test suites
+     */
+    fun findTestSuitesByProject(project: Project) =
+            testSuiteRepository.findByProjectId(
+                requireNotNull(project.id) { "Cannot find test suites for project with missing id (name=${project.name}, owner=${project.owner})" }
+            )
 }

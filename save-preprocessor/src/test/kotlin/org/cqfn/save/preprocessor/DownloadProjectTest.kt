@@ -34,6 +34,7 @@ import org.junit.jupiter.api.TestInstance
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
@@ -59,6 +60,7 @@ import kotlin.io.path.ExperimentalPathApi
 @WebFluxTest(controllers = [DownloadProjectController::class])
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @AutoConfigureWebTestClient(timeout = "60000")
+@Suppress("TOO_LONG_FUNCTION")
 class DownloadProjectTest(
     @Autowired private val webClient: WebTestClient,
     @Autowired private val configProperties: ConfigProperties,
@@ -108,7 +110,6 @@ class DownloadProjectTest(
     /**
      * This one covers logic of connecting to services
      */
-    @Suppress("TOO_LONG_FUNCTION")
     @Test
     fun testCorrectDownload() {
         val project = Project("owner", "someName", "https://github.com/cqfn/save.git", "descr").apply {
@@ -169,7 +170,7 @@ class DownloadProjectTest(
         assertions.orTimeout(60, TimeUnit.SECONDS).join().forEach { Assertions.assertNotNull(it) }
     }
 
-    @Suppress("TOO_LONG_FUNCTION", "LongMethod")
+    @Suppress("LongMethod")
     @Test
     fun testSaveProjectAsBinaryFile() {
         File(binFolder).mkdirs()
@@ -239,7 +240,6 @@ class DownloadProjectTest(
 
     @ExperimentalFileSystem
     @Test
-    @Suppress("TOO_LONG_FUNCTION")
     fun testStandardTestSuites() {
         val requestSize = readStandardTestSuitesFile(configProperties.reposFileName)
             .toList()
@@ -297,6 +297,81 @@ class DownloadProjectTest(
         Assertions.assertTrue(File("${configProperties.repository}/${"https://github.com/cqfn/save".hashCode()}").exists())
     }
 
+    @Test
+    @Suppress("LongMethod")
+    fun `rerun execution`() {
+        val project = Project("owner", "someName", null, "descr").apply {
+            id = 42L
+        }
+        val execution = Execution(project, LocalDateTime.now(), LocalDateTime.now(), ExecutionStatus.PENDING, "1",
+            "foo", 0, 20, ExecutionType.GIT, "0.0.1", 0, 0, 0, Sdk.Default.toString()).apply {
+            id = 98L
+        }
+        val request = ExecutionRequest(project, GitDto("https://github.com/cqfn/save"), "examples/kotlin-diktat/save.properties", Sdk.Default, execution.id)
+
+        // /updateExecution
+        mockServerBackend.enqueue(
+            MockResponse().setResponseCode(200)
+        )
+        // /cleanup
+        mockServerOrchestrator.enqueue(
+            MockResponse()
+                .setResponseCode(200)
+        )
+        // /execution
+        mockServerBackend.enqueue(
+            MockResponse()
+                .setResponseCode(200)
+                .setHeader("Content-Type", "application/json")
+                .setBody(objectMapper.writeValueAsString(execution))
+        )
+        // /saveTestSuites
+        mockServerBackend.enqueue(
+            MockResponse()
+                .setResponseCode(200)
+                .setHeader("Content-Type", "application/json")
+                .setBody(objectMapper.writeValueAsString(
+                    listOf(
+                        TestSuite(TestSuiteType.PROJECT, "", project, LocalDateTime.now(), "save.properties")
+                    )
+                )),
+        )
+        // /initializeTests?executionId=$executionId
+        mockServerBackend.enqueue(
+            MockResponse()
+                .setResponseCode(200)
+        )
+        // /initializeAgents
+        mockServerOrchestrator.enqueue(
+            MockResponse()
+                .setResponseCode(200)
+        )
+        val assertions = CompletableFuture.supplyAsync {
+            sequenceOf(
+                mockServerBackend.takeRequest(360, TimeUnit.SECONDS),
+                mockServerOrchestrator.takeRequest(360, TimeUnit.SECONDS),
+                mockServerBackend.takeRequest(360, TimeUnit.SECONDS),
+                mockServerBackend.takeRequest(360, TimeUnit.SECONDS),
+                mockServerBackend.takeRequest(360, TimeUnit.SECONDS),
+                mockServerOrchestrator.takeRequest(360, TimeUnit.SECONDS),
+            ).onEach {
+                logger.info("Request $it")
+            }
+        }
+
+        webClient.post()
+            .uri("/rerunExecution")
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(request)
+            .exchange()
+            .expectStatus()
+            .isAccepted
+            .expectBody<String>()
+            .isEqualTo("Clone pending")
+
+        assertions.orTimeout(360, TimeUnit.SECONDS).join().forEach { Assertions.assertNotNull(it) }
+    }
+
     @AfterEach
     fun removeTestDir() {
         File(configProperties.repository).deleteRecursively()
@@ -308,6 +383,8 @@ class DownloadProjectTest(
     }
 
     companion object {
+        private val logger = LoggerFactory.getLogger(DownloadProjectTest::class.java)
+
         @JvmStatic
         lateinit var mockServerBackend: MockWebServer
 

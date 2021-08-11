@@ -14,7 +14,7 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 @Suppress("LongParameterList")
-class ExecutionDto(
+data class ExecutionDto(
     val id: Long,
     val status: ExecutionStatus,
     val type: ExecutionType,
