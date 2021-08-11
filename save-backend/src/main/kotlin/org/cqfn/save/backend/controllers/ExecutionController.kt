@@ -1,18 +1,27 @@
 package org.cqfn.save.backend.controllers
 
+import org.cqfn.save.backend.configs.ConfigProperties
 import org.cqfn.save.backend.service.ExecutionService
+import org.cqfn.save.backend.service.GitService
+import org.cqfn.save.backend.service.TestSuitesService
+import org.cqfn.save.domain.toSdk
 import org.cqfn.save.entities.Execution
+import org.cqfn.save.entities.ExecutionRequest
+import org.cqfn.save.entities.GitDto
 import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.execution.ExecutionInitializationDto
 import org.cqfn.save.execution.ExecutionUpdateDto
 
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.reactive.function.client.WebClient
+import org.springframework.web.reactive.function.client.bodyToMono
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
 
@@ -22,7 +31,13 @@ typealias ExecutionDtoListResponse = ResponseEntity<List<ExecutionDto>>
  * Controller that accepts executions
  */
 @RestController
-class ExecutionController(private val executionService: ExecutionService) {
+class ExecutionController(private val executionService: ExecutionService,
+                          private val gitService: GitService,
+                          private val testSuitesService: TestSuitesService,
+                          config: ConfigProperties,
+) {
+    private val preprocessorWebClient = WebClient.create(config.preprocessorUrl)
+
     /**
      * @param execution
      * @return id of created [Execution]
@@ -36,6 +51,18 @@ class ExecutionController(private val executionService: ExecutionService) {
     @PostMapping("/updateExecution")
     fun updateExecution(@RequestBody executionUpdateDto: ExecutionUpdateDto) {
         executionService.updateExecution(executionUpdateDto)
+    }
+
+    /**
+     * Get execution by id
+     *
+     * @param id id of execution
+     * @return execution if it has been found
+     */
+    @GetMapping("/execution")
+    @Transactional(readOnly = true)
+    fun getExecution(@RequestParam id: Long): Execution = executionService.findExecution(id).orElseThrow {
+        ResponseStatusException(HttpStatus.NOT_FOUND, "Execution with id=$id is not found")
     }
 
     /**
@@ -85,4 +112,43 @@ class ExecutionController(private val executionService: ExecutionService) {
                         ResponseStatusException(HttpStatus.NOT_FOUND, "Execution not found for project (name=$name, owner=$owner)")
                     }
                 }
+
+    /**
+     * Accepts a request to rerun an existing execution
+     *
+     * @param id id of an existing execution
+     * @return bodiless response
+     */
+    @PostMapping("/rerunExecution")
+    @Transactional
+    @Suppress("UnsafeCallOnNullableType")
+    fun rerunExecution(@RequestParam id: Long): Mono<String> {
+        val execution = executionService.findExecution(id).orElseThrow {
+            IllegalArgumentException("Can't rerun execution $id, because it does not exist")
+        }
+        val git = requireNotNull(gitService.getRepositoryDtoByProject(execution.project)) {
+            "Can't rerun execution $id, project ${execution.project.name} has no associated git address"
+        }
+        val propertiesRelativePath = execution.testSuiteIds?.let {
+            require(it == "ALL") { "Only executions with \"ALL\" tests suites from a GIT project are supported now" }
+            testSuitesService.findTestSuitesByProject(execution.project)
+        }!!
+            .map {
+                it.propertiesRelativePath
+            }
+            .distinct()
+            .single()
+        val executionRequest = ExecutionRequest(
+            project = execution.project,
+            gitDto = GitDto(git.url, hash = execution.version),
+            propertiesRelativePath = propertiesRelativePath,
+            sdk = execution.sdk.toSdk(),
+            executionId = execution.id
+        )
+        return preprocessorWebClient.post()
+            .uri("/rerunExecution")
+            .bodyValue(executionRequest)
+            .retrieve()
+            .bodyToMono()
+    }
 }

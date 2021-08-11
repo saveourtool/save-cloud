@@ -50,8 +50,10 @@ import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
+import reactor.netty.http.client.HttpClientRequest
 
 import java.io.File
+import java.time.Duration
 import java.util.stream.Collectors
 
 import kotlin.io.path.ExperimentalPathApi
@@ -125,6 +127,46 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         }
 
     /**
+     * Accept execution rerun request
+     *
+     * @param executionRerunRequest request
+     * @return status 202
+     */
+    @Suppress("UnsafeCallOnNullableType")
+    @PostMapping("/rerunExecution")
+    fun rerunExecution(@RequestBody executionRerunRequest: ExecutionRequest) = Mono.fromCallable {
+        requireNotNull(executionRerunRequest.executionId) { "Can't rerun execution with unknown id" }
+        ResponseEntity("Clone pending", HttpStatus.ACCEPTED)
+    }
+        .doOnSuccess {
+            webClientBackend.makeRequest(
+                BodyInserters.fromValue(ExecutionUpdateDto(executionRerunRequest.executionId!!, ExecutionStatus.PENDING)),
+                "/updateExecution"
+            ) { it.toEntity<HttpStatus>() }
+                .flatMap {
+                    cleanupInOrchestrator(executionRerunRequest.executionId!!)
+                }
+                .flatMap {
+                    downLoadRepository(executionRerunRequest).map { (location, _) -> location }
+                }
+                .zipWith(
+                    getExecution(executionRerunRequest.executionId!!)
+                )
+                .flatMap { (location, execution) ->
+                    sendToBackendAndOrchestrator(
+                        execution,
+                        execution.project,
+                        executionRerunRequest.propertiesRelativePath,
+                        location,
+                        null
+                    )
+                }
+                .log()
+                .subscribeOn(Schedulers.boundedElastic())
+                .subscribe()
+        }
+
+    /**
      * Controller to download standard test suites
      */
     @OptIn(ExperimentalFileSystem::class)
@@ -189,13 +231,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         "UnsafeCallOnNullableType")
     private fun downLoadRepository(executionRequest: ExecutionRequest): Mono<Pair<String, String>> {
         val gitDto = executionRequest.gitDto
-        val project = executionRequest.project
         val tmpDir = generateDirectory(gitDto.url)
-        val userCredentials = if (gitDto.username != null && gitDto.password != null) {
-            UsernamePasswordCredentialsProvider(gitDto.username, gitDto.password)
-        } else {
-            CredentialsProvider.getDefault()
-        }
         return Mono.fromCallable {
             cloneFromGit(gitDto, tmpDir)?.use { git ->
                 executionRequest.gitDto.hash?.let { hash ->
@@ -269,7 +305,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
     }
 
     /**
-     * Note: We have not null list of TestSuite only, if execute type is STANDARD ()
+     * Note: `testSuiteDtos != null` only if execution type is STANDARD
      *
      * - Post request to backend to create PENDING executions
      * - Discover all test suites in the cloned project
@@ -296,7 +332,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         } ?: require(executionType == ExecutionType.GIT) { "Test suites are not provided, but should for executionType=$executionType" }
 
         return if (executionType == ExecutionType.GIT) {
-            prepareForExecutionFromGit(project, execution, propertiesRelativePath, projectRootRelativePath)
+            prepareForExecutionFromGit(project, execution.id!!, propertiesRelativePath, projectRootRelativePath)
         } else {
             prepareExecutionForStandard(testSuiteDtos!!)
         }
@@ -313,6 +349,11 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
             }
     }
 
+    private fun getExecution(executionId: Long) = webClientBackend.get()
+        .uri("${configProperties.backend}/execution?id=$executionId")
+        .retrieve()
+        .bodyToMono<Execution>()
+
     private fun updateExecution(project: Project, projectRootRelativePath: String, executionVersion: String): Mono<Execution> {
         val executionUpdate = ExecutionInitializationDto(project, "ALL", projectRootRelativePath, executionVersion)
         return webClientBackend.makeRequest(BodyInserters.fromValue(executionUpdate), "/updateNewExecution") {
@@ -327,9 +368,21 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         }
     }
 
+    @Suppress("MagicNumber")
+    private fun cleanupInOrchestrator(executionId: Long) =
+            webClientOrchestrator.post()
+                .uri("/cleanup?executionId=$executionId")
+                .httpRequest {
+                    // increased timeout, because orchestrator should finish cleaning up first
+                    it.getNativeRequest<HttpClientRequest>()
+                        .responseTimeout(Duration.ofSeconds(10))
+                }
+                .retrieve()
+                .toBodilessEntity()
+
     @Suppress("UnsafeCallOnNullableType")
     private fun prepareForExecutionFromGit(project: Project,
-                                           execution: Execution,
+                                           executionId: Long,
                                            propertiesRelativePath: String,
                                            projectRootRelativePath: String): Mono<EmptyResponse> = Mono.fromCallable {
         val testResourcesRootAbsolutePath =
@@ -341,7 +394,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
             discoverAndSaveTestSuites(project, rootTestConfig, propertiesRelativePath)
         }
         .flatMap { (rootTestConfig, testSuites) ->
-            initializeTests(testSuites, rootTestConfig, execution.id!!)
+            initializeTests(testSuites, rootTestConfig, executionId)
         }
     
     private fun prepareExecutionForStandard(testSuiteDtos: List<TestSuiteDto>): Mono<List<TestSuite>> {
