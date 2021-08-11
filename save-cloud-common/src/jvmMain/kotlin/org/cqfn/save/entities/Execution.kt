@@ -76,6 +76,6 @@ class Execution(
         endTime?.toEpochSecond(ZoneOffset.UTC),
         passedTests,
         failedTests,
-        skippedTests
+        skippedTests,
     )
 }

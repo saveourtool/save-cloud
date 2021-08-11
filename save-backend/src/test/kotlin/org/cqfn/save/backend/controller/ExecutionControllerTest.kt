@@ -12,7 +12,11 @@ import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionType
 import org.cqfn.save.execution.ExecutionUpdateDto
 
+import okhttp3.mockwebserver.MockResponse
+import okhttp3.mockwebserver.MockWebServer
+import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -20,12 +24,16 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
+import org.springframework.test.context.DynamicPropertyRegistry
+import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
 
 import java.time.LocalDateTime
 import java.time.Month
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.TimeUnit
 
 @SpringBootTest(classes = [SaveApplication::class])
 @AutoConfigureWebTestClient
@@ -232,5 +240,46 @@ class ExecutionControllerTest {
                     it.version == "executionVersion"
         }
         assertTrue(isUpdatedExecution)
+    }
+
+    @Test
+    fun `should send request to preprocessor to rerun execution`() {
+        mockServerPreprocessor.enqueue(
+            MockResponse().setResponseCode(202)
+                .setHeader("Accept", "application/json")
+                .setHeader("Content-Type", "application/json")
+                .setBody("Clone pending")
+        )
+        val assertions = CompletableFuture.supplyAsync {
+            listOf(
+                mockServerPreprocessor.takeRequest(60, TimeUnit.SECONDS),
+            )
+        }
+
+        webClient.post()
+            .uri("/rerunExecution?id=2")
+            .exchange()
+            .expectStatus()
+            .isOk
+        assertions.orTimeout(60, TimeUnit.SECONDS).join().forEach {
+            assertNotNull(it)
+        }
+    }
+
+    companion object {
+        @JvmStatic lateinit var mockServerPreprocessor: MockWebServer
+
+        @AfterAll
+        fun tearDown() {
+            mockServerPreprocessor.shutdown()
+        }
+
+        @DynamicPropertySource
+        @JvmStatic
+        fun properties(registry: DynamicPropertyRegistry) {
+            mockServerPreprocessor = MockWebServer()
+            mockServerPreprocessor.start()
+            registry.add("backend.preprocessorUrl") { "http://localhost:${mockServerPreprocessor.port}" }
+        }
     }
 }
