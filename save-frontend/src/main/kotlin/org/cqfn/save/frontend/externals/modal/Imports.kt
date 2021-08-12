@@ -11,8 +11,8 @@ import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.HTMLElement
 import react.Component
 import react.RProps
-import react.RState
 import react.ReactElement
+import react.State
 
 /**
  * [RProps] of modal component
@@ -21,7 +21,7 @@ external interface ModalProps : RProps {
     /**
      * Boolean describing if the modal should be shown or not. Defaults to false.
      */
-    var isOpen: Boolean
+    var isOpen: Boolean?
 
     /**
      * String indicating how the content container should be announced to screenreaders.
@@ -104,7 +104,7 @@ external interface OnAfterOpenCallback {
 @JsModule("react-modal")
 @JsNonModule
 @JsName("ModalPortal")
-external class ReactModalPortal : Component<RProps, RState> {
+external class ReactModalPortal : Component<RProps, State> {
     /**
      * Content of the modal portal
      */
@@ -124,7 +124,7 @@ external class ReactModalPortal : Component<RProps, RState> {
 @JsModule("react-modal")
 @JsNonModule
 @JsName("ReactModal")
-external class ReactModal : Component<ModalProps, RState> {
+external class ReactModal : Component<ModalProps, State> {
     /**
      * A portal for modal window.
      */

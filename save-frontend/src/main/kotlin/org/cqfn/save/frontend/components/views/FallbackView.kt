@@ -4,17 +4,17 @@ import kotlinext.js.jsObject
 import react.RBuilder
 import react.RComponent
 import react.RProps
-import react.RState
+import react.State
 import react.dom.div
 import react.dom.p
-import react.router.dom.LinkComponent
+import react.router.dom.Link
 
 /**
  * A [RComponent] representing fallback page with 404 error
  */
-@OptIn(ExperimentalJsExport::class)
 @JsExport
-class FallbackView : RComponent<RProps, RState>() {
+@OptIn(ExperimentalJsExport::class)
+class FallbackView : RComponent<RProps, State>() {
     @Suppress("ForbiddenComment")
     override fun RBuilder.render() {
         div("text-center") {
@@ -25,7 +25,7 @@ class FallbackView : RComponent<RProps, RState>() {
             p("lead text-gray-800 mb-5") {
                 +"Page not found"
             }
-            child(type = LinkComponent, props = jsObject()) {
+            child(type = Link, props = jsObject()) {
                 attrs.to = "/"
                 +"← Back to the main page"
             }

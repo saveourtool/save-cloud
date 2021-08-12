@@ -25,7 +25,7 @@ import kotlinx.html.js.onClickFunction
  * @return modal
  */
 fun RBuilder.runErrorModal(
-    isErrorOpen: Boolean,
+    isErrorOpen: Boolean?,
     errorLabel: String,
     errorMessage: String,
     handler: (Event) -> Unit
