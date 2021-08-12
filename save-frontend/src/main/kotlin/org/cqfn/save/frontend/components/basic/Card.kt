@@ -37,7 +37,7 @@ external interface CardProps : RProps {
 }
 
 /**
- * A functional [RComponent] for a card.
+ * A functional `RComponent` for a card.
  *
  * @param contentBuilder a builder function for card content
  * @return a functional component representing a card

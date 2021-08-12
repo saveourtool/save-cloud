@@ -12,8 +12,8 @@ import react.router.dom.Link
 /**
  * A [RComponent] representing fallback page with 404 error
  */
-@OptIn(ExperimentalJsExport::class)
 @JsExport
+@OptIn(ExperimentalJsExport::class)
 class FallbackView : RComponent<RProps, State>() {
     @Suppress("ForbiddenComment")
     override fun RBuilder.render() {

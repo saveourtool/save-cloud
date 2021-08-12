@@ -57,8 +57,8 @@ external interface ExecutionState : State {
 /**
  * A [RComponent] for execution view
  */
-@OptIn(ExperimentalJsExport::class)
 @JsExport
+@OptIn(ExperimentalJsExport::class)
 class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
     init {
         state.executionDto = null

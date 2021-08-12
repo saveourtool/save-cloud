@@ -25,8 +25,8 @@ import kotlinx.html.ButtonType
 /**
  * A view with collection of projects
  */
-@OptIn(ExperimentalJsExport::class)
 @JsExport
+@OptIn(ExperimentalJsExport::class)
 class CollectionView : RComponent<RProps, State>() {
     @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR", "TOO_LONG_FUNCTION", "MAGIC_NUMBER")
     override fun RBuilder.render() {

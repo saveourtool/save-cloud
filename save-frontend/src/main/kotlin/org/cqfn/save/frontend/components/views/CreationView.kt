@@ -46,7 +46,7 @@ external interface ProjectSaveViewState : State {
     /**
      * Flag to handle error
      */
-    var isErrorWithProjectSave: Boolean
+    var isErrorWithProjectSave: Boolean?
 
     /**
      * Error message

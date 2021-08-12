@@ -51,7 +51,7 @@ external interface AppState : State {
 }
 
 /**
- * MAin component for the whole App
+ * Main component for the whole App
  */
 @JsExport
 @OptIn(ExperimentalJsExport::class)

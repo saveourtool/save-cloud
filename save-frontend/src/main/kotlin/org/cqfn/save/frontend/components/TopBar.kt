@@ -52,14 +52,14 @@ external interface TopBarState : State {
     /**
      * Whether logout window is opened
      */
-    var isLogoutModalOpen: Boolean
+    var isLogoutModalOpen: Boolean?
 }
 
 /**
  * A component for web page top bar
  */
-@OptIn(ExperimentalJsExport::class)
 @JsExport
+@OptIn(ExperimentalJsExport::class)
 class TopBar : RComponent<TopBarProps, TopBarState>() {
     // RouteResultProps - how to add other props??? Only via contexts?
     init {

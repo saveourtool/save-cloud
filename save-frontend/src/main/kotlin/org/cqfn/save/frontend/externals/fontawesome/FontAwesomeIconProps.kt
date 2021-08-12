@@ -7,7 +7,7 @@ import react.RProps
  */
 external interface FontAwesomeIconProps : RProps {
     /**
-     * Icon. Can be object, string or array.
+     * Icon. Can be an object, string or array.
      */
     var icon: dynamic
 

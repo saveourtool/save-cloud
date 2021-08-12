@@ -8,7 +8,7 @@ import react.RBuilder
 import react.RHandler
 
 /**
- * @param icon icon. Can be object, string or array.
+ * @param icon icon. Can be an object, string or array.
  * @param classes element's classes
  * @return ReactElement
  */

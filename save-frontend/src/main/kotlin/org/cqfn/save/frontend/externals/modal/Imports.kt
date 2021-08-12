@@ -21,7 +21,7 @@ external interface ModalProps : RProps {
     /**
      * Boolean describing if the modal should be shown or not. Defaults to false.
      */
-    var isOpen: Boolean
+    var isOpen: Boolean?
 
     /**
      * String indicating how the content container should be announced to screenreaders.

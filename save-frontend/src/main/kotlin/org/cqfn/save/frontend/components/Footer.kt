@@ -13,8 +13,8 @@ import react.dom.span
 /**
  * A web page footer component
  */
-@OptIn(ExperimentalJsExport::class)
 @JsExport
+@OptIn(ExperimentalJsExport::class)
 @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
 class Footer : RComponent<RProps, State>() {
     override fun RBuilder.render() {
