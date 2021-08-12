@@ -11,7 +11,7 @@ import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
 import react.RProps
 import react.dom.RDOMBuilder
 import react.dom.div
-import react.functionalComponent
+import react.fc
 
 import kotlinx.html.DIV
 
@@ -43,7 +43,7 @@ external interface CardProps : RProps {
  * @return a functional component representing a card
  */
 @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
-fun cardComponent(contentBuilder: RDOMBuilder<DIV>.() -> Unit) = functionalComponent<CardProps> { props ->
+fun cardComponent(contentBuilder: RDOMBuilder<DIV>.() -> Unit) = fc<CardProps> { props ->
     div("card-body") {
         div("row no-gutters align-items-center") {
             div("col mr-2") {

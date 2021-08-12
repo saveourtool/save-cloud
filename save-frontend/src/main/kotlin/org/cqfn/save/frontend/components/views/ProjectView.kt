@@ -33,7 +33,7 @@ import org.w3c.xhr.FormData
 import react.RBuilder
 import react.RComponent
 import react.RProps
-import react.RState
+import react.State
 import react.child
 import react.dom.a
 import react.dom.attrs
@@ -80,7 +80,7 @@ external interface ProjectExecutionRouteProps : RProps {
 /**
  * [RState] of project view component
  */
-external interface ProjectViewState : RState {
+external interface ProjectViewState : State {
     /**
      * Binary file of project
      */

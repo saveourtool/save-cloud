@@ -48,6 +48,7 @@ external interface HistoryProps : RProps {
  * A table to display execution results for a certain project.
  */
 @JsExport
+@OptIn(ExperimentalJsExport::class)
 class HistoryView : RComponent<HistoryProps, State>() {
     @Suppress(
         "TOO_LONG_FUNCTION",

@@ -10,7 +10,7 @@ import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
 import react.RBuilder
 import react.RComponent
 import react.RProps
-import react.RState
+import react.State
 import react.dom.RDOMBuilder
 import react.dom.a
 import react.dom.attrs
@@ -48,7 +48,7 @@ external interface TopBarProps : RProps {
 /**
  * A state of top bar component
  */
-external interface TopBarState : RState {
+external interface TopBarState : State {
     /**
      * Whether logout window is opened
      */

@@ -18,7 +18,7 @@ import org.w3c.fetch.Response
 import react.RBuilder
 import react.RComponent
 import react.RProps
-import react.RState
+import react.State
 import react.dom.attrs
 import react.dom.button
 import react.dom.div
@@ -42,7 +42,7 @@ import kotlinx.serialization.json.Json
 /**
  * [RState] of project creation view component
  */
-external interface ProjectSaveViewState : RState {
+external interface ProjectSaveViewState : State {
     /**
      * Flag to handle error
      */
@@ -60,6 +60,7 @@ external interface ProjectSaveViewState : RState {
  * @return a functional component
  */
 @JsExport
+@OptIn(ExperimentalJsExport::class)
 class CreationView : RComponent<RProps, ProjectSaveViewState>() {
     private val projectFieldsMap: MutableMap<String, String> = mutableMapOf()
     private val gitFieldsMap: MutableMap<String, String> = mutableMapOf()
