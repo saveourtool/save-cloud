@@ -4,6 +4,22 @@
 
 package org.cqfn.save.frontend.components.views
 
+import kotlinx.browser.window
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.await
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.html.ButtonType
+import kotlinx.html.InputType
+import kotlinx.html.classes
+import kotlinx.html.hidden
+import kotlinx.html.js.onChangeFunction
+import kotlinx.html.js.onClickFunction
+import kotlinx.html.role
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import org.cqfn.save.domain.Sdk
 import org.cqfn.save.domain.getSdkVersion
 import org.cqfn.save.domain.sdks
 import org.cqfn.save.domain.toSdk
@@ -13,6 +29,7 @@ import org.cqfn.save.entities.GitDto
 import org.cqfn.save.entities.Project
 import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.frontend.components.basic.cardComponent
+import org.cqfn.save.frontend.components.basic.checkBoxGrid
 import org.cqfn.save.frontend.externals.modal.modal
 import org.cqfn.save.frontend.utils.decodeFromJsonString
 import org.cqfn.save.frontend.utils.get
@@ -20,15 +37,14 @@ import org.cqfn.save.frontend.utils.getProject
 import org.cqfn.save.frontend.utils.post
 import org.cqfn.save.frontend.utils.runErrorModal
 import org.cqfn.save.testsuite.TestSuiteDto
-
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.HTMLSelectElement
+import org.w3c.dom.asList
 import org.w3c.fetch.Headers
 import org.w3c.fetch.Response
 import org.w3c.files.Blob
 import org.w3c.files.BlobPropertyBag
 import org.w3c.files.File
-import org.w3c.files.get
 import org.w3c.xhr.FormData
 import react.RBuilder
 import react.RComponent
@@ -54,21 +70,6 @@ import react.dom.span
 import react.dom.strong
 import react.setState
 
-import kotlinx.browser.window
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import kotlinx.html.ButtonType
-import kotlinx.html.InputType
-import kotlinx.html.classes
-import kotlinx.html.hidden
-import kotlinx.html.id
-import kotlinx.html.js.onChangeFunction
-import kotlinx.html.js.onClickFunction
-import kotlinx.html.role
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
-import org.cqfn.save.frontend.components.basic.checkBoxGrid
-
 /**
  * [RProps] retrieved from router
  */
@@ -79,18 +80,13 @@ external interface ProjectExecutionRouteProps : RProps {
 }
 
 /**
- * [RState] of project view component
+ * [State] of project view component
  */
 external interface ProjectViewState : State {
     /**
-     * Binary file of project
+     * Files required for tests execution for this project
      */
-    var binaryFile: File?
-
-    /**
-     * Property file for project
-     */
-    var propertyFile: File?
+    var files: List<File>
 
     /**
      * Message of error
@@ -129,14 +125,11 @@ external interface ProjectViewState : State {
 }
 
 /**
- * A functional RComponent for project view
- * Each modal opening call re render full page, that why we need to use state for all fields
- *
- * @return a functional component
+ * A Component for project view
+ * Each modal opening call causes re-render of the whole page, that's why we need to use state for all fields
  */
 @JsExport
 @OptIn(ExperimentalJsExport::class)
-@Suppress("CUSTOM_GETTERS_SETTERS")
 class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
     private var testTypesList: List<TestSuiteDto> = emptyList()
     private var pathToProperty: String? = null
@@ -145,7 +138,6 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
     private var gitDto: GitDto? = null
     private var project = Project("stub", "stub", "stub", "stub")
     private val allSdks = sdks
-    private lateinit var responseFromExecutionRequest: Response
 
     init {
         state.isErrorOpen = false
@@ -156,17 +148,18 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
 
         state.isLoading = true
 
-        state.selectedSdk = "Default"
-        state.selectedSdkVersion = "latest"
+        state.files = emptyList()
+        state.selectedSdk = Sdk.Default.name
+        state.selectedSdkVersion = Sdk.Default.version
     }
 
     override fun componentDidMount() {
         GlobalScope.launch {
             project = getProject(props.name, props.owner)
             val jsonProject = Json.encodeToString(project)
-            val headers = Headers().also {
-                it.set("Accept", "application/json")
-                it.set("Content-Type", "application/json")
+            val headers = Headers().apply {
+                set("Accept", "application/json")
+                set("Content-Type", "application/json")
             }
             gitDto = post("${window.location.origin}/getGit", headers, jsonProject)
                 .decodeFromJsonString<GitDto>()
@@ -198,19 +191,11 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                 }
                 return
             }
-            state.binaryFile ?: run {
+            if (state.files.isEmpty()) {
                 setState {
                     isErrorOpen = true
-                    errorLabel = "No binary file has been selected"
-                    errorMessage = "Please select binary file"
-                }
-                return
-            }
-            state.propertyFile ?: run {
-                setState {
-                    isErrorOpen = true
-                    errorLabel = "No property file has been selected"
-                    errorMessage = "Please upload save.properties file"
+                    errorLabel = "No files have been selected"
+                    errorMessage = "Please provide files necessary for execution"
                 }
                 return
             }
@@ -225,8 +210,11 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
         val selectedSdk = "${state.selectedSdk}:${state.selectedSdkVersion}".toSdk()
         val request = ExecutionRequestForStandardSuites(project, selectedTypes, selectedSdk)
         formData.append("execution", Blob(arrayOf(Json.encodeToString(request)), BlobPropertyBag("application/json")))
-        formData.append("property", state.propertyFile!!)
-        formData.append("binFile", state.binaryFile!!)
+        console.log(state.files.map { it.name })
+        formData.append("fileNames", Json.encodeToString(state.files.map { it.name }))
+        state.files.forEach {
+            formData.append(it.name, it)
+        }
         submitRequest("/submitExecutionRequestBin", headers, formData)
     }
 
@@ -255,16 +243,17 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
 
     private fun submitRequest(url: String, headers: Headers, body: dynamic) {
         GlobalScope.launch {
-            responseFromExecutionRequest = post(window.location.origin + url, headers, body)
-        }.invokeOnCompletion {
-            if (responseFromExecutionRequest.ok) {
-                window.location.href = "${window.location}/history"
-            } else {
-                setState {
-                    isErrorOpen = true
-                    errorLabel = "Error from backend"
-                    errorMessage = responseFromExecutionRequest.statusText
+            val response = post(window.location.origin + url, headers, body)
+            if (!response.ok) {
+                response.text().then { text ->
+                    setState {
+                        isErrorOpen = true
+                        errorLabel = "Error from backend"
+                        errorMessage = "${response.statusText}: $text"
+                    }
                 }
+            } else {
+                window.location.href = "${window.location}/history"
             }
         }
     }
@@ -401,38 +390,18 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                                         div {
                                             label {
                                                 input(type = InputType.file) {
+                                                    attrs.multiple = true
                                                     attrs.hidden = true
                                                     attrs {
                                                         onChangeFunction = { event ->
                                                             val target = event.target as HTMLInputElement
-                                                            setState { binaryFile = target.files?.let { it[0] } }
+                                                            setState { files = target.files!!.asList() }
                                                         }
                                                     }
                                                 }
                                                 img(classes = "img-upload", src = "img/upload.svg") {}
                                                 strong { +"Upload binary file:" }
-                                                +(state.binaryFile?.name ?: "")
-                                            }
-                                        }
-                                    }
-                                    div {
-                                        h6(classes = "d-inline mr-3") {
-                                            +"Properties : "
-                                        }
-                                        div {
-                                            label {
-                                                input(type = InputType.file) {
-                                                    attrs.hidden = true
-                                                    attrs {
-                                                        onChangeFunction = { event ->
-                                                            val target = event.target as HTMLInputElement
-                                                            setState { propertyFile = target.files?.let { it[0] } }
-                                                        }
-                                                    }
-                                                }
-                                                img(classes = "img-upload", src = "img/upload.svg") {}
-                                                strong { +"Upload property file: " }
-                                                +(state.propertyFile?.name ?: "")
+                                                +state.files.joinToString { it.name }
                                             }
                                         }
                                     }
