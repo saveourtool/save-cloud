@@ -46,6 +46,15 @@ class CollectionView : RComponent<RProps, State>() {
                         }
                     }
                 }
+                column(id = "name", header = "Name") {
+                    buildElement {
+                        td {
+                            a(href = "#/${it.value.owner}/${it.value.name}") {
+                                +it.value.name
+                            }
+                        }
+                    }
+                }
                 column(id = "passed", header = "Tests passed") {
                     buildElement {
                         td {

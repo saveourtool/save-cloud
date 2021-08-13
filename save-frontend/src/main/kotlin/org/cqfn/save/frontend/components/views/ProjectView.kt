@@ -67,6 +67,7 @@ import kotlinx.html.js.onClickFunction
 import kotlinx.html.role
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.cqfn.save.frontend.components.basic.checkBoxGrid
 
 /**
  * [RProps] retrieved from router
@@ -435,29 +436,9 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                                             }
                                         }
                                     }
-                                    div {
-                                        testTypesList
-                                            .map { it.name }
-                                            .chunked(TEST_SUITE_ROW)
-                                            .forEach { rowTypes ->
-                                                div("row") {
-                                                    rowTypes.forEach { typeName ->
-                                                        div("col") {
-                                                            +typeName
-                                                            input(type = InputType.checkBox, classes = "ml-3") {
-                                                                attrs.defaultChecked = selectedTypes.contains(typeName)
-                                                                attrs.onClickFunction = {
-                                                                    if (selectedTypes.contains(typeName)) {
-                                                                        selectedTypes.remove(typeName)
-                                                                    } else {
-                                                                        selectedTypes.add(typeName)
-                                                                    }
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
+                                    child(checkBoxGrid(testTypesList.map { it.name })) {
+                                        attrs.selectedTypes = selectedTypes
+                                        attrs.rowSize = TEST_SUITE_ROW
                                     }
                                 }
                             }
