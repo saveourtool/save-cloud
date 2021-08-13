@@ -108,20 +108,24 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
     @PostMapping(value = ["/uploadBin"], consumes = ["multipart/form-data"])
     fun uploadBin(
         @RequestPart executionRequestForStandardSuites: ExecutionRequestForStandardSuites,
-        @RequestPart("property", required = true) propertyFile: Mono<FilePart>,
-        @RequestPart("binFile", required = true) binaryFile: Mono<FilePart>,
+        @RequestPart("file", required = true) files: Flux<FilePart>,
     ) = Mono.just(ResponseEntity("Clone pending", HttpStatus.ACCEPTED))
         .doOnSuccess { _ ->
-            val binFile = File("program")
-            val propFile = File("save.properties")
-            Mono.zip(
-                propertyFile.flatMapMany { it.content() }.collectList(),
-                binaryFile.flatMapMany { it.content() }.collectList()
-            ).flatMap { (propertyFileContent, binaryFileContent) ->
-                propertyFileContent.map { dtBuffer -> propFile.outputStream().use { dtBuffer.asInputStream().copyTo(it) } }
-                binaryFileContent.map { dtBuffer -> binFile.outputStream().use { dtBuffer.asInputStream().copyTo(it) } }
-                saveBinaryFile(executionRequestForStandardSuites, propFile, binFile)
+            files.flatMap { file ->
+                // todo: don't use `filename()`
+                file.content().map { dtBuffer ->
+                        File(file.filename()).outputStream().use { os ->
+                            dtBuffer.asInputStream().use {
+                                it.copyTo(os)
+                            }
+                        }
+                    file.filename()
+                }
             }
+                .collectList()
+                .flatMap { fileNames ->
+                    saveBinaryFile(executionRequestForStandardSuites, fileNames.map(::File))
+                }
                 .subscribeOn(Schedulers.boundedElastic())
                 .subscribe()
         }
@@ -262,19 +266,19 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
 
     private fun saveBinaryFile(
         executionRequestForStandardSuites: ExecutionRequestForStandardSuites,
-        propertyFile: File,
-        binFile: File,
+        files: List<File>,
     ): Mono<StatusResponse> {
-        val tmpDir = generateDirectory(binFile.name)
-        val pathToProperties = tmpDir.resolve(propertyFile.name)
-        propertyFile.copyTo(pathToProperties)
-        propertyFile.delete()
-        binFile.copyTo(tmpDir.resolve(binFile.name))
-        binFile.delete()
+        val f = files.first { it.name != "save.properties" }.name
+        val tmpDir = generateDirectory(f)
+        files.forEach {
+            it.copyTo(tmpDir.resolve(it))
+            it.delete()
+        }
         val project = executionRequestForStandardSuites.project
-        val propertiesRelativePath = pathToProperties.relativeTo(tmpDir).name
+        val propertiesRelativePath = "save.properties"
         // todo: what's with version?
-        return updateExecution(executionRequestForStandardSuites.project, tmpDir.name, binFile.name).flatMap { execution ->
+        val version = files.first().name
+        return updateExecution(executionRequestForStandardSuites.project, tmpDir.name, version).flatMap { execution ->
             sendToBackendAndOrchestrator(
                 execution,
                 project,

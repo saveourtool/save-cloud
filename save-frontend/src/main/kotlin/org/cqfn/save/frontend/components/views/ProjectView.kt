@@ -210,10 +210,8 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
         val selectedSdk = "${state.selectedSdk}:${state.selectedSdkVersion}".toSdk()
         val request = ExecutionRequestForStandardSuites(project, selectedTypes, selectedSdk)
         formData.append("execution", Blob(arrayOf(Json.encodeToString(request)), BlobPropertyBag("application/json")))
-        console.log(state.files.map { it.name })
-        formData.append("fileNames", Json.encodeToString(state.files.map { it.name }))
         state.files.forEach {
-            formData.append(it.name, it)
+            formData.append("file", it)
         }
         submitRequest("/submitExecutionRequestBin", headers, formData)
     }

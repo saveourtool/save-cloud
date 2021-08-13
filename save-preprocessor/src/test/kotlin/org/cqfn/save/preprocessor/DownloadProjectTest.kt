@@ -190,8 +190,8 @@ class DownloadProjectTest(
         val request = ExecutionRequestForStandardSuites(project, emptyList(), Sdk.Default)
         val bodyBuilder = MultipartBodyBuilder()
         bodyBuilder.part("executionRequestForStandardSuites", request)
-        bodyBuilder.part("property", FileSystemResource(property))
-        bodyBuilder.part("binFile", FileSystemResource(binFile))
+        bodyBuilder.part("file", FileSystemResource(property))
+        bodyBuilder.part("file", FileSystemResource(binFile))
 
         mockServerBackend.enqueue(
             MockResponse()

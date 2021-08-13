@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestPart
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
 import java.time.LocalDateTime
@@ -82,8 +83,8 @@ class CloneRepositoryController(
     @PostMapping(value = ["/submitExecutionRequestBin"], consumes = ["multipart/form-data"])
     fun submitExecutionRequestByBin(
         @RequestPart("execution", required = true) executionRequestForStandardSuites: ExecutionRequestForStandardSuites,
-        @RequestPart("property", required = true) propertyFile: Mono<FilePart>,
-        @RequestPart("binFile", required = true) binaryFile: Mono<FilePart>,
+//        @RequestPart("fileNames", required = true) fileNames: List<String>,
+        @RequestPart("file", required = true) files: Flux<FilePart>,
     ): Mono<StringResponse> {
         val projectExecution = executionRequestForStandardSuites.project
         val project = projectService.getProjectByNameAndOwner(projectExecution.name, projectExecution.owner)
@@ -92,19 +93,22 @@ class CloneRepositoryController(
             log.info("Sending request to preprocessor to start save file for project id=${project.id}")
             val bodyBuilder = MultipartBodyBuilder()
             bodyBuilder.part("executionRequestForStandardSuites", executionRequestForStandardSuites)
-            return Mono.zip(propertyFile, binaryFile).map {
-                bodyBuilder.part("property", it.t1)
-                bodyBuilder.part("binFile", it.t2)
-            }.flatMap {
-                preprocessorWebClient
-                    .post()
-                    .uri("/uploadBin")
-                    .contentType(MediaType.MULTIPART_FORM_DATA)
-                    .body(BodyInserters.fromMultipartData(bodyBuilder.build()))
-                    .retrieve()
-                    .toEntity(String::class.java)
-                    .toMono()
+            return files.map {
+                log.info("it: ${it::class}")
+                bodyBuilder.part("file", it)
             }
+                .collectList()
+                .flatMap {
+//                    log.info(bodyBuilder.build().entries.toString())
+                    preprocessorWebClient
+                        .post()
+                        .uri("/uploadBin")
+                        .contentType(MediaType.MULTIPART_FORM_DATA)
+                        .body(BodyInserters.fromMultipartData(bodyBuilder.build()))
+                        .retrieve()
+                        .toEntity(String::class.java)
+                        .toMono()
+                }
         } ?: return Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Project doesn't exist"))
     }
 
