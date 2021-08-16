@@ -5,15 +5,11 @@
 package org.cqfn.save.frontend.components.views
 
 import kotlinx.browser.window
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import kotlinx.html.ButtonType
 import kotlinx.html.InputType
 import kotlinx.html.classes
-import kotlinx.html.hidden
 import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
 import kotlinx.html.role
@@ -21,7 +17,6 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.cqfn.save.domain.Sdk
 import org.cqfn.save.domain.getSdkVersion
-import org.cqfn.save.domain.sdks
 import org.cqfn.save.domain.toSdk
 import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.ExecutionRequestForStandardSuites
@@ -40,10 +35,8 @@ import org.cqfn.save.frontend.utils.post
 import org.cqfn.save.frontend.utils.runErrorModal
 import org.cqfn.save.testsuite.TestSuiteDto
 import org.w3c.dom.HTMLInputElement
-import org.w3c.dom.HTMLSelectElement
 import org.w3c.dom.asList
 import org.w3c.fetch.Headers
-import org.w3c.fetch.Response
 import org.w3c.files.Blob
 import org.w3c.files.BlobPropertyBag
 import org.w3c.files.File
@@ -60,16 +53,10 @@ import react.dom.defaultValue
 import react.dom.div
 import react.dom.h1
 import react.dom.h4
-import react.dom.h5
 import react.dom.h6
-import react.dom.img
 import react.dom.input
-import react.dom.label
-import react.dom.option
 import react.dom.p
-import react.dom.select
 import react.dom.span
-import react.dom.strong
 import react.setState
 
 /**
@@ -219,6 +206,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
 
     private fun submitExecutionRequestGit(correctGitDto: GitDto) {
         val selectedSdk = "${state.selectedSdk}:${state.selectedSdkVersion}".toSdk()
+        val formData = FormData()
         val executionRequest = pathToProperty?.let {
             ExecutionRequest(
                 project,
@@ -233,11 +221,11 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
             sdk = selectedSdk,
             executionId = null)
         val jsonExecution = Json.encodeToString(executionRequest)
-        val headers = Headers().also {
-            it.set("Accept", "application/json")
-            it.set("Content-Type", "application/json")
+        formData.append("executionRequest", Blob(arrayOf(jsonExecution), BlobPropertyBag("application/json")))
+        state.files.forEach {
+            formData.append("file", it)
         }
-        submitRequest("/submitExecutionRequest", headers, jsonExecution)
+        submitRequest("/submitExecutionRequest", Headers(), formData)
     }
 
     private fun submitRequest(url: String, headers: Headers, body: dynamic) {
@@ -449,24 +437,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                             +"Latest execution"
                             attrs.onClickFunction = {
                                 GlobalScope.launch {
-                                    val headers = Headers().apply { set("Accept", "application/json") }
-                                    val response = get(
-                                        "${window.location.origin}/latestExecution?name=${project.name}&owner=${project.owner}",
-                                        headers
-                                    )
-                                    if (!response.ok) {
-                                        setState {
-                                            errorLabel = "Failed to fetch latest execution"
-                                            errorMessage =
-                                                    "Failed to fetch latest execution: ${response.status} ${response.statusText}"
-                                            isErrorOpen = true
-                                        }
-                                    } else {
-                                        val latestExecutionId = response
-                                            .decodeFromJsonString<ExecutionDto>()
-                                            .id
-                                        window.location.href = "${window.location}/history/$latestExecutionId"
-                                    }
+                                    switchToLatestExecution()
                                 }
                             }
                         }
@@ -498,6 +469,27 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                     +"Loading..."
                 }
             }
+        }
+    }
+
+    private suspend fun switchToLatestExecution() {
+        val headers = Headers().apply { set("Accept", "application/json") }
+        val response = get(
+            "${window.location.origin}/latestExecution?name=${project.name}&owner=${project.owner}",
+            headers
+        )
+        if (!response.ok) {
+            setState {
+                errorLabel = "Failed to fetch latest execution"
+                errorMessage =
+                    "Failed to fetch latest execution: ${response.status} ${response.statusText}"
+                isErrorOpen = true
+            }
+        } else {
+            val latestExecutionId = response
+                .decodeFromJsonString<ExecutionDto>()
+                .id
+            window.location.href = "${window.location}/history/$latestExecutionId"
         }
     }
 

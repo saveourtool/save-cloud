@@ -32,6 +32,7 @@ import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
 import org.slf4j.LoggerFactory
 import org.springframework.core.io.ClassPathResource
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.http.ReactiveHttpOutputMessage
 import org.springframework.http.ResponseEntity
 import org.springframework.http.codec.multipart.FilePart
@@ -77,10 +78,23 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
      * @param executionRequest - Dto of repo information to clone and project info
      * @return response entity with text
      */
-    @PostMapping("/upload")
-    fun upload(@RequestBody executionRequest: ExecutionRequest): Mono<TextResponse> = Mono.just(ResponseEntity("Clone pending", HttpStatus.ACCEPTED))
+    @PostMapping("/upload", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
+    fun upload(
+        @RequestPart(required = true) executionRequest: ExecutionRequest,
+        @RequestPart("file", required = true) files: Flux<FilePart>,
+    ): Mono<TextResponse> = Mono.just(ResponseEntity("Clone pending", HttpStatus.ACCEPTED))
         .doOnSuccess {
             downLoadRepository(executionRequest)
+                .flatMap { (location, version) ->
+                    val resourcesLocation = File(location)
+                        .resolve(executionRequest.propertiesRelativePath)
+                        .parentFile
+                    log.info("Downloading additional files into $resourcesLocation")
+                    files.download(resourcesLocation).map {
+                        log.info("Downloaded ${it.size} files into $resourcesLocation")
+                        Pair(location, version)
+                    }
+                }
                 .flatMap { (location, version) ->
                     updateExecution(executionRequest.project, location, version).map { execution ->
                         Pair(execution, location)
@@ -110,21 +124,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         @RequestPart("file", required = true) files: Flux<FilePart>,
     ) = Mono.just(ResponseEntity("Clone pending", HttpStatus.ACCEPTED))
         .doOnSuccess { _ ->
-            files.flatMap { filePart ->
-                val file = File(filePart.filename()).apply {
-                    createNewFile()
-                }
-                // todo: don't use `filename()`
-                filePart.content().map { dtBuffer ->
-                    FileOutputStream(file, true).use { os ->
-                            dtBuffer.asInputStream().use {
-                                it.copyTo(os)
-                            }
-                        }
-                    file
-                }
-            }
-                .collectList()
+            files.download(File("."))
                 .flatMap { files ->
                     saveBinaryFile(executionRequestForStandardSuites, files)
                 }
@@ -479,6 +479,23 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
             }
         return toBody(responseSpec).log()
     }
+
+    private fun Flux<FilePart>.download(destination: File): Mono<List<File>> = flatMap { filePart ->
+        val file = File(destination, filePart.filename()).apply {
+            createNewFile()
+        }
+        // todo: don't use `filename()`
+        log.info("Downloading ${filePart.filename()} into ${file.absolutePath}")
+        filePart.content().map { dtBuffer ->
+            FileOutputStream(file, true).use { os ->
+                dtBuffer.asInputStream().use {
+                    it.copyTo(os)
+                }
+            }
+            file
+        }
+    }
+        .collectList()
 }
 
 /**

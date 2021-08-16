@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestPart
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
+import org.springframework.web.reactive.function.client.toEntity
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
@@ -52,23 +53,38 @@ class CloneRepositoryController(
      * @return mono string
      */
     @Suppress("TOO_MANY_LINES_IN_LAMBDA")
-    @PostMapping(value = ["/submitExecutionRequest"])
-    fun submitExecutionRequest(@RequestBody executionRequest: ExecutionRequest): Mono<StringResponse> {
+    @PostMapping(value = ["/submitExecutionRequest"], consumes = ["multipart/form-data"])
+    fun submitExecutionRequest(
+        @RequestPart(required = true) executionRequest: ExecutionRequest,
+        @RequestPart("file", required = true) files: Flux<FilePart>,
+    ): Mono<StringResponse> {
         val projectExecution = executionRequest.project
         val project = projectService.getProjectByNameAndOwner(projectExecution.name, projectExecution.owner)
-        return project?.let {
-            val newExecutionId = saveExecution(it, ExecutionType.GIT, configProperties.initialBatchSize, executionRequest.sdk)
-            log.info("Sending request to preprocessor to start cloning project id=${it.id}")
-            preprocessorWebClient
-                .post()
-                .uri("/upload")
-                .body(
-                    Mono.just(executionRequest.copy(executionId = newExecutionId)),
-                    ExecutionRequest::class.java
-                )
-                .retrieve()
-                .toEntity(String::class.java)
-                .toMono()
+        return project?.let { _ ->
+            val newExecutionId = saveExecution(project, ExecutionType.GIT, configProperties.initialBatchSize, executionRequest.sdk)
+            log.info("Sending request to preprocessor to start cloning project id=${project.id}")
+            val bodyBuilder = MultipartBodyBuilder().apply {
+                part("executionRequest", executionRequest.copy(executionId = newExecutionId))
+            }
+            files.map {
+                log.info("Appenidng a file ${it.filename()} to multipart")
+                bodyBuilder.part("file", it)
+            }
+                .collectList()
+                .flatMap {
+                    preprocessorWebClient
+                        .post()
+                        .uri("/upload")
+                        .contentType(MediaType.MULTIPART_FORM_DATA)
+                        .body(
+                            BodyInserters.fromMultipartData(
+                                bodyBuilder.build()
+                            )
+                        )
+                        .retrieve()
+                        .toEntity<String>()
+                        .toMono()
+                }
         } ?: Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Project doesn't exist"))
     }
 
@@ -102,7 +118,7 @@ class CloneRepositoryController(
                         .contentType(MediaType.MULTIPART_FORM_DATA)
                         .body(BodyInserters.fromMultipartData(bodyBuilder.build()))
                         .retrieve()
-                        .toEntity(String::class.java)
+                        .toEntity<String>()
                         .toMono()
                 }
         } ?: return Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).body("Project doesn't exist"))
