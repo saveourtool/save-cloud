@@ -30,6 +30,7 @@ import org.cqfn.save.entities.Project
 import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.frontend.components.basic.cardComponent
 import org.cqfn.save.frontend.components.basic.checkBoxGrid
+import org.cqfn.save.frontend.components.basic.sdkSelection
 import org.cqfn.save.frontend.externals.modal.modal
 import org.cqfn.save.frontend.utils.decodeFromJsonString
 import org.cqfn.save.frontend.utils.get
@@ -137,7 +138,6 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
     private val selectedTypes: MutableList<String> = mutableListOf()
     private var gitDto: GitDto? = null
     private var project = Project("stub", "stub", "stub", "stub")
-    private val allSdks = sdks
 
     init {
         state.isErrorOpen = false
@@ -411,56 +411,16 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                             }
                         }
 
-                        div {
-                            div {
-                                div("d-inline-block") {
-                                    h5 {
-                                        +"SDK:"
-                                    }
-                                }
-                                div("d-inline-block ml-2") {
-                                    select("form-control form-control mb-3") {
-                                        attrs.value = state.selectedSdk
-                                        attrs.onChangeFunction = {
-                                            val target = it.target as HTMLSelectElement
-                                            setState {
-                                                selectedSdk = target.value
-                                                selectedSdkVersion = selectedSdk.getSdkVersion().first()
-                                            }
-                                        }
-                                        allSdks.forEach {
-                                            option {
-                                                attrs.value = it
-                                                +it
-                                            }
-                                        }
-                                    }
-                                }
+                        child(sdkSelection({
+                            setState {
+                                selectedSdk = it.value
+                                selectedSdkVersion = selectedSdk.getSdkVersion().first()
                             }
-                            div {
-                                attrs.classes =
-                                        if (state.selectedSdk == "Default") setOf("d-none") else setOf("d-inline ml-3")
-                                div("d-inline-block") {
-                                    h6 {
-                                        +"SDK's version:"
-                                    }
-                                }
-                                div("d-inline-block ml-2") {
-                                    select("form-select form-select-sm mb-3") {
-                                        attrs.value = state.selectedSdkVersion
-                                        attrs.onChangeFunction = {
-                                            val target = it.target as HTMLSelectElement
-                                            setState { selectedSdkVersion = target.value }
-                                        }
-                                        state.selectedSdk.getSdkVersion().forEach {
-                                            option {
-                                                attrs.value = it
-                                                +it
-                                            }
-                                        }
-                                    }
-                                }
-                            }
+                        }, {
+                            setState { selectedSdkVersion = it.value }
+                        })) {
+                            attrs.selectedSdk = state.selectedSdk
+                            attrs.selectedSdkVersion = state.selectedSdkVersion
                         }
 
                         div {
