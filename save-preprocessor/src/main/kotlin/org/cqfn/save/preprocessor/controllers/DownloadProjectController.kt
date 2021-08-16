@@ -53,6 +53,7 @@ import reactor.kotlin.core.util.function.component2
 import reactor.netty.http.client.HttpClientRequest
 
 import java.io.File
+import java.io.FileOutputStream
 import java.time.Duration
 import java.util.stream.Collectors
 
@@ -99,32 +100,33 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         }
 
     /**
-     * @param executionRequestForStandardSuites - Dto of binary file, test suites names and project info
-     * @param propertyFile
-     * @param binaryFile
+     * @param executionRequestForStandardSuites Dto of binary file, test suites names and project info
+     * @param files resources for execution
      * @return response entity with text
      */
-    @Suppress("TOO_MANY_LINES_IN_LAMBDA")
     @PostMapping(value = ["/uploadBin"], consumes = ["multipart/form-data"])
     fun uploadBin(
         @RequestPart executionRequestForStandardSuites: ExecutionRequestForStandardSuites,
         @RequestPart("file", required = true) files: Flux<FilePart>,
     ) = Mono.just(ResponseEntity("Clone pending", HttpStatus.ACCEPTED))
         .doOnSuccess { _ ->
-            files.flatMap { file ->
+            files.flatMap { filePart ->
+                val file = File(filePart.filename()).apply {
+                    createNewFile()
+                }
                 // todo: don't use `filename()`
-                file.content().map { dtBuffer ->
-                        File(file.filename()).outputStream().use { os ->
+                filePart.content().map { dtBuffer ->
+                    FileOutputStream(file, true).use { os ->
                             dtBuffer.asInputStream().use {
                                 it.copyTo(os)
                             }
                         }
-                    file.filename()
+                    file
                 }
             }
                 .collectList()
-                .flatMap { fileNames ->
-                    saveBinaryFile(executionRequestForStandardSuites, fileNames.map(::File))
+                .flatMap { files ->
+                    saveBinaryFile(executionRequestForStandardSuites, files)
                 }
                 .subscribeOn(Schedulers.boundedElastic())
                 .subscribe()
@@ -268,11 +270,12 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         executionRequestForStandardSuites: ExecutionRequestForStandardSuites,
         files: List<File>,
     ): Mono<StatusResponse> {
-        val f = files.first { it.name != "save.properties" }.name
-        val tmpDir = generateDirectory(f)
+        // fixme: generate directory based on all files
+        val tmpDir = generateDirectory(
+            files.first { it.name != "save.properties" }.name
+        )
         files.forEach {
-            it.copyTo(tmpDir.resolve(it))
-            it.delete()
+            it.renameTo(tmpDir.resolve(it))
         }
         val project = executionRequestForStandardSuites.project
         val propertiesRelativePath = "save.properties"
