@@ -76,14 +76,12 @@ class CloneRepositoryController(
      * Endpoint to save project as binary file
      *
      * @param executionRequestForStandardSuites information about project
-     * @param propertyFile file with save properties
-     * @param binaryFile binary project file
+     * @param files files required for execution
      * @return mono string
      */
     @PostMapping(value = ["/submitExecutionRequestBin"], consumes = ["multipart/form-data"])
     fun submitExecutionRequestByBin(
         @RequestPart("execution", required = true) executionRequestForStandardSuites: ExecutionRequestForStandardSuites,
-//        @RequestPart("fileNames", required = true) fileNames: List<String>,
         @RequestPart("file", required = true) files: Flux<FilePart>,
     ): Mono<StringResponse> {
         val projectExecution = executionRequestForStandardSuites.project
@@ -94,12 +92,10 @@ class CloneRepositoryController(
             val bodyBuilder = MultipartBodyBuilder()
             bodyBuilder.part("executionRequestForStandardSuites", executionRequestForStandardSuites)
             return files.map {
-                log.info("it: ${it::class}")
                 bodyBuilder.part("file", it)
             }
                 .collectList()
                 .flatMap {
-//                    log.info(bodyBuilder.build().entries.toString())
                     preprocessorWebClient
                         .post()
                         .uri("/uploadBin")
@@ -109,7 +105,7 @@ class CloneRepositoryController(
                         .toEntity(String::class.java)
                         .toMono()
                 }
-        } ?: return Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Project doesn't exist"))
+        } ?: return Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).body("Project doesn't exist"))
     }
 
     @Suppress("UnsafeCallOnNullableType")
