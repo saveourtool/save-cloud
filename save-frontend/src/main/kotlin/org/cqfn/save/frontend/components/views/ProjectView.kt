@@ -30,6 +30,7 @@ import org.cqfn.save.entities.Project
 import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.frontend.components.basic.cardComponent
 import org.cqfn.save.frontend.components.basic.checkBoxGrid
+import org.cqfn.save.frontend.components.basic.fileUploader
 import org.cqfn.save.frontend.components.basic.sdkSelection
 import org.cqfn.save.frontend.externals.modal.modal
 import org.cqfn.save.frontend.utils.decodeFromJsonString
@@ -366,6 +367,11 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                                             }
                                         }
                                     }
+                                    child(fileUploader {
+                                        setState { files = it.files!!.asList() }
+                                    }) {
+                                        attrs.files = state.files
+                                    }
                                 }
                             }
 
@@ -381,27 +387,10 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                                     setOf("d-none")
                                 }
                                 div("card-body") {
-                                    div("mb-3") {
-                                        h6(classes = "d-inline mr-3") {
-                                            +"Binary file: "
-                                        }
-                                        div {
-                                            label {
-                                                input(type = InputType.file) {
-                                                    attrs.multiple = true
-                                                    attrs.hidden = true
-                                                    attrs {
-                                                        onChangeFunction = { event ->
-                                                            val target = event.target as HTMLInputElement
-                                                            setState { files = target.files!!.asList() }
-                                                        }
-                                                    }
-                                                }
-                                                img(classes = "img-upload", src = "img/upload.svg") {}
-                                                strong { +"Upload binary file:" }
-                                                +state.files.joinToString { it.name }
-                                            }
-                                        }
+                                    child(fileUploader {
+                                        setState { files = it.files!!.asList() }
+                                    }) {
+                                        attrs.files = state.files
                                     }
                                     child(checkBoxGrid(testTypesList.map { it.name })) {
                                         attrs.selectedTypes = selectedTypes
