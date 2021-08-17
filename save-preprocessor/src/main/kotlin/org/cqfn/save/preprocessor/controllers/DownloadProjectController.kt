@@ -87,7 +87,8 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         .doOnSuccess {
             downLoadRepository(executionRequest)
                 .flatMap { (location, version) ->
-                    val resourcesLocation = File(location)
+                    val resourcesLocation = File(configProperties.repository)
+                        .resolve(location)
                         .resolve(executionRequest.propertiesRelativePath)
                         .parentFile
                     log.info("Downloading additional files into $resourcesLocation")

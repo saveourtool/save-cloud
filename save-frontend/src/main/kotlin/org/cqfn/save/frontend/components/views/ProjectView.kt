@@ -231,6 +231,9 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
     }
 
     private fun submitRequest(url: String, headers: Headers, body: dynamic) {
+        setState {
+            isLoading = true
+        }
         GlobalScope.launch {
             val response = post(window.location.origin + url, headers, body)
             if (!response.ok) {
@@ -244,6 +247,11 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
             } else {
                 window.location.href = "${window.location}/history"
             }
+        }
+            .invokeOnCompletion {
+                setState {
+                    isLoading = false
+                }
         }
     }
 
