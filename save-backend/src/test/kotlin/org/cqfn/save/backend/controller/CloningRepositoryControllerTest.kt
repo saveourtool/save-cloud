@@ -89,10 +89,14 @@ class CloningRepositoryControllerTest {
         val sdk = Jdk("8")
         val gitRepo = GitDto("1")
         val executionRequest = ExecutionRequest(project, gitRepo, sdk = sdk, executionId = null)
+        val multipart = MultipartBodyBuilder().apply {
+            part("executionRequest", executionRequest)
+        }
+            .build()
         webTestClient.post()
             .uri("/submitExecutionRequest")
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(BodyInserters.fromValue(executionRequest))
+            .contentType(MediaType.MULTIPART_FORM_DATA)
+            .body(BodyInserters.fromMultipartData(multipart))
             .exchange()
             .expectStatus()
             .isEqualTo(HttpStatus.ACCEPTED)

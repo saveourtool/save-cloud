@@ -96,10 +96,14 @@ class DownloadProjectTest(
             MockResponse().setResponseCode(200)
         )
 
+        val multipart = MultipartBodyBuilder().apply {
+            part("executionRequest", request)
+        }
+            .build()
         webClient.post()
             .uri("/upload")
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(BodyInserters.fromValue(request))
+            .contentType(MediaType.MULTIPART_FORM_DATA)
+            .body(BodyInserters.fromMultipartData(multipart))
             .exchange()
             .expectStatus()
             .isAccepted
@@ -157,10 +161,14 @@ class DownloadProjectTest(
                 mockServerOrchestrator.takeRequest(60, TimeUnit.SECONDS)
             )
         }
+        val multipart = MultipartBodyBuilder().apply {
+            part("executionRequest", request)
+        }
+            .build()
         webClient.post()
             .uri("/upload")
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(BodyInserters.fromValue(request))
+            .contentType(MediaType.MULTIPART_FORM_DATA)
+            .body(BodyInserters.fromMultipartData(multipart))
             .exchange()
             .expectStatus()
             .isAccepted

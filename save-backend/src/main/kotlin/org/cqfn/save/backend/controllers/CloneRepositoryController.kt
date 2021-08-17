@@ -56,7 +56,7 @@ class CloneRepositoryController(
     @PostMapping(value = ["/submitExecutionRequest"], consumes = ["multipart/form-data"])
     fun submitExecutionRequest(
         @RequestPart(required = true) executionRequest: ExecutionRequest,
-        @RequestPart("file", required = true) files: Flux<FilePart>,
+        @RequestPart("file", required = false) files: Flux<FilePart>,
     ): Mono<StringResponse> {
         val projectExecution = executionRequest.project
         val project = projectService.getProjectByNameAndOwner(projectExecution.name, projectExecution.owner)

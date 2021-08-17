@@ -82,7 +82,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
     @PostMapping("/upload", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     fun upload(
         @RequestPart(required = true) executionRequest: ExecutionRequest,
-        @RequestPart("file", required = true) files: Flux<FilePart>,
+        @RequestPart("file", required = false) files: Flux<FilePart>,
     ): Mono<TextResponse> = Mono.just(ResponseEntity("Clone pending", HttpStatus.ACCEPTED))
         .doOnSuccess {
             downLoadRepository(executionRequest)
