@@ -19,7 +19,6 @@ import org.springframework.http.ResponseEntity
 import org.springframework.http.client.MultipartBodyBuilder
 import org.springframework.http.codec.multipart.FilePart
 import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestPart
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.reactive.function.BodyInserters
@@ -50,6 +49,7 @@ class CloneRepositoryController(
      * Endpoint to save project
      *
      * @param executionRequest information about project
+     * @param files resources for execution
      * @return mono string
      */
     @Suppress("TOO_MANY_LINES_IN_LAMBDA")

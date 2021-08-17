@@ -1,34 +1,53 @@
+/**
+ * Grid with configurable number of checkboxes
+ */
+
+@file:Suppress("FILE_NAME_MATCH_CLASS")
+
 package org.cqfn.save.frontend.components.basic
 
-import kotlinx.html.InputType
-import kotlinx.html.js.onClickFunction
-import org.cqfn.save.frontend.components.views.ProjectView
 import react.RProps
 import react.dom.div
 import react.dom.input
 import react.fc
 
+import kotlinx.html.InputType
+import kotlinx.html.js.onClickFunction
+
+/**
+ * Props for ChecboxGrid component
+ */
 external interface CheckBoxGridProps : RProps {
+    /**
+     * Length of row of checkboxes
+     */
     var rowSize: Int
-    var selectedTypes: MutableList<String>
+
+    /**
+     * Currently selected elements
+     */
+    var selectedOptions: MutableList<String>
 }
 
+/**
+ * @param options list of displayed selectable options
+ * @return an RComponent
+ */
 fun checkBoxGrid(options: List<String>) = fc<CheckBoxGridProps> { props ->
     div {
-        options
-            .chunked(props.rowSize)
-            .forEach { rowTypes ->
+        options.chunked(props.rowSize)
+            .forEach { optionsRow ->
                 div("row") {
-                    rowTypes.forEach { typeName ->
+                    optionsRow.forEach { option ->
                         div("col") {
-                            +typeName
+                            +option
                             input(type = InputType.checkBox, classes = "ml-3") {
-                                attrs.defaultChecked = props.selectedTypes.contains(typeName)
+                                attrs.defaultChecked = props.selectedOptions.contains(option)
                                 attrs.onClickFunction = {
-                                    if (props.selectedTypes.contains(typeName)) {
-                                        props.selectedTypes.remove(typeName)
+                                    if (props.selectedOptions.contains(option)) {
+                                        props.selectedOptions.remove(option)
                                     } else {
-                                        props.selectedTypes.add(typeName)
+                                        props.selectedOptions.add(option)
                                     }
                                 }
                             }

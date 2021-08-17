@@ -75,7 +75,8 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
     private val webClientOrchestrator = WebClient.create(configProperties.orchestrator)
 
     /**
-     * @param executionRequest - Dto of repo information to clone and project info
+     * @param executionRequest Dto of repo information to clone and project info
+     * @param files resources required for execution
      * @return response entity with text
      */
     @PostMapping("/upload", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])

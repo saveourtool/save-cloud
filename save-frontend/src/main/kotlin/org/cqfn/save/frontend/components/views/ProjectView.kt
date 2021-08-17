@@ -4,19 +4,8 @@
 
 package org.cqfn.save.frontend.components.views
 
-import kotlinx.browser.window
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import kotlinx.html.ButtonType
-import kotlinx.html.InputType
-import kotlinx.html.classes
-import kotlinx.html.js.onChangeFunction
-import kotlinx.html.js.onClickFunction
-import kotlinx.html.role
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import org.cqfn.save.domain.Sdk
-import org.cqfn.save.domain.getSdkVersion
+import org.cqfn.save.domain.getSdkVersions
 import org.cqfn.save.domain.toSdk
 import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.ExecutionRequestForStandardSuites
@@ -34,6 +23,7 @@ import org.cqfn.save.frontend.utils.getProject
 import org.cqfn.save.frontend.utils.post
 import org.cqfn.save.frontend.utils.runErrorModal
 import org.cqfn.save.testsuite.TestSuiteDto
+
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.asList
 import org.w3c.fetch.Headers
@@ -58,6 +48,18 @@ import react.dom.input
 import react.dom.p
 import react.dom.span
 import react.setState
+
+import kotlinx.browser.window
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.html.ButtonType
+import kotlinx.html.InputType
+import kotlinx.html.classes
+import kotlinx.html.js.onChangeFunction
+import kotlinx.html.js.onClickFunction
+import kotlinx.html.role
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 /**
  * [RProps] retrieved from router
@@ -381,7 +383,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                                         attrs.files = state.files
                                     }
                                     child(checkBoxGrid(testTypesList.map { it.name })) {
-                                        attrs.selectedTypes = selectedTypes
+                                        attrs.selectedOptions = selectedTypes
                                         attrs.rowSize = TEST_SUITE_ROW
                                     }
                                 }
@@ -391,7 +393,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                         child(sdkSelection({
                             setState {
                                 selectedSdk = it.value
-                                selectedSdkVersion = selectedSdk.getSdkVersion().first()
+                                selectedSdkVersion = selectedSdk.getSdkVersions().first()
                             }
                         }, {
                             setState { selectedSdkVersion = it.value }
@@ -482,7 +484,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
             setState {
                 errorLabel = "Failed to fetch latest execution"
                 errorMessage =
-                    "Failed to fetch latest execution: ${response.status} ${response.statusText}"
+                        "Failed to fetch latest execution: ${response.status} ${response.statusText}"
                 isErrorOpen = true
             }
         } else {
