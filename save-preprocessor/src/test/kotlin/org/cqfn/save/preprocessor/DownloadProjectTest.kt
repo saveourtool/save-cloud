@@ -54,9 +54,6 @@ import java.time.LocalDateTime
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
 
-import kotlin.io.path.ExperimentalPathApi
-
-@ExperimentalPathApi
 @WebFluxTest(controllers = [DownloadProjectController::class])
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @AutoConfigureWebTestClient(timeout = "60000")
@@ -246,8 +243,8 @@ class DownloadProjectTest(
         Assertions.assertEquals("echo 0", File("${configProperties.repository}/${binFile.name.hashCode()}/program").readText())
     }
 
-    @ExperimentalFileSystem
     @Test
+    @OptIn(ExperimentalFileSystem::class)
     fun testStandardTestSuites() {
         val requestSize = readStandardTestSuitesFile(configProperties.reposFileName)
             .toList()

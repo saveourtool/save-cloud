@@ -252,7 +252,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                 setState {
                     isLoading = false
                 }
-        }
+            }
     }
 
     @Suppress("TOO_LONG_FUNCTION", "LongMethod", "ComplexMethod")

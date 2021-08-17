@@ -496,6 +496,8 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
             }
             file
         }
+            // return a single Mono per file, discarding how many parts `content()` has
+            .last()
     }
         .collectList()
 }
