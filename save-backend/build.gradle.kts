@@ -13,6 +13,7 @@ configureSpringBoot(true)
 tasks.withType<KotlinCompile> {
     kotlinOptions {
         jvmTarget = Versions.jdk
+        freeCompilerArgs = freeCompilerArgs + "-Xopt-in=kotlin.RequiresOptIn"
     }
 }
 
@@ -30,7 +31,7 @@ tasks.withType<Test> {
 dependencies {
     implementation(project(":save-cloud-common"))
     runtimeOnly(project(":save-frontend", "distribution"))  // static resources packed as a jar, will be accessed from classpath
-    implementation("io.projectreactor.kotlin:reactor-kotlin-extensions:${Versions.reactor}")
+    implementation("org.springframework.boot:spring-boot-starter-quartz:${Versions.springBoot}")
     testImplementation("com.squareup.okhttp3:okhttp:${Versions.okhttp3}")
     testImplementation("com.squareup.okhttp3:mockwebserver:${Versions.okhttp3}")
 }
