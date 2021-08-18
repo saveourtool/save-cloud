@@ -11,6 +11,7 @@ import org.quartz.JobBuilder
 import org.quartz.JobExecutionContext
 import org.quartz.Scheduler
 import org.quartz.TriggerBuilder
+import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 import java.time.Duration
@@ -20,12 +21,12 @@ import javax.annotation.PostConstruct
 /**
  * a [Job] that commands preprocessor to update standard test suites
  */
-@Component
 class UpdateJob(
     configProperties: ConfigProperties
 ) : Job {
     private val preprocessorWebClient = WebClient.create(configProperties.preprocessorUrl)
 
+    @Suppress("MagicNumber")
     override fun execute(context: JobExecutionContext?) {
         preprocessorWebClient.post()
             .uri("/uploadStandardTestSuite")
@@ -39,6 +40,7 @@ class UpdateJob(
  * A component that is capable of scheduling [UpdateJob]
  */
 @Component
+@Profile("prod")
 class StandardSuitesUpdateScheduler(
     private val scheduler: Scheduler,
 ) {
