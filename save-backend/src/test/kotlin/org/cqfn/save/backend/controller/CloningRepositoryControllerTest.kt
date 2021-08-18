@@ -10,6 +10,7 @@ import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.repository.TestExecutionRepository
 import org.cqfn.save.backend.repository.TestRepository
 import org.cqfn.save.backend.repository.TestSuiteRepository
+import org.cqfn.save.backend.scheduling.StandardSuitesUpdateScheduler
 import org.cqfn.save.backend.service.ExecutionService
 import org.cqfn.save.backend.service.ProjectService
 import org.cqfn.save.domain.Jdk
@@ -59,6 +60,7 @@ import java.time.Duration
     MockBean(TestSuiteRepository::class),
     MockBean(ProjectRepository::class),
     MockBean(GitRepository::class),
+    MockBean(StandardSuitesUpdateScheduler::class),
 )
 class CloningRepositoryControllerTest {
     @Autowired

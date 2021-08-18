@@ -9,6 +9,7 @@ import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.repository.TestExecutionRepository
 import org.cqfn.save.backend.repository.TestRepository
 import org.cqfn.save.backend.repository.TestSuiteRepository
+import org.cqfn.save.backend.scheduling.StandardSuitesUpdateScheduler
 
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -35,6 +36,7 @@ import kotlin.io.path.ExperimentalPathApi
     MockBean(TestRepository::class),
     MockBean(TestSuiteRepository::class),
     MockBean(GitRepository::class),
+    MockBean(StandardSuitesUpdateScheduler::class),
 )
 class DownloadFilesTest {
     @Autowired

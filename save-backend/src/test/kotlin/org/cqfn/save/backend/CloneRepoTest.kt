@@ -2,6 +2,7 @@ package org.cqfn.save.backend
 
 import org.cqfn.save.backend.repository.ExecutionRepository
 import org.cqfn.save.backend.repository.ProjectRepository
+import org.cqfn.save.backend.scheduling.StandardSuitesUpdateScheduler
 import org.cqfn.save.backend.utils.MySqlExtension
 import org.cqfn.save.domain.Jdk
 import org.cqfn.save.entities.ExecutionRequest
@@ -18,6 +19,8 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.boot.test.mock.mockito.MockBeans
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.test.context.DynamicPropertyRegistry
@@ -28,6 +31,9 @@ import org.springframework.web.reactive.function.BodyInserters
 @SpringBootTest(classes = [SaveApplication::class])
 @AutoConfigureWebTestClient
 @ExtendWith(MySqlExtension::class)
+@MockBeans(
+    MockBean(StandardSuitesUpdateScheduler::class),
+)
 class CloneRepoTest {
     @Autowired
     private lateinit var webClient: WebTestClient
