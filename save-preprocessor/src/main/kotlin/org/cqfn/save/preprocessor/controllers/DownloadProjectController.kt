@@ -19,6 +19,7 @@ import org.cqfn.save.preprocessor.TextResponse
 import org.cqfn.save.preprocessor.config.ConfigProperties
 import org.cqfn.save.preprocessor.service.TestDiscoveringService
 import org.cqfn.save.preprocessor.utils.decodeFromPropertiesFile
+import org.cqfn.save.preprocessor.utils.toHash
 import org.cqfn.save.testsuite.TestSuiteDto
 import org.cqfn.save.testsuite.TestSuiteType
 
@@ -92,10 +93,15 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                         .resolve(executionRequest.propertiesRelativePath)
                         .parentFile
                     log.info("Downloading additional files into $resourcesLocation")
-                    files.download(resourcesLocation).map {
-                        log.info("Downloaded ${it.size} files into $resourcesLocation")
-                        Pair(location, version)
-                    }
+                    files.download(resourcesLocation)
+                        .switchIfEmpty(
+                            // if no files have been provided, proceed with empty list
+                            Mono.just(emptyList())
+                        )
+                        .map {
+                            log.info("Downloaded ${it.size} files into $resourcesLocation")
+                            Pair(location, version)
+                        }
                 }
                 .flatMap { (location, version) ->
                     updateExecution(executionRequest.project, location, version).map { execution ->
@@ -183,7 +189,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
     fun uploadStandardTestSuite() {
         readStandardTestSuitesFile(configProperties.reposFileName).forEach { (testSuiteUrl, testSuitePaths) ->
             log.info("Starting clone repository url=$testSuiteUrl for standard test suites")
-            val tmpDir = generateDirectory(testSuiteUrl)
+            val tmpDir = generateDirectory(listOf(testSuiteUrl))
             cloneFromGit(GitDto(testSuiteUrl), tmpDir)?.use {
                 Flux.fromIterable(testSuitePaths).flatMap { testRootPath ->
                     log.info("Starting to discover root test config in test root path: $testRootPath")
@@ -239,7 +245,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         "UnsafeCallOnNullableType")
     private fun downLoadRepository(executionRequest: ExecutionRequest): Mono<Pair<String, String>> {
         val gitDto = executionRequest.gitDto
-        val tmpDir = generateDirectory(gitDto.url)
+        val tmpDir = generateDirectory(listOf(gitDto.url))
         return Mono.fromCallable {
             cloneFromGit(gitDto, tmpDir)?.use { git ->
                 executionRequest.gitDto.hash?.let { hash ->
@@ -272,10 +278,9 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         executionRequestForStandardSuites: ExecutionRequestForStandardSuites,
         files: List<File>,
     ): Mono<StatusResponse> {
-        // fixme: generate directory based on all files
-        val tmpDir = generateDirectory(
-            files.first { it.name != "save.properties" }.name
-        )
+        val tmpDir = generateDirectory(files.map {
+            it.toHash()
+        })
         files.forEach {
             it.renameTo(tmpDir.resolve(it))
         }
@@ -301,15 +306,21 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         }
     }
 
-    private fun generateDirectory(dirName: String): File {
-        val hashName = dirName.hashCode()
+    /**
+     * Create a temporary directory with name based on [seeds]
+     *
+     * @param seeds a list of strings for directory name creation
+     * @return a [File] representing the created temporary directory
+     */
+    internal fun generateDirectory(seeds: List<String>): File {
+        val hashName = seeds.hashCode()
         val tmpDir = File("${configProperties.repository}/$hashName")
         if (tmpDir.exists()) {
             tmpDir.deleteRecursively()
-            log.info("For $dirName file: dir $tmpDir was deleted")
+            log.info("For $seeds: dir $tmpDir was deleted")
         }
         tmpDir.mkdirs()
-        log.info("For $dirName repository: dir $tmpDir was created")
+        log.info("For $seeds: dir $tmpDir was created")
         return tmpDir
     }
 

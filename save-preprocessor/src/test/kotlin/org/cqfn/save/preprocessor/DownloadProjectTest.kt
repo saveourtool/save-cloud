@@ -15,6 +15,7 @@ import org.cqfn.save.preprocessor.controllers.DownloadProjectController
 import org.cqfn.save.preprocessor.controllers.readStandardTestSuitesFile
 import org.cqfn.save.preprocessor.service.TestDiscoveringService
 import org.cqfn.save.preprocessor.utils.RepositoryVolume
+import org.cqfn.save.preprocessor.utils.toHash
 import org.cqfn.save.testsuite.TestSuiteType
 
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -171,7 +172,8 @@ class DownloadProjectTest(
             .isAccepted
             .expectBody<String>()
             .isEqualTo("Clone pending")
-        Assertions.assertTrue(File("${configProperties.repository}/${validRepo.url.hashCode()}").exists())
+        val dirName = listOf(validRepo.url).hashCode()
+        Assertions.assertTrue(File("${configProperties.repository}/$dirName").exists())
         assertions.orTimeout(60, TimeUnit.SECONDS).join().forEach { Assertions.assertNotNull(it) }
     }
 
@@ -238,9 +240,10 @@ class DownloadProjectTest(
             .isEqualTo("Clone pending")
         Thread.sleep(2500)
 
-        Assertions.assertTrue(File("${configProperties.repository}/${binFile.name.hashCode()}").exists())
+        val dirName = listOf(property, binFile).map { it.toHash() }.hashCode()
+        Assertions.assertTrue(File("${configProperties.repository}/$dirName").exists())
         assertions.orTimeout(60, TimeUnit.SECONDS).join().forEach { Assertions.assertNotNull(it) }
-        Assertions.assertEquals("echo 0", File("${configProperties.repository}/${binFile.name.hashCode()}/program").readText())
+        Assertions.assertEquals("echo 0", File("${configProperties.repository}/$dirName/${binFile.name}").readText())
     }
 
     @Test

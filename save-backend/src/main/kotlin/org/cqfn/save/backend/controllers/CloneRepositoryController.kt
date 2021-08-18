@@ -67,10 +67,11 @@ class CloneRepositoryController(
                 part("executionRequest", executionRequest.copy(executionId = newExecutionId))
             }
             files.map {
-                log.info("Appenidng a file ${it.filename()} to multipart")
+                log.info("Appending a file ${it.filename()} to multipart")
                 bodyBuilder.part("file", it)
             }
                 .collectList()
+                .switchIfEmpty(Mono.just(emptyList()))
                 .flatMap {
                     preprocessorWebClient
                         .post()
