@@ -29,8 +29,8 @@ fun Project.configureJacoco() {
     tasks.named<JacocoReport>("jacocoTestReport") {
         dependsOn(tasks.named<Test>("test"))
         reports {
-            xml.isEnabled = true
-            html.isEnabled = true
+            xml.required.set(true)
+            html.required.set(true)
         }
     }
 }
