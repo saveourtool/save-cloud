@@ -7,6 +7,7 @@ import org.cqfn.save.backend.service.ProjectService
 import org.cqfn.save.domain.Sdk
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.ExecutionRequest
+import org.cqfn.save.entities.ExecutionRequestBase
 import org.cqfn.save.entities.ExecutionRequestForStandardSuites
 import org.cqfn.save.entities.Project
 import org.cqfn.save.execution.ExecutionStatus
@@ -26,15 +27,13 @@ import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.toEntity
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-import reactor.kotlin.core.publisher.toMono
 import java.time.LocalDateTime
 
 /**
  * Controller to save project
  *
  * @property projectService service to manage projects
- *
- * @param configProperties configuration properties
+ * @property configProperties configuration properties
  */
 @RestController
 class CloneRepositoryController(
@@ -52,36 +51,16 @@ class CloneRepositoryController(
      * @param files resources for execution
      * @return mono string
      */
-    @Suppress("TOO_MANY_LINES_IN_LAMBDA")
     @PostMapping(value = ["/submitExecutionRequest"], consumes = ["multipart/form-data"])
     fun submitExecutionRequest(
         @RequestPart(required = true) executionRequest: ExecutionRequest,
         @RequestPart("file", required = false) files: Flux<FilePart>,
-    ): Mono<StringResponse> {
-        val projectExecution = executionRequest.project
-        val project = projectService.getProjectByNameAndOwner(projectExecution.name, projectExecution.owner)
-        return project?.let { _ ->
-            val newExecutionId = saveExecution(project, ExecutionType.GIT, configProperties.initialBatchSize, executionRequest.sdk)
-            log.info("Sending request to preprocessor to start cloning project id=${project.id}")
-            val bodyBuilder = MultipartBodyBuilder().apply {
-                part("executionRequest", executionRequest.copy(executionId = newExecutionId))
-            }
-            files.collectToMultipart(bodyBuilder)
-                .flatMap {
-                    preprocessorWebClient
-                        .post()
-                        .uri("/upload")
-                        .contentType(MediaType.MULTIPART_FORM_DATA)
-                        .body(
-                            BodyInserters.fromMultipartData(
-                                bodyBuilder.build()
-                            )
-                        )
-                        .retrieve()
-                        .toEntity<String>()
-                        .toMono()
-                }
-        } ?: Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Project doesn't exist"))
+    ): Mono<StringResponse> = sendToPreprocessor(
+        executionRequest,
+        ExecutionType.GIT,
+        files
+    ) { newExecutionId ->
+        part("executionRequest", executionRequest.copy(executionId = newExecutionId))
     }
 
     /**
@@ -95,26 +74,38 @@ class CloneRepositoryController(
     fun submitExecutionRequestByBin(
         @RequestPart("execution", required = true) executionRequestForStandardSuites: ExecutionRequestForStandardSuites,
         @RequestPart("file", required = true) files: Flux<FilePart>,
+    ): Mono<StringResponse> = sendToPreprocessor(
+        executionRequestForStandardSuites,
+        ExecutionType.STANDARD,
+        files
+    ) {
+        part("executionRequestForStandardSuites", executionRequestForStandardSuites)
+    }
+
+    private fun sendToPreprocessor(
+        executionRequest: ExecutionRequestBase,
+        executionType: ExecutionType,
+        files: Flux<FilePart>,
+        configure: MultipartBodyBuilder.(newExecutionId: Long) -> Unit
     ): Mono<StringResponse> {
-        val projectExecution = executionRequestForStandardSuites.project
-        val project = projectService.getProjectByNameAndOwner(projectExecution.name, projectExecution.owner)
-        project?.let {
-            saveExecution(project, ExecutionType.STANDARD, configProperties.initialBatchSize, executionRequestForStandardSuites.sdk)
-            log.info("Sending request to preprocessor to start save file for project id=${project.id}")
-            val bodyBuilder = MultipartBodyBuilder()
-            bodyBuilder.part("executionRequestForStandardSuites", executionRequestForStandardSuites)
-            return files.collectToMultipart(bodyBuilder)
+        val project = with(executionRequest.project) {
+            projectService.getProjectByNameAndOwner(name, owner)
+        }
+        return project?.let {
+            val newExecutionId = saveExecution(project, executionType, configProperties.initialBatchSize, executionRequest.sdk)
+            log.info("Sending request to preprocessor (executionType $executionType) to start save file for project id=${project.id}")
+            val bodyBuilder = MultipartBodyBuilder().apply {
+                configure(newExecutionId)
+            }
+            val uri = when (executionType) {
+                ExecutionType.GIT -> "/upload"
+                ExecutionType.STANDARD -> "/uploadBin"
+            }
+            files.collectToMultipart(bodyBuilder)
                 .flatMap {
-                    preprocessorWebClient
-                        .post()
-                        .uri("/uploadBin")
-                        .contentType(MediaType.MULTIPART_FORM_DATA)
-                        .body(BodyInserters.fromMultipartData(bodyBuilder.build()))
-                        .retrieve()
-                        .toEntity<String>()
-                        .toMono()
+                    preprocessorWebClient.postMultipart(bodyBuilder, uri)
                 }
-        } ?: return Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).body("Project doesn't exist"))
+        } ?: Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).body("Project doesn't exist"))
     }
 
     @Suppress("UnsafeCallOnNullableType")
@@ -131,6 +122,13 @@ class CloneRepositoryController(
         log.info("Creating a new execution id=${execution.id} for project id=${project.id}")
         return execution.id!!
     }
+
+    private fun WebClient.postMultipart(bodyBuilder: MultipartBodyBuilder, uri: String) = post()
+        .uri(uri)
+        .contentType(MediaType.MULTIPART_FORM_DATA)
+        .body(BodyInserters.fromMultipartData(bodyBuilder.build()))
+        .retrieve()
+        .toEntity<String>()
 
     private fun Flux<FilePart>.collectToMultipart(multipartBodyBuilder: MultipartBodyBuilder) = map {
         multipartBodyBuilder.part("file", it)

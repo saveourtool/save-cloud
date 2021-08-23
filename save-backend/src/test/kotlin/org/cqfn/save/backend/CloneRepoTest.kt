@@ -93,7 +93,7 @@ class CloneRepoTest {
                 .body(BodyInserters.fromMultipartData(it))
                 .exchange()
                 .expectStatus()
-                .isEqualTo(HttpStatus.BAD_REQUEST)
+                .isEqualTo(HttpStatus.NOT_FOUND)
         }
     }
 

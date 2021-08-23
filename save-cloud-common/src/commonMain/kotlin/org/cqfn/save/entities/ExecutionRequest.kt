@@ -9,6 +9,21 @@ import org.cqfn.save.domain.Sdk
 import kotlinx.serialization.Serializable
 
 /**
+ * Base class for execution requests
+ */
+sealed class ExecutionRequestBase {
+    /**
+     * a [Project] for which execution is being requested
+     */
+    abstract val project: Project
+
+    /**
+     * An SDK for this execution
+     */
+    abstract val sdk: Sdk
+}
+
+/**
  * Data class of information about project
  *
  * @property project project
@@ -19,12 +34,12 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class ExecutionRequest(
-    val project: Project,
+    override val project: Project,
     val gitDto: GitDto,
     val propertiesRelativePath: String = "save.properties",
-    val sdk: Sdk,
+    override val sdk: Sdk,
     val executionId: Long?,
-)
+) : ExecutionRequestBase()
 
 /**
  * @property project
@@ -33,7 +48,7 @@ data class ExecutionRequest(
  */
 @Serializable
 data class ExecutionRequestForStandardSuites(
-    val project: Project,
+    override val project: Project,
     val testsSuites: List<String>,
-    val sdk: Sdk,
-)
+    override val sdk: Sdk,
+) : ExecutionRequestBase()
