@@ -29,7 +29,7 @@ import org.w3c.dom.HTMLElement
 import react.RBuilder
 import react.RComponent
 import react.RProps
-import react.RState
+import react.State
 import react.child
 import react.dom.div
 import react.dom.render
@@ -43,7 +43,7 @@ import kotlinx.html.id
 /**
  * Top-level state of the whole App
  */
-external interface AppState : RState {
+external interface AppState : State {
     /**
      * Currently logged in user or null
      */
@@ -51,8 +51,10 @@ external interface AppState : RState {
 }
 
 /**
- * MAin component for the whole App
+ * Main component for the whole App
  */
+@JsExport
+@OptIn(ExperimentalJsExport::class)
 class App : RComponent<RProps, AppState>() {
     init {
         state.userName = "User Name"

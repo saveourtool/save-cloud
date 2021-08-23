@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.reactive.config.EnableWebFlux
 
 internal typealias BodilessResponseEntity = ResponseEntity<Void>
+internal typealias TextResponse = ResponseEntity<String>
 
 /**
  * An entrypoint for spring boot for save-orchestrator

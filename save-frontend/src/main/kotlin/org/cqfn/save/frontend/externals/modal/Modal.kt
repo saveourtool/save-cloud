@@ -10,7 +10,7 @@ import kotlin.js.json
 
 /**
  * @param handler builder for modal component
- * @return a [ReactElement]
+ * @return a `ReactElement`
  */
 fun RBuilder.modal(
     handler: RHandler<ModalProps>

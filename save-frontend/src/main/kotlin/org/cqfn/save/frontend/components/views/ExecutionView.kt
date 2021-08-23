@@ -9,14 +9,17 @@ import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.frontend.components.tables.tableComponent
 import org.cqfn.save.frontend.utils.decodeFromJsonString
 import org.cqfn.save.frontend.utils.get
+import org.cqfn.save.frontend.utils.post
 import org.cqfn.save.frontend.utils.unsafeMap
 
 import org.w3c.fetch.Headers
 import react.RBuilder
 import react.RComponent
 import react.RProps
-import react.RState
+import react.State
+import react.buildElement
 import react.child
+import react.dom.button
 import react.dom.div
 import react.dom.td
 import react.setState
@@ -27,6 +30,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
+import kotlinx.html.js.onClickFunction
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 
@@ -43,7 +47,7 @@ external interface ExecutionProps : RProps {
 /**
  * A state of execution view
  */
-external interface ExecutionState : RState {
+external interface ExecutionState : State {
     /**
      * Execution dto
      */
@@ -53,8 +57,8 @@ external interface ExecutionState : RState {
 /**
  * A [RComponent] for execution view
  */
-@OptIn(ExperimentalJsExport::class)
 @JsExport
+@OptIn(ExperimentalJsExport::class)
 class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
     init {
         state.executionDto = null
@@ -64,37 +68,63 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
         GlobalScope.launch {
             val headers = Headers().also { it.set("Accept", "application/json") }
             val executionDtoFromBackend: ExecutionDto = get("${window.location.origin}/executionDto?executionId=${props.executionId}", headers)
-                .decodeFromJsonString<ExecutionDto>()
+                .decodeFromJsonString()
             setState { executionDto = executionDtoFromBackend }
         }
     }
 
-    @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR", "TOO_LONG_FUNCTION")
+    @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR", "TOO_LONG_FUNCTION", "LongMethod")
     override fun RBuilder.render() {
         div {
-            +("Project version: ${(state.executionDto?.version ?: "N/A")}")
+            div("p-2 flex-auto") {
+                +("Project version: ${(state.executionDto?.version ?: "N/A")}")
+            }
+            div("d-flex") {
+                div("p-2 mr-auto") {
+                    +"Status: ${state.executionDto?.status ?: "N/A"}"
+                }
+                button(classes = "btn btn-primary") {
+                    +"Rerun execution"
+                    attrs.onClickFunction = {
+                        attrs.disabled = true
+                        GlobalScope.launch {
+                            post("${window.location.origin}/rerunExecution?id=${props.executionId}", Headers(), undefined)
+                        }.invokeOnCompletion {
+                            window.alert("Rerun request successfully submitted")
+                        }
+                    }
+                }
+            }
         }
         // fixme: table is rendered twice because of state change when `executionDto` is fetched
         child(tableComponent(
             columns = columns {
                 column(id = "index", header = "#") {
-                    td {
-                        +"${it.row.index}"
+                    buildElement {
+                        td {
+                            +"${it.row.index}"
+                        }
                     }
                 }
                 column(id = "startTime", header = "Start time") {
-                    td {
-                        +"${it.value.startTimeSeconds?.let { Instant.fromEpochSeconds(it, 0) }}"
+                    buildElement {
+                        td {
+                            +"${it.value.startTimeSeconds?.let { Instant.fromEpochSeconds(it, 0) }}"
+                        }
                     }
                 }
                 column(id = "status", header = "Status") {
-                    td {
-                        +"${it.value.status}"
+                    buildElement {
+                        td {
+                            +"${it.value.status}"
+                        }
                     }
                 }
                 column(id = "path", header = "Test file path") {
-                    td {
-                        +it.value.filePath
+                    buildElement {
+                        td {
+                            +it.value.filePath
+                        }
                     }
                 }
             },

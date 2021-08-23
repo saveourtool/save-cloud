@@ -19,7 +19,7 @@ import kotlinx.html.Tag
  * }
  * ```
  *
- * Allows to write `<MyComponent ...props/>` as
+ * Allows writing `<MyComponent ...props/>` as
  * ```kotlin
  * child(MyComponent::class) {
  *     spread(props)

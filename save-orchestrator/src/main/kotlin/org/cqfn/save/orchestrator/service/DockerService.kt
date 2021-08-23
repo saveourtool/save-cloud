@@ -103,7 +103,25 @@ class DockerService(private val configProperties: ConfigProperties) {
                 false
             }
 
-    @Suppress("TOO_LONG_FUNCTION")
+    /**
+     * @param imageName name of the image to remove
+     * @return an instance of docker command
+     */
+    fun removeImage(imageName: String) {
+        log.info("Removing image $imageName")
+        containerManager.dockerClient.removeImageCmd(imageName).exec()
+    }
+
+    /**
+     * @param containerId id of container to remove
+     * @return an instance of docker command
+     */
+    fun removeContainer(containerId: String) {
+        log.info("Removing container $containerId")
+        containerManager.dockerClient.removeContainerCmd(containerId).exec()
+    }
+
+    @Suppress("TOO_LONG_FUNCTION", "UnsafeCallOnNullableType")
     private fun buildBaseImageForExecution(execution: Execution): Pair<String, String> {
         println("\n\nconfigProperties.testResources.basePath ${configProperties.testResources.basePath}")
         println("execution.resourcesRootPath ${execution.resourcesRootPath}")
@@ -130,7 +148,7 @@ class DockerService(private val configProperties: ConfigProperties) {
         val baseImage = execution.sdk
         val imageId = containerManager.buildImageWithResources(
             baseImage = baseImage,
-            imageName = "save-execution:${execution.id}",
+            imageName = imageName(execution.id!!),
             baseDir = resourcesPath,
             resourcesPath = executionDir,
             runCmd = """RUN apt-get update && env DEBIAN_FRONTEND="noninteractive" apt-get install -y libcurl4-openssl-dev tzdata && rm -rf /var/lib/apt/lists/*
@@ -154,7 +172,7 @@ class DockerService(private val configProperties: ConfigProperties) {
             imageId,
             executionDir,
             runCmd,
-            "save-execution-$containerNumber",
+            containerName(containerNumber),
         )
         val agentPropertiesFile = createTempDirectory("agent")
             .resolve("agent.properties")
@@ -190,3 +208,12 @@ class DockerService(private val configProperties: ConfigProperties) {
         private const val SAVE_CLI_EXECUTABLE_NAME = "save-$SAVE_CORE_VERSION-linuxX64.kexe"
     }
 }
+/**
+ * @param executionId
+ */
+internal fun imageName(executionId: Long) = "save-execution:$executionId"
+
+/**
+ * @param id
+ */
+internal fun containerName(id: String) = "save-execution-$id"

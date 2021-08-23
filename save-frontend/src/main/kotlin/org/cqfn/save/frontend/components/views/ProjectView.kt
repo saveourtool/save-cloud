@@ -33,7 +33,7 @@ import org.w3c.xhr.FormData
 import react.RBuilder
 import react.RComponent
 import react.RProps
-import react.RState
+import react.State
 import react.child
 import react.dom.a
 import react.dom.attrs
@@ -80,7 +80,7 @@ external interface ProjectExecutionRouteProps : RProps {
 /**
  * [RState] of project view component
  */
-external interface ProjectViewState : RState {
+external interface ProjectViewState : State {
     /**
      * Binary file of project
      */
@@ -99,7 +99,7 @@ external interface ProjectViewState : RState {
     /**
      * Flag to handle error
      */
-    var isErrorOpen: Boolean
+    var isErrorOpen: Boolean?
 
     /**
      * Error label
@@ -109,7 +109,7 @@ external interface ProjectViewState : RState {
     /**
      * Flag to handle loading
      */
-    var isLoading: Boolean
+    var isLoading: Boolean?
 
     /**
      * Selected sdk
@@ -124,7 +124,7 @@ external interface ProjectViewState : RState {
     /**
      * Flag to handle upload type project
      */
-    var isFirstTypeUpload: Boolean
+    var isFirstTypeUpload: Boolean?
 }
 
 /**
@@ -133,8 +133,8 @@ external interface ProjectViewState : RState {
  *
  * @return a functional component
  */
-@OptIn(ExperimentalJsExport::class)
 @JsExport
+@OptIn(ExperimentalJsExport::class)
 @Suppress("CUSTOM_GETTERS_SETTERS")
 class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
     private var testTypesList: List<TestSuiteDto> = emptyList()
@@ -177,7 +177,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
 
     @Suppress("ComplexMethod", "TOO_LONG_FUNCTION")
     private fun submitExecutionRequest() {
-        if (state.isFirstTypeUpload) {
+        if (state.isFirstTypeUpload == true) {
             gitUrlFromInputField?.let {
                 val newGitDto = GitDto(url = it)
                 submitExecutionRequestGit(newGitDto)
@@ -288,7 +288,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                     div("text-left") {
                         div {
                             button(type = ButtonType.button) {
-                                attrs.classes = if (state.isFirstTypeUpload) setOf("btn", "btn-primary") else setOf("btn", "btn-outline-primary")
+                                attrs.classes = if (state.isFirstTypeUpload == true) setOf("btn", "btn-primary") else setOf("btn", "btn-outline-primary")
                                 attrs.onClickFunction = {
                                     setState {
                                         isFirstTypeUpload = true
@@ -299,7 +299,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                         }
                         div("mt-3") {
                             button(type = ButtonType.button, classes = "btn btn-link collapsed") {
-                                attrs.classes = if (state.isFirstTypeUpload) setOf("btn", "btn-outline-primary") else setOf("btn", "btn-primary")
+                                attrs.classes = if (state.isFirstTypeUpload == true) setOf("btn", "btn-outline-primary") else setOf("btn", "btn-primary")
                                 attrs.onClickFunction = {
                                     setState {
                                         isFirstTypeUpload = false
@@ -321,7 +321,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                     div("text-center") {
                         div("row") {
                             div {
-                                attrs.classes = if (state.isFirstTypeUpload) {
+                                attrs.classes = if (state.isFirstTypeUpload == true) {
                                     setOf(
                                         "card",
                                         "shadow",
@@ -382,7 +382,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                             }
 
                             div {
-                                attrs.classes = if (!state.isFirstTypeUpload) {
+                                attrs.classes = if (state.isFirstTypeUpload == false) {
                                     setOf(
                                         "card",
                                         "shadow",

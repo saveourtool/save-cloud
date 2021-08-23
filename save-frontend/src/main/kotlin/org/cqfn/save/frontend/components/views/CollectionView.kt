@@ -10,7 +10,8 @@ import org.w3c.fetch.Headers
 import react.RBuilder
 import react.RComponent
 import react.RProps
-import react.RState
+import react.State
+import react.buildElement
 import react.child
 import react.dom.a
 import react.dom.button
@@ -24,9 +25,9 @@ import kotlinx.html.ButtonType
 /**
  * A view with collection of projects
  */
-@OptIn(ExperimentalJsExport::class)
 @JsExport
-class CollectionView : RComponent<RProps, RState>() {
+@OptIn(ExperimentalJsExport::class)
+class CollectionView : RComponent<RProps, State>() {
     @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR", "TOO_LONG_FUNCTION", "MAGIC_NUMBER")
     override fun RBuilder.render() {
         div {
@@ -38,22 +39,19 @@ class CollectionView : RComponent<RProps, RState>() {
         }
         child(tableComponent(
             columns = columns {
-                column(id = "index", header = "#") {
-                    td {
-                        +"${it.row.index}"
-                    }
-                }
-                column(id = "name", header = "Name") {
-                    td {
-                        a(href = "#/${it.value.owner}/${it.value.name}") {
-                            +it.value.name
+                column(id = "index", header = "#") { cell ->
+                    buildElement {
+                        td {
+                            +"${cell.row.index}"
                         }
                     }
                 }
                 column(id = "passed", header = "Tests passed") {
-                    td {
-                        a(href = "#/${it.value.owner}/${it.value.name}/history") {
-                            +(it.value.description ?: "Description N/A")
+                    buildElement {
+                        td {
+                            a(href = "#/${it.value.owner}/${it.value.name}/history") {
+                                +(it.value.description ?: "Description N/A")
+                            }
                         }
                     }
                 }

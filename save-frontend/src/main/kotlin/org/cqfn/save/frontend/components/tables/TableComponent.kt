@@ -52,7 +52,7 @@ external interface TableProps : RProps {
 }
 
 /**
- * A [RComponent] for a data table
+ * A `RComponent` for a data table
  *
  * @param columns columns as an array of [Column]
  * @param getData a function to retrieve data for the table, returns an array of data of type [out D] that will be inserted into the table

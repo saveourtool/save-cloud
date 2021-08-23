@@ -43,7 +43,7 @@ dependencies {
     implementation("com.github.docker-java:docker-java-core:${Versions.dockerJavaApi}")
     implementation("com.github.docker-java:docker-java-transport-httpclient5:${Versions.dockerJavaApi}")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:${Versions.serialization}")
-    implementation("org.apache.commons:commons-compress:1.20")
+    implementation("org.apache.commons:commons-compress:1.21")
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:${Versions.kotlinxDatetime}")
     implementation("org.jetbrains.kotlin:kotlin-reflect:${Versions.kotlin}")
     testImplementation("com.squareup.okhttp3:okhttp:${Versions.okhttp3}")

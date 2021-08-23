@@ -20,7 +20,9 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers.anyList
+import org.mockito.ArgumentMatchers.anyString
 import org.mockito.kotlin.any
+import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
@@ -164,6 +166,25 @@ class AgentsControllerTest {
         val newFirstLogFile = File(configProperties.executionLogs + File.separator + "agent.log")
         Assertions.assertTrue(newFirstLogFile.exists())
         Assertions.assertEquals(newFirstLogFile.readLines(), firstLogs + secondLogs)
+    }
+
+    @Test
+    fun `should cleanup execution artifacts`() {
+        mockServer.enqueue(
+            MockResponse().setResponseCode(200)
+                .setHeader("Content-Type", "application/json")
+                .setBody(Json.encodeToString(listOf("container-1", "container-2", "container-3")))
+        )
+
+        webClient.post()
+            .uri("/cleanup?executionId=42")
+            .exchange()
+            .expectStatus()
+            .isOk
+
+        Thread.sleep(2_500)
+        verify(dockerService, times(3)).removeContainer(anyString())
+        verify(dockerService, times(1)).removeImage(anyString())
     }
 
     private fun makeRequestToSaveLog(text: List<String>): WebTestClient.ResponseSpec {

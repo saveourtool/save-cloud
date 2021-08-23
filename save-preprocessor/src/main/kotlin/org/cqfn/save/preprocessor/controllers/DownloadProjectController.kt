@@ -1,6 +1,5 @@
 package org.cqfn.save.preprocessor.controllers
 
-import okio.ExperimentalFileSystem
 import org.cqfn.save.core.config.SaveProperties
 import org.cqfn.save.core.config.TestConfig
 import org.cqfn.save.core.config.defaultConfig
@@ -23,6 +22,7 @@ import org.cqfn.save.preprocessor.utils.decodeFromPropertiesFile
 import org.cqfn.save.testsuite.TestSuiteDto
 import org.cqfn.save.testsuite.TestSuiteType
 
+import okio.ExperimentalFileSystem
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.api.errors.GitAPIException
 import org.eclipse.jgit.api.errors.InvalidRemoteException
@@ -30,7 +30,6 @@ import org.eclipse.jgit.api.errors.TransportException
 import org.eclipse.jgit.transport.CredentialsProvider
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
 import org.slf4j.LoggerFactory
-
 import org.springframework.core.io.ClassPathResource
 import org.springframework.http.HttpStatus
 import org.springframework.http.ReactiveHttpOutputMessage
@@ -51,8 +50,10 @@ import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
+import reactor.netty.http.client.HttpClientRequest
 
 import java.io.File
+import java.time.Duration
 import java.util.stream.Collectors
 
 import kotlin.io.path.ExperimentalPathApi
@@ -70,7 +71,6 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
     private val log = LoggerFactory.getLogger(DownloadProjectController::class.java)
     private val webClientBackend = WebClient.create(configProperties.backend)
     private val webClientOrchestrator = WebClient.create(configProperties.orchestrator)
-
 
     /**
      * @param executionRequest - Dto of repo information to clone and project info
@@ -127,9 +127,49 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         }
 
     /**
+     * Accept execution rerun request
+     *
+     * @param executionRerunRequest request
+     * @return status 202
+     */
+    @Suppress("UnsafeCallOnNullableType")
+    @PostMapping("/rerunExecution")
+    fun rerunExecution(@RequestBody executionRerunRequest: ExecutionRequest) = Mono.fromCallable {
+        requireNotNull(executionRerunRequest.executionId) { "Can't rerun execution with unknown id" }
+        ResponseEntity("Clone pending", HttpStatus.ACCEPTED)
+    }
+        .doOnSuccess {
+            webClientBackend.makeRequest(
+                BodyInserters.fromValue(ExecutionUpdateDto(executionRerunRequest.executionId!!, ExecutionStatus.PENDING)),
+                "/updateExecution"
+            ) { it.toEntity<HttpStatus>() }
+                .flatMap {
+                    cleanupInOrchestrator(executionRerunRequest.executionId!!)
+                }
+                .flatMap {
+                    downLoadRepository(executionRerunRequest).map { (location, _) -> location }
+                }
+                .zipWith(
+                    getExecution(executionRerunRequest.executionId!!)
+                )
+                .flatMap { (location, execution) ->
+                    sendToBackendAndOrchestrator(
+                        execution,
+                        execution.project,
+                        executionRerunRequest.propertiesRelativePath,
+                        location,
+                        null
+                    )
+                }
+                .log()
+                .subscribeOn(Schedulers.boundedElastic())
+                .subscribe()
+        }
+
+    /**
      * Controller to download standard test suites
      */
-    @ExperimentalFileSystem
+    @OptIn(ExperimentalFileSystem::class)
     @Suppress("TOO_LONG_FUNCTION")
     @PostMapping("/uploadStandardTestSuite")
     fun uploadStandardTestSuite() {
@@ -138,24 +178,22 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
             val tmpDir = generateDirectory(testSuiteUrl)
             cloneFromGit(GitDto(testSuiteUrl), tmpDir)?.use {
                 Flux.fromIterable(testSuitePaths).flatMap { testRootPath ->
-                    log.info("Starting to discover root test config for test root $testRootPath")
+                    log.info("Starting to discover root test config in test root path: $testRootPath")
                     val testResourcesRootAbsolutePath = tmpDir.resolve(testRootPath).absolutePath
                     val rootTestConfig = testDiscoveringService.getRootTestConfig(testResourcesRootAbsolutePath)
-                    println("rootTestConfig.location: " + rootTestConfig.location)
-                    log.info("Starting to discover standard test suites for config test root $testRootPath in $testResourcesRootAbsolutePath")
-                    val propertiesRelativePath = rootTestConfig.directory.toFile().relativeTo(tmpDir).toString() + "${File.separator}save.properties"
-                    println("\n\n\nRELATIVE: ${propertiesRelativePath}")
+                    log.info("Starting to discover standard test suites for root test config ${rootTestConfig.location}")
+                    val propertiesRelativePath = "${rootTestConfig.directory.toFile().relativeTo(tmpDir)}${File.separator}save.properties"
                     val tests = testDiscoveringService.getAllTestSuites(null, rootTestConfig, propertiesRelativePath)
                     tests.forEach {
                         println(it.name)
                     }
                     log.info("Test suites size = ${tests.size}")
-                    log.info("Starting to save new test suites for config test root $testRootPath")
+                    log.info("Starting to save new test suites for root test config in $testRootPath")
                     webClientBackend.makeRequest(BodyInserters.fromValue(tests), "/saveTestSuites") {
                         it.bodyToMono<List<TestSuite>>()
                     }
                         .flatMap { testSuites ->
-                            log.info("Starting to save new tests for root test config $testRootPath")
+                            log.info("Starting to save new tests for config test root $testRootPath")
                             webClientBackend.makeRequest(
                                 BodyInserters.fromValue(
                                     testDiscoveringService.getAllTests(
@@ -196,13 +234,9 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         "UnsafeCallOnNullableType")
     private fun downLoadRepository(executionRequest: ExecutionRequest): Mono<Pair<String, String>> {
         val gitDto = executionRequest.gitDto
-        val project = executionRequest.project
+
         val tmpDir = generateDirectory(gitDto.url)
-        val userCredentials = if (gitDto.username != null && gitDto.password != null) {
-            UsernamePasswordCredentialsProvider(gitDto.username, gitDto.password)
-        } else {
-            CredentialsProvider.getDefault()
-        }
+
         return Mono.fromCallable {
             cloneFromGit(gitDto, tmpDir)?.use { git ->
                 executionRequest.gitDto.hash?.let { hash ->
@@ -276,7 +310,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
     }
 
     /**
-     * Note: We have not null list of TestSuite only, if execute type is STANDARD ()
+     * Note: `testSuiteDtos != null` only if execution type is STANDARD
      *
      * - Post request to backend to create PENDING executions
      * - Discover all test suites in the cloned project
@@ -286,7 +320,6 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
      * - Send a request to orchestrator to initialize agents and start tests execution
      */
     @Suppress(
-
         "LongParameterList",
         "TOO_MANY_PARAMETERS",
         "UnsafeCallOnNullableType"
@@ -304,7 +337,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         } ?: require(executionType == ExecutionType.GIT) { "Test suites are not provided, but should for executionType=$executionType" }
 
         return if (executionType == ExecutionType.GIT) {
-            prepareForExecutionFromGit(project, execution, propertiesRelativePath, projectRootRelativePath)
+            prepareForExecutionFromGit(project, execution.id!!, propertiesRelativePath, projectRootRelativePath)
         } else {
             prepareExecutionForStandard(testSuiteDtos!!)
         }
@@ -320,6 +353,10 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                 ) { it.toEntity<HttpStatus>() }
             }
     }
+    private fun getExecution(executionId: Long) = webClientBackend.get()
+        .uri("${configProperties.backend}/execution?id=$executionId")
+        .retrieve()
+        .bodyToMono<Execution>()
 
     private fun updateExecution(project: Project, projectRootRelativePath: String, executionVersion: String): Mono<Execution> {
         val executionUpdate = ExecutionInitializationDto(project, "ALL", projectRootRelativePath, executionVersion)
@@ -333,17 +370,27 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
             }
             it.bodyToMono()
         }
-
     }
+
+    @Suppress("MagicNumber")
+    private fun cleanupInOrchestrator(executionId: Long) =
+            webClientOrchestrator.post()
+                .uri("/cleanup?executionId=$executionId")
+                .httpRequest {
+                    // increased timeout, because orchestrator should finish cleaning up first
+                    it.getNativeRequest<HttpClientRequest>()
+                        .responseTimeout(Duration.ofSeconds(10))
+                }
+                .retrieve()
+                .toBodilessEntity()
 
     @Suppress("UnsafeCallOnNullableType")
     private fun prepareForExecutionFromGit(project: Project,
-                                           execution: Execution,
+                                           executionId: Long,
                                            propertiesRelativePath: String,
                                            projectRootRelativePath: String): Mono<EmptyResponse> = Mono.fromCallable {
         val testResourcesRootAbsolutePath =
                 getTestResourcesRootAbsolutePath(propertiesRelativePath, projectRootRelativePath)
-        println("\n\ntestResourcesRootAbsolutePath: ${testResourcesRootAbsolutePath}\n\n")
         testDiscoveringService.getRootTestConfig(testResourcesRootAbsolutePath)
     }
         .log()
@@ -351,7 +398,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
             discoverAndSaveTestSuites(project, rootTestConfig, propertiesRelativePath)
         }
         .flatMap { (rootTestConfig, testSuites) ->
-            initializeTests(testSuites, rootTestConfig, execution.id!!)
+            initializeTests(testSuites, rootTestConfig, executionId)
         }
     
     private fun prepareExecutionForStandard(testSuiteDtos: List<TestSuiteDto>): Mono<List<TestSuite>> {
@@ -368,8 +415,8 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
     @Suppress("UnsafeCallOnNullableType")
     private fun getTestResourcesRootAbsolutePath(propertiesRelativePath: String,
                                                  projectRootRelativePath: String): String {
-        // TODO 1) FILE NOT FOUND? - create logic
-        // TODO 2) what if path - to dir?
+        // TODO: File should be provided without explicit naming of `save.propeties`, also
+        // TODO: should be consider case, when file not found
         val propertiesFile = File(configProperties.repository, projectRootRelativePath)
             .resolve(propertiesRelativePath)
         val saveProperties: SaveProperties = decodeFromPropertiesFile<SaveProperties>(propertiesFile)
