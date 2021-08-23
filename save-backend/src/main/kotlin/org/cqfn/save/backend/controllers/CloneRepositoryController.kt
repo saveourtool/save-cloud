@@ -66,12 +66,7 @@ class CloneRepositoryController(
             val bodyBuilder = MultipartBodyBuilder().apply {
                 part("executionRequest", executionRequest.copy(executionId = newExecutionId))
             }
-            files.map {
-                log.info("Appending a file ${it.filename()} to multipart")
-                bodyBuilder.part("file", it)
-            }
-                .collectList()
-                .switchIfEmpty(Mono.just(emptyList()))
+            files.collectToMultipart(bodyBuilder)
                 .flatMap {
                     preprocessorWebClient
                         .post()
@@ -108,10 +103,7 @@ class CloneRepositoryController(
             log.info("Sending request to preprocessor to start save file for project id=${project.id}")
             val bodyBuilder = MultipartBodyBuilder()
             bodyBuilder.part("executionRequestForStandardSuites", executionRequestForStandardSuites)
-            return files.map {
-                bodyBuilder.part("file", it)
-            }
-                .collectList()
+            return files.collectToMultipart(bodyBuilder)
                 .flatMap {
                     preprocessorWebClient
                         .post()
@@ -139,4 +131,10 @@ class CloneRepositoryController(
         log.info("Creating a new execution id=${execution.id} for project id=${project.id}")
         return execution.id!!
     }
+
+    private fun Flux<FilePart>.collectToMultipart(multipartBodyBuilder: MultipartBodyBuilder) = map {
+        multipartBodyBuilder.part("file", it)
+    }
+        .collectList()
+        .switchIfEmpty(Mono.just(emptyList()))
 }
