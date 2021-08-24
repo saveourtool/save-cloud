@@ -2,3 +2,7 @@ style:
   MagicNumber:
     # There are a lot of magic number in UI code, so it's easier to just suppress the rule
     active: false
+naming:
+  MatchingDeclarationName:
+    # Because common pattern is RProps class and functional component in a single file, which triggers this rule
+    active: false
