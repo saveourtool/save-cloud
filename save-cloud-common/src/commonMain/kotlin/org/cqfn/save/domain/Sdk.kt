@@ -61,7 +61,7 @@ fun String.toSdk(): Sdk {
 /**
  * @return all version by sdk name
  */
-fun String.getSdkVersion(): List<String> =
+fun String.getSdkVersions(): List<String> =
         when (this) {
             Jdk.NAME -> Jdk.versions
             Python.NAME -> Python.versions

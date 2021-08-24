@@ -18,32 +18,31 @@ import org.cqfn.save.entities.ExecutionRequestForStandardSuites
 import org.cqfn.save.entities.GitDto
 import org.cqfn.save.entities.Project
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.io.TempDir
 import org.mockito.Mockito
-import org.mockito.kotlin.given
-import org.mockito.kotlin.mock
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.boot.test.mock.mockito.MockBeans
-import org.springframework.http.HttpHeaders
+import org.springframework.core.io.FileSystemResource
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.client.MultipartBodyBuilder
-import org.springframework.http.codec.multipart.FilePart
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
-import reactor.core.publisher.Flux
 
+import java.io.File
 import java.time.Duration
 
 @WebFluxTest(controllers = [CloneRepositoryController::class])
@@ -61,11 +60,14 @@ import java.time.Duration
     MockBean(GitRepository::class),
 )
 class CloningRepositoryControllerTest {
+    @Autowired private lateinit var objectMapper: ObjectMapper
+
     @Autowired
     lateinit var webTestClient: WebTestClient
 
     @MockBean
     lateinit var projectService: ProjectService
+    @TempDir internal lateinit var tmpDir: File
 
     @BeforeEach
     fun webClientSetUp() {
@@ -87,10 +89,14 @@ class CloningRepositoryControllerTest {
         val sdk = Jdk("8")
         val gitRepo = GitDto("1")
         val executionRequest = ExecutionRequest(project, gitRepo, sdk = sdk, executionId = null)
+        val multipart = MultipartBodyBuilder().apply {
+            part("executionRequest", executionRequest)
+        }
+            .build()
         webTestClient.post()
             .uri("/submitExecutionRequest")
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(BodyInserters.fromValue(executionRequest))
+            .contentType(MediaType.MULTIPART_FORM_DATA)
+            .body(BodyInserters.fromMultipartData(multipart))
             .exchange()
             .expectStatus()
             .isEqualTo(HttpStatus.ACCEPTED)
@@ -100,23 +106,22 @@ class CloningRepositoryControllerTest {
 
     @Test
     fun checkNewJobResponseForBin() {
-        val binFile: FilePart = mock()
-        val property: FilePart = mock()
+        val binFile: File = tmpDir.resolve("binFile").apply {
+            createNewFile()
+        }
+        val property: File = tmpDir.resolve("property").apply {
+            createNewFile()
+        }
 
-        given(binFile.filename()).willReturn("binFile")
-        given(property.filename()).willReturn("property")
-        given(binFile.content()).willReturn(Flux.empty())
-        given(property.content()).willReturn(Flux.empty())
-        given(binFile.headers()).willReturn(HttpHeaders())
-        given(property.headers()).willReturn(HttpHeaders())
-
-        val project = Project("Huawei", "huaweiName", "huawei.com", "test description")
+        val project = Project("Huawei", "huaweiName", "huawei.com", "test description").apply {
+            id = 1
+        }
         val sdk = Jdk("8")
         val request = ExecutionRequestForStandardSuites(project, emptyList(), sdk)
         val bodyBuilder = MultipartBodyBuilder()
         bodyBuilder.part("execution", request)
-        bodyBuilder.part("property", property)
-        bodyBuilder.part("binFile", binFile)
+        bodyBuilder.part("file", FileSystemResource(property))
+        bodyBuilder.part("file", FileSystemResource(binFile))
 
         mockServerPreprocessor.enqueue(
             MockResponse()
