@@ -4,17 +4,18 @@ SAVE Cloud contains the following microservices:
 * backend: REST API for DB
 * test-preprocessor: clones projects for test and discovers tests
 * orchestrator: moderates distributed execution of tests, feeds new batches of tests to a set of agents
+save-cloud uses MySQL as a database. Liquibase (via gradle plugin) is used for schema initialization and migration.
 
 ## Building
 * Prerequisites: some components require additional system packages. See [save-agent](../save-agent/README.md) description for details.
   save-frontend requires node.js installation.
 * To build the project and run all tests, execute `./gradlew build`.
 * For deployment, all microservices are packaged as docker images with the version based on latest git tag and latest commit hash, if there are commits after tag.
-To build release version after you create git tag, make sure to run gradle with `-Preckon.stage=final`.
 
 Deployment is performed on server via docker swarm or locally via docker-compose. See detailed information below.
 
 ## Server deployment
+* Server should run Linux and support docker swarm and gvisor runtime. Ideally, kernel 5.+ is required.
 * Gvisor should be installed and runsc runtime should be available for docker. See [installation guide](https://gvisor.dev/docs/user_guide/install/) for details.
 * Ensure that docker daemon is running and that docker is in swarm mode.
 * Pull new changes to the server and run `./gradlew deployDockerStack`.
