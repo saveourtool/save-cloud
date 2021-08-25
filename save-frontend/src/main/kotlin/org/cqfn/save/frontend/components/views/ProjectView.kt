@@ -31,9 +31,9 @@ import org.w3c.files.Blob
 import org.w3c.files.BlobPropertyBag
 import org.w3c.files.File
 import org.w3c.xhr.FormData
+import react.PropsWithChildren
 import react.RBuilder
 import react.RComponent
-import react.RProps
 import react.State
 import react.child
 import react.dom.a
@@ -65,7 +65,7 @@ import kotlinx.serialization.json.Json
  * [RProps] retrieved from router
  */
 @Suppress("MISSING_KDOC_CLASS_ELEMENTS")
-external interface ProjectExecutionRouteProps : RProps {
+external interface ProjectExecutionRouteProps : PropsWithChildren {
     var owner: String
     var name: String
 }

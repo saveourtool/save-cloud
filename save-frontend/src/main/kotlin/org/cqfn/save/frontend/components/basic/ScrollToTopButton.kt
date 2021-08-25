@@ -9,7 +9,7 @@ import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
 import org.w3c.dom.SMOOTH
 import org.w3c.dom.ScrollBehavior
 import org.w3c.dom.ScrollToOptions
-import react.RProps
+import react.PropsWithChildren
 import react.dom.a
 import react.fc
 import react.useEffect
@@ -25,7 +25,7 @@ import kotlinx.html.js.onClickFunction
  * @return a functional component
  */
 @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
-fun scrollToTopButton() = fc<RProps> {
+fun scrollToTopButton() = fc<PropsWithChildren> {
     val (isVisible, setIsVisible) = useState(false)
 
     useEffect(emptyList<dynamic>()) {

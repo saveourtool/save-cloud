@@ -6,7 +6,7 @@
 
 package org.cqfn.save.frontend.components.basic
 
-import react.RProps
+import react.PropsWithChildren
 import react.dom.div
 import react.dom.input
 import react.fc
@@ -17,7 +17,7 @@ import kotlinx.html.js.onClickFunction
 /**
  * Props for ChecboxGrid component
  */
-external interface CheckBoxGridProps : RProps {
+external interface CheckBoxGridProps : PropsWithChildren {
     /**
      * Length of row of checkboxes
      */

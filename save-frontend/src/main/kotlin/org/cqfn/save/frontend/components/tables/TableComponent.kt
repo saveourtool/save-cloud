@@ -10,7 +10,7 @@ import org.cqfn.save.frontend.components.modal.errorModal
 import org.cqfn.save.frontend.utils.spread
 
 import kotlinext.js.jsObject
-import react.RProps
+import react.PropsWithChildren
 import react.dom.button
 import react.dom.div
 import react.dom.em
@@ -44,7 +44,7 @@ import kotlinx.html.js.onClickFunction
 /**
  * [RProps] of a data table
  */
-external interface TableProps : RProps {
+external interface TableProps : PropsWithChildren {
     /**
      * Table header
      */
