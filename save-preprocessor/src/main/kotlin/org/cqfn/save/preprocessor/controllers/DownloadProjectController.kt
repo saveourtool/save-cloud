@@ -56,6 +56,8 @@ import reactor.netty.http.client.HttpClientRequest
 
 import java.io.File
 import java.io.FileOutputStream
+import java.nio.file.Files
+import java.nio.file.Paths
 import java.time.Duration
 import java.util.stream.Collectors
 
@@ -286,7 +288,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
             it.toHash()
         })
         files.forEach {
-            it.renameTo(tmpDir.resolve(it))
+            Files.move(Paths.get(it.absolutePath), Paths.get((tmpDir.resolve(it)).absolutePath))
         }
         val project = executionRequestForStandardSuites.project
         val propertiesRelativePath = "save.properties"
