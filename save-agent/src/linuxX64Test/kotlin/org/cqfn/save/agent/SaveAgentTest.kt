@@ -32,13 +32,13 @@ class SaveAgentTest {
     }
     private val saveAgentForTest = SaveAgent(configuration, httpClient = HttpClient(MockEngine) {
         install(JsonFeature) {
-            serializer = KotlinxSerializer()
+            serializer = KotlinxSerializer(json)
         }
         engine {
             addHandler { request ->
                 when (request.url.encodedPath) {
                     "/heartbeat" -> respond(
-                        Json.encodeToString(PolymorphicSerializer(HeartbeatResponse::class), ContinueResponse),
+                        json.encodeToString(PolymorphicSerializer(HeartbeatResponse::class), ContinueResponse),
                         HttpStatusCode.OK,
                         headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString())
                     )
