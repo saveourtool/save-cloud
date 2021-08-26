@@ -55,7 +55,7 @@ class DownloadFilesController(
      * @param file a file to be uploaded
      * @return [Mono] with response
      */
-    @PostMapping(value = ["/upload"], consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
+    @PostMapping(value = ["/files/upload"], consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     fun upload(@RequestPart("file") file: Mono<FilePart>) =
             fileSystemRepository.saveFile(file).map { size ->
                 ResponseEntity.status(

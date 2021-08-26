@@ -90,7 +90,7 @@ class DownloadFilesTest {
         }
             .build()
 
-        webTestClient.post().uri("/upload")
+        webTestClient.post().uri("/files/upload")
             .contentType(MediaType.MULTIPART_FORM_DATA)
             .body(BodyInserters.fromMultipartData(body))
             .exchange()
