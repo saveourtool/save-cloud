@@ -10,7 +10,7 @@ import org.cqfn.save.domain.getSdkVersions
 import org.cqfn.save.domain.sdks
 
 import org.w3c.dom.HTMLSelectElement
-import react.RProps
+import react.PropsWithChildren
 import react.dom.RDOMBuilder
 import react.dom.div
 import react.dom.h5
@@ -26,7 +26,7 @@ import kotlinx.html.js.onChangeFunction
 /**
  * Props for SdkSelection component
  */
-external interface SdkProps : RProps {
+external interface SdkProps : PropsWithChildren {
     /**
      * Name of the selected SDK
      */

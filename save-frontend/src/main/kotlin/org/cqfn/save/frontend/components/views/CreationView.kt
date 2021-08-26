@@ -15,9 +15,9 @@ import org.w3c.dom.HTMLTextAreaElement
 import org.w3c.dom.events.Event
 import org.w3c.fetch.Headers
 import org.w3c.fetch.Response
+import react.PropsWithChildren
 import react.RBuilder
 import react.RComponent
-import react.RProps
 import react.State
 import react.dom.attrs
 import react.dom.button
@@ -61,7 +61,7 @@ external interface ProjectSaveViewState : State {
  */
 @JsExport
 @OptIn(ExperimentalJsExport::class)
-class CreationView : RComponent<RProps, ProjectSaveViewState>() {
+class CreationView : RComponent<PropsWithChildren, ProjectSaveViewState>() {
     private val projectFieldsMap: MutableMap<String, String> = mutableMapOf()
     private val gitFieldsMap: MutableMap<String, String> = mutableMapOf()
     private lateinit var responseFromCreationProject: Response
