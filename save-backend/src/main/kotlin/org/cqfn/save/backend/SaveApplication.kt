@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories
 import org.springframework.http.ResponseEntity
 import org.springframework.web.reactive.config.EnableWebFlux
 
+typealias ByteArrayResponse = ResponseEntity<ByteArray>
 typealias StringResponse = ResponseEntity<String>
 typealias EmptyResponse = ResponseEntity<Void>
 

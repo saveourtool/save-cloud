@@ -1,5 +1,6 @@
 package org.cqfn.save.backend.controllers
 
+import org.cqfn.save.backend.ByteArrayResponse
 import org.cqfn.save.backend.repository.FileSystemRepository
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -24,6 +25,9 @@ class DownloadFilesController(
 ) {
     private val logger = LoggerFactory.getLogger(DownloadFilesController::class.java)
 
+    /**
+     * @return a list of files in [fileSystemRepository]
+     */
     @GetMapping("/files/list")
     fun list(): List<String> = fileSystemRepository.getFilesList().map {
         // todo: return additional information too
@@ -31,18 +35,19 @@ class DownloadFilesController(
     }
 
     /**
+     * @param name name of a file to download
      * @return [Mono] with file contents
      */
     @GetMapping(value = ["/files/download/{name}"], produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
-    fun download(@PathVariable("name") name: String): Mono<ResponseEntity<ByteArray>> = Mono.fromCallable {
+    fun download(@PathVariable("name") name: String): Mono<ByteArrayResponse> = Mono.fromCallable {
         logger.info("Sending file $name to a client")
         ResponseEntity.ok().contentType(MediaType.APPLICATION_OCTET_STREAM).body(
             fileSystemRepository.getFile(name).inputStream.readAllBytes()
         )
     }
-        .onErrorResume {
-            if (it is FileNotFoundException) {
-                logger.warn("File $name is not found", it)
+        .onErrorResume { throwable ->
+            if (throwable is FileNotFoundException) {
+                logger.warn("File $name is not found", throwable)
                 Mono.just(
                     ResponseEntity
                         .status(HttpStatus.NOT_FOUND)
@@ -50,7 +55,7 @@ class DownloadFilesController(
                         .build()
                 )
             } else {
-                throw it
+                throw throwable
             }
         }
 

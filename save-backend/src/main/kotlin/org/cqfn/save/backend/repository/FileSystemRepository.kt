@@ -17,6 +17,9 @@ import kotlin.io.path.listDirectoryEntries
 import kotlin.io.path.notExists
 import kotlin.io.path.outputStream
 
+/**
+ * A repository which gives access to the files in a designated file system location
+ */
 @Repository
 class FileSystemRepository(configProperties: ConfigProperties) {
     private val rootDir = Paths.get(configProperties.fileStorage.location).apply {
@@ -25,17 +28,28 @@ class FileSystemRepository(configProperties: ConfigProperties) {
         }
     }
 
+    /**
+     * @return list of files in [rootDir]
+     */
     fun getFilesList() = rootDir
         .listDirectoryEntries()
 
+    /**
+     * @param relativePath path to a file relative to [rootDir]
+     * @return requested file as a [FileSystemResource]
+     */
     fun getFile(relativePath: String): FileSystemResource =
             rootDir.resolve(relativePath).let(::FileSystemResource)
 
+    /**
+     * @param file a file to save
+     */
     fun saveFile(file: Path) {
         file.copyTo(rootDir, overwrite = false)
     }
 
     /**
+     * @param parts file parts
      * @return Mono with number of bytes saved
      */
     fun saveFile(parts: Mono<FilePart>): Mono<Long> = parts.flatMap { part ->
