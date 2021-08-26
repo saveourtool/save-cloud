@@ -13,9 +13,9 @@ import org.cqfn.save.frontend.utils.post
 import org.cqfn.save.frontend.utils.unsafeMap
 
 import org.w3c.fetch.Headers
+import react.PropsWithChildren
 import react.RBuilder
 import react.RComponent
-import react.RProps
 import react.State
 import react.buildElement
 import react.child
@@ -37,7 +37,7 @@ import kotlinx.serialization.json.Json
 /**
  * [RProps] for execution results view
  */
-external interface ExecutionProps : RProps {
+external interface ExecutionProps : PropsWithChildren {
     /**
      * ID of execution
      */

@@ -7,9 +7,9 @@ package org.cqfn.save.frontend.components
 import org.cqfn.save.frontend.components.modal.logoutModal
 import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
 
+import react.PropsWithChildren
 import react.RBuilder
 import react.RComponent
-import react.RProps
 import react.State
 import react.dom.RDOMBuilder
 import react.dom.a
@@ -33,7 +33,7 @@ import kotlinx.html.role
 /**
  * [RProps] of the top bor component
  */
-external interface TopBarProps : RProps {
+external interface TopBarProps : PropsWithChildren {
     /**
      * Currently logged in user or null
      */

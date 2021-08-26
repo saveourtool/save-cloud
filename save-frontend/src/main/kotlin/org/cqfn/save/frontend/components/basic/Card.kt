@@ -8,7 +8,7 @@ package org.cqfn.save.frontend.components.basic
 
 import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
 
-import react.RProps
+import react.PropsWithChildren
 import react.dom.RDOMBuilder
 import react.dom.div
 import react.fc
@@ -18,7 +18,7 @@ import kotlinx.html.DIV
 /**
  * [RProps] for card component
  */
-external interface CardProps : RProps {
+external interface CardProps : PropsWithChildren {
     /**
      * Color of card's left border, look in bootstrap for available options.
      * Default value: `"primary"`.

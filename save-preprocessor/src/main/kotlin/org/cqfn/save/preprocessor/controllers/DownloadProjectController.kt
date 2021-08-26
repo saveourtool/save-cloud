@@ -19,6 +19,7 @@ import org.cqfn.save.preprocessor.TextResponse
 import org.cqfn.save.preprocessor.config.ConfigProperties
 import org.cqfn.save.preprocessor.service.TestDiscoveringService
 import org.cqfn.save.preprocessor.utils.decodeFromPropertiesFile
+import org.cqfn.save.preprocessor.utils.toHash
 import org.cqfn.save.testsuite.TestSuiteDto
 import org.cqfn.save.testsuite.TestSuiteType
 
@@ -32,6 +33,7 @@ import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
 import org.slf4j.LoggerFactory
 import org.springframework.core.io.ClassPathResource
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.http.ReactiveHttpOutputMessage
 import org.springframework.http.ResponseEntity
 import org.springframework.http.codec.multipart.FilePart
@@ -53,6 +55,7 @@ import reactor.kotlin.core.util.function.component2
 import reactor.netty.http.client.HttpClientRequest
 
 import java.io.File
+import java.io.FileOutputStream
 import java.time.Duration
 import java.util.stream.Collectors
 
@@ -73,13 +76,33 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
     private val webClientOrchestrator = WebClient.create(configProperties.orchestrator)
 
     /**
-     * @param executionRequest - Dto of repo information to clone and project info
+     * @param executionRequest Dto of repo information to clone and project info
+     * @param files resources required for execution
      * @return response entity with text
      */
-    @PostMapping("/upload")
-    fun upload(@RequestBody executionRequest: ExecutionRequest): Mono<TextResponse> = Mono.just(ResponseEntity("Clone pending", HttpStatus.ACCEPTED))
+    @PostMapping("/upload", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
+    fun upload(
+        @RequestPart(required = true) executionRequest: ExecutionRequest,
+        @RequestPart("file", required = false) files: Flux<FilePart>,
+    ): Mono<TextResponse> = Mono.just(ResponseEntity("Clone pending", HttpStatus.ACCEPTED))
         .doOnSuccess {
             downLoadRepository(executionRequest)
+                .flatMap { (location, version) ->
+                    val resourcesLocation = File(configProperties.repository)
+                        .resolve(location)
+                        .resolve(executionRequest.propertiesRelativePath)
+                        .parentFile
+                    log.info("Downloading additional files into $resourcesLocation")
+                    files.download(resourcesLocation)
+                        .switchIfEmpty(
+                            // if no files have been provided, proceed with empty list
+                            Mono.just(emptyList())
+                        )
+                        .map {
+                            log.info("Downloaded ${it.size} files into $resourcesLocation")
+                            Pair(location, version)
+                        }
+                }
                 .flatMap { (location, version) ->
                     updateExecution(executionRequest.project, location, version).map { execution ->
                         Pair(execution, location)
@@ -99,29 +122,21 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         }
 
     /**
-     * @param executionRequestForStandardSuites - Dto of binary file, test suites names and project info
-     * @param propertyFile
-     * @param binaryFile
+     * @param executionRequestForStandardSuites Dto of binary file, test suites names and project info
+     * @param files resources for execution
      * @return response entity with text
      */
-    @Suppress("TOO_MANY_LINES_IN_LAMBDA")
+
     @PostMapping(value = ["/uploadBin"], consumes = ["multipart/form-data"])
     fun uploadBin(
         @RequestPart executionRequestForStandardSuites: ExecutionRequestForStandardSuites,
-        @RequestPart("property", required = true) propertyFile: Mono<FilePart>,
-        @RequestPart("binFile", required = true) binaryFile: Mono<FilePart>,
+        @RequestPart("file", required = true) files: Flux<FilePart>,
     ) = Mono.just(ResponseEntity("Clone pending", HttpStatus.ACCEPTED))
         .doOnSuccess { _ ->
-            val binFile = File("program")
-            val propFile = File("save.properties")
-            Mono.zip(
-                propertyFile.flatMapMany { it.content() }.collectList(),
-                binaryFile.flatMapMany { it.content() }.collectList()
-            ).flatMap { (propertyFileContent, binaryFileContent) ->
-                propertyFileContent.map { dtBuffer -> propFile.outputStream().use { dtBuffer.asInputStream().copyTo(it) } }
-                binaryFileContent.map { dtBuffer -> binFile.outputStream().use { dtBuffer.asInputStream().copyTo(it) } }
-                saveBinaryFile(executionRequestForStandardSuites, propFile, binFile)
-            }
+            files.download(File("."))
+                .flatMap { files ->
+                    saveBinaryFile(executionRequestForStandardSuites, files)
+                }
                 .subscribeOn(Schedulers.boundedElastic())
                 .subscribe()
         }
@@ -175,7 +190,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
     fun uploadStandardTestSuite() {
         readStandardTestSuitesFile(configProperties.reposFileName).forEach { (testSuiteUrl, testSuitePaths) ->
             log.info("Starting clone repository url=$testSuiteUrl for standard test suites")
-            val tmpDir = generateDirectory(testSuiteUrl)
+            val tmpDir = generateDirectory(listOf(testSuiteUrl))
             cloneFromGit(GitDto(testSuiteUrl), tmpDir)?.use {
                 Flux.fromIterable(testSuitePaths).flatMap { testRootPath ->
                     log.info("Starting to discover root test config in test root path: $testRootPath")
@@ -234,9 +249,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         "UnsafeCallOnNullableType")
     private fun downLoadRepository(executionRequest: ExecutionRequest): Mono<Pair<String, String>> {
         val gitDto = executionRequest.gitDto
-
-        val tmpDir = generateDirectory(gitDto.url)
-
+        val tmpDir = generateDirectory(listOf(gitDto.url))
         return Mono.fromCallable {
             cloneFromGit(gitDto, tmpDir)?.use { git ->
                 executionRequest.gitDto.hash?.let { hash ->
@@ -267,19 +280,19 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
 
     private fun saveBinaryFile(
         executionRequestForStandardSuites: ExecutionRequestForStandardSuites,
-        propertyFile: File,
-        binFile: File,
+        files: List<File>,
     ): Mono<StatusResponse> {
-        val tmpDir = generateDirectory(binFile.name)
-        val pathToProperties = tmpDir.resolve(propertyFile.name)
-        propertyFile.copyTo(pathToProperties)
-        propertyFile.delete()
-        binFile.copyTo(tmpDir.resolve(binFile.name))
-        binFile.delete()
+        val tmpDir = generateDirectory(files.map {
+            it.toHash()
+        })
+        files.forEach {
+            it.renameTo(tmpDir.resolve(it))
+        }
         val project = executionRequestForStandardSuites.project
-        val propertiesRelativePath = pathToProperties.relativeTo(tmpDir).name
+        val propertiesRelativePath = "save.properties"
         // todo: what's with version?
-        return updateExecution(executionRequestForStandardSuites.project, tmpDir.name, binFile.name).flatMap { execution ->
+        val version = files.first().name
+        return updateExecution(executionRequestForStandardSuites.project, tmpDir.name, version).flatMap { execution ->
             sendToBackendAndOrchestrator(
                 execution,
                 project,
@@ -297,15 +310,21 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         }
     }
 
-    private fun generateDirectory(dirName: String): File {
-        val hashName = dirName.hashCode()
+    /**
+     * Create a temporary directory with name based on [seeds]
+     *
+     * @param seeds a list of strings for directory name creation
+     * @return a [File] representing the created temporary directory
+     */
+    internal fun generateDirectory(seeds: List<String>): File {
+        val hashName = seeds.hashCode()
         val tmpDir = File("${configProperties.repository}/$hashName")
         if (tmpDir.exists()) {
             tmpDir.deleteRecursively()
-            log.info("For $dirName file: dir $tmpDir was deleted")
+            log.info("For $seeds: dir $tmpDir was deleted")
         }
         tmpDir.mkdirs()
-        log.info("For $dirName repository: dir $tmpDir was created")
+        log.info("For $seeds: dir $tmpDir was created")
         return tmpDir
     }
 
@@ -353,6 +372,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                 ) { it.toEntity<HttpStatus>() }
             }
     }
+
     private fun getExecution(executionId: Long) = webClientBackend.get()
         .uri("${configProperties.backend}/execution?id=$executionId")
         .retrieve()
@@ -476,6 +496,24 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
             }
         return toBody(responseSpec).log()
     }
+    private fun Flux<FilePart>.download(destination: File): Mono<List<File>> = flatMap { filePart ->
+        val file = File(destination, filePart.filename()).apply {
+            createNewFile()
+        }
+        // todo: don't use `filename()`
+        log.info("Downloading ${filePart.filename()} into ${file.absolutePath}")
+        filePart.content().map { dtBuffer ->
+            FileOutputStream(file, true).use { os ->
+                dtBuffer.asInputStream().use {
+                    it.copyTo(os)
+                }
+            }
+            file
+        }
+            // return a single Mono per file, discarding how many parts `content()` has
+            .last()
+    }
+        .collectList()
 }
 
 /**

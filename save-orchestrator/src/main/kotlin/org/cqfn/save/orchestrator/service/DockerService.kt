@@ -109,7 +109,14 @@ class DockerService(private val configProperties: ConfigProperties) {
      */
     fun removeImage(imageName: String) {
         log.info("Removing image $imageName")
-        containerManager.dockerClient.removeImageCmd(imageName).exec()
+        val existingImages = containerManager.dockerClient.listImagesCmd().exec().map {
+            it.id
+        }
+        if (imageName in existingImages) {
+            containerManager.dockerClient.removeImageCmd(imageName).exec()
+        } else {
+            log.info("Image $imageName is not present, so won't attempt to remove")
+        }
     }
 
     /**
@@ -118,7 +125,14 @@ class DockerService(private val configProperties: ConfigProperties) {
      */
     fun removeContainer(containerId: String) {
         log.info("Removing container $containerId")
-        containerManager.dockerClient.removeContainerCmd(containerId).exec()
+        val existingContainerIds = containerManager.dockerClient.listContainersCmd().exec().map {
+            it.id
+        }
+        if (containerId in existingContainerIds) {
+            containerManager.dockerClient.removeContainerCmd(containerId).exec()
+        } else {
+            log.info("Container $containerId is not present, so won't attempt to remove")
+        }
     }
 
     @Suppress("TOO_LONG_FUNCTION", "UnsafeCallOnNullableType")
