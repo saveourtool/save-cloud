@@ -8,7 +8,7 @@ package org.cqfn.save.frontend.components.basic
 
 import org.w3c.dom.HTMLInputElement
 import org.w3c.files.File
-import react.RProps
+import react.PropsWithChildren
 import react.dom.attrs
 import react.dom.div
 import react.dom.h6
@@ -25,7 +25,7 @@ import kotlinx.html.js.onChangeFunction
 /**
  * Props for file uploader
  */
-external interface UploaderProps : RProps {
+external interface UploaderProps : PropsWithChildren {
     /**
      * List of provided files
      */

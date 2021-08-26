@@ -70,12 +70,12 @@ class HeartbeatController(private val agentService: AgentService,
                         }
                     AgentState.FINISHED -> {
                         agentService.checkSavedData()
-                        Mono.just(WaitResponse())
+                        Mono.just(WaitResponse)
                     }
-                    AgentState.BUSY -> Mono.just(ContinueResponse())
-                    AgentState.BACKEND_FAILURE -> Mono.just(WaitResponse())
-                    AgentState.BACKEND_UNREACHABLE -> Mono.just(WaitResponse())
-                    AgentState.CLI_FAILED -> Mono.just(WaitResponse())
+                    AgentState.BUSY -> Mono.just(ContinueResponse)
+                    AgentState.BACKEND_FAILURE -> Mono.just(WaitResponse)
+                    AgentState.BACKEND_UNREACHABLE -> Mono.just(WaitResponse)
+                    AgentState.CLI_FAILED -> Mono.just(WaitResponse)
                 }
             )
             .map {

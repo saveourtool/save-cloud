@@ -10,14 +10,14 @@ import org.w3c.dom.Element
 import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.HTMLElement
 import react.Component
-import react.RProps
+import react.PropsWithChildren
 import react.ReactElement
 import react.State
 
 /**
  * [RProps] of modal component
  */
-external interface ModalProps : RProps {
+external interface ModalProps : PropsWithChildren {
     /**
      * Boolean describing if the modal should be shown or not. Defaults to false.
      */
@@ -104,7 +104,7 @@ external interface OnAfterOpenCallback {
 @JsModule("react-modal")
 @JsNonModule
 @JsName("ModalPortal")
-external class ReactModalPortal : Component<RProps, State> {
+external class ReactModalPortal : Component<PropsWithChildren, State> {
     /**
      * Content of the modal portal
      */
