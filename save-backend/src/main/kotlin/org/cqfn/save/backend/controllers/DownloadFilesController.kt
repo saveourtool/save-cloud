@@ -2,6 +2,7 @@ package org.cqfn.save.backend.controllers
 
 import org.cqfn.save.backend.ByteArrayResponse
 import org.cqfn.save.backend.repository.FileSystemRepository
+import org.cqfn.save.domain.FileInfo
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -14,6 +15,8 @@ import org.springframework.web.bind.annotation.RequestPart
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
 import java.io.FileNotFoundException
+import kotlin.io.path.fileSize
+import kotlin.io.path.getLastModifiedTime
 import kotlin.io.path.name
 
 /**
@@ -29,9 +32,12 @@ class DownloadFilesController(
      * @return a list of files in [fileSystemRepository]
      */
     @GetMapping("/files/list")
-    fun list(): List<String> = fileSystemRepository.getFilesList().map {
-        // todo: return additional information too
-        it.name
+    fun list(): List<FileInfo> = fileSystemRepository.getFilesList().map {
+        FileInfo(
+            it.name,
+            it.getLastModifiedTime().toMillis(),
+            it.fileSize(),
+        )
     }
 
     /**

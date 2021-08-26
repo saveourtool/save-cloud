@@ -11,6 +11,7 @@ import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.repository.TestExecutionRepository
 import org.cqfn.save.backend.repository.TestRepository
 import org.cqfn.save.backend.repository.TestSuiteRepository
+import org.cqfn.save.domain.FileInfo
 import org.junit.jupiter.api.Assertions
 
 import org.junit.jupiter.api.Test
@@ -29,6 +30,7 @@ import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
+import org.springframework.test.web.reactive.server.expectBodyList
 import org.springframework.web.reactive.function.BodyInserters
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -74,6 +76,20 @@ class DownloadFilesTest {
             .expectStatus().isOk
             .expectBody().consumeWith {
                 Assertions.assertArrayEquals("Lorem ipsum${System.lineSeparator()}".toByteArray(), it.responseBody)
+            }
+
+        webTestClient.get().uri("/files/list")
+            .exchange()
+            .expectStatus().isOk
+            .expectBodyList<FileInfo>()
+            .hasSize(1)
+            .consumeWith<WebTestClient.ListBodySpec<FileInfo>> {
+                Assertions.assertEquals(
+                    "sample-name", it.responseBody!!.first().name
+                )
+                Assertions.assertTrue(
+                    it.responseBody!!.first().sizeBytes > 0
+                )
             }
     }
 
