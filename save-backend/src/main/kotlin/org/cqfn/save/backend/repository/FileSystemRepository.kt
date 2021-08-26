@@ -10,14 +10,20 @@ import java.nio.file.Paths
 import java.nio.file.StandardOpenOption.APPEND
 import java.util.stream.Collectors
 import kotlin.io.path.copyTo
+import kotlin.io.path.createDirectories
 import kotlin.io.path.createFile
+import kotlin.io.path.exists
 import kotlin.io.path.listDirectoryEntries
 import kotlin.io.path.notExists
 import kotlin.io.path.outputStream
 
 @Repository
 class FileSystemRepository(configProperties: ConfigProperties) {
-    private val rootDir = Paths.get(configProperties.fileStorage.location)
+    private val rootDir = Paths.get(configProperties.fileStorage.location).apply {
+        if (!exists()) {
+            createDirectories()
+        }
+    }
 
     fun getFilesList() = rootDir
         .listDirectoryEntries()

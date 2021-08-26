@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestPart
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
 import java.io.FileNotFoundException
-import java.nio.file.Path
+import kotlin.io.path.name
 
 /**
  * A Spring controller for file downloading
@@ -25,7 +25,10 @@ class DownloadFilesController(
     private val logger = LoggerFactory.getLogger(DownloadFilesController::class.java)
 
     @GetMapping("/files/list")
-    fun list(): List<Path> = fileSystemRepository.getFilesList()
+    fun list(): List<String> = fileSystemRepository.getFilesList().map {
+        // todo: return additional information too
+        it.name
+    }
 
     /**
      * @return [Mono] with file contents
