@@ -53,7 +53,7 @@ class FileSystemRepository(configProperties: ConfigProperties) {
      * @return Mono with number of bytes saved
      */
     fun saveFile(parts: Mono<FilePart>): Mono<Long> = parts.flatMap { part ->
-        Paths.get(part.filename()).run {
+        rootDir.resolve(part.filename()).run {
             if (notExists()) {
                 createFile()
             }
