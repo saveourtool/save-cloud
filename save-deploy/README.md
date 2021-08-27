@@ -18,11 +18,13 @@ Deployment is performed on server via docker swarm or locally via docker-compose
 * Server should run Linux and support docker swarm and gvisor runtime. Ideally, kernel 5.+ is required.
 * Gvisor should be installed and runsc runtime should be available for docker. See [installation guide](https://gvisor.dev/docs/user_guide/install/) for details.
 * Ensure that docker daemon is running and that docker is in swarm mode.
-* Pull new changes to the server and run `./gradlew deployDockerStack`.
+* Secrets should be added to the swarm as well as to `$HOME/secrets` file.
+* Pull new changes to the server and run `./gradlew -Pprofile=prod deployDockerStack`.
 
 ## Local deployment
 * Ensure that docker daemon is running and docker-compose is installed.
-* Run `./gradlew deployLocal -Pprofile=dev` to start only some components.
+* To make things easier, add line `save.profile=dev` to `gradle.properties`. This will make project version `SNAPSHOT` instead of timetamp-based suffix and allow caching of gradle tasks.
+* Run `./gradlew deployLocal -Pprofile=dev` to start the database and microservices.
 
 #### Note:
 If a snapshot version of save-cli is required (i.e., the one which is not available on GitHub releases), then it can be
