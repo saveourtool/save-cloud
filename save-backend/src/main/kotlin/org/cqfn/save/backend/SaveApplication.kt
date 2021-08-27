@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories
 import org.springframework.http.ResponseEntity
 import org.springframework.web.reactive.config.EnableWebFlux
 
+typealias ByteArrayResponse = ResponseEntity<ByteArray>
 typealias StringResponse = ResponseEntity<String>
 typealias EmptyResponse = ResponseEntity<Void>
 
@@ -20,7 +21,7 @@ typealias EmptyResponse = ResponseEntity<Void>
 @EnableJpaRepositories(basePackages = ["org.cqfn.save.backend.repository"])
 @EntityScan("org.cqfn.save.entities")
 @EnableConfigurationProperties(ConfigProperties::class)
-open class SaveApplication
+class SaveApplication
 
 fun main(args: Array<String>) {
     SpringApplication.run(SaveApplication::class.java, *args)
