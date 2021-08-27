@@ -14,9 +14,9 @@ import org.cqfn.save.frontend.utils.unsafeMap
 
 import kotlinext.js.jsObject
 import org.w3c.fetch.Headers
+import react.PropsWithChildren
 import react.RBuilder
 import react.RComponent
-import react.RProps
 import react.State
 import react.buildElement
 import react.child
@@ -32,7 +32,7 @@ import kotlinx.datetime.Instant
 /**
  * [RProps] for tests execution history
  */
-external interface HistoryProps : RProps {
+external interface HistoryProps : PropsWithChildren {
     /**
      * Project owner
      */

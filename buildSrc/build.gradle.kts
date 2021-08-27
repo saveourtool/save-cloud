@@ -7,7 +7,7 @@ repositories {
     mavenCentral()
 }
 
-val kotlinVersion = "1.5.21"
+val kotlinVersion = "1.5.30"
 dependencies {
     runtimeOnly(kotlin("gradle-plugin", kotlinVersion))
     implementation("org.springframework.boot:spring-boot-gradle-plugin:2.4.5")

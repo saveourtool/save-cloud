@@ -4,8 +4,8 @@
 
 package org.cqfn.save.frontend.components.views
 
-import org.cqfn.save.domain.getSdkVersion
-import org.cqfn.save.domain.sdks
+import org.cqfn.save.domain.Sdk
+import org.cqfn.save.domain.getSdkVersions
 import org.cqfn.save.domain.toSdk
 import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.ExecutionRequestForStandardSuites
@@ -13,6 +13,9 @@ import org.cqfn.save.entities.GitDto
 import org.cqfn.save.entities.Project
 import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.frontend.components.basic.cardComponent
+import org.cqfn.save.frontend.components.basic.checkBoxGrid
+import org.cqfn.save.frontend.components.basic.fileUploader
+import org.cqfn.save.frontend.components.basic.sdkSelection
 import org.cqfn.save.frontend.externals.modal.modal
 import org.cqfn.save.frontend.utils.decodeFromJsonString
 import org.cqfn.save.frontend.utils.get
@@ -22,17 +25,15 @@ import org.cqfn.save.frontend.utils.runErrorModal
 import org.cqfn.save.testsuite.TestSuiteDto
 
 import org.w3c.dom.HTMLInputElement
-import org.w3c.dom.HTMLSelectElement
+import org.w3c.dom.asList
 import org.w3c.fetch.Headers
-import org.w3c.fetch.Response
 import org.w3c.files.Blob
 import org.w3c.files.BlobPropertyBag
 import org.w3c.files.File
-import org.w3c.files.get
 import org.w3c.xhr.FormData
+import react.PropsWithChildren
 import react.RBuilder
 import react.RComponent
-import react.RProps
 import react.State
 import react.child
 import react.dom.a
@@ -42,16 +43,10 @@ import react.dom.defaultValue
 import react.dom.div
 import react.dom.h1
 import react.dom.h4
-import react.dom.h5
 import react.dom.h6
-import react.dom.img
 import react.dom.input
-import react.dom.label
-import react.dom.option
 import react.dom.p
-import react.dom.select
 import react.dom.span
-import react.dom.strong
 import react.setState
 
 import kotlinx.browser.window
@@ -60,8 +55,6 @@ import kotlinx.coroutines.launch
 import kotlinx.html.ButtonType
 import kotlinx.html.InputType
 import kotlinx.html.classes
-import kotlinx.html.hidden
-import kotlinx.html.id
 import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
 import kotlinx.html.role
@@ -72,24 +65,19 @@ import kotlinx.serialization.json.Json
  * [RProps] retrieved from router
  */
 @Suppress("MISSING_KDOC_CLASS_ELEMENTS")
-external interface ProjectExecutionRouteProps : RProps {
+external interface ProjectExecutionRouteProps : PropsWithChildren {
     var owner: String
     var name: String
 }
 
 /**
- * [RState] of project view component
+ * [State] of project view component
  */
 external interface ProjectViewState : State {
     /**
-     * Binary file of project
+     * Files required for tests execution for this project
      */
-    var binaryFile: File?
-
-    /**
-     * Property file for project
-     */
-    var propertyFile: File?
+    var files: List<File>
 
     /**
      * Message of error
@@ -128,14 +116,11 @@ external interface ProjectViewState : State {
 }
 
 /**
- * A functional RComponent for project view
- * Each modal opening call re render full page, that why we need to use state for all fields
- *
- * @return a functional component
+ * A Component for project view
+ * Each modal opening call causes re-render of the whole page, that's why we need to use state for all fields
  */
 @JsExport
 @OptIn(ExperimentalJsExport::class)
-@Suppress("CUSTOM_GETTERS_SETTERS")
 class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
     private var testTypesList: List<TestSuiteDto> = emptyList()
     private var pathToProperty: String? = null
@@ -143,8 +128,6 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
     private val selectedTypes: MutableList<String> = mutableListOf()
     private var gitDto: GitDto? = null
     private var project = Project("stub", "stub", "stub", "stub")
-    private val allSdks = sdks
-    private lateinit var responseFromExecutionRequest: Response
 
     init {
         state.isErrorOpen = false
@@ -155,17 +138,18 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
 
         state.isLoading = true
 
-        state.selectedSdk = "Default"
-        state.selectedSdkVersion = "latest"
+        state.files = emptyList()
+        state.selectedSdk = Sdk.Default.name
+        state.selectedSdkVersion = Sdk.Default.version
     }
 
     override fun componentDidMount() {
         GlobalScope.launch {
             project = getProject(props.name, props.owner)
             val jsonProject = Json.encodeToString(project)
-            val headers = Headers().also {
-                it.set("Accept", "application/json")
-                it.set("Content-Type", "application/json")
+            val headers = Headers().apply {
+                set("Accept", "application/json")
+                set("Content-Type", "application/json")
             }
             gitDto = post("${window.location.origin}/getGit", headers, jsonProject)
                 .decodeFromJsonString<GitDto>()
@@ -197,19 +181,11 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                 }
                 return
             }
-            state.binaryFile ?: run {
+            if (state.files.isEmpty()) {
                 setState {
                     isErrorOpen = true
-                    errorLabel = "No binary file has been selected"
-                    errorMessage = "Please select binary file"
-                }
-                return
-            }
-            state.propertyFile ?: run {
-                setState {
-                    isErrorOpen = true
-                    errorLabel = "No property file has been selected"
-                    errorMessage = "Please upload save.properties file"
+                    errorLabel = "No files have been selected"
+                    errorMessage = "Please provide files necessary for execution"
                 }
                 return
             }
@@ -224,13 +200,15 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
         val selectedSdk = "${state.selectedSdk}:${state.selectedSdkVersion}".toSdk()
         val request = ExecutionRequestForStandardSuites(project, selectedTypes, selectedSdk)
         formData.append("execution", Blob(arrayOf(Json.encodeToString(request)), BlobPropertyBag("application/json")))
-        formData.append("property", state.propertyFile!!)
-        formData.append("binFile", state.binaryFile!!)
+        state.files.forEach {
+            formData.append("file", it)
+        }
         submitRequest("/submitExecutionRequestBin", headers, formData)
     }
 
     private fun submitExecutionRequestGit(correctGitDto: GitDto) {
         val selectedSdk = "${state.selectedSdk}:${state.selectedSdkVersion}".toSdk()
+        val formData = FormData()
         val executionRequest = pathToProperty?.let {
             ExecutionRequest(
                 project,
@@ -245,27 +223,36 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
             sdk = selectedSdk,
             executionId = null)
         val jsonExecution = Json.encodeToString(executionRequest)
-        val headers = Headers().also {
-            it.set("Accept", "application/json")
-            it.set("Content-Type", "application/json")
+        formData.append("executionRequest", Blob(arrayOf(jsonExecution), BlobPropertyBag("application/json")))
+        state.files.forEach {
+            formData.append("file", it)
         }
-        submitRequest("/submitExecutionRequest", headers, jsonExecution)
+        submitRequest("/submitExecutionRequest", Headers(), formData)
     }
 
     private fun submitRequest(url: String, headers: Headers, body: dynamic) {
+        setState {
+            isLoading = true
+        }
         GlobalScope.launch {
-            responseFromExecutionRequest = post(window.location.origin + url, headers, body)
-        }.invokeOnCompletion {
-            if (responseFromExecutionRequest.ok) {
-                window.location.href = "${window.location}/history"
-            } else {
-                setState {
-                    isErrorOpen = true
-                    errorLabel = "Error from backend"
-                    errorMessage = responseFromExecutionRequest.statusText
+            val response = post(window.location.origin + url, headers, body)
+            if (!response.ok) {
+                response.text().then { text ->
+                    setState {
+                        isErrorOpen = true
+                        errorLabel = "Error from backend"
+                        errorMessage = "${response.statusText}: $text"
+                    }
                 }
+            } else {
+                window.location.href = "${window.location}/history"
             }
         }
+            .invokeOnCompletion {
+                setState {
+                    isLoading = false
+                }
+            }
     }
 
     @Suppress("TOO_LONG_FUNCTION", "LongMethod", "ComplexMethod")
@@ -378,6 +365,11 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                                             }
                                         }
                                     }
+                                    child(fileUploader {
+                                        setState { files = it.files!!.asList() }
+                                    }) {
+                                        attrs.files = state.files
+                                    }
                                 }
                             }
 
@@ -393,126 +385,29 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                                     setOf("d-none")
                                 }
                                 div("card-body") {
-                                    div("mb-3") {
-                                        h6(classes = "d-inline mr-3") {
-                                            +"Binary file: "
-                                        }
-                                        div {
-                                            label {
-                                                input(type = InputType.file) {
-                                                    attrs.hidden = true
-                                                    attrs {
-                                                        onChangeFunction = { event ->
-                                                            val target = event.target as HTMLInputElement
-                                                            setState { binaryFile = target.files?.let { it[0] } }
-                                                        }
-                                                    }
-                                                }
-                                                img(classes = "img-upload", src = "img/upload.svg") {}
-                                                strong { +"Upload binary file:" }
-                                                +(state.binaryFile?.name ?: "")
-                                            }
-                                        }
+                                    child(fileUploader {
+                                        setState { files = it.files!!.asList() }
+                                    }) {
+                                        attrs.files = state.files
                                     }
-                                    div {
-                                        h6(classes = "d-inline mr-3") {
-                                            +"Properties : "
-                                        }
-                                        div {
-                                            label {
-                                                input(type = InputType.file) {
-                                                    attrs.hidden = true
-                                                    attrs {
-                                                        onChangeFunction = { event ->
-                                                            val target = event.target as HTMLInputElement
-                                                            setState { propertyFile = target.files?.let { it[0] } }
-                                                        }
-                                                    }
-                                                }
-                                                img(classes = "img-upload", src = "img/upload.svg") {}
-                                                strong { +"Upload property file: " }
-                                                +(state.propertyFile?.name ?: "")
-                                            }
-                                        }
-                                    }
-                                    div {
-                                        testTypesList
-                                            .map { it.name }
-                                            .chunked(TEST_SUITE_ROW)
-                                            .forEach { rowTypes ->
-                                                div("row") {
-                                                    rowTypes.forEach { typeName ->
-                                                        div("col") {
-                                                            +typeName
-                                                            input(type = InputType.checkBox, classes = "ml-3") {
-                                                                attrs.defaultChecked = selectedTypes.contains(typeName)
-                                                                attrs.onClickFunction = {
-                                                                    if (selectedTypes.contains(typeName)) {
-                                                                        selectedTypes.remove(typeName)
-                                                                    } else {
-                                                                        selectedTypes.add(typeName)
-                                                                    }
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
+                                    child(checkBoxGrid(testTypesList.map { it.name })) {
+                                        attrs.selectedOptions = selectedTypes
+                                        attrs.rowSize = TEST_SUITE_ROW
                                     }
                                 }
                             }
                         }
 
-                        div {
-                            div {
-                                div("d-inline-block") {
-                                    h5 {
-                                        +"SDK:"
-                                    }
-                                }
-                                div("d-inline-block ml-2") {
-                                    select("form-control form-control mb-3") {
-                                        attrs.value = state.selectedSdk
-                                        attrs.onChangeFunction = {
-                                            val target = it.target as HTMLSelectElement
-                                            setState {
-                                                selectedSdk = target.value
-                                                selectedSdkVersion = selectedSdk.getSdkVersion().first()
-                                            }
-                                        }
-                                        allSdks.forEach {
-                                            option {
-                                                attrs.value = it
-                                                +it
-                                            }
-                                        }
-                                    }
-                                }
+                        child(sdkSelection({
+                            setState {
+                                selectedSdk = it.value
+                                selectedSdkVersion = selectedSdk.getSdkVersions().first()
                             }
-                            div {
-                                attrs.classes =
-                                        if (state.selectedSdk == "Default") setOf("d-none") else setOf("d-inline ml-3")
-                                div("d-inline-block") {
-                                    h6 {
-                                        +"SDK's version:"
-                                    }
-                                }
-                                div("d-inline-block ml-2") {
-                                    select("form-select form-select-sm mb-3") {
-                                        attrs.value = state.selectedSdkVersion
-                                        attrs.onChangeFunction = {
-                                            val target = it.target as HTMLSelectElement
-                                            setState { selectedSdkVersion = target.value }
-                                        }
-                                        state.selectedSdk.getSdkVersion().forEach {
-                                            option {
-                                                attrs.value = it
-                                                +it
-                                            }
-                                        }
-                                    }
-                                }
-                            }
+                        }, {
+                            setState { selectedSdkVersion = it.value }
+                        })) {
+                            attrs.selectedSdk = state.selectedSdk
+                            attrs.selectedSdkVersion = state.selectedSdkVersion
                         }
 
                         div {
@@ -552,24 +447,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                             +"Latest execution"
                             attrs.onClickFunction = {
                                 GlobalScope.launch {
-                                    val headers = Headers().apply { set("Accept", "application/json") }
-                                    val response = get(
-                                        "${window.location.origin}/latestExecution?name=${project.name}&owner=${project.owner}",
-                                        headers
-                                    )
-                                    if (!response.ok) {
-                                        setState {
-                                            errorLabel = "Failed to fetch latest execution"
-                                            errorMessage =
-                                                    "Failed to fetch latest execution: ${response.status} ${response.statusText}"
-                                            isErrorOpen = true
-                                        }
-                                    } else {
-                                        val latestExecutionId = response
-                                            .decodeFromJsonString<ExecutionDto>()
-                                            .id
-                                        window.location.href = "${window.location}/history/$latestExecutionId"
-                                    }
+                                    switchToLatestExecution()
                                 }
                             }
                         }
@@ -601,6 +479,27 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                     +"Loading..."
                 }
             }
+        }
+    }
+
+    private suspend fun switchToLatestExecution() {
+        val headers = Headers().apply { set("Accept", "application/json") }
+        val response = get(
+            "${window.location.origin}/latestExecution?name=${project.name}&owner=${project.owner}",
+            headers
+        )
+        if (!response.ok) {
+            setState {
+                errorLabel = "Failed to fetch latest execution"
+                errorMessage =
+                        "Failed to fetch latest execution: ${response.status} ${response.statusText}"
+                isErrorOpen = true
+            }
+        } else {
+            val latestExecutionId = response
+                .decodeFromJsonString<ExecutionDto>()
+                .id
+            window.location.href = "${window.location}/history/$latestExecutionId"
         }
     }
 

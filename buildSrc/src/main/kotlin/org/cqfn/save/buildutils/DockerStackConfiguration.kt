@@ -84,7 +84,7 @@ fun Project.createStackDeployTask(profile: String) {
         errorOutput = ByteArrayOutputStream()
         doLast {
             if (!errorOutput.toString().contains(" is up-to-date")) {
-                logger.info("Waiting $MYSQL_STARTUP_DELAY_MILLIS millis for mysql to start")
+                logger.lifecycle("Waiting $MYSQL_STARTUP_DELAY_MILLIS millis for mysql to start")
                 Thread.sleep(MYSQL_STARTUP_DELAY_MILLIS)  // wait for mysql to start, can be manually increased when needed
             }
         }

@@ -15,6 +15,7 @@ import org.cqfn.save.preprocessor.controllers.DownloadProjectController
 import org.cqfn.save.preprocessor.controllers.readStandardTestSuitesFile
 import org.cqfn.save.preprocessor.service.TestDiscoveringService
 import org.cqfn.save.preprocessor.utils.RepositoryVolume
+import org.cqfn.save.preprocessor.utils.toHash
 import org.cqfn.save.testsuite.TestSuiteType
 
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -54,9 +55,6 @@ import java.time.LocalDateTime
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
 
-import kotlin.io.path.ExperimentalPathApi
-
-@ExperimentalPathApi
 @WebFluxTest(controllers = [DownloadProjectController::class])
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @AutoConfigureWebTestClient(timeout = "60000")
@@ -96,10 +94,14 @@ class DownloadProjectTest(
             MockResponse().setResponseCode(200)
         )
 
+        val multipart = MultipartBodyBuilder().apply {
+            part("executionRequest", request)
+        }
+            .build()
         webClient.post()
             .uri("/upload")
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(BodyInserters.fromValue(request))
+            .contentType(MediaType.MULTIPART_FORM_DATA)
+            .body(BodyInserters.fromMultipartData(multipart))
             .exchange()
             .expectStatus()
             .isAccepted
@@ -157,16 +159,21 @@ class DownloadProjectTest(
                 mockServerOrchestrator.takeRequest(60, TimeUnit.SECONDS)
             )
         }
+        val multipart = MultipartBodyBuilder().apply {
+            part("executionRequest", request)
+        }
+            .build()
         webClient.post()
             .uri("/upload")
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(BodyInserters.fromValue(request))
+            .contentType(MediaType.MULTIPART_FORM_DATA)
+            .body(BodyInserters.fromMultipartData(multipart))
             .exchange()
             .expectStatus()
             .isAccepted
             .expectBody<String>()
             .isEqualTo("Clone pending")
-        Assertions.assertTrue(File("${configProperties.repository}/${validRepo.url.hashCode()}").exists())
+        val dirName = listOf(validRepo.url).hashCode()
+        Assertions.assertTrue(File("${configProperties.repository}/$dirName").exists())
         assertions.orTimeout(60, TimeUnit.SECONDS).join().forEach { Assertions.assertNotNull(it) }
     }
 
@@ -190,8 +197,8 @@ class DownloadProjectTest(
         val request = ExecutionRequestForStandardSuites(project, emptyList(), Sdk.Default)
         val bodyBuilder = MultipartBodyBuilder()
         bodyBuilder.part("executionRequestForStandardSuites", request)
-        bodyBuilder.part("property", FileSystemResource(property))
-        bodyBuilder.part("binFile", FileSystemResource(binFile))
+        bodyBuilder.part("file", FileSystemResource(property))
+        bodyBuilder.part("file", FileSystemResource(binFile))
 
         mockServerBackend.enqueue(
             MockResponse()
@@ -233,13 +240,14 @@ class DownloadProjectTest(
             .isEqualTo("Clone pending")
         Thread.sleep(2500)
 
-        Assertions.assertTrue(File("${configProperties.repository}/${binFile.name.hashCode()}").exists())
+        val dirName = listOf(property, binFile).map { it.toHash() }.hashCode()
+        Assertions.assertTrue(File("${configProperties.repository}/$dirName").exists())
         assertions.orTimeout(60, TimeUnit.SECONDS).join().forEach { Assertions.assertNotNull(it) }
-        Assertions.assertEquals("echo 0", File("${configProperties.repository}/${binFile.name.hashCode()}/program").readText())
+        Assertions.assertEquals("echo 0", File("${configProperties.repository}/$dirName/${binFile.name}").readText())
     }
 
-    @ExperimentalFileSystem
     @Test
+    @OptIn(ExperimentalFileSystem::class)
     fun testStandardTestSuites() {
         val requestSize = readStandardTestSuitesFile(configProperties.reposFileName)
             .toList()
@@ -348,12 +356,12 @@ class DownloadProjectTest(
         )
         val assertions = CompletableFuture.supplyAsync {
             sequenceOf(
-                mockServerBackend.takeRequest(360, TimeUnit.SECONDS),
-                mockServerOrchestrator.takeRequest(360, TimeUnit.SECONDS),
-                mockServerBackend.takeRequest(360, TimeUnit.SECONDS),
-                mockServerBackend.takeRequest(360, TimeUnit.SECONDS),
-                mockServerBackend.takeRequest(360, TimeUnit.SECONDS),
-                mockServerOrchestrator.takeRequest(360, TimeUnit.SECONDS),
+                mockServerBackend.takeRequest(60, TimeUnit.SECONDS),
+                mockServerOrchestrator.takeRequest(60, TimeUnit.SECONDS),
+                mockServerBackend.takeRequest(60, TimeUnit.SECONDS),
+                mockServerBackend.takeRequest(60, TimeUnit.SECONDS),
+                mockServerBackend.takeRequest(60, TimeUnit.SECONDS),
+                mockServerOrchestrator.takeRequest(60, TimeUnit.SECONDS),
             ).onEach {
                 logger.info("Request $it")
             }
@@ -368,8 +376,9 @@ class DownloadProjectTest(
             .isAccepted
             .expectBody<String>()
             .isEqualTo("Clone pending")
+        Thread.sleep(15_000)
 
-        assertions.orTimeout(360, TimeUnit.SECONDS).join().forEach { Assertions.assertNotNull(it) }
+        assertions.orTimeout(60, TimeUnit.SECONDS).join().forEach { Assertions.assertNotNull(it) }
     }
 
     @AfterEach
