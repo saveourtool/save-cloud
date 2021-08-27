@@ -34,6 +34,7 @@ import kotlinx.html.InputType
 import kotlinx.html.hidden
 import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
+import org.cqfn.save.frontend.utils.toPrettyString
 
 /**
  * Props for file uploader
@@ -77,7 +78,7 @@ fun fileUploader(
                                 onFileRemove(fileInfo)
                             }
                         }
-                        +"$fileInfo"
+                        +fileInfo.toPrettyString()
                     }
                 }
                 li("list-group-item d-flex justify-content-between align-items-center") {
@@ -90,9 +91,7 @@ fun fileUploader(
                         props.availableFiles.map {
                             option("list-group-item") {
                                 attrs.value = it.name
-                                +"${it.name} (uploaded ${
-                                    Instant.fromEpochMilliseconds(it.uploadedMillis).toLocalDateTime(
-                                        TimeZone.UTC)}, size ${it.sizeBytes / 1024} KiB)"
+                                +it.toPrettyString()
                             }
                         }
                         attrs.onChangeFunction = {
