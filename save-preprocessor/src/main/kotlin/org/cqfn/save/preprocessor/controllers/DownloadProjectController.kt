@@ -76,6 +76,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
     private val log = LoggerFactory.getLogger(DownloadProjectController::class.java)
     private val webClientBackend = WebClient.create(configProperties.backend)
     private val webClientOrchestrator = WebClient.create(configProperties.orchestrator)
+    private val scheduler = Schedulers.boundedElastic()
 
     /**
      * @param executionRequest Dto of repo information to clone and project info
@@ -119,7 +120,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                         null
                     )
                 }
-                .subscribeOn(Schedulers.boundedElastic())
+                .subscribeOn(scheduler)
                 .subscribe()
         }
 
@@ -139,7 +140,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                 .flatMap { files ->
                     saveBinaryFile(executionRequestForStandardSuites, files)
                 }
-                .subscribeOn(Schedulers.boundedElastic())
+                .subscribeOn(scheduler)
                 .subscribe()
         }
 
@@ -179,7 +180,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                     )
                 }
                 .log()
-                .subscribeOn(Schedulers.boundedElastic())
+                .subscribeOn(scheduler)
                 .subscribe()
         }
 
