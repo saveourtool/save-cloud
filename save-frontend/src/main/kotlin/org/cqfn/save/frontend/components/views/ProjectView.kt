@@ -59,6 +59,7 @@ import kotlinx.html.classes
 import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
 import kotlinx.html.role
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -213,10 +214,9 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
         val selectedSdk = "${state.selectedSdk}:${state.selectedSdkVersion}".toSdk()
         val request = ExecutionRequestForStandardSuites(project, selectedTypes, selectedSdk)
         formData.append("execution", Blob(arrayOf(Json.encodeToString(request)), BlobPropertyBag("application/json")))
-        // todo!
-        // state.files.forEach {
-        // formData.append("file", it)
-        // }
+        state.files.forEach {
+           formData.append("file", Json.encodeToString(it))
+        }
         submitRequest("/submitExecutionRequestBin", headers, formData)
     }
 
@@ -238,10 +238,9 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
             executionId = null)
         val jsonExecution = Json.encodeToString(executionRequest)
         formData.append("executionRequest", Blob(arrayOf(jsonExecution), BlobPropertyBag("application/json")))
-        // todo!
-        // state.files.forEach {
-        // formData.append("file", it)
-        // }
+         state.files.forEach {
+            formData.append("file", Json.encodeToString(it))
+         }
         submitRequest("/submitExecutionRequest", Headers(), formData)
     }
 

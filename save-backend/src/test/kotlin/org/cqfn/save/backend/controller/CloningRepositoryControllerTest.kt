@@ -21,6 +21,9 @@ import org.cqfn.save.entities.Project
 import com.fasterxml.jackson.databind.ObjectMapper
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
+import org.cqfn.save.backend.repository.FileSystemRepository
+import org.cqfn.save.domain.FileInfo
+import org.cqfn.save.domain.toFileInfo
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -32,6 +35,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.boot.test.mock.mockito.MockBeans
+import org.springframework.context.annotation.Import
 import org.springframework.core.io.FileSystemResource
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -43,9 +47,12 @@ import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
 
 import java.io.File
+import java.nio.file.Path
 import java.time.Duration
+import kotlin.io.path.createFile
 
 @WebFluxTest(controllers = [CloneRepositoryController::class])
+@Import(FileSystemRepository::class)
 @EnableConfigurationProperties(ConfigProperties::class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @MockBeans(
@@ -62,12 +69,14 @@ import java.time.Duration
 class CloningRepositoryControllerTest {
     @Autowired private lateinit var objectMapper: ObjectMapper
 
+    @Autowired private lateinit var fileSystemRepository: FileSystemRepository
+
     @Autowired
     lateinit var webTestClient: WebTestClient
 
     @MockBean
     lateinit var projectService: ProjectService
-    @TempDir internal lateinit var tmpDir: File
+    @TempDir internal lateinit var tmpDir: Path
 
     @BeforeEach
     fun webClientSetUp() {
@@ -106,12 +115,15 @@ class CloningRepositoryControllerTest {
 
     @Test
     fun checkNewJobResponseForBin() {
-        val binFile: File = tmpDir.resolve("binFile").apply {
-            createNewFile()
+        val binFile = tmpDir.resolve("binFile").apply {
+            println("Creating $this")
+            createFile()
         }
-        val property: File = tmpDir.resolve("property").apply {
-            createNewFile()
+        val property = tmpDir.resolve("property").apply {
+            createFile()
         }
+        fileSystemRepository.saveFile(binFile)
+        fileSystemRepository.saveFile(property)
 
         val project = Project("Huawei", "huaweiName", "huawei.com", "test description").apply {
             id = 1
@@ -120,8 +132,8 @@ class CloningRepositoryControllerTest {
         val request = ExecutionRequestForStandardSuites(project, emptyList(), sdk)
         val bodyBuilder = MultipartBodyBuilder()
         bodyBuilder.part("execution", request)
-        bodyBuilder.part("file", FileSystemResource(property))
-        bodyBuilder.part("file", FileSystemResource(binFile))
+        bodyBuilder.part("file", property.toFileInfo())
+        bodyBuilder.part("file", binFile.toFileInfo())
 
         mockServerPreprocessor.enqueue(
             MockResponse()

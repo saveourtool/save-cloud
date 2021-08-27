@@ -13,6 +13,7 @@ kotlin {
         binaries.executable()  // already default for LEGACY, but explicitly needed for IR
         sourceSets.all {
             languageSettings.optIn("kotlin.RequiresOptIn")
+            languageSettings.optIn("kotlinx.serialization.ExperimentalSerializationApi")
         }
         sourceSets["main"].dependencies {
             implementation(project(":save-cloud-common"))

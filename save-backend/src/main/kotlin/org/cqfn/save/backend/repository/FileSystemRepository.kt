@@ -47,7 +47,7 @@ class FileSystemRepository(configProperties: ConfigProperties) {
      * @param file a file to save
      */
     fun saveFile(file: Path) {
-        file.copyTo(rootDir, overwrite = false)
+        file.copyTo(rootDir.resolve(file.name), overwrite = false)
     }
 
     /**

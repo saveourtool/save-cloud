@@ -2,8 +2,10 @@ package org.cqfn.save.backend.controllers
 
 import org.cqfn.save.backend.StringResponse
 import org.cqfn.save.backend.configs.ConfigProperties
+import org.cqfn.save.backend.repository.FileSystemRepository
 import org.cqfn.save.backend.service.ExecutionService
 import org.cqfn.save.backend.service.ProjectService
+import org.cqfn.save.domain.FileInfo
 import org.cqfn.save.domain.Sdk
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.ExecutionRequest
@@ -39,6 +41,7 @@ import java.time.LocalDateTime
 class CloneRepositoryController(
     private val projectService: ProjectService,
     private val executionService: ExecutionService,
+    private val fileSystemRepository: FileSystemRepository,
     private val configProperties: ConfigProperties,
 ) {
     private val log = LoggerFactory.getLogger(CloneRepositoryController::class.java)
@@ -54,7 +57,7 @@ class CloneRepositoryController(
     @PostMapping(value = ["/submitExecutionRequest"], consumes = ["multipart/form-data"])
     fun submitExecutionRequest(
         @RequestPart(required = true) executionRequest: ExecutionRequest,
-        @RequestPart("file", required = false) files: Flux<FilePart>,
+        @RequestPart("file", required = false) files: Flux<FileInfo>,
     ): Mono<StringResponse> = sendToPreprocessor(
         executionRequest,
         ExecutionType.GIT,
@@ -73,7 +76,7 @@ class CloneRepositoryController(
     @PostMapping(value = ["/submitExecutionRequestBin"], consumes = ["multipart/form-data"])
     fun submitExecutionRequestByBin(
         @RequestPart("execution", required = true) executionRequestForStandardSuites: ExecutionRequestForStandardSuites,
-        @RequestPart("file", required = true) files: Flux<FilePart>,
+        @RequestPart("file", required = true) files: Flux<FileInfo>,
     ): Mono<StringResponse> = sendToPreprocessor(
         executionRequestForStandardSuites,
         ExecutionType.STANDARD,
@@ -85,7 +88,7 @@ class CloneRepositoryController(
     private fun sendToPreprocessor(
         executionRequest: ExecutionRequestBase,
         executionType: ExecutionType,
-        files: Flux<FilePart>,
+        files: Flux<FileInfo>,
         configure: MultipartBodyBuilder.(newExecutionId: Long) -> Unit
     ): Mono<StringResponse> {
         val project = with(executionRequest.project) {
@@ -130,8 +133,8 @@ class CloneRepositoryController(
         .retrieve()
         .toEntity<String>()
 
-    private fun Flux<FilePart>.collectToMultipart(multipartBodyBuilder: MultipartBodyBuilder) = map {
-        multipartBodyBuilder.part("file", it)
+    private fun Flux<FileInfo>.collectToMultipart(multipartBodyBuilder: MultipartBodyBuilder) = map {
+        multipartBodyBuilder.part("file", fileSystemRepository.getFile(it.name))
     }
         .collectList()
         .switchIfEmpty(Mono.just(emptyList()))
