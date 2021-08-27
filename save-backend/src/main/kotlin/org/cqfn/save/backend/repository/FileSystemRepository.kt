@@ -1,6 +1,7 @@
 package org.cqfn.save.backend.repository
 
 import org.cqfn.save.backend.configs.ConfigProperties
+import org.cqfn.save.domain.FileInfo
 import org.springframework.core.io.FileSystemResource
 import org.springframework.http.codec.multipart.FilePart
 import org.springframework.stereotype.Repository
@@ -14,6 +15,7 @@ import kotlin.io.path.createDirectories
 import kotlin.io.path.createFile
 import kotlin.io.path.exists
 import kotlin.io.path.listDirectoryEntries
+import kotlin.io.path.name
 import kotlin.io.path.notExists
 import kotlin.io.path.outputStream
 
@@ -52,7 +54,8 @@ class FileSystemRepository(configProperties: ConfigProperties) {
      * @param parts file parts
      * @return Mono with number of bytes saved
      */
-    fun saveFile(parts: Mono<FilePart>): Mono<Long> = parts.flatMap { part ->
+    fun saveFile(parts: Mono<FilePart>): Mono<FileInfo> = parts.flatMap { part ->
+        val uploadedMillis = System.currentTimeMillis()
         rootDir.resolve(part.filename()).run {
             if (notExists()) {
                 createFile()
@@ -65,6 +68,9 @@ class FileSystemRepository(configProperties: ConfigProperties) {
                 }
             }
                 .collect(Collectors.summingLong { it })
+                .map {
+                    FileInfo(name, uploadedMillis, it)
+                }
         }
     }
 }

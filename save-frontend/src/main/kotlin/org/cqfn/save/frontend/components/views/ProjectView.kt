@@ -4,6 +4,7 @@
 
 package org.cqfn.save.frontend.components.views
 
+import org.cqfn.save.domain.FileInfo
 import org.cqfn.save.domain.Sdk
 import org.cqfn.save.domain.getSdkVersions
 import org.cqfn.save.domain.toSdk
@@ -22,6 +23,7 @@ import org.cqfn.save.frontend.utils.get
 import org.cqfn.save.frontend.utils.getProject
 import org.cqfn.save.frontend.utils.post
 import org.cqfn.save.frontend.utils.runErrorModal
+import org.cqfn.save.frontend.utils.unsafeMap
 import org.cqfn.save.testsuite.TestSuiteDto
 
 import org.w3c.dom.HTMLInputElement
@@ -29,7 +31,6 @@ import org.w3c.dom.asList
 import org.w3c.fetch.Headers
 import org.w3c.files.Blob
 import org.w3c.files.BlobPropertyBag
-import org.w3c.files.File
 import org.w3c.xhr.FormData
 import react.PropsWithChildren
 import react.RBuilder
@@ -77,7 +78,12 @@ external interface ProjectViewState : State {
     /**
      * Files required for tests execution for this project
      */
-    var files: List<File>
+    var files: MutableList<FileInfo>
+
+    /**
+     * Files that are available on server side
+     */
+    var availableFiles: MutableList<FileInfo>
 
     /**
      * Message of error
@@ -138,7 +144,8 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
 
         state.isLoading = true
 
-        state.files = emptyList()
+        state.files = mutableListOf()
+        state.availableFiles = mutableListOf()
         state.selectedSdk = Sdk.Default.name
         state.selectedSdkVersion = Sdk.Default.version
     }
@@ -155,7 +162,13 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                 .decodeFromJsonString<GitDto>()
             testTypesList = get("${window.location.origin}/allStandardTestSuites", headers)
                 .decodeFromJsonString()
-            setState { isLoading = false }
+
+            val availableFiles = getFilesList()
+            setState {
+                this.availableFiles.clear()
+                this.availableFiles.addAll(availableFiles)
+                isLoading = false
+            }
         }
     }
 
@@ -200,9 +213,10 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
         val selectedSdk = "${state.selectedSdk}:${state.selectedSdkVersion}".toSdk()
         val request = ExecutionRequestForStandardSuites(project, selectedTypes, selectedSdk)
         formData.append("execution", Blob(arrayOf(Json.encodeToString(request)), BlobPropertyBag("application/json")))
-        state.files.forEach {
-            formData.append("file", it)
-        }
+        // todo!
+        // state.files.forEach {
+        // formData.append("file", it)
+        // }
         submitRequest("/submitExecutionRequestBin", headers, formData)
     }
 
@@ -224,9 +238,10 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
             executionId = null)
         val jsonExecution = Json.encodeToString(executionRequest)
         formData.append("executionRequest", Blob(arrayOf(jsonExecution), BlobPropertyBag("application/json")))
-        state.files.forEach {
-            formData.append("file", it)
-        }
+        // todo!
+        // state.files.forEach {
+        // formData.append("file", it)
+        // }
         submitRequest("/submitExecutionRequest", Headers(), formData)
     }
 
@@ -365,11 +380,6 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                                             }
                                         }
                                     }
-                                    child(fileUploader {
-                                        setState { files = it.files!!.asList() }
-                                    }) {
-                                        attrs.files = state.files
-                                    }
                                 }
                             }
 
@@ -385,11 +395,6 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                                     setOf("d-none")
                                 }
                                 div("card-body") {
-                                    child(fileUploader {
-                                        setState { files = it.files!!.asList() }
-                                    }) {
-                                        attrs.files = state.files
-                                    }
                                     child(checkBoxGrid(testTypesList.map { it.name })) {
                                         attrs.selectedOptions = selectedTypes
                                         attrs.rowSize = TEST_SUITE_ROW
@@ -398,6 +403,38 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                             }
                         }
 
+                        child(fileUploader({ element ->
+                            setState {
+                                files.add(availableFiles.first { it.name == element.value })
+                            }
+                        }, {
+                            setState {
+                                files.remove(it)
+                            }
+                        }) { htmlInputElement ->
+                            setState {
+                                files = htmlInputElement.files!!.asList().map {
+                                    FileInfo(it.name, it.lastModified.toLong(), it.size.toLong())
+                                }.toMutableList()
+                            }
+                            GlobalScope.launch {
+                                htmlInputElement.files!!.asList().forEach { file ->
+                                    val response: FileInfo = post(
+                                        "${window.location.origin}/files/upload",
+                                        Headers(),
+                                        FormData().apply {
+                                            append("file", file)
+                                        }
+                                    )
+                                        .decodeFromJsonString()
+                                    state.availableFiles.add(response)
+                                    state.files.add(response)
+                                }
+                            }
+                        }) {
+                            attrs.files = state.files
+                            attrs.availableFiles = state.availableFiles
+                        }
                         child(sdkSelection({
                             setState {
                                 selectedSdk = it.value
@@ -502,6 +539,11 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
             window.location.href = "${window.location}/history/$latestExecutionId"
         }
     }
+
+    private suspend fun getFilesList() = get("${window.location.origin}/files/list", Headers())
+        .unsafeMap {
+            it.decodeFromJsonString<List<FileInfo>>()
+        }
 
     companion object {
         const val TEST_SUITE_ROW = 4

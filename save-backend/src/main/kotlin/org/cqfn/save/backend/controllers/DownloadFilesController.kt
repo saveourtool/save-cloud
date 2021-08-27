@@ -71,10 +71,10 @@ class DownloadFilesController(
      */
     @PostMapping(value = ["/files/upload"], consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     fun upload(@RequestPart("file") file: Mono<FilePart>) =
-            fileSystemRepository.saveFile(file).map { size ->
+            fileSystemRepository.saveFile(file).map { fileInfo ->
                 ResponseEntity.status(
-                    if (size > 0) HttpStatus.OK else HttpStatus.INTERNAL_SERVER_ERROR
+                    if (fileInfo.sizeBytes > 0) HttpStatus.OK else HttpStatus.INTERNAL_SERVER_ERROR
                 )
-                    .body("Saved $size bytes")
+                    .body(fileInfo)
             }
 }
