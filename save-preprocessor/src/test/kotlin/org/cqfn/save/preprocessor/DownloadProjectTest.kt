@@ -58,7 +58,7 @@ import java.util.concurrent.TimeUnit
 @WebFluxTest(controllers = [DownloadProjectController::class])
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @AutoConfigureWebTestClient(timeout = "60000")
-@Suppress("TOO_LONG_FUNCTION")
+@Suppress("TOO_LONG_FUNCTION", "LongMethod")
 class DownloadProjectTest(
     @Autowired private val webClient: WebTestClient,
     @Autowired private val configProperties: ConfigProperties,
