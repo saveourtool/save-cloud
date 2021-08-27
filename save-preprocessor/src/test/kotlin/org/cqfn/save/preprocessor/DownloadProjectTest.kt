@@ -376,7 +376,7 @@ class DownloadProjectTest(
             .isAccepted
             .expectBody<String>()
             .isEqualTo("Clone pending")
-        Thread.sleep(5_000)
+        Thread.sleep(15_000)
 
         assertions.orTimeout(60, TimeUnit.SECONDS).join().forEach { Assertions.assertNotNull(it) }
     }
