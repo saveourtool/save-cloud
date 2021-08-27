@@ -4,24 +4,27 @@ SAVE Cloud contains the following microservices:
 * backend: REST API for DB
 * test-preprocessor: clones projects for test and discovers tests
 * orchestrator: moderates distributed execution of tests, feeds new batches of tests to a set of agents
+save-cloud uses MySQL as a database. Liquibase (via gradle plugin) is used for schema initialization and migration.
 
 ## Building
 * Prerequisites: some components require additional system packages. See [save-agent](../save-agent/README.md) description for details.
   save-frontend requires node.js installation.
 * To build the project and run all tests, execute `./gradlew build`.
 * For deployment, all microservices are packaged as docker images with the version based on latest git tag and latest commit hash, if there are commits after tag.
-To build release version after you create git tag, make sure to run gradle with `-Preckon.stage=final`.
 
 Deployment is performed on server via docker swarm or locally via docker-compose. See detailed information below.
 
 ## Server deployment
+* Server should run Linux and support docker swarm and gvisor runtime. Ideally, kernel 5.+ is required.
 * Gvisor should be installed and runsc runtime should be available for docker. See [installation guide](https://gvisor.dev/docs/user_guide/install/) for details.
 * Ensure that docker daemon is running and that docker is in swarm mode.
-* Pull new changes to the server and run `./gradlew deployDockerStack`.
+* Secrets should be added to the swarm as well as to `$HOME/secrets` file.
+* Pull new changes to the server and run `./gradlew -Pprofile=prod deployDockerStack`.
 
 ## Local deployment
 * Ensure that docker daemon is running and docker-compose is installed.
-* Run `./gradlew deployLocal -Pprofile=dev` to start only some components.
+* To make things easier, add line `save.profile=dev` to `gradle.properties`. This will make project version `SNAPSHOT` instead of timetamp-based suffix and allow caching of gradle tasks.
+* Run `./gradlew deployLocal -Pprofile=dev` to start the database and microservices.
 
 #### Note:
 If a snapshot version of save-cli is required (i.e., the one which is not available on GitHub releases), then it can be
