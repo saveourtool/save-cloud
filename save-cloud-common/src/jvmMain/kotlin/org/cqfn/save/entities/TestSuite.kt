@@ -32,6 +32,8 @@ class TestSuite(
     var dateAdded: LocalDateTime? = null,
 
     var propertiesRelativePath: String,
+
+    var testSuiteRepoUrl: String = "not-provided"
 ) : BaseEntity() {
     /**
      * @return Dto of testSuite
@@ -41,5 +43,7 @@ class TestSuite(
                 this.type,
                 this.name,
                 this.project,
-                this.propertiesRelativePath)
+                this.propertiesRelativePath,
+                this.project?.url ?: testSuiteRepoUrl,
+            )
 }

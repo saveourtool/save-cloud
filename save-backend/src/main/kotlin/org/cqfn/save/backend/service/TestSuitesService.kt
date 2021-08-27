@@ -27,7 +27,7 @@ class TestSuitesService {
     @Suppress("UnsafeCallOnNullableType")
     fun saveTestSuite(testSuitesDto: List<TestSuiteDto>): List<TestSuite> {
         val testSuites = testSuitesDto
-            .map { TestSuite(it.type, it.name, it.project, null, it.propertiesRelativePath) }
+            .map { TestSuite(it.type, it.name, it.project, null, it.propertiesRelativePath, it.testSuiteRepoUrl) }
             .map { testSuite ->
                 // try to find TestSuite in the DB based on all non-null properties of `testSuite`
                 // NB: that's why `dateAdded` is null in the mapping above

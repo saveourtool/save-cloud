@@ -201,9 +201,9 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                     val rootTestConfig = testDiscoveringService.getRootTestConfig(testResourcesRootAbsolutePath)
                     log.info("Starting to discover standard test suites for root test config ${rootTestConfig.location}")
                     val propertiesRelativePath = "${rootTestConfig.directory.toFile().relativeTo(tmpDir)}${File.separator}save.properties"
-                    val tests = testDiscoveringService.getAllTestSuites(null, rootTestConfig, propertiesRelativePath)
+                    val tests = testDiscoveringService.getAllTestSuites(null, rootTestConfig, propertiesRelativePath, testSuiteUrl)
                     tests.forEach {
-                        println(it.name)
+                        println("${it.name} ${it.testSuiteRepoUrl}")
                     }
                     log.info("Test suites size = ${tests.size}")
                     log.info("Starting to save new test suites for root test config in $testRootPath")
@@ -306,7 +306,8 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                         TestSuiteType.STANDARD,
                         it,
                         project,
-                        propertiesRelativePath
+                        propertiesRelativePath,
+                        "not-provided",
                     )
                 }
             )
@@ -452,7 +453,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
     private fun discoverAndSaveTestSuites(project: Project?,
                                           rootTestConfig: TestConfig,
                                           propertiesRelativePath: String): Mono<List<TestSuite>> {
-        val testSuites: List<TestSuiteDto> = testDiscoveringService.getAllTestSuites(project, rootTestConfig, propertiesRelativePath)
+        val testSuites: List<TestSuiteDto> = testDiscoveringService.getAllTestSuites(project, rootTestConfig, propertiesRelativePath, project!!.url!!)
         return webClientBackend.makeRequest(BodyInserters.fromValue(testSuites), "/saveTestSuites") {
             it.bodyToMono()
         }

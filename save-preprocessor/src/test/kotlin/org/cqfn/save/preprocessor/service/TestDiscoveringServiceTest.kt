@@ -53,7 +53,8 @@ class TestDiscoveringServiceTest {
         val testSuites = testDiscoveringService.getAllTestSuites(
             Project("stub", "stub", "stub", null),
             rootTestConfig,
-            propertiesRelativePath
+            propertiesRelativePath,
+            "not-provided"
         )
 
         println("Discovered test suites: $testSuites")
@@ -67,7 +68,8 @@ class TestDiscoveringServiceTest {
             testDiscoveringService.getAllTestSuites(
                 Project("stub", "stub", "stub", null),
                 testDiscoveringService.getRootTestConfig(tmpDir.resolve("buildSrc").toString()),
-                propertiesRelativePath
+                propertiesRelativePath,
+                "not-provided"
             )
         }
     }
