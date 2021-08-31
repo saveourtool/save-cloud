@@ -2,6 +2,7 @@ package org.cqfn.save.backend.repository
 
 import org.cqfn.save.backend.configs.ConfigProperties
 import org.cqfn.save.domain.FileInfo
+import org.slf4j.LoggerFactory
 import org.springframework.core.io.FileSystemResource
 import org.springframework.http.codec.multipart.FilePart
 import org.springframework.stereotype.Repository
@@ -24,6 +25,8 @@ import kotlin.io.path.outputStream
  */
 @Repository
 class FileSystemRepository(configProperties: ConfigProperties) {
+    private val logger = LoggerFactory.getLogger(FileSystemRepository::class.java)
+
     private val rootDir = Paths.get(configProperties.fileStorage.location).apply {
         if (!exists()) {
             createDirectories()
@@ -47,7 +50,9 @@ class FileSystemRepository(configProperties: ConfigProperties) {
      * @param file a file to save
      */
     fun saveFile(file: Path) {
-        file.copyTo(rootDir.resolve(file.name), overwrite = false)
+        val destination = rootDir.resolve(file.name)
+        logger.info("Saving a new file into $destination")
+        file.copyTo(destination, overwrite = false)
     }
 
     /**
@@ -58,6 +63,7 @@ class FileSystemRepository(configProperties: ConfigProperties) {
         val uploadedMillis = System.currentTimeMillis()
         rootDir.resolve(part.filename()).run {
             if (notExists()) {
+                logger.info("Saving a new file from parts into $this")
                 createFile()
             }
             part.content().map { db ->
@@ -69,6 +75,7 @@ class FileSystemRepository(configProperties: ConfigProperties) {
             }
                 .collect(Collectors.summingLong { it })
                 .map {
+                    logger.info("Saved $it bytes into $this")
                     FileInfo(name, uploadedMillis, it)
                 }
         }

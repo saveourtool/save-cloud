@@ -234,14 +234,11 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
             correctGitDto,
             sdk = selectedSdk,
             executionId = null)
-        val jsonExecution = Json.encodeToString(executionRequest)
-        formData.appendJson("executionRequest", jsonExecution)
+        formData.appendJson("executionRequest", executionRequest)
          state.files.forEach {
              formData.appendJson("file", it)
          }
-        submitRequest("/submitExecutionRequest", Headers().apply {
-            append("Accept", "text/plain")
-        }, formData)
+        submitRequest("/submitExecutionRequest", Headers(), formData)
     }
 
     private fun submitRequest(url: String, headers: Headers, body: dynamic) {
