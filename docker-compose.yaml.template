@@ -39,6 +39,8 @@ services:
     secrets:
       - db_username
       - db_password
+    volumes:
+      - save-fs-storage:/home/cnb/
     ports:
       - "5000:5000"
     deploy:
@@ -101,6 +103,7 @@ services:
 
 volumes:
   save:
+  save-fs-storage:
   grafana-storage:
   prometheus-storage:
   loki-storage:
