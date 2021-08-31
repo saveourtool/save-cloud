@@ -56,13 +56,12 @@ import kotlinx.html.classes
 import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
 import kotlinx.html.role
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.cqfn.save.frontend.utils.appendJson
 
 /**
- * [RProps] retrieved from router
+ * `Props` retrieved from router
  */
 @Suppress("MISSING_KDOC_CLASS_ELEMENTS")
 external interface ProjectExecutionRouteProps : PropsWithChildren {
@@ -401,18 +400,21 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
 
                         child(fileUploader({ element ->
                             setState {
-                                files.add(availableFiles.first { it.name == element.value })
+                                val availableFile = availableFiles.first { it.name == element.value }
+                                files.add(availableFile)
+                                availableFiles.remove(availableFile)
                             }
                         }, {
                             setState {
                                 files.remove(it)
+                                this.availableFiles.add(it)
                             }
                         }) { htmlInputElement ->
                             GlobalScope.launch {
+                                setState {
+                                    isLoading = true
+                                }
                                 htmlInputElement.files!!.asList().forEach { file ->
-                                    setState {
-                                        isLoading = true
-                                    }
                                     val response: FileInfo = post(
                                         "${window.location.origin}/files/upload",
                                         Headers(),
@@ -422,10 +424,12 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                                     )
                                         .decodeFromJsonString()
                                     setState {
-                                        availableFiles.add(response)
+                                        // add only to selected files so that this entry isn't duplicated
                                         files.add(response)
-                                        isLoading = false
                                     }
+                                }
+                                setState {
+                                    isLoading = false
                                 }
                             }
                         }) {
