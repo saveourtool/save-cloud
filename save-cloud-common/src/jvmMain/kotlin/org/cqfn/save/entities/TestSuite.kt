@@ -33,7 +33,7 @@ class TestSuite(
 
     var propertiesRelativePath: String,
 
-    var testSuiteRepoUrl: String = "not-provided"
+    var testSuiteRepoUrl: String? = null
 ) : BaseEntity() {
     /**
      * @return Dto of testSuite
@@ -44,6 +44,6 @@ class TestSuite(
                 this.name,
                 this.project,
                 this.propertiesRelativePath,
-                this.project?.url ?: testSuiteRepoUrl,
+                this.project?.url,
             )
 }

@@ -203,7 +203,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                     val propertiesRelativePath = "${rootTestConfig.directory.toFile().relativeTo(tmpDir)}${File.separator}save.properties"
                     val tests = testDiscoveringService.getAllTestSuites(null, rootTestConfig, propertiesRelativePath, testSuiteUrl)
                     tests.forEach {
-                        println("${it.name} ${it.testSuiteRepoUrl}")
+                        println("${it.name} ${testSuiteUrl}")
                     }
                     log.info("Test suites size = ${tests.size}")
                     log.info("Starting to save new test suites for root test config in $testRootPath")
@@ -307,7 +307,6 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                         it,
                         project,
                         propertiesRelativePath,
-                        "not-provided",
                     )
                 }
             )

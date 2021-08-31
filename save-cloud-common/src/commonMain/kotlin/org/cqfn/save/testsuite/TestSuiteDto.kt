@@ -16,5 +16,5 @@ data class TestSuiteDto(
     val name: String,
     val project: Project? = null,
     val propertiesRelativePath: String,
-    val testSuiteRepoUrl: String,
+    val testSuiteRepoUrl: String? = null,
 )
