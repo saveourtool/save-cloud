@@ -308,7 +308,7 @@ class DownloadProjectTest(
     @Test
     @Suppress("LongMethod")
     fun `rerun execution`() {
-        val project = Project("owner", "someName", null, "descr").apply {
+        val project = Project("owner", "someName", "stub", "descr").apply {
             id = 42L
         }
         val execution = Execution(project, LocalDateTime.now(), LocalDateTime.now(), ExecutionStatus.PENDING, "1",

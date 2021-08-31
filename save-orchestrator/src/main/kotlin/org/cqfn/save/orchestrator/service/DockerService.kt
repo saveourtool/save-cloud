@@ -9,6 +9,7 @@ import org.cqfn.save.orchestrator.docker.ContainerManager
 import com.github.dockerjava.api.exception.DockerException
 import generated.SAVE_CORE_VERSION
 import org.apache.commons.io.FileUtils
+import org.cqfn.save.testsuite.TestSuiteDto
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
@@ -46,9 +47,9 @@ class DockerService(private val configProperties: ConfigProperties) {
      * @param execution [Execution] from which this workflow is started
      * @return list of IDs of created containers
      */
-    fun buildAndCreateContainers(execution: Execution): List<String> {
+    fun buildAndCreateContainers(execution: Execution, testSuiteDtos: List<TestSuiteDto>?): List<String> {
         log.info("Building base image for execution.id=${execution.id}")
-        val (imageId, runCmd) = buildBaseImageForExecution(execution)
+        val (imageId, runCmd) = buildBaseImageForExecution(execution, testSuiteDtos)
         log.info("Built base image for execution.id=${execution.id}")
         return (1..configProperties.agentsCount).map { number ->
             log.info("Building container #$number for execution.id=${execution.id}")
@@ -136,10 +137,9 @@ class DockerService(private val configProperties: ConfigProperties) {
     }
 
     @Suppress("TOO_LONG_FUNCTION", "UnsafeCallOnNullableType")
-    private fun buildBaseImageForExecution(execution: Execution): Pair<String, String> {
+    private fun buildBaseImageForExecution(execution: Execution, testSuiteDtos: List<TestSuiteDto>?): Pair<String, String> {
         println("\n\nconfigProperties.testResources.basePath ${configProperties.testResources.basePath}")
         println("execution.resourcesRootPath ${execution.resourcesRootPath}")
-        println("execution.workDir ${configProperties.workDir}")
         val resourcesPath = File(
             configProperties.testResources.basePath,
             execution.resourcesRootPath,

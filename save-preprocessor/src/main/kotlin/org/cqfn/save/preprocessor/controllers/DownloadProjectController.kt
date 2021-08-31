@@ -36,6 +36,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ReactiveHttpOutputMessage
 import org.springframework.http.ResponseEntity
+import org.springframework.http.client.MultipartBodyBuilder
 import org.springframework.http.codec.multipart.FilePart
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -363,7 +364,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         } else {
             prepareExecutionForStandard(testSuiteDtos!!)
         }
-            .then(initializeAgents(execution))
+            .then(initializeAgents(execution, testSuiteDtos))
             .onErrorResume { ex ->
                 log.error(
                     "Error during preprocessing, will mark execution.id=${execution.id} as failed; error: ",
@@ -473,11 +474,22 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
     /**
      * Post request to orchestrator to initiate its work
      */
-    private fun initializeAgents(execution: Execution) = webClientOrchestrator.makeRequest(
-        BodyInserters.fromValue(execution),
-        "/initializeAgents"
-    ) {
-        it.toEntity<HttpStatus>()
+    private fun initializeAgents(execution: Execution, testSuiteDtos: List<TestSuiteDto>?): Mono<ResponseEntity<HttpStatus>> {
+        val bodyBuilder = MultipartBodyBuilder().apply {
+            part("execution", execution)
+        }
+
+        if (testSuiteDtos != null) {
+            bodyBuilder.part("testSuiteDtos", testSuiteDtos)
+        }
+
+        return webClientOrchestrator
+            .post()
+            .uri("/initializeAgents")
+            .contentType(MediaType.MULTIPART_FORM_DATA)
+            .body(BodyInserters.fromMultipartData(bodyBuilder.build()))
+            .retrieve()
+            .toEntity<HttpStatus>()
     }
 
     private fun <M, T> WebClient.makeRequest(

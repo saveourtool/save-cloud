@@ -43,6 +43,9 @@ import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.createTempDirectory
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.cqfn.save.testsuite.TestSuiteDto
+import org.cqfn.save.testsuite.TestSuiteType
+import org.springframework.http.client.MultipartBodyBuilder
 
 @WebFluxTest(controllers = [AgentsController::class])
 @Import(AgentService::class, Beans::class)
@@ -78,7 +81,7 @@ class AgentsControllerTest {
             "stub", 0, 20, ExecutionType.GIT, "0.0.1", 0, 0, 0, Sdk.Default.toString()).apply {
             id = 42L
         }
-        whenever(dockerService.buildAndCreateContainers(any())).thenReturn(listOf("test-agent-id-1", "test-agent-id-2"))
+        whenever(dockerService.buildAndCreateContainers(any(), any())).thenReturn(listOf("test-agent-id-1", "test-agent-id-2"))
         // /addAgents
         mockServer.enqueue(MockResponse()
             .setResponseCode(200)
@@ -89,15 +92,19 @@ class AgentsControllerTest {
         mockServer.enqueue(MockResponse().setResponseCode(200))
         // /updateExecution is not mocked, because it's performed by DockerService, and it's mocked in these tests
 
+        val bodyBuilder = MultipartBodyBuilder().apply {
+            part("execution", execution)
+        }.build()
+
         webClient
             .post()
             .uri("/initializeAgents")
-            .body(BodyInserters.fromValue(execution))
+            .body(BodyInserters.fromMultipartData(bodyBuilder))
             .exchange()
             .expectStatus()
             .isOk
         Thread.sleep(2_500)  // wait for background task to complete on mocks
-        verify(dockerService).buildAndCreateContainers(any())
+        verify(dockerService).buildAndCreateContainers(any(), any())
         verify(dockerService).startContainersAndUpdateExecution(any(), anyList())
     }
 
@@ -106,10 +113,14 @@ class AgentsControllerTest {
         val project = Project("Huawei", "huaweiName", "huaweiUrl", "description")
         val execution = Execution(project, stubTime, stubTime, ExecutionStatus.RUNNING, "stub",
             "stub", 0, 20, ExecutionType.GIT, "0.0.1", 0, 0, 0, Sdk.Default.toString())
+        val bodyBuilder = MultipartBodyBuilder().apply {
+            part("execution", execution)
+        }.build()
+
         webClient
             .post()
             .uri("/initializeAgents")
-            .body(BodyInserters.fromValue(execution))
+            .body(BodyInserters.fromMultipartData(bodyBuilder))
             .exchange()
             .expectStatus()
             .is4xxClientError
