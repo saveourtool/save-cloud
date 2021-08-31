@@ -411,13 +411,11 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                                 files.remove(it)
                             }
                         }) { htmlInputElement ->
-                            setState {
-                                files = htmlInputElement.files!!.asList().map {
-                                    FileInfo(it.name, it.lastModified.toLong(), it.size.toLong())
-                                }.toMutableList()
-                            }
                             GlobalScope.launch {
                                 htmlInputElement.files!!.asList().forEach { file ->
+                                    setState {
+                                        isLoading = true
+                                    }
                                     val response: FileInfo = post(
                                         "${window.location.origin}/files/upload",
                                         Headers(),
@@ -426,8 +424,11 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                                         }
                                     )
                                         .decodeFromJsonString()
-                                    state.availableFiles.add(response)
-                                    state.files.add(response)
+                                    setState {
+                                        availableFiles.add(response)
+                                        files.add(response)
+                                        isLoading = false
+                                    }
                                 }
                             }
                         }) {
