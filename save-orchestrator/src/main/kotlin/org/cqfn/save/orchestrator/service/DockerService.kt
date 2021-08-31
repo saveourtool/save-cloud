@@ -9,14 +9,18 @@ import org.cqfn.save.orchestrator.docker.ContainerManager
 import com.github.dockerjava.api.exception.DockerException
 import generated.SAVE_CORE_VERSION
 import org.apache.commons.io.FileUtils
+import org.cqfn.save.agent.AgentState
+import org.cqfn.save.entities.AgentStatusesForExecution
 import org.cqfn.save.testsuite.TestSuiteDto
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.core.io.ClassPathResource
+import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
+import org.springframework.web.reactive.function.client.bodyToMono
 
 import java.io.File
 import java.util.concurrent.atomic.AtomicBoolean
@@ -148,6 +152,22 @@ class DockerService(private val configProperties: ConfigProperties) {
         // include save-agent into the image
         println("PATH 1: ${ClassPathResource(SAVE_AGENT_EXECUTABLE_NAME)}")
         println("PATH 2: ${resourcesPath}")
+
+        testSuiteDtos?.forEach {
+            println("CURRENT SUITE NAME ${it.name}")
+
+            webClientBackend
+                .get()
+                .uri("/testSuitesWithName?name=${it.name}")
+                .retrieve()
+                .bodyToMono<List<TestSuiteDto>>()
+                .map {
+
+                    it.forEach {
+                        println("propertiesRelativePath: ${it.propertiesRelativePath}")
+                    }
+                }
+        }
         val saveAgent = File(resourcesPath, SAVE_AGENT_EXECUTABLE_NAME)
         FileUtils.copyInputStreamToFile(
             ClassPathResource(SAVE_AGENT_EXECUTABLE_NAME).inputStream,

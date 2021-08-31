@@ -147,6 +147,34 @@ class TestSuitesControllerTest {
     }
 
     @Test
+    fun testTestSuitesWithSpecificName() {
+        val project = projectRepository.findById(1).get()
+        val name = "tester"
+        val testSuite = TestSuiteDto(
+            TestSuiteType.STANDARD,
+            name,
+            project,
+            "save.properties"
+        )
+        saveTestSuites(listOf(testSuite)) {
+            expectBody<List<TestSuite>>().consumeWith {
+                assertEquals(1, it.responseBody!!.size)
+            }
+        }
+        val allStandardTestSuite = testSuiteRepository.findAll()
+        webClient.get()
+            .uri("/testSuitesWithName?name=${name}")
+            .exchange()
+            .expectStatus()
+            .isOk
+            .expectBody<List<TestSuiteDto>>()
+            .consumeWith {
+                requireNotNull(it.responseBody)
+                assertEquals(name, allStandardTestSuite[0].name)
+            }
+    }
+
+    @Test
     fun testUpdateStandardTestSuites() {
         mockServerPreprocessor.enqueue(MockResponse().setResponseCode(200))
         webClient.post()

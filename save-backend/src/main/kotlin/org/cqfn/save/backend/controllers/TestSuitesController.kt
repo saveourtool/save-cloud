@@ -49,6 +49,13 @@ class TestSuitesController(
             ResponseEntity.status(HttpStatus.OK).body(testSuitesService.getStandardTestSuites())
 
     /**
+     * @return response with list of test suite dtos with specific name
+     */
+    @GetMapping("/testSuitesWithName")
+    fun getAllTestSuitesWithSpecificName(@RequestBody name: String): ResponseListTestSuites =
+        ResponseEntity.status(HttpStatus.OK).body(testSuitesService.findTestSuitesByName(name))
+
+    /**
      * @return response entity
      */
     @PostMapping("/updateStandardTestSuites")
