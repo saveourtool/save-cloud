@@ -82,7 +82,7 @@ fun fileUploader(
                     }
                 }
                 li("list-group-item d-flex justify-content-between align-items-center") {
-                    select {
+                    select(classes = "form-control") {
                         option {
                             attrs.disabled = true
                             attrs.selected = true

@@ -29,14 +29,11 @@ import org.cqfn.save.testsuite.TestSuiteDto
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.asList
 import org.w3c.fetch.Headers
-import org.w3c.files.Blob
-import org.w3c.files.BlobPropertyBag
 import org.w3c.xhr.FormData
 import react.PropsWithChildren
 import react.RBuilder
 import react.RComponent
 import react.State
-import react.child
 import react.dom.a
 import react.dom.attrs
 import react.dom.button
@@ -62,6 +59,7 @@ import kotlinx.html.role
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.cqfn.save.frontend.utils.appendJson
 
 /**
  * [RProps] retrieved from router
@@ -213,9 +211,9 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
         val formData = FormData()
         val selectedSdk = "${state.selectedSdk}:${state.selectedSdkVersion}".toSdk()
         val request = ExecutionRequestForStandardSuites(project, selectedTypes, selectedSdk)
-        formData.append("execution", Blob(arrayOf(Json.encodeToString(request)), BlobPropertyBag("application/json")))
+        formData.appendJson("execution", request)
         state.files.forEach {
-           formData.append("file", Json.encodeToString(it))
+           formData.appendJson("file", it)
         }
         submitRequest("/submitExecutionRequestBin", headers, formData)
     }
@@ -237,11 +235,13 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
             sdk = selectedSdk,
             executionId = null)
         val jsonExecution = Json.encodeToString(executionRequest)
-        formData.append("executionRequest", Blob(arrayOf(jsonExecution), BlobPropertyBag("application/json")))
+        formData.appendJson("executionRequest", jsonExecution)
          state.files.forEach {
-            formData.append("file", Json.encodeToString(it))
+             formData.appendJson("file", it)
          }
-        submitRequest("/submitExecutionRequest", Headers(), formData)
+        submitRequest("/submitExecutionRequest", Headers().apply {
+            append("Accept", "text/plain")
+        }, formData)
     }
 
     private fun submitRequest(url: String, headers: Headers, body: dynamic) {
