@@ -51,19 +51,16 @@ class DownloadFilesController(
             fileSystemRepository.getFile(name).inputStream.readAllBytes()
         )
     }
-        .onErrorResume { throwable ->
-            if (throwable is FileNotFoundException) {
-                logger.warn("File $name is not found", throwable)
-                Mono.just(
-                    ResponseEntity
-                        .status(HttpStatus.NOT_FOUND)
-                        .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                        .build()
-                )
-            } else {
-                throw throwable
-            }
+        .doOnError(FileNotFoundException::class.java) {
+            logger.warn("File $name is not found", it)
         }
+        .onErrorReturn(
+            FileNotFoundException::class.java,
+            ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .build()
+        )
 
     /**
      * @param file a file to be uploaded
@@ -77,4 +74,8 @@ class DownloadFilesController(
                 )
                     .body(fileInfo)
             }
+                .onErrorReturn(
+                    FileAlreadyExistsException::class.java,
+                    ResponseEntity.status(HttpStatus.CONFLICT).build()
+                )
 }

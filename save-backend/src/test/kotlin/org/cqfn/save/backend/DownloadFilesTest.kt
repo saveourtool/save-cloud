@@ -114,10 +114,10 @@ class DownloadFilesTest {
             .body(BodyInserters.fromMultipartData(body))
             .exchange()
             .expectStatus().isOk
-            .expectBody<String>().consumeWith {
-                Assertions.assertLinesMatch(
-                    listOf("Saved \\d+ bytes"),
-                    listOf(it.responseBody)
+            .expectBody<FileInfo>()
+            .consumeWith {
+                Assertions.assertTrue(
+                    it.responseBody!!.sizeBytes > 0
                 )
             }
     }

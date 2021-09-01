@@ -9,6 +9,7 @@ package org.cqfn.save.frontend.components.basic
 import org.cqfn.save.domain.FileInfo
 import org.cqfn.save.frontend.externals.fontawesome.faTimesCircle
 import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
+import org.cqfn.save.frontend.utils.toPrettyString
 
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.HTMLSelectElement
@@ -27,14 +28,10 @@ import react.dom.strong
 import react.dom.ul
 import react.fc
 
-import kotlinx.datetime.Instant
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
 import kotlinx.html.InputType
 import kotlinx.html.hidden
 import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
-import org.cqfn.save.frontend.utils.toPrettyString
 
 /**
  * Props for file uploader
@@ -57,6 +54,7 @@ external interface UploaderProps : PropsWithChildren {
  * @param onFileRemove invoked when a file is removed from selection by pushing a button
  * @return a RComponent
  */
+@Suppress("TOO_LONG_FUNCTION")
 fun fileUploader(
     onFileSelect: (HTMLSelectElement) -> Unit,
     onFileRemove: (FileInfo) -> Unit,

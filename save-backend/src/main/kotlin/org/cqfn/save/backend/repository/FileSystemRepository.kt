@@ -7,10 +7,12 @@ import org.springframework.core.io.FileSystemResource
 import org.springframework.http.codec.multipart.FilePart
 import org.springframework.stereotype.Repository
 import reactor.core.publisher.Mono
+
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.StandardOpenOption.APPEND
 import java.util.stream.Collectors
+
 import kotlin.io.path.copyTo
 import kotlin.io.path.createDirectories
 import kotlin.io.path.createFile
@@ -26,7 +28,6 @@ import kotlin.io.path.outputStream
 @Repository
 class FileSystemRepository(configProperties: ConfigProperties) {
     private val logger = LoggerFactory.getLogger(FileSystemRepository::class.java)
-
     private val rootDir = Paths.get(configProperties.fileStorage.location).apply {
         if (!exists()) {
             createDirectories()
@@ -58,6 +59,7 @@ class FileSystemRepository(configProperties: ConfigProperties) {
     /**
      * @param parts file parts
      * @return Mono with number of bytes saved
+     * @throws FileAlreadyExistsException if file with this name already exists
      */
     fun saveFile(parts: Mono<FilePart>): Mono<FileInfo> = parts.flatMap { part ->
         val uploadedMillis = System.currentTimeMillis()
@@ -65,6 +67,8 @@ class FileSystemRepository(configProperties: ConfigProperties) {
             if (notExists()) {
                 logger.info("Saving a new file from parts into $this")
                 createFile()
+            } else {
+                throw FileAlreadyExistsException(this.toFile())
             }
             part.content().map { db ->
                 outputStream(APPEND).use { os ->

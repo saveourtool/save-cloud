@@ -18,6 +18,7 @@ import org.cqfn.save.frontend.components.basic.checkBoxGrid
 import org.cqfn.save.frontend.components.basic.fileUploader
 import org.cqfn.save.frontend.components.basic.sdkSelection
 import org.cqfn.save.frontend.externals.modal.modal
+import org.cqfn.save.frontend.utils.appendJson
 import org.cqfn.save.frontend.utils.decodeFromJsonString
 import org.cqfn.save.frontend.utils.get
 import org.cqfn.save.frontend.utils.getProject
@@ -58,7 +59,6 @@ import kotlinx.html.js.onClickFunction
 import kotlinx.html.role
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.cqfn.save.frontend.utils.appendJson
 
 /**
  * `Props` retrieved from router
@@ -212,7 +212,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
         val request = ExecutionRequestForStandardSuites(project, selectedTypes, selectedSdk)
         formData.appendJson("execution", request)
         state.files.forEach {
-           formData.appendJson("file", it)
+            formData.appendJson("file", it)
         }
         submitRequest("/submitExecutionRequestBin", headers, formData)
     }
@@ -234,9 +234,9 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
             sdk = selectedSdk,
             executionId = null)
         formData.appendJson("executionRequest", executionRequest)
-         state.files.forEach {
-             formData.appendJson("file", it)
-         }
+        state.files.forEach {
+            formData.appendJson("file", it)
+        }
         submitRequest("/submitExecutionRequest", Headers(), formData)
     }
 
