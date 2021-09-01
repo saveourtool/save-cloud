@@ -133,7 +133,7 @@ class CloneRepositoryController(
         .toEntity<String>()
 
     private fun Flux<FileInfo>.collectToMultipart(multipartBodyBuilder: MultipartBodyBuilder) = map {
-        multipartBodyBuilder.part("file", fileSystemRepository.getFile(it.name))
+        multipartBodyBuilder.part("file", fileSystemRepository.getFile(it))
     }
         .collectList()
         .switchIfEmpty(Mono.just(emptyList()))

@@ -86,7 +86,7 @@ fun fileUploader(
                             attrs.selected = true
                             +"Select a file from existing"
                         }
-                        props.availableFiles.map {
+                        props.availableFiles.sortedByDescending { it.uploadedMillis }.map {
                             option("list-group-item") {
                                 attrs.value = it.name
                                 +it.toPrettyString()

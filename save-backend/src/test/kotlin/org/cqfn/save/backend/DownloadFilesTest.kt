@@ -24,6 +24,7 @@ import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.boot.test.mock.mockito.MockBeans
 import org.springframework.context.annotation.Import
 import org.springframework.core.io.FileSystemResource
+import org.springframework.http.HttpMethod
 import org.springframework.http.MediaType
 import org.springframework.http.client.MultipartBodyBuilder
 import org.springframework.test.context.DynamicPropertyRegistry
@@ -37,8 +38,8 @@ import java.nio.file.Paths
 
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.createDirectories
-import kotlin.io.path.createFile
 import kotlin.io.path.createTempFile
+import kotlin.io.path.name
 import kotlin.io.path.writeLines
 
 @WebFluxTest(controllers = [DownloadFilesController::class])
@@ -58,19 +59,21 @@ import kotlin.io.path.writeLines
 class DownloadFilesTest {
     @Autowired
     lateinit var webTestClient: WebTestClient
+    @Autowired private lateinit var fileSystemRepository: FileSystemRepository
 
     @Autowired
     private lateinit var configProperties: ConfigProperties
 
     @Test
     fun `should download a file`() {
-        Paths.get(configProperties.fileStorage.location)
-            .createDirectories()
-            .resolve("sample-name")
-            .createFile()
+        val tmpFile = createTempFile("test", "txt")
             .writeLines("Lorem ipsum".lines())
+        Paths.get(configProperties.fileStorage.location).createDirectories()
+        val sampleFileInfo = fileSystemRepository.saveFile(tmpFile)
 
-        webTestClient.get().uri("/files/download/sample-name")
+        webTestClient.method(HttpMethod.GET).uri("/files/download")
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(sampleFileInfo)
             .accept(MediaType.APPLICATION_OCTET_STREAM)
             .exchange()
             .expectStatus().isOk
@@ -85,7 +88,7 @@ class DownloadFilesTest {
             .hasSize(1)
             .consumeWith<WebTestClient.ListBodySpec<FileInfo>> {
                 Assertions.assertEquals(
-                    "sample-name", it.responseBody!!.first().name
+                    tmpFile.name, it.responseBody!!.first().name
                 )
                 Assertions.assertTrue(
                     it.responseBody!!.first().sizeBytes > 0
