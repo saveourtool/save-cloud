@@ -9,8 +9,8 @@ import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.http.codec.multipart.FilePart
 import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestPart
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
@@ -41,29 +41,26 @@ class DownloadFilesController(
     }
 
     /**
-     * @param name name of a file to download
+     * @param fileInfo a FileInfo based on which a file should be located
      * @return [Mono] with file contents
      */
-    @GetMapping(value = ["/files/download/{name}"], produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
-    fun download(@PathVariable("name") name: String): Mono<ByteArrayResponse> = Mono.fromCallable {
-        logger.info("Sending file $name to a client")
+    @GetMapping(value = ["/files/download"], produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
+    fun download(@RequestBody fileInfo: FileInfo): Mono<ByteArrayResponse> = Mono.fromCallable {
+        logger.info("Sending file ${fileInfo.name} to a client")
         ResponseEntity.ok().contentType(MediaType.APPLICATION_OCTET_STREAM).body(
-            fileSystemRepository.getFile(name).inputStream.readAllBytes()
+            fileSystemRepository.getFile(fileInfo).inputStream.readAllBytes()
         )
     }
-        .onErrorResume { throwable ->
-            if (throwable is FileNotFoundException) {
-                logger.warn("File $name is not found", throwable)
-                Mono.just(
-                    ResponseEntity
-                        .status(HttpStatus.NOT_FOUND)
-                        .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                        .build()
-                )
-            } else {
-                throw throwable
-            }
+        .doOnError(FileNotFoundException::class.java) {
+            logger.warn("File $fileInfo is not found", it)
         }
+        .onErrorReturn(
+            FileNotFoundException::class.java,
+            ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .build()
+        )
 
     /**
      * @param file a file to be uploaded
@@ -71,10 +68,14 @@ class DownloadFilesController(
      */
     @PostMapping(value = ["/files/upload"], consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     fun upload(@RequestPart("file") file: Mono<FilePart>) =
-            fileSystemRepository.saveFile(file).map { size ->
+            fileSystemRepository.saveFile(file).map { fileInfo ->
                 ResponseEntity.status(
-                    if (size > 0) HttpStatus.OK else HttpStatus.INTERNAL_SERVER_ERROR
+                    if (fileInfo.sizeBytes > 0) HttpStatus.OK else HttpStatus.INTERNAL_SERVER_ERROR
                 )
-                    .body("Saved $size bytes")
+                    .body(fileInfo)
             }
+                .onErrorReturn(
+                    FileAlreadyExistsException::class.java,
+                    ResponseEntity.status(HttpStatus.CONFLICT).build()
+                )
 }
