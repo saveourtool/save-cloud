@@ -1,9 +1,9 @@
 package org.cqfn.save.frontend.components.views
 
 import kotlinext.js.jsObject
+import react.PropsWithChildren
 import react.RBuilder
 import react.RComponent
-import react.RProps
 import react.State
 import react.dom.div
 import react.dom.p
@@ -14,7 +14,7 @@ import react.router.dom.Link
  */
 @JsExport
 @OptIn(ExperimentalJsExport::class)
-class FallbackView : RComponent<RProps, State>() {
+class FallbackView : RComponent<PropsWithChildren, State>() {
     @Suppress("ForbiddenComment")
     override fun RBuilder.render() {
         div("text-center") {

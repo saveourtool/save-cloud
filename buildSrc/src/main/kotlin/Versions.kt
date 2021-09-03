@@ -5,7 +5,7 @@ object Versions {
     const val jdk = "11"  // jdk version that will be used as kotlin compiler target
 
     const val BP_JVM_VERSION = "11"  // jvm version for spring boot image build
-    const val kotlin = "1.5.21"
+    const val kotlin = "1.5.30"
     const val ktor = "1.6.2"
     const val coroutines = "1.5.1"
     const val serialization = "1.2.2"
@@ -14,12 +14,12 @@ object Versions {
     const val okio = "3.0.0-alpha.8"
 
     // microservices
-    const val springBoot = "2.5.3"
+    const val springBoot = "2.5.4"
     const val reactor = "1.1.4"
-    const val springSecurity = "5.5.1"
+    const val springSecurity = "5.5.2"
     const val slf4j = "1.7.32"
     const val logback = "1.2.3"
-    const val micrometer = "1.7.2"
+    const val micrometer = "1.7.3"
 
     // database
     const val jpa = "1.0.2"
@@ -36,6 +36,6 @@ object Versions {
 
     // frontend
     const val react = "17.0.2"
-    const val kotlinJsWrappersSuffix = "-pre.229-kotlin-1.5.21"
+    const val kotlinJsWrappersSuffix = "-pre.236-kotlin-1.5.30"
     const val kotlinReact = "$react$kotlinJsWrappersSuffix"
 }

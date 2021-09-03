@@ -7,9 +7,9 @@ import org.cqfn.save.frontend.utils.get
 import org.cqfn.save.frontend.utils.unsafeMap
 
 import org.w3c.fetch.Headers
+import react.PropsWithChildren
 import react.RBuilder
 import react.RComponent
-import react.RProps
 import react.State
 import react.buildElement
 import react.child
@@ -27,7 +27,7 @@ import kotlinx.html.ButtonType
  */
 @JsExport
 @OptIn(ExperimentalJsExport::class)
-class CollectionView : RComponent<RProps, State>() {
+class CollectionView : RComponent<PropsWithChildren, State>() {
     @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR", "TOO_LONG_FUNCTION", "MAGIC_NUMBER")
     override fun RBuilder.render() {
         div {

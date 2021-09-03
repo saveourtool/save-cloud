@@ -20,19 +20,21 @@ import org.cqfn.save.frontend.externals.fontawesome.faCheck
 import org.cqfn.save.frontend.externals.fontawesome.faCogs
 import org.cqfn.save.frontend.externals.fontawesome.faExclamationTriangle
 import org.cqfn.save.frontend.externals.fontawesome.faSignOutAlt
+import org.cqfn.save.frontend.externals.fontawesome.faTimesCircle
 import org.cqfn.save.frontend.externals.fontawesome.faUser
 import org.cqfn.save.frontend.externals.fontawesome.fas
 import org.cqfn.save.frontend.externals.fontawesome.library
 import org.cqfn.save.frontend.externals.modal.ReactModal
 
 import org.w3c.dom.HTMLElement
+import react.PropsWithChildren
 import react.RBuilder
 import react.RComponent
-import react.RProps
 import react.State
 import react.child
 import react.dom.div
 import react.dom.render
+import react.react
 import react.router.dom.hashRouter
 import react.router.dom.route
 import react.router.dom.switch
@@ -55,7 +57,7 @@ external interface AppState : State {
  */
 @JsExport
 @OptIn(ExperimentalJsExport::class)
-class App : RComponent<RProps, AppState>() {
+class App : RComponent<PropsWithChildren, AppState>() {
     init {
         state.userName = "User Name"
     }
@@ -65,7 +67,7 @@ class App : RComponent<RProps, AppState>() {
         hashRouter {
             div("d-flex flex-column") {
                 attrs.id = "content-wrapper"
-                route<RProps>("*") { routeResultProps ->
+                route<PropsWithChildren>("*") { routeResultProps ->
                     // needs to be wrapped in `route` to have access to pathname; we place it outside of `switch` to render always and unconditionally
                     child(TopBar::class) {
                         attrs {
@@ -76,8 +78,8 @@ class App : RComponent<RProps, AppState>() {
                 }
                 div("container-fluid") {
                     switch {
-                        route("/", exact = true, component = CollectionView::class)
-                        route("/creation", exact = true, component = CreationView::class)
+                        route("/", exact = true, component = CollectionView::class.react)
+                        route("/creation", exact = true, component = CreationView::class.react)
                         route<ProjectExecutionRouteProps>("/:owner/:name", exact = true) { routeResultProps ->
                             child(ProjectView::class) {
                                 attrs.name = routeResultProps.match.params.name
@@ -96,7 +98,7 @@ class App : RComponent<RProps, AppState>() {
                                 attrs.executionId = props.match.params.executionId
                             }
                         }
-                        route("*", component = FallbackView::class)
+                        route("*", component = FallbackView::class.react)
                     }
                 }
                 child(Footer::class) {}
@@ -110,7 +112,7 @@ class App : RComponent<RProps, AppState>() {
 fun main() {
     kotlinext.js.require("../scss/save-frontend.scss")  // this is needed for webpack to include resource
     kotlinext.js.require("bootstrap")  // this is needed for webpack to include bootstrap
-    library.add(fas, faUser, faCogs, faSignOutAlt, faAngleUp, faCheck, faExclamationTriangle)
+    library.add(fas, faUser, faCogs, faSignOutAlt, faAngleUp, faCheck, faExclamationTriangle, faTimesCircle)
     ReactModal.setAppElement(document.getElementById("wrapper") as HTMLElement)  // required for accessibility in react-modal
 
     render(document.getElementById("wrapper")) {

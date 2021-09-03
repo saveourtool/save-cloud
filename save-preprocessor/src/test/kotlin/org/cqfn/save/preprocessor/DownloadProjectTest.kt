@@ -58,7 +58,7 @@ import java.util.concurrent.TimeUnit
 @WebFluxTest(controllers = [DownloadProjectController::class])
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @AutoConfigureWebTestClient(timeout = "60000")
-@Suppress("TOO_LONG_FUNCTION")
+@Suppress("TOO_LONG_FUNCTION", "LongMethod")
 class DownloadProjectTest(
     @Autowired private val webClient: WebTestClient,
     @Autowired private val configProperties: ConfigProperties,
@@ -105,7 +105,7 @@ class DownloadProjectTest(
             .exchange()
             .expectStatus()
             .isAccepted
-        Thread.sleep(2000)  // Time for request to delete directory
+        Thread.sleep(15_000)  // Time for request to delete directory
         Assertions.assertFalse(File("${configProperties.repository}/${wrongRepo.url.hashCode()}").exists())
     }
 
@@ -172,6 +172,8 @@ class DownloadProjectTest(
             .isAccepted
             .expectBody<String>()
             .isEqualTo("Clone pending")
+        Thread.sleep(15_000)
+        
         val dirName = listOf(validRepo.url).hashCode()
         Assertions.assertTrue(File("${configProperties.repository}/$dirName").exists())
         assertions.orTimeout(60, TimeUnit.SECONDS).join().forEach { Assertions.assertNotNull(it) }
@@ -238,7 +240,7 @@ class DownloadProjectTest(
             .isAccepted
             .expectBody<String>()
             .isEqualTo("Clone pending")
-        Thread.sleep(2500)
+        Thread.sleep(15_000)
 
         val dirName = listOf(property, binFile).map { it.toHash() }.hashCode()
         Assertions.assertTrue(File("${configProperties.repository}/$dirName").exists())
@@ -300,7 +302,7 @@ class DownloadProjectTest(
             .exchange()
             .expectStatus()
             .isOk
-        Thread.sleep(2500)
+        Thread.sleep(15_000)
         assertions.orTimeout(60, TimeUnit.SECONDS).join().forEach { Assertions.assertNotNull(it) }
         Assertions.assertTrue(File("${configProperties.repository}/${"https://github.com/cqfn/save".hashCode()}").exists())
     }
@@ -356,12 +358,12 @@ class DownloadProjectTest(
         )
         val assertions = CompletableFuture.supplyAsync {
             sequenceOf(
-                mockServerBackend.takeRequest(360, TimeUnit.SECONDS),
-                mockServerOrchestrator.takeRequest(360, TimeUnit.SECONDS),
-                mockServerBackend.takeRequest(360, TimeUnit.SECONDS),
-                mockServerBackend.takeRequest(360, TimeUnit.SECONDS),
-                mockServerBackend.takeRequest(360, TimeUnit.SECONDS),
-                mockServerOrchestrator.takeRequest(360, TimeUnit.SECONDS),
+                mockServerBackend.takeRequest(60, TimeUnit.SECONDS),
+                mockServerOrchestrator.takeRequest(60, TimeUnit.SECONDS),
+                mockServerBackend.takeRequest(60, TimeUnit.SECONDS),
+                mockServerBackend.takeRequest(60, TimeUnit.SECONDS),
+                mockServerBackend.takeRequest(60, TimeUnit.SECONDS),
+                mockServerOrchestrator.takeRequest(60, TimeUnit.SECONDS),
             ).onEach {
                 logger.info("Request $it")
             }
@@ -376,8 +378,9 @@ class DownloadProjectTest(
             .isAccepted
             .expectBody<String>()
             .isEqualTo("Clone pending")
+        Thread.sleep(15_000)
 
-        assertions.orTimeout(360, TimeUnit.SECONDS).join().forEach { Assertions.assertNotNull(it) }
+        assertions.orTimeout(60, TimeUnit.SECONDS).join().forEach { Assertions.assertNotNull(it) }
     }
 
     @AfterEach
