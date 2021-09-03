@@ -3,6 +3,7 @@ package org.cqfn.save.backend.controller
 import org.cqfn.save.backend.SaveApplication
 import org.cqfn.save.backend.repository.GitRepository
 import org.cqfn.save.backend.repository.ProjectRepository
+import org.cqfn.save.backend.scheduling.StandardSuitesUpdateScheduler
 import org.cqfn.save.backend.utils.MySqlExtension
 import org.cqfn.save.entities.GitDto
 import org.cqfn.save.entities.NewProjectDto
@@ -14,6 +15,8 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.boot.test.mock.mockito.MockBeans
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.WebTestClient
@@ -23,6 +26,9 @@ import org.springframework.web.reactive.function.BodyInserters
 @SpringBootTest(classes = [SaveApplication::class])
 @AutoConfigureWebTestClient
 @ExtendWith(MySqlExtension::class)
+@MockBeans(
+    MockBean(StandardSuitesUpdateScheduler::class),
+)
 class ProjectControllerTest {
     @Autowired
     private lateinit var projectRepository: ProjectRepository

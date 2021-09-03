@@ -11,9 +11,10 @@ import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.repository.TestExecutionRepository
 import org.cqfn.save.backend.repository.TestRepository
 import org.cqfn.save.backend.repository.TestSuiteRepository
+import org.cqfn.save.backend.scheduling.StandardSuitesUpdateScheduler
 import org.cqfn.save.domain.FileInfo
-import org.junit.jupiter.api.Assertions
 
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import org.springframework.beans.factory.annotation.Autowired
@@ -55,6 +56,7 @@ import kotlin.io.path.writeLines
     MockBean(TestRepository::class),
     MockBean(TestSuiteRepository::class),
     MockBean(GitRepository::class),
+    MockBean(StandardSuitesUpdateScheduler::class),
 )
 class DownloadFilesTest {
     @Autowired
