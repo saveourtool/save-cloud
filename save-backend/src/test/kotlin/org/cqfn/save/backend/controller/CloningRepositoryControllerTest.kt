@@ -112,7 +112,6 @@ class CloningRepositoryControllerTest {
     @Test
     fun checkNewJobResponseForBin() {
         val binFile = tmpDir.resolve("binFile").apply {
-            println("Creating $this")
             createFile()
         }
         val property = tmpDir.resolve("property").apply {

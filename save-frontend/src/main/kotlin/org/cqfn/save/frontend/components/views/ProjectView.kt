@@ -41,8 +41,8 @@ import react.dom.button
 import react.dom.defaultValue
 import react.dom.div
 import react.dom.h1
-import react.dom.h4
 import react.dom.h6
+import react.dom.i
 import react.dom.input
 import react.dom.p
 import react.dom.span
@@ -466,18 +466,14 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                 child(cardComponent {
                     div("ml-3") {
                         h6("d-inline") {
-                            +"Name: "
-                        }
-                        h4("d-inline") {
+                            i { +"Name: " }
                             +project.name
                         }
                     }
                     div("ml-3") {
                         h6("d-inline") {
-                            +"Description: "
-                        }
-                        h4("d-inline") {
-                            +"${project.description}"
+                            i { +"Description: " }
+                            +(project.description ?: "")
                         }
                     }
                     p {
