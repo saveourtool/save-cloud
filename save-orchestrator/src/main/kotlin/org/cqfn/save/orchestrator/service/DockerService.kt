@@ -153,21 +153,25 @@ class DockerService(private val configProperties: ConfigProperties) {
         println("PATH 1: ${ClassPathResource(SAVE_AGENT_EXECUTABLE_NAME)}")
         println("PATH 2: ${resourcesPath}")
 
+        val testSuitesForDocker = mutableListOf<Pair<String, String>>()
         testSuiteDtos?.forEach {
-            println("CURRENT SUITE NAME ${it.name}")
-
+            println("CURRENT NAME ${it.name}")
             webClientBackend
                 .get()
                 .uri("/testSuitesWithName?name=${it.name}")
                 .retrieve()
                 .bodyToMono<List<TestSuiteDto>>()
                 .map {
-
+                    println("RESULTS")
                     it.forEach {
-                        println("propertiesRelativePath: ${it.propertiesRelativePath}")
+                        println("Name: ${it.name}: ${it.testSuiteRepoUrl} to ${it.propertiesRelativePath}")
+                        testSuitesForDocker.add(it.testSuiteRepoUrl!! to it.propertiesRelativePath)
                     }
                 }
+                .block()
         }
+        println("FINISH")
+        println(testSuitesForDocker + "\n")
         val saveAgent = File(resourcesPath, SAVE_AGENT_EXECUTABLE_NAME)
         FileUtils.copyInputStreamToFile(
             ClassPathResource(SAVE_AGENT_EXECUTABLE_NAME).inputStream,
