@@ -426,6 +426,9 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         }
     
     private fun prepareExecutionForStandard(testSuiteDtos: List<TestSuiteDto>): Mono<List<TestSuite>> {
+        // FixMe: Should be properly processed in https://github.com/cqfn/save-cloud/issues/221
+        return Mono.empty()
+        /*
         return webClientBackend.makeRequest<List<TestSuiteDto>?, List<TestSuite>>(
             BodyInserters.fromValue(
                 testSuiteDtos
@@ -433,7 +436,8 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         ) {
             it.bodyToMono()
         }
-        // fixme: should also initialize tests from standard suites
+
+         */
     }
 
     @Suppress("UnsafeCallOnNullableType")
