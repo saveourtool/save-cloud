@@ -49,7 +49,7 @@ class StandardSuitesUpdateScheduler(
         .build()
     private val trigger = TriggerBuilder.newTrigger()
         .withSchedule(
-            CronScheduleBuilder.cronSchedule("* * */1 * * ?")
+            CronScheduleBuilder.cronSchedule("0 0 */1 * * ?")
         )
         .build()
 

@@ -191,8 +191,11 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         readStandardTestSuitesFile(configProperties.reposFileName).forEach { (testSuiteUrl, testSuitePaths) ->
             log.info("Starting clone repository url=$testSuiteUrl for standard test suites")
             val tmpDir = generateDirectory(listOf(testSuiteUrl))
-            cloneFromGit(GitDto(testSuiteUrl), tmpDir)?.use {
-                Flux.fromIterable(testSuitePaths).flatMap { testRootPath ->
+            Mono.fromCallable {
+                cloneFromGit(GitDto(testSuiteUrl), tmpDir)
+            }
+                .flatMapMany { Flux.fromIterable(testSuitePaths) }
+                .flatMap { testRootPath ->
                     log.info("Starting to discover root test config in test root path: $testRootPath")
                     val testResourcesRootAbsolutePath = tmpDir.resolve(testRootPath).absolutePath
                     val rootTestConfig = testDiscoveringService.getRootTestConfig(testResourcesRootAbsolutePath)
@@ -217,12 +220,11 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                             ) { it.toBodilessEntity() }
                         }
                 }
-                    .doOnError {
-                        log.error("Error to update test with url=$testSuiteUrl, path=$testSuitePaths")
-                    }
-                    .collect(Collectors.toList())
-                    .subscribe()
-            }
+                .doOnError {
+                    log.error("Error to update test with url=$testSuiteUrl, path=$testSuitePaths")
+                }
+                .collect(Collectors.toList())
+                .subscribe()
         }
     }
 
