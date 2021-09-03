@@ -59,8 +59,10 @@ import kotlin.io.path.writeLines
 class DownloadFilesTest {
     @Autowired
     lateinit var webTestClient: WebTestClient
+    
     @Autowired
     private lateinit var fileSystemRepository: FileSystemRepository
+    
     @Autowired
     private lateinit var configProperties: ConfigProperties
 
