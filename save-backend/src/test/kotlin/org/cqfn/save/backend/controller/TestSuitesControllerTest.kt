@@ -161,7 +161,7 @@ class TestSuitesControllerTest {
                 assertEquals(1, it.responseBody!!.size)
             }
         }
-        val allStandardTestSuite = testSuiteRepository.findAll()
+
         webClient.get()
             .uri("/testSuitesWithName?name=${name}")
             .exchange()
@@ -170,7 +170,7 @@ class TestSuitesControllerTest {
             .expectBody<List<TestSuiteDto>>()
             .consumeWith {
                 requireNotNull(it.responseBody)
-                assertEquals(name, allStandardTestSuite[0].name)
+                assertEquals(it.responseBody!![0].name, name)
             }
     }
 

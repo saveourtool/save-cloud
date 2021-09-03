@@ -10,8 +10,10 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.reactive.function.client.WebClient
 import reactor.core.publisher.Mono
@@ -52,7 +54,7 @@ class TestSuitesController(
      * @return response with list of test suite dtos with specific name
      */
     @GetMapping("/testSuitesWithName")
-    fun getAllTestSuitesWithSpecificName(@RequestBody name: String): ResponseListTestSuites =
+    fun getAllTestSuitesWithSpecificName(@RequestParam name: String): ResponseListTestSuites =
         ResponseEntity.status(HttpStatus.OK).body(testSuitesService.findTestSuitesByName(name))
 
     /**

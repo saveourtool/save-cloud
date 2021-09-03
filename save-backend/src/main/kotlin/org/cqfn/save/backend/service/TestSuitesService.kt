@@ -56,7 +56,7 @@ class TestSuitesService {
      * @return all test suites with specific name
      */
     fun findTestSuitesByName(name: String) =
-        testSuiteRepository.findAllByNameIs(name).map { it.toDto().also{println("\n\n\n\nSuccessfully found ${it.name} ${it.propertiesRelativePath}")} }
+        testSuiteRepository.findAllByNameIs(name).map { it.toDto() }
 
     /**
      * @param project a project associated with test suites
