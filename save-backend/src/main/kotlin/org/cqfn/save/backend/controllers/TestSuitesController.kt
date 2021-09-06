@@ -1,9 +1,12 @@
 package org.cqfn.save.backend.controllers
 
 import org.cqfn.save.backend.configs.ConfigProperties
+import org.cqfn.save.backend.scheduling.StandardSuitesUpdateScheduler
 import org.cqfn.save.backend.service.TestSuitesService
 import org.cqfn.save.entities.TestSuite
 import org.cqfn.save.testsuite.TestSuiteDto
+import org.quartz.JobKey
+import org.quartz.Scheduler
 import org.slf4j.LoggerFactory
 
 import org.springframework.beans.factory.annotation.Autowired
@@ -25,7 +28,8 @@ typealias ResponseListTestSuites = ResponseEntity<List<TestSuiteDto>>
  */
 @RestController
 class TestSuitesController(
-    private val configProperties: ConfigProperties
+    private val configProperties: ConfigProperties,
+    private val scheduler: Scheduler,
 ) {
     private val log = LoggerFactory.getLogger(TestSuitesController::class.java)
     private val preprocessorWebClient = WebClient.create(configProperties.preprocessorUrl)
@@ -61,10 +65,9 @@ class TestSuitesController(
      * @return response entity
      */
     @PostMapping("/updateStandardTestSuites")
-    fun updateStandardTestSuites() =
-            preprocessorWebClient
-                .post()
-                .uri("/uploadStandardTestSuite")
-                .retrieve()
-                .toBodilessEntity()
+    fun updateStandardTestSuites() = Mono.fromCallable {
+        scheduler.triggerJob(
+            JobKey.jobKey(StandardSuitesUpdateScheduler.jobName)
+        )
+    }
 }

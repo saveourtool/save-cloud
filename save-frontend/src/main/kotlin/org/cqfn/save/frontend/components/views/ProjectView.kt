@@ -4,6 +4,7 @@
 
 package org.cqfn.save.frontend.components.views
 
+import org.cqfn.save.domain.FileInfo
 import org.cqfn.save.domain.Sdk
 import org.cqfn.save.domain.getSdkVersions
 import org.cqfn.save.domain.toSdk
@@ -17,33 +18,31 @@ import org.cqfn.save.frontend.components.basic.checkBoxGrid
 import org.cqfn.save.frontend.components.basic.fileUploader
 import org.cqfn.save.frontend.components.basic.sdkSelection
 import org.cqfn.save.frontend.externals.modal.modal
+import org.cqfn.save.frontend.utils.appendJson
 import org.cqfn.save.frontend.utils.decodeFromJsonString
 import org.cqfn.save.frontend.utils.get
 import org.cqfn.save.frontend.utils.getProject
 import org.cqfn.save.frontend.utils.post
 import org.cqfn.save.frontend.utils.runErrorModal
+import org.cqfn.save.frontend.utils.unsafeMap
 import org.cqfn.save.testsuite.TestSuiteDto
 
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.asList
 import org.w3c.fetch.Headers
-import org.w3c.files.Blob
-import org.w3c.files.BlobPropertyBag
-import org.w3c.files.File
 import org.w3c.xhr.FormData
 import react.PropsWithChildren
 import react.RBuilder
 import react.RComponent
 import react.State
-import react.child
 import react.dom.a
 import react.dom.attrs
 import react.dom.button
 import react.dom.defaultValue
 import react.dom.div
 import react.dom.h1
-import react.dom.h4
 import react.dom.h6
+import react.dom.i
 import react.dom.input
 import react.dom.p
 import react.dom.span
@@ -62,7 +61,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 /**
- * [RProps] retrieved from router
+ * `Props` retrieved from router
  */
 @Suppress("MISSING_KDOC_CLASS_ELEMENTS")
 external interface ProjectExecutionRouteProps : PropsWithChildren {
@@ -77,7 +76,12 @@ external interface ProjectViewState : State {
     /**
      * Files required for tests execution for this project
      */
-    var files: List<File>
+    var files: MutableList<FileInfo>
+
+    /**
+     * Files that are available on server side
+     */
+    var availableFiles: MutableList<FileInfo>
 
     /**
      * Message of error
@@ -138,7 +142,8 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
 
         state.isLoading = true
 
-        state.files = emptyList()
+        state.files = mutableListOf()
+        state.availableFiles = mutableListOf()
         state.selectedSdk = Sdk.Default.name
         state.selectedSdkVersion = Sdk.Default.version
     }
@@ -155,7 +160,13 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                 .decodeFromJsonString<GitDto>()
             testTypesList = get("${window.location.origin}/allStandardTestSuites", headers)
                 .decodeFromJsonString()
-            setState { isLoading = false }
+
+            val availableFiles = getFilesList()
+            setState {
+                this.availableFiles.clear()
+                this.availableFiles.addAll(availableFiles)
+                isLoading = false
+            }
         }
     }
 
@@ -199,9 +210,9 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
         val formData = FormData()
         val selectedSdk = "${state.selectedSdk}:${state.selectedSdkVersion}".toSdk()
         val request = ExecutionRequestForStandardSuites(project, selectedTypes, selectedSdk)
-        formData.append("execution", Blob(arrayOf(Json.encodeToString(request)), BlobPropertyBag("application/json")))
+        formData.appendJson("execution", request)
         state.files.forEach {
-            formData.append("file", it)
+            formData.appendJson("file", it)
         }
         submitRequest("/submitExecutionRequestBin", headers, formData)
     }
@@ -222,10 +233,9 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
             correctGitDto,
             sdk = selectedSdk,
             executionId = null)
-        val jsonExecution = Json.encodeToString(executionRequest)
-        formData.append("executionRequest", Blob(arrayOf(jsonExecution), BlobPropertyBag("application/json")))
+        formData.appendJson("executionRequest", executionRequest)
         state.files.forEach {
-            formData.append("file", it)
+            formData.appendJson("file", it)
         }
         submitRequest("/submitExecutionRequest", Headers(), formData)
     }
@@ -365,11 +375,6 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                                             }
                                         }
                                     }
-                                    child(fileUploader {
-                                        setState { files = it.files!!.asList() }
-                                    }) {
-                                        attrs.files = state.files
-                                    }
                                 }
                             }
 
@@ -385,11 +390,6 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                                     setOf("d-none")
                                 }
                                 div("card-body") {
-                                    child(fileUploader {
-                                        setState { files = it.files!!.asList() }
-                                    }) {
-                                        attrs.files = state.files
-                                    }
                                     child(checkBoxGrid(testTypesList.map { it.name })) {
                                         attrs.selectedOptions = selectedTypes
                                         attrs.rowSize = TEST_SUITE_ROW
@@ -398,6 +398,44 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                             }
                         }
 
+                        child(fileUploader({ element ->
+                            setState {
+                                val availableFile = availableFiles.first { it.name == element.value }
+                                files.add(availableFile)
+                                availableFiles.remove(availableFile)
+                            }
+                        }, {
+                            setState {
+                                files.remove(it)
+                                this.availableFiles.add(it)
+                            }
+                        }) { htmlInputElement ->
+                            GlobalScope.launch {
+                                setState {
+                                    isLoading = true
+                                }
+                                htmlInputElement.files!!.asList().forEach { file ->
+                                    val response: FileInfo = post(
+                                        "${window.location.origin}/files/upload",
+                                        Headers(),
+                                        FormData().apply {
+                                            append("file", file)
+                                        }
+                                    )
+                                        .decodeFromJsonString()
+                                    setState {
+                                        // add only to selected files so that this entry isn't duplicated
+                                        files.add(response)
+                                    }
+                                }
+                                setState {
+                                    isLoading = false
+                                }
+                            }
+                        }) {
+                            attrs.files = state.files
+                            attrs.availableFiles = state.availableFiles
+                        }
                         child(sdkSelection({
                             setState {
                                 selectedSdk = it.value
@@ -428,18 +466,14 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                 child(cardComponent {
                     div("ml-3") {
                         h6("d-inline") {
-                            +"Name: "
-                        }
-                        h4("d-inline") {
+                            i { +"Name: " }
                             +project.name
                         }
                     }
                     div("ml-3") {
                         h6("d-inline") {
-                            +"Description: "
-                        }
-                        h4("d-inline") {
-                            +"${project.description}"
+                            i { +"Description: " }
+                            +(project.description ?: "")
                         }
                     }
                     p {
@@ -502,6 +536,11 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
             window.location.href = "${window.location}/history/$latestExecutionId"
         }
     }
+
+    private suspend fun getFilesList() = get("${window.location.origin}/files/list", Headers())
+        .unsafeMap {
+            it.decodeFromJsonString<List<FileInfo>>()
+        }
 
     companion object {
         const val TEST_SUITE_ROW = 4

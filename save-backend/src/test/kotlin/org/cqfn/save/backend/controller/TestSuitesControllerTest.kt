@@ -3,6 +3,7 @@ package org.cqfn.save.backend.controller
 import org.cqfn.save.backend.SaveApplication
 import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.repository.TestSuiteRepository
+import org.cqfn.save.backend.scheduling.StandardSuitesUpdateScheduler
 import org.cqfn.save.backend.utils.MySqlExtension
 import org.cqfn.save.entities.TestSuite
 import org.cqfn.save.testsuite.TestSuiteDto
@@ -17,9 +18,16 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.mockito.kotlin.any
+import org.mockito.kotlin.times
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
+import org.quartz.Scheduler
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.boot.test.mock.mockito.MockBeans
 import org.springframework.http.MediaType
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
@@ -28,10 +36,15 @@ import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
 
 import java.net.HttpURLConnection
+import java.time.Instant
+import java.util.Date
 
 @SpringBootTest(classes = [SaveApplication::class])
 @AutoConfigureWebTestClient
 @ExtendWith(MySqlExtension::class)
+@MockBeans(
+    MockBean(StandardSuitesUpdateScheduler::class),
+)
 class TestSuitesControllerTest {
     @Autowired
     lateinit var webClient: WebTestClient
@@ -41,6 +54,9 @@ class TestSuitesControllerTest {
 
     @Autowired
     lateinit var projectRepository: ProjectRepository
+
+    @MockBean
+    lateinit var scheduler: Scheduler
 
     @Test
     fun `should accept test suites and return saved test suites`() {
@@ -176,13 +192,15 @@ class TestSuitesControllerTest {
 
     @Test
     fun testUpdateStandardTestSuites() {
-        mockServerPreprocessor.enqueue(MockResponse().setResponseCode(200))
+        whenever(scheduler.scheduleJob(any())).thenReturn(Date.from(Instant.now()))
+
         webClient.post()
             .uri("/updateStandardTestSuites")
             .exchange()
             .expectStatus()
             .isOk
-        assertEquals(MockResponse().setResponseCode(HttpURLConnection.HTTP_NOT_FOUND).status, (mockServerPreprocessor.dispatcher as QueueDispatcher).peek().status)
+
+        verify(scheduler, times(1)).triggerJob(any())
     }
 
     companion object {
