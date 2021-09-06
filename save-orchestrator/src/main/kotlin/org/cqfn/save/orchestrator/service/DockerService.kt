@@ -149,29 +149,16 @@ class DockerService(private val configProperties: ConfigProperties) {
             execution.resourcesRootPath,
         )
         val runCmd = "./$SAVE_AGENT_EXECUTABLE_NAME"
-        // include save-agent into the image
         println("PATH 1: ${ClassPathResource(SAVE_AGENT_EXECUTABLE_NAME)}")
         println("PATH 2: ${resourcesPath}")
 
-        val testSuitesForDocker = mutableListOf<Pair<String, String>>()
-        testSuiteDtos?.forEach {
-            println("CURRENT NAME ${it.name}")
-            webClientBackend
-                .get()
-                .uri("/testSuitesWithName?name=${it.name}")
-                .retrieve()
-                .bodyToMono<List<TestSuiteDto>>()
-                .map {
-                    println("RESULTS")
-                    it.forEach {
-                        println("Name: ${it.name}: ${it.testSuiteRepoUrl} to ${it.propertiesRelativePath}")
-                        testSuitesForDocker.add(it.testSuiteRepoUrl!! to it.propertiesRelativePath)
-                    }
-                }
-                .block()
-        }
-        println("FINISH")
-        println(testSuitesForDocker + "\n")
+        // collect standard test suites for docker image, which were selected by user, if any
+        val testSuitesForDocker = collectTestSuitesForDocker(testSuiteDtos)
+        // copy corresponding standard test suites to resourcesRootPath dir
+        copyTestSuitesToResourcesPath(testSuitesForDocker, resourcesPath)
+        println("FINISH1")
+
+        // include save-agent into the image
         val saveAgent = File(resourcesPath, SAVE_AGENT_EXECUTABLE_NAME)
         FileUtils.copyInputStreamToFile(
             ClassPathResource(SAVE_AGENT_EXECUTABLE_NAME).inputStream,
@@ -195,9 +182,42 @@ class DockerService(private val configProperties: ConfigProperties) {
                     |RUN chmod +x $executionDir/$SAVE_CLI_EXECUTABLE_NAME
                 """
         )
+        // FixMe: should be erased all data from resourcesPath?
         saveAgent.delete()
         saveCli.delete()
         return Pair(imageId, runCmd)
+    }
+
+    private fun collectTestSuitesForDocker(testSuiteDtos: List<TestSuiteDto>?): MutableList<TestSuiteDto> {
+        val testSuitesForDocker = mutableListOf<TestSuiteDto>()
+        testSuiteDtos?.forEach {
+            webClientBackend
+                .get()
+                .uri("/testSuitesWithName?name=${it.name}")
+                .retrieve()
+                .bodyToMono<List<TestSuiteDto>>()
+                .map {
+                    it.forEach {
+                        testSuitesForDocker.add(it)
+                    }
+                }
+                .block()
+        }
+        return testSuitesForDocker
+    }
+
+    private fun copyTestSuitesToResourcesPath(testSuitesForDocker: List<TestSuiteDto>, resourcesPath: File) {
+        testSuitesForDocker.forEach {
+            // tmp directories names for standard test suites constructs just by hashCode of listOf(repoUrl), reuse this logic
+            println("COPY ${it} TO ${resourcesPath}")
+            val testSuiteAbsolutePath = File(configProperties.testResources.basePath)
+                // tmp directories names for standard test suites constructs just by hashCode of listOf(repoUrl); reuse this logic
+                .resolve(File("${listOf(it.testSuiteRepoUrl!!).hashCode()}")
+                    .resolve(File(it.propertiesRelativePath).parent)
+                )
+
+            testSuiteAbsolutePath.copyRecursively(resourcesPath)
+        }
     }
 
     private fun createContainerForExecution(
