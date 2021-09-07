@@ -24,6 +24,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.createTempDirectory
+import kotlin.random.Random
 
 /**
  * A service that uses [ContainerManager] to build and start containers for test execution.
@@ -214,12 +215,14 @@ class DockerService(private val configProperties: ConfigProperties) {
     @Suppress("UnsafeCallOnNullableType")
     private fun copyTestSuitesToResourcesPath(testSuitesForDocker: List<TestSuiteDto>, destination: File) {
         testSuitesForDocker.forEach {
+            println("\n\n\n $it")
+            println("TEMP DIR of ${it.testSuiteRepoUrl}: ${listOf(it.testSuiteRepoUrl!!).hashCode()}")
             val standardTestSuiteAbsolutePath = File(configProperties.testResources.basePath)
                 // tmp directories names for standard test suites constructs just by hashCode of listOf(repoUrl); reuse this logic
                 .resolve(File("${listOf(it.testSuiteRepoUrl!!).hashCode()}")
                     .resolve(File(it.propertiesRelativePath).parent)
                 )
-            standardTestSuiteAbsolutePath.copyRecursively(destination.resolve("${it.name}_${it.propertiesRelativePath.hashCode()}"))
+            standardTestSuiteAbsolutePath.copyRecursively(destination.resolve("${it.name}_${it.propertiesRelativePath.hashCode()}_${Random.nextInt()}"))
         }
     }
 
