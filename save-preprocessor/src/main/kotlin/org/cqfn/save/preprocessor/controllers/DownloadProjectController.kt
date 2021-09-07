@@ -115,12 +115,14 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                     }
                 }
                 .flatMap { (execution, location) ->
+                    println("\n\n\nSEND TO BACK ${executionRequest.gitDto.url}")
                     sendToBackendAndOrchestrator(
                         execution,
                         executionRequest.project,
                         executionRequest.propertiesRelativePath,
                         location,
-                        null
+                        null,
+                        executionRequest.gitDto.url
                     )
                 }
                 .subscribeOn(scheduler)
@@ -178,7 +180,8 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                         execution.project,
                         executionRerunRequest.propertiesRelativePath,
                         location,
-                        null
+                        null,
+                        executionRerunRequest.gitDto.url
                     )
                 }
                 .log()
@@ -258,6 +261,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         val gitDto = executionRequest.gitDto
         val tmpDir = generateDirectory(listOf(gitDto.url))
         return Mono.fromCallable {
+            println("\n\n\nCLONING ${gitDto.url}")
             cloneFromGit(gitDto, tmpDir)?.use { git ->
                 executionRequest.gitDto.hash?.let { hash ->
                     git.checkout().setName(hash).call()
@@ -356,6 +360,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         propertiesRelativePath: String,
         projectRootRelativePath: String,
         testSuiteDtos: List<TestSuiteDto>?,
+        gitUrl: String? = null,
     ): Mono<StatusResponse> {
         val executionType = execution.type
         testSuiteDtos?.let {
@@ -363,7 +368,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         } ?: require(executionType == ExecutionType.GIT) { "Test suites are not provided, but should for executionType=$executionType" }
 
         return if (executionType == ExecutionType.GIT) {
-            prepareForExecutionFromGit(project, execution.id!!, propertiesRelativePath, projectRootRelativePath)
+            prepareForExecutionFromGit(project, execution.id!!, propertiesRelativePath, projectRootRelativePath, gitUrl!!)
         } else {
             prepareExecutionForStandard(testSuiteDtos!!)
         }
@@ -415,14 +420,15 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
     private fun prepareForExecutionFromGit(project: Project,
                                            executionId: Long,
                                            propertiesRelativePath: String,
-                                           projectRootRelativePath: String): Mono<EmptyResponse> = Mono.fromCallable {
+                                           projectRootRelativePath: String,
+                                           gitUrl: String): Mono<EmptyResponse> = Mono.fromCallable {
         val testResourcesRootAbsolutePath =
                 getTestResourcesRootAbsolutePath(propertiesRelativePath, projectRootRelativePath)
         testDiscoveringService.getRootTestConfig(testResourcesRootAbsolutePath)
     }
         .log()
         .zipWhen { rootTestConfig ->
-            discoverAndSaveTestSuites(project, rootTestConfig, propertiesRelativePath)
+            discoverAndSaveTestSuites(project, rootTestConfig, propertiesRelativePath, gitUrl)
         }
         .flatMap { (rootTestConfig, testSuites) ->
             initializeTests(testSuites, rootTestConfig, executionId)
@@ -449,9 +455,10 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
 
     private fun discoverAndSaveTestSuites(project: Project?,
                                           rootTestConfig: TestConfig,
-                                          propertiesRelativePath: String): Mono<List<TestSuite>> {
-        println("\n\n\n\n URL : ${project!!.url}")
-        val testSuites: List<TestSuiteDto> = testDiscoveringService.getAllTestSuites(project, rootTestConfig, propertiesRelativePath, project!!.url!!)
+                                          propertiesRelativePath: String,
+                                          gitUrl: String): Mono<List<TestSuite>> {
+        println("\n\n\n\n URL : ${gitUrl}")
+        val testSuites: List<TestSuiteDto> = testDiscoveringService.getAllTestSuites(project, rootTestConfig, propertiesRelativePath, gitUrl)
         return webClientBackend.makeRequest(BodyInserters.fromValue(testSuites), "/saveTestSuites") {
             it.bodyToMono()
         }
