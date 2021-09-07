@@ -64,6 +64,8 @@ import java.util.stream.Collectors
 
 import kotlin.io.path.ExperimentalPathApi
 
+typealias Status = Mono<ResponseEntity<HttpStatus>>
+
 /**
  * A Spring controller for git project downloading
  *
@@ -130,7 +132,6 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
      * @param files resources for execution
      * @return response entity with text
      */
-
     @PostMapping(value = ["/uploadBin"], consumes = ["multipart/form-data"])
     fun uploadBin(
         @RequestPart executionRequestForStandardSuites: ExecutionRequestForStandardSuites,
@@ -207,7 +208,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                     val propertiesRelativePath = "${rootTestConfig.directory.toFile().relativeTo(tmpDir)}${File.separator}save.properties"
                     val tests = testDiscoveringService.getAllTestSuites(null, rootTestConfig, propertiesRelativePath, testSuiteUrl)
                     tests.forEach {
-                        println("${it.name} ${testSuiteUrl}")
+                        println("${it.name} $testSuiteUrl")
                     }
                     log.info("Test suites size = ${tests.size}")
                     log.info("Starting to save new test suites for root test config in $testRootPath")
@@ -430,16 +431,6 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
     private fun prepareExecutionForStandard(testSuiteDtos: List<TestSuiteDto>): Mono<List<TestSuite>> {
         // FixMe: Should be properly processed in https://github.com/cqfn/save-cloud/issues/221
         return Mono.empty()
-        /*
-        return webClientBackend.makeRequest<List<TestSuiteDto>?, List<TestSuite>>(
-            BodyInserters.fromValue(
-                testSuiteDtos
-            ), "/saveTestSuites"
-        ) {
-            it.bodyToMono()
-        }
-
-         */
     }
 
     @Suppress("UnsafeCallOnNullableType")
@@ -480,12 +471,12 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
     /**
      * Post request to orchestrator to initiate its work
      */
-    private fun initializeAgents(execution: Execution, testSuiteDtos: List<TestSuiteDto>?): Mono<ResponseEntity<HttpStatus>> {
+    private fun initializeAgents(execution: Execution, testSuiteDtos: List<TestSuiteDto>?): Status {
         val bodyBuilder = MultipartBodyBuilder().apply {
             part("execution", execution)
         }
 
-        if (testSuiteDtos != null) {
+        testSuiteDtos?.let {
             bodyBuilder.part("testSuiteDtos", testSuiteDtos)
         }
 

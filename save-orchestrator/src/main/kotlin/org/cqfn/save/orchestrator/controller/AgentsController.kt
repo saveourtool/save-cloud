@@ -44,6 +44,7 @@ class AgentsController {
      * Schedules tasks to build base images, create a number of containers and put their data into the database.
      *
      * @param execution
+     * @param testSuiteDtos test suites, selected by user
      * @return OK if everything went fine.
      * @throws ResponseStatusException
      */

@@ -122,7 +122,7 @@ class ContainerManager(private val dockerHost: String) {
                     |COPY resources $resourcesPath
                     |$runCmd
                 """.trimMargin()
-        println("\n\nDOCKER FILE: ${dockerFileAsText}\n")
+        println("\n\nDOCKER FILE: $dockerFileAsText\n")
         val dockerFile = createTempFile(tmpDir.toPath()).toFile()
         dockerFile.writeText(dockerFileAsText)
         val buildImageResultCallback: BuildImageResultCallback = try {

@@ -17,7 +17,7 @@ interface TestSuiteRepository : BaseEntityRepository<TestSuite>, QueryByExampleE
     fun findAllByTypeIs(testSuiteType: TestSuiteType): List<TestSuite>
 
     /**
-     * @param testSuiteName
+     * @param testSuiteName name of the test suite
      * @return list of test suites by name
      */
     fun findAllByNameIs(testSuiteName: String): List<TestSuite>

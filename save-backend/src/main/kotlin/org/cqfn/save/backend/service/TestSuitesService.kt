@@ -53,10 +53,11 @@ class TestSuitesService {
             testSuiteRepository.findAllByTypeIs(TestSuiteType.STANDARD).map { it.toDto() }
 
     /**
+     * @param name name of the test suite
      * @return all test suites with specific name
      */
     fun findTestSuitesByName(name: String) =
-        testSuiteRepository.findAllByNameIs(name).map { it.toDto() }
+            testSuiteRepository.findAllByNameIs(name).map { it.toDto() }
 
     /**
      * @param project a project associated with test suites

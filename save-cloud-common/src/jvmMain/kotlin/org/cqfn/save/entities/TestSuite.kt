@@ -16,6 +16,7 @@ import javax.persistence.ManyToOne
  * @property project project, which this test suite belongs to
  * @property dateAdded date and time, when this test suite was added to the project
  * @property propertiesRelativePath location of save.properties file for this test suite, relative to project's root directory
+ * @property testSuiteRepoUrl url of the repo with test suites
  */
 @Suppress("USE_DATA_CLASS")
 @Entity

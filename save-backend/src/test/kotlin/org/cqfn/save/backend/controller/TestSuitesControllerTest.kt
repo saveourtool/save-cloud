@@ -179,14 +179,16 @@ class TestSuitesControllerTest {
         }
 
         webClient.get()
-            .uri("/testSuitesWithName?name=${name}")
+            .uri("/testSuitesWithName?name=$name")
             .exchange()
             .expectStatus()
             .isOk
             .expectBody<List<TestSuiteDto>>()
             .consumeWith {
                 requireNotNull(it.responseBody)
-                assertEquals(it.responseBody!![0].name, name)
+                // FixMe could be moved into assert block after https://github.com/cqfn/diKTat/issues/1047
+                val responseBody = it.responseBody!!
+                assertEquals(responseBody[0].name, name)
             }
     }
 
