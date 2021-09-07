@@ -450,6 +450,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
     private fun discoverAndSaveTestSuites(project: Project?,
                                           rootTestConfig: TestConfig,
                                           propertiesRelativePath: String): Mono<List<TestSuite>> {
+        println("\n\n\n\n URL : ${project!!.url}")
         val testSuites: List<TestSuiteDto> = testDiscoveringService.getAllTestSuites(project, rootTestConfig, propertiesRelativePath, project!!.url!!)
         return webClientBackend.makeRequest(BodyInserters.fromValue(testSuites), "/saveTestSuites") {
             it.bodyToMono()
