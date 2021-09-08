@@ -153,7 +153,7 @@ class DockerService(private val configProperties: ConfigProperties) {
         println("PATH 2: $resourcesPath")
 
         // collect standard test suites for docker image, which were selected by user, if any
-        val testSuitesForDocker = collectTestSuitesForDocker(testSuiteDtos)
+        val testSuitesForDocker = collectStandardTestSuitesForDocker(testSuiteDtos)
         val testSuitesDir = resourcesPath.resolve(standardTestSuiteDir)
         // copy corresponding standard test suites to resourcesRootPath dir
         copyTestSuitesToResourcesPath(testSuitesForDocker, testSuitesDir)
@@ -197,11 +197,11 @@ class DockerService(private val configProperties: ConfigProperties) {
         return Triple(imageId, agentRunCmd, saveCliExecFlags)
     }
 
-    private fun collectTestSuitesForDocker(testSuiteDtos: List<TestSuiteDto>?): MutableList<TestSuiteDto> {
+    private fun collectStandardTestSuitesForDocker(testSuiteDtos: List<TestSuiteDto>?): MutableList<TestSuiteDto> {
         val testSuitesForDocker: MutableList<TestSuiteDto> = mutableListOf()
         testSuiteDtos?.forEach {
             webClientBackend.get()
-                .uri("/testSuitesWithName?name=${it.name}")
+                .uri("/standardTestSuitesWithName?name=${it.name}")
                 .retrieve()
                 .bodyToMono<List<TestSuiteDto>>()
                 .map {

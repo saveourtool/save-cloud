@@ -86,6 +86,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
      * @param files resources required for execution
      * @return response entity with text
      */
+    @Suppress("TOO_LONG_FUNCTION")
     @PostMapping("/upload", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     fun upload(
         @RequestPart(required = true) executionRequest: ExecutionRequest,
@@ -457,7 +458,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                                           rootTestConfig: TestConfig,
                                           propertiesRelativePath: String,
                                           gitUrl: String): Mono<List<TestSuite>> {
-        println("\n\n\n\n URL : ${gitUrl}")
+        println("\n\n\n\n URL : $gitUrl")
         val testSuites: List<TestSuiteDto> = testDiscoveringService.getAllTestSuites(project, rootTestConfig, propertiesRelativePath, gitUrl)
         return webClientBackend.makeRequest(BodyInserters.fromValue(testSuites), "/saveTestSuites") {
             it.bodyToMono()

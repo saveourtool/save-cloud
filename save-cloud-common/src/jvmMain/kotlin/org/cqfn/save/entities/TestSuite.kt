@@ -45,6 +45,6 @@ class TestSuite(
                 this.name,
                 this.project,
                 this.propertiesRelativePath,
-                if (this.type == TestSuiteType.PROJECT) this.project?.url else testSuiteRepoUrl,
+                this.testSuiteRepoUrl,
             )
 }

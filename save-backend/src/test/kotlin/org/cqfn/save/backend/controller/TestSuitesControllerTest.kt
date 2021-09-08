@@ -179,7 +179,7 @@ class TestSuitesControllerTest {
         }
 
         webClient.get()
-            .uri("/testSuitesWithName?name=$name")
+            .uri("/standardTestSuitesWithName?name=$name")
             .exchange()
             .expectStatus()
             .isOk
