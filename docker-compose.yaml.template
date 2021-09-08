@@ -1,7 +1,18 @@
 # https://docs.docker.com/engine/swarm/stack-deploy/
 # ./gradlew deployDockerStack
 version: '3.9'
-
+x-logging:
+  &loki-logging-jvm
+  driver: loki
+  options:
+    loki-url: "http://127.0.0.1:9110/loki/api/v1/push"
+    loki-pipeline-stages: |
+      - multiline:
+          firstline: '^\d{2}:\d{2}:\d{2}\.\d{3} \[(?P<thread>[\w\d\-.]+)\] (?P<level>\w+)'
+      - regex:
+          expression: '^\d{2}:\d{2}:\d{2}\.\d{3} \[(?P<thread>[\w\d\-.]+)\] (?P<level>\w+)'
+      - labels:
+          level:
 
 services:
   orchestrator:
@@ -18,7 +29,7 @@ services:
     deploy:
       labels:
         - "prometheus-job=save-orchestrator"
-
+    logging: *loki-logging-jvm
   backend:
     image: 127.0.0.1:6000/save-backend:{{project.version}}
     environment:
@@ -35,7 +46,7 @@ services:
     deploy:
       labels:
         - "prometheus-job=save-backend"
-
+    logging: *loki-logging-jvm
   preprocessor:
     image: 127.0.0.1:6000/save-preprocessor:{{project.version}}
     environment:
@@ -47,7 +58,7 @@ services:
     deploy:
       labels:
         - "prometheus-job=save-preprocessor"
-
+    logging: *loki-logging-jvm
   prometheus:
     image: prom/prometheus
     user: root  # to access host's docker socket for service discovery, see https://groups.google.com/g/prometheus-users/c/EuEW0qRzXvg/m/0aqKh_ZABQAJ

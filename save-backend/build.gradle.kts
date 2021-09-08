@@ -28,10 +28,6 @@ tasks.withType<Test> {
     useJUnitPlatform()
 }
 
-tasks.withType<Test> {
-    testLogging.showStandardStreams = true
-}
-
 dependencies {
     implementation(project(":save-cloud-common"))
     runtimeOnly(project(":save-frontend", "distribution"))  // static resources packed as a jar, will be accessed from classpath
