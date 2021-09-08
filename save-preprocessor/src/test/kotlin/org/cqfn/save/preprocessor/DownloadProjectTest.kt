@@ -189,7 +189,7 @@ class DownloadProjectTest(
 
         val binFile = File(binFilePath)
         val property = File(propertyPath)
-        val project = Project("owner", "someName", null, "descr").apply {
+        val project = Project("owner", "someName", "stub", "descr").apply {
             id = 42L
         }
         val execution = Execution(project, LocalDateTime.now(), LocalDateTime.now(), ExecutionStatus.PENDING, "1",
@@ -214,7 +214,7 @@ class DownloadProjectTest(
                 .setHeader("Content-Type", "application/json")
                 .setBody(objectMapper.writeValueAsString(
                     listOf(
-                        TestSuite(TestSuiteType.PROJECT, "", project, LocalDateTime.now(), "save.properties")
+                        TestSuite(TestSuiteType.PROJECT, "", project, LocalDateTime.now(), "save.properties", "stub")
                     )
                 )),
         )
@@ -225,7 +225,6 @@ class DownloadProjectTest(
         )
         val assertions = CompletableFuture.supplyAsync {
             listOf(
-                mockServerBackend.takeRequest(60, TimeUnit.SECONDS),
                 mockServerBackend.takeRequest(60, TimeUnit.SECONDS),
                 mockServerOrchestrator.takeRequest(60, TimeUnit.SECONDS)
             )
