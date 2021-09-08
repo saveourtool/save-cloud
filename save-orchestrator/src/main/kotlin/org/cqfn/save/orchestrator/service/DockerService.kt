@@ -142,15 +142,11 @@ class DockerService(private val configProperties: ConfigProperties) {
 
     @Suppress("TOO_LONG_FUNCTION", "UnsafeCallOnNullableType")
     private fun buildBaseImageForExecution(execution: Execution, testSuiteDtos: List<TestSuiteDto>?): Triple<String, String, String> {
-        println("\n\nconfigProperties.testResources.basePath ${configProperties.testResources.basePath}")
-        println("execution.resourcesRootPath ${execution.resourcesRootPath}")
         val resourcesPath = File(
             configProperties.testResources.basePath,
             execution.resourcesRootPath,
         )
         val agentRunCmd = "./$SAVE_AGENT_EXECUTABLE_NAME"
-        println("PATH 1: ${ClassPathResource(SAVE_AGENT_EXECUTABLE_NAME)}")
-        println("PATH 2: $resourcesPath")
 
         // collect standard test suites for docker image, which were selected by user, if any
         val testSuitesForDocker = collectStandardTestSuitesForDocker(testSuiteDtos)
@@ -164,8 +160,6 @@ class DockerService(private val configProperties: ConfigProperties) {
         } else {
             ""
         }
-        println("FINISH1")
-        println("saveCliExecFlags $saveCliExecFlags")
 
         // include save-agent into the image
         val saveAgent = File(resourcesPath, SAVE_AGENT_EXECUTABLE_NAME)
@@ -191,7 +185,6 @@ class DockerService(private val configProperties: ConfigProperties) {
                     |RUN chmod +x $executionDir/$SAVE_CLI_EXECUTABLE_NAME
                 """
         )
-
         saveAgent.delete()
         saveCli.delete()
         return Triple(imageId, agentRunCmd, saveCliExecFlags)
@@ -215,8 +208,6 @@ class DockerService(private val configProperties: ConfigProperties) {
     @Suppress("UnsafeCallOnNullableType")
     private fun copyTestSuitesToResourcesPath(testSuitesForDocker: List<TestSuiteDto>, destination: File) {
         testSuitesForDocker.forEach {
-            println("\n\n\n $it")
-            println("TEMP DIR of ${it.testSuiteRepoUrl}: ${listOf(it.testSuiteRepoUrl!!).hashCode()}")
             val standardTestSuiteAbsolutePath = File(configProperties.testResources.basePath)
                 // tmp directories names for standard test suites constructs just by hashCode of listOf(repoUrl); reuse this logic
                 .resolve(File("${listOf(it.testSuiteRepoUrl!!).hashCode()}")

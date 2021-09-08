@@ -116,7 +116,6 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                     }
                 }
                 .flatMap { (execution, location) ->
-                    println("\n\n\nSEND TO BACK ${executionRequest.gitDto.url}")
                     sendToBackendAndOrchestrator(
                         execution,
                         executionRequest.project,
@@ -211,9 +210,6 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                     log.info("Starting to discover standard test suites for root test config ${rootTestConfig.location}")
                     val propertiesRelativePath = "${rootTestConfig.directory.toFile().relativeTo(tmpDir)}${File.separator}save.properties"
                     val tests = testDiscoveringService.getAllTestSuites(null, rootTestConfig, propertiesRelativePath, testSuiteUrl)
-                    tests.forEach {
-                        println("${it.name} $testSuiteUrl")
-                    }
                     log.info("Test suites size = ${tests.size}")
                     log.info("Starting to save new test suites for root test config in $testRootPath")
                     webClientBackend.makeRequest(BodyInserters.fromValue(tests), "/saveTestSuites") {
@@ -262,7 +258,6 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         val gitDto = executionRequest.gitDto
         val tmpDir = generateDirectory(listOf(gitDto.url))
         return Mono.fromCallable {
-            println("\n\n\nCLONING ${gitDto.url}")
             cloneFromGit(gitDto, tmpDir)?.use { git ->
                 executionRequest.gitDto.hash?.let { hash ->
                     git.checkout().setName(hash).call()
@@ -315,7 +310,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                         TestSuiteType.STANDARD,
                         it,
                         project,
-                        propertiesRelativePath,
+                        propertiesRelativePath
                     )
                 }
             )
@@ -458,7 +453,6 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                                           rootTestConfig: TestConfig,
                                           propertiesRelativePath: String,
                                           gitUrl: String): Mono<List<TestSuite>> {
-        println("\n\n\n\n URL : $gitUrl")
         val testSuites: List<TestSuiteDto> = testDiscoveringService.getAllTestSuites(project, rootTestConfig, propertiesRelativePath, gitUrl)
         return webClientBackend.makeRequest(BodyInserters.fromValue(testSuites), "/saveTestSuites") {
             it.bodyToMono()

@@ -21,7 +21,6 @@ import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.http.client.MultipartBodyBuilder
 import org.springframework.web.bind.annotation.PostMapping
-
 import org.springframework.web.bind.annotation.RequestPart
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.reactive.function.BodyInserters
@@ -29,7 +28,6 @@ import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.toEntity
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-
 import java.time.LocalDateTime
 
 /**
@@ -126,6 +124,7 @@ class CloneRepositoryController(
         log.info("Creating a new execution id=${execution.id} for project id=${project.id}")
         return execution.id!!
     }
+
     private fun WebClient.postMultipart(bodyBuilder: MultipartBodyBuilder, uri: String) = post()
         .uri(uri)
         .contentType(MediaType.MULTIPART_FORM_DATA)
