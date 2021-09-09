@@ -137,7 +137,7 @@ class DownloadProjectTest(
                 .setHeader("Content-Type", "application/json")
                 .setBody(objectMapper.writeValueAsString(
                     listOf(
-                        TestSuite(TestSuiteType.PROJECT, "", project, LocalDateTime.now(), "save.properties")
+                        TestSuite(TestSuiteType.PROJECT, "", project, LocalDateTime.now(), "save.properties", "https://github.com/cqfn/save.git")
                     )
                 )),
         )
@@ -173,7 +173,6 @@ class DownloadProjectTest(
             .expectBody<String>()
             .isEqualTo("Clone pending")
         Thread.sleep(15_000)
-        
         val dirName = listOf(validRepo.url).hashCode()
         Assertions.assertTrue(File("${configProperties.repository}/$dirName").exists())
         assertions.orTimeout(60, TimeUnit.SECONDS).join().forEach { Assertions.assertNotNull(it) }
@@ -208,16 +207,7 @@ class DownloadProjectTest(
                 .setHeader("Content-Type", "application/json")
                 .setBody(objectMapper.writeValueAsString(execution))
         )
-        mockServerBackend.enqueue(
-            MockResponse()
-                .setResponseCode(200)
-                .setHeader("Content-Type", "application/json")
-                .setBody(objectMapper.writeValueAsString(
-                    listOf(
-                        TestSuite(TestSuiteType.PROJECT, "", project, LocalDateTime.now(), "save.properties", "stub")
-                    )
-                )),
-        )
+
         // fixme: preprocessor should initialize tests for execution here
         mockServerOrchestrator.enqueue(
             MockResponse()
@@ -378,7 +368,6 @@ class DownloadProjectTest(
             .expectBody<String>()
             .isEqualTo("Clone pending")
         Thread.sleep(15_000)
-
         assertions.orTimeout(60, TimeUnit.SECONDS).join().forEach { Assertions.assertNotNull(it) }
     }
 
