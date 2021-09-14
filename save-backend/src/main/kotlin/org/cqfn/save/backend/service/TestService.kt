@@ -85,7 +85,7 @@ class TestService {
         ++execution.page
         executionRepository.save(execution)
         return Mono.just(TestBatch(testDtos, tests.map { it.test.testSuite }.associate {
-            it.id!! to "--test-root-path ${File(it.propertiesRelativePath).parent}"
+            it.id!! to " ${File(it.propertiesRelativePath).parent}"
         }))
     }
 
