@@ -186,9 +186,7 @@ class TestSuitesControllerTest {
             .expectBody<List<TestSuiteDto>>()
             .consumeWith {
                 requireNotNull(it.responseBody)
-                // FixMe could be moved into assert block after https://github.com/cqfn/diKTat/issues/1047
-                val responseBody = it.responseBody!!
-                assertEquals(responseBody[0].name, name)
+                assertEquals(it.responseBody!!.first().name, name)
             }
     }
 

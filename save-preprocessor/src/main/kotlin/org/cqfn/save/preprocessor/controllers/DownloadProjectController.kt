@@ -445,7 +445,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         val saveProperties: SaveProperties = decodeFromPropertiesFile<SaveProperties>(propertiesFile)
             .mergeConfigWithPriorityToThis(defaultConfig())
         return propertiesFile.parentFile
-            .resolve(saveProperties.testRootPath!!)
+            .resolve(saveProperties.testFiles!!.first())
             .absolutePath
     }
 

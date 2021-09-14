@@ -141,7 +141,7 @@ class SaveAgent(private val config: AgentConfiguration,
     }
 
     private fun runSave(cliArgs: String): ExecutionResult = ProcessBuilder(true, FileSystem.SYSTEM)
-        .exec(config.cliCommand.let { if (cliArgs.isNotEmpty()) "$it $cliArgs" else it }, logFilePath.toPath())
+        .exec(config.cliCommand.let { if (cliArgs.isNotEmpty()) "$it $cliArgs" else it }, ".", logFilePath.toPath())
 
     @Suppress("TOO_MANY_LINES_IN_LAMBDA")
     private fun readExecutionResults(jsonFile: String): List<TestExecutionDto> {

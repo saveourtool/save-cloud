@@ -10,8 +10,7 @@
             <tableExists tableName="test_suite"/>
         </preConditions>
         <addColumn tableName="test_suite">
-            <column name="test_suite_repo_url" type="varchar(255)" defaultValue="null">
-            </column>
+            <column name="test_suite_repo_url" type="varchar(255)" defaultValue="null"/>
         </addColumn>
     </changeSet>
 </databaseChangeLog>
