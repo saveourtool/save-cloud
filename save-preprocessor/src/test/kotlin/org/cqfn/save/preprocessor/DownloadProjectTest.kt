@@ -90,9 +90,9 @@ class DownloadProjectTest(
         }
         val request = ExecutionRequest(project, wrongRepo, sdk = Sdk.Default, executionId = execution.id)
         // /updateExecution
-        mockServerBackend.enqueue(
-            MockResponse().setResponseCode(200)
-        )
+//        mockServerBackend.enqueue(
+//            MockResponse().setResponseCode(200)
+//        )
 
         val multipart = MultipartBodyBuilder().apply {
             part("executionRequest", request)
