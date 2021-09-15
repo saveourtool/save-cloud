@@ -191,6 +191,23 @@ class HeartbeatControllerTest {
         }
     }
 
+    @Test
+    fun `should shutdown agents even if there are some already FINISHED`() {
+        testHeartbeat(
+            agentStatusDtos = listOf(
+                AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "test-1"),
+                AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "test-2"),
+                AgentStatusDto(LocalDateTime.parse("2021-01-01T00:00:00"), AgentState.FINISHED, "test-1"),
+                AgentStatusDto(LocalDateTime.parse("2021-01-01T00:00:00"), AgentState.FINISHED, "test-2"),
+            ),
+            heartbeat = Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100)),
+            testBatch = TestBatch(emptyList(), emptyMap()),
+            mockAgentStatuses = true,
+        ) {
+            verify(dockerService, times(1)).stopAgents(any())
+        }
+    }
+
     /**
      * Test logic triggered by a heartbeat.
      *

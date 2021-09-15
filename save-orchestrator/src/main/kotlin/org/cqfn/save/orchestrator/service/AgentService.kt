@@ -171,12 +171,19 @@ class AgentService(configProperties: ConfigProperties) {
             .retrieve()
             .bodyToMono<AgentStatusesForExecution>()
             .map { (executionId, agentStatuses) ->
-                executionId to if (agentStatuses.all { it.state == AgentState.IDLE }) {
+                executionId to if (agentStatuses.areIdleOrFinished()) {
+                    // We assume, that all agents will eventually have one of these statuses.
+                    // Situations when agent gets stuck with a different status and for whatever reason is unable to update
+                    // it, are not handled. Anyway, such agents should be eventually stopped: https://github.com/cqfn/save-cloud/issues/208
                     agentStatuses.map { it.containerId }
                 } else {
                     emptyList()
                 }
             }
+    }
+
+    private fun Collection<AgentStatusDto>.areIdleOrFinished() = all {
+        it.state == AgentState.IDLE || it.state == AgentState.FINISHED
     }
 
     companion object {
