@@ -154,10 +154,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         ResponseEntity("Clone pending", HttpStatus.ACCEPTED)
     }
         .doOnSuccess {
-            webClientBackend.makeRequest(
-                BodyInserters.fromValue(ExecutionUpdateDto(executionRerunRequest.executionId!!, ExecutionStatus.PENDING)),
-                "/updateExecution"
-            ) { it.toEntity<HttpStatus>() }
+            updateExecutionStatus(executionRerunRequest.executionId!!, ExecutionStatus.PENDING)
                 .flatMap {
                     cleanupInOrchestrator(executionRerunRequest.executionId!!)
                 }
@@ -193,6 +190,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
             val tmpDir = generateDirectory(listOf(testSuiteUrl))
             Mono.fromCallable {
                 cloneFromGit(GitDto(testSuiteUrl), tmpDir)
+                    .use { /* noop here, just need to close Git object */ }
             }
                 .flatMapMany { Flux.fromIterable(testSuitePaths) }
                 .flatMap { testRootPath ->
@@ -268,10 +266,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                     is GitAPIException -> log.warn("Error with git API while cloning ${gitDto.url} repository", exception)
                     else -> log.warn("Cloning ${gitDto.url} repository failed", exception)
                 }
-                webClientBackend.makeRequest(
-                    BodyInserters.fromValue(ExecutionUpdateDto(executionRequest.executionId!!, ExecutionStatus.ERROR)),
-                    "/updateExecution"
-                ) { it.toEntity<HttpStatus>() }.flatMap {
+                updateExecutionStatus(executionRequest.executionId!!, ExecutionStatus.ERROR).flatMap {
                     Mono.error(exception)
                 }
             }
@@ -319,11 +314,17 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         val hashName = seeds.hashCode()
         val tmpDir = File("${configProperties.repository}/$hashName")
         if (tmpDir.exists()) {
-            tmpDir.deleteRecursively()
-            log.info("For $seeds: dir $tmpDir was deleted")
+            if (tmpDir.deleteRecursively()) {
+                log.info("For $seeds: dir $tmpDir was deleted")
+            } else {
+                error("Couldn't properly delete $tmpDir")
+            }
         }
-        tmpDir.mkdirs()
-        log.info("For $seeds: dir $tmpDir was created")
+        if (tmpDir.mkdirs()) {
+            log.info("For $seeds: dir $tmpDir was created")
+        } else {
+            error("Couldn't create directories for $tmpDir")
+        }
         return tmpDir
     }
 
@@ -365,10 +366,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                     "Error during preprocessing, will mark execution.id=${execution.id} as failed; error: ",
                     ex
                 )
-                webClientBackend.makeRequest(
-                    BodyInserters.fromValue(ExecutionUpdateDto(execution.id!!, ExecutionStatus.ERROR)),
-                    "/updateExecution"
-                ) { it.toEntity<HttpStatus>() }
+                updateExecutionStatus(execution.id!!, ExecutionStatus.ERROR)
             }
     }
 
@@ -514,6 +512,15 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
             .last()
     }
         .collectList()
+
+    private fun updateExecutionStatus(executionId: Long, executionStatus: ExecutionStatus) =
+            webClientBackend.makeRequest(
+                BodyInserters.fromValue(ExecutionUpdateDto(executionId, executionStatus)),
+                "/updateExecution"
+            ) { it.toEntity<HttpStatus>() }
+                .doOnSubscribe {
+                    log.info("Making request to set execution status for id=$executionId to $executionStatus")
+                }
 }
 
 /**
