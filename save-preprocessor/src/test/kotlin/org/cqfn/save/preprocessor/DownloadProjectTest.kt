@@ -30,6 +30,7 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.mockito.kotlin.any
@@ -309,6 +310,7 @@ class DownloadProjectTest(
     }
 
     @Test
+    @Disabled("Because of zipWith, order of /updateExecution and /execution is undetermined and MockWebServer's queue leads to errors")
     @Suppress("LongMethod")
     fun `rerun execution`() {
         val project = Project("owner", "someName", null, "descr").apply {
@@ -357,18 +359,17 @@ class DownloadProjectTest(
             MockResponse()
                 .setResponseCode(200)
         )
-        val assertions = CompletableFuture.supplyAsync {
-            sequenceOf(
-                mockServerBackend.takeRequest(60, TimeUnit.SECONDS),
-                mockServerOrchestrator.takeRequest(60, TimeUnit.SECONDS),
-                mockServerBackend.takeRequest(60, TimeUnit.SECONDS),
-                mockServerBackend.takeRequest(60, TimeUnit.SECONDS),
-                mockServerBackend.takeRequest(60, TimeUnit.SECONDS),
-                mockServerOrchestrator.takeRequest(60, TimeUnit.SECONDS),
-            ).onEach {
+        val assertions = sequence {
+            yield(mockServerBackend.takeRequest(60, TimeUnit.SECONDS))
+            yield(mockServerOrchestrator.takeRequest(60, TimeUnit.SECONDS))
+            yield(mockServerBackend.takeRequest(60, TimeUnit.SECONDS))
+            yield(mockServerBackend.takeRequest(60, TimeUnit.SECONDS))
+            yield(mockServerBackend.takeRequest(60, TimeUnit.SECONDS))
+            yield(mockServerOrchestrator.takeRequest(60, TimeUnit.SECONDS))
+        }
+            .onEach {
                 logger.info("Request $it")
             }
-        }
 
         webClient.post()
             .uri("/rerunExecution")
@@ -381,7 +382,7 @@ class DownloadProjectTest(
             .isEqualTo("Clone pending")
         Thread.sleep(15_000)
 
-        assertions.orTimeout(60, TimeUnit.SECONDS).join().forEach { Assertions.assertNotNull(it) }
+        assertions.forEach { Assertions.assertNotNull(it) }
     }
 
     @AfterEach
