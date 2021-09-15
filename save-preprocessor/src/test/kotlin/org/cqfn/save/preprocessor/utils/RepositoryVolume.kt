@@ -2,7 +2,6 @@ package org.cqfn.save.preprocessor.utils
 
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
-import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.createTempDirectory
 
 /**
@@ -10,7 +9,6 @@ import kotlin.io.path.createTempDirectory
  */
 interface RepositoryVolume {
     companion object {
-        @OptIn(ExperimentalPathApi::class)
         private val volume: String by lazy {
             createTempDirectory("repositories").toAbsolutePath().toString()
         }

@@ -50,6 +50,7 @@ import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
 
 import java.io.File
+import java.nio.charset.Charset
 import java.time.Duration
 import java.time.LocalDateTime
 import java.util.concurrent.CompletableFuture
@@ -373,11 +374,24 @@ class DownloadProjectTest(
 
     @AfterEach
     fun removeTestDir() {
-        File(configProperties.repository).deleteRecursively()
+        listOf(mockServerBackend, mockServerOrchestrator).forEach { server ->
+            server.dispatcher.peek().let { mockResponse ->
+                // when `QueueDispatcher.failFast` is true, default value is an empty response with code 404
+                val hasDefaultEnqueuedResponse =
+                        mockResponse.status == "HTTP/1.1 404 Client Error" && mockResponse.getBody() == null
+                require(hasDefaultEnqueuedResponse) {
+                    "There is an enqueued response in the MockServer after a test has completed. Enqueued body: " +
+                            "${
+                                mockResponse.getBody()?.readString(Charset.defaultCharset())
+                            }, status: ${mockResponse.status}"
+                }
+            }
+        }
     }
 
     @AfterAll
     fun removeBinDir() {
+        File(configProperties.repository).deleteRecursively()
         File(binFolder).deleteRecursively()
     }
 
