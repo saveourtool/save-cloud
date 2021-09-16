@@ -430,7 +430,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
     
     private fun prepareExecutionForStandard(testSuiteDtos: List<TestSuiteDto>): Mono<List<TestSuite>> {
         // FixMe: Should be properly processed in https://github.com/cqfn/save-cloud/issues/221
-        return Mono.empty()
+        return Mono.just(emptyList())
     }
 
     @Suppress("UnsafeCallOnNullableType")

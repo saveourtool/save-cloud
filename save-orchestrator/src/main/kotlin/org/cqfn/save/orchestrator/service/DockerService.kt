@@ -190,18 +190,14 @@ class DockerService(private val configProperties: ConfigProperties) {
         return Triple(imageId, agentRunCmd, saveCliExecFlags)
     }
 
-    private fun collectStandardTestSuitesForDocker(testSuiteDtos: List<TestSuiteDto>?): MutableList<TestSuiteDto> {
-        val testSuitesForDocker: MutableList<TestSuiteDto> = mutableListOf()
-        testSuiteDtos?.forEach {
+    private fun collectStandardTestSuitesForDocker(testSuiteDtos: List<TestSuiteDto>?): List<TestSuiteDto> {
+        val testSuitesForDocker = testSuiteDtos?.flatMap {
             webClientBackend.get()
                 .uri("/standardTestSuitesWithName?name=${it.name}")
                 .retrieve()
                 .bodyToMono<List<TestSuiteDto>>()
-                .map {
-                    it.forEach { testSuitesForDocker.add(it) }
-                }
-                .block()
-        }
+                .block()!!
+        } ?: emptyList()
         return testSuitesForDocker
     }
 
