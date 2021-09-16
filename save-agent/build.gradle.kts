@@ -18,6 +18,7 @@ kotlin {
         all {
             languageSettings.optIn("kotlin.RequiresOptIn")
             languageSettings.optIn("okio.ExperimentalFileSystem")
+            languageSettings.optIn("kotlinx.serialization.ExperimentalSerializationApi")
         }
         val linuxX64Main by getting {
             dependencies {

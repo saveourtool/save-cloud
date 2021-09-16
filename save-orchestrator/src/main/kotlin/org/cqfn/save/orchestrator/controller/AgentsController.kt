@@ -8,6 +8,7 @@ import org.cqfn.save.orchestrator.config.ConfigProperties
 import org.cqfn.save.orchestrator.service.AgentService
 import org.cqfn.save.orchestrator.service.DockerService
 import org.cqfn.save.orchestrator.service.imageName
+import org.cqfn.save.testsuite.TestSuiteDto
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
@@ -15,6 +16,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.RequestPart
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux.fromIterable
@@ -42,11 +44,13 @@ class AgentsController {
      * Schedules tasks to build base images, create a number of containers and put their data into the database.
      *
      * @param execution
+     * @param testSuiteDtos test suites, selected by user
      * @return OK if everything went fine.
      * @throws ResponseStatusException
      */
     @PostMapping("/initializeAgents")
-    fun initialize(@RequestBody execution: Execution): Status {
+    fun initialize(@RequestPart(required = true) execution: Execution,
+                   @RequestPart(required = false) testSuiteDtos: List<TestSuiteDto>?): Status {
         if (execution.status != ExecutionStatus.PENDING) {
             throw ResponseStatusException(
                 HttpStatus.BAD_REQUEST,
@@ -59,7 +63,7 @@ class AgentsController {
             log.info("Starting preparations for launching execution [project=${execution.project}, id=${execution.id}, " +
                     "status=${execution.status}, resourcesRootPath=${execution.resourcesRootPath}]")
             // todo: pass SDK via request body
-            val agentIds = dockerService.buildAndCreateContainers(execution)
+            val agentIds = dockerService.buildAndCreateContainers(execution, testSuiteDtos)
             agentService.saveAgentsWithInitialStatuses(
                 agentIds.map { id ->
                     Agent(id, execution)

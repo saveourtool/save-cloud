@@ -44,15 +44,20 @@ class TestDiscoveringService {
      * @param project a [Project] corresponding to analyzed data. If it null - standard test suites
      * @param propertiesRelativePath path to save.properties file relative to repository root
      * @param rootTestConfig root config of SAVE configs hierarchy
+     * @param testSuiteRepoUrl url of the repo with test suites
      * @return a list of [TestSuiteDto]s
      * @throws IllegalArgumentException when provided path doesn't point to a valid config file
      */
-    fun getAllTestSuites(project: Project?, rootTestConfig: TestConfig, propertiesRelativePath: String) = rootTestConfig
+    fun getAllTestSuites(
+        project: Project?,
+        rootTestConfig: TestConfig,
+        propertiesRelativePath: String,
+        testSuiteRepoUrl: String) = rootTestConfig
         .getAllTestConfigs()
         .mapNotNull { it.getGeneralConfigOrNull()?.suiteName }
         .map { suiteName ->
             // we operate here with suite names from only those TestConfigs, that have General section with suiteName key
-            TestSuiteDto(project?.let { TestSuiteType.PROJECT } ?: TestSuiteType.STANDARD, suiteName, project, propertiesRelativePath)
+            TestSuiteDto(project?.let { TestSuiteType.PROJECT } ?: TestSuiteType.STANDARD, suiteName, project, propertiesRelativePath, testSuiteRepoUrl)
         }
         .distinct()
 

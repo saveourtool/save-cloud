@@ -5,6 +5,7 @@ import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionUpdateDto
 import org.cqfn.save.orchestrator.config.ConfigProperties
 import org.cqfn.save.orchestrator.docker.ContainerManager
+import org.cqfn.save.testsuite.TestSuiteDto
 
 import com.github.dockerjava.api.exception.DockerException
 import generated.SAVE_CORE_VERSION
@@ -16,12 +17,14 @@ import org.springframework.core.io.ClassPathResource
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
+import org.springframework.web.reactive.function.client.bodyToMono
 
 import java.io.File
 import java.util.concurrent.atomic.AtomicBoolean
 
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.createTempDirectory
+import kotlin.random.Random
 
 /**
  * A service that uses [ContainerManager] to build and start containers for test execution.
@@ -34,6 +37,7 @@ class DockerService(private val configProperties: ConfigProperties) {
      */
     internal val containerManager = ContainerManager(configProperties.docker.host)
     private val executionDir = "/run/save-execution"
+    private val standardTestSuiteDir = "standard-test-suites"
     private val isAgentStoppingInProgress = AtomicBoolean(false)
 
     @Autowired
@@ -44,15 +48,16 @@ class DockerService(private val configProperties: ConfigProperties) {
      * Function that builds a base image with test resources and then creates containers with agents.
      *
      * @param execution [Execution] from which this workflow is started
+     * @param testSuiteDtos test suites, selected by user
      * @return list of IDs of created containers
      */
-    fun buildAndCreateContainers(execution: Execution): List<String> {
+    fun buildAndCreateContainers(execution: Execution, testSuiteDtos: List<TestSuiteDto>?): List<String> {
         log.info("Building base image for execution.id=${execution.id}")
-        val (imageId, runCmd) = buildBaseImageForExecution(execution)
+        val (imageId, runCmd, saveCliExecFlags) = buildBaseImageForExecution(execution, testSuiteDtos)
         log.info("Built base image for execution.id=${execution.id}")
         return (1..configProperties.agentsCount).map { number ->
             log.info("Building container #$number for execution.id=${execution.id}")
-            createContainerForExecution(execution, imageId, "${execution.id}-$number", runCmd).also {
+            createContainerForExecution(execution, imageId, "${execution.id}-$number", runCmd, saveCliExecFlags).also {
                 log.info("Built container id=$it for execution.id=${execution.id}")
             }
         }
@@ -136,12 +141,26 @@ class DockerService(private val configProperties: ConfigProperties) {
     }
 
     @Suppress("TOO_LONG_FUNCTION", "UnsafeCallOnNullableType")
-    private fun buildBaseImageForExecution(execution: Execution): Pair<String, String> {
+    private fun buildBaseImageForExecution(execution: Execution, testSuiteDtos: List<TestSuiteDto>?): Triple<String, String, String> {
         val resourcesPath = File(
             configProperties.testResources.basePath,
             execution.resourcesRootPath,
         )
-        val runCmd = "./$SAVE_AGENT_EXECUTABLE_NAME"
+        val agentRunCmd = "./$SAVE_AGENT_EXECUTABLE_NAME"
+
+        // collect standard test suites for docker image, which were selected by user, if any
+        val testSuitesForDocker = collectStandardTestSuitesForDocker(testSuiteDtos)
+        val testSuitesDir = resourcesPath.resolve(standardTestSuiteDir)
+        // copy corresponding standard test suites to resourcesRootPath dir
+        copyTestSuitesToResourcesPath(testSuitesForDocker, testSuitesDir)
+        val saveCliExecFlags = if (testSuitesForDocker.isNotEmpty()) {
+            // create stub toml config in aim to execute all test suites directories from `testSuitesDir`
+            testSuitesDir.resolve("save.toml").apply { createNewFile() }.writeText("[general]")
+            " \"$standardTestSuiteDir\" --include-suites \"${testSuitesForDocker.map { it.name }.joinToString(" ") }\""
+        } else {
+            ""
+        }
+
         // include save-agent into the image
         val saveAgent = File(resourcesPath, SAVE_AGENT_EXECUTABLE_NAME)
         FileUtils.copyInputStreamToFile(
@@ -168,7 +187,30 @@ class DockerService(private val configProperties: ConfigProperties) {
         )
         saveAgent.delete()
         saveCli.delete()
-        return Pair(imageId, runCmd)
+        return Triple(imageId, agentRunCmd, saveCliExecFlags)
+    }
+
+    private fun collectStandardTestSuitesForDocker(testSuiteDtos: List<TestSuiteDto>?): List<TestSuiteDto> {
+        val testSuitesForDocker = testSuiteDtos?.flatMap {
+            webClientBackend.get()
+                .uri("/standardTestSuitesWithName?name=${it.name}")
+                .retrieve()
+                .bodyToMono<List<TestSuiteDto>>()
+                .block()!!
+        } ?: emptyList()
+        return testSuitesForDocker
+    }
+
+    @Suppress("UnsafeCallOnNullableType")
+    private fun copyTestSuitesToResourcesPath(testSuitesForDocker: List<TestSuiteDto>, destination: File) {
+        testSuitesForDocker.forEach {
+            val standardTestSuiteAbsolutePath = File(configProperties.testResources.basePath)
+                // tmp directories names for standard test suites constructs just by hashCode of listOf(repoUrl); reuse this logic
+                .resolve(File("${listOf(it.testSuiteRepoUrl!!).hashCode()}")
+                    .resolve(File(it.propertiesRelativePath).parent)
+                )
+            standardTestSuiteAbsolutePath.copyRecursively(destination.resolve("${it.name}_${it.propertiesRelativePath.hashCode()}_${Random.nextInt()}"))
+        }
     }
 
     private fun createContainerForExecution(
@@ -176,6 +218,7 @@ class DockerService(private val configProperties: ConfigProperties) {
         imageId: String,
         containerNumber: String,
         runCmd: String,
+        saveCliExecFlags: String,
     ): String {
         val containerId = containerManager.createContainerFromImage(
             imageId,
@@ -201,7 +244,7 @@ class DockerService(private val configProperties: ConfigProperties) {
         )
         // todo: un-hardcode script
         if (File(resourcesPath, "examples/kotlin-diktat/run.sh").exists()) {
-            val cliCommand = "bash ./examples/kotlin-diktat/run.sh || ./$SAVE_CLI_EXECUTABLE_NAME"
+            val cliCommand = "bash ./examples/kotlin-diktat/run.sh || ./$SAVE_CLI_EXECUTABLE_NAME$saveCliExecFlags"
             agentPropertiesFile.appendText("\ncliCommand=$cliCommand\n")
         }
         containerManager.copyResourcesIntoContainer(

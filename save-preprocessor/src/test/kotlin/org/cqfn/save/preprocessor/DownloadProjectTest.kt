@@ -139,7 +139,7 @@ class DownloadProjectTest(
                 .setHeader("Content-Type", "application/json")
                 .setBody(objectMapper.writeValueAsString(
                     listOf(
-                        TestSuite(TestSuiteType.PROJECT, "", project, LocalDateTime.now(), "save.properties")
+                        TestSuite(TestSuiteType.PROJECT, "", project, LocalDateTime.now(), "save.properties", "https://github.com/cqfn/save.git")
                     )
                 )),
         )
@@ -191,7 +191,7 @@ class DownloadProjectTest(
 
         val binFile = File(binFilePath)
         val property = File(propertyPath)
-        val project = Project("owner", "someName", null, "descr").apply {
+        val project = Project("owner", "someName", "stub", "descr").apply {
             id = 42L
         }
         val execution = Execution(project, LocalDateTime.now(), LocalDateTime.now(), ExecutionStatus.PENDING, "1",
@@ -210,16 +210,7 @@ class DownloadProjectTest(
                 .setHeader("Content-Type", "application/json")
                 .setBody(objectMapper.writeValueAsString(execution))
         )
-        mockServerBackend.enqueue(
-            MockResponse()
-                .setResponseCode(200)
-                .setHeader("Content-Type", "application/json")
-                .setBody(objectMapper.writeValueAsString(
-                    listOf(
-                        TestSuite(TestSuiteType.PROJECT, "", project, LocalDateTime.now(), "save.properties")
-                    )
-                )),
-        )
+
         // fixme: preprocessor should initialize tests for execution here
         mockServerOrchestrator.enqueue(
             MockResponse()
@@ -228,7 +219,7 @@ class DownloadProjectTest(
         val assertions = CompletableFuture.supplyAsync {
             listOf(
                 mockServerBackend.takeRequest(60, TimeUnit.SECONDS),
-                mockServerBackend.takeRequest(60, TimeUnit.SECONDS),
+
                 mockServerOrchestrator.takeRequest(60, TimeUnit.SECONDS)
             )
         }
@@ -313,7 +304,7 @@ class DownloadProjectTest(
     @Disabled("Because of zipWith, order of /updateExecution and /execution is undetermined and MockWebServer's queue leads to errors")
     @Suppress("LongMethod")
     fun `rerun execution`() {
-        val project = Project("owner", "someName", null, "descr").apply {
+        val project = Project("owner", "someName", "stub", "descr").apply {
             id = 42L
         }
         val execution = Execution(project, LocalDateTime.now(), LocalDateTime.now(), ExecutionStatus.PENDING, "1",
