@@ -44,6 +44,9 @@ jobs:
           sudo mv runsc containerd-shim-runsc-v1 /usr/local/bin
           sudo /usr/local/bin/runsc install
           sudo systemctl reload docker
+      - name: Install loki logging driver
+        run: |
+          docker plugin install grafana/loki-docker-driver:latest --alias loki --grant-all-permissions
       - uses: burrunan/gradle-cache-action@v1
         with:
           gradle-version: wrapper
