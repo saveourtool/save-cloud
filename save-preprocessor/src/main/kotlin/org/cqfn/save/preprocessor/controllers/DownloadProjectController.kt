@@ -36,6 +36,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ReactiveHttpOutputMessage
 import org.springframework.http.ResponseEntity
+import org.springframework.http.client.MultipartBodyBuilder
 import org.springframework.http.codec.multipart.FilePart
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -56,10 +57,14 @@ import reactor.netty.http.client.HttpClientRequest
 
 import java.io.File
 import java.io.FileOutputStream
+import java.nio.file.Files
+import java.nio.file.Paths
 import java.time.Duration
 import java.util.stream.Collectors
 
 import kotlin.io.path.ExperimentalPathApi
+
+typealias Status = Mono<ResponseEntity<HttpStatus>>
 
 /**
  * A Spring controller for git project downloading
@@ -81,6 +86,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
      * @param files resources required for execution
      * @return response entity with text
      */
+    @Suppress("TOO_LONG_FUNCTION")
     @PostMapping("/upload", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     fun upload(
         @RequestPart(required = true) executionRequest: ExecutionRequest,
@@ -115,7 +121,8 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                         executionRequest.project,
                         executionRequest.propertiesRelativePath,
                         location,
-                        null
+                        null,
+                        executionRequest.gitDto.url
                     )
                 }
                 .subscribeOn(scheduler)
@@ -170,7 +177,8 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                         execution.project,
                         executionRerunRequest.propertiesRelativePath,
                         location,
-                        null
+                        null,
+                        executionRerunRequest.gitDto.url
                     )
                 }
                 .log()
@@ -199,7 +207,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                     val rootTestConfig = testDiscoveringService.getRootTestConfig(testResourcesRootAbsolutePath)
                     log.info("Starting to discover standard test suites for root test config ${rootTestConfig.location}")
                     val propertiesRelativePath = "${rootTestConfig.directory.toFile().relativeTo(tmpDir)}${File.separator}save.properties"
-                    val tests = testDiscoveringService.getAllTestSuites(null, rootTestConfig, propertiesRelativePath)
+                    val tests = testDiscoveringService.getAllTestSuites(null, rootTestConfig, propertiesRelativePath, testSuiteUrl)
                     log.info("Test suites size = ${tests.size}")
                     log.info("Starting to save new test suites for root test config in $testRootPath")
                     webClientBackend.makeRequest(BodyInserters.fromValue(tests), "/saveTestSuites") {
@@ -280,7 +288,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
             it.toHash()
         })
         files.forEach {
-            it.renameTo(tmpDir.resolve(it))
+            Files.move(Paths.get(it.absolutePath), Paths.get((tmpDir.resolve(it)).absolutePath))
         }
         val project = executionRequestForStandardSuites.project
         val propertiesRelativePath = "save.properties"
@@ -349,6 +357,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         propertiesRelativePath: String,
         projectRootRelativePath: String,
         testSuiteDtos: List<TestSuiteDto>?,
+        gitUrl: String? = null,
     ): Mono<StatusResponse> {
         val executionType = execution.type
         testSuiteDtos?.let {
@@ -356,11 +365,11 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         } ?: require(executionType == ExecutionType.GIT) { "Test suites are not provided, but should for executionType=$executionType" }
 
         return if (executionType == ExecutionType.GIT) {
-            prepareForExecutionFromGit(project, execution.id!!, propertiesRelativePath, projectRootRelativePath)
+            prepareForExecutionFromGit(project, execution.id!!, propertiesRelativePath, projectRootRelativePath, gitUrl!!)
         } else {
             prepareExecutionForStandard(testSuiteDtos!!)
         }
-            .then(initializeAgents(execution))
+            .then(initializeAgents(execution, testSuiteDtos))
             .onErrorResume { ex ->
                 log.error(
                     "Error during preprocessing, will mark execution.id=${execution.id} as failed; error: ",
@@ -405,28 +414,23 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
     private fun prepareForExecutionFromGit(project: Project,
                                            executionId: Long,
                                            propertiesRelativePath: String,
-                                           projectRootRelativePath: String): Mono<EmptyResponse> = Mono.fromCallable {
+                                           projectRootRelativePath: String,
+                                           gitUrl: String): Mono<EmptyResponse> = Mono.fromCallable {
         val testResourcesRootAbsolutePath =
                 getTestResourcesRootAbsolutePath(propertiesRelativePath, projectRootRelativePath)
         testDiscoveringService.getRootTestConfig(testResourcesRootAbsolutePath)
     }
         .log()
         .zipWhen { rootTestConfig ->
-            discoverAndSaveTestSuites(project, rootTestConfig, propertiesRelativePath)
+            discoverAndSaveTestSuites(project, rootTestConfig, propertiesRelativePath, gitUrl)
         }
         .flatMap { (rootTestConfig, testSuites) ->
             initializeTests(testSuites, rootTestConfig, executionId)
         }
     
     private fun prepareExecutionForStandard(testSuiteDtos: List<TestSuiteDto>): Mono<List<TestSuite>> {
-        return webClientBackend.makeRequest<List<TestSuiteDto>?, List<TestSuite>>(
-            BodyInserters.fromValue(
-                testSuiteDtos
-            ), "/saveTestSuites"
-        ) {
-            it.bodyToMono()
-        }
-        // fixme: should also initialize tests from standard suites
+        // FixMe: Should be properly processed in https://github.com/cqfn/save-cloud/issues/221
+        return Mono.just(emptyList())
     }
 
     @Suppress("UnsafeCallOnNullableType")
@@ -445,8 +449,9 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
 
     private fun discoverAndSaveTestSuites(project: Project?,
                                           rootTestConfig: TestConfig,
-                                          propertiesRelativePath: String): Mono<List<TestSuite>> {
-        val testSuites: List<TestSuiteDto> = testDiscoveringService.getAllTestSuites(project, rootTestConfig, propertiesRelativePath)
+                                          propertiesRelativePath: String,
+                                          gitUrl: String): Mono<List<TestSuite>> {
+        val testSuites: List<TestSuiteDto> = testDiscoveringService.getAllTestSuites(project, rootTestConfig, propertiesRelativePath, gitUrl)
         return webClientBackend.makeRequest(BodyInserters.fromValue(testSuites), "/saveTestSuites") {
             it.bodyToMono()
         }
@@ -467,11 +472,22 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
     /**
      * Post request to orchestrator to initiate its work
      */
-    private fun initializeAgents(execution: Execution) = webClientOrchestrator.makeRequest(
-        BodyInserters.fromValue(execution),
-        "/initializeAgents"
-    ) {
-        it.toEntity<HttpStatus>()
+    private fun initializeAgents(execution: Execution, testSuiteDtos: List<TestSuiteDto>?): Status {
+        val bodyBuilder = MultipartBodyBuilder().apply {
+            part("execution", execution)
+        }
+
+        testSuiteDtos?.let {
+            bodyBuilder.part("testSuiteDtos", testSuiteDtos)
+        }
+
+        return webClientOrchestrator
+            .post()
+            .uri("/initializeAgents")
+            .contentType(MediaType.MULTIPART_FORM_DATA)
+            .body(BodyInserters.fromMultipartData(bodyBuilder.build()))
+            .retrieve()
+            .toEntity<HttpStatus>()
     }
 
     private fun <M, T> WebClient.makeRequest(

@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.reactive.function.client.WebClient
 import reactor.core.publisher.Mono
@@ -51,6 +52,14 @@ class TestSuitesController(
     @GetMapping("/allStandardTestSuites")
     fun getAllStandardTestSuites(): ResponseListTestSuites =
             ResponseEntity.status(HttpStatus.OK).body(testSuitesService.getStandardTestSuites())
+
+    /**
+     * @param name name of the test suite
+     * @return response with list of test suite dtos with specific name
+     */
+    @GetMapping("/standardTestSuitesWithName")
+    fun getAllStandardTestSuitesWithSpecificName(@RequestParam name: String): ResponseListTestSuites =
+            ResponseEntity.status(HttpStatus.OK).body(testSuitesService.findStandardTestSuitesByName(name))
 
     /**
      * @return response entity

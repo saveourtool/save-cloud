@@ -62,7 +62,7 @@ class DockerServiceTest {
             "foo", 0, 20, ExecutionType.GIT, "0.0.1", 0, 0, 0, Sdk.Default.toString()).apply {
             id = 42L
         }
-        testContainerId = dockerService.buildAndCreateContainers(testExecution).single()
+        testContainerId = dockerService.buildAndCreateContainers(testExecution, null).single()
         println("Created container $testContainerId")
 
         // start container and query backend

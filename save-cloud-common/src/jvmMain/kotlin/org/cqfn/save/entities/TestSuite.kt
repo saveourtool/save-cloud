@@ -16,6 +16,7 @@ import javax.persistence.ManyToOne
  * @property project project, which this test suite belongs to
  * @property dateAdded date and time, when this test suite was added to the project
  * @property propertiesRelativePath location of save.properties file for this test suite, relative to project's root directory
+ * @property testSuiteRepoUrl url of the repo with test suites
  */
 @Suppress("USE_DATA_CLASS")
 @Entity
@@ -32,6 +33,8 @@ class TestSuite(
     var dateAdded: LocalDateTime? = null,
 
     var propertiesRelativePath: String,
+
+    var testSuiteRepoUrl: String? = null
 ) : BaseEntity() {
     /**
      * @return Dto of testSuite
@@ -41,5 +44,7 @@ class TestSuite(
                 this.type,
                 this.name,
                 this.project,
-                this.propertiesRelativePath)
+                this.propertiesRelativePath,
+                this.testSuiteRepoUrl,
+            )
 }
