@@ -30,7 +30,7 @@ object Versions {
     const val testcontainers = "1.16.0"
 
     // other JVM dependencies
-    const val dockerJavaApi = "3.2.11"
+    const val dockerJavaApi = "3.2.12"
     const val jgit = "5.12.0.202106070339-r"
     const val okhttp3 = "4.9.1"
 
