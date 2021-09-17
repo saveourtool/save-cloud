@@ -216,9 +216,11 @@ class DockerService(private val configProperties: ConfigProperties) {
         }
         // orchestrator is executed as root (to access docker socket), but files are in a shared volume
         val lookupService = destination.toPath().fileSystem.userPrincipalLookupService
-                Files.getFileAttributeView(destination.toPath(), PosixFileAttributeView::class.java, LinkOption.NOFOLLOW_LINKS).apply {
-            setGroup(lookupService.lookupPrincipalByGroupName("cnb"))
-            owner = lookupService.lookupPrincipalByName("cnb")
+        destination.walk().forEach {
+            Files.getFileAttributeView(it.toPath(), PosixFileAttributeView::class.java, LinkOption.NOFOLLOW_LINKS).apply {
+                setGroup(lookupService.lookupPrincipalByGroupName("cnb"))
+                owner = lookupService.lookupPrincipalByName("cnb")
+            }
         }
     }
 
