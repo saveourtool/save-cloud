@@ -221,7 +221,7 @@ class DockerService(private val configProperties: ConfigProperties) {
         destination.walk().forEach {
             Files.getFileAttributeView(it.toPath(), PosixFileAttributeView::class.java, LinkOption.NOFOLLOW_LINKS).apply {
                 setGroup(lookupService.lookupPrincipalByGroupName("cnb"))
-                owner = lookupService.lookupPrincipalByName("cnb")
+                setOwner(lookupService.lookupPrincipalByName("cnb"))
             }
         }
     }
