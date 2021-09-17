@@ -20,6 +20,9 @@ import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
 
 import java.io.File
+import java.nio.file.Files
+import java.nio.file.LinkOption
+import java.nio.file.attribute.PosixFileAttributeView
 import java.util.concurrent.atomic.AtomicBoolean
 
 import kotlin.io.path.ExperimentalPathApi
@@ -210,6 +213,11 @@ class DockerService(private val configProperties: ConfigProperties) {
                     .resolve(File(it.propertiesRelativePath).parent)
                 )
             standardTestSuiteAbsolutePath.copyRecursively(destination.resolve("${it.name}_${it.propertiesRelativePath.hashCode()}_${Random.nextInt()}"))
+        }
+        // orchestrator is executed as root (to access docker socket), but files are in a shared volume
+        Files.getFileAttributeView(destination.toPath(), PosixFileAttributeView::class.java, LinkOption.NOFOLLOW_LINKS).apply {
+            setGroup { "cnb" }
+            setOwner { "cnb" }
         }
     }
 
