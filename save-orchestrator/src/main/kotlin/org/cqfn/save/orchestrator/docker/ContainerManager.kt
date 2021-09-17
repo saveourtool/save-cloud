@@ -3,6 +3,7 @@ package org.cqfn.save.orchestrator.docker
 import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.api.command.BuildImageResultCallback
 import com.github.dockerjava.api.model.HostConfig
+import com.github.dockerjava.api.model.LogConfig
 import com.github.dockerjava.core.DefaultDockerClientConfig
 import com.github.dockerjava.core.DockerClientConfig
 import com.github.dockerjava.core.DockerClientImpl
@@ -71,6 +72,16 @@ class ContainerManager(private val dockerHost: String) {
                 .withRuntime("runsc")
                 // processes from inside the container will be able to access host's network using this hostname
                 .withExtraHosts("host.docker.internal:host-gateway")
+                .withLogConfig(
+                    LogConfig(
+                        LogConfig.LoggingType.LOKI,
+                        mapOf(
+                            // similar to config in docker-compose.yaml
+                            "loki-url" to "http://127.0.0.1:9110/loki/api/v1/push",
+                            "loki-external-labels" to "container_name={{.Name}},source=save-agent"
+                        )
+                    )
+                )
             )
             .exec()
 
