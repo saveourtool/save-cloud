@@ -20,6 +20,9 @@ import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
 
 import java.io.File
+import java.nio.file.Files
+import java.nio.file.LinkOption
+import java.nio.file.attribute.PosixFileAttributeView
 import java.util.concurrent.atomic.AtomicBoolean
 
 import kotlin.io.path.ExperimentalPathApi
@@ -203,13 +206,23 @@ class DockerService(private val configProperties: ConfigProperties) {
 
     @Suppress("UnsafeCallOnNullableType")
     private fun copyTestSuitesToResourcesPath(testSuitesForDocker: List<TestSuiteDto>, destination: File) {
+        log.info("Copying suites ${testSuitesForDocker.map { it.name }} into $destination")
         testSuitesForDocker.forEach {
             val standardTestSuiteAbsolutePath = File(configProperties.testResources.basePath)
                 // tmp directories names for standard test suites constructs just by hashCode of listOf(repoUrl); reuse this logic
                 .resolve(File("${listOf(it.testSuiteRepoUrl!!).hashCode()}")
                     .resolve(File(it.propertiesRelativePath).parent)
                 )
+            log.debug("Copying suite ${it.name} from $standardTestSuiteAbsolutePath into $destination/...")
             standardTestSuiteAbsolutePath.copyRecursively(destination.resolve("${it.name}_${it.propertiesRelativePath.hashCode()}_${Random.nextInt()}"))
+        }
+        // orchestrator is executed as root (to access docker socket), but files are in a shared volume
+        val lookupService = destination.toPath().fileSystem.userPrincipalLookupService
+        destination.walk().forEach {
+            Files.getFileAttributeView(it.toPath(), PosixFileAttributeView::class.java, LinkOption.NOFOLLOW_LINKS).apply {
+                setGroup(lookupService.lookupPrincipalByGroupName("cnb"))
+                setOwner(lookupService.lookupPrincipalByName("cnb"))
+            }
         }
     }
 

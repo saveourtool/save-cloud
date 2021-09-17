@@ -19,6 +19,7 @@ import reactor.core.scheduler.Schedulers
 
 import java.time.LocalDateTime
 
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -47,6 +48,7 @@ class HeartbeatController(private val agentService: AgentService,
      * @return Answer for agent
      */
     @PostMapping("/heartbeat")
+    @OptIn(ExperimentalSerializationApi::class)
     fun acceptHeartbeat(@RequestBody heartbeat: Heartbeat): Mono<String> {
         logger.info("Got heartbeat state: ${heartbeat.state.name} from ${heartbeat.agentId}")
         // store new state into DB
