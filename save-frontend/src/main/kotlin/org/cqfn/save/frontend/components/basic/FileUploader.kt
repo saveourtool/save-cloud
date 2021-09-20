@@ -81,9 +81,10 @@ fun fileUploader(
                 }
                 li("list-group-item d-flex justify-content-between align-items-center") {
                     select(classes = "form-control") {
+                        attrs.value = "default"
                         option {
+                            attrs.value = "default"
                             attrs.disabled = true
-                            attrs.selected = true
                             +"Select a file from existing"
                         }
                         props.availableFiles.sortedByDescending { it.uploadedMillis }.map {

@@ -54,8 +54,10 @@ fun cardComponent(contentBuilder: RDOMBuilder<DIV>.() -> Unit) = fc<CardProps> {
                     contentBuilder.invoke(this)
                 }
             }
-            div("col-auto") {
-                fontAwesomeIcon(icon = props.faIcon, classes = "fas fa-2x text-gray-300")
+            if (props.faIcon != undefined) {
+                div("col-auto") {
+                    fontAwesomeIcon(icon = props.faIcon, classes = "fas fa-2x text-gray-300")
+                }
             }
         }
     }
