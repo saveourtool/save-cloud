@@ -188,8 +188,11 @@ class DockerService(private val configProperties: ConfigProperties) {
                     |RUN chmod +x $executionDir/$SAVE_CLI_EXECUTABLE_NAME
                 """
         )
+        println("DELETE agent ${saveAgent}")
         saveAgent.delete()
+        println("DELETE cli ${saveCli}")
         saveCli.delete()
+        println("FINISH buildBaseImageForExecution\n\n\n")
         return Triple(imageId, agentRunCmd, saveCliExecFlags)
     }
 
@@ -213,7 +216,7 @@ class DockerService(private val configProperties: ConfigProperties) {
                 .resolve(File("${listOf(it.testSuiteRepoUrl!!).hashCode()}")
                     .resolve(File(it.propertiesRelativePath).parent)
                 )
-            log.debug("Copying suite ${it.name} from $standardTestSuiteAbsolutePath into $destination/...")
+            log.info("Copying suite ${it.name} from $standardTestSuiteAbsolutePath into $destination/...")
             standardTestSuiteAbsolutePath.copyRecursively(destination.resolve("${it.name}_${it.propertiesRelativePath.hashCode()}_${Random.nextInt()}"))
         }
         // orchestrator is executed as root (to access docker socket), but files are in a shared volume

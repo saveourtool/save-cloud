@@ -367,7 +367,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         return if (executionType == ExecutionType.GIT) {
             prepareForExecutionFromGit(project, execution.id!!, propertiesRelativePath, projectRootRelativePath, gitUrl!!)
         } else {
-            prepareExecutionForStandard(testSuiteDtos!!)
+            prepareExecutionForStandard(testSuiteDtos!!, execution.id!!)
         }
             .then(initializeAgents(execution, testSuiteDtos))
             .onErrorResume { ex ->
@@ -427,12 +427,24 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         .flatMap { (rootTestConfig, testSuites) ->
             initializeTests(testSuites, rootTestConfig, executionId)
         }
-    
+
+    ///*
+    private fun prepareExecutionForStandard(testSuiteDtos: List<TestSuiteDto>, executionId: Long) = Mono.fromCallable {
+        println("\n\n\nprepareExecutionForStandard")
+        webClientBackend.makeRequest(
+            BodyInserters.fromValue(testSuiteDtos),
+            "/initializeTests?executionId=$executionId"
+        ) {
+            it.toBodilessEntity()
+        }
+    }
+    //*/
+/*
     private fun prepareExecutionForStandard(testSuiteDtos: List<TestSuiteDto>): Mono<List<TestSuite>> {
         // FixMe: Should be properly processed in https://github.com/cqfn/save-cloud/issues/221
         return Mono.just(emptyList())
     }
-
+*/
     @Suppress("UnsafeCallOnNullableType")
     private fun getTestResourcesRootAbsolutePath(propertiesRelativePath: String,
                                                  projectRootRelativePath: String): String {

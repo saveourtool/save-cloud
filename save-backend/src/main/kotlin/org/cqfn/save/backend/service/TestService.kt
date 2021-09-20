@@ -48,10 +48,16 @@ class TestService {
         // only match fields that are present in DTO
         testRepository.findByHashAndFilePathAndTestSuiteId(testDto.hash, testDto.filePath, testDto.testSuiteId).map {
             log.debug("Test $testDto is already present with id=${it.id} and testSuiteId=${it.testSuite.id}")
+            println("\n" +
+                    "\n" +
+                    "\nTest $testDto is already present with id=${it.id} and testSuiteId=${it.testSuite.id}")
             it
         }
             .orElseGet {
                 log.debug("Test $testDto is not found in the DB, will save it")
+                println("\n" +
+                        "\n" +
+                        "\nTest $testDto is not found in the DB, will save it")
                 val testSuiteStub = TestSuite(propertiesRelativePath = "FB").apply {
                     id = testDto.testSuiteId
                 }
