@@ -6,6 +6,7 @@ package org.cqfn.save.frontend.components.views
 
 import org.cqfn.save.agent.TestExecutionDto
 import org.cqfn.save.execution.ExecutionDto
+import org.cqfn.save.frontend.components.basic.executionStatistics
 import org.cqfn.save.frontend.components.tables.tableComponent
 import org.cqfn.save.frontend.utils.decodeFromJsonString
 import org.cqfn.save.frontend.utils.get
@@ -83,6 +84,9 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
                 div("p-2 mr-auto") {
                     +"Status: ${state.executionDto?.status ?: "N/A"}"
                 }
+                child(executionStatistics("mr-auto")) {
+                    attrs.executionDto = state.executionDto
+                }
                 button(classes = "btn btn-primary") {
                     +"Rerun execution"
                     attrs.onClickFunction = {
@@ -124,6 +128,20 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
                     buildElement {
                         td {
                             +it.value.filePath
+                        }
+                    }
+                }
+                column(id = "plugin", header = "Plugin type") {
+                    buildElement {
+                        td {
+                            +it.value.pluginName
+                        }
+                    }
+                }
+                column(id = "suiteName", header = "Test suite") {
+                    buildElement {
+                        td {
+                            +"${it.value.testSuiteName}"
                         }
                     }
                 }
