@@ -11,7 +11,6 @@ import org.cqfn.save.entities.AgentStatusesForExecution
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionUpdateDto
 import org.cqfn.save.orchestrator.BodilessResponseEntity
-import org.cqfn.save.orchestrator.config.ConfigProperties
 import org.cqfn.save.test.TestBatch
 
 import org.springframework.beans.factory.annotation.Autowired
@@ -30,7 +29,7 @@ import java.util.logging.Level
  * Service for work with agents and backend
  */
 @Service
-class AgentService(configProperties: ConfigProperties) {
+class AgentService {
     @Autowired
     @Qualifier("webClientBackend")
     private lateinit var webClientBackend: WebClient
