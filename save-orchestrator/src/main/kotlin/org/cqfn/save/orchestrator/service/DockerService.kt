@@ -10,6 +10,7 @@ import org.cqfn.save.testsuite.TestSuiteDto
 import com.github.dockerjava.api.exception.DockerException
 import generated.SAVE_CORE_VERSION
 import org.apache.commons.io.FileUtils
+import org.cqfn.save.entities.TestSuite
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
@@ -188,11 +189,9 @@ class DockerService(private val configProperties: ConfigProperties) {
                     |RUN chmod +x $executionDir/$SAVE_CLI_EXECUTABLE_NAME
                 """
         )
-        println("DELETE agent ${saveAgent}")
+
         saveAgent.delete()
-        println("DELETE cli ${saveCli}")
         saveCli.delete()
-        println("FINISH buildBaseImageForExecution\n\n\n")
         return Triple(imageId, agentRunCmd, saveCliExecFlags)
     }
 
@@ -201,9 +200,9 @@ class DockerService(private val configProperties: ConfigProperties) {
             webClientBackend.get()
                 .uri("/standardTestSuitesWithName?name=${it.name}")
                 .retrieve()
-                .bodyToMono<List<TestSuiteDto>>()
+                .bodyToMono<List<TestSuite>>()
                 .block()!!
-        } ?: emptyList()
+        }?.map { it.toDto() } ?: emptyList()
         return testSuitesForDocker
     }
 

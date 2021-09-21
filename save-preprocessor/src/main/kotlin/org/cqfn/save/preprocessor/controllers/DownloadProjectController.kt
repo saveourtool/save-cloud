@@ -367,7 +367,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         return if (executionType == ExecutionType.GIT) {
             prepareForExecutionFromGit(project, execution.id!!, propertiesRelativePath, projectRootRelativePath, gitUrl!!)
         } else {
-            prepareExecutionForStandard(testSuiteDtos!!, execution.id!!)
+            prepareExecutionForStandard(testSuiteDtos!!, execution.id!!, propertiesRelativePath, projectRootRelativePath)
         }
             .then(initializeAgents(execution, testSuiteDtos))
             .onErrorResume { ex ->
@@ -428,23 +428,34 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
             initializeTests(testSuites, rootTestConfig, executionId)
         }
 
-    ///*
-    private fun prepareExecutionForStandard(testSuiteDtos: List<TestSuiteDto>, executionId: Long) = Mono.fromCallable {
-        println("\n\n\nprepareExecutionForStandard")
-        webClientBackend.makeRequest(
-            BodyInserters.fromValue(testSuiteDtos),
-            "/initializeTests?executionId=$executionId"
-        ) {
-            it.toBodilessEntity()
+    private fun prepareExecutionForStandard(testSuiteDtos: List<TestSuiteDto>, executionId: Long, propertiesRelativePath: String, projectRootRelativePath: String): Mono<MutableList<List<TestSuite>>> {
+        println("\n\n\nStart prepareExecutionForStandard")
+
+
+        return Flux.fromIterable(testSuiteDtos).flatMap {
+            webClientBackend.get()
+                .uri("/standardTestSuitesWithName?name=${it.name}")
+                .retrieve()
+                .bodyToMono<List<TestSuite>>()
+        }.doOnNext {
+            println("Size: ${it.size}")
+            it.forEach {
+                println("NAME ${it.name} ID ${it.id} ")
+            }
+        }.collectList()
+        //println("Finish prepareExecutionForStandard\n\n")
+        /*
+        val testResourcesRootAbsolutePath = getTestResourcesRootAbsolutePath(propertiesRelativePath, projectRootRelativePath)
+        val rootTestConfig = testDiscoveringService.getRootTestConfig(testResourcesRootAbsolutePath)
+        println("Location ${rootTestConfig.location}")
+
+        val testSuites = testSuiteDtos.map {
+            TestSuite(it.type, it.name, it.project, null, it.propertiesRelativePath, it.testSuiteRepoUrl)
         }
+        initializeTests(testSuites, rootTestConfig, executionId)
+        */
     }
-    //*/
-/*
-    private fun prepareExecutionForStandard(testSuiteDtos: List<TestSuiteDto>): Mono<List<TestSuite>> {
-        // FixMe: Should be properly processed in https://github.com/cqfn/save-cloud/issues/221
-        return Mono.just(emptyList())
-    }
-*/
+
     @Suppress("UnsafeCallOnNullableType")
     private fun getTestResourcesRootAbsolutePath(propertiesRelativePath: String,
                                                  projectRootRelativePath: String): String {

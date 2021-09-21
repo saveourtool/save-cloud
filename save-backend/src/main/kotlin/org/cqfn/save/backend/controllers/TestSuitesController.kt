@@ -58,7 +58,7 @@ class TestSuitesController(
      * @return response with list of test suite dtos with specific name
      */
     @GetMapping("/standardTestSuitesWithName")
-    fun getAllStandardTestSuitesWithSpecificName(@RequestParam name: String): ResponseListTestSuites =
+    fun getAllStandardTestSuitesWithSpecificName(@RequestParam name: String): ResponseEntity<List<TestSuite>> =
             ResponseEntity.status(HttpStatus.OK).body(testSuitesService.findStandardTestSuitesByName(name))
 
     /**
