@@ -26,8 +26,11 @@ fun Project.createStackDeployTask(profile: String) {
 
     tasks.register("generateComposeFile") {
         description = "Set project version in docker-compose file"
+        val templateFile = "$rootDir/docker-compose.yaml.template"
+        inputs.file(templateFile)
+        inputs.property("save.profile", "dev")
         doFirst {
-            val newText = file("$rootDir/docker-compose.yaml.template").readLines()
+            val newText = file(templateFile).readLines()
                 .joinToString(System.lineSeparator()) {
                     if (profile == "dev" && it.startsWith("services:")) {
                         // `docker stack deploy` doesn't recognise `profiles` option in compose file for some reason, with docker 20.10.5, compose file 3.9
@@ -41,6 +44,8 @@ fun Project.createStackDeployTask(profile: String) {
                            |      - "MYSQL_ROOT_PASSWORD=123"
                            |      - "MYSQL_DATABASE=save_cloud"
                         """.trimMargin()
+                    } else if (profile == "dev" && it.trim().startsWith("logging:")) {
+                        ""
                     } else {
                         it.replace("{{project.version}}", versionForDockerImages())
                             .replace("{{profile}}", profile)

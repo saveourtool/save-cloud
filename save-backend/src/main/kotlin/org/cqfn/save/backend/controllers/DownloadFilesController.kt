@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
 import java.io.FileNotFoundException
 import kotlin.io.path.fileSize
-import kotlin.io.path.getLastModifiedTime
 import kotlin.io.path.name
 
 /**
@@ -35,7 +34,8 @@ class DownloadFilesController(
     fun list(): List<FileInfo> = fileSystemRepository.getFilesList().map {
         FileInfo(
             it.name,
-            it.getLastModifiedTime().toMillis(),
+            // assuming here, that we always store files in timestamp-based directories
+            it.parent.name.toLong(),
             it.fileSize(),
         )
     }

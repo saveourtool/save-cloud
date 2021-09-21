@@ -8,6 +8,8 @@ import org.springframework.core.io.FileSystemResource
 import org.springframework.http.codec.multipart.FilePart
 import org.springframework.stereotype.Repository
 import reactor.core.publisher.Mono
+import java.nio.file.FileSystemException
+import java.nio.file.Files
 
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -54,9 +56,7 @@ class FileSystemRepository(configProperties: ConfigProperties) {
      * @param fileInfo a FileInfo based on which a file should be located
      * @return requested file as a [FileSystemResource]
      */
-    fun getFile(fileInfo: FileInfo): FileSystemResource = getStorageDir(fileInfo)
-        .resolve(fileInfo.name)
-        .let(::FileSystemResource)
+    fun getFile(fileInfo: FileInfo): FileSystemResource = fileInfo.getPath().let(::FileSystemResource)
 
     /**
      * @param file a file to save
@@ -101,4 +101,21 @@ class FileSystemRepository(configProperties: ConfigProperties) {
                     }
             }
     }
+
+    /**
+     * Delete a file described by [fileInfo]
+     *
+     * @param fileInfo a [FileInfo] describing a file to be deleted
+     * @return true if file has been deleted successfully, false otherwise
+     */
+    fun delete(fileInfo: FileInfo) = try {
+        Files.delete(fileInfo.getPath())
+        Files.delete(getStorageDir(fileInfo))
+        true
+    } catch (fe: FileSystemException) {
+        logger.error("Failed to delete file $fileInfo", fe)
+        false
+    }
+
+    private fun FileInfo.getPath() = getStorageDir(this).resolve(name)
 }
