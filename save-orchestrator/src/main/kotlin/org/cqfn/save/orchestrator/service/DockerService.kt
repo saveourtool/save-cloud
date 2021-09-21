@@ -159,7 +159,7 @@ class DockerService(private val configProperties: ConfigProperties) {
         val saveCliExecFlags = if (testSuitesForDocker.isNotEmpty()) {
             // create stub toml config in aim to execute all test suites directories from `testSuitesDir`
             testSuitesDir.resolve("save.toml").apply { createNewFile() }.writeText("[general]")
-            " \"$standardTestSuiteDir\" --include-suites \"${testSuitesForDocker.joinToString(" ") { it.name }}\""
+            " \"$standardTestSuiteDir\" --include-suites \"${testSuitesForDocker.map { it.name }.joinToString(" ") }\""
         } else {
             ""
         }
@@ -246,18 +246,20 @@ class DockerService(private val configProperties: ConfigProperties) {
             ClassPathResource("agent.properties").inputStream,
             agentPropertiesFile
         )
-        val cliCommand = "./$SAVE_CLI_EXECUTABLE_NAME$saveCliExecFlags"
+        val resourcesPath = File(
+            configProperties.testResources.basePath,
+            execution.resourcesRootPath,
+        )
         agentPropertiesFile.writeText(
             agentPropertiesFile.readLines().joinToString(System.lineSeparator()) {
-                if (it.startsWith("id=")) {
-                    "id=$containerId"
-                } else if (it.startsWith("cliCommand=")) {
-                    "cliCommand=$cliCommand"
-                } else {
-                    it
-                }
+                if (it.startsWith("id=")) "id=$containerId" else it
             }
         )
+        // todo: un-hardcode script
+        if (File(resourcesPath, "examples/kotlin-diktat/run.sh").exists()) {
+            val cliCommand = "bash ./examples/kotlin-diktat/run.sh || ./$SAVE_CLI_EXECUTABLE_NAME$saveCliExecFlags"
+            agentPropertiesFile.appendText("\ncliCommand=$cliCommand\n")
+        }
         containerManager.copyResourcesIntoContainer(
             containerId, executionDir,
             listOf(agentPropertiesFile)
