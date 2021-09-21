@@ -12,6 +12,7 @@ import org.cqfn.save.frontend.utils.decodeFromJsonString
 import org.cqfn.save.frontend.utils.get
 import org.cqfn.save.frontend.utils.unsafeMap
 
+import csstype.Background
 import kotlinext.js.jsObject
 import org.w3c.fetch.Headers
 import react.PropsWithChildren
@@ -22,10 +23,8 @@ import react.buildElement
 import react.child
 import react.dom.a
 import react.dom.td
-import react.table.TableRowProps
 import react.table.columns
 
-import kotlin.js.json
 import kotlinx.browser.window
 import kotlinx.datetime.Instant
 
@@ -124,8 +123,10 @@ class HistoryView : RComponent<HistoryProps, State>() {
                 val tmp = row.original
                 val isCrashed = tmp.status == ExecutionStatus.ERROR
                 val color = if (isCrashed || tmp.failedTests > 0L) "rgba(245, 50, 50, 0.1)" else "rgba(139, 237, 78, 0.1)"
-                jsObject<TableRowProps> {
-                    style = json("background" to color)
+                jsObject {
+                    style = jsObject {
+                        background = color.unsafeCast<Background>()
+                    }
                 }
             }
         ) { _, _ ->
