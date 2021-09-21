@@ -4,7 +4,6 @@
 
 package org.cqfn.save.agent
 
-import generated.SAVE_CORE_VERSION
 import kotlinx.serialization.Serializable
 
 /**
