@@ -27,8 +27,10 @@ fun Project.createStackDeployTask(profile: String) {
     tasks.register("generateComposeFile") {
         description = "Set project version in docker-compose file"
         val templateFile = "$rootDir/docker-compose.yaml.template"
+        val composeFile = "$buildDir/docker-compose.yaml"
         inputs.file(templateFile)
-        inputs.property("save.profile", "dev")
+        inputs.property("profile", profile)
+        outputs.file(composeFile)
         doFirst {
             val newText = file(templateFile).readLines()
                 .joinToString(System.lineSeparator()) {
@@ -51,7 +53,7 @@ fun Project.createStackDeployTask(profile: String) {
                             .replace("{{profile}}", profile)
                     }
                 }
-            file("$buildDir/docker-compose.yaml")
+            file(composeFile)
                 .apply { createNewFile() }
                 .writeText(newText)
         }
