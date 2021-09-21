@@ -5,6 +5,8 @@ import org.cqfn.save.backend.service.TestService
 import org.cqfn.save.test.TestDto
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -40,6 +42,10 @@ class TestController {
      */
     @GetMapping("/getTestBatches")
     fun testBatches(@RequestParam agentId: String) = testService.getTestBatches(agentId)
+
+    @GetMapping("/getTestsWithTestSuiteId")
+    fun getAllTestsByTestSuiteId(@RequestParam testSuiteId: Long) =
+        ResponseEntity.status(HttpStatus.OK).body(testService.findTestByTestSuiteId(testSuiteId))
 
     companion object {
         private val log = LoggerFactory.getLogger(TestController::class.java)

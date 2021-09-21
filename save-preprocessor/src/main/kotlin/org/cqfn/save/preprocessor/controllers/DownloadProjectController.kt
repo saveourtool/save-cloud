@@ -24,6 +24,7 @@ import org.cqfn.save.testsuite.TestSuiteDto
 import org.cqfn.save.testsuite.TestSuiteType
 
 import okio.ExperimentalFileSystem
+import org.cqfn.save.entities.Test
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.api.errors.GitAPIException
 import org.eclipse.jgit.api.errors.InvalidRemoteException
@@ -367,7 +368,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         return if (executionType == ExecutionType.GIT) {
             prepareForExecutionFromGit(project, execution.id!!, propertiesRelativePath, projectRootRelativePath, gitUrl!!)
         } else {
-            prepareExecutionForStandard(testSuiteDtos!!, execution.id!!, propertiesRelativePath, projectRootRelativePath)
+            prepareExecutionForStandard(testSuiteDtos!!)
         }
             .then(initializeAgents(execution, testSuiteDtos))
             .onErrorResume { ex ->
@@ -428,32 +429,55 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
             initializeTests(testSuites, rootTestConfig, executionId)
         }
 
-    private fun prepareExecutionForStandard(testSuiteDtos: List<TestSuiteDto>, executionId: Long, propertiesRelativePath: String, projectRootRelativePath: String): Mono<MutableList<List<TestSuite>>> {
+    private fun prepareExecutionForStandard(testSuiteDtos: List<TestSuiteDto>): Mono<MutableList<List<Test>>> {
         println("\n\n\nStart prepareExecutionForStandard")
-
-
+        /*
         return Flux.fromIterable(testSuiteDtos).flatMap {
             webClientBackend.get()
                 .uri("/standardTestSuitesWithName?name=${it.name}")
                 .retrieve()
                 .bodyToMono<List<TestSuite>>()
         }.doOnNext {
-            println("Size: ${it.size}")
+            println("Size test suites: ${it.size}")
             it.forEach {
                 println("NAME ${it.name} ID ${it.id} ")
+                webClientBackend.get()
+                    .uri("/getTestsWithTestSuiteId?testSuiteId=${it.id}")
+                    .retrieve()
+                    .bodyToMono<List<Test>>()
+                    .doOnNext {
+                        println("Size of tests: ${it.size}")
+                        it.forEach {
+                            println("FILE PATH ${it.filePath} ID ${it.id} ")
+                        }
+                    }
             }
         }.collectList()
-        //println("Finish prepareExecutionForStandard\n\n")
-        /*
-        val testResourcesRootAbsolutePath = getTestResourcesRootAbsolutePath(propertiesRelativePath, projectRootRelativePath)
-        val rootTestConfig = testDiscoveringService.getRootTestConfig(testResourcesRootAbsolutePath)
-        println("Location ${rootTestConfig.location}")
-
-        val testSuites = testSuiteDtos.map {
-            TestSuite(it.type, it.name, it.project, null, it.propertiesRelativePath, it.testSuiteRepoUrl)
-        }
-        initializeTests(testSuites, rootTestConfig, executionId)
         */
+
+        return Flux.fromIterable(testSuiteDtos).flatMap {
+            webClientBackend.get()
+                .uri("/standardTestSuitesWithName?name=${it.name}")
+                .retrieve()
+                .bodyToMono<List<TestSuite>>()
+        }.flatMap {
+            println("Size test suites: ${it.size}")
+            Flux.fromIterable(it).flatMap {
+                println("NAME ${it.name} ID ${it.id} ")
+                webClientBackend.get()
+                    .uri("/getTestsWithTestSuiteId?testSuiteId=${it.id}")
+                    .retrieve()
+                    .bodyToMono<List<Test>>()
+                    .doOnNext {
+                        println("Size of tests: ${it.size}")
+                        it.forEach {
+                            println("FILE PATH ${it.filePath} ID ${it.id} ")
+                        }
+                    }
+            }
+        }.collectList()
+
+        //println("Finish prepareExecutionForStandard\n\n")
     }
 
     @Suppress("UnsafeCallOnNullableType")

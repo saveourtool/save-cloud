@@ -57,7 +57,7 @@ class TestSuitesService {
      * @return all standard test suites with specific name
      */
     fun findStandardTestSuitesByName(name: String) =
-            testSuiteRepository.findAllByNameAndType(name, TestSuiteType.STANDARD)//.map { it.toDto() }
+            testSuiteRepository.findAllByNameAndType(name, TestSuiteType.STANDARD)
 
     /**
      * @param project a project associated with test suites
