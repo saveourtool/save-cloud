@@ -106,9 +106,7 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
                         null, TestResultStatus.READY, null, null)
                 )
             },
-                {
-                    log.error("Can't find test with id = $testId to save in testExecution")
-                }
+                { log.error("Can't find test with id = $testId to save in testExecution") }
             )
         }
     }

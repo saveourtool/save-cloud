@@ -37,6 +37,7 @@ class TestController {
      * @param executionId ID of the [Execution], during which these tests will be executed
      * @param testSuiteId ID of the [TestSuite], for which there will be created execution in DB
      */
+    @Suppress("UnsafeCallOnNullableType")
     @PostMapping("/getAllTestsByTestSuiteIdAndSaveExecution")
     fun getAllTestsByTestSuiteIdAndSaveExecution(@RequestBody executionId: Long, @RequestParam testSuiteId: Long) {
         val testsIds = testService.findTestsByTestSuiteId(testSuiteId).map { it.id!! }
