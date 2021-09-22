@@ -9,11 +9,9 @@ import org.cqfn.save.frontend.components.TopBar
 import org.cqfn.save.frontend.components.basic.scrollToTopButton
 import org.cqfn.save.frontend.components.views.CollectionView
 import org.cqfn.save.frontend.components.views.CreationView
-import org.cqfn.save.frontend.components.views.ExecutionProps
 import org.cqfn.save.frontend.components.views.ExecutionView
 import org.cqfn.save.frontend.components.views.FallbackView
 import org.cqfn.save.frontend.components.views.HistoryView
-import org.cqfn.save.frontend.components.views.ProjectExecutionRouteProps
 import org.cqfn.save.frontend.components.views.ProjectView
 import org.cqfn.save.frontend.externals.fontawesome.faAngleUp
 import org.cqfn.save.frontend.externals.fontawesome.faCheck
@@ -31,13 +29,15 @@ import react.PropsWithChildren
 import react.RBuilder
 import react.RComponent
 import react.State
+import react.buildElement
 import react.child
 import react.dom.div
 import react.dom.render
 import react.react
-import react.router.dom.hashRouter
-import react.router.dom.route
-import react.router.dom.switch
+import react.router.dom.HashRouter
+import react.router.dom.Route
+import react.router.dom.Switch
+import react.router.dom.withRouter
 
 import kotlinx.browser.document
 import kotlinx.html.id
@@ -62,43 +62,80 @@ class App : RComponent<PropsWithChildren, AppState>() {
         state.userName = "User Name"
     }
 
-    @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR", "TOO_LONG_FUNCTION")
+    @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR", "TOO_LONG_FUNCTION", "LongMethod")
     override fun RBuilder.render() {
-        hashRouter {
+        HashRouter {
             div("d-flex flex-column") {
                 attrs.id = "content-wrapper"
-                route<PropsWithChildren>("*") { routeResultProps ->
-                    // needs to be wrapped in `route` to have access to pathname; we place it outside of `switch` to render always and unconditionally
-                    child(TopBar::class) {
-                        attrs {
-                            pathname = routeResultProps.location.pathname
-                            userName = state.userName
-                        }
+                child(withRouter(TopBar::class)) {
+                    // todo: use `useRouterMatch` inside `TopBar` instead of invoking `withRouter` here?
+                    attrs {
+                        userName = state.userName
                     }
                 }
                 div("container-fluid") {
-                    switch {
-                        route("/", exact = true, component = CollectionView::class.react)
-                        route("/creation", exact = true, component = CreationView::class.react)
-                        route<ProjectExecutionRouteProps>("/:owner/:name", exact = true) { routeResultProps ->
-                            child(ProjectView::class) {
-                                attrs.name = routeResultProps.match.params.name
-                                attrs.owner = routeResultProps.match.params.owner
+                    Switch {
+                        Route {
+                            attrs {
+                                path = arrayOf("/")
+                                exact = true
+                                component = CollectionView::class.react
                             }
                         }
-                        route<ProjectExecutionRouteProps>("/:owner/:name/history", exact = true) { routeResultProps ->
-                            child(HistoryView::class) {
-                                attrs.name = routeResultProps.match.params.name
-                                attrs.owner = routeResultProps.match.params.owner
+                        Route {
+                            attrs {
+                                path = arrayOf("/creation")
+                                exact = true
+                                component = CreationView::class.react
                             }
                         }
-                        route<ExecutionProps>("/:owner/:name/history/:executionId") { props ->
-                            // executionId might be `latest`
-                            child(ExecutionView::class) {
-                                attrs.executionId = props.match.params.executionId
+                        Route {
+                            attrs {
+                                path = arrayOf("/:owner/:name")
+                                exact = true
+                                render = { routeResultProps ->
+                                    buildElement {
+                                        child(ProjectView::class) {
+                                            attrs.name = routeResultProps.match.params["name"]!!
+                                            attrs.owner = routeResultProps.match.params["owner"]!!
+                                        }
+                                    }
+                                }
                             }
                         }
-                        route("*", component = FallbackView::class.react)
+                        Route {
+                            attrs {
+                                path = arrayOf("/:owner/:name/history")
+                                exact = true
+                                render = { routeResultProps ->
+                                    buildElement {
+                                        child(HistoryView::class) {
+                                            attrs.name = routeResultProps.match.params["name"]!!
+                                            attrs.owner = routeResultProps.match.params["owner"]!!
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        Route {
+                            attrs {
+                                path = arrayOf("/:owner/:name/history/:executionId")
+                                render = { props ->
+                                    buildElement {
+                                        // executionId might be `latest`
+                                        child(ExecutionView::class) {
+                                            attrs.executionId = props.match.params["executionId"]!!
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        Route {
+                            attrs {
+                                path = arrayOf("*")
+                                component = FallbackView::class.react
+                            }
+                        }
                     }
                 }
                 child(Footer::class) {}

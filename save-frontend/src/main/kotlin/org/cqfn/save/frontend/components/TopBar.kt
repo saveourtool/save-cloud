@@ -22,6 +22,7 @@ import react.dom.nav
 import react.dom.ol
 import react.dom.span
 import react.dom.ul
+import react.router.dom.Location
 import react.setState
 
 import kotlinx.html.BUTTON
@@ -42,7 +43,7 @@ external interface TopBarProps : PropsWithChildren {
     /**
      * Current path received from router
      */
-    var pathname: String
+    var location: Location
 }
 
 /**
@@ -79,7 +80,7 @@ class TopBar : RComponent<TopBarProps, TopBarState>() {
                             +"SAVE"
                         }
                     }
-                    props.pathname
+                    props.location.pathname
                         .split("/")
                         .filterNot { it.isBlank() }
                         .apply {
