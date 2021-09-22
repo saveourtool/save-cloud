@@ -15,6 +15,7 @@ import kotlinx.serialization.Serializable
 data class TestSuiteDto(
     val type: TestSuiteType?,
     val name: String,
+    val description: String?,
     val project: Project? = null,
     val propertiesRelativePath: String,
     val testSuiteRepoUrl: String? = null,

@@ -26,6 +26,8 @@ class TestSuite(
 
     var name: String = "FB",
 
+    var description: String? = "FB",
+
     @ManyToOne
     @JoinColumn(name = "project_id")
     var project: Project? = null,
@@ -43,6 +45,7 @@ class TestSuite(
             TestSuiteDto(
                 this.type,
                 this.name,
+                this.description,
                 this.project,
                 this.propertiesRelativePath,
                 this.testSuiteRepoUrl,
