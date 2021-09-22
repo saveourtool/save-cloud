@@ -6,6 +6,7 @@
 
 package org.cqfn.save.frontend.components.basic
 
+import kotlinx.browser.document
 import react.PropsWithChildren
 import react.dom.div
 import react.dom.input
@@ -13,6 +14,11 @@ import react.fc
 
 import kotlinx.html.InputType
 import kotlinx.html.js.onClickFunction
+import kotlinx.html.title
+import org.w3c.dom.Node
+import org.w3c.dom.asList
+import react.useEffect
+import react.useRef
 
 /**
  * Props for ChecboxGrid component
@@ -33,14 +39,17 @@ external interface CheckBoxGridProps : PropsWithChildren {
  * @param options list of displayed selectable options
  * @return an RComponent
  */
-fun checkBoxGrid(options: List<String>) = fc<CheckBoxGridProps> { props ->
+fun checkBoxGrid(options: List<String>, tooltips: List<String?>) = fc<CheckBoxGridProps> { props ->
     div {
-        options.chunked(props.rowSize)
-            .forEach { optionsRow ->
+        options.zip(tooltips).chunked(props.rowSize)
+            .forEach { row ->
                 div("row") {
-                    optionsRow.forEach { option ->
+                    row.forEach { (option, tooltip) ->
                         div("col") {
                             +option
+                            attrs["data-toggle"] = "tooltip"
+                            attrs["data-placement"] = "top"
+                            attrs.title = tooltip ?: ""
                             input(type = InputType.checkBox, classes = "ml-3") {
                                 attrs.defaultChecked = props.selectedOptions.contains(option)
                                 attrs.onClickFunction = {
@@ -55,5 +64,9 @@ fun checkBoxGrid(options: List<String>) = fc<CheckBoxGridProps> { props ->
                     }
                 }
             }
+    }
+    useEffect(emptyList<dynamic>()) {
+        js("var jQuery = require(\"jquery\")")
+        js("jQuery('[data-toggle=\"tooltip\"]').tooltip()")
     }
 }

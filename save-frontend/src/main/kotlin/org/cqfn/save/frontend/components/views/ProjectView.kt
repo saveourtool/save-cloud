@@ -126,7 +126,7 @@ external interface ProjectViewState : State {
 @JsExport
 @OptIn(ExperimentalJsExport::class)
 class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
-    private var testTypesList: List<TestSuiteDto> = emptyList()
+    private var standardTestSuites: List<TestSuiteDto> = emptyList()
     private var pathToProperty: String? = null
     private var gitUrlFromInputField: String? = null
     private val selectedTypes: MutableList<String> = mutableListOf()
@@ -158,7 +158,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
             }
             gitDto = post("${window.location.origin}/getGit", headers, jsonProject)
                 .decodeFromJsonString<GitDto>()
-            testTypesList = get("${window.location.origin}/allStandardTestSuites", headers)
+            standardTestSuites = get("${window.location.origin}/allStandardTestSuites", headers)
                 .decodeFromJsonString()
 
             val availableFiles = getFilesList()
@@ -390,7 +390,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                                     setOf("d-none")
                                 }
                                 div("card-body") {
-                                    child(checkBoxGrid(testTypesList.map { it.name })) {
+                                    child(checkBoxGrid(standardTestSuites.map { it.name }, standardTestSuites.map { it.description })) {
                                         attrs.selectedOptions = selectedTypes
                                         attrs.rowSize = TEST_SUITE_ROW
                                     }
