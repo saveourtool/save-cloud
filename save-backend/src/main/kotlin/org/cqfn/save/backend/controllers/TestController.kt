@@ -30,10 +30,16 @@ class TestController {
      */
     @PostMapping("/initializeTests")
     fun initializeTests(@RequestBody testDtos: List<TestDto>, @RequestParam(required = false) executionId: Long?) {
-        println("\n\n\ninitializeTests")
-        log.info("Received the following tests for initialization under executionId=$executionId: $testDtos")
+        log.debug("Received the following tests for initialization under executionId=$executionId: $testDtos")
         val testsIds = testService.saveTests(testDtos)
         executionId?.let { testExecutionService.saveTestExecution(executionId, testsIds) }
+    }
+
+    @PostMapping("/getAllTestsByTestSuiteIdAndSaveExecution")
+    fun getAllTestsByTestSuiteIdAndSaveExecution(@RequestBody executionId: Long, @RequestParam testSuiteId: Long) {
+        val testsIds = testService.findTestsByTestSuiteId(testSuiteId).map { it.id!! }
+        log.debug("Received the following test ids for saving test execution under executionId=$executionId: $testsIds")
+        testExecutionService.saveTestExecution(executionId, testsIds)
     }
 
     /**
@@ -42,10 +48,6 @@ class TestController {
      */
     @GetMapping("/getTestBatches")
     fun testBatches(@RequestParam agentId: String) = testService.getTestBatches(agentId)
-
-    @GetMapping("/getTestsWithTestSuiteId")
-    fun getAllTestsByTestSuiteId(@RequestParam testSuiteId: Long) =
-        ResponseEntity.status(HttpStatus.OK).body(testService.findTestByTestSuiteId(testSuiteId))
 
     companion object {
         private val log = LoggerFactory.getLogger(TestController::class.java)

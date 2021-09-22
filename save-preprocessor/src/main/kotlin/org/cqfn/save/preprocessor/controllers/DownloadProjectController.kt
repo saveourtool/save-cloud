@@ -368,7 +368,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         return if (executionType == ExecutionType.GIT) {
             prepareForExecutionFromGit(project, execution.id!!, propertiesRelativePath, projectRootRelativePath, gitUrl!!)
         } else {
-            prepareExecutionForStandard(testSuiteDtos!!)
+            prepareExecutionForStandard(testSuiteDtos!!, execution.id!!)
         }
             .then(initializeAgents(execution, testSuiteDtos))
             .onErrorResume { ex ->
@@ -429,55 +429,22 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
             initializeTests(testSuites, rootTestConfig, executionId)
         }
 
-    private fun prepareExecutionForStandard(testSuiteDtos: List<TestSuiteDto>): Mono<MutableList<List<Test>>> {
-        println("\n\n\nStart prepareExecutionForStandard")
-        /*
-        return Flux.fromIterable(testSuiteDtos).flatMap {
-            webClientBackend.get()
-                .uri("/standardTestSuitesWithName?name=${it.name}")
-                .retrieve()
-                .bodyToMono<List<TestSuite>>()
-        }.doOnNext {
-            println("Size test suites: ${it.size}")
-            it.forEach {
-                println("NAME ${it.name} ID ${it.id} ")
-                webClientBackend.get()
-                    .uri("/getTestsWithTestSuiteId?testSuiteId=${it.id}")
-                    .retrieve()
-                    .bodyToMono<List<Test>>()
-                    .doOnNext {
-                        println("Size of tests: ${it.size}")
-                        it.forEach {
-                            println("FILE PATH ${it.filePath} ID ${it.id} ")
-                        }
-                    }
-            }
-        }.collectList()
-        */
-
+    private fun prepareExecutionForStandard(testSuiteDtos: List<TestSuiteDto>, executionId: Long): Mono<MutableList<ResponseEntity<Void>>> {
         return Flux.fromIterable(testSuiteDtos).flatMap {
             webClientBackend.get()
                 .uri("/standardTestSuitesWithName?name=${it.name}")
                 .retrieve()
                 .bodyToMono<List<TestSuite>>()
         }.flatMap {
-            println("Size test suites: ${it.size}")
-            Flux.fromIterable(it).flatMap {
-                println("NAME ${it.name} ID ${it.id} ")
-                webClientBackend.get()
-                    .uri("/getTestsWithTestSuiteId?testSuiteId=${it.id}")
-                    .retrieve()
-                    .bodyToMono<List<Test>>()
-                    .doOnNext {
-                        println("Size of tests: ${it.size}")
-                        it.forEach {
-                            println("FILE PATH ${it.filePath} ID ${it.id} ")
-                        }
-                    }
+            Flux.fromIterable(it).flatMap { testSuite ->
+                webClientBackend.makeRequest(
+                    BodyInserters.fromValue(executionId),
+                    "/getAllTestsByTestSuiteIdAndSaveExecution?testSuiteId=${testSuite.id}"
+                ) {
+                    it.toBodilessEntity()
+                }
             }
         }.collectList()
-
-        //println("Finish prepareExecutionForStandard\n\n")
     }
 
     @Suppress("UnsafeCallOnNullableType")

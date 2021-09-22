@@ -49,16 +49,10 @@ class TestService {
         // only match fields that are present in DTO
         testRepository.findByHashAndFilePathAndTestSuiteId(testDto.hash, testDto.filePath, testDto.testSuiteId).map {
             log.debug("Test $testDto is already present with id=${it.id} and testSuiteId=${it.testSuite.id}")
-            println("\n" +
-                    "\n" +
-                    "\nTest $testDto is already present with id=${it.id} and testSuiteId=${it.testSuite.id}")
             it
         }
             .orElseGet {
                 log.debug("Test $testDto is not found in the DB, will save it")
-                println("\n" +
-                        "\n" +
-                        "\nTest $testDto is not found in the DB, will save it")
                 val testSuiteStub = TestSuite(propertiesRelativePath = "FB").apply {
                     id = testDto.testSuiteId
                 }
@@ -98,10 +92,10 @@ class TestService {
 
     /**
      * @param testSuiteId
-     * @return
+     * @return tests with provided [testSuiteId]
      */
-    fun findTestByTestSuiteId(testSuiteId: Long) =
-        testRepository.findByTestSuiteId(testSuiteId)
+    fun findTestsByTestSuiteId(testSuiteId: Long) =
+        testRepository.findAllByTestSuiteIdIs(testSuiteId)
 
     companion object {
         private val log = LoggerFactory.getLogger(TestService::class.java)
