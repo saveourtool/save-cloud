@@ -211,7 +211,24 @@ class DownloadProjectTest(
                 .setBody(objectMapper.writeValueAsString(execution))
         )
 
-        // fixme: preprocessor should initialize tests for execution here
+        // /standardTestSuitesWithName
+        mockServerBackend.enqueue(
+            MockResponse()
+                .setResponseCode(200)
+                .setHeader("Content-Type", "application/json")
+                .setBody(objectMapper.writeValueAsString(
+                    listOf(
+                        TestSuite(TestSuiteType.PROJECT, "", project, LocalDateTime.now(), "save.properties")
+                    )
+                )),
+        )
+
+        // /getAllTestsByTestSuiteIdAndSaveExecution
+//        mockServerBackend.enqueue(
+//            MockResponse()
+//                .setResponseCode(200)
+//        )
+
         mockServerOrchestrator.enqueue(
             MockResponse()
                 .setResponseCode(200)
@@ -219,7 +236,8 @@ class DownloadProjectTest(
         val assertions = CompletableFuture.supplyAsync {
             listOf(
                 mockServerBackend.takeRequest(60, TimeUnit.SECONDS),
-
+                mockServerBackend.takeRequest(60, TimeUnit.SECONDS),
+                //mockServerBackend.takeRequest(60, TimeUnit.SECONDS),
                 mockServerOrchestrator.takeRequest(60, TimeUnit.SECONDS)
             )
         }
