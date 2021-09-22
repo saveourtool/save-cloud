@@ -6,19 +6,15 @@
 
 package org.cqfn.save.frontend.components.basic
 
-import kotlinx.browser.document
 import react.PropsWithChildren
 import react.dom.div
 import react.dom.input
 import react.fc
+import react.useEffect
 
 import kotlinx.html.InputType
 import kotlinx.html.js.onClickFunction
 import kotlinx.html.title
-import org.w3c.dom.Node
-import org.w3c.dom.asList
-import react.useEffect
-import react.useRef
 
 /**
  * Props for ChecboxGrid component
@@ -37,6 +33,7 @@ external interface CheckBoxGridProps : PropsWithChildren {
 
 /**
  * @param options list of displayed selectable options
+ * @param tooltips
  * @return an RComponent
  */
 fun checkBoxGrid(options: List<String>, tooltips: List<String?>) = fc<CheckBoxGridProps> { props ->

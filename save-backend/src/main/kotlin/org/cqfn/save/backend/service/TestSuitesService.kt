@@ -51,7 +51,7 @@ class TestSuitesService {
                         }
                     }
             }
-            testSuiteRepository.saveAll(testSuites)
+        testSuiteRepository.saveAll(testSuites)
         return testSuites.toList()
     }
 

@@ -53,24 +53,24 @@ class TestDiscoveringService {
         rootTestConfig: TestConfig,
         propertiesRelativePath: String,
         testSuiteRepoUrl: String) = rootTestConfig
-            .getAllTestConfigs()
-            .asSequence()
-            .mapNotNull { it.getGeneralConfigOrNull() }
-            .filterNot { it.suiteName == null }
-            .filterNot { it.description == null }
-            .map { config ->
-                // we operate here with suite names from only those TestConfigs, that have General section with suiteName key
-                TestSuiteDto(
-                    project?.let { TestSuiteType.PROJECT } ?: TestSuiteType.STANDARD,
-                    config.suiteName!!,
-                    config.description,
-                    project,
-                    propertiesRelativePath,
-                    testSuiteRepoUrl
-                )
-            }
-            .distinct()
-            .toList()
+        .getAllTestConfigs()
+        .asSequence()
+        .mapNotNull { it.getGeneralConfigOrNull() }
+        .filterNot { it.suiteName == null }
+        .filterNot { it.description == null }
+        .map { config ->
+            // we operate here with suite names from only those TestConfigs, that have General section with suiteName key
+            TestSuiteDto(
+                project?.let { TestSuiteType.PROJECT } ?: TestSuiteType.STANDARD,
+                config.suiteName!!,
+                config.description,
+                project,
+                propertiesRelativePath,
+                testSuiteRepoUrl
+            )
+        }
+        .distinct()
+        .toList()
 
     /**
      * Discover all tests in the project
