@@ -20,6 +20,7 @@ import kotlin.io.path.copyTo
 import kotlin.io.path.createDirectories
 import kotlin.io.path.createDirectory
 import kotlin.io.path.createFile
+import kotlin.io.path.deleteExisting
 import kotlin.io.path.exists
 import kotlin.io.path.fileSize
 import kotlin.io.path.getLastModifiedTime
@@ -109,8 +110,9 @@ class FileSystemRepository(configProperties: ConfigProperties) {
      * @return true if file has been deleted successfully, false otherwise
      */
     fun delete(fileInfo: FileInfo) = try {
-        Files.delete(fileInfo.getPath())
-        Files.delete(getStorageDir(fileInfo))
+        Files.walk(getStorageDir(fileInfo)).forEach {
+            it.deleteExisting()
+        }
         true
     } catch (fe: FileSystemException) {
         logger.error("Failed to delete file $fileInfo", fe)
