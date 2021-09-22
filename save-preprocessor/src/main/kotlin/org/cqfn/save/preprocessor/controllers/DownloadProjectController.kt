@@ -24,7 +24,6 @@ import org.cqfn.save.testsuite.TestSuiteDto
 import org.cqfn.save.testsuite.TestSuiteType
 
 import okio.ExperimentalFileSystem
-import org.cqfn.save.entities.Test
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.api.errors.GitAPIException
 import org.eclipse.jgit.api.errors.InvalidRemoteException
@@ -429,23 +428,22 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
             initializeTests(testSuites, rootTestConfig, executionId)
         }
 
-    private fun prepareExecutionForStandard(testSuiteDtos: List<TestSuiteDto>, executionId: Long): Mono<MutableList<ResponseEntity<Void>>> {
-        return Flux.fromIterable(testSuiteDtos).flatMap {
-            webClientBackend.get()
-                .uri("/standardTestSuitesWithName?name=${it.name}")
-                .retrieve()
-                .bodyToMono<List<TestSuite>>()
-        }.flatMap {
-            Flux.fromIterable(it).flatMap { testSuite ->
-                webClientBackend.makeRequest(
-                    BodyInserters.fromValue(executionId),
-                    "/getAllTestsByTestSuiteIdAndSaveExecution?testSuiteId=${testSuite.id}"
-                ) {
-                    it.toBodilessEntity()
-                }
+    private fun prepareExecutionForStandard(testSuiteDtos: List<TestSuiteDto>, executionId: Long) = Flux.fromIterable(testSuiteDtos).flatMap {
+        webClientBackend.get()
+            .uri("/standardTestSuitesWithName?name=${it.name}")
+            .retrieve()
+            .bodyToMono<List<TestSuite>>()
+    }.flatMap {
+        Flux.fromIterable(it).flatMap { testSuite ->
+            webClientBackend.makeRequest(
+                BodyInserters.fromValue(executionId),
+                "/getAllTestsByTestSuiteIdAndSaveExecution?testSuiteId=${testSuite.id}"
+            ) {
+                it.toBodilessEntity()
             }
-        }.collectList()
+        }
     }
+        .collectList()
 
     @Suppress("UnsafeCallOnNullableType")
     private fun getTestResourcesRootAbsolutePath(propertiesRelativePath: String,

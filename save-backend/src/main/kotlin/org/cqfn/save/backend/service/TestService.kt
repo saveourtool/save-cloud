@@ -9,7 +9,6 @@ import org.cqfn.save.entities.Test
 import org.cqfn.save.entities.TestSuite
 import org.cqfn.save.test.TestBatch
 import org.cqfn.save.test.TestDto
-import org.cqfn.save.testsuite.TestSuiteType
 
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -95,7 +94,7 @@ class TestService {
      * @return tests with provided [testSuiteId]
      */
     fun findTestsByTestSuiteId(testSuiteId: Long) =
-        testRepository.findAllByTestSuiteIdIs(testSuiteId)
+            testRepository.findAllByTestSuiteIdIs(testSuiteId)
 
     companion object {
         private val log = LoggerFactory.getLogger(TestService::class.java)

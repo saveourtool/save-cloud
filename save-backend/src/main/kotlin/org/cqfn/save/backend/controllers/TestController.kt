@@ -5,8 +5,6 @@ import org.cqfn.save.backend.service.TestService
 import org.cqfn.save.test.TestDto
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.http.HttpStatus
-import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -35,6 +33,10 @@ class TestController {
         executionId?.let { testExecutionService.saveTestExecution(executionId, testsIds) }
     }
 
+    /**
+     * @param executionId ID of the [Execution], during which these tests will be executed
+     * @param testSuiteId ID of the [TestSuite], for which there will be created execution in DB
+     */
     @PostMapping("/getAllTestsByTestSuiteIdAndSaveExecution")
     fun getAllTestsByTestSuiteIdAndSaveExecution(@RequestBody executionId: Long, @RequestParam testSuiteId: Long) {
         val testsIds = testService.findTestsByTestSuiteId(testSuiteId).map { it.id!! }
