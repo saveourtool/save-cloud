@@ -42,11 +42,13 @@ fun checkBoxGrid(options: List<String>, tooltips: List<String?>) = fc<CheckBoxGr
             .forEach { row ->
                 div("row") {
                     row.forEach { (option, tooltip) ->
-                        div("col") {
+                        div("col tooltip-and-popover") {
                             +option
-                            attrs["data-toggle"] = "tooltip"
-                            attrs["data-placement"] = "top"
-                            attrs.title = tooltip ?: ""
+                            attrs["tooltip-placement"] = "top"
+                            attrs["tooltip-title"] = tooltip?.take(100) ?: ""
+                            attrs["popover-placement"] = "right"
+                            attrs["popover-title"] = option
+                            attrs["popover-content"] = tooltip ?: ""
                             input(type = InputType.checkBox, classes = "ml-3") {
                                 attrs.defaultChecked = props.selectedOptions.contains(option)
                                 attrs.onClickFunction = {
@@ -64,6 +66,19 @@ fun checkBoxGrid(options: List<String>, tooltips: List<String?>) = fc<CheckBoxGr
     }
     useEffect(emptyList<dynamic>()) {
         js("var jQuery = require(\"jquery\")")
-        js("jQuery('[data-toggle=\"tooltip\"]').tooltip()")
+        js("""jQuery('.tooltip-and-popover').each(function() {
+            jQuery(this).popover({
+                placement: jQuery(this).attr("popover-placement"),
+                title: jQuery(this).attr("popover-title"),
+                content: jQuery(this).attr("popover-content")
+            }).tooltip({
+                placement: jQuery(this).attr("tooltip-placement"), 
+                title: jQuery(this).attr("tooltip-title")
+            }).on('show.bs.popover', function() {
+                jQuery(this).tooltip('hide')
+            }).on('hide.bs.popover', function() {
+                jQuery(this).tooltip('show')
+            })
+        })""")
     }
 }
