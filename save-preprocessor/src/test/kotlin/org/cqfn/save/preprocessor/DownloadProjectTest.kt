@@ -198,12 +198,13 @@ class DownloadProjectTest(
             "foo", 0, 20, ExecutionType.STANDARD, "0.0.1", 0, 0, 0, Sdk.Default.toString()).apply {
             id = 98L
         }
-        val request = ExecutionRequestForStandardSuites(project, emptyList(), Sdk.Default)
+        val request = ExecutionRequestForStandardSuites(project, listOf("Chapter1"), Sdk.Default)
         val bodyBuilder = MultipartBodyBuilder()
         bodyBuilder.part("executionRequestForStandardSuites", request)
         bodyBuilder.part("file", FileSystemResource(property))
         bodyBuilder.part("file", FileSystemResource(binFile))
 
+        // /updateNewExecution
         mockServerBackend.enqueue(
             MockResponse()
                 .setResponseCode(200)
@@ -218,28 +219,30 @@ class DownloadProjectTest(
                 .setHeader("Content-Type", "application/json")
                 .setBody(objectMapper.writeValueAsString(
                     listOf(
-                        TestSuite(TestSuiteType.PROJECT, "", project, LocalDateTime.now(), "save.properties")
+                        TestSuite(TestSuiteType.STANDARD, "stub", project, LocalDateTime.now(), "save.properties", "stub")
                     )
                 )),
         )
 
         // /getAllTestsByTestSuiteIdAndSaveExecution
-//        mockServerBackend.enqueue(
-//            MockResponse()
-//                .setResponseCode(200)
-//        )
+        mockServerBackend.enqueue(
+            MockResponse()
+                .setResponseCode(200)
+        )
 
+        // /initializeAgents
         mockServerOrchestrator.enqueue(
             MockResponse()
                 .setResponseCode(200)
         )
-        val assertions = CompletableFuture.supplyAsync {
-            listOf(
-                mockServerBackend.takeRequest(60, TimeUnit.SECONDS),
-                mockServerBackend.takeRequest(60, TimeUnit.SECONDS),
-                //mockServerBackend.takeRequest(60, TimeUnit.SECONDS),
-                mockServerOrchestrator.takeRequest(60, TimeUnit.SECONDS)
-            )
+
+        val assertions = sequence {
+            yield(mockServerBackend.takeRequest(60, TimeUnit.SECONDS))
+            yield(mockServerBackend.takeRequest(60, TimeUnit.SECONDS))
+            yield(mockServerBackend.takeRequest(60, TimeUnit.SECONDS))
+            yield(mockServerOrchestrator.takeRequest(60, TimeUnit.SECONDS))
+        }.onEach {
+            logger.info("Request $it")
         }
 
         webClient.post()
@@ -255,7 +258,7 @@ class DownloadProjectTest(
 
         val dirName = listOf(property, binFile).map { it.toHash() }.hashCode()
         Assertions.assertTrue(File("${configProperties.repository}/$dirName").exists())
-        assertions.orTimeout(60, TimeUnit.SECONDS).join().forEach { Assertions.assertNotNull(it) }
+        assertions.forEach { Assertions.assertNotNull(it) }
         Assertions.assertEquals("echo 0", File("${configProperties.repository}/$dirName/${binFile.name}").readText())
     }
 

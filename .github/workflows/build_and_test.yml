@@ -57,7 +57,7 @@ jobs:
             build
             -x detekt
           properties: |
-            org.gradle.caching=true
+            org.gradle.caching=false
             detekt.multiplatform.disabled=true
       - name: Upload gradle reports
         if: ${{ always() }}
