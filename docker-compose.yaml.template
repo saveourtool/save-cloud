@@ -39,6 +39,7 @@ services:
     secrets:
       - db_username
       - db_password
+      - db_url
     volumes:
       - save-fs-storage:/home/cnb/
     ports:
@@ -112,4 +113,6 @@ secrets:
   db_password:
     external: true
   db_username:
+    external: true
+  db_url:
     external: true
