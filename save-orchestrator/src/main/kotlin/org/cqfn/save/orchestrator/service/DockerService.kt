@@ -1,6 +1,7 @@
 package org.cqfn.save.orchestrator.service
 
 import org.cqfn.save.entities.Execution
+import org.cqfn.save.entities.TestSuite
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionUpdateDto
 import org.cqfn.save.orchestrator.config.ConfigProperties
@@ -198,9 +199,9 @@ class DockerService(private val configProperties: ConfigProperties) {
             webClientBackend.get()
                 .uri("/standardTestSuitesWithName?name=${it.name}")
                 .retrieve()
-                .bodyToMono<List<TestSuiteDto>>()
+                .bodyToMono<List<TestSuite>>()
                 .block()!!
-        } ?: emptyList()
+        }?.map { it.toDto() } ?: emptyList()
         return testSuitesForDocker
     }
 

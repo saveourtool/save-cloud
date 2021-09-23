@@ -183,7 +183,7 @@ class TestSuitesControllerTest {
             .exchange()
             .expectStatus()
             .isOk
-            .expectBody<List<TestSuiteDto>>()
+            .expectBody<List<TestSuite>>()
             .consumeWith {
                 requireNotNull(it.responseBody)
                 assertEquals(it.responseBody!!.first().name, name)
