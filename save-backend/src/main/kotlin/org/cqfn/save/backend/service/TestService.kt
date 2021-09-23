@@ -94,7 +94,7 @@ class TestService {
      * @return tests with provided [testSuiteId]
      */
     fun findTestsByTestSuiteId(testSuiteId: Long) =
-            testRepository.findAllByTestSuiteIdIs(testSuiteId)
+            testRepository.findAllByTestSuiteId(testSuiteId)
 
     companion object {
         private val log = LoggerFactory.getLogger(TestService::class.java)

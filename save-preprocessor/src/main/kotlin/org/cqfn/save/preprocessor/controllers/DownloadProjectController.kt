@@ -437,7 +437,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         Flux.fromIterable(it).flatMap { testSuite ->
             webClientBackend.makeRequest(
                 BodyInserters.fromValue(executionId),
-                "/getAllTestsByTestSuiteIdAndSaveExecution?testSuiteId=${testSuite.id}"
+                "/saveTestExecutionsForStandardByTestSuiteId?testSuiteId=${testSuite.id}"
             ) {
                 it.toBodilessEntity()
             }

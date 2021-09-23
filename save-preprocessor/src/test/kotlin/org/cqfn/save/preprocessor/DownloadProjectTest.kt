@@ -224,7 +224,7 @@ class DownloadProjectTest(
                 )),
         )
 
-        // /getAllTestsByTestSuiteIdAndSaveExecution
+        // /saveTestExecutionsForStandardByTestSuiteId
         mockServerBackend.enqueue(
             MockResponse()
                 .setResponseCode(200)

@@ -13,5 +13,5 @@ import java.util.Optional
 interface TestRepository : BaseEntityRepository<Test> {
     fun findByHashAndFilePathAndTestSuiteId(hash: String, filePath: String, testSuiteId: Long): Optional<Test>
 
-    fun findAllByTestSuiteIdIs(testSuiteId: Long): List<Test>
+    fun findAllByTestSuiteId(testSuiteId: Long): List<Test>
 }
