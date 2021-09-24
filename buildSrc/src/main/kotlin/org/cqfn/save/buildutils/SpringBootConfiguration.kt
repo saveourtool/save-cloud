@@ -72,6 +72,7 @@ fun Project.configureSpringBoot(withSpringDataJpa: Boolean = false) {
             "BPE_DELIM_JAVA_TOOL_OPTIONS" to " ",
             "BPE_APPEND_JAVA_TOOL_OPTIONS" to "-Dreactor.netty.pool.maxIdleTime=60000 -Dreactor.netty.pool.leasingStrategy=lifo"
         )
+        isVerboseLogging = true
         val registryPassword: String? = System.getenv("GHCR_PWD")
         isPublish = registryPassword != null
         if (isPublish) {
