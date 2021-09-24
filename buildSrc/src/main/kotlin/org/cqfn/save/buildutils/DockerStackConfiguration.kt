@@ -18,12 +18,6 @@ const val MYSQL_STARTUP_DELAY_MILLIS = 10_000L
  */
 @Suppress("TOO_LONG_FUNCTION", "TOO_MANY_LINES_IN_LAMBDA")
 fun Project.createStackDeployTask(profile: String) {
-    tasks.register<Exec>("startLocalDockerRegistry") {
-        enabled = false
-        description = "Start local docker registry for spring boot images. Disabled, see comment in deployDockerStack task."
-        commandLine("docker", "service", "create", "--name", "registry", "--publish", "published=6000,target=5000", "registry:2")
-    }
-
     tasks.register("generateComposeFile") {
         description = "Set project version in docker-compose file"
         val templateFile = "$rootDir/docker-compose.yaml.template"
@@ -73,12 +67,6 @@ fun Project.createStackDeployTask(profile: String) {
         }
         description = "Deploy to docker swarm. If swarm contains more than one node, some registry for built images is requried."
         commandLine("docker", "stack", "deploy", "--compose-file", "$buildDir/docker-compose.yaml", "save")
-        // doLast {
-        // exec {
-        // description = "Stop local docker registry"
-        // commandLine("docker", "service", "rm", "registry")
-        // }
-        // }
     }
 
     tasks.register<Exec>("stopDockerStack") {
