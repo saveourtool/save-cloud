@@ -79,7 +79,7 @@ fun Project.configureSpringBoot(withSpringDataJpa: Boolean = false) {
             docker {
                 publishRegistry {
                     username = "cqfn"
-                    token = registryPassword
+                    password = registryPassword
                     url = "https://ghcr.io"
                 }
             }
