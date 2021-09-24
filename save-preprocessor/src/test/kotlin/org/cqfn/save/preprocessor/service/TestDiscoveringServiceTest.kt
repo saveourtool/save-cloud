@@ -79,18 +79,18 @@ class TestDiscoveringServiceTest {
         val testDtos = testDiscoveringService.getAllTests(
             rootTestConfig,
             listOf(
-                createTestSuiteStub("smoke tests", 1),
+                createTestSuiteStub("Autofix: Smoke Tests", 1),
                 createTestSuiteStub("autofix", 2),
-                createTestSuiteStub("DocsCheck", 3),
-                createTestSuiteStub("autofix and warn", 4),
-                createTestSuiteStub("Chapter1", 5),
-                createTestSuiteStub("Chapter2", 6),
-                createTestSuiteStub("Chapter3", 7),
+                createTestSuiteStub("Only Warnings: General", 3),
+                createTestSuiteStub("Autofix and Warn", 4),
+                createTestSuiteStub("Directory: Chapter 1", 5),
+                createTestSuiteStub("Directory: Chapter2", 6),
+                createTestSuiteStub("Directory: Chapter3", 7),
             )
         )
 
         println("Discovered the following tests: $testDtos")
-        Assertions.assertEquals(9, testDtos.size)
+        Assertions.assertEquals(10, testDtos.size)
         Assertions.assertEquals(testDtos.size, testDtos.map { it.hash + it.filePath + it.testSuiteId }.distinct().size) {
             "Some tests have the same hash/filePath/testSuiteId combination in $testDtos"
         }
