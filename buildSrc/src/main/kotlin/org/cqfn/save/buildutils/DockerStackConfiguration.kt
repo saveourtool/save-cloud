@@ -23,6 +23,7 @@ fun Project.createStackDeployTask(profile: String) {
         val templateFile = "$rootDir/docker-compose.yaml.template"
         val composeFile = "$buildDir/docker-compose.yaml"
         inputs.file(templateFile)
+        inputs.property("project version", version.toString())
         inputs.property("profile", profile)
         outputs.file(composeFile)
         doFirst {

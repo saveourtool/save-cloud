@@ -25,6 +25,7 @@ external interface ExecutionStatisticsProps : Props {
  * @param classes HTML classes for the enclosing div
  * @return a functional react component
  */
+@Suppress("MAGIC_NUMBER")
 fun executionStatistics(classes: String = "") = fc<ExecutionStatisticsProps> { props ->
     val totalTests = props.executionDto?.run {
         passedTests + failedTests + skippedTests
@@ -42,7 +43,7 @@ fun executionStatistics(classes: String = "") = fc<ExecutionStatisticsProps> { p
         button(classes = "btn $style") {
             attrs.disabled = true
             val passRate = props.executionDto?.run {
-                if (totalTests > 0) passedTests.toFloat() / totalTests else 0
+                if (totalTests > 0) (passedTests.toFloat() / totalTests * 100).toInt() else 0
             } ?: "N/A"
             +"$totalTests tests, $passRate% passed"
         }
