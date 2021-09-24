@@ -7,6 +7,7 @@ package org.cqfn.save.agent
 import org.cqfn.save.agent.utils.readProperties
 import org.cqfn.save.core.logging.isDebugEnabled
 import org.cqfn.save.core.logging.logDebug
+import org.cqfn.save.core.logging.logInfo
 
 import generated.SAVE_CLOUD_VERSION
 import io.ktor.client.HttpClient
@@ -54,4 +55,5 @@ fun main() {
     runBlocking {
         saveAgent.start()
     }
+    logInfo("Agent is shutting down")
 }
