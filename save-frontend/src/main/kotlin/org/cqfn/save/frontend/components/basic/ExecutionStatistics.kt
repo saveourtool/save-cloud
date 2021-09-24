@@ -42,7 +42,7 @@ fun executionStatistics(classes: String = "") = fc<ExecutionStatisticsProps> { p
         button(classes = "btn $style") {
             attrs.disabled = true
             val passRate = props.executionDto?.run {
-                if (totalTests > 0) passedTests.toFloat() / totalTests else 0
+                if (totalTests > 0) (passedTests.toFloat() * 100 / totalTests).toInt() else 0
             } ?: "N/A"
             +"$totalTests tests, $passRate% passed"
         }
