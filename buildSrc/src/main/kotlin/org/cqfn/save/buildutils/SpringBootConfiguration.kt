@@ -66,7 +66,7 @@ fun Project.configureSpringBoot(withSpringDataJpa: Boolean = false) {
     }
 
     tasks.named<BootBuildImage>("bootBuildImage") {
-        imageName = "ghcr.io/${rootProject.name}/${project.name}:${project.versionForDockerImages()}"
+        imageName = "ghcr.io/cqfn/${project.name}:${project.versionForDockerImages()}"
         environment = mapOf(
             "BP_JVM_VERSION" to Versions.BP_JVM_VERSION,
             "BPE_DELIM_JAVA_TOOL_OPTIONS" to " ",
