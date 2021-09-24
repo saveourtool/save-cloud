@@ -1,0 +1,53 @@
+name: Build and test
+
+on:
+  # todo: remove pull_request trigger after testing
+  pull_request:
+  push:
+    branches:
+      - 'master'
+
+jobs:
+  deploy_images:
+    name: Deploy images
+    runs-on: ubuntu-20.04
+    env:
+      GHCR_PWD: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: gradle/wrapper-validation-action@v1
+      - name: Set up JDK 11
+        uses: actions/setup-java@v1
+        with:
+          java-version: 1.11
+      - name: Install system packages
+        # libcurl is needed for ktor-client-curl
+        run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev
+      - name: Cache konan
+        uses: actions/cache@v2
+        with:
+          path: ~/.konan
+          key: ${{ runner.os }}-gradle-konan
+          restore-keys: |
+            ${{ runner.os }}-gradle-konan
+      # https://gvisor.dev/docs/user_guide/install/
+      - uses: burrunan/gradle-cache-action@v1
+        with:
+          gradle-version: wrapper
+          # additional files to calculate key for dependency cache
+          gradle-dependencies-cache-key: |
+            buildSrc/**/Versions.kt
+          arguments: |
+            :save-backend:bootBuildImage
+            :save-orchestrator:bootBuildImage
+            :save-preprocessor:bootBuildImage
+          properties: |
+            org.gradle.caching=true
+            detekt.multiplatform.disabled=true
+      - name: Upload gradle reports
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: gradle-reports
+          path: '**/build/reports/'
