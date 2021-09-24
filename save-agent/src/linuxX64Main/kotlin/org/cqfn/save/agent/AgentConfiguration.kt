@@ -4,7 +4,6 @@
 
 package org.cqfn.save.agent
 
-import generated.SAVE_CORE_VERSION
 import kotlinx.serialization.Serializable
 
 /**
@@ -30,7 +29,7 @@ data class AgentConfiguration(
     val executionDataRetryAttempts: Int,
     val executionDataInitialRetryMillis: Long,
     val debug: Boolean = false,
-    val cliCommand: String = "./save-$SAVE_CORE_VERSION-linuxX64.kexe",
+    val cliCommand: String,
 )
 
 /**

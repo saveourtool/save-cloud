@@ -89,6 +89,13 @@ class TestService {
         }))
     }
 
+    /**
+     * @param testSuiteId
+     * @return tests with provided [testSuiteId]
+     */
+    fun findTestsByTestSuiteId(testSuiteId: Long) =
+            testRepository.findAllByTestSuiteId(testSuiteId)
+
     companion object {
         private val log = LoggerFactory.getLogger(TestService::class.java)
     }
