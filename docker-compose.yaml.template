@@ -16,7 +16,7 @@ x-logging:
 
 services:
   orchestrator:
-    image: 127.0.0.1:6000/save-orchestrator:{{project.version}}
+    image: ghcr.io/save-orchestrator:{{project.version}}
     user: root  # to access host's docker socket
     environment:
       - "SPRING_PROFILES_ACTIVE={{profile}}"
@@ -31,7 +31,7 @@ services:
         - "prometheus-job=save-orchestrator"
     logging: *loki-logging-jvm
   backend:
-    image: 127.0.0.1:6000/save-backend:{{project.version}}
+    image: ghcr.io/save-backend:{{project.version}}
     environment:
       - "SPRING_PROFILES_ACTIVE={{profile}}"
       - "MYSQL_USER=/run/secrets/db_username"
@@ -49,7 +49,7 @@ services:
         - "prometheus-job=save-backend"
     logging: *loki-logging-jvm
   preprocessor:
-    image: 127.0.0.1:6000/save-preprocessor:{{project.version}}
+    image: ghcr.io/save-preprocessor:{{project.version}}
     environment:
       - "SPRING_PROFILES_ACTIVE={{profile}}"
     volumes:

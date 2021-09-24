@@ -10,6 +10,8 @@ jobs:
   build_and_test_with_code_coverage:
     name: Build, test and upload code coverage
     runs-on: ubuntu-20.04
+    env:
+      GHCR_PWD: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
       # actions/checkout v1.* is needed for correct codecov upload, see https://github.com/actions/checkout/issues/237 for details
@@ -55,6 +57,9 @@ jobs:
             buildSrc/**/Versions.kt
           arguments: |
             build
+            :save-backend:bootBuildImage
+            :save-orchestrator:bootBuildImage
+            :save-preprocessor:bootBuildImage
             -x detekt
           properties: |
             org.gradle.caching=true
