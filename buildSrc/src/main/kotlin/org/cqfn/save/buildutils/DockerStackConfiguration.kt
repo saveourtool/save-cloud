@@ -18,16 +18,16 @@ const val MYSQL_STARTUP_DELAY_MILLIS = 10_000L
  */
 @Suppress("TOO_LONG_FUNCTION", "TOO_MANY_LINES_IN_LAMBDA")
 fun Project.createStackDeployTask(profile: String) {
-    tasks.register<Exec>("startLocalDockerRegistry") {
-        enabled = false
-        description = "Start local docker registry for spring boot images. Disabled, see comment in deployDockerStack task."
-        commandLine("docker", "service", "create", "--name", "registry", "--publish", "published=6000,target=5000", "registry:2")
-    }
-
     tasks.register("generateComposeFile") {
         description = "Set project version in docker-compose file"
+        val templateFile = "$rootDir/docker-compose.yaml.template"
+        val composeFile = "$buildDir/docker-compose.yaml"
+        inputs.file(templateFile)
+        inputs.property("project version", version.toString())
+        inputs.property("profile", profile)
+        outputs.file(composeFile)
         doFirst {
-            val newText = file("$rootDir/docker-compose.yaml.template").readLines()
+            val newText = file(templateFile).readLines()
                 .joinToString(System.lineSeparator()) {
                     if (profile == "dev" && it.startsWith("services:")) {
                         // `docker stack deploy` doesn't recognise `profiles` option in compose file for some reason, with docker 20.10.5, compose file 3.9
@@ -41,12 +41,14 @@ fun Project.createStackDeployTask(profile: String) {
                            |      - "MYSQL_ROOT_PASSWORD=123"
                            |      - "MYSQL_DATABASE=save_cloud"
                         """.trimMargin()
+                    } else if (profile == "dev" && it.trim().startsWith("logging:")) {
+                        ""
                     } else {
                         it.replace("{{project.version}}", versionForDockerImages())
                             .replace("{{profile}}", profile)
                     }
                 }
-            file("$buildDir/docker-compose.yaml")
+            file(composeFile)
                 .apply { createNewFile() }
                 .writeText(newText)
         }
@@ -65,12 +67,6 @@ fun Project.createStackDeployTask(profile: String) {
         }
         description = "Deploy to docker swarm. If swarm contains more than one node, some registry for built images is requried."
         commandLine("docker", "stack", "deploy", "--compose-file", "$buildDir/docker-compose.yaml", "save")
-        // doLast {
-        // exec {
-        // description = "Stop local docker registry"
-        // commandLine("docker", "service", "rm", "registry")
-        // }
-        // }
     }
 
     tasks.register<Exec>("stopDockerStack") {

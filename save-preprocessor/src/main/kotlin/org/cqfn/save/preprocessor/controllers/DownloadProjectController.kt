@@ -368,7 +368,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         return if (executionType == ExecutionType.GIT) {
             prepareForExecutionFromGit(project, execution.id!!, propertiesRelativePath, projectRootRelativePath, gitUrl!!)
         } else {
-            prepareExecutionForStandard(testSuiteDtos!!)
+            prepareExecutionForStandard(testSuiteDtos!!, execution.id!!)
         }
             .then(initializeAgents(execution, testSuiteDtos))
             .onErrorResume { ex ->
@@ -428,11 +428,23 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         .flatMap { (rootTestConfig, testSuites) ->
             initializeTests(testSuites, rootTestConfig, executionId)
         }
-    
-    private fun prepareExecutionForStandard(testSuiteDtos: List<TestSuiteDto>): Mono<List<TestSuite>> {
-        // FixMe: Should be properly processed in https://github.com/cqfn/save-cloud/issues/221
-        return Mono.just(emptyList())
+
+    private fun prepareExecutionForStandard(testSuiteDtos: List<TestSuiteDto>, executionId: Long) = Flux.fromIterable(testSuiteDtos).flatMap {
+        webClientBackend.get()
+            .uri("/standardTestSuitesWithName?name=${it.name}")
+            .retrieve()
+            .bodyToMono<List<TestSuite>>()
+    }.flatMap {
+        Flux.fromIterable(it).flatMap { testSuite ->
+            webClientBackend.makeRequest(
+                BodyInserters.fromValue(executionId),
+                "/saveTestExecutionsForStandardByTestSuiteId?testSuiteId=${testSuite.id}"
+            ) {
+                it.toBodilessEntity()
+            }
+        }
     }
+        .collectList()
 
     @Suppress("UnsafeCallOnNullableType")
     private fun getTestResourcesRootAbsolutePath(propertiesRelativePath: String,

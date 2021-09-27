@@ -31,7 +31,7 @@ class UpdateJob(
             .uri("/uploadStandardTestSuite")
             .retrieve()
             .toBodilessEntity()
-            .block(Duration.ofSeconds(5))
+            .block(Duration.ofSeconds(10))
     }
 }
 

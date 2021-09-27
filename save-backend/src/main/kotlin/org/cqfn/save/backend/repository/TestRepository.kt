@@ -12,4 +12,6 @@ import java.util.Optional
 @Suppress("MISSING_KDOC_CLASS_ELEMENTS", "MISSING_KDOC_ON_FUNCTION")
 interface TestRepository : BaseEntityRepository<Test> {
     fun findByHashAndFilePathAndTestSuiteId(hash: String, filePath: String, testSuiteId: Long): Optional<Test>
+
+    fun findAllByTestSuiteId(testSuiteId: Long): List<Test>
 }
