@@ -208,6 +208,10 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                     log.info("Starting to discover standard test suites for root test config ${rootTestConfig.location}")
                     val propertiesRelativePath = "${rootTestConfig.directory.toFile().relativeTo(tmpDir)}${File.separator}save.properties"
                     val tests = testDiscoveringService.getAllTestSuites(null, rootTestConfig, propertiesRelativePath, testSuiteUrl)
+                    println("\n\n\nFound following test suites:")
+                    tests.forEach {
+                        println(it)
+                    }
                     log.info("Test suites size = ${tests.size}")
                     log.info("Starting to save new test suites for root test config in $testRootPath")
                     webClientBackend.makeRequest(BodyInserters.fromValue(tests), "/saveTestSuites") {
