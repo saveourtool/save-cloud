@@ -193,6 +193,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
     @Suppress("TOO_LONG_FUNCTION")
     @PostMapping("/uploadStandardTestSuite")
     fun uploadStandardTestSuite() {
+        val newTestSuites: MutableList<TestSuiteDto> = mutableListOf()
         readStandardTestSuitesFile(configProperties.reposFileName).forEach { (testSuiteUrl, testSuitePaths) ->
             log.info("Starting clone repository url=$testSuiteUrl for standard test suites")
             val tmpDir = generateDirectory(listOf(testSuiteUrl))
@@ -208,10 +209,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                     log.info("Starting to discover standard test suites for root test config ${rootTestConfig.location}")
                     val propertiesRelativePath = "${rootTestConfig.directory.toFile().relativeTo(tmpDir)}${File.separator}save.properties"
                     val tests = testDiscoveringService.getAllTestSuites(null, rootTestConfig, propertiesRelativePath, testSuiteUrl)
-                    println("\n\n\nFound following test suites:")
-                    tests.forEach {
-                        println(it)
-                    }
+                    tests.forEach { newTestSuites.add(it) }
                     log.info("Test suites size = ${tests.size}")
                     log.info("Starting to save new test suites for root test config in $testRootPath")
                     webClientBackend.makeRequest(BodyInserters.fromValue(tests), "/saveTestSuites") {
@@ -236,6 +234,38 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                 .collect(Collectors.toList())
                 .subscribe()
         }
+        println("\n\n\nNew test suites:")
+        newTestSuites.forEach {
+            println(it)
+        }
+
+        webClientBackend.get()
+            .uri("/allStandardTestSuites")
+            .retrieve()
+            .bodyToMono<List<TestSuiteDto>>()
+            .flatMap { existingSuites ->
+                val suitesToDelete = existingSuites.filter { it !in newTestSuites  }
+                println("\n\n\nsuitesToDelete:")
+                suitesToDelete.forEach {
+                    println(it)
+                }
+                println("\n==============\n")
+                Mono.just(ResponseEntity<Void>(HttpStatus.OK))
+            }.subscribe()
+
+        val testSuiteDto = TestSuiteDto(
+            TestSuiteType.STANDARD,
+            "DocsCheck",
+            null,
+            "examples/discovery-test/save.properties",
+            "https://github.com/cqfn/save"
+        )
+        webClientBackend.makeRequest(
+            BodyInserters.fromValue(testSuiteDto), // FixME: change to real suites
+            "/deleteTestSuite"
+        ) {
+            it.toBodilessEntity()
+        }.subscribe()
     }
 
     private fun cloneFromGit(gitDto: GitDto, tmpDir: File): Git? {

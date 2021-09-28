@@ -45,4 +45,6 @@ interface TestExecutionRepository : BaseEntityRepository<TestExecution> {
      * @return Optional TestExecution
      */
     fun findByExecutionIdAndTestPluginNameAndTestFilePath(executionId: Long, pluginName: String, filePath: String): Optional<TestExecution>
+
+    fun findByTestId(testId: Long): Optional<TestExecution>
 }

@@ -1,5 +1,7 @@
 package org.cqfn.save.backend.service
 
+import org.cqfn.save.backend.repository.TestExecutionRepository
+import org.cqfn.save.backend.repository.TestRepository
 import org.cqfn.save.backend.repository.TestSuiteRepository
 import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.TestSuite
@@ -17,6 +19,12 @@ import java.time.LocalDateTime
 class TestSuitesService {
     @Autowired
     private lateinit var testSuiteRepository: TestSuiteRepository
+
+    @Autowired
+    private lateinit var testRepository: TestRepository
+
+    @Autowired
+    private lateinit var testExecutionRepository: TestExecutionRepository
 
     /**
      * Save new test suites to DB
@@ -67,4 +75,33 @@ class TestSuitesService {
             testSuiteRepository.findByProjectId(
                 requireNotNull(project.id) { "Cannot find test suites for project with missing id (name=${project.name}, owner=${project.owner})" }
             )
+
+    fun deleteTestSuiteDto(testSuiteDto: TestSuiteDto) {
+        // Get test suite id by test dto
+        val testSuiteId = testSuiteRepository.findByNameAndTypeAndPropertiesRelativePathAndTestSuiteRepoUrl(
+            testSuiteDto.name,
+            testSuiteDto.type!!,
+            testSuiteDto.propertiesRelativePath,
+            testSuiteDto.testSuiteRepoUrl!!,
+        ).id!!
+
+        // Get test ids related to the current testSuiteId
+        val testIds = testRepository.findAllByTestSuiteId(testSuiteId).map { it.id }
+        testIds.forEach { id ->
+            // Executions could be absent
+            testExecutionRepository.findByTestId(id!!).ifPresent { testExecution ->
+                // Delete test executions
+                println("\n\nDELETE TEST EXECUTION WITH TEST ID ${id}")
+                testExecutionRepository.deleteById(testExecution.id!!)
+            }
+
+            // Delete tests
+            println("\n\nDELETE TESTS WITH ID ${id}")
+            testRepository.deleteById(id)
+        }
+
+        println("DELETE  TEST SUITE WITH ID ${testSuiteId}")
+        testSuiteRepository.deleteById(testSuiteId)
+
+    }
 }

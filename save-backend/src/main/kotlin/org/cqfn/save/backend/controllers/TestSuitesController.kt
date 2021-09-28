@@ -70,4 +70,8 @@ class TestSuitesController(
             JobKey.jobKey(StandardSuitesUpdateScheduler.jobName)
         )
     }
+
+    @PostMapping("/deleteTestSuite")
+    fun deleteTestSuite(@RequestBody testSuiteDto: TestSuiteDto) =
+        ResponseEntity.status(HttpStatus.OK).body(testSuitesService.deleteTestSuiteDto(testSuiteDto)).also { println("\n\nDELETE SUITE CONTROLELR ${testSuiteDto}") }
 }
