@@ -28,6 +28,7 @@ class TestController {
      */
     @PostMapping("/initializeTests")
     fun initializeTests(@RequestBody testDtos: List<TestDto>, @RequestParam(required = false) executionId: Long?) {
+        log.info("\n\n\nINIT TESTS")
         log.debug("Received the following tests for initialization under executionId=$executionId: $testDtos")
         val testsIds = testService.saveTests(testDtos)
         executionId?.let { testExecutionService.saveTestExecution(executionId, testsIds) }

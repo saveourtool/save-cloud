@@ -1,5 +1,6 @@
 package org.cqfn.save.backend.service
 
+import org.cqfn.save.backend.controllers.TestController
 import org.cqfn.save.backend.repository.TestExecutionRepository
 import org.cqfn.save.backend.repository.TestRepository
 import org.cqfn.save.backend.repository.TestSuiteRepository
@@ -7,6 +8,7 @@ import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.TestSuite
 import org.cqfn.save.testsuite.TestSuiteDto
 import org.cqfn.save.testsuite.TestSuiteType
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.Example
 import org.springframework.stereotype.Service
@@ -78,12 +80,15 @@ class TestSuitesService {
 
     fun deleteTestSuiteDto(testSuiteDto: TestSuiteDto) {
         // Get test suite id by test dto
+        log.info("\n\nCHECK: ${testSuiteDto.type!!} | ${testSuiteDto.testSuiteRepoUrl!!}")
+
         val testSuiteId = testSuiteRepository.findByNameAndTypeAndPropertiesRelativePathAndTestSuiteRepoUrl(
             testSuiteDto.name,
             testSuiteDto.type!!,
             testSuiteDto.propertiesRelativePath,
             testSuiteDto.testSuiteRepoUrl!!,
         ).id!!
+        log.info("CHECK2 ${testSuiteId}")
 
         // Get test ids related to the current testSuiteId
         val testIds = testRepository.findAllByTestSuiteId(testSuiteId).map { it.id }
@@ -91,17 +96,21 @@ class TestSuitesService {
             // Executions could be absent
             testExecutionRepository.findByTestId(id!!).ifPresent { testExecution ->
                 // Delete test executions
-                println("\n\nDELETE TEST EXECUTION WITH TEST ID ${id}")
+                log.info("\n\nDELETE TEST EXECUTION WITH TEST ID ${id}")
                 testExecutionRepository.deleteById(testExecution.id!!)
             }
 
             // Delete tests
-            println("\n\nDELETE TESTS WITH ID ${id}")
+            log.info("\n\nDELETE TESTS WITH ID ${id}")
             testRepository.deleteById(id)
         }
 
-        println("DELETE  TEST SUITE WITH ID ${testSuiteId}")
+        log.info("DELETE  TEST SUITE WITH ID ${testSuiteId}")
         testSuiteRepository.deleteById(testSuiteId)
 
+    }
+
+    companion object {
+        private val log = LoggerFactory.getLogger(TestController::class.java)
     }
 }

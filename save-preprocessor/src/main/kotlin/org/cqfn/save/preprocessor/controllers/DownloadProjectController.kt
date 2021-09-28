@@ -234,38 +234,32 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                 .collect(Collectors.toList())
                 .subscribe()
         }
-        println("\n\n\nNew test suites:")
-        newTestSuites.forEach {
-            println(it)
-        }
+
 
         webClientBackend.get()
             .uri("/allStandardTestSuites")
             .retrieve()
             .bodyToMono<List<TestSuiteDto>>()
             .flatMap { existingSuites ->
-                val suitesToDelete = existingSuites.filter { it !in newTestSuites  }
+                val suitesToDelete = existingSuites.filter { it !in newTestSuites }
                 println("\n\n\nsuitesToDelete:")
                 suitesToDelete.forEach {
                     println(it)
                 }
                 println("\n==============\n")
                 Mono.just(ResponseEntity<Void>(HttpStatus.OK))
-            }.subscribe()
+            }
+            .flatMap {
+                val testSuiteDto = TestSuiteDto(TestSuiteType.STANDARD,"DocsCheck",null,"examples/discovery-test/save.properties","https://github.com/cqfn/save")
+                webClientBackend.makeRequest(
+                    BodyInserters.fromValue(testSuiteDto), // FixME: change to real suites
+                    "/deleteTestSuite"
+                ) {
+                    it.toBodilessEntity()
+                }
+            }
+            .subscribe()
 
-        val testSuiteDto = TestSuiteDto(
-            TestSuiteType.STANDARD,
-            "DocsCheck",
-            null,
-            "examples/discovery-test/save.properties",
-            "https://github.com/cqfn/save"
-        )
-        webClientBackend.makeRequest(
-            BodyInserters.fromValue(testSuiteDto), // FixME: change to real suites
-            "/deleteTestSuite"
-        ) {
-            it.toBodilessEntity()
-        }.subscribe()
     }
 
     private fun cloneFromGit(gitDto: GitDto, tmpDir: File): Git? {
