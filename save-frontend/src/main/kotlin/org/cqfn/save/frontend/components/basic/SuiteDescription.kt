@@ -13,9 +13,12 @@ import org.cqfn.save.testsuite.TestSuiteDto
 fun suiteDescription(suite: TestSuiteDto) =
         """
             <div>
-              ${suite.testSuiteRepoUrl?.let {
-            "<a href=$it>$it</a><br/>"
+                  <ul class="pl-3">
+                  ${suite.testSuiteRepoUrl?.let {
+            "<li><a href=$it>$it</a></li>"
         }}
-              <p>${suite.description ?: ""}</p>
+                <li>${suite.propertiesRelativePath.substringBeforeLast("/save.properties")}</li>
+                </ul>
+                <p>${suite.description ?: ""}</p>
             </div>
         """.trimIndent()
