@@ -60,7 +60,6 @@ import java.io.FileOutputStream
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.time.Duration
-import java.util.stream.Collectors
 
 import kotlin.io.path.ExperimentalPathApi
 
@@ -188,13 +187,15 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
 
     /**
      * Controller to download standard test suites
+     *
+     * @return Empty response entity
      */
     @OptIn(ExperimentalFileSystem::class)
-    @Suppress("TOO_LONG_FUNCTION")
+    @Suppress("TOO_LONG_FUNCTION", "TYPE_ALIAS")
     @PostMapping("/uploadStandardTestSuite")
-    fun uploadStandardTestSuite() {
+    fun uploadStandardTestSuite(): Mono<ResponseEntity<Void>> {
         val newTestSuites: MutableList<TestSuiteDto> = mutableListOf()
-        Flux.fromIterable(readStandardTestSuitesFile(configProperties.reposFileName).entries).flatMap { (testSuiteUrl, testSuitePaths) ->
+        return Flux.fromIterable(readStandardTestSuitesFile(configProperties.reposFileName).entries).flatMap { (testSuiteUrl, testSuitePaths) ->
             log.info("Starting clone repository url=$testSuiteUrl for standard test suites")
             val tmpDir = generateDirectory(listOf(testSuiteUrl))
             Mono.fromCallable {
@@ -231,14 +232,12 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                 .doOnError {
                     log.error("Error to update test with url=$testSuiteUrl, path=$testSuitePaths")
                 }
-                .collect(Collectors.toList())
         }.collectList()
             .flatMap {
                 deleteOldStandardTestSuites(newTestSuites)
-            }.subscribe()
+            }
     }
 
-    @Suppress("TYPE_ALIAS")
     private fun deleteOldStandardTestSuites(newTestSuites: MutableList<TestSuiteDto>) = webClientBackend.get()
         .uri("/allStandardTestSuites")
         .retrieve()
