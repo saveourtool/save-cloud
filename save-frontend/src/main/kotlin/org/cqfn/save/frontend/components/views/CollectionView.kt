@@ -12,13 +12,13 @@ import react.RBuilder
 import react.RComponent
 import react.State
 import react.buildElement
-import react.child
 import react.dom.a
 import react.dom.button
 import react.dom.div
 import react.dom.td
 import react.table.columns
 
+import kotlinx.browser.window
 import kotlinx.html.ButtonType
 
 /**

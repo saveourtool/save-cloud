@@ -390,7 +390,9 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                                     setOf("d-none")
                                 }
                                 div("card-body") {
-                                    child(checkBoxGrid(standardTestSuites.map { it.name }, standardTestSuites.map { it.description })) {
+                                    child(checkBoxGrid(
+                                        standardTestSuites
+                                    )) {
                                         attrs.selectedOptions = selectedTypes
                                         attrs.rowSize = TEST_SUITE_ROW
                                     }

@@ -8,6 +8,7 @@ package org.cqfn.save.frontend.components.basic
 
 import org.cqfn.save.frontend.externals.fontawesome.faQuestionCircle
 import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
+import org.cqfn.save.testsuite.TestSuiteDto
 
 import react.PropsWithChildren
 import react.dom.div
@@ -35,34 +36,33 @@ external interface CheckBoxGridProps : PropsWithChildren {
 }
 
 /**
- * @param options list of displayed selectable options
- * @param tooltips
+ * @param suites a list of [TestSuiteDto]s which should be displayed on the grid
  * @return an RComponent
  */
 @Suppress("TOO_LONG_FUNCTION", "LongMethod")
-fun checkBoxGrid(options: List<String>, tooltips: List<String?>) = fc<CheckBoxGridProps> { props ->
+fun checkBoxGrid(suites: List<TestSuiteDto>) = fc<CheckBoxGridProps> { props ->
     div {
-        options.zip(tooltips).chunked(props.rowSize)
+        suites.chunked(props.rowSize)
             .forEach { row ->
                 div("row") {
-                    row.forEach { (option, tooltip) ->
+                    row.forEach { suite ->
                         div("col") {
-                            +option
+                            +suite.name
                             sup("tooltip-and-popover") {
                                 fontAwesomeIcon(icon = faQuestionCircle)
                                 attrs["tooltip-placement"] = "top"
-                                attrs["tooltip-title"] = tooltip?.take(100) ?: ""
+                                attrs["tooltip-title"] = suite.description?.take(100) ?: ""
                                 attrs["popover-placement"] = "right"
-                                attrs["popover-title"] = option
-                                attrs["popover-content"] = tooltip ?: ""
+                                attrs["popover-title"] = suite.name
+                                attrs["popover-content"] = suiteDescription(suite)
                             }
                             input(type = InputType.checkBox, classes = "ml-3") {
-                                attrs.defaultChecked = props.selectedOptions.contains(option)
+                                attrs.defaultChecked = props.selectedOptions.contains(suite.name)
                                 attrs.onClickFunction = {
-                                    if (props.selectedOptions.contains(option)) {
-                                        props.selectedOptions.remove(option)
+                                    if (props.selectedOptions.contains(suite.name)) {
+                                        props.selectedOptions.remove(suite.name)
                                     } else {
-                                        props.selectedOptions.add(option)
+                                        props.selectedOptions.add(suite.name)
                                     }
                                 }
                             }
@@ -77,7 +77,8 @@ fun checkBoxGrid(options: List<String>, tooltips: List<String?>) = fc<CheckBoxGr
             jQuery(this).popover({
                 placement: jQuery(this).attr("popover-placement"),
                 title: jQuery(this).attr("popover-title"),
-                content: jQuery(this).attr("popover-content")
+                content: jQuery(this).attr("popover-content"),
+                html: true
             }).tooltip({
                 placement: jQuery(this).attr("tooltip-placement"), 
                 title: jQuery(this).attr("tooltip-title")
