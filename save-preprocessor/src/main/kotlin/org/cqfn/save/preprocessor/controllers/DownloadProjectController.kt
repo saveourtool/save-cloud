@@ -448,7 +448,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
     @Suppress("UnsafeCallOnNullableType")
     private fun getTestResourcesRootAbsolutePath(propertiesRelativePath: String,
                                                  projectRootRelativePath: String): String {
-        // TODO: File should be provided without explicit naming of `save.propeties`, also
+        // TODO: File should be provided without explicit naming of `save.propeties`
         val propertiesFile = File(configProperties.repository, projectRootRelativePath)
             .resolve(propertiesRelativePath)
         val saveProperties: SaveProperties = if (propertiesFile.exists()) {
