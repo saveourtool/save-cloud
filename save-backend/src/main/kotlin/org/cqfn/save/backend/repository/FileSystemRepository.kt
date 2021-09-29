@@ -64,13 +64,14 @@ class FileSystemRepository(configProperties: ConfigProperties) {
      * @return a FileInfo describing a saved file
      */
     fun saveFile(file: Path): FileInfo {
+        val uploadedMillis = System.currentTimeMillis()
         val destination = rootDir
-            .resolve(file.getLastModifiedTime().toMillis().toString())
+            .resolve(uploadedMillis.toString())
             .createDirectories()
             .resolve(file.name)
         logger.info("Saving a new file into $destination")
         file.copyTo(destination, overwrite = false)
-        return FileInfo(file.name, file.getLastModifiedTime().toMillis(), file.fileSize())
+        return FileInfo(file.name, uploadedMillis, file.fileSize())
     }
 
     /**

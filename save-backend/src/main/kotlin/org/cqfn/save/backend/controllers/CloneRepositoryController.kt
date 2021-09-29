@@ -133,6 +133,7 @@ class CloneRepositoryController(
         .toEntity<String>()
 
     private fun Flux<FileInfo>.collectToMultipart(multipartBodyBuilder: MultipartBodyBuilder) = map {
+        println("\n\n\nFILE ${it.name} | ${it.uploadedMillis}")
         multipartBodyBuilder.part("file", fileSystemRepository.getFile(it))
     }
         .collectList()
