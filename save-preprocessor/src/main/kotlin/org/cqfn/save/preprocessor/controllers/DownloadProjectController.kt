@@ -449,11 +449,14 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
     private fun getTestResourcesRootAbsolutePath(propertiesRelativePath: String,
                                                  projectRootRelativePath: String): String {
         // TODO: File should be provided without explicit naming of `save.propeties`, also
-        // TODO: should be consider case, when file not found
         val propertiesFile = File(configProperties.repository, projectRootRelativePath)
             .resolve(propertiesRelativePath)
-        val saveProperties: SaveProperties = decodeFromPropertiesFile<SaveProperties>(propertiesFile)
-            .mergeConfigWithPriorityToThis(defaultConfig())
+        val saveProperties: SaveProperties = if (propertiesFile.exists()) {
+            decodeFromPropertiesFile<SaveProperties>(propertiesFile)
+                .mergeConfigWithPriorityToThis(defaultConfig())
+        } else {
+            defaultConfig()
+        }
         return propertiesFile.parentFile
             .resolve(saveProperties.testFiles!!.firstOrNull() ?: ".")
             .absolutePath
