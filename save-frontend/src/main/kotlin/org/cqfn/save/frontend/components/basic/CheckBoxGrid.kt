@@ -14,7 +14,12 @@ import react.useEffect
 
 import kotlinx.html.InputType
 import kotlinx.html.js.onClickFunction
+import kotlinx.html.style
 import kotlinx.html.title
+import org.cqfn.save.frontend.externals.fontawesome.FontAwesomeIcon
+import org.cqfn.save.frontend.externals.fontawesome.faQuestionCircle
+import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
+import react.dom.sup
 
 /**
  * Props for ChecboxGrid component
@@ -42,13 +47,16 @@ fun checkBoxGrid(options: List<String>, tooltips: List<String?>) = fc<CheckBoxGr
             .forEach { row ->
                 div("row") {
                     row.forEach { (option, tooltip) ->
-                        div("col tooltip-and-popover") {
+                        div("col") {
                             +option
-                            attrs["tooltip-placement"] = "top"
-                            attrs["tooltip-title"] = tooltip?.take(100) ?: ""
-                            attrs["popover-placement"] = "right"
-                            attrs["popover-title"] = option
-                            attrs["popover-content"] = tooltip ?: ""
+                            sup("tooltip-and-popover") {
+                                fontAwesomeIcon(icon = faQuestionCircle)
+                                attrs["tooltip-placement"] = "top"
+                                attrs["tooltip-title"] = tooltip?.take(100) ?: ""
+                                attrs["popover-placement"] = "right"
+                                attrs["popover-title"] = option
+                                attrs["popover-content"] = tooltip ?: ""
+                            }
                             input(type = InputType.checkBox, classes = "ml-3") {
                                 attrs.defaultChecked = props.selectedOptions.contains(option)
                                 attrs.onClickFunction = {
