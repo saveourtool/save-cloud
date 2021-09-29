@@ -100,11 +100,11 @@ class TestSuitesService {
                 // Executions could be absent
                 testExecutionRepository.findByTestId(id!!).ifPresent { testExecution ->
                     // Delete test executions
-                    log.info("Delete test execution with id $id")
+                    log.debug("Delete test execution with id $id")
                     testExecutionRepository.deleteById(testExecution.id!!)
                 }
                 // Delete tests
-                log.info("Delete test with id $id")
+                log.debug("Delete test with id $id")
                 testRepository.deleteById(id)
             }
             log.info("Delete test suite ${testSuiteDto.name} with id $testSuiteId")

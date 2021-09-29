@@ -239,25 +239,21 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
     }
 
     @Suppress("TYPE_ALIAS")
-    private fun deleteOldStandardTestSuites(newTestSuites: MutableList<TestSuiteDto>): Mono<ResponseEntity<Void>> {
-        lateinit var suitesToDelete: List<TestSuiteDto>
-        return webClientBackend.get()
-            .uri("/allStandardTestSuites")
-            .retrieve()
-            .bodyToMono<List<TestSuiteDto>>()
-            .flatMap { existingSuites ->
-                suitesToDelete = existingSuites.filter { it !in newTestSuites }
-                Mono.just(ResponseEntity<Void>(HttpStatus.OK))
+    private fun deleteOldStandardTestSuites(newTestSuites: MutableList<TestSuiteDto>) = webClientBackend.get()
+        .uri("/allStandardTestSuites")
+        .retrieve()
+        .bodyToMono<List<TestSuiteDto>>()
+        .map { existingSuites ->
+            existingSuites.filter { it !in newTestSuites }
+        }
+        .flatMap { suitesToDelete ->
+            webClientBackend.makeRequest(
+                BodyInserters.fromValue(suitesToDelete),
+                "/deleteTestSuite"
+            ) {
+                it.toBodilessEntity()
             }
-            .flatMap {
-                webClientBackend.makeRequest(
-                    BodyInserters.fromValue(suitesToDelete),
-                    "/deleteTestSuite"
-                ) {
-                    it.toBodilessEntity()
-                }
-            }
-    }
+        }
 
     private fun cloneFromGit(gitDto: GitDto, tmpDir: File): Git? {
         val userCredentials = if (gitDto.username != null && gitDto.password != null) {
