@@ -19,7 +19,6 @@ import react.dom.div
 import react.dom.td
 import react.table.columns
 
-import kotlinx.browser.window
 import kotlinx.html.ButtonType
 
 /**

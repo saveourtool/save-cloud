@@ -6,20 +6,18 @@
 
 package org.cqfn.save.frontend.components.basic
 
+import org.cqfn.save.frontend.externals.fontawesome.faQuestionCircle
+import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
+
 import react.PropsWithChildren
 import react.dom.div
 import react.dom.input
+import react.dom.sup
 import react.fc
 import react.useEffect
 
 import kotlinx.html.InputType
 import kotlinx.html.js.onClickFunction
-import kotlinx.html.style
-import kotlinx.html.title
-import org.cqfn.save.frontend.externals.fontawesome.FontAwesomeIcon
-import org.cqfn.save.frontend.externals.fontawesome.faQuestionCircle
-import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
-import react.dom.sup
 
 /**
  * Props for ChecboxGrid component
@@ -41,6 +39,7 @@ external interface CheckBoxGridProps : PropsWithChildren {
  * @param tooltips
  * @return an RComponent
  */
+@Suppress("TOO_LONG_FUNCTION", "LongMethod")
 fun checkBoxGrid(options: List<String>, tooltips: List<String?>) = fc<CheckBoxGridProps> { props ->
     div {
         options.zip(tooltips).chunked(props.rowSize)

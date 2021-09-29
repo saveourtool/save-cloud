@@ -17,6 +17,7 @@ import org.cqfn.save.frontend.externals.fontawesome.faAngleUp
 import org.cqfn.save.frontend.externals.fontawesome.faCheck
 import org.cqfn.save.frontend.externals.fontawesome.faCogs
 import org.cqfn.save.frontend.externals.fontawesome.faExclamationTriangle
+import org.cqfn.save.frontend.externals.fontawesome.faQuestionCircle
 import org.cqfn.save.frontend.externals.fontawesome.faSignOutAlt
 import org.cqfn.save.frontend.externals.fontawesome.faTimesCircle
 import org.cqfn.save.frontend.externals.fontawesome.faUser
@@ -41,7 +42,6 @@ import react.router.dom.withRouter
 
 import kotlinx.browser.document
 import kotlinx.html.id
-import org.cqfn.save.frontend.externals.fontawesome.faQuestionCircle
 
 /**
  * Top-level state of the whole App
