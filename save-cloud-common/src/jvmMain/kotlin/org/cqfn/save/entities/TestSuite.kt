@@ -19,7 +19,7 @@ import javax.persistence.ManyToOne
  * @property testSuiteRepoUrl url of the repo with test suites
  * @property description description of the test suite
  */
-@Suppress("USE_DATA_CLASS")
+@Suppress("USE_DATA_CLASS", "LongParameterList")
 @Entity
 class TestSuite(
     @Enumerated(EnumType.STRING)

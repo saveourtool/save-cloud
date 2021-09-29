@@ -139,7 +139,7 @@ class DownloadProjectTest(
                 .setHeader("Content-Type", "application/json")
                 .setBody(objectMapper.writeValueAsString(
                     listOf(
-                        TestSuite(TestSuiteType.PROJECT, "", project, LocalDateTime.now(), "save.properties", "https://github.com/cqfn/save.git")
+                        TestSuite(TestSuiteType.PROJECT, "", null, project, LocalDateTime.now(), "save.properties", "https://github.com/cqfn/save.git")
                     )
                 )),
         )
@@ -219,7 +219,7 @@ class DownloadProjectTest(
                 .setHeader("Content-Type", "application/json")
                 .setBody(objectMapper.writeValueAsString(
                     listOf(
-                        TestSuite(TestSuiteType.STANDARD, "stub", project, LocalDateTime.now(), "save.properties", "stub")
+                        TestSuite(TestSuiteType.STANDARD, "stub", null, project, LocalDateTime.now(), "save.properties", "stub")
                     )
                 )),
         )
@@ -294,7 +294,7 @@ class DownloadProjectTest(
                     .setBody(
                         objectMapper.writeValueAsString(
                             listOf(
-                                TestSuite(TestSuiteType.PROJECT, "", project, LocalDateTime.now(), "save.properties")
+                                TestSuite(TestSuiteType.PROJECT, "", null, project, LocalDateTime.now(), "save.properties")
                             )
                         )
                     ),
@@ -357,7 +357,7 @@ class DownloadProjectTest(
                 .setHeader("Content-Type", "application/json")
                 .setBody(objectMapper.writeValueAsString(
                     listOf(
-                        TestSuite(TestSuiteType.PROJECT, "", project, LocalDateTime.now(), "save.properties")
+                        TestSuite(TestSuiteType.PROJECT, "", null, project, LocalDateTime.now(), "save.properties")
                     )
                 )),
         )

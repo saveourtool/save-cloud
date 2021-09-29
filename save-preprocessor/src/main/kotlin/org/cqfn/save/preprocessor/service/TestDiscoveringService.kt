@@ -48,6 +48,7 @@ class TestDiscoveringService {
      * @return a list of [TestSuiteDto]s
      * @throws IllegalArgumentException when provided path doesn't point to a valid config file
      */
+    @Suppress("UnsafeCallOnNullableType")
     fun getAllTestSuites(
         project: Project?,
         rootTestConfig: TestConfig,

@@ -59,7 +59,7 @@ class TestDiscoveringServiceTest {
 
         println("Discovered test suites: $testSuites")
         Assertions.assertTrue(testSuites.isNotEmpty())
-        Assertions.assertEquals("autofix", testSuites.first().name)
+        Assertions.assertEquals("Autofix: Smoke Tests", testSuites.first().name)
     }
 
     @Test
@@ -99,7 +99,7 @@ class TestDiscoveringServiceTest {
         }
     }
 
-    private fun createTestSuiteStub(name: String, id: Long) = TestSuite(TestSuiteType.PROJECT, name, null, null, propertiesRelativePath).apply {
+    private fun createTestSuiteStub(name: String, id: Long) = TestSuite(TestSuiteType.PROJECT, name, null, null, null, propertiesRelativePath).apply {
         this.id = id
     }
 }
