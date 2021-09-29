@@ -194,7 +194,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
     @PostMapping("/uploadStandardTestSuite")
     fun uploadStandardTestSuite() {
         val newTestSuites: MutableList<TestSuiteDto> = mutableListOf()
-        readStandardTestSuitesFile(configProperties.reposFileName).forEach { (testSuiteUrl, testSuitePaths) ->
+        Flux.fromIterable(readStandardTestSuitesFile(configProperties.reposFileName).entries).flatMap { (testSuiteUrl, testSuitePaths) ->
             log.info("Starting clone repository url=$testSuiteUrl for standard test suites")
             val tmpDir = generateDirectory(listOf(testSuiteUrl))
             Mono.fromCallable {
@@ -232,16 +232,19 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                     log.error("Error to update test with url=$testSuiteUrl, path=$testSuitePaths")
                 }
                 .collect(Collectors.toList())
-                .subscribe()
-        }
+        }.collectList().flatMap {
+            deleteOldStandardTestSuites(newTestSuites)
+        }.subscribe()
+    }
 
-
-        webClientBackend.get()
+    private fun deleteOldStandardTestSuites(newTestSuites: MutableList<TestSuiteDto>): Mono<ResponseEntity<Void>> {
+        lateinit var suitesToDelete: List<TestSuiteDto>
+        return webClientBackend.get()
             .uri("/allStandardTestSuites")
             .retrieve()
             .bodyToMono<List<TestSuiteDto>>()
             .flatMap { existingSuites ->
-                val suitesToDelete = existingSuites.filter { it !in newTestSuites }
+                suitesToDelete = existingSuites.filter { it !in newTestSuites }
                 println("\n\n\nsuitesToDelete:")
                 suitesToDelete.forEach {
                     println(it)
@@ -250,16 +253,14 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                 Mono.just(ResponseEntity<Void>(HttpStatus.OK))
             }
             .flatMap {
-                val testSuiteDto = TestSuiteDto(TestSuiteType.STANDARD,"DocsCheck",null,"examples/discovery-test/save.properties","https://github.com/cqfn/save")
+                //val testSuiteDto = listOf(TestSuiteDto(TestSuiteType.STANDARD,"DocsCheck",null,"examples/discovery-test/save.properties","https://github.com/cqfn/save"))
                 webClientBackend.makeRequest(
-                    BodyInserters.fromValue(testSuiteDto), // FixME: change to real suites
+                    BodyInserters.fromValue(suitesToDelete), // FixME: change to real suites
                     "/deleteTestSuite"
                 ) {
                     it.toBodilessEntity()
                 }
             }
-            .subscribe()
-
     }
 
     private fun cloneFromGit(gitDto: GitDto, tmpDir: File): Git? {

@@ -29,5 +29,5 @@ interface TestSuiteRepository : BaseEntityRepository<TestSuite>, QueryByExampleE
      */
     fun findByProjectId(projectId: Long): List<TestSuite>
 
-    fun findByNameAndTypeAndPropertiesRelativePathAndTestSuiteRepoUrl(name: String, type: TestSuiteType, propertiesRelPath: String, testSuiteRepoUrl: String): TestSuite
+    fun findByNameAndTypeAndPropertiesRelativePathAndTestSuiteRepoUrl(name: String, type: TestSuiteType, propertiesRelPath: String, testSuiteRepoUrl: String?): TestSuite
 }
