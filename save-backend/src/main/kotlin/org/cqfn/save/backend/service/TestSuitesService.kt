@@ -83,6 +83,7 @@ class TestSuitesService {
      *
      * @param testSuiteDtos suites, which need to be deleted
      */
+    @Suppress("UnsafeCallOnNullableType")
     fun deleteTestSuiteDto(testSuiteDtos: List<TestSuiteDto>) {
         testSuiteDtos.forEach { testSuiteDto ->
             // Get test suite id by testSuiteDto

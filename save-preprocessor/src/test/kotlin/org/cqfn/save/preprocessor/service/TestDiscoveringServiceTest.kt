@@ -59,7 +59,7 @@ class TestDiscoveringServiceTest {
 
         println("Discovered test suites: $testSuites")
         Assertions.assertTrue(testSuites.isNotEmpty())
-        Assertions.assertEquals("autofix", testSuites.first().name)
+        Assertions.assertEquals("Autofix: Smoke Tests", testSuites.first().name)
     }
 
     @Test
