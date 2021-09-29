@@ -232,11 +232,13 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                     log.error("Error to update test with url=$testSuiteUrl, path=$testSuitePaths")
                 }
                 .collect(Collectors.toList())
-        }.collectList().flatMap {
-            deleteOldStandardTestSuites(newTestSuites)
-        }.subscribe()
+        }.collectList()
+            .flatMap {
+                deleteOldStandardTestSuites(newTestSuites)
+            }.subscribe()
     }
 
+    @Suppress("TYPE_ALIAS")
     private fun deleteOldStandardTestSuites(newTestSuites: MutableList<TestSuiteDto>): Mono<ResponseEntity<Void>> {
         lateinit var suitesToDelete: List<TestSuiteDto>
         return webClientBackend.get()
@@ -245,17 +247,11 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
             .bodyToMono<List<TestSuiteDto>>()
             .flatMap { existingSuites ->
                 suitesToDelete = existingSuites.filter { it !in newTestSuites }
-                println("\n\n\nsuitesToDelete:")
-                suitesToDelete.forEach {
-                    println(it)
-                }
-                println("\n==============\n")
                 Mono.just(ResponseEntity<Void>(HttpStatus.OK))
             }
             .flatMap {
-                //val testSuiteDto = listOf(TestSuiteDto(TestSuiteType.STANDARD,"DocsCheck",null,"examples/discovery-test/save.properties","https://github.com/cqfn/save"))
                 webClientBackend.makeRequest(
-                    BodyInserters.fromValue(suitesToDelete), // FixME: change to real suites
+                    BodyInserters.fromValue(suitesToDelete),
                     "/deleteTestSuite"
                 ) {
                     it.toBodilessEntity()

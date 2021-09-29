@@ -71,7 +71,11 @@ class TestSuitesController(
         )
     }
 
+    /**
+     * @param testSuiteDtos suites, which need to be deleted
+     * @return response entity
+     */
     @PostMapping("/deleteTestSuite")
     fun deleteTestSuite(@RequestBody testSuiteDtos: List<TestSuiteDto>) =
-        ResponseEntity.status(HttpStatus.OK).body(testSuitesService.deleteTestSuiteDto(testSuiteDtos))
+            ResponseEntity.status(HttpStatus.OK).body(testSuitesService.deleteTestSuiteDto(testSuiteDtos))
 }
