@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -70,4 +71,13 @@ class TestSuitesController(
             JobKey.jobKey(StandardSuitesUpdateScheduler.jobName)
         )
     }
+
+    /**
+     * @param testSuiteDtos suites, which need to be deleted
+     * @return response entity
+     */
+    @PostMapping("/deleteTestSuite")
+    @Transactional
+    fun deleteTestSuite(@RequestBody testSuiteDtos: List<TestSuiteDto>) =
+            ResponseEntity.status(HttpStatus.OK).body(testSuitesService.deleteTestSuiteDto(testSuiteDtos))
 }
