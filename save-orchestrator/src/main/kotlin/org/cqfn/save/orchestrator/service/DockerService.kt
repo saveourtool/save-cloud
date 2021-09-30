@@ -189,7 +189,7 @@ class DockerService(private val configProperties: ConfigProperties) {
                     |RUN chmod +x $executionDir/$SAVE_AGENT_EXECUTABLE_NAME
                     |RUN chmod +x $executionDir/$SAVE_CLI_EXECUTABLE_NAME
                     |RUN find "$executionDir/diktat-rules/src/test/resources/test/smoke/ktlint" -type f -exec chmod +x {} \;
-                |"""
+                """
         )
         saveAgent.delete()
         saveCli.delete()
