@@ -135,11 +135,12 @@ class CloneRepositoryController(
         .retrieve()
         .toEntity<String>()
 
+    @Suppress("TYPE_ALIAS")
     private fun Flux<FileInfo>.collectToMultipart(multipartBodyBuilder: MultipartBodyBuilder, execution: Execution): Mono<List<MultipartBodyBuilder.PartBuilder>> {
         val additionalFiles = StringBuilder("")
         return map {
             val path = Paths.get(it.uploadedMillis.toString()).resolve(it.name)
-            additionalFiles.append("${path};")
+            additionalFiles.append("$path;")
             multipartBodyBuilder.part("file", fileSystemRepository.getFile(it))
         }
             .collectList()

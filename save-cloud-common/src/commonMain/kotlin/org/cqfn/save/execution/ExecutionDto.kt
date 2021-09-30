@@ -11,6 +11,7 @@ import kotlinx.serialization.Serializable
  * @property failedTests
  * @property skippedTests
  * @property endTime
+ * @property additionalFiles
  */
 @Serializable
 @Suppress("LongParameterList")
