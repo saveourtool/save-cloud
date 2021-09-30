@@ -16,6 +16,7 @@ import org.cqfn.save.preprocessor.controllers.readStandardTestSuitesFile
 import org.cqfn.save.preprocessor.service.TestDiscoveringService
 import org.cqfn.save.preprocessor.utils.RepositoryVolume
 import org.cqfn.save.preprocessor.utils.toHash
+import org.cqfn.save.testsuite.TestSuiteDto
 import org.cqfn.save.testsuite.TestSuiteType
 
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -307,8 +308,29 @@ class DownloadProjectTest(
             )
         }
 
+        // /allStandardTestSuites
+        mockServerBackend.enqueue(
+            MockResponse()
+                .setResponseCode(200)
+                .setHeader("Content-Type", "application/json")
+                .setBody(objectMapper.writeValueAsString(
+                    listOf(
+                        TestSuiteDto(TestSuiteType.STANDARD, "stub", null, null, "save.properties", "stub")
+                    )
+                ))
+        )
+
+        // /deleteTestSuite
+        mockServerBackend.enqueue(
+            MockResponse()
+                .setResponseCode(200)
+        )
+
         val assertions = CompletableFuture.supplyAsync {
-            List(requestSize * 2) { mockServerBackend.takeRequest(60, TimeUnit.SECONDS) }
+            MutableList(requestSize * 2) { mockServerBackend.takeRequest(60, TimeUnit.SECONDS) }.also {
+                it.add(mockServerBackend.takeRequest(60, TimeUnit.SECONDS))
+                it.add(mockServerBackend.takeRequest(60, TimeUnit.SECONDS))
+            }
         }
 
         webClient.post()
