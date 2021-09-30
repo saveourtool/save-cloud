@@ -148,7 +148,7 @@ class CloneRepositoryController(
         }
             .collectList()
             .switchIfEmpty(Mono.just(emptyList()))
-            .doOnNext {
+            .doOnEach {
                 execution.additionalFiles = additionalFiles.toString()
                 executionService.saveExecution(execution)
             }
