@@ -28,6 +28,7 @@ import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.toEntity
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import java.nio.file.Paths
 import java.time.LocalDateTime
 
 /**
@@ -133,7 +134,8 @@ class CloneRepositoryController(
         .toEntity<String>()
 
     private fun Flux<FileInfo>.collectToMultipart(multipartBodyBuilder: MultipartBodyBuilder) = map {
-        println("\n\n\nFILE ${it.name} | ${it.uploadedMillis}")
+        val path = Paths.get(it.uploadedMillis.toString()).resolve(it.name)
+        println("\n\n\nFILE ${path}")
         multipartBodyBuilder.part("file", fileSystemRepository.getFile(it))
     }
         .collectList()
