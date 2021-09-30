@@ -183,6 +183,7 @@ class DockerService(private val configProperties: ConfigProperties) {
             imageName = imageName(execution.id!!),
             baseDir = resourcesPath,
             resourcesPath = executionDir,
+            // TODO: find ktlint this is a temporary workaround link to #277
             runCmd = """RUN apt-get update && env DEBIAN_FRONTEND="noninteractive" apt-get install -y libcurl4-openssl-dev tzdata && rm -rf /var/lib/apt/lists/*
                     |RUN ln -fs /usr/share/zoneinfo/UTC /etc/localtime
                     |RUN chmod +x $executionDir/$SAVE_AGENT_EXECUTABLE_NAME
