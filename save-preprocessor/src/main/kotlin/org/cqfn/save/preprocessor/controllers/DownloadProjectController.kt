@@ -60,7 +60,6 @@ import java.io.FileOutputStream
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.time.Duration
-import java.util.stream.Collectors
 
 import kotlin.io.path.ExperimentalPathApi
 
@@ -188,12 +187,15 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
 
     /**
      * Controller to download standard test suites
+     *
+     * @return Empty response entity
      */
     @OptIn(ExperimentalFileSystem::class)
-    @Suppress("TOO_LONG_FUNCTION")
+    @Suppress("TOO_LONG_FUNCTION", "TYPE_ALIAS")
     @PostMapping("/uploadStandardTestSuite")
-    fun uploadStandardTestSuite() {
-        readStandardTestSuitesFile(configProperties.reposFileName).forEach { (testSuiteUrl, testSuitePaths) ->
+    fun uploadStandardTestSuite(): Mono<ResponseEntity<Void>> {
+        val newTestSuites: MutableList<TestSuiteDto> = mutableListOf()
+        return Flux.fromIterable(readStandardTestSuitesFile(configProperties.reposFileName).entries).flatMap { (testSuiteUrl, testSuitePaths) ->
             log.info("Starting clone repository url=$testSuiteUrl for standard test suites")
             val tmpDir = generateDirectory(listOf(testSuiteUrl))
             Mono.fromCallable {
@@ -208,6 +210,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                     log.info("Starting to discover standard test suites for root test config ${rootTestConfig.location}")
                     val propertiesRelativePath = "${rootTestConfig.directory.toFile().relativeTo(tmpDir)}${File.separator}save.properties"
                     val tests = testDiscoveringService.getAllTestSuites(null, rootTestConfig, propertiesRelativePath, testSuiteUrl)
+                    tests.forEach { newTestSuites.add(it) }
                     log.info("Test suites size = ${tests.size}")
                     log.info("Starting to save new test suites for root test config in $testRootPath")
                     webClientBackend.makeRequest(BodyInserters.fromValue(tests), "/saveTestSuites") {
@@ -229,10 +232,27 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                 .doOnError {
                     log.error("Error to update test with url=$testSuiteUrl, path=$testSuitePaths")
                 }
-                .collect(Collectors.toList())
-                .subscribe()
-        }
+        }.collectList()
+            .flatMap {
+                deleteOldStandardTestSuites(newTestSuites)
+            }
     }
+
+    private fun deleteOldStandardTestSuites(newTestSuites: MutableList<TestSuiteDto>) = webClientBackend.get()
+        .uri("/allStandardTestSuites")
+        .retrieve()
+        .bodyToMono<List<TestSuiteDto>>()
+        .map { existingSuites ->
+            existingSuites.filter { it !in newTestSuites }
+        }
+        .flatMap { suitesToDelete ->
+            webClientBackend.makeRequest(
+                BodyInserters.fromValue(suitesToDelete),
+                "/deleteTestSuite"
+            ) {
+                it.toBodilessEntity()
+            }
+        }
 
     private fun cloneFromGit(gitDto: GitDto, tmpDir: File): Git? {
         val userCredentials = if (gitDto.username != null && gitDto.password != null) {
