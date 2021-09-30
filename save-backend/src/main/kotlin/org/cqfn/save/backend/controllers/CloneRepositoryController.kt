@@ -28,6 +28,7 @@ import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.toEntity
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import java.lang.StringBuilder
 import java.nio.file.Paths
 import java.time.LocalDateTime
 
@@ -95,7 +96,8 @@ class CloneRepositoryController(
             projectService.getProjectByNameAndOwner(name, owner)
         }
         return project?.let {
-            val newExecutionId = saveExecution(project, executionType, configProperties.initialBatchSize, executionRequest.sdk)
+            val newExecution = saveExecution(project, executionType, configProperties.initialBatchSize, executionRequest.sdk)
+            val newExecutionId = newExecution.id!!
             log.info("Sending request to preprocessor (executionType $executionType) to start save file for project id=${project.id}")
             val bodyBuilder = MultipartBodyBuilder().apply {
                 configure(newExecutionId)
@@ -104,7 +106,7 @@ class CloneRepositoryController(
                 ExecutionType.GIT -> "/upload"
                 ExecutionType.STANDARD -> "/uploadBin"
             }
-            files.collectToMultipart(bodyBuilder)
+            files.collectToMultipart(bodyBuilder, newExecution)
                 .flatMap {
                     preprocessorWebClient.postMultipart(bodyBuilder, uri)
                 }
@@ -117,13 +119,13 @@ class CloneRepositoryController(
         type: ExecutionType,
         batchSize: Int,
         sdk: Sdk
-    ): Long {
+    ): Execution {
         val execution = Execution(project, LocalDateTime.now(), null, ExecutionStatus.PENDING, null,
-            null, 0, batchSize, type, null, 0, 0, 0, sdk.toString()).apply {
+            null, 0, batchSize, type, null, 0, 0, 0, sdk.toString(), null).apply {
             id = executionService.saveExecution(this)
         }
         log.info("Creating a new execution id=${execution.id} for project id=${project.id}")
-        return execution.id!!
+        return execution
     }
 
     private fun WebClient.postMultipart(bodyBuilder: MultipartBodyBuilder, uri: String) = post()
@@ -133,11 +135,19 @@ class CloneRepositoryController(
         .retrieve()
         .toEntity<String>()
 
-    private fun Flux<FileInfo>.collectToMultipart(multipartBodyBuilder: MultipartBodyBuilder) = map {
-        val path = Paths.get(it.uploadedMillis.toString()).resolve(it.name)
-        println("\n\n\nFILE ${path}")
-        multipartBodyBuilder.part("file", fileSystemRepository.getFile(it))
+    private fun Flux<FileInfo>.collectToMultipart(multipartBodyBuilder: MultipartBodyBuilder, execution: Execution): Mono<List<MultipartBodyBuilder.PartBuilder>> {
+        val additionalFiles = StringBuilder("")
+        return map {
+            val path = Paths.get(it.uploadedMillis.toString()).resolve(it.name)
+            additionalFiles.append("${path};")
+            multipartBodyBuilder.part("file", fileSystemRepository.getFile(it))
+        }
+            .collectList()
+            .switchIfEmpty(Mono.just(emptyList()))
+            .flatMap {
+                execution.additionalFiles = additionalFiles.toString()
+                executionService.saveExecution(execution)
+                Mono.just(emptyList())
+            }
     }
-        .collectList()
-        .switchIfEmpty(Mono.just(emptyList()))
 }
