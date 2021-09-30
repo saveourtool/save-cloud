@@ -143,18 +143,14 @@ class CloneRepositoryController(
         val additionalFiles = StringBuilder("")
         return map {
             val path = Paths.get(it.uploadedMillis.toString()).resolve(it.name)
-            println("CURRENT FILE: $path")
             additionalFiles.append("$path;")
             multipartBodyBuilder.part("file", fileSystemRepository.getFile(it))
         }
             .collectList()
             .switchIfEmpty(Mono.just(emptyList()))
-//            .doOnEach {
-//                println("\n\n\nFILES: $additionalFiles")
-//                execution.additionalFiles = additionalFiles.toString()
-//                println("UPDATE EXECUTION")
-//                executionService.saveExecution(execution)
-//                println("SAVE EXECUTION")
-//            }
+            .doOnNext {
+                execution.additionalFiles = additionalFiles.toString()
+                executionService.saveExecution(execution)
+            }
     }
 }

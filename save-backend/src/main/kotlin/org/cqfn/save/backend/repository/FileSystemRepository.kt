@@ -23,6 +23,7 @@ import kotlin.io.path.createFile
 import kotlin.io.path.deleteExisting
 import kotlin.io.path.exists
 import kotlin.io.path.fileSize
+import kotlin.io.path.getLastModifiedTime
 import kotlin.io.path.isDirectory
 import kotlin.io.path.listDirectoryEntries
 import kotlin.io.path.name
@@ -63,14 +64,13 @@ class FileSystemRepository(configProperties: ConfigProperties) {
      * @return a FileInfo describing a saved file
      */
     fun saveFile(file: Path): FileInfo {
-        val uploadedMillis = System.currentTimeMillis()
         val destination = rootDir
-            .resolve(uploadedMillis.toString())
+            .resolve(file.getLastModifiedTime().toMillis().toString())
             .createDirectories()
             .resolve(file.name)
         logger.info("Saving a new file into $destination")
         file.copyTo(destination, overwrite = false)
-        return FileInfo(file.name, uploadedMillis, file.fileSize())
+        return FileInfo(file.name, file.getLastModifiedTime().toMillis(), file.fileSize())
     }
 
     /**
