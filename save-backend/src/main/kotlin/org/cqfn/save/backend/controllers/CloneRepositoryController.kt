@@ -148,10 +148,9 @@ class CloneRepositoryController(
         }
             .collectList()
             .switchIfEmpty(Mono.just(emptyList()))
-            .flatMap {
+            .doOnNext {
                 execution.additionalFiles = additionalFiles.toString()
                 executionService.saveExecution(execution)
-                Mono.just(emptyList())
             }
     }
 }
