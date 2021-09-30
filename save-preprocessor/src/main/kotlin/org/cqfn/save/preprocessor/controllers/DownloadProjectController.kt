@@ -324,6 +324,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                     TestSuiteDto(
                         TestSuiteType.STANDARD,
                         it,
+                        null,
                         project,
                         propertiesRelativePath
                     )

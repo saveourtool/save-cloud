@@ -12,7 +12,6 @@ import react.RBuilder
 import react.RComponent
 import react.State
 import react.buildElement
-import react.child
 import react.dom.a
 import react.dom.button
 import react.dom.div
