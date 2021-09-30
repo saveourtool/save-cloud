@@ -187,6 +187,7 @@ class DockerService(private val configProperties: ConfigProperties) {
                     |RUN ln -fs /usr/share/zoneinfo/UTC /etc/localtime
                     |RUN chmod +x $executionDir/$SAVE_AGENT_EXECUTABLE_NAME
                     |RUN chmod +x $executionDir/$SAVE_CLI_EXECUTABLE_NAME
+                    |RUN chmod +x $executionDir/diktat-rules/src/test/resources/test/smoke/src/ktlint
                 """
         )
         saveAgent.delete()
