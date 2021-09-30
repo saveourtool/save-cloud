@@ -86,6 +86,7 @@ class CloneRepositoryController(
         part("executionRequestForStandardSuites", executionRequestForStandardSuites)
     }
 
+    @Suppress("UnsafeCallOnNullableType")
     private fun sendToPreprocessor(
         executionRequest: ExecutionRequestBase,
         executionType: ExecutionType,
@@ -106,14 +107,13 @@ class CloneRepositoryController(
                 ExecutionType.GIT -> "/upload"
                 ExecutionType.STANDARD -> "/uploadBin"
             }
-            files.collectToMultipart(bodyBuilder, newExecution)
+            files.collectToMultipartAndUpdateExecution(bodyBuilder, newExecution)
                 .flatMap {
                     preprocessorWebClient.postMultipart(bodyBuilder, uri)
                 }
         } ?: Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).body("Project doesn't exist"))
     }
 
-    @Suppress("UnsafeCallOnNullableType")
     private fun saveExecution(
         project: Project,
         type: ExecutionType,
@@ -136,7 +136,10 @@ class CloneRepositoryController(
         .toEntity<String>()
 
     @Suppress("TYPE_ALIAS")
-    private fun Flux<FileInfo>.collectToMultipart(multipartBodyBuilder: MultipartBodyBuilder, execution: Execution): Mono<List<MultipartBodyBuilder.PartBuilder>> {
+    private fun Flux<FileInfo>.collectToMultipartAndUpdateExecution(
+        multipartBodyBuilder: MultipartBodyBuilder,
+        execution: Execution
+    ): Mono<List<MultipartBodyBuilder.PartBuilder>> {
         val additionalFiles = StringBuilder("")
         return map {
             val path = Paths.get(it.uploadedMillis.toString()).resolve(it.name)
