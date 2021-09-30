@@ -142,6 +142,7 @@ class CloningRepositoryControllerTest {
             .`when`(projectService.getProjectByNameAndOwner("huaweiName", "Huawei"))
             .thenReturn(project)
 
+        println("\n\n\nSTART POST")
         webTestClient.post()
             .uri("/submitExecutionRequestBin")
             .contentType(MediaType.MULTIPART_FORM_DATA)
