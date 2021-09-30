@@ -80,7 +80,7 @@ class TestDiscoveringServiceTest {
             rootTestConfig,
             listOf(
                 createTestSuiteStub("Autofix: Smoke Tests", 1),
-                createTestSuiteStub("autofix", 2),
+                createTestSuiteStub("DocsCheck", 2),
                 createTestSuiteStub("Only Warnings: General", 3),
                 createTestSuiteStub("Autofix and Warn", 4),
                 createTestSuiteStub("Directory: Chapter 1", 5),
@@ -90,7 +90,7 @@ class TestDiscoveringServiceTest {
         )
 
         println("Discovered the following tests: $testDtos")
-        Assertions.assertEquals(10, testDtos.size)
+        Assertions.assertEquals(12, testDtos.size)
         Assertions.assertEquals(testDtos.size, testDtos.map { it.hash + it.filePath + it.testSuiteId }.distinct().size) {
             "Some tests have the same hash/filePath/testSuiteId combination in $testDtos"
         }
@@ -99,7 +99,7 @@ class TestDiscoveringServiceTest {
         }
     }
 
-    private fun createTestSuiteStub(name: String, id: Long) = TestSuite(TestSuiteType.PROJECT, name, null, null, propertiesRelativePath).apply {
+    private fun createTestSuiteStub(name: String, id: Long) = TestSuite(TestSuiteType.PROJECT, name, null, null, null, propertiesRelativePath).apply {
         this.id = id
     }
 }

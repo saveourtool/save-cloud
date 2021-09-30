@@ -82,6 +82,7 @@ val generatedKotlinSrc = kotlin.sourceSets.create("jsGenerated") {
 kotlin.sourceSets.getByName("main").dependsOn(generatedKotlinSrc)
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.Kotlin2JsCompile>().forEach {
     it.dependsOn(generateVersionFileTaskProvider)
+    it.inputs.file("$buildDir/generated/src/generated/Versions.kt")
 }
 
 tasks.withType<org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack>().forEach { kotlinWebpack ->

@@ -14,5 +14,8 @@
                 columnName="project_id"
                 columnDataType="bigint"
         />
+        <addColumn tableName="test_suite">
+            <column name="description" type="text"/>
+        </addColumn>
     </changeSet>
 </databaseChangeLog>
