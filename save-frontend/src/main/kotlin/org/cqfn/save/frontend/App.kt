@@ -17,6 +17,7 @@ import org.cqfn.save.frontend.externals.fontawesome.faAngleUp
 import org.cqfn.save.frontend.externals.fontawesome.faCheck
 import org.cqfn.save.frontend.externals.fontawesome.faCogs
 import org.cqfn.save.frontend.externals.fontawesome.faExclamationTriangle
+import org.cqfn.save.frontend.externals.fontawesome.faQuestionCircle
 import org.cqfn.save.frontend.externals.fontawesome.faSignOutAlt
 import org.cqfn.save.frontend.externals.fontawesome.faTimesCircle
 import org.cqfn.save.frontend.externals.fontawesome.faUser
@@ -149,7 +150,7 @@ class App : RComponent<PropsWithChildren, AppState>() {
 fun main() {
     kotlinext.js.require("../scss/save-frontend.scss")  // this is needed for webpack to include resource
     kotlinext.js.require("bootstrap")  // this is needed for webpack to include bootstrap
-    library.add(fas, faUser, faCogs, faSignOutAlt, faAngleUp, faCheck, faExclamationTriangle, faTimesCircle)
+    library.add(fas, faUser, faCogs, faSignOutAlt, faAngleUp, faCheck, faExclamationTriangle, faTimesCircle, faQuestionCircle)
     ReactModal.setAppElement(document.getElementById("wrapper") as HTMLElement)  // required for accessibility in react-modal
 
     render(document.getElementById("wrapper")) {

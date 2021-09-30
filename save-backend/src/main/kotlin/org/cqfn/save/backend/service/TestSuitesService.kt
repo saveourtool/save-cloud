@@ -37,22 +37,31 @@ class TestSuitesService {
     @Suppress("UnsafeCallOnNullableType")
     fun saveTestSuite(testSuitesDto: List<TestSuiteDto>): List<TestSuite> {
         val testSuites = testSuitesDto
-            .map { TestSuite(it.type, it.name, it.project, null, it.propertiesRelativePath, it.testSuiteRepoUrl) }
+            .distinctBy {
+                // Same suites may be declared in different directories, we unify them here.
+                // We allow description of existing test suites to be changed.
+                it.copy(description = null)
+            }
+            .map {
+                TestSuite(it.type, it.name, it.description, it.project, null, it.propertiesRelativePath, it.testSuiteRepoUrl)
+            }
             .map { testSuite ->
                 // try to find TestSuite in the DB based on all non-null properties of `testSuite`
                 // NB: that's why `dateAdded` is null in the mapping above
-                testSuiteRepository.findOne(
-                    Example.of(testSuite)
-                )
-                    // if testSuite is not present in the DB, we will save it with current timestamp
+                val description = testSuite.description
+                testSuiteRepository
+                    .findOne(
+                        Example.of(testSuite.apply { this.description = null })
+                    )
                     .orElseGet {
+                        // if testSuite is not present in the DB, we will save it with current timestamp
                         testSuite.apply {
                             dateAdded = LocalDateTime.now()
+                            this.description = description
                         }
                     }
             }
-        testSuites.filter { it.id == null }
-            .let { testSuiteRepository.saveAll(it) }
+        testSuiteRepository.saveAll(testSuites)
         return testSuites.toList()
     }
 

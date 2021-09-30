@@ -64,6 +64,7 @@ class TestSuitesControllerTest {
         val testSuite = TestSuiteDto(
             TestSuiteType.PROJECT,
             "test",
+            null,
             project,
             "save.properties"
         )
@@ -86,6 +87,7 @@ class TestSuitesControllerTest {
         val testSuite = TestSuiteDto(
             TestSuiteType.PROJECT,
             "test",
+            null,
             project,
             "save.properties"
         )
@@ -104,6 +106,7 @@ class TestSuitesControllerTest {
         val testSuite = TestSuiteDto(
             TestSuiteType.PROJECT,
             "test",
+            null,
             project,
             "save.properties"
         )
@@ -116,6 +119,7 @@ class TestSuitesControllerTest {
         val testSuite2 = TestSuiteDto(
             TestSuiteType.PROJECT,
             "test2",
+            null,
             project,
             "save.properties"
         )
@@ -141,6 +145,7 @@ class TestSuitesControllerTest {
         val testSuite = TestSuiteDto(
             TestSuiteType.STANDARD,
             "tester",
+            null,
             project,
             "save.properties"
         )
@@ -169,6 +174,7 @@ class TestSuitesControllerTest {
         val testSuite = TestSuiteDto(
             TestSuiteType.STANDARD,
             name,
+            null,
             project,
             "save.properties"
         )
