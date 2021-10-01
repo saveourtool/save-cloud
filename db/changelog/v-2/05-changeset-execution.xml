@@ -10,7 +10,7 @@
             <tableExists tableName="execution"/>
         </preConditions>
         <addColumn tableName="execution">
-            <column name="additional_files" type="varchar(8000)" defaultValue="null"/>
+            <column name="additional_files" type="text" defaultValue="null"/>
         </addColumn>
     </changeSet>
 </databaseChangeLog>

@@ -29,7 +29,6 @@ import org.springframework.web.reactive.function.client.toEntity
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import java.lang.StringBuilder
-import java.nio.file.Paths
 import java.time.LocalDateTime
 
 /**
@@ -142,7 +141,7 @@ class CloneRepositoryController(
     ): Mono<List<MultipartBodyBuilder.PartBuilder>> {
         val additionalFiles = StringBuilder("")
         return map {
-            val path = Paths.get(it.uploadedMillis.toString()).resolve(it.name)
+            val path = fileSystemRepository.getPath(it)
             additionalFiles.append("$path;")
             multipartBodyBuilder.part("file", fileSystemRepository.getFile(it))
         }

@@ -80,6 +80,6 @@ class Execution(
         passedTests,
         failedTests,
         skippedTests,
-        additionalFiles,
+        additionalFiles?.split(";")?.filter { it.isNotBlank() },
     )
 }

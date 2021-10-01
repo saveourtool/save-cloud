@@ -24,5 +24,5 @@ data class ExecutionDto(
     val passedTests: Long,
     val failedTests: Long,
     val skippedTests: Long,
-    val additionalFiles: String?,
+    val additionalFiles: List<String>?,
 )
