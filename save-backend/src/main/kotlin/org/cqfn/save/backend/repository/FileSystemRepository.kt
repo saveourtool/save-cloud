@@ -57,7 +57,7 @@ class FileSystemRepository(configProperties: ConfigProperties) {
      * @param fileInfo a FileInfo based on which a file should be located
      * @return requested file as a [FileSystemResource]
      */
-    fun getFile(fileInfo: FileInfo): FileSystemResource = fileInfo.getPath().let(::FileSystemResource)
+    fun getFile(fileInfo: FileInfo): FileSystemResource = getPath(fileInfo).let(::FileSystemResource)
 
     /**
      * @param file a file to save
@@ -119,5 +119,9 @@ class FileSystemRepository(configProperties: ConfigProperties) {
         false
     }
 
-    private fun FileInfo.getPath() = getStorageDir(this).resolve(name)
+    /**
+     * @param fileInfo
+     * @return path to the file in storage
+     */
+    fun getPath(fileInfo: FileInfo) = getStorageDir(fileInfo).resolve(fileInfo.name)
 }
