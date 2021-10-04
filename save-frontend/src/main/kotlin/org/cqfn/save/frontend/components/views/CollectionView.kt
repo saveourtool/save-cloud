@@ -54,7 +54,7 @@ class CollectionView : RComponent<PropsWithChildren, State>() {
                         }
                     }
                 }
-                column(id = "passed", header = "Tests passed") {
+                column(id = "passed", header = "Description") {
                     buildElement {
                         td {
                             a(href = "#/${it.value.owner}/${it.value.name}/history") {

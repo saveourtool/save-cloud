@@ -26,6 +26,7 @@ import javax.persistence.ManyToOne
  * @property failedTests
  * @property skippedTests
  * @property sdk
+ * @property additionalFiles
  */
 @Suppress("USE_DATA_CLASS", "LongParameterList")
 @Entity
@@ -63,6 +64,8 @@ class Execution(
 
     var sdk: String,
 
+    var additionalFiles: String?,
+
 ) : BaseEntity() {
     /**
      * @return Execution dto
@@ -77,5 +80,6 @@ class Execution(
         passedTests,
         failedTests,
         skippedTests,
+        additionalFiles?.split(";")?.filter { it.isNotBlank() },
     )
 }
