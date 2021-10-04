@@ -28,6 +28,6 @@ class Test(
     @JoinColumn(name = "test_suite_id")
     var testSuite: TestSuite,
 
-    var tags: String,
+    var tags: String?,
 
 ) : BaseEntity()

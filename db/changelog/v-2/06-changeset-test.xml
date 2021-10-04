@@ -10,7 +10,7 @@
             <tableExists tableName="test"/>
         </preConditions>
         <addColumn tableName="test">
-            <column name="tags" type="varchar(255)"/>
+            <column name="tags" type="varchar(255)" defaultValue="null"/>
         </addColumn>
     </changeSet>
 </databaseChangeLog>

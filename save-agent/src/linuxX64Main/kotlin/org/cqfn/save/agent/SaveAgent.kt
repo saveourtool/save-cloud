@@ -154,7 +154,7 @@ class SaveAgent(private val config: AgentConfiguration,
                 pluginExecution.testResults.map {
                     val testResultStatus = it.status.toTestResultStatus()
                     TestExecutionDto(
-                        it.resources.first().toString(),
+                        it.resources.test.toString(),
                         pluginExecution.plugin,
                         config.id,
                         testResultStatus,
