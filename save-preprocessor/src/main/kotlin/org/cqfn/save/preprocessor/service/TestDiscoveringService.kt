@@ -101,8 +101,7 @@ class TestDiscoveringService {
                         val testRelativePath = it.test.toFile()
                             .relativeTo(rootTestConfig.directory.toFile())
                             .path
-                        val tags = generalConfig.tags
-                        TestDto(testRelativePath, plugin::class.simpleName!!, testSuite.id!!, it.test.toFile().toHash(), tags!!.joinToString(";"))
+                        TestDto(testRelativePath, plugin::class.simpleName!!, testSuite.id!!, it.test.toFile().toHash(), generalConfig.tags!!)
                     }
             }
         }

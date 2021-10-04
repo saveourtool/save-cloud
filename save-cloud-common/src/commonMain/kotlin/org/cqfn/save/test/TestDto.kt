@@ -19,7 +19,7 @@ data class TestDto(
     val pluginName: String,
     val testSuiteId: Long,
     val hash: String,
-    val tags: String?,
+    val tags: List<String>?,
 )
 
 /**

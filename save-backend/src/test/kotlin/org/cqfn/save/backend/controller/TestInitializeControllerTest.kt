@@ -48,7 +48,7 @@ class TestInitializeControllerTest {
             "WarnPlugin",
             testSuite.id!!,
             "newHash",
-            "tag",
+            listOf("tag"),
         )
 
         webClient.post()
@@ -72,8 +72,7 @@ class TestInitializeControllerTest {
             "WarnPlugin",
             testSuite.id!!,
             "newHash2",
-            "tag",
-
+            listOf("tag"),
         )
         webClient.post()
             .uri("/initializeTests?executionId=2")
@@ -97,7 +96,7 @@ class TestInitializeControllerTest {
             "WarnPlugin",
             testSuite.id!!,
             "newHash123",
-            "tag",
+            listOf("tag"),
         )
         webClient.post()
             .uri("/initializeTests")

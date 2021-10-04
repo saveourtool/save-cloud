@@ -92,7 +92,7 @@ class HeartbeatControllerTest {
 
     @Test
     fun checkNewJobResponse() {
-        val list = listOf(TestDto("qwe", "WarnPlugin", 0, "hash", "tag"))
+        val list = listOf(TestDto("qwe", "WarnPlugin", 0, "hash", listOf("tag")))
         // /getTestBatches
         mockServer.enqueue(
             MockResponse()
@@ -130,9 +130,9 @@ class HeartbeatControllerTest {
             heartbeat = Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100)),
             testBatch = TestBatch(
                 listOf(
-                    TestDto("/path/to/test-1", "WarnPlugin", 1, "hash1", "tag"),
-                    TestDto("/path/to/test-2", "WarnPlugin", 1, "hash2", "tag"),
-                    TestDto("/path/to/test-3", "WarnPlugin", 1, "hash3", "tag"),
+                    TestDto("/path/to/test-1", "WarnPlugin", 1, "hash1", listOf("tag")),
+                    TestDto("/path/to/test-2", "WarnPlugin", 1, "hash2", listOf("tag")),
+                    TestDto("/path/to/test-3", "WarnPlugin", 1, "hash3", listOf("tag")),
                 ),
                 mapOf(1L to "")
             ),
@@ -179,9 +179,9 @@ class HeartbeatControllerTest {
             heartbeat = Heartbeat("test-1", AgentState.STARTING, ExecutionProgress(0)),
             testBatch = TestBatch(
                 listOf(
-                    TestDto("/path/to/test-1", "WarnPlugin", 1, "hash1", "tag"),
-                    TestDto("/path/to/test-2", "WarnPlugin", 1, "hash2", "tag"),
-                    TestDto("/path/to/test-3", "WarnPlugin", 1, "hash3", "tag"),
+                    TestDto("/path/to/test-1", "WarnPlugin", 1, "hash1", listOf("tag")),
+                    TestDto("/path/to/test-2", "WarnPlugin", 1, "hash2", listOf("tag")),
+                    TestDto("/path/to/test-3", "WarnPlugin", 1, "hash3", listOf("tag")),
                 ),
                 mapOf(1L to "")
             ),

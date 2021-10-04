@@ -23,5 +23,5 @@ data class TestExecutionDto(
     val startTimeSeconds: Long?,
     val endTimeSeconds: Long?,
     val testSuiteName: String? = null,
-    val tags: String? = null,
+    val tags: List<String>? = null,
 )
