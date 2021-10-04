@@ -1,6 +1,5 @@
 package org.cqfn.save.backend.service
 
-import org.cqfn.save.backend.controllers.TestController
 import org.cqfn.save.backend.repository.TestExecutionRepository
 import org.cqfn.save.backend.repository.TestRepository
 import org.cqfn.save.backend.repository.TestSuiteRepository
@@ -122,6 +121,6 @@ class TestSuitesService {
     }
 
     companion object {
-        private val log = LoggerFactory.getLogger(TestController::class.java)
+        private val log = LoggerFactory.getLogger(TestSuitesService::class.java)
     }
 }

@@ -100,11 +100,13 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
         log.debug("Will create test executions for executionId=$executionId for tests $testIds")
         testIds.map { testId ->
             testRepository.findById(testId).ifPresentOrElse({ test ->
-                testExecutionRepository.save(
+                log.debug("Creating TestExecution for test $testId")
+                val id = testExecutionRepository.save(
                     TestExecution(test,
                         executionId,
                         null, TestResultStatus.READY, null, null)
                 )
+                log.debug("Created TestExecution $id for test $testId")
             },
                 { log.error("Can't find test with id = $testId to save in testExecution") }
             )
