@@ -25,8 +25,6 @@ import java.time.LocalDateTime
  */
 @Service
 class TestService {
-    private val log = LoggerFactory.getLogger(TestService::class.java)
-
     @Autowired
     private lateinit var testRepository: TestRepository
 
@@ -73,18 +71,18 @@ class TestService {
         log.debug("Agent found: $agent")
         val execution = agent.execution
         log.debug("Retrieving tests")
-        val tests = testExecutionRepository.findByStatusAndExecutionId(
+        val testExecutions = testExecutionRepository.findByStatusAndExecutionId(
             TestResultStatus.READY,
             execution.id!!,
             PageRequest.of(execution.page, execution.batchSize!!)
         )
-        val testDtos = tests.map {
+        val testDtos = testExecutions.map {
             TestDto(it.test.filePath, it.test.pluginName, it.test.testSuite.id!!, it.test.hash)
         }
         log.debug("Increasing offset of the execution - ${agent.execution}")
         ++execution.page
         executionRepository.save(execution)
-        return Mono.just(TestBatch(testDtos, tests.map { it.test.testSuite }.associate {
+        return Mono.just(TestBatch(testDtos, testExecutions.map { it.test.testSuite }.associate {
             it.id!! to "${File(it.propertiesRelativePath).parent}"
         }))
     }

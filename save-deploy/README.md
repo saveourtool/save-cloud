@@ -21,6 +21,9 @@ Deployment is performed on server via docker swarm or locally via docker-compose
 * Secrets should be added to the swarm as well as to `$HOME/secrets` file.
 * Pull new changes to the server and run `./gradlew -Pprofile=prod deployDockerStack`.
 
+## Database
+The service is designed to work with MySQL database. Migrations are applied with liquibase. They expect event scheduler to be enabled on the DB.
+
 ## Local deployment
 * Ensure that docker daemon is running and docker-compose is installed.
 * To make things easier, add line `save.profile=dev` to `gradle.properties`. This will make project version `SNAPSHOT` instead of timetamp-based suffix and allow caching of gradle tasks.
