@@ -11,6 +11,7 @@ import org.cqfn.save.testsuite.TestSuiteType
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.Example
+import org.springframework.data.domain.ExampleMatcher
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
 
@@ -122,6 +123,6 @@ class TestSuitesService {
     }
 
     companion object {
-        private val log = LoggerFactory.getLogger(TestController::class.java)
+        private val log = LoggerFactory.getLogger(TestSuitesService::class.java)
     }
 }

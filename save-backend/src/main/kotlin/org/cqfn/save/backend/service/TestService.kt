@@ -25,8 +25,6 @@ import java.time.LocalDateTime
  */
 @Service
 class TestService {
-    private val log = LoggerFactory.getLogger(TestService::class.java)
-
     @Autowired
     private lateinit var testRepository: TestRepository
 
