@@ -1,6 +1,5 @@
 package org.cqfn.save.backend.service
 
-import org.cqfn.save.backend.controllers.TestController
 import org.cqfn.save.backend.repository.TestExecutionRepository
 import org.cqfn.save.backend.repository.TestRepository
 import org.cqfn.save.backend.repository.TestSuiteRepository
@@ -11,7 +10,6 @@ import org.cqfn.save.testsuite.TestSuiteType
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.Example
-import org.springframework.data.domain.ExampleMatcher
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
 
