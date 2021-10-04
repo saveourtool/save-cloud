@@ -53,6 +53,7 @@ class TestExecution(
         status,
         startTime?.toEpochSecond(ZoneOffset.UTC),
         endTime?.toEpochSecond(ZoneOffset.UTC),
+        test.tags,
         test.testSuite.name,
     )
 }

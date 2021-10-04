@@ -145,6 +145,13 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
                         }
                     }
                 }
+                column(id = "tags", header = "Tags") {
+                    buildElement {
+                        td {
+                            +"${it.value.tags!!.split(";").filter { it.isNotBlank() }}"
+                        }
+                    }
+                }
             },
             useServerPaging = true,
             getPageCount = { pageSize ->
