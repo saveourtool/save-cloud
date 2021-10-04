@@ -5,9 +5,6 @@
         </encoder>
     </appender>
 
-    <logger name="org.cqfn.save.backend.service.TestService" level="DEBUG"/>
-    <logger name="org.cqfn.save.backend.service.TestExecutionService" level="DEBUG"/>
-    <logger name="org.cqfn.save.backend.controllers.TestController" level="DEBUG"/>
     <root level="info">
         <appender-ref ref="STDOUT" />
     </root>
