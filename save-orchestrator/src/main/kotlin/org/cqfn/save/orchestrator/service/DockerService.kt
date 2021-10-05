@@ -193,7 +193,7 @@ class DockerService(private val configProperties: ConfigProperties) {
                     |fi
                     |RUN if [ -d $executionDir/clang-tools-extra/test/clang-tidy ]; 
                     |   then find $executionDir/clang-tools-extra/test/clang-tidy -type f -name "clang-tidy-linux" -exec chmod +x {} \;
-                    |fi 
+                    |fi test
                 """
         )
         saveAgent.delete()
