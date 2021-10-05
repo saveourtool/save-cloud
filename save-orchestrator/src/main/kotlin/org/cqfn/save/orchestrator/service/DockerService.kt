@@ -188,15 +188,14 @@ class DockerService(private val configProperties: ConfigProperties) {
                     |RUN ln -fs /usr/share/zoneinfo/UTC /etc/localtime
                     |RUN chmod +x $executionDir/$SAVE_AGENT_EXECUTABLE_NAME
                     |RUN chmod +x $executionDir/$SAVE_CLI_EXECUTABLE_NAME
-                    |RUN if [ -d $executionDir/diktat-rules/src/test/resources/test/smoke ]; then 
-                    |   find $executionDir/diktat-rules/src/test/resources/test/smoke -type f -name "ktlint" -exec chmod +x {} \;
+                    |RUN if [ -d $executionDir/diktat-rules/src/test/resources/test/smoke ]; then \
+                    |   find $executionDir/diktat-rules/src/test/resources/test/smoke -type f -name "ktlint" -exec chmod +x {} \; \
                     |fi
-                    |RUN if [ -d $executionDir/clang-tools-extra/test/clang-tidy ]; 
-                    |   then find $executionDir/clang-tools-extra/test/clang-tidy -type f -name "clang-tidy-linux" -exec chmod +x {} \;
+                    |RUN if [ -d $executionDir/clang-tools-extra/test/clang-tidy ]; then \
+                    |   find $executionDir/clang-tools-extra/test/clang-tidy -type f -name "clang-tidy-linux" -exec chmod +x {} \; \
                     |fi
                 """
         )
-        // test
         saveAgent.delete()
         saveCli.delete()
         return Triple(imageId, agentRunCmd, saveCliExecFlags)
