@@ -98,7 +98,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                         .resolve(location)
                         .resolve(executionRequest.propertiesRelativePath)
                         .parentFile
-                    log.info("Downloading additional files into $resourcesLocation")
+                    log.info("\n\n\nDownloading additional files into $resourcesLocation")
                     files.download(resourcesLocation)
                         .switchIfEmpty(
                             // if no files have been provided, proceed with empty list
@@ -156,21 +156,38 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
     @Suppress("UnsafeCallOnNullableType")
     @PostMapping("/rerunExecution")
     fun rerunExecution(@RequestBody executionRerunRequest: ExecutionRequest) = Mono.fromCallable {
+        println("\n\n\nStart rerun in preprocesor")
         requireNotNull(executionRerunRequest.executionId) { "Can't rerun execution with unknown id" }
         ResponseEntity("Clone pending", HttpStatus.ACCEPTED)
     }
         .doOnSuccess {
-            updateExecutionStatus(executionRerunRequest.executionId!!, ExecutionStatus.PENDING)
+            println("STUB 1")
+            updateExecutionStatus(executionRerunRequest.executionId!!, ExecutionStatus.PENDING).also { println("STUB11")}
                 .flatMap {
+                    println("STUB 2")
                     cleanupInOrchestrator(executionRerunRequest.executionId!!)
                 }
                 .flatMap {
-                    downLoadRepository(executionRerunRequest).map { (location, _) -> location }
+                    println("STUB 3")
+                    downLoadRepository(executionRerunRequest).map { (location, _) ->
+                        location
+                    }
                 }
                 .zipWith(
                     getExecution(executionRerunRequest.executionId!!)
                 )
                 .flatMap { (location, execution) ->
+                    val resourcesLocation = File(configProperties.repository)
+                        .resolve(location)
+                        .resolve(executionRerunRequest.propertiesRelativePath)
+                        .parentFile
+                    val files = execution.additionalFiles?.split(";")?.filter {it.isNotBlank() }?.map { File(it) } ?: emptyList()
+                    log.info("\n\n\nMove additional files")
+                    files.forEach { file ->
+                        log.info("Move additional file ${file.absolutePath} into ${resourcesLocation.absolutePath}")
+                        //Files.move(Paths.get(file.absolutePath), Paths.get(resourcesLocation.absolutePath))
+                    }
+                    println("EXECUTION IN RERUN ${execution.resourcesRootPath} ${execution.additionalFiles}")
                     sendToBackendAndOrchestrator(
                         execution,
                         execution.project,
@@ -308,6 +325,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
             it.toHash()
         })
         files.forEach {
+            println("MOVE FILE ${Paths.get(it.absolutePath)} INTO ${Paths.get((tmpDir.resolve(it)).absolutePath)}")
             Files.move(Paths.get(it.absolutePath), Paths.get((tmpDir.resolve(it)).absolutePath))
         }
         val project = executionRequestForStandardSuites.project
@@ -386,6 +404,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         } ?: require(executionType == ExecutionType.GIT) { "Test suites are not provided, but should for executionType=$executionType" }
 
         return if (executionType == ExecutionType.GIT) {
+            println("\n\nPREPARE FOR GIT ${execution.additionalFiles} ${testSuiteDtos}")
             prepareForExecutionFromGit(project, execution.id!!, propertiesRelativePath, projectRootRelativePath, gitUrl!!)
         } else {
             prepareExecutionForStandard(testSuiteDtos!!, execution.id!!)
