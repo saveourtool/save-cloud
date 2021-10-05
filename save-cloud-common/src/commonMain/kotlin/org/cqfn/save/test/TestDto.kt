@@ -11,6 +11,7 @@ import kotlinx.serialization.Serializable
  * @property hash hash of file content
  * @property testSuiteId id of test suite, which this test belongs to
  * @property pluginName name of a plugin which this test belongs to
+ * @property tags list of tags of current test
  */
 @Serializable
 data class TestDto(
@@ -18,6 +19,7 @@ data class TestDto(
     val pluginName: String,
     val testSuiteId: Long,
     val hash: String,
+    val tags: List<String> = emptyList(),
 )
 
 /**

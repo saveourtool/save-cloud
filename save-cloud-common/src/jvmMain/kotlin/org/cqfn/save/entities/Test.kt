@@ -11,6 +11,7 @@ import javax.persistence.ManyToOne
  * @property dateAdded
  * @property testSuite
  * @property pluginName name of a plugin which this test belongs to
+ * @property tags list of tags of current test
  */
 @Entity
 class Test(
@@ -26,5 +27,7 @@ class Test(
     @ManyToOne
     @JoinColumn(name = "test_suite_id")
     var testSuite: TestSuite,
+
+    var tags: String?,
 
 ) : BaseEntity()
