@@ -77,7 +77,7 @@ class TestService {
             PageRequest.of(execution.page, execution.batchSize!!)
         )
         val testDtos = testExecutions.map {
-            val tagsList = it.test.tags?.split(";")?.filter { it.isNotBlank() }
+            val tagsList = it.test.tags?.split(";")?.filter { it.isNotBlank() } ?: emptyList()
             TestDto(it.test.filePath, it.test.pluginName, it.test.testSuite.id!!, it.test.hash, tagsList)
         }
         log.debug("Increasing offset of the execution - ${agent.execution}")

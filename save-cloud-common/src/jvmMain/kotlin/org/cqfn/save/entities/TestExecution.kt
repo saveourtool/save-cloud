@@ -54,6 +54,6 @@ class TestExecution(
         startTime?.toEpochSecond(ZoneOffset.UTC),
         endTime?.toEpochSecond(ZoneOffset.UTC),
         test.testSuite.name,
-        test.tags!!.split(";").filter { it.isNotBlank() },
+        test.tags?.split(";")?.filter { it.isNotBlank() } ?: emptyList(),
     )
 }
