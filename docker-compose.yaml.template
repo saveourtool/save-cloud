@@ -27,7 +27,7 @@ services:
       - save:/home/cnb
       - /home/saveu/executionLogs:/home/cnb/executionLogs/
     extra_hosts:
-    - "host.docker.internal:host-gateway"
+      - "host.docker.internal:host-gateway"
     deploy:
       labels:
         - "prometheus-job=save-orchestrator"
