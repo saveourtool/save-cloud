@@ -1,9 +1,11 @@
 package org.cqfn.save.backend.repository
 
+import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.TestSuite
 import org.cqfn.save.testsuite.TestSuiteType
 import org.springframework.data.repository.query.QueryByExampleExecutor
 import org.springframework.stereotype.Repository
+import java.util.Optional
 
 /**
  * JPA repositories for TestSuite
@@ -41,4 +43,19 @@ interface TestSuiteRepository : BaseEntityRepository<TestSuite>, QueryByExampleE
         type: TestSuiteType,
         propertiesRelPath: String,
         testSuiteRepoUrl: String?): TestSuite
+
+    /**
+     * @param name
+     * @param project
+     * @param type
+     * @param propertiesRelPath
+     * @param testSuiteRepoUrl
+     * @return
+     */
+    fun findByNameAndProjectAndTypeAndPropertiesRelativePathAndTestSuiteRepoUrl(
+        name: String,
+        project: Project?,
+        type: TestSuiteType?,
+        propertiesRelPath: String,
+        testSuiteRepoUrl: String?): Optional<TestSuite>
 }
