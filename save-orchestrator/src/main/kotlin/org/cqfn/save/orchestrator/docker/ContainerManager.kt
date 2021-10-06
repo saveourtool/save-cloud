@@ -138,6 +138,9 @@ class ContainerManager(private val dockerHost: String) {
             dockerClient.buildImageCmd(dockerFile)
                 .withBaseDirectory(tmpDir)
                 .withTags(setOf(imageName))
+                .withExtraHosts(setOf(
+                    "host.docker.internal:host.docker.internal"
+                ))
                 .start()
         } finally {
             dockerFile.delete()
