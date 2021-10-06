@@ -46,6 +46,7 @@ kotlin {
             implementation(npm("react", Versions.react))
             implementation(npm("react-dom", Versions.react))
             implementation(npm("react-modal", "3.12.1"))
+            implementation(npm("react-switch", "6.0.0"))
 
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${Versions.coroutines}")
             implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:${Versions.serialization}")

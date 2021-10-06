@@ -16,10 +16,15 @@ Deployment is performed on server via docker swarm or locally via docker-compose
 
 ## Server deployment
 * Server should run Linux and support docker swarm and gvisor runtime. Ideally, kernel 5.+ is required.
+* [reverse-proxy.conf](reverse-proxy.conf) is a configuration for Nginx to act as a reverse proxy for save-cloud. It should be 
+  copied into `/etc/nginx/sites-available`.
 * Gvisor should be installed and runsc runtime should be available for docker. See [installation guide](https://gvisor.dev/docs/user_guide/install/) for details.
 * Ensure that docker daemon is running and that docker is in swarm mode.
 * Secrets should be added to the swarm as well as to `$HOME/secrets` file.
+* Loki logging driver should be added to docker installation: [instruction](https://grafana.com/docs/loki/latest/clients/docker-driver/#installing)
 * Pull new changes to the server and run `./gradlew -Pprofile=prod deployDockerStack`.
+* [`docker-compose.yaml.template`](../docker-compose.yaml.template) is configured so that all services use Loki for logging
+  and configuration files from `~/configs`, which are copied from `save-deploy` during gradle build.
 
 ## Database
 The service is designed to work with MySQL database. Migrations are applied with liquibase. They expect event scheduler to be enabled on the DB.

@@ -18,7 +18,6 @@ import react.dom.attrs
 import react.dom.button
 import react.dom.div
 import react.dom.h6
-import react.dom.img
 import react.dom.input
 import react.dom.label
 import react.dom.li
@@ -32,6 +31,12 @@ import kotlinx.html.InputType
 import kotlinx.html.hidden
 import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
+import org.cqfn.save.frontend.externals.fontawesome.faFile
+import org.cqfn.save.frontend.externals.fontawesome.faUpload
+import org.cqfn.save.frontend.externals.switch.rSwitch
+import react.buildElement
+import react.createElement
+import react.dom.span
 
 /**
  * Props for file uploader
@@ -58,7 +63,8 @@ external interface UploaderProps : PropsWithChildren {
 fun fileUploader(
     onFileSelect: (HTMLSelectElement) -> Unit,
     onFileRemove: (FileInfo) -> Unit,
-    onFileInput: (HTMLInputElement) -> Unit
+    onFileInput: (HTMLInputElement) -> Unit,
+    onExecutableChange: (file: FileInfo, checked: Boolean) -> Unit,
 ) = fc<UploaderProps> { props ->
     div("mb-3") {
         h6(classes = "d-inline mr-3") {
@@ -74,6 +80,25 @@ fun fileUploader(
                             }
                             attrs.onClickFunction = {
                                 onFileRemove(fileInfo)
+                            }
+                        }
+                        rSwitch {
+                            attrs.checked = fileInfo.isExecutable
+                            attrs.onChange = { checked, _, _ ->
+                                onExecutableChange(fileInfo, checked)
+                            }
+                            attrs.uncheckedIcon = buildElement {
+                                span("fa-layers") {
+                                    fontAwesomeIcon(icon = faFile)
+                                }
+                            }
+                            attrs.checkedIcon = buildElement {
+                                span("fa-layers") {
+                                    fontAwesomeIcon(icon = faFile)
+                                    span("fa-layers-text file-extension fa-inverse") {
+                                        +"exe"
+                                    }
+                                }
                             }
                         }
                         +fileInfo.toPrettyString()
@@ -110,7 +135,7 @@ fun fileUploader(
                                 }
                             }
                         }
-                        img(classes = "img-upload", src = "img/upload.svg") {}
+                        fontAwesomeIcon(icon = faUpload)
                         strong { +"Upload files:" }
                     }
                 }

@@ -16,3 +16,5 @@ external val faCheck: dynamic
 external val faExclamationTriangle: dynamic
 external val faTimesCircle: dynamic
 external val faQuestionCircle: dynamic
+external val faUpload: dynamic
+external val faFile: dynamic

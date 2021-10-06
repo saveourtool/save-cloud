@@ -143,6 +143,7 @@ class CloneRepositoryController(
         return map {
             val path = fileSystemRepository.getPath(it)
             additionalFiles.append("$path;")
+            multipartBodyBuilder.part("fileInfo", it)
             multipartBodyBuilder.part("file", fileSystemRepository.getFile(it))
         }
             .collectList()

@@ -12,4 +12,5 @@ data class FileInfo(
     val name: String,
     val uploadedMillis: Long,
     val sizeBytes: Long,
+    val isExecutable: Boolean = false,
 )

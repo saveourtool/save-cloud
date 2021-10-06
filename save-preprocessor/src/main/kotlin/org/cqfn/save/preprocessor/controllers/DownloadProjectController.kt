@@ -24,6 +24,7 @@ import org.cqfn.save.testsuite.TestSuiteDto
 import org.cqfn.save.testsuite.TestSuiteType
 
 import okio.ExperimentalFileSystem
+import org.cqfn.save.domain.FileInfo
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.api.errors.GitAPIException
 import org.eclipse.jgit.api.errors.InvalidRemoteException
@@ -54,6 +55,7 @@ import reactor.core.scheduler.Schedulers
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
 import reactor.netty.http.client.HttpClientRequest
+import reactor.util.function.Tuple2
 
 import java.io.File
 import java.io.FileOutputStream
@@ -89,6 +91,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
     @PostMapping("/upload", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     fun upload(
         @RequestPart(required = true) executionRequest: ExecutionRequest,
+        @RequestPart("fileInfo", required = false) fileInfos: Flux<FileInfo>,
         @RequestPart("file", required = false) files: Flux<FilePart>,
     ): Mono<TextResponse> = Mono.just(ResponseEntity("Clone pending", HttpStatus.ACCEPTED))
         .doOnSuccess {
@@ -99,7 +102,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                         .resolve(executionRequest.propertiesRelativePath)
                         .parentFile
                     log.info("Downloading additional files into $resourcesLocation")
-                    files.download(resourcesLocation)
+                    files.zipWith(fileInfos).download(resourcesLocation)
                         .switchIfEmpty(
                             // if no files have been provided, proceed with empty list
                             Mono.just(emptyList())
@@ -137,9 +140,10 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
     fun uploadBin(
         @RequestPart executionRequestForStandardSuites: ExecutionRequestForStandardSuites,
         @RequestPart("file", required = true) files: Flux<FilePart>,
+        @RequestPart("fileInfo", required = true) fileInfos: Flux<FileInfo>,
     ) = Mono.just(ResponseEntity("Clone pending", HttpStatus.ACCEPTED))
         .doOnSuccess { _ ->
-            files.download(File("."))
+            files.zipWith(fileInfos).download(File("."))
                 .flatMap { files ->
                     saveBinaryFile(executionRequestForStandardSuites, files)
                 }
@@ -483,7 +487,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
             .absolutePath
     }
 
-    private fun discoverAndSaveTestSuites(project: Project?,
+    private fun discoverAndSaveTestSuites(project: Project,
                                           rootTestConfig: TestConfig,
                                           propertiesRelativePath: String,
                                           gitUrl: String): Mono<List<TestSuite>> {
@@ -546,7 +550,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         return toBody(responseSpec).log()
     }
 
-    private fun Flux<FilePart>.download(destination: File): Mono<List<File>> = flatMap { filePart ->
+    private fun Flux<Tuple2<FilePart, FileInfo>>.download(destination: File): Mono<List<File>> = flatMap { (filePart, fileInfo) ->
         val file = File(destination, filePart.filename()).apply {
             createNewFile()
         }
@@ -562,6 +566,10 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         }
             // return a single Mono per file, discarding how many parts `content()` has
             .last()
+            .doOnSuccess {
+//                it.setExecutable(fileInfo.isExecutable)
+                it.setExecutable(true)
+            }
     }
         .collectList()
 
