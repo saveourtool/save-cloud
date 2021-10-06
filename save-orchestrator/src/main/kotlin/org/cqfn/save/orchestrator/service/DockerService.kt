@@ -191,8 +191,8 @@ class DockerService(private val configProperties: ConfigProperties) {
                     |RUN if [ -d $executionDir/diktat-rules/src/test/resources/test/smoke ]; then \
                     |   find $executionDir/diktat-rules/src/test/resources/test/smoke -type f -name "ktlint" -exec chmod +x {} \; ; \
                     |fi
-                    |RUN if [ -d $executionDir/clang-tools-extra/test/clang-tidy ]; then \
-                    |   find $executionDir/clang-tools-extra/test/clang-tidy -type f -name "clang-tidy-linux" -exec chmod +x {} \; ; \
+                    |RUN if [ -d $executionDir/clang-tidy ]; then \
+                    |   find $executionDir/clang-tidy -type f -name "clang-tidy-linux" -exec chmod +x {} \; ; \
                     |fi
                 """
         )
