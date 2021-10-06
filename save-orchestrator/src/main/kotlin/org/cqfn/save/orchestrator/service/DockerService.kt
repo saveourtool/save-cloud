@@ -178,13 +178,17 @@ class DockerService(private val configProperties: ConfigProperties) {
             saveCli
         )
         val baseImage = execution.sdk
+        val aptHttpProxy = System.getenv("APT_HTTP_PROXY")
+        val aptHttpsProxy = System.getenv("APT_HTTPS_PROXY")
+        val aptCmd = if (aptHttpProxy == null && aptHttpsProxy != null) "apt-get" else
+            "apt-get -o Acquire::http::proxy=\"$aptHttpProxy\" Acquire::https::proxy=\"$aptHttpsProxy\""
         val imageId = containerManager.buildImageWithResources(
             baseImage = baseImage,
             imageName = imageName(execution.id!!),
             baseDir = resourcesPath,
             resourcesPath = executionDir,
             // TODO: find ktlint this is a temporary workaround link to #277
-            runCmd = """RUN apt-get update && env DEBIAN_FRONTEND="noninteractive" apt-get install -y libcurl4-openssl-dev tzdata && rm -rf /var/lib/apt/lists/*
+            runCmd = """RUN $aptCmd update && env DEBIAN_FRONTEND="noninteractive" $aptCmd install -y libcurl4-openssl-dev tzdata && rm -rf /var/lib/apt/lists/*
                     |RUN ln -fs /usr/share/zoneinfo/UTC /etc/localtime
                     |RUN chmod +x $executionDir/$SAVE_AGENT_EXECUTABLE_NAME
                     |RUN chmod +x $executionDir/$SAVE_CLI_EXECUTABLE_NAME
