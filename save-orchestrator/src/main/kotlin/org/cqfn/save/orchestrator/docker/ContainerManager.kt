@@ -139,7 +139,7 @@ class ContainerManager(private val dockerHost: String) {
                 .withBaseDirectory(tmpDir)
                 .withTags(setOf(imageName))
                 .withExtraHosts(setOf(
-                    "host.docker.internal:host.docker.internal"
+                    "host.docker.internal:172.17.0.1"
                 ))
                 .start()
         } finally {
