@@ -5,6 +5,7 @@ import org.cqfn.save.core.logging.describe
 import org.cqfn.save.core.logging.logDebug
 import org.cqfn.save.core.logging.logError
 import org.cqfn.save.core.logging.logInfo
+import org.cqfn.save.core.plugin.Plugin
 import org.cqfn.save.core.result.Crash
 import org.cqfn.save.core.result.Fail
 import org.cqfn.save.core.result.Ignored
@@ -13,6 +14,7 @@ import org.cqfn.save.core.result.TestStatus
 import org.cqfn.save.core.utils.ExecutionResult
 import org.cqfn.save.core.utils.ProcessBuilder
 import org.cqfn.save.domain.TestResultStatus
+import org.cqfn.save.plugins.fix.FixPlugin
 import org.cqfn.save.reporter.Report
 
 import generated.SAVE_CLOUD_VERSION
@@ -38,6 +40,9 @@ import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.modules.SerializersModule
+import kotlinx.serialization.modules.polymorphic
+import kotlinx.serialization.modules.subclass
 
 /**
  * A main class for SAVE Agent
@@ -57,6 +62,14 @@ class SaveAgent(private val config: AgentConfiguration,
     // Kotlin throws `kotlin.native.concurrent.InvalidMutabilityException: mutation attempt of frozen kotlinx.datetime.Instant...`
     private val executionStartSeconds = AtomicLong()
     private var saveProcessJob: Job? = null
+    private val reportFormat = Json {
+        serializersModule = SerializersModule {
+            polymorphic(Plugin.TestFiles::class) {
+                subclass(Plugin.Test::class)
+                subclass(FixPlugin.FixTestFiles::class)
+            }
+        }
+    }
 
     /**
      * @return Unit
@@ -146,7 +159,7 @@ class SaveAgent(private val config: AgentConfiguration,
     @Suppress("TOO_MANY_LINES_IN_LAMBDA")
     private fun readExecutionResults(jsonFile: String): List<TestExecutionDto> {
         val currentTime = Clock.System.now()
-        val reports: List<Report> = Json.decodeFromString(
+        val reports: List<Report> = reportFormat.decodeFromString(
             readFile(jsonFile).joinToString(separator = "")
         )
         return reports.flatMap { report ->
