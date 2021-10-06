@@ -183,7 +183,7 @@ class DockerService(private val configProperties: ConfigProperties) {
         val aptCmd = if (aptHttpProxy == null && aptHttpsProxy == null) {
             "apt-get"
         } else {
-            "apt-get -o Acquire::http::proxy=\"$aptHttpProxy\" Acquire::https::proxy=\"$aptHttpsProxy\""
+            "apt-get -o Acquire::http::proxy=\"$aptHttpProxy\" -o Acquire::https::proxy=\"$aptHttpsProxy\""
         }
         val imageId = containerManager.buildImageWithResources(
             baseImage = baseImage,
