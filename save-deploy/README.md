@@ -17,6 +17,7 @@ Deployment is performed on server via docker swarm or locally via docker-compose
 ## Server deployment
 * Server should run Linux and support docker swarm and gvisor runtime. Ideally, kernel 5.+ is required.
 * Gvisor should be installed and runsc runtime should be available for docker. See [installation guide](https://gvisor.dev/docs/user_guide/install/) for details.
+  A different runtime can be specified with `orchestrator.docker.runtime` property in orchestrator.
 * Ensure that docker daemon is running and that docker is in swarm mode.
 * Secrets should be added to the swarm as well as to `$HOME/secrets` file.
 * Pull new changes to the server and run `./gradlew -Pprofile=prod deployDockerStack`.

@@ -39,7 +39,7 @@ class DockerService(private val configProperties: ConfigProperties) {
     /**
      * [ContainerManager] that is used to access docker daemon API
      */
-    internal val containerManager = ContainerManager(configProperties.docker.host)
+    internal val containerManager = ContainerManager(configProperties.docker)
     private val executionDir = "/run/save-execution"
     private val standardTestSuiteDir = "standard-test-suites"
     private val isAgentStoppingInProgress = AtomicBoolean(false)

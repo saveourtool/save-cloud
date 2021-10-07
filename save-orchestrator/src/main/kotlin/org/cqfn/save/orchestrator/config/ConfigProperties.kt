@@ -38,4 +38,5 @@ data class TestResources(
  */
 data class DockerSettings(
     val host: String,
+    val runtime: String = "runc",
 )

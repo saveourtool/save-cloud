@@ -11,6 +11,7 @@ import com.github.dockerjava.httpclient5.ApacheDockerHttpClient
 import com.github.dockerjava.transport.DockerHttpClient
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream
+import org.cqfn.save.orchestrator.config.DockerSettings
 import org.slf4j.LoggerFactory
 
 import java.io.BufferedOutputStream
@@ -28,10 +29,10 @@ import kotlin.io.path.createTempFile
  *
  * @property dockerHost a URL of docker daemon, local unix socket by default
  */
-class ContainerManager(private val dockerHost: String) {
+class ContainerManager(private val settings: DockerSettings) {
     private val dockerClientConfig: DockerClientConfig = DefaultDockerClientConfig
         .createDefaultConfigBuilder()
-        .withDockerHost(dockerHost)
+        .withDockerHost(settings.host)
         .withDockerTlsVerify(false)
         .build()
     private val dockerHttpClient: DockerHttpClient = ApacheDockerHttpClient.Builder()
@@ -69,7 +70,7 @@ class ContainerManager(private val dockerHost: String) {
             .withCmd(runCmd)
             .withName(containerName)
             .withHostConfig(HostConfig.newHostConfig()
-                .withRuntime("runsc")
+                .withRuntime(settings.runtime)
                 // processes from inside the container will be able to access host's network using this hostname
                 .withExtraHosts("host.docker.internal:host-gateway")
                 .withLogConfig(
