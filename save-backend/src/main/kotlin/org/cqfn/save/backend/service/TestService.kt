@@ -50,11 +50,11 @@ class TestService {
         }
             .orElseGet {
                 log.debug("Test $testDto is not found in the DB, will save it")
-                val testSuiteStub = TestSuite(propertiesRelativePath = "FB").apply {
+                val testSuiteStub = TestSuite(testRootPath = "Undefined").apply {
                     id = testDto.testSuiteId
                 }
                 testRepository.save(
-                    Test(testDto.hash, testDto.filePath, testDto.pluginName, LocalDateTime.now(), testSuiteStub, testDto.tags!!.joinToString(";"))
+                    Test(testDto.hash, testDto.filePath, testDto.pluginName, LocalDateTime.now(), testSuiteStub, testDto.tags.joinToString(";"))
                 )
             }
             .id!!
@@ -83,8 +83,8 @@ class TestService {
         log.debug("Increasing offset of the execution - ${agent.execution}")
         ++execution.page
         executionRepository.save(execution)
-        return Mono.just(TestBatch(testDtos, testExecutions.map { it.test.testSuite }.associate {
-            it.id!! to File(it.propertiesRelativePath).parent
+        return Mono.just(  TestBatch(testDtos, testExecutions.map { it.test.testSuite }.associate {
+            it.id!! to it.testRootPath
         }))
     }
 

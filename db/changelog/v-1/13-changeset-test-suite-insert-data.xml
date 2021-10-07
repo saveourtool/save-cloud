@@ -11,7 +11,7 @@
             <column name="type" value="PROJECT" />
             <column name="project_id" value="1" />
             <column name="date_added" value="2021-01-01 00:00:00"/>
-            <column name="properties_relative_path" value="save.properties"/>
+            <column name="test_root_path" value=""/>
         </insert>
 
         <insert dbms="mysql" tableName="test_suite">
@@ -20,7 +20,7 @@
             <column name="type" value="PROJECT" />
             <column name="project_id" value="1" />
             <column name="date_added" value="2021-01-01 00:00:00"/>
-            <column name="properties_relative_path" value="subdir/save.properties"/>
+            <column name="test_root_path" value="subdir"/>
         </insert>
 
         <insert dbms="mysql" tableName="test_suite">
@@ -29,7 +29,7 @@
             <column name="type" value="STANDARD" />
             <column name="project_id" value="2" />
             <column name="date_added" value="2021-01-01 00:00:00"/>
-            <column name="properties_relative_path" value="save.properties"/>
+            <column name="test_root_path" value=""/>
         </insert>
     </changeSet>
 </databaseChangeLog>

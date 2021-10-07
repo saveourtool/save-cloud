@@ -129,19 +129,19 @@ class ExecutionController(private val executionService: ExecutionService,
         val git = requireNotNull(gitService.getRepositoryDtoByProject(execution.project)) {
             "Can't rerun execution $id, project ${execution.project.name} has no associated git address"
         }
-        val propertiesRelativePath = execution.testSuiteIds?.let {
+        val testRootPath = execution.testSuiteIds?.let {
             require(it == "ALL") { "Only executions with \"ALL\" tests suites from a GIT project are supported now" }
             testSuitesService.findTestSuitesByProject(execution.project)
         }!!
             .map {
-                it.propertiesRelativePath
+                it.testRootPath
             }
             .distinct()
             .single()
         val executionRequest = ExecutionRequest(
             project = execution.project,
             gitDto = GitDto(git.url, hash = execution.version),
-            propertiesRelativePath = propertiesRelativePath,
+            testRootPath = testRootPath,
             sdk = execution.sdk.toSdk(),
             executionId = execution.id
         )

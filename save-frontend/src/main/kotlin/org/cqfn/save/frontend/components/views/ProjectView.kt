@@ -356,7 +356,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                                     div("pb-3") {
                                         div("d-inline-block") {
                                             h6(classes = "d-inline") {
-                                                +"Path to property file: "
+                                                +"Path to the root directory with tests in repo: "
                                             }
                                         }
                                         div("d-inline-block ml-2") {
@@ -366,7 +366,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                                                     pathToProperty?.let {
                                                         value = it
                                                     }
-                                                    placeholder = "save.properties"
+                                                    placeholder = "sub-path (can be empty)"
                                                     onChangeFunction = {
                                                         val target = it.target as HTMLInputElement
                                                         pathToProperty = target.value

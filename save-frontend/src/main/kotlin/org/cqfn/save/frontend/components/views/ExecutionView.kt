@@ -82,7 +82,7 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
             }
             div("d-flex") {
                 div("p-2 mr-auto") {
-                    +"Status: ${state.executionDto?.status ?: "N/A"}"
+                    +"Status: ${state.executionDto?.status?.toString() ?: "N/A"}"
                 }
                 child(executionStatistics("mr-auto")) {
                     attrs.executionDto = state.executionDto
