@@ -60,19 +60,19 @@ class HistoryView : RComponent<HistoryProps, State>() {
             columns = columns {
                 column("result", "") { cellProps ->
                     val result = when (cellProps.value.status) {
-                        ExecutionStatus.ERROR -> ResultColorAndIcon(Colors.RED, "exclamation-triangle")
-                        ExecutionStatus.PENDING -> ResultColorAndIcon(Colors.GOLD, "spinner")
-                        ExecutionStatus.RUNNING -> ResultColorAndIcon(Colors.GOLD, "spinner")
+                        ExecutionStatus.ERROR -> ResultColorAndIcon("text-danger", "exclamation-triangle")
+                        ExecutionStatus.PENDING -> ResultColorAndIcon("text-success", "spinner")
+                        ExecutionStatus.RUNNING -> ResultColorAndIcon("text-success", "spinner")
                         ExecutionStatus.FINISHED -> if (cellProps.value.failedTests != 0L) {
-                            ResultColorAndIcon(Colors.RED, "exclamation-triangle")
+                            ResultColorAndIcon("text-danger", "exclamation-triangle")
                         } else {
-                            ResultColorAndIcon(Colors.GREEN, "check")
+                            ResultColorAndIcon("text-success", "check")
                         }
                     }
                     buildElement {
                         td {
                             a(href = getHrefToExecution(cellProps.value.id)) {
-                                fontAwesomeIcon(result.resIcon, classes = result.resColor.value)
+                                fontAwesomeIcon(result.resIcon, classes = result.resColor)
                             }
                         }
                     }
@@ -163,5 +163,5 @@ class HistoryView : RComponent<HistoryProps, State>() {
      * @property resColor
      * @property resIcon
      */
-    private data class ResultColorAndIcon(val resColor: Colors, val resIcon: String)
+    private data class ResultColorAndIcon(val resColor: String, val resIcon: String)
 }
