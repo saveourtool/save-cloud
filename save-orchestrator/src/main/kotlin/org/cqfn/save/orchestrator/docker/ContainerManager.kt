@@ -1,6 +1,7 @@
 package org.cqfn.save.orchestrator.docker
 
 import org.cqfn.save.orchestrator.config.DockerSettings
+import org.cqfn.save.orchestrator.getHostIp
 
 import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.api.command.BuildImageResultCallback
@@ -136,16 +137,7 @@ class ContainerManager(private val settings: DockerSettings) {
                 """.trimMargin()
         val dockerFile = createTempFile(tmpDir.toPath()).toFile()
         dockerFile.writeText(dockerFileAsText)
-        val processes = ProcessBuilder.startPipeline(
-            listOf(
-                ProcessBuilder().command("getent", "hosts", "host.docker.internal"),
-                ProcessBuilder().command("awk", "'{print \$1}'")
-            )
-        )
-        val hostIp: String? = processes.last().inputStream.bufferedReader().readLine()
-        require(hostIp == null || hostIp.matches(Regex("(\\d+\\.){3}\\d+"))) {
-            "Discovered IP [$hostIp] is not valid"
-        }
+        val hostIp = getHostIp("host.docker.internal")
         val buildImageResultCallback: BuildImageResultCallback = try {
             dockerClient.buildImageCmd(dockerFile)
                 .withBaseDirectory(tmpDir)
