@@ -136,10 +136,13 @@ class ContainerManager(private val settings: DockerSettings) {
                 """.trimMargin()
         val dockerFile = createTempFile(tmpDir.toPath()).toFile()
         dockerFile.writeText(dockerFileAsText)
-        val process = ProcessBuilder()
-            .command("getent hosts host.docker.internal | awk '{print \$1}'")
-            .start()
-        val hostIp: String? = process.inputStream.bufferedReader().readLine()
+        val processes = ProcessBuilder.startPipeline(
+            listOf(
+                ProcessBuilder().command("getent", "hosts", "host.docker.internal"),
+                ProcessBuilder().command("awk", "'{print \$1}'")
+            )
+        )
+        val hostIp: String? = processes.last().inputStream.bufferedReader().readLine()
         require(hostIp == null || hostIp.matches(Regex("(\\d+\\.){3}\\d+"))) {
             "Discovered IP [$hostIp] is not valid"
         }
