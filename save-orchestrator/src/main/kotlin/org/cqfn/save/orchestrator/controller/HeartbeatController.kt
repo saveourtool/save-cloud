@@ -65,9 +65,10 @@ class HeartbeatController(private val agentService: AgentService,
                     AgentState.IDLE -> agentService.getNewTestsIds(heartbeat.agentId)
                         .doOnSuccess {
                             if (it is WaitResponse) {
+                                logger.info("\n\n\nAgent ${heartbeat.agentId} should be stopped. Job: $it")
                                 initiateShutdownSequence(heartbeat.agentId)
                             } else if (it is NewJobResponse) {
-                                logger.debug("Agent ${heartbeat.agentId} will receive the following job: $it")
+                                logger.info("Agent ${heartbeat.agentId} will receive the following job: $it")
                             }
                         }
                     AgentState.FINISHED -> {
@@ -83,7 +84,7 @@ class HeartbeatController(private val agentService: AgentService,
             .map {
                 Json.encodeToString(it)
             }
-            .log()
+            //.log()
     }
 
     /**
@@ -97,8 +98,9 @@ class HeartbeatController(private val agentService: AgentService,
         agentService.getAgentsAwaitingStop(agentId).doOnSuccess { (executionId, finishedAgentIds) ->
             scheduler.schedule {
                 if (finishedAgentIds.isNotEmpty()) {
-                    logger.debug("Agents ids=$finishedAgentIds have completed execution, will make an attempt to terminate them")
+                    logger.info("Agents ids=$finishedAgentIds have completed execution, will make an attempt to terminate them")
                     val areAgentsStopped = dockerService.stopAgents(finishedAgentIds)
+                    logger.info("\n\n--------> AreAgentsStopped? ${areAgentsStopped}")
                     if (areAgentsStopped) {
                         logger.info("Agents have been stopped, will mark execution id=$executionId and agents $finishedAgentIds as FINISHED")
                         agentService

@@ -197,7 +197,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                         executionRerunRequest.gitDto.url
                     )
                 }
-                .log()
+                //.log()
                 .subscribeOn(scheduler)
                 .subscribe()
         }
@@ -404,7 +404,6 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         } ?: require(executionType == ExecutionType.GIT) { "Test suites are not provided, but should for executionType=$executionType" }
 
         return if (executionType == ExecutionType.GIT) {
-            println("\n\nPREPARE FOR GIT ${execution.additionalFiles} ${testSuiteDtos}")
             prepareForExecutionFromGit(project, execution.id!!, propertiesRelativePath, projectRootRelativePath, gitUrl!!)
         } else {
             prepareExecutionForStandard(testSuiteDtos!!, execution.id!!)
@@ -460,7 +459,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                 getTestResourcesRootAbsolutePath(propertiesRelativePath, projectRootRelativePath)
         testDiscoveringService.getRootTestConfig(testResourcesRootAbsolutePath)
     }
-        .log()
+        //.log()
         .zipWhen { rootTestConfig ->
             discoverAndSaveTestSuites(project, rootTestConfig, propertiesRelativePath, gitUrl)
         }
@@ -562,7 +561,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                     "Upstream request error"
                 )
             }
-        return toBody(responseSpec).log()
+        return toBody(responseSpec)//.log()
     }
 
     private fun Flux<FilePart>.download(destination: File): Mono<List<File>> = flatMap { filePart ->
