@@ -24,6 +24,7 @@ kotlin {
             dependencies {
                 implementation(project(":save-cloud-common"))
                 implementation("org.cqfn.save:save-common:${Versions.saveCore}")
+                implementation("org.cqfn.save:fix-plugin:${Versions.saveCore}")
                 implementation("org.cqfn.save:save-reporters:${Versions.saveCore}")
                 implementation("io.ktor:ktor-client-core:${Versions.ktor}")
                 implementation("io.ktor:ktor-client-curl:${Versions.ktor}")
