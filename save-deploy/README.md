@@ -23,6 +23,11 @@ Deployment is performed on server via docker swarm or locally via docker-compose
 * If custom SSL certificates are used, they should be installed on the server and added into JDK's truststore inside images. See section below for details.
 * Pull new changes to the server and run `./gradlew -Pprofile=prod deployDockerStack`.
 
+## Running behind proxy
+If save-cloud is running behind proxy, docker daemon should be configured to use proxy. See [docker docs](https://docs.docker.com/network/proxy/).
+Additionally, `APT_HTTP_PROXY` and `APT_HTTPS_PROXY` should be passed as environment variables into orchestrator. These should be
+URLs which can be resolved from inside the container (e.g. `host.docker.internal`).
+
 ## Custom SSL certificates
 If custom SSL certificates are used, they should be installed on the server and added into JDK's truststore inside images.
 One way of adding them into JDK is to mount them in docker-compose.yaml and then override default command:

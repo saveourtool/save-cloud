@@ -35,6 +35,7 @@ data class TestResources(
 
 /**
  * @property host hostname of docker daemon
+ * @property runtime OCI compliant runtime for docker
  */
 data class DockerSettings(
     val host: String,

@@ -1,5 +1,7 @@
 package org.cqfn.save.orchestrator.docker
 
+import org.cqfn.save.orchestrator.config.DockerSettings
+
 import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.api.command.BuildImageResultCallback
 import com.github.dockerjava.api.model.HostConfig
@@ -11,7 +13,6 @@ import com.github.dockerjava.httpclient5.ApacheDockerHttpClient
 import com.github.dockerjava.transport.DockerHttpClient
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream
-import org.cqfn.save.orchestrator.config.DockerSettings
 import org.slf4j.LoggerFactory
 
 import java.io.BufferedOutputStream
@@ -27,7 +28,7 @@ import kotlin.io.path.createTempFile
 /**
  * A class that communicates with docker daemon
  *
- * @property dockerHost a URL of docker daemon, local unix socket by default
+ * @property settings setting of docker daemon
  */
 class ContainerManager(private val settings: DockerSettings) {
     private val dockerClientConfig: DockerClientConfig = DefaultDockerClientConfig
@@ -135,13 +136,20 @@ class ContainerManager(private val settings: DockerSettings) {
                 """.trimMargin()
         val dockerFile = createTempFile(tmpDir.toPath()).toFile()
         dockerFile.writeText(dockerFileAsText)
+        val process = ProcessBuilder()
+            .command("getent hosts host.docker.internal | awk '{print \$1}'")
+            .start()
+        val hostIp: String? = process.inputStream.bufferedReader().readLine()
+        require(hostIp == null || hostIp.matches(Regex("(\\d+\\.){3}\\d+"))) {
+            "Discovered IP [$hostIp] is not valid"
+        }
         val buildImageResultCallback: BuildImageResultCallback = try {
             dockerClient.buildImageCmd(dockerFile)
                 .withBaseDirectory(tmpDir)
                 .withTags(setOf(imageName))
-                .withExtraHosts(setOf(
-                    "host.docker.internal:172.17.0.1"
-                ))
+                .withExtraHosts(hostIp?.let {
+                    setOf("host.docker.internal:$hostIp")
+                } ?: emptySet())
                 .start()
         } finally {
             dockerFile.delete()

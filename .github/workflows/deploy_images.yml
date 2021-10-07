@@ -1,7 +1,6 @@
 name: Deploy images
 
 on:
-  pull_request:
   push:
     branches:
       - 'master'
