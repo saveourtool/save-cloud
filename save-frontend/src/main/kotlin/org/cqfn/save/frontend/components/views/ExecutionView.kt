@@ -4,17 +4,19 @@
 
 package org.cqfn.save.frontend.components.views
 
-import csstype.Background
-import kotlinext.js.jsObject
 import org.cqfn.save.agent.TestExecutionDto
+import org.cqfn.save.domain.TestResultStatus
 import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.frontend.components.basic.executionStatistics
 import org.cqfn.save.frontend.components.tables.tableComponent
+import org.cqfn.save.frontend.themes.Colors
 import org.cqfn.save.frontend.utils.decodeFromJsonString
 import org.cqfn.save.frontend.utils.get
 import org.cqfn.save.frontend.utils.post
 import org.cqfn.save.frontend.utils.unsafeMap
 
+import csstype.Background
+import kotlinext.js.jsObject
 import org.w3c.fetch.Headers
 import react.PropsWithChildren
 import react.RBuilder
@@ -35,8 +37,6 @@ import kotlinx.datetime.Instant
 import kotlinx.html.js.onClickFunction
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
-import org.cqfn.save.domain.TestResultStatus
-import org.cqfn.save.frontend.themes.Colors
 
 /**
  * [RProps] for execution results view
@@ -72,8 +72,8 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
         GlobalScope.launch {
             val headers = Headers().also { it.set("Accept", "application/json") }
             val executionDtoFromBackend: ExecutionDto =
-                get("${window.location.origin}/executionDto?executionId=${props.executionId}", headers)
-                    .decodeFromJsonString()
+                    get("${window.location.origin}/executionDto?executionId=${props.executionId}", headers)
+                        .decodeFromJsonString()
             setState { executionDto = executionDtoFromBackend }
         }
     }
@@ -123,8 +123,8 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
                         td {
                             +"${
                                 it.value.startTimeSeconds
-                                    ?.let { Instant.fromEpochSeconds(it, 0) }
-                                    ?: "Running"
+                                ?.let { Instant.fromEpochSeconds(it, 0) }
+                                ?: "Running"
                             }"
                         }
                     }

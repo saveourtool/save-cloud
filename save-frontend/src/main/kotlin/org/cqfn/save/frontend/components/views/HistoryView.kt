@@ -8,6 +8,7 @@ import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.frontend.components.tables.tableComponent
 import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
+import org.cqfn.save.frontend.themes.Colors
 import org.cqfn.save.frontend.utils.decodeFromJsonString
 import org.cqfn.save.frontend.utils.get
 import org.cqfn.save.frontend.utils.unsafeMap
@@ -27,8 +28,6 @@ import react.table.columns
 
 import kotlinx.browser.window
 import kotlinx.datetime.Instant
-import org.cqfn.save.domain.TestResultStatus
-import org.cqfn.save.frontend.themes.Colors
 
 /**
  * [RProps] for tests execution history
@@ -160,5 +159,9 @@ class HistoryView : RComponent<HistoryProps, State>() {
 
     private fun getHrefToExecution(id: Long) = "${window.location}/$id"
 
+    /**
+     * @property resColor
+     * @property resIcon
+     */
     private data class ResultColorAndIcon(val resColor: Colors, val resIcon: String)
 }
