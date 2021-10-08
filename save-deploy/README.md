@@ -19,12 +19,30 @@ Deployment is performed on server via docker swarm or locally via docker-compose
 * [reverse-proxy.conf](reverse-proxy.conf) is a configuration for Nginx to act as a reverse proxy for save-cloud. It should be 
   copied into `/etc/nginx/sites-available`.
 * Gvisor should be installed and runsc runtime should be available for docker. See [installation guide](https://gvisor.dev/docs/user_guide/install/) for details.
+  A different runtime can be specified with `orchestrator.docker.runtime` property in orchestrator.
 * Ensure that docker daemon is running and that docker is in swarm mode.
 * Secrets should be added to the swarm as well as to `$HOME/secrets` file.
+* If custom SSL certificates are used, they should be installed on the server and added into JDK's truststore inside images. See section below for details.
 * Loki logging driver should be added to docker installation: [instruction](https://grafana.com/docs/loki/latest/clients/docker-driver/#installing)
 * Pull new changes to the server and run `./gradlew -Pprofile=prod deployDockerStack`.
 * [`docker-compose.yaml.template`](../docker-compose.yaml.template) is configured so that all services use Loki for logging
   and configuration files from `~/configs`, which are copied from `save-deploy` during gradle build.
+
+## Running behind proxy
+If save-cloud is running behind proxy, docker daemon should be configured to use proxy. See [docker docs](https://docs.docker.com/network/proxy/).
+Additionally, `APT_HTTP_PROXY` and `APT_HTTPS_PROXY` should be passed as environment variables into orchestrator. These should be
+URLs which can be resolved from inside the container (e.g. `host.docker.internal`).
+
+## Custom SSL certificates
+If custom SSL certificates are used, they should be installed on the server and added into JDK's truststore inside images.
+One way of adding them into JDK is to mount them in docker-compose.yaml and then override default command:
+```yaml
+preprocessor:
+  volume:
+    - '/path/to/certs/cert.cer:/home/cnb/cert.cer'
+  entrypoint: /bin/bash
+  command: -c 'find /layers -name jre -type d -exec {}/bin/keytool -keystore {}/lib/security/cacerts -storepass changeit -noprompt -trustcacerts -importcert -alias <cert-alias> -file /home/cnb/cert.cer \; && /cnb/process/web'
+```
 
 ## Database
 The service is designed to work with MySQL database. Migrations are applied with liquibase. They expect event scheduler to be enabled on the DB.

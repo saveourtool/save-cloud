@@ -68,7 +68,7 @@ class TestExecutionControllerTest {
             .exchange()
             .expectBody<List<TestExecutionDto>>()
             .consumeWith {
-                Assertions.assertEquals(20, it.responseBody.size)
+                Assertions.assertEquals(20, it.responseBody!!.size)
             }
     }
 

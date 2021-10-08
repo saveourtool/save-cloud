@@ -54,7 +54,7 @@ class TestService {
                     id = testDto.testSuiteId
                 }
                 testRepository.save(
-                    Test(testDto.hash, testDto.filePath, testDto.pluginName, LocalDateTime.now(), testSuiteStub)
+                    Test(testDto.hash, testDto.filePath, testDto.pluginName, LocalDateTime.now(), testSuiteStub, testDto.tags!!.joinToString(";"))
                 )
             }
             .id!!
@@ -77,13 +77,14 @@ class TestService {
             PageRequest.of(execution.page, execution.batchSize!!)
         )
         val testDtos = testExecutions.map {
-            TestDto(it.test.filePath, it.test.pluginName, it.test.testSuite.id!!, it.test.hash)
+            val tagsList = it.test.tags?.split(";")?.filter { it.isNotBlank() } ?: emptyList()
+            TestDto(it.test.filePath, it.test.pluginName, it.test.testSuite.id!!, it.test.hash, tagsList)
         }
         log.debug("Increasing offset of the execution - ${agent.execution}")
         ++execution.page
         executionRepository.save(execution)
         return Mono.just(TestBatch(testDtos, testExecutions.map { it.test.testSuite }.associate {
-            it.id!! to "${File(it.propertiesRelativePath).parent}"
+            it.id!! to File(it.propertiesRelativePath).parent
         }))
     }
 

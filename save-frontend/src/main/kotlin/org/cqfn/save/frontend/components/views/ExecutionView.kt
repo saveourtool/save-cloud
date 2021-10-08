@@ -5,21 +5,24 @@
 package org.cqfn.save.frontend.components.views
 
 import org.cqfn.save.agent.TestExecutionDto
+import org.cqfn.save.domain.TestResultStatus
 import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.frontend.components.basic.executionStatistics
 import org.cqfn.save.frontend.components.tables.tableComponent
+import org.cqfn.save.frontend.themes.Colors
 import org.cqfn.save.frontend.utils.decodeFromJsonString
 import org.cqfn.save.frontend.utils.get
 import org.cqfn.save.frontend.utils.post
 import org.cqfn.save.frontend.utils.unsafeMap
 
+import csstype.Background
+import kotlinext.js.jsObject
 import org.w3c.fetch.Headers
 import react.PropsWithChildren
 import react.RBuilder
 import react.RComponent
 import react.State
 import react.buildElement
-import react.child
 import react.dom.button
 import react.dom.div
 import react.dom.td
@@ -68,8 +71,9 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
     override fun componentDidMount() {
         GlobalScope.launch {
             val headers = Headers().also { it.set("Accept", "application/json") }
-            val executionDtoFromBackend: ExecutionDto = get("${window.location.origin}/executionDto?executionId=${props.executionId}", headers)
-                .decodeFromJsonString()
+            val executionDtoFromBackend: ExecutionDto =
+                    get("${window.location.origin}/executionDto?executionId=${props.executionId}", headers)
+                        .decodeFromJsonString()
             setState { executionDto = executionDtoFromBackend }
         }
     }
@@ -92,7 +96,11 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
                     attrs.onClickFunction = {
                         attrs.disabled = true
                         GlobalScope.launch {
-                            post("${window.location.origin}/rerunExecution?id=${props.executionId}", Headers(), undefined)
+                            post(
+                                "${window.location.origin}/rerunExecution?id=${props.executionId}",
+                                Headers(),
+                                undefined
+                            )
                         }.invokeOnCompletion {
                             window.alert("Rerun request successfully submitted")
                         }
@@ -113,7 +121,11 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
                 column(id = "startTime", header = "Start time") {
                     buildElement {
                         td {
-                            +"${it.value.startTimeSeconds?.let { Instant.fromEpochSeconds(it, 0) }}"
+                            +"${
+                                it.value.startTimeSeconds
+                                ?.let { Instant.fromEpochSeconds(it, 0) }
+                                ?: "Running"
+                            }"
                         }
                     }
                 }
@@ -145,6 +157,13 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
                         }
                     }
                 }
+                column(id = "tags", header = "Tags") {
+                    buildElement {
+                        td {
+                            +"${it.value.tags!!}"
+                        }
+                    }
+                }
             },
             useServerPaging = true,
             getPageCount = { pageSize ->
@@ -158,6 +177,20 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
                     .await()
                     .unsafeCast<Int>()
                 count / pageSize + 1
+            },
+            getRowProps = { row ->
+                val color = when (row.original.status) {
+                    TestResultStatus.FAILED -> Colors.RED
+                    TestResultStatus.IGNORED -> Colors.GOLD
+                    TestResultStatus.READY, TestResultStatus.RUNNING -> Colors.GREY
+                    TestResultStatus.INTERNAL_ERROR, TestResultStatus.TEST_ERROR -> Colors.DARK_RED
+                    TestResultStatus.PASSED -> Colors.GREEN
+                }
+                jsObject {
+                    style = jsObject {
+                        background = color.value.unsafeCast<Background>()
+                    }
+                }
             }
         ) { page, size ->
             console.log("Querying test executions for page $page with size $size")
