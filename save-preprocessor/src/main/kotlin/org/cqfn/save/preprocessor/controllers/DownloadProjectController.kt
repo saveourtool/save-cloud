@@ -98,7 +98,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                         .resolve(location)
                         .resolve(executionRequest.propertiesRelativePath)
                         .parentFile
-                    log.info("\n\n\nDownloading additional files into $resourcesLocation")
+                    log.info("Downloading additional files into $resourcesLocation")
                     files.download(resourcesLocation)
                         .switchIfEmpty(
                             // if no files have been provided, proceed with empty list
@@ -156,7 +156,6 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
     @Suppress("UnsafeCallOnNullableType")
     @PostMapping("/rerunExecution")
     fun rerunExecution(@RequestBody executionRerunRequest: ExecutionRequest) = Mono.fromCallable {
-        println("\n\n\nStart rerun in preprocesor")
         requireNotNull(executionRerunRequest.executionId) { "Can't rerun execution with unknown id" }
         ResponseEntity("Clone pending", HttpStatus.ACCEPTED)
     }
@@ -176,13 +175,12 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                         )
                 }
                 .flatMap { (location, execution) ->
-                    println("ACTUAL STATUS: ${execution.status}")
                     val resourcesLocation = File(configProperties.repository).resolve(location).resolve(executionRerunRequest.propertiesRelativePath).parentFile
-                    val files = execution.additionalFiles?.split(";")?.filter {it.isNotBlank() }?.map { File(it) } ?: emptyList()
-                    log.info("\n\n\nMove additional files")
+                    val files = execution.additionalFiles?.split(";")?.filter { it.isNotBlank() }?.map { File(it) } ?: emptyList()
+                    log.info("\n\n\nCopy additional files")
                     files.forEach { file ->
-                        log.info("Move additional file ${file.absolutePath} into ${resourcesLocation.absolutePath}")
-                        //Files.move(Paths.get(file.absolutePath), Paths.get(resourcesLocation.absolutePath))
+                        log.info("Copy additional file ${file.absolutePath} into ${resourcesLocation.absolutePath}")
+                        Files.copy(Paths.get(file.absolutePath), Paths.get(resourcesLocation.absolutePath))
                     }
                     sendToBackendAndOrchestrator(
                         execution,
@@ -320,7 +318,6 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
             it.toHash()
         })
         files.forEach {
-            println("MOVE FILE ${Paths.get(it.absolutePath)} INTO ${Paths.get((tmpDir.resolve(it)).absolutePath)}")
             Files.move(Paths.get(it.absolutePath), Paths.get((tmpDir.resolve(it)).absolutePath))
         }
         val project = executionRequestForStandardSuites.project
@@ -454,7 +451,6 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                 getTestResourcesRootAbsolutePath(propertiesRelativePath, projectRootRelativePath)
         testDiscoveringService.getRootTestConfig(testResourcesRootAbsolutePath)
     }
-        //.log()
         .zipWhen { rootTestConfig ->
             discoverAndSaveTestSuites(project, rootTestConfig, propertiesRelativePath, gitUrl)
         }
@@ -556,7 +552,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                     "Upstream request error"
                 )
             }
-        return toBody(responseSpec)//.log()
+        return toBody(responseSpec)
     }
 
     private fun Flux<FilePart>.download(destination: File): Mono<List<File>> = flatMap { filePart ->

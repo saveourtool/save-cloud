@@ -51,7 +51,6 @@ class AgentsController {
     @PostMapping("/initializeAgents")
     fun initialize(@RequestPart(required = true) execution: Execution,
                    @RequestPart(required = false) testSuiteDtos: List<TestSuiteDto>?): Status {
-        println("\n\n/initializeAgents start ${execution.additionalFiles} ${testSuiteDtos}")
         if (execution.status != ExecutionStatus.PENDING) {
             throw ResponseStatusException(
                 HttpStatus.BAD_REQUEST,
