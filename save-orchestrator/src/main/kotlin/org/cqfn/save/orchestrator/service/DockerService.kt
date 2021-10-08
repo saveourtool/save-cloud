@@ -99,7 +99,7 @@ class DockerService(private val configProperties: ConfigProperties) {
                         .map { it.id }
                     agentIds.forEach {
                         if (it in runningContainersIds) {
-                            log.info("\n\n\nStopping agent with id=$it")
+                            log.info("Stopping agent with id=$it")
                             containerManager.dockerClient.stopContainerCmd(it).exec()
                             log.info("Agent with id=$it has been stopped")
                         } else {
@@ -114,7 +114,7 @@ class DockerService(private val configProperties: ConfigProperties) {
                     isAgentStoppingInProgress.lazySet(false)
                 }
             } else {
-                log.info("Agents stopping is already in progress, skipping")
+                log.debug("Agents stopping is already in progress, skipping")
                 false
             }
 

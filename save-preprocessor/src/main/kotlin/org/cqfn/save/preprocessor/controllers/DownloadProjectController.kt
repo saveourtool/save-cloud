@@ -153,7 +153,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
      * @param executionRerunRequest request
      * @return status 202
      */
-    @Suppress("UnsafeCallOnNullableType")
+    @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
     @PostMapping("/rerunExecution")
     fun rerunExecution(@RequestBody executionRerunRequest: ExecutionRequest) = Mono.fromCallable {
         requireNotNull(executionRerunRequest.executionId) { "Can't rerun execution with unknown id" }
@@ -177,10 +177,9 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                 .flatMap { (location, execution) ->
                     val resourcesLocation = File(configProperties.repository).resolve(location).resolve(executionRerunRequest.propertiesRelativePath).parentFile
                     val files = execution.additionalFiles?.split(";")?.filter { it.isNotBlank() }?.map { File(it) } ?: emptyList()
-                    log.info("\n\n\nCopy additional files")
                     files.forEach { file ->
-                        log.info("Copy additional file ${file.absolutePath} into ${resourcesLocation.absolutePath}")
-                        Files.copy(Paths.get(file.absolutePath), Paths.get(resourcesLocation.absolutePath))
+                        log.debug("Copy additional file $file into ${resourcesLocation.resolve(file.name)}")
+                        Files.copy(Paths.get(file.absolutePath), Paths.get(resourcesLocation.resolve(file.name).absolutePath))
                     }
                     sendToBackendAndOrchestrator(
                         execution,
