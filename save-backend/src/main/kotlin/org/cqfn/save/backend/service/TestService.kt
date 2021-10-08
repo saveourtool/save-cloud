@@ -70,7 +70,7 @@ class TestService {
         val agent = agentRepository.findByContainerId(agentId) ?: error("The specified agent does not exist")
         log.debug("Agent found, id=${agent.id}")
         val execution = agent.execution
-        val pageRequest = PageRequest.of(execution.page, execution.batchSize!!)
+        val pageRequest = PageRequest.of(0, execution.batchSize!!)
         val testExecutions = testExecutionRepository.findByStatusAndExecutionId(
             TestResultStatus.READY,
             execution.id!!,
