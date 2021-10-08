@@ -55,6 +55,7 @@ jobs:
             buildSrc/**/Versions.kt
           arguments: |
             build
+            --refresh-dependencies
             -x detekt
           properties: |
             org.gradle.caching=true
