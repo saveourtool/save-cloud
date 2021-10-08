@@ -344,7 +344,6 @@ class DownloadProjectTest(
     }
 
     @Test
-    @Disabled("Because of zipWith, order of /updateExecution and /execution is undetermined and MockWebServer's queue leads to errors")
     @Suppress("LongMethod")
     fun `rerun execution`() {
         val project = Project("owner", "someName", "stub", "descr").apply {

@@ -63,6 +63,8 @@ class ExecutionController(private val executionService: ExecutionService,
     @Transactional(readOnly = true)
     fun getExecution(@RequestParam id: Long): Execution = executionService.findExecution(id).orElseThrow {
         ResponseStatusException(HttpStatus.NOT_FOUND, "Execution with id=$id is not found")
+    }.also {
+        println("\n\n\nFOUND EXECUTION ${it.id} ${it.status}")
     }
 
     /**

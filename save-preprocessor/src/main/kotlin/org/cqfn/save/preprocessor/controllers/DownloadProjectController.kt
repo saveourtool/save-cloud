@@ -161,33 +161,29 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         ResponseEntity("Clone pending", HttpStatus.ACCEPTED)
     }
         .doOnSuccess {
-            println("STUB 1")
-            updateExecutionStatus(executionRerunRequest.executionId!!, ExecutionStatus.PENDING).also { println("STUB11")}
+            updateExecutionStatus(executionRerunRequest.executionId!!, ExecutionStatus.PENDING)
                 .flatMap {
-                    println("STUB 2")
                     cleanupInOrchestrator(executionRerunRequest.executionId!!)
                 }
                 .flatMap {
-                    println("STUB 3")
-                    downLoadRepository(executionRerunRequest).map { (location, _) ->
-                        location
-                    }
+                    downLoadRepository(executionRerunRequest).map { (location, _) -> location }
                 }
-                .zipWith(
-                    getExecution(executionRerunRequest.executionId!!)
-                )
+                // Workaround, because order of execution of zipWith is undetermined
+                .flatMap {
+                    Mono.fromCallable { it }
+                        .zipWith(
+                            getExecution(executionRerunRequest.executionId!!)
+                        )
+                }
                 .flatMap { (location, execution) ->
-                    val resourcesLocation = File(configProperties.repository)
-                        .resolve(location)
-                        .resolve(executionRerunRequest.propertiesRelativePath)
-                        .parentFile
+                    println("ACTUAL STATUS: ${execution.status}")
+                    val resourcesLocation = File(configProperties.repository).resolve(location).resolve(executionRerunRequest.propertiesRelativePath).parentFile
                     val files = execution.additionalFiles?.split(";")?.filter {it.isNotBlank() }?.map { File(it) } ?: emptyList()
                     log.info("\n\n\nMove additional files")
                     files.forEach { file ->
                         log.info("Move additional file ${file.absolutePath} into ${resourcesLocation.absolutePath}")
                         //Files.move(Paths.get(file.absolutePath), Paths.get(resourcesLocation.absolutePath))
                     }
-                    println("EXECUTION IN RERUN ${execution.resourcesRootPath} ${execution.additionalFiles}")
                     sendToBackendAndOrchestrator(
                         execution,
                         execution.project,
@@ -197,7 +193,6 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                         executionRerunRequest.gitDto.url
                     )
                 }
-                //.log()
                 .subscribeOn(scheduler)
                 .subscribe()
         }
