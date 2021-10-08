@@ -32,7 +32,7 @@ class ContainerManagerTest {
 
     @BeforeEach
     fun setUp() {
-        containerManager = ContainerManager(configProperties.docker.host)
+        containerManager = ContainerManager(configProperties.docker)
         containerManager.dockerClient.pullImageCmd("ubuntu")
             .withTag("latest")
             .exec(PullImageResultCallback())

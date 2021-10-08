@@ -42,6 +42,7 @@ jobs:
             :save-backend:bootBuildImage
             :save-orchestrator:bootBuildImage
             :save-preprocessor:bootBuildImage
+            --refresh-dependencies
             --stacktrace
           properties: |
             org.gradle.caching=true

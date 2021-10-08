@@ -8,6 +8,7 @@ import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.frontend.components.tables.tableComponent
 import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
+import org.cqfn.save.frontend.themes.Colors
 import org.cqfn.save.frontend.utils.decodeFromJsonString
 import org.cqfn.save.frontend.utils.get
 import org.cqfn.save.frontend.utils.unsafeMap
@@ -58,13 +59,20 @@ class HistoryView : RComponent<HistoryProps, State>() {
         child(tableComponent(
             columns = columns {
                 column("result", "") { cellProps ->
-                    val isCrashed = cellProps.value.status == ExecutionStatus.ERROR
-                    val color = if (isCrashed || cellProps.value.failedTests > 0L) "text-danger" else "text-success"
-                    val icon = if (isCrashed || cellProps.value.failedTests > 0L) "exclamation-triangle" else "check"
+                    val result = when (cellProps.value.status) {
+                        ExecutionStatus.ERROR -> ResultColorAndIcon("text-danger", "exclamation-triangle")
+                        ExecutionStatus.PENDING -> ResultColorAndIcon("text-success", "spinner")
+                        ExecutionStatus.RUNNING -> ResultColorAndIcon("text-success", "spinner")
+                        ExecutionStatus.FINISHED -> if (cellProps.value.failedTests != 0L) {
+                            ResultColorAndIcon("text-danger", "exclamation-triangle")
+                        } else {
+                            ResultColorAndIcon("text-success", "check")
+                        }
+                    }
                     buildElement {
                         td {
                             a(href = getHrefToExecution(cellProps.value.id)) {
-                                fontAwesomeIcon(icon, classes = color)
+                                fontAwesomeIcon(result.resIcon, classes = result.resColor)
                             }
                         }
                     }
@@ -86,7 +94,7 @@ class HistoryView : RComponent<HistoryProps, State>() {
                                     Instant.fromEpochSeconds(it, 0)
                                         .toString()
                                         .replace("[TZ]".toRegex(), " ")
-                                } ?: "RUNNING")
+                                } ?: "Starting")
                             }
                         }
                     }
@@ -120,12 +128,15 @@ class HistoryView : RComponent<HistoryProps, State>() {
                 }
             },
             getRowProps = { row ->
-                val tmp = row.original
-                val isCrashed = tmp.status == ExecutionStatus.ERROR
-                val color = if (isCrashed || tmp.failedTests > 0L) "rgba(245, 50, 50, 0.1)" else "rgba(139, 237, 78, 0.1)"
+                val color = when (row.original.status) {
+                    ExecutionStatus.ERROR -> Colors.RED
+                    ExecutionStatus.PENDING -> Colors.GREY
+                    ExecutionStatus.RUNNING -> Colors.GREY
+                    ExecutionStatus.FINISHED -> if (row.original.failedTests != 0L) Colors.DARK_RED else Colors.GREEN
+                }
                 jsObject {
                     style = jsObject {
-                        background = color.unsafeCast<Background>()
+                        background = color.value.unsafeCast<Background>()
                     }
                 }
             }
@@ -147,4 +158,10 @@ class HistoryView : RComponent<HistoryProps, State>() {
     }
 
     private fun getHrefToExecution(id: Long) = "${window.location}/$id"
+
+    /**
+     * @property resColor
+     * @property resIcon
+     */
+    private data class ResultColorAndIcon(val resColor: String, val resIcon: String)
 }
