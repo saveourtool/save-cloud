@@ -68,19 +68,20 @@ class TestService {
     @Suppress("UnsafeCallOnNullableType")
     fun getTestBatches(agentId: String): Mono<TestBatch> {
         val agent = agentRepository.findByContainerId(agentId) ?: error("The specified agent does not exist")
-        log.debug("Agent found: $agent")
+        log.debug("Agent found, id=${agent.id}")
         val execution = agent.execution
-        log.debug("Retrieving tests")
+        val pageRequest = PageRequest.of(execution.page, execution.batchSize!!)
+        log.debug("Retrieving tests for page request $pageRequest")
         val testExecutions = testExecutionRepository.findByStatusAndExecutionId(
             TestResultStatus.READY,
             execution.id!!,
-            PageRequest.of(execution.page, execution.batchSize!!)
+            pageRequest
         )
         val testDtos = testExecutions.map {
             val tagsList = it.test.tags?.split(";")?.filter { it.isNotBlank() } ?: emptyList()
             TestDto(it.test.filePath, it.test.pluginName, it.test.testSuite.id!!, it.test.hash, tagsList)
         }
-        log.debug("Increasing offset of the execution - ${agent.execution}")
+        log.debug("Increasing offset of the execution - from ${execution.page} by ${execution.batchSize}")
         ++execution.page
         executionRepository.save(execution)
         return Mono.just(TestBatch(testDtos, testExecutions.map { it.test.testSuite }.associate {
