@@ -54,7 +54,7 @@ class TestService {
                     id = testDto.testSuiteId
                 }
                 testRepository.save(
-                    Test(testDto.hash, testDto.filePath, testDto.pluginName, LocalDateTime.now(), testSuiteStub, testDto.tags!!.joinToString(";"))
+                    Test(testDto.hash, testDto.filePath, testDto.pluginName, LocalDateTime.now(), testSuiteStub, testDto.tags.joinToString(";"))
                 )
             }
             .id!!
@@ -71,15 +71,15 @@ class TestService {
         log.debug("Agent found, id=${agent.id}")
         val execution = agent.execution
         val pageRequest = PageRequest.of(execution.page, execution.batchSize!!)
-        log.debug("Retrieving tests for page request $pageRequest")
         val testExecutions = testExecutionRepository.findByStatusAndExecutionId(
             TestResultStatus.READY,
             execution.id!!,
             pageRequest
         )
-        val testDtos = testExecutions.map {
-            val tagsList = it.test.tags?.split(";")?.filter { it.isNotBlank() } ?: emptyList()
-            TestDto(it.test.filePath, it.test.pluginName, it.test.testSuite.id!!, it.test.hash, tagsList)
+        log.debug("Retrieved ${testExecutions.size} tests for page request $pageRequest, test IDs: ${testExecutions.map { it.id!! }}")
+        val testDtos = testExecutions.map { testExecution ->
+            val tagsList = testExecution.test.tags?.split(";")?.filter { it.isNotBlank() } ?: emptyList()
+            TestDto(testExecution.test.filePath, testExecution.test.pluginName, testExecution.test.testSuite.id!!, testExecution.test.hash, tagsList)
         }
         log.debug("Increasing offset of the execution - from ${execution.page} by ${execution.batchSize}")
         ++execution.page
