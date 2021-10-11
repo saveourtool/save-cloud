@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.PageRequest
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 import reactor.core.publisher.Mono
 
@@ -96,10 +97,13 @@ class TestService {
     /**
      * Retrieves a batch of test executions with status `READY` from the datasource and sets their statuses to `RUNNING`
      *
+     * @param executionId id of execution for which a batch is requested
+     * @param batchSize size of the batch
      * @return a batch of [batchSize] tests with status `READY`
      */
     @Suppress("UnsafeCallOnNullableType")
-    private fun getTestExecutionsBatchByExecutionIdAndUpdateStatus(executionId: Long, batchSize: Int): List<TestExecution> {
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    internal fun getTestExecutionsBatchByExecutionIdAndUpdateStatus(executionId: Long, batchSize: Int): List<TestExecution> {
         val pageRequest = PageRequest.of(0, batchSize)
         val testExecutions = testExecutionRepository.findByStatusAndExecutionId(
             TestResultStatus.READY,
