@@ -54,7 +54,7 @@ class TestService {
                     id = testDto.testSuiteId
                 }
                 testRepository.save(
-                    Test(testDto.hash, testDto.filePath, testDto.pluginName, LocalDateTime.now(), testSuiteStub, testDto.tags!!.joinToString(";"))
+                    Test(testDto.hash, testDto.filePath, testDto.pluginName, LocalDateTime.now(), testSuiteStub, testDto.tags.joinToString(";"))
                 )
             }
             .id!!

@@ -95,10 +95,17 @@ class DockerService(private val configProperties: ConfigProperties) {
     fun stopAgents(agentIds: List<String>) =
             if (isAgentStoppingInProgress.compareAndSet(false, true)) {
                 try {
+                    val runningContainersIds = containerManager.dockerClient.listContainersCmd().withStatusFilter(listOf("running")).exec()
+                        .map { it.id }
                     agentIds.forEach {
-                        log.info("Stopping agent with id=$it")
-                        containerManager.dockerClient.stopContainerCmd(it).exec()
-                        log.info("Agent with id=$it has been stopped")
+                        if (it in runningContainersIds) {
+                            log.info("Stopping agent with id=$it")
+                            containerManager.dockerClient.stopContainerCmd(it).exec()
+                            log.info("Agent with id=$it has been stopped")
+                        } else {
+                            log.warn("Agent with id=$it was requested to be stopped, " +
+                                    "but it actual state=${containerManager.dockerClient.inspectContainerCmd(it).exec().state}")
+                        }
                     }
                     true
                 } catch (dex: DockerException) {
