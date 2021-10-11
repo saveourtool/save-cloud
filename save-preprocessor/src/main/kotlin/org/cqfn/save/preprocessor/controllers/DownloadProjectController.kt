@@ -159,7 +159,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
      * @param executionRerunRequest request
      * @return status 202
      */
-    @Suppress("UnsafeCallOnNullableType")
+    @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
     @PostMapping("/rerunExecution")
     fun rerunExecution(@RequestBody executionRerunRequest: ExecutionRequest) = Mono.fromCallable {
         requireNotNull(executionRerunRequest.executionId) { "Can't rerun execution with unknown id" }
@@ -173,10 +173,16 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                 .flatMap {
                     downLoadRepository(executionRerunRequest).map { (location, _) -> location }
                 }
-                .zipWith(
-                    getExecution(executionRerunRequest.executionId!!)
-                )
+                .flatMap { location ->
+                    getExecution(executionRerunRequest.executionId!!).map { location to it }
+                }
                 .flatMap { (location, execution) ->
+                    val resourcesLocation = File(configProperties.repository).resolve(location).resolve(executionRerunRequest.propertiesRelativePath).parentFile
+                    val files = execution.additionalFiles?.split(";")?.filter { it.isNotBlank() }?.map { File(it) } ?: emptyList()
+                    files.forEach { file ->
+                        log.debug("Copy additional file $file into ${resourcesLocation.resolve(file.name)}")
+                        Files.copy(Paths.get(file.absolutePath), Paths.get(resourcesLocation.resolve(file.name).absolutePath))
+                    }
                     sendToBackendAndOrchestrator(
                         execution,
                         execution.project,
@@ -186,7 +192,6 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                         executionRerunRequest.gitDto.url
                     )
                 }
-                .log()
                 .subscribeOn(scheduler)
                 .subscribe()
         }
@@ -447,7 +452,6 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                 getTestResourcesRootAbsolutePath(propertiesRelativePath, projectRootRelativePath)
         testDiscoveringService.getRootTestConfig(testResourcesRootAbsolutePath)
     }
-        .log()
         .zipWhen { rootTestConfig ->
             discoverAndSaveTestSuites(project, rootTestConfig, propertiesRelativePath, gitUrl)
         }
@@ -549,7 +553,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                     "Upstream request error"
                 )
             }
-        return toBody(responseSpec).log()
+        return toBody(responseSpec)
     }
 
     private fun Flux<Tuple2<FilePart, FileInfo>>.download(destination: File): Mono<List<File>> = flatMap { (filePart, fileInfo) ->

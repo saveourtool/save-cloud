@@ -32,7 +32,6 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.mockito.kotlin.any
@@ -352,7 +351,6 @@ class DownloadProjectTest(
     }
 
     @Test
-    @Disabled("Because of zipWith, order of /updateExecution and /execution is undetermined and MockWebServer's queue leads to errors")
     @Suppress("LongMethod")
     fun `rerun execution`() {
         val project = Project("owner", "someName", "stub", "descr").apply {

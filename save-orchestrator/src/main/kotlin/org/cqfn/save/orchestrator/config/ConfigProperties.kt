@@ -36,8 +36,10 @@ data class TestResources(
 /**
  * @property host hostname of docker daemon
  * @property runtime OCI compliant runtime for docker
+ * @property loggingDriver logging driver for the container
  */
 data class DockerSettings(
     val host: String,
+    val loggingDriver: String,
     val runtime: String = "runc",
 )

@@ -20,8 +20,8 @@ class GitService(private val gitRepository: GitRepository) {
     /**
      * @param gitDto
      * @param project
+     * @return saved git dto
      */
-    @Suppress("KDOC_WITHOUT_RETURN_TAG")  // https://github.com/cqfn/diKTat/issues/965
     fun saveGit(gitDto: GitDto, project: Project) =
             gitRepository.save(Git(gitDto.url, gitDto.username, gitDto.password, gitDto.branch, project))
 }

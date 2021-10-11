@@ -83,7 +83,6 @@ class HeartbeatController(private val agentService: AgentService,
             .map {
                 Json.encodeToString(it)
             }
-            .log()
     }
 
     /**

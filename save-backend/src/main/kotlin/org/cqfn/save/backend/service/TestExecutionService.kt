@@ -36,7 +36,6 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
      * @param executionId an ID of Execution to group TestExecutions
      * @param page a zero-based index of page of data
      * @param pageSize size of page
-     * @param pageSize
      * @return a list of [TestExecutionDto]s
      */
     internal fun getTestExecutions(executionId: Long, page: Int, pageSize: Int) = testExecutionRepository
