@@ -125,6 +125,16 @@ class TestInitializeControllerTest {
                 assertTrue(batch.tests.isNotEmpty())
                 assertEquals(10, batch.tests.size)
             }
+
+        webClient.get()
+            .uri("/getTestBatches?agentId=container-1")
+            .exchange()
+            .expectStatus()
+            .isOk
+            .expectBody<TestBatch>()
+            .consumeWith {
+                assertTrue(it.responseBody!!.tests.size == 3) { "Expected 3 tests, but got ${it.responseBody!!.tests} instead" }
+            }
     }
 
     @Test

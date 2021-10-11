@@ -6,25 +6,31 @@ import org.cqfn.save.backend.repository.TestExecutionRepository
 import org.cqfn.save.backend.repository.TestRepository
 import org.cqfn.save.domain.TestResultStatus
 import org.cqfn.save.entities.Test
+import org.cqfn.save.entities.TestExecution
 import org.cqfn.save.entities.TestSuite
+import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.test.TestBatch
 import org.cqfn.save.test.TestDto
 
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.PageRequest
+import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import reactor.core.publisher.Mono
 
 import java.io.File
 import java.time.LocalDateTime
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Service that is used for manipulating data with tests
  */
 @Service
 class TestService {
+    private val locks: ConcurrentHashMap<Long, Any> = ConcurrentHashMap()
+
     @Autowired
     private lateinit var testRepository: TestRepository
 
@@ -70,20 +76,14 @@ class TestService {
         val agent = agentRepository.findByContainerId(agentId) ?: error("The specified agent does not exist")
         log.debug("Agent found, id=${agent.id}")
         val execution = agent.execution
-        val pageRequest = PageRequest.of(0, execution.batchSize!!)
-        val testExecutions = testExecutionRepository.findByStatusAndExecutionId(
-            TestResultStatus.READY,
-            execution.id!!,
-            pageRequest
-        )
-        log.debug("Retrieved ${testExecutions.size} tests for page request $pageRequest, test IDs: ${testExecutions.map { it.id!! }}")
-        val testDtos = testExecutions.map { testExecution ->
-            val tagsList = testExecution.test.tags?.split(";")?.filter { it.isNotBlank() } ?: emptyList()
-            TestDto(testExecution.test.filePath, testExecution.test.pluginName, testExecution.test.testSuite.id!!, testExecution.test.hash, tagsList)
+        val lock = locks.computeIfAbsent(execution.id!!) { Any() }
+        return synchronized(lock) {
+            val testExecutions = getTestExecutionsBatchByExecutionIdAndUpdateStatus(execution.id!!, execution.batchSize!!)
+            val testDtos = testExecutions.map { it.test.toDto() }
+            Mono.just(TestBatch(testDtos, testExecutions.map { it.test.testSuite }.associate {
+                it.id!! to File(it.propertiesRelativePath).parent
+            }))
         }
-        return Mono.just(TestBatch(testDtos, testExecutions.map { it.test.testSuite }.associate {
-            it.id!! to File(it.propertiesRelativePath).parent
-        }))
     }
 
     /**
@@ -92,6 +92,39 @@ class TestService {
      */
     fun findTestsByTestSuiteId(testSuiteId: Long) =
             testRepository.findAllByTestSuiteId(testSuiteId)
+
+    /**
+     * Retrieves a batch of test executions with status `READY` from the datasource and sets their statuses to `RUNNING`
+     *
+     * @return a batch of [batchSize] tests with status `READY`
+     */
+    private fun getTestExecutionsBatchByExecutionIdAndUpdateStatus(executionId: Long, batchSize: Int): List<TestExecution> {
+        val pageRequest = PageRequest.of(0, batchSize)
+        val testExecutions = testExecutionRepository.findByStatusAndExecutionId(
+            TestResultStatus.READY,
+            executionId,
+            pageRequest
+        )
+        log.debug("Retrieved ${testExecutions.size} tests for page request $pageRequest, test IDs: ${testExecutions.map { it.id!! }}")
+        testExecutions.forEach {
+            testExecutionRepository.save(it.apply {
+                status = TestResultStatus.RUNNING
+            })
+        }
+        return testExecutions
+    }
+
+    /**
+     * Remove execution ids from [locks] for executions that are no more running
+     */
+    @Scheduled(cron = "0 0/10 * * * ?")
+    fun cleanupLocks() {
+        executionRepository.findAllById(locks.keys).forEach {
+            if (it.status != ExecutionStatus.RUNNING) {
+                locks.remove(it.id!!)
+            }
+        }
+    }
 
     companion object {
         private val log = LoggerFactory.getLogger(TestService::class.java)
