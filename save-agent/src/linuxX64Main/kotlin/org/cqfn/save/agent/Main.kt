@@ -14,6 +14,11 @@ import io.ktor.client.HttpClient
 import io.ktor.client.features.HttpTimeout
 import io.ktor.client.features.json.JsonFeature
 import io.ktor.client.features.json.serializer.KotlinxSerializer
+import platform.posix.SIGTERM
+import platform.posix.exit
+import platform.posix.signal
+
+import kotlinx.cinterop.staticCFunction
 
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -43,6 +48,12 @@ fun main() {
     )
     isDebugEnabled = config.debug
     logDebug("Instantiating save-agent version $SAVE_CLOUD_VERSION with config $config")
+    
+    signal(SIGTERM, staticCFunction<Int, Unit> {
+        logInfo("Agent is shutting down because SIGTERM has been received")
+        exit(1)
+    })
+    
     val httpClient = HttpClient {
         install(JsonFeature) {
             serializer = KotlinxSerializer(json)
