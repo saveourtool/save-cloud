@@ -16,5 +16,10 @@ enum class TestSuiteType {
      * Type Standard
      */
     STANDARD,
+
+    /**
+     * Type Obsolete Standard for old test suites
+     */
+    OBSOLETE_STANDARD,
     ;
 }

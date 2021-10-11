@@ -214,11 +214,11 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                     val rootTestConfig = testDiscoveringService.getRootTestConfig(testResourcesRootAbsolutePath)
                     log.info("Starting to discover standard test suites for root test config ${rootTestConfig.location}")
                     val propertiesRelativePath = "${rootTestConfig.directory.toFile().relativeTo(tmpDir)}${File.separator}save.properties"
-                    val tests = testDiscoveringService.getAllTestSuites(null, rootTestConfig, propertiesRelativePath, testSuiteUrl)
-                    tests.forEach { newTestSuites.add(it) }
-                    log.info("Test suites size = ${tests.size}")
+                    val testSuiteDtos = testDiscoveringService.getAllTestSuites(null, rootTestConfig, propertiesRelativePath, testSuiteUrl)
+                    testSuiteDtos.forEach { newTestSuites.add(it) }
+                    log.info("Test suites size = ${testSuiteDtos.size}")
                     log.info("Starting to save new test suites for root test config in $testRootPath")
-                    webClientBackend.makeRequest(BodyInserters.fromValue(tests), "/saveTestSuites") {
+                    webClientBackend.makeRequest(BodyInserters.fromValue(testSuiteDtos), "/saveTestSuites") {
                         it.bodyToMono<List<TestSuite>>()
                     }
                         .flatMap { testSuites ->
@@ -239,21 +239,21 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                 }
         }.collectList()
             .flatMap {
-                deleteOldStandardTestSuites(newTestSuites)
+                markObsoleteOldStandardTestSuites(newTestSuites)
             }
     }
 
-    private fun deleteOldStandardTestSuites(newTestSuites: MutableList<TestSuiteDto>) = webClientBackend.get()
+    private fun markObsoleteOldStandardTestSuites(newTestSuites: MutableList<TestSuiteDto>) = webClientBackend.get()
         .uri("/allStandardTestSuites")
         .retrieve()
         .bodyToMono<List<TestSuiteDto>>()
         .map { existingSuites ->
             existingSuites.filter { it !in newTestSuites }
         }
-        .flatMap { suitesToDelete ->
+        .flatMap { obsoleteSuites ->
             webClientBackend.makeRequest(
-                BodyInserters.fromValue(suitesToDelete),
-                "/deleteTestSuite"
+                BodyInserters.fromValue(obsoleteSuites),
+                "/markObsoleteTestSuites"
             ) {
                 it.toBodilessEntity()
             }
@@ -316,6 +316,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
             Files.move(Paths.get(it.absolutePath), Paths.get((tmpDir.resolve(it)).absolutePath))
         }
         val project = executionRequestForStandardSuites.project
+        println("\n\n\nPROJECT ${project.id} | ${project.url} | ${project.owner} | ${project.name} | ${project.description}")
         val propertiesRelativePath = "save.properties"
         // todo: what's with version?
         val version = files.first().name
