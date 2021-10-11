@@ -119,20 +119,11 @@ class TestInitializeControllerTest {
             .expectStatus()
             .isOk
             .expectBody<TestBatch>()
-            .consumeWith {
-                println(it.responseBody)
-                assertTrue(it.responseBody!!.tests.isNotEmpty())
-                assertEquals(10, it.responseBody!!.tests.size)
-            }
-
-        webClient.get()
-            .uri("/getTestBatches?agentId=container-1")
-            .exchange()
-            .expectStatus()
-            .isOk
-            .expectBody<TestBatch>()
-            .consumeWith {
-                assertTrue(it.responseBody!!.tests.size == 3) { "Expected 3 tests, but got ${it.responseBody!!.tests} instead" }
+            .consumeWith { entityExchangeResult ->
+                val batch = entityExchangeResult.responseBody!!
+                println(batch)
+                assertTrue(batch.tests.isNotEmpty())
+                assertEquals(10, batch.tests.size)
             }
     }
 
