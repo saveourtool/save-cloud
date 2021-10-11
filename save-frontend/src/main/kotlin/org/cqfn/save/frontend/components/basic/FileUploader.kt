@@ -58,7 +58,7 @@ external interface UploaderProps : PropsWithChildren {
  * @param onExecutableChange when file is checked to be executable or vice versa, this handler is called
  * @return a RComponent
  */
-@Suppress("TOO_LONG_FUNCTION")
+@Suppress("TOO_LONG_FUNCTION", "TYPE_ALIAS")
 fun fileUploader(
     onFileSelect: (HTMLSelectElement) -> Unit,
     onFileRemove: (FileInfo) -> Unit,

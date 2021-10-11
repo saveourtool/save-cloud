@@ -556,6 +556,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         return toBody(responseSpec)
     }
 
+    @Suppress("TYPE_ALIAS")
     private fun Flux<Tuple2<FilePart, FileInfo>>.download(destination: File): Mono<List<File>> = flatMap { (filePart, fileInfo) ->
         val file = File(destination, filePart.filename()).apply {
             createNewFile()
