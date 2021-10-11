@@ -83,11 +83,11 @@ fun fileUploader(
                         }
                         span("fa-layers mr-3") {
                             // if file was not executable, after click it will be; and vice versa
-                            val checked = !fileInfo.isExecutable
                             attrs.onClickFunction = { _ ->
-                                onExecutableChange(fileInfo, checked)
+                                onExecutableChange(fileInfo, !fileInfo.isExecutable)
                             }
                             attrs.onDoubleClickFunction = {}
+                            val checked = fileInfo.isExecutable
                             fontAwesomeIcon(icon = faFile, classes = "fa-2x") {
                                 if (checked) {
                                     attrs.color = "Green"

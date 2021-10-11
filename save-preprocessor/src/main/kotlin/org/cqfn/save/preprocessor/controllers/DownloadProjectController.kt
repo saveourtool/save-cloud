@@ -573,7 +573,10 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
             // return a single Mono per file, discarding how many parts `content()` has
             .last()
             .doOnSuccess {
-                it.setExecutable(fileInfo.isExecutable)
+                log.debug("File ${fileInfo.name} should have executable=${fileInfo.isExecutable}")
+                if (!it.setExecutable(fileInfo.isExecutable)) {
+                    log.warn("Failed to mark file ${fileInfo.name} as executable")
+                }
             }
     }
         .collectList()
