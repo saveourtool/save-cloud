@@ -40,6 +40,7 @@ class Test(
     /**
      * @return [TestDto] constructed from `this`
      */
+    @Suppress("UnsafeCallOnNullableType")
     fun toDto(): TestDto = TestDto(
         filePath,
         pluginName,

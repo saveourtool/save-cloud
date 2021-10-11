@@ -118,6 +118,7 @@ class TestService {
      * Remove execution ids from [locks] for executions that are no more running
      */
     @Scheduled(cron = "0 0/10 * * * ?")
+    @Suppress("UnsafeCallOnNullableType")
     fun cleanupLocks() {
         executionRepository.findAllById(locks.keys).forEach {
             if (it.status != ExecutionStatus.RUNNING) {
