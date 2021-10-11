@@ -167,12 +167,8 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                 .flatMap {
                     downLoadRepository(executionRerunRequest).map { (location, _) -> location }
                 }
-                // Workaround, because order of execution of zipWith is undetermined
-                .flatMap {
-                    Mono.fromCallable { it }
-                        .zipWith(
-                            getExecution(executionRerunRequest.executionId!!)
-                        )
+                .flatMap { location ->
+                    getExecution(executionRerunRequest.executionId!!).map { location to it }
                 }
                 .flatMap { (location, execution) ->
                     val resourcesLocation = File(configProperties.repository).resolve(location).resolve(executionRerunRequest.propertiesRelativePath).parentFile

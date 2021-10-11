@@ -103,7 +103,7 @@ class DockerService(private val configProperties: ConfigProperties) {
                             containerManager.dockerClient.stopContainerCmd(it).exec()
                             log.info("Agent with id=$it has been stopped")
                         } else {
-                            // FixMe: Should we do something?
+                            log.warn("Agent with id=$it was requested to be stopped, but it actually doesn't running")
                         }
                     }
                     true
