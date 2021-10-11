@@ -76,14 +76,17 @@ class ContainerManager(private val settings: DockerSettings) {
                 // processes from inside the container will be able to access host's network using this hostname
                 .withExtraHosts("host.docker.internal:host-gateway")
                 .withLogConfig(
-                    LogConfig(
-                        LogConfig.LoggingType.LOKI,
-                        mapOf(
-                            // similar to config in docker-compose.yaml
-                            "loki-url" to "http://127.0.0.1:9110/loki/api/v1/push",
-                            "loki-external-labels" to "container_name={{.Name}},source=save-agent"
+                    when (settings.loggingDriver) {
+                        "loki" -> LogConfig(
+                            LogConfig.LoggingType.LOKI,
+                            mapOf(
+                                // similar to config in docker-compose.yaml
+                                "loki-url" to "http://127.0.0.1:9110/loki/api/v1/push",
+                                "loki-external-labels" to "container_name={{.Name}},source=save-agent"
+                            )
                         )
-                    )
+                        else -> LogConfig(LogConfig.LoggingType.DEFAULT)
+                    }
                 )
             )
             .exec()
