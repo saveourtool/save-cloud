@@ -81,9 +81,6 @@ class TestService {
             val tagsList = testExecution.test.tags?.split(";")?.filter { it.isNotBlank() } ?: emptyList()
             TestDto(testExecution.test.filePath, testExecution.test.pluginName, testExecution.test.testSuite.id!!, testExecution.test.hash, tagsList)
         }
-        log.debug("Increasing offset of the execution - from ${execution.page} by ${execution.batchSize}")
-        ++execution.page
-        executionRepository.save(execution)
         return Mono.just(TestBatch(testDtos, testExecutions.map { it.test.testSuite }.associate {
             it.id!! to File(it.propertiesRelativePath).parent
         }))
