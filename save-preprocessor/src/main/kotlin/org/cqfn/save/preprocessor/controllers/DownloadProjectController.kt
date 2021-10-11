@@ -3,6 +3,7 @@ package org.cqfn.save.preprocessor.controllers
 import org.cqfn.save.core.config.SaveProperties
 import org.cqfn.save.core.config.TestConfig
 import org.cqfn.save.core.config.defaultConfig
+import org.cqfn.save.domain.FileInfo
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.ExecutionRequestForStandardSuites
@@ -24,7 +25,6 @@ import org.cqfn.save.testsuite.TestSuiteDto
 import org.cqfn.save.testsuite.TestSuiteType
 
 import okio.ExperimentalFileSystem
-import org.cqfn.save.domain.FileInfo
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.api.errors.GitAPIException
 import org.eclipse.jgit.api.errors.InvalidRemoteException
@@ -85,6 +85,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
     /**
      * @param executionRequest Dto of repo information to clone and project info
      * @param files resources required for execution
+     * @param fileInfos a list of [FileInfo]s associated with [files]
      * @return response entity with text
      */
     @Suppress("TOO_LONG_FUNCTION")
@@ -134,6 +135,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
     /**
      * @param executionRequestForStandardSuites Dto of binary file, test suites names and project info
      * @param files resources for execution
+     * @param fileInfos a list of [FileInfo]s associated with [files]
      * @return response entity with text
      */
     @PostMapping(value = ["/uploadBin"], consumes = ["multipart/form-data"])
@@ -567,8 +569,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
             // return a single Mono per file, discarding how many parts `content()` has
             .last()
             .doOnSuccess {
-//                it.setExecutable(fileInfo.isExecutable)
-                it.setExecutable(true)
+                it.setExecutable(fileInfo.isExecutable)
             }
     }
         .collectList()

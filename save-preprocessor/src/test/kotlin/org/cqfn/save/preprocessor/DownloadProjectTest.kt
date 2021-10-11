@@ -1,6 +1,7 @@
 package org.cqfn.save.preprocessor
 
 import org.cqfn.save.core.config.TestConfig
+import org.cqfn.save.domain.FileInfo
 import org.cqfn.save.domain.Sdk
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.ExecutionRequest
@@ -26,7 +27,6 @@ import okhttp3.mockwebserver.QueueDispatcher
 import okio.ExperimentalFileSystem
 import okio.FileSystem
 import okio.Path.Companion.toPath
-import org.cqfn.save.domain.FileInfo
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
@@ -58,6 +58,7 @@ import java.time.Duration
 import java.time.LocalDateTime
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
+
 import kotlin.io.path.fileSize
 import kotlin.io.path.isExecutable
 

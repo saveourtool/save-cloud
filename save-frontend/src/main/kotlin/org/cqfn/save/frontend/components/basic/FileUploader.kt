@@ -7,7 +7,9 @@
 package org.cqfn.save.frontend.components.basic
 
 import org.cqfn.save.domain.FileInfo
+import org.cqfn.save.frontend.externals.fontawesome.faFile
 import org.cqfn.save.frontend.externals.fontawesome.faTimesCircle
+import org.cqfn.save.frontend.externals.fontawesome.faUpload
 import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
 import org.cqfn.save.frontend.utils.toPrettyString
 
@@ -23,6 +25,7 @@ import react.dom.label
 import react.dom.li
 import react.dom.option
 import react.dom.select
+import react.dom.span
 import react.dom.strong
 import react.dom.ul
 import react.fc
@@ -31,12 +34,7 @@ import kotlinx.html.InputType
 import kotlinx.html.hidden
 import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
-import org.cqfn.save.frontend.externals.fontawesome.faFile
-import org.cqfn.save.frontend.externals.fontawesome.faUpload
-import org.cqfn.save.frontend.externals.switch.rSwitch
-import react.buildElement
-import react.createElement
-import react.dom.span
+import kotlinx.html.js.onDoubleClickFunction
 
 /**
  * Props for file uploader
@@ -57,6 +55,7 @@ external interface UploaderProps : PropsWithChildren {
  * @param onFileInput invoked on `input` change events
  * @param onFileSelect invoked when a file is selected from [UploaderProps.availableFiles]
  * @param onFileRemove invoked when a file is removed from selection by pushing a button
+ * @param onExecutableChange when file is checked to be executable or vice versa, this handler is called
  * @return a RComponent
  */
 @Suppress("TOO_LONG_FUNCTION")
@@ -82,22 +81,25 @@ fun fileUploader(
                                 onFileRemove(fileInfo)
                             }
                         }
-                        rSwitch {
-                            attrs.checked = fileInfo.isExecutable
-                            attrs.onChange = { checked, _, _ ->
+                        span("fa-layers mr-3") {
+                            // if file was not executable, after click it will be; and vice versa
+                            val checked = !fileInfo.isExecutable
+                            attrs.onClickFunction = { _ ->
                                 onExecutableChange(fileInfo, checked)
                             }
-                            attrs.uncheckedIcon = buildElement {
-                                span("fa-layers") {
-                                    fontAwesomeIcon(icon = faFile)
+                            attrs.onDoubleClickFunction = {}
+                            fontAwesomeIcon(icon = faFile, classes = "fa-2x") {
+                                if (checked) {
+                                    attrs.color = "Green"
                                 }
                             }
-                            attrs.checkedIcon = buildElement {
-                                span("fa-layers") {
-                                    fontAwesomeIcon(icon = faFile)
-                                    span("fa-layers-text file-extension fa-inverse") {
-                                        +"exe"
-                                    }
+                            span("fa-layers-text file-extension fa-inverse pl-2 pt-2 small") {
+                                attrs.onDoubleClickFunction = {}
+                                attrs["data-fa-transform"] = "down-3 shrink-12.5"
+                                if (checked) {
+                                    +"exe"
+                                } else {
+                                    +"file"
                                 }
                             }
                         }
