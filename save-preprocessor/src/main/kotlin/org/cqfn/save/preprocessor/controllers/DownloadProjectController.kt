@@ -469,7 +469,6 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                 .retrieve()
                 .bodyToMono<List<TestSuite>>()
         }.flatMap { testSuites ->
-                println("\n\n\nQQQQQQ ${testSuites.first().name} ${testSuites.first().id}")
                 fromIterable(testSuites).flatMap { testSuite ->
                     testSuiteIds.add(testSuite.id!!)
                     webClientBackend.makeRequest(
@@ -482,7 +481,6 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
             }
             .collectList()
             .flatMap {
-                println("\n\n\nBBBBBB")
                 execution.testSuiteIds = testSuiteIds.joinToString()
                 updateExecution(execution)
             }

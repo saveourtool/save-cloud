@@ -219,7 +219,9 @@ class DownloadProjectTest(
                 .setHeader("Content-Type", "application/json")
                 .setBody(objectMapper.writeValueAsString(
                     listOf(
-                        TestSuite(TestSuiteType.STANDARD, "stub", null, project, LocalDateTime.now(), "save.properties", "stub")
+                        TestSuite(TestSuiteType.STANDARD, "stub", null, project, LocalDateTime.now(), "save.properties", "stub").apply {
+                            id = 42
+                        }
                     )
                 )),
         )
