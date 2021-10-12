@@ -175,7 +175,7 @@ class ExecutionControllerTest {
             -1, ExecutionStatus.FINISHED
         )
         webClient.post()
-            .uri("/updateExecution")
+            .uri("/updateExecutionByDto")
             .contentType(MediaType.APPLICATION_JSON)
             .body(BodyInserters.fromValue(executionUpdateDto))
             .exchange()

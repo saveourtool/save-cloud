@@ -76,7 +76,7 @@ class DockerService(private val configProperties: ConfigProperties) {
         log.info("Sending request to make execution.id=$executionId RUNNING")
         webClientBackend
             .post()
-            .uri("/updateExecution")
+            .uri("/updateExecutionByDto")
             .body(BodyInserters.fromValue(ExecutionUpdateDto(executionId, ExecutionStatus.RUNNING)))
             .retrieve()
             .toBodilessEntity()

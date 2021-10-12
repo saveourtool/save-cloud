@@ -135,7 +135,7 @@ class AgentService {
             )
                 .then(
                     webClientBackend.post()
-                        .uri("/updateExecution")
+                        .uri("/updateExecutionByDto")
                         .bodyValue(ExecutionUpdateDto(executionId, ExecutionStatus.FINISHED))  // todo: status based on results
                         .retrieve()
                         .toBodilessEntity()

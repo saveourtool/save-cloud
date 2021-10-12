@@ -49,6 +49,7 @@ import org.springframework.web.reactive.function.client.bodyToMono
 import org.springframework.web.reactive.function.client.toEntity
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
+import reactor.core.publisher.Flux.fromIterable
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
 import reactor.kotlin.core.util.function.component1
@@ -320,7 +321,13 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         val propertiesRelativePath = "save.properties"
         // todo: what's with version?
         val version = files.first().name
-        return updateExecution(executionRequestForStandardSuites.project, tmpDir.name, version).flatMap { execution ->
+        return updateExecution(
+            executionRequestForStandardSuites.project,
+            tmpDir.name,
+            version,
+            executionRequestForStandardSuites.testsSuites.joinToString()
+        )
+            .flatMap { execution ->
             sendToBackendAndOrchestrator(
                 execution,
                 project,
@@ -394,7 +401,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         return if (executionType == ExecutionType.GIT) {
             prepareForExecutionFromGit(project, execution.id!!, propertiesRelativePath, projectRootRelativePath, gitUrl!!)
         } else {
-            prepareExecutionForStandard(testSuiteDtos!!, execution.id!!)
+            prepareExecutionForStandard(testSuiteDtos!!, execution)
         }
             .then(initializeAgents(execution, testSuiteDtos))
             .onErrorResume { ex ->
@@ -411,8 +418,8 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         .retrieve()
         .bodyToMono<Execution>()
 
-    private fun updateExecution(project: Project, projectRootRelativePath: String, executionVersion: String): Mono<Execution> {
-        val executionUpdate = ExecutionInitializationDto(project, "ALL", projectRootRelativePath, executionVersion)
+    private fun updateExecution(project: Project, projectRootRelativePath: String, executionVersion: String, testSuiteIds: String = "ALL"): Mono<Execution> {
+        val executionUpdate = ExecutionInitializationDto(project, testSuiteIds, projectRootRelativePath, executionVersion)
         return webClientBackend.makeRequest(BodyInserters.fromValue(executionUpdate), "/updateNewExecution") {
             it.onStatus({ status -> status != HttpStatus.OK }) { clientResponse ->
                 log.error("Error when making update to execution fro project id = ${project.id} ${clientResponse.statusCode()}")
@@ -454,22 +461,35 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
             initializeTests(testSuites, rootTestConfig, executionId)
         }
 
-    private fun prepareExecutionForStandard(testSuiteDtos: List<TestSuiteDto>, executionId: Long) = Flux.fromIterable(testSuiteDtos).flatMap {
-        webClientBackend.get()
-            .uri("/standardTestSuitesWithName?name=${it.name}")
-            .retrieve()
-            .bodyToMono<List<TestSuite>>()
-    }.flatMap {
-        Flux.fromIterable(it).flatMap { testSuite ->
-            webClientBackend.makeRequest(
-                BodyInserters.fromValue(executionId),
-                "/saveTestExecutionsForStandardByTestSuiteId?testSuiteId=${testSuite.id}"
-            ) {
-                it.toBodilessEntity()
+    private fun prepareExecutionForStandard(testSuiteDtos: List<TestSuiteDto>, execution: Execution): Mono<ResponseEntity<HttpStatus>> {
+        val testSuiteIds: MutableList<Long> = mutableListOf()
+        val response = fromIterable(testSuiteDtos).flatMap {
+            webClientBackend.get()
+                .uri("/standardTestSuitesWithName?name=${it.name}")
+                .retrieve()
+                .bodyToMono<List<TestSuite>>()
+        }.flatMap { testSuites ->
+                println("\n\n\nQQQQQQ ${testSuites.first().name} ${testSuites.first().id}")
+                fromIterable(testSuites).flatMap { testSuite ->
+                    testSuiteIds.add(testSuite.id!!)
+                    webClientBackend.makeRequest(
+                        BodyInserters.fromValue(execution.id!!),
+                        "/saveTestExecutionsForStandardByTestSuiteId?testSuiteId=${testSuite.id}"
+                    ) {
+                        it.toBodilessEntity()
+                    }
+                }
             }
-        }
+            .collectList()
+            .flatMap {
+                println("\n\n\nBBBBBB")
+                execution.testSuiteIds = testSuiteIds.joinToString()
+                updateExecution(execution)
+            }
+        return response
     }
-        .collectList()
+
+
 
     @Suppress("UnsafeCallOnNullableType")
     private fun getTestResourcesRootAbsolutePath(propertiesRelativePath: String,
@@ -573,11 +593,20 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
     private fun updateExecutionStatus(executionId: Long, executionStatus: ExecutionStatus) =
             webClientBackend.makeRequest(
                 BodyInserters.fromValue(ExecutionUpdateDto(executionId, executionStatus)),
-                "/updateExecution"
+                "/updateExecutionByDto"
             ) { it.toEntity<HttpStatus>() }
                 .doOnSubscribe {
                     log.info("Making request to set execution status for id=$executionId to $executionStatus")
                 }
+
+    private fun updateExecution(execution: Execution) =
+        webClientBackend.makeRequest(
+            BodyInserters.fromValue(execution),
+            "/updateExecution"
+        ) { it.toEntity<HttpStatus>() }
+            .doOnSubscribe {
+                log.info("Making request to update execution with id=${execution.id!!}")
+            }
 }
 
 /**

@@ -159,7 +159,7 @@ class HeartbeatControllerTest {
                 mockServer.enqueue(
                     MockResponse().setResponseCode(200)
                 )
-                // /updateExecution
+                // /updateExecutionByDto
                 mockServer.enqueue(
                     MockResponse().setResponseCode(200)
                 )

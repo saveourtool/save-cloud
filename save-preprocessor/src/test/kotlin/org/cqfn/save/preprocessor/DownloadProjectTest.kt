@@ -91,7 +91,7 @@ class DownloadProjectTest(
             id = 97L
         }
         val request = ExecutionRequest(project, wrongRepo, sdk = Sdk.Default, executionId = execution.id)
-        // /updateExecution
+        // /updateExecutionByDto
         mockServerBackend.enqueue(
             MockResponse().setResponseCode(200)
         )
@@ -230,6 +230,12 @@ class DownloadProjectTest(
                 .setResponseCode(200)
         )
 
+        // /updateExecution
+        mockServerBackend.enqueue(
+            MockResponse()
+                .setResponseCode(200)
+        )
+
         // /initializeAgents
         mockServerOrchestrator.enqueue(
             MockResponse()
@@ -237,6 +243,7 @@ class DownloadProjectTest(
         )
 
         val assertions = sequence {
+            yield(mockServerBackend.takeRequest(60, TimeUnit.SECONDS))
             yield(mockServerBackend.takeRequest(60, TimeUnit.SECONDS))
             yield(mockServerBackend.takeRequest(60, TimeUnit.SECONDS))
             yield(mockServerBackend.takeRequest(60, TimeUnit.SECONDS))
@@ -354,7 +361,7 @@ class DownloadProjectTest(
         }
         val request = ExecutionRequest(project, GitDto("https://github.com/cqfn/save"), "examples/kotlin-diktat/save.properties", Sdk.Default, execution.id)
 
-        // /updateExecution
+        // /updateExecutionByDto
         mockServerBackend.enqueue(
             MockResponse().setResponseCode(200)
         )
