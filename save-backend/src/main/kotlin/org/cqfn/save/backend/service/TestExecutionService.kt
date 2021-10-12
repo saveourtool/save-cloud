@@ -56,6 +56,7 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
      */
     @Suppress("TOO_MANY_LINES_IN_LAMBDA", "UnsafeCallOnNullableType")
     fun saveTestResult(testExecutionsDtos: List<TestExecutionDto>): List<TestExecutionDto> {
+        log.debug("Saving ${testExecutionsDtos.size} test results from agent ${testExecutionsDtos.first().agentContainerId}")
         // we take agent id only from first element, because all test executions have same execution
         val agentContainerId = requireNotNull(testExecutionsDtos.first().agentContainerId) {
             "Attempt to save test results without assigned agent. testExecutionDtos=$testExecutionsDtos"

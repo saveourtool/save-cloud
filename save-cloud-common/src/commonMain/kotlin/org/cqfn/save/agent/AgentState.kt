@@ -41,5 +41,10 @@ enum class AgentState {
      * Agent has just started and hasn't received any heartbeats yet
      */
     STARTING,
+
+    /**
+     * Agent has been stopped by save-orchestartor, because there is no more work left
+     */
+    STOPPED_BY_ORCH,
     ;
 }

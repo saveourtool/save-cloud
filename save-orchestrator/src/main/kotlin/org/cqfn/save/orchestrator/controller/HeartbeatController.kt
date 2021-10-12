@@ -67,6 +67,8 @@ class HeartbeatController(private val agentService: AgentService,
                             if (it is WaitResponse) {
                                 initiateShutdownSequence(heartbeat.agentId)
                             } else if (it is NewJobResponse) {
+                                // set status to BUSY
+                                updateAssignedAgent(heartbeat.agentId, it)
                                 logger.debug("Agent ${heartbeat.agentId} will receive the following job: $it")
                             }
                         }
@@ -78,11 +80,20 @@ class HeartbeatController(private val agentService: AgentService,
                     AgentState.BACKEND_FAILURE -> Mono.just(WaitResponse)
                     AgentState.BACKEND_UNREACHABLE -> Mono.just(WaitResponse)
                     AgentState.CLI_FAILED -> Mono.just(WaitResponse)
+                    AgentState.STOPPED_BY_ORCH -> Mono.just(WaitResponse)
                 }
             )
             .map {
                 Json.encodeToString(it)
             }
+    }
+
+    private fun updateAssignedAgent(agentId: String, newJobResponse: NewJobResponse) {
+        // put agentId into test_execution table
+//        newJobResponse.tests
+        agentService.updateAgentStatusesWithDto(listOf(
+            AgentStatusDto(LocalDateTime.now(), AgentState.BUSY, agentId)
+        )).subscribe()
     }
 
     /**
