@@ -122,11 +122,13 @@ class TestService {
     /**
      * Remove execution ids from [locks] for executions that are no more running
      */
-    @Scheduled(cron = "0 0/10 * * * ?")
+    @Scheduled(cron = "0 0/50 * * * ?")
     @Suppress("UnsafeCallOnNullableType")
     fun cleanupLocks() {
+        log.debug("Starting scheduled task of `locks` map cleanup")
         executionRepository.findAllById(locks.keys).forEach {
             if (it.status != ExecutionStatus.RUNNING) {
+                log.debug("Will remove key=[${it.id!!}] from the map, because execution state is ${it.status}")
                 locks.remove(it.id!!)
             }
         }
