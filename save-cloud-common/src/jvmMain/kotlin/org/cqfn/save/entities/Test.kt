@@ -1,5 +1,6 @@
 package org.cqfn.save.entities
 
+import org.cqfn.save.test.TestDto
 import java.time.LocalDateTime
 import javax.persistence.Entity
 import javax.persistence.JoinColumn
@@ -30,4 +31,21 @@ class Test(
 
     var tags: String?,
 
-) : BaseEntity()
+) : BaseEntity() {
+    /**
+     * @return [tags] as a list of strings
+     */
+    fun tagsAsList() = tags?.split(";")?.filter { it.isNotBlank() }
+
+    /**
+     * @return [TestDto] constructed from `this`
+     */
+    @Suppress("UnsafeCallOnNullableType")
+    fun toDto(): TestDto = TestDto(
+        filePath,
+        pluginName,
+        testSuite.id!!,
+        hash,
+        tagsAsList() ?: emptyList(),
+    )
+}
