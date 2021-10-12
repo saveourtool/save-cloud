@@ -66,7 +66,6 @@ class ExecutionControllerTest {
             ExecutionStatus.RUNNING,
             "0,1,2",
             "stub",
-            0,
             20,
             ExecutionType.GIT,
             "0.0.1",
@@ -95,7 +94,6 @@ class ExecutionControllerTest {
             ExecutionStatus.RUNNING,
             "0,1,2",
             "stub",
-            0,
             20,
             ExecutionType.GIT,
             "0.0.1",
@@ -129,7 +127,6 @@ class ExecutionControllerTest {
             ExecutionStatus.RUNNING,
             "0,1,2",
             "stub",
-            0,
             20,
             ExecutionType.GIT,
             "0.0.1",
@@ -217,7 +214,7 @@ class ExecutionControllerTest {
     @Suppress("UnsafeCallOnNullableType")
     fun checkUpdateNewExecution() {
         val execution = Execution(projectRepository.findAll().first(), LocalDateTime.now(), null, ExecutionStatus.PENDING, null,
-            null, 0, 20, ExecutionType.GIT, null, 0, 0, 0, Sdk.Default.toString(), null)
+            null, 20, ExecutionType.GIT, null, 0, 0, 0, Sdk.Default.toString(), null)
         webClient.post()
             .uri("/createExecution")
             .contentType(MediaType.APPLICATION_JSON)
