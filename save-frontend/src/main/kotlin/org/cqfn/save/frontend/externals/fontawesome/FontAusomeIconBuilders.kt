@@ -10,14 +10,17 @@ import react.RHandler
 /**
  * @param icon icon. Can be an object, string or array.
  * @param classes element's classes
+ * @param handler handler to set up a component
  * @return ReactElement
  */
 fun RBuilder.fontAwesomeIcon(
     icon: dynamic,
-    classes: String = ""
+    classes: String = "",
+    handler: RHandler<FontAwesomeIconProps> = {},
 ) = child(FontAwesomeIcon::class) {
     attrs.icon = icon
     attrs.className = classes
+    handler(this)
 }
 
 /**
