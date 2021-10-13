@@ -120,9 +120,11 @@ class HeartbeatController(private val agentService: AgentService,
                         agentService
                             .markAgentsAndExecutionAsFinished(executionId, finishedAgentIds)
                     } else {
+                        logger.warn("Agents $finishedAgentIds are not stopped after stop command")
                         Mono.empty()
                     }
                 } else {
+                    logger.debug("Agents other than $agentId are still running, so won't try to stop them")
                     Mono.empty()
                 }
             }
