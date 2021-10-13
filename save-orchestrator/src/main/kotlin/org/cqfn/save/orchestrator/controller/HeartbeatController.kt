@@ -3,7 +3,6 @@ package org.cqfn.save.orchestrator.controller
 import org.cqfn.save.agent.AgentState
 import org.cqfn.save.agent.ContinueResponse
 import org.cqfn.save.agent.Heartbeat
-import org.cqfn.save.agent.NewJobResponse
 import org.cqfn.save.agent.WaitResponse
 import org.cqfn.save.entities.AgentStatusDto
 import org.cqfn.save.orchestrator.config.ConfigProperties
@@ -15,7 +14,6 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
-import reactor.core.scheduler.Schedulers
 
 import java.time.Duration
 import java.time.LocalDateTime
@@ -35,7 +33,6 @@ class HeartbeatController(private val agentService: AgentService,
                           private val dockerService: DockerService,
                           private val configProperties: ConfigProperties) {
     private val logger = LoggerFactory.getLogger(HeartbeatController::class.java)
-    private val scheduler = Schedulers.boundedElastic().also { it.start() }
 
     /**
      * This controller accepts heartbeat and depending on the state it returns the needed response
@@ -62,18 +59,11 @@ class HeartbeatController(private val agentService: AgentService,
                 when (heartbeat.state) {
                     // if agent sends the first heartbeat, we try to assign work for it
                     AgentState.STARTING -> agentService.getNewTestsIds(heartbeat.agentId)
-                        .doOnSuccess {
-                            if (it is NewJobResponse) {
-                                agentService.updateAssignedAgent(heartbeat.agentId, it)
-                            }
-                        }
                     // if agent idles, we try to assign work, but also check if it should be terminated
                     AgentState.IDLE -> agentService.getNewTestsIds(heartbeat.agentId)
                         .doOnSuccess {
                             if (it is WaitResponse) {
                                 initiateShutdownSequence(heartbeat.agentId)
-                            } else if (it is NewJobResponse) {
-                                agentService.updateAssignedAgent(heartbeat.agentId, it)
                             }
                         }
                     AgentState.FINISHED -> {
@@ -128,7 +118,7 @@ class HeartbeatController(private val agentService: AgentService,
                     Mono.empty()
                 }
             }
-            .subscribeOn(scheduler)
+            .subscribeOn(agentService.scheduler)
             .subscribe()
     }
 }

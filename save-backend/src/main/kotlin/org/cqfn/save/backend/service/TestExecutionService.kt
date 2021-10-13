@@ -7,7 +7,6 @@ import org.cqfn.save.backend.repository.TestExecutionRepository
 import org.cqfn.save.backend.repository.TestRepository
 import org.cqfn.save.backend.utils.secondsToLocalDateTime
 import org.cqfn.save.domain.TestResultStatus
-import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.TestExecution
 import org.cqfn.save.test.TestDto
 
@@ -116,6 +115,12 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
         }
     }
 
+    /**
+     * Set `agent` field of test executions corresponding to [testDtos] to [agentContainerId]
+     *
+     * @param agentContainerId id of an agent
+     * @param testDtos test that will be executed by [agentContainerId] agent
+     */
     @Transactional
     fun assignAgentByTest(agentContainerId: String, testDtos: List<TestDto>) {
         val agent = requireNotNull(agentRepository.findByContainerId(agentContainerId)) {

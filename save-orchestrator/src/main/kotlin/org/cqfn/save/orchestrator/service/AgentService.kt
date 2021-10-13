@@ -32,11 +32,14 @@ import java.util.logging.Level
  */
 @Service
 class AgentService {
+    /**
+     * A scheduler that executes long-running background tasks
+     */
+    internal val scheduler = Schedulers.boundedElastic().also { it.start() }
+
     @Autowired
     @Qualifier("webClientBackend")
     private lateinit var webClientBackend: WebClient
-
-    private val scheduler = Schedulers.boundedElastic().also { it.start() }
 
     /**
      * Sets new tests ids
@@ -50,19 +53,10 @@ class AgentService {
                 .uri("/getTestBatches?agentId=$agentId")
                 .retrieve()
                 .bodyToMono<TestBatch>()
-                .map { batch ->
-                    if (batch.tests.isNotEmpty()) {
-                        // fixme: do we still need suitesToArgs, since we have execFlags in save.toml?
-                        NewJobResponse(
-                            batch.tests,
-                            batch.suitesToArgs.values.first() +
-                                    " --report-type json" +
-                                    " --result-output file" +
-                                    " " + batch.tests.joinToString(separator = " ") { it.filePath }
-                        )
-                    } else {
-                        log.info("Next test batch for agentId=$agentId is empty, setting it to wait")
-                        WaitResponse
+                .map { batch -> batch.toHeartbeatResponse(agentId) }
+                .doOnSuccess {
+                    if (it is NewJobResponse) {
+                        updateAssignedAgent(agentId, it)
                     }
                 }
 
@@ -189,6 +183,9 @@ class AgentService {
     /**
      * Perform two operations in arbitrary order: assign `agentContainerId` agent to test executions
      * and mark this agent as BUSY
+     *
+     * @param agentContainerId id of an agent that receives tests
+     * @param newJobResponse a heartbeat response with tests
      */
     internal fun updateAssignedAgent(agentContainerId: String, newJobResponse: NewJobResponse) {
         updateTestExecutionsWithAgent(agentContainerId, newJobResponse.tests).zipWith(
@@ -203,7 +200,7 @@ class AgentService {
             .subscribe()
     }
 
-    fun updateTestExecutionsWithAgent(agentId: String, testDtos: List<TestDto>): Mono<BodilessResponseEntity> {
+    private fun updateTestExecutionsWithAgent(agentId: String, testDtos: List<TestDto>): Mono<BodilessResponseEntity> {
         log.debug("Attempt to update test executions for tests=$testDtos for agent $agentId")
         return webClientBackend.post()
             .uri("/testExecution/assignAgent?agentContainerId=$agentId")
@@ -211,6 +208,21 @@ class AgentService {
             .retrieve()
             .toBodilessEntity()
     }
+
+    private fun TestBatch.toHeartbeatResponse(agentId: String) =
+            if (tests.isNotEmpty()) {
+                // fixme: do we still need suitesToArgs, since we have execFlags in save.toml?
+                NewJobResponse(
+                    tests,
+                    suitesToArgs.values.first() +
+                            " --report-type json" +
+                            " --result-output file" +
+                            " " + tests.joinToString(separator = " ") { it.filePath }
+                )
+            } else {
+                log.info("Next test batch for agentId=$agentId is empty, setting it to wait")
+                WaitResponse
+            }
 
     private fun Collection<AgentStatusDto>.areIdleOrFinished() = all {
         it.state == AgentState.IDLE || it.state == AgentState.FINISHED

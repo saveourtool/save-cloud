@@ -46,9 +46,14 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
     fun getTestExecutionsCount(@RequestParam executionId: Long) =
             testExecutionService.getTestExecutionsCount(executionId)
 
+    /**
+     * @param agentContainerId id of an agent
+     * @param testDtos test that will be executed by [agentContainerId] agent
+     */
     @PostMapping(value = ["/testExecution/assignAgent"])
-    fun updateTestExecution(@RequestParam agentContainerId: String, @RequestBody testDtos: List<TestDto>) =
+    fun assignAgentByTest(@RequestParam agentContainerId: String, @RequestBody testDtos: List<TestDto>) {
         testExecutionService.assignAgentByTest(agentContainerId, testDtos)
+    }
 
     /**
      * @param testExecutionsDto
