@@ -134,7 +134,7 @@ class AgentService {
     fun markAgentsAndExecutionAsFinished(executionId: Long, finishedAgentIds: List<String>): Mono<BodilessResponseEntity> =
             updateAgentStatusesWithDto(
                 finishedAgentIds.map { agentId ->
-                    AgentStatusDto(LocalDateTime.now(), AgentState.FINISHED, agentId)
+                    AgentStatusDto(LocalDateTime.now(), AgentState.STOPPED_BY_ORCH, agentId)
                 }
             )
                 .then(
