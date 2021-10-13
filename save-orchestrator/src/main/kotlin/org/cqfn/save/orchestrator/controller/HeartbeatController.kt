@@ -93,8 +93,8 @@ class HeartbeatController(private val agentService: AgentService,
         agentService.getAgentsAwaitingStop(agentId).flatMap { (_, finishedAgentIds) ->
             if (finishedAgentIds.isNotEmpty()) {
                 // need to retry after some time, because for other agents BUSY state might have not been written completely
-                logger.debug("Waiting for 5 seconds to repeat `getAgentsAwaitingStop` call for agentId=$agentId")
-                Mono.delay(Duration.ofSeconds(5)).then(
+                logger.debug("Waiting for ${configProperties.shutdownChecksIntervalMillis} seconds to repeat `getAgentsAwaitingStop` call for agentId=$agentId")
+                Mono.delay(Duration.ofMillis(configProperties.shutdownChecksIntervalMillis)).then(
                     agentService.getAgentsAwaitingStop(agentId)
                 )
             } else {

@@ -154,6 +154,19 @@ class HeartbeatControllerTest {
             testBatch = TestBatch(emptyList(), emptyMap()),
             mockAgentStatuses = true,
             {
+                // /getAgentsStatusesForSameExecution after shutdownIntervalMillis
+                mockServer.enqueue(
+                    MockResponse()
+                        .setBody(
+                            objectMapper.writeValueAsString(
+                                AgentStatusesForExecution(0, listOf(
+                                    AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "test-1"),
+                                    AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "test-2"),
+                                ))
+                            )
+                        )
+                        .addHeader("Content-Type", "application/json")
+                )
                 // additional setup for marking stuff as FINISHED
                 // /updateAgentStatuses
                 mockServer.enqueue(
