@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
 
+import java.time.Duration
 import java.time.LocalDateTime
 
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -104,8 +105,17 @@ class HeartbeatController(private val agentService: AgentService,
      * @param agentId an ID of the agent from the execution, that will be checked.
      */
     private fun initiateShutdownSequence(agentId: String) {
-        agentService.getAgentsAwaitingStop(agentId).doOnSuccess { (executionId, finishedAgentIds) ->
-            scheduler.schedule {
+        agentService.getAgentsAwaitingStop(agentId).flatMap { (_, finishedAgentIds) ->
+            if (finishedAgentIds.isNotEmpty()) {
+                // need to retry after some time, because for other agents BUSY state might have not been written completely
+                Mono.delay(Duration.ofSeconds(5)).then(
+                    agentService.getAgentsAwaitingStop(agentId)
+                )
+            } else {
+                Mono.empty()
+            }
+        }
+            .flatMap { (executionId, finishedAgentIds) ->
                 if (finishedAgentIds.isNotEmpty()) {
                     logger.debug("Agents ids=$finishedAgentIds have completed execution, will make an attempt to terminate them")
                     val areAgentsStopped = dockerService.stopAgents(finishedAgentIds)
@@ -113,11 +123,13 @@ class HeartbeatController(private val agentService: AgentService,
                         logger.info("Agents have been stopped, will mark execution id=$executionId and agents $finishedAgentIds as FINISHED")
                         agentService
                             .markAgentsAndExecutionAsFinished(executionId, finishedAgentIds)
-                            .block()
+                    } else {
+                        Mono.empty()
                     }
+                } else {
+                    Mono.empty()
                 }
             }
-        }
             .subscribeOn(scheduler)
             .subscribe()
     }
