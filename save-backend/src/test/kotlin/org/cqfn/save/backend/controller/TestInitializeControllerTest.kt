@@ -119,10 +119,11 @@ class TestInitializeControllerTest {
             .expectStatus()
             .isOk
             .expectBody<TestBatch>()
-            .consumeWith {
-                println(it.responseBody)
-                assertTrue(it.responseBody!!.tests.isNotEmpty())
-                assertEquals(10, it.responseBody!!.tests.size)
+            .consumeWith { entityExchangeResult ->
+                val batch = entityExchangeResult.responseBody!!
+                println(batch)
+                assertTrue(batch.tests.isNotEmpty())
+                assertEquals(10, batch.tests.size)
             }
 
         webClient.get()
