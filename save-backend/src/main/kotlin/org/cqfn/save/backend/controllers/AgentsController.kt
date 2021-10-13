@@ -59,7 +59,7 @@ class AgentsController(private val agentStatusRepository: AgentStatusRepository,
     @Transactional
     fun updateAgentStatusesWithDto(@RequestBody agentStates: List<AgentStatusDto>) {
         agentStates.forEach { dto ->
-            val agentStatus = agentStatusRepository.findTopByAgentContainerIdOrderByEndTimeDesc(dto.containerId)
+            val agentStatus = agentStatusRepository.findTopByAgentContainerIdOrderByEndTimeDescIdDesc(dto.containerId)
             if (agentStatus != null && agentStatus.state == dto.state) {
                 // updating time
                 agentStatus.endTime = dto.time
@@ -86,7 +86,7 @@ class AgentsController(private val agentStatusRepository: AgentStatusRepository,
         val execution = getAgentByContainerId(agentId).execution
         val agentStatuses = agentRepository.findByExecutionId(execution.id!!).map { agent ->
             val latestStatus = requireNotNull(
-                agentStatusRepository.findTopByAgentContainerIdOrderByEndTimeDesc(agent.containerId)
+                agentStatusRepository.findTopByAgentContainerIdOrderByEndTimeDescIdDesc(agent.containerId)
             ) {
                 "AgentStatus not found for agent id=${agent.containerId}"
             }
