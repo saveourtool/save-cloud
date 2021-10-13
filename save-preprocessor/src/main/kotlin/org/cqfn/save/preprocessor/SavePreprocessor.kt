@@ -18,8 +18,8 @@ typealias StatusResponse = ResponseEntity<HttpStatus>
 @SpringBootApplication
 @EnableWebFlux
 @EnableConfigurationProperties(ConfigProperties::class)
-class SaveApplication
+class SavePreprocessor
 
 fun main(args: Array<String>) {
-    SpringApplication.run(SaveApplication::class.java, *args)
+    SpringApplication.run(SavePreprocessor::class.java, *args)
 }

@@ -54,6 +54,7 @@ jobs:
             build
             --refresh-dependencies
             -x detekt
+            -x :save-agent:linkDebugExecutableLinuxX64
           properties: |
             org.gradle.caching=true
             detekt.multiplatform.disabled=true

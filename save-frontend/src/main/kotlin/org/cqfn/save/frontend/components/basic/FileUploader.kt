@@ -7,31 +7,36 @@
 package org.cqfn.save.frontend.components.basic
 
 import org.cqfn.save.domain.FileInfo
+import org.cqfn.save.frontend.externals.fontawesome.faFile
 import org.cqfn.save.frontend.externals.fontawesome.faTimesCircle
+import org.cqfn.save.frontend.externals.fontawesome.faUpload
 import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
 import org.cqfn.save.frontend.utils.toPrettyString
 
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.HTMLSelectElement
+import react.Props
 import react.PropsWithChildren
 import react.dom.attrs
 import react.dom.button
 import react.dom.div
 import react.dom.h6
-import react.dom.img
 import react.dom.input
 import react.dom.label
 import react.dom.li
 import react.dom.option
 import react.dom.select
+import react.dom.span
 import react.dom.strong
 import react.dom.ul
 import react.fc
+import react.useEffect
 
 import kotlinx.html.InputType
 import kotlinx.html.hidden
 import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
+import kotlinx.html.js.onDoubleClickFunction
 
 /**
  * Props for file uploader
@@ -52,13 +57,15 @@ external interface UploaderProps : PropsWithChildren {
  * @param onFileInput invoked on `input` change events
  * @param onFileSelect invoked when a file is selected from [UploaderProps.availableFiles]
  * @param onFileRemove invoked when a file is removed from selection by pushing a button
+ * @param onExecutableChange when file is checked to be executable or vice versa, this handler is called
  * @return a RComponent
  */
-@Suppress("TOO_LONG_FUNCTION")
+@Suppress("TOO_LONG_FUNCTION", "TYPE_ALIAS", "LongMethod")
 fun fileUploader(
     onFileSelect: (HTMLSelectElement) -> Unit,
     onFileRemove: (FileInfo) -> Unit,
-    onFileInput: (HTMLInputElement) -> Unit
+    onFileInput: (HTMLInputElement) -> Unit,
+    onExecutableChange: (file: FileInfo, checked: Boolean) -> Unit,
 ) = fc<UploaderProps> { props ->
     div("mb-3") {
         h6(classes = "d-inline mr-3") {
@@ -76,6 +83,7 @@ fun fileUploader(
                                 onFileRemove(fileInfo)
                             }
                         }
+                        child(fileIconWithMode(fileInfo, onExecutableChange))
                         +fileInfo.toPrettyString()
                     }
                 }
@@ -110,10 +118,54 @@ fun fileUploader(
                                 }
                             }
                         }
-                        img(classes = "img-upload", src = "img/upload.svg") {}
+                        fontAwesomeIcon(icon = faUpload)
                         strong { +"Upload files:" }
                     }
                 }
+            }
+        }
+    }
+
+    useEffect(listOf<dynamic>()) {
+        val jquery = kotlinext.js.require("jquery")
+        jquery("[data-toggle=\"tooltip\"]").tooltip()
+    }
+}
+
+/**
+ * A component for file icon that changes depending on executable flag
+ *
+ * @param fileInfo a [FileInfo] to base the icon on
+ * @param onExecutableChange a handler that is invoked when icon is clicked
+ * @return a functional component
+ */
+@Suppress("TYPE_ALIAS", "STRING_CONCATENATION")  // https://github.com/cqfn/diKTat/issues/1076
+internal fun fileIconWithMode(fileInfo: FileInfo, onExecutableChange: (file: FileInfo, checked: Boolean) -> Unit) = fc<Props> {
+    span("fa-layers mr-3") {
+        attrs["data-toggle"] = "tooltip"
+        attrs["data-placement"] = "top"
+        attrs["title"] = "Click to mark file " + if (fileInfo.isExecutable) "regular" else "executable"
+        // if file was not executable, after click it will be; and vice versa
+        attrs.onClickFunction = { _ ->
+            // hide previous tooltip, otherwise it gets stuck during re-render
+            val jquery = kotlinext.js.require("jquery")
+            jquery("[data-toggle=\"tooltip\"]").tooltip("hide")
+            onExecutableChange(fileInfo, !fileInfo.isExecutable)
+        }
+        attrs.onDoubleClickFunction = {}
+        val checked = fileInfo.isExecutable
+        fontAwesomeIcon(icon = faFile, classes = "fa-2x") {
+            if (checked) {
+                attrs.color = "Green"
+            }
+        }
+        span("fa-layers-text file-extension fa-inverse pl-2 pt-2 small") {
+            attrs.onDoubleClickFunction = {}
+            attrs["data-fa-transform"] = "down-3 shrink-12.5"
+            if (checked) {
+                +"exe"
+            } else {
+                +"file"
             }
         }
     }
