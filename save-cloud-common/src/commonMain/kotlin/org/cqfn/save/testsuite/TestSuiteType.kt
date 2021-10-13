@@ -8,6 +8,11 @@ import kotlinx.serialization.Serializable
 @Serializable
 enum class TestSuiteType {
     /**
+     * Type Obsolete Standard for old test suites
+     */
+    OBSOLETE_STANDARD,
+
+    /**
      * Type Project
      */
     PROJECT,
@@ -16,10 +21,5 @@ enum class TestSuiteType {
      * Type Standard
      */
     STANDARD,
-
-    /**
-     * Type Obsolete Standard for old test suites
-     */
-    OBSOLETE_STANDARD,
     ;
 }

@@ -413,7 +413,7 @@ class DownloadProjectTest(
             }
 
         webClient.post()
-            .uri("/rerunExecution")
+            .uri("/rerunExecution?executionType=${ExecutionType.GIT}")
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(request)
             .exchange()

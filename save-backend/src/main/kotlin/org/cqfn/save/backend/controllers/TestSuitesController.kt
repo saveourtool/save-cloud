@@ -68,7 +68,7 @@ class TestSuitesController(
      */
     @GetMapping("/testSuiteWithId")
     fun getTestSuiteById(@RequestParam id: Long) =
-        ResponseEntity.status(HttpStatus.OK).body(testSuitesService.findTestSuitesById(id))
+            ResponseEntity.status(HttpStatus.OK).body(testSuitesService.findTestSuitesById(id))
 
     /**
      * @return response entity
@@ -87,7 +87,7 @@ class TestSuitesController(
     @PostMapping("/markObsoleteTestSuites")
     @Transactional
     fun markObsoleteTestSuites(@RequestBody testSuiteDtos: List<TestSuiteDto>) =
-        ResponseEntity.status(HttpStatus.OK).body(testSuitesService.markObsoleteTestSuites(testSuiteDtos))
+            ResponseEntity.status(HttpStatus.OK).body(testSuitesService.markObsoleteTestSuites(testSuiteDtos))
 
     /**
      * @param testSuiteDtos suites, which need to be deleted

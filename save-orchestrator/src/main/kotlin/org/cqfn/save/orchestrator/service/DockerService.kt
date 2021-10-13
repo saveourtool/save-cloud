@@ -227,6 +227,9 @@ class DockerService(private val configProperties: ConfigProperties) {
 
     @Suppress("UnsafeCallOnNullableType")
     private fun copyTestSuitesToResourcesPath(testSuitesForDocker: List<TestSuiteDto>, destination: File) {
+        // TODO: In general case, when we use `rerun` we need to copy test suites, with version, which was used during first execution,
+        // TODO: however now we hold only the latest version of standard suites in our repository.
+        // TODO: So, for now we assume, that our repo with standard test suites is quite stable, or user won't rerun too old executions in this mode
         log.info("Copying suites ${testSuitesForDocker.map { it.name }} into $destination")
         testSuitesForDocker.forEach {
             val standardTestSuiteAbsolutePath = File(configProperties.testResources.basePath)
