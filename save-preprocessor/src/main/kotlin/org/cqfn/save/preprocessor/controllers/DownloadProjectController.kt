@@ -179,8 +179,16 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                     getExecution(executionRerunRequest.executionId!!).map { location to it }
                 }
                 .flatMap { (location, execution) ->
+                    if (executionType != ExecutionType.GIT) {
+                        getTestSuitesById(execution.testSuiteIds!!).map { Triple(location, execution, it)}
+                    } else {
+                        Mono.fromCallable { Triple(location, execution, emptyList<TestSuite>()) }
+                    }
+                }
+                .flatMap { (location, execution, testSuites) ->
+                    println("!!!! testSuites ${testSuites.map { it.toDto() }}")
                     val files = execution.additionalFiles?.split(";")?.filter { it.isNotBlank() }?.map { File(it) } ?: emptyList()
-                    val dirForStandardSuites = generateDirectory(files.map { it.toHash() })
+                    val dirForStandardSuites = generateDirectory(files.map { it.toHash() }) // FixME: delete
                     val resourcesLocation = if (executionType == ExecutionType.GIT) {
                         File(configProperties.repository).resolve(location).resolve(executionRerunRequest.propertiesRelativePath).parentFile
                     } else {
@@ -197,7 +205,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                         execution.project,
                         executionRerunRequest.propertiesRelativePath,
                         location,
-                        null,
+                        testSuites.map { it.toDto() },
                         executionRerunRequest.gitDto.url
                     )
                 }
@@ -432,6 +440,18 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         .retrieve()
         .bodyToMono<Execution>()
 
+    private fun getTestSuitesById(testSuiteIds: String): Mono<MutableList<TestSuite>> {
+        return testSuiteIds.split(", ").let {
+            Flux.fromIterable(it).flatMap {
+                webClientBackend.get()
+                    .uri("/testSuiteWithId?id=${it}")
+                    .retrieve()
+                    .bodyToMono<TestSuite>()
+            }
+            .collectList()
+        }
+    }
+
     private fun updateExecution(project: Project, projectRootRelativePath: String, executionVersion: String, testSuiteIds: String = "ALL"): Mono<Execution> {
         val executionUpdate = ExecutionInitializationDto(project, testSuiteIds, projectRootRelativePath, executionVersion)
         return webClientBackend.makeRequest(BodyInserters.fromValue(executionUpdate), "/updateNewExecution") {
@@ -498,6 +518,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         }
             .collectList()
             .flatMap {
+                testSuiteIds.sort()
                 execution.testSuiteIds = testSuiteIds.joinToString()
                 updateExecution(execution)
             }

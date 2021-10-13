@@ -87,6 +87,12 @@ class TestSuitesService {
             )
 
     /**
+     * @param id
+     * @return test suite with [id]
+     */
+    fun findTestSuitesById(id: Long) = testSuiteRepository.findById(id)
+
+    /**
      * Mark provided testSuites as obsolete
      *
      * @param testSuiteDtos

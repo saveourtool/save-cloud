@@ -63,6 +63,14 @@ class TestSuitesController(
             ResponseEntity.status(HttpStatus.OK).body(testSuitesService.findStandardTestSuitesByName(name))
 
     /**
+     * @param id id of the test suite
+     * @return response with test suite with provided id
+     */
+    @GetMapping("/testSuiteWithId")
+    fun getTestSuiteById(@RequestParam id: Long) =
+        ResponseEntity.status(HttpStatus.OK).body(testSuitesService.findTestSuitesById(id))
+
+    /**
      * @return response entity
      */
     @PostMapping("/updateStandardTestSuites")
