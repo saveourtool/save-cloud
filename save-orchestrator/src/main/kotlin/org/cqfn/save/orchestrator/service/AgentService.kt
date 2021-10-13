@@ -12,6 +12,7 @@ import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionUpdateDto
 import org.cqfn.save.orchestrator.BodilessResponseEntity
 import org.cqfn.save.test.TestBatch
+import org.cqfn.save.test.TestDto
 
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
@@ -180,6 +181,13 @@ class AgentService {
                 }
             }
     }
+
+    fun updateTestExecutionsWithAgent(agentId: String, testDtos: List<TestDto>): Mono<BodilessResponseEntity> =
+        webClientBackend.post()
+            .uri("/testExecution/assignAgent?agentContainerId=$agentId")
+            .bodyValue(testDtos)
+            .retrieve()
+            .toBodilessEntity()
 
     private fun Collection<AgentStatusDto>.areIdleOrFinished() = all {
         it.state == AgentState.IDLE || it.state == AgentState.FINISHED

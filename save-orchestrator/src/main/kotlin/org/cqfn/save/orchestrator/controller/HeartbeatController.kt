@@ -68,9 +68,7 @@ class HeartbeatController(private val agentService: AgentService,
                             if (it is WaitResponse) {
                                 initiateShutdownSequence(heartbeat.agentId)
                             } else if (it is NewJobResponse) {
-                                // set status to BUSY
                                 updateAssignedAgent(heartbeat.agentId, it)
-                                logger.debug("Agent ${heartbeat.agentId} will receive the following job: $it")
                             }
                         }
                     AgentState.FINISHED -> {
@@ -89,12 +87,21 @@ class HeartbeatController(private val agentService: AgentService,
             }
     }
 
-    private fun updateAssignedAgent(agentId: String, newJobResponse: NewJobResponse) {
-        // put agentId into test_execution table
-//        newJobResponse.tests
-        agentService.updateAgentStatusesWithDto(listOf(
-            AgentStatusDto(LocalDateTime.now(), AgentState.BUSY, agentId)
-        )).subscribe()
+    /**
+     * Perform two operations in arbitrary order: assign `agentContainerId` agent to test executions
+     * and mark this agent as BUSY
+     */
+    private fun updateAssignedAgent(agentContainerId: String, newJobResponse: NewJobResponse) {
+        agentService.updateTestExecutionsWithAgent(agentContainerId, newJobResponse.tests).zipWith(
+            agentService.updateAgentStatusesWithDto(listOf(
+                AgentStatusDto(LocalDateTime.now(), AgentState.BUSY, agentContainerId)
+            ))
+        )
+            .doOnSuccess {
+                logger.debug("Agent $agentContainerId has been set as executor for tests ${newJobResponse.tests} and its status has been set to BUSY")
+            }
+            .subscribeOn(scheduler)
+            .subscribe()
     }
 
     /**

@@ -7,12 +7,15 @@ import org.cqfn.save.backend.repository.TestExecutionRepository
 import org.cqfn.save.backend.repository.TestRepository
 import org.cqfn.save.backend.utils.secondsToLocalDateTime
 import org.cqfn.save.domain.TestResultStatus
+import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.TestExecution
+import org.cqfn.save.test.TestDto
 
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 
 /**
  * Service for test result
@@ -110,6 +113,25 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
             },
                 { log.error("Can't find test with id = $testId to save in testExecution") }
             )
+        }
+    }
+
+    @Transactional
+    fun assignAgentByTest(agentContainerId: String, testDtos: List<TestDto>) {
+        val agent = agentRepository.findByContainerId(agentContainerId)!!
+        val executionId = agent.execution.id!!
+        testDtos.forEach { test ->
+            val testExecution = testExecutionRepository.findByExecutionIdAndTestPluginNameAndTestFilePath(
+                executionId,
+                test.pluginName,
+                test.filePath
+            )
+                .orElseThrow {
+                    NoSuchElementException("test_execution not found for input executionId=$executionId, test.pluginName=${test.pluginName}, test.filePath=${test.filePath}")
+                }
+            testExecutionRepository.save(testExecution.apply {
+                this.agent = agent
+            })
         }
     }
 }

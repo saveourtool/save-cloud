@@ -2,6 +2,7 @@ package org.cqfn.save.backend.controllers
 
 import org.cqfn.save.agent.TestExecutionDto
 import org.cqfn.save.backend.service.TestExecutionService
+import org.cqfn.save.test.TestDto
 import org.springframework.dao.DataAccessException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -44,6 +45,10 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
     @GetMapping("/testExecutionsCount")
     fun getTestExecutionsCount(@RequestParam executionId: Long) =
             testExecutionService.getTestExecutionsCount(executionId)
+
+    @PostMapping(value = ["/testExecution/assignAgent"])
+    fun updateTestExecution(@RequestParam agentContainerId: String, @RequestBody testDtos: List<TestDto>) =
+        testExecutionService.assignAgentByTest(agentContainerId, testDtos)
 
     /**
      * @param testExecutionsDto
