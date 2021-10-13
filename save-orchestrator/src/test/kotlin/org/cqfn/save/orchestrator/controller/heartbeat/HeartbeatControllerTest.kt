@@ -145,11 +145,12 @@ class HeartbeatControllerTest {
     @Test
     fun `should shutdown idle agents when there are no tests left`() {
         whenever(dockerService.stopAgents(any())).thenReturn(true)
+        val agentStatusDtos = listOf(
+            AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "test-1"),
+            AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "test-2"),
+        )
         testHeartbeat(
-            agentStatusDtos = listOf(
-                AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "test-1"),
-                AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "test-2"),
-            ),
+            agentStatusDtos = agentStatusDtos,
             heartbeat = Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100)),
             testBatch = TestBatch(emptyList(), emptyMap()),
             mockAgentStatuses = true,
@@ -159,10 +160,7 @@ class HeartbeatControllerTest {
                     MockResponse()
                         .setBody(
                             objectMapper.writeValueAsString(
-                                AgentStatusesForExecution(0, listOf(
-                                    AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "test-1"),
-                                    AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "test-2"),
-                                ))
+                                AgentStatusesForExecution(0, agentStatusDtos)
                             )
                         )
                         .addHeader("Content-Type", "application/json")
@@ -206,16 +204,29 @@ class HeartbeatControllerTest {
 
     @Test
     fun `should shutdown agents even if there are some already FINISHED`() {
+        val agentStatusDtos = listOf(
+            AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "test-1"),
+            AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "test-2"),
+            AgentStatusDto(LocalDateTime.parse("2021-01-01T00:00:00"), AgentState.FINISHED, "test-1"),
+            AgentStatusDto(LocalDateTime.parse("2021-01-01T00:00:00"), AgentState.FINISHED, "test-2"),
+        )
         testHeartbeat(
-            agentStatusDtos = listOf(
-                AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "test-1"),
-                AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "test-2"),
-                AgentStatusDto(LocalDateTime.parse("2021-01-01T00:00:00"), AgentState.FINISHED, "test-1"),
-                AgentStatusDto(LocalDateTime.parse("2021-01-01T00:00:00"), AgentState.FINISHED, "test-2"),
-            ),
+            agentStatusDtos = agentStatusDtos,
             heartbeat = Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100)),
             testBatch = TestBatch(emptyList(), emptyMap()),
             mockAgentStatuses = true,
+            {
+                // /getAgentsStatusesForSameExecution after shutdownIntervalMillis
+                mockServer.enqueue(
+                    MockResponse()
+                        .setBody(
+                            objectMapper.writeValueAsString(
+                                AgentStatusesForExecution(0, agentStatusDtos)
+                            )
+                        )
+                        .addHeader("Content-Type", "application/json")
+                )
+            }
         ) {
             verify(dockerService, times(1)).stopAgents(any())
         }

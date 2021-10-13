@@ -122,6 +122,7 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
      * @param testDtos test that will be executed by [agentContainerId] agent
      */
     @Transactional
+    @Suppress("UnsafeCallOnNullableType")
     fun assignAgentByTest(agentContainerId: String, testDtos: List<TestDto>) {
         val agent = requireNotNull(agentRepository.findByContainerId(agentContainerId)) {
             "Agent with containerId=[$agentContainerId] was not found in the DB"
