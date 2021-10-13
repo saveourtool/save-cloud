@@ -62,13 +62,18 @@ class HeartbeatController(private val agentService: AgentService,
                 when (heartbeat.state) {
                     // if agent sends the first heartbeat, we try to assign work for it
                     AgentState.STARTING -> agentService.getNewTestsIds(heartbeat.agentId)
+                        .doOnSuccess {
+                            if (it is NewJobResponse) {
+                                agentService.updateAssignedAgent(heartbeat.agentId, it)
+                            }
+                        }
                     // if agent idles, we try to assign work, but also check if it should be terminated
                     AgentState.IDLE -> agentService.getNewTestsIds(heartbeat.agentId)
                         .doOnSuccess {
                             if (it is WaitResponse) {
                                 initiateShutdownSequence(heartbeat.agentId)
                             } else if (it is NewJobResponse) {
-                                updateAssignedAgent(heartbeat.agentId, it)
+                                agentService.updateAssignedAgent(heartbeat.agentId, it)
                             }
                         }
                     AgentState.FINISHED -> {
@@ -88,23 +93,6 @@ class HeartbeatController(private val agentService: AgentService,
     }
 
     /**
-     * Perform two operations in arbitrary order: assign `agentContainerId` agent to test executions
-     * and mark this agent as BUSY
-     */
-    private fun updateAssignedAgent(agentContainerId: String, newJobResponse: NewJobResponse) {
-        agentService.updateTestExecutionsWithAgent(agentContainerId, newJobResponse.tests).zipWith(
-            agentService.updateAgentStatusesWithDto(listOf(
-                AgentStatusDto(LocalDateTime.now(), AgentState.BUSY, agentContainerId)
-            ))
-        )
-            .doOnSuccess {
-                logger.debug("Agent $agentContainerId has been set as executor for tests ${newJobResponse.tests} and its status has been set to BUSY")
-            }
-            .subscribeOn(scheduler)
-            .subscribe()
-    }
-
-    /**
      * If agent was IDLE and there are no new tests - we check if the Execution is completed.
      * We get all agents for the same execution, if they are all done.
      * Then we stop them via DockerService and update necessary statuses in DB via AgentService.
@@ -115,6 +103,7 @@ class HeartbeatController(private val agentService: AgentService,
         agentService.getAgentsAwaitingStop(agentId).flatMap { (_, finishedAgentIds) ->
             if (finishedAgentIds.isNotEmpty()) {
                 // need to retry after some time, because for other agents BUSY state might have not been written completely
+                logger.debug("Waiting for 5 seconds to repeat `getAgentsAwaitingStop` call for agentId=$agentId")
                 Mono.delay(Duration.ofSeconds(5)).then(
                     agentService.getAgentsAwaitingStop(agentId)
                 )

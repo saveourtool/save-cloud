@@ -21,6 +21,7 @@ import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Mono
+import reactor.core.scheduler.Schedulers
 import reactor.util.Loggers
 
 import java.time.LocalDateTime
@@ -34,6 +35,8 @@ class AgentService {
     @Autowired
     @Qualifier("webClientBackend")
     private lateinit var webClientBackend: WebClient
+
+    private val scheduler = Schedulers.boundedElastic().also { it.start() }
 
     /**
      * Sets new tests ids
@@ -171,6 +174,7 @@ class AgentService {
             .retrieve()
             .bodyToMono<AgentStatusesForExecution>()
             .map { (executionId, agentStatuses) ->
+                log.debug("For executionId=$executionId agent statuses are $agentStatuses")
                 executionId to if (agentStatuses.areIdleOrFinished()) {
                     // We assume, that all agents will eventually have one of these statuses.
                     // Situations when agent gets stuck with a different status and for whatever reason is unable to update
@@ -180,6 +184,23 @@ class AgentService {
                     emptyList()
                 }
             }
+    }
+
+    /**
+     * Perform two operations in arbitrary order: assign `agentContainerId` agent to test executions
+     * and mark this agent as BUSY
+     */
+    internal fun updateAssignedAgent(agentContainerId: String, newJobResponse: NewJobResponse) {
+        updateTestExecutionsWithAgent(agentContainerId, newJobResponse.tests).zipWith(
+            updateAgentStatusesWithDto(listOf(
+                AgentStatusDto(LocalDateTime.now(), AgentState.BUSY, agentContainerId)
+            ))
+        )
+            .doOnSuccess {
+                log.debug("Agent $agentContainerId has been set as executor for tests ${newJobResponse.tests} and its status has been set to BUSY")
+            }
+            .subscribeOn(scheduler)
+            .subscribe()
     }
 
     fun updateTestExecutionsWithAgent(agentId: String, testDtos: List<TestDto>): Mono<BodilessResponseEntity> {
