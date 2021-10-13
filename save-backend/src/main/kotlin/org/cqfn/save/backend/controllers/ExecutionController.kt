@@ -10,7 +10,9 @@ import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.GitDto
 import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.execution.ExecutionInitializationDto
+import org.cqfn.save.execution.ExecutionType
 import org.cqfn.save.execution.ExecutionUpdateDto
+import org.cqfn.save.testsuite.TestSuiteType
 
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -134,13 +136,19 @@ class ExecutionController(private val executionService: ExecutionService,
         val execution = executionService.findExecution(id).orElseThrow {
             IllegalArgumentException("Can't rerun execution $id, because it does not exist")
         }
+        val executionType = execution.type
         val git = requireNotNull(gitService.getRepositoryDtoByProject(execution.project)) {
             "Can't rerun execution $id, project ${execution.project.name} has no associated git address"
         }
         val propertiesRelativePath = execution.testSuiteIds?.let {
-            require(it == "ALL") { "Only executions with \"ALL\" tests suites from a GIT project are supported now" }
+            if (executionType == ExecutionType.GIT) {
+                require(it == "ALL") { "Only executions with \"ALL\" tests suites from a GIT project are supported now" }
+            }
             testSuitesService.findTestSuitesByProject(execution.project)
         }!!
+            .filter {
+                it.type != TestSuiteType.OBSOLETE_STANDARD
+            }
             .map {
                 it.propertiesRelativePath
             }
@@ -154,7 +162,7 @@ class ExecutionController(private val executionService: ExecutionService,
             executionId = execution.id
         )
         return preprocessorWebClient.post()
-            .uri("/rerunExecution")
+            .uri("/rerunExecution?executionType=${executionType}")
             .bodyValue(executionRequest)
             .retrieve()
             .bodyToMono()

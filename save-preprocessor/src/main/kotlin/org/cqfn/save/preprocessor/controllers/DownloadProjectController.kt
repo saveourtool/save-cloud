@@ -40,6 +40,7 @@ import org.springframework.http.client.MultipartBodyBuilder
 import org.springframework.http.codec.multipart.FilePart
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RequestPart
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.reactive.function.BodyInserter
@@ -156,7 +157,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
      */
     @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
     @PostMapping("/rerunExecution")
-    fun rerunExecution(@RequestBody executionRerunRequest: ExecutionRequest) = Mono.fromCallable {
+    fun rerunExecution(@RequestBody executionRerunRequest: ExecutionRequest, @RequestParam executionType: ExecutionType) = Mono.fromCallable {
         requireNotNull(executionRerunRequest.executionId) { "Can't rerun execution with unknown id" }
         ResponseEntity("Clone pending", HttpStatus.ACCEPTED)
     }
@@ -166,14 +167,27 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                     cleanupInOrchestrator(executionRerunRequest.executionId!!)
                 }
                 .flatMap {
-                    downLoadRepository(executionRerunRequest).map { (location, _) -> location }
+                    if (executionType == ExecutionType.GIT) {
+                        downLoadRepository(executionRerunRequest).map { (location, _) -> location }
+                    } else {
+                        Mono.fromCallable {
+                            ""
+                        }
+                    }
                 }
                 .flatMap { location ->
                     getExecution(executionRerunRequest.executionId!!).map { location to it }
                 }
                 .flatMap { (location, execution) ->
-                    val resourcesLocation = File(configProperties.repository).resolve(location).resolve(executionRerunRequest.propertiesRelativePath).parentFile
                     val files = execution.additionalFiles?.split(";")?.filter { it.isNotBlank() }?.map { File(it) } ?: emptyList()
+                    val dirForStandardSuites = generateDirectory(files.map { it.toHash() })
+                    val resourcesLocation = if (executionType == ExecutionType.GIT) {
+                        File(configProperties.repository).resolve(location).resolve(executionRerunRequest.propertiesRelativePath).parentFile
+                    } else {
+                        dirForStandardSuites
+                    }
+                    println("\n\n\nTMP DIR: ${dirForStandardSuites}")
+                    println("resourcesLocation: ${resourcesLocation}")
                     files.forEach { file ->
                         log.debug("Copy additional file $file into ${resourcesLocation.resolve(file.name)}")
                         Files.copy(Paths.get(file.absolutePath), Paths.get(resourcesLocation.resolve(file.name).absolutePath))
@@ -461,30 +475,32 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
             initializeTests(testSuites, rootTestConfig, executionId)
         }
 
-    private fun prepareExecutionForStandard(testSuiteDtos: List<TestSuiteDto>, execution: Execution): Mono<ResponseEntity<HttpStatus>> {
+    private fun prepareExecutionForStandard(
+        testSuiteDtos: List<TestSuiteDto>,
+        execution: Execution
+    ): Mono<ResponseEntity<HttpStatus>> {
         val testSuiteIds: MutableList<Long> = mutableListOf()
-        val response = fromIterable(testSuiteDtos).flatMap {
+        return fromIterable(testSuiteDtos).flatMap<List<TestSuite>?> {
             webClientBackend.get()
                 .uri("/standardTestSuitesWithName?name=${it.name}")
                 .retrieve()
-                .bodyToMono<List<TestSuite>>()
+                .bodyToMono()
         }.flatMap { testSuites ->
-                fromIterable(testSuites).flatMap { testSuite ->
-                    testSuiteIds.add(testSuite.id!!)
-                    webClientBackend.makeRequest(
-                        BodyInserters.fromValue(execution.id!!),
-                        "/saveTestExecutionsForStandardByTestSuiteId?testSuiteId=${testSuite.id}"
-                    ) {
-                        it.toBodilessEntity()
-                    }
+            fromIterable(testSuites).flatMap { testSuite ->
+                testSuiteIds.add(testSuite.id!!)
+                webClientBackend.makeRequest(
+                    BodyInserters.fromValue(execution.id!!),
+                    "/saveTestExecutionsForStandardByTestSuiteId?testSuiteId=${testSuite.id}"
+                ) {
+                    it.toBodilessEntity()
                 }
             }
+        }
             .collectList()
             .flatMap {
                 execution.testSuiteIds = testSuiteIds.joinToString()
                 updateExecution(execution)
             }
-        return response
     }
 
 

@@ -103,8 +103,7 @@ class DockerService(private val configProperties: ConfigProperties) {
                             containerManager.dockerClient.stopContainerCmd(it).exec()
                             log.info("Agent with id=$it has been stopped")
                         } else {
-                            log.warn("Agent with id=$it was requested to be stopped, " +
-                                    "but it actual state=${containerManager.dockerClient.inspectContainerCmd(it).exec().state}")
+                            log.warn("Agent with id=$it was requested to be stopped, but it actually doesn't running")
                         }
                     }
                     true
@@ -115,7 +114,7 @@ class DockerService(private val configProperties: ConfigProperties) {
                     isAgentStoppingInProgress.lazySet(false)
                 }
             } else {
-                log.debug("Agents stopping is already in progress, skipping")
+                log.info("Agents stopping is already in progress, skipping")
                 false
             }
 
