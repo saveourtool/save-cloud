@@ -411,7 +411,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                                 files.remove(it)
                                 this.availableFiles.add(it)
                             }
-                        }) { htmlInputElement ->
+                        }, { htmlInputElement ->
                             GlobalScope.launch {
                                 setState {
                                     isLoading = true
@@ -434,7 +434,11 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                                     isLoading = false
                                 }
                             }
-                        }) {
+                        }, { selectedFile, checked ->
+                            setState {
+                                files[files.indexOf(selectedFile)] = selectedFile.copy(isExecutable = checked)
+                            }
+                        })) {
                             attrs.files = state.files
                             attrs.availableFiles = state.availableFiles
                         }

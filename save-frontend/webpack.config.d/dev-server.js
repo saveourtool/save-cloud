@@ -4,7 +4,7 @@ config.devServer = Object.assign(
     {
       proxy: [
         {
-          context: ["/**"],
+          context: ["/**", "!/"],
           target: 'http://localhost:5000',
         }
       ]

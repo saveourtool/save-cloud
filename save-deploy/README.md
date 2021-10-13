@@ -16,12 +16,17 @@ Deployment is performed on server via docker swarm or locally via docker-compose
 
 ## Server deployment
 * Server should run Linux and support docker swarm and gvisor runtime. Ideally, kernel 5.+ is required.
+* [reverse-proxy.conf](reverse-proxy.conf) is a configuration for Nginx to act as a reverse proxy for save-cloud. It should be 
+  copied into `/etc/nginx/sites-available`.
 * Gvisor should be installed and runsc runtime should be available for docker. See [installation guide](https://gvisor.dev/docs/user_guide/install/) for details.
   A different runtime can be specified with `orchestrator.docker.runtime` property in orchestrator.
 * Ensure that docker daemon is running and that docker is in swarm mode.
 * Secrets should be added to the swarm as well as to `$HOME/secrets` file.
 * If custom SSL certificates are used, they should be installed on the server and added into JDK's truststore inside images. See section below for details.
+* Loki logging driver should be added to docker installation: [instruction](https://grafana.com/docs/loki/latest/clients/docker-driver/#installing)
 * Pull new changes to the server and run `./gradlew -Pprofile=prod deployDockerStack`.
+* [`docker-compose.yaml.template`](../docker-compose.yaml.template) is configured so that all services use Loki for logging
+  and configuration files from `~/configs`, which are copied from `save-deploy` during gradle build.
 
 ## Running behind proxy
 If save-cloud is running behind proxy, docker daemon should be configured to use proxy. See [docker docs](https://docs.docker.com/network/proxy/).
