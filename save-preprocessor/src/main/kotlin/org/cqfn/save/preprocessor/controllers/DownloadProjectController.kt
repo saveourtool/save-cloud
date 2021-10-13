@@ -189,7 +189,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                     if (executionType != ExecutionType.GIT) {
                         getTestSuitesById(execution.testSuiteIds!!).map { Triple(location, execution, it) }
                     } else {
-                        Mono.fromCallable { Triple(location, execution, emptyList<TestSuite>()) }
+                        Mono.fromCallable { Triple(location, execution, null) }
                     }
                 }
                 .flatMap { (location, execution, testSuites) ->
@@ -208,7 +208,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                         execution.project,
                         executionRerunRequest.propertiesRelativePath,
                         location,
-                        testSuites.map { it.toDto() },
+                        testSuites?.map { it.toDto() },
                         executionRerunRequest.gitDto.url
                     )
                 }
@@ -499,7 +499,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
             initializeTests(testSuites, rootTestConfig, executionId)
         }
 
-    @Suppress("TYPE_ALIAS")
+    @Suppress("TYPE_ALIAS", "UnsafeCallOnNullableType")
     private fun prepareExecutionForStandard(
         testSuiteDtos: List<TestSuiteDto>,
         execution: Execution
@@ -644,6 +644,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                     log.info("Making request to set execution status for id=$executionId to $executionStatus")
                 }
 
+    @Suppress("UnsafeCallOnNullableType")
     private fun updateExecution(execution: Execution) =
             webClientBackend.makeRequest(
                 BodyInserters.fromValue(execution),
