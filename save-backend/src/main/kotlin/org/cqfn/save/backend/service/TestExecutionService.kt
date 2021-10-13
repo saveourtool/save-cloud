@@ -118,7 +118,9 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
 
     @Transactional
     fun assignAgentByTest(agentContainerId: String, testDtos: List<TestDto>) {
-        val agent = agentRepository.findByContainerId(agentContainerId)!!
+        val agent = requireNotNull(agentRepository.findByContainerId(agentContainerId)) {
+            "Agent with containerId=[$agentContainerId] was not found in the DB"
+        }
         val executionId = agent.execution.id!!
         testDtos.forEach { test ->
             val testExecution = testExecutionRepository.findByExecutionIdAndTestPluginNameAndTestFilePath(
@@ -127,7 +129,8 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
                 test.filePath
             )
                 .orElseThrow {
-                    NoSuchElementException("test_execution not found for input executionId=$executionId, test.pluginName=${test.pluginName}, test.filePath=${test.filePath}")
+                    log.error("Can't find test_execution for executionId=$executionId, test.pluginName=${test.pluginName}, test.filePath=${test.filePath}")
+                    NoSuchElementException()
                 }
             testExecutionRepository.save(testExecution.apply {
                 this.agent = agent

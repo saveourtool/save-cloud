@@ -182,12 +182,14 @@ class AgentService {
             }
     }
 
-    fun updateTestExecutionsWithAgent(agentId: String, testDtos: List<TestDto>): Mono<BodilessResponseEntity> =
-        webClientBackend.post()
+    fun updateTestExecutionsWithAgent(agentId: String, testDtos: List<TestDto>): Mono<BodilessResponseEntity> {
+        log.debug("Attempt to update test executions for tests=$testDtos for agent $agentId")
+        return webClientBackend.post()
             .uri("/testExecution/assignAgent?agentContainerId=$agentId")
             .bodyValue(testDtos)
             .retrieve()
             .toBodilessEntity()
+    }
 
     private fun Collection<AgentStatusDto>.areIdleOrFinished() = all {
         it.state == AgentState.IDLE || it.state == AgentState.FINISHED
