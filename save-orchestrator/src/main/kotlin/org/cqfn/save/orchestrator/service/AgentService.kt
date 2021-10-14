@@ -107,8 +107,7 @@ class AgentService {
     /**
      * @return nothing for now Fixme
      */
-    @Suppress("FunctionOnlyReturningConstant")
-    fun checkSavedData() = true
+    fun checkSavedData() = Mono.just(true)
 
     /**
      * If an error occurs, should try to resend tests
