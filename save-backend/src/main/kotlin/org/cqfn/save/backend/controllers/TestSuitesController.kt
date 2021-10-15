@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestParam
@@ -66,9 +67,9 @@ class TestSuitesController(
      * @param id id of the test suite
      * @return response with test suite with provided id
      */
-    @GetMapping("/testSuiteWithId")
-    fun getTestSuiteById(@RequestParam id: Long) =
-            ResponseEntity.status(HttpStatus.OK).body(testSuitesService.findTestSuitesById(id))
+    @GetMapping("/testSuite/{id}")
+    fun getTestSuiteById(@PathVariable id: Long) =
+            ResponseEntity.status(HttpStatus.OK).body(testSuitesService.findTestSuiteById(id))
 
     /**
      * @return response entity

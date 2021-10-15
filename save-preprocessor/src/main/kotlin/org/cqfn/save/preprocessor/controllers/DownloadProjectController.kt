@@ -101,10 +101,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         .doOnSuccess {
             downLoadRepository(executionRequest)
                 .flatMap { (location, version) ->
-                    val resourcesLocation = File(configProperties.repository)
-                        .resolve(location)
-                        .resolve(executionRequest.propertiesRelativePath)
-                        .parentFile
+                    val resourcesLocation = getResourceLocationForGit(location, executionRequest.propertiesRelativePath)
                     log.info("Downloading additional files into $resourcesLocation")
                     files.zipWith(fileInfos).download(resourcesLocation)
                         .switchIfEmpty(
@@ -175,31 +172,18 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                     cleanupInOrchestrator(executionRerunRequest.executionId!!)
                 }
                 .flatMap {
-                    if (executionType == ExecutionType.GIT) {
-                        downLoadRepository(executionRerunRequest).map { (location, _) -> location }
-                    } else {
-                        Mono.fromCallable {
-                            ""
-                        }
-                    }
+                    getExecutionLocation(executionRerunRequest, executionType)
                 }
                 .flatMap { location ->
                     getExecution(executionRerunRequest.executionId!!).map { location to it }
                 }
                 .flatMap { (location, execution) ->
-                    if (executionType != ExecutionType.GIT) {
-                        getTestSuitesById(execution.testSuiteIds!!).map { Triple(location, execution, it) }
-                    } else {
-                        Mono.fromCallable { Triple(location, execution, null) }
-                    }
+                    getTestSuitesIfStandard(executionType, execution, location)
                 }
                 .flatMap { (location, execution, testSuites) ->
                     val files = execution.additionalFiles?.split(";")?.filter { it.isNotBlank() }?.map { File(it) } ?: emptyList()
-                    val resourcesLocation = if (executionType == ExecutionType.GIT) {
-                        File(configProperties.repository).resolve(location).resolve(executionRerunRequest.propertiesRelativePath).parentFile
-                    } else {
-                        File("${configProperties.repository}/${(files.map { it.toHash() }).hashCode()}")
-                    }
+                    val resourcesLocation = getResourceLocation(executionType, location, executionRerunRequest.propertiesRelativePath, files)
+
                     files.forEach { file ->
                         log.debug("Copy additional file $file into ${resourcesLocation.resolve(file.name)}")
                         Files.copy(Paths.get(file.absolutePath), Paths.get(resourcesLocation.resolve(file.name).absolutePath), StandardCopyOption.REPLACE_EXISTING)
@@ -336,15 +320,13 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         executionRequestForStandardSuites: ExecutionRequestForStandardSuites,
         files: List<File>,
     ): Mono<StatusResponse> {
-        val tmpDir = generateDirectory(files.map {
-            it.toHash()
-        })
+        val tmpDir = generateDirectory(calculateTmpNameForFiles(files))
         files.forEach {
             Files.move(Paths.get(it.absolutePath), Paths.get((tmpDir.resolve(it)).absolutePath))
         }
         val project = executionRequestForStandardSuites.project
         val propertiesRelativePath = "save.properties"
-        // todo: what's with version?
+        // TODO: Save the proper version https://github.com/cqfn/save-cloud/issues/321
         val version = files.first().name
         return updateExecution(
             executionRequestForStandardSuites.project,
@@ -378,8 +360,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
      * @return a [File] representing the created temporary directory
      */
     internal fun generateDirectory(seeds: List<String>): File {
-        val hashName = seeds.hashCode()
-        val tmpDir = File("${configProperties.repository}/$hashName")
+        val tmpDir = getTmpDirName(seeds)
         if (tmpDir.exists()) {
             if (tmpDir.deleteRecursively()) {
                 log.info("For $seeds: dir $tmpDir was deleted")
@@ -438,15 +419,48 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
             }
     }
 
+    private fun getResourceLocation(
+        executionType: ExecutionType,
+        location: String,
+        propertiesRelativePath: String,
+        files: List<File>) = if (executionType == ExecutionType.GIT) {
+        getResourceLocationForGit(location, propertiesRelativePath)
+    } else {
+        getTmpDirName(calculateTmpNameForFiles(files))
+    }
+
+    private fun getResourceLocationForGit(location: String, propertiesRelativePath: String) = File(configProperties.repository)
+        .resolve(location)
+        .resolve(propertiesRelativePath)
+        .parentFile
+
+    private fun getTmpDirName(seeds: List<String>) = File("${configProperties.repository}/${seeds.hashCode()}")
+
+    private fun calculateTmpNameForFiles(files: List<File>) = files.map { it.toHash() }
+
+    private fun getExecutionLocation(executionRerunRequest: ExecutionRequest, executionType: ExecutionType) = if (executionType == ExecutionType.GIT) {
+        downLoadRepository(executionRerunRequest).map { (location, _) -> location }
+    } else {
+        // In standard mode we will calculate location later, according list of additional files
+        Mono.just("")
+    }
+
     private fun getExecution(executionId: Long) = webClientBackend.get()
         .uri("${configProperties.backend}/execution?id=$executionId")
         .retrieve()
         .bodyToMono<Execution>()
 
+    private fun getTestSuitesIfStandard(executionType: ExecutionType, execution: Execution, location: String) = if (executionType == ExecutionType.GIT) {
+        // Do nothing
+        Mono.fromCallable { Triple(location, execution, null) }
+    } else {
+        getTestSuitesById(execution.testSuiteIds!!).map { Triple(location, execution, it) }
+    }
+
     private fun getTestSuitesById(testSuiteIds: String) = testSuiteIds.split(", ").let {
         Flux.fromIterable(it).flatMap {
             webClientBackend.get()
-                .uri("/testSuiteWithId?id=$it")
+                .uri("/testSuite/$it")
                 .retrieve()
                 .bodyToMono<TestSuite>()
         }

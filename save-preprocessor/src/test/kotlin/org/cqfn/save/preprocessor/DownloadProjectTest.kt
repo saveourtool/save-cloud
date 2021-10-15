@@ -464,7 +464,7 @@ class DownloadProjectTest(
                 .setBody(objectMapper.writeValueAsString(execution))
         )
 
-        // /testSuiteWithId
+        // /testSuite/{id}
         mockServerBackend.enqueue(
             MockResponse()
                 .setResponseCode(200)
