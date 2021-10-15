@@ -18,10 +18,10 @@
             <column name="state" type="varchar(50)">
                 <constraints nullable="false"/>
             </column>
-            <column name="start_time" type="DATETIME">
+            <column name="start_time" type="DATETIME(3)">
                 <constraints nullable="false"/>
             </column>
-            <column name="end_time" type="DATETIME">
+            <column name="end_time" type="DATETIME(3)">
                 <constraints nullable="false"/>
             </column>
             <column name="agent_id" type="bigint" />
