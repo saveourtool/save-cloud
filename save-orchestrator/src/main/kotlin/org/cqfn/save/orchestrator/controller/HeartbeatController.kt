@@ -3,6 +3,7 @@ package org.cqfn.save.orchestrator.controller
 import org.cqfn.save.agent.AgentState
 import org.cqfn.save.agent.ContinueResponse
 import org.cqfn.save.agent.Heartbeat
+import org.cqfn.save.agent.HeartbeatResponse
 import org.cqfn.save.agent.WaitResponse
 import org.cqfn.save.entities.AgentStatusDto
 import org.cqfn.save.orchestrator.config.ConfigProperties
@@ -60,15 +61,14 @@ class HeartbeatController(private val agentService: AgentService,
                     // if agent sends the first heartbeat, we try to assign work for it
                     AgentState.STARTING -> agentService.getNewTestsIds(heartbeat.agentId)
                     // if agent idles, we try to assign work, but also check if it should be terminated
-                    AgentState.IDLE -> agentService.getNewTestsIds(heartbeat.agentId)
-                        .doOnSuccess {
-                            if (it is WaitResponse) {
-                                initiateShutdownSequence(heartbeat.agentId)
-                            }
+                    AgentState.IDLE -> handleVacantAgent(heartbeat.agentId)
+                    AgentState.FINISHED -> agentService.checkSavedData(heartbeat.agentId).flatMap { isSavingSuccessful ->
+                        if (isSavingSuccessful) {
+                            handleVacantAgent(heartbeat.agentId)
+                        } else {
+                            // todo: if failure is repeated multiple times, re-assign missing tests once more
+                            Mono.just(WaitResponse)
                         }
-                    AgentState.FINISHED -> {
-                        agentService.checkSavedData()
-                        Mono.just(WaitResponse)
                     }
                     AgentState.BUSY -> Mono.just(ContinueResponse)
                     AgentState.BACKEND_FAILURE, AgentState.BACKEND_UNREACHABLE, AgentState.CLI_FAILED, AgentState.STOPPED_BY_ORCH -> Mono.just(WaitResponse)
@@ -78,6 +78,13 @@ class HeartbeatController(private val agentService: AgentService,
                 Json.encodeToString(it)
             }
     }
+
+    private fun handleVacantAgent(agentId: String): Mono<HeartbeatResponse> = agentService.getNewTestsIds(agentId)
+        .doOnSuccess {
+            if (it is WaitResponse) {
+                initiateShutdownSequence(agentId)
+            }
+        }
 
     /**
      * If agent was IDLE and there are no new tests - we check if the Execution is completed.
