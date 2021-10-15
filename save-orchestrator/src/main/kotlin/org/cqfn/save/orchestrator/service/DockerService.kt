@@ -103,7 +103,14 @@ class DockerService(private val configProperties: ConfigProperties) {
                             containerManager.dockerClient.stopContainerCmd(it).exec()
                             log.info("Agent with id=$it has been stopped")
                         } else {
-                            log.warn("Agent with id=$it was requested to be stopped, but it actually doesn't running")
+                            val containerList = containerManager.dockerClient.listContainersCmd().exec().map { it.id }
+                            val state = if (it in containerList) {
+                                "${containerManager.dockerClient.inspectContainerCmd(it).exec().state}"
+                            } else {
+                                "deleted"
+                            }
+                            val warnMsg = "Agent with id=$it was requested to be stopped, but it actual state=${state}"
+                            log.warn(warnMsg)
                         }
                     }
                     true

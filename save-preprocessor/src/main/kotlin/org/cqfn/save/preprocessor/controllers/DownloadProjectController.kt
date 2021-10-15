@@ -450,6 +450,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         .retrieve()
         .bodyToMono<Execution>()
 
+    @Suppress("UnsafeCallOnNullableType")
     private fun getTestSuitesIfStandard(executionType: ExecutionType, execution: Execution, location: String) = if (executionType == ExecutionType.GIT) {
         // Do nothing
         Mono.fromCallable { Triple(location, execution, null) }
