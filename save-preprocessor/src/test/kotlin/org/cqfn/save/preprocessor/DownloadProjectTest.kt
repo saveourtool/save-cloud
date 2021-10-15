@@ -361,7 +361,7 @@ class DownloadProjectTest(
 
     @Test
     @Suppress("LongMethod")
-    fun `rerun execution`() {
+    fun `rerun execution type git`() {
         val project = Project("owner", "someName", "stub", "descr").apply {
             id = 42L
         }
@@ -422,6 +422,99 @@ class DownloadProjectTest(
 
         webClient.post()
             .uri("/rerunExecution?executionType=${ExecutionType.GIT}")
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(request)
+            .exchange()
+            .expectStatus()
+            .isAccepted
+            .expectBody<String>()
+            .isEqualTo("Clone pending")
+        Thread.sleep(15_000)
+
+        assertions.forEach { Assertions.assertNotNull(it) }
+    }
+
+    @Test
+    @Suppress("LongMethod")
+    fun `rerun execution type standard`() {
+        val project = Project("owner", "someName", "stub", "descr").apply {
+            id = 42L
+        }
+        val execution = Execution(project, LocalDateTime.now(), LocalDateTime.now(), ExecutionStatus.PENDING, "1",
+            "foo", 20, ExecutionType.STANDARD, "0.0.1", 0, 0, 0, Sdk.Default.toString(), null).apply {
+            id = 98L
+        }
+        val request = ExecutionRequest(project, GitDto("https://github.com/cqfn/save"), "examples/kotlin-diktat/save.properties", Sdk.Default, execution.id)
+
+        val testSuite = TestSuite(TestSuiteType.STANDARD, "", null, project, LocalDateTime.now(), "save.properties").apply {
+            id = 42
+        }
+
+        // /updateExecutionByDto
+        mockServerBackend.enqueue(MockResponse().setResponseCode(200))
+
+        // /cleanup
+        mockServerOrchestrator.enqueue(MockResponse().setResponseCode(200))
+
+        // /execution
+        mockServerBackend.enqueue(
+            MockResponse()
+                .setResponseCode(200)
+                .setHeader("Content-Type", "application/json")
+                .setBody(objectMapper.writeValueAsString(execution))
+        )
+
+        // /testSuiteWithId
+        mockServerBackend.enqueue(
+            MockResponse()
+                .setResponseCode(200)
+                .setHeader("Content-Type", "application/json")
+                .setBody(objectMapper.writeValueAsString(testSuite))
+        )
+
+        // /standardTestSuitesWithName
+        mockServerBackend.enqueue(
+            MockResponse()
+                .setResponseCode(200)
+                .setHeader("Content-Type", "application/json")
+                .setBody(objectMapper.writeValueAsString(
+                    listOf(testSuite)
+                )),
+        )
+
+        // /saveTestExecutionsForStandardByTestSuiteId
+        mockServerBackend.enqueue(
+            MockResponse()
+                .setResponseCode(200)
+        )
+
+        // /updateExecution
+        mockServerBackend.enqueue(
+            MockResponse()
+                .setResponseCode(200)
+        )
+
+        // /initializeAgents
+        mockServerOrchestrator.enqueue(
+            MockResponse()
+                .setResponseCode(200)
+        )
+        val assertions = sequence {
+            yield(mockServerBackend.takeRequest(60, TimeUnit.SECONDS))
+            yield(mockServerOrchestrator.takeRequest(60, TimeUnit.SECONDS))
+            yield(mockServerBackend.takeRequest(60, TimeUnit.SECONDS))
+            yield(mockServerBackend.takeRequest(60, TimeUnit.SECONDS))
+            yield(mockServerBackend.takeRequest(60, TimeUnit.SECONDS))
+            yield(mockServerBackend.takeRequest(60, TimeUnit.SECONDS))
+            yield(mockServerBackend.takeRequest(60, TimeUnit.SECONDS))
+            yield(mockServerOrchestrator.takeRequest(60, TimeUnit.SECONDS))
+        }
+            .onEach {
+                logger.info("Request $it")
+            }
+
+        webClient.post()
+            .uri("/rerunExecution?executionType=${ExecutionType.STANDARD}")
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(request)
             .exchange()
