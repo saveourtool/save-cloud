@@ -62,10 +62,11 @@ class HeartbeatController(private val agentService: AgentService,
                     AgentState.STARTING -> agentService.getNewTestsIds(heartbeat.agentId)
                     // if agent idles, we try to assign work, but also check if it should be terminated
                     AgentState.IDLE -> handleVacantAgent(heartbeat.agentId)
-                    AgentState.FINISHED -> agentService.checkSavedData().flatMap { isSavingSuccessful ->
+                    AgentState.FINISHED -> agentService.checkSavedData(heartbeat.agentId).flatMap { isSavingSuccessful ->
                         if (isSavingSuccessful) {
                             handleVacantAgent(heartbeat.agentId)
                         } else {
+                            // todo: if failure is repeated multiple times, re-assign missing tests once more
                             Mono.just(WaitResponse)
                         }
                     }

@@ -3,7 +3,9 @@ package org.cqfn.save.orchestrator.service
 import org.cqfn.save.agent.AgentState
 import org.cqfn.save.agent.HeartbeatResponse
 import org.cqfn.save.agent.NewJobResponse
+import org.cqfn.save.agent.TestExecutionDto
 import org.cqfn.save.agent.WaitResponse
+import org.cqfn.save.domain.TestResultStatus
 import org.cqfn.save.entities.Agent
 import org.cqfn.save.entities.AgentStatus
 import org.cqfn.save.entities.AgentStatusDto
@@ -105,9 +107,16 @@ class AgentService {
                 .toBodilessEntity()
 
     /**
-     * @return nothing for now Fixme
+     * Check that no TestExecution for agent [agentId] have status READY
+     *
+     * @param agentId agent for which data is checked
+     * @return true if all executions have status other than `READY`
      */
-    fun checkSavedData() = Mono.just(true)
+    fun checkSavedData(agentId: String): Mono<Boolean> = webClientBackend.get()
+        .uri("/testExecutions/agent/$agentId/${TestResultStatus.READY}")
+        .retrieve()
+        .bodyToMono<List<TestExecutionDto>>()
+        .map { it.isEmpty() }
 
     /**
      * If an error occurs, should try to resend tests
