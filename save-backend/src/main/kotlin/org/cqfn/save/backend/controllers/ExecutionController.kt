@@ -12,7 +12,6 @@ import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.execution.ExecutionInitializationDto
 import org.cqfn.save.execution.ExecutionType
 import org.cqfn.save.execution.ExecutionUpdateDto
-import org.cqfn.save.testsuite.TestSuiteType
 
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -140,20 +139,19 @@ class ExecutionController(private val executionService: ExecutionService,
         val git = requireNotNull(gitService.getRepositoryDtoByProject(execution.project)) {
             "Can't rerun execution $id, project ${execution.project.name} has no associated git address"
         }
-        val propertiesRelativePath = execution.testSuiteIds?.let {
-            if (executionType == ExecutionType.GIT) {
+        val propertiesRelativePath = if (executionType == ExecutionType.GIT) {
+            execution.testSuiteIds?.let {
                 require(it == "ALL") { "Only executions with \"ALL\" tests suites from a GIT project are supported now" }
-            }
-            testSuitesService.findTestSuitesByProject(execution.project)
-        }!!
-            .filter {
-                it.type != TestSuiteType.OBSOLETE_STANDARD
-            }
-            .map {
-                it.propertiesRelativePath
-            }
-            .distinct()
-            .single()
+                testSuitesService.findTestSuitesByProject(execution.project)
+            }!!
+                .map {
+                    it.propertiesRelativePath
+                }
+                .distinct()
+                .single()
+        } else {
+            "save.properties"
+        }
         val executionRequest = ExecutionRequest(
             project = execution.project,
             gitDto = GitDto(git.url, hash = execution.version),

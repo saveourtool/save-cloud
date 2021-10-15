@@ -63,6 +63,7 @@ import java.io.File
 import java.io.FileOutputStream
 import java.nio.file.Files
 import java.nio.file.Paths
+import java.nio.file.StandardCopyOption
 import java.time.Duration
 
 import kotlin.io.path.ExperimentalPathApi
@@ -197,11 +198,11 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                     val resourcesLocation = if (executionType == ExecutionType.GIT) {
                         File(configProperties.repository).resolve(location).resolve(executionRerunRequest.propertiesRelativePath).parentFile
                     } else {
-                        generateDirectory(files.map { it.toHash() })
+                        File("${configProperties.repository}/${(files.map { it.toHash() }).hashCode()}")
                     }
                     files.forEach { file ->
                         log.info("Copy additional file $file into ${resourcesLocation.resolve(file.name)}")
-                        Files.copy(Paths.get(file.absolutePath), Paths.get(resourcesLocation.resolve(file.name).absolutePath))
+                        Files.copy(Paths.get(file.absolutePath), Paths.get(resourcesLocation.resolve(file.name).absolutePath), StandardCopyOption.REPLACE_EXISTING)
                     }
                     sendToBackendAndOrchestrator(
                         execution,
