@@ -8,11 +8,13 @@ import org.cqfn.save.backend.repository.TestRepository
 import org.cqfn.save.backend.utils.secondsToLocalDateTime
 import org.cqfn.save.domain.TestResultStatus
 import org.cqfn.save.entities.TestExecution
+import org.cqfn.save.test.TestDto
 
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 
 /**
  * Service for test result
@@ -42,6 +44,16 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
         .findByExecutionId(executionId, PageRequest.of(page, pageSize))
 
     /**
+     * Get test executions by [agentContainerId] and [status]
+     *
+     * @param agentContainerId
+     * @param status
+     * @return a list of test executions
+     */
+    internal fun getTestExecutions(agentContainerId: String, status: TestResultStatus) = testExecutionRepository
+        .findByAgentContainerIdAndStatus(agentContainerId, status)
+
+    /**
      * Returns number of TestExecutions with this [executionId]
      *
      * @param executionId an ID of Execution to group TestExecutions
@@ -56,6 +68,7 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
      */
     @Suppress("TOO_MANY_LINES_IN_LAMBDA", "UnsafeCallOnNullableType")
     fun saveTestResult(testExecutionsDtos: List<TestExecutionDto>): List<TestExecutionDto> {
+        log.debug("Saving ${testExecutionsDtos.size} test results from agent ${testExecutionsDtos.first().agentContainerId}")
         // we take agent id only from first element, because all test executions have same execution
         val agentContainerId = requireNotNull(testExecutionsDtos.first().agentContainerId) {
             "Attempt to save test results without assigned agent. testExecutionDtos=$testExecutionsDtos"
@@ -109,6 +122,35 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
             },
                 { log.error("Can't find test with id = $testId to save in testExecution") }
             )
+        }
+    }
+
+    /**
+     * Set `agent` field of test executions corresponding to [testDtos] to [agentContainerId]
+     *
+     * @param agentContainerId id of an agent
+     * @param testDtos test that will be executed by [agentContainerId] agent
+     */
+    @Transactional
+    @Suppress("UnsafeCallOnNullableType")
+    fun assignAgentByTest(agentContainerId: String, testDtos: List<TestDto>) {
+        val agent = requireNotNull(agentRepository.findByContainerId(agentContainerId)) {
+            "Agent with containerId=[$agentContainerId] was not found in the DB"
+        }
+        val executionId = agent.execution.id!!
+        testDtos.forEach { test ->
+            val testExecution = testExecutionRepository.findByExecutionIdAndTestPluginNameAndTestFilePath(
+                executionId,
+                test.pluginName,
+                test.filePath
+            )
+                .orElseThrow {
+                    log.error("Can't find test_execution for executionId=$executionId, test.pluginName=${test.pluginName}, test.filePath=${test.filePath}")
+                    NoSuchElementException()
+                }
+            testExecutionRepository.save(testExecution.apply {
+                this.agent = agent
+            })
         }
     }
 }

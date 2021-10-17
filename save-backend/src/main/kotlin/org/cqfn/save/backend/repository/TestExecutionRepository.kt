@@ -37,6 +37,15 @@ interface TestExecutionRepository : BaseEntityRepository<TestExecution> {
     fun findByExecutionId(executionId: Long, pageable: Pageable): List<TestExecution>
 
     /**
+     * Returns test executions for agent [agentContainerId] and status [status]
+     *
+     * @param agentContainerId
+     * @param status
+     * @return a list of test executions
+     */
+    fun findByAgentContainerIdAndStatus(agentContainerId: String, status: TestResultStatus): List<TestExecution>
+
+    /**
      * Returns a TestExecution matched by a set of fields
      *
      * @param executionId if of execution
