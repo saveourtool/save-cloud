@@ -4,7 +4,6 @@
 
 package org.cqfn.save.frontend.components
 
-import kotlinx.html.*
 import org.cqfn.save.frontend.components.modal.logoutModal
 import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
 
@@ -26,7 +25,12 @@ import react.dom.ul
 import react.router.dom.Location
 import react.setState
 
+import kotlinx.html.BUTTON
+import kotlinx.html.ButtonType
+import kotlinx.html.classes
+import kotlinx.html.id
 import kotlinx.html.js.onClickFunction
+import kotlinx.html.role
 
 /**
  * [RProps] of the top bor component
@@ -144,12 +148,12 @@ class TopBar : RComponent<TopBarProps, TopBarState>() {
     }
 
     private fun RBuilder.dropdownEntry(faIcon: String, text: String, handler: RDOMBuilder<BUTTON>.() -> Unit = { }) =
-        button(type = ButtonType.button, classes = "btn btn-no-outline dropdown-item rounded-0 shadow-none") {
-            fontAwesomeIcon {
-                attrs.icon = faIcon
-                attrs.className = "fas fa-sm fa-fw mr-2 text-gray-400"
+            button(type = ButtonType.button, classes = "btn btn-no-outline dropdown-item rounded-0 shadow-none") {
+                fontAwesomeIcon {
+                    attrs.icon = faIcon
+                    attrs.className = "fas fa-sm fa-fw mr-2 text-gray-400"
+                }
+                +text
+                handler(this)
             }
-            +text
-            handler(this)
-        }
 }

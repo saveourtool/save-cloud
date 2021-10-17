@@ -14,7 +14,6 @@ import react.dom.div
 import react.fc
 
 import kotlinx.html.DIV
-import react.dom.h6
 
 /**
  * [RProps] for card component
@@ -34,16 +33,16 @@ external interface CardProps : PropsWithChildren {
  */
 @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
 fun cardComponent(contentBuilder: RDOMBuilder<DIV>.() -> Unit) = fc<CardProps> { props ->
-        div("card-body mt-0 pt-0 pr-0 pl-0") {
-            div("col mr-2 pr-0 pl-0") {
-                div("mb-0 font-weight-bold text-gray-800") {
-                    contentBuilder.invoke(this)
-                }
-            }
-            if (props.faIcon != undefined) {
-                div("col-auto") {
-                    fontAwesomeIcon(icon = props.faIcon, classes = "fas fa-2x text-gray-300")
-                }
+    div("card-body mt-0 pt-0 pr-0 pl-0") {
+        div("col mr-2 pr-0 pl-0") {
+            div("mb-0 font-weight-bold text-gray-800") {
+                contentBuilder.invoke(this)
             }
         }
+        if (props.faIcon != undefined) {
+            div("col-auto") {
+                fontAwesomeIcon(icon = props.faIcon, classes = "fas fa-2x text-gray-300")
+            }
+        }
+    }
 }

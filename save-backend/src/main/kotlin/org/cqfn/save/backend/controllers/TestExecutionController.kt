@@ -4,7 +4,6 @@ import org.cqfn.save.agent.TestExecutionDto
 import org.cqfn.save.backend.service.TestExecutionService
 import org.cqfn.save.domain.TestResultStatus
 import org.cqfn.save.test.TestDto
-import org.cqfn.save.backend.service.TestService
 import org.slf4j.LoggerFactory
 import org.springframework.dao.DataAccessException
 import org.springframework.http.HttpStatus

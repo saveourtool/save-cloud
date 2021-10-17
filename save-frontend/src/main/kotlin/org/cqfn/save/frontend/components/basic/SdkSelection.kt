@@ -11,14 +11,17 @@ import org.cqfn.save.domain.sdks
 
 import org.w3c.dom.HTMLSelectElement
 import react.PropsWithChildren
+import react.dom.RDOMBuilder
+import react.dom.div
+import react.dom.label
+import react.dom.option
+import react.dom.select
 import react.fc
 
 import kotlinx.html.Tag
 import kotlinx.html.classes
-import kotlinx.html.form
 import kotlinx.html.id
 import kotlinx.html.js.onChangeFunction
-import react.dom.*
 
 /**
  * Props for SdkSelection component
@@ -69,26 +72,26 @@ private fun <T : Tag> RDOMBuilder<T>.selection(
  * @return a RComponent
  */
 fun sdkSelection(onSdkChange: (HTMLSelectElement) -> Unit, onVersionChange: (HTMLSelectElement) -> Unit) =
-    fc<SdkProps> { props ->
-        div("card align-items-left mb-3 pt-0 pb-0") {
-            div("card-body align-items-left pb-1 pt-3") {
-                div("row no-gutters align-items-left") {
-                    selection(
-                        "SDK",
-                        props.selectedSdk,
-                        sdks,
-                        onSdkChange,
-                    )
-                }
-                div("row no-gutters align-items-left") {
-                    attrs.classes = setOf("d-inline")
-                    selection(
-                        "Version",
-                        props.selectedSdkVersion,
-                        props.selectedSdk.getSdkVersions(),
-                        onVersionChange,
-                    )
+        fc<SdkProps> { props ->
+            div("card align-items-left mb-3 pt-0 pb-0") {
+                div("card-body align-items-left pb-1 pt-3") {
+                    div("row no-gutters align-items-left") {
+                        selection(
+                            "SDK",
+                            props.selectedSdk,
+                            sdks,
+                            onSdkChange,
+                        )
+                    }
+                    div("row no-gutters align-items-left") {
+                        attrs.classes = setOf("d-inline")
+                        selection(
+                            "Version",
+                            props.selectedSdkVersion,
+                            props.selectedSdk.getSdkVersions(),
+                            onVersionChange,
+                        )
+                    }
                 }
             }
         }
-    }

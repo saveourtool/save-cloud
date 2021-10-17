@@ -17,6 +17,9 @@ import org.cqfn.save.frontend.components.basic.cardComponent
 import org.cqfn.save.frontend.components.basic.checkBoxGrid
 import org.cqfn.save.frontend.components.basic.fileUploader
 import org.cqfn.save.frontend.components.basic.sdkSelection
+import org.cqfn.save.frontend.externals.fontawesome.faCalendarAlt
+import org.cqfn.save.frontend.externals.fontawesome.faHistory
+import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
 import org.cqfn.save.frontend.externals.modal.modal
 import org.cqfn.save.frontend.utils.appendJson
 import org.cqfn.save.frontend.utils.decodeFromJsonString
@@ -35,6 +38,16 @@ import react.PropsWithChildren
 import react.RBuilder
 import react.RComponent
 import react.State
+import react.dom.ReactHTML.b
+import react.dom.a
+import react.dom.attrs
+import react.dom.button
+import react.dom.defaultValue
+import react.dom.div
+import react.dom.h1
+import react.dom.h6
+import react.dom.input
+import react.dom.span
 import react.setState
 
 import kotlinx.browser.window
@@ -48,12 +61,6 @@ import kotlinx.html.js.onClickFunction
 import kotlinx.html.role
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.cqfn.save.frontend.externals.fontawesome.faCalendarAlt
-import org.cqfn.save.frontend.externals.fontawesome.faHistory
-import org.cqfn.save.frontend.externals.fontawesome.faQuestionCircle
-import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
-import react.dom.*
-import react.dom.ReactHTML.b
 
 /**
  * `Props` retrieved from router
@@ -282,16 +289,19 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                     +"Types of testing"
                 }
 
-
                 child(cardComponent {
                     div("text-left") {
                         div("mr-2") {
                             button(type = ButtonType.button) {
                                 attrs.classes =
-                                    if (state.isFirstTypeUpload == true) setOf("btn", "btn-primary") else setOf(
-                                        "btn",
-                                        "btn-outline-primary"
-                                    )
+                                        if (state.isFirstTypeUpload == true) {
+                                            setOf("btn", "btn-primary")
+                                        } else {
+                                            setOf(
+                                                "btn",
+                                                "btn-outline-primary"
+                                            )
+                                        }
                                 attrs.onClickFunction = {
                                     setState {
                                         isFirstTypeUpload = true
@@ -303,10 +313,14 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                         div("mt-3 mr-2") {
                             button(type = ButtonType.button, classes = "btn btn-link collapsed") {
                                 attrs.classes =
-                                    if (state.isFirstTypeUpload == true) setOf("btn", "btn-outline-primary") else setOf(
-                                        "btn",
-                                        "btn-primary"
-                                    )
+                                        if (state.isFirstTypeUpload == true) {
+                                            setOf("btn", "btn-outline-primary")
+                                        } else {
+                                            setOf(
+                                                "btn",
+                                                "btn-primary"
+                                            )
+                                        }
                                 attrs.onClickFunction = {
                                     setState {
                                         isFirstTypeUpload = false
@@ -516,7 +530,6 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                     }
                     div("ml-3 align-items-left") {
                         fontAwesomeIcon(icon = faCalendarAlt)
-
                         a(
                             href = "#/${project.owner}/${project.name}/history",
                             classes = "btn btn-link text-left"
@@ -554,7 +567,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
             setState {
                 errorLabel = "Failed to fetch latest execution"
                 errorMessage =
-                    "Failed to fetch latest execution: ${response.status} ${response.statusText}"
+                        "Failed to fetch latest execution: ${response.status} ${response.statusText}"
                 isErrorOpen = true
             }
         } else {
