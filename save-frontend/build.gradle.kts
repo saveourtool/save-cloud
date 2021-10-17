@@ -57,6 +57,11 @@ kotlin {
     }
 }
 
+// workaround for continuous work of WebPack: (https://github.com/webpack/webpack-cli/issues/2990)
+rootProject.plugins.withType(org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin::class.java) {
+    rootProject.the<org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension>().versions.webpackCli.version = "4.9.0"
+}
+
 // generate kotlin file with project version to include in web page
 val generateVersionFileTaskProvider = tasks.register("generateVersionFile") {
     val versionsFile = File("$buildDir/generated/src/generated/Versions.kt")

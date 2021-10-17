@@ -43,6 +43,11 @@ import kotlinx.html.js.onDoubleClickFunction
  */
 external interface UploaderProps : PropsWithChildren {
     /**
+     * Header of the card
+     */
+    var header: String
+
+    /**
      * List of files available on server side
      */
     var availableFiles: List<FileInfo>
@@ -68,10 +73,15 @@ fun fileUploader(
     onExecutableChange: (file: FileInfo, checked: Boolean) -> Unit,
 ) = fc<UploaderProps> { props ->
     div("mb-3") {
-        h6(classes = "d-inline mr-3") {
-            +"Select files:"
+        div("text-xs text-center font-weight-bold text-primary text-uppercase mb-3") {
+            +props.header
         }
+
         div {
+            h6(classes = "d-inline mr-3") {
+                +"1. Upload the tested tool or select from the list:"
+            }
+
             ul(classes = "list-group") {
                 props.files.map { fileInfo ->
                     li(classes = "list-group-item") {

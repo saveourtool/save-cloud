@@ -14,22 +14,12 @@ import react.dom.div
 import react.fc
 
 import kotlinx.html.DIV
+import react.dom.h6
 
 /**
  * [RProps] for card component
  */
 external interface CardProps : PropsWithChildren {
-    /**
-     * Color of card's left border, look in bootstrap for available options.
-     * Default value: `"primary"`.
-     */
-    var leftBorderColor: String?
-
-    /**
-     * Header of the card
-     */
-    var header: String
-
     /**
      * font-awesome class to be used as an icon
      */
@@ -44,12 +34,8 @@ external interface CardProps : PropsWithChildren {
  */
 @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
 fun cardComponent(contentBuilder: RDOMBuilder<DIV>.() -> Unit) = fc<CardProps> { props ->
-    div("card-body") {
-        div("row no-gutters align-items-center") {
-            div("col mr-2") {
-                div("text-xs text-center font-weight-bold text-primary text-uppercase mb-3") {
-                    +props.header
-                }
+        div("card-body mt-0 pt-0 pr-0 pl-0") {
+            div("col mr-2 pr-0 pl-0") {
                 div("mb-0 font-weight-bold text-gray-800") {
                     contentBuilder.invoke(this)
                 }
@@ -60,5 +46,4 @@ fun cardComponent(contentBuilder: RDOMBuilder<DIV>.() -> Unit) = fc<CardProps> {
                 }
             }
         }
-    }
 }
