@@ -75,4 +75,5 @@ manually placed in `save-orchestrator/build/resources/main` before build, and it
 # Server configuration
 ## Nginx
 Nginx is used as a reverse proxy, which allows access from external network to backend and some other services.
-File `save-deploy/reverse-proxy.conf` should be copied to `/etc/nginx/sites-available`.
+File `save-deploy/reverse-proxy.conf` should be copied to `/etc/nginx/sites-available`. Symlink should be created:
+`sudo ln -s /etc/nginx/sites-available/reverse-proxy.conf /etc/nginx/sites-enabled/` (or to `/etc/nginx/conf.d` on some distributions).
