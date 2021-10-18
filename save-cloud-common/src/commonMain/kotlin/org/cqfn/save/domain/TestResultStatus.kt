@@ -28,12 +28,12 @@ enum class TestResultStatus {
     PASSED,
 
     /**
-     * Ready for testing
+     * Ready for testing (after test discovery and execution creation)
      */
     READY,
 
     /**
-     * Running state
+     * Running state (execution of test has already started on agent)
      */
     RUNNING,
 

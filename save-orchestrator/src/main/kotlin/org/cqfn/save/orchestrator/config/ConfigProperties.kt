@@ -15,6 +15,7 @@ import org.springframework.boot.context.properties.ConstructorBinding
  * @property docker configuration for docker API
  * @property agentsCount a number of agents to start for every [Execution]
  * @property executionLogs path to folder to store cli logs
+ * @property shutdownChecksIntervalMillis interval between checks whether agents are really finished
  */
 @ConstructorBinding
 @ConfigurationProperties(prefix = "orchestrator")
@@ -24,6 +25,7 @@ data class ConfigProperties(
     val docker: DockerSettings,
     val agentsCount: Int,
     val executionLogs: String,
+    val shutdownChecksIntervalMillis: Long,
 )
 
 /**
@@ -35,7 +37,11 @@ data class TestResources(
 
 /**
  * @property host hostname of docker daemon
+ * @property runtime OCI compliant runtime for docker
+ * @property loggingDriver logging driver for the container
  */
 data class DockerSettings(
     val host: String,
+    val loggingDriver: String,
+    val runtime: String = "runc",
 )

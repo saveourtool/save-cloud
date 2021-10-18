@@ -1,6 +1,7 @@
 package org.cqfn.save.preprocessor
 
 import org.cqfn.save.core.config.TestConfig
+import org.cqfn.save.domain.FileInfo
 import org.cqfn.save.domain.Sdk
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.ExecutionRequest
@@ -31,7 +32,6 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.mockito.kotlin.any
@@ -57,6 +57,9 @@ import java.time.Duration
 import java.time.LocalDateTime
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
+
+import kotlin.io.path.fileSize
+import kotlin.io.path.isExecutable
 
 @WebFluxTest(controllers = [DownloadProjectController::class])
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -88,7 +91,7 @@ class DownloadProjectTest(
         val project = Project("owner", "someName", "wrongGit", "descr")
         val wrongRepo = GitDto("wrongGit")
         val execution = Execution(project, LocalDateTime.now(), LocalDateTime.now(), ExecutionStatus.PENDING, "1",
-            "foo", 0, 20, ExecutionType.GIT, "0.0.1", 0, 0, 0, Sdk.Default.toString(), null).apply {
+            "foo", 20, ExecutionType.GIT, "0.0.1", 0, 0, 0, Sdk.Default.toString(), null).apply {
             id = 97L
         }
         val request = ExecutionRequest(project, wrongRepo, sdk = Sdk.Default, executionId = execution.id)
@@ -121,7 +124,7 @@ class DownloadProjectTest(
             id = 42L
         }
         val execution = Execution(project, LocalDateTime.now(), LocalDateTime.now(), ExecutionStatus.PENDING, "1",
-            "foo", 0, 20, ExecutionType.GIT, "0.0.1", 0, 0, 0, Sdk.Default.toString(), null).apply {
+            "foo", 20, ExecutionType.GIT, "0.0.1", 0, 0, 0, Sdk.Default.toString(), null).apply {
             id = 99L
         }
         val validRepo = GitDto("https://github.com/cqfn/save.git")
@@ -196,13 +199,16 @@ class DownloadProjectTest(
             id = 42L
         }
         val execution = Execution(project, LocalDateTime.now(), LocalDateTime.now(), ExecutionStatus.PENDING, "1",
-            "foo", 0, 20, ExecutionType.STANDARD, "0.0.1", 0, 0, 0, Sdk.Default.toString(), null).apply {
+            "foo", 20, ExecutionType.STANDARD, "0.0.1", 0, 0, 0, Sdk.Default.toString(), null).apply {
             id = 98L
         }
         val request = ExecutionRequestForStandardSuites(project, listOf("Chapter1"), Sdk.Default)
         val bodyBuilder = MultipartBodyBuilder()
         bodyBuilder.part("executionRequestForStandardSuites", request)
         bodyBuilder.part("file", FileSystemResource(property))
+        bodyBuilder.part("fileInfo", FileInfo(property.name, property.lastModified(), property.toPath().fileSize()))
+        bodyBuilder.part("file", FileSystemResource(binFile))
+        bodyBuilder.part("fileInfo", FileInfo(binFile.name, property.lastModified(), property.toPath().fileSize(), true))
         bodyBuilder.part("file", FileSystemResource(binFile))
 
         // /updateNewExecution
@@ -261,6 +267,7 @@ class DownloadProjectTest(
         Assertions.assertTrue(File("${configProperties.repository}/$dirName").exists())
         assertions.forEach { Assertions.assertNotNull(it) }
         Assertions.assertEquals("echo 0", File("${configProperties.repository}/$dirName/${binFile.name}").readText())
+        Assertions.assertTrue(File("${configProperties.repository}/$dirName/${binFile.name}").toPath().isExecutable())
     }
 
     @Test
@@ -344,14 +351,13 @@ class DownloadProjectTest(
     }
 
     @Test
-    @Disabled("Because of zipWith, order of /updateExecution and /execution is undetermined and MockWebServer's queue leads to errors")
     @Suppress("LongMethod")
     fun `rerun execution`() {
         val project = Project("owner", "someName", "stub", "descr").apply {
             id = 42L
         }
         val execution = Execution(project, LocalDateTime.now(), LocalDateTime.now(), ExecutionStatus.PENDING, "1",
-            "foo", 0, 20, ExecutionType.GIT, "0.0.1", 0, 0, 0, Sdk.Default.toString(), null).apply {
+            "foo", 20, ExecutionType.GIT, "0.0.1", 0, 0, 0, Sdk.Default.toString(), null).apply {
             id = 98L
         }
         val request = ExecutionRequest(project, GitDto("https://github.com/cqfn/save"), "examples/kotlin-diktat/save.properties", Sdk.Default, execution.id)

@@ -17,9 +17,11 @@ import org.cqfn.save.frontend.externals.fontawesome.faAngleUp
 import org.cqfn.save.frontend.externals.fontawesome.faCheck
 import org.cqfn.save.frontend.externals.fontawesome.faCogs
 import org.cqfn.save.frontend.externals.fontawesome.faExclamationTriangle
+import org.cqfn.save.frontend.externals.fontawesome.faFile
 import org.cqfn.save.frontend.externals.fontawesome.faQuestionCircle
 import org.cqfn.save.frontend.externals.fontawesome.faSignOutAlt
 import org.cqfn.save.frontend.externals.fontawesome.faTimesCircle
+import org.cqfn.save.frontend.externals.fontawesome.faUpload
 import org.cqfn.save.frontend.externals.fontawesome.faUser
 import org.cqfn.save.frontend.externals.fontawesome.fas
 import org.cqfn.save.frontend.externals.fontawesome.library
@@ -120,7 +122,7 @@ class App : RComponent<PropsWithChildren, AppState>() {
                         }
                         Route {
                             attrs {
-                                path = arrayOf("/:owner/:name/history/:executionId")
+                                path = arrayOf("/:owner/:name/history/execution/:executionId")
                                 render = { props ->
                                     buildElement {
                                         // executionId might be `latest`
@@ -150,7 +152,9 @@ class App : RComponent<PropsWithChildren, AppState>() {
 fun main() {
     kotlinext.js.require("../scss/save-frontend.scss")  // this is needed for webpack to include resource
     kotlinext.js.require("bootstrap")  // this is needed for webpack to include bootstrap
-    library.add(fas, faUser, faCogs, faSignOutAlt, faAngleUp, faCheck, faExclamationTriangle, faTimesCircle, faQuestionCircle)
+    library.add(fas, faUser, faCogs, faSignOutAlt, faAngleUp, faCheck, faExclamationTriangle, faTimesCircle, faQuestionCircle,
+        faUpload, faFile
+    )
     ReactModal.setAppElement(document.getElementById("wrapper") as HTMLElement)  // required for accessibility in react-modal
 
     render(document.getElementById("wrapper")) {

@@ -39,7 +39,7 @@ class DockerService(private val configProperties: ConfigProperties) {
     /**
      * [ContainerManager] that is used to access docker daemon API
      */
-    internal val containerManager = ContainerManager(configProperties.docker.host)
+    internal val containerManager = ContainerManager(configProperties.docker)
     private val executionDir = "/run/save-execution"
     private val standardTestSuiteDir = "standard-test-suites"
     private val isAgentStoppingInProgress = AtomicBoolean(false)
@@ -95,10 +95,17 @@ class DockerService(private val configProperties: ConfigProperties) {
     fun stopAgents(agentIds: List<String>) =
             if (isAgentStoppingInProgress.compareAndSet(false, true)) {
                 try {
+                    val runningContainersIds = containerManager.dockerClient.listContainersCmd().withStatusFilter(listOf("running")).exec()
+                        .map { it.id }
                     agentIds.forEach {
-                        log.info("Stopping agent with id=$it")
-                        containerManager.dockerClient.stopContainerCmd(it).exec()
-                        log.info("Agent with id=$it has been stopped")
+                        if (it in runningContainersIds) {
+                            log.info("Stopping agent with id=$it")
+                            containerManager.dockerClient.stopContainerCmd(it).exec()
+                            log.info("Agent with id=$it has been stopped")
+                        } else {
+                            log.warn("Agent with id=$it was requested to be stopped, " +
+                                    "but it actual state=${containerManager.dockerClient.inspectContainerCmd(it).exec().state}")
+                        }
                     }
                     true
                 } catch (dex: DockerException) {
@@ -178,18 +185,29 @@ class DockerService(private val configProperties: ConfigProperties) {
             saveCli
         )
         val baseImage = execution.sdk
+        val aptHttpProxy = System.getenv("APT_HTTP_PROXY")
+        val aptHttpsProxy = System.getenv("APT_HTTPS_PROXY")
+        val aptCmd = if (aptHttpProxy == null && aptHttpsProxy == null) {
+            "apt-get"
+        } else {
+            "apt-get -o Acquire::http::proxy=\"$aptHttpProxy\" -o Acquire::https::proxy=\"$aptHttpsProxy\""
+        }
         val imageId = containerManager.buildImageWithResources(
             baseImage = baseImage,
             imageName = imageName(execution.id!!),
             baseDir = resourcesPath,
             resourcesPath = executionDir,
             // TODO: find ktlint this is a temporary workaround link to #277
-            runCmd = """RUN apt-get update && env DEBIAN_FRONTEND="noninteractive" apt-get install -y libcurl4-openssl-dev tzdata && rm -rf /var/lib/apt/lists/*
+            runCmd = """RUN $aptCmd update && env DEBIAN_FRONTEND="noninteractive" $aptCmd install -y libcurl4-openssl-dev tzdata && rm -rf /var/lib/apt/lists/*
                     |RUN ln -fs /usr/share/zoneinfo/UTC /etc/localtime
                     |RUN chmod +x $executionDir/$SAVE_AGENT_EXECUTABLE_NAME
                     |RUN chmod +x $executionDir/$SAVE_CLI_EXECUTABLE_NAME
-                    |RUN find . -name $executionDir/diktat-rules/src/test/resources/test/smoke/ktlint -type f -exec chmod +x {} \;
-                    |RUN find . -name $executionDir/clang-tools-extra/test/clang-tidy/clang-tidy-linux -type f -exec chmod +x {} \;
+                    |RUN if [ -d $executionDir/diktat-rules/src/test/resources/test/smoke ]; then \
+                    |   find $executionDir/diktat-rules/src/test/resources/test/smoke -type f -name "ktlint" -exec chmod +x {} \; ; \
+                    |fi
+                    |RUN if [ -d $executionDir/clang-tidy ]; then \
+                    |   find $executionDir/clang-tidy -type f -name "clang-tidy-linux" -exec chmod +x {} \; ; \
+                    |fi
                 """
         )
         saveAgent.delete()

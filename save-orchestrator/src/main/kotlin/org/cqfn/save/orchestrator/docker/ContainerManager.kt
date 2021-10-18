@@ -1,5 +1,8 @@
 package org.cqfn.save.orchestrator.docker
 
+import org.cqfn.save.orchestrator.config.DockerSettings
+import org.cqfn.save.orchestrator.getHostIp
+
 import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.api.command.BuildImageResultCallback
 import com.github.dockerjava.api.model.HostConfig
@@ -26,12 +29,12 @@ import kotlin.io.path.createTempFile
 /**
  * A class that communicates with docker daemon
  *
- * @property dockerHost a URL of docker daemon, local unix socket by default
+ * @property settings setting of docker daemon
  */
-class ContainerManager(private val dockerHost: String) {
+class ContainerManager(private val settings: DockerSettings) {
     private val dockerClientConfig: DockerClientConfig = DefaultDockerClientConfig
         .createDefaultConfigBuilder()
-        .withDockerHost(dockerHost)
+        .withDockerHost(settings.host)
         .withDockerTlsVerify(false)
         .build()
     private val dockerHttpClient: DockerHttpClient = ApacheDockerHttpClient.Builder()
@@ -69,18 +72,21 @@ class ContainerManager(private val dockerHost: String) {
             .withCmd(runCmd)
             .withName(containerName)
             .withHostConfig(HostConfig.newHostConfig()
-                .withRuntime("runsc")
+                .withRuntime(settings.runtime)
                 // processes from inside the container will be able to access host's network using this hostname
                 .withExtraHosts("host.docker.internal:host-gateway")
                 .withLogConfig(
-                    LogConfig(
-                        LogConfig.LoggingType.LOKI,
-                        mapOf(
-                            // similar to config in docker-compose.yaml
-                            "loki-url" to "http://127.0.0.1:9110/loki/api/v1/push",
-                            "loki-external-labels" to "container_name={{.Name}},source=save-agent"
+                    when (settings.loggingDriver) {
+                        "loki" -> LogConfig(
+                            LogConfig.LoggingType.LOKI,
+                            mapOf(
+                                // similar to config in docker-compose.yaml
+                                "loki-url" to "http://127.0.0.1:9110/loki/api/v1/push",
+                                "loki-external-labels" to "container_name={{.Name}},source=save-agent"
+                            )
                         )
-                    )
+                        else -> LogConfig(LogConfig.LoggingType.DEFAULT)
+                    }
                 )
             )
             .exec()
@@ -134,10 +140,14 @@ class ContainerManager(private val dockerHost: String) {
                 """.trimMargin()
         val dockerFile = createTempFile(tmpDir.toPath()).toFile()
         dockerFile.writeText(dockerFileAsText)
+        val hostIp = getHostIp("host.docker.internal")
         val buildImageResultCallback: BuildImageResultCallback = try {
             dockerClient.buildImageCmd(dockerFile)
                 .withBaseDirectory(tmpDir)
                 .withTags(setOf(imageName))
+                .withExtraHosts(hostIp?.let {
+                    setOf("host.docker.internal:$hostIp")
+                } ?: emptySet())
                 .start()
         } finally {
             dockerFile.delete()

@@ -3,6 +3,7 @@ package org.cqfn.save.preprocessor.controllers
 import org.cqfn.save.core.config.SaveProperties
 import org.cqfn.save.core.config.TestConfig
 import org.cqfn.save.core.config.defaultConfig
+import org.cqfn.save.domain.FileInfo
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.ExecutionRequestForStandardSuites
@@ -54,6 +55,7 @@ import reactor.core.scheduler.Schedulers
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
 import reactor.netty.http.client.HttpClientRequest
+import reactor.util.function.Tuple2
 
 import java.io.File
 import java.io.FileOutputStream
@@ -83,12 +85,14 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
     /**
      * @param executionRequest Dto of repo information to clone and project info
      * @param files resources required for execution
+     * @param fileInfos a list of [FileInfo]s associated with [files]
      * @return response entity with text
      */
     @Suppress("TOO_LONG_FUNCTION")
     @PostMapping("/upload", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     fun upload(
         @RequestPart(required = true) executionRequest: ExecutionRequest,
+        @RequestPart("fileInfo", required = false) fileInfos: Flux<FileInfo>,
         @RequestPart("file", required = false) files: Flux<FilePart>,
     ): Mono<TextResponse> = Mono.just(ResponseEntity("Clone pending", HttpStatus.ACCEPTED))
         .doOnSuccess {
@@ -98,7 +102,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                         .resolve(location)
                         .resolve(executionRequest.testRootPath)
                     log.info("Downloading additional files into $resourcesLocation")
-                    files.download(resourcesLocation)
+                    files.zipWith(fileInfos).download(resourcesLocation)
                         .switchIfEmpty(
                             // if no files have been provided, proceed with empty list
                             Mono.just(emptyList())
@@ -130,15 +134,17 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
     /**
      * @param executionRequestForStandardSuites Dto of binary file, test suites names and project info
      * @param files resources for execution
+     * @param fileInfos a list of [FileInfo]s associated with [files]
      * @return response entity with text
      */
     @PostMapping(value = ["/uploadBin"], consumes = ["multipart/form-data"])
     fun uploadBin(
         @RequestPart executionRequestForStandardSuites: ExecutionRequestForStandardSuites,
         @RequestPart("file", required = true) files: Flux<FilePart>,
+        @RequestPart("fileInfo", required = true) fileInfos: Flux<FileInfo>,
     ) = Mono.just(ResponseEntity("Clone pending", HttpStatus.ACCEPTED))
         .doOnSuccess { _ ->
-            files.download(File("."))
+            files.zipWith(fileInfos).download(File("."))
                 .flatMap { files ->
                     saveBinaryFile(executionRequestForStandardSuites, files)
                 }
@@ -152,7 +158,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
      * @param executionRerunRequest request
      * @return status 202
      */
-    @Suppress("UnsafeCallOnNullableType")
+    @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
     @PostMapping("/rerunExecution")
     fun rerunExecution(@RequestBody executionRerunRequest: ExecutionRequest) = Mono.fromCallable {
         requireNotNull(executionRerunRequest.executionId) { "Can't rerun execution with unknown id" }
@@ -166,10 +172,16 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                 .flatMap {
                     downLoadRepository(executionRerunRequest).map { (location, _) -> location }
                 }
-                .zipWith(
-                    getExecution(executionRerunRequest.executionId!!)
-                )
+                .flatMap { location ->
+                    getExecution(executionRerunRequest.executionId!!).map { location to it }
+                }
                 .flatMap { (location, execution) ->
+                    val resourcesLocation = File(configProperties.repository).resolve(location).resolve(executionRerunRequest.propertiesRelativePath).parentFile
+                    val files = execution.additionalFiles?.split(";")?.filter { it.isNotBlank() }?.map { File(it) } ?: emptyList()
+                    files.forEach { file ->
+                        log.debug("Copy additional file $file into ${resourcesLocation.resolve(file.name)}")
+                        Files.copy(Paths.get(file.absolutePath), Paths.get(resourcesLocation.resolve(file.name).absolutePath))
+                    }
                     sendToBackendAndOrchestrator(
                         execution,
                         execution.project,
@@ -179,7 +191,6 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                         executionRerunRequest.gitDto.url
                     )
                 }
-                .log()
                 .subscribeOn(scheduler)
                 .subscribe()
         }
@@ -439,7 +450,6 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                 getTestResourcesRootAbsolutePath(testRootPath, projectRootRelativePath)
         testDiscoveringService.getRootTestConfig(testResourcesRootAbsolutePath)
     }
-        .log()
         .zipWhen { rootTestConfig ->
             discoverAndSaveTestSuites(project, rootTestConfig, testRootPath, gitUrl)
         }
@@ -481,7 +491,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
             .absolutePath
     }
 
-    private fun discoverAndSaveTestSuites(project: Project?,
+    private fun discoverAndSaveTestSuites(project: Project,
                                           rootTestConfig: TestConfig,
                                           testRootPath: String,
                                           gitUrl: String): Mono<List<TestSuite>> {
@@ -541,10 +551,11 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                     "Upstream request error"
                 )
             }
-        return toBody(responseSpec).log()
+        return toBody(responseSpec)
     }
 
-    private fun Flux<FilePart>.download(destination: File): Mono<List<File>> = flatMap { filePart ->
+    @Suppress("TYPE_ALIAS")
+    private fun Flux<Tuple2<FilePart, FileInfo>>.download(destination: File): Mono<List<File>> = flatMap { (filePart, fileInfo) ->
         val file = File(destination, filePart.filename()).apply {
             createNewFile()
         }
@@ -560,6 +571,12 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         }
             // return a single Mono per file, discarding how many parts `content()` has
             .last()
+            .doOnSuccess {
+                log.debug("File ${fileInfo.name} should have executable=${fileInfo.isExecutable}")
+                if (!it.setExecutable(fileInfo.isExecutable)) {
+                    log.warn("Failed to mark file ${fileInfo.name} as executable")
+                }
+            }
     }
         .collectList()
 

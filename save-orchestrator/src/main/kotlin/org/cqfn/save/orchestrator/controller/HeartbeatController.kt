@@ -3,7 +3,7 @@ package org.cqfn.save.orchestrator.controller
 import org.cqfn.save.agent.AgentState
 import org.cqfn.save.agent.ContinueResponse
 import org.cqfn.save.agent.Heartbeat
-import org.cqfn.save.agent.NewJobResponse
+import org.cqfn.save.agent.HeartbeatResponse
 import org.cqfn.save.agent.WaitResponse
 import org.cqfn.save.entities.AgentStatusDto
 import org.cqfn.save.orchestrator.config.ConfigProperties
@@ -15,8 +15,8 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
-import reactor.core.scheduler.Schedulers
 
+import java.time.Duration
 import java.time.LocalDateTime
 
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -34,7 +34,6 @@ class HeartbeatController(private val agentService: AgentService,
                           private val dockerService: DockerService,
                           private val configProperties: ConfigProperties) {
     private val logger = LoggerFactory.getLogger(HeartbeatController::class.java)
-    private val scheduler = Schedulers.boundedElastic().also { it.start() }
 
     /**
      * This controller accepts heartbeat and depending on the state it returns the needed response
@@ -62,29 +61,30 @@ class HeartbeatController(private val agentService: AgentService,
                     // if agent sends the first heartbeat, we try to assign work for it
                     AgentState.STARTING -> agentService.getNewTestsIds(heartbeat.agentId)
                     // if agent idles, we try to assign work, but also check if it should be terminated
-                    AgentState.IDLE -> agentService.getNewTestsIds(heartbeat.agentId)
-                        .doOnSuccess {
-                            if (it is WaitResponse) {
-                                initiateShutdownSequence(heartbeat.agentId)
-                            } else if (it is NewJobResponse) {
-                                logger.debug("Agent ${heartbeat.agentId} will receive the following job: $it")
-                            }
+                    AgentState.IDLE -> handleVacantAgent(heartbeat.agentId)
+                    AgentState.FINISHED -> agentService.checkSavedData(heartbeat.agentId).flatMap { isSavingSuccessful ->
+                        if (isSavingSuccessful) {
+                            handleVacantAgent(heartbeat.agentId)
+                        } else {
+                            // todo: if failure is repeated multiple times, re-assign missing tests once more
+                            Mono.just(WaitResponse)
                         }
-                    AgentState.FINISHED -> {
-                        agentService.checkSavedData()
-                        Mono.just(WaitResponse)
                     }
                     AgentState.BUSY -> Mono.just(ContinueResponse)
-                    AgentState.BACKEND_FAILURE -> Mono.just(WaitResponse)
-                    AgentState.BACKEND_UNREACHABLE -> Mono.just(WaitResponse)
-                    AgentState.CLI_FAILED -> Mono.just(WaitResponse)
+                    AgentState.BACKEND_FAILURE, AgentState.BACKEND_UNREACHABLE, AgentState.CLI_FAILED, AgentState.STOPPED_BY_ORCH -> Mono.just(WaitResponse)
                 }
             )
             .map {
                 Json.encodeToString(it)
             }
-            .log()
     }
+
+    private fun handleVacantAgent(agentId: String): Mono<HeartbeatResponse> = agentService.getNewTestsIds(agentId)
+        .doOnSuccess {
+            if (it is WaitResponse) {
+                initiateShutdownSequence(agentId)
+            }
+        }
 
     /**
      * If agent was IDLE and there are no new tests - we check if the Execution is completed.
@@ -94,8 +94,18 @@ class HeartbeatController(private val agentService: AgentService,
      * @param agentId an ID of the agent from the execution, that will be checked.
      */
     private fun initiateShutdownSequence(agentId: String) {
-        agentService.getAgentsAwaitingStop(agentId).doOnSuccess { (executionId, finishedAgentIds) ->
-            scheduler.schedule {
+        agentService.getAgentsAwaitingStop(agentId).flatMap { (_, finishedAgentIds) ->
+            if (finishedAgentIds.isNotEmpty()) {
+                // need to retry after some time, because for other agents BUSY state might have not been written completely
+                logger.debug("Waiting for ${configProperties.shutdownChecksIntervalMillis} seconds to repeat `getAgentsAwaitingStop` call for agentId=$agentId")
+                Mono.delay(Duration.ofMillis(configProperties.shutdownChecksIntervalMillis)).then(
+                    agentService.getAgentsAwaitingStop(agentId)
+                )
+            } else {
+                Mono.empty()
+            }
+        }
+            .flatMap { (executionId, finishedAgentIds) ->
                 if (finishedAgentIds.isNotEmpty()) {
                     logger.debug("Agents ids=$finishedAgentIds have completed execution, will make an attempt to terminate them")
                     val areAgentsStopped = dockerService.stopAgents(finishedAgentIds)
@@ -103,12 +113,16 @@ class HeartbeatController(private val agentService: AgentService,
                         logger.info("Agents have been stopped, will mark execution id=$executionId and agents $finishedAgentIds as FINISHED")
                         agentService
                             .markAgentsAndExecutionAsFinished(executionId, finishedAgentIds)
-                            .block()
+                    } else {
+                        logger.warn("Agents $finishedAgentIds are not stopped after stop command")
+                        Mono.empty()
                     }
+                } else {
+                    logger.debug("Agents other than $agentId are still running, so won't try to stop them")
+                    Mono.empty()
                 }
             }
-        }
-            .subscribeOn(scheduler)
+            .subscribeOn(agentService.scheduler)
             .subscribe()
     }
 }

@@ -7,7 +7,6 @@ import org.cqfn.save.entities.Agent
 import org.cqfn.save.entities.AgentStatus
 import org.cqfn.save.entities.AgentStatusDto
 import org.cqfn.save.entities.AgentStatusesForExecution
-import org.cqfn.save.entities.Execution
 import org.slf4j.LoggerFactory
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.GetMapping
@@ -60,7 +59,7 @@ class AgentsController(private val agentStatusRepository: AgentStatusRepository,
     @Transactional
     fun updateAgentStatusesWithDto(@RequestBody agentStates: List<AgentStatusDto>) {
         agentStates.forEach { dto ->
-            val agentStatus = agentStatusRepository.findTopByAgentContainerIdOrderByEndTimeDesc(dto.containerId)
+            val agentStatus = agentStatusRepository.findTopByAgentContainerIdOrderByEndTimeDescIdDesc(dto.containerId)
             if (agentStatus != null && agentStatus.state == dto.state) {
                 // updating time
                 agentStatus.endTime = dto.time
@@ -85,11 +84,9 @@ class AgentsController(private val agentStatusRepository: AgentStatusRepository,
     @Suppress("UnsafeCallOnNullableType")  // id will be available because it's retrieved from DB
     fun findAllAgentStatusesForSameExecution(@RequestParam agentId: String): AgentStatusesForExecution {
         val execution = getAgentByContainerId(agentId).execution
-        val agentStatuses = agentRepository.findAll { root, cq, cb ->
-            cb.equal(root.get<Execution>("execution"), execution)
-        }.map { agent ->
+        val agentStatuses = agentRepository.findByExecutionId(execution.id!!).map { agent ->
             val latestStatus = requireNotNull(
-                agentStatusRepository.findTopByAgentContainerIdOrderByEndTimeDesc(agent.containerId)
+                agentStatusRepository.findTopByAgentContainerIdOrderByEndTimeDescIdDesc(agent.containerId)
             ) {
                 "AgentStatus not found for agent id=${agent.containerId}"
             }

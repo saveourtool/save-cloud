@@ -20,7 +20,7 @@ interface AgentStatusRepository : BaseEntityRepository<AgentStatus>, JpaSpecific
      * @param containerId id of an agent
      * @return [AgentStatus] of an agent
      */
-    fun findTopByAgentContainerIdOrderByEndTimeDesc(containerId: String): AgentStatus?
+    fun findTopByAgentContainerIdOrderByEndTimeDescIdDesc(containerId: String): AgentStatus?
 }
 
 /**
