@@ -122,7 +122,7 @@ class App : RComponent<PropsWithChildren, AppState>() {
                         }
                         Route {
                             attrs {
-                                path = arrayOf("/:owner/:name/history/:executionId")
+                                path = arrayOf("/:owner/:name/history/execution/:executionId")
                                 render = { props ->
                                     buildElement {
                                         // executionId might be `latest`

@@ -27,6 +27,7 @@ import react.setState
 
 import kotlinx.html.BUTTON
 import kotlinx.html.ButtonType
+import kotlinx.html.classes
 import kotlinx.html.id
 import kotlinx.html.js.onClickFunction
 import kotlinx.html.role
@@ -69,14 +70,15 @@ class TopBar : RComponent<TopBarProps, TopBarState>() {
 
     @Suppress("TOO_LONG_FUNCTION", "EMPTY_BLOCK_STRUCTURE_ERROR", "LongMethod")
     override fun RBuilder.render() {
-        nav("navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow") {
+        nav("navbar navbar-expand navbar-dark bg-dark topbar mb-3 static-top shadow") {
             // Topbar Navbar
             nav("navbar-nav mr-auto") {
                 attrs["aria-label"] = "breadcrumb"
-                ol("breadcrumb") {
+                ol("breadcrumb mb-0") {
                     li("breadcrumb-item") {
                         attrs["aria-current"] = "page"
                         a(href = "#/") {
+                            attrs.classes = setOf("text-light")
                             +"SAVE"
                         }
                     }
@@ -89,10 +91,15 @@ class TopBar : RComponent<TopBarProps, TopBarState>() {
                                 li("breadcrumb-item") {
                                     attrs["aria-current"] = "page"
                                     if (index == size - 1) {
-                                        attrs["active"] = "true"
-                                    }
-                                    a(href = currentLink) {
-                                        +pathPart
+                                        a(href = currentLink) {
+                                            attrs.classes = setOf("text-warning")
+                                            +pathPart
+                                        }
+                                    } else {
+                                        a(href = currentLink) {
+                                            attrs.classes = setOf("text-light")
+                                            +pathPart
+                                        }
                                     }
                                 }
                                 currentLink

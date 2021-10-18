@@ -157,7 +157,7 @@ class HistoryView : RComponent<HistoryProps, State>() {
         }
     }
 
-    private fun getHrefToExecution(id: Long) = "${window.location}/$id"
+    private fun getHrefToExecution(id: Long) = "${window.location}/execution/$id"
 
     /**
      * @property resColor

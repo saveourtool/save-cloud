@@ -13,14 +13,14 @@ import org.w3c.dom.HTMLSelectElement
 import react.PropsWithChildren
 import react.dom.RDOMBuilder
 import react.dom.div
-import react.dom.h5
-import react.dom.h6
+import react.dom.label
 import react.dom.option
 import react.dom.select
 import react.fc
 
 import kotlinx.html.Tag
 import kotlinx.html.classes
+import kotlinx.html.id
 import kotlinx.html.js.onChangeFunction
 
 /**
@@ -39,16 +39,24 @@ external interface SdkProps : PropsWithChildren {
 }
 
 private fun <T : Tag> RDOMBuilder<T>.selection(
+    labelValue: String,
     value: String,
     options: List<String>,
     onChange: (HTMLSelectElement) -> Unit,
-) = div("d-inline-block ml-2") {
-    select("form-select form-select-sm mb-3") {
+) = div("input-group mb-3") {
+    div("input-group-prepend") {
+        label("input-group-text") {
+            attrs["for"] = "inputGroupSelect01"
+            +labelValue
+        }
+    }
+    select("custom-select") {
         attrs.value = value
         attrs.onChangeFunction = {
             val target = it.target as HTMLSelectElement
             onChange(target)
         }
+        attrs.id = labelValue
         options.forEach {
             option {
                 attrs.value = it
@@ -63,32 +71,27 @@ private fun <T : Tag> RDOMBuilder<T>.selection(
  * @param onVersionChange invoked when `input` for SDK version is changed
  * @return a RComponent
  */
-fun sdkSelection(onSdkChange: (HTMLSelectElement) -> Unit, onVersionChange: (HTMLSelectElement) -> Unit) = fc<SdkProps> { props ->
-    div {
-        div {
-            div("d-inline-block") {
-                h5 {
-                    +"SDK:"
+fun sdkSelection(onSdkChange: (HTMLSelectElement) -> Unit, onVersionChange: (HTMLSelectElement) -> Unit) =
+        fc<SdkProps> { props ->
+            div("card align-items-left mb-3 pt-0 pb-0") {
+                div("card-body align-items-left pb-1 pt-3") {
+                    div("row no-gutters align-items-left") {
+                        selection(
+                            "SDK",
+                            props.selectedSdk,
+                            sdks,
+                            onSdkChange,
+                        )
+                    }
+                    div("row no-gutters align-items-left") {
+                        attrs.classes = setOf("d-inline")
+                        selection(
+                            "Version",
+                            props.selectedSdkVersion,
+                            props.selectedSdk.getSdkVersions(),
+                            onVersionChange,
+                        )
+                    }
                 }
             }
-            selection(
-                props.selectedSdk,
-                sdks,
-                onSdkChange,
-            )
         }
-        div {
-            attrs.classes = if (props.selectedSdk == "Default") setOf("d-none") else setOf("d-inline ml-3")
-            div("d-inline-block") {
-                h6 {
-                    +"SDK's version:"
-                }
-            }
-            selection(
-                props.selectedSdkVersion,
-                props.selectedSdk.getSdkVersions(),
-                onVersionChange,
-            )
-        }
-    }
-}
