@@ -4,6 +4,7 @@ import org.cqfn.save.agent.ExecutionLogs
 import org.cqfn.save.entities.Agent
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.execution.ExecutionStatus
+import org.cqfn.save.orchestrator.BodilessResponseEntity
 import org.cqfn.save.orchestrator.config.ConfigProperties
 import org.cqfn.save.orchestrator.service.AgentService
 import org.cqfn.save.orchestrator.service.DockerService
@@ -18,13 +19,12 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RequestPart
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.reactive.function.client.WebClientResponseException
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux.fromIterable
 import reactor.core.publisher.Mono
-import reactor.core.scheduler.Schedulers
+import reactor.kotlin.core.publisher.doOnError
 import java.io.File
-
-typealias Status = Mono<ResponseEntity<HttpStatus>>
 
 /**
  * Controller used to starts agents with needed information
@@ -50,15 +50,15 @@ class AgentsController {
      */
     @PostMapping("/initializeAgents")
     fun initialize(@RequestPart(required = true) execution: Execution,
-                   @RequestPart(required = false) testSuiteDtos: List<TestSuiteDto>?): Status {
+                   @RequestPart(required = false) testSuiteDtos: List<TestSuiteDto>?): Mono<BodilessResponseEntity> {
         if (execution.status != ExecutionStatus.PENDING) {
             throw ResponseStatusException(
                 HttpStatus.BAD_REQUEST,
                 "Execution status must be PENDING"
             )
         }
-        val response = Mono.just(ResponseEntity.ok(HttpStatus.OK))
-            .subscribeOn(Schedulers.boundedElastic())
+        val response = Mono.just(ResponseEntity<Void>(HttpStatus.ACCEPTED))
+            .subscribeOn(agentService.scheduler)
         response.subscribe {
             log.info("Starting preparations for launching execution [project=${execution.project}, id=${execution.id}, " +
                     "status=${execution.status}, resourcesRootPath=${execution.resourcesRootPath}]")
@@ -69,8 +69,17 @@ class AgentsController {
                     Agent(id, execution)
                 }
             )
+                .doOnError(WebClientResponseException::class) { exception ->
+                    log.error("Unable to save agents, backend returned code ${exception.statusCode}", exception)
+                    agentIds.forEach {
+                        dockerService.removeContainer(it)
+                    }
+                }
+                .doOnSuccess {
+                    dockerService.startContainersAndUpdateExecution(execution, agentIds)
+                }
+                .subscribeOn(agentService.scheduler)
                 .subscribe()
-            dockerService.startContainersAndUpdateExecution(execution, agentIds)
         }
         return response
     }
