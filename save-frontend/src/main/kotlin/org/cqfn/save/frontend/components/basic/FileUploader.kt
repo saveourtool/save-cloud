@@ -79,7 +79,7 @@ fun fileUploader(
 
         div {
             h6(classes = "d-inline mr-3") {
-                +"1. Upload the tested tool or select from the list:"
+                +"1. Upload the tested tool and other resources, or select from the list:"
             }
 
             ul(classes = "list-group") {
