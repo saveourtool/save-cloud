@@ -92,24 +92,20 @@ class DockerService(private val configProperties: ConfigProperties) {
      * @param agentIds list of IDs of agents to stop
      * @return true if agents have been stopped, false if another thread is already stopping them
      */
+    @Suppress("TOO_MANY_LINES_IN_LAMBDA")
     fun stopAgents(agentIds: List<String>) =
             if (isAgentStoppingInProgress.compareAndSet(false, true)) {
                 try {
-                    val runningContainersIds = containerManager.dockerClient.listContainersCmd().withStatusFilter(listOf("running")).exec()
-                        .map { it.id }
-                    agentIds.forEach {
-                        if (it in runningContainersIds) {
-                            log.info("Stopping agent with id=$it")
-                            containerManager.dockerClient.stopContainerCmd(it).exec()
-                            log.info("Agent with id=$it has been stopped")
+                    val containerList = containerManager.dockerClient.listContainersCmd().exec()
+                    val runningContainersIds = containerList.filter { it.status == "running" }.map { it.id }
+                    agentIds.forEach { agentId ->
+                        if (agentId in runningContainersIds) {
+                            log.info("Stopping agent with id=$agentId")
+                            containerManager.dockerClient.stopContainerCmd(agentId).exec()
+                            log.info("Agent with id=$agentId has been stopped")
                         } else {
-                            val containerList = containerManager.dockerClient.listContainersCmd().exec().map { it.id }
-                            val state = if (it in containerList) {
-                                "${containerManager.dockerClient.inspectContainerCmd(it).exec().state}"
-                            } else {
-                                "deleted"
-                            }
-                            val warnMsg = "Agent with id=$it was requested to be stopped, but it actual state=${state}"
+                            val state = containerList.find { it.id == agentId }?.status ?: "deleted"
+                            val warnMsg = "Agent with id=${agentId} was requested to be stopped, but it actual state=$state"
                             log.warn(warnMsg)
                         }
                     }
