@@ -131,7 +131,7 @@ class ExecutionController(private val executionService: ExecutionService,
      */
     @PostMapping("/rerunExecution")
     @Transactional
-    @Suppress("UnsafeCallOnNullableType")
+    @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
     fun rerunExecution(@RequestParam id: Long): Mono<String> {
         val execution = executionService.findExecution(id).orElseThrow {
             IllegalArgumentException("Can't rerun execution $id, because it does not exist")
