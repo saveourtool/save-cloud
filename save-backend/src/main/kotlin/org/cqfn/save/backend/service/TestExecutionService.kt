@@ -44,6 +44,16 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
         .findByExecutionId(executionId, PageRequest.of(page, pageSize))
 
     /**
+     * Get test executions by [agentContainerId] and [status]
+     *
+     * @param agentContainerId
+     * @param status
+     * @return a list of test executions
+     */
+    internal fun getTestExecutions(agentContainerId: String, status: TestResultStatus) = testExecutionRepository
+        .findByAgentContainerIdAndStatus(agentContainerId, status)
+
+    /**
      * Returns number of TestExecutions with this [executionId]
      *
      * @param executionId an ID of Execution to group TestExecutions
