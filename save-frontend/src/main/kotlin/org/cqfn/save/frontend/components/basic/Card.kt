@@ -20,17 +20,6 @@ import kotlinx.html.DIV
  */
 external interface CardProps : PropsWithChildren {
     /**
-     * Color of card's left border, look in bootstrap for available options.
-     * Default value: `"primary"`.
-     */
-    var leftBorderColor: String?
-
-    /**
-     * Header of the card
-     */
-    var header: String
-
-    /**
      * font-awesome class to be used as an icon
      */
     var faIcon: String
@@ -44,20 +33,15 @@ external interface CardProps : PropsWithChildren {
  */
 @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
 fun cardComponent(contentBuilder: RDOMBuilder<DIV>.() -> Unit) = fc<CardProps> { props ->
-    div("card-body") {
-        div("row no-gutters align-items-center") {
-            div("col mr-2") {
-                div("text-xs text-center font-weight-bold text-primary text-uppercase mb-3") {
-                    +props.header
-                }
-                div("mb-0 font-weight-bold text-gray-800") {
-                    contentBuilder.invoke(this)
-                }
+    div("card-body mt-0 pt-0 pr-0 pl-0") {
+        div("col mr-2 pr-0 pl-0") {
+            div("mb-0 font-weight-bold text-gray-800") {
+                contentBuilder.invoke(this)
             }
-            if (props.faIcon != undefined) {
-                div("col-auto") {
-                    fontAwesomeIcon(icon = props.faIcon, classes = "fas fa-2x text-gray-300")
-                }
+        }
+        if (props.faIcon != undefined) {
+            div("col-auto") {
+                fontAwesomeIcon(icon = props.faIcon, classes = "fas fa-2x text-gray-300")
             }
         }
     }

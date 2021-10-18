@@ -1,3 +1,6 @@
+import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension
+import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin
+
 plugins {
     kotlin("js")
 }
@@ -55,6 +58,12 @@ kotlin {
             implementation(kotlin("test-js"))
         }
     }
+}
+
+// workaround for continuous work of WebPack: (https://github.com/webpack/webpack-cli/issues/2990)
+rootProject.plugins.withType(NodeJsRootPlugin::class.java) {
+    rootProject.the<NodeJsRootExtension>().versions.webpackCli
+        .version = "4.9.0"
 }
 
 // generate kotlin file with project version to include in web page

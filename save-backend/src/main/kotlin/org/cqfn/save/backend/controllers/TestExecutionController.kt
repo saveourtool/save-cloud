@@ -4,6 +4,7 @@ import org.cqfn.save.agent.TestExecutionDto
 import org.cqfn.save.backend.service.TestExecutionService
 import org.cqfn.save.domain.TestResultStatus
 import org.cqfn.save.test.TestDto
+import org.slf4j.LoggerFactory
 import org.springframework.dao.DataAccessException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -33,7 +34,7 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
      */
     @GetMapping("/testExecutions")
     fun getTestExecutions(@RequestParam executionId: Long, @RequestParam page: Int, @RequestParam size: Int): List<TestExecutionDto> {
-        println("Request to get test executions on page $page with size $size for execution $executionId")
+        log.debug("Request to get test executions on page $page with size $size for execution $executionId")
         return testExecutionService.getTestExecutions(executionId, page, size)
             .map { it.toDto() }
     }
@@ -81,5 +82,9 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
         }
     } catch (exception: DataAccessException) {
         ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error to save")
+    }
+
+    companion object {
+        private val log = LoggerFactory.getLogger(TestExecutionController::class.java)
     }
 }
