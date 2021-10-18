@@ -96,15 +96,15 @@ class DockerService(private val configProperties: ConfigProperties) {
     fun stopAgents(agentIds: List<String>) =
             if (isAgentStoppingInProgress.compareAndSet(false, true)) {
                 try {
-                    val containerList = containerManager.dockerClient.listContainersCmd().exec()
-                    val runningContainersIds = containerList.filter { it.status == "running" }.map { it.id }
+                    val containerList = containerManager.dockerClient.listContainersCmd().withShowAll(true).exec()
+                    val runningContainersIds = containerList.filter { it.state == "running" }.map { it.id }
                     agentIds.forEach { agentId ->
                         if (agentId in runningContainersIds) {
                             log.info("Stopping agent with id=$agentId")
                             containerManager.dockerClient.stopContainerCmd(agentId).exec()
                             log.info("Agent with id=$agentId has been stopped")
                         } else {
-                            val state = containerList.find { it.id == agentId }?.status ?: "deleted"
+                            val state = containerList.find { it.id == agentId }?.state ?: "deleted"
                             val warnMsg = "Agent with id=${agentId} was requested to be stopped, but it actual state=$state"
                             log.warn(warnMsg)
                         }
@@ -143,7 +143,7 @@ class DockerService(private val configProperties: ConfigProperties) {
      */
     fun removeContainer(containerId: String) {
         log.info("Removing container $containerId")
-        val existingContainerIds = containerManager.dockerClient.listContainersCmd().exec().map {
+        val existingContainerIds = containerManager.dockerClient.listContainersCmd().withShowAll(true).exec().map {
             it.id
         }
         if (containerId in existingContainerIds) {

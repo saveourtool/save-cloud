@@ -233,7 +233,7 @@ class AgentService {
             }
 
     private fun Collection<AgentStatusDto>.areIdleOrFinished() = all {
-        it.state == AgentState.IDLE || it.state == AgentState.FINISHED
+        it.state == AgentState.IDLE || it.state == AgentState.FINISHED || it.state == AgentState.STOPPED_BY_ORCH
     }
 
     companion object {
