@@ -12,6 +12,7 @@ import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.execution.ExecutionInitializationDto
 import org.cqfn.save.execution.ExecutionType
 import org.cqfn.save.execution.ExecutionUpdateDto
+import org.cqfn.save.testsuite.TestSuiteType
 
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -144,6 +145,9 @@ class ExecutionController(private val executionService: ExecutionService,
                 require(it == "ALL") { "Only executions with \"ALL\" tests suites from a GIT project are supported now" }
                 testSuitesService.findTestSuitesByProject(execution.project)
             }!!
+                .filter {
+                    it.type == TestSuiteType.PROJECT
+                }
                 .map {
                     it.propertiesRelativePath
                 }
