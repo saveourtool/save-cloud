@@ -105,7 +105,7 @@ class DockerService(private val configProperties: ConfigProperties) {
                             log.info("Agent with id=$agentId has been stopped")
                         } else {
                             val state = containerList.find { it.id == agentId }?.state ?: "deleted"
-                            val warnMsg = "Agent with id=${agentId} was requested to be stopped, but it actual state=$state"
+                            val warnMsg = "Agent with id=$agentId was requested to be stopped, but it actual state=$state"
                             log.warn(warnMsg)
                         }
                     }
@@ -143,9 +143,10 @@ class DockerService(private val configProperties: ConfigProperties) {
      */
     fun removeContainer(containerId: String) {
         log.info("Removing container $containerId")
-        val existingContainerIds = containerManager.dockerClient.listContainersCmd().withShowAll(true).exec().map {
-            it.id
-        }
+        val existingContainerIds = containerManager.dockerClient.listContainersCmd().withShowAll(true).exec()
+            .map {
+                it.id
+            }
         if (containerId in existingContainerIds) {
             containerManager.dockerClient.removeContainerCmd(containerId).exec()
         } else {
