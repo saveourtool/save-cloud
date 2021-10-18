@@ -26,6 +26,8 @@ fun Project.configureSpringBoot(withSpringDataJpa: Boolean = false) {
     apply<SpringBootPlugin>()
 
     dependencies {
+        // FixMe: this is mostly all we need for spring security #314 :)
+        // add("implementation", "org.springframework.boot:spring-boot-starter-security:${Versions.springBoot}")
         add("implementation", "org.springframework.boot:spring-boot-starter-webflux:${Versions.springBoot}")
         add("implementation", "org.springframework.boot:spring-boot-starter-actuator:${Versions.springBoot}")
         add("implementation", "io.micrometer:micrometer-registry-prometheus:${Versions.micrometer}")  // expose prometheus metrics in actuator

@@ -19,3 +19,5 @@ external val faQuestionCircle: dynamic
 external val faSpinner: dynamic
 external val faUpload: dynamic
 external val faFile: dynamic
+external val faHistory: dynamic
+external val faCalendarAlt: dynamic
