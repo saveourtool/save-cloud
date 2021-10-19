@@ -26,8 +26,7 @@ data class AgentConfiguration(
     val orchestratorUrl: String,
     val heartbeat: HeartbeatConfig,
     val requestTimeoutMillis: Long,
-    val executionDataRetryAttempts: Int,
-    val executionDataInitialRetryMillis: Long,
+    val retry: RetryConfig,
     val debug: Boolean = false,
     val cliCommand: String,
 )
@@ -52,4 +51,10 @@ data class BackendConfig(
     val url: String,
     val additionalDataEndpoint: String = "saveAgentVersion",
     val executionDataEndpoint: String = "saveTestResult",
+)
+
+@Serializable
+data class RetryConfig(
+    val attempts: Int,
+    val initialRetryMillis: Long,
 )

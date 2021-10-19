@@ -43,6 +43,10 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
+import org.cqfn.save.agent.utils.sendDataToBackend
+import org.cqfn.save.core.result.DebugInfo
+import org.cqfn.save.core.result.TestResult
+import org.cqfn.save.reporter.PluginExecution
 
 /**
  * A main class for SAVE Agent
@@ -83,7 +87,7 @@ class SaveAgent(private val config: AgentConfiguration,
     @Suppress("WHEN_WITHOUT_ELSE")  // when with sealed class
     private suspend fun startHeartbeats() = coroutineScope {
         logInfo("Scheduling heartbeats")
-        sendDataToBackend { saveAdditionalData() }
+        sendDataToBackend(config.retry) { saveAdditionalData() }
         while (true) {
             val response = runCatching {
                 // TODO: get execution progress here. However, with current implementation JSON report won't be valid until all tests are finished.
@@ -197,7 +201,7 @@ class SaveAgent(private val config: AgentConfiguration,
         if (testExecutionDtos.isFailure) {
             logError("Couldn't read execution results from JSON report, reason: ${testExecutionDtos.exceptionOrNull()?.describe()}")
         } else {
-            sendDataToBackend {
+            sendDataToBackend(config.retry) {
                 postExecutionData(testExecutionDtos.getOrThrow())
             }
         }
@@ -223,34 +227,6 @@ class SaveAgent(private val config: AgentConfiguration,
             contentType(ContentType.Application.Json)
             accept(ContentType.Application.Json)
             body = Heartbeat(config.id, state.value, executionProgress)
-        }
-    }
-
-    /**
-     * Attempt to send execution data to backend, will retry several times, while increasing delay 2 times on each iteration.
-     */
-    private suspend fun sendDataToBackend(
-        requestToBackend: suspend () -> HttpResponse
-    ) = coroutineScope {
-        var retryInterval = config.executionDataInitialRetryMillis
-        repeat(config.executionDataRetryAttempts) { attempt ->
-            val result = runCatching {
-                requestToBackend()
-            }
-            if (result.isSuccess && result.getOrNull()?.status == HttpStatusCode.OK) {
-                return@coroutineScope
-            } else {
-                val reason = if (result.isSuccess && result.getOrNull()?.status != HttpStatusCode.OK) {
-                    state.value = AgentState.BACKEND_FAILURE
-                    "Backend returned status ${result.getOrNull()?.status}"
-                } else {
-                    state.value = AgentState.BACKEND_UNREACHABLE
-                    "Backend is unreachable, ${result.exceptionOrNull()?.message}"
-                }
-                logError("Cannot post data (x${attempt + 1}), will retry in $retryInterval second. Reason: $reason")
-                delay(retryInterval)
-                retryInterval *= 2
-            }
         }
     }
 

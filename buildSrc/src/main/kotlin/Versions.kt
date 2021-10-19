@@ -11,7 +11,7 @@ object Versions {
     const val serialization = "1.2.2"
     const val kotlinxDatetime = "0.2.1"
     const val saveCore = "0.3.0-SNAPSHOT"
-    const val okio = "3.0.0-alpha.9"
+    const val okio = "3.0.0-alpha.10"
 
     // microservices
     const val springBoot = "2.5.4"
