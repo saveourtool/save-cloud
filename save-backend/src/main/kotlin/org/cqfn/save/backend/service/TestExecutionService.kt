@@ -110,26 +110,24 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
      */
     fun saveTestExecution(executionId: Long, testIds: List<Long>) {
         log.debug("Will create test executions for executionId=$executionId for tests $testIds")
-        testIds.filter { testId ->
+        testIds.map { testId ->
             val testExecutionList = testExecutionRepository.findByExecutionIdAndTestId(executionId, testId)
             if (testExecutionList.isNotEmpty()) {
-                log.debug("For execution with id=$executionId test id=$testId already exist in DB")
+                log.debug("For execution with id=$executionId test id=$testId already exist in DB, deleting it")
+                testExecutionRepository.deleteAllByExecutionIdAndTestId(executionId, testId)
             }
-            testExecutionList.isEmpty()
-        }
-            .map { testId ->
-                testRepository.findById(testId).ifPresentOrElse({ test ->
-                    log.debug("Creating TestExecution for test $testId")
-                    val id = testExecutionRepository.save(
-                        TestExecution(test,
-                            executionId,
-                            null, TestResultStatus.READY, null, null)
-                    )
-                    log.debug("Created TestExecution $id for test $testId")
-                },
-                    { log.error("Can't find test with id = $testId to save in testExecution") }
+            testRepository.findById(testId).ifPresentOrElse({ test ->
+                log.debug("Creating TestExecution for test $testId")
+                val id = testExecutionRepository.save(
+                    TestExecution(test,
+                        executionId,
+                        null, TestResultStatus.READY, null, null)
                 )
-            }
+                log.debug("Created TestExecution $id for test $testId")
+            },
+                { log.error("Can't find test with id = $testId to save in testExecution") }
+            )
+        }
     }
 
     /**
