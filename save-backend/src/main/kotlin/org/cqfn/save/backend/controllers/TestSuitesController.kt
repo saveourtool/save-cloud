@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestParam
@@ -63,6 +64,14 @@ class TestSuitesController(
             ResponseEntity.status(HttpStatus.OK).body(testSuitesService.findStandardTestSuitesByName(name))
 
     /**
+     * @param id id of the test suite
+     * @return response with test suite with provided id
+     */
+    @GetMapping("/testSuite/{id}")
+    fun getTestSuiteById(@PathVariable id: Long) =
+            ResponseEntity.status(HttpStatus.OK).body(testSuitesService.findTestSuiteById(id))
+
+    /**
      * @return response entity
      */
     @PostMapping("/updateStandardTestSuites")
@@ -71,6 +80,15 @@ class TestSuitesController(
             JobKey.jobKey(StandardSuitesUpdateScheduler.jobName)
         )
     }
+
+    /**
+     * @param testSuiteDtos suites, which need to be marked as obsolete
+     * @return response entity
+     */
+    @PostMapping("/markObsoleteTestSuites")
+    @Transactional
+    fun markObsoleteTestSuites(@RequestBody testSuiteDtos: List<TestSuiteDto>) =
+            ResponseEntity.status(HttpStatus.OK).body(testSuitesService.markObsoleteTestSuites(testSuiteDtos))
 
     /**
      * @param testSuiteDtos suites, which need to be deleted

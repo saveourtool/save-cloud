@@ -76,7 +76,7 @@ class DockerService(private val configProperties: ConfigProperties) {
         log.info("Sending request to make execution.id=$executionId RUNNING")
         webClientBackend
             .post()
-            .uri("/updateExecution")
+            .uri("/updateExecutionByDto")
             .body(BodyInserters.fromValue(ExecutionUpdateDto(executionId, ExecutionStatus.RUNNING)))
             .retrieve()
             .toBodilessEntity()
@@ -92,19 +92,21 @@ class DockerService(private val configProperties: ConfigProperties) {
      * @param agentIds list of IDs of agents to stop
      * @return true if agents have been stopped, false if another thread is already stopping them
      */
+    @Suppress("TOO_MANY_LINES_IN_LAMBDA")
     fun stopAgents(agentIds: List<String>) =
             if (isAgentStoppingInProgress.compareAndSet(false, true)) {
                 try {
-                    val runningContainersIds = containerManager.dockerClient.listContainersCmd().withStatusFilter(listOf("running")).exec()
-                        .map { it.id }
-                    agentIds.forEach {
-                        if (it in runningContainersIds) {
-                            log.info("Stopping agent with id=$it")
-                            containerManager.dockerClient.stopContainerCmd(it).exec()
-                            log.info("Agent with id=$it has been stopped")
+                    val containerList = containerManager.dockerClient.listContainersCmd().withShowAll(true).exec()
+                    val runningContainersIds = containerList.filter { it.state == "running" }.map { it.id }
+                    agentIds.forEach { agentId ->
+                        if (agentId in runningContainersIds) {
+                            log.info("Stopping agent with id=$agentId")
+                            containerManager.dockerClient.stopContainerCmd(agentId).exec()
+                            log.info("Agent with id=$agentId has been stopped")
                         } else {
-                            log.warn("Agent with id=$it was requested to be stopped, " +
-                                    "but it actual state=${containerManager.dockerClient.inspectContainerCmd(it).exec().state}")
+                            val state = containerList.find { it.id == agentId }?.state ?: "deleted"
+                            val warnMsg = "Agent with id=$agentId was requested to be stopped, but it actual state=$state"
+                            log.warn(warnMsg)
                         }
                     }
                     true
@@ -115,7 +117,7 @@ class DockerService(private val configProperties: ConfigProperties) {
                     isAgentStoppingInProgress.lazySet(false)
                 }
             } else {
-                log.debug("Agents stopping is already in progress, skipping")
+                log.info("Agents stopping is already in progress, skipping")
                 false
             }
 
@@ -141,9 +143,10 @@ class DockerService(private val configProperties: ConfigProperties) {
      */
     fun removeContainer(containerId: String) {
         log.info("Removing container $containerId")
-        val existingContainerIds = containerManager.dockerClient.listContainersCmd().exec().map {
-            it.id
-        }
+        val existingContainerIds = containerManager.dockerClient.listContainersCmd().withShowAll(true).exec()
+            .map {
+                it.id
+            }
         if (containerId in existingContainerIds) {
             containerManager.dockerClient.removeContainerCmd(containerId).exec()
         } else {
@@ -221,6 +224,7 @@ class DockerService(private val configProperties: ConfigProperties) {
 
     @Suppress("UnsafeCallOnNullableType")
     private fun copyTestSuitesToResourcesPath(testSuitesForDocker: List<TestSuiteDto>, destination: File) {
+        // TODO: https://github.com/cqfn/save-cloud/issues/321
         log.info("Copying suites ${testSuitesForDocker.map { it.name }} into $destination")
         testSuitesForDocker.forEach {
             val standardTestSuiteAbsolutePath = File(configProperties.testResources.basePath)
