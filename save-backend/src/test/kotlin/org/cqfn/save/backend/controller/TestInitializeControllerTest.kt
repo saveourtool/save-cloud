@@ -136,18 +136,4 @@ class TestInitializeControllerTest {
                 assertTrue(it.responseBody!!.tests.size == 3) { "Expected 3 tests, but got ${it.responseBody!!.tests} instead" }
             }
     }
-
-    @Test
-    fun checkDifferentExecutions() {
-        webClient.get()
-            .uri("/getTestBatches?agentId=container-3")
-            .exchange()
-            .expectStatus()
-            .isOk
-            .expectBody<TestBatch>()
-            .consumeWith {
-                println(it.responseBody)
-                assertTrue(it.responseBody!!.tests.isNotEmpty())
-            }
-    }
 }
