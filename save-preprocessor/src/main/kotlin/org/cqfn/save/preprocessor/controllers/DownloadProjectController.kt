@@ -248,6 +248,8 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                 .flatMap {
                     deleteOldStandardTestSuites(newTestSuites)
                 }
+                .subscribeOn(scheduler)
+                .subscribe()
         }
 
     private fun deleteOldStandardTestSuites(newTestSuites: MutableList<TestSuiteDto>) = webClientBackend.get()
