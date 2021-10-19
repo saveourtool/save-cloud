@@ -101,7 +101,7 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
                 },
                     {
                         lostTests.add(testExecDto)
-                        log.error("Test execution $testExecDto was not found in the DB")
+                        log.error("Test execution $testExecDto for execution id=${execution.id} was not found in the DB")
                     })
         }
         executionRepository.save(execution)
