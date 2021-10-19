@@ -112,7 +112,7 @@ class TestInitializeControllerTest {
     }
 
     @Test
-    fun checkServiceData() {
+    fun `should return test executions in batches`() {
         webClient.get()
             .uri("/getTestBatches?agentId=container-1")
             .exchange()
