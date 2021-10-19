@@ -66,7 +66,7 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
      * @param testExecutionsDtos
      * @return list of lost tests
      */
-    @Suppress("TOO_MANY_LINES_IN_LAMBDA", "UnsafeCallOnNullableType")
+    @Suppress("TOO_MANY_LINES_IN_LAMBDA", "TOO_LONG_FUNCTION", "UnsafeCallOnNullableType")
     fun saveTestResult(testExecutionsDtos: List<TestExecutionDto>): List<TestExecutionDto> {
         log.debug("Saving ${testExecutionsDtos.size} test results from agent ${testExecutionsDtos.first().agentContainerId}")
         // we take agent id only from first element, because all test executions have same execution
