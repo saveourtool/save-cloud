@@ -16,6 +16,7 @@
             <column name="batch_size" value="10" />
             <column name="type" value="GIT" />
             <column name="version" value="0.0.1" />
+            <column name="running_tests" value="0" />
             <column name="passed_tests" value="0" />
             <column name="failed_tests" value="0" />
             <column name="skipped_tests" value="0" />
@@ -31,6 +32,7 @@
             <column name="batch_size" value="20" />
             <column name="type" value="STANDARD" />
             <column name="version" value="0.0.1" />
+            <column name="running_tests" value="0" />
             <column name="passed_tests" value="0" />
             <column name="failed_tests" value="0" />
             <column name="skipped_tests" value="0" />
@@ -46,6 +48,7 @@
             <column name="batch_size" value="20" />
             <column name="type" value="GIT" />
             <column name="version" value="0.0.1" />
+            <column name="running_tests" value="0" />
             <column name="passed_tests" value="0" />
             <column name="failed_tests" value="0" />
             <column name="skipped_tests" value="0" />
