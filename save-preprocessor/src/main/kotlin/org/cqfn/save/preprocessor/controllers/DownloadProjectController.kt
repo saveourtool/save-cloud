@@ -209,50 +209,53 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
     @OptIn(ExperimentalFileSystem::class)
     @Suppress("TOO_LONG_FUNCTION", "TYPE_ALIAS")
     @PostMapping("/uploadStandardTestSuite")
-    fun uploadStandardTestSuite(): Mono<ResponseEntity<Void>> {
-        val newTestSuites: MutableList<TestSuiteDto> = mutableListOf()
-        return Flux.fromIterable(readStandardTestSuitesFile(configProperties.reposFileName).entries).flatMap { (testSuiteUrl, testSuitePaths) ->
-            log.info("Starting clone repository url=$testSuiteUrl for standard test suites")
-            val tmpDir = generateDirectory(listOf(testSuiteUrl))
-            Mono.fromCallable {
-                cloneFromGit(GitDto(testSuiteUrl), tmpDir)
-                    .use { /* noop here, just need to close Git object */ }
-            }
-                .flatMapMany { Flux.fromIterable(testSuitePaths) }
-                .flatMap { testRootPath ->
-                    log.info("Starting to discover root test config in test root path: $testRootPath")
-                    val testResourcesRootAbsolutePath = tmpDir.resolve(testRootPath).absolutePath
-                    val rootTestConfig = testDiscoveringService.getRootTestConfig(testResourcesRootAbsolutePath)
-                    log.info("Starting to discover standard test suites for root test config ${rootTestConfig.location}")
-                    val propertiesRelativePath = "${rootTestConfig.directory.toFile().relativeTo(tmpDir)}${File.separator}save.properties"
-                    val testSuiteDtos = testDiscoveringService.getAllTestSuites(null, rootTestConfig, propertiesRelativePath, testSuiteUrl)
-                    testSuiteDtos.forEach { newTestSuites.add(it) }
-                    log.info("Test suites size = ${testSuiteDtos.size}")
-                    log.info("Starting to save new test suites for root test config in $testRootPath")
-                    webClientBackend.makeRequest(BodyInserters.fromValue(testSuiteDtos), "/saveTestSuites") {
-                        it.bodyToMono<List<TestSuite>>()
-                    }
-                        .flatMap { testSuites ->
-                            log.info("Starting to save new tests for config test root $testRootPath")
-                            webClientBackend.makeRequest(
-                                BodyInserters.fromValue(
-                                    testDiscoveringService.getAllTests(
-                                        rootTestConfig,
-                                        testSuites
-                                    )
-                                ),
-                                "/initializeTests"
-                            ) { it.toBodilessEntity() }
+    fun uploadStandardTestSuite() = Mono.just(ResponseEntity("Upload standard test suites pending", HttpStatus.ACCEPTED))
+        .doOnSuccess {
+            val newTestSuites: MutableList<TestSuiteDto> = mutableListOf()
+            Flux.fromIterable(readStandardTestSuitesFile(configProperties.reposFileName).entries).flatMap { (testSuiteUrl, testSuitePaths) ->
+                log.info("Starting clone repository url=$testSuiteUrl for standard test suites")
+                val tmpDir = generateDirectory(listOf(testSuiteUrl))
+                Mono.fromCallable {
+                    cloneFromGit(GitDto(testSuiteUrl), tmpDir)
+                        .use { /* noop here, just need to close Git object */ }
+                }
+                    .flatMapMany { Flux.fromIterable(testSuitePaths) }
+                    .flatMap { testRootPath ->
+                        log.info("Starting to discover root test config in test root path: $testRootPath")
+                        val testResourcesRootAbsolutePath = tmpDir.resolve(testRootPath).absolutePath
+                        val rootTestConfig = testDiscoveringService.getRootTestConfig(testResourcesRootAbsolutePath)
+                        log.info("Starting to discover standard test suites for root test config ${rootTestConfig.location}")
+                        val propertiesRelativePath = "${rootTestConfig.directory.toFile().relativeTo(tmpDir)}${File.separator}save.properties"
+                        val testSuiteDtos = testDiscoveringService.getAllTestSuites(null, rootTestConfig, propertiesRelativePath, testSuiteUrl)
+                        testSuiteDtos.forEach { newTestSuites.add(it) }
+                        log.info("Test suites size = ${testSuiteDtos.size}")
+                        log.info("Starting to save new test suites for root test config in $testRootPath")
+                        webClientBackend.makeRequest(BodyInserters.fromValue(testSuiteDtos), "/saveTestSuites") {
+                            it.bodyToMono<List<TestSuite>>()
                         }
+                            .flatMap { testSuites ->
+                                log.info("Starting to save new tests for config test root $testRootPath")
+                                webClientBackend.makeRequest(
+                                    BodyInserters.fromValue(
+                                        testDiscoveringService.getAllTests(
+                                            rootTestConfig,
+                                            testSuites
+                                        )
+                                    ),
+                                    "/initializeTests"
+                                ) { it.toBodilessEntity() }
+                            }
+                    }
+                    .doOnError {
+                        log.error("Error to update test with url=$testSuiteUrl, path=$testSuitePaths")
+                    }
+            }.collectList()
+                .flatMap {
+                    markObsoleteOldStandardTestSuites(newTestSuites)
                 }
-                .doOnError {
-                    log.error("Error to update test with url=$testSuiteUrl, path=$testSuitePaths")
-                }
-        }.collectList()
-            .flatMap {
-                markObsoleteOldStandardTestSuites(newTestSuites)
-            }
-    }
+                .subscribeOn(scheduler)
+                .subscribe()
+        }
 
     private fun markObsoleteOldStandardTestSuites(newTestSuites: MutableList<TestSuiteDto>) = webClientBackend.get()
         .uri("/allStandardTestSuites")
