@@ -100,7 +100,7 @@ class AgentsControllerTest {
             .body(BodyInserters.fromMultipartData(bodyBuilder))
             .exchange()
             .expectStatus()
-            .isOk
+            .isAccepted
         Thread.sleep(2_500)  // wait for background task to complete on mocks
         verify(dockerService).buildAndCreateContainers(any(), any())
         verify(dockerService).startContainersAndUpdateExecution(any(), anyList())
