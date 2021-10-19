@@ -344,7 +344,7 @@ class DownloadProjectTest(
             .uri("/uploadStandardTestSuite")
             .exchange()
             .expectStatus()
-            .isOk
+            .isAccepted
         Thread.sleep(15_000)
         assertions.orTimeout(60, TimeUnit.SECONDS).join().forEach { Assertions.assertNotNull(it) }
         Assertions.assertTrue(File("${configProperties.repository}/${"https://github.com/cqfn/save".hashCode()}").exists())
