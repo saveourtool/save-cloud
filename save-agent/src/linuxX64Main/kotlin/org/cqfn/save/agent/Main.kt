@@ -12,6 +12,7 @@ import org.cqfn.save.core.logging.logInfo
 import generated.SAVE_CLOUD_VERSION
 import io.ktor.client.HttpClient
 import io.ktor.client.features.HttpTimeout
+import io.ktor.client.features.compression.ContentEncoding
 import io.ktor.client.features.json.JsonFeature
 import io.ktor.client.features.json.serializer.KotlinxSerializer
 import platform.posix.SIGTERM
@@ -59,6 +60,9 @@ fun main() {
         }
         install(HttpTimeout) {
             requestTimeoutMillis = config.requestTimeoutMillis
+        }
+        install(ContentEncoding) {
+            gzip()
         }
     }
     val saveAgent = SaveAgent(config, httpClient)

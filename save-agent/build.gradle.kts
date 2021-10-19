@@ -29,6 +29,7 @@ kotlin {
                 implementation("io.ktor:ktor-client-core:${Versions.ktor}")
                 implementation("io.ktor:ktor-client-curl:${Versions.ktor}")
                 implementation("io.ktor:ktor-client-serialization:${Versions.ktor}")
+                implementation("io.ktor:ktor-client-encoding:${Versions.ktor}")
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-properties:${Versions.serialization}")
                 implementation("com.squareup.okio:okio-multiplatform:${Versions.okio}")
                 implementation("org.jetbrains.kotlinx:kotlinx-datetime:${Versions.kotlinxDatetime}")
