@@ -5,6 +5,7 @@ import org.cqfn.save.entities.TestExecution
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Repository
 import java.util.Optional
+import javax.transaction.Transactional
 
 /**
  * Repository of execution
@@ -54,6 +55,24 @@ interface TestExecutionRepository : BaseEntityRepository<TestExecution> {
      * @return Optional TestExecution
      */
     fun findByExecutionIdAndTestPluginNameAndTestFilePath(executionId: Long, pluginName: String, filePath: String): Optional<TestExecution>
+
+    /**
+     * Returns a TestExecution matched by a set of fields
+     *
+     * @param executionId id of execution
+     * @param testId id of test
+     * @return list of TestExecution's
+     */
+    fun findByExecutionIdAndTestId(executionId: Long, testId: Long): List<TestExecution>
+
+    /**
+     * Delete a TestExecution matched by a set of fields
+     *
+     * @param executionId id of execution
+     * @param testId id of test
+     */
+    @Transactional
+    fun deleteAllByExecutionIdAndTestId(executionId: Long, testId: Long)
 
     /** Returns a TestExecution matched by the test id
      *

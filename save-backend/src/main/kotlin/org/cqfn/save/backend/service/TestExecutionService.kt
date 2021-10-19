@@ -111,6 +111,11 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
     fun saveTestExecution(executionId: Long, testIds: List<Long>) {
         log.debug("Will create test executions for executionId=$executionId for tests $testIds")
         testIds.map { testId ->
+            val testExecutionList = testExecutionRepository.findByExecutionIdAndTestId(executionId, testId)
+            if (testExecutionList.isNotEmpty()) {
+                log.debug("For execution with id=$executionId test id=$testId already exist in DB, deleting it")
+                testExecutionRepository.deleteAllByExecutionIdAndTestId(executionId, testId)
+            }
             testRepository.findById(testId).ifPresentOrElse({ test ->
                 log.debug("Creating TestExecution for test $testId")
                 val id = testExecutionRepository.save(

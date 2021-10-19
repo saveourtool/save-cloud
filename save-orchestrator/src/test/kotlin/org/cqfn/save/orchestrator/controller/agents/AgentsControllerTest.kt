@@ -88,7 +88,7 @@ class AgentsControllerTest {
         )
         // /updateAgentStatuses
         mockServer.enqueue(MockResponse().setResponseCode(200))
-        // /updateExecution is not mocked, because it's performed by DockerService, and it's mocked in these tests
+        // /updateExecutionByDto is not mocked, because it's performed by DockerService, and it's mocked in these tests
 
         val bodyBuilder = MultipartBodyBuilder().apply {
             part("execution", execution)

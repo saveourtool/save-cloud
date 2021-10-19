@@ -10,7 +10,9 @@ import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.GitDto
 import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.execution.ExecutionInitializationDto
+import org.cqfn.save.execution.ExecutionType
 import org.cqfn.save.execution.ExecutionUpdateDto
+import org.cqfn.save.testsuite.TestSuiteType
 
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -48,9 +50,17 @@ class ExecutionController(private val executionService: ExecutionService,
     /**
      * @param executionUpdateDto
      */
-    @PostMapping("/updateExecution")
+    @PostMapping("/updateExecutionByDto")
     fun updateExecution(@RequestBody executionUpdateDto: ExecutionUpdateDto) {
         executionService.updateExecution(executionUpdateDto)
+    }
+
+    /**
+     * @param execution
+     */
+    @PostMapping("/updateExecution")
+    fun updateExecution(@RequestBody execution: Execution) {
+        executionService.updateExecution(execution)
     }
 
     /**
@@ -121,24 +131,31 @@ class ExecutionController(private val executionService: ExecutionService,
      */
     @PostMapping("/rerunExecution")
     @Transactional
-    @Suppress("UnsafeCallOnNullableType")
+    @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
     fun rerunExecution(@RequestParam id: Long): Mono<String> {
         val execution = executionService.findExecution(id).orElseThrow {
             IllegalArgumentException("Can't rerun execution $id, because it does not exist")
         }
+        val executionType = execution.type
         val git = requireNotNull(gitService.getRepositoryDtoByProject(execution.project)) {
             "Can't rerun execution $id, project ${execution.project.name} has no associated git address"
         }
-
-        val propertiesRelativePath = execution.testSuiteIds?.let {
-            require(it == "ALL") { "Only executions with \"ALL\" tests suites from a GIT project are supported now" }
-            testSuitesService.findTestSuitesByProject(execution.project)
-        }!!
-            .map {
-                it.propertiesRelativePath
-            }
-            .distinct()
-            .single()
+        val propertiesRelativePath = if (executionType == ExecutionType.GIT) {
+            execution.testSuiteIds?.let {
+                require(it == "ALL") { "Only executions with \"ALL\" tests suites from a GIT project are supported now" }
+                testSuitesService.findTestSuitesByProject(execution.project)
+            }!!
+                .filter {
+                    it.type == TestSuiteType.PROJECT
+                }
+                .map {
+                    it.propertiesRelativePath
+                }
+                .distinct()
+                .single()
+        } else {
+            "save.properties"
+        }
         val executionRequest = ExecutionRequest(
             project = execution.project,
             gitDto = GitDto(git.url, hash = execution.version),
@@ -147,7 +164,7 @@ class ExecutionController(private val executionService: ExecutionService,
             executionId = execution.id
         )
         return preprocessorWebClient.post()
-            .uri("/rerunExecution")
+            .uri("/rerunExecution?executionType=$executionType")
             .bodyValue(executionRequest)
             .retrieve()
             .bodyToMono()
