@@ -141,7 +141,7 @@ class AgentService {
             )
                 .then(
                     webClientBackend.post()
-                        .uri("/updateExecution")
+                        .uri("/updateExecutionByDto")
                         .bodyValue(ExecutionUpdateDto(executionId, ExecutionStatus.FINISHED))  // todo: status based on results
                         .retrieve()
                         .toBodilessEntity()
@@ -233,7 +233,7 @@ class AgentService {
             }
 
     private fun Collection<AgentStatusDto>.areIdleOrFinished() = all {
-        it.state == AgentState.IDLE || it.state == AgentState.FINISHED
+        it.state == AgentState.IDLE || it.state == AgentState.FINISHED || it.state == AgentState.STOPPED_BY_ORCH
     }
 
     companion object {
