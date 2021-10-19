@@ -200,17 +200,10 @@ class DockerService(private val configProperties: ConfigProperties) {
             imageName = imageName(execution.id!!),
             baseDir = resourcesPath,
             resourcesPath = executionDir,
-            // TODO: find ktlint this is a temporary workaround link to #277
             runCmd = """RUN $aptCmd update && env DEBIAN_FRONTEND="noninteractive" $aptCmd install -y libcurl4-openssl-dev tzdata && rm -rf /var/lib/apt/lists/*
                     |RUN ln -fs /usr/share/zoneinfo/UTC /etc/localtime
                     |RUN chmod +x $executionDir/$SAVE_AGENT_EXECUTABLE_NAME
                     |RUN chmod +x $executionDir/$SAVE_CLI_EXECUTABLE_NAME
-                    |RUN if [ -d $executionDir/diktat-rules/src/test/resources/test/smoke ]; then \
-                    |   find $executionDir/diktat-rules/src/test/resources/test/smoke -type f -name "ktlint" -exec chmod +x {} \; ; \
-                    |fi
-                    |RUN if [ -d $executionDir/clang-tidy ]; then \
-                    |   find $executionDir/clang-tidy -type f -name "clang-tidy-linux" -exec chmod +x {} \; ; \
-                    |fi
                 """
         )
         saveAgent.delete()
