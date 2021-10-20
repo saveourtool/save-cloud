@@ -24,7 +24,6 @@ import io.ktor.client.request.post
 import io.ktor.client.request.url
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
-import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import okio.ExperimentalFileSystem
 import okio.FileSystem
@@ -44,19 +43,15 @@ import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
 import org.cqfn.save.agent.utils.sendDataToBackend
-import org.cqfn.save.core.result.DebugInfo
-import org.cqfn.save.core.result.TestResult
 import org.cqfn.save.reporter.PluginExecution
 
 /**
  * A main class for SAVE Agent
  */
 @OptIn(ExperimentalFileSystem::class)
-class SaveAgent(private val config: AgentConfiguration,
+class SaveAgent(internal val config: AgentConfiguration,
                 private val httpClient: HttpClient
 ) {
-    private val logFilePath = "logs.txt"
-
     /**
      * The current [AgentState] of this agent
      */
@@ -87,7 +82,7 @@ class SaveAgent(private val config: AgentConfiguration,
     @Suppress("WHEN_WITHOUT_ELSE")  // when with sealed class
     private suspend fun startHeartbeats() = coroutineScope {
         logInfo("Scheduling heartbeats")
-        sendDataToBackend(config.retry) { saveAdditionalData() }
+        sendDataToBackend { saveAdditionalData() }
         while (true) {
             val response = runCatching {
                 // TODO: get execution progress here. However, with current implementation JSON report won't be valid until all tests are finished.
@@ -140,7 +135,7 @@ class SaveAgent(private val config: AgentConfiguration,
         logInfo("Starting SAVE with provided args $cliArgs")
         val executionResult = runSave(cliArgs)
         logInfo("SAVE has completed execution with status ${executionResult.code}")
-        val executionLogs = ExecutionLogs(config.id, readFile(logFilePath))
+        val executionLogs = ExecutionLogs(config.id, readFile(config.logFilePath))
         val logsSendingJob = launchLogSendingJob(executionLogs)
         when (executionResult.code) {
             0 -> if (executionLogs.cliLogs.isEmpty()) {
@@ -158,14 +153,28 @@ class SaveAgent(private val config: AgentConfiguration,
     }
 
     private fun runSave(cliArgs: String): ExecutionResult = ProcessBuilder(true, FileSystem.SYSTEM)
-        .exec(config.cliCommand.let { if (cliArgs.isNotEmpty()) "$it $cliArgs" else it }, "", logFilePath.toPath())
+        .exec(config.cliCommand.let { if (cliArgs.isNotEmpty()) "$it $cliArgs" else it }, "", config.logFilePath.toPath())
 
     @Suppress("TOO_MANY_LINES_IN_LAMBDA")
-    private fun readExecutionResults(jsonFile: String): List<TestExecutionDto> {
+    private fun CoroutineScope.readExecutionResults(jsonFile: String): List<TestExecutionDto> {
         val currentTime = Clock.System.now()
         val reports: List<Report> = reportFormat.decodeFromString(
             readFile(jsonFile).joinToString(separator = "")
         )
+        reports.flatMap { report ->
+            report.pluginExecutions.flatMap { pe ->
+                pe.testResults.map { tr ->
+                    Report(report.testSuite, listOf(PluginExecution(pe.plugin, listOf(tr))))
+                }
+            }
+        }.forEach {
+            launch {
+                // todo: launch on a dedicated thread (https://github.com/cqfn/save-cloud/issues/315)
+                sendDataToBackend {
+                    sendReport(it)
+                }
+            }
+        }
         return reports.flatMap { report ->
             report.pluginExecutions.flatMap { pluginExecution ->
                 pluginExecution.testResults.map {
@@ -193,7 +202,7 @@ class SaveAgent(private val config: AgentConfiguration,
             }
     }
 
-    private suspend fun handleSuccessfulExit() {
+    private suspend fun handleSuccessfulExit() = coroutineScope {
         val jsonReport = "save.out.json"
         val testExecutionDtos = runCatching {
             readExecutionResults(jsonReport)
@@ -201,7 +210,7 @@ class SaveAgent(private val config: AgentConfiguration,
         if (testExecutionDtos.isFailure) {
             logError("Couldn't read execution results from JSON report, reason: ${testExecutionDtos.exceptionOrNull()?.describe()}")
         } else {
-            sendDataToBackend(config.retry) {
+            sendDataToBackend {
                 postExecutionData(testExecutionDtos.getOrThrow())
             }
         }
@@ -214,6 +223,12 @@ class SaveAgent(private val config: AgentConfiguration,
         url("${config.orchestratorUrl}/executionLogs")
         contentType(ContentType.Application.Json)
         body = executionLogs
+    }
+
+    private suspend fun sendReport(report: Report) = httpClient.post<HttpResponse> {
+        url("${config.backend.url}/files/debug-info?agentId=${config.id}")
+        contentType(ContentType.Application.Json)
+        body = report
     }
 
     /**
@@ -249,6 +264,6 @@ class SaveAgent(private val config: AgentConfiguration,
         is Fail -> TestResultStatus.FAILED
         is Ignored -> TestResultStatus.IGNORED
         is Crash -> TestResultStatus.TEST_ERROR
-        else -> error("Unknown test status ${this}")
+        else -> error("Unknown test status $this")
     }
 }

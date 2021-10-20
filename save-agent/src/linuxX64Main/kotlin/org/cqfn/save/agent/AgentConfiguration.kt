@@ -29,6 +29,7 @@ data class AgentConfiguration(
     val retry: RetryConfig,
     val debug: Boolean = false,
     val cliCommand: String,
+    val logFilePath: String = "logs.txt"
 )
 
 /**
