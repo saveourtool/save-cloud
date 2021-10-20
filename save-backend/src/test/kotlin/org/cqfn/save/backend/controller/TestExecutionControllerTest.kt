@@ -81,17 +81,17 @@ class TestExecutionControllerTest {
     @Suppress("UnsafeCallOnNullableType")
     fun `should save TestExecutionDto into the DB`() {
         val testExecutionDtoFirst = TestExecutionDto(
-            "src/test/suite1/testPath",
+            "testPath63",
             "WarnPlugin",
-            "container-1",
+            "container-3",
             TestResultStatus.FAILED,
             DEFAULT_DATE_TEST_EXECUTION,
             DEFAULT_DATE_TEST_EXECUTION
         )
         val testExecutionDtoSecond = TestExecutionDto(
-            "src/test/suite1/testPath2",
+            "testPath42",
             "WarnPlugin",
-            "container-1",
+            "container-3",
             TestResultStatus.PASSED,
             DEFAULT_DATE_TEST_EXECUTION,
             DEFAULT_DATE_TEST_EXECUTION
