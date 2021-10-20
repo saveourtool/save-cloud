@@ -21,7 +21,7 @@ liquibase {
         // Configuring luiquibase
         register("main") {
             arguments = mapOf(
-                "changeLogFile" to "db/v-1/db.changelog-master.xml",
+                "changeLogFile" to "db/db.changelog-master.xml",
                 "url" to databaseCredentials.databaseUrl,
                 "username" to databaseCredentials.username,
                 "password" to databaseCredentials.password,
