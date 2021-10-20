@@ -84,21 +84,24 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
                 testExecDto.pluginName,
                 testExecDto.filePath
             )
-            foundTestExec.filter {
-                // update only those test executions, that haven't been updated before
-                it.status == TestResultStatus.READY
-            }
+            foundTestExec
+//                .filter {
+//                // update only those test executions, that haven't been updated before
+//                it.status == TestResultStatus.READY
+//            }
                 .ifPresentOrElse({
                     it.startTime = testExecDto.startTimeSeconds?.secondsToLocalDateTime()
                     it.endTime = testExecDto.endTimeSeconds?.secondsToLocalDateTime()
                     it.status = testExecDto.status
                     when (testExecDto.status) {
-			            TestResultStatus.RUNNING -> execution.runningTests++
                         TestResultStatus.PASSED -> execution.passedTests++
                         TestResultStatus.FAILED -> execution.failedTests++
                         else -> execution.skippedTests++
                     }.also {
-                        if (testExecDto.status != TestResultStatus.RUNNING && execution.runningTests > 0) execution.runningTests--
+                        println("STATUS: ${testExecDto.status}")
+                    }
+                    if (testExecDto.status != TestResultStatus.RUNNING && execution.runningTests > 0) {
+                        execution.runningTests--
                     }
                     testExecutionRepository.save(it)
                 },
@@ -120,7 +123,7 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
         testIds.map { testId ->
             val testExecutionList = testExecutionRepository.findByExecutionIdAndTestId(executionId, testId)
             if (testExecutionList.isNotEmpty()) {
-                log.debug("For execution with id=$executionId test id=$testId already exist in DB, deleting it")
+                println("\n\n\nFor execution with id=$executionId test id=$testId already exist in DB, deleting it")
                 testExecutionRepository.deleteAllByExecutionIdAndTestId(executionId, testId)
             }
             testRepository.findById(testId).ifPresentOrElse({ test ->
