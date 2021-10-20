@@ -1,12 +1,12 @@
 package org.cqfn.save.backend.repository
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import org.cqfn.save.backend.configs.ConfigProperties
 import org.cqfn.save.core.result.DebugInfo
 import org.cqfn.save.domain.TestResultDebugInfo
 import org.cqfn.save.domain.TestResultLocation
 import org.cqfn.save.entities.TestExecution
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.core.io.FileSystemResource
 import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Transactional
@@ -18,7 +18,6 @@ import kotlin.io.path.createDirectories
 import kotlin.io.path.div
 import kotlin.io.path.exists
 import kotlin.io.path.name
-import kotlinx.serialization.encodeToString
 
 /**
  * A repository for storing additional data associated with test results
