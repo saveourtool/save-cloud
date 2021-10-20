@@ -112,7 +112,7 @@ class TestInitializeControllerTest {
     }
 
     @Test
-    fun checkServiceData() {
+    fun `should return test executions in batches`() {
         webClient.get()
             .uri("/getTestBatches?agentId=container-1")
             .exchange()
@@ -134,20 +134,6 @@ class TestInitializeControllerTest {
             .expectBody<TestBatch>()
             .consumeWith {
                 assertTrue(it.responseBody!!.tests.size == 3) { "Expected 3 tests, but got ${it.responseBody!!.tests} instead" }
-            }
-    }
-
-    @Test
-    fun checkDifferentExecutions() {
-        webClient.get()
-            .uri("/getTestBatches?agentId=container-3")
-            .exchange()
-            .expectStatus()
-            .isOk
-            .expectBody<TestBatch>()
-            .consumeWith {
-                println(it.responseBody)
-                assertTrue(it.responseBody!!.tests.isNotEmpty())
             }
     }
 }

@@ -1,6 +1,6 @@
 id;status;start_time;end_time;test_id;agent_id;execution_id
-"APP_SEQ";"IGNORED";"2021-01-01 00:00:00";"2021-01-01 00:00:30";"1";1;1
-"APP_SEQ";"PASSED";"2021-01-01 00:00:32";"2021-01-01 00:00:57";"2";1;1
+"APP_SEQ";IGNORED;"2021-01-01 00:00:00";"2021-01-01 00:00:30";"1";1;1
+"APP_SEQ";PASSED;"2021-01-01 00:00:32";"2021-01-01 00:00:57";"2";1;1
 "APP_SEQ";"PASSED";"2021-01-01 00:00:00";"2021-01-01 00:00:35";"3";3;1
 "APP_SEQ";"PASSED";"2021-01-01 00:00:00";"2021-01-01 00:00:33";"4";2;1
 "APP_SEQ";"PASSED";"2021-01-01 00:01:01";"2021-01-01 00:01:19";"5";1;1
@@ -27,4 +27,5 @@ id;status;start_time;end_time;test_id;agent_id;execution_id
 "APP_SEQ";"READY";null;null;"26";null;1
 "APP_SEQ";"READY";null;null;"27";null;1
 "APP_SEQ";"READY";null;null;"28";null;1
-"APP_SEQ";"READY";null;null;"29";null;2
+"APP_SEQ";"READY";null;null;"29";3;3
+APP_SEQ;READY;null;null;30;3;3
