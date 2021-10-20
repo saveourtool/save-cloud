@@ -88,7 +88,7 @@ class AgentsControllerTest {
         )
         // /updateAgentStatuses
         mockServer.enqueue(MockResponse().setResponseCode(200))
-        // /updateExecution is not mocked, because it's performed by DockerService, and it's mocked in these tests
+        // /updateExecutionByDto is not mocked, because it's performed by DockerService, and it's mocked in these tests
 
         val bodyBuilder = MultipartBodyBuilder().apply {
             part("execution", execution)
@@ -100,7 +100,7 @@ class AgentsControllerTest {
             .body(BodyInserters.fromMultipartData(bodyBuilder))
             .exchange()
             .expectStatus()
-            .isOk
+            .isAccepted
         Thread.sleep(2_500)  // wait for background task to complete on mocks
         verify(dockerService).buildAndCreateContainers(any(), any())
         verify(dockerService).startContainersAndUpdateExecution(any(), anyList())
