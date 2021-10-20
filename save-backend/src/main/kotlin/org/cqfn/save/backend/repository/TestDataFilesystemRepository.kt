@@ -1,5 +1,6 @@
 package org.cqfn.save.backend.repository
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.cqfn.save.backend.configs.ConfigProperties
 import org.cqfn.save.core.result.DebugInfo
 import org.cqfn.save.domain.TestResultDebugInfo
@@ -18,13 +19,14 @@ import kotlin.io.path.div
 import kotlin.io.path.exists
 import kotlin.io.path.name
 import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 
 /**
  * A repository for storing additional data associated with test results
  */
 @Repository
-class TestDataFilesystemRepository(configProperties: ConfigProperties) {
+class TestDataFilesystemRepository(configProperties: ConfigProperties,
+                                   private val objectMapper: ObjectMapper,
+) {
     /**
      * Root directory for storing test data
      */
@@ -47,8 +49,9 @@ class TestDataFilesystemRepository(configProperties: ConfigProperties) {
         with(testResultDebugInfo) {
             val destination = testResultLocation.toFsResource(executionId).file
             destination.parentFile.mkdirs()
-            destination.writeText(
-                Json.encodeToString(DebugInfo(stdout, stderr, durationMillis))
+            objectMapper.writeValue(
+                destination,
+                DebugInfo(stdout, stderr, durationMillis)
             )
         }
     }

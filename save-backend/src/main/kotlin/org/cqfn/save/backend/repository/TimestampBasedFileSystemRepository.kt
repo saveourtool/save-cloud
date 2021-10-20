@@ -21,6 +21,7 @@ import kotlin.io.path.createDirectories
 import kotlin.io.path.createDirectory
 import kotlin.io.path.createFile
 import kotlin.io.path.deleteExisting
+import kotlin.io.path.div
 import kotlin.io.path.exists
 import kotlin.io.path.fileSize
 import kotlin.io.path.getLastModifiedTime
@@ -36,7 +37,7 @@ import kotlin.io.path.outputStream
 @Repository
 class TimestampBasedFileSystemRepository(configProperties: ConfigProperties) {
     private val logger = LoggerFactory.getLogger(TimestampBasedFileSystemRepository::class.java)
-    private val rootDir = Paths.get(configProperties.fileStorage.location).apply {
+    private val rootDir = (Paths.get(configProperties.fileStorage.location) / "storage").apply {
         if (!exists()) {
             createDirectories()
         }

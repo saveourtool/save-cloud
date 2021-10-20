@@ -33,7 +33,6 @@ dependencies {
     runtimeOnly(project(":save-frontend", "distribution"))  // static resources packed as a jar, will be accessed from classpath
     implementation("org.cqfn.save:save-common-jvm:${Versions.saveCore}")
     implementation("org.springframework.boot:spring-boot-starter-quartz:${Versions.springBoot}")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:${Versions.serialization}")
     testImplementation("com.squareup.okhttp3:okhttp:${Versions.okhttp3}")
     testImplementation("com.squareup.okhttp3:mockwebserver:${Versions.okhttp3}")
 }
