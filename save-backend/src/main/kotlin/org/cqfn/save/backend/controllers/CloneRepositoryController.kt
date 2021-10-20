@@ -2,7 +2,7 @@ package org.cqfn.save.backend.controllers
 
 import org.cqfn.save.backend.StringResponse
 import org.cqfn.save.backend.configs.ConfigProperties
-import org.cqfn.save.backend.repository.FileSystemRepository
+import org.cqfn.save.backend.repository.TimestampBasedFileSystemRepository
 import org.cqfn.save.backend.service.ExecutionService
 import org.cqfn.save.backend.service.ProjectService
 import org.cqfn.save.domain.FileInfo
@@ -41,7 +41,7 @@ import java.time.LocalDateTime
 class CloneRepositoryController(
     private val projectService: ProjectService,
     private val executionService: ExecutionService,
-    private val fileSystemRepository: FileSystemRepository,
+    private val fileSystemRepository: TimestampBasedFileSystemRepository,
     private val configProperties: ConfigProperties,
 ) {
     private val log = LoggerFactory.getLogger(CloneRepositoryController::class.java)

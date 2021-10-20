@@ -34,8 +34,8 @@ import kotlin.io.path.outputStream
  * A repository which gives access to the files in a designated file system location
  */
 @Repository
-class FileSystemRepository(configProperties: ConfigProperties) {
-    private val logger = LoggerFactory.getLogger(FileSystemRepository::class.java)
+class TimestampBasedFileSystemRepository(configProperties: ConfigProperties) {
+    private val logger = LoggerFactory.getLogger(TimestampBasedFileSystemRepository::class.java)
     private val rootDir = Paths.get(configProperties.fileStorage.location).apply {
         if (!exists()) {
             createDirectories()

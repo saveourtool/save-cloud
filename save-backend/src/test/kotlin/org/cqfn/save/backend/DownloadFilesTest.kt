@@ -5,7 +5,7 @@ import org.cqfn.save.backend.controllers.DownloadFilesController
 import org.cqfn.save.backend.repository.AgentRepository
 import org.cqfn.save.backend.repository.AgentStatusRepository
 import org.cqfn.save.backend.repository.ExecutionRepository
-import org.cqfn.save.backend.repository.FileSystemRepository
+import org.cqfn.save.backend.repository.TimestampBasedFileSystemRepository
 import org.cqfn.save.backend.repository.GitRepository
 import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.repository.TestExecutionRepository
@@ -44,7 +44,7 @@ import kotlin.io.path.name
 import kotlin.io.path.writeLines
 
 @WebFluxTest(controllers = [DownloadFilesController::class])
-@Import(FileSystemRepository::class)
+@Import(TimestampBasedFileSystemRepository::class)
 @AutoConfigureWebTestClient
 @EnableConfigurationProperties(ConfigProperties::class)
 @MockBeans(
@@ -63,7 +63,7 @@ class DownloadFilesTest {
     lateinit var webTestClient: WebTestClient
     
     @Autowired
-    private lateinit var fileSystemRepository: FileSystemRepository
+    private lateinit var fileSystemRepository: TimestampBasedFileSystemRepository
     
     @Autowired
     private lateinit var configProperties: ConfigProperties

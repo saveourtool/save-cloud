@@ -1,7 +1,7 @@
 package org.cqfn.save.backend.controllers
 
 import org.cqfn.save.backend.ByteArrayResponse
-import org.cqfn.save.backend.repository.FileSystemRepository
+import org.cqfn.save.backend.repository.TimestampBasedFileSystemRepository
 import org.cqfn.save.domain.FileInfo
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -23,7 +23,7 @@ import kotlin.io.path.name
  */
 @RestController
 class DownloadFilesController(
-    private val fileSystemRepository: FileSystemRepository,
+    private val fileSystemRepository: TimestampBasedFileSystemRepository,
 ) {
     private val logger = LoggerFactory.getLogger(DownloadFilesController::class.java)
 

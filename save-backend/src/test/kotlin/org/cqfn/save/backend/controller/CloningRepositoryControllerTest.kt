@@ -5,7 +5,7 @@ import org.cqfn.save.backend.controllers.CloneRepositoryController
 import org.cqfn.save.backend.repository.AgentRepository
 import org.cqfn.save.backend.repository.AgentStatusRepository
 import org.cqfn.save.backend.repository.ExecutionRepository
-import org.cqfn.save.backend.repository.FileSystemRepository
+import org.cqfn.save.backend.repository.TimestampBasedFileSystemRepository
 import org.cqfn.save.backend.repository.GitRepository
 import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.repository.TestExecutionRepository
@@ -50,7 +50,7 @@ import java.time.Duration
 import kotlin.io.path.createFile
 
 @WebFluxTest(controllers = [CloneRepositoryController::class])
-@Import(FileSystemRepository::class)
+@Import(TimestampBasedFileSystemRepository::class)
 @EnableConfigurationProperties(ConfigProperties::class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @MockBeans(
@@ -67,7 +67,7 @@ import kotlin.io.path.createFile
 )
 @Suppress("TOO_LONG_FUNCTION")
 class CloningRepositoryControllerTest {
-    @Autowired private lateinit var fileSystemRepository: FileSystemRepository
+    @Autowired private lateinit var fileSystemRepository: TimestampBasedFileSystemRepository
 
     @Autowired
     lateinit var webTestClient: WebTestClient
