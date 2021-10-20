@@ -29,7 +29,7 @@
             <column name="test_suite_ids" value="ALL" />
             <column name="resources_root_path" value="resources_root_path" />
             <column name="batch_size" value="20" />
-            <column name="type" value="GIT" />
+            <column name="type" value="STANDARD" />
             <column name="version" value="0.0.1" />
             <column name="passed_tests" value="0" />
             <column name="failed_tests" value="0" />
@@ -81,7 +81,7 @@
         <insert dbms="mysql" tableName="agent">
             <column name="id" value="3" />
             <column name="container_id" value="container-3" />
-            <column name="execution_id" value="2" />
+            <column name="execution_id" value="3" />
         </insert>
     </changeSet>
 
