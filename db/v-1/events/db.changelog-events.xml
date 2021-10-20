@@ -5,12 +5,10 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
 
-    <changeSet id="5" author="kgevorkyan" context="dev or prod">
-        <preConditions onFail="MARK_RAN">
-            <tableExists tableName="execution"/>
-        </preConditions>
-        <addColumn tableName="execution">
-            <column name="additional_files" type="text" defaultValue="null"/>
-        </addColumn>
+    <changeSet id="adding-event" author="aktsay">
+        <tagDatabase tag="v1.0 adding events"/>
     </changeSet>
+
+    <include file="event_scheduler.xml" relativeToChangelogFile="true"/>
+
 </databaseChangeLog>

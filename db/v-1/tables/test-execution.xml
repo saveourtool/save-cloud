@@ -27,10 +27,10 @@
             <column name="status" type="varchar(50)" defaultValue="READY">
                 <constraints nullable="false"/>
             </column>
-            <column name="start_time" type="DATETIME(3)">
+            <column name="start_time" type="DATETIME">
                 <constraints nullable="true"/>
             </column>
-            <column name="end_time" type="DATETIME(3)">
+            <column name="end_time" type="DATETIME">
                 <constraints nullable="true" />
             </column>
         </createTable>

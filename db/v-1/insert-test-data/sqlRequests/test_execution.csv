@@ -1,0 +1,31 @@
+id;test_id;agent_id;execution_id;status;start_time;end_time
+"APP_SEQ";"1";1;1;"IGNORED";"2021-01-01 00:00:00";"2021-01-01 00:00:30"
+"APP_SEQ";"2";1;1;"PASSED";"2021-01-01 00:00:32";"2021-01-01 00:00:57"
+"APP_SEQ";"3";3;1;"PASSED";"2021-01-01 00:00:00";"2021-01-01 00:00:35"
+"APP_SEQ";"4";2;1;"PASSED";"2021-01-01 00:00:00";"2021-01-01 00:00:33"
+"APP_SEQ";"5";1;1;"PASSED";"2021-01-01 00:01:01";"2021-01-01 00:01:19"
+"APP_SEQ";"6";null;1;"READY";null;null
+"APP_SEQ";"7";1;1;"FAILED";"2021-01-01 00:01:22";"2021-01-01 00:01:46"
+"APP_SEQ";"8";2;1;"PASSED";"2021-01-01 00:00:47";"2021-01-01 00:01:01"
+"APP_SEQ";"9";3;1;"PASSED";"2021-01-01 00:00:46";"2021-01-01 00:01:03"
+"APP_SEQ";"10";null;1;"READY";null;null
+"APP_SEQ";"11";1;1;"PASSED";"2021-01-01 00:01:48";"2021-01-01 00:02:00"
+"APP_SEQ";"12";1;1;"PASSED";"2021-01-01 00:02:05";"2021-01-01 00:02:31"
+"APP_SEQ";"13";2;1;"INTERNAL_ERROR";"2021-01-01 00:01:10";"2021-01-01 00:01:41"
+"APP_SEQ";"14";1;1;"READY";"2021-01-01 00:02:40";"2021-01-01 00:02:59"
+"APP_SEQ";"15";3;1;"RUNNING";"2021-01-01 00:01:08";null
+"APP_SEQ";"16";2;1;"RUNNING";"2021-01-01 00:01:51";null
+"APP_SEQ";"17";1;1;"PASSED";"2021-01-01 00:03:07";"2021-01-01 00:03:44"
+"APP_SEQ";"18";1;1;"RUNNING";"2021-01-01 00:03:50";null
+"APP_SEQ";"19";null;1;"READY";null;null
+"APP_SEQ";"20";null;1;"READY";null;null
+"APP_SEQ";"21";null;1;"READY";null;null
+"APP_SEQ";"22";null;1;"READY";null;null
+"APP_SEQ";"23";null;1;"READY";null;null
+"APP_SEQ";"24";null;1;"READY";null;null
+"APP_SEQ";"25";null;1;"READY";null;null
+"APP_SEQ";"26";null;1;"READY";null;null
+"APP_SEQ";"27";null;1;"READY";null;null
+"APP_SEQ";"28";null;1;"READY";null;null
+"APP_SEQ";"29";3;3;"READY";null;null
+"APP_SEQ";"30";3;3;"READY";null;null
