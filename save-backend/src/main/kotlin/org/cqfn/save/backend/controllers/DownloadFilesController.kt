@@ -86,7 +86,8 @@ class DownloadFilesController(
                 )
 
     /**
-     * @param file a file to be uploaded
+     * @param agentContainerId agent that has executed the test
+     * @param testResultDebugInfo additional info that should be stored
      * @return [Mono] with response
      */
     @PostMapping(value = ["/files/debug-info"])

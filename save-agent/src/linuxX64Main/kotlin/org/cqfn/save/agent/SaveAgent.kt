@@ -1,6 +1,7 @@
 package org.cqfn.save.agent
 
 import org.cqfn.save.agent.utils.readFile
+import org.cqfn.save.agent.utils.sendDataToBackend
 import org.cqfn.save.core.logging.describe
 import org.cqfn.save.core.logging.logDebug
 import org.cqfn.save.core.logging.logError
@@ -10,9 +11,12 @@ import org.cqfn.save.core.result.Crash
 import org.cqfn.save.core.result.Fail
 import org.cqfn.save.core.result.Ignored
 import org.cqfn.save.core.result.Pass
+import org.cqfn.save.core.result.TestResult
 import org.cqfn.save.core.result.TestStatus
 import org.cqfn.save.core.utils.ExecutionResult
 import org.cqfn.save.core.utils.ProcessBuilder
+import org.cqfn.save.domain.TestResultDebugInfo
+import org.cqfn.save.domain.TestResultLocation
 import org.cqfn.save.domain.TestResultStatus
 import org.cqfn.save.plugins.fix.FixPlugin
 import org.cqfn.save.reporter.Report
@@ -42,12 +46,10 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
-import org.cqfn.save.agent.utils.sendDataToBackend
-import org.cqfn.save.domain.TestResultDebugInfo
-import org.cqfn.save.domain.TestResultLocation
 
 /**
  * A main class for SAVE Agent
+ * @property config
  */
 @OptIn(ExperimentalFileSystem::class)
 class SaveAgent(internal val config: AgentConfiguration,
@@ -165,17 +167,7 @@ class SaveAgent(internal val config: AgentConfiguration,
         reports.flatMap { report ->
             report.pluginExecutions.flatMap { pe ->
                 pe.testResults.map { tr ->
-                    TestResultDebugInfo(
-                        TestResultLocation(
-                            report.testSuite,
-                            pe.plugin,
-                            tr.resources.test.parent!!.toString(),
-                            tr.resources.test.name
-                        ),
-                        tr.debugInfo?.stdout,
-                        tr.debugInfo?.stderr,
-                        tr.debugInfo?.durationMillis,
-                    )
+                    tr.toTestResultDebugInfo(report.testSuite, pe.plugin)
                 }
             }
         }.forEach {
@@ -277,4 +269,17 @@ class SaveAgent(internal val config: AgentConfiguration,
         is Crash -> TestResultStatus.TEST_ERROR
         else -> error("Unknown test status $this")
     }
+
+    private fun TestResult.toTestResultDebugInfo(testSuiteName: String, pluginName: String) =
+            TestResultDebugInfo(
+                TestResultLocation(
+                    testSuiteName,
+                    pluginName,
+                    resources.test.parent!!.toString(),
+                    resources.test.name
+                ),
+                debugInfo?.stdout,
+                debugInfo?.stderr,
+                debugInfo?.durationMillis,
+            )
 }

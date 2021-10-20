@@ -7,7 +7,6 @@ import org.cqfn.save.backend.repository.TestDataFilesystemRepository
 import org.cqfn.save.backend.repository.TestExecutionRepository
 import org.cqfn.save.backend.repository.TestRepository
 import org.cqfn.save.backend.utils.secondsToLocalDateTime
-import org.cqfn.save.domain.TestResultLocation
 import org.cqfn.save.domain.TestResultStatus
 import org.cqfn.save.entities.TestExecution
 import org.cqfn.save.test.TestDto
@@ -16,8 +15,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.nio.file.Paths
-import kotlin.io.path.name
 
 /**
  * Service for test result

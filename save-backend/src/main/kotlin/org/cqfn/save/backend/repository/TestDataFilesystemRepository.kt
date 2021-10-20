@@ -1,24 +1,33 @@
 package org.cqfn.save.backend.repository
 
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import org.cqfn.save.backend.configs.ConfigProperties
 import org.cqfn.save.core.result.DebugInfo
 import org.cqfn.save.domain.TestResultDebugInfo
 import org.cqfn.save.domain.TestResultLocation
 import org.cqfn.save.entities.TestExecution
+
 import org.springframework.core.io.FileSystemResource
 import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Transactional
+
 import java.nio.file.Path
 import java.nio.file.Paths
+
 import kotlin.io.path.createDirectories
 import kotlin.io.path.div
 import kotlin.io.path.exists
 import kotlin.io.path.name
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
+/**
+ * A repository for storing additional data associated with test results
+ */
 @Repository
 class TestDataFilesystemRepository(configProperties: ConfigProperties) {
+    /**
+     * Root directory for storing test data
+     */
     internal val root: Path = (Paths.get(configProperties.fileStorage.location) / "debugInfo").apply {
         if (!exists()) {
             createDirectories()
@@ -27,12 +36,15 @@ class TestDataFilesystemRepository(configProperties: ConfigProperties) {
 
     /**
      * Store provided [testResultDebugInfo] associated with [executionId]
+     *
+     * @param executionId
+     * @param testResultDebugInfo
      */
     fun save(
         executionId: Long,
         testResultDebugInfo: TestResultDebugInfo,
     ) {
-        with (testResultDebugInfo) {
+        with(testResultDebugInfo) {
             val destination = testResultLocation.toFsResource(executionId).file
             destination.parentFile.mkdirs()
             destination.writeText(
@@ -41,12 +53,16 @@ class TestDataFilesystemRepository(configProperties: ConfigProperties) {
         }
     }
 
-    private fun TestResultLocation.toFsResource(executionId: Long): FileSystemResource {
-        return FileSystemResource(
-            getLocation(executionId, this)
-        )
-    }
+    private fun TestResultLocation.toFsResource(executionId: Long) = FileSystemResource(
+        getLocation(executionId, this)
+    )
 
+    /**
+     * Get location of additional data for [testExecution]
+     *
+     * @param testExecution a `TestExecution` that exists in the DB
+     * @return path to file with additional data
+     */
     @Transactional
     fun getLocation(testExecution: TestExecution): Path {
         val test = testExecution.test
@@ -55,9 +71,12 @@ class TestDataFilesystemRepository(configProperties: ConfigProperties) {
         return getLocation(testExecution.executionId, testResultLocation)
     }
 
-    fun getLocation(executionId: Long, testResultLocation: TestResultLocation): Path {
-        return with(testResultLocation) {
-            root / "$executionId" / pluginName / testSuiteName / testLocation / "$testName-debug.json"
-        }
+    /**
+     * @param executionId
+     * @param testResultLocation
+     * @return path to file with additional data
+     */
+    fun getLocation(executionId: Long, testResultLocation: TestResultLocation) = with(testResultLocation) {
+        root / executionId.toString() / pluginName / testSuiteName / testLocation / "$testName-debug.json"
     }
 }

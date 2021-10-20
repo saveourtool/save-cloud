@@ -14,10 +14,10 @@ import kotlinx.serialization.Serializable
  * @property orchestratorUrl URL of SAVE orchestrator
  * @property heartbeat configuration of heartbeats
  * @property requestTimeoutMillis timeout for all http request
- * @property executionDataRetryAttempts number of retries when sending execution data
- * @property executionDataInitialRetryMillis interval between successive attempts to send execution data
  * @property cliCommand a command that agent will use to run SAVE cli
  * @property debug whether debug logging should be enabled
+ * @property retry configuration for HTTP request retries
+ * @property logFilePath path to logs of save-cli execution
  */
 @Serializable
 data class AgentConfiguration(
@@ -54,6 +54,10 @@ data class BackendConfig(
     val executionDataEndpoint: String = "saveTestResult",
 )
 
+/**
+ * @property attempts
+ * @property initialRetryMillis
+ */
 @Serializable
 data class RetryConfig(
     val attempts: Int,

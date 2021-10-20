@@ -5,13 +5,13 @@ import org.cqfn.save.backend.controllers.DownloadFilesController
 import org.cqfn.save.backend.repository.AgentRepository
 import org.cqfn.save.backend.repository.AgentStatusRepository
 import org.cqfn.save.backend.repository.ExecutionRepository
-import org.cqfn.save.backend.repository.TimestampBasedFileSystemRepository
 import org.cqfn.save.backend.repository.GitRepository
 import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.repository.TestDataFilesystemRepository
 import org.cqfn.save.backend.repository.TestExecutionRepository
 import org.cqfn.save.backend.repository.TestRepository
 import org.cqfn.save.backend.repository.TestSuiteRepository
+import org.cqfn.save.backend.repository.TimestampBasedFileSystemRepository
 import org.cqfn.save.backend.scheduling.StandardSuitesUpdateScheduler
 import org.cqfn.save.domain.FileInfo
 import org.cqfn.save.domain.TestResultDebugInfo
@@ -41,6 +41,7 @@ import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.test.web.reactive.server.expectBodyList
 import org.springframework.web.reactive.function.BodyInserters
+
 import java.nio.file.Path
 import java.nio.file.Paths
 
@@ -143,10 +144,10 @@ class DownloadFilesTest {
 
     @Test
     fun `should save test data`() {
-        val mock = mock<Execution>()
-        whenever(mock.id).thenReturn(1)
+        val execution: Execution = mock()
+        whenever(execution.id).thenReturn(1)
         whenever(agentRepository.findByContainerId("container-1"))
-            .thenReturn(Agent("container-1", mock, "0.0.1"))
+            .thenReturn(Agent("container-1", execution, "0.0.1"))
 
         webTestClient.post().uri("/files/debug-info?agentId=container-1")
             .contentType(MediaType.APPLICATION_JSON)
@@ -167,7 +168,6 @@ class DownloadFilesTest {
             true
         }
     }
-
 
     companion object {
         @TempDir internal lateinit var tmpDir: Path
