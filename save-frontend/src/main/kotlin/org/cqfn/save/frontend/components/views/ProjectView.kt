@@ -1,7 +1,8 @@
-file:@Suppress("WildcardImport")
 /**
  * A view with project details
  */
+
+@file:Suppress("WildcardImport", "FILE_WILDCARD_IMPORTS")
 
 package org.cqfn.save.frontend.components.views
 
@@ -14,8 +15,10 @@ import org.cqfn.save.entities.ExecutionRequestForStandardSuites
 import org.cqfn.save.entities.GitDto
 import org.cqfn.save.entities.Project
 import org.cqfn.save.execution.ExecutionDto
+import org.cqfn.save.frontend.components.basic.*
 import org.cqfn.save.frontend.externals.fontawesome.faCalendarAlt
 import org.cqfn.save.frontend.externals.fontawesome.faHistory
+import org.cqfn.save.frontend.externals.fontawesome.faQuestionCircle
 import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
 import org.cqfn.save.frontend.externals.modal.modal
 import org.cqfn.save.frontend.utils.appendJson
@@ -35,7 +38,7 @@ import react.PropsWithChildren
 import react.RBuilder
 import react.RComponent
 import react.State
-import react.dom.ReactHTML.b
+import react.dom.*
 import react.setState
 
 import kotlinx.browser.window
@@ -49,9 +52,6 @@ import kotlinx.html.js.onClickFunction
 import kotlinx.html.role
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.cqfn.save.frontend.components.basic.*
-import org.cqfn.save.frontend.externals.fontawesome.faQuestionCircle
-import react.dom.*
 
 /**
  * `Props` retrieved from router
@@ -285,14 +285,14 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                         div("mr-2") {
                             button(type = ButtonType.button) {
                                 attrs.classes =
-                                    if (state.isFirstTypeUpload == true) {
-                                        setOf("btn", "btn-primary")
-                                    } else {
-                                        setOf(
-                                            "btn",
-                                            "btn-outline-primary"
-                                        )
-                                    }
+                                        if (state.isFirstTypeUpload == true) {
+                                            setOf("btn", "btn-primary")
+                                        } else {
+                                            setOf(
+                                                "btn",
+                                                "btn-outline-primary"
+                                            )
+                                        }
                                 attrs.onClickFunction = {
                                     setState {
                                         isFirstTypeUpload = true
@@ -304,14 +304,14 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                         div("mt-3 mr-2") {
                             button(type = ButtonType.button, classes = "btn btn-link collapsed") {
                                 attrs.classes =
-                                    if (state.isFirstTypeUpload == true) {
-                                        setOf("btn", "btn-outline-primary")
-                                    } else {
-                                        setOf(
-                                            "btn",
-                                            "btn-primary"
-                                        )
-                                    }
+                                        if (state.isFirstTypeUpload == true) {
+                                            setOf("btn", "btn-outline-primary")
+                                        } else {
+                                            setOf(
+                                                "btn",
+                                                "btn-primary"
+                                            )
+                                        }
                                 attrs.onClickFunction = {
                                     setState {
                                         isFirstTypeUpload = false
@@ -414,9 +414,9 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                                         attrs["tooltip-title"] = ""
                                         attrs["popover-placement"] = "left"
                                         attrs["popover-title"] =
-                                            "Use the following link to read more about save format:"
+                                                "Use the following link to read more about save format:"
                                         attrs["popover-content"] =
-                                            "<a href =\"https://github.com/cqfn/save/blob/main/README.md\" > Save core README </a>"
+                                                "<a href =\"https://github.com/cqfn/save/blob/main/README.md\" > Save core README </a>"
                                         attrs["data-trigger"] = "focus"
                                         attrs["tabindex"] = "0"
                                     }
@@ -451,7 +451,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                                         attrs["tooltip-title"] = ""
                                         attrs["popover-placement"] = "left"
                                         attrs["popover-title"] = "Relative path to the root directory with tests"
-                                        attrs["popover-content"] = testRootDirHint
+                                        attrs["popover-content"] = TEST_ROOT_DIR_HINT
                                         attrs["data-trigger"] = "focus"
                                         attrs["tabindex"] = "0"
                                     }
@@ -580,7 +580,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
             setState {
                 errorLabel = "Failed to fetch latest execution"
                 errorMessage =
-                    "Failed to fetch latest execution: ${response.status} ${response.statusText}"
+                        "Failed to fetch latest execution: ${response.status} ${response.statusText}"
                 isErrorOpen = true
             }
         } else {
@@ -597,7 +597,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
         }
 
     companion object {
-        const val testRootDirHint = """
+        const val TEST_ROOT_DIR_HINT = """
             The path you are providing should be relative to the root directory of your repository.
             This directory should contain <a href = "https://github.com/cqfn/save#how-to-configure"> save.properties </a>
             or <a href = "https://github.com/cqfn/save#-savetoml-configuration-file">save.toml</a> files. 

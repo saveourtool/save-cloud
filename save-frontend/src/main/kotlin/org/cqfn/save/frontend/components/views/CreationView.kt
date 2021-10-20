@@ -1,50 +1,40 @@
-file:@Suppress("WildcardImport")
 /**
  * A view with project creation details
  */
 
+@file:Suppress("WildcardImport", "FILE_WILDCARD_IMPORTS")
+
 package org.cqfn.save.frontend.components.views
 
-import kotlinx.browser.window
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import org.cqfn.save.frontend.utils.runErrorModal
-
-import org.w3c.dom.HTMLInputElement
-import org.w3c.dom.HTMLTextAreaElement
-import org.w3c.dom.events.Event
-import org.w3c.fetch.Response
-import react.PropsWithChildren
-import react.RBuilder
-import react.RComponent
-import react.State
-import react.setState
-
-import kotlinx.html.ButtonType
-import kotlinx.html.InputType
-import kotlinx.html.js.onChangeFunction
-import kotlinx.html.js.onClickFunction
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import org.cqfn.save.entities.GitDto
 import org.cqfn.save.entities.NewProjectDto
 import org.cqfn.save.entities.Project
 import org.cqfn.save.frontend.externals.fontawesome.faQuestionCircle
 import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
 import org.cqfn.save.frontend.utils.post
-import org.w3c.fetch.Headers
-import react.dom.*
+import org.cqfn.save.frontend.utils.runErrorModal
 
-internal enum class InputTypes(val str: String) {
-    OWNER("owner name"),
-    PROJECT_NAME("project name"),
-    PROJECT_URL("project Url"),
-    DESCRIPTION("project description"),
-    GIT_URL("git Url"),
-    GIT_USER("git username"),
-    GIT_TOKEN("git token"),
-    GIT_BRANCH("git branch")
-}
+import org.w3c.dom.HTMLInputElement
+import org.w3c.dom.HTMLTextAreaElement
+import org.w3c.dom.events.Event
+import org.w3c.fetch.Headers
+import org.w3c.fetch.Response
+import react.PropsWithChildren
+import react.RBuilder
+import react.RComponent
+import react.State
+import react.dom.*
+import react.setState
+
+import kotlinx.browser.window
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.html.ButtonType
+import kotlinx.html.InputType
+import kotlinx.html.js.onChangeFunction
+import kotlinx.html.js.onClickFunction
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 /**
  * [RState] of project creation view component
@@ -113,8 +103,8 @@ class CreationView : RComponent<PropsWithChildren, ProjectSaveViewState>() {
         if (isProject) fieldsMap[fieldName] = tg.value else fieldsMap[fieldName] = tg.value
     }
 
-    @Suppress("UnsafeCallOnNullableType")
-    private fun saveProject(e: Event) {
+    @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
+    private fun saveProject() {
         if (!isValidInput()) {
             return
         }
@@ -138,11 +128,11 @@ class CreationView : RComponent<PropsWithChildren, ProjectSaveViewState>() {
         }
         GlobalScope.launch {
             responseFromCreationProject =
-                post("${window.location.origin}/saveProject", headers, Json.encodeToString(newProjectRequest))
+                    post("${window.location.origin}/saveProject", headers, Json.encodeToString(newProjectRequest))
         }.invokeOnCompletion {
             if (responseFromCreationProject.ok) {
                 window.location.href =
-                    "${window.location.origin}#/${newProjectRequest.project.owner}/${newProjectRequest.project.name}"
+                        "${window.location.origin}#/${newProjectRequest.project.owner}/${newProjectRequest.project.name}"
             } else {
                 responseFromCreationProject.text().then {
                     setState {
@@ -158,6 +148,7 @@ class CreationView : RComponent<PropsWithChildren, ProjectSaveViewState>() {
      * A little bit ugly method with code duplication due to different states.
      * FixMe: May be it will be possible to optimize it in the future, now we don't have time.
      */
+    @Suppress("TOO_LONG_FUNCTION", "SAY_NO_TO_VAR")
     private fun isValidInput(): Boolean {
         var valid = true
         if (fieldsMap[InputTypes.OWNER].isNullOrBlank()) {
@@ -266,11 +257,10 @@ class CreationView : RComponent<PropsWithChildren, ProjectSaveViewState>() {
                                         }
                                     }
                                 }
-
                             }
                             button(type = ButtonType.submit, classes = "btn btn-primary mt-4") {
                                 +"Create"
-                                attrs.onClickFunction = { saveProject(it) }
+                                attrs.onClickFunction = { saveProject() }
                             }
                         }
                     }
@@ -279,88 +269,106 @@ class CreationView : RComponent<PropsWithChildren, ProjectSaveViewState>() {
         }
     }
 
+    @Suppress("TOO_LONG_FUNCTION")
     private fun RBuilder.inputTextFormRequired(
-        form: InputTypes, classes: String,
+        form: InputTypes,
+        classes: String,
         text: String,
         onChangeFun: (Event) -> Unit
     ) =
-        div("$classes pl-2 pr-2") {
-            label("form-label") {
-                attrs.set("for", form.name)
-                +text
-            }
-
-            if (form == InputTypes.GIT_TOKEN) {
-                sup("tooltip-and-popover") {
-                    fontAwesomeIcon(icon = faQuestionCircle)
-                    attrs["tooltip-placement"] = "top"
-                    attrs["tooltip-title"] = ""
-                    attrs["popover-placement"] = "right"
-                    attrs["popover-title"] = "Not working"
-                    attrs["popover-content"] = "Not working"
-                    attrs["data-trigger"] = "focus"
-                    attrs["tabindex"] = "0"
+            div("$classes pl-2 pr-2") {
+                label("form-label") {
+                    attrs.set("for", form.name)
+                    +text
                 }
-            }
 
-            val validInput = when (form) {
-                InputTypes.OWNER -> state.isValidOwner
-                InputTypes.PROJECT_NAME -> state.isValidProjectName
-                InputTypes.GIT_URL -> state.isValidGitUrl
-                InputTypes.GIT_USER -> state.isValidGitUser
-                InputTypes.GIT_TOKEN -> state.isValidGitToken
-                else -> true
-            }
-
-            input(type = InputType.text) {
-                attrs {
-                    onChangeFunction = onChangeFun
-                }
-                attrs["id"] = form.name
-                attrs["required"] = true
-                if (validInput!!) {
-                    attrs["class"] = "form-control"
-                } else {
-                    attrs["class"] = "form-control is-invalid"
-                }
-            }
-            if (!validInput!!) {
-                if (form == InputTypes.GIT_URL) {
-                    div("invalid-feedback d-block") {
-                        +"Input a valid URL. Note: spaces are not allowed and URL should start from http"
-                    }
-                } else {
-                    div("invalid-feedback d-block") {
-                        +"Please input a valid ${form.str}"
+                if (form == InputTypes.GIT_TOKEN) {
+                    sup("tooltip-and-popover") {
+                        fontAwesomeIcon(icon = faQuestionCircle)
+                        attrs["tooltip-placement"] = "top"
+                        attrs["tooltip-title"] = ""
+                        attrs["popover-placement"] = "right"
+                        attrs["popover-title"] = "Not working"
+                        attrs["popover-content"] = "Not working"
+                        attrs["data-trigger"] = "focus"
+                        attrs["tabindex"] = "0"
                     }
                 }
-            }
-        }
 
-    private fun RBuilder.inputTextFormOptional(
-        form: InputTypes, classes: String,
-        text: String,
-        onChangeFun: (Event) -> Unit
-    ) =
-        div("$classes pl-2 pr-2") {
-            label("form-label") {
-                attrs.set("for", form.name)
-                +text
-            }
-            div("input-group has-validation") {
-                span("input-group-text") {
-                    attrs["id"] = "${form.name}Span"
-                    +"Optional"
+                val validInput = when (form) {
+                    InputTypes.OWNER -> state.isValidOwner
+                    InputTypes.PROJECT_NAME -> state.isValidProjectName
+                    InputTypes.GIT_URL -> state.isValidGitUrl
+                    InputTypes.GIT_USER -> state.isValidGitUser
+                    InputTypes.GIT_TOKEN -> state.isValidGitToken
+                    else -> true
                 }
+
                 input(type = InputType.text) {
                     attrs {
                         onChangeFunction = onChangeFun
                     }
-                    attrs["aria-describedby"] = "${form.name}Span"
                     attrs["id"] = form.name
-                    attrs["required"] = false
-                    attrs["class"] = "form-control"
+                    attrs["required"] = true
+                    if (validInput!!) {
+                        attrs["class"] = "form-control"
+                    } else {
+                        attrs["class"] = "form-control is-invalid"
+                    }
+                }
+                if (!validInput!!) {
+                    if (form == InputTypes.GIT_URL) {
+                        div("invalid-feedback d-block") {
+                            +"Input a valid URL. Note: spaces are not allowed and URL should start from http"
+                        }
+                    } else {
+                        div("invalid-feedback d-block") {
+                            +"Please input a valid ${form.str}"
+                        }
+                    }
                 }
             }
-        }
+
+    private fun RBuilder.inputTextFormOptional(
+        form: InputTypes,
+        classes: String,
+        text: String,
+        onChangeFun: (Event) -> Unit
+    ) =
+            div("$classes pl-2 pr-2") {
+                label("form-label") {
+                    attrs.set("for", form.name)
+                    +text
+                }
+                div("input-group has-validation") {
+                    span("input-group-text") {
+                        attrs["id"] = "${form.name}Span"
+                        +"Optional"
+                    }
+                    input(type = InputType.text) {
+                        attrs {
+                            onChangeFunction = onChangeFun
+                        }
+                        attrs["aria-describedby"] = "${form.name}Span"
+                        attrs["id"] = form.name
+                        attrs["required"] = false
+                        attrs["class"] = "form-control"
+                    }
+                }
+            }
+}
+
+/**
+ * @property str
+ */
+internal enum class InputTypes(val str: String) {
+    DESCRIPTION("project description"),
+    GIT_BRANCH("git branch"),
+    GIT_TOKEN("git token"),
+    GIT_URL("git Url"),
+    GIT_USER("git username"),
+    OWNER("owner name"),
+    PROJECT_NAME("project name"),
+    PROJECT_URL("project Url"),
+    ;
 }
