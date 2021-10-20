@@ -14,6 +14,7 @@ import org.springframework.http.codec.multipart.FilePart
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RequestPart
 import org.springframework.web.bind.annotation.RestController
@@ -26,6 +27,7 @@ import kotlin.io.path.name
  * A Spring controller for file downloading
  */
 @RestController
+@RequestMapping("/files")
 class DownloadFilesController(
     private val fileSystemRepository: TimestampBasedFileSystemRepository,
     private val testDataFilesystemRepository: TestDataFilesystemRepository,
@@ -36,7 +38,7 @@ class DownloadFilesController(
     /**
      * @return a list of files in [fileSystemRepository]
      */
-    @GetMapping("/files/list")
+    @GetMapping("/list")
     fun list(): List<FileInfo> = fileSystemRepository.getFilesList().map {
         FileInfo(
             it.name,
@@ -50,7 +52,7 @@ class DownloadFilesController(
      * @param fileInfo a FileInfo based on which a file should be located
      * @return [Mono] with file contents
      */
-    @GetMapping(value = ["/files/download"], produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
+    @GetMapping(value = ["/download"], produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
     fun download(@RequestBody fileInfo: FileInfo): Mono<ByteArrayResponse> = Mono.fromCallable {
         logger.info("Sending file ${fileInfo.name} to a client")
         ResponseEntity.ok().contentType(MediaType.APPLICATION_OCTET_STREAM).body(
@@ -72,7 +74,7 @@ class DownloadFilesController(
      * @param file a file to be uploaded
      * @return [Mono] with response
      */
-    @PostMapping(value = ["/files/upload"], consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
+    @PostMapping(value = ["/upload"], consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     fun upload(@RequestPart("file") file: Mono<FilePart>) =
             fileSystemRepository.saveFile(file).map { fileInfo ->
                 ResponseEntity.status(
@@ -90,7 +92,8 @@ class DownloadFilesController(
      * @param testResultDebugInfo additional info that should be stored
      * @return [Mono] with response
      */
-    @PostMapping(value = ["/files/debug-info"])
+    @PostMapping(value = ["/debug-info"])
+    @Suppress("UnsafeCallOnNullableType")
     fun uploadDebugInfo(@RequestParam("agentId") agentContainerId: String,
                         @RequestBody testResultDebugInfo: TestResultDebugInfo,
     ) {

@@ -55,8 +55,8 @@ data class BackendConfig(
 )
 
 /**
- * @property attempts
- * @property initialRetryMillis
+ * @property attempts number of retries when sending data
+ * @property initialRetryMillis interval between successive attempts to send data
  */
 @Serializable
 data class RetryConfig(
