@@ -3,34 +3,33 @@ package org.cqfn.save.backend.service
 import org.cqfn.save.agent.TestExecutionDto
 import org.cqfn.save.backend.repository.AgentRepository
 import org.cqfn.save.backend.repository.ExecutionRepository
+import org.cqfn.save.backend.repository.TestDataFilesystemRepository
 import org.cqfn.save.backend.repository.TestExecutionRepository
 import org.cqfn.save.backend.repository.TestRepository
 import org.cqfn.save.backend.utils.secondsToLocalDateTime
+import org.cqfn.save.domain.TestResultLocation
 import org.cqfn.save.domain.TestResultStatus
 import org.cqfn.save.entities.TestExecution
 import org.cqfn.save.test.TestDto
 
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.nio.file.Paths
+import kotlin.io.path.name
 
 /**
  * Service for test result
  */
 @Service
-class TestExecutionService(private val testExecutionRepository: TestExecutionRepository) {
+class TestExecutionService(private val testExecutionRepository: TestExecutionRepository,
+                           private val testRepository: TestRepository,
+                           private val agentRepository: AgentRepository,
+                           private val executionRepository: ExecutionRepository,
+                           private val testDataFilesystemRepository: TestDataFilesystemRepository,
+) {
     private val log = LoggerFactory.getLogger(TestExecutionService::class.java)
-
-    @Autowired
-    private lateinit var testRepository: TestRepository
-
-    @Autowired
-    private lateinit var agentRepository: AgentRepository
-
-    @Autowired
-    private lateinit var executionRepository: ExecutionRepository
 
     /**
      * Returns a page of [TestExecution]s with [executionId]
@@ -116,7 +115,8 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
                 val id = testExecutionRepository.save(
                     TestExecution(test,
                         executionId,
-                        null, TestResultStatus.READY, null, null)
+                        null, TestResultStatus.READY, null, null,
+                    )
                 )
                 log.debug("Created TestExecution $id for test $testId")
             },

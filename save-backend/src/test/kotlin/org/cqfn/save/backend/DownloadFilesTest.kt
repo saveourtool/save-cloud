@@ -8,15 +8,22 @@ import org.cqfn.save.backend.repository.ExecutionRepository
 import org.cqfn.save.backend.repository.TimestampBasedFileSystemRepository
 import org.cqfn.save.backend.repository.GitRepository
 import org.cqfn.save.backend.repository.ProjectRepository
+import org.cqfn.save.backend.repository.TestDataFilesystemRepository
 import org.cqfn.save.backend.repository.TestExecutionRepository
 import org.cqfn.save.backend.repository.TestRepository
 import org.cqfn.save.backend.repository.TestSuiteRepository
 import org.cqfn.save.backend.scheduling.StandardSuitesUpdateScheduler
 import org.cqfn.save.domain.FileInfo
+import org.cqfn.save.domain.TestResultDebugInfo
+import org.cqfn.save.domain.TestResultLocation
+import org.cqfn.save.entities.Agent
+import org.cqfn.save.entities.Execution
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
@@ -44,12 +51,11 @@ import kotlin.io.path.name
 import kotlin.io.path.writeLines
 
 @WebFluxTest(controllers = [DownloadFilesController::class])
-@Import(TimestampBasedFileSystemRepository::class)
+@Import(TimestampBasedFileSystemRepository::class, TestDataFilesystemRepository::class)
 @AutoConfigureWebTestClient
 @EnableConfigurationProperties(ConfigProperties::class)
 @MockBeans(
     MockBean(AgentStatusRepository::class),
-    MockBean(AgentRepository::class),
     MockBean(ExecutionRepository::class),
     MockBean(ProjectRepository::class),
     MockBean(TestExecutionRepository::class),
@@ -64,9 +70,15 @@ class DownloadFilesTest {
     
     @Autowired
     private lateinit var fileSystemRepository: TimestampBasedFileSystemRepository
-    
+
+    @Autowired
+    private lateinit var dataFilesystemRepository: TestDataFilesystemRepository
+
     @Autowired
     private lateinit var configProperties: ConfigProperties
+
+    @MockBean
+    private lateinit var agentRepository: AgentRepository
 
     @Test
     fun `should download a file`() {
@@ -128,6 +140,34 @@ class DownloadFilesTest {
                 )
             }
     }
+
+    @Test
+    fun `should save test data`() {
+        val mock = mock<Execution>()
+        whenever(mock.id).thenReturn(1)
+        whenever(agentRepository.findByContainerId("container-1"))
+            .thenReturn(Agent("container-1", mock, "0.0.1"))
+
+        webTestClient.post().uri("/files/debug-info?agentId=container-1")
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(
+                TestResultDebugInfo(
+                    TestResultLocation("suite1", "plugin1", "path/to/test", "Test.test"),
+                    "stdout",
+                    "stderr",
+                    42L
+                )
+            )
+            .exchange()
+            .expectStatus()
+            .isOk
+
+        dataFilesystemRepository.root.toFile().walk().onEnter {
+            println(it.absolutePath)
+            true
+        }
+    }
+
 
     companion object {
         @TempDir internal lateinit var tmpDir: Path

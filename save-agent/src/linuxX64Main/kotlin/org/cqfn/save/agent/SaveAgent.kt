@@ -43,7 +43,8 @@ import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
 import org.cqfn.save.agent.utils.sendDataToBackend
-import org.cqfn.save.reporter.PluginExecution
+import org.cqfn.save.domain.TestResultDebugInfo
+import org.cqfn.save.domain.TestResultLocation
 
 /**
  * A main class for SAVE Agent
@@ -164,7 +165,17 @@ class SaveAgent(internal val config: AgentConfiguration,
         reports.flatMap { report ->
             report.pluginExecutions.flatMap { pe ->
                 pe.testResults.map { tr ->
-                    Report(report.testSuite, listOf(PluginExecution(pe.plugin, listOf(tr))))
+                    TestResultDebugInfo(
+                        TestResultLocation(
+                            report.testSuite,
+                            pe.plugin,
+                            tr.resources.test.parent!!.toString(),
+                            tr.resources.test.name
+                        ),
+                        tr.debugInfo?.stdout,
+                        tr.debugInfo?.stderr,
+                        tr.debugInfo?.durationMillis,
+                    )
                 }
             }
         }.forEach {
@@ -225,10 +236,10 @@ class SaveAgent(internal val config: AgentConfiguration,
         body = executionLogs
     }
 
-    private suspend fun sendReport(report: Report) = httpClient.post<HttpResponse> {
+    private suspend fun sendReport(testResultDebugInfo: TestResultDebugInfo) = httpClient.post<HttpResponse> {
         url("${config.backend.url}/files/debug-info?agentId=${config.id}")
-        contentType(ContentType.Application.Json)
-        body = report
+        contentType(ContentType.MultiPart.FormData)
+        body = testResultDebugInfo
     }
 
     /**

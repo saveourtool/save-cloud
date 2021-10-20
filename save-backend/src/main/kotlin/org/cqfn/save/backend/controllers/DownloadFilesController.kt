@@ -1,8 +1,11 @@
 package org.cqfn.save.backend.controllers
 
 import org.cqfn.save.backend.ByteArrayResponse
+import org.cqfn.save.backend.repository.AgentRepository
+import org.cqfn.save.backend.repository.TestDataFilesystemRepository
 import org.cqfn.save.backend.repository.TimestampBasedFileSystemRepository
 import org.cqfn.save.domain.FileInfo
+import org.cqfn.save.domain.TestResultDebugInfo
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -11,6 +14,7 @@ import org.springframework.http.codec.multipart.FilePart
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RequestPart
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
@@ -24,6 +28,8 @@ import kotlin.io.path.name
 @RestController
 class DownloadFilesController(
     private val fileSystemRepository: TimestampBasedFileSystemRepository,
+    private val testDataFilesystemRepository: TestDataFilesystemRepository,
+    private val agentRepository: AgentRepository,
 ) {
     private val logger = LoggerFactory.getLogger(DownloadFilesController::class.java)
 
@@ -78,4 +84,16 @@ class DownloadFilesController(
                     FileAlreadyExistsException::class.java,
                     ResponseEntity.status(HttpStatus.CONFLICT).build()
                 )
+
+    /**
+     * @param file a file to be uploaded
+     * @return [Mono] with response
+     */
+    @PostMapping(value = ["/files/debug-info"])
+    fun uploadDebugInfo(@RequestParam("agentId") agentContainerId: String,
+                        @RequestBody testResultDebugInfo: TestResultDebugInfo,
+    ) {
+        val executionId = agentRepository.findByContainerId(agentContainerId)!!.execution.id!!
+        testDataFilesystemRepository.save(executionId, testResultDebugInfo)
+    }
 }
