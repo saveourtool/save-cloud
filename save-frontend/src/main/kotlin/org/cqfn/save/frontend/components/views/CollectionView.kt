@@ -32,7 +32,7 @@ class CollectionView : RComponent<PropsWithChildren, State>() {
         div {
             button(type = ButtonType.button, classes = "btn btn-primary btn-lg mb-2") {
                 a(classes = "text-light", href = "#/creation/") {
-                    +"New project"
+                    +"Add new tested tool"
                 }
             }
         }
