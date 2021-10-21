@@ -68,23 +68,23 @@ class TestSuitesService {
      * @return all standard test suites
      */
     fun getStandardTestSuites() =
-            testSuiteRepository.findAllByTypeIs(TestSuiteType.STANDARD).map { it.toDto() }
+        testSuiteRepository.findAllByTypeIs(TestSuiteType.STANDARD).map { it.toDto() }
 
     /**
      * @param name name of the test suite
      * @return all standard test suites with specific name
      */
     fun findStandardTestSuitesByName(name: String) =
-            testSuiteRepository.findAllByNameAndType(name, TestSuiteType.STANDARD)
+        testSuiteRepository.findAllByNameAndType(name, TestSuiteType.STANDARD)
 
     /**
      * @param project a project associated with test suites
      * @return a list of test suites
      */
     fun findTestSuitesByProject(project: Project) =
-            testSuiteRepository.findByProjectId(
-                requireNotNull(project.id) { "Cannot find test suites for project with missing id (name=${project.name}, owner=${project.owner})" }
-            )
+        testSuiteRepository.findByProjectId(
+            requireNotNull(project.id) { "Cannot find test suites for project with missing id (name=${project.name}, owner=${project.owner})" }
+        )
 
     /**
      * @param id
@@ -100,10 +100,10 @@ class TestSuitesService {
     @Suppress("UnsafeCallOnNullableType")
     fun markObsoleteTestSuites(testSuiteDtos: List<TestSuiteDto>) {
         testSuiteDtos.forEach { testSuiteDto ->
-            val testSuite = testSuiteRepository.findByNameAndTypeAndPropertiesRelativePathAndTestSuiteRepoUrl(
+            val testSuite = testSuiteRepository.findByNameAndTypeAndTestRootPathAndTestSuiteRepoUrl(
                 testSuiteDto.name,
                 testSuiteDto.type!!,
-                testSuiteDto.propertiesRelativePath,
+                testSuiteDto.testRootPath,
                 testSuiteDto.testSuiteRepoUrl,
             )
             log.info("Mark test suite ${testSuite.name} with id ${testSuite.id} as obsolete")

@@ -83,7 +83,7 @@ class TestService {
             val testExecutions = getTestExecutionsBatchByExecutionIdAndUpdateStatus(execution)
             val testDtos = testExecutions.map { it.test.toDto() }
             Mono.just(TestBatch(testDtos, testExecutions.map { it.test.testSuite }.associate {
-                it.id!! to File(it.propertiesRelativePath).parent
+                it.id!! to File(it.testRootPath).parent
             }))
         }
     }
