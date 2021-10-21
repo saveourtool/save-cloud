@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="agent-insert" author="frolov" context="dev">
+        <insert dbms="mysql" tableName="agent">
+            <column name="id" value="1" />
+            <column name="container_id" value="container-1" />
+            <column name="execution_id" value="1" />
+            <column name="version" value="1" />
+        </insert>
+        <insert dbms="mysql" tableName="agent">
+            <column name="id" value="2" />
+            <column name="container_id" value="container-2" />
+            <column name="execution_id" value="1" />
+            <column name="version" value="1" />
+        </insert>
+        <insert dbms="mysql" tableName="agent">
+            <column name="id" value="3" />
+            <column name="container_id" value="container-3" />
+            <column name="execution_id" value="3" />
+            <column name="version" value="1" />
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>

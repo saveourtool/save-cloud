@@ -42,6 +42,9 @@
             <column name="version" type="varchar(255)">
                 <constraints nullable="true" />
             </column>
+            <column name="running_tests" type="bigint">
+                <constraints nullable="false" />
+            </column>
             <column name="passed_tests" type="bigint">
                 <constraints nullable="false" />
             </column>
@@ -51,6 +54,10 @@
             <column name="skipped_tests" type="bigint">
                 <constraints nullable="false" />
             </column>
+            <column name="sdk" type="varchar(255)" defaultValue="ubuntu:latest">
+                <constraints nullable="false" />
+            </column>
+            <column name="additional_files" type="text" defaultValue="null"/>
         </createTable>
 
         <rollback>

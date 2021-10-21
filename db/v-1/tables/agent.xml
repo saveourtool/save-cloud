@@ -16,7 +16,7 @@
                 <constraints primaryKey="true" nullable="false"/>
             </column>
             <column name="container_id" type="varchar(64)">
-                <constraints nullable="false"/>
+                <constraints unique="true" uniqueConstraintName="uq_container_id" nullable="false"/>
             </column>
             <column name="execution_id" type="bigint">
                 <constraints foreignKeyName="fk_agent_execution" references="execution(id)" nullable="false"/>
@@ -31,12 +31,6 @@
                     cascadeConstraints="true"
                     tableName="agent" />
         </rollback>
-    </changeSet>
-
-    <changeSet id="agent-table-add-unique-constraint" author="petertrr" context="dev or prod">
-        <addUniqueConstraint
-                tableName="agent"
-                columnNames="container_id"/>
     </changeSet>
 
 </databaseChangeLog>

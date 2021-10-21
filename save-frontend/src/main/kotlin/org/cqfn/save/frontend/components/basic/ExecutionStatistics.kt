@@ -28,7 +28,7 @@ external interface ExecutionStatisticsProps : Props {
 @Suppress("MAGIC_NUMBER")
 fun executionStatistics(classes: String = "") = fc<ExecutionStatisticsProps> { props ->
     val totalTests = props.executionDto?.run {
-        passedTests + failedTests + skippedTests
+        runningTests + passedTests + failedTests + skippedTests
     } ?: 0
     val isInProgress = props.executionDto?.run { status == ExecutionStatus.RUNNING || status == ExecutionStatus.PENDING } ?: true
     val isSuccess = props.executionDto?.run { passedTests == totalTests } ?: false

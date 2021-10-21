@@ -4,7 +4,8 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
-    <changeSet id="pr-90-1" author="frolov" context="dev">
+
+    <changeSet id="execution-insert" author="frolov" context="dev">
         <insert dbms="mysql" tableName="execution">
             <column name="id" value="1" />
             <column name="project_id" value="1" />
@@ -16,9 +17,12 @@
             <column name="batch_size" value="10" />
             <column name="type" value="GIT" />
             <column name="version" value="0.0.1" />
+            <column name="running_tests" value="0" />
             <column name="passed_tests" value="0" />
             <column name="failed_tests" value="0" />
             <column name="skipped_tests" value="0" />
+            <column name="sdk" value="ubuntu:latest" />
+            <column name="additional_files" value="null" />
         </insert>
         <insert dbms="mysql" tableName="execution">
             <column name="id" value="2" />
@@ -31,9 +35,12 @@
             <column name="batch_size" value="20" />
             <column name="type" value="STANDARD" />
             <column name="version" value="0.0.1" />
+            <column name="running_tests" value="0" />
             <column name="passed_tests" value="0" />
             <column name="failed_tests" value="0" />
             <column name="skipped_tests" value="0" />
+            <column name="sdk" value="ubuntu:latest" />
+            <column name="additional_files" value="null" />
         </insert>
         <insert dbms="mysql" tableName="execution">
             <column name="id" value="3" />
@@ -46,53 +53,13 @@
             <column name="batch_size" value="20" />
             <column name="type" value="GIT" />
             <column name="version" value="0.0.1" />
+            <column name="running_tests" value="0" />
             <column name="passed_tests" value="0" />
             <column name="failed_tests" value="0" />
             <column name="skipped_tests" value="0" />
+            <column name="sdk" value="ubuntu:latest" />
+            <column name="additional_files" value="null" />
         </insert>
-    </changeSet>
-
-    <changeSet id="test_execution-insert" author="frolov" context="dev">
-        <loadData tableName="test_execution" encoding="UTF-8" separator=";" quotchar="&quot;" file="db/changelog/v-1/sqlRequests/test_execution.csv">
-            <column header="id" name="id" type="SEQUENCE" />
-            <column header="status" name="status" type="STRING" />
-            <column header="start_time" name="start_time" type="DATE" />
-            <column header="end_time" name="end_time" type="DATE" />
-            <column header="test_id" name="test_id" type="NUMERIC" />
-            <column header="agent_id" name="agent_id" type="NUMERIC" />
-            <column header="execution_id" name="execution_id" type="NUMERIC" />
-        </loadData>
-    </changeSet>
-
-    <changeSet id="pr-90-2" author="frolov" context="dev">
-        <insert dbms="mysql" tableName="agent">
-            <column name="id" value="1" />
-            <column name="container_id" value="container-1" />
-            <column name="execution_id" value="1" />
-        </insert>
-    </changeSet>
-
-    <changeSet id="pr-90-3" author="frolov" context="dev">
-        <insert dbms="mysql" tableName="agent">
-            <column name="id" value="2" />
-            <column name="container_id" value="container-2" />
-            <column name="execution_id" value="1" />
-        </insert>
-        <insert dbms="mysql" tableName="agent">
-            <column name="id" value="3" />
-            <column name="container_id" value="container-3" />
-            <column name="execution_id" value="3" />
-        </insert>
-    </changeSet>
-
-    <changeSet id="agent-status-insert" author="petertrr" context="dev">
-        <loadData tableName="agent_status" encoding="UTF-8" separator=";" quotchar="&quot;" file="db/changelog/v-1/sqlRequests/agent-status.csv">
-            <column header="id" name="id" type="NUMERIC" />
-            <column header="start_time" name="start_time" type="DATETIME(3)" />
-            <column header="end_time" name="end_time" type="DATETIME(3)" />
-            <column header="state" name="state" type="STRING" />
-            <column header="agent_id" name="agent_id" type="NUMERIC" />
-        </loadData>
     </changeSet>
 
 </databaseChangeLog>
