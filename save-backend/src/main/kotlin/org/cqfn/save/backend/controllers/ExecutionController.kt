@@ -7,7 +7,6 @@ import org.cqfn.save.backend.service.TestSuitesService
 import org.cqfn.save.domain.toSdk
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.ExecutionRequest
-import org.cqfn.save.entities.GitDto
 import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.execution.ExecutionInitializationDto
 import org.cqfn.save.execution.ExecutionType
