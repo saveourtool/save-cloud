@@ -120,7 +120,7 @@ external interface ProjectViewState : State {
 @OptIn(ExperimentalJsExport::class)
 class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
     private var standardTestSuites: List<TestSuiteDto> = emptyList()
-    private var pathToProperty: String? = null
+    private var testRootPath: String? = null
     private var gitUrlFromInputField: String? = null
     private val selectedTypes: MutableList<String> = mutableListOf()
     private var gitDto: GitDto? = null
@@ -168,13 +168,13 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
         if (state.isFirstTypeUpload == true) {
             gitUrlFromInputField?.let {
                 val newGitDto = GitDto(url = it)
-                submitExecutionRequestGit(newGitDto)
+                submitExecutionRequestWithCustomTests(newGitDto)
             } ?: gitDto?.let {
-                submitExecutionRequestGit(it)
+                submitExecutionRequestWithCustomTests(it)
             } ?: setState {
                 isErrorOpen = true
-                errorLabel = "No git url"
-                errorMessage = "Please provide a git url"
+                errorLabel = "No git url provided"
+                errorMessage = "Please provide a valid git url to your tests"
             }
         } else {
             if (selectedTypes.isEmpty()) {
@@ -193,12 +193,12 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                 }
                 return
             }
-            submitExecutionRequestBinFile()
+            submitExecutionRequestWithStandardTests()
         }
     }
 
     @Suppress("UnsafeCallOnNullableType")
-    private fun submitExecutionRequestBinFile() {
+    private fun submitExecutionRequestWithStandardTests() {
         val headers = Headers()
         val formData = FormData()
         val selectedSdk = "${state.selectedSdk}:${state.selectedSdkVersion}".toSdk()
@@ -207,13 +207,13 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
         state.files.forEach {
             formData.appendJson("file", it)
         }
-        submitRequest("/submitExecutionRequestBin", headers, formData)
+        submitRequest("/executionRequestStandardTests", headers, formData)
     }
 
-    private fun submitExecutionRequestGit(correctGitDto: GitDto) {
+    private fun submitExecutionRequestWithCustomTests(correctGitDto: GitDto) {
         val selectedSdk = "${state.selectedSdk}:${state.selectedSdkVersion}".toSdk()
         val formData = FormData()
-        val executionRequest = pathToProperty?.let {
+        val executionRequest = testRootPath?.let {
             ExecutionRequest(
                 project,
                 correctGitDto,
@@ -464,13 +464,13 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                                         key = "itemText"
                                         attrs.set("class", "form-control")
                                         attrs {
-                                            pathToProperty?.let {
+                                            testRootPath?.let {
                                                 value = it
                                             }
-                                            placeholder = "empty if tests are in repo root"
+                                            placeholder = "leave empty if tests are in the repository root"
                                             onChangeFunction = {
                                                 val target = it.target as HTMLInputElement
-                                                pathToProperty = target.value
+                                                testRootPath = target.value
                                             }
                                         }
                                     }

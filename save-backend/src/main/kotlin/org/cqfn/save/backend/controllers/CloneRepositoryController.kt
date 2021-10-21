@@ -73,8 +73,8 @@ class CloneRepositoryController(
      * @param files files required for execution
      * @return mono string
      */
-    @PostMapping(value = ["/submitExecutionRequestBin"], consumes = ["multipart/form-data"])
-    fun submitExecutionRequestByBin(
+    @PostMapping(value = ["/executionRequestStandardTests"], consumes = ["multipart/form-data"])
+    fun executionRequestStandardTests(
         @RequestPart("execution", required = true) executionRequestForStandardSuites: ExecutionRequestForStandardSuites,
         @RequestPart("file", required = true) files: Flux<FileInfo>,
     ): Mono<StringResponse> = sendToPreprocessor(
