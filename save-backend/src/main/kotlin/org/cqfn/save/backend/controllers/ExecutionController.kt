@@ -7,7 +7,6 @@ import org.cqfn.save.backend.service.TestSuitesService
 import org.cqfn.save.domain.toSdk
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.ExecutionRequest
-import org.cqfn.save.entities.GitDto
 import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.execution.ExecutionInitializationDto
 import org.cqfn.save.execution.ExecutionType
@@ -156,9 +155,12 @@ class ExecutionController(private val executionService: ExecutionService,
         } else {
             "save.properties"
         }
+
+        executionService.resetMetrics(execution)
+
         val executionRequest = ExecutionRequest(
             project = execution.project,
-            gitDto = GitDto(git.url, hash = execution.version),
+            gitDto = git.copy(hash = execution.version),
             propertiesRelativePath = propertiesRelativePath,
             sdk = execution.sdk.toSdk(),
             executionId = execution.id

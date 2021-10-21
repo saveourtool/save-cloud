@@ -82,16 +82,19 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
             )
             foundTestExec.filter {
                 // update only those test executions, that haven't been updated before
-                it.status == TestResultStatus.READY
+                it.status == TestResultStatus.RUNNING
             }
                 .ifPresentOrElse({
                     it.startTime = testExecDto.startTimeSeconds?.secondsToLocalDateTime()
                     it.endTime = testExecDto.endTimeSeconds?.secondsToLocalDateTime()
                     it.status = testExecDto.status
                     when (testExecDto.status) {
-                        TestResultStatus.PASSED -> execution.passedTests += 1
-                        TestResultStatus.FAILED -> execution.failedTests += 1
-                        else -> execution.skippedTests += 1
+                        TestResultStatus.PASSED -> execution.passedTests++
+                        TestResultStatus.FAILED -> execution.failedTests++
+                        else -> execution.skippedTests++
+                    }
+                    if (testExecDto.status != TestResultStatus.RUNNING) {
+                        execution.runningTests--
                     }
                     testExecutionRepository.save(it)
                 },
