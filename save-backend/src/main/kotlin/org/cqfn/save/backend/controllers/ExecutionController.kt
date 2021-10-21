@@ -80,9 +80,9 @@ class ExecutionController(private val executionService: ExecutionService,
      */
     @PostMapping("/updateNewExecution")
     fun updateNewExecution(@RequestBody executionInitializationDto: ExecutionInitializationDto): ResponseEntity<Execution> =
-        executionService.updateNewExecution(executionInitializationDto)?.let {
-            ResponseEntity.status(HttpStatus.OK).body(it)
-        } ?: ResponseEntity.status(HttpStatus.NOT_FOUND).build()
+            executionService.updateNewExecution(executionInitializationDto)?.let {
+                ResponseEntity.status(HttpStatus.OK).body(it)
+            } ?: ResponseEntity.status(HttpStatus.NOT_FOUND).build()
 
     /**
      * @param executionId
@@ -90,9 +90,9 @@ class ExecutionController(private val executionService: ExecutionService,
      */
     @GetMapping("/executionDto")
     fun getExecutionDto(@RequestParam executionId: Long): ResponseEntity<ExecutionDto> =
-        executionService.getExecutionDto(executionId)?.let {
-            ResponseEntity.status(HttpStatus.OK).body(it)
-        } ?: ResponseEntity.status(HttpStatus.NOT_FOUND).build()
+            executionService.getExecutionDto(executionId)?.let {
+                ResponseEntity.status(HttpStatus.OK).body(it)
+            } ?: ResponseEntity.status(HttpStatus.NOT_FOUND).build()
 
     /**
      * @param name
@@ -101,9 +101,9 @@ class ExecutionController(private val executionService: ExecutionService,
      */
     @GetMapping("/executionDtoList")
     fun getExecutionByProject(@RequestParam name: String, @RequestParam owner: String): ExecutionDtoListResponse =
-        ResponseEntity
-            .status(HttpStatus.OK)
-            .body(executionService.getExecutionDtoByNameAndOwner(name, owner).reversed())
+            ResponseEntity
+                .status(HttpStatus.OK)
+                .body(executionService.getExecutionDtoByNameAndOwner(name, owner).reversed())
 
     /**
      * Get latest (by start time an) execution by project name and project owner
@@ -115,12 +115,12 @@ class ExecutionController(private val executionService: ExecutionService,
      */
     @GetMapping("/latestExecution")
     fun getLatestExecutionForProject(@RequestParam name: String, @RequestParam owner: String): Mono<ExecutionDto> =
-        Mono.fromCallable { executionService.getLatestExecutionByProjectNameAndProjectOwner(name, owner) }
-            .map { execOpt ->
-                execOpt.map { it.toDto() }.orElseThrow {
-                    ResponseStatusException(HttpStatus.NOT_FOUND, "Execution not found for project (name=$name, owner=$owner)")
+            Mono.fromCallable { executionService.getLatestExecutionByProjectNameAndProjectOwner(name, owner) }
+                .map { execOpt ->
+                    execOpt.map { it.toDto() }.orElseThrow {
+                        ResponseStatusException(HttpStatus.NOT_FOUND, "Execution not found for project (name=$name, owner=$owner)")
+                    }
                 }
-            }
 
     /**
      * Accepts a request to rerun an existing execution
@@ -156,6 +156,8 @@ class ExecutionController(private val executionService: ExecutionService,
             // for standard suites there is no need for a testRootPath
             "N/A"
         }
+
+        executionService.resetMetrics(execution)
         val executionRequest = ExecutionRequest(
             project = execution.project,
             gitDto = git.copy(hash = execution.version),

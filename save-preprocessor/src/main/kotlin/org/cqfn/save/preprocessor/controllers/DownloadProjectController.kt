@@ -492,15 +492,15 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
 
     @Suppress("MagicNumber")
     private fun cleanupInOrchestrator(executionId: Long) =
-        webClientOrchestrator.post()
-            .uri("/cleanup?executionId=$executionId")
-            .httpRequest {
-                // increased timeout, because orchestrator should finish cleaning up first
-                it.getNativeRequest<HttpClientRequest>()
-                    .responseTimeout(Duration.ofSeconds(10))
-            }
-            .retrieve()
-            .toBodilessEntity()
+            webClientOrchestrator.post()
+                .uri("/cleanup?executionId=$executionId")
+                .httpRequest {
+                    // increased timeout, because orchestrator should finish cleaning up first
+                    it.getNativeRequest<HttpClientRequest>()
+                        .responseTimeout(Duration.ofSeconds(10))
+                }
+                .retrieve()
+                .toBodilessEntity()
 
     @Suppress("UnsafeCallOnNullableType")
     private fun prepareForExecutionFromGit(project: Project,
@@ -509,7 +509,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                                            projectRootRelativePath: String,
                                            gitUrl: String): Mono<EmptyResponse> = Mono.fromCallable {
         val testResourcesRootAbsolutePath =
-            getTestResourcesRootAbsolutePath(testRootPath, projectRootRelativePath)
+                getTestResourcesRootAbsolutePath(testRootPath, projectRootRelativePath)
         testDiscoveringService.getRootTestConfig(testResourcesRootAbsolutePath)
     }
         .zipWhen { rootTestConfig ->
@@ -656,23 +656,23 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         .collectList()
 
     private fun updateExecutionStatus(executionId: Long, executionStatus: ExecutionStatus) =
-        webClientBackend.makeRequest(
-            BodyInserters.fromValue(ExecutionUpdateDto(executionId, executionStatus)),
-            "/updateExecutionByDto"
-        ) { it.toEntity<HttpStatus>() }
-            .doOnSubscribe {
-                log.info("Making request to set execution status for id=$executionId to $executionStatus")
-            }
+            webClientBackend.makeRequest(
+                BodyInserters.fromValue(ExecutionUpdateDto(executionId, executionStatus)),
+                "/updateExecutionByDto"
+            ) { it.toEntity<HttpStatus>() }
+                .doOnSubscribe {
+                    log.info("Making request to set execution status for id=$executionId to $executionStatus")
+                }
 
     @Suppress("UnsafeCallOnNullableType")
     private fun updateExecution(execution: Execution) =
-        webClientBackend.makeRequest(
-            BodyInserters.fromValue(execution),
-            "/updateExecution"
-        ) { it.toEntity<HttpStatus>() }
-            .doOnSubscribe {
-                log.info("Making request to update execution with id=${execution.id!!}")
-            }
+            webClientBackend.makeRequest(
+                BodyInserters.fromValue(execution),
+                "/updateExecution"
+            ) { it.toEntity<HttpStatus>() }
+                .doOnSubscribe {
+                    log.info("Making request to update execution with id=${execution.id!!}")
+                }
 }
 
 /**
@@ -680,12 +680,12 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
  * @return map repository to paths to test configs
  */
 fun readStandardTestSuitesFile(name: String) =
-    ClassPathResource(name)
-        .file
-        .readText()
-        .lines()
-        .associate {
-            val splitRow = it.split("\\s".toRegex())
-            require(splitRow.size == 2)
-            splitRow.first() to splitRow[1].split(";")
-        }
+        ClassPathResource(name)
+            .file
+            .readText()
+            .lines()
+            .associate {
+                val splitRow = it.split("\\s".toRegex())
+                require(splitRow.size == 2)
+                splitRow.first() to splitRow[1].split(";")
+            }
