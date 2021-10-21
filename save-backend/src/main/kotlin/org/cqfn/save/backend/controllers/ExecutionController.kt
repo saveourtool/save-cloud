@@ -155,13 +155,9 @@ class ExecutionController(private val executionService: ExecutionService,
         } else {
             "save.properties"
         }
-        execution.apply {
-            runningTests = 0
-            passedTests = 0
-            failedTests = 0
-            skippedTests = 0
-        }
-        executionService.saveExecution(execution)
+
+        executionService.resetMetrics(execution)
+
         val executionRequest = ExecutionRequest(
             project = execution.project,
             gitDto = git.copy(hash = execution.version),
