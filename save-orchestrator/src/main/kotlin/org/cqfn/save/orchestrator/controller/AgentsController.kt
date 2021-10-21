@@ -45,6 +45,7 @@ class AgentsController(
      * @return OK if everything went fine.
      * @throws ResponseStatusException
      */
+    @Suppress("TOO_LONG_FUNCTION", "LongMethod", "UnsafeCallOnNullableType")
     @PostMapping("/initializeAgents")
     fun initialize(@RequestPart(required = true) execution: Execution,
                    @RequestPart(required = false) testSuiteDtos: List<TestSuiteDto>?): Mono<BodilessResponseEntity> {
@@ -56,7 +57,7 @@ class AgentsController(
         }
         val response = Mono.just(ResponseEntity<Void>(HttpStatus.ACCEPTED))
             .subscribeOn(agentService.scheduler)
-        response.doOnSuccess {
+        return response.doOnSuccess {
             log.info("Starting preparations for launching execution [project=${execution.project}, id=${execution.id}, " +
                     "status=${execution.status}, resourcesRootPath=${execution.resourcesRootPath}]")
             Mono.fromCallable {
@@ -85,7 +86,6 @@ class AgentsController(
                 .subscribeOn(agentService.scheduler)
                 .subscribe()
         }
-        return response
     }
 
     /**
