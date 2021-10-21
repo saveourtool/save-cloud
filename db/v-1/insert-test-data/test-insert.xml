@@ -6,12 +6,14 @@ xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
     <changeSet id="test-insert" author="frolov" context="dev">
 
-        <loadData tableName="test" encoding="UTF-8" separator=";" quotchar="&quot;" file="db/changelog/v-1/sqlRequests/test.csv">
+        <loadData tableName="test" encoding="UTF-8" separator=";" quotchar="&quot;" file="db/v-1/insert-test-data/sqlRequests/test.csv">
             <column header="id" name="id" type="NUMERIC" />
-            <column header="hash" name="hash" type="STRING" />
             <column header="file_path" name="file_path" type="STRING" />
+            <column header="hash" name="hash" type="STRING" />
             <column header="date_added" name="date_added" type="DATE" />
             <column header="test_suite_id" name="test_suite_id" type="NUMERIC" />
+            <column header="plugin_name" name="plugin_name" type="STRING" />
+            <column header="tags" name="tags" type="STRING" />
         </loadData>
 
     </changeSet>
