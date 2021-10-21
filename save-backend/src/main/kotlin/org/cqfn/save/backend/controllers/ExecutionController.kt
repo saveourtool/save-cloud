@@ -158,7 +158,7 @@ class ExecutionController(private val executionService: ExecutionService,
         }
         val executionRequest = ExecutionRequest(
             project = execution.project,
-            gitDto = GitDto(git.url, hash = execution.version),
+            gitDto = git.copy(hash = execution.version),
             propertiesRelativePath = propertiesRelativePath,
             sdk = execution.sdk.toSdk(),
             executionId = execution.id
