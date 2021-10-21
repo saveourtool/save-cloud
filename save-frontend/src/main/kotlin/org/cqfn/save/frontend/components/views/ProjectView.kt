@@ -2,6 +2,8 @@
  * A view with project details
  */
 
+@file:Suppress("WildcardImport", "FILE_WILDCARD_IMPORTS")
+
 package org.cqfn.save.frontend.components.views
 
 import org.cqfn.save.domain.FileInfo
@@ -13,12 +15,10 @@ import org.cqfn.save.entities.ExecutionRequestForStandardSuites
 import org.cqfn.save.entities.GitDto
 import org.cqfn.save.entities.Project
 import org.cqfn.save.execution.ExecutionDto
-import org.cqfn.save.frontend.components.basic.cardComponent
-import org.cqfn.save.frontend.components.basic.checkBoxGrid
-import org.cqfn.save.frontend.components.basic.fileUploader
-import org.cqfn.save.frontend.components.basic.sdkSelection
+import org.cqfn.save.frontend.components.basic.*
 import org.cqfn.save.frontend.externals.fontawesome.faCalendarAlt
 import org.cqfn.save.frontend.externals.fontawesome.faHistory
+import org.cqfn.save.frontend.externals.fontawesome.faQuestionCircle
 import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
 import org.cqfn.save.frontend.externals.modal.modal
 import org.cqfn.save.frontend.utils.appendJson
@@ -38,16 +38,7 @@ import react.PropsWithChildren
 import react.RBuilder
 import react.RComponent
 import react.State
-import react.dom.ReactHTML.b
-import react.dom.a
-import react.dom.attrs
-import react.dom.button
-import react.dom.defaultValue
-import react.dom.div
-import react.dom.h1
-import react.dom.h6
-import react.dom.input
-import react.dom.span
+import react.dom.*
 import react.setState
 
 import kotlinx.browser.window
@@ -286,7 +277,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
             // ===================== LEFT COLUMN =======================================================================
             div("col-2 mr-3") {
                 div("text-xs text-center font-weight-bold text-primary text-uppercase mb-3") {
-                    +"Types of testing"
+                    +"Testing types"
                 }
 
                 child(cardComponent {
@@ -307,7 +298,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                                         isFirstTypeUpload = true
                                     }
                                 }
-                                +"Run your tool with your tests from git"
+                                +"Run your tool with your specific tests from git"
                             }
                         }
                         div("mt-3 mr-2") {
@@ -326,7 +317,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                                         isFirstTypeUpload = false
                                     }
                                 }
-                                +"Run your tool with standard suites"
+                                +"Run your tool with standard test suites"
                             }
                         }
                     }
@@ -382,7 +373,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                 }
 
                 h6(classes = "d-inline mr-3") {
-                    +"2. Select the SDK that is needed (optional):"
+                    +"2. Select the SDK if needed:"
                 }
 
                 child(sdkSelection({
@@ -398,7 +389,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                 }
 
                 h6(classes = "d-inline") {
-                    +"3. Setup test-resources that will be used to test provided tool:"
+                    +"3. Specify test-resources that will be used for testing:"
                 }
 
                 child(cardComponent {
@@ -417,8 +408,20 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                         div("card-body ") {
                             div("input-group-sm mb-3") {
                                 div("row") {
+                                    sup("tooltip-and-popover") {
+                                        fontAwesomeIcon(icon = faQuestionCircle)
+                                        attrs["tooltip-placement"] = "top"
+                                        attrs["tooltip-title"] = ""
+                                        attrs["popover-placement"] = "left"
+                                        attrs["popover-title"] =
+                                                "Use the following link to read more about save format:"
+                                        attrs["popover-content"] =
+                                                "<a href =\"https://github.com/cqfn/save/blob/main/README.md\" > Save core README </a>"
+                                        attrs["data-trigger"] = "focus"
+                                        attrs["tabindex"] = "0"
+                                    }
                                     h6(classes = "d-inline ml-2") {
-                                        +"Url of the git repository with your tests in save format:"
+                                        +"Git Url of your test suites (in save format):"
                                     }
                                 }
                                 div("input-group-prepend") {
@@ -442,6 +445,16 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
 
                             div("input-group-sm") {
                                 div("row") {
+                                    sup("tooltip-and-popover") {
+                                        fontAwesomeIcon(icon = faQuestionCircle)
+                                        attrs["tooltip-placement"] = "top"
+                                        attrs["tooltip-title"] = ""
+                                        attrs["popover-placement"] = "left"
+                                        attrs["popover-title"] = "Relative path to the root directory with tests"
+                                        attrs["popover-content"] = TEST_ROOT_DIR_HINT
+                                        attrs["data-trigger"] = "focus"
+                                        attrs["tabindex"] = "0"
+                                    }
                                     h6(classes = "d-inline ml-2") {
                                         +"Relative path to the root directory with tests in the repo:"
                                     }
@@ -492,7 +505,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                     div("d-sm-flex align-items-center justify-content-center") {
                         button(type = ButtonType.button, classes = "btn btn-primary") {
                             attrs.onClickFunction = { submitExecutionRequest() }
-                            +"Run tests now!"
+                            +"Test the tool now"
                         }
                     }
                 })
@@ -520,7 +533,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                         fontAwesomeIcon(icon = faHistory)
 
                         button(classes = "btn btn-link text-left") {
-                            +"Latest execution"
+                            +"Latest Execution"
                             attrs.onClickFunction = {
                                 GlobalScope.launch {
                                     switchToLatestExecution()
@@ -534,7 +547,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                             href = "#/${project.owner}/${project.name}/history",
                             classes = "btn btn-link text-left"
                         ) {
-                            +"Execution history"
+                            +"Execution History"
                         }
                     }
                 })
@@ -584,6 +597,17 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
         }
 
     companion object {
+        const val TEST_ROOT_DIR_HINT = """
+            The path you are providing should be relative to the root directory of your repository.
+            This directory should contain <a href = "https://github.com/cqfn/save#how-to-configure"> save.properties </a>
+            or <a href = "https://github.com/cqfn/save#-savetoml-configuration-file">save.toml</a> files. 
+            For example, if the URL to your repo with tests is: 
+            <a href ="https://github.com/cqfn/save/">https://github.com/cqfn/save</a>, then 
+            you need to specify the following directory with 'save.toml': 
+            <a href ="https://github.com/cqfn/save/tree/main/examples/kotlin-diktat">examples/kotlin-diktat/</a>. 
+ 
+            Please note, that the tested tool and it's resources will be copied to this directory before the run.
+            """
         const val TEST_SUITE_ROW = 4
     }
 }

@@ -90,7 +90,7 @@ class TestDiscoveringServiceTest {
         )
 
         println("Discovered the following tests: $testDtos")
-        Assertions.assertEquals(14, testDtos.size)
+        Assertions.assertEquals(15, testDtos.size)
         Assertions.assertEquals(testDtos.size, testDtos.map { it.hash + it.filePath + it.testSuiteId }.distinct().size) {
             "Some tests have the same hash/filePath/testSuiteId combination in $testDtos"
         }
