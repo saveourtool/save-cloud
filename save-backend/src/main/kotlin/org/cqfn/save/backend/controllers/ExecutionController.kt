@@ -7,10 +7,11 @@ import org.cqfn.save.backend.service.TestSuitesService
 import org.cqfn.save.domain.toSdk
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.ExecutionRequest
-import org.cqfn.save.entities.GitDto
 import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.execution.ExecutionInitializationDto
+import org.cqfn.save.execution.ExecutionType
 import org.cqfn.save.execution.ExecutionUpdateDto
+import org.cqfn.save.testsuite.TestSuiteType
 
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -48,9 +49,17 @@ class ExecutionController(private val executionService: ExecutionService,
     /**
      * @param executionUpdateDto
      */
-    @PostMapping("/updateExecution")
+    @PostMapping("/updateExecutionByDto")
     fun updateExecution(@RequestBody executionUpdateDto: ExecutionUpdateDto) {
         executionService.updateExecution(executionUpdateDto)
+    }
+
+    /**
+     * @param execution
+     */
+    @PostMapping("/updateExecution")
+    fun updateExecution(@RequestBody execution: Execution) {
+        executionService.updateExecution(execution)
     }
 
     /**
@@ -71,9 +80,9 @@ class ExecutionController(private val executionService: ExecutionService,
      */
     @PostMapping("/updateNewExecution")
     fun updateNewExecution(@RequestBody executionInitializationDto: ExecutionInitializationDto): ResponseEntity<Execution> =
-            executionService.updateNewExecution(executionInitializationDto)?.let {
-                ResponseEntity.status(HttpStatus.OK).body(it)
-            } ?: ResponseEntity.status(HttpStatus.NOT_FOUND).build()
+        executionService.updateNewExecution(executionInitializationDto)?.let {
+            ResponseEntity.status(HttpStatus.OK).body(it)
+        } ?: ResponseEntity.status(HttpStatus.NOT_FOUND).build()
 
     /**
      * @param executionId
@@ -81,9 +90,9 @@ class ExecutionController(private val executionService: ExecutionService,
      */
     @GetMapping("/executionDto")
     fun getExecutionDto(@RequestParam executionId: Long): ResponseEntity<ExecutionDto> =
-            executionService.getExecutionDto(executionId)?.let {
-                ResponseEntity.status(HttpStatus.OK).body(it)
-            } ?: ResponseEntity.status(HttpStatus.NOT_FOUND).build()
+        executionService.getExecutionDto(executionId)?.let {
+            ResponseEntity.status(HttpStatus.OK).body(it)
+        } ?: ResponseEntity.status(HttpStatus.NOT_FOUND).build()
 
     /**
      * @param name
@@ -92,9 +101,9 @@ class ExecutionController(private val executionService: ExecutionService,
      */
     @GetMapping("/executionDtoList")
     fun getExecutionByProject(@RequestParam name: String, @RequestParam owner: String): ExecutionDtoListResponse =
-            ResponseEntity
-                .status(HttpStatus.OK)
-                .body(executionService.getExecutionDtoByNameAndOwner(name, owner).reversed())
+        ResponseEntity
+            .status(HttpStatus.OK)
+            .body(executionService.getExecutionDtoByNameAndOwner(name, owner).reversed())
 
     /**
      * Get latest (by start time an) execution by project name and project owner
@@ -106,12 +115,12 @@ class ExecutionController(private val executionService: ExecutionService,
      */
     @GetMapping("/latestExecution")
     fun getLatestExecutionForProject(@RequestParam name: String, @RequestParam owner: String): Mono<ExecutionDto> =
-            Mono.fromCallable { executionService.getLatestExecutionByProjectNameAndProjectOwner(name, owner) }
-                .map { execOpt ->
-                    execOpt.map { it.toDto() }.orElseThrow {
-                        ResponseStatusException(HttpStatus.NOT_FOUND, "Execution not found for project (name=$name, owner=$owner)")
-                    }
+        Mono.fromCallable { executionService.getLatestExecutionByProjectNameAndProjectOwner(name, owner) }
+            .map { execOpt ->
+                execOpt.map { it.toDto() }.orElseThrow {
+                    ResponseStatusException(HttpStatus.NOT_FOUND, "Execution not found for project (name=$name, owner=$owner)")
                 }
+            }
 
     /**
      * Accepts a request to rerun an existing execution
@@ -121,32 +130,41 @@ class ExecutionController(private val executionService: ExecutionService,
      */
     @PostMapping("/rerunExecution")
     @Transactional
-    @Suppress("UnsafeCallOnNullableType")
+    @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
     fun rerunExecution(@RequestParam id: Long): Mono<String> {
         val execution = executionService.findExecution(id).orElseThrow {
             IllegalArgumentException("Can't rerun execution $id, because it does not exist")
         }
+        val executionType = execution.type
         val git = requireNotNull(gitService.getRepositoryDtoByProject(execution.project)) {
             "Can't rerun execution $id, project ${execution.project.name} has no associated git address"
         }
-        val testRootPath = execution.testSuiteIds?.let {
-            require(it == "ALL") { "Only executions with \"ALL\" tests suites from a GIT project are supported now" }
-            testSuitesService.findTestSuitesByProject(execution.project)
-        }!!
-            .map {
-                it.testRootPath
-            }
-            .distinct()
-            .single()
+        val testRootPath = if (executionType == ExecutionType.GIT) {
+            execution.testSuiteIds?.let {
+                require(it == "ALL") { "Only executions with \"ALL\" tests suites from a GIT project are supported now" }
+                testSuitesService.findTestSuitesByProject(execution.project)
+            }!!
+                .filter {
+                    it.type == TestSuiteType.PROJECT
+                }
+                .map {
+                    it.testRootPath
+                }
+                .distinct()
+                .single()
+        } else {
+            // for standard suites there is no need for a testRootPath
+            "N/A"
+        }
         val executionRequest = ExecutionRequest(
             project = execution.project,
-            gitDto = GitDto(git.url, hash = execution.version),
+            gitDto = git.copy(hash = execution.version),
             testRootPath = testRootPath,
             sdk = execution.sdk.toSdk(),
             executionId = execution.id
         )
         return preprocessorWebClient.post()
-            .uri("/rerunExecution")
+            .uri("/rerunExecution?executionType=$executionType")
             .bodyValue(executionRequest)
             .retrieve()
             .bodyToMono()

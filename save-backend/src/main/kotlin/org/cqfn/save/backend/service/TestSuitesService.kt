@@ -87,6 +87,32 @@ class TestSuitesService {
             )
 
     /**
+     * @param id
+     * @return test suite with [id]
+     */
+    fun findTestSuiteById(id: Long) = testSuiteRepository.findById(id)
+
+    /**
+     * Mark provided testSuites as obsolete
+     *
+     * @param testSuiteDtos
+     */
+    @Suppress("UnsafeCallOnNullableType")
+    fun markObsoleteTestSuites(testSuiteDtos: List<TestSuiteDto>) {
+        testSuiteDtos.forEach { testSuiteDto ->
+            val testSuite = testSuiteRepository.findByNameAndTypeAndPropertiesRelativePathAndTestSuiteRepoUrl(
+                testSuiteDto.name,
+                testSuiteDto.type!!,
+                testSuiteDto.propertiesRelativePath,
+                testSuiteDto.testSuiteRepoUrl,
+            )
+            log.info("Mark test suite ${testSuite.name} with id ${testSuite.id} as obsolete")
+            testSuite.type = TestSuiteType.OBSOLETE_STANDARD
+            testSuiteRepository.save(testSuite)
+        }
+    }
+
+    /**
      * Delete testSuites and related tests & test executions from DB
      *
      * @param testSuiteDtos suites, which need to be deleted
@@ -104,16 +130,16 @@ class TestSuitesService {
 
             // Get test ids related to the current testSuiteId
             val testIds = testRepository.findAllByTestSuiteId(testSuiteId).map { it.id }
-            testIds.forEach { id ->
+            testIds.forEach { testId ->
                 // Executions could be absent
-                testExecutionRepository.findByTestId(id!!).ifPresent { testExecution ->
+                testExecutionRepository.findByTestId(testId!!).ifPresent { testExecution ->
                     // Delete test executions
-                    log.debug("Delete test execution with id $id")
+                    log.debug("Delete test execution with id ${testExecution.id}")
                     testExecutionRepository.deleteById(testExecution.id!!)
                 }
                 // Delete tests
-                log.debug("Delete test with id $id")
-                testRepository.deleteById(id)
+                log.debug("Delete test with id $testId")
+                testRepository.deleteById(testId)
             }
             log.info("Delete test suite ${testSuiteDto.name} with id $testSuiteId")
             testSuiteRepository.deleteById(testSuiteId)

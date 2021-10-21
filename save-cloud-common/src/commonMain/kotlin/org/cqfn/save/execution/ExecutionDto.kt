@@ -7,6 +7,7 @@ import kotlinx.serialization.Serializable
  * @property version
  * @property status
  * @property type
+ * @property runningTests
  * @property passedTests
  * @property failedTests
  * @property skippedTests
@@ -21,6 +22,7 @@ data class ExecutionDto(
     val type: ExecutionType,
     val version: String?,
     val endTime: Long?,
+    val runningTests: Long,
     val passedTests: Long,
     val failedTests: Long,
     val skippedTests: Long,

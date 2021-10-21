@@ -41,6 +41,7 @@ import org.springframework.http.client.MultipartBodyBuilder
 import org.springframework.http.codec.multipart.FilePart
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RequestPart
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.reactive.function.BodyInserter
@@ -50,6 +51,7 @@ import org.springframework.web.reactive.function.client.bodyToMono
 import org.springframework.web.reactive.function.client.toEntity
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
+import reactor.core.publisher.Flux.fromIterable
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
 import reactor.kotlin.core.util.function.component1
@@ -61,6 +63,7 @@ import java.io.File
 import java.io.FileOutputStream
 import java.nio.file.Files
 import java.nio.file.Paths
+import java.nio.file.StandardCopyOption
 import java.time.Duration
 
 import kotlin.io.path.ExperimentalPathApi
@@ -98,9 +101,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         .doOnSuccess {
             downLoadRepository(executionRequest)
                 .flatMap { (location, version) ->
-                    val resourcesLocation = File(configProperties.repository)
-                        .resolve(location)
-                        .resolve(executionRequest.testRootPath)
+                    val resourcesLocation = getResourceLocationForGit(location, executionRequest.testRootPath)
                     log.info("Downloading additional files into $resourcesLocation")
                     files.zipWith(fileInfos).download(resourcesLocation)
                         .switchIfEmpty(
@@ -156,11 +157,12 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
      * Accept execution rerun request
      *
      * @param executionRerunRequest request
+     * @param executionType
      * @return status 202
      */
     @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
     @PostMapping("/rerunExecution")
-    fun rerunExecution(@RequestBody executionRerunRequest: ExecutionRequest) = Mono.fromCallable {
+    fun rerunExecution(@RequestBody executionRerunRequest: ExecutionRequest, @RequestParam executionType: ExecutionType) = Mono.fromCallable {
         requireNotNull(executionRerunRequest.executionId) { "Can't rerun execution with unknown id" }
         ResponseEntity("Clone pending", HttpStatus.ACCEPTED)
     }
@@ -170,24 +172,28 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                     cleanupInOrchestrator(executionRerunRequest.executionId!!)
                 }
                 .flatMap {
-                    downLoadRepository(executionRerunRequest).map { (location, _) -> location }
+                    getExecutionLocation(executionRerunRequest, executionType)
                 }
                 .flatMap { location ->
                     getExecution(executionRerunRequest.executionId!!).map { location to it }
                 }
                 .flatMap { (location, execution) ->
-                    val resourcesLocation = File(configProperties.repository).resolve(location).resolve(executionRerunRequest.propertiesRelativePath).parentFile
+                    getTestSuitesIfStandard(executionType, execution, location)
+                }
+                .flatMap { (location, execution, testSuites) ->
                     val files = execution.additionalFiles?.split(";")?.filter { it.isNotBlank() }?.map { File(it) } ?: emptyList()
+                    val resourcesLocation = getResourceLocation(executionType, location, executionRerunRequest.testRootPath, files)
+
                     files.forEach { file ->
                         log.debug("Copy additional file $file into ${resourcesLocation.resolve(file.name)}")
-                        Files.copy(Paths.get(file.absolutePath), Paths.get(resourcesLocation.resolve(file.name).absolutePath))
+                        Files.copy(Paths.get(file.absolutePath), Paths.get(resourcesLocation.resolve(file.name).absolutePath), StandardCopyOption.REPLACE_EXISTING)
                     }
                     sendToBackendAndOrchestrator(
                         execution,
                         execution.project,
                         executionRerunRequest.testRootPath,
                         location,
-                        null,
+                        testSuites?.map { it.toDto() },
                         executionRerunRequest.gitDto.url
                     )
                 }
@@ -203,62 +209,65 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
     @OptIn(ExperimentalFileSystem::class)
     @Suppress("TOO_LONG_FUNCTION", "TYPE_ALIAS")
     @PostMapping("/uploadStandardTestSuite")
-    fun uploadStandardTestSuite(): Mono<ResponseEntity<Void>> {
-        val newTestSuites: MutableList<TestSuiteDto> = mutableListOf()
-        return Flux.fromIterable(readStandardTestSuitesFile(configProperties.reposFileName).entries).flatMap { (testSuiteUrl, testSuitePaths) ->
-            log.info("Starting clone repository url=$testSuiteUrl for standard test suites")
-            val tmpDir = generateDirectory(listOf(testSuiteUrl))
-            Mono.fromCallable {
-                cloneFromGit(GitDto(testSuiteUrl), tmpDir)
-                    .use { /* noop here, just need to close Git object */ }
-            }
-                .flatMapMany { Flux.fromIterable(testSuitePaths) }
-                .flatMap { testRootPath ->
-                    log.info("Starting to discover root test config in test root path: $testRootPath")
-                    val testResourcesRootAbsolutePath = tmpDir.resolve(testRootPath).absolutePath
-                    val rootTestConfig = testDiscoveringService.getRootTestConfig(testResourcesRootAbsolutePath)
-                    log.info("Starting to discover standard test suites for root test config ${rootTestConfig.location}")
-                    val testRootRelativePath = rootTestConfig.directory.toFile().relativeTo(tmpDir).toString()
-                    val tests = testDiscoveringService.getAllTestSuites(null, rootTestConfig, testRootRelativePath, testSuiteUrl)
-                    tests.forEach { newTestSuites.add(it) }
-                    log.info("Test suites size = ${tests.size}")
-                    log.info("Starting to save new test suites for root test config in $testRootPath")
-                    webClientBackend.makeRequest(BodyInserters.fromValue(tests), "/saveTestSuites") {
-                        it.bodyToMono<List<TestSuite>>()
-                    }
-                        .flatMap { testSuites ->
-                            log.info("Starting to save new tests for config test root $testRootPath")
-                            webClientBackend.makeRequest(
-                                BodyInserters.fromValue(
-                                    testDiscoveringService.getAllTests(
-                                        rootTestConfig,
-                                        testSuites
-                                    )
-                                ),
-                                "/initializeTests"
-                            ) { it.toBodilessEntity() }
+    fun uploadStandardTestSuite() = Mono.just(ResponseEntity("Upload standard test suites pending", HttpStatus.ACCEPTED))
+        .doOnSuccess {
+            val newTestSuites: MutableList<TestSuiteDto> = mutableListOf()
+            Flux.fromIterable(readStandardTestSuitesFile(configProperties.reposFileName).entries).flatMap { (testSuiteUrl, testSuitePaths) ->
+                log.info("Starting clone repository url=$testSuiteUrl for standard test suites")
+                val tmpDir = generateDirectory(listOf(testSuiteUrl))
+                Mono.fromCallable {
+                    cloneFromGit(GitDto(testSuiteUrl), tmpDir)
+                        .use { /* noop here, just need to close Git object */ }
+                }
+                    .flatMapMany { Flux.fromIterable(testSuitePaths) }
+                    .flatMap { testRootPath ->
+                        log.info("Starting to discover root test config in test root path: $testRootPath")
+                        val testResourcesRootAbsolutePath = tmpDir.resolve(testRootPath).absolutePath
+                        val rootTestConfig = testDiscoveringService.getRootTestConfig(testResourcesRootAbsolutePath)
+                        log.info("Starting to discover standard test suites for root test config ${rootTestConfig.location}")
+                        val testRootRelativePath = rootTestConfig.directory.toFile().relativeTo(tmpDir).toString()
+                        val testSuiteDtos = testDiscoveringService.getAllTestSuites(null, rootTestConfig, testRootRelativePath, testSuiteUrl)
+                        testSuiteDtos.forEach { newTestSuites.add(it) }
+                        log.info("Test suites size = ${testSuiteDtos.size}")
+                        log.info("Starting to save new test suites for root test config in $testRootPath")
+                        webClientBackend.makeRequest(BodyInserters.fromValue(testSuiteDtos), "/saveTestSuites") {
+                            it.bodyToMono<List<TestSuite>>()
                         }
+                            .flatMap { testSuites ->
+                                log.info("Starting to save new tests for config test root $testRootPath")
+                                webClientBackend.makeRequest(
+                                    BodyInserters.fromValue(
+                                        testDiscoveringService.getAllTests(
+                                            rootTestConfig,
+                                            testSuites
+                                        )
+                                    ),
+                                    "/initializeTests"
+                                ) { it.toBodilessEntity() }
+                            }
+                    }
+                    .doOnError {
+                        log.error("Error to update test with url=$testSuiteUrl, path=$testSuitePaths")
+                    }
+            }.collectList()
+                .flatMap {
+                    markObsoleteOldStandardTestSuites(newTestSuites)
                 }
-                .doOnError {
-                    log.error("Error to update test with url=$testSuiteUrl, path=$testSuitePaths")
-                }
-        }.collectList()
-            .flatMap {
-                deleteOldStandardTestSuites(newTestSuites)
-            }
-    }
+                .subscribeOn(scheduler)
+                .subscribe()
+        }
 
-    private fun deleteOldStandardTestSuites(newTestSuites: MutableList<TestSuiteDto>) = webClientBackend.get()
+    private fun markObsoleteOldStandardTestSuites(newTestSuites: MutableList<TestSuiteDto>) = webClientBackend.get()
         .uri("/allStandardTestSuites")
         .retrieve()
         .bodyToMono<List<TestSuiteDto>>()
         .map { existingSuites ->
             existingSuites.filter { it !in newTestSuites }
         }
-        .flatMap { suitesToDelete ->
+        .flatMap { obsoleteSuites ->
             webClientBackend.makeRequest(
-                BodyInserters.fromValue(suitesToDelete),
-                "/deleteTestSuite"
+                BodyInserters.fromValue(obsoleteSuites),
+                "/markObsoleteTestSuites"
             ) {
                 it.toBodilessEntity()
             }
@@ -314,32 +323,38 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         executionRequestForStandardSuites: ExecutionRequestForStandardSuites,
         files: List<File>,
     ): Mono<StatusResponse> {
-        val tmpDir = generateDirectory(files.map {
-            it.toHash()
-        })
+        val tmpDir = generateDirectory(calculateTmpNameForFiles(files))
         files.forEach {
             Files.move(Paths.get(it.absolutePath), Paths.get((tmpDir.resolve(it)).absolutePath))
         }
         val project = executionRequestForStandardSuites.project
-        // todo: what's with version?
+        // TODO: Save the proper version https://github.com/cqfn/save-cloud/issues/321
         val version = files.first().name
-        return updateExecution(executionRequestForStandardSuites.project, tmpDir.name, version).flatMap { execution ->
-            sendToBackendAndOrchestrator(
-                execution,
-                project,
-                "",
-                tmpDir.relativeTo(File(configProperties.repository)).normalize().path,
-                executionRequestForStandardSuites.testsSuites.map {
-                    TestSuiteDto(
-                        TestSuiteType.STANDARD,
-                        it,
-                        null,
-                        project,
-                        ""
-                    )
-                }
-            )
-        }
+        return updateExecution(
+            executionRequestForStandardSuites.project,
+            tmpDir.name,
+            version,
+            executionRequestForStandardSuites.testsSuites.joinToString()
+        )
+            .flatMap { execution ->
+                sendToBackendAndOrchestrator(
+                    execution,
+                    project,
+                    // stub for standard tests that won't be used
+                    "N/A",
+                    tmpDir.relativeTo(File(configProperties.repository)).normalize().path,
+                    executionRequestForStandardSuites.testsSuites.map {
+                        TestSuiteDto(
+                            TestSuiteType.STANDARD,
+                            it,
+                            null,
+                            project,
+                            // stub for standard tests that won't be used
+                            "N/A"
+                        )
+                    }
+                )
+            }
     }
 
     /**
@@ -349,8 +364,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
      * @return a [File] representing the created temporary directory
      */
     internal fun generateDirectory(seeds: List<String>): File {
-        val hashName = seeds.hashCode()
-        val tmpDir = File("${configProperties.repository}/$hashName")
+        val tmpDir = getTmpDirName(seeds)
         if (tmpDir.exists()) {
             if (tmpDir.deleteRecursively()) {
                 log.info("For $seeds: dir $tmpDir was deleted")
@@ -397,7 +411,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         return if (executionType == ExecutionType.GIT) {
             prepareForExecutionFromGit(project, execution.id!!, testRootPath, projectRootRelativePath, gitUrl!!)
         } else {
-            prepareExecutionForStandard(testSuiteDtos!!, execution.id!!)
+            prepareExecutionForStandard(testSuiteDtos!!, execution)
         }
             .then(initializeAgents(execution, testSuiteDtos))
             .onErrorResume { ex ->
@@ -409,13 +423,61 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
             }
     }
 
+    private fun getResourceLocation(
+        executionType: ExecutionType,
+        location: String,
+        testRootPath: String,
+        files: List<File>) = if (executionType == ExecutionType.GIT) {
+        getResourceLocationForGit(location, testRootPath)
+    } else {
+        getTmpDirName(calculateTmpNameForFiles(files))
+    }
+
+    private fun getResourceLocationForGit(location: String, testRootPath: String) = File(configProperties.repository)
+        .resolve(location)
+        .resolve(testRootPath)
+        .parentFile
+
+    private fun getTmpDirName(seeds: List<String>) = File("${configProperties.repository}/${seeds.hashCode()}")
+
+    private fun calculateTmpNameForFiles(files: List<File>) = files.map { it.toHash() }
+
+    private fun getExecutionLocation(executionRerunRequest: ExecutionRequest, executionType: ExecutionType) = if (executionType == ExecutionType.GIT) {
+        downLoadRepository(executionRerunRequest).map { (location, _) -> location }
+    } else {
+        // In standard mode we will calculate location later, according list of additional files
+        Mono.just("")
+    }
+
     private fun getExecution(executionId: Long) = webClientBackend.get()
         .uri("${configProperties.backend}/execution?id=$executionId")
         .retrieve()
         .bodyToMono<Execution>()
 
-    private fun updateExecution(project: Project, projectRootRelativePath: String, executionVersion: String): Mono<Execution> {
-        val executionUpdate = ExecutionInitializationDto(project, "ALL", projectRootRelativePath, executionVersion)
+    @Suppress("UnsafeCallOnNullableType")
+    private fun getTestSuitesIfStandard(executionType: ExecutionType, execution: Execution, location: String) = if (executionType == ExecutionType.GIT) {
+        // Do nothing
+        Mono.fromCallable { Triple(location, execution, null) }
+    } else {
+        getTestSuitesById(execution.testSuiteIds!!).map { Triple(location, execution, it) }
+    }
+
+    private fun getTestSuitesById(testSuiteIds: String) = testSuiteIds.split(", ").let {
+        Flux.fromIterable(it).flatMap {
+            webClientBackend.get()
+                .uri("/testSuite/$it")
+                .retrieve()
+                .bodyToMono<TestSuite>()
+        }
+            .collectList()
+    }
+
+    private fun updateExecution(
+        project: Project,
+        projectRootRelativePath: String,
+        executionVersion: String,
+        testSuiteIds: String = "ALL"): Mono<Execution> {
+        val executionUpdate = ExecutionInitializationDto(project, testSuiteIds, projectRootRelativePath, executionVersion)
         return webClientBackend.makeRequest(BodyInserters.fromValue(executionUpdate), "/updateNewExecution") {
             it.onStatus({ status -> status != HttpStatus.OK }) { clientResponse ->
                 log.error("Error when making update to execution fro project id = ${project.id} ${clientResponse.statusCode()}")
@@ -430,15 +492,15 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
 
     @Suppress("MagicNumber")
     private fun cleanupInOrchestrator(executionId: Long) =
-            webClientOrchestrator.post()
-                .uri("/cleanup?executionId=$executionId")
-                .httpRequest {
-                    // increased timeout, because orchestrator should finish cleaning up first
-                    it.getNativeRequest<HttpClientRequest>()
-                        .responseTimeout(Duration.ofSeconds(10))
-                }
-                .retrieve()
-                .toBodilessEntity()
+        webClientOrchestrator.post()
+            .uri("/cleanup?executionId=$executionId")
+            .httpRequest {
+                // increased timeout, because orchestrator should finish cleaning up first
+                it.getNativeRequest<HttpClientRequest>()
+                    .responseTimeout(Duration.ofSeconds(10))
+            }
+            .retrieve()
+            .toBodilessEntity()
 
     @Suppress("UnsafeCallOnNullableType")
     private fun prepareForExecutionFromGit(project: Project,
@@ -447,7 +509,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                                            projectRootRelativePath: String,
                                            gitUrl: String): Mono<EmptyResponse> = Mono.fromCallable {
         val testResourcesRootAbsolutePath =
-                getTestResourcesRootAbsolutePath(testRootPath, projectRootRelativePath)
+            getTestResourcesRootAbsolutePath(testRootPath, projectRootRelativePath)
         testDiscoveringService.getRootTestConfig(testResourcesRootAbsolutePath)
     }
         .zipWhen { rootTestConfig ->
@@ -457,22 +519,35 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
             initializeTests(testSuites, rootTestConfig, executionId)
         }
 
-    private fun prepareExecutionForStandard(testSuiteDtos: List<TestSuiteDto>, executionId: Long) = Flux.fromIterable(testSuiteDtos).flatMap {
-        webClientBackend.get()
-            .uri("/standardTestSuitesWithName?name=${it.name}")
-            .retrieve()
-            .bodyToMono<List<TestSuite>>()
-    }.flatMap {
-        Flux.fromIterable(it).flatMap { testSuite ->
-            webClientBackend.makeRequest(
-                BodyInserters.fromValue(executionId),
-                "/saveTestExecutionsForStandardByTestSuiteId?testSuiteId=${testSuite.id}"
-            ) {
-                it.toBodilessEntity()
+    @Suppress("TYPE_ALIAS", "UnsafeCallOnNullableType")
+    private fun prepareExecutionForStandard(
+        testSuiteDtos: List<TestSuiteDto>,
+        execution: Execution
+    ): Mono<ResponseEntity<HttpStatus>> {
+        val testSuiteIds: MutableList<Long> = mutableListOf()
+        return fromIterable(testSuiteDtos).flatMap<List<TestSuite>?> {
+            webClientBackend.get()
+                .uri("/standardTestSuitesWithName?name=${it.name}")
+                .retrieve()
+                .bodyToMono()
+        }.flatMap { testSuites ->
+            fromIterable(testSuites).flatMap { testSuite ->
+                testSuiteIds.add(testSuite.id!!)
+                webClientBackend.makeRequest(
+                    BodyInserters.fromValue(execution.id!!),
+                    "/saveTestExecutionsForStandardByTestSuiteId?testSuiteId=${testSuite.id}"
+                ) {
+                    it.toBodilessEntity()
+                }
             }
         }
+            .collectList()
+            .flatMap {
+                testSuiteIds.sort()
+                execution.testSuiteIds = testSuiteIds.joinToString()
+                updateExecution(execution)
+            }
     }
-        .collectList()
 
     @Suppress("UnsafeCallOnNullableType")
     private fun getTestResourcesRootAbsolutePath(testRootPath: String,
@@ -581,13 +656,23 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         .collectList()
 
     private fun updateExecutionStatus(executionId: Long, executionStatus: ExecutionStatus) =
-            webClientBackend.makeRequest(
-                BodyInserters.fromValue(ExecutionUpdateDto(executionId, executionStatus)),
-                "/updateExecution"
-            ) { it.toEntity<HttpStatus>() }
-                .doOnSubscribe {
-                    log.info("Making request to set execution status for id=$executionId to $executionStatus")
-                }
+        webClientBackend.makeRequest(
+            BodyInserters.fromValue(ExecutionUpdateDto(executionId, executionStatus)),
+            "/updateExecutionByDto"
+        ) { it.toEntity<HttpStatus>() }
+            .doOnSubscribe {
+                log.info("Making request to set execution status for id=$executionId to $executionStatus")
+            }
+
+    @Suppress("UnsafeCallOnNullableType")
+    private fun updateExecution(execution: Execution) =
+        webClientBackend.makeRequest(
+            BodyInserters.fromValue(execution),
+            "/updateExecution"
+        ) { it.toEntity<HttpStatus>() }
+            .doOnSubscribe {
+                log.info("Making request to update execution with id=${execution.id!!}")
+            }
 }
 
 /**
@@ -595,12 +680,12 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
  * @return map repository to paths to test configs
  */
 fun readStandardTestSuitesFile(name: String) =
-        ClassPathResource(name)
-            .file
-            .readText()
-            .lines()
-            .associate {
-                val splitRow = it.split("\\s".toRegex())
-                require(splitRow.size == 2)
-                splitRow.first() to splitRow[1].split(";")
-            }
+    ClassPathResource(name)
+        .file
+        .readText()
+        .lines()
+        .associate {
+            val splitRow = it.split("\\s".toRegex())
+            require(splitRow.size == 2)
+            splitRow.first() to splitRow[1].split(";")
+        }
