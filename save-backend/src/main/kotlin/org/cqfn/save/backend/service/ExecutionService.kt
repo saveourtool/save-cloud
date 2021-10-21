@@ -116,4 +116,17 @@ class ExecutionService(private val executionRepository: ExecutionRepository) {
                 it.resourcesRootPath = executionInitializationDto.resourcesRootPath
                 executionRepository.save(it)
             }
+    
+    /**
+     * @param execution execution, tests metrics of which should be reset
+     */
+    fun resetMetrics(execution: Execution) {
+        execution.apply {
+            runningTests = 0
+            passedTests = 0
+            failedTests = 0
+            skippedTests = 0
+        }
+        saveExecution(execution)
+    }
 }

@@ -99,6 +99,15 @@ class HistoryView : RComponent<HistoryProps, State>() {
                         }
                     }
                 }
+                column("running", "Running") {
+                    buildElement {
+                        td {
+                            a(href = getHrefToExecution(it.value.id)) {
+                                +"${it.value.runningTests}"
+                            }
+                        }
+                    }
+                }
                 column("passed", "Passed") {
                     buildElement {
                         td {

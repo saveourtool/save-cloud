@@ -93,9 +93,12 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
                     it.endTime = testExecDto.endTimeSeconds?.secondsToLocalDateTime()
                     it.status = testExecDto.status
                     when (testExecDto.status) {
-                        TestResultStatus.PASSED -> execution.passedTests += 1
-                        TestResultStatus.FAILED -> execution.failedTests += 1
-                        else -> execution.skippedTests += 1
+                        TestResultStatus.PASSED -> execution.passedTests++
+                        TestResultStatus.FAILED -> execution.failedTests++
+                        else -> execution.skippedTests++
+                    }
+                    if (testExecDto.status != TestResultStatus.RUNNING) {
+                        execution.runningTests--
                     }
                     testExecutionRepository.save(it)
                 },

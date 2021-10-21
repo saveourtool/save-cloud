@@ -155,6 +155,9 @@ class ExecutionController(private val executionService: ExecutionService,
         } else {
             "save.properties"
         }
+
+        executionService.resetMetrics(execution)
+
         val executionRequest = ExecutionRequest(
             project = execution.project,
             gitDto = git.copy(hash = execution.version),
