@@ -47,7 +47,7 @@ services:
     entrypoint: /bin/bash
     command: [
     "-c",
-    'mkdir files'
+    'mkdir files && /cnb/process/web'
     ]
     ports:
       - "5000:5000"
