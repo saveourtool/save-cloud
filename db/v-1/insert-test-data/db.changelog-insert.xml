@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <include file="project-insert.xml" relativeToChangelogFile="true"/>
+    <include file="execution-insert.xml" relativeToChangelogFile="true" />
+    <include file="agent-insert.xml" relativeToChangelogFile="true"/>
+    <include file="agent-status-insert.xml" relativeToChangelogFile="true"/>
+    <include file="git-insert.xml" relativeToChangelogFile="true"/>
+    <include file="test-suite-insert.xml" relativeToChangelogFile="true"/>
+    <include file="test-insert.xml" relativeToChangelogFile="true"/>
+    <include file="test-execution-insert.xml" relativeToChangelogFile="true"/>
+
+    <changeSet id="01-frolov" author="frolov">
+        <tagDatabase tag="v1.0-insert"/>
+    </changeSet>
+
+</databaseChangeLog>

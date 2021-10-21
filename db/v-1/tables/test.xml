@@ -27,6 +27,8 @@
             <column name="test_suite_id" type="bigint">
                 <constraints foreignKeyName="fk_test_test_suite" references="test_suite(id)" nullable="false"/>
             </column>
+            <column name="plugin_name" type="varchar(250)" defaultValue="N/A"/>
+            <column name="tags" type="varchar(255)" defaultValue="null"/>
         </createTable>
 
         <rollback>

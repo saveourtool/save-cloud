@@ -5,13 +5,13 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
 
-    <changeSet id="event-scheduler-01" author="frolov" context="prod">
+    <changeSet id="event-scheduler-01" author="frolov" context="scheduler">
         <sql>
             DROP EVENT IF EXISTS delete_test;
         </sql>
     </changeSet>
 
-    <changeSet id="event-scheduler-1" author="frolov" context="prod">
+    <changeSet id="event-scheduler-1" author="frolov" context="scheduler">
         <sql>
             CREATE EVENT delete_test
             ON SCHEDULE EVERY 1 DAY
@@ -31,13 +31,13 @@
         </sql>
     </changeSet>
 
-    <changeSet id="event-scheduler-02" author="frolov" context="prod">
+    <changeSet id="event-scheduler-02" author="frolov" context="scheduler">
         <sql>
             DROP EVENT IF EXISTS delete_test_execution;
         </sql>
     </changeSet>
 
-    <changeSet id="event-scheduler-2" author="frolov" context="prod">
+    <changeSet id="event-scheduler-2" author="frolov" context="scheduler">
         <sql>
             CREATE EVENT delete_test_execution
             ON SCHEDULE EVERY 1 DAY

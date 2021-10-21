@@ -12,6 +12,8 @@
             <column name="project_id" value="1" />
             <column name="date_added" value="2021-01-01 00:00:00"/>
             <column name="test_root_path" value=""/>
+            <column name="description" value="description"/>
+            <column name="test_suite_repo_url" value="null"/>
         </insert>
 
         <insert dbms="mysql" tableName="test_suite">
@@ -21,6 +23,8 @@
             <column name="project_id" value="1" />
             <column name="date_added" value="2021-01-01 00:00:00"/>
             <column name="test_root_path" value="subdir"/>
+            <column name="description" value="description"/>
+            <column name="test_suite_repo_url" value="null"/>
         </insert>
 
         <insert dbms="mysql" tableName="test_suite">
@@ -30,6 +34,8 @@
             <column name="project_id" value="2" />
             <column name="date_added" value="2021-01-01 00:00:00"/>
             <column name="test_root_path" value=""/>
+            <column name="description" value="description"/>
+            <column name="test_suite_repo_url" value="null"/>
         </insert>
     </changeSet>
 </databaseChangeLog>
