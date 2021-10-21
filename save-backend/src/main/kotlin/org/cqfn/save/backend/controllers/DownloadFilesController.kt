@@ -29,17 +29,17 @@ import kotlin.io.path.name
 @RestController
 @RequestMapping("/files")
 class DownloadFilesController(
-    private val fileSystemRepository: TimestampBasedFileSystemRepository,
+    private val additionalToolsFileSystemRepository: TimestampBasedFileSystemRepository,
     private val testDataFilesystemRepository: TestDataFilesystemRepository,
     private val agentRepository: AgentRepository,
 ) {
     private val logger = LoggerFactory.getLogger(DownloadFilesController::class.java)
 
     /**
-     * @return a list of files in [fileSystemRepository]
+     * @return a list of files in [additionalToolsFileSystemRepository]
      */
     @GetMapping("/list")
-    fun list(): List<FileInfo> = fileSystemRepository.getFilesList().map {
+    fun list(): List<FileInfo> = additionalToolsFileSystemRepository.getFilesList().map {
         FileInfo(
             it.name,
             // assuming here, that we always store files in timestamp-based directories
@@ -56,7 +56,7 @@ class DownloadFilesController(
     fun download(@RequestBody fileInfo: FileInfo): Mono<ByteArrayResponse> = Mono.fromCallable {
         logger.info("Sending file ${fileInfo.name} to a client")
         ResponseEntity.ok().contentType(MediaType.APPLICATION_OCTET_STREAM).body(
-            fileSystemRepository.getFile(fileInfo).inputStream.readAllBytes()
+            additionalToolsFileSystemRepository.getFile(fileInfo).inputStream.readAllBytes()
         )
     }
         .doOnError(FileNotFoundException::class.java) {
@@ -76,7 +76,7 @@ class DownloadFilesController(
      */
     @PostMapping(value = ["/upload"], consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     fun upload(@RequestPart("file") file: Mono<FilePart>) =
-            fileSystemRepository.saveFile(file).map { fileInfo ->
+            additionalToolsFileSystemRepository.saveFile(file).map { fileInfo ->
                 ResponseEntity.status(
                     if (fileInfo.sizeBytes > 0) HttpStatus.OK else HttpStatus.INTERNAL_SERVER_ERROR
                 )

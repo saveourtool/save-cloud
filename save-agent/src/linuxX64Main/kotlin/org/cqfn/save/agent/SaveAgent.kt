@@ -165,9 +165,9 @@ class SaveAgent(internal val config: AgentConfiguration,
             readFile(jsonFile).joinToString(separator = "")
         )
         reports.flatMap { report ->
-            report.pluginExecutions.flatMap { pe ->
-                pe.testResults.map { tr ->
-                    tr.toTestResultDebugInfo(report.testSuite, pe.plugin)
+            report.pluginExecutions.flatMap { pluginExecution ->
+                pluginExecution.testResults.map { tr ->
+                    tr.toTestResultDebugInfo(report.testSuite, pluginExecution.plugin)
                 }
             }
         }.forEach {

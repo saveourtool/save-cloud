@@ -41,7 +41,7 @@ import java.time.LocalDateTime
 class CloneRepositoryController(
     private val projectService: ProjectService,
     private val executionService: ExecutionService,
-    private val fileSystemRepository: TimestampBasedFileSystemRepository,
+    private val additionalToolsFileSystemRepository: TimestampBasedFileSystemRepository,
     private val configProperties: ConfigProperties,
 ) {
     private val log = LoggerFactory.getLogger(CloneRepositoryController::class.java)
@@ -141,10 +141,10 @@ class CloneRepositoryController(
     ): Mono<List<MultipartBodyBuilder.PartBuilder>> {
         val additionalFiles = StringBuilder("")
         return map {
-            val path = fileSystemRepository.getPath(it)
+            val path = additionalToolsFileSystemRepository.getPath(it)
             additionalFiles.append("$path;")
             multipartBodyBuilder.part("fileInfo", it)
-            multipartBodyBuilder.part("file", fileSystemRepository.getFile(it))
+            multipartBodyBuilder.part("file", additionalToolsFileSystemRepository.getFile(it))
         }
             .collectList()
             .switchIfEmpty(Mono.just(emptyList()))
