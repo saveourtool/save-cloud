@@ -517,19 +517,12 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                 }
 
                 child(cardComponent {
-                    div("ml-3") {
-                        h6("d-inline") {
-                            b { +"Name: " }
-                            +project.name
-                        }
-                    }
-                    div("ml-3") {
-                        h6("d-inline") {
-                            b { +"Description: " }
-                            +(project.description ?: "")
-                        }
-                    }
-                    div("ml-3 align-items-left justify-content-between") {
+                    infoText("Tested tool name: ", project.name)
+                    infoText("Description: ", project.description?: "")
+                    infoText("Tested tool Url: ",  project.url ?: "")
+                    infoText("Test project owner: ", project.owner)
+
+                    div("ml-3 mt-2 align-items-left justify-content-between") {
                         fontAwesomeIcon(icon = faHistory)
 
                         button(classes = "btn btn-link text-left") {
@@ -551,6 +544,15 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                         }
                     }
                 })
+            }
+        }
+    }
+
+    private fun RBuilder.infoText(header: String, text: String) {
+        div("ml-3") {
+            h6("d-inline") {
+                b { +header }
+                +text
             }
         }
     }
