@@ -206,8 +206,8 @@ class DockerService(private val configProperties: ConfigProperties) {
                     |RUN chmod +x $executionDir/$SAVE_CLI_EXECUTABLE_NAME
                 """
         )
-        //saveAgent.delete()
-        //saveCli.delete()
+        saveAgent.delete()
+        saveCli.delete()
         return Triple(imageId, agentRunCmd, saveCliExecFlags)
     }
 

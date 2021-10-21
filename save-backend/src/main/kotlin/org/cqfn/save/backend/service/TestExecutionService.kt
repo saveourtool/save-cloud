@@ -86,9 +86,9 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
             )
             foundTestExec
                 .filter {
-                // update only those test executions, that haven't been updated before
-                it.status == TestResultStatus.RUNNING
-            }
+                    // update only those test executions, that haven't been updated before
+                    it.status == TestResultStatus.RUNNING
+                }
                 .ifPresentOrElse({
                     it.startTime = testExecDto.startTimeSeconds?.secondsToLocalDateTime()
                     it.endTime = testExecDto.endTimeSeconds?.secondsToLocalDateTime()
@@ -97,10 +97,8 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
                         TestResultStatus.PASSED -> execution.passedTests++
                         TestResultStatus.FAILED -> execution.failedTests++
                         else -> execution.skippedTests++
-                    }.also {
-                        println("STATUS: ${testExecDto.status}")
                     }
-                    if (testExecDto.status != TestResultStatus.RUNNING && execution.runningTests > 0) {
+                    if (testExecDto.status != TestResultStatus.RUNNING) {
                         execution.runningTests--
                     }
                     testExecutionRepository.save(it)
@@ -123,7 +121,7 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
         testIds.map { testId ->
             val testExecutionList = testExecutionRepository.findByExecutionIdAndTestId(executionId, testId)
             if (testExecutionList.isNotEmpty()) {
-                println("\n\n\nFor execution with id=$executionId test id=$testId already exist in DB, deleting it")
+                log.info("\n\n\nFor execution with id=$executionId test id=$testId already exist in DB, deleting it")
                 testExecutionRepository.deleteAllByExecutionIdAndTestId(executionId, testId)
             }
             testRepository.findById(testId).ifPresentOrElse({ test ->
