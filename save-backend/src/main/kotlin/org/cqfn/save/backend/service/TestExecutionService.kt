@@ -86,7 +86,7 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
             )
             foundTestExec.filter {
                 // update only those test executions, that haven't been updated before
-                it.status == TestResultStatus.READY
+                it.status == TestResultStatus.RUNNING
             }
                 .ifPresentOrElse({
                     it.startTime = testExecDto.startTimeSeconds?.secondsToLocalDateTime()

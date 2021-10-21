@@ -27,5 +27,5 @@ id;test_id;agent_id;execution_id;status;start_time;end_time
 "APP_SEQ";"26";null;1;"READY";null;null
 "APP_SEQ";"27";null;1;"READY";null;null
 "APP_SEQ";"28";null;1;"READY";null;null
-"APP_SEQ";"29";3;3;"READY";null;null
-"APP_SEQ";"30";3;3;"READY";null;null
+"APP_SEQ";"29";3;3;"RUNNING";null;null
+"APP_SEQ";"30";3;3;"RUNNING";null;null
