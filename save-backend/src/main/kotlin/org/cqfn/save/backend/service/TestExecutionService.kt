@@ -120,7 +120,7 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
         testIds.map { testId ->
             val testExecutionList = testExecutionRepository.findByExecutionIdAndTestId(executionId, testId)
             if (testExecutionList.isNotEmpty()) {
-                log.info("\n\n\nFor execution with id=$executionId test id=$testId already exist in DB, deleting it")
+                log.debug("For execution with id=$executionId test id=$testId already exist in DB, deleting it")
                 testExecutionRepository.deleteAllByExecutionIdAndTestId(executionId, testId)
             }
             testRepository.findById(testId).ifPresentOrElse({ test ->
