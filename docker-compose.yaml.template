@@ -44,6 +44,11 @@ services:
       - db_url
     volumes:
       - save-fs-storage:/home/cnb/storage
+    entrypoint: /bin/bash
+    command: [
+    "-c",
+    'mkdir files'
+    ]
     ports:
       - "5000:5000"
     deploy:
