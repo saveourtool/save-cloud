@@ -518,8 +518,8 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
 
                 child(cardComponent {
                     infoText("Tested tool name: ", project.name)
-                    infoText("Description: ", project.description?: "")
-                    infoText("Tested tool Url: ",  project.url ?: "")
+                    infoText("Description: ", project.description ?: "")
+                    infoText("Tested tool Url: ", project.url ?: "")
                     infoText("Test project owner: ", project.owner)
 
                     div("ml-3 mt-2 align-items-left justify-content-between") {
