@@ -45,7 +45,7 @@ fun executionStatistics(classes: String = "") = fc<ExecutionStatisticsProps> { p
             val passRate = props.executionDto?.run {
                 if (totalTests > 0) (passedTests.toFloat() / totalTests * 100).toInt() else 0
             } ?: "N/A"
-            +"$totalTests tests, $passRate% passed"
+            +"$totalTests tests, $passRate% passed, ${props.executionDto?.runningTests} running"
         }
     }
 }

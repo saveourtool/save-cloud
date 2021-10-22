@@ -32,13 +32,13 @@ interface TestSuiteRepository : BaseEntityRepository<TestSuite>, QueryByExampleE
     /**
      * @param name name of the test suite
      * @param type type of the test suite
-     * @param propertiesRelPath properties relative path of the test suite
+     * @param testRootPath properties relative path of the test suite
      * @param testSuiteRepoUrl test suite repo url of the test suite
      * @return matched test suite
      */
-    fun findByNameAndTypeAndPropertiesRelativePathAndTestSuiteRepoUrl(
+    fun findByNameAndTypeAndTestRootPathAndTestSuiteRepoUrl(
         name: String,
         type: TestSuiteType,
-        propertiesRelPath: String,
+        testRootPath: String,
         testSuiteRepoUrl: String?): TestSuite
 }
