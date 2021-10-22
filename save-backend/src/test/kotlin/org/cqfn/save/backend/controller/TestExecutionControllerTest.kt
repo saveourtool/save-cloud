@@ -133,7 +133,7 @@ class TestExecutionControllerTest {
             .expectStatus()
             .isEqualTo(HttpStatus.BAD_REQUEST)
             .expectBody<String>()
-            .isEqualTo("Some ids don't exist")
+            .isEqualTo("Some ids don't exist or cannot be updated")
         val testExecutions = testExecutionRepository.findAll()
         assertTrue(testExecutions.none { it.test.filePath == "test-not-exists" })
     }
