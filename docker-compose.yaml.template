@@ -43,7 +43,7 @@ services:
       - db_password
       - db_url
     volumes:
-      - save-fs-storage:/home/cnb/
+      - save-fs-storage:/home/cnb/files
     ports:
       - "5000:5000"
     deploy:
