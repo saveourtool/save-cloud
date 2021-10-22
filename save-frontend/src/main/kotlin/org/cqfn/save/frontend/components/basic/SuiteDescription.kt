@@ -17,7 +17,7 @@ fun suiteDescription(suite: TestSuiteDto) =
                   ${suite.testSuiteRepoUrl?.let {
             "<li><a href=$it>$it</a></li>"
         }}
-                <li>${suite.propertiesRelativePath.substringBeforeLast("/save.properties")}</li>
+                <li>${suite.testRootPath}</li>
                 </ul>
                 <p>${suite.description ?: ""}</p>
             </div>

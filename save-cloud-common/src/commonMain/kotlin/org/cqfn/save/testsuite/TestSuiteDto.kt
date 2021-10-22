@@ -8,7 +8,7 @@ import kotlinx.serialization.Serializable
  * @property type [TestSuite.type]
  * @property name [TestSuite.name]
  * @property project [TestSuite.project]
- * @property propertiesRelativePath [TestSuite.propertiesRelativePath]
+ * @property testRootPath [TestSuite.testRootPath]
  * @property testSuiteRepoUrl url of the repo with test suites
  * @property description [TestSuite.description]
  */
@@ -18,6 +18,6 @@ data class TestSuiteDto(
     val name: String,
     val description: String?,
     val project: Project? = null,
-    val propertiesRelativePath: String,
+    val testRootPath: String,
     val testSuiteRepoUrl: String? = null,
 )

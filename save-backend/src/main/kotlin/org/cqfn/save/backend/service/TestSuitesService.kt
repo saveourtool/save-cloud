@@ -42,7 +42,7 @@ class TestSuitesService {
                 it.copy(description = null)
             }
             .map {
-                TestSuite(it.type, it.name, it.description, it.project, null, it.propertiesRelativePath, it.testSuiteRepoUrl)
+                TestSuite(it.type, it.name, it.description, it.project, null, it.testRootPath, it.testSuiteRepoUrl)
             }
             .map { testSuite ->
                 // try to find TestSuite in the DB based on all non-null properties of `testSuite`
@@ -100,10 +100,10 @@ class TestSuitesService {
     @Suppress("UnsafeCallOnNullableType")
     fun markObsoleteTestSuites(testSuiteDtos: List<TestSuiteDto>) {
         testSuiteDtos.forEach { testSuiteDto ->
-            val testSuite = testSuiteRepository.findByNameAndTypeAndPropertiesRelativePathAndTestSuiteRepoUrl(
+            val testSuite = testSuiteRepository.findByNameAndTypeAndTestRootPathAndTestSuiteRepoUrl(
                 testSuiteDto.name,
                 testSuiteDto.type!!,
-                testSuiteDto.propertiesRelativePath,
+                testSuiteDto.testRootPath,
                 testSuiteDto.testSuiteRepoUrl,
             )
             log.info("Mark test suite ${testSuite.name} with id ${testSuite.id} as obsolete")
@@ -121,10 +121,10 @@ class TestSuitesService {
     fun deleteTestSuiteDto(testSuiteDtos: List<TestSuiteDto>) {
         testSuiteDtos.forEach { testSuiteDto ->
             // Get test suite id by testSuiteDto
-            val testSuiteId = testSuiteRepository.findByNameAndTypeAndPropertiesRelativePathAndTestSuiteRepoUrl(
+            val testSuiteId = testSuiteRepository.findByNameAndTypeAndTestRootPathAndTestSuiteRepoUrl(
                 testSuiteDto.name,
                 testSuiteDto.type!!,
-                testSuiteDto.propertiesRelativePath,
+                testSuiteDto.testRootPath,
                 testSuiteDto.testSuiteRepoUrl,
             ).id!!
 

@@ -22,7 +22,6 @@ import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 import reactor.core.publisher.Mono
 
-import java.io.File
 import java.time.LocalDateTime
 import java.util.concurrent.ConcurrentHashMap
 
@@ -58,7 +57,7 @@ class TestService {
         }
             .orElseGet {
                 log.debug("Test $testDto is not found in the DB, will save it")
-                val testSuiteStub = TestSuite(propertiesRelativePath = "FB").apply {
+                val testSuiteStub = TestSuite(testRootPath = "N/A").apply {
                     id = testDto.testSuiteId
                 }
                 testRepository.save(
@@ -83,7 +82,7 @@ class TestService {
             val testExecutions = getTestExecutionsBatchByExecutionIdAndUpdateStatus(execution)
             val testDtos = testExecutions.map { it.test.toDto() }
             Mono.just(TestBatch(testDtos, testExecutions.map { it.test.testSuite }.associate {
-                it.id!! to File(it.propertiesRelativePath).parent
+                it.id!! to it.testRootPath
             }))
         }
     }
