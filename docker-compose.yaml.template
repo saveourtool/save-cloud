@@ -43,12 +43,7 @@ services:
       - db_password
       - db_url
     volumes:
-      - save-fs-storage:/home/cnb/storage
-    entrypoint: /bin/bash
-    command: [
-    "-c",
-    'mkdir files && /cnb/process/web'
-    ]
+      - save-fs-storage:/home/cnb/
     ports:
       - "5000:5000"
     deploy:
@@ -61,6 +56,12 @@ services:
       - "SPRING_PROFILES_ACTIVE={{profile}}"
     volumes:
       - save:/home/cnb/
+      - save-fs-storage:/home/cnb/files
+    entrypoint: /bin/bash
+    command: [
+    "-c",
+    'mkdir -p /home/cnb/files/ && /cnb/process/web'
+    ]
     ports:
       - "5200:5200"
     deploy:
