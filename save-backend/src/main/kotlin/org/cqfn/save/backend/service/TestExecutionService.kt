@@ -63,6 +63,7 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
      * @return list of lost tests
      */
     @Suppress("TOO_MANY_LINES_IN_LAMBDA", "TOO_LONG_FUNCTION", "UnsafeCallOnNullableType")
+    @Transactional
     fun saveTestResult(testExecutionsDtos: List<TestExecutionDto>): List<TestExecutionDto> {
         log.debug("Saving ${testExecutionsDtos.size} test results from agent ${testExecutionsDtos.first().agentContainerId}")
         // we take agent id only from first element, because all test executions have same execution
@@ -80,10 +81,15 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
                 testExecDto.pluginName,
                 testExecDto.filePath
             )
-            foundTestExec.filter {
-                // update only those test executions, that haven't been updated before
-                it.status == TestResultStatus.RUNNING
+            foundTestExec.also {
+                if (it.isEmpty) {
+                    log.error("Test execution $testExecDto for execution id=${execution.id} was not found in the DB")
+                }
             }
+                .filter {
+                    // update only those test executions, that haven't been updated before
+                    it.status == TestResultStatus.RUNNING
+                }
                 .ifPresentOrElse({
                     it.startTime = testExecDto.startTimeSeconds?.secondsToLocalDateTime()
                     it.endTime = testExecDto.endTimeSeconds?.secondsToLocalDateTime()
@@ -100,7 +106,7 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
                 },
                     {
                         lostTests.add(testExecDto)
-                        log.error("Test execution $testExecDto for execution id=${execution.id} was not found in the DB")
+                        log.error("Test execution $testExecDto for execution id=${execution.id} cannot be update because it's status is not RUNNING")
                     })
         }
         executionRepository.save(execution)
