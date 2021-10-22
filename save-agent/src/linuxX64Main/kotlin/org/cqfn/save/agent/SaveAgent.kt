@@ -1,6 +1,7 @@
 package org.cqfn.save.agent
 
 import org.cqfn.save.agent.utils.readFile
+import org.cqfn.save.agent.utils.sendDataToBackend
 import org.cqfn.save.core.logging.describe
 import org.cqfn.save.core.logging.logDebug
 import org.cqfn.save.core.logging.logError
@@ -10,9 +11,12 @@ import org.cqfn.save.core.result.Crash
 import org.cqfn.save.core.result.Fail
 import org.cqfn.save.core.result.Ignored
 import org.cqfn.save.core.result.Pass
+import org.cqfn.save.core.result.TestResult
 import org.cqfn.save.core.result.TestStatus
 import org.cqfn.save.core.utils.ExecutionResult
 import org.cqfn.save.core.utils.ProcessBuilder
+import org.cqfn.save.domain.TestResultDebugInfo
+import org.cqfn.save.domain.TestResultLocation
 import org.cqfn.save.domain.TestResultStatus
 import org.cqfn.save.plugins.fix.FixPlugin
 import org.cqfn.save.reporter.Report
@@ -24,7 +28,6 @@ import io.ktor.client.request.post
 import io.ktor.client.request.url
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
-import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import okio.ExperimentalFileSystem
 import okio.FileSystem
@@ -46,13 +49,12 @@ import kotlinx.serialization.modules.subclass
 
 /**
  * A main class for SAVE Agent
+ * @property config
  */
 @OptIn(ExperimentalFileSystem::class)
-class SaveAgent(private val config: AgentConfiguration,
+class SaveAgent(internal val config: AgentConfiguration,
                 private val httpClient: HttpClient
 ) {
-    private val logFilePath = "logs.txt"
-
     /**
      * The current [AgentState] of this agent
      */
@@ -136,7 +138,7 @@ class SaveAgent(private val config: AgentConfiguration,
         logInfo("Starting SAVE with provided args $cliArgs")
         val executionResult = runSave(cliArgs)
         logInfo("SAVE has completed execution with status ${executionResult.code}")
-        val executionLogs = ExecutionLogs(config.id, readFile(logFilePath))
+        val executionLogs = ExecutionLogs(config.id, readFile(config.logFilePath))
         val logsSendingJob = launchLogSendingJob(executionLogs)
         when (executionResult.code) {
             0 -> if (executionLogs.cliLogs.isEmpty()) {
@@ -154,14 +156,28 @@ class SaveAgent(private val config: AgentConfiguration,
     }
 
     private fun runSave(cliArgs: String): ExecutionResult = ProcessBuilder(true, FileSystem.SYSTEM)
-        .exec(config.cliCommand.let { if (cliArgs.isNotEmpty()) "$it $cliArgs" else it }, "", logFilePath.toPath())
+        .exec(config.cliCommand.let { if (cliArgs.isNotEmpty()) "$it $cliArgs" else it }, "", config.logFilePath.toPath())
 
     @Suppress("TOO_MANY_LINES_IN_LAMBDA")
-    private fun readExecutionResults(jsonFile: String): List<TestExecutionDto> {
+    private fun CoroutineScope.readExecutionResults(jsonFile: String): List<TestExecutionDto> {
         val currentTime = Clock.System.now()
         val reports: List<Report> = reportFormat.decodeFromString(
             readFile(jsonFile).joinToString(separator = "")
         )
+        reports.flatMap { report ->
+            report.pluginExecutions.flatMap { pluginExecution ->
+                pluginExecution.testResults.map { tr ->
+                    tr.toTestResultDebugInfo(report.testSuite, pluginExecution.plugin)
+                }
+            }
+        }.forEach {
+            launch {
+                // todo: launch on a dedicated thread (https://github.com/cqfn/save-cloud/issues/315)
+                sendDataToBackend {
+                    sendReport(it)
+                }
+            }
+        }
         return reports.flatMap { report ->
             report.pluginExecutions.flatMap { pluginExecution ->
                 pluginExecution.testResults.map {
@@ -189,7 +205,7 @@ class SaveAgent(private val config: AgentConfiguration,
             }
     }
 
-    private suspend fun handleSuccessfulExit() {
+    private suspend fun handleSuccessfulExit() = coroutineScope {
         val jsonReport = "save.out.json"
         val testExecutionDtos = runCatching {
             readExecutionResults(jsonReport)
@@ -212,6 +228,12 @@ class SaveAgent(private val config: AgentConfiguration,
         body = executionLogs
     }
 
+    private suspend fun sendReport(testResultDebugInfo: TestResultDebugInfo) = httpClient.post<HttpResponse> {
+        url("${config.backend.url}/files/debug-info?agentId=${config.id}")
+        contentType(ContentType.MultiPart.FormData)
+        body = testResultDebugInfo
+    }
+
     /**
      * @param executionProgress execution progress that will be sent in a heartbeat message
      * @return a [HeartbeatResponse] from Orchestrator
@@ -223,34 +245,6 @@ class SaveAgent(private val config: AgentConfiguration,
             contentType(ContentType.Application.Json)
             accept(ContentType.Application.Json)
             body = Heartbeat(config.id, state.value, executionProgress)
-        }
-    }
-
-    /**
-     * Attempt to send execution data to backend, will retry several times, while increasing delay 2 times on each iteration.
-     */
-    private suspend fun sendDataToBackend(
-        requestToBackend: suspend () -> HttpResponse
-    ) = coroutineScope {
-        var retryInterval = config.executionDataInitialRetryMillis
-        repeat(config.executionDataRetryAttempts) { attempt ->
-            val result = runCatching {
-                requestToBackend()
-            }
-            if (result.isSuccess && result.getOrNull()?.status == HttpStatusCode.OK) {
-                return@coroutineScope
-            } else {
-                val reason = if (result.isSuccess && result.getOrNull()?.status != HttpStatusCode.OK) {
-                    state.value = AgentState.BACKEND_FAILURE
-                    "Backend returned status ${result.getOrNull()?.status}"
-                } else {
-                    state.value = AgentState.BACKEND_UNREACHABLE
-                    "Backend is unreachable, ${result.exceptionOrNull()?.message}"
-                }
-                logError("Cannot post data (x${attempt + 1}), will retry in $retryInterval second. Reason: $reason")
-                delay(retryInterval)
-                retryInterval *= 2
-            }
         }
     }
 
@@ -273,6 +267,19 @@ class SaveAgent(private val config: AgentConfiguration,
         is Fail -> TestResultStatus.FAILED
         is Ignored -> TestResultStatus.IGNORED
         is Crash -> TestResultStatus.TEST_ERROR
-        else -> error("Unknown test status ${this}")
+        else -> error("Unknown test status $this")
     }
+
+    private fun TestResult.toTestResultDebugInfo(testSuiteName: String, pluginName: String) =
+            TestResultDebugInfo(
+                TestResultLocation(
+                    testSuiteName,
+                    pluginName,
+                    resources.test.parent!!.toString(),
+                    resources.test.name
+                ),
+                debugInfo?.stdout,
+                debugInfo?.stderr,
+                debugInfo?.durationMillis,
+            )
 }
