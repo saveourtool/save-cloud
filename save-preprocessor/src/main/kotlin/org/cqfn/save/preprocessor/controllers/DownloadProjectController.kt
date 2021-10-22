@@ -101,7 +101,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         .doOnSuccess {
             downLoadRepository(executionRequest)
                 .flatMap { (location, version) ->
-                    val resourcesLocation = getResourceLocationForGit(location, executionRequest.propertiesRelativePath)
+                    val resourcesLocation = getResourceLocationForGit(location, executionRequest.testRootPath)
                     log.info("Downloading additional files into $resourcesLocation")
                     files.zipWith(fileInfos).download(resourcesLocation)
                         .switchIfEmpty(
@@ -122,7 +122,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                     sendToBackendAndOrchestrator(
                         execution,
                         executionRequest.project,
-                        executionRequest.propertiesRelativePath,
+                        executionRequest.testRootPath,
                         location,
                         null,
                         executionRequest.gitDto.url
@@ -182,7 +182,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                 }
                 .flatMap { (location, execution, testSuites) ->
                     val files = execution.additionalFiles?.split(";")?.filter { it.isNotBlank() }?.map { File(it) } ?: emptyList()
-                    val resourcesLocation = getResourceLocation(executionType, location, executionRerunRequest.propertiesRelativePath, files)
+                    val resourcesLocation = getResourceLocation(executionType, location, executionRerunRequest.testRootPath, files)
 
                     files.forEach { file ->
                         log.debug("Copy additional file $file into ${resourcesLocation.resolve(file.name)}")
@@ -191,7 +191,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                     sendToBackendAndOrchestrator(
                         execution,
                         execution.project,
-                        executionRerunRequest.propertiesRelativePath,
+                        executionRerunRequest.testRootPath,
                         location,
                         testSuites?.map { it.toDto() },
                         executionRerunRequest.gitDto.url
@@ -225,8 +225,8 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                         val testResourcesRootAbsolutePath = tmpDir.resolve(testRootPath).absolutePath
                         val rootTestConfig = testDiscoveringService.getRootTestConfig(testResourcesRootAbsolutePath)
                         log.info("Starting to discover standard test suites for root test config ${rootTestConfig.location}")
-                        val propertiesRelativePath = "${rootTestConfig.directory.toFile().relativeTo(tmpDir)}${File.separator}save.properties"
-                        val testSuiteDtos = testDiscoveringService.getAllTestSuites(null, rootTestConfig, propertiesRelativePath, testSuiteUrl)
+                        val testRootRelativePath = rootTestConfig.directory.toFile().relativeTo(tmpDir).toString()
+                        val testSuiteDtos = testDiscoveringService.getAllTestSuites(null, rootTestConfig, testRootRelativePath, testSuiteUrl)
                         testSuiteDtos.forEach { newTestSuites.add(it) }
                         log.info("Test suites size = ${testSuiteDtos.size}")
                         log.info("Starting to save new test suites for root test config in $testRootPath")
@@ -328,7 +328,6 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
             Files.move(Paths.get(it.absolutePath), Paths.get((tmpDir.resolve(it)).absolutePath))
         }
         val project = executionRequestForStandardSuites.project
-        val propertiesRelativePath = "save.properties"
         // TODO: Save the proper version https://github.com/cqfn/save-cloud/issues/321
         val version = files.first().name
         return updateExecution(
@@ -341,7 +340,8 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                 sendToBackendAndOrchestrator(
                     execution,
                     project,
-                    propertiesRelativePath,
+                    // stub for standard tests that won't be used
+                    "N/A",
                     tmpDir.relativeTo(File(configProperties.repository)).normalize().path,
                     executionRequestForStandardSuites.testsSuites.map {
                         TestSuiteDto(
@@ -349,7 +349,8 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                             it,
                             null,
                             project,
-                            propertiesRelativePath
+                            // stub for standard tests that won't be used
+                            "N/A"
                         )
                     }
                 )
@@ -397,7 +398,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
     private fun sendToBackendAndOrchestrator(
         execution: Execution,
         project: Project,
-        propertiesRelativePath: String,
+        testRootPath: String,
         projectRootRelativePath: String,
         testSuiteDtos: List<TestSuiteDto>?,
         gitUrl: String? = null,
@@ -408,7 +409,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         } ?: require(executionType == ExecutionType.GIT) { "Test suites are not provided, but should for executionType=$executionType" }
 
         return if (executionType == ExecutionType.GIT) {
-            prepareForExecutionFromGit(project, execution.id!!, propertiesRelativePath, projectRootRelativePath, gitUrl!!)
+            prepareForExecutionFromGit(project, execution.id!!, testRootPath, projectRootRelativePath, gitUrl!!)
         } else {
             prepareExecutionForStandard(testSuiteDtos!!, execution)
         }
@@ -425,16 +426,16 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
     private fun getResourceLocation(
         executionType: ExecutionType,
         location: String,
-        propertiesRelativePath: String,
+        testRootPath: String,
         files: List<File>) = if (executionType == ExecutionType.GIT) {
-        getResourceLocationForGit(location, propertiesRelativePath)
+        getResourceLocationForGit(location, testRootPath)
     } else {
         getTmpDirName(calculateTmpNameForFiles(files))
     }
 
-    private fun getResourceLocationForGit(location: String, propertiesRelativePath: String) = File(configProperties.repository)
+    private fun getResourceLocationForGit(location: String, testRootPath: String) = File(configProperties.repository)
         .resolve(location)
-        .resolve(propertiesRelativePath)
+        .resolve(testRootPath)
         .parentFile
 
     private fun getTmpDirName(seeds: List<String>) = File("${configProperties.repository}/${seeds.hashCode()}")
@@ -504,15 +505,15 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
     @Suppress("UnsafeCallOnNullableType")
     private fun prepareForExecutionFromGit(project: Project,
                                            executionId: Long,
-                                           propertiesRelativePath: String,
+                                           testRootPath: String,
                                            projectRootRelativePath: String,
                                            gitUrl: String): Mono<EmptyResponse> = Mono.fromCallable {
         val testResourcesRootAbsolutePath =
-                getTestResourcesRootAbsolutePath(propertiesRelativePath, projectRootRelativePath)
+                getTestResourcesRootAbsolutePath(testRootPath, projectRootRelativePath)
         testDiscoveringService.getRootTestConfig(testResourcesRootAbsolutePath)
     }
         .zipWhen { rootTestConfig ->
-            discoverAndSaveTestSuites(project, rootTestConfig, propertiesRelativePath, gitUrl)
+            discoverAndSaveTestSuites(project, rootTestConfig, testRootPath, gitUrl)
         }
         .flatMap { (rootTestConfig, testSuites) ->
             initializeTests(testSuites, rootTestConfig, executionId)
@@ -549,11 +550,11 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
     }
 
     @Suppress("UnsafeCallOnNullableType")
-    private fun getTestResourcesRootAbsolutePath(propertiesRelativePath: String,
+    private fun getTestResourcesRootAbsolutePath(testRootPath: String,
                                                  projectRootRelativePath: String): String {
         // TODO: File should be provided without explicit naming of `save.propeties`
         val propertiesFile = File(configProperties.repository, projectRootRelativePath)
-            .resolve(propertiesRelativePath)
+            .resolve("$testRootPath/save.properties")
         val saveProperties: SaveProperties = if (propertiesFile.exists()) {
             decodeFromPropertiesFile<SaveProperties>(propertiesFile)
                 .mergeConfigWithPriorityToThis(defaultConfig())
@@ -567,9 +568,9 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
 
     private fun discoverAndSaveTestSuites(project: Project,
                                           rootTestConfig: TestConfig,
-                                          propertiesRelativePath: String,
+                                          testRootPath: String,
                                           gitUrl: String): Mono<List<TestSuite>> {
-        val testSuites: List<TestSuiteDto> = testDiscoveringService.getAllTestSuites(project, rootTestConfig, propertiesRelativePath, gitUrl)
+        val testSuites: List<TestSuiteDto> = testDiscoveringService.getAllTestSuites(project, rootTestConfig, testRootPath, gitUrl)
         return webClientBackend.makeRequest(BodyInserters.fromValue(testSuites), "/saveTestSuites") {
             it.bodyToMono()
         }

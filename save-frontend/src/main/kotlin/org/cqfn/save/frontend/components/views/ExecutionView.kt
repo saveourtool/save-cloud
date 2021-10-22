@@ -86,7 +86,7 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
             }
             div("d-flex") {
                 div("p-2 mr-auto") {
-                    +"Status: ${state.executionDto?.status ?: "N/A"}"
+                    +"Status: ${state.executionDto?.status?.name ?: "N/A"}"
                 }
                 child(executionStatistics("mr-auto")) {
                     attrs.executionDto = state.executionDto
@@ -161,6 +161,13 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
                     buildElement {
                         td {
                             +"${it.value.tags}"
+                        }
+                    }
+                }
+                column(id = "agentId", header = "Agent ID") {
+                    buildElement {
+                        td {
+                            +"${it.value.agentContainerId}"
                         }
                     }
                 }

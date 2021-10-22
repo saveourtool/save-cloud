@@ -78,7 +78,7 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
         if (testExecutionService.saveTestResult(testExecutionsDto).isEmpty()) {
             ResponseEntity.status(HttpStatus.OK).body("Saved")
         } else {
-            ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Some ids don't exist")
+            ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Some ids don't exist or cannot be updated")
         }
     } catch (exception: DataAccessException) {
         ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error to save")

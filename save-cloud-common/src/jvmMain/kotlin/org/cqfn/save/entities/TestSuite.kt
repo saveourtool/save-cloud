@@ -15,7 +15,7 @@ import javax.persistence.ManyToOne
  * @property name name of the test suite
  * @property project project, which this test suite belongs to
  * @property dateAdded date and time, when this test suite was added to the project
- * @property propertiesRelativePath location of save.properties file for this test suite, relative to project's root directory
+ * @property testRootPath location of save.properties file for this test suite, relative to project's root directory
  * @property testSuiteRepoUrl url of the repo with test suites
  * @property description description of the test suite
  */
@@ -25,9 +25,9 @@ class TestSuite(
     @Enumerated(EnumType.STRING)
     var type: TestSuiteType? = null,
 
-    var name: String = "FB",
+    var name: String = "Undefined",
 
-    var description: String? = "FB",
+    var description: String? = "Undefined",
 
     @ManyToOne
     @JoinColumn(name = "project_id")
@@ -35,7 +35,7 @@ class TestSuite(
 
     var dateAdded: LocalDateTime? = null,
 
-    var propertiesRelativePath: String,
+    var testRootPath: String,
 
     var testSuiteRepoUrl: String? = null
 ) : BaseEntity() {
@@ -48,7 +48,7 @@ class TestSuite(
                 this.name,
                 this.description,
                 this.project,
-                this.propertiesRelativePath,
+                this.testRootPath,
                 this.testSuiteRepoUrl,
             )
 }
