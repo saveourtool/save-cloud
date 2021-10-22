@@ -197,7 +197,7 @@ class DockerService(private val configProperties: ConfigProperties) {
         } else {
             "apt-get -o Acquire::http::proxy=\"$aptHttpProxy\" -o Acquire::https::proxy=\"$aptHttpsProxy\""
         }
-        val additionalRunCmd = if (execution.sdk.toSdk() is Python) {
+        val additionalRunCmd = if (execution.sdk.startsWith(Python.NAME, ignoreCase = true)) {
             """|RUN env DEBIAN_FRONTEND="noninteractive" $aptCmd install zip
                |RUN curl -s "https://get.sdkman.io" | bash
                |RUN source "${'$'}HOME/.sdkman/bin/sdkman-init.sh"
