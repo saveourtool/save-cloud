@@ -200,8 +200,7 @@ class DockerService(private val configProperties: ConfigProperties) {
         val additionalRunCmd = if (execution.sdk.startsWith(Python.NAME, ignoreCase = true)) {
             """|RUN env DEBIAN_FRONTEND="noninteractive" $aptCmd install zip
                |RUN curl -s "https://get.sdkman.io" | bash
-               |RUN source "${'$'}HOME/.sdkman/bin/sdkman-init.sh"
-               |RUN sdk install java 8.0.302-open
+               |RUN bash -c 'source "${'$'}HOME/.sdkman/bin/sdkman-init.sh" && sdk install java 8.0.302-open'
                |RUN ln -s ${'$'}(which java) /usr/bin/java
             """.trimMargin()
         } else {
