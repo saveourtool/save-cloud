@@ -98,7 +98,7 @@ services:
         constraints:
           - "node.role==manager"
   loki:
-    image: grafana/loki
+    image: grafana/loki:main-517ba7c
     ports:
       - "9110:3100"
     command: -config.file=/etc/loki/local-config.yaml

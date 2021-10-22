@@ -143,7 +143,7 @@ class CloningRepositoryControllerTest {
             .thenReturn(project)
 
         webTestClient.post()
-            .uri("/submitExecutionRequestBin")
+            .uri("/executionRequestStandardTests")
             .contentType(MediaType.MULTIPART_FORM_DATA)
             .body(BodyInserters.fromMultipartData(bodyBuilder.build()))
             .exchange()

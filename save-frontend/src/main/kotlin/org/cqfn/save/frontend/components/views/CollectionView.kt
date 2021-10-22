@@ -54,11 +54,18 @@ class CollectionView : RComponent<PropsWithChildren, State>() {
                         }
                     }
                 }
+                column(id = "owner", header = "Owner") {
+                    buildElement {
+                        td {
+                            +it.value.owner
+                        }
+                    }
+                }
                 column(id = "passed", header = "Description") {
                     buildElement {
                         td {
                             a(href = "#/${it.value.owner}/${it.value.name}/history") {
-                                +(it.value.description ?: "Description N/A")
+                                +(it.value.description ?: "Description not provided")
                             }
                         }
                     }

@@ -132,7 +132,9 @@ class CreationView : RComponent<PropsWithChildren, ProjectSaveViewState>() {
         }.invokeOnCompletion {
             if (responseFromCreationProject.ok) {
                 window.location.href =
-                        "${window.location.origin}#/${newProjectRequest.project.owner}/${newProjectRequest.project.name}"
+                        "${window.location.origin}#/" +
+                                "${newProjectRequest.project.owner.replace(" ", "%20")}/" +
+                                newProjectRequest.project.name.replace(" ", "%20")
             } else {
                 responseFromCreationProject.text().then {
                     setState {

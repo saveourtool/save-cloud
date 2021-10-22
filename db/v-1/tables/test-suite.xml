@@ -27,7 +27,7 @@
             <column name="date_added" type="DATETIME">
                 <constraints nullable="false" />
             </column>
-            <column name="properties_relative_path" type="varchar(256)">
+            <column name="test_root_path" type="varchar(256)">
                 <constraints nullable="false" />
             </column>
             <column name="description" type="text"/>

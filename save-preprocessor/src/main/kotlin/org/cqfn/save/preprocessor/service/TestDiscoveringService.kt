@@ -42,7 +42,7 @@ class TestDiscoveringService {
      * Discover all test suites in the project
      *
      * @param project a [Project] corresponding to analyzed data. If it null - standard test suites
-     * @param propertiesRelativePath path to save.properties file relative to repository root
+     * @param testRootPath path to the test repository root where save.properties and high level save.toml can be stored
      * @param rootTestConfig root config of SAVE configs hierarchy
      * @param testSuiteRepoUrl url of the repo with test suites
      * @return a list of [TestSuiteDto]s
@@ -52,7 +52,7 @@ class TestDiscoveringService {
     fun getAllTestSuites(
         project: Project?,
         rootTestConfig: TestConfig,
-        propertiesRelativePath: String,
+        testRootPath: String,
         testSuiteRepoUrl: String) = rootTestConfig
         .getAllTestConfigs()
         .asSequence()
@@ -66,7 +66,7 @@ class TestDiscoveringService {
                 config.suiteName!!,
                 config.description,
                 project,
-                propertiesRelativePath,
+                testRootPath,
                 testSuiteRepoUrl
             )
         }
