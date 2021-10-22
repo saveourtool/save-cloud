@@ -38,10 +38,10 @@ class CollectionView : RComponent<PropsWithChildren, State>() {
         }
         child(tableComponent(
             columns = columns {
-                column(id = "index", header = "#") { cell ->
+                column(id = "owner", header = "Owner") {
                     buildElement {
                         td {
-                            +"${cell.row.index}"
+                            +it.value.owner
                         }
                     }
                 }
@@ -51,13 +51,6 @@ class CollectionView : RComponent<PropsWithChildren, State>() {
                             a(href = "#/${it.value.owner}/${it.value.name}") {
                                 +it.value.name
                             }
-                        }
-                    }
-                }
-                column(id = "owner", header = "Owner") {
-                    buildElement {
-                        td {
-                            +it.value.owner
                         }
                     }
                 }
