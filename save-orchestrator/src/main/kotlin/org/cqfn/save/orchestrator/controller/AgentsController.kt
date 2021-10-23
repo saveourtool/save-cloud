@@ -65,6 +65,7 @@ class AgentsController(
                 dockerService.buildAndCreateContainers(execution, testSuiteDtos)
             }
                 .doOnError(DockerException::class) {
+                    log.error("Unable to build image and containers for executionId=${execution.id}, will mark it as ERROR")
                     agentService.updateExecution(execution.id!!, ExecutionStatus.ERROR)
                 }
                 .flatMap { agentIds ->
