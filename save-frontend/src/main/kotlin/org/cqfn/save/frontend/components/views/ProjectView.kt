@@ -296,14 +296,14 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                         div("mr-2") {
                             button(type = ButtonType.button) {
                                 attrs.classes =
-                                    if (state.isFirstTypeUpload == true) {
-                                        setOf("btn", "btn-primary")
-                                    } else {
-                                        setOf(
-                                            "btn",
-                                            "btn-outline-primary"
-                                        )
-                                    }
+                                        if (state.isFirstTypeUpload == true) {
+                                            setOf("btn", "btn-primary")
+                                        } else {
+                                            setOf(
+                                                "btn",
+                                                "btn-outline-primary"
+                                            )
+                                        }
                                 attrs.onClickFunction = {
                                     setState {
                                         isFirstTypeUpload = true
@@ -315,14 +315,14 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                         div("mt-3 mr-2") {
                             button(type = ButtonType.button, classes = "btn btn-link collapsed") {
                                 attrs.classes =
-                                    if (state.isFirstTypeUpload == true) {
-                                        setOf("btn", "btn-outline-primary")
-                                    } else {
-                                        setOf(
-                                            "btn",
-                                            "btn-primary"
-                                        )
-                                    }
+                                        if (state.isFirstTypeUpload == true) {
+                                            setOf("btn", "btn-outline-primary")
+                                        } else {
+                                            setOf(
+                                                "btn",
+                                                "btn-primary"
+                                            )
+                                        }
                                 attrs.onClickFunction = {
                                     setState {
                                         isFirstTypeUpload = false
@@ -433,9 +433,9 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                                         attrs["tooltip-title"] = ""
                                         attrs["popover-placement"] = "left"
                                         attrs["popover-title"] =
-                                            "Use the following link to read more about save format:"
+                                                "Use the following link to read more about save format:"
                                         attrs["popover-content"] =
-                                            "<a href =\"https://github.com/cqfn/save/blob/main/README.md\" > Save core README </a>"
+                                                "<a href =\"https://github.com/cqfn/save/blob/main/README.md\" > Save core README </a>"
                                         attrs["data-trigger"] = "focus"
                                         attrs["tabindex"] = "0"
                                     }
@@ -445,8 +445,11 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                                 }
                                 div("input-group-prepend") {
                                     input(type = InputType.text) {
-                                        attrs["class"] = if (gitUrlFromInputField.isNullOrBlank() && state.isSubmitButtonPressed!!)
-                                            "form-control is-invalid" else "form-control"
+                                        attrs["class"] = if (gitUrlFromInputField.isNullOrBlank() && state.isSubmitButtonPressed!!) {
+                                            "form-control is-invalid"
+                                        } else {
+                                            "form-control"
+                                        }
                                         attrs {
                                             gitUrlFromInputField?.let {
                                                 defaultValue = it
@@ -602,7 +605,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
             setState {
                 errorLabel = "Failed to fetch latest execution"
                 errorMessage =
-                    "Failed to fetch latest execution: ${response.status} ${response.statusText}"
+                        "Failed to fetch latest execution: ${response.status} ${response.statusText}"
                 isErrorOpen = true
             }
         } else {
