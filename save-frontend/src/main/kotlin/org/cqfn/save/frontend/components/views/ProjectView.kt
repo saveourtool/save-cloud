@@ -110,6 +110,11 @@ external interface ProjectViewState : State {
      * Flag to handle upload type project
      */
     var isFirstTypeUpload: Boolean?
+
+    /**
+     * Sumbit button was pressed
+     */
+    var isSubmitButtonPressed: Boolean?
 }
 
 /**
@@ -128,6 +133,8 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
 
     init {
         state.isErrorOpen = false
+        state.isSubmitButtonPressed = false
+
         state.errorMessage = ""
         state.errorLabel = ""
 
@@ -165,6 +172,17 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
 
     @Suppress("ComplexMethod", "TOO_LONG_FUNCTION")
     private fun submitExecutionRequest() {
+        state.isSubmitButtonPressed = true
+
+        if (state.files.isEmpty()) {
+            setState {
+                isErrorOpen = true
+                errorLabel = "Tested tool was not selected"
+                errorMessage = "Please provide binaries or resources of a tested tool that are nessesary for execution"
+            }
+            return
+        }
+
         if (state.isFirstTypeUpload == true) {
             gitUrlFromInputField?.let {
                 val newGitDto = GitDto(url = it)
@@ -185,14 +203,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                 }
                 return
             }
-            if (state.files.isEmpty()) {
-                setState {
-                    isErrorOpen = true
-                    errorLabel = "No files have been selected"
-                    errorMessage = "Please provide files necessary for execution"
-                }
-                return
-            }
+
             submitExecutionRequestWithStandardTests()
         }
     }
@@ -285,14 +296,14 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                         div("mr-2") {
                             button(type = ButtonType.button) {
                                 attrs.classes =
-                                        if (state.isFirstTypeUpload == true) {
-                                            setOf("btn", "btn-primary")
-                                        } else {
-                                            setOf(
-                                                "btn",
-                                                "btn-outline-primary"
-                                            )
-                                        }
+                                    if (state.isFirstTypeUpload == true) {
+                                        setOf("btn", "btn-primary")
+                                    } else {
+                                        setOf(
+                                            "btn",
+                                            "btn-outline-primary"
+                                        )
+                                    }
                                 attrs.onClickFunction = {
                                     setState {
                                         isFirstTypeUpload = true
@@ -304,14 +315,14 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                         div("mt-3 mr-2") {
                             button(type = ButtonType.button, classes = "btn btn-link collapsed") {
                                 attrs.classes =
-                                        if (state.isFirstTypeUpload == true) {
-                                            setOf("btn", "btn-outline-primary")
-                                        } else {
-                                            setOf(
-                                                "btn",
-                                                "btn-primary"
-                                            )
-                                        }
+                                    if (state.isFirstTypeUpload == true) {
+                                        setOf("btn", "btn-outline-primary")
+                                    } else {
+                                        setOf(
+                                            "btn",
+                                            "btn-primary"
+                                        )
+                                    }
                                 attrs.onClickFunction = {
                                     setState {
                                         isFirstTypeUpload = false
@@ -329,45 +340,53 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                     +"Test configuration"
                 }
 
-                child(fileUploader({ element ->
-                    setState {
-                        val availableFile = availableFiles.first { it.name == element.value }
-                        files.add(availableFile)
-                        availableFiles.remove(availableFile)
-                    }
-                }, {
-                    setState {
-                        files.remove(it)
-                        this.availableFiles.add(it)
-                    }
-                }, { htmlInputElement ->
-                    GlobalScope.launch {
-                        setState {
-                            isLoading = true
-                        }
-                        htmlInputElement.files!!.asList().forEach { file ->
-                            val response: FileInfo = post(
-                                "${window.location.origin}/files/upload",
-                                Headers(),
-                                FormData().apply {
-                                    append("file", file)
-                                }
-                            )
-                                .decodeFromJsonString()
+                child(
+                    fileUploader(
+                        onFileSelect = { element ->
                             setState {
-                                // add only to selected files so that this entry isn't duplicated
-                                files.add(response)
+                                val availableFile = availableFiles.first { it.name == element.value }
+                                files.add(availableFile)
+                                availableFiles.remove(availableFile)
+                            }
+                        },
+                        onFileRemove = {
+                            setState {
+                                files.remove(it)
+                                this.availableFiles.add(it)
+                            }
+                        },
+                        onFileInput = { htmlInputElement ->
+                            GlobalScope.launch {
+                                setState {
+                                    isLoading = true
+                                }
+                                htmlInputElement.files!!.asList().forEach { file ->
+                                    val response: FileInfo = post(
+                                        "${window.location.origin}/files/upload",
+                                        Headers(),
+                                        FormData().apply {
+                                            append("file", file)
+                                        }
+                                    )
+                                        .decodeFromJsonString()
+                                    setState {
+                                        // add only to selected files so that this entry isn't duplicated
+                                        files.add(response)
+                                    }
+                                }
+                                setState {
+                                    isLoading = false
+                                }
+                            }
+                        },
+                        onExecutableChange = { selectedFile, checked ->
+                            setState {
+                                files[files.indexOf(selectedFile)] = selectedFile.copy(isExecutable = checked)
                             }
                         }
-                        setState {
-                            isLoading = false
-                        }
-                    }
-                }, { selectedFile, checked ->
-                    setState {
-                        files[files.indexOf(selectedFile)] = selectedFile.copy(isExecutable = checked)
-                    }
-                })) {
+                    )
+                ) {
+                    attrs.isSubmitButtonPressed = state.isSubmitButtonPressed
                     attrs.files = state.files
                     attrs.availableFiles = state.availableFiles
                 }
@@ -414,9 +433,9 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                                         attrs["tooltip-title"] = ""
                                         attrs["popover-placement"] = "left"
                                         attrs["popover-title"] =
-                                                "Use the following link to read more about save format:"
+                                            "Use the following link to read more about save format:"
                                         attrs["popover-content"] =
-                                                "<a href =\"https://github.com/cqfn/save/blob/main/README.md\" > Save core README </a>"
+                                            "<a href =\"https://github.com/cqfn/save/blob/main/README.md\" > Save core README </a>"
                                         attrs["data-trigger"] = "focus"
                                         attrs["tabindex"] = "0"
                                     }
@@ -426,7 +445,8 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                                 }
                                 div("input-group-prepend") {
                                     input(type = InputType.text) {
-                                        attrs.set("class", "form-control")
+                                        attrs["class"] = if (gitUrlFromInputField.isNullOrBlank() && state.isSubmitButtonPressed!!)
+                                            "form-control is-invalid" else "form-control"
                                         attrs {
                                             gitUrlFromInputField?.let {
                                                 defaultValue = it
@@ -582,7 +602,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
             setState {
                 errorLabel = "Failed to fetch latest execution"
                 errorMessage =
-                        "Failed to fetch latest execution: ${response.status} ${response.statusText}"
+                    "Failed to fetch latest execution: ${response.status} ${response.statusText}"
                 isErrorOpen = true
             }
         } else {

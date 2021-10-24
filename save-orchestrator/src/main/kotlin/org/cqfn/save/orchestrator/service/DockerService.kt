@@ -230,7 +230,7 @@ class DockerService(private val configProperties: ConfigProperties) {
             val standardTestSuiteAbsolutePath = File(configProperties.testResources.basePath)
                 // tmp directories names for standard test suites constructs just by hashCode of listOf(repoUrl); reuse this logic
                 .resolve(File("${listOf(it.testSuiteRepoUrl!!).hashCode()}")
-                    .resolve(File(it.testRootPath).parent)
+                    .resolve(it.testRootPath)
                 )
             log.debug("Copying suite ${it.name} from $standardTestSuiteAbsolutePath into $destination/...")
             standardTestSuiteAbsolutePath.copyRecursively(destination.resolve("${it.name}_${it.testRootPath.hashCode()}_${Random.nextInt()}"))

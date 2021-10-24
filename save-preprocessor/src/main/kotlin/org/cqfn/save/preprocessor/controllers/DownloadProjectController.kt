@@ -436,7 +436,6 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
     private fun getResourceLocationForGit(location: String, testRootPath: String) = File(configProperties.repository)
         .resolve(location)
         .resolve(testRootPath)
-        .parentFile
 
     private fun getTmpDirName(seeds: List<String>) = File("${configProperties.repository}/${seeds.hashCode()}")
 
