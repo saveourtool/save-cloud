@@ -78,7 +78,7 @@ class TestDataFilesystemRepository(configProperties: ConfigProperties,
      * @param testResultLocation
      * @return path to file with additional data
      */
-    private fun getLocation(executionId: Long, testResultLocation: TestResultLocation) = with(testResultLocation) {
+    internal fun getLocation(executionId: Long, testResultLocation: TestResultLocation) = with(testResultLocation) {
         root / executionId.toString() / pluginName / testSuiteName / testLocation / "$testName-debug.json"
     }
 }
