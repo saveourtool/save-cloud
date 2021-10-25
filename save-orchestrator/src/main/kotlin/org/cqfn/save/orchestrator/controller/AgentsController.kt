@@ -10,8 +10,9 @@ import org.cqfn.save.orchestrator.service.AgentService
 import org.cqfn.save.orchestrator.service.DockerService
 import org.cqfn.save.orchestrator.service.imageName
 import org.cqfn.save.testsuite.TestSuiteDto
+
+import com.github.dockerjava.api.exception.DockerException
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
@@ -24,22 +25,18 @@ import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux.fromIterable
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.doOnError
+
 import java.io.File
 
 /**
  * Controller used to starts agents with needed information
  */
 @RestController
-class AgentsController {
-    @Autowired
-    private lateinit var agentService: AgentService
-
-    @Autowired
-    private lateinit var dockerService: DockerService
-
-    @Autowired
-    private lateinit var configProperties: ConfigProperties
-
+class AgentsController(
+    private val agentService: AgentService,
+    private val dockerService: DockerService,
+    private val configProperties: ConfigProperties,
+) {
     /**
      * Schedules tasks to build base images, create a number of containers and put their data into the database.
      *
@@ -48,6 +45,7 @@ class AgentsController {
      * @return OK if everything went fine.
      * @throws ResponseStatusException
      */
+    @Suppress("TOO_LONG_FUNCTION", "LongMethod", "UnsafeCallOnNullableType")
     @PostMapping("/initializeAgents")
     fun initialize(@RequestPart(required = true) execution: Execution,
                    @RequestPart(required = false) testSuiteDtos: List<TestSuiteDto>?): Mono<BodilessResponseEntity> {
@@ -59,29 +57,36 @@ class AgentsController {
         }
         val response = Mono.just(ResponseEntity<Void>(HttpStatus.ACCEPTED))
             .subscribeOn(agentService.scheduler)
-        response.subscribe {
+        return response.doOnSuccess {
             log.info("Starting preparations for launching execution [project=${execution.project}, id=${execution.id}, " +
                     "status=${execution.status}, resourcesRootPath=${execution.resourcesRootPath}]")
-            // todo: pass SDK via request body
-            val agentIds = dockerService.buildAndCreateContainers(execution, testSuiteDtos)
-            agentService.saveAgentsWithInitialStatuses(
-                agentIds.map { id ->
-                    Agent(id, execution)
+            Mono.fromCallable {
+                // todo: pass SDK via request body
+                dockerService.buildAndCreateContainers(execution, testSuiteDtos)
+            }
+                .doOnError(DockerException::class) {
+                    log.error("Unable to build image and containers for executionId=${execution.id}, will mark it as ERROR")
+                    agentService.updateExecution(execution.id!!, ExecutionStatus.ERROR)
                 }
-            )
-                .doOnError(WebClientResponseException::class) { exception ->
-                    log.error("Unable to save agents, backend returned code ${exception.statusCode}", exception)
-                    agentIds.forEach {
-                        dockerService.removeContainer(it)
-                    }
-                }
-                .doOnSuccess {
-                    dockerService.startContainersAndUpdateExecution(execution, agentIds)
+                .flatMap { agentIds ->
+                    agentService.saveAgentsWithInitialStatuses(
+                        agentIds.map { id ->
+                            Agent(id, execution)
+                        }
+                    )
+                        .doOnError(WebClientResponseException::class) { exception ->
+                            log.error("Unable to save agents, backend returned code ${exception.statusCode}", exception)
+                            agentIds.forEach {
+                                dockerService.removeContainer(it)
+                            }
+                        }
+                        .doOnSuccess {
+                            dockerService.startContainersAndUpdateExecution(execution, agentIds)
+                        }
                 }
                 .subscribeOn(agentService.scheduler)
                 .subscribe()
         }
-        return response
     }
 
     /**
