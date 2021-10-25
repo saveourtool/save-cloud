@@ -39,7 +39,15 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.html.ButtonType
+import kotlinx.html.hidden
+import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
+import kotlinx.html.js.onContextMenuFunction
+import kotlinx.html.js.onDropFunction
+import org.cqfn.save.frontend.components.views.ProjectView
+import org.cqfn.save.frontend.externals.fontawesome.faQuestionCircle
+import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
+import react.dom.sup
 
 /**
  * [RProps] of a data table
@@ -183,6 +191,7 @@ fun <D : Any> tableComponent(columns: Array<out Column<D, *>>,
                 if (tableInstance.pageCount > 1) {
                     // block with paging controls
                     div {
+                        // First page
                         button(type = ButtonType.button, classes = "btn btn-link") {
                             attrs.onClickFunction = {
                                 setPageIndex(0)
@@ -191,6 +200,7 @@ fun <D : Any> tableComponent(columns: Array<out Column<D, *>>,
                             attrs.disabled = !tableInstance.canPreviousPage
                             +js("String.fromCharCode(171)").unsafeCast<String>()
                         }
+                        // Previous page icon <
                         button(type = ButtonType.button, classes = "btn btn-link") {
                             attrs.onClickFunction = {
                                 setPageIndex(pageIndex - 1)
@@ -199,17 +209,60 @@ fun <D : Any> tableComponent(columns: Array<out Column<D, *>>,
                             attrs.disabled = !tableInstance.canPreviousPage
                             +js("String.fromCharCode(8249)").unsafeCast<String>()
                         }
-                        // WIP
+                        // Previous before previous page
+                        button(type = ButtonType.button, classes = "btn btn-link") {
+                            val index = pageIndex - 2
+                            attrs.onClickFunction = {
+                                setPageIndex(index)
+                                tableInstance.gotoPage(index)
+                            }
+                            attrs.hidden = (index < 0)
+                            em {
+                                +"${index + 1}"
+                            }
+                        }
+                        // Previous page number
                         button(type = ButtonType.button, classes = "btn btn-link") {
                             attrs.onClickFunction = {
-                                setPageIndex(pageCount - 1)
-                                tableInstance.gotoPage(pageCount - 1)
+                                setPageIndex(pageIndex - 1)
+                                tableInstance.previousPage()
                             }
+                            attrs.hidden = !tableInstance.canPreviousPage
+                            em {
+                                +"$pageIndex"
+                            }
+                        }
+                        // Current page number
+                        button(type = ButtonType.button, classes = "btn btn-link") {
                             attrs.disabled = true
                             em {
                                 +"${pageIndex + 1}"
                             }
                         }
+                        // Next page number
+                        button(type = ButtonType.button, classes = "btn btn-link") {
+                            attrs.onClickFunction = {
+                                setPageIndex(pageIndex + 1)
+                                tableInstance.nextPage()
+                            }
+                            attrs.hidden = !tableInstance.canNextPage
+                            em {
+                                +"${pageIndex + 2}"
+                            }
+                        }
+                        // Next after next page
+                        button(type = ButtonType.button, classes = "btn btn-link") {
+                            val index = pageIndex + 2
+                            attrs.onClickFunction = {
+                                setPageIndex(index)
+                                tableInstance.gotoPage(index)
+                            }
+                            attrs.hidden = (index > pageCount - 1)
+                            em {
+                                +"${index + 1}"
+                            }
+                        }
+                        // Next page icon >
                         button(type = ButtonType.button, classes = "btn btn-link") {
                             attrs.onClickFunction = {
                                 setPageIndex(pageIndex + 1)
@@ -218,6 +271,7 @@ fun <D : Any> tableComponent(columns: Array<out Column<D, *>>,
                             attrs.disabled = !tableInstance.canNextPage
                             +js("String.fromCharCode(8250)").unsafeCast<String>()
                         }
+                        // Last page
                         button(type = ButtonType.button, classes = "btn btn-link") {
                             attrs.onClickFunction = {
                                 setPageIndex(pageCount - 1)
@@ -230,6 +284,25 @@ fun <D : Any> tableComponent(columns: Array<out Column<D, *>>,
                             +"Page "
                             em {
                                 +"${tableInstance.state.pageIndex + 1} of ${tableInstance.pageCount}"
+                            }
+                            button(type = ButtonType.button, classes = "btn btn-link") {
+                                attrs.onChangeFunction = {
+                                    setPageIndex(pageCount - 1)
+                                    tableInstance.gotoPage(pageCount - 1)
+                                }
+                                attrs.disabled = !tableInstance.canNextPage
+                                +js("String.fromCharCode(187)").unsafeCast<String>()
+                            }
+
+                            // Go to the page
+                            sup("tooltip-and-popover") {
+                                attrs["tooltip-placement"] = "top"
+                                attrs["tooltip-title"] = ""
+                                attrs["data-trigger"] = "focus"
+                                attrs["tabindex"] = "0"
+                            }
+                            h6(classes = "d-inline ml-2") {
+                                +"Go to the page:"
                             }
                         }
                     }
