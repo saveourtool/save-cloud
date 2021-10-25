@@ -74,10 +74,9 @@ val generateVersionFileTaskProvider = tasks.register("generateVersionFile") {
         )
     }
 }
-val generatedKotlinSrc = kotlin.sourceSets.create("generated") {
+kotlin.sourceSets.getByName("main") {
     kotlin.srcDir("$buildDir/generated/src")
 }
-kotlin.sourceSets.getByName("main").dependsOn(generatedKotlinSrc)
 tasks.withType<KotlinCompile>().forEach {
     it.dependsOn(generateVersionFileTaskProvider)
 }
