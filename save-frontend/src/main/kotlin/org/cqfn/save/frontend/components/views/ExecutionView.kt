@@ -114,7 +114,7 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
                 column(id = "index", header = "#") {
                     buildElement {
                         td {
-                            +"${it.row.index}"
+                            +"${it.row.index + 1 + it.state.pageIndex * it.state.pageSize}"
                         }
                     }
                 }

@@ -185,11 +185,30 @@ fun <D : Any> tableComponent(columns: Array<out Column<D, *>>,
                     div {
                         button(type = ButtonType.button, classes = "btn btn-link") {
                             attrs.onClickFunction = {
+                                setPageIndex(0)
+                                tableInstance.gotoPage(0)
+                            }
+                            attrs.disabled = !tableInstance.canPreviousPage
+                            +js("String.fromCharCode(171)").unsafeCast<String>()
+                        }
+                        button(type = ButtonType.button, classes = "btn btn-link") {
+                            attrs.onClickFunction = {
                                 setPageIndex(pageIndex - 1)
                                 tableInstance.previousPage()
                             }
                             attrs.disabled = !tableInstance.canPreviousPage
-                            +js("String.fromCharCode(8592)").unsafeCast<String>()
+                            +js("String.fromCharCode(8249)").unsafeCast<String>()
+                        }
+                        // WIP
+                        button(type = ButtonType.button, classes = "btn btn-link") {
+                            attrs.onClickFunction = {
+                                setPageIndex(pageCount - 1)
+                                tableInstance.gotoPage(pageCount - 1)
+                            }
+                            attrs.disabled = true
+                            em {
+                                +"${pageIndex + 1}"
+                            }
                         }
                         button(type = ButtonType.button, classes = "btn btn-link") {
                             attrs.onClickFunction = {
@@ -197,7 +216,15 @@ fun <D : Any> tableComponent(columns: Array<out Column<D, *>>,
                                 tableInstance.nextPage()
                             }
                             attrs.disabled = !tableInstance.canNextPage
-                            +js("String.fromCharCode(8594)").unsafeCast<String>()
+                            +js("String.fromCharCode(8250)").unsafeCast<String>()
+                        }
+                        button(type = ButtonType.button, classes = "btn btn-link") {
+                            attrs.onClickFunction = {
+                                setPageIndex(pageCount - 1)
+                                tableInstance.gotoPage(pageCount - 1)
+                            }
+                            attrs.disabled = !tableInstance.canNextPage
+                            +js("String.fromCharCode(187)").unsafeCast<String>()
                         }
                         div {
                             +"Page "
