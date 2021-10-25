@@ -11,6 +11,8 @@ import org.cqfn.save.testsuite.TestSuiteDto
 import com.github.dockerjava.api.exception.DockerException
 import generated.SAVE_CORE_VERSION
 import org.apache.commons.io.FileUtils
+import org.cqfn.save.domain.Python
+import org.cqfn.save.domain.toSdk
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
@@ -54,6 +56,7 @@ class DockerService(private val configProperties: ConfigProperties) {
      * @param execution [Execution] from which this workflow is started
      * @param testSuiteDtos test suites, selected by user
      * @return list of IDs of created containers
+     * @throws DockerException if interaction with docker daemon is not successful
      */
     fun buildAndCreateContainers(execution: Execution, testSuiteDtos: List<TestSuiteDto>?): List<String> {
         log.info("Building base image for execution.id=${execution.id}")
@@ -195,13 +198,26 @@ class DockerService(private val configProperties: ConfigProperties) {
         } else {
             "apt-get -o Acquire::http::proxy=\"$aptHttpProxy\" -o Acquire::https::proxy=\"$aptHttpsProxy\""
         }
+        // fixme: https://github.com/cqfn/save-cloud/issues/352
+        val additionalRunCmd = if (execution.sdk.startsWith(Python.NAME, ignoreCase = true)) {
+            """|RUN env DEBIAN_FRONTEND="noninteractive" $aptCmd install zip
+               |RUN curl -s "https://get.sdkman.io" | bash
+               |RUN bash -c 'source "${'$'}HOME/.sdkman/bin/sdkman-init.sh" && sdk install java 8.0.302-open'
+               |RUN ln -s ${'$'}(which java) /usr/bin/java
+            """.trimMargin()
+        } else {
+            ""
+        }
         val imageId = containerManager.buildImageWithResources(
             baseImage = baseImage,
             imageName = imageName(execution.id!!),
             baseDir = resourcesPath,
             resourcesPath = executionDir,
-            runCmd = """RUN $aptCmd update && env DEBIAN_FRONTEND="noninteractive" $aptCmd install -y libcurl4-openssl-dev tzdata && rm -rf /var/lib/apt/lists/*
+            runCmd = """RUN $aptCmd update && env DEBIAN_FRONTEND="noninteractive" $aptCmd install -y \
+                    |libcurl4-openssl-dev tzdata
                     |RUN ln -fs /usr/share/zoneinfo/UTC /etc/localtime
+                    |$additionalRunCmd
+                    |RUN rm -rf /var/lib/apt/lists/*
                     |RUN chmod +x $executionDir/$SAVE_AGENT_EXECUTABLE_NAME
                     |RUN chmod +x $executionDir/$SAVE_CLI_EXECUTABLE_NAME
                 """
