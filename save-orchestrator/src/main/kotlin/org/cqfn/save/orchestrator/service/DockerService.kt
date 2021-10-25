@@ -56,6 +56,7 @@ class DockerService(private val configProperties: ConfigProperties) {
      * @param execution [Execution] from which this workflow is started
      * @param testSuiteDtos test suites, selected by user
      * @return list of IDs of created containers
+     * @throws DockerException if interaction with docker daemon is not successful
      */
     fun buildAndCreateContainers(execution: Execution, testSuiteDtos: List<TestSuiteDto>?): List<String> {
         log.info("Building base image for execution.id=${execution.id}")
