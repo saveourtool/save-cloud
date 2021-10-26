@@ -39,14 +39,21 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.html.ButtonType
+import kotlinx.html.InputType
 import kotlinx.html.hidden
 import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
 import kotlinx.html.js.onContextMenuFunction
 import kotlinx.html.js.onDropFunction
+import org.cqfn.save.frontend.components.views.InputTypes
 import org.cqfn.save.frontend.components.views.ProjectView
 import org.cqfn.save.frontend.externals.fontawesome.faQuestionCircle
 import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
+import org.w3c.dom.HTMLInputElement
+import org.w3c.dom.HTMLTextAreaElement
+import react.dom.attrs
+import react.dom.input
+import react.dom.style
 import react.dom.sup
 
 /**
@@ -280,29 +287,35 @@ fun <D : Any> tableComponent(columns: Array<out Column<D, *>>,
                             attrs.disabled = !tableInstance.canNextPage
                             +js("String.fromCharCode(187)").unsafeCast<String>()
                         }
-                        div {
-                            +"Page "
-                            em {
-                                +"${tableInstance.state.pageIndex + 1} of ${tableInstance.pageCount}"
-                            }
-                            button(type = ButtonType.button, classes = "btn btn-link") {
-                                attrs.onChangeFunction = {
-                                    setPageIndex(pageCount - 1)
-                                    tableInstance.gotoPage(pageCount - 1)
+                        div("row") {
+                            var number = 0
+                            div("col-sm-2") {
+                                +"Page "
+                                em {
+                                    +"${tableInstance.state.pageIndex + 1} of ${tableInstance.pageCount}"
                                 }
-                                attrs.disabled = !tableInstance.canNextPage
-                                +js("String.fromCharCode(187)").unsafeCast<String>()
-                            }
-
-                            // Go to the page
-                            sup("tooltip-and-popover") {
-                                attrs["tooltip-placement"] = "top"
-                                attrs["tooltip-title"] = ""
-                                attrs["data-trigger"] = "focus"
-                                attrs["tabindex"] = "0"
-                            }
-                            h6(classes = "d-inline ml-2") {
-                                +"Go to the page:"
+                                div("input-group input-group-sm mb-3") {
+                                    input(type = InputType.text, classes = "form-control") {
+                                        attrs["aria-describedby"] = "basic-addon2"
+                                        attrs.placeholder = "Go to the page"
+                                        attrs {
+                                            onChangeFunction = {
+                                                val tg = it.target as HTMLTextAreaElement
+                                                number = tg.value.toInt()
+                                            }
+                                        }
+                                    }
+                                    div("input-group-append") {
+                                        button(type = ButtonType.button, classes = "btn btn-outline-secondary") {
+                                            attrs.onClickFunction = {
+                                                setPageIndex(pageCount - 1)
+                                                tableInstance.gotoPage(pageCount - 1)
+                                            }
+                                            attrs.disabled = !tableInstance.canNextPage
+                                            +js("String.fromCharCode(10143)").unsafeCast<String>()
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
