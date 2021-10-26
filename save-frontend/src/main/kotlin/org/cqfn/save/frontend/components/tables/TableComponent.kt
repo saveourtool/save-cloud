@@ -296,9 +296,9 @@ fun <D : Any> tableComponent(
                         }
                         var number = 0
                         form {
-                            div("row g-2") {
-                                div("col-4") {
-                                    div("input-group input-group-lg mb-3 mt-3") {
+                            div("row") {
+                                div("col-8 pr-0") {
+                                    div("input-group input-group-sm mb-3 mt-3") {
                                         input(type = InputType.text, classes = "form-control") {
                                             attrs["aria-describedby"] = "basic-addon2"
                                             attrs.placeholder = "Jump to the page"
@@ -313,8 +313,10 @@ fun <D : Any> tableComponent(
 
                                 }
 
-                                div("col-2") {
-                                    div("input-group-append align-self-end") {
+                                //div("col-sm-1") {
+                                div("col-sm-offset-10 mr-3 justify-content-start") {
+                                div("input-group input-group-sm mb-6") {
+                                    div("input-group-append mt-3") {
                                         button(type = ButtonType.submit, classes = "btn btn-outline-secondary") {
                                             attrs.onClickFunction = {
                                                 setPageIndex(number)
@@ -324,6 +326,7 @@ fun <D : Any> tableComponent(
                                             +js("String.fromCharCode(10143)").unsafeCast<String>()
                                         }
                                     }
+                                }
                                 }
                             }
                         }
