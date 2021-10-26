@@ -8,6 +8,7 @@ import org.cqfn.save.agent.TestExecutionDto
 import org.cqfn.save.domain.TestResultStatus
 import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.frontend.components.basic.executionStatistics
+import org.cqfn.save.frontend.components.basic.executionTestsNotFound
 import org.cqfn.save.frontend.components.tables.tableComponent
 import org.cqfn.save.frontend.themes.Colors
 import org.cqfn.save.frontend.utils.decodeFromJsonString
@@ -213,5 +214,8 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
                     )
                 }
         }) { }
+        child(executionTestsNotFound()) {
+            attrs.executionDto = state.executionDto
+        }
     }
 }
