@@ -53,6 +53,7 @@ import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.HTMLTextAreaElement
 import react.dom.attrs
 import react.dom.input
+import react.dom.onKeyPress
 import react.dom.style
 import react.dom.sup
 
@@ -197,7 +198,7 @@ fun <D : Any> tableComponent(columns: Array<out Column<D, *>>,
                 }
                 if (tableInstance.pageCount > 1) {
                     // block with paging controls
-                    div {
+                    div("row") {
                         // First page
                         button(type = ButtonType.button, classes = "btn btn-link") {
                             attrs.onClickFunction = {
@@ -287,36 +288,36 @@ fun <D : Any> tableComponent(columns: Array<out Column<D, *>>,
                             attrs.disabled = !tableInstance.canNextPage
                             +js("String.fromCharCode(187)").unsafeCast<String>()
                         }
-                        div("row") {
-                            var number = 0
-                            div("col-sm-2") {
-                                +"Page "
-                                em {
-                                    +"${tableInstance.state.pageIndex + 1} of ${tableInstance.pageCount}"
-                                }
-                                div("input-group input-group-sm mb-3") {
-                                    input(type = InputType.text, classes = "form-control") {
-                                        attrs["aria-describedby"] = "basic-addon2"
-                                        attrs.placeholder = "Go to the page"
-                                        attrs {
-                                            onChangeFunction = {
-                                                val tg = it.target as HTMLTextAreaElement
-                                                number = tg.value.toInt()
-                                            }
+                        var number = 0
+                        div("col-sm-2") {
+                            div("input-group input-group-sm mb-3 mt-3") {
+                                input(type = InputType.text, classes = "form-control") {
+                                    attrs["aria-describedby"] = "basic-addon2"
+                                    attrs.placeholder = "Jump to the page"
+                                    attrs {
+                                        onChangeFunction = {
+                                            val tg = it.target as HTMLInputElement
+                                            number = tg.value.toInt() - 1
                                         }
                                     }
-                                    div("input-group-append") {
-                                        button(type = ButtonType.button, classes = "btn btn-outline-secondary") {
-                                            attrs.onClickFunction = {
-                                                setPageIndex(pageCount - 1)
-                                                tableInstance.gotoPage(pageCount - 1)
-                                            }
-                                            attrs.disabled = !tableInstance.canNextPage
-                                            +js("String.fromCharCode(10143)").unsafeCast<String>()
+                                }
+                                div("input-group-append align-self-end") {
+                                    button(type = ButtonType.button, classes = "btn btn-outline-secondary") {
+                                        attrs.onClickFunction = {
+                                            setPageIndex(number)
+                                            tableInstance.gotoPage(number)
                                         }
+                                        attrs.disabled = (number < 0 || number > pageCount - 1)
+                                        +js("String.fromCharCode(10143)").unsafeCast<String>()
                                     }
                                 }
                             }
+                        }
+                    }
+                    div {
+                        +"Page "
+                        em {
+                            +"${tableInstance.state.pageIndex + 1} of ${tableInstance.pageCount}"
                         }
                     }
                 }
