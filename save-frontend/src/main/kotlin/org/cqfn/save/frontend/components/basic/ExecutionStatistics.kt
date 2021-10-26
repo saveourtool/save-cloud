@@ -66,7 +66,7 @@ fun executionTestsNotFound() = fc<ExecutionStatisticsProps> { props ->
         div("d-flex justify-content-center") {
             img(src = "img/sad_cat.gif") {}
         }
-        div("d-sm-flex align-items-center justify-content-center mb-4") {
+        div("d-sm-flex align-items-center justify-content-center mb-4 mt-2") {
             h1("h3 mb-0 text-gray-800") {
                 +"Tests not found!"
             }
