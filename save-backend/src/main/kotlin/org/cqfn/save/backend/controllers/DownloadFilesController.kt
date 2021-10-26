@@ -9,6 +9,7 @@ import org.cqfn.save.core.result.DebugInfo
 import org.cqfn.save.domain.FileInfo
 import org.cqfn.save.domain.TestResultDebugInfo
 import org.cqfn.save.domain.TestResultLocation
+import org.cqfn.save.from
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
@@ -28,7 +29,6 @@ import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
 
 import java.io.FileNotFoundException
-import java.nio.file.Paths
 
 import kotlin.io.path.fileSize
 import kotlin.io.path.name
@@ -109,18 +109,17 @@ class DownloadFilesController(
         @RequestBody testExecutionDto: TestExecutionDto,
     ): TestResultDebugInfo {
         val executionId = agentRepository.findByContainerId(testExecutionDto.agentContainerId!!)!!.execution.id!!
-        val path = Paths.get(testExecutionDto.filePath)
-        val trl = TestResultLocation(testExecutionDto.testSuiteName!!, testExecutionDto.pluginName, (path.parent ?: ".").toString(), path.name)
+        val testResultLocation = TestResultLocation.from(testExecutionDto)
         val debugInfoFile = testDataFilesystemRepository.getLocation(
             executionId,
-            trl
+            testResultLocation
         )
         return if (debugInfoFile.notExists()) {
             throw ResponseStatusException(HttpStatus.NOT_FOUND)
         } else {
             // todo: proper deserialization (DebugInfo is unavailable w/o save-common, but it adds kx.serialization and Spring starts using it instead of Jackson)
             objectMapper.readValue<DebugInfo>(debugInfoFile.toFile()).run {
-                TestResultDebugInfo(trl, stdout, stderr, durationMillis)
+                TestResultDebugInfo(testResultLocation, stdout, stderr, durationMillis)
             }
         }
     }
