@@ -10,3 +10,7 @@ config.devServer = Object.assign(
       ]
     }
 )
+
+config.resolve.alias = {
+    "os": false,
+}

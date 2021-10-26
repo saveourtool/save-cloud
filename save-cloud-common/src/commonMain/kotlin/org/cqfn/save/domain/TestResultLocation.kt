@@ -4,6 +4,9 @@
 
 package org.cqfn.save.domain
 
+import org.cqfn.save.core.result.DebugInfo
+import org.cqfn.save.core.result.TestStatus
+
 import kotlinx.serialization.Serializable
 
 /**
@@ -22,14 +25,12 @@ data class TestResultLocation(
 
 /**
  * @property testResultLocation
- * @property stdout
- * @property stderr
- * @property durationMillis
+ * @property debugInfo
+ * @property testStatus
  */
 @Serializable
 data class TestResultDebugInfo(
     val testResultLocation: TestResultLocation,
-    val stdout: String?,
-    val stderr: String?,
-    val durationMillis: Long?,
+    val debugInfo: DebugInfo?,
+    val testStatus: TestStatus,
 )

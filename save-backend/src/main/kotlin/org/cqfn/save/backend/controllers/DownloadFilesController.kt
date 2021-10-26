@@ -5,14 +5,11 @@ import org.cqfn.save.backend.ByteArrayResponse
 import org.cqfn.save.backend.repository.AgentRepository
 import org.cqfn.save.backend.repository.TestDataFilesystemRepository
 import org.cqfn.save.backend.repository.TimestampBasedFileSystemRepository
-import org.cqfn.save.core.result.DebugInfo
 import org.cqfn.save.domain.FileInfo
 import org.cqfn.save.domain.TestResultDebugInfo
 import org.cqfn.save.domain.TestResultLocation
 import org.cqfn.save.from
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -33,6 +30,7 @@ import java.io.FileNotFoundException
 import kotlin.io.path.fileSize
 import kotlin.io.path.name
 import kotlin.io.path.notExists
+import kotlin.io.path.readText
 
 /**
  * A Spring controller for file downloading
@@ -43,7 +41,6 @@ class DownloadFilesController(
     private val additionalToolsFileSystemRepository: TimestampBasedFileSystemRepository,
     private val testDataFilesystemRepository: TestDataFilesystemRepository,
     private val agentRepository: AgentRepository,
-    private val objectMapper: ObjectMapper,
 ) {
     private val logger = LoggerFactory.getLogger(DownloadFilesController::class.java)
 
@@ -107,7 +104,7 @@ class DownloadFilesController(
     @PostMapping(value = ["/get-debug-info"])
     fun getDebugInfo(
         @RequestBody testExecutionDto: TestExecutionDto,
-    ): TestResultDebugInfo {
+    ): String {
         val executionId = agentRepository.findByContainerId(testExecutionDto.agentContainerId!!)!!.execution.id!!
         val testResultLocation = TestResultLocation.from(testExecutionDto)
         val debugInfoFile = testDataFilesystemRepository.getLocation(
@@ -117,10 +114,7 @@ class DownloadFilesController(
         return if (debugInfoFile.notExists()) {
             throw ResponseStatusException(HttpStatus.NOT_FOUND)
         } else {
-            // todo: proper deserialization (DebugInfo is unavailable w/o save-common, but it adds kx.serialization and Spring starts using it instead of Jackson)
-            objectMapper.readValue<DebugInfo>(debugInfoFile.toFile()).run {
-                TestResultDebugInfo(testResultLocation, stdout, stderr, durationMillis)
-            }
+            debugInfoFile.readText()
         }
     }
 

@@ -89,7 +89,7 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
         }
     }
 
-    @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR", "TOO_LONG_FUNCTION", "LongMethod")
+    @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR", "TOO_LONG_FUNCTION", "AVOID_NULL_CHECKS", "LongMethod")
     override fun RBuilder.render() {
         div {
             div("p-2 flex-auto") {
@@ -209,8 +209,8 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
             renderExpandedRow = { tableInstance, row ->
                 // todo: placeholder before, render data once it's available
                 val trdi = row.original.asDynamic().debugInfo as TestResultDebugInfo?
-                trdi?.let {
-                    arrayOf("stdout" to trdi.stdout, "stderr" to trdi.stderr).forEach { (name, value) ->
+                if (trdi != null) {
+                    arrayOf("stdout" to trdi.debugInfo?.stdout, "stderr" to trdi.debugInfo?.stderr).forEach { (name, value) ->
                         tr {
                             val colSpan = "${tableInstance.columns.size - 2}"
                             td {
@@ -230,15 +230,14 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
                             }
                         }
                     }
-                }
-                    ?: run {
-                        tr {
-                            td {
-                                attrs.colSpan = "${tableInstance.columns.size}"
-                                +"Debug info not available for this test execution"
-                            }
+                } else {
+                    tr {
+                        td {
+                            attrs.colSpan = "${tableInstance.columns.size}"
+                            +"Debug info not available for this test execution"
                         }
                     }
+                }
             },
             getPageCount = { pageSize ->
                 val count: Int = get(

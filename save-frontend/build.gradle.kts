@@ -50,6 +50,7 @@ kotlin {
             implementation(npm("react-dom", Versions.react))
             implementation(npm("react-modal", "3.12.1"))
 
+            implementation("org.cqfn.save:save-common:${Versions.saveCore}")
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${Versions.coroutines}")
             implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:${Versions.serialization}")
             implementation("org.jetbrains.kotlinx:kotlinx-datetime:${Versions.kotlinxDatetime}")

@@ -1,7 +1,6 @@
 package org.cqfn.save.backend.repository
 
 import org.cqfn.save.backend.configs.ConfigProperties
-import org.cqfn.save.core.result.DebugInfo
 import org.cqfn.save.domain.TestResultDebugInfo
 import org.cqfn.save.domain.TestResultLocation
 import org.cqfn.save.entities.TestExecution
@@ -50,7 +49,7 @@ class TestDataFilesystemRepository(configProperties: ConfigProperties,
             destination.parentFile.mkdirs()
             objectMapper.writeValue(
                 destination,
-                DebugInfo(stdout, stderr, durationMillis)
+                testResultDebugInfo
             )
         }
     }
