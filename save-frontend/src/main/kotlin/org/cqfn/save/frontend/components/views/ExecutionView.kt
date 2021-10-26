@@ -5,6 +5,7 @@
 package org.cqfn.save.frontend.components.views
 
 import org.cqfn.save.agent.TestExecutionDto
+import org.cqfn.save.domain.TestResultDebugInfo
 import org.cqfn.save.domain.TestResultStatus
 import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.frontend.components.basic.executionStatistics
@@ -13,6 +14,7 @@ import org.cqfn.save.frontend.themes.Colors
 import org.cqfn.save.frontend.utils.decodeFromJsonString
 import org.cqfn.save.frontend.utils.get
 import org.cqfn.save.frontend.utils.post
+import org.cqfn.save.frontend.utils.spread
 import org.cqfn.save.frontend.utils.unsafeMap
 
 import csstype.Background
@@ -23,11 +25,18 @@ import react.RBuilder
 import react.RComponent
 import react.State
 import react.buildElement
+import react.dom.ReactHTML.samp
+import react.dom.ReactHTML.small
+import react.dom.br
 import react.dom.button
 import react.dom.div
 import react.dom.td
+import react.dom.tr
 import react.setState
 import react.table.columns
+import react.table.useExpanded
+import react.table.usePagination
+import react.table.useSortBy
 
 import kotlinx.browser.window
 import kotlinx.coroutines.GlobalScope
@@ -36,6 +45,7 @@ import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
 import kotlinx.html.js.onClickFunction
 import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 /**
@@ -136,10 +146,27 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
                         }
                     }
                 }
-                column(id = "path", header = "Test file path") {
+                column(id = "path", header = "Test file path") { cellProps ->
                     buildElement {
                         td {
-                            +it.value.filePath
+                            spread(cellProps.row.getToggleRowExpandedProps())
+                            +cellProps.value.filePath
+                            attrs.onClickFunction = {
+                                GlobalScope.launch {
+                                    val te = cellProps.value
+                                    val trdi = post(
+                                        "${window.location.origin}/files/get-debug-info",
+                                        Headers().apply {
+                                            set("Content-Type", "application/json")
+                                        },
+                                        Json.encodeToString(te)
+                                    )
+                                    if (trdi.ok) {
+                                        cellProps.row.original.asDynamic().debugInfo = trdi.decodeFromJsonString<TestResultDebugInfo>()
+                                    }
+                                    cellProps.row.toggleRowExpanded()
+                                }
+                            }
                         }
                     }
                 }
@@ -173,6 +200,45 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
                 }
             },
             useServerPaging = true,
+            plugins = arrayOf(
+                useSortBy,
+                useExpanded,
+                usePagination
+            ),
+            renderExpandedRow = { tableInstance, row ->
+                // todo: placeholder before, render data once it's available
+                val trdi = row.original.asDynamic().debugInfo as TestResultDebugInfo?
+                trdi?.let {
+                    arrayOf("stdout" to trdi.stdout, "stderr" to trdi.stderr).forEach { (name, value) ->
+                        tr {
+                            val colSpan = "${tableInstance.columns.size - 2}"
+                            td {
+                                attrs.colSpan = "2"
+                                +name
+                            }
+                            td {
+                                attrs.colSpan = colSpan
+                                small {
+                                    samp {
+                                        value?.lines()?.forEach {
+                                            +it
+                                            br {}
+                                        } ?: +""
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                    ?: run {
+                        tr {
+                            td {
+                                attrs.colSpan = "${tableInstance.columns.size}"
+                                +"Debug info not available for this test execution"
+                            }
+                        }
+                    }
+            },
             getPageCount = { pageSize ->
                 val count: Int = get(
                     url = "${window.location.origin}/testExecutionsCount?executionId=${props.executionId}",
@@ -211,6 +277,9 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
                     Json.decodeFromString<Array<TestExecutionDto>>(
                         it.text().await()
                     )
+                }
+                .apply {
+                    asDynamic().debugInfo = null
                 }
         }) { }
     }

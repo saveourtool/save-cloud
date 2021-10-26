@@ -5,11 +5,13 @@ import org.cqfn.save.backend.ByteArrayResponse
 import org.cqfn.save.backend.repository.AgentRepository
 import org.cqfn.save.backend.repository.TestDataFilesystemRepository
 import org.cqfn.save.backend.repository.TimestampBasedFileSystemRepository
+import org.cqfn.save.core.result.DebugInfo
 import org.cqfn.save.domain.FileInfo
 import org.cqfn.save.domain.TestResultDebugInfo
 import org.cqfn.save.domain.TestResultLocation
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -117,9 +119,8 @@ class DownloadFilesController(
             throw ResponseStatusException(HttpStatus.NOT_FOUND)
         } else {
             // todo: proper deserialization (DebugInfo is unavailable w/o save-common, but it adds kx.serialization and Spring starts using it instead of Jackson)
-            objectMapper.readTree(debugInfoFile.toFile()).run {
-                // fixme: now in SAVE durationMillis is always NULL
-                TestResultDebugInfo(trl, get("stdout").asText(), get("stderr").asText(), null)
+            objectMapper.readValue<DebugInfo>(debugInfoFile.toFile()).run {
+                TestResultDebugInfo(trl, stdout, stderr, durationMillis)
             }
         }
     }
