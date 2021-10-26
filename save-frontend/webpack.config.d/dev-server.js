@@ -11,6 +11,7 @@ config.devServer = Object.assign(
     }
 )
 
+// WA similar to https://youtrack.jetbrains.com/issue/KT-46082
 config.resolve.alias = {
     "os": false,
 }

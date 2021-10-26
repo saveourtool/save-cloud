@@ -28,7 +28,6 @@ import react.State
 import react.buildElement
 import react.dom.ReactHTML.samp
 import react.dom.ReactHTML.small
-import react.dom.br
 import react.dom.button
 import react.dom.div
 import react.dom.td
@@ -89,7 +88,11 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
         }
     }
 
-    @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR", "TOO_LONG_FUNCTION", "AVOID_NULL_CHECKS", "LongMethod")
+    @Suppress(
+        "EMPTY_BLOCK_STRUCTURE_ERROR",
+        "TOO_LONG_FUNCTION",
+        "AVOID_NULL_CHECKS",
+        "LongMethod")
     override fun RBuilder.render() {
         div {
             div("p-2 flex-auto") {
@@ -210,22 +213,14 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
                 // todo: placeholder before, render data once it's available
                 val trdi = row.original.asDynamic().debugInfo as TestResultDebugInfo?
                 if (trdi != null) {
-                    arrayOf("stdout" to trdi.debugInfo?.stdout, "stderr" to trdi.debugInfo?.stderr).forEach { (name, value) ->
-                        tr {
-                            val colSpan = "${tableInstance.columns.size - 2}"
-                            td {
-                                attrs.colSpan = "2"
-                                +name
-                            }
-                            td {
-                                attrs.colSpan = colSpan
-                                small {
-                                    samp {
-                                        value?.lines()?.forEach {
-                                            +it
-                                            br {}
-                                        } ?: +""
-                                    }
+                    tr {
+                        // todo: also display execCmd here
+                        td {
+                            val colSpan = "${tableInstance.columns.size}"
+                            attrs.colSpan = colSpan
+                            small {
+                                samp {
+                                    +"${trdi.testStatus}"
                                 }
                             }
                         }
