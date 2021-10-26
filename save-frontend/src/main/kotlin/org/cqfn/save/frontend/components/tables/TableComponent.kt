@@ -38,6 +38,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
+import kotlinx.html.ButtonFormMethod
 import kotlinx.html.ButtonType
 import kotlinx.html.InputType
 import kotlinx.html.hidden
@@ -45,6 +46,7 @@ import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
 import kotlinx.html.js.onContextMenuFunction
 import kotlinx.html.js.onDropFunction
+import kotlinx.html.js.onSubmitFunction
 import org.cqfn.save.frontend.components.views.InputTypes
 import org.cqfn.save.frontend.components.views.ProjectView
 import org.cqfn.save.frontend.externals.fontawesome.faQuestionCircle
@@ -52,6 +54,7 @@ import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.HTMLTextAreaElement
 import react.dom.attrs
+import react.dom.form
 import react.dom.input
 import react.dom.onKeyPress
 import react.dom.style
@@ -79,19 +82,22 @@ external interface TableProps : PropsWithChildren {
  * @return a functional react component
  */
 @OptIn(ExperimentalCoroutinesApi::class)
-@Suppress("TOO_LONG_FUNCTION",
+@Suppress(
+    "TOO_LONG_FUNCTION",
     "TOO_MANY_PARAMETERS",
     "TYPE_ALIAS",
     "ForbiddenComment",
     "LongMethod",
     "LongParameterList",
-    "TooGenericExceptionCaught")
-fun <D : Any> tableComponent(columns: Array<out Column<D, *>>,
-                             initialPageSize: Int = 10,
-                             useServerPaging: Boolean = false,
-                             getRowProps: ((Row<D>) -> TableRowProps) = { jsObject() },
-                             getPageCount: (suspend (pageSize: Int) -> Int)? = null,
-                             getData: suspend (pageIndex: Int, pageSize: Int) -> Array<out D>,
+    "TooGenericExceptionCaught"
+)
+fun <D : Any> tableComponent(
+    columns: Array<out Column<D, *>>,
+    initialPageSize: Int = 10,
+    useServerPaging: Boolean = false,
+    getRowProps: ((Row<D>) -> TableRowProps) = { jsObject() },
+    getPageCount: (suspend (pageSize: Int) -> Int)? = null,
+    getData: suspend (pageIndex: Int, pageSize: Int) -> Array<out D>,
 ) = fc<TableProps> { props ->
     require(useServerPaging xor (getPageCount == null)) {
         "Either use client-side paging or provide a function to get page count"
@@ -289,26 +295,34 @@ fun <D : Any> tableComponent(columns: Array<out Column<D, *>>,
                             +js("String.fromCharCode(187)").unsafeCast<String>()
                         }
                         var number = 0
-                        div("col-sm-2") {
-                            div("input-group input-group-sm mb-3 mt-3") {
-                                input(type = InputType.text, classes = "form-control") {
-                                    attrs["aria-describedby"] = "basic-addon2"
-                                    attrs.placeholder = "Jump to the page"
-                                    attrs {
-                                        onChangeFunction = {
-                                            val tg = it.target as HTMLInputElement
-                                            number = tg.value.toInt() - 1
+                        form {
+                            div("row g-2") {
+                                div("col-4") {
+                                    div("input-group input-group-lg mb-3 mt-3") {
+                                        input(type = InputType.text, classes = "form-control") {
+                                            attrs["aria-describedby"] = "basic-addon2"
+                                            attrs.placeholder = "Jump to the page"
+                                            attrs {
+                                                onChangeFunction = {
+                                                    val tg = it.target as HTMLInputElement
+                                                    number = tg.value.toInt() - 1
+                                                }
+                                            }
                                         }
                                     }
+
                                 }
-                                div("input-group-append align-self-end") {
-                                    button(type = ButtonType.button, classes = "btn btn-outline-secondary") {
-                                        attrs.onClickFunction = {
-                                            setPageIndex(number)
-                                            tableInstance.gotoPage(number)
+
+                                div("col-2") {
+                                    div("input-group-append align-self-end") {
+                                        button(type = ButtonType.submit, classes = "btn btn-outline-secondary") {
+                                            attrs.onClickFunction = {
+                                                setPageIndex(number)
+                                                tableInstance.gotoPage(number)
+                                            }
+                                            attrs.disabled = (number < 0 || number > pageCount - 1)
+                                            +js("String.fromCharCode(10143)").unsafeCast<String>()
                                         }
-                                        attrs.disabled = (number < 0 || number > pageCount - 1)
-                                        +js("String.fromCharCode(10143)").unsafeCast<String>()
                                     }
                                 }
                             }
