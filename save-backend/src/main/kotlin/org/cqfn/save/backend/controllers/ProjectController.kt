@@ -37,12 +37,21 @@ class ProjectController {
     fun getProjects() = projectService.getProjects()
 
     /**
+     * Get all projects without status.
+     *
+     * @param status
+     * @return a list of projects
+     */
+    @GetMapping("/getNotDeletedProjects")
+    fun getNotDeletedProjects(@RequestParam() status: String) = projectService.getNotDeletedProjects(status)
+
+    /**
      * @param name name of project
      * @param owner owner of project
      * @return project by name and owner
      */
     @GetMapping("/getProject")
-    fun geProjectByNameAndOwner(@RequestParam name: String, @RequestParam owner: String) =
+    fun getProjectByNameAndOwner(@RequestParam name: String, @RequestParam owner: String) =
             projectService.getProjectByNameAndOwner(name, owner)?.let {
                 ResponseEntity.status(HttpStatus.OK).body(it)
             } ?: ResponseEntity.status(HttpStatus.NOT_FOUND).build()
@@ -74,6 +83,16 @@ class ProjectController {
             val saveGit = gitService.saveGit(it, newProjectDto.project)
             log.info("Save new git id = ${saveGit.id}")
         }
+        return ResponseEntity.status(HttpStatus.OK).body(projectStatus.message)
+    }
+
+    /**
+     * @param project
+     * @return response
+     */
+    @PostMapping("/updateProject")
+    fun updateProject(@RequestBody project: Project): ResponseEntity<String>? {
+        val (_, projectStatus) = projectService.saveProject(project)
         return ResponseEntity.status(HttpStatus.OK).body(projectStatus.message)
     }
 

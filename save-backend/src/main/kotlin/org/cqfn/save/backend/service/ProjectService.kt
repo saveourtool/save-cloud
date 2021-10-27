@@ -45,4 +45,15 @@ class ProjectService(private val projectRepository: ProjectRepository) {
      */
     @Suppress("KDOC_WITHOUT_RETURN_TAG")  // https://github.com/cqfn/diKTat/issues/965
     fun getProjectByNameAndOwner(name: String, owner: String) = projectRepository.findByNameAndOwner(name, owner)
+
+    /**
+     * @param status status project
+     * @return project's without status
+     */
+    fun getNotDeletedProjects(status: String): List<Project> {
+        val projects = projectRepository.findAll { root, _, cb ->
+            cb.notEqual(root.get<String>("status"), status)
+        }
+        return projects
+    }
 }

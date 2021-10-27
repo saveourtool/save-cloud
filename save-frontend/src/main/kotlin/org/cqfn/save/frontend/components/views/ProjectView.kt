@@ -21,18 +21,13 @@ import org.cqfn.save.frontend.externals.fontawesome.faHistory
 import org.cqfn.save.frontend.externals.fontawesome.faQuestionCircle
 import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
 import org.cqfn.save.frontend.externals.modal.modal
-import org.cqfn.save.frontend.utils.appendJson
-import org.cqfn.save.frontend.utils.decodeFromJsonString
-import org.cqfn.save.frontend.utils.get
-import org.cqfn.save.frontend.utils.getProject
-import org.cqfn.save.frontend.utils.post
-import org.cqfn.save.frontend.utils.runErrorModal
-import org.cqfn.save.frontend.utils.unsafeMap
+import org.cqfn.save.frontend.utils.*
 import org.cqfn.save.testsuite.TestSuiteDto
 
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.asList
 import org.w3c.fetch.Headers
+import org.w3c.fetch.Response
 import org.w3c.xhr.FormData
 import react.PropsWithChildren
 import react.RBuilder
@@ -92,6 +87,21 @@ external interface ProjectViewState : State {
     var errorLabel: String
 
     /**
+     * Message of warning
+     */
+    var confirmMessage: String
+
+    /**
+     * Flag to handle confirm Window
+     */
+    var isConfirmWindowOpen: Boolean?
+
+    /**
+     * Label of confirm Window
+     */
+    var confirmLabel: String
+
+    /**
      * Flag to handle loading
      */
     var isLoading: Boolean?
@@ -124,7 +134,8 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
     private var gitUrlFromInputField: String? = null
     private val selectedTypes: MutableList<String> = mutableListOf()
     private var gitDto: GitDto? = null
-    private var project = Project("stub", "stub", "stub", "stub")
+    private var project = Project("stub", "stub", "stub", "stub", "stub")
+    private lateinit var responseFromDeleteProject: Response
 
     init {
         state.isErrorOpen = false
@@ -264,6 +275,10 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
         // modal windows are initially hidden
         runErrorModal(state.isErrorOpen, state.errorLabel, state.errorMessage) {
             setState { isErrorOpen = false }
+        }
+        runConfirmWindowModal(state.isConfirmWindowOpen, state.confirmLabel, state.confirmMessage, { setState { isConfirmWindowOpen = false } }) {
+            deleteProjectBuilder()
+            setState { isConfirmWindowOpen = false }
         }
         runLoadingModal()
         // Page Heading
@@ -543,6 +558,14 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                             +"Execution History"
                         }
                     }
+                    div("ml-3 d-sm-flex align-items-left justify-content-between mt-2") {
+                        button(type = ButtonType.button, classes = "btn btn-danger") {
+                            attrs.onClickFunction = {
+                                deleteProject()
+                            }
+                            +"Delete project"
+                        }
+                    }
                 })
             }
         }
@@ -567,6 +590,37 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                 attrs.role = "status"
                 span("sr-only") {
                     +"Loading..."
+                }
+            }
+        }
+    }
+
+    private fun deleteProject() {
+        project.status = "DELETED"
+
+        setState {
+            isConfirmWindowOpen = true
+            confirmLabel = ""
+            confirmMessage = "Are you sure you want to delete this project?"
+        }
+    }
+
+    private fun deleteProjectBuilder() {
+        val headers = Headers().also {
+            it.set("Accept", "application/json")
+            it.set("Content-Type", "application/json")
+        }
+        GlobalScope.launch {
+            responseFromDeleteProject =
+                    post("${window.location.origin}/updateProject", headers, Json.encodeToString(project))
+        }.invokeOnCompletion {
+            if (responseFromDeleteProject.ok) {
+                window.location.href = "${window.location.origin}/"
+            } else {
+                responseFromDeleteProject.text().then {
+                    setState {
+                        errorMessage = it
+                    }
                 }
             }
         }

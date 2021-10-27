@@ -7,6 +7,7 @@ import kotlinx.serialization.Serializable
  * @property name
  * @property url
  * @property description description of the project, may be absent
+ * @property status status of project
  */
 @Entity
 @Serializable
@@ -15,6 +16,7 @@ data class Project(
     var name: String,
     var url: String?,
     var description: String?,
+    var status: String?,
 ) {
     /**
      * id of project

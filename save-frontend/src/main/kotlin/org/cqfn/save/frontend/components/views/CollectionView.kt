@@ -68,7 +68,7 @@ class CollectionView : RComponent<PropsWithChildren, State>() {
             useServerPaging = false,
         ) { _, _ ->
             get(
-                url = "${window.location.origin}/projects",
+                url = "${window.location.origin}/getNotDeletedProjects?status=DELETED",
                 headers = Headers().also {
                     it.set("Accept", "application/json")
                 },

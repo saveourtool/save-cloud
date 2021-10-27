@@ -113,7 +113,8 @@ class CreationView : RComponent<PropsWithChildren, ProjectSaveViewState>() {
                 fieldsMap[InputTypes.OWNER]!!.trim(),
                 fieldsMap[InputTypes.PROJECT_NAME]!!.trim(),
                 fieldsMap[InputTypes.PROJECT_URL]?.trim(),
-                fieldsMap[InputTypes.DESCRIPTION]?.trim()
+                fieldsMap[InputTypes.DESCRIPTION]?.trim(),
+                fieldsMap[InputTypes.PROJECT_STATUS]?.trim(),
             ),
             GitDto(
                 fieldsMap[InputTypes.GIT_URL]!!.trim(),
@@ -371,6 +372,7 @@ internal enum class InputTypes(val str: String) {
     GIT_USER("git username"),
     OWNER("owner name"),
     PROJECT_NAME("project name"),
+    PROJECT_STATUS("project status"),
     PROJECT_URL("project Url"),
     ;
 }
