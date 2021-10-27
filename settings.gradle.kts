@@ -3,11 +3,6 @@ rootProject.name = "save-cloud"
 dependencyResolutionManagement {
     repositories {
         mavenCentral()
-        mavenLocal {
-            content {
-                includeGroup("org.cqfn.save")
-            }
-        }
         maven("https://oss.sonatype.org/content/repositories/snapshots") {
             content {
                 includeGroup("org.cqfn.save")
