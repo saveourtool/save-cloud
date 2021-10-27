@@ -13,6 +13,7 @@ import react.dom.small
 import react.dom.td
 import react.dom.tr
 import react.fc
+import react.router.dom.useHistory
 import react.table.TableInstance
 
 import kotlinx.browser.window
@@ -26,10 +27,20 @@ fun <D : Any> testStatusComponent(testResultDebugInfo: TestResultDebugInfo, tabl
         is Crash -> status.message
     }
     val numColumns = tableInstance.columns.size
+    val testSuiteName = testResultDebugInfo.testResultLocation.testSuiteName
+    val pluginName = testResultDebugInfo.testResultLocation.pluginName
+    val testFilePath = with(testResultDebugInfo.testResultLocation) {
+        val path = testLocation.takeIf { it.isNotEmpty() }?.plus('/') ?: ""
+        "$path$testName"
+    }
     tr("table-sm") {
         td {
             attrs.colSpan = "2"
-            +"Reason"
+            +"Reason ("
+            a(href = "${window.location}/details/$testSuiteName/$pluginName/$testFilePath") {
+                +"additional info"
+            }
+            +")"
         }
         td {
             attrs.colSpan = "${numColumns - 2}"
@@ -37,20 +48,6 @@ fun <D : Any> testStatusComponent(testResultDebugInfo: TestResultDebugInfo, tabl
                 samp {
                     +shortMessage
                 }
-            }
-        }
-    }
-    tr("table-sm") {
-        td {
-            attrs.colSpan = numColumns.toString()
-            +"View additional info "
-            val testSuiteName = testResultDebugInfo.testResultLocation.testSuiteName
-            val pluginName = testResultDebugInfo.testResultLocation.pluginName
-            val testFilePath = with(testResultDebugInfo.testResultLocation) {
-                "$testLocation/$testName"
-            }
-            a(href = "${window.location}/details/$testSuiteName/$pluginName/$testFilePath") {
-                +"here"
             }
         }
     }
