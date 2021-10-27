@@ -1,4 +1,4 @@
-@file:Suppress("MISSING_KDOC_TOP_LEVEL", "FILE_NAME_MATCH_CLASS")
+@file:Suppress("MISSING_KDOC_TOP_LEVEL", "FILE_NAME_MATCH_CLASS", "MatchingDeclarationName")
 
 package org.cqfn.save.utils
 

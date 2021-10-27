@@ -156,7 +156,11 @@ class DockerService(private val configProperties: ConfigProperties) {
         }
     }
 
-    @Suppress("TOO_LONG_FUNCTION", "UnsafeCallOnNullableType")
+    @Suppress(
+        "TOO_LONG_FUNCTION",
+        "UnsafeCallOnNullableType",
+        "LongMethod",
+    )
     private fun buildBaseImageForExecution(execution: Execution, testSuiteDtos: List<TestSuiteDto>?): Triple<String, String, String> {
         val resourcesPath = File(
             configProperties.testResources.basePath,

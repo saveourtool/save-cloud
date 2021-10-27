@@ -4,6 +4,7 @@ import org.cqfn.save.agent.ExecutionLogs
 import org.cqfn.save.domain.Sdk
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.Project
+import org.cqfn.save.entities.ProjectStatus
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionType
 import org.cqfn.save.orchestrator.config.Beans
@@ -74,7 +75,7 @@ class AgentsControllerTest {
 
     @Test
     fun `should build image, query backend and start containers`() {
-        val project = Project("Huawei", "huaweiName", "huaweiUrl", "description")
+        val project = Project("Huawei", "huaweiName", "huaweiUrl", "description", ProjectStatus.CREATED)
         val execution = Execution(project, stubTime, stubTime, ExecutionStatus.PENDING, "stub",
             "stub", 20, ExecutionType.GIT, "0.0.1", 0, 0, 0, 0, Sdk.Default.toString(), null).apply {
             id = 42L
@@ -108,7 +109,7 @@ class AgentsControllerTest {
 
     @Test
     fun checkPostResponseIsNotOk() {
-        val project = Project("Huawei", "huaweiName", "huaweiUrl", "description")
+        val project = Project("Huawei", "huaweiName", "huaweiUrl", "description", ProjectStatus.CREATED)
         val execution = Execution(project, stubTime, stubTime, ExecutionStatus.RUNNING, "stub",
             "stub", 20, ExecutionType.GIT, "0.0.1", 0, 0, 0, 0, Sdk.Default.toString(), null)
         val bodyBuilder = MultipartBodyBuilder().apply {
