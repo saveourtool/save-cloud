@@ -10,11 +10,18 @@ import org.cqfn.save.frontend.components.modal.errorModal
 import org.cqfn.save.frontend.utils.spread
 
 import kotlinext.js.jsObject
+import org.w3c.dom.HTMLInputElement
+import org.w3c.dom.HTMLSelectElement
 import react.PropsWithChildren
+import react.dom.attrs
 import react.dom.button
 import react.dom.div
 import react.dom.em
+import react.dom.form
 import react.dom.h6
+import react.dom.input
+import react.dom.option
+import react.dom.select
 import react.dom.span
 import react.dom.table
 import react.dom.tbody
@@ -38,32 +45,11 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
-import kotlinx.html.ButtonFormMethod
 import kotlinx.html.ButtonType
 import kotlinx.html.InputType
 import kotlinx.html.hidden
-import kotlinx.html.id
 import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
-import kotlinx.html.js.onContextMenuFunction
-import kotlinx.html.js.onDropFunction
-import kotlinx.html.js.onSubmitFunction
-import org.cqfn.save.frontend.components.views.InputTypes
-import org.cqfn.save.frontend.components.views.ProjectView
-import org.cqfn.save.frontend.externals.fontawesome.faQuestionCircle
-import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
-import org.cqfn.save.frontend.utils.toPrettyString
-import org.w3c.dom.HTMLInputElement
-import org.w3c.dom.HTMLSelectElement
-import org.w3c.dom.HTMLTextAreaElement
-import react.dom.attrs
-import react.dom.form
-import react.dom.input
-import react.dom.onKeyPress
-import react.dom.option
-import react.dom.select
-import react.dom.style
-import react.dom.sup
 
 /**
  * [RProps] of a data table
@@ -290,7 +276,7 @@ fun <D : Any> tableComponent(
                             }
                             attrs.hidden = !tableInstance.canPreviousPage
                             em {
-                                +"$pageIndex"
+                                +pageIndex
                             }
                         }
                         // Current page number
@@ -367,17 +353,17 @@ fun <D : Any> tableComponent(
                                 }
 
                                 div("col-sm-offset-10 mr-3 justify-content-start") {
-                                div("input-group input-group-sm mb-6") {
-                                    div("input-group-append mt-3") {
-                                        button(type = ButtonType.submit, classes = "btn btn-outline-secondary") {
-                                            attrs.onClickFunction = {
-                                                setPageIndex(number)
-                                                tableInstance.gotoPage(number)
+                                    div("input-group input-group-sm mb-6") {
+                                        div("input-group-append mt-3") {
+                                            button(type = ButtonType.submit, classes = "btn btn-outline-secondary") {
+                                                attrs.onClickFunction = {
+                                                    setPageIndex(number)
+                                                    tableInstance.gotoPage(number)
+                                                }
+                                                +js("String.fromCharCode(10143)").unsafeCast<String>()
                                             }
-                                            +js("String.fromCharCode(10143)").unsafeCast<String>()
                                         }
                                     }
-                                }
                                 }
                             }
                         }
