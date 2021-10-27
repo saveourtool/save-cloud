@@ -174,7 +174,7 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
                 }
             },
             useServerPaging = true,
-            useSetEntries = true,
+            usePageSelection = true,
             getPageCount = { pageSize ->
                 val count: Int = get(
                     url = "${window.location.origin}/testExecutionsCount?executionId=${props.executionId}",

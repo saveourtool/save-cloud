@@ -11,7 +11,6 @@ import org.cqfn.save.frontend.utils.spread
 
 import kotlinext.js.jsObject
 import react.PropsWithChildren
-import react.dom.attrs
 import react.dom.div
 import react.dom.em
 import react.dom.h6
@@ -58,7 +57,7 @@ external interface TableProps : PropsWithChildren {
  * @param getRowProps a function returning `TableRowProps` for customization of table row, defaults to empty
  * @param useServerPaging whether data is split into pages server-side or in browser
  * @param getPageCount a function to retrieve number of pages of data, is [useServerPaging] is `true`
- * @param useSetEntries whether to display entries settings
+ * @param usePageSelection whether to display entries settings
  * @return a functional react component
  */
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -75,7 +74,7 @@ fun <D : Any> tableComponent(
     columns: Array<out Column<D, *>>,
     initialPageSize: Int = 10,
     useServerPaging: Boolean = false,
-    useSetEntries: Boolean = false,
+    usePageSelection: Boolean = false,
     getRowProps: ((Row<D>) -> TableRowProps) = { jsObject() },
     getPageCount: (suspend (pageSize: Int) -> Int)? = null,
     getData: suspend (pageIndex: Int, pageSize: Int) -> Array<out D>,
@@ -132,7 +131,7 @@ fun <D : Any> tableComponent(
         }
     }
 
-    if (useSetEntries) {
+    if (usePageSelection) {
         div {
             setEntries(tableInstance, setPageIndex)
         }

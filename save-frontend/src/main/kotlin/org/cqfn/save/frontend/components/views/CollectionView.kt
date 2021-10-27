@@ -66,7 +66,7 @@ class CollectionView : RComponent<PropsWithChildren, State>() {
             },
             initialPageSize = 10,
             useServerPaging = false,
-            useSetEntries = false,
+            usePageSelection = false,
         ) { _, _ ->
             get(
                 url = "${window.location.origin}/projects",

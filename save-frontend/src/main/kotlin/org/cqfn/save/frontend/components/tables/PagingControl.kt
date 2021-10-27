@@ -30,7 +30,6 @@ import kotlinx.html.js.onClickFunction
  * @param setPageIndex
  * @return set entries block
  */
-@Suppress("TOO_LONG_FUNCTION", "LongMethod")
 fun <T : Tag, D : Any> RDOMBuilder<T>.setEntries(tableInstance: TableInstance<D>, setPageIndex: StateSetter<Int>) = div("row") {
     div("col-0 pt-3 pl-3 pr-0") {
         +"Show "
@@ -38,31 +37,17 @@ fun <T : Tag, D : Any> RDOMBuilder<T>.setEntries(tableInstance: TableInstance<D>
     div("col-1 pr-0") {
         div("input-group input-group-sm mb-3 mt-3") {
             select(classes = "form-control") {
-                option("list-group-item") {
-                    val entries = "10"
-                    attrs.value = entries
-                    +entries
-                }
-                option("list-group-item") {
-                    val entries = "25"
-                    attrs.value = entries
-                    +entries
-                }
-                option("list-group-item") {
-                    val entries = "50"
-                    attrs.value = entries
-                    +entries
-                }
-                option("list-group-item") {
-                    val entries = "100"
-                    attrs.value = entries
-                    +entries
+                listOf("10", "25", "50", "100").forEach {
+                    option("list-group-item") {
+                        val entries = it
+                        attrs.value = entries
+                        +entries
+                    }
                 }
                 attrs.onChangeFunction = {
                     val tg = it.target as HTMLSelectElement
                     val entries = tg.value
                     setPageIndex(0)
-                    tableInstance.gotoPage(0)
                     tableInstance.setPageSize(entries.toInt())
                 }
             }
@@ -91,7 +76,6 @@ fun <T : Tag, D : Any> RDOMBuilder<T>.pagingControl(
             button(type = ButtonType.button, classes = "btn btn-link") {
                 attrs.onClickFunction = {
                     setPageIndex(0)
-                    tableInstance.gotoPage(0)
                 }
                 attrs.disabled = !tableInstance.canPreviousPage
                 +js("String.fromCharCode(171)").unsafeCast<String>()
@@ -100,7 +84,6 @@ fun <T : Tag, D : Any> RDOMBuilder<T>.pagingControl(
             button(type = ButtonType.button, classes = "btn btn-link") {
                 attrs.onClickFunction = {
                     setPageIndex(pageIndex - 1)
-                    tableInstance.previousPage()
                 }
                 attrs.disabled = !tableInstance.canPreviousPage
                 +js("String.fromCharCode(8249)").unsafeCast<String>()
@@ -110,7 +93,6 @@ fun <T : Tag, D : Any> RDOMBuilder<T>.pagingControl(
                 val index = pageIndex - 2
                 attrs.onClickFunction = {
                     setPageIndex(index)
-                    tableInstance.gotoPage(index)
                 }
                 attrs.hidden = (index < 0)
                 em {
@@ -121,7 +103,6 @@ fun <T : Tag, D : Any> RDOMBuilder<T>.pagingControl(
             button(type = ButtonType.button, classes = "btn btn-link") {
                 attrs.onClickFunction = {
                     setPageIndex(pageIndex - 1)
-                    tableInstance.previousPage()
                 }
                 attrs.hidden = !tableInstance.canPreviousPage
                 em {
@@ -139,7 +120,6 @@ fun <T : Tag, D : Any> RDOMBuilder<T>.pagingControl(
             button(type = ButtonType.button, classes = "btn btn-link") {
                 attrs.onClickFunction = {
                     setPageIndex(pageIndex + 1)
-                    tableInstance.nextPage()
                 }
                 attrs.hidden = !tableInstance.canNextPage
                 em {
@@ -151,7 +131,6 @@ fun <T : Tag, D : Any> RDOMBuilder<T>.pagingControl(
                 val index = pageIndex + 2
                 attrs.onClickFunction = {
                     setPageIndex(index)
-                    tableInstance.gotoPage(index)
                 }
                 attrs.hidden = (index > pageCount - 1)
                 em {
@@ -162,7 +141,6 @@ fun <T : Tag, D : Any> RDOMBuilder<T>.pagingControl(
             button(type = ButtonType.button, classes = "btn btn-link") {
                 attrs.onClickFunction = {
                     setPageIndex(pageIndex + 1)
-                    tableInstance.nextPage()
                 }
                 attrs.disabled = !tableInstance.canNextPage
                 +js("String.fromCharCode(8250)").unsafeCast<String>()
@@ -171,7 +149,6 @@ fun <T : Tag, D : Any> RDOMBuilder<T>.pagingControl(
             button(type = ButtonType.button, classes = "btn btn-link") {
                 attrs.onClickFunction = {
                     setPageIndex(pageCount - 1)
-                    tableInstance.gotoPage(pageCount - 1)
                 }
                 attrs.disabled = !tableInstance.canNextPage
                 +js("String.fromCharCode(187)").unsafeCast<String>()
