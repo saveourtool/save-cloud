@@ -294,7 +294,7 @@ class HeartbeatControllerTest {
             .expectStatus().isOk
 
         // wait for background tasks
-        Thread.sleep(2_000)
+        Thread.sleep(5_000)
 
         assertions.orTimeout(60, TimeUnit.SECONDS).join().forEach { Assertions.assertNotNull(it) }
         verification.invoke()

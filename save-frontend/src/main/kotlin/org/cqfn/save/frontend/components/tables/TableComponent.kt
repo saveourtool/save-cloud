@@ -191,7 +191,9 @@ fun <D : Any> tableComponent(
                 }
                 if (tableInstance.pageCount > 1) {
                     // block with paging controls
-                    pagingControl(tableInstance, setPageIndex, pageIndex, pageCount)
+                    div("wrapper container m-0 p-0") {
+                        pagingControl(tableInstance, setPageIndex, pageIndex, pageCount)
+                    }
                     div {
                         +"Page "
                         em {
