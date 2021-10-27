@@ -123,9 +123,9 @@ class App : RComponent<PropsWithChildren, AppState>() {
                         Route {
                             attrs {
                                 path = arrayOf("/:owner/:name/history/execution/:executionId")
+                                exact = true
                                 render = { props ->
                                     buildElement {
-                                        // executionId might be `latest`
                                         child(ExecutionView::class) {
                                             attrs.executionId = props.match.params["executionId"]!!
                                         }

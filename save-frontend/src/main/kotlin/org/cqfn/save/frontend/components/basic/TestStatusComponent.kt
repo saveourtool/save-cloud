@@ -20,7 +20,7 @@ import kotlinx.browser.window
 fun <D : Any> testStatusComponent(testResultDebugInfo: TestResultDebugInfo, tableInstance: TableInstance<D>) = fc<Props> {
     // todo: also display execCmd here
     val shortMessage: String = when (val status = testResultDebugInfo.testStatus) {
-        is Pass -> status.shortMessage ?: "Completed successfully without additional information"
+        is Pass -> (status.shortMessage ?: "").ifBlank { "Completed successfully without additional information" }
         is Fail -> status.shortReason
         is Ignored -> status.reason
         is Crash -> status.message
