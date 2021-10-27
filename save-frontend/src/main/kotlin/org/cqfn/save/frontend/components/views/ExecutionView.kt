@@ -10,6 +10,7 @@ import org.cqfn.save.domain.TestResultStatus
 import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.frontend.components.basic.executionStatistics
 import org.cqfn.save.frontend.components.basic.executionTestsNotFound
+import org.cqfn.save.frontend.components.basic.testStatusComponent
 import org.cqfn.save.frontend.components.tables.tableComponent
 import org.cqfn.save.frontend.themes.Colors
 import org.cqfn.save.frontend.utils.decodeFromJsonString
@@ -26,8 +27,6 @@ import react.RBuilder
 import react.RComponent
 import react.State
 import react.buildElement
-import react.dom.ReactHTML.samp
-import react.dom.ReactHTML.small
 import react.dom.button
 import react.dom.div
 import react.dom.td
@@ -213,18 +212,7 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
                 // todo: placeholder before, render data once it's available
                 val trdi = row.original.asDynamic().debugInfo as TestResultDebugInfo?
                 if (trdi != null) {
-                    tr {
-                        // todo: also display execCmd here
-                        td {
-                            val colSpan = "${tableInstance.columns.size}"
-                            attrs.colSpan = colSpan
-                            small {
-                                samp {
-                                    +"${trdi.testStatus}"
-                                }
-                            }
-                        }
-                    }
+                    child(testStatusComponent(trdi, tableInstance))
                 } else {
                     tr {
                         td {
