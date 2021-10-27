@@ -39,11 +39,10 @@ class ProjectController {
     /**
      * Get all projects without status.
      *
-     * @param status
      * @return a list of projects
      */
-    @GetMapping("/getNotDeletedProjects")
-    fun getNotDeletedProjects(@RequestParam() status: String) = projectService.getNotDeletedProjects(status)
+    @GetMapping("/projects/not-deleted")
+    fun getNotDeletedProjects() = projectService.getNotDeletedProjects()
 
     /**
      * @param name name of project

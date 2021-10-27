@@ -5,6 +5,7 @@
 package org.cqfn.save.entities
 
 import javax.persistence.Entity
+import javax.persistence.Enumerated
 import javax.persistence.GeneratedValue
 import javax.persistence.Id
 import javax.persistence.JoinColumn
@@ -19,3 +20,4 @@ actual typealias JoinColumn = JoinColumn
 actual typealias ManyToOne = ManyToOne
 actual typealias OneToMany = OneToMany
 actual typealias MappedSuperclass = MappedSuperclass
+actual typealias Enumerated = Enumerated

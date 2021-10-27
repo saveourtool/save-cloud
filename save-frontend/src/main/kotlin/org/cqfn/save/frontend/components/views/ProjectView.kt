@@ -10,10 +10,7 @@ import org.cqfn.save.domain.FileInfo
 import org.cqfn.save.domain.Sdk
 import org.cqfn.save.domain.getSdkVersions
 import org.cqfn.save.domain.toSdk
-import org.cqfn.save.entities.ExecutionRequest
-import org.cqfn.save.entities.ExecutionRequestForStandardSuites
-import org.cqfn.save.entities.GitDto
-import org.cqfn.save.entities.Project
+import org.cqfn.save.entities.*
 import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.frontend.components.basic.*
 import org.cqfn.save.frontend.externals.fontawesome.faCalendarAlt
@@ -134,7 +131,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
     private var gitUrlFromInputField: String? = null
     private val selectedTypes: MutableList<String> = mutableListOf()
     private var gitDto: GitDto? = null
-    private var project = Project("stub", "stub", "stub", "stub", "stub")
+    private var project = Project("stub", "stub", "stub", "stub", ProjectStatus.CREATED)
     private lateinit var responseFromDeleteProject: Response
 
     init {
@@ -596,7 +593,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
     }
 
     private fun deleteProject() {
-        project.status = "DELETED"
+        project.status = ProjectStatus.DELETED
 
         setState {
             isConfirmWindowOpen = true

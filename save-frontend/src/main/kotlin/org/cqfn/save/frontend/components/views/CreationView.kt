@@ -9,6 +9,7 @@ package org.cqfn.save.frontend.components.views
 import org.cqfn.save.entities.GitDto
 import org.cqfn.save.entities.NewProjectDto
 import org.cqfn.save.entities.Project
+import org.cqfn.save.entities.ProjectStatus
 import org.cqfn.save.frontend.externals.fontawesome.faQuestionCircle
 import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
 import org.cqfn.save.frontend.utils.post
@@ -114,7 +115,7 @@ class CreationView : RComponent<PropsWithChildren, ProjectSaveViewState>() {
                 fieldsMap[InputTypes.PROJECT_NAME]!!.trim(),
                 fieldsMap[InputTypes.PROJECT_URL]?.trim(),
                 fieldsMap[InputTypes.DESCRIPTION]?.trim(),
-                fieldsMap[InputTypes.PROJECT_STATUS]?.trim(),
+                ProjectStatus.CREATED,
             ),
             GitDto(
                 fieldsMap[InputTypes.GIT_URL]!!.trim(),
@@ -372,7 +373,6 @@ internal enum class InputTypes(val str: String) {
     GIT_USER("git username"),
     OWNER("owner name"),
     PROJECT_NAME("project name"),
-    PROJECT_STATUS("project status"),
     PROJECT_URL("project Url"),
     ;
 }
