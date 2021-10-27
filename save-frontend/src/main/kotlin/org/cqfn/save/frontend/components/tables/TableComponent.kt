@@ -10,20 +10,11 @@ import org.cqfn.save.frontend.components.modal.errorModal
 import org.cqfn.save.frontend.utils.spread
 
 import kotlinext.js.jsObject
-import org.w3c.dom.HTMLInputElement
-import org.w3c.dom.HTMLSelectElement
 import react.PropsWithChildren
-import react.StateSetter
-import react.dom.RDOMBuilder
 import react.dom.attrs
-import react.dom.button
 import react.dom.div
 import react.dom.em
-import react.dom.form
 import react.dom.h6
-import react.dom.input
-import react.dom.option
-import react.dom.select
 import react.dom.span
 import react.dom.table
 import react.dom.tbody
@@ -47,12 +38,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
-import kotlinx.html.ButtonType
-import kotlinx.html.InputType
-import kotlinx.html.Tag
-import kotlinx.html.hidden
-import kotlinx.html.js.onChangeFunction
-import kotlinx.html.js.onClickFunction
 
 /**
  * [RProps] of a data table
@@ -63,7 +48,6 @@ external interface TableProps : PropsWithChildren {
      */
     var tableHeader: String
 }
-
 
 /**
  * A `RComponent` for a data table
