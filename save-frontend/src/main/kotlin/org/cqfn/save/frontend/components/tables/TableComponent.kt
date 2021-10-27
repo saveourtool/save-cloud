@@ -58,6 +58,7 @@ external interface TableProps : PropsWithChildren {
  * @param getRowProps a function returning `TableRowProps` for customization of table row, defaults to empty
  * @param useServerPaging whether data is split into pages server-side or in browser
  * @param getPageCount a function to retrieve number of pages of data, is [useServerPaging] is `true`
+ * @param useSetEntries whether to display entries settings
  * @return a functional react component
  */
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -74,6 +75,7 @@ fun <D : Any> tableComponent(
     columns: Array<out Column<D, *>>,
     initialPageSize: Int = 10,
     useServerPaging: Boolean = false,
+    useSetEntries: Boolean = false,
     getRowProps: ((Row<D>) -> TableRowProps) = { jsObject() },
     getPageCount: (suspend (pageSize: Int) -> Int)? = null,
     getData: suspend (pageIndex: Int, pageSize: Int) -> Array<out D>,
@@ -130,8 +132,10 @@ fun <D : Any> tableComponent(
         }
     }
 
-    div {
-        setEntries(tableInstance, setPageIndex)
+    if (useSetEntries) {
+        div {
+            setEntries(tableInstance, setPageIndex)
+        }
     }
 
     div("card shadow mb-4") {
