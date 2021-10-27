@@ -42,6 +42,7 @@ import kotlinx.html.ButtonFormMethod
 import kotlinx.html.ButtonType
 import kotlinx.html.InputType
 import kotlinx.html.hidden
+import kotlinx.html.id
 import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
 import kotlinx.html.js.onContextMenuFunction
@@ -51,12 +52,16 @@ import org.cqfn.save.frontend.components.views.InputTypes
 import org.cqfn.save.frontend.components.views.ProjectView
 import org.cqfn.save.frontend.externals.fontawesome.faQuestionCircle
 import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
+import org.cqfn.save.frontend.utils.toPrettyString
 import org.w3c.dom.HTMLInputElement
+import org.w3c.dom.HTMLSelectElement
 import org.w3c.dom.HTMLTextAreaElement
 import react.dom.attrs
 import react.dom.form
 import react.dom.input
 import react.dom.onKeyPress
+import react.dom.option
+import react.dom.select
 import react.dom.style
 import react.dom.sup
 
@@ -148,6 +153,48 @@ fun <D : Any> tableComponent(
                 setIsModalOpen(true)
                 setDataAccessException(e)
             }
+        }
+    }
+
+    div("row") {
+        div("col-0 pt-3 pl-3 pr-0") {
+            +"Show "
+        }
+        div("col-1 pr-0") {
+            div("input-group input-group-sm mb-3 mt-3") {
+                select(classes = "form-control") {
+                    option("list-group-item") {
+                        val entries = "10"
+                        attrs.value = entries
+                        +entries
+                    }
+                    option("list-group-item") {
+                        val entries = "25"
+                        attrs.value = entries
+                        +entries
+                    }
+                    option("list-group-item") {
+                        val entries = "50"
+                        attrs.value = entries
+                        +entries
+                    }
+                    option("list-group-item") {
+                        val entries = "100"
+                        attrs.value = entries
+                        +entries
+                    }
+                    attrs.onChangeFunction = {
+                        val tg = it.target as HTMLSelectElement
+                        val entries = tg.value
+                        setPageIndex(0)
+                        tableInstance.gotoPage(0)
+                        tableInstance.setPageSize(entries.toInt())
+                    }
+                }
+            }
+        }
+        div("col-0 pt-3 pl-2") {
+            +" entries"
         }
     }
 
@@ -304,16 +351,21 @@ fun <D : Any> tableComponent(
                                             attrs.placeholder = "Jump to the page"
                                             attrs {
                                                 onChangeFunction = {
+                                                    // TODO: Provide validation of non int types
                                                     val tg = it.target as HTMLInputElement
                                                     number = tg.value.toInt() - 1
+                                                    if (number < 0) {
+                                                        number = 0
+                                                    }
+                                                    if (number > pageCount - 1) {
+                                                        number = pageCount - 1
+                                                    }
                                                 }
                                             }
                                         }
                                     }
-
                                 }
 
-                                //div("col-sm-1") {
                                 div("col-sm-offset-10 mr-3 justify-content-start") {
                                 div("input-group input-group-sm mb-6") {
                                     div("input-group-append mt-3") {
@@ -322,7 +374,6 @@ fun <D : Any> tableComponent(
                                                 setPageIndex(number)
                                                 tableInstance.gotoPage(number)
                                             }
-                                            attrs.disabled = (number < 0 || number > pageCount - 1)
                                             +js("String.fromCharCode(10143)").unsafeCast<String>()
                                         }
                                     }
