@@ -56,6 +56,11 @@ external interface UploaderProps : PropsWithChildren {
      * List of provided files
      */
     var files: List<FileInfo>
+
+    /**
+     * Sumbit button was pressed
+     */
+    var isSubmitButtonPressed: Boolean?
 }
 
 /**
@@ -98,7 +103,9 @@ fun fileUploader(
                     }
                 }
                 li("list-group-item d-flex justify-content-between align-items-center") {
-                    select(classes = "form-control") {
+                    val wasSubmitted = props.isSubmitButtonPressed ?: false
+                    val form = if (props.files.isEmpty() && wasSubmitted) "form-control is-invalid" else "form-control"
+                    select(classes = form) {
                         attrs.value = "default"
                         option {
                             attrs.value = "default"
