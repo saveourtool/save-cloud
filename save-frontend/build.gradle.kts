@@ -138,7 +138,8 @@ rootProject.tasks.register<Copy>("backupYarnLock") {
     outputs.file("$rootDir/yarn.lock").withPropertyName("outputFile")
 }
 
-val restoreYarnLock: TaskProvider<Copy> = rootProject.tasks.register("restoreYarnLock") {
+@Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
+val restoreYarnLock = rootProject.tasks.register<Copy>("restoreYarnLock") {
     from("$rootDir/yarn.lock")
     into("$rootDir/build/js")
 
