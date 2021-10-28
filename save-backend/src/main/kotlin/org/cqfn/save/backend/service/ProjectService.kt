@@ -3,6 +3,7 @@ package org.cqfn.save.backend.service
 import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.domain.ProjectSaveStatus
 import org.cqfn.save.entities.Project
+import org.cqfn.save.entities.ProjectStatus
 import org.springframework.data.domain.Example
 import org.springframework.data.domain.ExampleMatcher
 import org.springframework.stereotype.Service
@@ -45,4 +46,14 @@ class ProjectService(private val projectRepository: ProjectRepository) {
      */
     @Suppress("KDOC_WITHOUT_RETURN_TAG")  // https://github.com/cqfn/diKTat/issues/965
     fun getProjectByNameAndOwner(name: String, owner: String) = projectRepository.findByNameAndOwner(name, owner)
+
+    /**
+     * @return project's without status
+     */
+    fun getNotDeletedProjects(): List<Project> {
+        val projects = projectRepository.findAll { root, _, cb ->
+            cb.notEqual(root.get<String>("status"), ProjectStatus.DELETED)
+        }
+        return projects
+    }
 }

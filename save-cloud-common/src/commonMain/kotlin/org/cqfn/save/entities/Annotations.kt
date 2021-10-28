@@ -6,6 +6,8 @@
 
 package org.cqfn.save.entities
 
+import org.cqfn.save.utils.EnumType
+
 @OptIn(ExperimentalMultiplatform::class)
 @OptionalExpectation
 expect annotation class Entity()
@@ -33,3 +35,10 @@ expect annotation class OneToMany()
 @OptIn(ExperimentalMultiplatform::class)
 @OptionalExpectation
 expect annotation class MappedSuperclass()
+
+/**
+ * @property value
+ */
+@OptIn(ExperimentalMultiplatform::class)
+@OptionalExpectation
+expect annotation class Enumerated(val value: EnumType)
