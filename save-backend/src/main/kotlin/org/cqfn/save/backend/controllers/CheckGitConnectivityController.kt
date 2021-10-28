@@ -1,41 +1,39 @@
 package org.cqfn.save.backend.controllers
 
-import org.eclipse.jgit.api.Git
-import org.eclipse.jgit.api.errors.TransportException
-import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
-import org.slf4j.LoggerFactory
+import org.cqfn.save.backend.configs.ConfigProperties
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.reactive.function.client.WebClient
 import reactor.core.publisher.Mono
 
+/**
+ * Controller for checking git credentials
+ */
 @RestController
-class CheckGitConnectivityController {
-    private val log = LoggerFactory.getLogger(CheckGitConnectivityController::class.java)
+class CheckGitConnectivityController(
+    config: ConfigProperties,
+) {
+    private val webClientToPreprocessor = WebClient.create(config.preprocessorUrl)
 
     /**
-     * @param user
-     * @param token
-     * @param url
-     * @return
+     * Simple adaptor to the preprocessor. Frontend is able to communicate only with backend.
+     * But the logic related to git is encapsulated in preprocessor. So we will simply forward this
+     * request to a preprocessor.
+     *
+     * @param user git user
+     * @param token git password
+     * @param url repository url
+     * @return true if credentials are valid
      */
-    @GetMapping(value = ["/checkGitConnectivity"])
+    @GetMapping(value = ["/check-git-connectivity-adaptor"])
     fun checkGitConnectivity(
         @RequestParam user: String,
         @RequestParam token: String,
         @RequestParam url: String,
-    ): Mono<Boolean> {
-        log.info("Received a request to check git connectivity for $user: with $url")
-        return try {
-            Git.lsRemoteRepository()
-                .setCredentialsProvider(UsernamePasswordCredentialsProvider(user, token))
-                .setHeads(true)
-                .setTags(true)
-                .setRemote(url)
-                .call()
-            Mono.just(true)
-        } catch (e: TransportException) {
-            Mono.just(false)
-        }
-    }
+    ): Mono<Boolean> = webClientToPreprocessor
+        .get()
+        .uri("/check-git-connectivity?user=$user&token=$token&url=$url")
+        .retrieve()
+        .bodyToMono(Boolean::class.java)
 }

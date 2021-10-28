@@ -81,12 +81,15 @@ external interface ProjectSaveViewState : State {
     var gitConnectionCheckingStatus: GitConnectionStatusEnum?
 }
 
+/**
+ * Special enum that stores the value with the result of testing git credentials
+ */
 enum class GitConnectionStatusEnum {
     CHECKED_NOT_OK,
     CHECKED_OK,
     INTERNAL_SERVER_ERROR,
     NOT_CHECKED,
-    VALIDATING
+    VALIDATING,
     ;
 }
 
@@ -132,11 +135,10 @@ class CreationView : RComponent<PropsWithChildren, ProjectSaveViewState>() {
                 gitConnectionCheckingStatus = GitConnectionStatusEnum.VALIDATING
             }
             val responseFromCreationProject =
-                    get("${window.location.origin}/checkGitConnectivity$urlArguments", headers)
+                    get("${window.location.origin}/check-git-connectivity$urlArguments", headers)
 
             if (responseFromCreationProject.ok) {
-                val a = responseFromCreationProject.text().await()
-                if (a.toBoolean()) {
+                if (responseFromCreationProject.text().await().toBoolean()) {
                     setState {
                         gitConnectionCheckingStatus = GitConnectionStatusEnum.CHECKED_OK
                     }
