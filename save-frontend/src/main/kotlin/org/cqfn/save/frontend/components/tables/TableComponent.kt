@@ -41,8 +41,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
-import kotlinx.html.ButtonType
-import kotlinx.html.js.onClickFunction
 
 /**
  * [RProps] of a data table
@@ -63,28 +61,33 @@ external interface TableProps : PropsWithChildren {
  * @param getRowProps a function returning `TableRowProps` for customization of table row, defaults to empty
  * @param useServerPaging whether data is split into pages server-side or in browser
  * @param getPageCount a function to retrieve number of pages of data, is [useServerPaging] is `true`
+ * @param usePageSelection whether to display entries settings
  * @param plugins
  * @param additionalOptions
  * @param renderExpandedRow how to render an expanded row if `useExpanded` plugin is used
  * @return a functional react component
  */
 @OptIn(ExperimentalCoroutinesApi::class)
-@Suppress("TOO_LONG_FUNCTION",
+@Suppress(
+    "TOO_LONG_FUNCTION",
     "TOO_MANY_PARAMETERS",
     "TYPE_ALIAS",
     "ForbiddenComment",
     "LongMethod",
     "LongParameterList",
-    "TooGenericExceptionCaught")
-fun <D : Any> tableComponent(columns: Array<out Column<D, *>>,
-                             initialPageSize: Int = 10,
-                             useServerPaging: Boolean = false,
-                             plugins: Array<PluginHook<D>> = arrayOf(useSortBy, usePagination),
-                             additionalOptions: TableOptions<D>.() -> Unit = {},
-                             getRowProps: ((Row<D>) -> TableRowProps) = { jsObject() },
-                             getPageCount: (suspend (pageSize: Int) -> Int)? = null,
-                             renderExpandedRow: (RBuilder.(table: TableInstance<D>, row: Row<D>) -> Unit)? = undefined,
-                             getData: suspend (pageIndex: Int, pageSize: Int) -> Array<out D>,
+    "TooGenericExceptionCaught"
+)
+fun <D : Any> tableComponent(
+    columns: Array<out Column<D, *>>,
+    initialPageSize: Int = 10,
+    useServerPaging: Boolean = false,
+    usePageSelection: Boolean = false,
+    plugins: Array<PluginHook<D>> = arrayOf(useSortBy, usePagination),
+    additionalOptions: TableOptions<D>.() -> Unit = {},
+    getRowProps: ((Row<D>) -> TableRowProps) = { jsObject() },
+    getPageCount: (suspend (pageSize: Int) -> Int)? = null,
+    renderExpandedRow: (RBuilder.(table: TableInstance<D>, row: Row<D>) -> Unit)? = undefined,
+    getData: suspend (pageIndex: Int, pageSize: Int) -> Array<out D>,
 ) = fc<TableProps> { props ->
     require(useServerPaging xor (getPageCount == null)) {
         "Either use client-side paging or provide a function to get page count"
@@ -136,6 +139,12 @@ fun <D : Any> tableComponent(columns: Array<out Column<D, *>>,
                 setIsModalOpen(true)
                 setDataAccessException(e)
             }
+        }
+    }
+
+    if (usePageSelection) {
+        div {
+            setEntries(tableInstance, setPageIndex)
         }
     }
 
@@ -198,28 +207,13 @@ fun <D : Any> tableComponent(columns: Array<out Column<D, *>>,
                 }
                 if (tableInstance.pageCount > 1) {
                     // block with paging controls
+                    div("wrapper container m-0 p-0") {
+                        pagingControl(tableInstance, setPageIndex, pageIndex, pageCount)
+                    }
                     div {
-                        button(type = ButtonType.button, classes = "btn btn-link") {
-                            attrs.onClickFunction = {
-                                setPageIndex(pageIndex - 1)
-                                tableInstance.previousPage()
-                            }
-                            attrs.disabled = !tableInstance.canPreviousPage
-                            +js("String.fromCharCode(8592)").unsafeCast<String>()
-                        }
-                        button(type = ButtonType.button, classes = "btn btn-link") {
-                            attrs.onClickFunction = {
-                                setPageIndex(pageIndex + 1)
-                                tableInstance.nextPage()
-                            }
-                            attrs.disabled = !tableInstance.canNextPage
-                            +js("String.fromCharCode(8594)").unsafeCast<String>()
-                        }
-                        div {
-                            +"Page "
-                            em {
-                                +"${tableInstance.state.pageIndex + 1} of ${tableInstance.pageCount}"
-                            }
+                        +"Page "
+                        em {
+                            +"${tableInstance.state.pageIndex + 1} of ${tableInstance.pageCount}"
                         }
                     }
                 }
