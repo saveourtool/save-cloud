@@ -76,10 +76,6 @@ class HeartbeatControllerTest {
     @Test
     fun checkAcceptingHeartbeat() {
         val heartBeatBusy = Heartbeat("test", AgentState.BUSY, ExecutionProgress(0))
-        // /updateAgentStatusesWithDto
-        mockServer.enqueue(
-            MockResponse().setResponseCode(200)
-        )
 
         webClient.post()
             .uri("/heartbeat")
@@ -166,10 +162,6 @@ class HeartbeatControllerTest {
                         .addHeader("Content-Type", "application/json")
                 )
                 // additional setup for marking stuff as FINISHED
-                // /updateAgentStatuses
-                mockServer.enqueue(
-                    MockResponse().setResponseCode(200)
-                )
                 // /updateExecutionByDto
                 mockServer.enqueue(
                     MockResponse().setResponseCode(200)
@@ -252,10 +244,6 @@ class HeartbeatControllerTest {
         additionalSetup: () -> Unit = {},
         verification: () -> Unit,
     ) {
-        // /updateAgentStatuses
-        mockServer.enqueue(
-            MockResponse().setResponseCode(200)
-        )
         // /getTestBatches
         mockServer.enqueue(
             MockResponse()
@@ -314,6 +302,16 @@ class HeartbeatControllerTest {
         fun properties(registry: DynamicPropertyRegistry) {
             // todo: should be initialized in @BeforeAll, but it gets called after @DynamicPropertySource
             mockServer = MockWebServer()
+            // todo: extract request-based dispatcher to save-cloud-common
+            mockServer.dispatcher = object : QueueDispatcher() {
+                override fun dispatch(request: RecordedRequest): MockResponse {
+                    val path = request.path
+                    if (path != null && (path.contains("/testExecution/assignAgent") || path.contains("/updateAgentStatusesWithDto"))) {
+                        return MockResponse().setResponseCode(200)
+                    }
+                    return super.dispatch(request)
+                }
+            }
             (mockServer.dispatcher as QueueDispatcher).setFailFast(true)
             mockServer.start()
             registry.add("orchestrator.backendUrl") { "http://localhost:${mockServer.port}" }

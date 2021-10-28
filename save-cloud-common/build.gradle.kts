@@ -28,6 +28,7 @@ kotlin {
         }
         commonMain {
             dependencies {
+                implementation("org.cqfn.save:save-common:${Versions.saveCore}")
                 api("org.jetbrains.kotlinx:kotlinx-serialization-core:${Versions.serialization}")
                 api("org.jetbrains.kotlinx:kotlinx-datetime:${Versions.kotlinxDatetime}")
             }
