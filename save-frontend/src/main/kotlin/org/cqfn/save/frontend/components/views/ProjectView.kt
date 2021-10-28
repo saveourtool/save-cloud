@@ -6,6 +6,7 @@
 
 package org.cqfn.save.frontend.components.views
 
+import kotlinx.browser.document
 import org.cqfn.save.domain.FileInfo
 import org.cqfn.save.domain.Sdk
 import org.cqfn.save.domain.getSdkVersions
@@ -39,11 +40,13 @@ import kotlinx.coroutines.launch
 import kotlinx.html.ButtonType
 import kotlinx.html.InputType
 import kotlinx.html.classes
+import kotlinx.html.id
 import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
 import kotlinx.html.role
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.w3c.dom.HTMLButtonElement
 
 /**
  * `Props` retrieved from router
@@ -523,26 +526,20 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                 })
             }
             // ===================== RIGHT COLUMN ======================================================================
-            div("col-2 ml-2") {
+            div("col-3 ml-2") {
+                editMode = false
                 div("text-xs text-center font-weight-bold text-primary text-uppercase mb-3") {
                     +"Information"
                     button(classes = "btn btn-link text-xs text-muted text-left p-1 ml-2") {
                         +"Edit"
+                        attrs.id = "Edit"
                         attrs.onClickFunction = {
-                            //GlobalScope.launch {
-                            //switchToLatestExecution()
-                            //}
+                            enableEditMode()
                         }
                     }
                 }
 
                 child(cardComponent {
-//                    infoText("Tested tool name: ", project.name)
-//                    infoText("Description: ", project.description ?: "")
-//                    infoText("Tested tool Url: ", project.url ?: "")
-//                    infoText("Test project owner: ", project.owner)
-
-
                     form {
                         listOf(
                             "Tested tool name: " to project.name,
@@ -551,12 +548,22 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                             "Test project owner: " to project.owner
                         ).forEach { (header, text) ->
                             div("control-group form-inline") {
-                                label(classes = "control-label col-xs-3") {
+                                label(classes = "control-label col-auto") {
                                     +header
                                 }
-                                div("controls col-xs-9") {
+                                div("controls col-auto") {
                                     input(InputType.text, classes = "form-control-plaintext") {
-                                        attrs["value"] = text
+                                        attrs.placeholder = text
+                                        val event = document.getElementById("Edit").click()
+                                        attrs.onClick = event
+                                        attrs {
+                                            onChangeFunction = {
+                                                val tg = it.target as HTMLInputElement
+                                                val number = tg.value
+                                                attrs["value"] = number
+                                                console.log("VALUE ${number}")
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -596,13 +603,14 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
             }
         }
     }
-
-    private fun RBuilder.infoText(header: String, text: String) {
-        div("ml-3") {
-            h6("d-inline") {
-                b { +header }
-                +text
-            }
+    var editMode = false
+    private fun enableEditMode() {
+//        val button = document.getElementById("Edit") as HTMLButtonElement
+//        button.addEventListener("click", {
+//            document.title = "button was clicked"
+//        })
+        return setState {
+            editMode = true
         }
     }
 
