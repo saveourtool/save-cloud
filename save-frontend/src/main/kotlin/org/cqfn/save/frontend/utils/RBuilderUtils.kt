@@ -44,3 +44,39 @@ fun RBuilder.runErrorModal(
         +"Close"
     }
 }
+
+/**
+ * @param isConfirmWindowOpen flag to handle confirm Window
+ * @param confirmLabel label of confirm Window
+ * @param confirmMessage message
+ * @param handler handler to event and close
+ * @param handlerClose handler to close
+ * @return modal
+ */
+fun RBuilder.runConfirmWindowModal(
+    isConfirmWindowOpen: Boolean?,
+    confirmLabel: String,
+    confirmMessage: String,
+    handlerClose: (Event) -> Unit,
+    handler: (Event) -> Unit
+) = modal {
+    attrs {
+        isOpen = isConfirmWindowOpen
+        contentLabel = confirmLabel
+    }
+    div {
+        h2("h3 mb-0 text-gray-800") {
+            +(confirmMessage)
+        }
+    }
+    div(classes = "h3 mb-0") {
+        button(type = ButtonType.button, classes = "btn btn-primary mr-3") {
+            attrs.onClickFunction = handler
+            +"Ok"
+        }
+        button(type = ButtonType.button, classes = "btn btn-outline-primary") {
+            attrs.onClickFunction = handlerClose
+            +"Close"
+        }
+    }
+}

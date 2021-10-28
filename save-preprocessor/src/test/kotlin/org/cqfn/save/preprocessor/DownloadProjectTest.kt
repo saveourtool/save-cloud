@@ -8,6 +8,7 @@ import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.ExecutionRequestForStandardSuites
 import org.cqfn.save.entities.GitDto
 import org.cqfn.save.entities.Project
+import org.cqfn.save.entities.ProjectStatus
 import org.cqfn.save.entities.TestSuite
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionType
@@ -88,7 +89,7 @@ class DownloadProjectTest(
 
     @Test
     fun testBadRequest() {
-        val project = Project("owner", "someName", "wrongGit", "descr")
+        val project = Project("owner", "someName", "wrongGit", "descr", ProjectStatus.CREATED)
         val wrongRepo = GitDto("wrongGit")
         val execution = Execution(project, LocalDateTime.now(), LocalDateTime.now(), ExecutionStatus.PENDING, "1",
             "foo", 20, ExecutionType.GIT, "0.0.1", 0, 0, 0, 0, Sdk.Default.toString(), null).apply {
@@ -120,7 +121,7 @@ class DownloadProjectTest(
      */
     @Test
     fun testCorrectDownload() {
-        val project = Project("owner", "someName", "https://github.com/cqfn/save.git", "descr").apply {
+        val project = Project("owner", "someName", "https://github.com/cqfn/save.git", "descr", ProjectStatus.CREATED).apply {
             id = 42L
         }
         val execution = Execution(project, LocalDateTime.now(), LocalDateTime.now(), ExecutionStatus.PENDING, "1",
@@ -195,7 +196,7 @@ class DownloadProjectTest(
 
         val binFile = File(binFilePath)
         val property = File(propertyPath)
-        val project = Project("owner", "someName", "stub", "descr").apply {
+        val project = Project("owner", "someName", "stub", "descr", ProjectStatus.CREATED).apply {
             id = 42L
         }
         val execution = Execution(project, LocalDateTime.now(), LocalDateTime.now(), ExecutionStatus.PENDING, "1",
@@ -287,7 +288,7 @@ class DownloadProjectTest(
             .flatMap { it.second }
             .size
         repeat(requestSize) {
-            val project = Project("owner", "someName", null, "descr").apply {
+            val project = Project("owner", "someName", null, "descr", ProjectStatus.CREATED).apply {
                 id = 42L
             }
 
@@ -362,7 +363,7 @@ class DownloadProjectTest(
     @Test
     @Suppress("LongMethod")
     fun `rerun execution type git`() {
-        val project = Project("owner", "someName", "stub", "descr").apply {
+        val project = Project("owner", "someName", "stub", "descr", ProjectStatus.CREATED).apply {
             id = 42L
         }
         val execution = Execution(project, LocalDateTime.now(), LocalDateTime.now(), ExecutionStatus.PENDING, "1",
@@ -437,7 +438,7 @@ class DownloadProjectTest(
     @Test
     @Suppress("LongMethod")
     fun `rerun execution type standard`() {
-        val project = Project("owner", "someName", "stub", "descr").apply {
+        val project = Project("owner", "someName", "stub", "descr", ProjectStatus.CREATED).apply {
             id = 42L
         }
         val execution = Execution(project, LocalDateTime.now(), LocalDateTime.now(), ExecutionStatus.PENDING, "1",

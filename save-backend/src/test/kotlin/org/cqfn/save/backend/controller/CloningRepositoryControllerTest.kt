@@ -20,6 +20,7 @@ import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.ExecutionRequestForStandardSuites
 import org.cqfn.save.entities.GitDto
 import org.cqfn.save.entities.Project
+import org.cqfn.save.entities.ProjectStatus
 
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
@@ -89,7 +90,7 @@ class CloningRepositoryControllerTest {
                 .setBody("Clone pending")
                 .addHeader("Content-Type", "application/json")
         )
-        val project = Project("Huawei", "huaweiName", "huawei.com", "test description")
+        val project = Project("Huawei", "huaweiName", "huawei.com", "test description", ProjectStatus.CREATED)
         Mockito
             .`when`(projectService.getProjectByNameAndOwner("huaweiName", "Huawei"))
             .thenReturn(project)
@@ -122,7 +123,7 @@ class CloningRepositoryControllerTest {
         fileSystemRepository.saveFile(binFile)
         fileSystemRepository.saveFile(property)
 
-        val project = Project("Huawei", "huaweiName", "huawei.com", "test description").apply {
+        val project = Project("Huawei", "huaweiName", "huawei.com", "test description", ProjectStatus.CREATED).apply {
             id = 1
         }
         val sdk = Jdk("8")
