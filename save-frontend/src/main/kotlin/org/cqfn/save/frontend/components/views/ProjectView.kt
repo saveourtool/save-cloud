@@ -514,13 +514,42 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
             div("col-2 ml-2") {
                 div("text-xs text-center font-weight-bold text-primary text-uppercase mb-3") {
                     +"Information"
+                    button(classes = "btn btn-link text-xs text-muted text-left p-1 ml-2") {
+                        +"Edit"
+                        attrs.onClickFunction = {
+                            //GlobalScope.launch {
+                            //switchToLatestExecution()
+                            //}
+                        }
+                    }
                 }
 
                 child(cardComponent {
-                    infoText("Tested tool name: ", project.name)
-                    infoText("Description: ", project.description ?: "")
-                    infoText("Tested tool Url: ", project.url ?: "")
-                    infoText("Test project owner: ", project.owner)
+//                    infoText("Tested tool name: ", project.name)
+//                    infoText("Description: ", project.description ?: "")
+//                    infoText("Tested tool Url: ", project.url ?: "")
+//                    infoText("Test project owner: ", project.owner)
+
+
+                    form {
+                        listOf(
+                            "Tested tool name: " to project.name,
+                            "Description: " to (project.description ?: ""),
+                            "Tested tool Url: " to (project.url ?: ""),
+                            "Test project owner: " to project.owner
+                        ).forEach { (header, text) ->
+                            div("control-group form-inline") {
+                                label(classes = "control-label col-xs-3") {
+                                    +header
+                                }
+                                div("controls col-xs-9") {
+                                    input(InputType.text, classes = "form-control-plaintext") {
+                                        attrs["value"] = text
+                                    }
+                                }
+                            }
+                        }
+                    }
 
                     div("ml-3 mt-2 align-items-left justify-content-between") {
                         fontAwesomeIcon(icon = faHistory)
@@ -541,14 +570,6 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                             classes = "btn btn-link text-left"
                         ) {
                             +"Execution History"
-                        }
-                    }
-                    div("ml-3 d-sm-flex align-items-left justify-content-between mt-2") {
-                        button(type = ButtonType.button, classes = "btn btn-secondary") {
-                            attrs.onClickFunction = {
-                                //editProject()
-                            }
-                            +"Edit project information"
                         }
                     }
                 })
