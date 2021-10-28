@@ -35,13 +35,15 @@ fun RBuilder.runErrorModal(
         contentLabel = errorLabel
     }
     div {
-        h2("h3 mb-0 text-gray-800") {
+        h2("h4 text-gray-800") {
             +(errorMessage)
         }
     }
-    button(type = ButtonType.button, classes = "btn btn-primary") {
-        attrs.onClickFunction = handler
-        +"Close"
+    div("d-sm-flex align-items-center justify-content-center mt-3") {
+        button(type = ButtonType.button, classes = "btn btn-primary") {
+            attrs.onClickFunction = handler
+            +"Close"
+        }
     }
 }
 
