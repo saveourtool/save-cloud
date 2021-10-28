@@ -1,5 +1,6 @@
 package org.cqfn.save.orchestrator.service
 
+import org.cqfn.save.domain.Python
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.TestSuite
 import org.cqfn.save.execution.ExecutionStatus
@@ -11,8 +12,6 @@ import org.cqfn.save.testsuite.TestSuiteDto
 import com.github.dockerjava.api.exception.DockerException
 import generated.SAVE_CORE_VERSION
 import org.apache.commons.io.FileUtils
-import org.cqfn.save.domain.Python
-import org.cqfn.save.domain.toSdk
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
@@ -157,7 +156,11 @@ class DockerService(private val configProperties: ConfigProperties) {
         }
     }
 
-    @Suppress("TOO_LONG_FUNCTION", "UnsafeCallOnNullableType")
+    @Suppress(
+        "TOO_LONG_FUNCTION",
+        "UnsafeCallOnNullableType",
+        "LongMethod",
+    )
     private fun buildBaseImageForExecution(execution: Execution, testSuiteDtos: List<TestSuiteDto>?): Triple<String, String, String> {
         val resourcesPath = File(
             configProperties.testResources.basePath,
