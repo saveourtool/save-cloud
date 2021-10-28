@@ -11,6 +11,7 @@ import org.quartz.JobBuilder
 import org.quartz.JobExecutionContext
 import org.quartz.Scheduler
 import org.quartz.TriggerBuilder
+import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
 import java.time.Duration
@@ -39,6 +40,7 @@ class UpdateJob(
  * A component that is capable of scheduling [UpdateJob]
  */
 @Service
+@Profile("prod")
 class StandardSuitesUpdateScheduler(
     private val scheduler: Scheduler,
 ) {

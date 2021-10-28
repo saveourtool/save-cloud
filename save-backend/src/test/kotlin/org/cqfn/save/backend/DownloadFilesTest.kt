@@ -1,6 +1,7 @@
 package org.cqfn.save.backend
 
 import org.cqfn.save.backend.configs.ConfigProperties
+import org.cqfn.save.backend.configs.WebConfig
 import org.cqfn.save.backend.controllers.DownloadFilesController
 import org.cqfn.save.backend.repository.AgentRepository
 import org.cqfn.save.backend.repository.AgentStatusRepository
@@ -13,6 +14,8 @@ import org.cqfn.save.backend.repository.TestRepository
 import org.cqfn.save.backend.repository.TestSuiteRepository
 import org.cqfn.save.backend.repository.TimestampBasedFileSystemRepository
 import org.cqfn.save.backend.scheduling.StandardSuitesUpdateScheduler
+import org.cqfn.save.core.result.DebugInfo
+import org.cqfn.save.core.result.Pass
 import org.cqfn.save.domain.FileInfo
 import org.cqfn.save.domain.TestResultDebugInfo
 import org.cqfn.save.domain.TestResultLocation
@@ -52,7 +55,7 @@ import kotlin.io.path.name
 import kotlin.io.path.writeLines
 
 @WebFluxTest(controllers = [DownloadFilesController::class])
-@Import(TimestampBasedFileSystemRepository::class, TestDataFilesystemRepository::class)
+@Import(WebConfig::class, TimestampBasedFileSystemRepository::class, TestDataFilesystemRepository::class)
 @AutoConfigureWebTestClient
 @EnableConfigurationProperties(ConfigProperties::class)
 @MockBeans(
@@ -154,9 +157,8 @@ class DownloadFilesTest {
             .bodyValue(
                 TestResultDebugInfo(
                     TestResultLocation("suite1", "plugin1", "path/to/test", "Test.test"),
-                    "stdout",
-                    "stderr",
-                    42L
+                    DebugInfo("./a.out", "stdout", "stderr", 42L),
+                    Pass(null),
                 )
             )
             .exchange()
