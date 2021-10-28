@@ -11,8 +11,6 @@ import org.cqfn.save.entities.NewProjectDto
 import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.ProjectStatus
 import org.cqfn.save.frontend.utils.get
-import org.cqfn.save.frontend.externals.fontawesome.faQuestionCircle
-import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
 import org.cqfn.save.frontend.utils.post
 import org.cqfn.save.frontend.utils.runErrorModal
 
