@@ -13,6 +13,8 @@ import org.cqfn.save.backend.repository.TestRepository
 import org.cqfn.save.backend.repository.TestSuiteRepository
 import org.cqfn.save.backend.repository.TimestampBasedFileSystemRepository
 import org.cqfn.save.backend.scheduling.StandardSuitesUpdateScheduler
+import org.cqfn.save.core.result.DebugInfo
+import org.cqfn.save.core.result.Pass
 import org.cqfn.save.domain.FileInfo
 import org.cqfn.save.domain.TestResultDebugInfo
 import org.cqfn.save.domain.TestResultLocation
@@ -154,9 +156,8 @@ class DownloadFilesTest {
             .bodyValue(
                 TestResultDebugInfo(
                     TestResultLocation("suite1", "plugin1", "path/to/test", "Test.test"),
-                    "stdout",
-                    "stderr",
-                    42L
+                    DebugInfo("./a.out", "stdout", "stderr", 42L),
+                    Pass(null),
                 )
             )
             .exchange()

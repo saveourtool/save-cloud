@@ -99,8 +99,9 @@ class DownloadFilesController(
     /**
      * @param testExecutionDto
      * @return [Mono] with response
-     * @throws ResponseStatusException
+     * @throws ResponseStatusException if request is invalid or result cannot be returned
      */
+    @Suppress("ThrowsCount")
     @PostMapping(value = ["/get-debug-info"])
     fun getDebugInfo(
         @RequestBody testExecutionDto: TestExecutionDto,
