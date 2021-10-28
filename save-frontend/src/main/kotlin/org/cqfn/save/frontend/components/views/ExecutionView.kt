@@ -91,7 +91,9 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
         "EMPTY_BLOCK_STRUCTURE_ERROR",
         "TOO_LONG_FUNCTION",
         "AVOID_NULL_CHECKS",
-        "LongMethod")
+        "ComplexMethod",
+        "LongMethod"
+    )
     override fun RBuilder.render() {
         div {
             div("p-2 flex-auto") {

@@ -12,7 +12,6 @@ import org.cqfn.save.frontend.utils.spread
 import kotlinext.js.jsObject
 import react.PropsWithChildren
 import react.RBuilder
-import react.dom.button
 import react.dom.div
 import react.dom.em
 import react.dom.h6

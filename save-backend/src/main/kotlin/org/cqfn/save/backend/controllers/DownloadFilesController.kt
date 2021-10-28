@@ -105,14 +105,19 @@ class DownloadFilesController(
     fun getDebugInfo(
         @RequestBody testExecutionDto: TestExecutionDto,
     ): String {
-        val executionId = agentRepository.findByContainerId(testExecutionDto.agentContainerId!!)!!.execution.id!!
+        val agentContainerId = testExecutionDto.agentContainerId
+            ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Request body should contain agentContainerId")
+        val execution = agentRepository.findByContainerId(agentContainerId)
+            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Execution for agent $agentContainerId not found")
+        val executionId = execution.id!!
         val testResultLocation = TestResultLocation.from(testExecutionDto)
         val debugInfoFile = testDataFilesystemRepository.getLocation(
             executionId,
             testResultLocation
         )
         return if (debugInfoFile.notExists()) {
-            throw ResponseStatusException(HttpStatus.NOT_FOUND)
+            logger.warn("File $debugInfoFile not found")
+            throw ResponseStatusException(HttpStatus.NOT_FOUND, "File not found")
         } else {
             debugInfoFile.readText()
         }

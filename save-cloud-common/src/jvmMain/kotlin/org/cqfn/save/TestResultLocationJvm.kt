@@ -1,3 +1,5 @@
+@file:Suppress("HEADER_MISSING_IN_NON_SINGLE_CLASS_FILE")
+
 package org.cqfn.save
 
 import org.cqfn.save.agent.TestExecutionDto
@@ -6,8 +8,10 @@ import java.nio.file.Paths
 import kotlin.io.path.name
 
 /**
+ * Factory method to create a [TestResultLocation] from [TestExecutionDto]
+ *
  * @param testExecutionDto
- * @return
+ * @return a new [TestResultLocation]
  */
 fun TestResultLocation.Companion.from(testExecutionDto: TestExecutionDto): TestResultLocation {
     val path = Paths.get(testExecutionDto.filePath)

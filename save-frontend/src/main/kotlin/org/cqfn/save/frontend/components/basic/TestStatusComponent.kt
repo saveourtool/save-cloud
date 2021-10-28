@@ -1,3 +1,5 @@
+@file:Suppress("HEADER_MISSING_IN_NON_SINGLE_CLASS_FILE")
+
 package org.cqfn.save.frontend.components.basic
 
 import org.cqfn.save.core.result.Crash
@@ -8,6 +10,8 @@ import org.cqfn.save.domain.TestResultDebugInfo
 import org.cqfn.save.frontend.externals.fontawesome.faExternalLinkAlt
 import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
 
+import okio.ExperimentalFileSystem
+import okio.Path.Companion.toPath
 import react.Props
 import react.dom.a
 import react.dom.samp
@@ -19,6 +23,15 @@ import react.table.TableInstance
 
 import kotlinx.browser.window
 
+/**
+ * A function component that renders info about [TestResultDebugInfo] into a table [tableInstance]
+ *
+ * @param testResultDebugInfo data that should be displayed
+ * @param tableInstance a table, into which this data is added
+ * @return a function component
+ */
+@Suppress("TOO_LONG_FUNCTION")
+@OptIn(ExperimentalFileSystem::class)
 fun <D : Any> testStatusComponent(testResultDebugInfo: TestResultDebugInfo, tableInstance: TableInstance<D>) = fc<Props> {
     // todo: also display execCmd here
     val shortMessage: String = when (val status = testResultDebugInfo.testStatus) {
@@ -31,8 +44,7 @@ fun <D : Any> testStatusComponent(testResultDebugInfo: TestResultDebugInfo, tabl
     val testSuiteName = testResultDebugInfo.testResultLocation.testSuiteName
     val pluginName = testResultDebugInfo.testResultLocation.pluginName
     val testFilePath = with(testResultDebugInfo.testResultLocation) {
-        val path = testLocation.takeIf { it.isNotEmpty() }?.plus('/') ?: ""
-        "$path$testName"
+        testLocation.toPath() / testName
     }
     tr("table-sm") {
         td {
