@@ -48,6 +48,7 @@ fun <T : Tag, D : Any> RDOMBuilder<T>.setEntries(tableInstance: TableInstance<D>
                     val tg = it.target as HTMLSelectElement
                     val entries = tg.value
                     setPageIndex(0)
+                    tableInstance.gotoPage(0)
                     tableInstance.setPageSize(entries.toInt())
                 }
             }
@@ -76,6 +77,7 @@ fun <T : Tag, D : Any> RDOMBuilder<T>.pagingControl(
             button(type = ButtonType.button, classes = "btn btn-link") {
                 attrs.onClickFunction = {
                     setPageIndex(0)
+                    tableInstance.gotoPage(0)
                 }
                 attrs.disabled = !tableInstance.canPreviousPage
                 +js("String.fromCharCode(171)").unsafeCast<String>()
@@ -84,6 +86,7 @@ fun <T : Tag, D : Any> RDOMBuilder<T>.pagingControl(
             button(type = ButtonType.button, classes = "btn btn-link") {
                 attrs.onClickFunction = {
                     setPageIndex(pageIndex - 1)
+                    tableInstance.gotoPage(pageIndex - 1)
                 }
                 attrs.disabled = !tableInstance.canPreviousPage
                 +js("String.fromCharCode(8249)").unsafeCast<String>()
@@ -93,6 +96,7 @@ fun <T : Tag, D : Any> RDOMBuilder<T>.pagingControl(
                 val index = pageIndex - 2
                 attrs.onClickFunction = {
                     setPageIndex(index)
+                    tableInstance.gotoPage(index)
                 }
                 attrs.hidden = (index < 0)
                 em {
@@ -103,6 +107,7 @@ fun <T : Tag, D : Any> RDOMBuilder<T>.pagingControl(
             button(type = ButtonType.button, classes = "btn btn-link") {
                 attrs.onClickFunction = {
                     setPageIndex(pageIndex - 1)
+                    tableInstance.gotoPage(pageIndex - 1)
                 }
                 attrs.hidden = !tableInstance.canPreviousPage
                 em {
@@ -120,6 +125,7 @@ fun <T : Tag, D : Any> RDOMBuilder<T>.pagingControl(
             button(type = ButtonType.button, classes = "btn btn-link") {
                 attrs.onClickFunction = {
                     setPageIndex(pageIndex + 1)
+                    tableInstance.gotoPage(pageIndex + 1)
                 }
                 attrs.hidden = !tableInstance.canNextPage
                 em {
@@ -131,6 +137,7 @@ fun <T : Tag, D : Any> RDOMBuilder<T>.pagingControl(
                 val index = pageIndex + 2
                 attrs.onClickFunction = {
                     setPageIndex(index)
+                    tableInstance.gotoPage(index)
                 }
                 attrs.hidden = (index > pageCount - 1)
                 em {
@@ -141,6 +148,7 @@ fun <T : Tag, D : Any> RDOMBuilder<T>.pagingControl(
             button(type = ButtonType.button, classes = "btn btn-link") {
                 attrs.onClickFunction = {
                     setPageIndex(pageIndex + 1)
+                    tableInstance.gotoPage(pageIndex + 1)
                 }
                 attrs.disabled = !tableInstance.canNextPage
                 +js("String.fromCharCode(8250)").unsafeCast<String>()
@@ -149,6 +157,7 @@ fun <T : Tag, D : Any> RDOMBuilder<T>.pagingControl(
             button(type = ButtonType.button, classes = "btn btn-link") {
                 attrs.onClickFunction = {
                     setPageIndex(pageCount - 1)
+                    tableInstance.gotoPage(pageCount - 1)
                 }
                 attrs.disabled = !tableInstance.canNextPage
                 +js("String.fromCharCode(187)").unsafeCast<String>()
