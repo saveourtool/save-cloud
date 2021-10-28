@@ -138,7 +138,7 @@ rootProject.tasks.register<Copy>("backupYarnLock") {
     outputs.file("$rootDir/yarn.lock").withPropertyName("outputFile")
 }
 
-val restoreYarnLock: TaskProvider<Copy> = rootProject.tasks.register<Copy>("restoreYarnLock") {
+val restoreYarnLock: TaskProvider<Copy> = rootProject.tasks.register("restoreYarnLock") {
     from("$rootDir/yarn.lock")
     into("$rootDir/build/js")
 
