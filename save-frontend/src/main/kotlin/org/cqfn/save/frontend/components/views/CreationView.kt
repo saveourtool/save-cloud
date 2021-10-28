@@ -10,8 +10,7 @@ import org.cqfn.save.entities.GitDto
 import org.cqfn.save.entities.NewProjectDto
 import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.ProjectStatus
-import org.cqfn.save.frontend.externals.fontawesome.faQuestionCircle
-import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
+import org.cqfn.save.frontend.utils.get
 import org.cqfn.save.frontend.utils.post
 import org.cqfn.save.frontend.utils.runErrorModal
 
@@ -29,6 +28,7 @@ import react.setState
 
 import kotlinx.browser.window
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
 import kotlinx.html.ButtonType
 import kotlinx.html.InputType
@@ -75,6 +75,23 @@ external interface ProjectSaveViewState : State {
      * Validation of input fields
      */
     var isValidGitToken: Boolean?
+
+    /**
+     * Validation of input fields
+     */
+    var gitConnectionCheckingStatus: GitConnectionStatusEnum?
+}
+
+/**
+ * Special enum that stores the value with the result of testing git credentials
+ */
+enum class GitConnectionStatusEnum {
+    CHECKED_NOT_OK,
+    CHECKED_OK,
+    INTERNAL_SERVER_ERROR,
+    NOT_CHECKED,
+    VALIDATING,
+    ;
 }
 
 /**
@@ -91,6 +108,7 @@ class CreationView : RComponent<PropsWithChildren, ProjectSaveViewState>() {
     init {
         state.isErrorWithProjectSave = false
         state.errorMessage = ""
+        state.gitConnectionCheckingStatus = GitConnectionStatusEnum.NOT_CHECKED
 
         state.isValidOwner = true
         state.isValidProjectName = true
@@ -102,6 +120,40 @@ class CreationView : RComponent<PropsWithChildren, ProjectSaveViewState>() {
     private fun changeFields(fieldName: InputTypes, target: Event, isProject: Boolean = true) {
         val tg = target.target as HTMLInputElement
         if (isProject) fieldsMap[fieldName] = tg.value else fieldsMap[fieldName] = tg.value
+    }
+
+    @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
+    private fun validateGitConnection() {
+        val headers = Headers().also {
+            it.set("Accept", "application/json")
+            it.set("Content-Type", "application/json")
+        }
+        val urlArguments =
+                "?user=${fieldsMap[InputTypes.GIT_USER]}&token=${fieldsMap[InputTypes.GIT_TOKEN]}&url=${fieldsMap[InputTypes.GIT_URL]}"
+
+        GlobalScope.launch {
+            setState {
+                gitConnectionCheckingStatus = GitConnectionStatusEnum.VALIDATING
+            }
+            val responseFromCreationProject =
+                    get("${window.location.origin}/check-git-connectivity$urlArguments", headers)
+
+            if (responseFromCreationProject.ok) {
+                if (responseFromCreationProject.text().await().toBoolean()) {
+                    setState {
+                        gitConnectionCheckingStatus = GitConnectionStatusEnum.CHECKED_OK
+                    }
+                } else {
+                    setState {
+                        gitConnectionCheckingStatus = GitConnectionStatusEnum.CHECKED_NOT_OK
+                    }
+                }
+            } else {
+                setState {
+                    gitConnectionCheckingStatus = GitConnectionStatusEnum.INTERNAL_SERVER_ERROR
+                }
+            }
+        }
     }
 
     @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
@@ -206,7 +258,7 @@ class CreationView : RComponent<PropsWithChildren, ProjectSaveViewState>() {
         }
 
         div("row justify-content-center") {
-            div("col-sm-6") {
+            div("col-sm-5") {
                 div("container card o-hidden border-0 shadow-lg my-2 card-body p-0") {
                     div("p-5 text-center") {
                         h1("h4 text-gray-900 mb-4") {
@@ -223,17 +275,17 @@ class CreationView : RComponent<PropsWithChildren, ProjectSaveViewState>() {
                                 inputTextFormOptional(InputTypes.PROJECT_URL, "col-md-6 pr-0 mt-3", "Tested tool Url") {
                                     changeFields(InputTypes.PROJECT_URL, it)
                                 }
-                                inputTextFormRequired(
+                                inputTextFormOptional(
                                     InputTypes.GIT_URL,
                                     "col-md-6 mt-3 pl-0",
                                     "Test repository Git Url"
                                 ) {
                                     changeFields(InputTypes.GIT_URL, it, false)
                                 }
-                                inputTextFormRequired(InputTypes.GIT_USER, "col-md-6 mt-3", "Git Username") {
+                                inputTextFormOptional(InputTypes.GIT_USER, "col-md-6 mt-3", "Git Username") {
                                     changeFields(InputTypes.GIT_USER, it, false)
                                 }
-                                inputTextFormRequired(InputTypes.GIT_TOKEN, "col-md-6 mt-3 pr-0", "Git Token") {
+                                inputTextFormOptional(InputTypes.GIT_TOKEN, "col-md-6 mt-3 pr-0", "Git Token") {
                                     changeFields(InputTypes.GIT_TOKEN, it, false)
                                 }
                                 div("col-md-12 mt-3 mb-3 pl-0 pr-0") {
@@ -242,10 +294,6 @@ class CreationView : RComponent<PropsWithChildren, ProjectSaveViewState>() {
                                         +"Description"
                                     }
                                     div("input-group has-validation") {
-                                        span("input-group-text") {
-                                            attrs["id"] = "${InputTypes.DESCRIPTION.name}Span"
-                                            +"Optional"
-                                        }
                                         textarea("form-control") {
                                             attrs {
                                                 onChangeFunction = {
@@ -262,9 +310,32 @@ class CreationView : RComponent<PropsWithChildren, ProjectSaveViewState>() {
                                     }
                                 }
                             }
-                            button(type = ButtonType.submit, classes = "btn btn-primary mt-4") {
-                                +"Create"
+                            button(type = ButtonType.submit, classes = "btn btn-primary mt-4 mr-3") {
+                                +"Create test project"
                                 attrs.onClickFunction = { saveProject() }
+                            }
+                            button(type = ButtonType.button, classes = "btn btn-success mt-4 ml-3") {
+                                +"Validate connection"
+                                attrs.onClickFunction = { validateGitConnection() }
+                            }
+                            div("row justify-content-center") {
+                                when (state.gitConnectionCheckingStatus) {
+                                    GitConnectionStatusEnum.CHECKED_NOT_OK ->
+                                        createDiv(
+                                            "invalid-feedback d-block",
+                                            "Validation failed: please check your git URL and credentials"
+                                        )
+                                    GitConnectionStatusEnum.CHECKED_OK ->
+                                        createDiv("valid-feedback d-block", "Successful validation of git configuration")
+                                    GitConnectionStatusEnum.NOT_CHECKED ->
+                                        createDiv("invalid-feedback d-block", "")
+                                    GitConnectionStatusEnum.INTERNAL_SERVER_ERROR ->
+                                        createDiv("invalid-feedback d-block", "Internal server error during git validation")
+                                    GitConnectionStatusEnum.VALIDATING ->
+                                        div("spinner-border spinner-border-sm mt-3") {
+                                            attrs["role"] = "status"
+                                        }
+                                }
                             }
                         }
                     }
@@ -272,6 +343,11 @@ class CreationView : RComponent<PropsWithChildren, ProjectSaveViewState>() {
             }
         }
     }
+
+    private fun RBuilder.createDiv(blockName: String, text: String) =
+            div("$blockName mt-2") {
+                +text
+            }
 
     @Suppress("TOO_LONG_FUNCTION")
     private fun RBuilder.inputTextFormRequired(
@@ -286,48 +362,39 @@ class CreationView : RComponent<PropsWithChildren, ProjectSaveViewState>() {
                     +text
                 }
 
-                if (form == InputTypes.GIT_TOKEN) {
-                    sup("tooltip-and-popover") {
-                        fontAwesomeIcon(icon = faQuestionCircle)
-                        attrs["tooltip-placement"] = "top"
-                        attrs["tooltip-title"] = ""
-                        attrs["popover-placement"] = "right"
-                        attrs["popover-title"] = "Not working"
-                        attrs["popover-content"] = "Not working"
-                        attrs["data-trigger"] = "focus"
-                        attrs["tabindex"] = "0"
-                    }
-                }
-
                 val validInput = when (form) {
                     InputTypes.OWNER -> state.isValidOwner
                     InputTypes.PROJECT_NAME -> state.isValidProjectName
-                    InputTypes.GIT_URL -> state.isValidGitUrl
-                    InputTypes.GIT_USER -> state.isValidGitUser
-                    InputTypes.GIT_TOKEN -> state.isValidGitToken
                     else -> true
                 }
 
-                input(type = InputType.text) {
-                    attrs {
-                        onChangeFunction = onChangeFun
+                div("input-group has-validation") {
+                    span("input-group-text") {
+                        attrs["id"] = "${form.name}Span"
+                        +"*"
                     }
-                    attrs["id"] = form.name
-                    attrs["required"] = true
-                    if (validInput!!) {
-                        attrs["class"] = "form-control"
-                    } else {
-                        attrs["class"] = "form-control is-invalid"
-                    }
-                }
-                if (!validInput!!) {
-                    if (form == InputTypes.GIT_URL) {
-                        div("invalid-feedback d-block") {
-                            +"Input a valid URL. Note: spaces are not allowed and URL should start from http"
+                    input(type = InputType.text) {
+                        attrs {
+                            onChangeFunction = onChangeFun
                         }
-                    } else {
-                        div("invalid-feedback d-block") {
-                            +"Please input a valid ${form.str}"
+                        attrs["id"] = form.name
+                        attrs["required"] = true
+                        if (validInput!!) {
+                            attrs["class"] = "form-control"
+                        } else {
+                            attrs["class"] = "form-control is-invalid"
+                        }
+                    }
+
+                    if (!validInput!!) {
+                        if (form == InputTypes.GIT_URL) {
+                            div("invalid-feedback d-block") {
+                                +"Input a valid URL. Note: spaces are not allowed and URL should start from http"
+                            }
+                        } else {
+                            div("invalid-feedback d-block") {
+                                +"Please input a valid ${form.str}"
+                            }
                         }
                     }
                 }
@@ -344,20 +411,14 @@ class CreationView : RComponent<PropsWithChildren, ProjectSaveViewState>() {
                     attrs.set("for", form.name)
                     +text
                 }
-                div("input-group has-validation") {
-                    span("input-group-text") {
-                        attrs["id"] = "${form.name}Span"
-                        +"Optional"
+                input(type = InputType.text) {
+                    attrs {
+                        onChangeFunction = onChangeFun
                     }
-                    input(type = InputType.text) {
-                        attrs {
-                            onChangeFunction = onChangeFun
-                        }
-                        attrs["aria-describedby"] = "${form.name}Span"
-                        attrs["id"] = form.name
-                        attrs["required"] = false
-                        attrs["class"] = "form-control"
-                    }
+                    attrs["aria-describedby"] = "${form.name}Span"
+                    attrs["id"] = form.name
+                    attrs["required"] = false
+                    attrs["class"] = "form-control"
                 }
             }
 }
