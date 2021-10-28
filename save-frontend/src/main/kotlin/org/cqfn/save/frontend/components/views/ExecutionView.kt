@@ -115,7 +115,7 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
                 column(id = "index", header = "#") {
                     buildElement {
                         td {
-                            +"${it.row.index}"
+                            +"${it.row.index + 1 + it.state.pageIndex * it.state.pageSize}"
                         }
                     }
                 }
@@ -174,6 +174,7 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
                 }
             },
             useServerPaging = true,
+            usePageSelection = true,
             getPageCount = { pageSize ->
                 val count: Int = get(
                     url = "${window.location.origin}/testExecutionsCount?executionId=${props.executionId}",
@@ -201,7 +202,6 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
                 }
             }
         ) { page, size ->
-            console.log("Querying test executions for page $page with size $size")
             get(
                 url = "${window.location.origin}/testExecutions?executionId=${props.executionId}&page=$page&size=$size",
                 headers = Headers().apply {
