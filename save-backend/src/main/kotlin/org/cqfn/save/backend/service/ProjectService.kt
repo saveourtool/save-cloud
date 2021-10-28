@@ -43,6 +43,5 @@ class ProjectService(private val projectRepository: ProjectRepository) {
      * @param name
      * @param owner
      */
-    @Suppress("KDOC_WITHOUT_RETURN_TAG")  // https://github.com/cqfn/diKTat/issues/965
     fun getProjectByNameAndOwner(name: String, owner: String) = projectRepository.findByNameAndOwner(name, owner)
 }

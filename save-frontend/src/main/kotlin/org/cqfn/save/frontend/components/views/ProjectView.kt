@@ -543,6 +543,14 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                             +"Execution History"
                         }
                     }
+                    div("ml-3 d-sm-flex align-items-left justify-content-between mt-2") {
+                        button(type = ButtonType.button, classes = "btn btn-secondary") {
+                            attrs.onClickFunction = {
+                                //editProject()
+                            }
+                            +"Edit project information"
+                        }
+                    }
                 })
             }
         }
