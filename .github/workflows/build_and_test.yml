@@ -64,10 +64,12 @@ jobs:
         with:
           name: gradle-reports
           path: '**/build/reports/'
+          retention-days: 1
       - name: Upload frontend distribution
         uses: actions/upload-artifact@v2
         with:
           name: save-frontend
           path: 'save-frontend/build/libs/save-frontend-*-distribution.jar'
+          retention-days: 1
       - name: Code coverage report
         run: bash <(curl -s https://codecov.io/bash)

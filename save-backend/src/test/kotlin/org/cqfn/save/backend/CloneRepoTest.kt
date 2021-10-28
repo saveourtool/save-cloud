@@ -8,6 +8,7 @@ import org.cqfn.save.domain.Jdk
 import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.GitDto
 import org.cqfn.save.entities.Project
+import org.cqfn.save.entities.ProjectStatus
 import org.cqfn.save.execution.ExecutionType
 
 import okhttp3.mockwebserver.MockResponse
@@ -81,7 +82,7 @@ class CloneRepoTest {
     @Test
     fun checkNonExistingProject() {
         val sdk = Jdk("11")
-        val project = Project("noname", "1", "1", "1")
+        val project = Project("noname", "1", "1", "1", ProjectStatus.CREATED)
         val gitRepo = GitDto("1")
         val executionRequest = ExecutionRequest(project, gitRepo, executionId = null, sdk = sdk)
         val executionsClones = listOf(executionRequest, executionRequest, executionRequest)
