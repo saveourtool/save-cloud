@@ -8,6 +8,7 @@ import org.cqfn.save.backend.utils.MySqlExtension
 import org.cqfn.save.entities.GitDto
 import org.cqfn.save.entities.NewProjectDto
 import org.cqfn.save.entities.Project
+import org.cqfn.save.entities.ProjectStatus
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -95,7 +96,7 @@ class ProjectControllerTest {
     @Suppress("UnsafeCallOnNullableType", "TOO_MANY_LINES_IN_LAMBDA")
     fun `check save new project`() {
         val gitDto = GitDto("qweqwe")
-        val project = Project("I", "Name", "uurl", "nullsss")
+        val project = Project("I", "Name", "uurl", "nullsss", ProjectStatus.CREATED)
         val newProject = NewProjectDto(
             project,
             gitDto
