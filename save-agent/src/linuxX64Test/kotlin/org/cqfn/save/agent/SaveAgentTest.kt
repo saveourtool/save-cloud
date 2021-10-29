@@ -8,11 +8,9 @@ import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
 import io.ktor.client.features.json.JsonFeature
 import io.ktor.client.features.json.serializer.KotlinxSerializer
-import io.ktor.content.ByteArrayContent
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
-import io.ktor.http.content.TextContent
 import io.ktor.http.headersOf
 import platform.posix.system
 
@@ -23,18 +21,8 @@ import kotlin.test.assertEquals
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.PolymorphicSerializer
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.modules.SerializersModule
-import kotlinx.serialization.modules.polymorphic
-import kotlinx.serialization.modules.subclass
 import kotlinx.serialization.properties.Properties
 import kotlinx.serialization.properties.decodeFromStringMap
-import org.cqfn.save.core.result.DebugInfo
-import org.cqfn.save.core.result.Pass
-import org.cqfn.save.core.result.TestStatus
-import org.cqfn.save.domain.TestResultDebugInfo
-import org.cqfn.save.domain.TestResultLocation
 
 class SaveAgentTest {
     @OptIn(ExperimentalSerializationApi::class)
@@ -55,16 +43,7 @@ class SaveAgentTest {
                     )
                     "/executionData" -> respond("", status = HttpStatusCode.OK)
                     "/executionLogs" -> respond("", status = HttpStatusCode.OK)
-                    else -> {
-                        if (request.url.encodedPath.contains("/files/debug-info")) {
-                            println(
-                                (request.body as TextContent).text
-                            )
-                            respond("", status = HttpStatusCode.OK)
-                        } else {
-                            error("Unhandled ${request.url}")
-                        }
-                    }
+                    else -> error("Unhandled ${request.url}")
                 }
             }
         }
@@ -97,18 +76,5 @@ class SaveAgentTest {
         assertEquals(AgentState.STARTING, saveAgentForTest.state.value)
         runBlocking { saveAgentForTest.startSaveProcess("") }
         assertEquals(AgentState.FINISHED, saveAgentForTest.state.value)
-    }
-
-    @Test
-    fun `test with DebugInfo`() {
-        runBlocking {
-        saveAgentForTest.sendReport(
-                TestResultDebugInfo(
-                    TestResultLocation("suite1", "plugin1", "path/to/test", "Test.test"),
-                    DebugInfo("./a.out", "stdout", "stderr", 42L),
-                    Pass(null),
-                )
-            )
-        }
     }
 }
