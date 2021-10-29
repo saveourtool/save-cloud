@@ -21,7 +21,7 @@ kotlin {
         sourceSets["main"].dependencies {
             implementation(project(":save-cloud-common"))
 
-            compileOnly(devNpm("node-sass", "^6.0.0"))
+            compileOnly(devNpm("sass", "^1.43.0"))
             compileOnly(devNpm("sass-loader", "^12.0.0"))
             compileOnly(devNpm("style-loader", "*"))
             compileOnly(devNpm("css-loader", "*"))
