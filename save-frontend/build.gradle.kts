@@ -21,10 +21,8 @@ kotlin {
         sourceSets["main"].dependencies {
             implementation(project(":save-cloud-common"))
 
-            // devDependencies for webpack. As for kotlin 1.4.31, kotlin bundles webpack 4.x, and some
-            // latest ersions of dependencies already require webpack ^5. These versions are fixed on the last compatible.
-            compileOnly(devNpm("node-sass", "5.0.0"))
-            compileOnly(devNpm("sass-loader", "10.1.1"))
+            compileOnly(devNpm("sass", "^1.43.0"))
+            compileOnly(devNpm("sass-loader", "^12.0.0"))
             compileOnly(devNpm("style-loader", "*"))
             compileOnly(devNpm("css-loader", "*"))
             compileOnly(devNpm("url-loader", "*"))
@@ -36,20 +34,20 @@ kotlin {
             compileOnly(devNpm("webpack-bundle-analyzer", "*"))
 
             // web-specific dependencies
-            implementation(npm("@fortawesome/fontawesome-svg-core", "1.2.35"))
-            implementation(npm("@fortawesome/free-solid-svg-icons", "5.15.3"))
-            implementation(npm("@fortawesome/react-fontawesome", "0.1.14"))
+            implementation(npm("@fortawesome/fontawesome-svg-core", "^1.2.36"))
+            implementation(npm("@fortawesome/free-solid-svg-icons", "^5.15.4"))
+            implementation(npm("@fortawesome/react-fontawesome", "^0.1.16"))
             implementation("org.jetbrains.kotlin-wrappers:kotlin-react:${Versions.kotlinReact}")
             implementation("org.jetbrains.kotlin-wrappers:kotlin-react-dom:${Versions.kotlinReact}")
             implementation("org.jetbrains.kotlin-wrappers:kotlin-react-router-dom:5.2.0${Versions.kotlinJsWrappersSuffix}")
             implementation("org.jetbrains.kotlin-wrappers:kotlin-react-table:7.7.0${Versions.kotlinJsWrappersSuffix}")
-            implementation(npm("jquery", "3.5.1"))
-            implementation(npm("popper.js", "1.16.1"))  // peer dependency for bootstrap
-            implementation(npm("bootstrap", "4.6.0"))
+            implementation(npm("jquery", "3.6.0"))
+            implementation(npm("popper.js", "1.16.1"))
+            implementation(npm("bootstrap", "^4.6.0"))
             implementation(npm("react", Versions.react))
             implementation(npm("react-dom", Versions.react))
-            implementation(npm("react-modal", "3.12.1"))
-            implementation(npm("os-browserify", "0.3.0"))
+            implementation(npm("react-modal", "^3.0.0"))
+            implementation(npm("os-browserify", "^0.3.0"))
 
             implementation("org.cqfn.save:save-common:${Versions.saveCore}")
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${Versions.coroutines}")
