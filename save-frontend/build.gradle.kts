@@ -121,3 +121,42 @@ artifacts.add(distribution.name, distributionJarTask.get().archiveFile) {
 detekt {
     config.setFrom(config.plus(file("detekt.yml")))
 }
+
+// https://blog.jetbrains.com/kotlin/2021/10/control-over-npm-dependencies-in-kotlin-js/
+// root project is configured from here, because kotlin-js plugin adds the task ":kotlinNpmInstall" to the root project
+rootProject.plugins.withType<org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlugin> {
+    rootProject.the<org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension>().disableGranularWorkspaces()
+}
+
+rootProject.tasks.register("backupYarnLock") {
+    dependsOn(":kotlinNpmInstall")
+
+    doLast {
+        // copying should occur in `doLast` instead of making this task a `Copy`, because
+        // task with type `Copy` declares the whole `destinationDir` as an output
+        copy {
+            from("$rootDir/build/js/yarn.lock")
+            into(rootDir)
+        }
+    }
+
+    inputs.file("$rootDir/build/js/yarn.lock").withPropertyName("inputFile")
+    outputs.file("$rootDir/yarn.lock").withPropertyName("outputFile")
+}
+
+val restoreYarnLock = rootProject.tasks.register("restoreYarnLock") {
+    doLast {
+        copy {
+            from("$rootDir/yarn.lock")
+            into("$rootDir/build/js")
+        }
+    }
+
+    inputs.file("$rootDir/yarn.lock").withPropertyName("inputFile")
+    outputs.file("$rootDir/build/js/yarn.lock").withPropertyName("outputFile")
+}
+
+rootProject.tasks.named("kotlinNpmInstall").configure {
+    dependsOn(restoreYarnLock)
+    finalizedBy("backupYarnLock")
+}
