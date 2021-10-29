@@ -199,7 +199,7 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
                 column(id = "agentId", header = "Agent ID") {
                     buildElement {
                         td {
-                            +"${it.value.agentContainerId}"
+                            +"${it.value.agentContainerId}".takeLast(6)
                         }
                     }
                 }
