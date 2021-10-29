@@ -128,20 +128,29 @@ rootProject.plugins.withType<org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlu
     rootProject.the<org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension>().disableGranularWorkspaces()
 }
 
-rootProject.tasks.register<Copy>("backupYarnLock") {
+rootProject.tasks.register("backupYarnLock") {
     dependsOn(":kotlinNpmInstall")
 
-    from("$rootDir/build/js/yarn.lock")
-    into(rootDir)
+    doLast {
+        // copying should occur in `doLast` instead of making this task a `Copy`, because
+        // task with type `Copy` declares the whole `destinationDir` as an output
+        copy {
+            from("$rootDir/build/js/yarn.lock")
+            into(rootDir)
+        }
+    }
 
     inputs.file("$rootDir/build/js/yarn.lock").withPropertyName("inputFile")
     outputs.file("$rootDir/yarn.lock").withPropertyName("outputFile")
 }
 
-@Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
-val restoreYarnLock = rootProject.tasks.register<Copy>("restoreYarnLock") {
-    from("$rootDir/yarn.lock")
-    into("$rootDir/build/js")
+val restoreYarnLock = rootProject.tasks.register("restoreYarnLock") {
+    doLast {
+        copy {
+            from("$rootDir/yarn.lock")
+            into("$rootDir/build/js")
+        }
+    }
 
     inputs.file("$rootDir/yarn.lock").withPropertyName("inputFile")
     outputs.file("$rootDir/build/js/yarn.lock").withPropertyName("outputFile")
@@ -149,4 +158,5 @@ val restoreYarnLock = rootProject.tasks.register<Copy>("restoreYarnLock") {
 
 rootProject.tasks.named("kotlinNpmInstall").configure {
     dependsOn(restoreYarnLock)
+    finalizedBy("backupYarnLock")
 }
