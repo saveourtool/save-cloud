@@ -49,6 +49,7 @@ kotlin {
             implementation(npm("react", Versions.react))
             implementation(npm("react-dom", Versions.react))
             implementation(npm("react-modal", "3.12.1"))
+            implementation(npm("os-browserify", "0.3.0"))
 
             implementation("org.cqfn.save:save-common:${Versions.saveCore}")
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${Versions.coroutines}")
