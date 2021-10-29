@@ -49,7 +49,7 @@ class WebConfig {
             }
 }
 
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
+@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "type")
 @JsonSubTypes(
     JsonSubTypes.Type(value = Pass::class),
     JsonSubTypes.Type(value = Fail::class),
