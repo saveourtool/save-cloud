@@ -136,7 +136,7 @@ class CreationView : RComponent<PropsWithChildren, ProjectSaveViewState>() {
                 gitConnectionCheckingStatus = GitConnectionStatusEnum.VALIDATING
             }
             val responseFromCreationProject =
-                    get("${window.location.origin}/check-git-connectivity$urlArguments", headers)
+                    get("${window.location.origin}/check-git-connectivity-adaptor$urlArguments", headers)
 
             if (responseFromCreationProject.ok) {
                 if (responseFromCreationProject.text().await().toBoolean()) {

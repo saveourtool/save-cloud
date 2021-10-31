@@ -91,6 +91,7 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
         "EMPTY_BLOCK_STRUCTURE_ERROR",
         "TOO_LONG_FUNCTION",
         "AVOID_NULL_CHECKS",
+        "MAGIC_NUMBER",
         "ComplexMethod",
         "LongMethod"
     )
@@ -199,7 +200,7 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
                 column(id = "agentId", header = "Agent ID") {
                     buildElement {
                         td {
-                            +"${it.value.agentContainerId}"
+                            +"${it.value.agentContainerId}".takeLast(12)
                         }
                     }
                 }
