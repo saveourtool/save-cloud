@@ -653,7 +653,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
             state.files.isEmpty() -> setState {
                 confirmationType = ConfirmationType.NO_BINARY_CONFIRM
                 isConfirmWindowOpen = true
-                confirmLabel = "My label"
+                confirmLabel = "Single binary confirmation"
                 confirmMessage = "You have not provided any files related to your tested tool." +
                         " If these files were uploaded to your repository - press OK, otherwise - please upload these files to save."
             }
