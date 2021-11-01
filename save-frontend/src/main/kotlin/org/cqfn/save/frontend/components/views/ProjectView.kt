@@ -639,6 +639,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                             projectInformation.forEach { (key, value) ->
                                 (document.getElementById(key) as HTMLInputElement).value = value
                             }
+                            newProjectInformation.clear()
                             turnEditMode(off = true)
                         }
                     }
