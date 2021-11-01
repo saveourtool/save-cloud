@@ -11,6 +11,7 @@ import org.cqfn.save.frontend.utils.spread
 
 import kotlinext.js.jsObject
 import react.PropsWithChildren
+import react.RBuilder
 import react.dom.div
 import react.dom.em
 import react.dom.h6
@@ -22,8 +23,10 @@ import react.dom.thead
 import react.dom.tr
 import react.fc
 import react.table.Column
+import react.table.PluginHook
 import react.table.Row
 import react.table.TableInstance
+import react.table.TableOptions
 import react.table.TableRowProps
 import react.table.usePagination
 import react.table.useSortBy
@@ -58,6 +61,9 @@ external interface TableProps : PropsWithChildren {
  * @param useServerPaging whether data is split into pages server-side or in browser
  * @param getPageCount a function to retrieve number of pages of data, is [useServerPaging] is `true`
  * @param usePageSelection whether to display entries settings
+ * @param plugins
+ * @param additionalOptions
+ * @param renderExpandedRow how to render an expanded row if `useExpanded` plugin is used
  * @return a functional react component
  */
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -75,8 +81,11 @@ fun <D : Any> tableComponent(
     initialPageSize: Int = 10,
     useServerPaging: Boolean = false,
     usePageSelection: Boolean = false,
+    plugins: Array<PluginHook<D>> = arrayOf(useSortBy, usePagination),
+    additionalOptions: TableOptions<D>.() -> Unit = {},
     getRowProps: ((Row<D>) -> TableRowProps) = { jsObject() },
     getPageCount: (suspend (pageSize: Int) -> Int)? = null,
+    renderExpandedRow: (RBuilder.(table: TableInstance<D>, row: Row<D>) -> Unit)? = undefined,
     getData: suspend (pageIndex: Int, pageSize: Int) -> Array<out D>,
 ) = fc<TableProps> { props ->
     require(useServerPaging xor (getPageCount == null)) {
@@ -100,7 +109,8 @@ fun <D : Any> tableComponent(
             this.pageSize = initialPageSize
             this.pageIndex = pageIndex
         }
-    }, plugins = arrayOf(useSortBy, usePagination))
+        additionalOptions()
+    }, plugins = plugins)
 
     useEffect(arrayOf<dynamic>(tableInstance.state.pageSize, pageCount)) {
         if (useServerPaging) {
@@ -184,6 +194,12 @@ fun <D : Any> tableComponent(
                                         }
                                     }))
                                 }
+                            }
+                            if (row.isExpanded) {
+                                requireNotNull(renderExpandedRow) {
+                                    "`useExpanded` is used, but no method for expanded row is provided"
+                                }
+                                renderExpandedRow.invoke(this@tbody, tableInstance, row)
                             }
                         }
                     }

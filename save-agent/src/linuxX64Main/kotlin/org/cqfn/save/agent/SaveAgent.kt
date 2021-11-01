@@ -278,8 +278,7 @@ class SaveAgent(internal val config: AgentConfiguration,
                     resources.test.parent!!.toString(),
                     resources.test.name
                 ),
-                debugInfo?.stdout,
-                debugInfo?.stderr,
-                debugInfo?.durationMillis,
+                debugInfo,
+                status,
             )
 }

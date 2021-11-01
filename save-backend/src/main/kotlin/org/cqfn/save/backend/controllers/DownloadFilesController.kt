@@ -1,11 +1,15 @@
 package org.cqfn.save.backend.controllers
 
+import org.cqfn.save.agent.TestExecutionDto
 import org.cqfn.save.backend.ByteArrayResponse
 import org.cqfn.save.backend.repository.AgentRepository
 import org.cqfn.save.backend.repository.TestDataFilesystemRepository
 import org.cqfn.save.backend.repository.TimestampBasedFileSystemRepository
 import org.cqfn.save.domain.FileInfo
 import org.cqfn.save.domain.TestResultDebugInfo
+import org.cqfn.save.domain.TestResultLocation
+import org.cqfn.save.from
+
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -18,10 +22,15 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RequestPart
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
+
 import java.io.FileNotFoundException
+
 import kotlin.io.path.fileSize
 import kotlin.io.path.name
+import kotlin.io.path.notExists
+import kotlin.io.path.readText
 
 /**
  * A Spring controller for file downloading
@@ -86,6 +95,34 @@ class DownloadFilesController(
                     FileAlreadyExistsException::class.java,
                     ResponseEntity.status(HttpStatus.CONFLICT).build()
                 )
+
+    /**
+     * @param testExecutionDto
+     * @return [Mono] with response
+     * @throws ResponseStatusException if request is invalid or result cannot be returned
+     */
+    @Suppress("ThrowsCount", "UnsafeCallOnNullableType")
+    @PostMapping(value = ["/get-debug-info"])
+    fun getDebugInfo(
+        @RequestBody testExecutionDto: TestExecutionDto,
+    ): String {
+        val agentContainerId = testExecutionDto.agentContainerId
+            ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Request body should contain agentContainerId")
+        val execution = agentRepository.findByContainerId(agentContainerId)?.execution
+            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Execution for agent $agentContainerId not found")
+        val executionId = execution.id!!
+        val testResultLocation = TestResultLocation.from(testExecutionDto)
+        val debugInfoFile = testDataFilesystemRepository.getLocation(
+            executionId,
+            testResultLocation
+        )
+        return if (debugInfoFile.notExists()) {
+            logger.warn("File $debugInfoFile not found")
+            throw ResponseStatusException(HttpStatus.NOT_FOUND, "File not found")
+        } else {
+            debugInfoFile.readText()
+        }
+    }
 
     /**
      * @param agentContainerId agent that has executed the test

@@ -20,9 +20,9 @@ fun RBuilder.modal(
             // make modal window occupy center of the screen
             content = json(
                 "top" to "25%",
-                "left" to "25%",
-                "right" to "auto",
-                "bottom" to "auto"
+                "left" to "35%",
+                "right" to "35%",
+                "bottom" to "50%"
             ).unsafeCast<CssProperties>()
         )
         shouldCloseOnOverlayClick = true

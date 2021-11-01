@@ -34,14 +34,16 @@ fun RBuilder.runErrorModal(
         isOpen = isErrorOpen
         contentLabel = errorLabel
     }
-    div {
-        h2("h3 mb-0 text-gray-800") {
+    div("row align-items-center justify-content-center") {
+        h2("h6 text-gray-800") {
             +(errorMessage)
         }
     }
-    button(type = ButtonType.button, classes = "btn btn-primary") {
-        attrs.onClickFunction = handler
-        +"Close"
+    div("d-sm-flex align-items-center justify-content-center mt-4") {
+        button(type = ButtonType.button, classes = "btn btn-primary") {
+            attrs.onClickFunction = handler
+            +"Close"
+        }
     }
 }
 
@@ -64,12 +66,12 @@ fun RBuilder.runConfirmWindowModal(
         isOpen = isConfirmWindowOpen
         contentLabel = confirmLabel
     }
-    div {
-        h2("h3 mb-0 text-gray-800") {
+    div("row align-items-center justify-content-center") {
+        h2("h6 text-gray-800 mb-2") {
             +(confirmMessage)
         }
     }
-    div(classes = "h3 mb-0") {
+    div("d-sm-flex align-items-center justify-content-center mt-4") {
         button(type = ButtonType.button, classes = "btn btn-primary mr-3") {
             attrs.onClickFunction = handler
             +"Ok"

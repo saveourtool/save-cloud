@@ -1,4 +1,4 @@
-package org.cqfn.save.preprocessor
+package org.cqfn.save.preprocessor.controllers
 
 import org.cqfn.save.core.config.TestConfig
 import org.cqfn.save.domain.FileInfo
@@ -13,8 +13,6 @@ import org.cqfn.save.entities.TestSuite
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionType
 import org.cqfn.save.preprocessor.config.ConfigProperties
-import org.cqfn.save.preprocessor.controllers.DownloadProjectController
-import org.cqfn.save.preprocessor.controllers.readStandardTestSuitesFile
 import org.cqfn.save.preprocessor.service.TestDiscoveringService
 import org.cqfn.save.preprocessor.utils.RepositoryVolume
 import org.cqfn.save.preprocessor.utils.toHash

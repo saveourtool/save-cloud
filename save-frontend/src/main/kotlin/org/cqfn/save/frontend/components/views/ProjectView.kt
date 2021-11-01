@@ -38,6 +38,7 @@ import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+
 import kotlinx.html.ButtonType
 import kotlinx.html.InputType
 import kotlinx.html.classes
@@ -121,6 +122,25 @@ external interface ProjectViewState : State {
      * Flag to handle upload type project
      */
     var isFirstTypeUpload: Boolean?
+    /**
+     * Sumbit button was pressed
+     */
+    var isSubmitButtonPressed: Boolean?
+
+    /**
+     * state for the creation of unified confirmation logic
+     */
+    var confirmationType: ConfirmationType
+}
+
+/**
+ * enum that stores types of confirmation windows
+ */
+enum class ConfirmationType {
+    DELETE_CONFIRM,
+    NO_BINARY_CONFIRM,
+    NO_CONFIRM,
+    ;
 }
 
 /**
@@ -145,7 +165,11 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
     private lateinit var responseFromDeleteProject: Response
 
     init {
+        state.confirmationType = ConfirmationType.NO_CONFIRM
+
         state.isErrorOpen = false
+        state.isSubmitButtonPressed = false
+
         state.errorMessage = ""
         state.errorLabel = ""
 
@@ -183,16 +207,18 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
 
     @Suppress("ComplexMethod", "TOO_LONG_FUNCTION")
     private fun submitExecutionRequest() {
+        // URL is required in all cases, the processing should not be done without it
+        if (gitUrlFromInputField.isNullOrBlank()) {
+            return
+        }
+
         if (state.isFirstTypeUpload == true) {
             gitUrlFromInputField?.let {
                 val newGitDto = GitDto(url = it)
                 submitExecutionRequestWithCustomTests(newGitDto)
             } ?: gitDto?.let {
                 submitExecutionRequestWithCustomTests(it)
-            } ?: setState {
-                isErrorOpen = true
-                errorLabel = "No git url provided"
-                errorMessage = "Please provide a valid git url to your tests"
+
             }
         } else {
             if (selectedTypes.isEmpty()) {
@@ -203,14 +229,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                 }
                 return
             }
-            if (state.files.isEmpty()) {
-                setState {
-                    isErrorOpen = true
-                    errorLabel = "No files have been selected"
-                    errorMessage = "Please provide files necessary for execution"
-                }
-                return
-            }
+
             submitExecutionRequestWithStandardTests()
         }
     }
@@ -351,47 +370,56 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                     +"Test configuration"
                 }
 
-                child(fileUploader({ element ->
-                    setState {
-                        val availableFile = availableFiles.first { it.name == element.value }
-                        files.add(availableFile)
-                        availableFiles.remove(availableFile)
-                    }
-                }, {
-                    setState {
-                        files.remove(it)
-                        this.availableFiles.add(it)
-                    }
-                }, { htmlInputElement ->
-                    GlobalScope.launch {
-                        setState {
-                            isLoading = true
-                        }
-                        htmlInputElement.files!!.asList().forEach { file ->
-                            val response: FileInfo = post(
-                                "${window.location.origin}/files/upload",
-                                Headers(),
-                                FormData().apply {
-                                    append("file", file)
-                                }
-                            )
-                                .decodeFromJsonString()
+                child(
+                    fileUploader(
+                        onFileSelect = { element ->
                             setState {
-                                // add only to selected files so that this entry isn't duplicated
-                                files.add(response)
+                                val availableFile = availableFiles.first { it.name == element.value }
+                                files.add(availableFile)
+                                availableFiles.remove(availableFile)
+                            }
+                        },
+                        onFileRemove = {
+                            setState {
+                                files.remove(it)
+                                this.availableFiles.add(it)
+                            }
+                        },
+                        onFileInput = { htmlInputElement ->
+                            GlobalScope.launch {
+                                setState {
+                                    isLoading = true
+                                }
+                                htmlInputElement.files!!.asList().forEach { file ->
+                                    val response: FileInfo = post(
+                                        "${window.location.origin}/files/upload",
+                                        Headers(),
+                                        FormData().apply {
+                                            append("file", file)
+                                        }
+                                    )
+                                        .decodeFromJsonString()
+                                    setState {
+                                        // add only to selected files so that this entry isn't duplicated
+                                        files.add(response)
+                                    }
+                                }
+                                setState {
+                                    isLoading = false
+                                }
+                            }
+                        },
+                        onExecutableChange = { selectedFile, checked ->
+                            setState {
+                                files[files.indexOf(selectedFile)] = selectedFile.copy(isExecutable = checked)
                             }
                         }
-                        setState {
-                            isLoading = false
-                        }
-                    }
-                }, { selectedFile, checked ->
-                    setState {
-                        files[files.indexOf(selectedFile)] = selectedFile.copy(isExecutable = checked)
-                    }
-                })) {
+                    )
+                ) {
+                    attrs.isSubmitButtonPressed = state.isSubmitButtonPressed
                     attrs.files = state.files
                     attrs.availableFiles = state.availableFiles
+                    attrs.confirmationType = state.confirmationType
                 }
 
                 h6(classes = "d-inline mr-3") {
@@ -448,7 +476,12 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                                 }
                                 div("input-group-prepend") {
                                     input(type = InputType.text) {
-                                        attrs.set("class", "form-control")
+                                        attrs["class"] =
+                                                if (gitUrlFromInputField.isNullOrBlank() && state.isSubmitButtonPressed!!) {
+                                                    "form-control is-invalid"
+                                                } else {
+                                                    "form-control"
+                                                }
                                         attrs {
                                             gitUrlFromInputField?.let {
                                                 defaultValue = it
@@ -526,7 +559,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
 
                     div("d-sm-flex align-items-center justify-content-center") {
                         button(type = ButtonType.button, classes = "btn btn-primary") {
-                            attrs.onClickFunction = { submitExecutionRequest() }
+                            attrs.onClickFunction = { submitWithValidation() }
                             +"Test the tool now"
                         }
                     }
@@ -543,6 +576,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                         }
                     }
                 }
+
                 child(cardComponent {
                     val newProjectInformation: MutableMap<String, String> = mutableMapOf()
                     form {
@@ -621,7 +655,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                         }
                     }
                     div("ml-3 d-sm-flex align-items-left justify-content-between mt-2") {
-                        button(type = ButtonType.button, classes = "btn btn-danger") {
+                        button(type = ButtonType.button, classes = "btn btn-block btn-danger") {
                             attrs.onClickFunction = {
                                 deleteProject()
                             }
@@ -646,8 +680,8 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
             isOpen = state.isLoading
             contentLabel = "Loading"
         }
-        div("d-flex justify-content-center") {
-            div("spinner-border") {
+        div("d-flex justify-content-center mt-4") {
+            div("spinner-border text-primary spinner-border-lg") {
                 attrs.role = "status"
                 span("sr-only") {
                     +"Loading..."
@@ -656,10 +690,40 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
         }
     }
 
+    /**
+     * In some cases scripts and binaries can be uploaded to a git repository, so users won't be providing or uploading
+     * binaries. For this case we should open a window, so user will need to click a check box, so he will confirm that
+     * he understand what he is doing.
+     */
+    private fun submitWithValidation() {
+        setState {
+            isSubmitButtonPressed = true
+        }
+        when {
+            // url was not provided
+            gitUrlFromInputField.isNullOrBlank() && state.isFirstTypeUpload!! -> setState {
+                isErrorOpen = true
+                errorMessage = "Git Url with test suites in save format was not provided. It is required for processing."
+                errorLabel = "Git Url"
+            }
+            // no binaries were provided
+            state.files.isEmpty() -> setState {
+                confirmationType = ConfirmationType.NO_BINARY_CONFIRM
+                isConfirmWindowOpen = true
+                confirmLabel = "Single binary confirmation"
+                confirmMessage = "You have not provided any files related to your tested tool." +
+                        " If these files were uploaded to your repository - press OK, otherwise - please upload these files using 'Upload files' button."
+            }
+            // everything is in place, can proceed
+            else -> submitExecutionRequest()
+        }
+    }
+
     private fun deleteProject() {
         project.status = ProjectStatus.DELETED
 
         setState {
+            confirmationType = ConfirmationType.DELETE_CONFIRM
             isConfirmWindowOpen = true
             confirmLabel = ""
             confirmMessage = "Are you sure you want to delete this project?"
@@ -712,7 +776,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
             setState {
                 errorLabel = "Failed to fetch latest execution"
                 errorMessage =
-                        "Failed to fetch latest execution: ${response.status} ${response.statusText}"
+                        "Failed to fetch latest execution: [${response.status}] ${response.statusText}"
                 isErrorOpen = true
             }
         } else {

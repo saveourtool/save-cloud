@@ -21,3 +21,4 @@ external val faUpload: dynamic
 external val faFile: dynamic
 external val faHistory: dynamic
 external val faCalendarAlt: dynamic
+external val faExternalLinkAlt: dynamic
