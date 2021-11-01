@@ -21,6 +21,7 @@ import javax.persistence.ManyToOne
  * @property batchSize Maximum number of returning tests per execution
  * @property type
  * @property version
+ * @property runningTests
  * @property passedTests
  * @property failedTests
  * @property skippedTests
@@ -53,6 +54,8 @@ class Execution(
 
     var version: String?,
 
+    var runningTests: Long,
+
     var passedTests: Long,
 
     var failedTests: Long,
@@ -74,6 +77,7 @@ class Execution(
         type,
         version,
         endTime?.toEpochSecond(ZoneOffset.UTC),
+        runningTests,
         passedTests,
         failedTests,
         skippedTests,

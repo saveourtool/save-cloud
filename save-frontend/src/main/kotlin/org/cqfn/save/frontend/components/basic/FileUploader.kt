@@ -7,6 +7,7 @@
 package org.cqfn.save.frontend.components.basic
 
 import org.cqfn.save.domain.FileInfo
+import org.cqfn.save.frontend.components.views.ConfirmationType
 import org.cqfn.save.frontend.externals.fontawesome.faFile
 import org.cqfn.save.frontend.externals.fontawesome.faTimesCircle
 import org.cqfn.save.frontend.externals.fontawesome.faUpload
@@ -56,6 +57,16 @@ external interface UploaderProps : PropsWithChildren {
      * List of provided files
      */
     var files: List<FileInfo>
+
+    /**
+     * Sumbit button was pressed
+     */
+    var isSubmitButtonPressed: Boolean?
+
+    /**
+     * state for the creation of unified confirmation logic
+     */
+    var confirmationType: ConfirmationType
 }
 
 /**
@@ -79,7 +90,7 @@ fun fileUploader(
 
         div {
             h6(classes = "d-inline mr-3") {
-                +"1. Upload the tested tool and other resources, or select from the list:"
+                +"1. Upload or select the tool (and other resources) for testing:"
             }
 
             ul(classes = "list-group") {
@@ -98,7 +109,14 @@ fun fileUploader(
                     }
                 }
                 li("list-group-item d-flex justify-content-between align-items-center") {
-                    select(classes = "form-control") {
+                    val wasSubmitted = props.isSubmitButtonPressed ?: false
+                    val form = if (props.files.isEmpty() && wasSubmitted && props.confirmationType == ConfirmationType.NO_BINARY_CONFIRM) {
+                        "form-control is-invalid"
+                    } else {
+                        "form-control"
+                    }
+
+                    select(classes = form) {
                         attrs.value = "default"
                         option {
                             attrs.value = "default"

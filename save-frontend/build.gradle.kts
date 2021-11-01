@@ -21,10 +21,8 @@ kotlin {
         sourceSets["main"].dependencies {
             implementation(project(":save-cloud-common"))
 
-            // devDependencies for webpack. As for kotlin 1.4.31, kotlin bundles webpack 4.x, and some
-            // latest ersions of dependencies already require webpack ^5. These versions are fixed on the last compatible.
-            compileOnly(devNpm("node-sass", "5.0.0"))
-            compileOnly(devNpm("sass-loader", "10.1.1"))
+            compileOnly(devNpm("sass", "^1.43.0"))
+            compileOnly(devNpm("sass-loader", "^12.0.0"))
             compileOnly(devNpm("style-loader", "*"))
             compileOnly(devNpm("css-loader", "*"))
             compileOnly(devNpm("url-loader", "*"))
@@ -36,20 +34,22 @@ kotlin {
             compileOnly(devNpm("webpack-bundle-analyzer", "*"))
 
             // web-specific dependencies
-            implementation(npm("@fortawesome/fontawesome-svg-core", "1.2.35"))
-            implementation(npm("@fortawesome/free-solid-svg-icons", "5.15.3"))
-            implementation(npm("@fortawesome/react-fontawesome", "0.1.14"))
+            implementation(npm("@fortawesome/fontawesome-svg-core", "^1.2.36"))
+            implementation(npm("@fortawesome/free-solid-svg-icons", "^5.15.4"))
+            implementation(npm("@fortawesome/react-fontawesome", "^0.1.16"))
             implementation("org.jetbrains.kotlin-wrappers:kotlin-react:${Versions.kotlinReact}")
             implementation("org.jetbrains.kotlin-wrappers:kotlin-react-dom:${Versions.kotlinReact}")
             implementation("org.jetbrains.kotlin-wrappers:kotlin-react-router-dom:5.2.0${Versions.kotlinJsWrappersSuffix}")
             implementation("org.jetbrains.kotlin-wrappers:kotlin-react-table:7.7.0${Versions.kotlinJsWrappersSuffix}")
-            implementation(npm("jquery", "3.5.1"))
-            implementation(npm("popper.js", "1.16.1"))  // peer dependency for bootstrap
-            implementation(npm("bootstrap", "4.6.0"))
+            implementation(npm("jquery", "3.6.0"))
+            implementation(npm("popper.js", "1.16.1"))
+            implementation(npm("bootstrap", "^4.6.0"))
             implementation(npm("react", Versions.react))
             implementation(npm("react-dom", Versions.react))
-            implementation(npm("react-modal", "3.12.1"))
+            implementation(npm("react-modal", "^3.0.0"))
+            implementation(npm("os-browserify", "^0.3.0"))
 
+            implementation("org.cqfn.save:save-common:${Versions.saveCore}")
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${Versions.coroutines}")
             implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:${Versions.serialization}")
             implementation("org.jetbrains.kotlinx:kotlinx-datetime:${Versions.kotlinxDatetime}")
@@ -119,4 +119,43 @@ artifacts.add(distribution.name, distributionJarTask.get().archiveFile) {
 
 detekt {
     config.setFrom(config.plus(file("detekt.yml")))
+}
+
+// https://blog.jetbrains.com/kotlin/2021/10/control-over-npm-dependencies-in-kotlin-js/
+// root project is configured from here, because kotlin-js plugin adds the task ":kotlinNpmInstall" to the root project
+rootProject.plugins.withType<org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlugin> {
+    rootProject.the<org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension>().disableGranularWorkspaces()
+}
+
+rootProject.tasks.register("backupYarnLock") {
+    dependsOn(":kotlinNpmInstall")
+
+    doLast {
+        // copying should occur in `doLast` instead of making this task a `Copy`, because
+        // task with type `Copy` declares the whole `destinationDir` as an output
+        copy {
+            from("$rootDir/build/js/yarn.lock")
+            into(rootDir)
+        }
+    }
+
+    inputs.file("$rootDir/build/js/yarn.lock").withPropertyName("inputFile")
+    outputs.file("$rootDir/yarn.lock").withPropertyName("outputFile")
+}
+
+val restoreYarnLock = rootProject.tasks.register("restoreYarnLock") {
+    doLast {
+        copy {
+            from("$rootDir/yarn.lock")
+            into("$rootDir/build/js")
+        }
+    }
+
+    inputs.file("$rootDir/yarn.lock").withPropertyName("inputFile")
+    outputs.file("$rootDir/build/js/yarn.lock").withPropertyName("outputFile")
+}
+
+rootProject.tasks.named("kotlinNpmInstall").configure {
+    dependsOn(restoreYarnLock)
+    finalizedBy("backupYarnLock")
 }

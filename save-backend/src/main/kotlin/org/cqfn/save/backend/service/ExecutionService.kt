@@ -60,6 +60,19 @@ class ExecutionService(private val executionRepository: ExecutionRepository) {
     }
 
     /**
+     * @param execution
+     * @throws ResponseStatusException
+     */
+    @Suppress("UnsafeCallOnNullableType")
+    fun updateExecution(execution: Execution) {
+        executionRepository.findById(execution.id!!).ifPresentOrElse({
+            executionRepository.save(execution)
+        }) {
+            throw ResponseStatusException(HttpStatus.NOT_FOUND)
+        }
+    }
+
+    /**
      * @param executionId id of execution
      * @return execution dto based on id
      */
@@ -103,4 +116,17 @@ class ExecutionService(private val executionRepository: ExecutionRepository) {
                 it.resourcesRootPath = executionInitializationDto.resourcesRootPath
                 executionRepository.save(it)
             }
+    
+    /**
+     * @param execution execution, tests metrics of which should be reset
+     */
+    fun resetMetrics(execution: Execution) {
+        execution.apply {
+            runningTests = 0
+            passedTests = 0
+            failedTests = 0
+            skippedTests = 0
+        }
+        saveExecution(execution)
+    }
 }

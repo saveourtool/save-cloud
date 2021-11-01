@@ -5,6 +5,7 @@ import org.cqfn.save.backend.repository.ExecutionRepository
 import org.cqfn.save.backend.repository.TestExecutionRepository
 import org.cqfn.save.backend.repository.TestRepository
 import org.cqfn.save.domain.TestResultStatus
+import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.Test
 import org.cqfn.save.entities.TestExecution
 import org.cqfn.save.entities.TestSuite
@@ -21,7 +22,6 @@ import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 import reactor.core.publisher.Mono
 
-import java.io.File
 import java.time.LocalDateTime
 import java.util.concurrent.ConcurrentHashMap
 
@@ -57,7 +57,7 @@ class TestService {
         }
             .orElseGet {
                 log.debug("Test $testDto is not found in the DB, will save it")
-                val testSuiteStub = TestSuite(propertiesRelativePath = "FB").apply {
+                val testSuiteStub = TestSuite(testRootPath = "N/A").apply {
                     id = testDto.testSuiteId
                 }
                 testRepository.save(
@@ -79,10 +79,10 @@ class TestService {
         val execution = agent.execution
         val lock = locks.computeIfAbsent(execution.id!!) { Any() }
         return synchronized(lock) {
-            val testExecutions = getTestExecutionsBatchByExecutionIdAndUpdateStatus(execution.id!!, execution.batchSize!!)
+            val testExecutions = getTestExecutionsBatchByExecutionIdAndUpdateStatus(execution)
             val testDtos = testExecutions.map { it.test.toDto() }
             Mono.just(TestBatch(testDtos, testExecutions.map { it.test.testSuite }.associate {
-                it.id!! to File(it.propertiesRelativePath).parent
+                it.id!! to it.testRootPath
             }))
         }
     }
@@ -97,13 +97,14 @@ class TestService {
     /**
      * Retrieves a batch of test executions with status `READY` from the datasource and sets their statuses to `RUNNING`
      *
-     * @param executionId id of execution for which a batch is requested
-     * @param batchSize size of the batch
+     * @param execution execution for which a batch is requested
      * @return a batch of [batchSize] tests with status `READY`
      */
     @Suppress("UnsafeCallOnNullableType")
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    internal fun getTestExecutionsBatchByExecutionIdAndUpdateStatus(executionId: Long, batchSize: Int): List<TestExecution> {
+    internal fun getTestExecutionsBatchByExecutionIdAndUpdateStatus(execution: Execution): List<TestExecution> {
+        val executionId = execution.id!!
+        val batchSize = execution.batchSize!!
         val pageRequest = PageRequest.of(0, batchSize)
         val testExecutions = testExecutionRepository.findByStatusAndExecutionId(
             TestResultStatus.READY,
@@ -114,6 +115,9 @@ class TestService {
         testExecutions.forEach {
             testExecutionRepository.save(it.apply {
                 status = TestResultStatus.RUNNING
+            })
+            executionRepository.save(execution.apply {
+                runningTests++
             })
         }
         return testExecutions

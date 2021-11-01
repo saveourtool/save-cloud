@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="add-execution-table" author="aktsay" context="dev or prod">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="execution"/>
+            </not>
+        </preConditions>
+        <createTable tableName="execution">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="project_id" type="bigint">
+                <constraints foreignKeyName="fk_execution_project" references="project(id)" nullable="false"/>
+            </column>
+            <column name="start_time" type="timestamp">
+                <constraints nullable="false"/>
+            </column>
+            <column name="end_time" type="timestamp">
+                <constraints nullable="true" />
+            </column>
+            <column name="status" type="varchar(100)">
+                <constraints nullable="false" />
+            </column>
+            <column name="test_suite_ids" type="varchar(255)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="resources_root_path" type="varchar(255)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="batch_size" type="integer">
+                <constraints nullable="true"/>
+            </column>
+            <column name="type" type="varchar(100)">
+                <constraints nullable="false" />
+            </column>
+            <column name="version" type="varchar(255)">
+                <constraints nullable="true" />
+            </column>
+            <column name="running_tests" type="bigint">
+                <constraints nullable="false" />
+            </column>
+            <column name="passed_tests" type="bigint">
+                <constraints nullable="false" />
+            </column>
+            <column name="failed_tests" type="bigint">
+                <constraints nullable="false" />
+            </column>
+            <column name="skipped_tests" type="bigint">
+                <constraints nullable="false" />
+            </column>
+            <column name="sdk" type="varchar(255)" defaultValue="ubuntu:latest">
+                <constraints nullable="false" />
+            </column>
+            <column name="additional_files" type="text" defaultValue="null"/>
+        </createTable>
+
+        <rollback>
+            <dropTable
+                    cascadeConstraints="true"
+                    tableName="execution" />
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

@@ -3,6 +3,7 @@ package org.cqfn.save.backend.service
 import org.cqfn.save.agent.TestExecutionDto
 import org.cqfn.save.backend.repository.AgentRepository
 import org.cqfn.save.backend.repository.ExecutionRepository
+import org.cqfn.save.backend.repository.TestDataFilesystemRepository
 import org.cqfn.save.backend.repository.TestExecutionRepository
 import org.cqfn.save.backend.repository.TestRepository
 import org.cqfn.save.backend.utils.secondsToLocalDateTime
@@ -11,26 +12,23 @@ import org.cqfn.save.entities.TestExecution
 import org.cqfn.save.test.TestDto
 
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Service for test result
  */
 @Service
-class TestExecutionService(private val testExecutionRepository: TestExecutionRepository) {
+class TestExecutionService(private val testExecutionRepository: TestExecutionRepository,
+                           private val testRepository: TestRepository,
+                           private val agentRepository: AgentRepository,
+                           private val executionRepository: ExecutionRepository,
+                           private val testDataFilesystemRepository: TestDataFilesystemRepository,
+) {
     private val log = LoggerFactory.getLogger(TestExecutionService::class.java)
-
-    @Autowired
-    private lateinit var testRepository: TestRepository
-
-    @Autowired
-    private lateinit var agentRepository: AgentRepository
-
-    @Autowired
-    private lateinit var executionRepository: ExecutionRepository
+    private val locks: ConcurrentHashMap<Long, Any> = ConcurrentHashMap()
 
     /**
      * Returns a page of [TestExecution]s with [executionId]
@@ -66,7 +64,8 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
      * @param testExecutionsDtos
      * @return list of lost tests
      */
-    @Suppress("TOO_MANY_LINES_IN_LAMBDA", "UnsafeCallOnNullableType")
+    @Suppress("TOO_MANY_LINES_IN_LAMBDA", "TOO_LONG_FUNCTION", "UnsafeCallOnNullableType")
+    @Transactional
     fun saveTestResult(testExecutionsDtos: List<TestExecutionDto>): List<TestExecutionDto> {
         log.debug("Saving ${testExecutionsDtos.size} test results from agent ${testExecutionsDtos.first().agentContainerId}")
         // we take agent id only from first element, because all test executions have same execution
@@ -76,31 +75,51 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
         val agent = requireNotNull(agentRepository.findByContainerId(agentContainerId)) {
             "Agent with containerId=[$agentContainerId] was not found in the DB"
         }
-        val execution = agent.execution
+        val executionId = agent.execution.id!!
         val lostTests: MutableList<TestExecutionDto> = mutableListOf()
+        val counters = Counters()
         testExecutionsDtos.forEach { testExecDto ->
             val foundTestExec = testExecutionRepository.findByExecutionIdAndTestPluginNameAndTestFilePath(
-                execution.id!!,
+                executionId,
                 testExecDto.pluginName,
                 testExecDto.filePath
             )
-            foundTestExec.ifPresentOrElse({
-                it.startTime = testExecDto.startTimeSeconds?.secondsToLocalDateTime()
-                it.endTime = testExecDto.endTimeSeconds?.secondsToLocalDateTime()
-                it.status = testExecDto.status
-                when (testExecDto.status) {
-                    TestResultStatus.PASSED -> execution.passedTests += 1
-                    TestResultStatus.FAILED -> execution.failedTests += 1
-                    else -> execution.skippedTests += 1
+            foundTestExec.also {
+                if (it.isEmpty) {
+                    log.error("Test execution $testExecDto for execution id=$executionId was not found in the DB")
                 }
-                testExecutionRepository.save(it)
-            },
-                {
-                    lostTests.add(testExecDto)
-                    log.error("Test execution $testExecDto was not found in the DB")
-                })
+            }
+                .filter {
+                    // update only those test executions, that haven't been updated before
+                    it.status == TestResultStatus.RUNNING
+                }
+                .ifPresentOrElse({
+                    it.startTime = testExecDto.startTimeSeconds?.secondsToLocalDateTime()
+                    it.endTime = testExecDto.endTimeSeconds?.secondsToLocalDateTime()
+                    it.status = testExecDto.status
+                    when (testExecDto.status) {
+                        TestResultStatus.PASSED -> counters.passed++
+                        TestResultStatus.FAILED -> counters.failed++
+                        else -> counters.skipped++
+                    }
+                    testExecutionRepository.save(it)
+                },
+                    {
+                        lostTests.add(testExecDto)
+                        log.error("Test execution $testExecDto for execution id=$executionId cannot be updated because its status is not RUNNING")
+                    })
         }
-        executionRepository.save(execution)
+        val lock = locks.computeIfAbsent(executionId) { Any() }
+        synchronized(lock) {
+            val execution = executionRepository.findById(executionId).get()
+            execution.apply {
+                runningTests -= counters.total()
+                passedTests += counters.passed
+                failedTests += counters.failed
+                skippedTests += counters.skipped
+            }
+            executionRepository.save(execution)
+        }
         return lostTests
     }
 
@@ -111,12 +130,18 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
     fun saveTestExecution(executionId: Long, testIds: List<Long>) {
         log.debug("Will create test executions for executionId=$executionId for tests $testIds")
         testIds.map { testId ->
+            val testExecutionList = testExecutionRepository.findByExecutionIdAndTestId(executionId, testId)
+            if (testExecutionList.isNotEmpty()) {
+                log.debug("For execution with id=$executionId test id=$testId already exist in DB, deleting it")
+                testExecutionRepository.deleteAllByExecutionIdAndTestId(executionId, testId)
+            }
             testRepository.findById(testId).ifPresentOrElse({ test ->
                 log.debug("Creating TestExecution for test $testId")
                 val id = testExecutionRepository.save(
                     TestExecution(test,
                         executionId,
-                        null, TestResultStatus.READY, null, null)
+                        null, TestResultStatus.READY, null, null,
+                    )
                 )
                 log.debug("Created TestExecution $id for test $testId")
             },
@@ -152,5 +177,14 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
                 this.agent = agent
             })
         }
+    }
+
+    @Suppress("KDOC_NO_CONSTRUCTOR_PROPERTY", "MISSING_KDOC_ON_FUNCTION")
+    private class Counters(
+        var passed: Int = 0,
+        var failed: Int = 0,
+        var skipped: Int = 0,
+    ) {
+        fun total() = passed + failed + skipped
     }
 }

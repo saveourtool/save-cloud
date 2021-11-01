@@ -34,13 +34,51 @@ fun RBuilder.runErrorModal(
         isOpen = isErrorOpen
         contentLabel = errorLabel
     }
-    div {
-        h2("h3 mb-0 text-gray-800") {
+    div("row align-items-center justify-content-center") {
+        h2("h6 text-gray-800") {
             +(errorMessage)
         }
     }
-    button(type = ButtonType.button, classes = "btn btn-primary") {
-        attrs.onClickFunction = handler
-        +"Close"
+    div("d-sm-flex align-items-center justify-content-center mt-4") {
+        button(type = ButtonType.button, classes = "btn btn-primary") {
+            attrs.onClickFunction = handler
+            +"Close"
+        }
+    }
+}
+
+/**
+ * @param isConfirmWindowOpen flag to handle confirm Window
+ * @param confirmLabel label of confirm Window
+ * @param confirmMessage message
+ * @param handler handler to event and close
+ * @param handlerClose handler to close
+ * @return modal
+ */
+fun RBuilder.runConfirmWindowModal(
+    isConfirmWindowOpen: Boolean?,
+    confirmLabel: String,
+    confirmMessage: String,
+    handlerClose: (Event) -> Unit,
+    handler: (Event) -> Unit
+) = modal {
+    attrs {
+        isOpen = isConfirmWindowOpen
+        contentLabel = confirmLabel
+    }
+    div("row align-items-center justify-content-center") {
+        h2("h6 text-gray-800 mb-2") {
+            +(confirmMessage)
+        }
+    }
+    div("d-sm-flex align-items-center justify-content-center mt-4") {
+        button(type = ButtonType.button, classes = "btn btn-primary mr-3") {
+            attrs.onClickFunction = handler
+            +"Ok"
+        }
+        button(type = ButtonType.button, classes = "btn btn-outline-primary") {
+            attrs.onClickFunction = handlerClose
+            +"Close"
+        }
     }
 }

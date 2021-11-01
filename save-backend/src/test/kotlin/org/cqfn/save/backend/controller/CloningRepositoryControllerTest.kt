@@ -5,12 +5,12 @@ import org.cqfn.save.backend.controllers.CloneRepositoryController
 import org.cqfn.save.backend.repository.AgentRepository
 import org.cqfn.save.backend.repository.AgentStatusRepository
 import org.cqfn.save.backend.repository.ExecutionRepository
-import org.cqfn.save.backend.repository.FileSystemRepository
 import org.cqfn.save.backend.repository.GitRepository
 import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.repository.TestExecutionRepository
 import org.cqfn.save.backend.repository.TestRepository
 import org.cqfn.save.backend.repository.TestSuiteRepository
+import org.cqfn.save.backend.repository.TimestampBasedFileSystemRepository
 import org.cqfn.save.backend.scheduling.StandardSuitesUpdateScheduler
 import org.cqfn.save.backend.service.ExecutionService
 import org.cqfn.save.backend.service.ProjectService
@@ -20,6 +20,7 @@ import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.ExecutionRequestForStandardSuites
 import org.cqfn.save.entities.GitDto
 import org.cqfn.save.entities.Project
+import org.cqfn.save.entities.ProjectStatus
 
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
@@ -50,7 +51,7 @@ import java.time.Duration
 import kotlin.io.path.createFile
 
 @WebFluxTest(controllers = [CloneRepositoryController::class])
-@Import(FileSystemRepository::class)
+@Import(TimestampBasedFileSystemRepository::class)
 @EnableConfigurationProperties(ConfigProperties::class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @MockBeans(
@@ -67,7 +68,7 @@ import kotlin.io.path.createFile
 )
 @Suppress("TOO_LONG_FUNCTION")
 class CloningRepositoryControllerTest {
-    @Autowired private lateinit var fileSystemRepository: FileSystemRepository
+    @Autowired private lateinit var fileSystemRepository: TimestampBasedFileSystemRepository
 
     @Autowired
     lateinit var webTestClient: WebTestClient
@@ -89,7 +90,7 @@ class CloningRepositoryControllerTest {
                 .setBody("Clone pending")
                 .addHeader("Content-Type", "application/json")
         )
-        val project = Project("Huawei", "huaweiName", "huawei.com", "test description")
+        val project = Project("Huawei", "huaweiName", "huawei.com", "test description", ProjectStatus.CREATED)
         Mockito
             .`when`(projectService.getProjectByNameAndOwner("huaweiName", "Huawei"))
             .thenReturn(project)
@@ -122,7 +123,7 @@ class CloningRepositoryControllerTest {
         fileSystemRepository.saveFile(binFile)
         fileSystemRepository.saveFile(property)
 
-        val project = Project("Huawei", "huaweiName", "huawei.com", "test description").apply {
+        val project = Project("Huawei", "huaweiName", "huawei.com", "test description", ProjectStatus.CREATED).apply {
             id = 1
         }
         val sdk = Jdk("8")
@@ -143,7 +144,7 @@ class CloningRepositoryControllerTest {
             .thenReturn(project)
 
         webTestClient.post()
-            .uri("/submitExecutionRequestBin")
+            .uri("/executionRequestStandardTests")
             .contentType(MediaType.MULTIPART_FORM_DATA)
             .body(BodyInserters.fromMultipartData(bodyBuilder.build()))
             .exchange()

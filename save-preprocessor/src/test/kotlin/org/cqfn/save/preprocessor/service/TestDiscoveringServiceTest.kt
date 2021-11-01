@@ -2,6 +2,7 @@ package org.cqfn.save.preprocessor.service
 
 import org.cqfn.save.core.config.TestConfig
 import org.cqfn.save.entities.Project
+import org.cqfn.save.entities.ProjectStatus
 import org.cqfn.save.entities.TestSuite
 import org.cqfn.save.preprocessor.config.ConfigProperties
 import org.cqfn.save.testsuite.TestSuiteType
@@ -36,10 +37,11 @@ class TestDiscoveringServiceTest {
     @BeforeAll
     fun setUp() {
         tmpDir = createTempDirectory(this::class.simpleName)
-        Git.cloneRepository()
+        val repo = Git.cloneRepository()
             .setURI("https://github.com/cqfn/save")
             .setDirectory(tmpDir.toFile())
             .call()
+        repo.checkout().setName("993aa6228cba0a9f9075fb3aca8a0a8b9196a12a")
         rootTestConfig = testDiscoveringService.getRootTestConfig(tmpDir.resolve("examples/kotlin-diktat").toString())
     }
 
@@ -51,7 +53,7 @@ class TestDiscoveringServiceTest {
     @Test
     fun `should discover test suites`() {
         val testSuites = testDiscoveringService.getAllTestSuites(
-            Project("stub", "stub", "stub", null),
+            Project("stub", "stub", "stub", null, ProjectStatus.CREATED),
             rootTestConfig,
             propertiesRelativePath,
             "not-provided"
@@ -66,7 +68,7 @@ class TestDiscoveringServiceTest {
     fun `should throw exception with invalid path for test suites discovering`() {
         assertThrows<IllegalArgumentException> {
             testDiscoveringService.getAllTestSuites(
-                Project("stub", "stub", "stub", null),
+                Project("stub", "stub", "stub", null, ProjectStatus.CREATED),
                 testDiscoveringService.getRootTestConfig(tmpDir.resolve("buildSrc").toString()),
                 propertiesRelativePath,
                 "not-provided"
@@ -90,7 +92,7 @@ class TestDiscoveringServiceTest {
         )
 
         println("Discovered the following tests: $testDtos")
-        Assertions.assertEquals(14, testDtos.size)
+        Assertions.assertEquals(16, testDtos.size)
         Assertions.assertEquals(testDtos.size, testDtos.map { it.hash + it.filePath + it.testSuiteId }.distinct().size) {
             "Some tests have the same hash/filePath/testSuiteId combination in $testDtos"
         }

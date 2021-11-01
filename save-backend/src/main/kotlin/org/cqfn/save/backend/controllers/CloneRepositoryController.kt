@@ -2,7 +2,7 @@ package org.cqfn.save.backend.controllers
 
 import org.cqfn.save.backend.StringResponse
 import org.cqfn.save.backend.configs.ConfigProperties
-import org.cqfn.save.backend.repository.FileSystemRepository
+import org.cqfn.save.backend.repository.TimestampBasedFileSystemRepository
 import org.cqfn.save.backend.service.ExecutionService
 import org.cqfn.save.backend.service.ProjectService
 import org.cqfn.save.domain.FileInfo
@@ -41,7 +41,7 @@ import java.time.LocalDateTime
 class CloneRepositoryController(
     private val projectService: ProjectService,
     private val executionService: ExecutionService,
-    private val fileSystemRepository: FileSystemRepository,
+    private val additionalToolsFileSystemRepository: TimestampBasedFileSystemRepository,
     private val configProperties: ConfigProperties,
 ) {
     private val log = LoggerFactory.getLogger(CloneRepositoryController::class.java)
@@ -73,8 +73,8 @@ class CloneRepositoryController(
      * @param files files required for execution
      * @return mono string
      */
-    @PostMapping(value = ["/submitExecutionRequestBin"], consumes = ["multipart/form-data"])
-    fun submitExecutionRequestByBin(
+    @PostMapping(value = ["/executionRequestStandardTests"], consumes = ["multipart/form-data"])
+    fun executionRequestStandardTests(
         @RequestPart("execution", required = true) executionRequestForStandardSuites: ExecutionRequestForStandardSuites,
         @RequestPart("file", required = true) files: Flux<FileInfo>,
     ): Mono<StringResponse> = sendToPreprocessor(
@@ -120,7 +120,7 @@ class CloneRepositoryController(
         sdk: Sdk
     ): Execution {
         val execution = Execution(project, LocalDateTime.now(), null, ExecutionStatus.PENDING, null,
-            null, batchSize, type, null, 0, 0, 0, sdk.toString(), null).apply {
+            null, batchSize, type, null, 0, 0, 0, 0, sdk.toString(), null).apply {
             id = executionService.saveExecution(this)
         }
         log.info("Creating a new execution id=${execution.id} for project id=${project.id}")
@@ -141,10 +141,10 @@ class CloneRepositoryController(
     ): Mono<List<MultipartBodyBuilder.PartBuilder>> {
         val additionalFiles = StringBuilder("")
         return map {
-            val path = fileSystemRepository.getPath(it)
+            val path = additionalToolsFileSystemRepository.getPath(it)
             additionalFiles.append("$path;")
             multipartBodyBuilder.part("fileInfo", it)
-            multipartBodyBuilder.part("file", fileSystemRepository.getFile(it))
+            multipartBodyBuilder.part("file", additionalToolsFileSystemRepository.getFile(it))
         }
             .collectList()
             .switchIfEmpty(Mono.just(emptyList()))

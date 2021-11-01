@@ -81,17 +81,17 @@ class TestExecutionControllerTest {
     @Suppress("UnsafeCallOnNullableType")
     fun `should save TestExecutionDto into the DB`() {
         val testExecutionDtoFirst = TestExecutionDto(
-            "src/test/suite1/testPath",
+            "testPath63",
             "WarnPlugin",
-            "container-1",
+            "container-3",
             TestResultStatus.FAILED,
             DEFAULT_DATE_TEST_EXECUTION,
             DEFAULT_DATE_TEST_EXECUTION
         )
         val testExecutionDtoSecond = TestExecutionDto(
-            "src/test/suite1/testPath2",
+            "testPath42",
             "WarnPlugin",
-            "container-1",
+            "container-3",
             TestResultStatus.PASSED,
             DEFAULT_DATE_TEST_EXECUTION,
             DEFAULT_DATE_TEST_EXECUTION
@@ -133,7 +133,7 @@ class TestExecutionControllerTest {
             .expectStatus()
             .isEqualTo(HttpStatus.BAD_REQUEST)
             .expectBody<String>()
-            .isEqualTo("Some ids don't exist")
+            .isEqualTo("Some ids don't exist or cannot be updated")
         val testExecutions = testExecutionRepository.findAll()
         assertTrue(testExecutions.none { it.test.filePath == "test-not-exists" })
     }

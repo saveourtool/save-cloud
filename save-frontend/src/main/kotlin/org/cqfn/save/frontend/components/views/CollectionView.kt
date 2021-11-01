@@ -30,18 +30,18 @@ class CollectionView : RComponent<PropsWithChildren, State>() {
     @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR", "TOO_LONG_FUNCTION", "MAGIC_NUMBER")
     override fun RBuilder.render() {
         div {
-            button(type = ButtonType.button, classes = "btn btn-primary btn-lg mb-2") {
+            button(type = ButtonType.button, classes = "btn btn-primary mb-2") {
                 a(classes = "text-light", href = "#/creation/") {
-                    +"New project"
+                    +"Add new tested tool"
                 }
             }
         }
         child(tableComponent(
             columns = columns {
-                column(id = "index", header = "#") { cell ->
+                column(id = "owner", header = "Owner") {
                     buildElement {
                         td {
-                            +"${cell.row.index}"
+                            +it.value.owner
                         }
                     }
                 }
@@ -58,7 +58,7 @@ class CollectionView : RComponent<PropsWithChildren, State>() {
                     buildElement {
                         td {
                             a(href = "#/${it.value.owner}/${it.value.name}/history") {
-                                +(it.value.description ?: "Description N/A")
+                                +(it.value.description ?: "Description not provided")
                             }
                         }
                     }
@@ -66,9 +66,10 @@ class CollectionView : RComponent<PropsWithChildren, State>() {
             },
             initialPageSize = 10,
             useServerPaging = false,
+            usePageSelection = false,
         ) { _, _ ->
             get(
-                url = "${window.location.origin}/projects",
+                url = "${window.location.origin}/projects/not-deleted",
                 headers = Headers().also {
                     it.set("Accept", "application/json")
                 },

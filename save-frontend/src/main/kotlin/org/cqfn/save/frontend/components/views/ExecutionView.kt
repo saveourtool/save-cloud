@@ -5,14 +5,18 @@
 package org.cqfn.save.frontend.components.views
 
 import org.cqfn.save.agent.TestExecutionDto
+import org.cqfn.save.domain.TestResultDebugInfo
 import org.cqfn.save.domain.TestResultStatus
 import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.frontend.components.basic.executionStatistics
+import org.cqfn.save.frontend.components.basic.executionTestsNotFound
+import org.cqfn.save.frontend.components.basic.testStatusComponent
 import org.cqfn.save.frontend.components.tables.tableComponent
 import org.cqfn.save.frontend.themes.Colors
 import org.cqfn.save.frontend.utils.decodeFromJsonString
 import org.cqfn.save.frontend.utils.get
 import org.cqfn.save.frontend.utils.post
+import org.cqfn.save.frontend.utils.spread
 import org.cqfn.save.frontend.utils.unsafeMap
 
 import csstype.Background
@@ -26,8 +30,12 @@ import react.buildElement
 import react.dom.button
 import react.dom.div
 import react.dom.td
+import react.dom.tr
 import react.setState
 import react.table.columns
+import react.table.useExpanded
+import react.table.usePagination
+import react.table.useSortBy
 
 import kotlinx.browser.window
 import kotlinx.coroutines.GlobalScope
@@ -36,6 +44,7 @@ import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
 import kotlinx.html.js.onClickFunction
 import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 /**
@@ -78,7 +87,14 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
         }
     }
 
-    @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR", "TOO_LONG_FUNCTION", "LongMethod")
+    @Suppress(
+        "EMPTY_BLOCK_STRUCTURE_ERROR",
+        "TOO_LONG_FUNCTION",
+        "AVOID_NULL_CHECKS",
+        "MAGIC_NUMBER",
+        "ComplexMethod",
+        "LongMethod"
+    )
     override fun RBuilder.render() {
         div {
             div("p-2 flex-auto") {
@@ -86,7 +102,7 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
             }
             div("d-flex") {
                 div("p-2 mr-auto") {
-                    +"Status: ${state.executionDto?.status ?: "N/A"}"
+                    +"Status: ${state.executionDto?.status?.name ?: "N/A"}"
                 }
                 child(executionStatistics("mr-auto")) {
                     attrs.executionDto = state.executionDto
@@ -114,7 +130,7 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
                 column(id = "index", header = "#") {
                     buildElement {
                         td {
-                            +"${it.row.index}"
+                            +"${it.row.index + 1 + it.state.pageIndex * it.state.pageSize}"
                         }
                     }
                 }
@@ -136,10 +152,27 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
                         }
                     }
                 }
-                column(id = "path", header = "Test file path") {
+                column(id = "path", header = "Test file path") { cellProps ->
                     buildElement {
                         td {
-                            +it.value.filePath
+                            spread(cellProps.row.getToggleRowExpandedProps())
+                            +cellProps.value.filePath
+                            attrs.onClickFunction = {
+                                GlobalScope.launch {
+                                    val te = cellProps.value
+                                    val trdi = post(
+                                        "${window.location.origin}/files/get-debug-info",
+                                        Headers().apply {
+                                            set("Content-Type", "application/json")
+                                        },
+                                        Json.encodeToString(te)
+                                    )
+                                    if (trdi.ok) {
+                                        cellProps.row.original.asDynamic().debugInfo = trdi.decodeFromJsonString<TestResultDebugInfo>()
+                                    }
+                                    cellProps.row.toggleRowExpanded()
+                                }
+                            }
                         }
                     }
                 }
@@ -164,8 +197,35 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
                         }
                     }
                 }
+                column(id = "agentId", header = "Agent ID") {
+                    buildElement {
+                        td {
+                            +"${it.value.agentContainerId}".takeLast(12)
+                        }
+                    }
+                }
             },
             useServerPaging = true,
+            usePageSelection = true,
+            plugins = arrayOf(
+                useSortBy,
+                useExpanded,
+                usePagination
+            ),
+            renderExpandedRow = { tableInstance, row ->
+                // todo: placeholder before, render data once it's available
+                val trdi = row.original.asDynamic().debugInfo as TestResultDebugInfo?
+                if (trdi != null) {
+                    child(testStatusComponent(trdi, tableInstance))
+                } else {
+                    tr {
+                        td {
+                            attrs.colSpan = "${tableInstance.columns.size}"
+                            +"Debug info not available for this test execution"
+                        }
+                    }
+                }
+            },
             getPageCount = { pageSize ->
                 val count: Int = get(
                     url = "${window.location.origin}/testExecutionsCount?executionId=${props.executionId}",
@@ -193,7 +253,6 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
                 }
             }
         ) { page, size ->
-            console.log("Querying test executions for page $page with size $size")
             get(
                 url = "${window.location.origin}/testExecutions?executionId=${props.executionId}&page=$page&size=$size",
                 headers = Headers().apply {
@@ -205,6 +264,12 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
                         it.text().await()
                     )
                 }
+                .apply {
+                    asDynamic().debugInfo = null
+                }
         }) { }
+        child(executionTestsNotFound()) {
+            attrs.executionDto = state.executionDto
+        }
     }
 }

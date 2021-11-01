@@ -21,7 +21,7 @@ liquibase {
         // Configuring luiquibase
         register("main") {
             arguments = mapOf(
-                "changeLogFile" to "db/changelog/db.changelog-master.xml",
+                "changeLogFile" to "db/db.changelog-master.xml",
                 "url" to databaseCredentials.databaseUrl,
                 "username" to databaseCredentials.username,
                 "password" to databaseCredentials.password,
@@ -48,14 +48,6 @@ talaiot {
 }
 
 allprojects {
-    repositories {
-        mavenCentral()
-        maven("https://oss.sonatype.org/content/repositories/snapshots") {
-            content {
-                includeGroup("org.cqfn.save")
-            }
-        }
-    }
     configureDiktat()
     configureDetekt()
 }

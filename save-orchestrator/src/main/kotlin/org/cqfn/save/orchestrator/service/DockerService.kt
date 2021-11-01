@@ -1,5 +1,6 @@
 package org.cqfn.save.orchestrator.service
 
+import org.cqfn.save.domain.Python
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.TestSuite
 import org.cqfn.save.execution.ExecutionStatus
@@ -54,6 +55,7 @@ class DockerService(private val configProperties: ConfigProperties) {
      * @param execution [Execution] from which this workflow is started
      * @param testSuiteDtos test suites, selected by user
      * @return list of IDs of created containers
+     * @throws DockerException if interaction with docker daemon is not successful
      */
     fun buildAndCreateContainers(execution: Execution, testSuiteDtos: List<TestSuiteDto>?): List<String> {
         log.info("Building base image for execution.id=${execution.id}")
@@ -76,7 +78,7 @@ class DockerService(private val configProperties: ConfigProperties) {
         log.info("Sending request to make execution.id=$executionId RUNNING")
         webClientBackend
             .post()
-            .uri("/updateExecution")
+            .uri("/updateExecutionByDto")
             .body(BodyInserters.fromValue(ExecutionUpdateDto(executionId, ExecutionStatus.RUNNING)))
             .retrieve()
             .toBodilessEntity()
@@ -92,19 +94,21 @@ class DockerService(private val configProperties: ConfigProperties) {
      * @param agentIds list of IDs of agents to stop
      * @return true if agents have been stopped, false if another thread is already stopping them
      */
+    @Suppress("TOO_MANY_LINES_IN_LAMBDA")
     fun stopAgents(agentIds: List<String>) =
             if (isAgentStoppingInProgress.compareAndSet(false, true)) {
                 try {
-                    val runningContainersIds = containerManager.dockerClient.listContainersCmd().withStatusFilter(listOf("running")).exec()
-                        .map { it.id }
-                    agentIds.forEach {
-                        if (it in runningContainersIds) {
-                            log.info("Stopping agent with id=$it")
-                            containerManager.dockerClient.stopContainerCmd(it).exec()
-                            log.info("Agent with id=$it has been stopped")
+                    val containerList = containerManager.dockerClient.listContainersCmd().withShowAll(true).exec()
+                    val runningContainersIds = containerList.filter { it.state == "running" }.map { it.id }
+                    agentIds.forEach { agentId ->
+                        if (agentId in runningContainersIds) {
+                            log.info("Stopping agent with id=$agentId")
+                            containerManager.dockerClient.stopContainerCmd(agentId).exec()
+                            log.info("Agent with id=$agentId has been stopped")
                         } else {
-                            log.warn("Agent with id=$it was requested to be stopped, " +
-                                    "but it actual state=${containerManager.dockerClient.inspectContainerCmd(it).exec().state}")
+                            val state = containerList.find { it.id == agentId }?.state ?: "deleted"
+                            val warnMsg = "Agent with id=$agentId was requested to be stopped, but it actual state=$state"
+                            log.warn(warnMsg)
                         }
                     }
                     true
@@ -115,7 +119,7 @@ class DockerService(private val configProperties: ConfigProperties) {
                     isAgentStoppingInProgress.lazySet(false)
                 }
             } else {
-                log.debug("Agents stopping is already in progress, skipping")
+                log.info("Agents stopping is already in progress, skipping")
                 false
             }
 
@@ -141,9 +145,10 @@ class DockerService(private val configProperties: ConfigProperties) {
      */
     fun removeContainer(containerId: String) {
         log.info("Removing container $containerId")
-        val existingContainerIds = containerManager.dockerClient.listContainersCmd().exec().map {
-            it.id
-        }
+        val existingContainerIds = containerManager.dockerClient.listContainersCmd().withShowAll(true).exec()
+            .map {
+                it.id
+            }
         if (containerId in existingContainerIds) {
             containerManager.dockerClient.removeContainerCmd(containerId).exec()
         } else {
@@ -151,7 +156,11 @@ class DockerService(private val configProperties: ConfigProperties) {
         }
     }
 
-    @Suppress("TOO_LONG_FUNCTION", "UnsafeCallOnNullableType")
+    @Suppress(
+        "TOO_LONG_FUNCTION",
+        "UnsafeCallOnNullableType",
+        "LongMethod",
+    )
     private fun buildBaseImageForExecution(execution: Execution, testSuiteDtos: List<TestSuiteDto>?): Triple<String, String, String> {
         val resourcesPath = File(
             configProperties.testResources.basePath,
@@ -192,22 +201,28 @@ class DockerService(private val configProperties: ConfigProperties) {
         } else {
             "apt-get -o Acquire::http::proxy=\"$aptHttpProxy\" -o Acquire::https::proxy=\"$aptHttpsProxy\""
         }
+        // fixme: https://github.com/cqfn/save-cloud/issues/352
+        val additionalRunCmd = if (execution.sdk.startsWith(Python.NAME, ignoreCase = true)) {
+            """|RUN env DEBIAN_FRONTEND="noninteractive" $aptCmd install zip
+               |RUN curl -s "https://get.sdkman.io" | bash
+               |RUN bash -c 'source "${'$'}HOME/.sdkman/bin/sdkman-init.sh" && sdk install java 8.0.302-open'
+               |RUN ln -s ${'$'}(which java) /usr/bin/java
+            """.trimMargin()
+        } else {
+            ""
+        }
         val imageId = containerManager.buildImageWithResources(
             baseImage = baseImage,
             imageName = imageName(execution.id!!),
             baseDir = resourcesPath,
             resourcesPath = executionDir,
-            // TODO: find ktlint this is a temporary workaround link to #277
-            runCmd = """RUN $aptCmd update && env DEBIAN_FRONTEND="noninteractive" $aptCmd install -y libcurl4-openssl-dev tzdata && rm -rf /var/lib/apt/lists/*
+            runCmd = """RUN $aptCmd update && env DEBIAN_FRONTEND="noninteractive" $aptCmd install -y \
+                    |libcurl4-openssl-dev tzdata
                     |RUN ln -fs /usr/share/zoneinfo/UTC /etc/localtime
+                    |$additionalRunCmd
+                    |RUN rm -rf /var/lib/apt/lists/*
                     |RUN chmod +x $executionDir/$SAVE_AGENT_EXECUTABLE_NAME
                     |RUN chmod +x $executionDir/$SAVE_CLI_EXECUTABLE_NAME
-                    |RUN if [ -d $executionDir/diktat-rules/src/test/resources/test/smoke ]; then \
-                    |   find $executionDir/diktat-rules/src/test/resources/test/smoke -type f -name "ktlint" -exec chmod +x {} \; ; \
-                    |fi
-                    |RUN if [ -d $executionDir/clang-tidy ]; then \
-                    |   find $executionDir/clang-tidy -type f -name "clang-tidy-linux" -exec chmod +x {} \; ; \
-                    |fi
                 """
         )
         saveAgent.delete()
@@ -228,15 +243,16 @@ class DockerService(private val configProperties: ConfigProperties) {
 
     @Suppress("UnsafeCallOnNullableType")
     private fun copyTestSuitesToResourcesPath(testSuitesForDocker: List<TestSuiteDto>, destination: File) {
+        // TODO: https://github.com/cqfn/save-cloud/issues/321
         log.info("Copying suites ${testSuitesForDocker.map { it.name }} into $destination")
         testSuitesForDocker.forEach {
             val standardTestSuiteAbsolutePath = File(configProperties.testResources.basePath)
                 // tmp directories names for standard test suites constructs just by hashCode of listOf(repoUrl); reuse this logic
                 .resolve(File("${listOf(it.testSuiteRepoUrl!!).hashCode()}")
-                    .resolve(File(it.propertiesRelativePath).parent)
+                    .resolve(it.testRootPath)
                 )
             log.debug("Copying suite ${it.name} from $standardTestSuiteAbsolutePath into $destination/...")
-            standardTestSuiteAbsolutePath.copyRecursively(destination.resolve("${it.name}_${it.propertiesRelativePath.hashCode()}_${Random.nextInt()}"))
+            standardTestSuiteAbsolutePath.copyRecursively(destination.resolve("${it.name}_${it.testRootPath.hashCode()}_${Random.nextInt()}"))
         }
         // orchestrator is executed as root (to access docker socket), but files are in a shared volume
         val lookupService = destination.toPath().fileSystem.userPrincipalLookupService

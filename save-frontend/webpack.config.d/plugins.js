@@ -3,3 +3,7 @@ const BundleAnalyzerPlugin = require("webpack-bundle-analyzer").BundleAnalyzerPl
 //config.plugins.push(
 //    new BundleAnalyzerPlugin()
 //);
+
+config.resolve.fallback = {
+    "os": require.resolve("os-browserify/browser")
+}

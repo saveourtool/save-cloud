@@ -4,6 +4,7 @@ import org.cqfn.save.agent.ExecutionLogs
 import org.cqfn.save.domain.Sdk
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.Project
+import org.cqfn.save.entities.ProjectStatus
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionType
 import org.cqfn.save.orchestrator.config.Beans
@@ -74,9 +75,9 @@ class AgentsControllerTest {
 
     @Test
     fun `should build image, query backend and start containers`() {
-        val project = Project("Huawei", "huaweiName", "huaweiUrl", "description")
+        val project = Project("Huawei", "huaweiName", "huaweiUrl", "description", ProjectStatus.CREATED)
         val execution = Execution(project, stubTime, stubTime, ExecutionStatus.PENDING, "stub",
-            "stub", 20, ExecutionType.GIT, "0.0.1", 0, 0, 0, Sdk.Default.toString(), null).apply {
+            "stub", 20, ExecutionType.GIT, "0.0.1", 0, 0, 0, 0, Sdk.Default.toString(), null).apply {
             id = 42L
         }
         whenever(dockerService.buildAndCreateContainers(any(), any())).thenReturn(listOf("test-agent-id-1", "test-agent-id-2"))
@@ -88,7 +89,7 @@ class AgentsControllerTest {
         )
         // /updateAgentStatuses
         mockServer.enqueue(MockResponse().setResponseCode(200))
-        // /updateExecution is not mocked, because it's performed by DockerService, and it's mocked in these tests
+        // /updateExecutionByDto is not mocked, because it's performed by DockerService, and it's mocked in these tests
 
         val bodyBuilder = MultipartBodyBuilder().apply {
             part("execution", execution)
@@ -100,7 +101,7 @@ class AgentsControllerTest {
             .body(BodyInserters.fromMultipartData(bodyBuilder))
             .exchange()
             .expectStatus()
-            .isOk
+            .isAccepted
         Thread.sleep(2_500)  // wait for background task to complete on mocks
         verify(dockerService).buildAndCreateContainers(any(), any())
         verify(dockerService).startContainersAndUpdateExecution(any(), anyList())
@@ -108,9 +109,9 @@ class AgentsControllerTest {
 
     @Test
     fun checkPostResponseIsNotOk() {
-        val project = Project("Huawei", "huaweiName", "huaweiUrl", "description")
+        val project = Project("Huawei", "huaweiName", "huaweiUrl", "description", ProjectStatus.CREATED)
         val execution = Execution(project, stubTime, stubTime, ExecutionStatus.RUNNING, "stub",
-            "stub", 20, ExecutionType.GIT, "0.0.1", 0, 0, 0, Sdk.Default.toString(), null)
+            "stub", 20, ExecutionType.GIT, "0.0.1", 0, 0, 0, 0, Sdk.Default.toString(), null)
         val bodyBuilder = MultipartBodyBuilder().apply {
             part("execution", execution)
         }.build()

@@ -6,6 +6,7 @@ x-logging:
   driver: loki
   options:
     loki-url: "http://127.0.0.1:9110/loki/api/v1/push"
+    mode: non-blocking  # https://github.com/grafana/loki/issues/2361
     loki-pipeline-stages: |
       - multiline:
           firstline: '^\d{2}:\d{2}:\d{2}\.\d{3} \[(?P<thread>[\w\d\-.]+)\] (?P<level>\w+)'
@@ -16,7 +17,7 @@ x-logging:
 
 services:
   orchestrator:
-    image: ghcr.io/cqfn/save-orchestrator:{{project.version}}
+    image: ghcr.io/diktat-static-analysis/save-orchestrator:{{project.version}}
     user: root  # to access host's docker socket
     environment:
       - "SPRING_PROFILES_ACTIVE={{profile}}"
@@ -33,7 +34,7 @@ services:
         - "prometheus-job=save-orchestrator"
     logging: *loki-logging-jvm
   backend:
-    image: ghcr.io/cqfn/save-backend:{{project.version}}
+    image: ghcr.io/diktat-static-analysis/save-backend:{{project.version}}
     environment:
       - "SPRING_PROFILES_ACTIVE={{profile}}"
       - "MYSQL_USER=/run/secrets/db_username"
@@ -43,7 +44,12 @@ services:
       - db_password
       - db_url
     volumes:
-      - save-fs-storage:/home/cnb/
+      - save-fs-storage:/home/cnb/files
+    entrypoint: /bin/bash
+    command: [
+    "-c",
+    'mkdir -p /home/cnb/files/ && /cnb/process/web'
+    ]
     ports:
       - "5000:5000"
     deploy:
@@ -51,11 +57,17 @@ services:
         - "prometheus-job=save-backend"
     logging: *loki-logging-jvm
   preprocessor:
-    image: ghcr.io/cqfn/save-preprocessor:{{project.version}}
+    image: ghcr.io/diktat-static-analysis/save-preprocessor:{{project.version}}
     environment:
       - "SPRING_PROFILES_ACTIVE={{profile}}"
     volumes:
       - save:/home/cnb/
+      - save-fs-storage:/home/cnb/files
+    entrypoint: /bin/bash
+    command: [
+    "-c",
+    'mkdir -p /home/cnb/files/ && /cnb/process/web'
+    ]
     ports:
       - "5200:5200"
     deploy:
@@ -92,7 +104,7 @@ services:
         constraints:
           - "node.role==manager"
   loki:
-    image: grafana/loki
+    image: grafana/loki:main-517ba7c
     ports:
       - "9110:3100"
     command: -config.file=/etc/loki/local-config.yaml

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="execution-insert" author="frolov" context="dev">
+        <insert dbms="mysql" tableName="execution">
+            <column name="id" value="1" />
+            <column name="project_id" value="1" />
+            <column name="start_time" value="2021-01-01 00:00:00" />
+            <column name="end_time" value="2021-02-01 00:00:00" />
+            <column name="status" value="RUNNING" />
+            <column name="test_suite_ids" value="1, 2, 3" />
+            <column name="resources_root_path" value="resources_root_path" />
+            <column name="batch_size" value="10" />
+            <column name="type" value="GIT" />
+            <column name="version" value="0.0.1" />
+            <column name="running_tests" value="3" />
+            <column name="passed_tests" value="9" />
+            <column name="failed_tests" value="1" />
+            <column name="skipped_tests" value="0" />
+            <column name="sdk" value="ubuntu:latest" />
+            <column name="additional_files" value="null" />
+        </insert>
+        <insert dbms="mysql" tableName="execution">
+            <column name="id" value="2" />
+            <column name="project_id" value="2" />
+            <column name="start_time" value="2021-01-01 00:00:00" />
+            <column name="end_time" value="2021-02-01 00:00:00" />
+            <column name="status" value="RUNNING" />
+            <column name="test_suite_ids" value="ALL" />
+            <column name="resources_root_path" value="resources_root_path" />
+            <column name="batch_size" value="20" />
+            <column name="type" value="STANDARD" />
+            <column name="version" value="0.0.1" />
+            <column name="running_tests" value="0" />
+            <column name="passed_tests" value="0" />
+            <column name="failed_tests" value="0" />
+            <column name="skipped_tests" value="0" />
+            <column name="sdk" value="ubuntu:latest" />
+            <column name="additional_files" value="null" />
+        </insert>
+        <insert dbms="mysql" tableName="execution">
+            <column name="id" value="3" />
+            <column name="project_id" value="1" />
+            <column name="start_time" value="2021-01-01 00:00:00" />
+            <column name="end_time" value="2021-03-01 00:00:00" />
+            <column name="status" value="RUNNING" />
+            <column name="test_suite_ids" value="4" />
+            <column name="resources_root_path" value="resources_root_path" />
+            <column name="batch_size" value="20" />
+            <column name="type" value="GIT" />
+            <column name="version" value="0.0.1" />
+            <column name="running_tests" value="2" />
+            <column name="passed_tests" value="0" />
+            <column name="failed_tests" value="0" />
+            <column name="skipped_tests" value="0" />
+            <column name="sdk" value="ubuntu:latest" />
+            <column name="additional_files" value="null" />
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>
