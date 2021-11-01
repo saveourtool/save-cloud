@@ -122,6 +122,7 @@ external interface ProjectViewState : State {
      * Flag to handle upload type project
      */
     var isFirstTypeUpload: Boolean?
+
     /**
      * Sumbit button was pressed
      */
@@ -218,7 +219,6 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                 submitExecutionRequestWithCustomTests(newGitDto)
             } ?: gitDto?.let {
                 submitExecutionRequestWithCustomTests(it)
-
             }
         } else {
             if (selectedTypes.isEmpty()) {
