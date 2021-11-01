@@ -655,7 +655,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                 isConfirmWindowOpen = true
                 confirmLabel = "Single binary confirmation"
                 confirmMessage = "You have not provided any files related to your tested tool." +
-                        " If these files were uploaded to your repository - press OK, otherwise - please upload these files to save."
+                        " If these files were uploaded to your repository - press OK, otherwise - please upload these files using 'Upload files' button."
             }
             // everything is in place, can proceed
             else -> submitExecutionRequest()
