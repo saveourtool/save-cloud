@@ -576,6 +576,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                                 projectInformation[key] = value
                                 (document.getElementById(key) as HTMLInputElement).value = value
                             }
+                            updateProjectBuilder(projectInformation)
                             turnEditMode(off = true)
                         }
                     }
@@ -663,6 +664,21 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
             isConfirmWindowOpen = true
             confirmLabel = ""
             confirmMessage = "Are you sure you want to delete this project?"
+        }
+    }
+
+    private fun updateProjectBuilder(projectInfo: Map<String, String>) {
+        val headers = Headers().also {
+            it.set("Accept", "application/json")
+            it.set("Content-Type", "application/json")
+        }
+        val (name, description, url, owner) = projectInfo.values.toList()
+        project.name = name
+        project.description = description
+        project.url = url
+        project.owner = owner
+        GlobalScope.launch {
+            post("${window.location.origin}/updateProject", headers, Json.encodeToString(project))
         }
     }
 
