@@ -282,7 +282,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                     setState {
                         isErrorOpen = true
                         errorLabel = "Error from backend"
-                        errorMessage = "${response.statusText}: $text"
+                        errorMessage = "Request failed: [${response.statusText}] $text"
                     }
                 }
             } else {
@@ -302,8 +302,18 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
         runErrorModal(state.isErrorOpen, state.errorLabel, state.errorMessage) {
             setState { isErrorOpen = false }
         }
-        runConfirmWindowModal(state.isConfirmWindowOpen, state.confirmLabel, state.confirmMessage, { setState { isConfirmWindowOpen = false } }) {
-            deleteProjectBuilder()
+        runConfirmWindowModal(
+            state.isConfirmWindowOpen,
+            state.confirmLabel,
+            state.confirmMessage,
+            { setState { isConfirmWindowOpen = false } }) {
+            when (state.confirmationType) {
+                ConfirmationType.NO_BINARY_CONFIRM, ConfirmationType.NO_CONFIRM -> submitExecutionRequest()
+                ConfirmationType.DELETE_CONFIRM -> deleteProjectBuilder()
+                else -> {
+                    // this is a generated else block
+                }
+            }
             setState { isConfirmWindowOpen = false }
         }
         runLoadingModal()
