@@ -6,7 +6,6 @@
 
 package org.cqfn.save.frontend.components.views
 
-import kotlinx.browser.document
 import org.cqfn.save.domain.FileInfo
 import org.cqfn.save.domain.Sdk
 import org.cqfn.save.domain.getSdkVersions
@@ -22,6 +21,7 @@ import org.cqfn.save.frontend.externals.modal.modal
 import org.cqfn.save.frontend.utils.*
 import org.cqfn.save.testsuite.TestSuiteDto
 
+import org.w3c.dom.HTMLButtonElement
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.asList
 import org.w3c.fetch.Headers
@@ -34,6 +34,7 @@ import react.State
 import react.dom.*
 import react.setState
 
+import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -47,7 +48,6 @@ import kotlinx.html.js.onClickFunction
 import kotlinx.html.role
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.w3c.dom.HTMLButtonElement
 
 /**
  * `Props` retrieved from router
@@ -136,6 +136,12 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
     private val selectedTypes: MutableList<String> = mutableListOf()
     private var gitDto: GitDto? = null
     private var project = Project("stub", "stub", "stub", "stub", ProjectStatus.CREATED)
+    private val projectInformation = mutableMapOf(
+        "Tested tool name: " to "",
+        "Description: " to "",
+        "Tested tool Url: " to "",
+        "Test project owner: " to ""
+    )
     private lateinit var responseFromDeleteProject: Response
 
     init {
@@ -545,26 +551,26 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                         )
                         projectInformation
                             .forEach { (header, text) ->
-                            div("control-group form-inline") {
-                                label(classes = "control-label col-auto") {
-                                    +header
-                                }
-                                div("controls col-auto") {
-                                    input(InputType.text, classes = "form-control-plaintext") {
-                                        attrs.id = header
-                                        attrs.placeholder = text
-                                        attrs.disabled = true
-                                        attrs {
-                                            onChangeFunction = {
-                                                val tg = it.target as HTMLInputElement
-                                                val newValue = tg.value
-                                                newProjectInformation[header] = newValue
+                                div("control-group form-inline") {
+                                    label(classes = "control-label col-auto") {
+                                        +header
+                                    }
+                                    div("controls col-auto") {
+                                        input(InputType.text, classes = "form-control-plaintext") {
+                                            attrs.id = header
+                                            attrs.placeholder = text
+                                            attrs.disabled = true
+                                            attrs {
+                                                onChangeFunction = {
+                                                    val tg = it.target as HTMLInputElement
+                                                    val newValue = tg.value
+                                                    newProjectInformation[header] = newValue
+                                                }
                                             }
                                         }
                                     }
                                 }
                             }
-                        }
                     }
 
                     button(classes = "btn btn-success text-xs p-1 ml-2") {
@@ -626,13 +632,6 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
             }
         }
     }
-    private val projectInformation = mutableMapOf(
-        "Tested tool name: " to "",
-        "Description: " to "",
-        "Tested tool Url: " to "",
-        "Test project owner: " to ""
-    )
-
 
     private fun turnEditMode(off: Boolean) {
         projectInformation.keys.forEach {
