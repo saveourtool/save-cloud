@@ -65,6 +65,11 @@ external interface ExecutionState : State {
      * Execution dto
      */
     var executionDto: ExecutionDto?
+
+    /**
+     * Count tests with executionId
+     */
+    var countTests: Int?
 }
 
 /**
@@ -83,7 +88,19 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
             val executionDtoFromBackend: ExecutionDto =
                     get("${window.location.origin}/executionDto?executionId=${props.executionId}", headers)
                         .decodeFromJsonString()
-            setState { executionDto = executionDtoFromBackend }
+            val count: Int = get(
+                url = "${window.location.origin}/testExecutionsCount?executionId=${props.executionId}",
+                headers = Headers().also {
+                    it.set("Accept", "application/json")
+                },
+            )
+                .json()
+                .await()
+                .unsafeCast<Int>()
+            setState {
+                executionDto = executionDtoFromBackend
+                countTests = count
+            }
         }
     }
 
@@ -268,7 +285,7 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
                     asDynamic().debugInfo = null
                 }
         }) { }
-        child(executionTestsNotFound()) {
+        child(executionTestsNotFound(state.countTests)) {
             attrs.executionDto = state.executionDto
         }
     }

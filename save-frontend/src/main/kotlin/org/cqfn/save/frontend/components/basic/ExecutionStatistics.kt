@@ -55,14 +55,11 @@ fun executionStatistics(classes: String = "") = fc<ExecutionStatisticsProps> { p
 /**
  * A component which displays a GIF if tests not found
  *
+ * @param count tests for execution
  * @return a functional react component
  */
-fun executionTestsNotFound() = fc<ExecutionStatisticsProps> { props ->
-    val totalTests = props.executionDto?.run {
-        runningTests + passedTests + failedTests + skippedTests
-    } ?: 0
-
-    if (totalTests == 0L) {
+fun executionTestsNotFound(count: Int?) = fc<ExecutionStatisticsProps> {
+    if (count == 0) {
         div("d-flex justify-content-center") {
             img(src = "img/sad_cat.gif") {}
         }
