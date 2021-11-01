@@ -40,6 +40,7 @@ import kotlinx.coroutines.launch
 import kotlinx.html.ButtonType
 import kotlinx.html.InputType
 import kotlinx.html.classes
+import kotlinx.html.hidden
 import kotlinx.html.id
 import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
@@ -527,46 +528,67 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
             }
             // ===================== RIGHT COLUMN ======================================================================
             div("col-3 ml-2") {
-                editMode = false
                 div("text-xs text-center font-weight-bold text-primary text-uppercase mb-3") {
                     +"Information"
                     button(classes = "btn btn-link text-xs text-muted text-left p-1 ml-2") {
                         +"Edit"
-                        attrs.id = "Edit"
                         attrs.onClickFunction = {
-                            enableEditMode()
+                            turnEditMode(off = false)
                         }
                     }
                 }
-
                 child(cardComponent {
+                    val newProjectInformation: MutableMap<String, String> = mutableMapOf()
                     form {
-                        listOf(
-                            "Tested tool name: " to project.name,
-                            "Description: " to (project.description ?: ""),
-                            "Tested tool Url: " to (project.url ?: ""),
-                            "Test project owner: " to project.owner
-                        ).forEach { (header, text) ->
+                        projectInformation.putAll(
+                            projectInformation.keys.zip(listOf(project.name, project.description ?: "", project.url ?: "", project.owner))
+                        )
+                        projectInformation
+                            .forEach { (header, text) ->
                             div("control-group form-inline") {
                                 label(classes = "control-label col-auto") {
                                     +header
                                 }
                                 div("controls col-auto") {
                                     input(InputType.text, classes = "form-control-plaintext") {
+                                        attrs.id = header
                                         attrs.placeholder = text
-                                        val event = document.getElementById("Edit").click()
-                                        attrs.onClick = event
+                                        attrs.disabled = true
                                         attrs {
                                             onChangeFunction = {
                                                 val tg = it.target as HTMLInputElement
-                                                val number = tg.value
-                                                attrs["value"] = number
-                                                console.log("VALUE ${number}")
+                                                val newValue = tg.value
+                                                newProjectInformation[header] = newValue
                                             }
                                         }
                                     }
                                 }
                             }
+                        }
+                    }
+
+                    button(classes = "btn btn-success text-xs p-1 ml-2") {
+                        +"Save"
+                        attrs.id = "Save new project info"
+                        attrs.hidden = true
+                        attrs.onClickFunction = {
+                            newProjectInformation.forEach { (key, value) ->
+                                projectInformation[key] = value
+                                (document.getElementById(key) as HTMLInputElement).value = value
+                            }
+                            turnEditMode(off = true)
+                        }
+                    }
+
+                    button(classes = "btn btn-secondary text-xs p-1 ml-5") {
+                        +"Cancel"
+                        attrs.id = "Cancel"
+                        attrs.hidden = true
+                        attrs.onClickFunction = {
+                            projectInformation.forEach { (key, value) ->
+                                (document.getElementById(key) as HTMLInputElement).value = value
+                            }
+                            turnEditMode(off = true)
                         }
                     }
 
@@ -603,15 +625,20 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
             }
         }
     }
-    var editMode = false
-    private fun enableEditMode() {
-//        val button = document.getElementById("Edit") as HTMLButtonElement
-//        button.addEventListener("click", {
-//            document.title = "button was clicked"
-//        })
-        return setState {
-            editMode = true
+    private val projectInformation = mutableMapOf(
+        "Tested tool name: " to "",
+        "Description: " to "",
+        "Tested tool Url: " to "",
+        "Test project owner: " to ""
+    )
+
+
+    private fun turnEditMode(off: Boolean) {
+        projectInformation.keys.forEach {
+            (document.getElementById(it) as HTMLInputElement).disabled = off
         }
+        (document.getElementById("Save new project info") as HTMLButtonElement).hidden = off
+        (document.getElementById("Cancel") as HTMLButtonElement).hidden = off
     }
 
     private fun RBuilder.runLoadingModal() = modal {
