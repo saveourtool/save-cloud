@@ -7,6 +7,7 @@
 package org.cqfn.save.frontend.components.basic
 
 import org.cqfn.save.domain.FileInfo
+import org.cqfn.save.frontend.components.views.ConfirmationType
 import org.cqfn.save.frontend.externals.fontawesome.faFile
 import org.cqfn.save.frontend.externals.fontawesome.faTimesCircle
 import org.cqfn.save.frontend.externals.fontawesome.faUpload
@@ -61,6 +62,11 @@ external interface UploaderProps : PropsWithChildren {
      * Sumbit button was pressed
      */
     var isSubmitButtonPressed: Boolean?
+
+    /**
+     * state for the creation of unified confirmation logic
+     */
+    var confirmationType: ConfirmationType
 }
 
 /**
@@ -104,7 +110,12 @@ fun fileUploader(
                 }
                 li("list-group-item d-flex justify-content-between align-items-center") {
                     val wasSubmitted = props.isSubmitButtonPressed ?: false
-                    val form = if (props.files.isEmpty() && wasSubmitted) "form-control is-invalid" else "form-control"
+                    val form = if (props.files.isEmpty() && wasSubmitted && props.confirmationType == ConfirmationType.NO_BINARY_CONFIRM) {
+                        "form-control is-invalid"
+                    } else {
+                        "form-control"
+                    }
+
                     select(classes = form) {
                         attrs.value = "default"
                         option {

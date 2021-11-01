@@ -81,6 +81,7 @@ class ContainerManager(private val settings: DockerSettings) {
                             LogConfig.LoggingType.LOKI,
                             mapOf(
                                 // similar to config in docker-compose.yaml
+                                "mode" to "non-blocking",
                                 "loki-url" to "http://127.0.0.1:9110/loki/api/v1/push",
                                 "loki-external-labels" to "container_name={{.Name}},source=save-agent"
                             )

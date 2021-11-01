@@ -251,7 +251,7 @@ class CreationView : RComponent<PropsWithChildren, ProjectSaveViewState>() {
     override fun RBuilder.render() {
         runErrorModal(
             state.isErrorWithProjectSave,
-            "Error with project creation",
+            "Error appeared during project creation",
             state.errorMessage
         ) {
             setState { isErrorWithProjectSave = false }

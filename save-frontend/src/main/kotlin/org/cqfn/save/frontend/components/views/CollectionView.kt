@@ -30,7 +30,7 @@ class CollectionView : RComponent<PropsWithChildren, State>() {
     @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR", "TOO_LONG_FUNCTION", "MAGIC_NUMBER")
     override fun RBuilder.render() {
         div {
-            button(type = ButtonType.button, classes = "btn btn-primary btn-lg mb-2") {
+            button(type = ButtonType.button, classes = "btn btn-primary mb-2") {
                 a(classes = "text-light", href = "#/creation/") {
                     +"Add new tested tool"
                 }
