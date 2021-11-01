@@ -193,7 +193,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
 
         if (state.isFirstTypeUpload == true) {
             gitUrlFromInputField?.let {
-                val newGitDto = GitDto(url = it)
+                val newGitDto = GitDto(url = it, username = gitDto?.username, password = gitDto?.password)
                 submitExecutionRequestWithCustomTests(newGitDto)
             } ?: gitDto?.let {
                 submitExecutionRequestWithCustomTests(it)
