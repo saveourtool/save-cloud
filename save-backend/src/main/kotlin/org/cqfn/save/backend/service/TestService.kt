@@ -14,12 +14,13 @@ import org.cqfn.save.test.TestBatch
 import org.cqfn.save.test.TestDto
 
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.PageRequest
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
+import org.springframework.transaction.PlatformTransactionManager
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.transaction.support.TransactionTemplate
 import reactor.core.publisher.Mono
 
 import java.time.LocalDateTime
@@ -29,20 +30,15 @@ import java.util.concurrent.ConcurrentHashMap
  * Service that is used for manipulating data with tests
  */
 @Service
-class TestService {
+class TestService(
+    private val testRepository: TestRepository,
+    private val agentRepository: AgentRepository,
+    private val executionRepository: ExecutionRepository,
+    private val testExecutionRepository: TestExecutionRepository,
+    private val transactionManager: PlatformTransactionManager,
+) {
     private val locks: ConcurrentHashMap<Long, Any> = ConcurrentHashMap()
-
-    @Autowired
-    private lateinit var testRepository: TestRepository
-
-    @Autowired
-    private lateinit var agentRepository: AgentRepository
-
-    @Autowired
-    private lateinit var executionRepository: ExecutionRepository
-
-    @Autowired
-    private lateinit var testExecutionRepository: TestExecutionRepository
+    private val transactionTemplate = TransactionTemplate(transactionManager)
 
     /**
      * @param tests
@@ -79,7 +75,9 @@ class TestService {
         val execution = agent.execution
         val lock = locks.computeIfAbsent(execution.id!!) { Any() }
         return synchronized(lock) {
-            val testExecutions = getTestExecutionsBatchByExecutionIdAndUpdateStatus(execution)
+            val testExecutions = transactionTemplate.execute {
+                getTestExecutionsBatchByExecutionIdAndUpdateStatus(execution)
+            }!!
             val testDtos = testExecutions.map { it.test.toDto() }
             Mono.just(TestBatch(testDtos, testExecutions.map { it.test.testSuite }.associate {
                 it.id!! to it.testRootPath
