@@ -140,9 +140,8 @@ class ExecutionController(private val executionService: ExecutionService,
             "Can't rerun execution $id, project ${execution.project.name} has no associated git address"
         }
         val testRootPath = if (executionType == ExecutionType.GIT) {
-            execution.testSuiteIds?.let {
-                require(it == "ALL") { "Only executions with \"ALL\" tests suites from a GIT project are supported now" }
-                testSuitesService.findTestSuitesByProject(execution.project)
+            execution.testSuiteIds?.split(", ")?.map {
+                testSuitesService.findTestSuiteById(it.toLong()).get()
             }!!
                 .filter {
                     it.type == TestSuiteType.PROJECT

@@ -409,7 +409,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         } ?: require(executionType == ExecutionType.GIT) { "Test suites are not provided, but should for executionType=$executionType" }
 
         return if (executionType == ExecutionType.GIT) {
-            prepareForExecutionFromGit(project, execution.id!!, testRootPath, projectRootRelativePath, gitUrl!!)
+            prepareForExecutionFromGit(project, execution, testRootPath, projectRootRelativePath, gitUrl!!)
         } else {
             prepareExecutionForStandard(testSuiteDtos!!, execution)
         }
@@ -503,7 +503,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
 
     @Suppress("UnsafeCallOnNullableType")
     private fun prepareForExecutionFromGit(project: Project,
-                                           executionId: Long,
+                                           execution: Execution,
                                            testRootPath: String,
                                            projectRootRelativePath: String,
                                            gitUrl: String): Mono<EmptyResponse> = Mono.fromCallable {
@@ -515,7 +515,13 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
             discoverAndSaveTestSuites(project, rootTestConfig, testRootPath, gitUrl)
         }
         .flatMap { (rootTestConfig, testSuites) ->
-            initializeTests(testSuites, rootTestConfig, executionId)
+            val testSuiteIds = testSuites.map { it.id!! }.toMutableList()
+            testSuiteIds.sort()
+            execution.testSuiteIds = testSuiteIds.joinToString()
+            updateExecution(execution).map { rootTestConfig to testSuites }
+        }
+        .flatMap { (rootTestConfig, testSuites) ->
+            initializeTests(testSuites, rootTestConfig, execution.id!!)
         }
 
     @Suppress("TYPE_ALIAS", "UnsafeCallOnNullableType")
