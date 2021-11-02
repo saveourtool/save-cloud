@@ -30,7 +30,7 @@
             <column name="start_time" value="2021-01-01 00:00:00" />
             <column name="end_time" value="2021-02-01 00:00:00" />
             <column name="status" value="RUNNING" />
-            <column name="test_suite_ids" value="ALL" />
+            <column name="test_suite_ids" value="1, 2, 3" />
             <column name="resources_root_path" value="resources_root_path" />
             <column name="batch_size" value="20" />
             <column name="type" value="STANDARD" />
