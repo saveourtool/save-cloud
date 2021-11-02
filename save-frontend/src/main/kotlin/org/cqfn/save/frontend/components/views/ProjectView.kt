@@ -602,7 +602,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                                     div("controls col-auto") {
                                         input(InputType.text, classes = "form-control-plaintext") {
                                             attrs.id = header
-                                            attrs.placeholder = text
+                                            attrs.defaultValue = text
                                             attrs.disabled = true
                                             attrs {
                                                 onChangeFunction = {
