@@ -142,9 +142,17 @@ class DownloadProjectTest(
                 .setHeader("Content-Type", "application/json")
                 .setBody(objectMapper.writeValueAsString(
                     listOf(
-                        TestSuite(TestSuiteType.PROJECT, "", null, project, LocalDateTime.now(), "save.properties", "https://github.com/cqfn/save.git")
+                        TestSuite(TestSuiteType.PROJECT, "", null, project, LocalDateTime.now(), "save.properties", "https://github.com/cqfn/save.git").apply {
+                            id = 42L
+                        }
                     )
                 )),
+        )
+
+        // /updateExecution
+        mockServerBackend.enqueue(
+            MockResponse()
+                .setResponseCode(200)
         )
         // /initializeTests?executionId=$executionId
         mockServerBackend.enqueue(
@@ -158,6 +166,7 @@ class DownloadProjectTest(
         )
         val assertions = CompletableFuture.supplyAsync {
             listOf(
+                mockServerBackend.takeRequest(60, TimeUnit.SECONDS),
                 mockServerBackend.takeRequest(60, TimeUnit.SECONDS),
                 mockServerBackend.takeRequest(60, TimeUnit.SECONDS),
                 mockServerBackend.takeRequest(60, TimeUnit.SECONDS),
@@ -393,9 +402,17 @@ class DownloadProjectTest(
                 .setHeader("Content-Type", "application/json")
                 .setBody(objectMapper.writeValueAsString(
                     listOf(
-                        TestSuite(TestSuiteType.PROJECT, "", null, project, LocalDateTime.now(), "save.properties")
+                        TestSuite(TestSuiteType.PROJECT, "", null, project, LocalDateTime.now(), "save.properties").apply {
+                            id = 42L
+                        }
                     )
                 )),
+        )
+
+        // /updateExecution
+        mockServerBackend.enqueue(
+            MockResponse()
+                .setResponseCode(200)
         )
         // /initializeTests?executionId=$executionId
         mockServerBackend.enqueue(
@@ -410,6 +427,7 @@ class DownloadProjectTest(
         val assertions = sequence {
             yield(mockServerBackend.takeRequest(60, TimeUnit.SECONDS))
             yield(mockServerOrchestrator.takeRequest(60, TimeUnit.SECONDS))
+            yield(mockServerBackend.takeRequest(60, TimeUnit.SECONDS))
             yield(mockServerBackend.takeRequest(60, TimeUnit.SECONDS))
             yield(mockServerBackend.takeRequest(60, TimeUnit.SECONDS))
             yield(mockServerBackend.takeRequest(60, TimeUnit.SECONDS))
