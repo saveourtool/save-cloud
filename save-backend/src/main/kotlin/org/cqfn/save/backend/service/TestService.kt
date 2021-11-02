@@ -18,6 +18,7 @@ import org.springframework.data.domain.PageRequest
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import org.springframework.transaction.PlatformTransactionManager
+import org.springframework.transaction.TransactionDefinition.PROPAGATION_REQUIRES_NEW
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.transaction.support.TransactionTemplate
@@ -35,10 +36,12 @@ class TestService(
     private val agentRepository: AgentRepository,
     private val executionRepository: ExecutionRepository,
     private val testExecutionRepository: TestExecutionRepository,
-    private val transactionManager: PlatformTransactionManager,
+    transactionManager: PlatformTransactionManager,
 ) {
     private val locks: ConcurrentHashMap<Long, Any> = ConcurrentHashMap()
-    private val transactionTemplate = TransactionTemplate(transactionManager)
+    private val transactionTemplate = TransactionTemplate(transactionManager).apply {
+        propagationBehavior = PROPAGATION_REQUIRES_NEW
+    }
 
     /**
      * @param tests
@@ -99,7 +102,6 @@ class TestService(
      * @return a batch of [batchSize] tests with status `READY`
      */
     @Suppress("UnsafeCallOnNullableType")
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     internal fun getTestExecutionsBatchByExecutionIdAndUpdateStatus(execution: Execution): List<TestExecution> {
         val executionId = execution.id!!
         val batchSize = execution.batchSize!!
