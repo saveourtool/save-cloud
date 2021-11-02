@@ -93,7 +93,7 @@ class CloneRepositoryController(
         configure: MultipartBodyBuilder.(newExecutionId: Long) -> Unit
     ): Mono<StringResponse> {
         val project = with(executionRequest.project) {
-            projectService.getProjectByNameAndOwner(name, owner)
+            projectService.findByNameAndOwner(name, owner)
         }
         return project?.let {
             val newExecution = saveExecution(project, executionType, configProperties.initialBatchSize, executionRequest.sdk)

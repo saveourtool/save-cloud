@@ -51,7 +51,7 @@ class ProjectController {
      */
     @GetMapping("/getProject")
     fun getProjectByNameAndOwner(@RequestParam name: String, @RequestParam owner: String) =
-            projectService.getProjectByNameAndOwner(name, owner)?.let {
+            projectService.findByNameAndOwner(name, owner)?.let {
                 ResponseEntity.status(HttpStatus.OK).body(it)
             } ?: ResponseEntity.status(HttpStatus.NOT_FOUND).build()
 
