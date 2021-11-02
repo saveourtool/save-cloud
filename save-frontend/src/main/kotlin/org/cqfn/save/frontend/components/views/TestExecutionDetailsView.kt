@@ -70,10 +70,10 @@ private fun RBuilder.resultsTable(testResultDebugInfo: TestResultDebugInfo) = ta
         }
         with(testResultDebugInfo.debugInfo!!) {
             listOf(
-                "stdout" to stdout,
-                "stderr" to stderr
+                "stdout" to ::stdout,
+                "stderr" to ::stderr
             )
-        }.forEach { (title, content) ->
+        }.forEach { (title, getContent) ->
             tr {
                 td {
                     +title
@@ -81,7 +81,7 @@ private fun RBuilder.resultsTable(testResultDebugInfo: TestResultDebugInfo) = ta
                 td {
                     small {
                         samp {
-                            content?.let(::multilineTextWithIndices)
+                            getContent()?.let(::multilineTextWithIndices)
                                 ?: +"N/A"
                         }
                     }
