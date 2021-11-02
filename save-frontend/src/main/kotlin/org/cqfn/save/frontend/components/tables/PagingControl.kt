@@ -205,7 +205,11 @@ fun <T : Tag, D : Any> RDOMBuilder<T>.jumpToPage(tableInstance: TableInstance<D>
             }
         }
 
-private fun <T : Tag, D : Any> RDOMBuilder<T>.setPageIndexAndGoToPage(tableInstance: TableInstance<D>, setPageIndex: StateSetter<Int>, index: Int) {
+private fun <D : Any> setPageIndexAndGoToPage(
+    tableInstance: TableInstance<D>,
+    setPageIndex: StateSetter<Int>,
+    index: Int
+) {
     setPageIndex(index)
     tableInstance.gotoPage(index)
 }
