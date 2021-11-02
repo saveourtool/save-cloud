@@ -226,7 +226,7 @@ class ExecutionControllerTest {
             .expectStatus()
             .isOk
 
-        val executionUpdate = ExecutionInitializationDto(execution.project, "ALL", "testPath", "executionVersion")
+        val executionUpdate = ExecutionInitializationDto(execution.project, "1, 2, 3", "testPath", "executionVersion")
         webClient.post()
             .uri("/updateNewExecution")
             .contentType(MediaType.APPLICATION_JSON)
@@ -237,13 +237,13 @@ class ExecutionControllerTest {
             .expectBody<Execution>()
             .consumeWith {
                 requireNotNull(it.responseBody)
-                assertEquals("ALL", it.responseBody.testSuiteIds)
+                assertEquals("1, 2, 3", it.responseBody.testSuiteIds)
                 assertEquals("testPath", it.responseBody.resourcesRootPath)
                 assertEquals(20, it.responseBody.batchSize)
                 assertEquals("executionVersion", it.responseBody.version)
             }
         val isUpdatedExecution = executionRepository.findAll().any {
-            it.testSuiteIds == "ALL" &&
+            it.testSuiteIds == "1, 2, 3" &&
                     it.resourcesRootPath == "testPath" &&
                     it.batchSize == 20 &&
                     it.version == "executionVersion"
