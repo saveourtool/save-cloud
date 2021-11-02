@@ -13,6 +13,7 @@ import org.cqfn.save.frontend.components.views.ExecutionView
 import org.cqfn.save.frontend.components.views.FallbackView
 import org.cqfn.save.frontend.components.views.HistoryView
 import org.cqfn.save.frontend.components.views.ProjectView
+import org.cqfn.save.frontend.components.views.testExecutionDetailsView
 import org.cqfn.save.frontend.externals.fontawesome.faAngleUp
 import org.cqfn.save.frontend.externals.fontawesome.faCheck
 import org.cqfn.save.frontend.externals.fontawesome.faCogs
@@ -33,7 +34,6 @@ import react.RBuilder
 import react.RComponent
 import react.State
 import react.buildElement
-import react.child
 import react.dom.div
 import react.dom.render
 import react.react
@@ -132,6 +132,13 @@ class App : RComponent<PropsWithChildren, AppState>() {
                                     }
                                 }
                             }
+                        }
+                        Route {
+                            attrs {
+                                path = arrayOf("/:owner/:name/history/execution/:executionId/details/:testSuiteName/:pluginName/:testFilePath")
+                                exact = false  // all paths parts under testFilePath should be captured
+                            }
+                            child(testExecutionDetailsView()) { }
                         }
                         Route {
                             attrs {

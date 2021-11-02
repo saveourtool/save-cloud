@@ -1,0 +1,128 @@
+@file:Suppress("HEADER_MISSING_IN_NON_SINGLE_CLASS_FILE")
+
+package org.cqfn.save.frontend.components.views
+
+import org.cqfn.save.domain.TestResultDebugInfo
+import org.cqfn.save.domain.TestResultLocation
+import org.cqfn.save.frontend.http.getDebugInfoFor
+import org.cqfn.save.frontend.utils.decodeFromJsonString
+import org.cqfn.save.frontend.utils.post
+
+import org.w3c.fetch.Headers
+import react.Props
+import react.RBuilder
+import react.dom.ReactHTML.div
+import react.dom.ReactHTML.tbody
+import react.dom.br
+import react.dom.samp
+import react.dom.small
+import react.dom.table
+import react.dom.td
+import react.dom.tr
+import react.fc
+import react.router.dom.useParams
+import react.useEffect
+import react.useState
+
+import kotlinx.browser.window
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+
+@Suppress("TOO_LONG_FUNCTION", "EMPTY_BLOCK_STRUCTURE_ERROR")
+private fun RBuilder.resultsTable(testResultDebugInfo: TestResultDebugInfo) = table {
+    react.dom.ReactHTML.tbody {
+        tr {
+            td {
+                +"Command"
+            }
+            td {
+                small {
+                    samp {
+                        testResultDebugInfo.debugInfo?.execCmd
+                    }
+                }
+            }
+        }
+        with(testResultDebugInfo.debugInfo!!) {
+            listOf(
+                "stdout" to stdout,
+                "stderr" to stderr
+            )
+        }.forEach { (title, content) ->
+            tr {
+                td {
+                    +title
+                }
+                td {
+                    small {
+                        samp {
+                            content?.lines()?.forEach {
+                                +it
+                                br { }
+                            }
+                                ?: +"N/A"
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+private fun RBuilder.fallback(status: String) = div {
+    +status
+}
+
+/**
+ * A component to display details about test execution
+ *
+ * @return a function component
+ */
+@Suppress("GENERIC_VARIABLE_WRONG_DECLARATION", "TOO_LONG_FUNCTION")
+fun testExecutionDetailsView() = fc<Props> {
+    val params = useParams()
+    val executionId = params["executionId"]!!.toLong()
+    val testResultLocation = TestResultLocation(
+        params["testSuiteName"]!!,
+        params["pluginName"]!!,
+        params["testFilePath"]!!.substringBeforeLast("/", ""),
+        params["testFilePath"]!!.substringAfterLast("/"),
+    )
+
+    val (status, setStatus) = useState("Loading...")
+    val (testResultDebugInfo, setTestResultDebugInfo) = useState<TestResultDebugInfo?>(null)
+
+    // fixme: after https://github.com/diktat-static-analysis/save-cloud/issues/364 can be passed via history state to avoid requests
+    useEffect(listOf<dynamic>(executionId, testResultLocation)) {
+        GlobalScope.launch {
+            val testExecutionDtoResponse = post(
+                "${window.location.origin}/testExecutions?executionId=$executionId",
+                Headers().apply {
+                    set("Content-Type", "application/json")
+                },
+                Json.encodeToString(testResultLocation)
+            )
+            if (testExecutionDtoResponse.ok) {
+                val testResultDebugInfoResponse = getDebugInfoFor(testExecutionDtoResponse.decodeFromJsonString())
+                if (testResultDebugInfoResponse.ok) {
+                    setTestResultDebugInfo(
+                        testResultDebugInfoResponse.decodeFromJsonString<TestResultDebugInfo>()
+                    )
+                } else {
+                    setStatus("Additional test info is not available (code ${testResultDebugInfoResponse.status})")
+                }
+            } else {
+                setStatus("Additional test info is not available (code ${testExecutionDtoResponse.status})")
+            }
+        }
+    }
+
+    testResultDebugInfo?.let {
+        resultsTable(testResultDebugInfo)
+    }
+        ?: run {
+            fallback(status)
+        }
+}

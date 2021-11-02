@@ -12,6 +12,7 @@ import org.cqfn.save.frontend.components.basic.executionStatistics
 import org.cqfn.save.frontend.components.basic.executionTestsNotFound
 import org.cqfn.save.frontend.components.basic.testStatusComponent
 import org.cqfn.save.frontend.components.tables.tableComponent
+import org.cqfn.save.frontend.http.getDebugInfoFor
 import org.cqfn.save.frontend.themes.Colors
 import org.cqfn.save.frontend.utils.decodeFromJsonString
 import org.cqfn.save.frontend.utils.get
@@ -44,7 +45,6 @@ import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
 import kotlinx.html.js.onClickFunction
 import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 /**
@@ -160,13 +160,7 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
                             attrs.onClickFunction = {
                                 GlobalScope.launch {
                                     val te = cellProps.value
-                                    val trdi = post(
-                                        "${window.location.origin}/files/get-debug-info",
-                                        Headers().apply {
-                                            set("Content-Type", "application/json")
-                                        },
-                                        Json.encodeToString(te)
-                                    )
+                                    val trdi = getDebugInfoFor(te)
                                     if (trdi.ok) {
                                         cellProps.row.original.asDynamic().debugInfo = trdi.decodeFromJsonString<TestResultDebugInfo>()
                                     }
