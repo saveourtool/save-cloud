@@ -2,10 +2,15 @@
 
 package org.cqfn.save.frontend.components.views
 
+import org.cqfn.save.core.result.Crash
+import org.cqfn.save.core.result.Fail
+import org.cqfn.save.core.result.Ignored
+import org.cqfn.save.core.result.Pass
 import org.cqfn.save.domain.TestResultDebugInfo
 import org.cqfn.save.domain.TestResultLocation
 import org.cqfn.save.frontend.http.getDebugInfoFor
 import org.cqfn.save.frontend.utils.decodeFromJsonString
+import org.cqfn.save.frontend.utils.multilineText
 import org.cqfn.save.frontend.utils.post
 
 import org.w3c.fetch.Headers
@@ -13,7 +18,6 @@ import react.Props
 import react.RBuilder
 import react.dom.ReactHTML.div
 import react.dom.ReactHTML.tbody
-import react.dom.br
 import react.dom.samp
 import react.dom.small
 import react.dom.table
@@ -40,9 +44,23 @@ private fun RBuilder.resultsTable(testResultDebugInfo: TestResultDebugInfo) = ta
             td {
                 small {
                     samp {
-                        testResultDebugInfo.debugInfo?.execCmd
+                        +(testResultDebugInfo.debugInfo?.execCmd ?: "N/A")
                     }
                 }
+            }
+        }
+        tr {
+            td {
+                +"Test status"
+            }
+            td {
+                val longMessage: String = when (val status = testResultDebugInfo.testStatus) {
+                    is Pass -> (status.message ?: "").ifBlank { "Completed successfully without additional information" }
+                    is Fail -> status.reason
+                    is Ignored -> status.reason
+                    is Crash -> status.description
+                }
+                multilineText(longMessage)
             }
         }
         with(testResultDebugInfo.debugInfo!!) {
@@ -58,10 +76,7 @@ private fun RBuilder.resultsTable(testResultDebugInfo: TestResultDebugInfo) = ta
                 td {
                     small {
                         samp {
-                            content?.lines()?.forEach {
-                                +it
-                                br { }
-                            }
+                            content?.let(::multilineText)
                                 ?: +"N/A"
                         }
                     }

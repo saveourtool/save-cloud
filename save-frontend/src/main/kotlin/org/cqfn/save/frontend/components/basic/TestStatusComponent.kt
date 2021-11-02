@@ -33,7 +33,6 @@ import kotlinx.browser.window
 @Suppress("TOO_LONG_FUNCTION")
 @OptIn(ExperimentalFileSystem::class)
 fun <D : Any> testStatusComponent(testResultDebugInfo: TestResultDebugInfo, tableInstance: TableInstance<D>) = fc<Props> {
-    // todo: also display execCmd here
     val shortMessage: String = when (val status = testResultDebugInfo.testStatus) {
         is Pass -> (status.shortMessage ?: "").ifBlank { "Completed successfully without additional information" }
         is Fail -> status.shortReason
