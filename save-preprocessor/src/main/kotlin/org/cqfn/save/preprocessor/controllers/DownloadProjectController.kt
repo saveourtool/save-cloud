@@ -515,8 +515,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
             discoverAndSaveTestSuites(project, rootTestConfig, testRootPath, gitUrl)
         }
         .flatMap { (rootTestConfig, testSuites) ->
-            val testSuiteIds = testSuites.map { it.id!! }.toMutableList()
-            testSuiteIds.sort()
+            val testSuiteIds = testSuites.map { it.id!! }.sorted()
             execution.testSuiteIds = testSuiteIds.joinToString()
             updateExecution(execution).map { rootTestConfig to testSuites }
         }
