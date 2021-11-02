@@ -123,6 +123,7 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
                 }
                 child(executionStatistics("mr-auto")) {
                     attrs.executionDto = state.executionDto
+                    attrs.countTests = state.countTests
                 }
                 button(classes = "btn btn-primary") {
                     +"Rerun execution"
