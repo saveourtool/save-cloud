@@ -1,3 +1,4 @@
+
 /**
  * A view with project creation details
  */
@@ -170,9 +171,9 @@ class CreationView : RComponent<PropsWithChildren, ProjectSaveViewState>() {
                 ProjectStatus.CREATED,
             ),
             GitDto(
-                fieldsMap[InputTypes.GIT_URL]!!.trim(),
-                fieldsMap[InputTypes.GIT_USER]!!.trim(),
-                fieldsMap[InputTypes.GIT_TOKEN]!!.trim(),
+                fieldsMap[InputTypes.GIT_URL]?.trim() ?: "",
+                fieldsMap[InputTypes.GIT_USER]?.trim(),
+                fieldsMap[InputTypes.GIT_TOKEN]?.trim(),
                 fieldsMap[InputTypes.GIT_BRANCH]?.trim()
             )
         )
@@ -224,7 +225,6 @@ class CreationView : RComponent<PropsWithChildren, ProjectSaveViewState>() {
         val gitUser = fieldsMap[InputTypes.GIT_USER]
         if (gitUser.isNullOrBlank() || gitUser.trim().matches(".*\\s.*")) {
             setState { isValidGitUser = false }
-            valid = false
         } else {
             setState { isValidGitUser = true }
         }
@@ -232,7 +232,6 @@ class CreationView : RComponent<PropsWithChildren, ProjectSaveViewState>() {
         val gitToken = fieldsMap[InputTypes.GIT_TOKEN]
         if (gitToken.isNullOrBlank() || gitToken.trim().matches(".*\\s.*")) {
             setState { isValidGitToken = false }
-            valid = false
         } else {
             setState { isValidGitToken = true }
         }
@@ -240,7 +239,6 @@ class CreationView : RComponent<PropsWithChildren, ProjectSaveViewState>() {
         val gitUrl = fieldsMap[InputTypes.GIT_URL]
         if (gitUrl.isNullOrBlank() || !gitUrl.trim().startsWith("http")) {
             setState { isValidGitUrl = false }
-            valid = false
         } else {
             setState { isValidGitUrl = true }
         }
