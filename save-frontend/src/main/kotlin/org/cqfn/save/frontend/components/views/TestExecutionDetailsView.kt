@@ -11,6 +11,7 @@ import org.cqfn.save.domain.TestResultLocation
 import org.cqfn.save.frontend.http.getDebugInfoFor
 import org.cqfn.save.frontend.utils.decodeFromJsonString
 import org.cqfn.save.frontend.utils.multilineText
+import org.cqfn.save.frontend.utils.multilineTextWithIndices
 import org.cqfn.save.frontend.utils.post
 
 import org.w3c.fetch.Headers
@@ -18,6 +19,7 @@ import react.Props
 import react.RBuilder
 import react.dom.ReactHTML.div
 import react.dom.ReactHTML.tbody
+import react.dom.br
 import react.dom.samp
 import react.dom.small
 import react.dom.table
@@ -35,8 +37,8 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 @Suppress("TOO_LONG_FUNCTION", "EMPTY_BLOCK_STRUCTURE_ERROR")
-private fun RBuilder.resultsTable(testResultDebugInfo: TestResultDebugInfo) = table {
-    react.dom.ReactHTML.tbody {
+private fun RBuilder.resultsTable(testResultDebugInfo: TestResultDebugInfo) = table("table table-bordered") {
+    tbody {
         tr {
             td {
                 +"Command"
@@ -54,12 +56,15 @@ private fun RBuilder.resultsTable(testResultDebugInfo: TestResultDebugInfo) = ta
                 +"Test status"
             }
             td {
-                val longMessage: String = when (val status = testResultDebugInfo.testStatus) {
+                val status = testResultDebugInfo.testStatus
+                val longMessage: String = when (status) {
                     is Pass -> (status.message ?: "").ifBlank { "Completed successfully without additional information" }
                     is Fail -> status.reason
                     is Ignored -> status.reason
                     is Crash -> status.description
                 }
+                +"${status::class.simpleName} with message:"
+                br { }
                 multilineText(longMessage)
             }
         }
@@ -76,7 +81,7 @@ private fun RBuilder.resultsTable(testResultDebugInfo: TestResultDebugInfo) = ta
                 td {
                     small {
                         samp {
-                            content?.let(::multilineText)
+                            content?.let(::multilineTextWithIndices)
                                 ?: +"N/A"
                         }
                     }
