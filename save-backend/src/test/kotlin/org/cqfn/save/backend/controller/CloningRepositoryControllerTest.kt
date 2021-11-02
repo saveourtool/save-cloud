@@ -92,7 +92,7 @@ class CloningRepositoryControllerTest {
         )
         val project = Project("Huawei", "huaweiName", "huawei.com", "test description", ProjectStatus.CREATED)
         Mockito
-            .`when`(projectService.getProjectByNameAndOwner("huaweiName", "Huawei"))
+            .`when`(projectService.findByNameAndOwner("huaweiName", "Huawei"))
             .thenReturn(project)
         val sdk = Jdk("8")
         val gitRepo = GitDto("1")
@@ -140,7 +140,7 @@ class CloningRepositoryControllerTest {
                 .addHeader("Content-Type", "application/json")
         )
         Mockito
-            .`when`(projectService.getProjectByNameAndOwner("huaweiName", "Huawei"))
+            .`when`(projectService.findByNameAndOwner("huaweiName", "Huawei"))
             .thenReturn(project)
 
         webTestClient.post()
