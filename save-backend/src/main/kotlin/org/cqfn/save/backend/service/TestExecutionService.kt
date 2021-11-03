@@ -3,7 +3,6 @@ package org.cqfn.save.backend.service
 import org.cqfn.save.agent.TestExecutionDto
 import org.cqfn.save.backend.repository.AgentRepository
 import org.cqfn.save.backend.repository.ExecutionRepository
-import org.cqfn.save.backend.repository.TestDataFilesystemRepository
 import org.cqfn.save.backend.repository.TestExecutionRepository
 import org.cqfn.save.backend.repository.TestRepository
 import org.cqfn.save.backend.utils.secondsToLocalDateTime
@@ -14,7 +13,11 @@ import org.cqfn.save.test.TestDto
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
+import org.springframework.transaction.PlatformTransactionManager
+import org.springframework.transaction.TransactionDefinition
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.transaction.support.TransactionTemplate
+
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -25,10 +28,13 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
                            private val testRepository: TestRepository,
                            private val agentRepository: AgentRepository,
                            private val executionRepository: ExecutionRepository,
-                           private val testDataFilesystemRepository: TestDataFilesystemRepository,
+                           transactionManager: PlatformTransactionManager,
 ) {
     private val log = LoggerFactory.getLogger(TestExecutionService::class.java)
     private val locks: ConcurrentHashMap<Long, Any> = ConcurrentHashMap()
+    private val transactionTemplate = TransactionTemplate(transactionManager).apply {
+        propagationBehavior = TransactionDefinition.PROPAGATION_REQUIRES_NEW
+    }
 
     /**
      * Returns a page of [TestExecution]s with [executionId]
@@ -111,14 +117,19 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
         }
         val lock = locks.computeIfAbsent(executionId) { Any() }
         synchronized(lock) {
-            val execution = executionRepository.findById(executionId).get()
-            execution.apply {
-                runningTests -= counters.total()
-                passedTests += counters.passed
-                failedTests += counters.failed
-                skippedTests += counters.skipped
+            transactionTemplate.execute {
+                val execution = executionRepository.findById(executionId).get()
+                execution.apply {
+                    log.debug("Updating counters in execution id=$executionId: running=$runningTests-${counters.total()}, " +
+                            "passed=$passedTests+${counters.passed}, failed=$failedTests+${counters.failed}, skipped=$skippedTests+${counters.skipped}"
+                    )
+                    runningTests -= counters.total()
+                    passedTests += counters.passed
+                    failedTests += counters.failed
+                    skippedTests += counters.skipped
+                }
+                executionRepository.save(execution)
             }
-            executionRepository.save(execution)
         }
         return lostTests
     }
