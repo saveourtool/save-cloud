@@ -200,7 +200,7 @@ class DockerService(private val configProperties: ConfigProperties) {
             "apt-get"
         } else {
             "apt-get -o Acquire::http::proxy=\"$aptHttpProxy\" -o Acquire::https::proxy=\"$aptHttpsProxy\""
-        }
+        } + " ${configProperties.aptExtraFlags}"
         // fixme: https://github.com/cqfn/save-cloud/issues/352
         val additionalRunCmd = if (execution.sdk.startsWith(Python.NAME, ignoreCase = true)) {
             """|RUN env DEBIAN_FRONTEND="noninteractive" $aptCmd install zip

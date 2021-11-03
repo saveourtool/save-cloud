@@ -26,6 +26,7 @@ data class ConfigProperties(
     val agentsCount: Int,
     val executionLogs: String,
     val shutdownChecksIntervalMillis: Long,
+    val aptExtraFlags: String = "",
 )
 
 /**
