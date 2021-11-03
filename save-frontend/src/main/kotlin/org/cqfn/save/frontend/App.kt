@@ -135,7 +135,7 @@ class App : RComponent<PropsWithChildren, AppState>() {
                         }
                         Route {
                             attrs {
-                                path = arrayOf("/:owner/:name/history/execution/:executionId/details/:testSuiteName/:pluginName/:testFilePath")
+                                path = arrayOf("/:owner/:name/history/execution/:executionId/details/:testSuiteName/:pluginName/:testFilePath+")
                                 exact = false  // all paths parts under testFilePath should be captured
                             }
                             child(testExecutionDetailsView()) { }
