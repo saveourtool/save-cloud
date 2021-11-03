@@ -770,7 +770,9 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
             } else {
                 responseFromDeleteProject.text().then {
                     setState {
+                        errorLabel = "Failed to delete project"
                         errorMessage = it
+                        isErrorOpen = true
                     }
                 }
             }

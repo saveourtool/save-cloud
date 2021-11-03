@@ -1,8 +1,11 @@
 package org.cqfn.save.backend.controllers
 
 import org.cqfn.save.backend.configs.ConfigProperties
+import org.cqfn.save.backend.service.AgentService
 import org.cqfn.save.backend.service.ExecutionService
 import org.cqfn.save.backend.service.GitService
+import org.cqfn.save.backend.service.ProjectService
+import org.cqfn.save.backend.service.TestExecutionService
 import org.cqfn.save.backend.service.TestSuitesService
 import org.cqfn.save.domain.toSdk
 import org.cqfn.save.entities.Execution
@@ -36,6 +39,9 @@ typealias ExecutionDtoListResponse = ResponseEntity<List<ExecutionDto>>
 class ExecutionController(private val executionService: ExecutionService,
                           private val gitService: GitService,
                           private val testSuitesService: TestSuitesService,
+                          private val projectService: ProjectService,
+                          private val testExecutionService: TestExecutionService,
+                          private val agentService: AgentService,
                           config: ConfigProperties,
 ) {
     private val log = LoggerFactory.getLogger(ExecutionController::class.java)
@@ -123,6 +129,28 @@ class ExecutionController(private val executionService: ExecutionService,
                         ResponseStatusException(HttpStatus.NOT_FOUND, "Execution not found for project (name=$name, owner=$owner)")
                     }
                 }
+
+    /**
+     * Delete all executions by project name and project owner
+     *
+     * @param name name of project
+     * @param owner owner of project
+     * @return ResponseEntity
+     * @throws ResponseStatusException
+     */
+    @PostMapping("/deleteExecution")
+    fun deleteExecutionForProject(@RequestParam name: String, @RequestParam owner: String): ResponseEntity<String>? {
+        val projectId = projectService.findByNameAndOwner(name, owner)?.id
+
+        try {
+            testExecutionService.deleteTestExecutionWithProjectId(projectId)
+            agentService.deleteAgentWithProjectId(projectId)
+            executionService.deleteExecutionByProjectNameAndProjectOwner(name, owner)
+        } catch (e: IllegalArgumentException) {
+            throw ResponseStatusException(HttpStatus.NOT_FOUND, "Failed to delete executions for the following reason: ${e.message}")
+        }
+        return ResponseEntity.status(HttpStatus.OK).build()
+    }
 
     /**
      * Accepts a request to rerun an existing execution

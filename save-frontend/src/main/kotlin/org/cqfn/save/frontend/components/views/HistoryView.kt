@@ -11,23 +11,33 @@ import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
 import org.cqfn.save.frontend.themes.Colors
 import org.cqfn.save.frontend.utils.decodeFromJsonString
 import org.cqfn.save.frontend.utils.get
+import org.cqfn.save.frontend.utils.post
+import org.cqfn.save.frontend.utils.runConfirmWindowModal
+import org.cqfn.save.frontend.utils.runErrorModal
 import org.cqfn.save.frontend.utils.unsafeMap
 
 import csstype.Background
 import kotlinext.js.jsObject
 import org.w3c.fetch.Headers
+import org.w3c.fetch.Response
 import react.PropsWithChildren
 import react.RBuilder
 import react.RComponent
 import react.State
 import react.buildElement
-import react.child
 import react.dom.a
+import react.dom.button
+import react.dom.div
 import react.dom.td
+import react.setState
 import react.table.columns
 
 import kotlinx.browser.window
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
+import kotlinx.html.ButtonType
+import kotlinx.html.js.onClickFunction
 
 /**
  * [RProps] for tests execution history
@@ -45,17 +55,74 @@ external interface HistoryProps : PropsWithChildren {
 }
 
 /**
+ * [State] of history view component
+ */
+external interface HistoryViewState : State {
+    /**
+     * state for the creation of unified confirmation logic
+     */
+    var confirmationType: ConfirmationType
+
+    /**
+     * Message of warning
+     */
+    var confirmMessage: String
+
+    /**
+     * Flag to handle confirm Window
+     */
+    var isConfirmWindowOpen: Boolean?
+
+    /**
+     * Label of confirm Window
+     */
+    var confirmLabel: String
+
+    /**
+     * Message of error
+     */
+    var errorMessage: String
+
+    /**
+     * Flag to handle error
+     */
+    var isErrorOpen: Boolean?
+
+    /**
+     * Error label
+     */
+    var errorLabel: String
+}
+
+/**
  * A table to display execution results for a certain project.
  */
 @JsExport
 @OptIn(ExperimentalJsExport::class)
-class HistoryView : RComponent<HistoryProps, State>() {
+class HistoryView : RComponent<HistoryProps, HistoryViewState>() {
+    private lateinit var responseFromDeleteExecutions: Response
+
     @Suppress(
         "TOO_LONG_FUNCTION",
         "MAGIC_NUMBER",
         "ForbiddenComment",
         "LongMethod")
     override fun RBuilder.render() {
+        runErrorModal(state.isErrorOpen, state.errorLabel, state.errorMessage) {
+            setState { isErrorOpen = false }
+        }
+        runConfirmWindowModal(state.isConfirmWindowOpen, state.confirmLabel, state.confirmMessage, { setState { isConfirmWindowOpen = false } }) {
+            deleteExecutionsBuilder()
+            setState { isConfirmWindowOpen = false }
+        }
+        div {
+            button(type = ButtonType.button, classes = "btn btn-danger mb-4") {
+                attrs.onClickFunction = {
+                    deleteExecutions()
+                }
+                +"Delete all executions"
+            }
+        }
         child(tableComponent(
             columns = columns {
                 column("result", "") { cellProps ->
@@ -163,6 +230,38 @@ class HistoryView : RComponent<HistoryProps, State>() {
         }
         ) {
             attrs.tableHeader = "Executions details"
+        }
+    }
+
+    private fun deleteExecutions() {
+        setState {
+            confirmationType = ConfirmationType.DELETE_CONFIRM
+            isConfirmWindowOpen = true
+            confirmLabel = ""
+            confirmMessage = "Are you sure you want to delete this project?"
+        }
+    }
+
+    private fun deleteExecutionsBuilder() {
+        val headers = Headers().also {
+            it.set("Accept", "application/json")
+            it.set("Content-Type", "application/json")
+        }
+        GlobalScope.launch {
+            responseFromDeleteExecutions =
+                    post("${window.location.origin}/deleteExecution?name=${props.name}&owner=${props.owner}", headers, undefined)
+        }.invokeOnCompletion {
+            if (responseFromDeleteExecutions.ok) {
+                window.location.href = "${window.location.origin}#/${props.owner}/${props.name}"
+            } else {
+                responseFromDeleteExecutions.text().then {
+                    setState {
+                        errorLabel = "Failed to delete executions"
+                        errorMessage = it
+                        isErrorOpen = true
+                    }
+                }
+            }
         }
     }
 

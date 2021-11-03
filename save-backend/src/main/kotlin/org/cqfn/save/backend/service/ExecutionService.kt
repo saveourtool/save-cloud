@@ -116,7 +116,19 @@ class ExecutionService(private val executionRepository: ExecutionRepository) {
                 it.resourcesRootPath = executionInitializationDto.resourcesRootPath
                 executionRepository.save(it)
             }
-    
+
+    /**
+     * Delete all executions by project name and project owner
+     *
+     * @param name name of project
+     * @param owner owner of project
+     * @return Unite
+     */
+    fun deleteExecutionByProjectNameAndProjectOwner(name: String, owner: String) =
+            executionRepository.getAllByProjectNameAndProjectOwner(name, owner).forEach {
+                executionRepository.delete(it)
+            }
+
     /**
      * @param execution execution, tests metrics of which should be reset
      */

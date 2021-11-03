@@ -119,6 +119,16 @@ class ExecutionControllerTest {
     }
 
     @Test
+    fun testDeleteExecution() {
+        webClient.post()
+            .uri("/deleteExecution?name=huaweiName&owner=Huawei")
+            .contentType(MediaType.APPLICATION_JSON)
+            .exchange()
+            .expectStatus()
+            .isOk
+    }
+
+    @Test
     @Suppress("TOO_LONG_FUNCTION")
     fun testUpdateExecution() {
         val project = projectRepository.findById(1).get()
