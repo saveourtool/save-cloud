@@ -1,0 +1,18 @@
+# https://docs.docker.com/compose/extends/
+
+preprocessor:
+  volumes:
+    - '/home/saveu/configs/certificates:/home/cnb/certificates'
+  entrypoint: /bin/bash
+  command: [
+      "-c",
+      'mkdir -p /home/cnb/files/ && mkdir /home/cnb/config && mkdir /home/cnb/certificates',
+      'for cert in /home/cnb/certificates/*; do
+       find /layers -name jre -type d -exec {}/bin/keytool -keystore {}/lib/security/cacerts -storepass changeit -noprompt -trustcacerts -importcert -alias ${cert%.*} -file $cert \;
+       ; done && /cnb/process/web'
+  ]
+
+orchestrator:
+  environment:
+    - "APT_HTTP_PROXY=http://host.docker.internal:3128"
+    - "APT_HTTPS_PROXY=http://host.docker.internal:3128"
