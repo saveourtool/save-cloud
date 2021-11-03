@@ -12,6 +12,7 @@ import org.cqfn.save.execution.ExecutionInitializationDto
 import org.cqfn.save.execution.ExecutionType
 import org.cqfn.save.execution.ExecutionUpdateDto
 import org.cqfn.save.testsuite.TestSuiteType
+import org.slf4j.LoggerFactory
 
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -37,6 +38,7 @@ class ExecutionController(private val executionService: ExecutionService,
                           private val testSuitesService: TestSuitesService,
                           config: ConfigProperties,
 ) {
+    private val log = LoggerFactory.getLogger(ExecutionController::class.java)
     private val preprocessorWebClient = WebClient.create(config.preprocessorUrl)
 
     /**
@@ -140,9 +142,11 @@ class ExecutionController(private val executionService: ExecutionService,
             "Can't rerun execution $id, project ${execution.project.name} has no associated git address"
         }
         val testRootPath = if (executionType == ExecutionType.GIT) {
-            execution.testSuiteIds?.let {
-                require(it == "ALL") { "Only executions with \"ALL\" tests suites from a GIT project are supported now" }
-                testSuitesService.findTestSuitesByProject(execution.project)
+            execution.testSuiteIds?.split(", ")?.map { testSuiteId ->
+                testSuitesService.findTestSuiteById(testSuiteId.toLong()).orElseThrow {
+                    log.error("Can't find test suite with id=$testSuiteId for executionId=$id")
+                    NoSuchElementException()
+                }
             }!!
                 .filter {
                     it.type == TestSuiteType.PROJECT
