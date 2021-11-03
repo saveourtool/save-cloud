@@ -6,6 +6,7 @@ import org.cqfn.save.backend.repository.ExecutionRepository
 import org.cqfn.save.backend.repository.TestExecutionRepository
 import org.cqfn.save.backend.repository.TestRepository
 import org.cqfn.save.backend.utils.secondsToLocalDateTime
+import org.cqfn.save.domain.TestResultLocation
 import org.cqfn.save.domain.TestResultStatus
 import org.cqfn.save.entities.TestExecution
 import org.cqfn.save.test.TestDto
@@ -18,7 +19,9 @@ import org.springframework.transaction.TransactionDefinition
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.transaction.support.TransactionTemplate
 
+import java.nio.file.Paths
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.io.path.pathString
 
 /**
  * Service for test result
@@ -56,6 +59,19 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
      */
     internal fun getTestExecutions(agentContainerId: String, status: TestResultStatus) = testExecutionRepository
         .findByAgentContainerIdAndStatus(agentContainerId, status)
+
+    /**
+     * Finds TestExecution by test location
+     *
+     * @param executionId under this executionId test has been executed
+     * @param testResultLocation location of the test
+     * @return optional TestExecution
+     */
+    internal fun getTestExecution(executionId: Long, testResultLocation: TestResultLocation) = with(testResultLocation) {
+        testExecutionRepository.findByExecutionIdAndTestPluginNameAndTestFilePath(
+            executionId, pluginName, Paths.get(testLocation, testName).pathString
+        )
+    }
 
     /**
      * Returns number of TestExecutions with this [executionId]
