@@ -104,7 +104,7 @@ enum class GitConnectionStatusEnum {
 @OptIn(ExperimentalJsExport::class)
 class CreationView : RComponent<PropsWithChildren, ProjectSaveViewState>() {
     private val fieldsMap: MutableMap<InputTypes, String> = mutableMapOf()
-    private lateinit var responseFromCreationProject: Response
+    private var responseFromCreationProject: Response? = null
 
     init {
         state.isErrorWithProjectSave = false
@@ -181,17 +181,18 @@ class CreationView : RComponent<PropsWithChildren, ProjectSaveViewState>() {
             it.set("Accept", "application/json")
             it.set("Content-Type", "application/json")
         }
+        val winLocation = window.location.origin
         GlobalScope.launch {
             responseFromCreationProject =
-                    post("${window.location.origin}/saveProject", headers, Json.encodeToString(newProjectRequest))
+                    post("${winLocation}/saveProject", headers, Json.encodeToString(newProjectRequest))
         }.invokeOnCompletion {
-            if (responseFromCreationProject.ok) {
+            if (responseFromCreationProject?.ok == true) {
                 window.location.href =
                         "${window.location.origin}#/" +
                                 "${newProjectRequest.project.owner.replace(" ", "%20")}/" +
                                 newProjectRequest.project.name.replace(" ", "%20")
             } else {
-                responseFromCreationProject.text().then {
+                responseFromCreationProject?.text()?.then {
                     setState {
                         isErrorWithProjectSave = true
                         errorMessage = it

@@ -12,7 +12,7 @@ enum class ProjectSaveStatus(val message: String) {
     /**
      * Project exist
      */
-    EXIST("Project already exist"),
+    EXIST("Project already exists"),
 
     /**
      * New project
