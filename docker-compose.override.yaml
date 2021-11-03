@@ -9,7 +9,7 @@ services:
         "-c",
         'mkdir -p /home/cnb/files/ && mkdir -p /home/cnb/config && mkdir -p /home/cnb/certificates &&
          for cert in /home/cnb/certificates/*; do
-         find /layers -name jre -type d -exec {}/bin/keytool -keystore {}/lib/security/cacerts -storepass changeit -noprompt -trustcacerts -importcert -alias $${cert%.*} -file $cert \;
+         find /layers -name jre -type d -exec {}/bin/keytool -keystore {}/lib/security/cacerts -storepass changeit -noprompt -trustcacerts -importcert -alias $${cert%.*} -file $$cert \;
          ; done && /cnb/process/web'
     ]
 
