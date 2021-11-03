@@ -55,7 +55,7 @@ services:
     entrypoint: /bin/bash
     command: [
     "-c",
-    'mkdir -p /home/cnb/files/ && mkdir /home/cnb/config && /cnb/process/web'
+    'mkdir -p /home/cnb/files/ && mkdir -p /home/cnb/config && /cnb/process/web'
     ]
     ports:
       - "5000:5000"
@@ -74,7 +74,7 @@ services:
     entrypoint: /bin/bash
     command: [
     "-c",
-    'mkdir -p /home/cnb/files/ && mkdir /home/cnb/config && /cnb/process/web'
+    'mkdir -p /home/cnb/files/ && mkdir -p /home/cnb/config && /cnb/process/web'
     ]
     ports:
       - "5200:5200"
