@@ -19,6 +19,11 @@ external interface ExecutionStatisticsProps : Props {
      * And instance of [ExecutionDto], which should be passed from parent component
      */
     var executionDto: ExecutionDto?
+
+    /**
+     * Count tests with executionId
+     */
+    var countTests: Int?
 }
 
 /**
@@ -29,9 +34,7 @@ external interface ExecutionStatisticsProps : Props {
  */
 @Suppress("MAGIC_NUMBER")
 fun executionStatistics(classes: String = "") = fc<ExecutionStatisticsProps> { props ->
-    val totalTests = props.executionDto?.run {
-        runningTests + passedTests + failedTests + skippedTests
-    } ?: 0
+    val totalTests = props.countTests?.toLong() ?: 0L
     val isInProgress = props.executionDto?.run { status == ExecutionStatus.RUNNING || status == ExecutionStatus.PENDING } ?: true
     val isSuccess = props.executionDto?.run { passedTests == totalTests } ?: false
     val style = if (isInProgress) {
@@ -55,14 +58,11 @@ fun executionStatistics(classes: String = "") = fc<ExecutionStatisticsProps> { p
 /**
  * A component which displays a GIF if tests not found
  *
+ * @param count tests for execution
  * @return a functional react component
  */
-fun executionTestsNotFound() = fc<ExecutionStatisticsProps> { props ->
-    val totalTests = props.executionDto?.run {
-        runningTests + passedTests + failedTests + skippedTests
-    } ?: 0
-
-    if (totalTests == 0L) {
+fun executionTestsNotFound(count: Int?) = fc<ExecutionStatisticsProps> {
+    if (count == 0) {
         div("d-flex justify-content-center") {
             img(src = "img/sad_cat.gif") {}
         }
