@@ -7,8 +7,7 @@ import org.cqfn.save.entities.GitDto
 import org.cqfn.save.frontend.components.views.ProjectView
 import org.cqfn.save.frontend.externals.fontawesome.faQuestionCircle
 import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
-import org.w3c.dom.HTMLInputElement
-import org.w3c.dom.HTMLSelectElement
+import org.cqfn.save.testsuite.TestSuiteDto
 import org.w3c.dom.events.Event
 import react.PropsWithChildren
 import react.dom.*
@@ -26,10 +25,16 @@ enum class TestingType {
  */
 external interface TestResourcesProps : PropsWithChildren {
     var testingType: TestingType
-    var gitUrlFromInputField: String?
-    var testRootPath: String
     var isSubmitButtonPressed: Boolean?
     var gitDto: GitDto?
+
+    // properties for CUSTOM_TESTS mode
+    var gitUrlFromInputField: String?
+    var testRootPath: String
+
+    // properties for STANDARD_BENCHMARKS mode
+    var standardTestSuites: List<TestSuiteDto>
+    var selectedStandardSuites: MutableList<String>
 }
 
 /**
@@ -124,20 +129,16 @@ fun testResourcesSelection(
                     }
                 }
             }
-/*
-        div {
-            attrs.classes = cardStyleByTestingType(props, TestingType.STANDARD_BENCHMARKS)
-            div("card-body") {
-                child(
-                    checkBoxGrid(
-                        standardTestSuites
-                    )
-                ) {
-                    attrs.selectedOptions = selectedTypes
-                    attrs.rowSize = ProjectView.TEST_SUITE_ROW
+
+            div {
+                attrs.classes = cardStyleByTestingType(props, TestingType.STANDARD_BENCHMARKS)
+                div("card-body") {
+                    child(checkBoxGrid(props.standardTestSuites)) {
+                        attrs.selectedStandardSuites = props.selectedStandardSuites
+                        attrs.rowSize = ProjectView.TEST_SUITE_ROW
+                    }
                 }
             }
-        }*/
         }
     }
 

@@ -129,12 +129,18 @@ external interface ProjectViewState : State {
     var isSubmitButtonPressed: Boolean?
 
     /**
-     * state for the creation of unified confirmation logic
+     * State for the creation of unified confirmation logic
      */
     var confirmationType: ConfirmationType
 
+    /**
+     * Url to the custom tests
+     */
     var gitUrlFromInputField: String
 
+    /**
+     * Directory in the repository where tests are placed
+     */
     var testRootPath: String
 }
 
@@ -169,7 +175,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
 
     init {
         state.gitUrlFromInputField = ""
-        state.testRootPath = "."
+        state.testRootPath = ""
         state.confirmationType = ConfirmationType.NO_CONFIRM
         state.testingType = TestingType.CUSTOM_TESTS
         state.isErrorOpen = false
@@ -250,8 +256,8 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
         val selectedSdk = "${state.selectedSdk}:${state.selectedSdkVersion}".toSdk()
         val formData = FormData()
 
-        val testRootPath = if (state.testRootPath.isBlank())  "." else state.testRootPath
-        val executionRequest = ExecutionRequest(project, correctGitDto,testRootPath, selectedSdk,null)
+        val testRootPath = if (state.testRootPath.isBlank()) "." else state.testRootPath
+        val executionRequest = ExecutionRequest(project, correctGitDto, testRootPath, selectedSdk, null)
 
         formData.appendJson("executionRequest", executionRequest)
         state.files.forEach {
@@ -342,28 +348,27 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                 }
 
                 // ======== file selector =========
-                child(
-                    fileUploader(
-                        onFileSelect = { element ->
-                            setState {
-                                val availableFile = availableFiles.first { it.name == element.value }
-                                files.add(availableFile)
-                                availableFiles.remove(availableFile)
-                            }
-                        },
-                        onFileRemove = {
-                            setState {
-                                files.remove(it)
-                                availableFiles.add(it)
-                            }
-                        },
-                        onFileInput = { postFileUpload(it) },
-                        onExecutableChange = { selectedFile, checked ->
-                            setState {
-                                files[files.indexOf(selectedFile)] = selectedFile.copy(isExecutable = checked)
-                            }
+                child(fileUploader(
+                    onFileSelect = { element ->
+                        setState {
+                            val availableFile = availableFiles.first { it.name == element.value }
+                            files.add(availableFile)
+                            availableFiles.remove(availableFile)
                         }
-                    )
+                    },
+                    onFileRemove = {
+                        setState {
+                            files.remove(it)
+                            availableFiles.add(it)
+                        }
+                    },
+                    onFileInput = { postFileUpload(it) },
+                    onExecutableChange = { selectedFile, checked ->
+                        setState {
+                            files[files.indexOf(selectedFile)] = selectedFile.copy(isExecutable = checked)
+                        }
+                    }
+                )
                 ) {
                     attrs.isSubmitButtonPressed = state.isSubmitButtonPressed
                     attrs.files = state.files
@@ -401,13 +406,16 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                             testRootPath = it
                         }
                     }
-                )
-                ) {
-                    attrs.gitUrlFromInputField = state.gitUrlFromInputField
-                    attrs.isSubmitButtonPressed = state.isSubmitButtonPressed
-                    attrs.testRootPath = state.testRootPath
+                )) {
                     attrs.testingType = state.testingType
+                    attrs.isSubmitButtonPressed = state.isSubmitButtonPressed
                     attrs.gitDto = gitDto
+                    // properties for CUSTOM_TESTS mode
+                    attrs.testRootPath = state.testRootPath
+                    attrs.gitUrlFromInputField = state.gitUrlFromInputField
+                    // properties for STANDARD_BENCHMARKS mode
+                    attrs.selectedStandardSuites = selectedStandardSuites
+                    attrs.standardTestSuites = standardTestSuites
                 }
 
                 div("d-sm-flex align-items-center justify-content-center") {
