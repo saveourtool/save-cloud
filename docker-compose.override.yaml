@@ -12,8 +12,3 @@ services:
          find /layers -name jre -type d -exec {}/bin/keytool -keystore {}/lib/security/cacerts -storepass changeit -noprompt -trustcacerts -importcert -alias $${cert%.*} -file $$cert \;
          ; done && /cnb/process/web'
     ]
-
-  orchestrator:
-    environment:
-      - "APT_HTTP_PROXY=http://host.docker.internal:3128"
-      - "APT_HTTPS_PROXY=http://host.docker.internal:3128"

@@ -28,10 +28,18 @@ Deployment is performed on server via docker swarm or locally via docker-compose
 * [`docker-compose.yaml.template`](../docker-compose.yaml.template) is configured so that all services use Loki for logging
   and configuration files from `~/configs`, which are copied from `save-deploy` during gradle build.
 
+## Override configuration per server
+If you wish to customize services configuration externally (i.e. leaving docker images intact), this is possible via additional properties files.
+In [docker-compose.yaml.template](../docker-compose.yaml.template) all services have `/home/saveu/configs/<service name>` directory mounted. If it contains
+`application.properties` file, it will override config from default `application.properties`.
+
 ## Running behind proxy
 If save-cloud is running behind proxy, docker daemon should be configured to use proxy. See [docker docs](https://docs.docker.com/network/proxy/).
-Additionally, `APT_HTTP_PROXY` and `APT_HTTPS_PROXY` should be passed as environment variables into orchestrator. These should be
-URLs which can be resolved from inside the container (e.g. `host.docker.internal`).
+Additionally, use `/home/saveu/configs/orchestrator/application.properties` to add two flags to `apt-get`:
+```properties
+orchestrator.aptExtraFlags=-o Acquire::http::proxy="http://host.docker.internal:3128" -o Acquire::https::proxy="http://host.docker.internal:3128"
+```
+Proxy URLs will be resolved from inside the container.
 
 ## Custom SSL certificates
 If custom SSL certificates are used, they should be installed on the server and added into JDK's truststore inside images.
