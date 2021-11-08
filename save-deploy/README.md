@@ -24,7 +24,8 @@ Deployment is performed on server via docker swarm or locally via docker-compose
 * Secrets should be added to the swarm as well as to `$HOME/secrets` file.
 * If custom SSL certificates are used, they should be installed on the server and added into JDK's truststore inside images. See section below for details.
 * Loki logging driver should be added to docker installation: [instruction](https://grafana.com/docs/loki/latest/clients/docker-driver/#installing)
-* Pull new changes to the server and run `./gradlew -Pprofile=prod deployDockerStack`.
+* Pull new changes to the server and run `./gradlew -Psave.profile=prod deployDockerStack`.
+  * If you wish to deploy save-cloud, that is not present in docker registry (e.g. to deploy from a branch), run `./gradlew -Psave.profile=prod buildAndDeployDockerStack` instead.
 * [`docker-compose.yaml.template`](../docker-compose.yaml.template) is configured so that all services use Loki for logging
   and configuration files from `~/configs`, which are copied from `save-deploy` during gradle build.
 
@@ -58,7 +59,7 @@ The service is designed to work with MySQL database. Migrations are applied with
 ## Local deployment
 * Ensure that docker daemon is running and docker-compose is installed.
 * To make things easier, add line `save.profile=dev` to `gradle.properties`. This will make project version `SNAPSHOT` instead of timetamp-based suffix and allow caching of gradle tasks.
-* Run `./gradlew deployLocal -Pprofile=dev` to start the database and microservices.
+* Run `./gradlew deployLocal -Psave.profile=dev` to start the database and microservices.
 
 #### Note:
 If a snapshot version of save-cli is required (i.e., the one which is not available on GitHub releases), then it can be
