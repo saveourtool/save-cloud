@@ -26,6 +26,7 @@ Deployment is performed on server via docker swarm or locally via docker-compose
 * Loki logging driver should be added to docker installation: [instruction](https://grafana.com/docs/loki/latest/clients/docker-driver/#installing)
 * Pull new changes to the server and run `./gradlew -Psave.profile=prod deployDockerStack`.
   * If you wish to deploy save-cloud, that is not present in docker registry (e.g. to deploy from a branch), run `./gradlew -Psave.profile=prod buildAndDeployDockerStack` instead.
+  * If you would like to use `docker-compose.override.yaml`, add `-PuseOverride=true` to the execution of tasks above
 * [`docker-compose.yaml.template`](../docker-compose.yaml.template) is configured so that all services use Loki for logging
   and configuration files from `~/configs`, which are copied from `save-deploy` during gradle build.
 
