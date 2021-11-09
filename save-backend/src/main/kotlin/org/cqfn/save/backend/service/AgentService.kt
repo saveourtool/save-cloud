@@ -22,4 +22,15 @@ class AgentService(private val agentRepository: AgentRepository) {
             agentRepository.delete(it)
         }
     }
+
+    /**
+     * @param executionIds list of ids
+     * @return Unite
+     */
+    internal fun deleteAgentByExecutionIds(executionIds: List<Long>) =
+            agentRepository.findAll { root, _, _ ->
+                root.get<Execution>("execution").get<Long>("id").`in`(executionIds)
+            }.forEach {
+                agentRepository.delete(it)
+            }
 }

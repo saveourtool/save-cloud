@@ -2,7 +2,7 @@
  * A view with project details
  */
 
-@file:Suppress("WildcardImport", "FILE_WILDCARD_IMPORTS")
+@file:Suppress("WildcardImport", "FILE_WILDCARD_IMPORTS", "LargeClass")
 
 package org.cqfn.save.frontend.components.views
 

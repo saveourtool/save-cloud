@@ -36,6 +36,7 @@ typealias ExecutionDtoListResponse = ResponseEntity<List<ExecutionDto>>
  * Controller that accepts executions
  */
 @RestController
+@Suppress("LongParameterList")
 class ExecutionController(private val executionService: ExecutionService,
                           private val gitService: GitService,
                           private val testSuitesService: TestSuitesService,
@@ -138,7 +139,7 @@ class ExecutionController(private val executionService: ExecutionService,
      * @return ResponseEntity
      * @throws ResponseStatusException
      */
-    @PostMapping("/deleteExecution")
+    @PostMapping("/deleteAllExecution")
     fun deleteExecutionForProject(@RequestParam name: String, @RequestParam owner: String): ResponseEntity<String>? {
         val projectId = projectService.findByNameAndOwner(name, owner)?.id
 
@@ -146,6 +147,23 @@ class ExecutionController(private val executionService: ExecutionService,
             testExecutionService.deleteTestExecutionWithProjectId(projectId)
             agentService.deleteAgentWithProjectId(projectId)
             executionService.deleteExecutionByProjectNameAndProjectOwner(name, owner)
+        } catch (e: IllegalArgumentException) {
+            throw ResponseStatusException(HttpStatus.NOT_FOUND, "Failed to delete executions for the following reason: ${e.message}")
+        }
+        return ResponseEntity.status(HttpStatus.OK).build()
+    }
+
+    /**
+     * @param executionIds list of ids
+     * @return ResponseEntity
+     * @throws ResponseStatusException
+     */
+    @PostMapping("/deleteAllExecution")
+    fun deleteExecutionsByExecutionIds(@RequestParam executionIds: List<Long>): ResponseEntity<String>? {
+        try {
+            testExecutionService.deleteTestExecutionByExecutionIds(executionIds)
+            agentService.deleteAgentByExecutionIds(executionIds)
+            executionService.deleteExecutionByIds(executionIds)
         } catch (e: IllegalArgumentException) {
             throw ResponseStatusException(HttpStatus.NOT_FOUND, "Failed to delete executions for the following reason: ${e.message}")
         }

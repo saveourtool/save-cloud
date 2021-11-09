@@ -106,6 +106,17 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
     }
 
     /**
+     * @param executionIds list of ids
+     * @return Unite
+     */
+    internal fun deleteTestExecutionByExecutionIds(executionIds: List<Long>) =
+            testExecutionRepository.findAll { root, _, _ ->
+                root.get<Long>("executionId").`in`(executionIds)
+            }.forEach {
+                testExecutionRepository.delete(it)
+            }
+
+    /**
      * @param testExecutionsDtos
      * @return list of lost tests
      */

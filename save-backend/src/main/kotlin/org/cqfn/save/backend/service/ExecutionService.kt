@@ -130,6 +130,17 @@ class ExecutionService(private val executionRepository: ExecutionRepository) {
             }
 
     /**
+     * Delete all executions by project name and project owner
+     *
+     * @param executionIds list of ids
+     * @return Unite
+     */
+    fun deleteExecutionByIds(executionIds: List<Long>) =
+            executionIds.forEach {
+                executionRepository.deleteById(it)
+            }
+
+    /**
      * @param execution execution, tests metrics of which should be reset
      */
     fun resetMetrics(execution: Execution) {
