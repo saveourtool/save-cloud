@@ -16,6 +16,7 @@ import org.springframework.boot.context.properties.ConstructorBinding
  * @property agentsCount a number of agents to start for every [Execution]
  * @property executionLogs path to folder to store cli logs
  * @property shutdownChecksIntervalMillis interval between checks whether agents are really finished
+ * @property aptExtraFlags additional flags that will be passed to `apt-get` when building image for tests
  */
 @ConstructorBinding
 @ConfigurationProperties(prefix = "orchestrator")
@@ -26,6 +27,7 @@ data class ConfigProperties(
     val agentsCount: Int,
     val executionLogs: String,
     val shutdownChecksIntervalMillis: Long,
+    val aptExtraFlags: String = "",
 )
 
 /**
