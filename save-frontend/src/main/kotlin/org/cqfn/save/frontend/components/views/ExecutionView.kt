@@ -12,6 +12,7 @@ import org.cqfn.save.frontend.components.basic.executionStatistics
 import org.cqfn.save.frontend.components.basic.executionTestsNotFound
 import org.cqfn.save.frontend.components.basic.testStatusComponent
 import org.cqfn.save.frontend.components.tables.tableComponent
+import org.cqfn.save.frontend.http.getDebugInfoFor
 import org.cqfn.save.frontend.themes.Colors
 import org.cqfn.save.frontend.utils.decodeFromJsonString
 import org.cqfn.save.frontend.utils.get
@@ -44,7 +45,6 @@ import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
 import kotlinx.html.js.onClickFunction
 import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 /**
@@ -65,6 +65,11 @@ external interface ExecutionState : State {
      * Execution dto
      */
     var executionDto: ExecutionDto?
+
+    /**
+     * Count tests with executionId
+     */
+    var countTests: Int?
 }
 
 /**
@@ -83,7 +88,19 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
             val executionDtoFromBackend: ExecutionDto =
                     get("${window.location.origin}/executionDto?executionId=${props.executionId}", headers)
                         .decodeFromJsonString()
-            setState { executionDto = executionDtoFromBackend }
+            val count: Int = get(
+                url = "${window.location.origin}/testExecutionsCount?executionId=${props.executionId}",
+                headers = Headers().also {
+                    it.set("Accept", "application/json")
+                },
+            )
+                .json()
+                .await()
+                .unsafeCast<Int>()
+            setState {
+                executionDto = executionDtoFromBackend
+                countTests = count
+            }
         }
     }
 
@@ -106,6 +123,7 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
                 }
                 child(executionStatistics("mr-auto")) {
                     attrs.executionDto = state.executionDto
+                    attrs.countTests = state.countTests
                 }
                 button(classes = "btn btn-primary") {
                     +"Rerun execution"
@@ -160,13 +178,7 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
                             attrs.onClickFunction = {
                                 GlobalScope.launch {
                                     val te = cellProps.value
-                                    val trdi = post(
-                                        "${window.location.origin}/files/get-debug-info",
-                                        Headers().apply {
-                                            set("Content-Type", "application/json")
-                                        },
-                                        Json.encodeToString(te)
-                                    )
+                                    val trdi = getDebugInfoFor(te)
                                     if (trdi.ok) {
                                         cellProps.row.original.asDynamic().debugInfo = trdi.decodeFromJsonString<TestResultDebugInfo>()
                                     }
@@ -268,7 +280,7 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
                     asDynamic().debugInfo = null
                 }
         }) { }
-        child(executionTestsNotFound()) {
+        child(executionTestsNotFound(state.countTests)) {
             attrs.executionDto = state.executionDto
         }
     }
