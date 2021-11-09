@@ -688,6 +688,7 @@ fun readStandardTestSuitesFile(name: String) =
             .file
             .readText()
             .lines()
+            .filter { it.isNotBlank() }
             .associate {
                 val splitRow = it.split("\\s".toRegex())
                 require(splitRow.size == 2)
