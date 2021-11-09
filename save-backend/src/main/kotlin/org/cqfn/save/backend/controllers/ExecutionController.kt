@@ -158,7 +158,7 @@ class ExecutionController(private val executionService: ExecutionService,
      * @return ResponseEntity
      * @throws ResponseStatusException
      */
-    @PostMapping("/deleteAllExecution")
+    @PostMapping("/deleteExecution")
     fun deleteExecutionsByExecutionIds(@RequestParam executionIds: List<Long>): ResponseEntity<String>? {
         try {
             testExecutionService.deleteTestExecutionByExecutionIds(executionIds)
