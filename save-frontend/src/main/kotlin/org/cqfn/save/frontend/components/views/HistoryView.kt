@@ -86,7 +86,20 @@ class HistoryView : RComponent<HistoryProps, State>() {
                         }
                     }
                 }
-                column("date", "Date") {
+                column("startDate", "Start time") {
+                    buildElement {
+                        td {
+                            a(href = getHrefToExecution(it.value.id)) {
+                                +(it.value.startTime.let {
+                                    Instant.fromEpochSeconds(it, 0)
+                                        .toString()
+                                        .replace("[TZ]".toRegex(), " ")
+                                })
+                            }
+                        }
+                    }
+                }
+                column("endDate", "End time") {
                     buildElement {
                         td {
                             a(href = getHrefToExecution(it.value.id)) {

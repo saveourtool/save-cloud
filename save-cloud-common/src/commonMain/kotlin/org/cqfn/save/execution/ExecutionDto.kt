@@ -13,6 +13,7 @@ import kotlinx.serialization.Serializable
  * @property skippedTests
  * @property endTime
  * @property additionalFiles
+ * @property startTime
  */
 @Serializable
 @Suppress("LongParameterList")
@@ -21,6 +22,7 @@ data class ExecutionDto(
     val status: ExecutionStatus,
     val type: ExecutionType,
     val version: String?,
+    val startTime: Long,
     val endTime: Long?,
     val runningTests: Long,
     val passedTests: Long,
