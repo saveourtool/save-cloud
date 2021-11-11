@@ -103,6 +103,7 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
         testExecutions.forEach {
             testExecutionRepository.delete(it)
         }
+        testExecutionRepository.flush()
     }
 
     /**
@@ -114,7 +115,7 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
                 root.get<Long>("executionId").`in`(executionIds)
             }.forEach {
                 testExecutionRepository.delete(it)
-            }
+            }.let { testExecutionRepository.flush() }
 
     /**
      * @param testExecutionsDtos

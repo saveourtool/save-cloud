@@ -7,6 +7,7 @@ package org.cqfn.save.frontend.components.views
 import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.frontend.components.tables.tableComponent
+import org.cqfn.save.frontend.externals.fontawesome.faTrashAlt
 import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
 import org.cqfn.save.frontend.themes.Colors
 import org.cqfn.save.frontend.utils.decodeFromJsonString
@@ -74,6 +75,16 @@ external interface HistoryViewState : State {
     var isConfirmWindowOpen: Boolean?
 
     /**
+     * Flag to handle delete execution Window
+     */
+    var isDeleteExecutionWindowOpen: Boolean?
+
+    /**
+     * id execution
+     */
+    var deleteExecutionId: List<Long>
+
+    /**
      * Label of confirm Window
      */
     var confirmLabel: String
@@ -114,6 +125,13 @@ class HistoryView : RComponent<HistoryProps, HistoryViewState>() {
         runConfirmWindowModal(state.isConfirmWindowOpen, state.confirmLabel, state.confirmMessage, { setState { isConfirmWindowOpen = false } }) {
             deleteExecutionsBuilder()
             setState { isConfirmWindowOpen = false }
+        }
+        runConfirmWindowModal(state.isDeleteExecutionWindowOpen, state.confirmLabel, state.confirmMessage, { setState { isDeleteExecutionWindowOpen = false } }) {
+            deleteExecutionBuilder(state.deleteExecutionId)
+            setState {
+                isDeleteExecutionWindowOpen = false
+            }
+            window.location.reload()
         }
         div {
             button(type = ButtonType.button, classes = "btn btn-danger mb-4") {
@@ -202,6 +220,18 @@ class HistoryView : RComponent<HistoryProps, HistoryViewState>() {
                         }
                     }
                 }
+                column("checkBox", "") { cellProps ->
+                    buildElement {
+                        td {
+                            button(type = ButtonType.button, classes = "btn btn-small") {
+                                fontAwesomeIcon(icon = faTrashAlt, classes = "trash-alt")
+                                attrs.onClickFunction = {
+                                    deleteExecution(cellProps.value.id)
+                                }
+                            }
+                        }
+                    }
+                }
             },
             getRowProps = { row ->
                 val color = when (row.original.status) {
@@ -238,7 +268,7 @@ class HistoryView : RComponent<HistoryProps, HistoryViewState>() {
             confirmationType = ConfirmationType.DELETE_CONFIRM
             isConfirmWindowOpen = true
             confirmLabel = ""
-            confirmMessage = "Are you sure you want to delete this project?"
+            confirmMessage = "Are you sure you want to delete all executions?"
         }
     }
 
@@ -253,6 +283,39 @@ class HistoryView : RComponent<HistoryProps, HistoryViewState>() {
         }.invokeOnCompletion {
             if (responseFromDeleteExecutions.ok) {
                 window.location.href = "${window.location.origin}#/${props.owner}/${props.name}"
+            } else {
+                responseFromDeleteExecutions.text().then {
+                    setState {
+                        errorLabel = "Failed to delete executions"
+                        errorMessage = it
+                        isErrorOpen = true
+                    }
+                }
+            }
+        }
+    }
+
+    private fun deleteExecution(id: Long) {
+        setState {
+            confirmationType = ConfirmationType.DELETE_CONFIRM
+            isDeleteExecutionWindowOpen = true
+            confirmLabel = ""
+            confirmMessage = "Are you sure you want to delete execution?"
+            deleteExecutionId = listOf(id)
+        }
+    }
+
+    private fun deleteExecutionBuilder(executionIds: List<Long>) {
+        val headers = Headers().also {
+            it.set("Accept", "application/json")
+            it.set("Content-Type", "application/json")
+        }
+        GlobalScope.launch {
+            responseFromDeleteExecutions =
+                    post("${window.location.origin}/deleteExecution?executionIds=${executionIds.joinToString(",")}", headers, undefined)
+        }.invokeOnCompletion {
+            if (responseFromDeleteExecutions.ok) {
+                window.location.href = "${window.location.origin}#/${props.owner}/${props.name}/history"
             } else {
                 responseFromDeleteExecutions.text().then {
                     setState {

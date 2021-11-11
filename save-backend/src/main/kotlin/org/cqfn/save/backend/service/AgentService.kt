@@ -21,6 +21,7 @@ class AgentService(private val agentRepository: AgentRepository) {
         agents.forEach {
             agentRepository.delete(it)
         }
+        agentRepository.flush()
     }
 
     /**
@@ -32,5 +33,5 @@ class AgentService(private val agentRepository: AgentRepository) {
                 root.get<Execution>("execution").get<Long>("id").`in`(executionIds)
             }.forEach {
                 agentRepository.delete(it)
-            }
+            }.let { agentRepository.flush() }
 }

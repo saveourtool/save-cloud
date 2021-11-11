@@ -15,11 +15,11 @@ import org.cqfn.save.execution.ExecutionUpdateDto
 
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
-import org.junit.Ignore
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
@@ -120,10 +120,22 @@ class ExecutionControllerTest {
     }
 
     @Test
-    @Ignore
+    @Disabled  // fixme: should rollback after committing in the db
     fun testDeleteExecution() {
         webClient.post()
             .uri("/deleteAllExecution?name=huaweiName&owner=Huawei")
+            .contentType(MediaType.APPLICATION_JSON)
+            .exchange()
+            .expectStatus()
+            .isOk
+    }
+
+    @Test
+    @Disabled  // fixme: should rollback after committing in the db
+    fun testDeleteExecutionById() {
+        val ids = listOf(1L).joinToString(",")
+        webClient.post()
+            .uri("/deleteExecution?executionIds=$ids")
             .contentType(MediaType.APPLICATION_JSON)
             .exchange()
             .expectStatus()
