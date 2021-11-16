@@ -127,7 +127,7 @@ class ExecutionService(private val executionRepository: ExecutionRepository) {
     fun deleteExecutionByProjectNameAndProjectOwner(name: String, owner: String) =
             executionRepository.getAllByProjectNameAndProjectOwner(name, owner).forEach {
                 executionRepository.delete(it)
-            }.let { executionRepository.flush() }
+            }
 
     /**
      * Delete all executions by project name and project owner
@@ -138,7 +138,7 @@ class ExecutionService(private val executionRepository: ExecutionRepository) {
     fun deleteExecutionByIds(executionIds: List<Long>) =
             executionIds.forEach {
                 executionRepository.deleteById(it)
-            }.let { executionRepository.flush() }
+            }
 
     /**
      * @param execution execution, tests metrics of which should be reset

@@ -123,7 +123,7 @@ class ExecutionControllerTest {
     @Disabled  // fixme: should rollback after committing in the db
     fun testDeleteExecution() {
         webClient.post()
-            .uri("/deleteAllExecution?name=huaweiName&owner=Huawei")
+            .uri("/execution/deleteAll?name=huaweiName&owner=Huawei")
             .contentType(MediaType.APPLICATION_JSON)
             .exchange()
             .expectStatus()
@@ -131,11 +131,11 @@ class ExecutionControllerTest {
     }
 
     @Test
-    @Disabled  // fixme: should rollback after committing in the db
+    // @Disabled  // fixme: should rollback after committing in the db
     fun testDeleteExecutionById() {
-        val ids = listOf(1L).joinToString(",")
+        val ids = listOf(1L, 2L, 3L).joinToString(",")
         webClient.post()
-            .uri("/deleteExecution?executionIds=$ids")
+            .uri("/execution/delete?executionIds=$ids")
             .contentType(MediaType.APPLICATION_JSON)
             .exchange()
             .expectStatus()

@@ -2,6 +2,7 @@ package org.cqfn.save.backend.controllers
 
 import org.cqfn.save.backend.configs.ConfigProperties
 import org.cqfn.save.backend.service.AgentService
+import org.cqfn.save.backend.service.AgentStatusService
 import org.cqfn.save.backend.service.ExecutionService
 import org.cqfn.save.backend.service.GitService
 import org.cqfn.save.backend.service.ProjectService
@@ -43,6 +44,7 @@ class ExecutionController(private val executionService: ExecutionService,
                           private val projectService: ProjectService,
                           private val testExecutionService: TestExecutionService,
                           private val agentService: AgentService,
+                          private val agentStatusService: AgentStatusService,
                           config: ConfigProperties,
 ) {
     private val log = LoggerFactory.getLogger(ExecutionController::class.java)
@@ -139,14 +141,14 @@ class ExecutionController(private val executionService: ExecutionService,
      * @return ResponseEntity
      * @throws ResponseStatusException
      */
-    @PostMapping("/deleteAllExecution")
-    fun deleteExecutionForProject(@RequestParam name: String, @RequestParam owner: String): ResponseEntity<String>? {
-        val projectId = projectService.findByNameAndOwner(name, owner)?.id
-
+    @PostMapping("/execution/deleteAll")
+    fun deleteExecutionForProject(@RequestParam name: String, @RequestParam owner: String): ResponseEntity<String> {
         try {
-            testExecutionService.deleteTestExecutionWithProjectId(projectId)
-            agentService.deleteAgentWithProjectId(projectId)
-            executionService.deleteExecutionByProjectNameAndProjectOwner(name, owner)
+            projectService.findByNameAndOwner(name, owner)?.id?.let {
+                testExecutionService.deleteTestExecutionWithProjectId(it)
+                agentService.deleteAgentWithProjectId(it)
+                executionService.deleteExecutionByProjectNameAndProjectOwner(name, owner)
+            }
         } catch (e: IllegalArgumentException) {
             throw ResponseStatusException(HttpStatus.NOT_FOUND, "Failed to delete executions for the following reason: ${e.message}")
         }
@@ -158,10 +160,11 @@ class ExecutionController(private val executionService: ExecutionService,
      * @return ResponseEntity
      * @throws ResponseStatusException
      */
-    @PostMapping("/deleteExecution")
+    @PostMapping("/execution/delete")
     fun deleteExecutionsByExecutionIds(@RequestParam executionIds: List<Long>): ResponseEntity<String>? {
         try {
             testExecutionService.deleteTestExecutionByExecutionIds(executionIds)
+            agentStatusService.deleteAgentStatusWithExecutionIds(executionIds)
             agentService.deleteAgentByExecutionIds(executionIds)
             executionService.deleteExecutionByIds(executionIds)
         } catch (e: IllegalArgumentException) {

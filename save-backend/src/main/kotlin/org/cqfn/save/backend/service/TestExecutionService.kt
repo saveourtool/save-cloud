@@ -103,7 +103,6 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
         testExecutions.forEach {
             testExecutionRepository.delete(it)
         }
-        testExecutionRepository.flush()
     }
 
     /**
@@ -111,11 +110,7 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
      * @return Unite
      */
     internal fun deleteTestExecutionByExecutionIds(executionIds: List<Long>) =
-            testExecutionRepository.findAll { root, _, _ ->
-                root.get<Long>("executionId").`in`(executionIds)
-            }.forEach {
-                testExecutionRepository.delete(it)
-            }.let { testExecutionRepository.flush() }
+            testExecutionRepository.deleteByExecutionIdIn(executionIds)
 
     /**
      * @param testExecutionsDtos
