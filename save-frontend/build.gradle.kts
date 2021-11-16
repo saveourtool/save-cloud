@@ -19,7 +19,7 @@ kotlin {
             languageSettings.optIn("kotlinx.serialization.ExperimentalSerializationApi")
         }
         sourceSets["main"].dependencies {
-            implementation(project(":save-cloud-common"))
+            implementation(projects.saveCloudCommon)
 
             compileOnly(devNpm("sass", "^1.43.0"))
             compileOnly(devNpm("sass-loader", "^12.0.0"))
@@ -49,10 +49,10 @@ kotlin {
             implementation(npm("react-modal", "^3.0.0"))
             implementation(npm("os-browserify", "^0.3.0"))
 
-            implementation("org.cqfn.save:save-common:${Versions.saveCore}")
-            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${Versions.coroutines}")
-            implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:${Versions.serialization}")
-            implementation("org.jetbrains.kotlinx:kotlinx-datetime:${Versions.kotlinxDatetime}")
+            implementation(libs.save.common)
+            implementation(libs.kotlinx.coroutines.core)
+            implementation(libs.kotlinx.serialization.json)
+            implementation(libs.kotlinx.datetime)
         }
         sourceSets["test"].dependencies {
             implementation(kotlin("test-js"))

@@ -22,21 +22,21 @@ kotlin {
         }
         val linuxX64Main by getting {
             dependencies {
-                implementation(project(":save-cloud-common"))
-                implementation("org.cqfn.save:save-common:${Versions.saveCore}")
-                implementation("org.cqfn.save:fix-plugin:${Versions.saveCore}")
-                implementation("org.cqfn.save:save-reporters:${Versions.saveCore}")
-                implementation("io.ktor:ktor-client-core:${Versions.ktor}")
-                implementation("io.ktor:ktor-client-curl:${Versions.ktor}")
-                implementation("io.ktor:ktor-client-serialization:${Versions.ktor}")
-                implementation("org.jetbrains.kotlinx:kotlinx-serialization-properties:${Versions.serialization}")
-                implementation("com.squareup.okio:okio:${Versions.okio}")
-                implementation("org.jetbrains.kotlinx:kotlinx-datetime:${Versions.kotlinxDatetime}")
+                implementation(projects.saveCloudCommon)
+                implementation(libs.save.core)
+                implementation(libs.save.plugins.fix)
+                implementation(libs.save.reporters)
+                implementation(libs.ktor.client.core)
+                implementation(libs.ktor.client.curl)
+                implementation(libs.ktor.client.serialization)
+                implementation(libs.kotlinx.serialization.properties)
+                implementation(libs.okio)
+                implementation(libs.kotlinx.datetime)
             }
         }
         val linuxX64Test by getting {
             dependencies {
-                implementation("io.ktor:ktor-client-mock:${Versions.ktor}")
+                implementation(libs.ktor.client.mock)
             }
         }
     }

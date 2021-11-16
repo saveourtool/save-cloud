@@ -1,0 +1,60 @@
+[versions]
+kotlin = "1.5.31"
+save-core = "0.2.3"
+ktor = "1.6.3"
+okio = "3.0.0-alpha.11"
+serialization = "1.2.2"
+kotlinx-datetime = "0.2.1"
+kotlinx-coroutines = "1.5.2"
+junit = "5.8.1"
+ktoml = "0.2.7"
+multiplatform-diff = "0.3.0"
+kotlinpoet = "1.8.0"
+diktat = "1.0.0-rc.4"
+liquibase-core = "4.3.5"
+docker-java = "3.2.12"
+jgit = "5.13.0.202109080827-r"
+
+[plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+diktat = { id = "org.cqfn.diktat.diktat-gradle-plugin", version.ref = "diktat" }
+liquibase-gradle = { id = "org.liquibase.gradle", version = "2.0.4" }
+
+[libraries]
+save-common = { module = "org.cqfn.save:save-common", version.ref = "save-core" }
+save-common-jvm = { module = "org.cqfn.save:save-common-jvm", version.ref = "save-core" }
+save-core = { module = "org.cqfn.save:save-core", version.ref = "save-core" }
+save-core-jvm = { module = "org.cqfn.save:save-core-jvm", version.ref = "save-core" }
+save-plugins-fix = { module = "org.cqfn.save:fix-plugin", version.ref = "save-core" }
+save-plugins-fix-jvm = { module = "org.cqfn.save:fix-plugin-jvm", version.ref = "save-core" }
+save-plugins-warn-jvm = { module = "org.cqfn.save:warn-plugin-jvm", version.ref = "save-core" }
+save-plugins-fixAndWarn-jvm = { module = "org.cqfn.save:fix-and-warn-plugin-jvm", version.ref = "save-core" }
+save-reporters = { module = "org.cqfn.save:save-reporters", version.ref = "save-core" }
+
+kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
+kotlin-plugin-serialization = { module = "org.jetbrains.kotlin:kotlin-serialization", version.ref = "kotlin" }
+
+kotlinx-serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version.ref = "serialization" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization" }
+kotlinx-serialization-json-jvm = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json-jvm", version.ref = "serialization" }
+kotlinx-serialization-properties = { module = "org.jetbrains.kotlinx:kotlinx-serialization-properties", version.ref = "serialization" }
+kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
+
+ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
+ktor-client-curl = { module = "io.ktor:ktor-client-curl", version.ref = "ktor" }
+ktor-client-serialization = { module = "io.ktor:ktor-client-serialization", version.ref = "ktor" }
+ktor-client-mock = { module = "io.ktor:ktor-client-mock", version.ref = "ktor" }
+
+okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
+junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit" }
+ktoml-core = { module = "com.akuleshov7:ktoml-core", version.ref = "ktoml" }
+ktoml-file = { module = "com.akuleshov7:ktoml-file", version.ref = "ktoml" }
+multiplatform-diff = { module = "io.github.petertrr:kotlin-multiplatform-diff", version.ref = "multiplatform-diff" }
+square-kotlinpoet = { module = "com.squareup:kotlinpoet", version.ref = "kotlinpoet" }
+liquibase-core = { module = "org.liquibase:liquibase-core", version.ref = "liquibase-core" }
+dockerJava-core = { module = "com.github.docker-java:docker-java-core", version.ref = "docker-java" }
+dockerJava-transport-httpclient5 = { module = "com.github.docker-java:docker-java-transport-httpclient5", version.ref = "docker-java" }
+jgit = { module = "org.eclipse.jgit:org.eclipse.jgit", version.ref = "jgit" }

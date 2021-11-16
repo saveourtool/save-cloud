@@ -36,15 +36,15 @@ tasks.withType<Test> {
 }
 
 dependencies {
-    api(project(":save-cloud-common"))
+    api(projects.saveCloudCommon)
     runtimeOnly(project(":save-agent", "distribution"))
     implementation("org.slf4j:slf4j-api:${Versions.slf4j}")
     implementation("ch.qos.logback:logback-core:${Versions.logback}")
-    implementation("com.github.docker-java:docker-java-core:${Versions.dockerJavaApi}")
-    implementation("com.github.docker-java:docker-java-transport-httpclient5:${Versions.dockerJavaApi}")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:${Versions.serialization}")
+    implementation(libs.dockerJava.core)
+    implementation(libs.dockerJava.transport.httpclient5)
+    implementation(libs.kotlinx.serialization.json.jvm)
     implementation("org.apache.commons:commons-compress:1.21")
-    implementation("org.jetbrains.kotlinx:kotlinx-datetime:${Versions.kotlinxDatetime}")
+    implementation(libs.kotlinx.datetime)
     implementation("org.jetbrains.kotlin:kotlin-reflect:${Versions.kotlin}")
     testImplementation("com.squareup.okhttp3:okhttp:${Versions.okhttp3}")
     testImplementation("com.squareup.okhttp3:mockwebserver:${Versions.okhttp3}")
