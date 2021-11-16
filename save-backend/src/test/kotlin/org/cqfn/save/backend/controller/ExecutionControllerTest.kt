@@ -131,7 +131,7 @@ class ExecutionControllerTest {
     }
 
     @Test
-    // @Disabled  // fixme: should rollback after committing in the db
+    @Disabled  // fixme: should rollback after committing in the db
     fun testDeleteExecutionById() {
         val ids = listOf(1L, 2L, 3L).joinToString(",")
         webClient.post()

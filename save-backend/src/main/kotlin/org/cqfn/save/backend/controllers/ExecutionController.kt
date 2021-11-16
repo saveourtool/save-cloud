@@ -150,6 +150,7 @@ class ExecutionController(private val executionService: ExecutionService,
                 executionService.deleteExecutionByProjectNameAndProjectOwner(name, owner)
             }
         } catch (e: IllegalArgumentException) {
+            log.warn("Could not find the project with name: $name and owner: $owner or related objects")
             throw ResponseStatusException(HttpStatus.NOT_FOUND, "Failed to delete executions for the following reason: ${e.message}")
         }
         return ResponseEntity.status(HttpStatus.OK).build()
@@ -168,6 +169,7 @@ class ExecutionController(private val executionService: ExecutionService,
             agentService.deleteAgentByExecutionIds(executionIds)
             executionService.deleteExecutionByIds(executionIds)
         } catch (e: IllegalArgumentException) {
+            log.warn("Could not find the following executions: $executionIds or related objects")
             throw ResponseStatusException(HttpStatus.NOT_FOUND, "Failed to delete executions for the following reason: ${e.message}")
         }
         return ResponseEntity.status(HttpStatus.OK).build()
