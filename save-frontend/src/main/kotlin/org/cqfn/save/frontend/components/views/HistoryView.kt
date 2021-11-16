@@ -28,6 +28,7 @@ import react.table.columns
 
 import kotlinx.browser.window
 import kotlinx.datetime.Instant
+import org.cqfn.save.domain.TestResultStatus
 
 /**
  * [RProps] for tests execution history
@@ -120,7 +121,7 @@ class HistoryView : RComponent<HistoryProps, State>() {
                 column("failed", "Failed") {
                     buildElement {
                         td {
-                            a(href = getHrefToExecution(it.value.id)) {
+                            a(href = getHrefToExecution(it.value.id) + "&status=${TestResultStatus.FAILED}") {
                                 +"${it.value.failedTests}"
                             }
                         }

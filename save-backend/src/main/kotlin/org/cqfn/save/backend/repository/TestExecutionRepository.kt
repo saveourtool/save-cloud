@@ -28,6 +28,8 @@ interface TestExecutionRepository : BaseEntityRepository<TestExecution> {
      */
     fun countByExecutionId(executionId: Long): Int
 
+    fun countByExecutionIdAndStatus(executionId: Long, status: TestResultStatus): Int
+
     /**
      * Returns a page of [TestExecution]s with [executionId]
      *
@@ -36,6 +38,8 @@ interface TestExecutionRepository : BaseEntityRepository<TestExecution> {
      * @return a list of [TestExecutionDto]s
      */
     fun findByExecutionId(executionId: Long, pageable: Pageable): List<TestExecution>
+
+    fun findByExecutionIdAndStatus(executionId: Long, status: TestResultStatus, pageable: Pageable): List<TestExecution>
 
     /**
      * Returns test executions for agent [agentContainerId] and status [status]

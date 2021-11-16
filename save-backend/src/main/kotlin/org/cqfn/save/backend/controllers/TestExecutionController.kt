@@ -35,9 +35,14 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
      * @return a list of [TestExecutionDto]s
      */
     @GetMapping("/testExecutions")
-    fun getTestExecutions(@RequestParam executionId: Long, @RequestParam page: Int, @RequestParam size: Int): List<TestExecutionDto> {
+    fun getTestExecutions(
+        @RequestParam executionId: Long,
+        @RequestParam page: Int,
+        @RequestParam size: Int,
+        @RequestParam(required = false) status: TestResultStatus?,
+    ): List<TestExecutionDto> {
         log.debug("Request to get test executions on page $page with size $size for execution $executionId")
-        return testExecutionService.getTestExecutions(executionId, page, size)
+        return testExecutionService.getTestExecutions(executionId, page, size, status)
             .map { it.toDto() }
     }
 
@@ -72,9 +77,9 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
      * @param executionId an ID of Execution to group TestExecutions
      */
     @Suppress("KDOC_WITHOUT_RETURN_TAG")  // https://github.com/cqfn/diKTat/issues/965
-    @GetMapping("/testExecutionsCount")
-    fun getTestExecutionsCount(@RequestParam executionId: Long) =
-            testExecutionService.getTestExecutionsCount(executionId)
+    @GetMapping("/testExecution/count")
+    fun getTestExecutionsCount(@RequestParam executionId: Long, @RequestParam(required = false) status: TestResultStatus?) =
+            testExecutionService.getTestExecutionsCount(executionId, status)
 
     /**
      * @param agentContainerId id of an agent

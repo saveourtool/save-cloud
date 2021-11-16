@@ -55,6 +55,8 @@ external interface ExecutionProps : PropsWithChildren {
      * ID of execution
      */
     var executionId: String
+
+    var status: TestResultStatus?
 }
 
 /**
@@ -222,7 +224,7 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
             plugins = arrayOf(
                 useSortBy,
                 useExpanded,
-                usePagination
+                usePagination,
             ),
             renderExpandedRow = { tableInstance, row ->
                 // todo: placeholder before, render data once it's available
@@ -240,7 +242,8 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
             },
             getPageCount = { pageSize ->
                 val count: Int = get(
-                    url = "${window.location.origin}/testExecutionsCount?executionId=${props.executionId}",
+                    url = "${window.location.origin}/testExecutionsCount?executionId=${props.executionId}" +
+                            if (props.status != null) "&status=${props.status}" else "",
                     headers = Headers().also {
                         it.set("Accept", "application/json")
                     },
@@ -266,7 +269,8 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
             }
         ) { page, size ->
             get(
-                url = "${window.location.origin}/testExecutions?executionId=${props.executionId}&page=$page&size=$size",
+                url = "${window.location.origin}/testExecutions?executionId=${props.executionId}&page=$page&size=$size" +
+                    if (props.status != null) "&status=${props.status}" else "",
                 headers = Headers().apply {
                     set("Accept", "application/json")
                 },

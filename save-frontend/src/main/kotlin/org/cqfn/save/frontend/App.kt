@@ -44,6 +44,8 @@ import react.router.dom.withRouter
 
 import kotlinx.browser.document
 import kotlinx.html.id
+import org.cqfn.save.domain.TestResultStatus
+import org.w3c.dom.url.URLSearchParams
 
 /**
  * Top-level state of the whole App
@@ -128,6 +130,9 @@ class App : RComponent<PropsWithChildren, AppState>() {
                                     buildElement {
                                         child(ExecutionView::class) {
                                             attrs.executionId = props.match.params["executionId"]!!
+                                            attrs.status = URLSearchParams(props.location.search).get("status")?.let(
+                                                TestResultStatus::valueOf
+                                            )
                                         }
                                     }
                                 }
