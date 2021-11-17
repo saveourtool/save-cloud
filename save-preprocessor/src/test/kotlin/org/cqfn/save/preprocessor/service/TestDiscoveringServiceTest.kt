@@ -41,7 +41,7 @@ class TestDiscoveringServiceTest {
             .setURI("https://github.com/cqfn/save")
             .setDirectory(tmpDir.toFile())
             .call()
-        repo.checkout().setName("993aa6228cba0a9f9075fb3aca8a0a8b9196a12a")
+        repo.checkout().setName("77be59a84315580fe90c9e4e40a9736d137f0daf")
         rootTestConfig = testDiscoveringService.getRootTestConfig(tmpDir.resolve("examples/kotlin-diktat").toString())
     }
 

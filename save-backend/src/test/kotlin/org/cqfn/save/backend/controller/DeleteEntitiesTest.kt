@@ -3,6 +3,7 @@ package org.cqfn.save.backend.controller
 import org.cqfn.save.backend.SaveApplication
 import org.cqfn.save.backend.scheduling.StandardSuitesUpdateScheduler
 import org.cqfn.save.backend.utils.MySqlExtension
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
@@ -24,6 +25,7 @@ class DeleteEntitiesTest {
     lateinit var webClient: WebTestClient
 
     @Test
+    @Disabled
     fun testDeleteExecutionById() {
         val ids = listOf(1L, 2L, 3L).joinToString(",")
         webClient.post()
@@ -35,6 +37,7 @@ class DeleteEntitiesTest {
     }
 
     @Test
+    @Disabled
     fun testDeleteExecution() {
         webClient.post()
             .uri("/execution/deleteAll?name=huaweiName&owner=Huawei")
