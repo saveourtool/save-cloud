@@ -144,14 +144,14 @@ class ExecutionController(private val executionService: ExecutionService,
     @PostMapping("/execution/deleteAll")
     fun deleteExecutionForProject(@RequestParam name: String, @RequestParam owner: String): ResponseEntity<String> {
         try {
-            projectService.findByNameAndOwner(name, owner)?.id?.let {
+            requireNotNull(projectService.findByNameAndOwner(name, owner)).id!!.let {
                 testExecutionService.deleteTestExecutionWithProjectId(it)
                 agentStatusService.deleteAgentStatusWithProjectId(it)
                 agentService.deleteAgentWithProjectId(it)
                 executionService.deleteExecutionByProjectNameAndProjectOwner(name, owner)
             }
         } catch (e: IllegalArgumentException) {
-            log.warn("Could not find the project with name: $name and owner: $owner or related objects")
+            log.warn("Could not find the project with name: $name and owner: $owner or related objects", e)
             throw ResponseStatusException(HttpStatus.NOT_FOUND, "Failed to delete executions for the following reason: ${e.message}")
         }
         return ResponseEntity.status(HttpStatus.OK).build()
@@ -170,7 +170,7 @@ class ExecutionController(private val executionService: ExecutionService,
             agentService.deleteAgentByExecutionIds(executionIds)
             executionService.deleteExecutionByIds(executionIds)
         } catch (e: IllegalArgumentException) {
-            log.warn("Could not find the following executions: $executionIds or related objects")
+            log.warn("Could not find the following executions: $executionIds or related objects", e)
             throw ResponseStatusException(HttpStatus.NOT_FOUND, "Failed to delete executions for the following reason: ${e.message}")
         }
         return ResponseEntity.status(HttpStatus.OK).build()

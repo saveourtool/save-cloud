@@ -107,7 +107,7 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
 
     /**
      * @param executionIds list of ids
-     * @return Unite
+     * @return Unit
      */
     internal fun deleteTestExecutionByExecutionIds(executionIds: List<Long>) =
             testExecutionRepository.deleteByExecutionIdIn(executionIds)

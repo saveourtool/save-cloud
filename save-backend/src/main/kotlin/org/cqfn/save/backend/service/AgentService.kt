@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service
 class AgentService(private val agentRepository: AgentRepository) {
     /**
      * @param projectId
-     * @return Unite
+     * @return Unit
      */
     internal fun deleteAgentWithProjectId(projectId: Long) =
             agentRepository.findByExecutionProjectId(projectId).forEach {
@@ -19,7 +19,7 @@ class AgentService(private val agentRepository: AgentRepository) {
 
     /**
      * @param executionIds list of ids
-     * @return Unite
+     * @return Unit
      */
     internal fun deleteAgentByExecutionIds(executionIds: List<Long>) =
             agentRepository.deleteByExecutionIdIn(executionIds)

@@ -122,7 +122,7 @@ class ExecutionService(private val executionRepository: ExecutionRepository) {
      *
      * @param name name of project
      * @param owner owner of project
-     * @return Unite
+     * @return Unit
      */
     fun deleteExecutionByProjectNameAndProjectOwner(name: String, owner: String) =
             executionRepository.getAllByProjectNameAndProjectOwner(name, owner).forEach {
@@ -133,7 +133,7 @@ class ExecutionService(private val executionRepository: ExecutionRepository) {
      * Delete all executions by project name and project owner
      *
      * @param executionIds list of ids
-     * @return Unite
+     * @return Unit
      */
     fun deleteExecutionByIds(executionIds: List<Long>) =
             executionIds.forEach {
