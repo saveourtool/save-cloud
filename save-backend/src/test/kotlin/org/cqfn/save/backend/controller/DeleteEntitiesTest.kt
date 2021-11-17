@@ -25,7 +25,7 @@ class DeleteEntitiesTest {
     lateinit var webClient: WebTestClient
 
     @Test
-    @Disabled
+    @Disabled // fixme: should rollback after committing in the db
     fun testDeleteExecutionById() {
         val ids = listOf(1L, 2L, 3L).joinToString(",")
         webClient.post()
@@ -37,7 +37,7 @@ class DeleteEntitiesTest {
     }
 
     @Test
-    @Disabled
+    @Disabled // fixme: should rollback after committing in the db
     fun testDeleteExecution() {
         webClient.post()
             .uri("/execution/deleteAll?name=huaweiName&owner=Huawei")
