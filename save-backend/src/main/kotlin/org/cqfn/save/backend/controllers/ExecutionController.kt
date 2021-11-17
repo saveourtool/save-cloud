@@ -142,6 +142,7 @@ class ExecutionController(private val executionService: ExecutionService,
      * @throws ResponseStatusException
      */
     @PostMapping("/execution/deleteAll")
+    @Suppress("UnsafeCallOnNullableType")
     fun deleteExecutionForProject(@RequestParam name: String, @RequestParam owner: String): ResponseEntity<String> {
         try {
             requireNotNull(projectService.findByNameAndOwner(name, owner)).id!!.let {
