@@ -146,6 +146,7 @@ class ExecutionController(private val executionService: ExecutionService,
         try {
             projectService.findByNameAndOwner(name, owner)?.id?.let {
                 testExecutionService.deleteTestExecutionWithProjectId(it)
+                agentStatusService.deleteAgentStatusWithProjectId(it)
                 agentService.deleteAgentWithProjectId(it)
                 executionService.deleteExecutionByProjectNameAndProjectOwner(name, owner)
             }

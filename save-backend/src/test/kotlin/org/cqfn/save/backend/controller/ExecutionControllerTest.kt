@@ -1,6 +1,7 @@
 package org.cqfn.save.backend.controller
 
 import org.cqfn.save.backend.SaveApplication
+import org.cqfn.save.backend.controllers.ExecutionController
 import org.cqfn.save.backend.repository.ExecutionRepository
 import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.scheduling.StandardSuitesUpdateScheduler
@@ -19,7 +20,6 @@ import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
@@ -56,6 +56,9 @@ class ExecutionControllerTest {
 
     @Autowired
     lateinit var projectRepository: ProjectRepository
+
+    @Autowired
+    lateinit var executionController: ExecutionController
 
     @Test
     fun testConnection() {
@@ -117,29 +120,6 @@ class ExecutionControllerTest {
         val databaseData = executionRepository.findAll()
 
         assertTrue(databaseData.any { it.status == execution.status && it.startTime == testLocalDateTime })
-    }
-
-    @Test
-    @Disabled  // fixme: should rollback after committing in the db
-    fun testDeleteExecution() {
-        webClient.post()
-            .uri("/execution/deleteAll?name=huaweiName&owner=Huawei")
-            .contentType(MediaType.APPLICATION_JSON)
-            .exchange()
-            .expectStatus()
-            .isOk
-    }
-
-    @Test
-    @Disabled  // fixme: should rollback after committing in the db
-    fun testDeleteExecutionById() {
-        val ids = listOf(1L, 2L, 3L).joinToString(",")
-        webClient.post()
-            .uri("/execution/delete?executionIds=$ids")
-            .contentType(MediaType.APPLICATION_JSON)
-            .exchange()
-            .expectStatus()
-            .isOk
     }
 
     @Test
