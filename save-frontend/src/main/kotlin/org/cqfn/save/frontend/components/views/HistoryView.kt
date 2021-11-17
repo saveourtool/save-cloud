@@ -90,11 +90,7 @@ class HistoryView : RComponent<HistoryProps, State>() {
                     buildElement {
                         td {
                             a(href = getHrefToExecution(it.value.id)) {
-                                +(it.value.startTime.let {
-                                    Instant.fromEpochSeconds(it, 0)
-                                        .toString()
-                                        .replace("[TZ]".toRegex(), " ")
-                                })
+                                +(formattingDate(it.value.startTime) ?: "Starting")
                             }
                         }
                     }
@@ -103,11 +99,7 @@ class HistoryView : RComponent<HistoryProps, State>() {
                     buildElement {
                         td {
                             a(href = getHrefToExecution(it.value.id)) {
-                                +(it.value.endTime?.let {
-                                    Instant.fromEpochSeconds(it, 0)
-                                        .toString()
-                                        .replace("[TZ]".toRegex(), " ")
-                                } ?: "Starting")
+                                +(formattingDate(it.value.endTime) ?: "Starting")
                             }
                         }
                     }
@@ -177,6 +169,12 @@ class HistoryView : RComponent<HistoryProps, State>() {
         ) {
             attrs.tableHeader = "Executions details"
         }
+    }
+
+    private fun formattingDate(date: Long?) = date?.let {
+        Instant.fromEpochSeconds(date, 0)
+            .toString()
+            .replace("[TZ]".toRegex(), " ")
     }
 
     private fun getHrefToExecution(id: Long) = "${window.location}/execution/$id"
