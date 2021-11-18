@@ -41,6 +41,8 @@ fun Project.configureSpringBoot(withSpringDataJpa: Boolean = false) {
         add("implementation", libs.reactor.kotlin.extensions)
         add("testImplementation", libs.spring.boot.starter.test)
         add("testImplementation", libs.mockito.kotlin)
+        add("testImplementation", libs.okhttp)
+        add("testImplementation", libs.okhttp.mockwebserver)
     }
 
     configure<SpringBootExtension> {
@@ -67,8 +69,6 @@ fun Project.configureSpringBoot(withSpringDataJpa: Boolean = false) {
             add("testImplementation", libs.testcontainers)
             add("testImplementation", libs.testcontainers.mysql)
             add("testImplementation", libs.testcontainers.junit.jupiter)
-            add("testImplementation", libs.okhttp)
-            add("testImplementation", libs.okhttp.mockwebserver)
         }
     }
 
