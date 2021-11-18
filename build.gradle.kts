@@ -8,8 +8,8 @@ import org.cqfn.save.buildutils.getDatabaseCredentials
 import org.cqfn.save.buildutils.installGitHooks
 
 plugins {
-    id("com.github.ben-manes.versions") version "0.39.0"
-    id("com.cdsap.talaiot.plugin.base") version "1.4.2"
+    alias(libs.plugins.versions.plugin)
+    alias(libs.plugins.talaiot.base)
     alias(libs.plugins.liquibase.gradle)
 }
 
@@ -38,7 +38,7 @@ liquibase {
 
 dependencies {
     liquibaseRuntime(libs.liquibase.core)
-    liquibaseRuntime("mysql:mysql-connector-java:${Versions.mySql}")
+    liquibaseRuntime(libs.mysql.connector.java)
 }
 
 talaiot {

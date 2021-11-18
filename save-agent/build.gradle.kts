@@ -2,7 +2,7 @@ import org.cqfn.save.buildutils.getSaveCliVersion
 
 plugins {
     kotlin("multiplatform")
-    kotlin("plugin.serialization") version Versions.kotlin
+    alias(libs.plugins.kotlin.plugin.serialization)
 }
 
 kotlin {

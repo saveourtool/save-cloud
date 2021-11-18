@@ -5,6 +5,21 @@ plugins {
     kotlin("js")
 }
 
+dependencies {
+    implementation(projects.saveCloudCommon)
+
+    implementation(enforcedPlatform(libs.kotlin.wrappers.bom))
+    implementation("org.jetbrains.kotlin-wrappers:kotlin-react")
+    implementation("org.jetbrains.kotlin-wrappers:kotlin-react-dom")
+    implementation("org.jetbrains.kotlin-wrappers:kotlin-react-router-dom")
+    implementation("org.jetbrains.kotlin-wrappers:kotlin-react-table")
+
+    implementation(libs.save.common)
+    implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.kotlinx.datetime)
+}
+
 kotlin {
     js(LEGACY) {
         // as for `-pre.148-kotlin-1.4.21`, react-table gives errors with IR
@@ -19,8 +34,6 @@ kotlin {
             languageSettings.optIn("kotlinx.serialization.ExperimentalSerializationApi")
         }
         sourceSets["main"].dependencies {
-            implementation(projects.saveCloudCommon)
-
             compileOnly(devNpm("sass", "^1.43.0"))
             compileOnly(devNpm("sass-loader", "^12.0.0"))
             compileOnly(devNpm("style-loader", "*"))
@@ -37,25 +50,13 @@ kotlin {
             implementation(npm("@fortawesome/fontawesome-svg-core", "^1.2.36"))
             implementation(npm("@fortawesome/free-solid-svg-icons", "^5.15.4"))
             implementation(npm("@fortawesome/react-fontawesome", "^0.1.16"))
-            implementation("org.jetbrains.kotlin-wrappers:kotlin-react:${Versions.kotlinReact}")
-            implementation("org.jetbrains.kotlin-wrappers:kotlin-react-dom:${Versions.kotlinReact}")
-            implementation("org.jetbrains.kotlin-wrappers:kotlin-react-router-dom:5.2.0${Versions.kotlinJsWrappersSuffix}")
-            implementation("org.jetbrains.kotlin-wrappers:kotlin-react-table:7.7.0${Versions.kotlinJsWrappersSuffix}")
             implementation(npm("jquery", "3.6.0"))
             implementation(npm("popper.js", "1.16.1"))
             implementation(npm("bootstrap", "^4.6.0"))
-            implementation(npm("react", Versions.react))
-            implementation(npm("react-dom", Versions.react))
+            implementation(npm("react", "17.0.2"))
+            implementation(npm("react-dom", "17.0.2"))
             implementation(npm("react-modal", "^3.0.0"))
             implementation(npm("os-browserify", "^0.3.0"))
-
-            implementation(libs.save.common)
-            implementation(libs.kotlinx.coroutines.core)
-            implementation(libs.kotlinx.serialization.json)
-            implementation(libs.kotlinx.datetime)
-        }
-        sourceSets["test"].dependencies {
-            implementation(kotlin("test-js"))
         }
     }
 }

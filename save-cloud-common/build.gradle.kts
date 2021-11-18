@@ -1,8 +1,8 @@
 plugins {
     kotlin("multiplatform")
-    kotlin("plugin.serialization") version Versions.kotlin
+    alias(libs.plugins.kotlin.plugin.serialization)
     kotlin("plugin.allopen")
-    kotlin("plugin.jpa") version Versions.kotlin
+    alias(libs.plugins.kotlin.plugin.jpa)
 }
 kotlin {
     allOpen {
@@ -35,7 +35,7 @@ kotlin {
         }
         val jvmMain by getting {
             dependencies {
-                implementation("org.hibernate.javax.persistence:hibernate-jpa-2.1-api:${Versions.jpa}")
+                implementation(libs.hibernate.jpa21.api)
             }
         }
     }
