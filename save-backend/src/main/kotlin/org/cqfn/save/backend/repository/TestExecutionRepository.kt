@@ -3,6 +3,7 @@ package org.cqfn.save.backend.repository
 import org.cqfn.save.domain.TestResultStatus
 import org.cqfn.save.entities.TestExecution
 import org.springframework.data.domain.Pageable
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import org.springframework.stereotype.Repository
 import java.util.Optional
 import javax.transaction.Transactional
@@ -11,7 +12,7 @@ import javax.transaction.Transactional
  * Repository of execution
  */
 @Repository
-interface TestExecutionRepository : BaseEntityRepository<TestExecution> {
+interface TestExecutionRepository : BaseEntityRepository<TestExecution>, JpaSpecificationExecutor<TestExecution> {
     /**
      * @param status
      * @param id
@@ -80,4 +81,12 @@ interface TestExecutionRepository : BaseEntityRepository<TestExecution> {
      * @return Optional TestExecution
      */
     fun findByTestId(testId: Long): Optional<TestExecution>
+
+    /**
+     * Delete a TestExecution with execution Ids
+     *
+     * @param executionIds list ids of execution
+     */
+    @Transactional
+    fun deleteByExecutionIdIn(executionIds: List<Long>)
 }

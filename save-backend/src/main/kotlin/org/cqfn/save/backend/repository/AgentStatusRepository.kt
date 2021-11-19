@@ -8,6 +8,7 @@ import org.cqfn.save.entities.Agent
 import org.cqfn.save.entities.AgentStatus
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import org.springframework.stereotype.Repository
+import javax.transaction.Transactional
 
 /**
  * JPA repository for agent statuses.
@@ -21,6 +22,20 @@ interface AgentStatusRepository : BaseEntityRepository<AgentStatus>, JpaSpecific
      * @return [AgentStatus] of an agent
      */
     fun findTopByAgentContainerIdOrderByEndTimeDescIdDesc(containerId: String): AgentStatus?
+
+    /**
+     * Find all agent statuses with [projectId] in execution
+     *
+     * @param projectId id of project
+     * @return [AgentStatus] of an agent
+     */
+    fun findByAgentExecutionProjectId(projectId: Long): List<AgentStatus>
+
+    /**
+     * @param ids list of executions id
+     */
+    @Transactional
+    fun deleteByAgentExecutionIdIn(ids: List<Long>)
 }
 
 /**
@@ -43,4 +58,20 @@ interface AgentRepository : BaseEntityRepository<Agent>, JpaSpecificationExecuto
      * @return list of agents
      */
     fun findByExecutionId(executionId: Long): List<Agent>
+
+    /**
+     * Find all agents with [projectId] in execution
+     *
+     * @param projectId id of project
+     * @return list of agents
+     */
+    fun findByExecutionProjectId(projectId: Long): List<Agent>
+
+    /**
+     * Delete all agents with [executionId]
+     *
+     * @param ids list id of execution
+     */
+    @Transactional
+    fun deleteByExecutionIdIn(ids: List<Long>)
 }
