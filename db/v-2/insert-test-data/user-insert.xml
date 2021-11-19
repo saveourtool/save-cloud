@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="user-insert" author="petertrr" context="dev">
+        <insert dbms="mysql" tableName="user">
+            <column name="id" value="1" />
+            <column name="name" value="admin" />
+            <column name="password" value="admin" />
+        </insert>
+        <insert dbms="mysql" tableName="user">
+            <column name="id" value="2" />
+            <column name="name" value="John Doe" />
+            <column name="password" value="pass" />
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>
