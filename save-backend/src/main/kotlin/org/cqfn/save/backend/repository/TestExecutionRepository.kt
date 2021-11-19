@@ -89,4 +89,12 @@ interface TestExecutionRepository : BaseEntityRepository<TestExecution>, JpaSpec
      */
     @Transactional
     fun deleteByExecutionIdIn(executionIds: List<Long>)
+
+    /**
+     * Delete a TestExecution with execution Ids
+     *
+     * @param id project id
+     */
+    @Transactional
+    fun deleteByExecutionProjectId(id: Long)
 }
