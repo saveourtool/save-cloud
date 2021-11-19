@@ -136,8 +136,8 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
                                 undefined
                             )
                         }.invokeOnCompletion {
-                            window.location.reload()
                             window.alert("Rerun request successfully submitted")
+                            window.location.reload()
                         }
                     }
                 }
