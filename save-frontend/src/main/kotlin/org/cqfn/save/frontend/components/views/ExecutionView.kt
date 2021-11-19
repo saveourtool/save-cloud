@@ -163,6 +163,17 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
                         }
                     }
                 }
+                column(id = "endTime", header = "End time") {
+                    buildElement {
+                        td {
+                            +"${
+                                it.value.endTimeSeconds
+                                ?.let { Instant.fromEpochSeconds(it, 0) }
+                                ?: "Running"
+                            }"
+                        }
+                    }
+                }
                 column(id = "status", header = "Status") {
                     buildElement {
                         td {

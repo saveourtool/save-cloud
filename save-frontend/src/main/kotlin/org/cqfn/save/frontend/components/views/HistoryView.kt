@@ -171,15 +171,20 @@ class HistoryView : RComponent<HistoryProps, HistoryViewState>() {
                         }
                     }
                 }
-                column("date", "Date") {
+                column("startDate", "Start time") {
                     buildElement {
                         td {
                             a(href = getHrefToExecution(it.value.id)) {
-                                +(it.value.endTime?.let {
-                                    Instant.fromEpochSeconds(it, 0)
-                                        .toString()
-                                        .replace("[TZ]".toRegex(), " ")
-                                } ?: "Starting")
+                                +(formattingDate(it.value.startTime) ?: "Starting")
+                            }
+                        }
+                    }
+                }
+                column("endDate", "End time") {
+                    buildElement {
+                        td {
+                            a(href = getHrefToExecution(it.value.id)) {
+                                +(formattingDate(it.value.endTime) ?: "Starting")
                             }
                         }
                     }
@@ -261,6 +266,12 @@ class HistoryView : RComponent<HistoryProps, HistoryViewState>() {
         ) {
             attrs.tableHeader = "Executions details"
         }
+    }
+
+    private fun formattingDate(date: Long?) = date?.let {
+        Instant.fromEpochSeconds(date, 0)
+            .toString()
+            .replace("[TZ]".toRegex(), " ")
     }
 
     private fun deleteExecutions() {
