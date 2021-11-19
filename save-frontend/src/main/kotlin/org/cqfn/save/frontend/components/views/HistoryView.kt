@@ -225,7 +225,7 @@ class HistoryView : RComponent<HistoryProps, HistoryViewState>() {
                         }
                     }
                 }
-                column("checkBox", "") { cellProps ->
+                column("check-box", "") { cellProps ->
                     buildElement {
                         td {
                             button(type = ButtonType.button, classes = "btn btn-small") {
