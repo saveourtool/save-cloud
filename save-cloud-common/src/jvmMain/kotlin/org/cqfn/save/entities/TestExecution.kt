@@ -12,9 +12,9 @@ import javax.persistence.JoinColumn
 import javax.persistence.ManyToOne
 
 /**
- * @property test id of test
- * @property executionId id of the Execution during which this TestExecution should take place. todo: change to Execution
- * @property agent Id of the agent which will execute this TestExecution. Agent id is nullable because agent isn't created at the time when test execution is created
+ * @property test test
+ * @property execution during which this TestExecution should take place.
+ * @property agent which will execute this TestExecution. Agent id is nullable because agent isn't created at the time when test execution is created
  * @property status status of test execution
  * @property startTime start time
  * @property endTime finish time
@@ -26,7 +26,9 @@ class TestExecution(
     @JoinColumn(name = "test_id")
     var test: Test,
 
-    var executionId: Long,
+    @ManyToOne
+    @JoinColumn(name = "execution_id")
+    var execution: Execution,
 
     @ManyToOne
     @JoinColumn(name = "agent_id")

@@ -8,8 +8,6 @@ import org.cqfn.save.backend.repository.TestRepository
 import org.cqfn.save.backend.utils.secondsToLocalDateTime
 import org.cqfn.save.domain.TestResultLocation
 import org.cqfn.save.domain.TestResultStatus
-import org.cqfn.save.entities.Execution
-import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.TestExecution
 import org.cqfn.save.test.TestDto
 
@@ -23,8 +21,6 @@ import org.springframework.transaction.support.TransactionTemplate
 
 import java.nio.file.Paths
 import java.util.concurrent.ConcurrentHashMap
-import javax.persistence.criteria.Root
-import javax.persistence.criteria.Subquery
 
 import kotlin.io.path.pathString
 
@@ -91,17 +87,8 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
      * @param projectId
      */
     internal fun deleteTestExecutionWithProjectId(projectId: Long?) {
-        val testExecutions = testExecutionRepository.findAll { root, cq, cb ->
-            val executionSq: Subquery<Long> = cq.subquery(Long::class.java)
-            val executionRoot: Root<Execution> = executionSq.from(Execution::class.java)
-            executionSq.select(executionRoot.get("id"))
-                .where(
-                    cb.equal(executionRoot.get<Project>("project").get<Long>("id"), projectId)
-                )
-            cb.`in`(root.get<Long>("executionId")).value(executionSq)
-        }
-        testExecutions.forEach {
-            testExecutionRepository.delete(it)
+        projectId?.let {
+            testExecutionRepository.deleteByExecutionProjectId(projectId)
         }
     }
 
@@ -192,11 +179,12 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
                 log.debug("For execution with id=$executionId test id=$testId already exist in DB, deleting it")
                 testExecutionRepository.deleteAllByExecutionIdAndTestId(executionId, testId)
             }
+            val execution = executionRepository.findById(executionId).get()
             testRepository.findById(testId).ifPresentOrElse({ test ->
                 log.debug("Creating TestExecution for test $testId")
                 val id = testExecutionRepository.save(
                     TestExecution(test,
-                        executionId,
+                        execution,
                         null, TestResultStatus.READY, null, null,
                     )
                 )
