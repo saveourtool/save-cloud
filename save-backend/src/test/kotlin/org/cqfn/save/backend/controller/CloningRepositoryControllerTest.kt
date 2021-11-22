@@ -1,6 +1,7 @@
 package org.cqfn.save.backend.controller
 
 import org.cqfn.save.backend.configs.ConfigProperties
+import org.cqfn.save.backend.configs.NoopWebSecurityConfig
 import org.cqfn.save.backend.controllers.CloneRepositoryController
 import org.cqfn.save.backend.repository.AgentRepository
 import org.cqfn.save.backend.repository.AgentStatusRepository
@@ -11,6 +12,7 @@ import org.cqfn.save.backend.repository.TestExecutionRepository
 import org.cqfn.save.backend.repository.TestRepository
 import org.cqfn.save.backend.repository.TestSuiteRepository
 import org.cqfn.save.backend.repository.TimestampBasedFileSystemRepository
+import org.cqfn.save.backend.repository.UserRepository
 import org.cqfn.save.backend.scheduling.StandardSuitesUpdateScheduler
 import org.cqfn.save.backend.service.ExecutionService
 import org.cqfn.save.backend.service.ProjectService
@@ -24,8 +26,6 @@ import org.cqfn.save.entities.ProjectStatus
 
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
-import org.cqfn.save.backend.configs.NoopWebSecurityConfig
-import org.cqfn.save.backend.repository.UserRepository
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test

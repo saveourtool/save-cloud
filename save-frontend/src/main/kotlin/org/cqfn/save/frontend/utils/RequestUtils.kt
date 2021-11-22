@@ -7,16 +7,15 @@ package org.cqfn.save.frontend.utils
 import org.cqfn.save.entities.Project
 
 import org.w3c.fetch.Headers
+import org.w3c.fetch.RequestCredentials
 import org.w3c.fetch.RequestInit
 import org.w3c.fetch.Response
+import org.w3c.fetch.SAME_ORIGIN
 
 import kotlinx.browser.window
 import kotlinx.coroutines.await
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
-import org.w3c.fetch.INCLUDE
-import org.w3c.fetch.RequestCredentials
-import org.w3c.fetch.SAME_ORIGIN
 
 /**
  * Perform a mapping operation on a [Response] if it's status is OK or throw an exception otherwise.
@@ -64,6 +63,7 @@ suspend fun post(url: String, headers: Headers, body: dynamic) = request(url, "P
  * @param method HTTP request method
  * @param headers HTTP headers
  * @param body request body
+ * @param credentials
  * @return [Response] instance
  */
 suspend fun request(url: String,

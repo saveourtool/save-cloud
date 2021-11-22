@@ -57,7 +57,11 @@ import kotlin.io.path.name
 import kotlin.io.path.writeLines
 
 @WebFluxTest(controllers = [DownloadFilesController::class])
-@Import(WebConfig::class, NoopWebSecurityConfig::class, TimestampBasedFileSystemRepository::class, TestDataFilesystemRepository::class)
+@Import(
+    WebConfig::class,
+    NoopWebSecurityConfig::class,
+    TimestampBasedFileSystemRepository::class,
+    TestDataFilesystemRepository::class)
 @AutoConfigureWebTestClient
 @EnableConfigurationProperties(ConfigProperties::class)
 @MockBeans(

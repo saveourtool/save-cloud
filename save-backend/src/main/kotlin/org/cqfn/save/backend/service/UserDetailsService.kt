@@ -8,27 +8,27 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
-import reactor.kotlin.core.publisher.toMono
 
+/**
+ * A service that provides `UserDetails`
+ */
 @Service
 class UserDetailsService(
     private val userRepository: UserRepository,
 ) : ReactiveUserDetailsService {
-    override fun findByUsername(username: String): Mono<UserDetails> {
-        return Mono.fromCallable {
-            userRepository.findByName(username)
-        }
-            .filter { it != null }
-            .map { requireNotNull(it) }
-            .map {
-                User.withDefaultPasswordEncoder()
-                    .username(it.name)
-                    .password(it.password)
-                    .authorities(emptyList())
-                    .build()
-            }
-            .switchIfEmpty {
-                Mono.error(UsernameNotFoundException(username))
-            }
+    override fun findByUsername(username: String): Mono<UserDetails> = Mono.fromCallable {
+        userRepository.findByName(username)
     }
+        .filter { it != null }
+        .map { requireNotNull(it) }
+        .map {
+            User.withDefaultPasswordEncoder()
+                .username(it.name)
+                .password(it.password)
+                .authorities(emptyList())
+                .build()
+        }
+        .switchIfEmpty {
+            Mono.error(UsernameNotFoundException(username))
+        }
 }
