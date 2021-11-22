@@ -1,11 +1,13 @@
 package org.cqfn.save.backend.configs
 
 import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Profile
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity
 import org.springframework.security.config.web.server.ServerHttpSecurity
 import org.springframework.security.web.server.SecurityWebFilterChain
 
 @EnableWebFluxSecurity
+@Profile("prod")
 class WebSecurityConfig {
     @Bean
     fun securityWebFilterChain(
@@ -24,5 +26,22 @@ class WebSecurityConfig {
             }
             .and().formLogin()
             .and().build()
+    }
+}
+
+@EnableWebFluxSecurity
+@Profile("test")
+class NoopWebSecurityConfig {
+    @Bean
+    fun securityWebFilterChain(
+        http: ServerHttpSecurity
+    ): SecurityWebFilterChain {
+        return http.authorizeExchange()
+            .anyExchange()
+            .permitAll()
+            .and()
+            .csrf()
+            .disable()
+            .build()
     }
 }
