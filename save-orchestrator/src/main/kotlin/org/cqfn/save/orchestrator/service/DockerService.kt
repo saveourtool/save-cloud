@@ -43,6 +43,8 @@ class DockerService(private val configProperties: ConfigProperties) {
     internal val containerManager = ContainerManager(configProperties.docker)
     private val executionDir = "/run/save-execution"
     private val standardTestSuiteDir = "standard-test-suites"
+
+    @Suppress("NonBooleanPropertyPrefixedWithIs")
     private val isAgentStoppingInProgress = AtomicBoolean(false)
 
     @Autowired
