@@ -26,7 +26,7 @@ if (!file("$buildDir/resources/main/save-$saveCliVersion-linuxX64.kexe").exists(
     tasks.getByName("processResources").finalizedBy("downloadSaveCli")
     tasks.register<Download>("downloadSaveCli") {
         dependsOn("processResources")
-        src("https://github.com/cqfn/save/releases/download/v$saveCliVersion/save-$saveCliVersion-linuxX64.kexe")
+        src("https://github.com/diktat-static-analysis/save/releases/download/v$saveCliVersion/save-$saveCliVersion-linuxX64.kexe")
         dest("$buildDir/resources/main")
     }
 }

@@ -172,7 +172,7 @@ class SaveAgent(internal val config: AgentConfiguration,
             }
         }.forEach {
             launch {
-                // todo: launch on a dedicated thread (https://github.com/cqfn/save-cloud/issues/315)
+                // todo: launch on a dedicated thread (https://github.com/diktat-static-analysis/save-cloud/issues/315)
                 sendDataToBackend {
                     sendReport(it)
                 }

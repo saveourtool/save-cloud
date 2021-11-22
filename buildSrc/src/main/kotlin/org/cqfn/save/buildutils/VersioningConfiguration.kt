@@ -52,7 +52,7 @@ fun Project.getSaveCliVersion(): String {
         findProperty("saveCliVersion") as String? ?: run {
             // as fallback, use latest release to allow the project to build successfully
             val latestRelease = ResourceGroovyMethods.getText(
-                URL("https://api.github.com/repos/cqfn/save/releases/latest")
+                URL("https://api.github.com/repos/diktat-static-analysis/save/releases/latest")
             )
             (groovy.json.JsonSlurper().parseText(latestRelease) as Map<String, Any>)["tag_name"].let {
                 (it as String).trim('v')

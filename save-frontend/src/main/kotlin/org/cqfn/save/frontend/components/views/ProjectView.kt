@@ -476,7 +476,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                                         attrs["popover-title"] =
                                                 "Use the following link to read more about save format:"
                                         attrs["popover-content"] =
-                                                "<a href =\"https://github.com/cqfn/save/blob/main/README.md\" > Save core README </a>"
+                                                "<a href =\"https://github.com/diktat-static-analysis/save/blob/main/README.md\" > Save core README </a>"
                                         attrs["data-trigger"] = "focus"
                                         attrs["tabindex"] = "0"
                                     }
@@ -808,12 +808,12 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
     companion object {
         const val TEST_ROOT_DIR_HINT = """
             The path you are providing should be relative to the root directory of your repository.
-            This directory should contain <a href = "https://github.com/cqfn/save#how-to-configure"> save.properties </a>
-            or <a href = "https://github.com/cqfn/save#-savetoml-configuration-file">save.toml</a> files. 
+            This directory should contain <a href = "https://github.com/diktat-static-analysis/save#how-to-configure"> save.properties </a>
+            or <a href = "https://github.com/diktat-static-analysis/save#-savetoml-configuration-file">save.toml</a> files.
             For example, if the URL to your repo with tests is: 
-            <a href ="https://github.com/cqfn/save/">https://github.com/cqfn/save</a>, then 
+            <a href ="https://github.com/diktat-static-analysis/save/">https://github.com/diktat-static-analysis/save</a>, then
             you need to specify the following directory with 'save.toml': 
-            <a href ="https://github.com/cqfn/save/tree/main/examples/kotlin-diktat">examples/kotlin-diktat/</a>. 
+            <a href ="https://github.com/diktat-static-analysis/save/tree/main/examples/kotlin-diktat">examples/kotlin-diktat/</a>.
  
             Please note, that the tested tool and it's resources will be copied to this directory before the run.
             """

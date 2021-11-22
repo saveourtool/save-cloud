@@ -197,7 +197,7 @@ class DockerService(private val configProperties: ConfigProperties) {
         )
         val baseImage = execution.sdk
         val aptCmd = "apt-get ${configProperties.aptExtraFlags}"
-        // fixme: https://github.com/cqfn/save-cloud/issues/352
+        // fixme: https://github.com/diktat-static-analysis/save-cloud/issues/352
         val additionalRunCmd = if (execution.sdk.startsWith(Python.NAME, ignoreCase = true)) {
             """|RUN env DEBIAN_FRONTEND="noninteractive" $aptCmd install zip
                |RUN curl -s "https://get.sdkman.io" | bash
@@ -239,7 +239,7 @@ class DockerService(private val configProperties: ConfigProperties) {
 
     @Suppress("UnsafeCallOnNullableType")
     private fun copyTestSuitesToResourcesPath(testSuitesForDocker: List<TestSuiteDto>, destination: File) {
-        // TODO: https://github.com/cqfn/save-cloud/issues/321
+        // TODO: https://github.com/diktat-static-analysis/save-cloud/issues/321
         log.info("Copying suites ${testSuitesForDocker.map { it.name }} into $destination")
         testSuitesForDocker.forEach {
             val standardTestSuiteAbsolutePath = File(configProperties.testResources.basePath)
