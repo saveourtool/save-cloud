@@ -26,6 +26,11 @@ kotlin {
         browser {
             repositories {
                 mavenCentral()
+                maven("https://oss.sonatype.org/content/repositories/snapshots") {
+                    content {
+                        includeGroup("org.cqfn.save")
+                    }
+                }
             }
         }
         binaries.executable()  // already default for LEGACY, but explicitly needed for IR
