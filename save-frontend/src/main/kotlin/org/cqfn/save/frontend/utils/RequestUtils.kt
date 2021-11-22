@@ -16,6 +16,7 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import org.w3c.fetch.INCLUDE
 import org.w3c.fetch.RequestCredentials
+import org.w3c.fetch.SAME_ORIGIN
 
 /**
  * Perform a mapping operation on a [Response] if it's status is OK or throw an exception otherwise.
@@ -54,7 +55,7 @@ suspend fun get(url: String, headers: Headers) = request(url, "GET", headers)
  * @param body request body
  * @return [Response] instance
  */
-suspend fun post(url: String, headers: Headers, body: dynamic) = request(url, "POST", headers, body, RequestCredentials.INCLUDE)
+suspend fun post(url: String, headers: Headers, body: dynamic) = request(url, "POST", headers, body, RequestCredentials.SAME_ORIGIN)
 
 /**
  * Perform an HTTP request using Fetch API. Suspending function that returns a [Response] - a JS promise with result.
