@@ -7,7 +7,7 @@ import org.springframework.security.config.web.server.ServerHttpSecurity
 import org.springframework.security.web.server.SecurityWebFilterChain
 
 @EnableWebFluxSecurity
-@Profile("prod")
+@Profile("!test")
 class WebSecurityConfig {
     @Bean
     fun securityWebFilterChain(
@@ -24,7 +24,11 @@ class WebSecurityConfig {
                     .pathMatchers("/**")
                     .authenticated()
             }
-            .and().formLogin()
+            .and().run {
+                // FixMe: Properly support CSRF protection
+                csrf().disable()
+            }
+            .formLogin()
             .and().build()
     }
 }
