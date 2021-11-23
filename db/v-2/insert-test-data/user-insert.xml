@@ -10,11 +10,13 @@
             <column name="id" value="1" />
             <column name="name" value="admin" />
             <column name="password" value="admin" />
+            <column name="role" value="ADMIN" />
         </insert>
         <insert dbms="mysql" tableName="user">
             <column name="id" value="2" />
             <column name="name" value="John Doe" />
             <column name="password" value="pass" />
+            <column name="role" value="USER" />
         </insert>
     </changeSet>
 

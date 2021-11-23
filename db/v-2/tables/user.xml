@@ -17,6 +17,7 @@
             </column>
             <column name="name" type="varchar(64)"/>
             <column name="password" type="varchar(64)"/>
+            <column name="role" type="varchar(64)"/>
         </createTable>
 
         <rollback>

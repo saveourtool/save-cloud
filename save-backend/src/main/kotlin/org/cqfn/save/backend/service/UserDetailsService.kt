@@ -25,6 +25,7 @@ class UserDetailsService(
             User.withDefaultPasswordEncoder()
                 .username(it.name)
                 .password(it.password)
+                .roles(it.role)
                 .authorities(emptyList())
                 .build()
         }
