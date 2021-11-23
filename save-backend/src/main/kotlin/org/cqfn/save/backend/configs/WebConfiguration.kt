@@ -34,8 +34,7 @@ class WebConfiguration {
                 ok().header("Content-Type", "text/html; charset=utf8").bodyValue(html)
             }.switchIfEmpty {
                 // if not, redirect to the login page
-                val origin = request.localAddress().map { it.hostString }.get()
-                status(HttpStatus.FOUND).header("Location", "$origin/login").build()
+                status(HttpStatus.FOUND).header("Location", "/login").build()
             }
         }
     }
