@@ -43,6 +43,8 @@ class DockerService(private val configProperties: ConfigProperties) {
     internal val containerManager = ContainerManager(configProperties.docker)
     private val executionDir = "/run/save-execution"
     private val standardTestSuiteDir = "standard-test-suites"
+
+    @Suppress("NonBooleanPropertyPrefixedWithIs")
     private val isAgentStoppingInProgress = AtomicBoolean(false)
 
     @Autowired
@@ -194,13 +196,7 @@ class DockerService(private val configProperties: ConfigProperties) {
             saveCli
         )
         val baseImage = execution.sdk
-        val aptHttpProxy = System.getenv("APT_HTTP_PROXY")
-        val aptHttpsProxy = System.getenv("APT_HTTPS_PROXY")
-        val aptCmd = if (aptHttpProxy == null && aptHttpsProxy == null) {
-            "apt-get"
-        } else {
-            "apt-get -o Acquire::http::proxy=\"$aptHttpProxy\" -o Acquire::https::proxy=\"$aptHttpsProxy\""
-        }
+        val aptCmd = "apt-get ${configProperties.aptExtraFlags}"
         // fixme: https://github.com/cqfn/save-cloud/issues/352
         val additionalRunCmd = if (execution.sdk.startsWith(Python.NAME, ignoreCase = true)) {
             """|RUN env DEBIAN_FRONTEND="noninteractive" $aptCmd install zip

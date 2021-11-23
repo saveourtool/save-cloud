@@ -2,7 +2,7 @@
  * A view with project details
  */
 
-@file:Suppress("WildcardImport", "FILE_WILDCARD_IMPORTS")
+@file:Suppress("WildcardImport", "FILE_WILDCARD_IMPORTS", "LargeClass")
 
 package org.cqfn.save.frontend.components.views
 
@@ -671,7 +671,9 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
             } else {
                 responseFromDeleteProject.text().then {
                     setState {
+                        errorLabel = "Failed to delete project"
                         errorMessage = it
+                        isErrorOpen = true
                     }
                 }
             }

@@ -2,6 +2,7 @@ package org.cqfn.save.backend.controllers
 
 import org.cqfn.save.agent.TestExecutionDto
 import org.cqfn.save.backend.service.TestExecutionService
+import org.cqfn.save.domain.TestResultLocation
 import org.cqfn.save.domain.TestResultStatus
 import org.cqfn.save.test.TestDto
 import org.slf4j.LoggerFactory
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.server.ResponseStatusException
 
 /**
  * Controller to work with test execution
@@ -51,11 +53,24 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
         .map { it.toDto() }
 
     /**
+     * Finds TestExecution by test location, returns 404 if not found
+     *
+     * @param executionId under this executionId test has been executed
+     * @param testResultLocation location of the test
+     * @return TestExecution
+     */
+    @PostMapping("/testExecutions")
+    fun getTestExecutionByLocation(@RequestParam executionId: Long,
+                                   @RequestBody testResultLocation: TestResultLocation,
+    ): TestExecutionDto = testExecutionService.getTestExecution(executionId, testResultLocation)
+        .map { it.toDto() }
+        .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "Test execution not found for executionId=$executionId and $testResultLocation") }
+
+    /**
      * Returns number of TestExecutions with this [executionId]
      *
      * @param executionId an ID of Execution to group TestExecutions
      */
-    @Suppress("KDOC_WITHOUT_RETURN_TAG")  // https://github.com/cqfn/diKTat/issues/965
     @GetMapping("/testExecutionsCount")
     fun getTestExecutionsCount(@RequestParam executionId: Long) =
             testExecutionService.getTestExecutionsCount(executionId)

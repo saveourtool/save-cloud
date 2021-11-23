@@ -27,6 +27,7 @@ services:
       - "/var/run/docker.sock:/var/run/docker.sock"
       - save:/home/cnb
       - /home/saveu/executionLogs:/home/cnb/executionLogs/
+      - /home/saveu/configs/orchestrator:/home/cnb/config
     extra_hosts:
       - "host.docker.internal:host-gateway"
     deploy:
@@ -45,11 +46,7 @@ services:
       - db_url
     volumes:
       - save-fs-storage:/home/cnb/files
-    entrypoint: /bin/bash
-    command: [
-    "-c",
-    'mkdir -p /home/cnb/files/ && /cnb/process/web'
-    ]
+      - /home/saveu/configs/backend:/home/cnb/config
     ports:
       - "5000:5000"
     deploy:
@@ -63,16 +60,16 @@ services:
     volumes:
       - save:/home/cnb/
       - save-fs-storage:/home/cnb/files
-    entrypoint: /bin/bash
-    command: [
-    "-c",
-    'mkdir -p /home/cnb/files/ && /cnb/process/web'
-    ]
+      - /home/saveu/configs/preprocessor:/home/cnb/config
     ports:
       - "5200:5200"
     deploy:
       labels:
         - "prometheus-job=save-preprocessor"
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
     logging: *loki-logging-jvm
   prometheus:
     image: prom/prometheus

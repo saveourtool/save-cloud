@@ -9,6 +9,14 @@ import org.cqfn.save.domain.FileInfo
 import org.w3c.files.Blob
 import org.w3c.files.BlobPropertyBag
 import org.w3c.xhr.FormData
+import react.RBuilder
+import react.dom.br
+import react.dom.samp
+import react.dom.small
+import react.dom.table
+import react.dom.tbody
+import react.dom.td
+import react.dom.tr
 
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
@@ -41,3 +49,40 @@ inline fun <reified T> FormData.appendJson(name: String, obj: T) =
                 BlobPropertyBag("application/json")
             )
         )
+
+/**
+ * Adds this text to RBuilder line by line, separating with `<br>`
+ *
+ * @param text text to display
+ */
+@Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
+internal fun RBuilder.multilineText(text: String) {
+    text.lines().forEach {
+        small {
+            samp {
+                +it
+            }
+        }
+        br { }
+    }
+}
+
+/**
+ * @param text
+ */
+internal fun RBuilder.multilineTextWithIndices(text: String) {
+    table("table table-borderless table-hover table-sm") {
+        tbody {
+            text.lines().filterNot { it.isEmpty() }.forEachIndexed { i, line ->
+                tr {
+                    td {
+                        +"${i + 1}"
+                    }
+                    td {
+                        +line
+                    }
+                }
+            }
+        }
+    }
+}

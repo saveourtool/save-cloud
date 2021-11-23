@@ -10,12 +10,15 @@ import org.gradle.kotlin.dsl.register
 import org.gradle.kotlin.dsl.withType
 import org.springframework.boot.gradle.tasks.bundling.BootBuildImage
 import java.io.ByteArrayOutputStream
+import java.nio.file.Files
+import java.nio.file.Paths
 
 const val MYSQL_STARTUP_DELAY_MILLIS = 10_000L
 
 /**
  * @param profile deployment profile, used, for example, to start SQL database in dev profile only
  */
+@OptIn(ExperimentalStdlibApi::class)
 @Suppress("TOO_LONG_FUNCTION", "TOO_MANY_LINES_IN_LAMBDA")
 fun Project.createStackDeployTask(profile: String) {
     tasks.register("generateComposeFile") {
@@ -56,17 +59,42 @@ fun Project.createStackDeployTask(profile: String) {
 
     tasks.register<Exec>("deployDockerStack") {
         dependsOn("liquibaseUpdate")
-        dependsOn(subprojects.flatMap { it.tasks.withType<BootBuildImage>() })
         dependsOn("generateComposeFile")
+        subprojects {
+            // in case bootBuildImage tasks are also requested, they should run before deployment task
+            tasks.withType<BootBuildImage>().configureEach {
+                this@register.shouldRunAfter(this)
+            }
+        }
+
+        val useOverride = (findProperty("useOverride") as String?).toBoolean()
+        val configsDir = Paths.get("${System.getProperty("user.home")}/configs")
         doFirst {
             copy {
                 description = "Copy configuration files from repo to actual locations"
                 from("save-deploy")
-                into("${System.getProperty("user.home")}/configs")
+                into(configsDir)
             }
+            // create directories for optional property files
+            Files.createDirectories(configsDir.resolve("backend"))
+            Files.createDirectories(configsDir.resolve("orchestrator"))
+            Files.createDirectories(configsDir.resolve("preprocessor"))
         }
-        description = "Deploy to docker swarm. If swarm contains more than one node, some registry for built images is requried."
-        commandLine("docker", "stack", "deploy", "--compose-file", "$buildDir/docker-compose.yaml", "save")
+        description = "Deploy to docker swarm. If swarm contains more than one node, some registry for built images is required."
+        val args = buildList {
+            add("--compose-file")
+            add("${rootProject.buildDir}/docker-compose.yaml")
+            if (useOverride) {
+                add("--compose-file")
+                add("$rootDir/docker-compose.override.yaml")
+            }
+        }.toTypedArray()
+        commandLine("docker", "stack", "deploy", *args, "save")
+    }
+
+    tasks.register("buildAndDeployDockerStack") {
+        dependsOn(subprojects.flatMap { it.tasks.withType<BootBuildImage>() })
+        dependsOn("deployDockerStack")
     }
 
     tasks.register<Exec>("stopDockerStack") {
