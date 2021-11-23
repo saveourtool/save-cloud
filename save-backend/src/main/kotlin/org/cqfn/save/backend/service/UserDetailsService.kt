@@ -22,7 +22,7 @@ class UserDetailsService(
         .filter { it != null }
         .map { requireNotNull(it) }
         .map {
-            User.withDefaultPasswordEncoder()
+            User.builder()
                 .username(it.name)
                 .password(it.password)
                 .roles(it.role)
