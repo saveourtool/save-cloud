@@ -37,8 +37,7 @@ sealed class ExecutionRequestBase {
 data class ExecutionRequest(
     override val project: Project,
     val gitDto: GitDto,
-    // empty testRootPath is not valid and user needs to pass "." instead. Let's make it as a default by for now.
-    val testRootPath: String = ".",
+    val testRootPath: String,
     override val sdk: Sdk,
     val executionId: Long?,
 ) : ExecutionRequestBase()

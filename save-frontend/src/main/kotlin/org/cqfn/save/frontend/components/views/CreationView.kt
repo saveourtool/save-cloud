@@ -19,7 +19,6 @@ import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.HTMLTextAreaElement
 import org.w3c.dom.events.Event
 import org.w3c.fetch.Headers
-import org.w3c.fetch.Response
 import react.PropsWithChildren
 import react.RBuilder
 import react.RComponent
@@ -104,7 +103,6 @@ enum class GitConnectionStatusEnum {
 @OptIn(ExperimentalJsExport::class)
 class CreationView : RComponent<PropsWithChildren, ProjectSaveViewState>() {
     private val fieldsMap: MutableMap<InputTypes, String> = mutableMapOf()
-    private lateinit var responseFromCreationProject: Response
 
     init {
         state.isErrorWithProjectSave = false
@@ -181,11 +179,12 @@ class CreationView : RComponent<PropsWithChildren, ProjectSaveViewState>() {
             it.set("Accept", "application/json")
             it.set("Content-Type", "application/json")
         }
+        val winLocation = window.location.origin
         GlobalScope.launch {
-            responseFromCreationProject =
-                    post("${window.location.origin}/saveProject", headers, Json.encodeToString(newProjectRequest))
-        }.invokeOnCompletion {
-            if (responseFromCreationProject.ok) {
+            val responseFromCreationProject =
+                    post("$winLocation/saveProject", headers, Json.encodeToString(newProjectRequest))
+
+            if (responseFromCreationProject.ok == true) {
                 window.location.href =
                         "${window.location.origin}#/" +
                                 "${newProjectRequest.project.owner.replace(" ", "%20")}/" +

@@ -73,7 +73,7 @@ class ProjectController {
     fun saveProject(@RequestBody newProjectDto: NewProjectDto): ResponseEntity<String>? {
         val (projectId, projectStatus) = projectService.saveProject(newProjectDto.project)
         if (projectStatus == ProjectSaveStatus.EXIST) {
-            log.warn("Project with id = $projectId already exist")
+            log.warn("Project with id = $projectId already exists")
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(projectStatus.message)
         }
         log.info("Save new project id = $projectId")
