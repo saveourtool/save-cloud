@@ -2,7 +2,7 @@
  * Component for SDK selection
  */
 
-@file:Suppress("FILE_NAME_MATCH_CLASS")
+@file:Suppress("FILE_NAME_MATCH_CLASS", "WildcardImport", "FILE_WILDCARD_IMPORTS")
 
 package org.cqfn.save.frontend.components.basic
 
@@ -11,13 +11,13 @@ import org.cqfn.save.domain.sdks
 
 import org.w3c.dom.HTMLSelectElement
 import react.PropsWithChildren
+import react.dom.*
 import react.fc
 
 import kotlinx.html.Tag
 import kotlinx.html.classes
 import kotlinx.html.id
 import kotlinx.html.js.onChangeFunction
-import react.dom.*
 
 /**
  * Props for SdkSelection component

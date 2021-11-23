@@ -19,7 +19,6 @@ import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.HTMLTextAreaElement
 import org.w3c.dom.events.Event
 import org.w3c.fetch.Headers
-import org.w3c.fetch.Response
 import react.PropsWithChildren
 import react.RBuilder
 import react.RComponent
@@ -183,13 +182,13 @@ class CreationView : RComponent<PropsWithChildren, ProjectSaveViewState>() {
         val winLocation = window.location.origin
         GlobalScope.launch {
             val responseFromCreationProject =
-                    post("${winLocation}/saveProject", headers, Json.encodeToString(newProjectRequest))
+                    post("$winLocation/saveProject", headers, Json.encodeToString(newProjectRequest))
 
             if (responseFromCreationProject.ok == true) {
                 window.location.href =
-                    "${window.location.origin}#/" +
-                            "${newProjectRequest.project.owner.replace(" ", "%20")}/" +
-                            newProjectRequest.project.name.replace(" ", "%20")
+                        "${window.location.origin}#/" +
+                                "${newProjectRequest.project.owner.replace(" ", "%20")}/" +
+                                newProjectRequest.project.name.replace(" ", "%20")
             } else {
                 responseFromCreationProject.text().then {
                     setState {

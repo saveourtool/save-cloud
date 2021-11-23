@@ -15,7 +15,6 @@ import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.frontend.components.basic.*
 import org.cqfn.save.frontend.externals.fontawesome.faCalendarAlt
 import org.cqfn.save.frontend.externals.fontawesome.faHistory
-import org.cqfn.save.frontend.externals.fontawesome.faQuestionCircle
 import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
 import org.cqfn.save.frontend.externals.modal.modal
 import org.cqfn.save.frontend.utils.*
@@ -237,7 +236,6 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
             }
         }
     }
-
 
     @Suppress("UnsafeCallOnNullableType")
     private fun submitExecutionRequestWithStandardTests() {
@@ -536,28 +534,28 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
     }
 
     private fun postFileUpload(element: HTMLInputElement) =
-        GlobalScope.launch {
-            setState {
-                isLoading = true
-            }
-            element.files!!.asList().forEach { file ->
-                val response: FileInfo = post(
-                    "${window.location.origin}/files/upload",
-                    Headers(),
-                    FormData().apply {
-                        append("file", file)
-                    }
-                )
-                    .decodeFromJsonString()
+            GlobalScope.launch {
                 setState {
-                    // add only to selected files so that this entry isn't duplicated
-                    files.add(response)
+                    isLoading = true
+                }
+                element.files!!.asList().forEach { file ->
+                    val response: FileInfo = post(
+                        "${window.location.origin}/files/upload",
+                        Headers(),
+                        FormData().apply {
+                            append("file", file)
+                        }
+                    )
+                        .decodeFromJsonString()
+                    setState {
+                        // add only to selected files so that this entry isn't duplicated
+                        files.add(response)
+                    }
+                }
+                setState {
+                    isLoading = false
                 }
             }
-            setState {
-                isLoading = false
-            }
-        }
 
     private fun turnEditMode(off: Boolean) {
         projectInformation.keys.forEach {
@@ -586,10 +584,14 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
         div(divClass) {
             button(type = ButtonType.button) {
                 attrs.classes =
-                    if (state.testingType == selectedTestingType) setOf("btn", "btn-primary") else setOf(
-                        "btn",
-                        "btn-outline-primary"
-                    )
+                        if (state.testingType == selectedTestingType) {
+                            setOf("btn", "btn-primary")
+                        } else {
+                            setOf(
+                                "btn",
+                                "btn-outline-primary"
+                            )
+                        }
                 attrs.onClickFunction = {
                     setState {
                         testingType = selectedTestingType
@@ -614,8 +616,8 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
             state.gitUrlFromInputField.isBlank() && state.testingType == TestingType.CUSTOM_TESTS -> setState {
                 isErrorOpen = true
                 errorMessage =
-                    "Git Url with test suites in save format was not provided,but it is required for the testing process." +
-                            " Save is not able to run your tests without an information of where to download them from."
+                        "Git Url with test suites in save format was not provided,but it is required for the testing process." +
+                                " Save is not able to run your tests without an information of where to download them from."
                 errorLabel = "Git Url"
             }
             // no binaries were provided
@@ -664,7 +666,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
         }
         GlobalScope.launch {
             responseFromDeleteProject =
-                post("${window.location.origin}/updateProject", headers, Json.encodeToString(project))
+                    post("${window.location.origin}/updateProject", headers, Json.encodeToString(project))
         }.invokeOnCompletion {
             if (responseFromDeleteProject.ok) {
                 window.location.href = "${window.location.origin}/"
@@ -690,7 +692,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
             setState {
                 errorLabel = "Failed to fetch latest execution"
                 errorMessage =
-                    "Failed to fetch latest execution: [${response.status}] ${response.statusText}"
+                        "Failed to fetch latest execution: [${response.status}] ${response.statusText}"
                 isErrorOpen = true
             }
         } else {

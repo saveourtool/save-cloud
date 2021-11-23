@@ -96,7 +96,7 @@ class CloningRepositoryControllerTest {
             .thenReturn(project)
         val sdk = Jdk("8")
         val gitRepo = GitDto("1")
-        val executionRequest = ExecutionRequest(project, gitRepo, sdk = sdk, executionId = null)
+        val executionRequest = ExecutionRequest(project, gitRepo, sdk = sdk, executionId = null, testRootPath = ".")
         val multipart = MultipartBodyBuilder().apply {
             part("executionRequest", executionRequest)
         }
