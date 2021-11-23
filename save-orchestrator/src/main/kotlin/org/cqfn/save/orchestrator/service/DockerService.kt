@@ -24,11 +24,15 @@ import org.springframework.web.reactive.function.client.bodyToMono
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.LinkOption
+import java.nio.file.Path
+import java.nio.file.Paths
+import java.nio.file.StandardCopyOption
 import java.nio.file.attribute.PosixFileAttributeView
 import java.util.concurrent.atomic.AtomicBoolean
 
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.createTempDirectory
+import kotlin.io.path.name
 import kotlin.random.Random
 
 /**
@@ -175,6 +179,11 @@ class DockerService(private val configProperties: ConfigProperties) {
         val testSuitesDir = resourcesPath.resolve(standardTestSuiteDir)
         // copy corresponding standard test suites to resourcesRootPath dir
         copyTestSuitesToResourcesPath(testSuitesForDocker, testSuitesDir)
+        println("ADDITIONAL FILES")
+        execution.additionalFiles?.split(";")?.filter { it.isNotBlank() }?.forEach {
+            log.info("Move additional file ${Paths.get(resourcesPath.resolve(File(it).name).absolutePath)} into ${Paths.get(testSuitesDir.absolutePath).resolve(File(it).name)}")
+            Files.move(Paths.get(resourcesPath.resolve(File(it).name).absolutePath), Paths.get(testSuitesDir.absolutePath).resolve(File(it).name))
+        }
         val saveCliExecFlags = if (testSuitesForDocker.isNotEmpty()) {
             // create stub toml config in aim to execute all test suites directories from `testSuitesDir`
             testSuitesDir.resolve("save.toml").apply { createNewFile() }.writeText("[general]")
@@ -248,7 +257,7 @@ class DockerService(private val configProperties: ConfigProperties) {
                     .resolve(it.testRootPath)
                 )
             log.debug("Copying suite ${it.name} from $standardTestSuiteAbsolutePath into $destination/...")
-            standardTestSuiteAbsolutePath.copyRecursively(destination.resolve("${it.name}_${it.testRootPath.hashCode()}_${Random.nextInt()}"))
+            standardTestSuiteAbsolutePath.copyRecursively(destination.resolve("${it.name.filter { !it.isWhitespace() }}_${it.testRootPath.hashCode()}_${Random.nextInt()}"))
         }
         // orchestrator is executed as root (to access docker socket), but files are in a shared volume
         val lookupService = destination.toPath().fileSystem.userPrincipalLookupService
