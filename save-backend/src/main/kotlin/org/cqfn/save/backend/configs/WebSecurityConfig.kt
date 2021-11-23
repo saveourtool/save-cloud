@@ -13,7 +13,7 @@ import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.server.SecurityWebFilterChain
 
 @EnableWebFluxSecurity
-@Profile("!test")
+@Profile("secure")
 @Suppress("MISSING_KDOC_TOP_LEVEL", "MISSING_KDOC_CLASS_ELEMENTS", "MISSING_KDOC_ON_FUNCTION")
 class WebSecurityConfig {
     @Bean
@@ -39,7 +39,7 @@ class WebSecurityConfig {
 }
 
 @EnableWebFluxSecurity
-@Profile("test")
+@Profile("!secure")
 @Suppress("MISSING_KDOC_TOP_LEVEL", "MISSING_KDOC_CLASS_ELEMENTS", "MISSING_KDOC_ON_FUNCTION")
 class NoopWebSecurityConfig {
     @Bean
