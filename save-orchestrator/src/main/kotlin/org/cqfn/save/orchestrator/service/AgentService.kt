@@ -232,9 +232,9 @@ class AgentService {
                 // fixme: do we still need suitesToArgs, since we have execFlags in save.toml?
                 NewJobResponse(
                     tests,
-                    suitesToArgs.values.first() +
+                    //suitesToArgs.values.first() +
                             " --report-type json" +
-                            " --result-output file " //+
+                            " --result-output file --log all" //+
                             //" " + tests.joinToString(separator = " ") { it.filePath }
                 )
             } else {

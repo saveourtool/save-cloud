@@ -117,7 +117,8 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
         val executionId = agent.execution.id!!
         val lostTests: MutableList<TestExecutionDto> = mutableListOf()
         val counters = Counters()
-        testExecutionsDtos.forEach { testExecDto ->
+        testExecutionsDtos.forEach { //testExecDto ->
+            val testExecDto = it.copy(filePath = if (it.filePath.startsWith("STANDARD_")) it.filePath.dropWhile { it != '/' }.drop(1) else it.filePath)
             val foundTestExec = testExecutionRepository.findByExecutionIdAndTestPluginNameAndTestFilePath(
                 executionId,
                 testExecDto.pluginName,
