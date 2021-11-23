@@ -64,12 +64,13 @@ class TestDataFilesystemRepository(configProperties: ConfigProperties,
      * @param testExecution a `TestExecution` that exists in the DB
      * @return path to file with additional data
      */
+    @Suppress("UnsafeCallOnNullableType")
     @Transactional
     fun getLocation(testExecution: TestExecution): Path {
         val test = testExecution.test
         val path = Paths.get(test.filePath)
         val testResultLocation = TestResultLocation(test.testSuite.name, test.pluginName, path.parent.toString(), path.name)
-        return getLocation(testExecution.executionId, testResultLocation)
+        return getLocation(testExecution.execution.id!!, testResultLocation)
     }
 
     /**

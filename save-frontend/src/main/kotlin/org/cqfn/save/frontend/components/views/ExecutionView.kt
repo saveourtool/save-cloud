@@ -139,6 +139,7 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
                             )
                         }.invokeOnCompletion {
                             window.alert("Rerun request successfully submitted")
+                            window.location.reload()
                         }
                     }
                 }
@@ -159,6 +160,17 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
                         td {
                             +"${
                                 it.value.startTimeSeconds
+                                ?.let { Instant.fromEpochSeconds(it, 0) }
+                                ?: "Running"
+                            }"
+                        }
+                    }
+                }
+                column(id = "endTime", header = "End time") {
+                    buildElement {
+                        td {
+                            +"${
+                                it.value.endTimeSeconds
                                 ?.let { Instant.fromEpochSeconds(it, 0) }
                                 ?: "Running"
                             }"

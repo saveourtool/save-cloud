@@ -21,6 +21,7 @@ import org.springframework.transaction.support.TransactionTemplate
 
 import java.nio.file.Paths
 import java.util.concurrent.ConcurrentHashMap
+
 import kotlin.io.path.pathString
 
 /**
@@ -91,6 +92,22 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
             countByExecutionIdAndStatus(executionId, status)
         }
     }
+
+    /**
+     * @param projectId
+     */
+    internal fun deleteTestExecutionWithProjectId(projectId: Long?) {
+        projectId?.let {
+            testExecutionRepository.deleteByExecutionProjectId(projectId)
+        }
+    }
+
+    /**
+     * @param executionIds list of ids
+     * @return Unit
+     */
+    internal fun deleteTestExecutionByExecutionIds(executionIds: List<Long>) =
+            testExecutionRepository.deleteByExecutionIdIn(executionIds)
 
     /**
      * @param testExecutionsDtos
@@ -172,11 +189,12 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
                 log.debug("For execution with id=$executionId test id=$testId already exist in DB, deleting it")
                 testExecutionRepository.deleteAllByExecutionIdAndTestId(executionId, testId)
             }
+            val execution = executionRepository.findById(executionId).get()
             testRepository.findById(testId).ifPresentOrElse({ test ->
                 log.debug("Creating TestExecution for test $testId")
                 val id = testExecutionRepository.save(
                     TestExecution(test,
-                        executionId,
+                        execution,
                         null, TestResultStatus.READY, null, null,
                     )
                 )

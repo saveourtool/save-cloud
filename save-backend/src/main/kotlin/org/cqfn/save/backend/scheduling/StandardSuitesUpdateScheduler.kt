@@ -15,7 +15,6 @@ import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
 import java.time.Duration
-import java.util.Date
 import javax.annotation.PostConstruct
 
 /**
@@ -59,7 +58,11 @@ class StandardSuitesUpdateScheduler(
      * @return when the job will be executed for the first time
      */
     @PostConstruct
-    fun schedule(): Date = scheduler.scheduleJob(jobDetail, trigger)
+    fun schedule() {
+        if (!scheduler.checkExists(jobDetail.key)) {
+            scheduler.scheduleJob(jobDetail, trigger)
+        }
+    }
 
     companion object {
         internal val jobName = UpdateJob::class.simpleName

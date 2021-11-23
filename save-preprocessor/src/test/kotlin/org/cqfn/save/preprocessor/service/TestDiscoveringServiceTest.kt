@@ -37,11 +37,12 @@ class TestDiscoveringServiceTest {
     @BeforeAll
     fun setUp() {
         tmpDir = createTempDirectory(this::class.simpleName)
-        val repo = Git.cloneRepository()
+        Git.cloneRepository()
             .setURI("https://github.com/cqfn/save")
             .setDirectory(tmpDir.toFile())
-            .call()
-        repo.checkout().setName("993aa6228cba0a9f9075fb3aca8a0a8b9196a12a")
+            .call().use {
+                it.checkout().setName("993aa6228cba0a9f9075fb3aca8a0a8b9196a12a").call()
+            }
         rootTestConfig = testDiscoveringService.getRootTestConfig(tmpDir.resolve("examples/kotlin-diktat").toString())
     }
 
