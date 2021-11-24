@@ -184,6 +184,7 @@ class DockerService(private val configProperties: ConfigProperties) {
             log.info("Move additional file ${Paths.get(resourcesPath.resolve(File(it).name).absolutePath)} into ${Paths.get(testSuitesDir.absolutePath).resolve(File(it).name)}")
             Files.move(Paths.get(resourcesPath.resolve(File(it).name).absolutePath), Paths.get(testSuitesDir.absolutePath).resolve(File(it).name), StandardCopyOption.REPLACE_EXISTING)
         }
+
         val saveCliExecFlags = if (testSuitesForDocker.isNotEmpty()) {
             // create stub toml config in aim to execute all test suites directories from `testSuitesDir`
             testSuitesDir.resolve("save.toml").apply { createNewFile() }.writeText("[general]")
@@ -248,6 +249,7 @@ class DockerService(private val configProperties: ConfigProperties) {
 
     @Suppress("UnsafeCallOnNullableType")
     private fun copyTestSuitesToResourcesPath(testSuitesForDocker: List<TestSuiteDto>, destination: File) {
+        destination.deleteRecursively()
         // TODO: https://github.com/diktat-static-analysis/save-cloud/issues/321
         log.info("Copying suites ${testSuitesForDocker.map { it.name }} into $destination")
         testSuitesForDocker.forEach {
@@ -256,8 +258,9 @@ class DockerService(private val configProperties: ConfigProperties) {
                 .resolve(File("${listOf(it.testSuiteRepoUrl!!).hashCode()}")
                     .resolve(it.testRootPath)
                 )
-            log.debug("Copying suite ${it.name} from $standardTestSuiteAbsolutePath into $destination/...")
-            standardTestSuiteAbsolutePath.copyRecursively(destination.resolve("STANDARD_${it.name.filter { !it.isWhitespace() }}_${it.testRootPath.hashCode()}_${Random.nextInt()}"))
+            val newDestination = destination.resolve("STANDARD_${it.testSuiteRepoUrl.hashCode()}_${it.testRootPath.hashCode()}")
+            log.info("Copying suite ${it.name} from $standardTestSuiteAbsolutePath into $newDestination/...")
+            standardTestSuiteAbsolutePath.copyRecursively(newDestination, overwrite = true)
         }
         // orchestrator is executed as root (to access docker socket), but files are in a shared volume
         val lookupService = destination.toPath().fileSystem.userPrincipalLookupService
@@ -290,7 +293,6 @@ class DockerService(private val configProperties: ConfigProperties) {
             agentPropertiesFile
         )
         val cliCommand = "./$SAVE_CLI_EXECUTABLE_NAME$saveCliExecFlags"
-        println("\n\n\nSAVE CLI COMMAND ${cliCommand}")
         agentPropertiesFile.writeText(
             agentPropertiesFile.readLines().joinToString(System.lineSeparator()) {
                 if (it.startsWith("id=")) {

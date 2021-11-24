@@ -114,7 +114,7 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
         val agent = requireNotNull(agentRepository.findByContainerId(agentContainerId)) {
             "Agent with containerId=[$agentContainerId] was not found in the DB"
         }
-        println("\n\n\nCurr agent ${agentContainerId}")
+
         val executionId = agent.execution.id!!
         val lostTests: MutableList<TestExecutionDto> = mutableListOf()
         val counters = Counters()
@@ -125,6 +125,7 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
                 testExecDto.pluginName,
                 testExecDto.filePath
             )
+            val testExecutionId = foundTestExec.get().id
             foundTestExec.also {
                 if (it.isEmpty) {
                     log.error("Test execution $testExecDto for execution id=$executionId was not found in the DB")
@@ -147,7 +148,7 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
                 },
                     {
                         lostTests.add(testExecDto)
-                        log.error("Test execution $testExecDto for execution id=$executionId cannot be updated because its status is not RUNNING")
+                        log.error("Test execution $testExecDto with id=${testExecutionId} for execution id=$executionId cannot be updated because its status is not RUNNING")
                     })
         }
         val lock = locks.computeIfAbsent(executionId) { Any() }
