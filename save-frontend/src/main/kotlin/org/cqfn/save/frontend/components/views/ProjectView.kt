@@ -15,7 +15,6 @@ import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.frontend.components.basic.*
 import org.cqfn.save.frontend.externals.fontawesome.faCalendarAlt
 import org.cqfn.save.frontend.externals.fontawesome.faHistory
-import org.cqfn.save.frontend.externals.fontawesome.faQuestionCircle
 import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
 import org.cqfn.save.frontend.externals.modal.modal
 import org.cqfn.save.frontend.utils.*
@@ -121,7 +120,7 @@ external interface ProjectViewState : State {
     /**
      * Flag to handle upload type project
      */
-    var isFirstTypeUpload: Boolean?
+    var testingType: TestingType
 
     /**
      * Sumbit button was pressed
@@ -129,9 +128,19 @@ external interface ProjectViewState : State {
     var isSubmitButtonPressed: Boolean?
 
     /**
-     * state for the creation of unified confirmation logic
+     * State for the creation of unified confirmation logic
      */
     var confirmationType: ConfirmationType
+
+    /**
+     * Url to the custom tests
+     */
+    var gitUrlFromInputField: String
+
+    /**
+     * Directory in the repository where tests are placed
+     */
+    var testRootPath: String
 }
 
 /**
@@ -152,9 +161,7 @@ enum class ConfirmationType {
 @OptIn(ExperimentalJsExport::class)
 class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
     private var standardTestSuites: List<TestSuiteDto> = emptyList()
-    private var testRootPath: String? = null
-    private var gitUrlFromInputField: String? = null
-    private val selectedTypes: MutableList<String> = mutableListOf()
+    private val selectedStandardSuites: MutableList<String> = mutableListOf()
     private var gitDto: GitDto? = null
     private var project = Project("stub", "stub", "stub", "stub", ProjectStatus.CREATED)
     private val projectInformation = mutableMapOf(
@@ -166,18 +173,15 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
     private lateinit var responseFromDeleteProject: Response
 
     init {
+        state.gitUrlFromInputField = ""
+        state.testRootPath = ""
         state.confirmationType = ConfirmationType.NO_CONFIRM
-
+        state.testingType = TestingType.CUSTOM_TESTS
         state.isErrorOpen = false
         state.isSubmitButtonPressed = false
-
         state.errorMessage = ""
         state.errorLabel = ""
-
-        state.isFirstTypeUpload = true
-
         state.isLoading = true
-
         state.files = mutableListOf()
         state.availableFiles = mutableListOf()
         state.selectedSdk = Sdk.Default.name
@@ -208,29 +212,28 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
 
     @Suppress("ComplexMethod", "TOO_LONG_FUNCTION")
     private fun submitExecutionRequest() {
-        // URL is required in all cases, the processing should not be done without it
-        if (gitUrlFromInputField.isNullOrBlank()) {
-            return
-        }
-
-        if (state.isFirstTypeUpload == true) {
-            gitUrlFromInputField?.let {
-                val newGitDto = gitDto?.copy(url = it) ?: GitDto(url = it)
-                submitExecutionRequestWithCustomTests(newGitDto)
-            } ?: gitDto?.let {
-                submitExecutionRequestWithCustomTests(it)
-            }
-        } else {
-            if (selectedTypes.isEmpty()) {
-                setState {
-                    isErrorOpen = true
-                    errorLabel = "Both type of project"
-                    errorMessage = "Please choose one of type test suites"
+        when (state.testingType) {
+            TestingType.CUSTOM_TESTS -> {
+                val urlWithTests = state.gitUrlFromInputField
+                // URL is required in all cases, the processing should not be done without it
+                if (urlWithTests.isBlank()) {
+                    return
+                } else {
+                    val newGitDto = gitDto?.copy(url = urlWithTests) ?: GitDto(url = urlWithTests)
+                    submitExecutionRequestWithCustomTests(newGitDto)
                 }
-                return
             }
-
-            submitExecutionRequestWithStandardTests()
+            else -> {
+                if (selectedStandardSuites.isEmpty()) {
+                    setState {
+                        isErrorOpen = true
+                        errorLabel = "Both type of project"
+                        errorMessage = "Please choose one of type test suites"
+                    }
+                    return
+                }
+                submitExecutionRequestWithStandardTests()
+            }
         }
     }
 
@@ -239,7 +242,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
         val headers = Headers()
         val formData = FormData()
         val selectedSdk = "${state.selectedSdk}:${state.selectedSdkVersion}".toSdk()
-        val request = ExecutionRequestForStandardSuites(project, selectedTypes, selectedSdk)
+        val request = ExecutionRequestForStandardSuites(project, selectedStandardSuites, selectedSdk)
         formData.appendJson("execution", request)
         state.files.forEach {
             formData.appendJson("file", it)
@@ -250,20 +253,10 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
     private fun submitExecutionRequestWithCustomTests(correctGitDto: GitDto) {
         val selectedSdk = "${state.selectedSdk}:${state.selectedSdkVersion}".toSdk()
         val formData = FormData()
-        val executionRequest = testRootPath?.let {
-            ExecutionRequest(
-                project,
-                correctGitDto,
-                it,
-                selectedSdk,
-                null
-            )
-        } ?: ExecutionRequest(
-            project,
-            correctGitDto,
-            sdk = selectedSdk,
-            executionId = null
-        )
+
+        val testRootPath = if (state.testRootPath.isBlank()) "." else state.testRootPath
+        val executionRequest = ExecutionRequest(project, correctGitDto, testRootPath, selectedSdk, null)
+
         formData.appendJson("executionRequest", executionRequest)
         state.files.forEach {
             formData.appendJson("file", it)
@@ -333,44 +326,16 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
 
                 child(cardComponent {
                     div("text-left") {
-                        div("mr-2") {
-                            button(type = ButtonType.button) {
-                                attrs.classes =
-                                        if (state.isFirstTypeUpload == true) {
-                                            setOf("btn", "btn-primary")
-                                        } else {
-                                            setOf(
-                                                "btn",
-                                                "btn-outline-primary"
-                                            )
-                                        }
-                                attrs.onClickFunction = {
-                                    setState {
-                                        isFirstTypeUpload = true
-                                    }
-                                }
-                                +"Run your tool with your specific tests from git"
-                            }
-                        }
-                        div("mt-3 mr-2") {
-                            button(type = ButtonType.button, classes = "btn btn-link collapsed") {
-                                attrs.classes =
-                                        if (state.isFirstTypeUpload == true) {
-                                            setOf("btn", "btn-outline-primary")
-                                        } else {
-                                            setOf(
-                                                "btn",
-                                                "btn-primary"
-                                            )
-                                        }
-                                attrs.onClickFunction = {
-                                    setState {
-                                        isFirstTypeUpload = false
-                                    }
-                                }
-                                +"Run your tool with standard test suites"
-                            }
-                        }
+                        testingTypeButton(
+                            TestingType.CUSTOM_TESTS,
+                            "Run your tool with your specific tests from git",
+                            "mr-2"
+                        )
+                        testingTypeButton(
+                            TestingType.STANDARD_BENCHMARKS,
+                            "Run your tool with standard test suites",
+                            "mt-3 mr-2"
+                        )
                     }
                 })
             }
@@ -380,51 +345,28 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                     +"Test configuration"
                 }
 
-                child(
-                    fileUploader(
-                        onFileSelect = { element ->
-                            setState {
-                                val availableFile = availableFiles.first { it.name == element.value }
-                                files.add(availableFile)
-                                availableFiles.remove(availableFile)
-                            }
-                        },
-                        onFileRemove = {
-                            setState {
-                                files.remove(it)
-                                this.availableFiles.add(it)
-                            }
-                        },
-                        onFileInput = { htmlInputElement ->
-                            GlobalScope.launch {
-                                setState {
-                                    isLoading = true
-                                }
-                                htmlInputElement.files!!.asList().forEach { file ->
-                                    val response: FileInfo = post(
-                                        "${window.location.origin}/files/upload",
-                                        Headers(),
-                                        FormData().apply {
-                                            append("file", file)
-                                        }
-                                    )
-                                        .decodeFromJsonString()
-                                    setState {
-                                        // add only to selected files so that this entry isn't duplicated
-                                        files.add(response)
-                                    }
-                                }
-                                setState {
-                                    isLoading = false
-                                }
-                            }
-                        },
-                        onExecutableChange = { selectedFile, checked ->
-                            setState {
-                                files[files.indexOf(selectedFile)] = selectedFile.copy(isExecutable = checked)
-                            }
+                // ======== file selector =========
+                child(fileUploader(
+                    onFileSelect = { element ->
+                        setState {
+                            val availableFile = availableFiles.first { it.name == element.value }
+                            files.add(availableFile)
+                            availableFiles.remove(availableFile)
                         }
-                    )
+                    },
+                    onFileRemove = {
+                        setState {
+                            files.remove(it)
+                            availableFiles.add(it)
+                        }
+                    },
+                    onFileInput = { postFileUpload(it) },
+                    onExecutableChange = { selectedFile, checked ->
+                        setState {
+                            files[files.indexOf(selectedFile)] = selectedFile.copy(isExecutable = checked)
+                        }
+                    }
+                )
                 ) {
                     attrs.isSubmitButtonPressed = state.isSubmitButtonPressed
                     attrs.files = state.files
@@ -432,10 +374,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                     attrs.confirmationType = state.confirmationType
                 }
 
-                h6(classes = "d-inline mr-3") {
-                    +"2. Select the SDK if needed:"
-                }
-
+                // ======== sdk selection =========
                 child(sdkSelection({
                     setState {
                         selectedSdk = it.value
@@ -448,132 +387,41 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                     attrs.selectedSdkVersion = state.selectedSdkVersion
                 }
 
-                h6(classes = "d-inline") {
-                    +"3. Specify test-resources that will be used for testing:"
+                // ======== test resources selection =========
+                child(testResourcesSelection(
+                    updateGitUrlFromInputField = {
+                        setState {
+                            gitUrlFromInputField = (it.target as HTMLInputElement).value
+                        }
+                    },
+                    updateTestRootPath = {
+                        setState {
+                            testRootPath = (it.target as HTMLInputElement).value
+                        }
+                    },
+                    setTestRootPathFromHistory = {
+                        setState {
+                            testRootPath = it
+                        }
+                    }
+                )) {
+                    attrs.testingType = state.testingType
+                    attrs.isSubmitButtonPressed = state.isSubmitButtonPressed
+                    attrs.gitDto = gitDto
+                    // properties for CUSTOM_TESTS mode
+                    attrs.testRootPath = state.testRootPath
+                    attrs.gitUrlFromInputField = state.gitUrlFromInputField
+                    // properties for STANDARD_BENCHMARKS mode
+                    attrs.selectedStandardSuites = selectedStandardSuites
+                    attrs.standardTestSuites = standardTestSuites
                 }
 
-                child(cardComponent {
-                    div {
-                        attrs.classes = if (state.isFirstTypeUpload == true) {
-                            setOf(
-                                "card",
-                                "shadow",
-                                "mb-4",
-                                "w-100",
-                            )
-                        } else {
-                            setOf("d-none")
-                        }
-
-                        div("card-body ") {
-                            div("input-group-sm mb-3") {
-                                div("row") {
-                                    sup("tooltip-and-popover") {
-                                        fontAwesomeIcon(icon = faQuestionCircle)
-                                        attrs["tooltip-placement"] = "top"
-                                        attrs["tooltip-title"] = ""
-                                        attrs["popover-placement"] = "left"
-                                        attrs["popover-title"] =
-                                                "Use the following link to read more about save format:"
-                                        attrs["popover-content"] =
-                                                "<a href =\"https://github.com/cqfn/save/blob/main/README.md\" > Save core README </a>"
-                                        attrs["data-trigger"] = "focus"
-                                        attrs["tabindex"] = "0"
-                                    }
-                                    h6(classes = "d-inline ml-2") {
-                                        +"Git Url of your test suites (in save format):"
-                                    }
-                                }
-                                div("input-group-prepend") {
-                                    input(type = InputType.text) {
-                                        attrs["class"] =
-                                                if (gitUrlFromInputField.isNullOrBlank() && state.isSubmitButtonPressed!!) {
-                                                    "form-control is-invalid"
-                                                } else {
-                                                    "form-control"
-                                                }
-                                        attrs {
-                                            gitUrlFromInputField?.let {
-                                                defaultValue = it
-                                            } ?: gitDto?.url?.let {
-                                                defaultValue = it
-                                            }
-                                            placeholder = "https://github.com/my-project"
-                                            onChangeFunction = {
-                                                val target = it.target as HTMLInputElement
-                                                gitUrlFromInputField = target.value
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-
-                            div("input-group-sm") {
-                                div("row") {
-                                    sup("tooltip-and-popover") {
-                                        fontAwesomeIcon(icon = faQuestionCircle)
-                                        attrs["tooltip-placement"] = "top"
-                                        attrs["tooltip-title"] = ""
-                                        attrs["popover-placement"] = "left"
-                                        attrs["popover-title"] = "Relative path to the root directory with tests"
-                                        attrs["popover-content"] = TEST_ROOT_DIR_HINT
-                                        attrs["data-trigger"] = "focus"
-                                        attrs["tabindex"] = "0"
-                                    }
-                                    h6(classes = "d-inline ml-2") {
-                                        +"Relative path to the root directory with tests in the repo:"
-                                    }
-                                }
-                                div("input-group-prepend") {
-                                    input(type = InputType.text, name = "itemText") {
-                                        key = "itemText"
-                                        attrs.set("class", "form-control")
-                                        attrs {
-                                            testRootPath?.let {
-                                                value = it
-                                            }
-                                            placeholder = "leave empty if tests are in the repository root"
-                                            onChangeFunction = {
-                                                val target = it.target as HTMLInputElement
-                                                testRootPath = target.value
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
+                div("d-sm-flex align-items-center justify-content-center") {
+                    button(type = ButtonType.button, classes = "btn btn-primary") {
+                        attrs.onClickFunction = { submitWithValidation() }
+                        +"Test the tool now"
                     }
-
-                    div {
-                        attrs.classes = if (state.isFirstTypeUpload == false) {
-                            setOf(
-                                "card",
-                                "shadow",
-                                "mb-4",
-                                "w-100",
-                            )
-                        } else {
-                            setOf("d-none")
-                        }
-                        div("card-body") {
-                            child(
-                                checkBoxGrid(
-                                    standardTestSuites
-                                )
-                            ) {
-                                attrs.selectedOptions = selectedTypes
-                                attrs.rowSize = TEST_SUITE_ROW
-                            }
-                        }
-                    }
-
-                    div("d-sm-flex align-items-center justify-content-center") {
-                        button(type = ButtonType.button, classes = "btn btn-primary") {
-                            attrs.onClickFunction = { submitWithValidation() }
-                            +"Test the tool now"
-                        }
-                    }
-                })
+                }
             }
             // ===================== RIGHT COLUMN ======================================================================
             div("col-3 ml-2") {
@@ -591,7 +439,14 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                     val newProjectInformation: MutableMap<String, String> = mutableMapOf()
                     form {
                         projectInformation.putAll(
-                            projectInformation.keys.zip(listOf(project.name, project.description ?: "", project.url ?: "", project.owner))
+                            projectInformation.keys.zip(
+                                listOf(
+                                    project.name,
+                                    project.description ?: "",
+                                    project.url ?: "",
+                                    project.owner
+                                )
+                            )
                         )
                         projectInformation
                             .forEach { (header, text) ->
@@ -678,6 +533,30 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
         }
     }
 
+    private fun postFileUpload(element: HTMLInputElement) =
+            GlobalScope.launch {
+                setState {
+                    isLoading = true
+                }
+                element.files!!.asList().forEach { file ->
+                    val response: FileInfo = post(
+                        "${window.location.origin}/files/upload",
+                        Headers(),
+                        FormData().apply {
+                            append("file", file)
+                        }
+                    )
+                        .decodeFromJsonString()
+                    setState {
+                        // add only to selected files so that this entry isn't duplicated
+                        files.add(response)
+                    }
+                }
+                setState {
+                    isLoading = false
+                }
+            }
+
     private fun turnEditMode(off: Boolean) {
         projectInformation.keys.forEach {
             (document.getElementById(it) as HTMLInputElement).disabled = off
@@ -701,6 +580,28 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
         }
     }
 
+    private fun RBuilder.testingTypeButton(selectedTestingType: TestingType, text: String, divClass: String) {
+        div(divClass) {
+            button(type = ButtonType.button) {
+                attrs.classes =
+                        if (state.testingType == selectedTestingType) {
+                            setOf("btn", "btn-primary")
+                        } else {
+                            setOf(
+                                "btn",
+                                "btn-outline-primary"
+                            )
+                        }
+                attrs.onClickFunction = {
+                    setState {
+                        testingType = selectedTestingType
+                    }
+                }
+                +text
+            }
+        }
+    }
+
     /**
      * In some cases scripts and binaries can be uploaded to a git repository, so users won't be providing or uploading
      * binaries. For this case we should open a window, so user will need to click a check box, so he will confirm that
@@ -712,9 +613,11 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
         }
         when {
             // url was not provided
-            gitUrlFromInputField.isNullOrBlank() && state.isFirstTypeUpload!! -> setState {
+            state.gitUrlFromInputField.isBlank() && state.testingType == TestingType.CUSTOM_TESTS -> setState {
                 isErrorOpen = true
-                errorMessage = "Git Url with test suites in save format was not provided. It is required for processing."
+                errorMessage =
+                        "Git Url with test suites in save format was not provided,but it is required for the testing process." +
+                                " Save is not able to run your tests without an information of where to download them from."
                 errorLabel = "Git Url"
             }
             // no binaries were provided

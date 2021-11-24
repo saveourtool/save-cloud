@@ -54,11 +54,10 @@ fun RBuilder.logoutModal(handler: RHandler<ModalProps>, closeCallback: () -> Uni
         div("modal-footer") {
             button(type = ButtonType.button, classes = "btn btn-secondary") {
                 attrs["data-dismiss"] = "modal"
-                // FixMe: doesn't close now
                 attrs.onClickFunction = { closeCallback() }
                 +"Cancel"
             }
-            a(classes = "btn btn-primary") {
+            a(classes = "btn btn-primary", href = "/logout") {
                 +"Logout"
             }
         }
