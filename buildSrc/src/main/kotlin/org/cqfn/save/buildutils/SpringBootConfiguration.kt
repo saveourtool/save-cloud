@@ -29,12 +29,9 @@ fun Project.configureSpringBoot(withSpringDataJpa: Boolean = false) {
 
     val libs = the<LibrariesForLibs>()
     dependencies {
-        // FixMe: this is mostly all we need for spring security #314 :)
-        // add("implementation", "org.springframework.boot:spring-boot-starter-security:${Versions.springBoot}")
         add("implementation", libs.spring.boot.starter.webflux)
         add("implementation", libs.spring.boot.starter.actuator)
         add("implementation", libs.micrometer.registry.prometheus)  // expose prometheus metrics in actuator
-        add("implementation", libs.spring.security.core)
         add("implementation", libs.jackson.module.kotlin)
         add("implementation", libs.slf4j.api)
         add("implementation", libs.logback.core)

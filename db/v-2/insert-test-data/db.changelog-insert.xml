@@ -5,13 +5,10 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
 
-    <include file="rename-properties-field.xml" relativeToChangelogFile="true"/>
-    <include file="project.xml" relativeToChangelogFile="true"/>
-    <include file="agent-status.xml" relativeToChangelogFile="true"/>
-    <include file="user.xml" relativeToChangelogFile="true"/>
+    <include file="user-insert.xml" relativeToChangelogFile="true"/>
 
-    <changeSet id="02-tables" author="frolov">
-        <tagDatabase tag="v2.0-tables"/>
+    <changeSet id="02-petertrr" author="petertrr">
+        <tagDatabase tag="v2.0-insert"/>
     </changeSet>
 
 </databaseChangeLog>

@@ -22,3 +22,8 @@
 .tooltip-and-popover {
   cursor: pointer;
 }
+
+// Override bootstrap's attribute, that makes buttons in modal-dialog disabled
+.modal-dialog {
+  pointer-events: all;
+}

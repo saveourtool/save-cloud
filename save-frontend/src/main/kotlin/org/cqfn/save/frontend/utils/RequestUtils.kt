@@ -7,6 +7,7 @@ package org.cqfn.save.frontend.utils
 import org.cqfn.save.entities.Project
 
 import org.w3c.fetch.Headers
+import org.w3c.fetch.RequestCredentials
 import org.w3c.fetch.RequestInit
 import org.w3c.fetch.Response
 
@@ -61,18 +62,21 @@ suspend fun post(url: String, headers: Headers, body: dynamic) = request(url, "P
  * @param method HTTP request method
  * @param headers HTTP headers
  * @param body request body
+ * @param credentials [RequestCredentials] for fetch API
  * @return [Response] instance
  */
 suspend fun request(url: String,
                     method: String,
                     headers: Headers,
                     body: dynamic = undefined,
+                    credentials: RequestCredentials? = undefined,
 ): Response = window.fetch(
     input = url,
     RequestInit(
         method = method,
         headers = headers,
         body = body,
+        credentials = credentials,
     )
 )
     .await()
