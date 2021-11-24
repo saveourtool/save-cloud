@@ -10,7 +10,6 @@ import org.w3c.fetch.Headers
 import org.w3c.fetch.RequestCredentials
 import org.w3c.fetch.RequestInit
 import org.w3c.fetch.Response
-import org.w3c.fetch.SAME_ORIGIN
 
 import kotlinx.browser.window
 import kotlinx.coroutines.await
