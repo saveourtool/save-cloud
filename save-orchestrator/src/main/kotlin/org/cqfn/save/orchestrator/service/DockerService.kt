@@ -182,12 +182,12 @@ class DockerService(private val configProperties: ConfigProperties) {
 
         execution.additionalFiles?.split(";")?.filter { it.isNotBlank() }?.forEach {
             log.info("Move additional file ${Paths.get(resourcesPath.resolve(File(it).name).absolutePath)} into ${Paths.get(testSuitesDir.absolutePath).resolve(File(it).name)}")
-            Files.move(Paths.get(resourcesPath.resolve(File(it).name).absolutePath), Paths.get(testSuitesDir.absolutePath).resolve(File(it).name))
+            Files.move(Paths.get(resourcesPath.resolve(File(it).name).absolutePath), Paths.get(testSuitesDir.absolutePath).resolve(File(it).name), StandardCopyOption.REPLACE_EXISTING)
         }
         val saveCliExecFlags = if (testSuitesForDocker.isNotEmpty()) {
             // create stub toml config in aim to execute all test suites directories from `testSuitesDir`
             testSuitesDir.resolve("save.toml").apply { createNewFile() }.writeText("[general]")
-            " \"$standardTestSuiteDir\" --include-suites \"${testSuitesForDocker.joinToString(", ") { it.name }}\""
+            " \"$standardTestSuiteDir\" --include-suites \"${testSuitesForDocker.joinToString(",") { it.name }}\""
         } else {
             ""
         }
@@ -290,6 +290,7 @@ class DockerService(private val configProperties: ConfigProperties) {
             agentPropertiesFile
         )
         val cliCommand = "./$SAVE_CLI_EXECUTABLE_NAME$saveCliExecFlags"
+        println("\n\n\nSAVE CLI COMMAND ${cliCommand}")
         agentPropertiesFile.writeText(
             agentPropertiesFile.readLines().joinToString(System.lineSeparator()) {
                 if (it.startsWith("id=")) {

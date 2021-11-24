@@ -185,7 +185,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                     val resourcesLocation = getResourceLocation(executionType, location, executionRerunRequest.testRootPath, files)
 
                     files.forEach { file ->
-                        log.debug("Copy additional file $file into ${resourcesLocation.resolve(file.name)}")
+                        log.info("Copy additional file $file into ${resourcesLocation.resolve(file.name)}")
                         Files.copy(Paths.get(file.absolutePath), Paths.get(resourcesLocation.resolve(file.name).absolutePath), StandardCopyOption.REPLACE_EXISTING)
                     }
                     sendToBackendAndOrchestrator(
@@ -439,7 +439,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
 
     private fun getTmpDirName(seeds: List<String>) = File("${configProperties.repository}/${seeds.hashCode()}")
 
-    private fun calculateTmpNameForFiles(files: List<File>) = files.map { it.toHash() }
+    private fun calculateTmpNameForFiles(files: List<File>) = files.map { it.toHash() }.sorted()
 
     private fun getExecutionLocation(executionRerunRequest: ExecutionRequest, executionType: ExecutionType) = if (executionType == ExecutionType.GIT) {
         downLoadRepository(executionRerunRequest).map { (location, _) -> location }
