@@ -83,6 +83,7 @@ class TopBar : RComponent<TopBarProps, TopBarState>() {
                         }
                     }
                     props.location.pathname
+                        .substringBeforeLast("?")
                         .split("/")
                         .filterNot { it.isBlank() }
                         .apply {

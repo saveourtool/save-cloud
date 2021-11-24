@@ -55,7 +55,7 @@ class TestExecutionControllerTest {
     @Test
     fun `should count TestExecutions for a particular Execution`() {
         webClient.get()
-            .uri("/testExecutionsCount?executionId=1")
+            .uri("/testExecution/count?executionId=1")
             .exchange()
             .expectBody<Int>()
             .isEqualTo(28)

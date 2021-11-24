@@ -211,7 +211,7 @@ class HistoryView : RComponent<HistoryProps, HistoryViewState>() {
                 column("failed", "Failed") {
                     buildElement {
                         td {
-                            a(href = getHrefToExecution(it.value.id) + "&status=${TestResultStatus.FAILED}") {
+                            a(href = getHrefToExecution(it.value.id) + "?status=${TestResultStatus.FAILED}") {
                                 +"${it.value.failedTests}"
                             }
                         }

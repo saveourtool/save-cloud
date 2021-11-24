@@ -91,7 +91,7 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
                     get("${window.location.origin}/executionDto?executionId=${props.executionId}", headers)
                         .decodeFromJsonString()
             val count: Int = get(
-                url = "${window.location.origin}/testExecutionsCount?executionId=${props.executionId}",
+                url = "${window.location.origin}/testExecution/count?executionId=${props.executionId}",
                 headers = Headers().also {
                     it.set("Accept", "application/json")
                 },
@@ -254,7 +254,7 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
             },
             getPageCount = { pageSize ->
                 val count: Int = get(
-                    url = "${window.location.origin}/testExecutionsCount?executionId=${props.executionId}" +
+                    url = "${window.location.origin}/testExecution/count?executionId=${props.executionId}" +
                             if (props.status != null) "&status=${props.status}" else "",
                     headers = Headers().also {
                         it.set("Accept", "application/json")
