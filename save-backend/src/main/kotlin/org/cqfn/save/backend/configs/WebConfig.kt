@@ -23,15 +23,10 @@ import org.springframework.http.codec.ServerCodecConfigurer
 import org.springframework.http.codec.json.Jackson2JsonDecoder
 import org.springframework.http.codec.json.Jackson2JsonEncoder
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder
-import org.springframework.security.jackson2.CoreJackson2Module
 import org.springframework.web.reactive.config.WebFluxConfigurer
 
 @Configuration
 class WebConfig {
-    @Bean
-    fun objectMapper(): ObjectMapper = ObjectMapper().findAndRegisterModules()
-        .registerModule(CoreJackson2Module())
-
     @Bean
     fun jackson2ObjectMapperBuilderCustomizer() = Jackson2ObjectMapperBuilderCustomizer { jacksonObjectMapperBuilder: Jackson2ObjectMapperBuilder ->
         jacksonObjectMapperBuilder
