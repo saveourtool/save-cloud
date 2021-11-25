@@ -125,8 +125,11 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
         val lostTests: MutableList<TestExecutionDto> = mutableListOf()
         val counters = Counters()
         testExecutionsDtos.forEach {
+            // In standard mode we have extra paths in json reporter, since we created extra directories,
+            // and this information won't be matched with data from DB without such removement
             val filePathWithDroppedPrefixForStandardMode = if (it.filePath.startsWith(PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE)) {
                 it.filePath.dropWhile { it != '/' }.drop(1)
+                // Use filePath as is for Git mode
             } else {
                 it.filePath
             }
@@ -136,8 +139,7 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
                 testExecDto.pluginName,
                 testExecDto.filePath
             )
-            var testExecutionId: Long? = null
-            foundTestExec.ifPresent { testExecutionId = it.id }
+            val testExecutionId: Long? = foundTestExec.map { it.id }.orElse(null)
             foundTestExec.also {
                 if (it.isEmpty) {
                     log.error("Test execution $testExecDto for execution id=$executionId was not found in the DB")
