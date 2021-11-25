@@ -154,6 +154,7 @@ class SaveAgent(internal val config: AgentConfiguration,
         logsSendingJob.join()
     }
 
+    @Suppress("MagicNumber")
     private fun runSave(cliArgs: String): ExecutionResult = ProcessBuilder(true, FileSystem.SYSTEM)
         .exec(config.cliCommand.let { if (cliArgs.isNotEmpty()) "$it $cliArgs" else it }, "", config.logFilePath.toPath(), 100_000L)
 

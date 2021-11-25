@@ -1,5 +1,6 @@
 package org.cqfn.save.backend.service
 
+import org.cqfn.save.PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE
 import org.cqfn.save.agent.TestExecutionDto
 import org.cqfn.save.backend.repository.AgentRepository
 import org.cqfn.save.backend.repository.ExecutionRepository
@@ -103,7 +104,12 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
      * @param testExecutionsDtos
      * @return list of lost tests
      */
-    @Suppress("TOO_MANY_LINES_IN_LAMBDA", "TOO_LONG_FUNCTION", "UnsafeCallOnNullableType")
+    @Suppress(
+        "TOO_MANY_LINES_IN_LAMBDA",
+        "TOO_LONG_FUNCTION",
+        "UnsafeCallOnNullableType",
+        "LongMethod"
+    )
     @Transactional
     fun saveTestResult(testExecutionsDtos: List<TestExecutionDto>): List<TestExecutionDto> {
         log.debug("Saving ${testExecutionsDtos.size} test results from agent ${testExecutionsDtos.first().agentContainerId}")
@@ -119,7 +125,7 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
         val lostTests: MutableList<TestExecutionDto> = mutableListOf()
         val counters = Counters()
         testExecutionsDtos.forEach {
-            val filePathWithDroppedPrefixForStandardMode = if (it.filePath.startsWith("STANDARD_")) {
+            val filePathWithDroppedPrefixForStandardMode = if (it.filePath.startsWith(PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE)) {
                 it.filePath.dropWhile { it != '/' }.drop(1)
             } else {
                 it.filePath
@@ -130,7 +136,8 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
                 testExecDto.pluginName,
                 testExecDto.filePath
             )
-            val testExecutionId = foundTestExec.get().id
+            var testExecutionId: Long? = null
+            foundTestExec.ifPresent { testExecutionId = it.id }
             foundTestExec.also {
                 if (it.isEmpty) {
                     log.error("Test execution $testExecDto for execution id=$executionId was not found in the DB")

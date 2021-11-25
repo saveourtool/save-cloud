@@ -280,7 +280,7 @@ class DownloadProjectTest(
             .isEqualTo("Clone pending")
         Thread.sleep(15_000)
 
-        val dirName = listOf(property, binFile).map { it.toHash() }.hashCode()
+        val dirName = listOf(property, binFile).map { it.toHash() }.sorted().hashCode()
         Assertions.assertTrue(File("${configProperties.repository}/$dirName").exists())
         assertions.forEach { Assertions.assertNotNull(it) }
         Assertions.assertEquals("echo 0", File("${configProperties.repository}/$dirName/${binFile.name}").readText())

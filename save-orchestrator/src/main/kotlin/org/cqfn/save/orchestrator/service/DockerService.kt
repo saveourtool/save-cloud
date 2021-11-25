@@ -1,5 +1,6 @@
 package org.cqfn.save.orchestrator.service
 
+import org.cqfn.save.PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE
 import org.cqfn.save.domain.Python
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.TestSuite
@@ -257,7 +258,7 @@ class DockerService(private val configProperties: ConfigProperties) {
                 .resolve(File("${listOf(it.testSuiteRepoUrl!!).hashCode()}")
                     .resolve(it.testRootPath)
                 )
-            val currentSuiteDestination = destination.resolve("STANDARD_${it.testSuiteRepoUrl.hashCode()}_${it.testRootPath.hashCode()}")
+            val currentSuiteDestination = destination.resolve("$PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE${it.testSuiteRepoUrl.hashCode()}_${it.testRootPath.hashCode()}")
             log.info("Copying suite ${it.name} from $standardTestSuiteAbsolutePath into $currentSuiteDestination/...")
             standardTestSuiteAbsolutePath.copyRecursively(currentSuiteDestination, overwrite = true)
         }
