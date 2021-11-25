@@ -48,6 +48,8 @@ import kotlinx.html.js.onClickFunction
 import kotlinx.html.role
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.cqfn.save.frontend.externals.fontawesome.faEdit
+import org.cqfn.save.frontend.externals.fontawesome.faQuestionCircle
 
 /**
  * `Props` retrieved from router
@@ -336,6 +338,11 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                             "Run your tool with standard test suites",
                             "mt-3 mr-2"
                         )
+                        testingTypeButton(
+                            TestingType.CONTEST_MODE,
+                            "Participate in contests with your tool",
+                            "mt-3 mr-2"
+                        )
                     }
                 })
             }
@@ -428,48 +435,54 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                 div("text-xs text-center font-weight-bold text-primary text-uppercase mb-3") {
                     +"Information"
                     button(classes = "btn btn-link text-xs text-muted text-left p-1 ml-2") {
-                        +"Edit"
+                        fontAwesomeIcon(icon = faEdit)
                         attrs.onClickFunction = {
                             turnEditMode(off = false)
                         }
                     }
                 }
 
-                child(cardComponent {
+                child(cardComponent(true, true) {
                     val newProjectInformation: MutableMap<String, String> = mutableMapOf()
                     form {
-                        projectInformation.putAll(
-                            projectInformation.keys.zip(
-                                listOf(
-                                    project.name,
-                                    project.description ?: "",
-                                    project.url ?: "",
-                                    project.owner
+                        div("row g-3 ml-3 mr-3 pb-2 pt-2  border-bottom") {
+                            projectInformation.putAll(
+                                projectInformation.keys.zip(
+                                    listOf(
+                                        project.name,
+                                        project.description ?: "",
+                                        project.url ?: "",
+                                        project.owner
+                                    )
                                 )
                             )
-                        )
-                        projectInformation
-                            .forEach { (header, text) ->
-                                div("control-group form-inline") {
-                                    label(classes = "control-label col-auto") {
-                                        +header
-                                    }
-                                    div("controls col-auto") {
-                                        input(InputType.text, classes = "form-control-plaintext") {
-                                            attrs.id = header
-                                            attrs.defaultValue = text
-                                            attrs.disabled = true
-                                            attrs {
-                                                onChangeFunction = {
-                                                    val tg = it.target as HTMLInputElement
-                                                    val newValue = tg.value
-                                                    newProjectInformation[header] = newValue
+                            projectInformation
+                                .forEach { (header, text) ->
+                                   // div("control-group form-inline") {
+                                        div("col-md-5 pl-0 pr-0") {
+                                            label(classes = "control-label col-auto justify-content-between pl-0") {
+                                                +header
+                                            }
+                                        }
+                                        div("col-md-7 pl-0") {
+                                            div("controls col-auto pl-0") {
+                                                input(InputType.text, classes = "form-control-plaintext pt-0 pb-0") {
+                                                    attrs.id = header
+                                                    attrs.defaultValue = text
+                                                    attrs.disabled = true
+                                                    attrs {
+                                                        onChangeFunction = {
+                                                            val tg = it.target as HTMLInputElement
+                                                            val newValue = tg.value
+                                                            newProjectInformation[header] = newValue
+                                                        }
+                                                    }
                                                 }
                                             }
                                         }
-                                    }
+                                   // }
                                 }
-                            }
+                        }
                     }
 
                     button(classes = "btn btn-success text-xs p-1 ml-2") {
@@ -521,7 +534,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                         }
                     }
                     div("ml-3 d-sm-flex align-items-left justify-content-between mt-2") {
-                        button(type = ButtonType.button, classes = "btn btn-block btn-danger") {
+                        button(type = ButtonType.button, classes = "btn btn-sm btn-danger") {
                             attrs.onClickFunction = {
                                 deleteProject()
                             }

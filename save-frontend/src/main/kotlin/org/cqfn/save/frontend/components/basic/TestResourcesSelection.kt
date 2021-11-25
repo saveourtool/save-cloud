@@ -62,7 +62,7 @@ fun testResourcesSelection(
     setTestRootPathFromHistory: (String) -> Unit
 ) =
         fc<TestResourcesProps> { props ->
-            h6(classes = "d-inline") {
+            label(classes = "control-label col-auto justify-content-between font-weight-bold text-gray-800 mb-1 pl-0") {
                 +"3. Specify test-resources that will be used for testing:"
             }
 
