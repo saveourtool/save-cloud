@@ -1,0 +1,19 @@
+server:
+  port: 5300
+gateway:
+  backend:
+    url: http://localhost:5000
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,gateway
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: path_route
+          uri: http://localhost:5000
+#          uri: https://google.com
+          predicates:
+            - Path=/**

@@ -9,6 +9,7 @@ kotlinx-coroutines = "1.5.2"
 kotlin-wrappers = "0.0.1-pre.247-kotlin-1.5.31"
 spring-boot = "2.6.0"
 spring-security = "5.6.0"
+spring-cloud = "3.1.0-M3"
 junit = "5.8.1"
 ktoml = "0.2.7"
 multiplatform-diff = "0.3.0"
@@ -76,6 +77,7 @@ spring-boot-starter-security = { module = "org.springframework.boot:spring-boot-
 spring-security-core = { module = "org.springframework.security:spring-security-core", version.ref = "spring-security" }
 spring-security-test = { module = "org.springframework.security:spring-security-test", version.ref = "spring-security" }
 spring-boot-gradle-plugin = { module = "org.springframework.boot:spring-boot-gradle-plugin", version.ref = "spring-boot" }
+spring-cloud-starter-gateway = { module = "org.springframework.cloud:spring-cloud-starter-gateway", version.ref = "spring-cloud" }
 jackson-module-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "jackson" }
 
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
