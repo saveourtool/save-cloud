@@ -73,6 +73,7 @@ manually placed in `save-orchestrator/build/resources/main` before build, and it
 | 5000 | save-backend |
 | 5100 | save-orchestrator |
 | 5200 | save-test-preprocessor |
+| 5300 | api-gateway |
 | 6000 | local docker registry (not used currently) |
 | 9090 | prometheus |
 | 9091 | node_exporter |

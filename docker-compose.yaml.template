@@ -71,6 +71,16 @@ services:
         delay: 5s
         max_attempts: 3
     logging: *loki-logging-jvm
+  gateway:
+    image: ghcr.io/diktat-static-analysis/api-gateway:{{project.version}}
+    environment:
+      - "SPRING_PROFILES_ACTIVE={{profile}}"
+    ports:
+      - "5300:5300"
+    deploy:
+      labels:
+        - "prometheus-job=api-gateway"
+    logging: *loki-logging-jvm
   prometheus:
     image: prom/prometheus
     user: root  # to access host's docker socket for service discovery, see https://groups.google.com/g/prometheus-users/c/EuEW0qRzXvg/m/0aqKh_ZABQAJ
