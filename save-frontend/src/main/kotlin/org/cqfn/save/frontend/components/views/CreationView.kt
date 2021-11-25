@@ -36,6 +36,7 @@ import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.cqfn.save.frontend.utils.apiUrl
 
 /**
  * [RState] of project creation view component
@@ -135,7 +136,7 @@ class CreationView : RComponent<PropsWithChildren, ProjectSaveViewState>() {
                 gitConnectionCheckingStatus = GitConnectionStatusEnum.VALIDATING
             }
             val responseFromCreationProject =
-                    get("${window.location.origin}/check-git-connectivity-adaptor$urlArguments", headers)
+                    get("${apiUrl}/check-git-connectivity-adaptor$urlArguments", headers)
 
             if (responseFromCreationProject.ok) {
                 if (responseFromCreationProject.text().await().toBoolean()) {
@@ -179,10 +180,9 @@ class CreationView : RComponent<PropsWithChildren, ProjectSaveViewState>() {
             it.set("Accept", "application/json")
             it.set("Content-Type", "application/json")
         }
-        val winLocation = window.location.origin
         GlobalScope.launch {
             val responseFromCreationProject =
-                    post("$winLocation/saveProject", headers, Json.encodeToString(newProjectRequest))
+                    post("$apiUrl/saveProject", headers, Json.encodeToString(newProjectRequest))
 
             if (responseFromCreationProject.ok == true) {
                 window.location.href =

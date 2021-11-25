@@ -12,8 +12,25 @@ spring:
   cloud:
     gateway:
       routes:
+        - id: api_route
+          uri: http://localhost:5000
+          predicates:
+            - Path=/api/**
+          filters:
+            - StripPrefix=1
+            # If SESSION cookie is passed to downstream, it is then removed, because downstream discards it
+            - RemoveRequestHeader=Cookie
+        - id: index_route
+          uri: http://localhost:5000/index.html
+          predicates:
+            - Path=/
+          filters:
+            # If SESSION cookie is passed to downstream, it is then removed, because downstream discards it
+            - RemoveRequestHeader=Cookie
         - id: path_route
           uri: http://localhost:5000
-#          uri: https://google.com
           predicates:
-            - Path=/**
+            - Path=/*.html,/*.js*
+          filters:
+            # If SESSION cookie is passed to downstream, it is then removed, because downstream discards it
+            - RemoveRequestHeader=Cookie

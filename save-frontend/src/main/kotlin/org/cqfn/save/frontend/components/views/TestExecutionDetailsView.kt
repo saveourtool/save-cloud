@@ -30,11 +30,11 @@ import react.router.dom.useParams
 import react.useEffect
 import react.useState
 
-import kotlinx.browser.window
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.cqfn.save.frontend.utils.apiUrl
 
 @Suppress("TOO_LONG_FUNCTION", "EMPTY_BLOCK_STRUCTURE_ERROR")
 private fun RBuilder.resultsTable(testResultDebugInfo: TestResultDebugInfo) = table("table table-bordered") {
@@ -118,7 +118,7 @@ fun testExecutionDetailsView() = fc<Props> {
     useEffect(listOf<dynamic>(executionId, testResultLocation)) {
         GlobalScope.launch {
             val testExecutionDtoResponse = post(
-                "${window.location.origin}/testExecutions?executionId=$executionId",
+                "${apiUrl}/testExecutions?executionId=$executionId",
                 Headers().apply {
                     set("Content-Type", "application/json")
                 },

@@ -39,6 +39,7 @@ import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
 import kotlinx.html.ButtonType
 import kotlinx.html.js.onClickFunction
+import org.cqfn.save.frontend.utils.apiUrl
 
 /**
  * [RProps] for tests execution history
@@ -253,7 +254,7 @@ class HistoryView : RComponent<HistoryProps, HistoryViewState>() {
             }
         ) { _, _ ->
             get(
-                url = "${window.location.origin}/executionDtoList?name=${props.name}&owner=${props.owner}",
+                url = "${apiUrl}/executionDtoList?name=${props.name}&owner=${props.owner}",
                 headers = Headers().also {
                     it.set("Accept", "application/json")
                     it.set("Content-Type", "application/json")
@@ -290,7 +291,7 @@ class HistoryView : RComponent<HistoryProps, HistoryViewState>() {
         }
         GlobalScope.launch {
             responseFromDeleteExecutions =
-                    post("${window.location.origin}/execution/deleteAll?name=${props.name}&owner=${props.owner}", headers, undefined)
+                    post("${apiUrl}/execution/deleteAll?name=${props.name}&owner=${props.owner}", headers, undefined)
             if (responseFromDeleteExecutions.ok) {
                 window.location.href = "${window.location.origin}#/${props.owner}/${props.name}"
             } else {
@@ -322,7 +323,7 @@ class HistoryView : RComponent<HistoryProps, HistoryViewState>() {
         }
         GlobalScope.launch {
             responseFromDeleteExecutions =
-                    post("${window.location.origin}/execution/delete?executionIds=${executionIds.joinToString(",")}", headers, undefined)
+                    post("${apiUrl}/execution/delete?executionIds=${executionIds.joinToString(",")}", headers, undefined)
 
             if (responseFromDeleteExecutions.ok) {
                 window.location.reload()
