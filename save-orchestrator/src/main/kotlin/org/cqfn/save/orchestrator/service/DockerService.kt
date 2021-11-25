@@ -24,7 +24,6 @@ import org.springframework.web.reactive.function.client.bodyToMono
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.LinkOption
-import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.StandardCopyOption
 import java.nio.file.attribute.PosixFileAttributeView
@@ -32,8 +31,6 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.createTempDirectory
-import kotlin.io.path.name
-import kotlin.random.Random
 
 /**
  * A service that uses [ContainerManager] to build and start containers for test execution.
@@ -249,7 +246,6 @@ class DockerService(private val configProperties: ConfigProperties) {
 
     @Suppress("UnsafeCallOnNullableType")
     private fun copyTestSuitesToResourcesPath(testSuitesForDocker: List<TestSuiteDto>, destination: File) {
-        destination.deleteRecursively()
         // TODO: https://github.com/diktat-static-analysis/save-cloud/issues/321
         log.info("Copying suites ${testSuitesForDocker.map { it.name }} into $destination")
         testSuitesForDocker.forEach {
@@ -258,9 +254,9 @@ class DockerService(private val configProperties: ConfigProperties) {
                 .resolve(File("${listOf(it.testSuiteRepoUrl!!).hashCode()}")
                     .resolve(it.testRootPath)
                 )
-            val newDestination = destination.resolve("STANDARD_${it.testSuiteRepoUrl.hashCode()}_${it.testRootPath.hashCode()}")
-            log.info("Copying suite ${it.name} from $standardTestSuiteAbsolutePath into $newDestination/...")
-            standardTestSuiteAbsolutePath.copyRecursively(newDestination, overwrite = true)
+            val currentSuiteDestination = destination.resolve("STANDARD_${it.testSuiteRepoUrl.hashCode()}_${it.testRootPath.hashCode()}")
+            log.info("Copying suite ${it.name} from $standardTestSuiteAbsolutePath into $currentSuiteDestination/...")
+            standardTestSuiteAbsolutePath.copyRecursively(currentSuiteDestination, overwrite = true)
         }
         // orchestrator is executed as root (to access docker socket), but files are in a shared volume
         val lookupService = destination.toPath().fileSystem.userPrincipalLookupService
