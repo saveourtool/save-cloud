@@ -118,8 +118,13 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
         val executionId = agent.execution.id!!
         val lostTests: MutableList<TestExecutionDto> = mutableListOf()
         val counters = Counters()
-        testExecutionsDtos.forEach { //testExecDto ->
-            val testExecDto = it.copy(filePath = if (it.filePath.startsWith("STANDARD_")) it.filePath.dropWhile { it != '/' }.drop(1) else it.filePath)
+        testExecutionsDtos.forEach {
+            val filePathWithDroppedPrefixForStandardMode = if (it.filePath.startsWith("STANDARD_")) {
+                it.filePath.dropWhile { it != '/' }.drop(1)
+            } else {
+                it.filePath
+            }
+            val testExecDto = it.copy(filePath = filePathWithDroppedPrefixForStandardMode)
             val foundTestExec = testExecutionRepository.findByExecutionIdAndTestPluginNameAndTestFilePath(
                 executionId,
                 testExecDto.pluginName,
@@ -148,7 +153,7 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
                 },
                     {
                         lostTests.add(testExecDto)
-                        log.error("Test execution $testExecDto with id=${testExecutionId} for execution id=$executionId cannot be updated because its status is not RUNNING")
+                        log.error("Test execution $testExecDto with id=$testExecutionId for execution id=$executionId cannot be updated because its status is not RUNNING")
                     })
         }
         val lock = locks.computeIfAbsent(executionId) { Any() }

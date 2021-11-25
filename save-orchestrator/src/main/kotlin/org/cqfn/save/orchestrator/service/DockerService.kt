@@ -177,9 +177,12 @@ class DockerService(private val configProperties: ConfigProperties) {
         // copy corresponding standard test suites to resourcesRootPath dir
         copyTestSuitesToResourcesPath(testSuitesForDocker, testSuitesDir)
 
+        // move additional files, which were downloaded into the root dit to the execution dir for standard suites
         execution.additionalFiles?.split(";")?.filter { it.isNotBlank() }?.forEach {
-            log.info("Move additional file ${Paths.get(resourcesPath.resolve(File(it).name).absolutePath)} into ${Paths.get(testSuitesDir.absolutePath).resolve(File(it).name)}")
-            Files.move(Paths.get(resourcesPath.resolve(File(it).name).absolutePath), Paths.get(testSuitesDir.absolutePath).resolve(File(it).name), StandardCopyOption.REPLACE_EXISTING)
+            val additionalFilePath = Paths.get(resourcesPath.resolve(File(it).name).absolutePath)
+            val destination = Paths.get(testSuitesDir.absolutePath).resolve(File(it).name)
+            log.info("Move additional file $additionalFilePath into $destination")
+            Files.move(additionalFilePath, destination, StandardCopyOption.REPLACE_EXISTING)
         }
 
         val saveCliExecFlags = if (testSuitesForDocker.isNotEmpty()) {

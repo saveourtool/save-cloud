@@ -232,10 +232,10 @@ class AgentService {
                 // fixme: do we still need suitesToArgs, since we have execFlags in save.toml?
                 NewJobResponse(
                     tests,
-                    //suitesToArgs.values.first() +
+                    suitesToArgs.values.first() +
                             " --report-type json" +
-                            " --result-output file --log all" //+
-                            //" " + tests.joinToString(separator = " ") { it.filePath }
+                            " --result-output file" +
+                            " " + tests.joinToString(separator = " ") { it.filePath }
                 )
             } else {
                 log.info("Next test batch for agentId=$agentId is empty, setting it to wait")
