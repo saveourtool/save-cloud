@@ -5,13 +5,13 @@
 package org.cqfn.save.frontend.http
 
 import org.cqfn.save.agent.TestExecutionDto
+import org.cqfn.save.frontend.utils.apiUrl
 import org.cqfn.save.frontend.utils.post
 
 import org.w3c.fetch.Headers
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.cqfn.save.frontend.utils.apiUrl
 
 /**
  * Fetch debug info for test execution
@@ -20,7 +20,7 @@ import org.cqfn.save.frontend.utils.apiUrl
  * @return Response
  */
 suspend fun getDebugInfoFor(testExecutionDto: TestExecutionDto) = post(
-    "${apiUrl}/files/get-debug-info",
+    "$apiUrl/files/get-debug-info",
     Headers().apply {
         set("Content-Type", "application/json")
     },

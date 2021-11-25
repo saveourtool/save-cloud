@@ -1,8 +1,8 @@
 package org.cqfn.save.gateway.security
 
+import org.cqfn.save.gateway.config.ConfigurationProperties
+
 import com.fasterxml.jackson.databind.ObjectMapper
-import org.cqfn.save.gateway.ConfigurationProperties
-import org.springframework.context.annotation.Bean
 import org.springframework.http.MediaType
 import org.springframework.http.codec.json.Jackson2JsonDecoder
 import org.springframework.security.core.userdetails.ReactiveUserDetailsService
@@ -14,7 +14,6 @@ import org.springframework.web.reactive.function.client.ExchangeStrategies
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Mono
-import javax.annotation.PostConstruct
 
 /**
  * A service that provides `UserDetails`
@@ -26,7 +25,6 @@ class RemoteUserDetailsService(
     private val objectMapper = ObjectMapper()
         .findAndRegisterModules()
         .registerModule(CoreJackson2Module())
-
     private val webClient: WebClient = WebClient.builder()
         .exchangeStrategies(
             ExchangeStrategies.builder().codecs {
@@ -39,11 +37,11 @@ class RemoteUserDetailsService(
         .build()
 
     override fun findByUsername(username: String): Mono<UserDetails> =
-        webClient.get()
-            .uri("/user/details?username=$username")
-            .accept(MediaType.APPLICATION_JSON)
-            .retrieve()
-            .bodyToMono<User>()
-            .map { it as UserDetails }
-            .log()
+            webClient.get()
+                .uri("/user/details?username=$username")
+                .accept(MediaType.APPLICATION_JSON)
+                .retrieve()
+                .bodyToMono<User>()
+                .map { it as UserDetails }
+                .log()
 }

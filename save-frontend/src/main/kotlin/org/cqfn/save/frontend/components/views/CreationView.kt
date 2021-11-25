@@ -11,6 +11,7 @@ import org.cqfn.save.entities.GitDto
 import org.cqfn.save.entities.NewProjectDto
 import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.ProjectStatus
+import org.cqfn.save.frontend.utils.apiUrl
 import org.cqfn.save.frontend.utils.get
 import org.cqfn.save.frontend.utils.post
 import org.cqfn.save.frontend.utils.runErrorModal
@@ -36,7 +37,6 @@ import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.cqfn.save.frontend.utils.apiUrl
 
 /**
  * [RState] of project creation view component
@@ -136,7 +136,7 @@ class CreationView : RComponent<PropsWithChildren, ProjectSaveViewState>() {
                 gitConnectionCheckingStatus = GitConnectionStatusEnum.VALIDATING
             }
             val responseFromCreationProject =
-                    get("${apiUrl}/check-git-connectivity-adaptor$urlArguments", headers)
+                    get("$apiUrl/check-git-connectivity-adaptor$urlArguments", headers)
 
             if (responseFromCreationProject.ok) {
                 if (responseFromCreationProject.text().await().toBoolean()) {

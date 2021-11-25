@@ -196,9 +196,9 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                 set("Accept", "application/json")
                 set("Content-Type", "application/json")
             }
-            gitDto = post("${apiUrl}/getGit", headers, jsonProject)
+            gitDto = post("$apiUrl/getGit", headers, jsonProject)
                 .decodeFromJsonString<GitDto>()
-            standardTestSuites = get("${apiUrl}/allStandardTestSuites", headers)
+            standardTestSuites = get("$apiUrl/allStandardTestSuites", headers)
                 .decodeFromJsonString()
 
             val availableFiles = getFilesList()
@@ -540,7 +540,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                 }
                 element.files!!.asList().forEach { file ->
                     val response: FileInfo = post(
-                        "${apiUrl}/files/upload",
+                        "$apiUrl/files/upload",
                         Headers(),
                         FormData().apply {
                             append("file", file)
@@ -655,7 +655,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
         project.url = url
         project.owner = owner
         GlobalScope.launch {
-            post("${apiUrl}/updateProject", headers, Json.encodeToString(project))
+            post("$apiUrl/updateProject", headers, Json.encodeToString(project))
         }
     }
 
@@ -666,7 +666,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
         }
         GlobalScope.launch {
             responseFromDeleteProject =
-                    post("${apiUrl}/updateProject", headers, Json.encodeToString(project))
+                    post("$apiUrl/updateProject", headers, Json.encodeToString(project))
         }.invokeOnCompletion {
             if (responseFromDeleteProject.ok) {
                 window.location.href = "${window.location.origin}/"
@@ -685,7 +685,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
     private suspend fun switchToLatestExecution() {
         val headers = Headers().apply { set("Accept", "application/json") }
         val response = get(
-            "${apiUrl}/latestExecution?name=${project.name}&owner=${project.owner}",
+            "$apiUrl/latestExecution?name=${project.name}&owner=${project.owner}",
             headers
         )
         if (!response.ok) {
@@ -703,7 +703,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
         }
     }
 
-    private suspend fun getFilesList() = get("${apiUrl}/files/list", Headers())
+    private suspend fun getFilesList() = get("$apiUrl/files/list", Headers())
         .unsafeMap {
             it.decodeFromJsonString<List<FileInfo>>()
         }
