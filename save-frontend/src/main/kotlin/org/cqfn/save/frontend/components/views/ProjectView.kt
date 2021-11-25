@@ -15,7 +15,6 @@ import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.frontend.components.basic.*
 import org.cqfn.save.frontend.externals.fontawesome.faCalendarAlt
 import org.cqfn.save.frontend.externals.fontawesome.faHistory
-
 import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
 import org.cqfn.save.frontend.externals.modal.modal
 import org.cqfn.save.frontend.utils.*
@@ -132,6 +131,7 @@ external interface ProjectViewState : State {
      * State for the creation of unified confirmation logic
      */
     var confirmationType: ConfirmationType
+
     /**
      * Url to the custom tests
      */
@@ -179,14 +179,9 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
         state.testingType = TestingType.CUSTOM_TESTS
         state.isErrorOpen = false
         state.isSubmitButtonPressed = false
-
         state.errorMessage = ""
         state.errorLabel = ""
-
-
-
         state.isLoading = true
-
         state.files = mutableListOf()
         state.availableFiles = mutableListOf()
         state.selectedSdk = Sdk.Default.name
@@ -239,8 +234,6 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                 }
                 submitExecutionRequestWithStandardTests()
             }
-
-
         }
     }
 
@@ -537,6 +530,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
             }
         }
     }
+
     private fun postFileUpload(element: HTMLInputElement) =
             GlobalScope.launch {
                 setState {
