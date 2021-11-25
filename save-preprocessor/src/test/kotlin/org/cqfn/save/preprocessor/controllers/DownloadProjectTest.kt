@@ -93,7 +93,7 @@ class DownloadProjectTest(
             "foo", 20, ExecutionType.GIT, "0.0.1", 0, 0, 0, 0, Sdk.Default.toString(), null).apply {
             id = 97L
         }
-        val request = ExecutionRequest(project, wrongRepo, sdk = Sdk.Default, executionId = execution.id)
+        val request = ExecutionRequest(project, wrongRepo, sdk = Sdk.Default, executionId = execution.id, testRootPath = ".")
         // /updateExecutionByDto
         mockServerBackend.enqueue(
             MockResponse().setResponseCode(200)
@@ -127,7 +127,7 @@ class DownloadProjectTest(
             id = 99L
         }
         val validRepo = GitDto("https://github.com/diktat-static-analysis/save.git")
-        val request = ExecutionRequest(project, validRepo, "examples/kotlin-diktat/save.properties", Sdk.Default, execution.id)
+        val request = ExecutionRequest(project, validRepo, "examples/kotlin-diktat/", Sdk.Default, execution.id)
         // /createExecution
         mockServerBackend.enqueue(
             MockResponse()
@@ -377,7 +377,7 @@ class DownloadProjectTest(
             "foo", 20, ExecutionType.GIT, "0.0.1", 0, 0, 0, 0, Sdk.Default.toString(), null).apply {
             id = 98L
         }
-        val request = ExecutionRequest(project, GitDto("https://github.com/diktat-static-analysis/save"), "examples/kotlin-diktat/save.properties", Sdk.Default, execution.id)
+        val request = ExecutionRequest(project, GitDto("https://github.com/diktat-static-analysis/save"), "examples/kotlin-diktat/", Sdk.Default, execution.id)
 
         // /updateExecutionByDto
         mockServerBackend.enqueue(
@@ -461,9 +461,9 @@ class DownloadProjectTest(
             "foo", 20, ExecutionType.STANDARD, "0.0.1", 0, 0, 0, 0, Sdk.Default.toString(), null).apply {
             id = 98L
         }
-        val request = ExecutionRequest(project, GitDto("https://github.com/diktat-static-analysis/save"), "examples/kotlin-diktat/save.properties", Sdk.Default, execution.id)
+        val request = ExecutionRequest(project, GitDto("https://github.com/diktat-static-analysis/save"), "examples/kotlin-diktat/", Sdk.Default, execution.id)
 
-        val testSuite = TestSuite(TestSuiteType.STANDARD, "", null, project, LocalDateTime.now(), "save.properties").apply {
+        val testSuite = TestSuite(TestSuiteType.STANDARD, "", null, project, LocalDateTime.now(), ".").apply {
             id = 42
         }
 

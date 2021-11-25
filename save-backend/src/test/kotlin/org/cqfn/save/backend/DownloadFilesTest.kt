@@ -1,6 +1,7 @@
 package org.cqfn.save.backend
 
 import org.cqfn.save.backend.configs.ConfigProperties
+import org.cqfn.save.backend.configs.NoopWebSecurityConfig
 import org.cqfn.save.backend.configs.WebConfig
 import org.cqfn.save.backend.controllers.DownloadFilesController
 import org.cqfn.save.backend.repository.AgentRepository
@@ -13,6 +14,7 @@ import org.cqfn.save.backend.repository.TestExecutionRepository
 import org.cqfn.save.backend.repository.TestRepository
 import org.cqfn.save.backend.repository.TestSuiteRepository
 import org.cqfn.save.backend.repository.TimestampBasedFileSystemRepository
+import org.cqfn.save.backend.repository.UserRepository
 import org.cqfn.save.backend.scheduling.StandardSuitesUpdateScheduler
 import org.cqfn.save.core.result.DebugInfo
 import org.cqfn.save.core.result.Pass
@@ -55,7 +57,11 @@ import kotlin.io.path.name
 import kotlin.io.path.writeLines
 
 @WebFluxTest(controllers = [DownloadFilesController::class])
-@Import(WebConfig::class, TimestampBasedFileSystemRepository::class, TestDataFilesystemRepository::class)
+@Import(
+    WebConfig::class,
+    NoopWebSecurityConfig::class,
+    TimestampBasedFileSystemRepository::class,
+    TestDataFilesystemRepository::class)
 @AutoConfigureWebTestClient
 @EnableConfigurationProperties(ConfigProperties::class)
 @MockBeans(
@@ -67,6 +73,7 @@ import kotlin.io.path.writeLines
     MockBean(TestSuiteRepository::class),
     MockBean(GitRepository::class),
     MockBean(StandardSuitesUpdateScheduler::class),
+    MockBean(UserRepository::class),
 )
 class DownloadFilesTest {
     @Autowired

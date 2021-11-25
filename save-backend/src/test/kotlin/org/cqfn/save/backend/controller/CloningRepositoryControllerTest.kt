@@ -1,6 +1,7 @@
 package org.cqfn.save.backend.controller
 
 import org.cqfn.save.backend.configs.ConfigProperties
+import org.cqfn.save.backend.configs.NoopWebSecurityConfig
 import org.cqfn.save.backend.controllers.CloneRepositoryController
 import org.cqfn.save.backend.repository.AgentRepository
 import org.cqfn.save.backend.repository.AgentStatusRepository
@@ -11,6 +12,7 @@ import org.cqfn.save.backend.repository.TestExecutionRepository
 import org.cqfn.save.backend.repository.TestRepository
 import org.cqfn.save.backend.repository.TestSuiteRepository
 import org.cqfn.save.backend.repository.TimestampBasedFileSystemRepository
+import org.cqfn.save.backend.repository.UserRepository
 import org.cqfn.save.backend.scheduling.StandardSuitesUpdateScheduler
 import org.cqfn.save.backend.service.ExecutionService
 import org.cqfn.save.backend.service.ProjectService
@@ -51,7 +53,7 @@ import java.time.Duration
 import kotlin.io.path.createFile
 
 @WebFluxTest(controllers = [CloneRepositoryController::class])
-@Import(TimestampBasedFileSystemRepository::class)
+@Import(NoopWebSecurityConfig::class, TimestampBasedFileSystemRepository::class)
 @EnableConfigurationProperties(ConfigProperties::class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @MockBeans(
@@ -65,6 +67,7 @@ import kotlin.io.path.createFile
     MockBean(ProjectRepository::class),
     MockBean(GitRepository::class),
     MockBean(StandardSuitesUpdateScheduler::class),
+    MockBean(UserRepository::class),
 )
 @Suppress("TOO_LONG_FUNCTION")
 class CloningRepositoryControllerTest {
@@ -96,7 +99,7 @@ class CloningRepositoryControllerTest {
             .thenReturn(project)
         val sdk = Jdk("8")
         val gitRepo = GitDto("1")
-        val executionRequest = ExecutionRequest(project, gitRepo, sdk = sdk, executionId = null)
+        val executionRequest = ExecutionRequest(project, gitRepo, sdk = sdk, executionId = null, testRootPath = ".")
         val multipart = MultipartBodyBuilder().apply {
             part("executionRequest", executionRequest)
         }

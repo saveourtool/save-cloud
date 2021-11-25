@@ -2,7 +2,7 @@
  * Component for SDK selection
  */
 
-@file:Suppress("FILE_NAME_MATCH_CLASS")
+@file:Suppress("FILE_NAME_MATCH_CLASS", "WildcardImport", "FILE_WILDCARD_IMPORTS")
 
 package org.cqfn.save.frontend.components.basic
 
@@ -11,11 +11,7 @@ import org.cqfn.save.domain.sdks
 
 import org.w3c.dom.HTMLSelectElement
 import react.PropsWithChildren
-import react.dom.RDOMBuilder
-import react.dom.div
-import react.dom.label
-import react.dom.option
-import react.dom.select
+import react.dom.*
 import react.fc
 
 import kotlinx.html.Tag
@@ -73,6 +69,9 @@ private fun <T : Tag> RDOMBuilder<T>.selection(
  */
 fun sdkSelection(onSdkChange: (HTMLSelectElement) -> Unit, onVersionChange: (HTMLSelectElement) -> Unit) =
         fc<SdkProps> { props ->
+            h6(classes = "d-inline mr-3") {
+                +"2. Select the SDK if needed:"
+            }
             div("card align-items-left mb-3 pt-0 pb-0") {
                 div("card-body align-items-left pb-1 pt-3") {
                     div("row no-gutters align-items-left") {

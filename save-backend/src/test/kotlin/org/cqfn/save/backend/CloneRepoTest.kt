@@ -57,7 +57,7 @@ class CloneRepoTest {
         )
         val project = projectRepository.findAll().first()
         val gitRepo = GitDto("1")
-        val executionRequest = ExecutionRequest(project, gitRepo, executionId = null, sdk = sdk)
+        val executionRequest = ExecutionRequest(project, gitRepo, executionId = null, sdk = sdk, testRootPath = ".")
         val multipart = MultipartBodyBuilder().apply {
             part("executionRequest", executionRequest)
         }
@@ -84,7 +84,7 @@ class CloneRepoTest {
         val sdk = Jdk("11")
         val project = Project("noname", "1", "1", "1", ProjectStatus.CREATED)
         val gitRepo = GitDto("1")
-        val executionRequest = ExecutionRequest(project, gitRepo, executionId = null, sdk = sdk)
+        val executionRequest = ExecutionRequest(project, gitRepo, executionId = null, sdk = sdk, testRootPath = ".")
         val executionsClones = listOf(executionRequest, executionRequest, executionRequest)
         // fixme: why is it repeated 3 times?
         val multiparts = executionsClones.map {

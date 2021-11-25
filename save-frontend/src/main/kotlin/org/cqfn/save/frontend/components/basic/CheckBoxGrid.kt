@@ -32,7 +32,7 @@ external interface CheckBoxGridProps : PropsWithChildren {
     /**
      * Currently selected elements
      */
-    var selectedOptions: MutableList<String>
+    var selectedStandardSuites: MutableList<String>
 }
 
 /**
@@ -57,12 +57,12 @@ fun checkBoxGrid(suites: List<TestSuiteDto>) = fc<CheckBoxGridProps> { props ->
                                 attrs["popover-content"] = suiteDescription(suite)
                             }
                             input(type = InputType.checkBox, classes = "ml-3") {
-                                attrs.defaultChecked = props.selectedOptions.contains(suite.name)
+                                attrs.defaultChecked = props.selectedStandardSuites.contains(suite.name)
                                 attrs.onClickFunction = {
-                                    if (props.selectedOptions.contains(suite.name)) {
-                                        props.selectedOptions.remove(suite.name)
+                                    if (props.selectedStandardSuites.contains(suite.name)) {
+                                        props.selectedStandardSuites.remove(suite.name)
                                     } else {
-                                        props.selectedOptions.add(suite.name)
+                                        props.selectedStandardSuites.add(suite.name)
                                     }
                                 }
                             }
