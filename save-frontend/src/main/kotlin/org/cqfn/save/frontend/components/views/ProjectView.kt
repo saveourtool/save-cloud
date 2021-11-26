@@ -14,7 +14,10 @@ import org.cqfn.save.entities.*
 import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.frontend.components.basic.*
 import org.cqfn.save.frontend.externals.fontawesome.faCalendarAlt
+import org.cqfn.save.frontend.externals.fontawesome.faCheck
+import org.cqfn.save.frontend.externals.fontawesome.faEdit
 import org.cqfn.save.frontend.externals.fontawesome.faHistory
+import org.cqfn.save.frontend.externals.fontawesome.faTimesCircle
 import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
 import org.cqfn.save.frontend.externals.modal.modal
 import org.cqfn.save.frontend.utils.*
@@ -37,7 +40,6 @@ import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-
 import kotlinx.html.ButtonType
 import kotlinx.html.InputType
 import kotlinx.html.classes
@@ -144,7 +146,7 @@ external interface ProjectViewState : State {
 }
 
 /**
- * enum that stores types of confirmation windows
+ * enum that stores types of confirmation windows for different situations
  */
 enum class ConfirmationType {
     DELETE_CONFIRM,
@@ -328,12 +330,17 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                     div("text-left") {
                         testingTypeButton(
                             TestingType.CUSTOM_TESTS,
-                            "Run your tool with your specific tests from git",
+                            "Evaluate your tool with your own tests from git",
                             "mr-2"
                         )
                         testingTypeButton(
                             TestingType.STANDARD_BENCHMARKS,
-                            "Run your tool with standard test suites",
+                            "Evaluate your tool with standard test suites",
+                            "mt-3 mr-2"
+                        )
+                        testingTypeButton(
+                            TestingType.CONTEST_MODE,
+                            "Participate in Save contests with your tool",
                             "mt-3 mr-2"
                         )
                     }
@@ -428,74 +435,85 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                 div("text-xs text-center font-weight-bold text-primary text-uppercase mb-3") {
                     +"Information"
                     button(classes = "btn btn-link text-xs text-muted text-left p-1 ml-2") {
-                        +"Edit"
+                        +"Edit  "
+                        fontAwesomeIcon(icon = faEdit)
                         attrs.onClickFunction = {
-                            turnEditMode(off = false)
+                            turnEditMode(isOff = false)
                         }
                     }
                 }
 
-                child(cardComponent {
+                child(cardComponent(true, true) {
                     val newProjectInformation: MutableMap<String, String> = mutableMapOf()
                     form {
-                        projectInformation.putAll(
-                            projectInformation.keys.zip(
-                                listOf(
-                                    project.name,
-                                    project.description ?: "",
-                                    project.url ?: "",
-                                    project.owner
+                        div("row g-3 ml-3 mr-3 pb-2 pt-2  border-bottom") {
+                            projectInformation.putAll(
+                                projectInformation.keys.zip(
+                                    listOf(
+                                        project.name,
+                                        project.description ?: "",
+                                        project.url ?: "",
+                                        project.owner
+                                    )
                                 )
                             )
-                        )
-                        projectInformation
-                            .forEach { (header, text) ->
-                                div("control-group form-inline") {
-                                    label(classes = "control-label col-auto") {
-                                        +header
+                            projectInformation
+                                .forEach { (header, text) ->
+                                    div("col-md-6 pl-0 pr-0") {
+                                        label(classes = "control-label col-auto justify-content-between pl-0") {
+                                            +header
+                                        }
                                     }
-                                    div("controls col-auto") {
-                                        input(InputType.text, classes = "form-control-plaintext") {
-                                            attrs.id = header
-                                            attrs.defaultValue = text
-                                            attrs.disabled = true
-                                            attrs {
-                                                onChangeFunction = {
-                                                    val tg = it.target as HTMLInputElement
-                                                    val newValue = tg.value
-                                                    newProjectInformation[header] = newValue
+                                    div("col-md-6 pl-0") {
+                                        div("controls col-auto pl-0") {
+                                            input(InputType.text, classes = "form-control-plaintext pt-0 pb-0") {
+                                                attrs.id = header
+                                                attrs.defaultValue = text
+                                                attrs.disabled = true
+                                                attrs {
+                                                    onChangeFunction = {
+                                                        val tg = it.target as HTMLInputElement
+                                                        val newValue = tg.value
+                                                        newProjectInformation[header] = newValue
+                                                    }
                                                 }
                                             }
                                         }
                                     }
                                 }
-                            }
-                    }
-
-                    button(classes = "btn btn-success text-xs p-1 ml-2") {
-                        +"Save"
-                        attrs.id = "Save new project info"
-                        attrs.hidden = true
-                        attrs.onClickFunction = {
-                            newProjectInformation.forEach { (key, value) ->
-                                projectInformation[key] = value
-                                (document.getElementById(key) as HTMLInputElement).value = value
-                            }
-                            updateProjectBuilder(projectInformation)
-                            turnEditMode(off = true)
                         }
                     }
 
-                    button(classes = "btn btn-secondary text-xs p-1 ml-5") {
-                        +"Cancel"
-                        attrs.id = "Cancel"
-                        attrs.hidden = true
-                        attrs.onClickFunction = {
-                            projectInformation.forEach { (key, value) ->
-                                (document.getElementById(key) as HTMLInputElement).value = value
+                    div("ml-3 mt-2 align-items-right float-right") {
+                        button(classes = "btn") {
+                            fontAwesomeIcon {
+                                attrs.icon = faCheck
                             }
-                            newProjectInformation.clear()
-                            turnEditMode(off = true)
+                            attrs.id = "Save new project info"
+                            attrs.hidden = true
+                            attrs.onClickFunction = {
+                                newProjectInformation.forEach { (key, value) ->
+                                    projectInformation[key] = value
+                                    (document.getElementById(key) as HTMLInputElement).value = value
+                                }
+                                updateProjectBuilder(projectInformation)
+                                turnEditMode(isOff = true)
+                            }
+                        }
+
+                        button(classes = "btn") {
+                            fontAwesomeIcon {
+                                attrs.icon = faTimesCircle
+                            }
+                            attrs.id = "Cancel"
+                            attrs.hidden = true
+                            attrs.onClickFunction = {
+                                projectInformation.forEach { (key, value) ->
+                                    (document.getElementById(key) as HTMLInputElement).value = value
+                                }
+                                newProjectInformation.clear()
+                                turnEditMode(isOff = true)
+                            }
                         }
                     }
 
@@ -521,7 +539,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                         }
                     }
                     div("ml-3 d-sm-flex align-items-left justify-content-between mt-2") {
-                        button(type = ButtonType.button, classes = "btn btn-block btn-danger") {
+                        button(type = ButtonType.button, classes = "btn btn-sm btn-danger") {
                             attrs.onClickFunction = {
                                 deleteProject()
                             }
@@ -557,12 +575,17 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                 }
             }
 
-    private fun turnEditMode(off: Boolean) {
+    private fun turnEditMode(isOff: Boolean) {
         projectInformation.keys.forEach {
-            (document.getElementById(it) as HTMLInputElement).disabled = off
+            val informationKey = (document.getElementById(it) as HTMLInputElement).apply {
+                disabled = isOff
+            }
+            informationKey.setAttribute(
+                "class", "form-control-plaintext pt-0 pb-0 ${if (isOff) "" else "border border-1"}"
+            )
         }
-        (document.getElementById("Save new project info") as HTMLButtonElement).hidden = off
-        (document.getElementById("Cancel") as HTMLButtonElement).hidden = off
+        (document.getElementById("Save new project info") as HTMLButtonElement).hidden = isOff
+        (document.getElementById("Cancel") as HTMLButtonElement).hidden = isOff
     }
 
     private fun RBuilder.runLoadingModal() = modal {

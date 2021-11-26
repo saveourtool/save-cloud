@@ -62,7 +62,7 @@ fun testResourcesSelection(
     setTestRootPathFromHistory: (String) -> Unit
 ) =
         fc<TestResourcesProps> { props ->
-            h6(classes = "d-inline") {
+            label(classes = "control-label col-auto justify-content-between font-weight-bold text-gray-800 mb-1 pl-0") {
                 +"3. Specify test-resources that will be used for testing:"
             }
 
@@ -143,14 +143,14 @@ fun testResourcesSelection(
                         }
                     }
                 }
+            }
 
-                div {
-                    attrs.classes = cardStyleByTestingType(props, TestingType.STANDARD_BENCHMARKS)
-                    div("card-body") {
-                        child(checkBoxGrid(props.standardTestSuites)) {
-                            attrs.selectedStandardSuites = props.selectedStandardSuites
-                            attrs.rowSize = ProjectView.TEST_SUITE_ROW
-                        }
+            div {
+                attrs.classes = cardStyleByTestingType(props, TestingType.STANDARD_BENCHMARKS)
+                div("card-body") {
+                    child(checkBoxGrid(props.standardTestSuites)) {
+                        attrs.selectedStandardSuites = props.selectedStandardSuites
+                        attrs.rowSize = ProjectView.TEST_SUITE_ROW
                     }
                 }
             }
