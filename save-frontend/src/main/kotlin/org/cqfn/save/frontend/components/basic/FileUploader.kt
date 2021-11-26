@@ -21,7 +21,6 @@ import react.PropsWithChildren
 import react.dom.attrs
 import react.dom.button
 import react.dom.div
-import react.dom.h6
 import react.dom.input
 import react.dom.label
 import react.dom.li

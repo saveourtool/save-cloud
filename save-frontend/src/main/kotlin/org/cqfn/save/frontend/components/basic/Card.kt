@@ -29,6 +29,8 @@ external interface CardProps : PropsWithChildren {
  * A functional `RComponent` for a card.
  *
  * @param contentBuilder a builder function for card content
+ * @param isBordered - adds a border to the card
+ * @param hasBg - adds a white background
  * @return a functional component representing a card
  */
 @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")

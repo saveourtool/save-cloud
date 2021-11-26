@@ -14,7 +14,10 @@ import org.cqfn.save.entities.*
 import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.frontend.components.basic.*
 import org.cqfn.save.frontend.externals.fontawesome.faCalendarAlt
+import org.cqfn.save.frontend.externals.fontawesome.faCheck
+import org.cqfn.save.frontend.externals.fontawesome.faEdit
 import org.cqfn.save.frontend.externals.fontawesome.faHistory
+import org.cqfn.save.frontend.externals.fontawesome.faTimesCircle
 import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
 import org.cqfn.save.frontend.externals.modal.modal
 import org.cqfn.save.frontend.utils.*
@@ -37,7 +40,6 @@ import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-
 import kotlinx.html.ButtonType
 import kotlinx.html.InputType
 import kotlinx.html.classes
@@ -48,9 +50,6 @@ import kotlinx.html.js.onClickFunction
 import kotlinx.html.role
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.cqfn.save.frontend.externals.fontawesome.faCheck
-import org.cqfn.save.frontend.externals.fontawesome.faEdit
-import org.cqfn.save.frontend.externals.fontawesome.faTimesCircle
 
 /**
  * `Props` retrieved from router
@@ -436,7 +435,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                 div("text-xs text-center font-weight-bold text-primary text-uppercase mb-3") {
                     +"Information"
                     button(classes = "btn btn-link text-xs text-muted text-left p-1 ml-2") {
-                        + "Edit  "
+                        +"Edit  "
                         fontAwesomeIcon(icon = faEdit)
                         attrs.onClickFunction = {
                             turnEditMode(isOff = false)
@@ -460,27 +459,27 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                             )
                             projectInformation
                                 .forEach { (header, text) ->
-                                        div("col-md-6 pl-0 pr-0") {
-                                            label(classes = "control-label col-auto justify-content-between pl-0") {
-                                                +header
-                                            }
+                                    div("col-md-6 pl-0 pr-0") {
+                                        label(classes = "control-label col-auto justify-content-between pl-0") {
+                                            +header
                                         }
-                                        div("col-md-6 pl-0") {
-                                            div("controls col-auto pl-0") {
-                                                input(InputType.text, classes = "form-control-plaintext pt-0 pb-0") {
-                                                    attrs.id = header
-                                                    attrs.defaultValue = text
-                                                    attrs.disabled = true
-                                                    attrs {
-                                                        onChangeFunction = {
-                                                            val tg = it.target as HTMLInputElement
-                                                            val newValue = tg.value
-                                                            newProjectInformation[header] = newValue
-                                                        }
+                                    }
+                                    div("col-md-6 pl-0") {
+                                        div("controls col-auto pl-0") {
+                                            input(InputType.text, classes = "form-control-plaintext pt-0 pb-0") {
+                                                attrs.id = header
+                                                attrs.defaultValue = text
+                                                attrs.disabled = true
+                                                attrs {
+                                                    onChangeFunction = {
+                                                        val tg = it.target as HTMLInputElement
+                                                        val newValue = tg.value
+                                                        newProjectInformation[header] = newValue
                                                     }
                                                 }
                                             }
                                         }
+                                    }
                                 }
                         }
                     }
@@ -578,10 +577,11 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
 
     private fun turnEditMode(isOff: Boolean) {
         projectInformation.keys.forEach {
-            val informationKey = (document.getElementById(it) as HTMLInputElement)
-            informationKey.disabled = isOff
+            val informationKey = (document.getElementById(it) as HTMLInputElement).apply {
+                disabled = isOff
+            }
             informationKey.setAttribute(
-                "class","form-control-plaintext pt-0 pb-0 ${if (isOff) "" else "border border-1"}"
+                "class", "form-control-plaintext pt-0 pb-0 ${if (isOff) "" else "border border-1"}"
             )
         }
         (document.getElementById("Save new project info") as HTMLButtonElement).hidden = isOff
