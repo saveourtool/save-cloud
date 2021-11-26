@@ -143,14 +143,14 @@ fun testResourcesSelection(
                         }
                     }
                 }
+            }
 
-                div {
-                    attrs.classes = cardStyleByTestingType(props, TestingType.STANDARD_BENCHMARKS)
-                    div("card-body") {
-                        child(checkBoxGrid(props.standardTestSuites)) {
-                            attrs.selectedStandardSuites = props.selectedStandardSuites
-                            attrs.rowSize = ProjectView.TEST_SUITE_ROW
-                        }
+            div {
+                attrs.classes = cardStyleByTestingType(props, TestingType.STANDARD_BENCHMARKS)
+                div("card-body") {
+                    child(checkBoxGrid(props.standardTestSuites)) {
+                        attrs.selectedStandardSuites = props.selectedStandardSuites
+                        attrs.rowSize = ProjectView.TEST_SUITE_ROW
                     }
                 }
             }
