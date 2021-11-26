@@ -21,7 +21,6 @@ import react.PropsWithChildren
 import react.dom.attrs
 import react.dom.button
 import react.dom.div
-import react.dom.h6
 import react.dom.input
 import react.dom.label
 import react.dom.li
@@ -89,7 +88,7 @@ fun fileUploader(
         }
 
         div {
-            h6(classes = "d-inline mr-3") {
+            label(classes = "control-label col-auto justify-content-between font-weight-bold text-gray-800 mb-1 pl-0") {
                 +"1. Upload or select the tool (and other resources) for testing:"
             }
 
