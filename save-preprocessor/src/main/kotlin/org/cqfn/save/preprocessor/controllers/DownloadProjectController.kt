@@ -328,7 +328,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
             Files.move(Paths.get(it.absolutePath), Paths.get((tmpDir.resolve(it)).absolutePath))
         }
         val project = executionRequestForStandardSuites.project
-        // TODO: Save the proper version https://github.com/cqfn/save-cloud/issues/321
+        // TODO: Save the proper version https://github.com/diktat-static-analysis/save-cloud/issues/321
         val version = files.first().name
         return updateExecution(
             executionRequestForStandardSuites.project,
@@ -439,7 +439,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
 
     private fun getTmpDirName(seeds: List<String>) = File("${configProperties.repository}/${seeds.hashCode()}")
 
-    private fun calculateTmpNameForFiles(files: List<File>) = files.map { it.toHash() }
+    private fun calculateTmpNameForFiles(files: List<File>) = files.map { it.toHash() }.sorted()
 
     private fun getExecutionLocation(executionRerunRequest: ExecutionRequest, executionType: ExecutionType) = if (executionType == ExecutionType.GIT) {
         downLoadRepository(executionRerunRequest).map { (location, _) -> location }

@@ -1,5 +1,6 @@
 package org.cqfn.save.orchestrator.service
 
+import org.cqfn.save.PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE
 import org.cqfn.save.domain.Python
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.TestSuite
@@ -24,12 +25,13 @@ import org.springframework.web.reactive.function.client.bodyToMono
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.LinkOption
+import java.nio.file.Paths
+import java.nio.file.StandardCopyOption
 import java.nio.file.attribute.PosixFileAttributeView
 import java.util.concurrent.atomic.AtomicBoolean
 
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.createTempDirectory
-import kotlin.random.Random
 
 /**
  * A service that uses [ContainerManager] to build and start containers for test execution.
@@ -175,10 +177,22 @@ class DockerService(private val configProperties: ConfigProperties) {
         val testSuitesDir = resourcesPath.resolve(standardTestSuiteDir)
         // copy corresponding standard test suites to resourcesRootPath dir
         copyTestSuitesToResourcesPath(testSuitesForDocker, testSuitesDir)
+
+        // list is not empty only in standard mode
+        if (testSuitesForDocker.isNotEmpty()) {
+            // move additional files, which were downloaded into the root dit to the execution dir for standard suites
+            execution.additionalFiles?.split(";")?.filter { it.isNotBlank() }?.forEach {
+                val additionalFilePath = Paths.get(resourcesPath.resolve(File(it).name).absolutePath)
+                val destination = Paths.get(testSuitesDir.absolutePath).resolve(File(it).name)
+                log.info("Move additional file $additionalFilePath into $destination")
+                Files.move(additionalFilePath, destination, StandardCopyOption.REPLACE_EXISTING)
+            }
+        }
+
         val saveCliExecFlags = if (testSuitesForDocker.isNotEmpty()) {
             // create stub toml config in aim to execute all test suites directories from `testSuitesDir`
             testSuitesDir.resolve("save.toml").apply { createNewFile() }.writeText("[general]")
-            " \"$standardTestSuiteDir\" --include-suites \"${testSuitesForDocker.joinToString(" ") { it.name }}\""
+            " \"$standardTestSuiteDir\" --include-suites \"${testSuitesForDocker.joinToString(",") { it.name }}\""
         } else {
             ""
         }
@@ -197,7 +211,7 @@ class DockerService(private val configProperties: ConfigProperties) {
         )
         val baseImage = execution.sdk
         val aptCmd = "apt-get ${configProperties.aptExtraFlags}"
-        // fixme: https://github.com/cqfn/save-cloud/issues/352
+        // fixme: https://github.com/diktat-static-analysis/save-cloud/issues/352
         val additionalRunCmd = if (execution.sdk.startsWith(Python.NAME, ignoreCase = true)) {
             """|RUN env DEBIAN_FRONTEND="noninteractive" $aptCmd install zip
                |RUN curl -s "https://get.sdkman.io" | bash
@@ -239,16 +253,19 @@ class DockerService(private val configProperties: ConfigProperties) {
 
     @Suppress("UnsafeCallOnNullableType")
     private fun copyTestSuitesToResourcesPath(testSuitesForDocker: List<TestSuiteDto>, destination: File) {
-        // TODO: https://github.com/cqfn/save-cloud/issues/321
-        log.info("Copying suites ${testSuitesForDocker.map { it.name }} into $destination")
+        // TODO: https://github.com/diktat-static-analysis/save-cloud/issues/321
+        if (testSuitesForDocker.isNotEmpty()) {
+            log.info("Copying suites ${testSuitesForDocker.map { it.name }} into $destination")
+        }
         testSuitesForDocker.forEach {
             val standardTestSuiteAbsolutePath = File(configProperties.testResources.basePath)
                 // tmp directories names for standard test suites constructs just by hashCode of listOf(repoUrl); reuse this logic
                 .resolve(File("${listOf(it.testSuiteRepoUrl!!).hashCode()}")
                     .resolve(it.testRootPath)
                 )
-            log.debug("Copying suite ${it.name} from $standardTestSuiteAbsolutePath into $destination/...")
-            standardTestSuiteAbsolutePath.copyRecursively(destination.resolve("${it.name}_${it.testRootPath.hashCode()}_${Random.nextInt()}"))
+            val currentSuiteDestination = destination.resolve("$PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE${it.testSuiteRepoUrl.hashCode()}_${it.testRootPath.hashCode()}")
+            log.info("Copying suite ${it.name} from $standardTestSuiteAbsolutePath into $currentSuiteDestination/...")
+            standardTestSuiteAbsolutePath.copyRecursively(currentSuiteDestination, overwrite = true)
         }
         // orchestrator is executed as root (to access docker socket), but files are in a shared volume
         val lookupService = destination.toPath().fileSystem.userPrincipalLookupService
