@@ -20,6 +20,7 @@ data class Project(
     var description: String?,
     @Enumerated(EnumType.STRING)
     var status: ProjectStatus,
+    var isPublic: Boolean = true,
 ) {
     /**
      * id of project

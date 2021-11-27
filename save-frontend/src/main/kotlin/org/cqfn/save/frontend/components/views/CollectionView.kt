@@ -38,14 +38,16 @@ class CollectionView : RComponent<PropsWithChildren, State>() {
         }
         child(tableComponent(
             columns = columns {
-                column(id = "owner", header = "Owner") {
+                column(id = "owner", header = "Project Owner") {
                     buildElement {
                         td {
-                            +it.value.owner
+                            a(href = "#/${it.value.owner}") {
+                                +it.value.owner
+                            }
                         }
                     }
                 }
-                column(id = "name", header = "Name") {
+                column(id = "name", header = "Evaluated Tool") {
                     buildElement {
                         td {
                             a(href = "#/${it.value.owner}/${it.value.name}") {
@@ -57,9 +59,14 @@ class CollectionView : RComponent<PropsWithChildren, State>() {
                 column(id = "passed", header = "Description") {
                     buildElement {
                         td {
-                            a(href = "#/${it.value.owner}/${it.value.name}/history") {
                                 +(it.value.description ?: "Description not provided")
-                            }
+                        }
+                    }
+                }
+                column(id = "rating", header = "Contest Rating") {
+                    buildElement {
+                        td {
+                            +"0"
                         }
                     }
                 }

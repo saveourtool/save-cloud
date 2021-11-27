@@ -310,7 +310,7 @@ class HistoryView : RComponent<HistoryProps, HistoryViewState>() {
             confirmationType = ConfirmationType.DELETE_CONFIRM
             isDeleteExecutionWindowOpen = true
             confirmLabel = ""
-            confirmMessage = "Are you sure you want to delete execution?"
+            confirmMessage = "Are you sure you want to delete this execution?"
             deleteExecutionId = listOf(id)
         }
     }

@@ -6,6 +6,7 @@
 
 package org.cqfn.save.frontend.components.views
 
+import csstype.em
 import org.cqfn.save.domain.FileInfo
 import org.cqfn.save.domain.Sdk
 import org.cqfn.save.domain.getSdkVersions
@@ -48,8 +49,10 @@ import kotlinx.html.id
 import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
 import kotlinx.html.role
+import kotlinx.html.style
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.cqfn.save.frontend.externals.modal.Styles
 
 /**
  * `Props` retrieved from router
@@ -165,7 +168,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
     private var standardTestSuites: List<TestSuiteDto> = emptyList()
     private val selectedStandardSuites: MutableList<String> = mutableListOf()
     private var gitDto: GitDto? = null
-    private var project = Project("stub", "stub", "stub", "stub", ProjectStatus.CREATED)
+    private var project = Project("N/A", "N/A", "N/A", "N/A", ProjectStatus.CREATED)
     private val projectInformation = mutableMapOf(
         "Tested tool name: " to "",
         "Description: " to "",
@@ -314,6 +317,13 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
         div("d-sm-flex align-items-center justify-content-center mb-4") {
             h1("h3 mb-0 text-gray-800") {
                 +"Project ${project.name}"
+            }
+            span("border ml-2 pr-1 pl-1 text-xs text-muted ") {
+                attrs.style = kotlinext.js.js {
+                    borderRadius = 2.em
+                }
+                val publicity = if (project.isPublic) "public" else "private"
+                +publicity
             }
         }
 

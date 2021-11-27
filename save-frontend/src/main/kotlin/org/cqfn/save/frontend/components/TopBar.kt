@@ -96,7 +96,7 @@ class TopBar : RComponent<TopBarProps, TopBarState>() {
                                             +pathPart
                                         }
                                     } else {
-                                        a(href = currentLink) {
+                                        a(href = currentLink.removeSuffix("execution")) {
                                             attrs.classes = setOf("text-light")
                                             +pathPart
                                         }
