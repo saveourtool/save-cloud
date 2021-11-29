@@ -6,6 +6,7 @@ package org.cqfn.save.frontend
 
 import org.cqfn.save.frontend.components.Footer
 import org.cqfn.save.frontend.components.basic.scrollToTopButton
+import org.cqfn.save.frontend.components.topBar
 import org.cqfn.save.frontend.components.views.CollectionView
 import org.cqfn.save.frontend.components.views.CreationView
 import org.cqfn.save.frontend.components.views.ExecutionView
