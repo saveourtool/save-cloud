@@ -1,5 +1,6 @@
 package org.cqfn.save.backend.service
 
+import org.cqfn.save.PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE
 import org.cqfn.save.agent.TestExecutionDto
 import org.cqfn.save.backend.repository.AgentRepository
 import org.cqfn.save.backend.repository.ExecutionRepository
@@ -103,7 +104,12 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
      * @param testExecutionsDtos
      * @return list of lost tests
      */
-    @Suppress("TOO_MANY_LINES_IN_LAMBDA", "TOO_LONG_FUNCTION", "UnsafeCallOnNullableType")
+    @Suppress(
+        "TOO_MANY_LINES_IN_LAMBDA",
+        "TOO_LONG_FUNCTION",
+        "UnsafeCallOnNullableType",
+        "LongMethod"
+    )
     @Transactional
     fun saveTestResult(testExecutionsDtos: List<TestExecutionDto>): List<TestExecutionDto> {
         log.debug("Saving ${testExecutionsDtos.size} test results from agent ${testExecutionsDtos.first().agentContainerId}")
@@ -114,15 +120,26 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
         val agent = requireNotNull(agentRepository.findByContainerId(agentContainerId)) {
             "Agent with containerId=[$agentContainerId] was not found in the DB"
         }
+
         val executionId = agent.execution.id!!
         val lostTests: MutableList<TestExecutionDto> = mutableListOf()
         val counters = Counters()
-        testExecutionsDtos.forEach { testExecDto ->
+        testExecutionsDtos.forEach {
+            // In standard mode we have extra paths in json reporter, since we created extra directories,
+            // and this information won't be matched with data from DB without such removement
+            val filePathWithDroppedPrefixForStandardMode = if (it.filePath.startsWith(PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE)) {
+                it.filePath.dropWhile { it != '/' }.drop(1)
+                // Use filePath as is for Git mode
+            } else {
+                it.filePath
+            }
+            val testExecDto = it.copy(filePath = filePathWithDroppedPrefixForStandardMode)
             val foundTestExec = testExecutionRepository.findByExecutionIdAndTestPluginNameAndTestFilePath(
                 executionId,
                 testExecDto.pluginName,
                 testExecDto.filePath
             )
+            val testExecutionId: Long? = foundTestExec.map { it.id }.orElse(null)
             foundTestExec.also {
                 if (it.isEmpty) {
                     log.error("Test execution $testExecDto for execution id=$executionId was not found in the DB")
@@ -145,7 +162,7 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
                 },
                     {
                         lostTests.add(testExecDto)
-                        log.error("Test execution $testExecDto for execution id=$executionId cannot be updated because its status is not RUNNING")
+                        log.error("Test execution $testExecDto with id=$testExecutionId for execution id=$executionId cannot be updated because its status is not RUNNING")
                     })
         }
         val lock = locks.computeIfAbsent(executionId) { Any() }

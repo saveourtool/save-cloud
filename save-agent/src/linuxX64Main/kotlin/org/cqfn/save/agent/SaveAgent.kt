@@ -130,7 +130,6 @@ class SaveAgent(internal val config: AgentConfiguration,
      * @param cliArgs arguments for SAVE process
      * @return Unit
      */
-    @Suppress("MAGIC_NUMBER")  // todo: unsuppress when mocked data is substituted by actual
     internal suspend fun startSaveProcess(cliArgs: String) = coroutineScope {
         // blocking execution of OS process
         state.value = AgentState.BUSY
@@ -155,8 +154,9 @@ class SaveAgent(internal val config: AgentConfiguration,
         logsSendingJob.join()
     }
 
+    @Suppress("MagicNumber")
     private fun runSave(cliArgs: String): ExecutionResult = ProcessBuilder(true, FileSystem.SYSTEM)
-        .exec(config.cliCommand.let { if (cliArgs.isNotEmpty()) "$it $cliArgs" else it }, "", config.logFilePath.toPath())
+        .exec(config.cliCommand.let { if (cliArgs.isNotEmpty()) "$it $cliArgs" else it }, "", config.logFilePath.toPath(), 100_000L)
 
     @Suppress("TOO_MANY_LINES_IN_LAMBDA")
     private fun CoroutineScope.readExecutionResults(jsonFile: String): List<TestExecutionDto> {
@@ -172,7 +172,7 @@ class SaveAgent(internal val config: AgentConfiguration,
             }
         }.forEach {
             launch {
-                // todo: launch on a dedicated thread (https://github.com/cqfn/save-cloud/issues/315)
+                // todo: launch on a dedicated thread (https://github.com/diktat-static-analysis/save-cloud/issues/315)
                 sendDataToBackend {
                     sendReport(it)
                 }
