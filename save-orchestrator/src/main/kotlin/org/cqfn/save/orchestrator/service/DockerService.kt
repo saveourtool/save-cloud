@@ -1,6 +1,5 @@
 package org.cqfn.save.orchestrator.service
 
-import org.cqfn.save.PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE
 import org.cqfn.save.domain.Python
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.TestSuite
@@ -9,6 +8,8 @@ import org.cqfn.save.execution.ExecutionUpdateDto
 import org.cqfn.save.orchestrator.config.ConfigProperties
 import org.cqfn.save.orchestrator.docker.ContainerManager
 import org.cqfn.save.testsuite.TestSuiteDto
+import org.cqfn.save.utils.PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE
+import org.cqfn.save.utils.STANDARD_TEST_SUITE_DIR
 
 import com.github.dockerjava.api.exception.DockerException
 import generated.SAVE_CORE_VERSION
@@ -44,7 +45,6 @@ class DockerService(private val configProperties: ConfigProperties) {
      */
     internal val containerManager = ContainerManager(configProperties.docker)
     private val executionDir = "/run/save-execution"
-    private val standardTestSuiteDir = "standard-test-suites"
 
     @Suppress("NonBooleanPropertyPrefixedWithIs")
     private val isAgentStoppingInProgress = AtomicBoolean(false)
@@ -174,7 +174,7 @@ class DockerService(private val configProperties: ConfigProperties) {
 
         // collect standard test suites for docker image, which were selected by user, if any
         val testSuitesForDocker = collectStandardTestSuitesForDocker(testSuiteDtos)
-        val testSuitesDir = resourcesPath.resolve(standardTestSuiteDir)
+        val testSuitesDir = resourcesPath.resolve(STANDARD_TEST_SUITE_DIR)
         // copy corresponding standard test suites to resourcesRootPath dir
         copyTestSuitesToResourcesPath(testSuitesForDocker, testSuitesDir)
 
@@ -192,7 +192,7 @@ class DockerService(private val configProperties: ConfigProperties) {
         val saveCliExecFlags = if (testSuitesForDocker.isNotEmpty()) {
             // create stub toml config in aim to execute all test suites directories from `testSuitesDir`
             testSuitesDir.resolve("save.toml").apply { createNewFile() }.writeText("[general]")
-            " \"$standardTestSuiteDir\" --include-suites \"${testSuitesForDocker.joinToString(",") { it.name }}\""
+            " \"$STANDARD_TEST_SUITE_DIR\" --include-suites \"${testSuitesForDocker.joinToString(",") { it.name }}\""
         } else {
             ""
         }
@@ -240,16 +240,13 @@ class DockerService(private val configProperties: ConfigProperties) {
         return Triple(imageId, agentRunCmd, saveCliExecFlags)
     }
 
-    private fun collectStandardTestSuitesForDocker(testSuiteDtos: List<TestSuiteDto>?): List<TestSuiteDto> {
-        val testSuitesForDocker = testSuiteDtos?.flatMap {
-            webClientBackend.get()
-                .uri("/standardTestSuitesWithName?name=${it.name}")
-                .retrieve()
-                .bodyToMono<List<TestSuite>>()
-                .block()!!
-        }?.map { it.toDto() } ?: emptyList()
-        return testSuitesForDocker
-    }
+    private fun collectStandardTestSuitesForDocker(testSuiteDtos: List<TestSuiteDto>?): List<TestSuiteDto> = testSuiteDtos?.flatMap {
+        webClientBackend.get()
+            .uri("/standardTestSuitesWithName?name=${it.name}")
+            .retrieve()
+            .bodyToMono<List<TestSuite>>()
+            .block()!!
+    }?.map { it.toDto() } ?: emptyList()
 
     @Suppress("UnsafeCallOnNullableType")
     private fun copyTestSuitesToResourcesPath(testSuitesForDocker: List<TestSuiteDto>, destination: File) {

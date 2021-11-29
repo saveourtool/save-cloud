@@ -20,6 +20,7 @@ import org.cqfn.save.domain.TestResultLocation
 import org.cqfn.save.domain.TestResultStatus
 import org.cqfn.save.plugins.fix.FixPlugin
 import org.cqfn.save.reporter.Report
+import org.cqfn.save.utils.STANDARD_TEST_SUITE_DIR
 
 import generated.SAVE_CLOUD_VERSION
 import io.ktor.client.HttpClient
@@ -156,7 +157,14 @@ class SaveAgent(internal val config: AgentConfiguration,
 
     @Suppress("MagicNumber")
     private fun runSave(cliArgs: String): ExecutionResult = ProcessBuilder(true, FileSystem.SYSTEM)
-        .exec(config.cliCommand.let { if (cliArgs.isNotEmpty()) "$it $cliArgs" else it }, "", config.logFilePath.toPath(), 100_000L)
+        .exec(
+            config.cliCommand.let {
+                if (!it.contains(STANDARD_TEST_SUITE_DIR)) "$it $cliArgs" else it
+            } + " --report-type json --result-output file",
+            "",
+            config.logFilePath.toPath(),
+            100_000L
+        )
 
     @Suppress("TOO_MANY_LINES_IN_LAMBDA")
     private fun CoroutineScope.readExecutionResults(jsonFile: String): List<TestExecutionDto> {

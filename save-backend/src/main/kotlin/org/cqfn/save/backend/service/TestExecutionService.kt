@@ -1,6 +1,5 @@
 package org.cqfn.save.backend.service
 
-import org.cqfn.save.PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE
 import org.cqfn.save.agent.TestExecutionDto
 import org.cqfn.save.backend.repository.AgentRepository
 import org.cqfn.save.backend.repository.ExecutionRepository
@@ -11,6 +10,7 @@ import org.cqfn.save.domain.TestResultLocation
 import org.cqfn.save.domain.TestResultStatus
 import org.cqfn.save.entities.TestExecution
 import org.cqfn.save.test.TestDto
+import org.cqfn.save.utils.PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE
 
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.PageRequest
