@@ -33,7 +33,8 @@ class WebSecurityConfig {
             // FixMe: Properly support CSRF protection https://github.com/diktat-static-analysis/save-cloud/issues/34
             csrf().disable()
         }
-        .formLogin()
+        .oauth2Login()
+        .and().formLogin()
         .and().build()
 }
 

@@ -18,7 +18,7 @@ import reactor.core.publisher.Mono
 /**
  * A service that provides `UserDetails`
  */
-@Service
+//@Service
 class RemoteUserDetailsService(
     configurationProperties: ConfigurationProperties,
 ) : ReactiveUserDetailsService {

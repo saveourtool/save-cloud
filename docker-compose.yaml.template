@@ -122,6 +122,25 @@ services:
         max_replicas_per_node: 1
         constraints:
           - "node.role==manager"
+  keycloak:
+    image: quay.io/keycloak/keycloak:15.0.2
+    extra_hosts:
+    - "host.docker.internal:host-gateway"
+    environment:
+      - KEYCLOAK_USER_FILE=/run/secrets/kc_user
+      - KEYCLOAK_PASSWORD_FILE=/run/secrets/kc_password
+      - KEYCLOAK_LOGLEVEL=INFO
+      - DB_VENDOR=MYSQL
+      - DB_ADDR=mysql
+      - DB_DATABASE=keycloak
+      - DB_USER_FILE=/run/secrets/db_username
+      - DB_PASSWORD_FILE=/run/secrets/db_password
+    ports:
+      - "9400:8080"
+    secrets:
+      - db_username
+      - db_password
+      - db_url
 
 volumes:
   save:
@@ -137,3 +156,5 @@ secrets:
     external: true
   db_url:
     external: true
+  kc_user:
+  kc_password:

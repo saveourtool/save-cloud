@@ -30,6 +30,7 @@ dependencies {
     api(projects.saveCloudCommon)
     implementation(libs.spring.cloud.starter.gateway)
     implementation(libs.spring.boot.starter.security)
+    implementation(libs.spring.boot.starter.oauth2.client)
     implementation(libs.spring.security.core)
 }
 

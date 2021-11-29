@@ -9,6 +9,18 @@ management:
       exposure:
         include: health,info,prometheus,gateway
 spring:
+  profiles:
+    default: dev
+  security:
+    oauth2:
+      client:
+        provider:
+          keycloak:
+            issuer-uri: http://keycloak:9400/auth/realms/master
+        registration:
+          keycloak:
+            client-id: save-cloud
+            # client-secret should be added manually in dev profile, or read from secrets in `prod` profile
   cloud:
     gateway:
       routes:
@@ -20,6 +32,7 @@ spring:
             - StripPrefix=1
             # If SESSION cookie is passed to downstream, it is then removed, because downstream discards it
             - RemoveRequestHeader=Cookie
+            - TokenRelay=
         - id: index_route
           uri: http://backend:5000/index.html
           predicates:
