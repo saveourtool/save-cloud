@@ -1,8 +1,8 @@
-@file:Suppress("FILE_NAME_MATCH_CLASS")
-
 /**
  * Top bar of web page
  */
+
+@file:Suppress("FILE_NAME_MATCH_CLASS")
 
 package org.cqfn.save.frontend.components
 
