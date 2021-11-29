@@ -58,7 +58,7 @@ private fun RBuilder.dropdownEntry(faIcon: String, text: String, handler: RDOMBu
  *
  * @return a function component
  */
-@Suppress("TOO_LONG_FUNCTION")
+@Suppress("TOO_LONG_FUNCTION", "LongMethod")
 fun topBar() = fc<TopBarProps> { props ->
     val (isLogoutModalOpen, setIsLogoutModalOpen) = useState(false)
     val location = useLocation()
