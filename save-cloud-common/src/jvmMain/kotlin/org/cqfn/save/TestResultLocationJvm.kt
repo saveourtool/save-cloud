@@ -8,13 +8,6 @@ import java.nio.file.Paths
 import kotlin.io.path.name
 
 /**
- * Since in standard mode we create additional directories for correct execution,
- * we will also mark them with such prefix, in aim to correctly match test execution results with data from DB,
- * which didn't know about our actions with creation of additional dirs
- */
-const val PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE = "STANDARD_"
-
-/**
  * Factory method to create a [TestResultLocation] from [TestExecutionDto]
  *
  * @param testExecutionDto

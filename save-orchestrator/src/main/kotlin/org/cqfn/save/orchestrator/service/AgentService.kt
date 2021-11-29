@@ -233,8 +233,6 @@ class AgentService {
                 NewJobResponse(
                     tests,
                     suitesToArgs.values.first() +
-                            " --report-type json" +
-                            " --result-output file" +
                             " " + tests.joinToString(separator = " ") { it.filePath }
                 )
             } else {
