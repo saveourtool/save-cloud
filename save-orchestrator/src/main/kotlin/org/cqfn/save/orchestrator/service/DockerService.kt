@@ -263,6 +263,12 @@ class DockerService(private val configProperties: ConfigProperties) {
             val currentSuiteDestination = destination.resolve("$PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE${it.testSuiteRepoUrl.hashCode()}_${it.testRootPath.hashCode()}")
             log.info("Copying suite ${it.name} from $standardTestSuiteAbsolutePath into $currentSuiteDestination/...")
             FileUtils.copyDirectory(standardTestSuiteAbsolutePath, currentSuiteDestination)
+            standardTestSuiteAbsolutePath.walkTopDown().forEach {
+                Files.setPosixFilePermissions(
+                    currentSuiteDestination.resolve(it.relativeTo(standardTestSuiteAbsolutePath)).toPath(),
+                    Files.getPosixFilePermissions(it.toPath())
+                )
+            }
         }
         // orchestrator is executed as root (to access docker socket), but files are in a shared volume
         val lookupService = destination.toPath().fileSystem.userPrincipalLookupService
