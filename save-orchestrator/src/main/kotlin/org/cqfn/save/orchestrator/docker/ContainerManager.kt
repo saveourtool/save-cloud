@@ -133,9 +133,10 @@ class ContainerManager(private val settings: DockerSettings) {
                                          runCmd: String = "RUN /bin/bash",
     ): String {
         val tmpDir = createTempDirectory().toFile()
+        log.debug("Copying ${baseDir.absolutePath} into ${tmpDir.absolutePath}/resources")
         FileUtils.copyDirectory(baseDir, tmpDir.resolve("resources"))
-        tmpDir.resolve("resources").walkTopDown().forEach {
-            val copy = tmpDir.resolve("resources").resolve(it.relativeTo(baseDir)).toPath()
+        baseDir.walkTopDown().forEach {
+            val copy = tmpDir.resolve("resources").resolve(it.relativeTo(baseDir)).canonicalFile.toPath()
             log.debug("Changing permissions for $copy from ${Files.getPosixFilePermissions(copy)} to ${Files.getPosixFilePermissions(it.toPath())}")
             Files.setPosixFilePermissions(
                 copy,
