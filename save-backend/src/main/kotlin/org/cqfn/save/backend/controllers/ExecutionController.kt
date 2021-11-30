@@ -217,6 +217,7 @@ class ExecutionController(private val executionService: ExecutionService,
             .bodyToMono()
     }
 
+    @Suppress("UnsafeCallOnNullableType")
     private fun Execution.getTestRootPathByTestSuites(): List<String> = this.testSuiteIds?.split(", ")?.map { testSuiteId ->
         testSuitesService.findTestSuiteById(testSuiteId.toLong()).orElseThrow {
             log.error("Can't find test suite with id=$testSuiteId for executionId=$id")

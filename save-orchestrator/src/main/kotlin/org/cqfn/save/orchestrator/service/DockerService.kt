@@ -254,6 +254,7 @@ class DockerService(private val configProperties: ConfigProperties) {
         return Triple(imageId, agentRunCmd, saveCliExecFlags)
     }
 
+    @Suppress("TOO_MANY_LINES_IN_LAMBDA")
     private fun unzipArchivesAmongAdditionalFiles(
         execution: Execution,
         isStandardMode: Boolean,
@@ -288,7 +289,7 @@ class DockerService(private val configProperties: ConfigProperties) {
         }
     }
 
-    @Suppress("MAGIC_NUMBER", "LONG_NUMERICAL_VALUES_SEPARATED")
+    @Suppress("MAGIC_NUMBER", "LONG_NUMERICAL_VALUES_SEPARATED", "MagicNumber")
     private fun File.isValidZipArchive(): Boolean {
         var fileSignature: Int
         try {
