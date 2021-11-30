@@ -259,34 +259,37 @@ class DockerService(private val configProperties: ConfigProperties) {
         isStandardMode: Boolean,
         testSuitesDir: File,
         resourcesPath: File) {
-        execution.additionalFiles?.split(";")?.filter { it.isNotBlank() }?.forEach {
-            val file = File(it)
-            val isZipArchive = file.isZipArchive()
+        // FixMe: for now support only .zip files
+        execution.additionalFiles?.split(";")?.filter { it.endsWith(".zip") }?.forEach {
+            val fileLocation = if (isStandardMode) {
+                testSuitesDir
+            } else {
+                val testRootPath = webClientBackend.post()
+                    .uri("/findTestRootPathForExecutionByTestSuites")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(BodyInserters.fromValue(execution))
+                    .retrieve()
+                    .bodyToMono<List<String>>()
+                    .block()!!
+                    .distinct()
+                    .single()
+                resourcesPath.resolve(testRootPath)
+            }
 
-            if (isZipArchive) {
-                val destination = if (isStandardMode) {
-                    testSuitesDir
-                } else {
-                    val testRootPath = webClientBackend.post()
-                        .uri("/findTestRootPathForExecutionByTestSuites")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .body(BodyInserters.fromValue(execution))
-                        .retrieve()
-                        .bodyToMono<List<String>>()
-                        .block()!!
-                        .distinct()
-                        .single()
+            val file = fileLocation.resolve(File(it).name)
 
-                    resourcesPath.resolve(testRootPath)
-                }
-                log.debug("Unzip $${file.name} into $destination")
-                file.unzipInto(destination)
+            val isValidZipArchive = file.isValidZipArchive()
+
+            if (isValidZipArchive) {
+                log.debug("Unzip ${file.absolutePath} into ${fileLocation.absolutePath}")
+                file.unzipInto(fileLocation)
+                file.delete()
             }
         }
     }
 
     @Suppress("MAGIC_NUMBER", "LONG_NUMERICAL_VALUES_SEPARATED")
-    private fun File.isZipArchive(): Boolean {
+    private fun File.isValidZipArchive(): Boolean {
         var fileSignature: Int
         try {
             RandomAccessFile(this, "r").use { raf -> fileSignature = raf.readInt() }
@@ -295,7 +298,7 @@ class DockerService(private val configProperties: ConfigProperties) {
             fileSignature = 0
         }
         // check for 'magic numbers', i.e. the data used to identify or verify the content of a file
-        return this.name.endsWith(".zip") && (fileSignature == 0x504B0304 || fileSignature == 0x504B0506 || fileSignature == 0x504B0708)
+        return fileSignature == 0x504B0304 || fileSignature == 0x504B0506 || fileSignature == 0x504B0708
     }
 
     private fun File.unzipInto(destination: File) {
