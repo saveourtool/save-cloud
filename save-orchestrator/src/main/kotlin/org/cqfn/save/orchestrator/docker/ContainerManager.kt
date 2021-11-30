@@ -14,6 +14,7 @@ import com.github.dockerjava.httpclient5.ApacheDockerHttpClient
 import com.github.dockerjava.transport.DockerHttpClient
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream
+import org.apache.commons.io.FileUtils
 import org.slf4j.LoggerFactory
 
 import java.io.BufferedOutputStream
@@ -132,7 +133,7 @@ class ContainerManager(private val settings: DockerSettings) {
                                          runCmd: String = "RUN /bin/bash",
     ): String {
         val tmpDir = createTempDirectory().toFile()
-        baseDir.copyRecursively(File(tmpDir, "resources"))
+        FileUtils.copyDirectory(baseDir, tmpDir.resolve("resources"))
         val dockerFileAsText =
                 """
                     |FROM $baseImage
