@@ -135,10 +135,14 @@ class ContainerManager(private val settings: DockerSettings) {
         val tmpDir = createTempDirectory().toFile()
         val tmpResourcesDir = tmpDir.absoluteFile.resolve("resources")
         log.debug("Copying ${baseDir.absolutePath} into $tmpResourcesDir")
-        baseDir.walkTopDown().forEach {
+        baseDir.walkTopDown().forEach { source ->
+            val target = tmpResourcesDir.resolve(source.relativeTo(baseDir)).canonicalFile
+            if (source.isDirectory) {
+                target.mkdirs()
+            }
             Files.copy(
-                it.toPath(),
-                tmpResourcesDir.resolve(it.relativeTo(baseDir)).canonicalFile.toPath(),
+                source.toPath(),
+                target.toPath(),
                 StandardCopyOption.COPY_ATTRIBUTES
             )
         }
