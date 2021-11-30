@@ -195,18 +195,7 @@ class ExecutionController(private val executionService: ExecutionService,
             "Can't rerun execution $id, project ${execution.project.name} has no associated git address"
         }
         val testRootPath = if (executionType == ExecutionType.GIT) {
-            execution.testSuiteIds?.split(", ")?.map { testSuiteId ->
-                testSuitesService.findTestSuiteById(testSuiteId.toLong()).orElseThrow {
-                    log.error("Can't find test suite with id=$testSuiteId for executionId=$id")
-                    NoSuchElementException()
-                }
-            }!!
-                .filter {
-                    it.type == TestSuiteType.PROJECT
-                }
-                .map {
-                    it.testRootPath
-                }
+            execution.getTestRootPathByTestSuites()
                 .distinct()
                 .single()
         } else {
@@ -227,5 +216,22 @@ class ExecutionController(private val executionService: ExecutionService,
             .bodyValue(executionRequest)
             .retrieve()
             .bodyToMono()
+    }
+
+    private fun Execution.getTestRootPathByTestSuites(): List<String> {
+        return this.testSuiteIds?.split(", ")?.map { testSuiteId ->
+            testSuitesService.findTestSuiteById(testSuiteId.toLong()).orElseThrow {
+                log.error("Can't find test suite with id=$testSuiteId for executionId=$id")
+                NoSuchElementException()
+            }
+        }!!
+            .map {
+                it.testRootPath
+            }
+    }
+
+    @PostMapping("/findTestRootPathForExecutionByTestSuites")
+    fun findTestRootPathByTestSuites(@RequestBody execution: Execution): List<String> {
+        return execution.getTestRootPathByTestSuites()
     }
 }
