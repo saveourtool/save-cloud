@@ -270,7 +270,8 @@ class DockerService(private val configProperties: ConfigProperties) {
                 Files.copy(
                     source.toPath(),
                     target.toPath(),
-                    StandardCopyOption.COPY_ATTRIBUTES
+                    StandardCopyOption.REPLACE_EXISTING,
+                    StandardCopyOption.COPY_ATTRIBUTES,
                 )
             }
         }
