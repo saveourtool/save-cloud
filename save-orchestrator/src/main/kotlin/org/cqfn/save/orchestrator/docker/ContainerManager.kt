@@ -143,7 +143,8 @@ class ContainerManager(private val settings: DockerSettings) {
             Files.copy(
                 source.toPath(),
                 target.toPath(),
-                StandardCopyOption.COPY_ATTRIBUTES
+                StandardCopyOption.REPLACE_EXISTING,
+                StandardCopyOption.COPY_ATTRIBUTES,
             )
         }
         val dockerFileAsText =
