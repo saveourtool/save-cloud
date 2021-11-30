@@ -14,13 +14,13 @@ import com.github.dockerjava.httpclient5.ApacheDockerHttpClient
 import com.github.dockerjava.transport.DockerHttpClient
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream
-import org.apache.commons.io.FileUtils
 import org.slf4j.LoggerFactory
 
 import java.io.BufferedOutputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.nio.file.Files
+import java.nio.file.StandardCopyOption
 import java.util.zip.GZIPOutputStream
 
 import kotlin.io.path.ExperimentalPathApi
@@ -133,14 +133,13 @@ class ContainerManager(private val settings: DockerSettings) {
                                          runCmd: String = "RUN /bin/bash",
     ): String {
         val tmpDir = createTempDirectory().toFile()
-        log.debug("Copying ${baseDir.absolutePath} into ${tmpDir.absolutePath}/resources")
-        FileUtils.copyDirectory(baseDir, tmpDir.resolve("resources"))
+        val tmpResourcesDir = tmpDir.absoluteFile.resolve("resources")
+        log.debug("Copying ${baseDir.absolutePath} into $tmpResourcesDir")
         baseDir.walkTopDown().forEach {
-            val copy = tmpDir.resolve("resources").resolve(it.relativeTo(baseDir)).canonicalFile.toPath()
-            log.debug("Changing permissions for $copy from ${Files.getPosixFilePermissions(copy)} to ${Files.getPosixFilePermissions(it.toPath())}")
-            Files.setPosixFilePermissions(
-                copy,
-                Files.getPosixFilePermissions(it.toPath())
+            Files.copy(
+                it.toPath(),
+                tmpResourcesDir.resolve(it.relativeTo(baseDir)).canonicalFile.toPath(),
+                StandardCopyOption.COPY_ATTRIBUTES
             )
         }
         val dockerFileAsText =
