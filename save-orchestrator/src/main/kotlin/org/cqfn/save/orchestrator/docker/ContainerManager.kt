@@ -134,6 +134,12 @@ class ContainerManager(private val settings: DockerSettings) {
     ): String {
         val tmpDir = createTempDirectory().toFile()
         FileUtils.copyDirectory(baseDir, tmpDir.resolve("resources"))
+        tmpDir.resolve("resources").walkTopDown().forEach {
+            Files.setPosixFilePermissions(
+                baseDir.resolve(it.relativeTo(tmpDir.resolve("resources"))).toPath(),
+                Files.getPosixFilePermissions(it.toPath())
+            )
+        }
         val dockerFileAsText =
                 """
                     |FROM $baseImage
