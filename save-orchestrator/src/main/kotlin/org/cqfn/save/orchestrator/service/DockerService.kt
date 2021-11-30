@@ -263,9 +263,13 @@ class DockerService(private val configProperties: ConfigProperties) {
             val currentSuiteDestination = destination.resolve("$PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE${it.testSuiteRepoUrl.hashCode()}_${it.testRootPath.hashCode()}")
             log.info("Copying suite ${it.name} from $standardTestSuiteAbsolutePath into $currentSuiteDestination/...")
             standardTestSuiteAbsolutePath.walkTopDown().forEach { source ->
+                val target = currentSuiteDestination.resolve(source.relativeTo(standardTestSuiteAbsolutePath)).canonicalFile
+                if (source.isDirectory) {
+                    target.mkdirs()
+                }
                 Files.copy(
                     source.toPath(),
-                    currentSuiteDestination.resolve(source.relativeTo(standardTestSuiteAbsolutePath)).toPath(),
+                    target.toPath(),
                     StandardCopyOption.COPY_ATTRIBUTES
                 )
             }
