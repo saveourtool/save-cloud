@@ -1,6 +1,7 @@
 package org.cqfn.save.orchestrator.docker
 
 import org.cqfn.save.orchestrator.config.DockerSettings
+import org.cqfn.save.orchestrator.currentSuiteDestination
 import org.cqfn.save.orchestrator.getHostIp
 
 import com.github.dockerjava.api.DockerClient
@@ -20,7 +21,6 @@ import java.io.BufferedOutputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.nio.file.Files
-import java.nio.file.StandardCopyOption
 import java.util.zip.GZIPOutputStream
 
 import kotlin.io.path.ExperimentalPathApi
@@ -135,18 +135,7 @@ class ContainerManager(private val settings: DockerSettings) {
         val tmpDir = createTempDirectory().toFile()
         val tmpResourcesDir = tmpDir.absoluteFile.resolve("resources")
         log.debug("Copying ${baseDir.absolutePath} into $tmpResourcesDir")
-        baseDir.walkTopDown().forEach { source ->
-            val target = tmpResourcesDir.resolve(source.relativeTo(baseDir)).canonicalFile
-            if (source.isDirectory) {
-                target.mkdirs()
-            }
-            Files.copy(
-                source.toPath(),
-                target.toPath(),
-                StandardCopyOption.REPLACE_EXISTING,
-                StandardCopyOption.COPY_ATTRIBUTES,
-            )
-        }
+        baseDir.copyRecursivelyWithAttributes(tmpResourcesDir)
         val dockerFileAsText =
                 """
                     |FROM $baseImage
