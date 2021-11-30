@@ -135,8 +135,10 @@ class ContainerManager(private val settings: DockerSettings) {
         val tmpDir = createTempDirectory().toFile()
         FileUtils.copyDirectory(baseDir, tmpDir.resolve("resources"))
         tmpDir.resolve("resources").walkTopDown().forEach {
+            val copy = tmpDir.resolve("resources").resolve(it.relativeTo(baseDir)).toPath()
+            log.debug("Changing permissions for $copy from ${Files.getPosixFilePermissions(copy)} to ${Files.getPosixFilePermissions(it.toPath())}")
             Files.setPosixFilePermissions(
-                baseDir.resolve(it.relativeTo(tmpDir.resolve("resources"))).toPath(),
+                copy,
                 Files.getPosixFilePermissions(it.toPath())
             )
         }
