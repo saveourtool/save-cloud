@@ -1,7 +1,7 @@
 package org.cqfn.save.orchestrator.docker
 
 import org.cqfn.save.orchestrator.config.DockerSettings
-import org.cqfn.save.orchestrator.currentSuiteDestination
+import org.cqfn.save.orchestrator.copyRecursivelyWithAttributes
 import org.cqfn.save.orchestrator.getHostIp
 
 import com.github.dockerjava.api.DockerClient
