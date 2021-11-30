@@ -15,7 +15,6 @@ import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.execution.ExecutionInitializationDto
 import org.cqfn.save.execution.ExecutionType
 import org.cqfn.save.execution.ExecutionUpdateDto
-import org.cqfn.save.testsuite.TestSuiteType
 import org.slf4j.LoggerFactory
 
 import org.springframework.http.HttpStatus
@@ -218,20 +217,20 @@ class ExecutionController(private val executionService: ExecutionService,
             .bodyToMono()
     }
 
-    private fun Execution.getTestRootPathByTestSuites(): List<String> {
-        return this.testSuiteIds?.split(", ")?.map { testSuiteId ->
-            testSuitesService.findTestSuiteById(testSuiteId.toLong()).orElseThrow {
-                log.error("Can't find test suite with id=$testSuiteId for executionId=$id")
-                NoSuchElementException()
-            }
-        }!!
-            .map {
-                it.testRootPath
-            }
-    }
+    private fun Execution.getTestRootPathByTestSuites(): List<String> = this.testSuiteIds?.split(", ")?.map { testSuiteId ->
+        testSuitesService.findTestSuiteById(testSuiteId.toLong()).orElseThrow {
+            log.error("Can't find test suite with id=$testSuiteId for executionId=$id")
+            NoSuchElementException()
+        }
+    }!!
+        .map {
+            it.testRootPath
+        }
 
+    /**
+     * @param execution
+     * @return the list of the testRootPaths for current execution; size of the list could be >1 only in standard mode
+     */
     @PostMapping("/findTestRootPathForExecutionByTestSuites")
-    fun findTestRootPathByTestSuites(@RequestBody execution: Execution): List<String> {
-        return execution.getTestRootPathByTestSuites()
-    }
+    fun findTestRootPathByTestSuites(@RequestBody execution: Execution): List<String> = execution.getTestRootPathByTestSuites()
 }

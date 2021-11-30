@@ -1,11 +1,5 @@
 package org.cqfn.save.orchestrator.service
 
-import com.github.dockerjava.api.exception.DockerException
-import generated.SAVE_CORE_VERSION
-import net.lingala.zip4j.ZipFile
-
-import net.lingala.zip4j.exception.ZipException
-import org.apache.commons.io.FileUtils
 import org.cqfn.save.domain.Python
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.TestSuite
@@ -16,6 +10,12 @@ import org.cqfn.save.orchestrator.docker.ContainerManager
 import org.cqfn.save.testsuite.TestSuiteDto
 import org.cqfn.save.utils.PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE
 import org.cqfn.save.utils.STANDARD_TEST_SUITE_DIR
+
+import com.github.dockerjava.api.exception.DockerException
+import generated.SAVE_CORE_VERSION
+import net.lingala.zip4j.ZipFile
+import net.lingala.zip4j.exception.ZipException
+import org.apache.commons.io.FileUtils
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
+
 import java.io.File
 import java.io.IOException
 import java.io.RandomAccessFile
@@ -34,9 +35,9 @@ import java.nio.file.Paths
 import java.nio.file.StandardCopyOption
 import java.nio.file.attribute.PosixFileAttributeView
 import java.util.concurrent.atomic.AtomicBoolean
+
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.createTempDirectory
-
 
 /**
  * A service that uses [ContainerManager] to build and start containers for test execution.
@@ -195,30 +196,10 @@ class DockerService(private val configProperties: ConfigProperties) {
             }
         }
 
-        execution.additionalFiles?.split(";")?.filter { it.isNotBlank() }?.forEach {
-            val file = File(it)
-            val isZipArchive = file.isZipArchive()
-
-            if (isZipArchive) {
-                val destination = if (isStandardMode) {
-                    testSuitesDir
-                } else {
-                    val testRootPath = webClientBackend.post()
-                        .uri("/findTestRootPathForExecutionByTestSuites")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .body(BodyInserters.fromValue(execution))
-                        .retrieve()
-                        .bodyToMono<List<String>>()
-                        .block()!!
-                        .distinct()
-                        .single()
-
-                    resourcesPath.resolve(testRootPath)
-                }
-                log.debug("Unzip $${file.name} into $destination")
-                file.unzip(destination)
-            }
-        }
+        // if some additional file is archive, unzip it into proper destination:
+        // for standard mode into STANDARD_TEST_SUITE_DIR
+        // for Git mode into testRootPath
+        unzipArchivesAmongAdditionalFiles(execution, isStandardMode, testSuitesDir, resourcesPath)
 
         val saveCliExecFlags = if (isStandardMode) {
             // create stub toml config in aim to execute all test suites directories from `testSuitesDir`
@@ -273,6 +254,38 @@ class DockerService(private val configProperties: ConfigProperties) {
         return Triple(imageId, agentRunCmd, saveCliExecFlags)
     }
 
+    private fun unzipArchivesAmongAdditionalFiles(
+        execution: Execution,
+        isStandardMode: Boolean,
+        testSuitesDir: File,
+        resourcesPath: File) {
+        execution.additionalFiles?.split(";")?.filter { it.isNotBlank() }?.forEach {
+            val file = File(it)
+            val isZipArchive = file.isZipArchive()
+
+            if (isZipArchive) {
+                val destination = if (isStandardMode) {
+                    testSuitesDir
+                } else {
+                    val testRootPath = webClientBackend.post()
+                        .uri("/findTestRootPathForExecutionByTestSuites")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body(BodyInserters.fromValue(execution))
+                        .retrieve()
+                        .bodyToMono<List<String>>()
+                        .block()!!
+                        .distinct()
+                        .single()
+
+                    resourcesPath.resolve(testRootPath)
+                }
+                log.debug("Unzip $${file.name} into $destination")
+                file.unzipInto(destination)
+            }
+        }
+    }
+
+    @Suppress("MAGIC_NUMBER", "LONG_NUMERICAL_VALUES_SEPARATED")
     private fun File.isZipArchive(): Boolean {
         var fileSignature: Int
         try {
@@ -281,11 +294,11 @@ class DockerService(private val configProperties: ConfigProperties) {
             log.error("Error during checking file ${this.name} for being an archive: ${e.message}")
             fileSignature = 0
         }
-        // check for magic numbers, i.e. the data used to identify or verify the content of a file
+        // check for 'magic numbers', i.e. the data used to identify or verify the content of a file
         return this.name.endsWith(".zip") && (fileSignature == 0x504B0304 || fileSignature == 0x504B0506 || fileSignature == 0x504B0708)
     }
 
-    private fun File.unzip(destination: File) {
+    private fun File.unzipInto(destination: File) {
         try {
             val zipFile = ZipFile(this.toString())
             zipFile.extractAll(destination.toString())
