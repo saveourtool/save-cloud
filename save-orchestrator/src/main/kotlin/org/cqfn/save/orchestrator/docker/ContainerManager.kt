@@ -135,7 +135,7 @@ class ContainerManager(private val settings: DockerSettings) {
         val tmpDir = createTempDirectory().toFile()
         val tmpResourcesDir = tmpDir.absoluteFile.resolve("resources")
         log.debug("Copying ${baseDir.absolutePath} into $tmpResourcesDir")
-        baseDir.copyRecursivelyWithAttributes(tmpResourcesDir)
+        copyRecursivelyWithAttributes(baseDir, tmpResourcesDir)
         val dockerFileAsText =
                 """
                     |FROM $baseImage
