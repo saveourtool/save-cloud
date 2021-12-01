@@ -302,7 +302,7 @@ class DockerService(private val configProperties: ConfigProperties) {
             .block()!!
     }?.map { it.toDto() } ?: emptyList()
 
-    @Suppress("UnsafeCallOnNullableType")
+    @Suppress("UnsafeCallOnNullableType", "TOO_MANY_LINES_IN_LAMBDA")
     private fun copyTestSuitesToResourcesPath(testSuitesForDocker: List<TestSuiteDto>, destination: File) {
         // TODO: https://github.com/diktat-static-analysis/save-cloud/issues/321
         log.info("Copying suites ${testSuitesForDocker.map { it.name }} into $destination")
@@ -313,8 +313,10 @@ class DockerService(private val configProperties: ConfigProperties) {
                     .resolve(it.testRootPath)
                 )
             val currentSuiteDestination = destination.resolve("$PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE${it.testSuiteRepoUrl.hashCode()}_${it.testRootPath.hashCode()}")
-            log.info("Copying suite ${it.name} from $standardTestSuiteAbsolutePath into $currentSuiteDestination/...")
-            copyRecursivelyWithAttributes(standardTestSuiteAbsolutePath, currentSuiteDestination)
+            if (!currentSuiteDestination.exists()) {
+                log.info("Copying suite ${it.name} from $standardTestSuiteAbsolutePath into $currentSuiteDestination/...")
+                copyRecursivelyWithAttributes(standardTestSuiteAbsolutePath, currentSuiteDestination)
+            }
         }
         // orchestrator is executed as root (to access docker socket), but files are in a shared volume
         val lookupService = destination.toPath().fileSystem.userPrincipalLookupService
