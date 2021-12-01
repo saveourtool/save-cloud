@@ -61,14 +61,20 @@ fun executionStatistics(classes: String = "") = fc<ExecutionStatisticsProps> { p
  * @param count tests for execution
  * @return a functional react component
  */
-fun executionTestsNotFound(count: Int?) = fc<ExecutionStatisticsProps> {
-    if (count == 0) {
+fun executionTestsNotFound(count: Int?) = fc<ExecutionStatisticsProps> { props ->
+    if (count == 0 && props.executionDto?.status != ExecutionStatus.PENDING) {
         div("d-flex justify-content-center") {
             img(src = "img/sad_cat.gif") {}
         }
         div("d-sm-flex align-items-center justify-content-center mb-4 mt-2") {
             h1("h3 mb-0 text-gray-800") {
                 +"Tests not found!"
+            }
+        }
+    } else if (count == 0 && props.executionDto?.status == ExecutionStatus.PENDING) {
+        div("d-sm-flex align-items-center justify-content-center mb-4 mt-2") {
+            h1("h3 mb-0 text-gray-800") {
+                +"Loading ..."
             }
         }
     }
