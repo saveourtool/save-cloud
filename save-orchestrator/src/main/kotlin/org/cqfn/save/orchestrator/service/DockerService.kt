@@ -27,8 +27,6 @@ import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
 
 import java.io.File
-import java.io.IOException
-import java.io.RandomAccessFile
 import java.nio.file.Files
 import java.nio.file.LinkOption
 import java.nio.file.Paths
@@ -279,27 +277,10 @@ class DockerService(private val configProperties: ConfigProperties) {
 
             val file = fileLocation.resolve(File(it).name)
 
-            val isValidZipArchive = file.isValidZipArchive()
-
-            if (isValidZipArchive) {
-                log.debug("Unzip ${file.absolutePath} into ${fileLocation.absolutePath}")
-                file.unzipInto(fileLocation)
-                file.delete()
-            }
+            log.debug("Unzip ${file.absolutePath} into ${fileLocation.absolutePath}")
+            file.unzipInto(fileLocation)
+            file.delete()
         }
-    }
-
-    @Suppress("MAGIC_NUMBER", "LONG_NUMERICAL_VALUES_SEPARATED", "MagicNumber")
-    private fun File.isValidZipArchive(): Boolean {
-        var fileSignature: Int
-        try {
-            RandomAccessFile(this, "r").use { raf -> fileSignature = raf.readInt() }
-        } catch (e: IOException) {
-            log.error("Error during checking file ${this.name} for being an archive: ${e.message}")
-            fileSignature = 0
-        }
-        // check for 'magic numbers', i.e. the data used to identify or verify the content of a file
-        return fileSignature == 0x504B0304 || fileSignature == 0x504B0506 || fileSignature == 0x504B0708
     }
 
     private fun File.unzipInto(destination: File) {
@@ -307,6 +288,7 @@ class DockerService(private val configProperties: ConfigProperties) {
             val zipFile = ZipFile(this.toString())
             zipFile.extractAll(destination.toString())
         } catch (e: ZipException) {
+            log.error("Error occurred during extracting of archive ${this.name}")
             e.printStackTrace()
         }
     }
