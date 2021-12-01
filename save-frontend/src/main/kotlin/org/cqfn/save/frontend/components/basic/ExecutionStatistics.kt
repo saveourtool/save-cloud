@@ -74,7 +74,7 @@ fun executionTestsNotFound(count: Int?) = fc<ExecutionStatisticsProps> { props -
     } else if (count == 0 && props.executionDto?.status == ExecutionStatus.PENDING) {
         div("d-sm-flex align-items-center justify-content-center mb-4 mt-2") {
             h1("h3 mb-0 text-gray-800") {
-                +"Loading ..."
+                +"Execution is starting..."
             }
         }
     }
