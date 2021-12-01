@@ -81,6 +81,10 @@ services:
       labels:
         - "prometheus-job=api-gateway"
     logging: *loki-logging-jvm
+    depends_on:
+      - keycloak
+    secrets:
+      - keycloak_gw_secret
   prometheus:
     image: prom/prometheus
     user: root  # to access host's docker socket for service discovery, see https://groups.google.com/g/prometheus-users/c/EuEW0qRzXvg/m/0aqKh_ZABQAJ
@@ -131,16 +135,18 @@ services:
       - KEYCLOAK_PASSWORD_FILE=/run/secrets/kc_password
       - KEYCLOAK_LOGLEVEL=INFO
       - DB_VENDOR=MYSQL
-      - DB_ADDR=mysql
+      - DB_ADDR=mysql  # should be specified in docker-compose.override.yaml for a particular host
       - DB_DATABASE=keycloak
       - DB_USER_FILE=/run/secrets/db_username
       - DB_PASSWORD_FILE=/run/secrets/db_password
+      - KEYCLOAK_STATISTICS=all
     ports:
       - "9400:8080"
     secrets:
       - db_username
       - db_password
-      - db_url
+      - kc_user
+      - kc_password
 
 volumes:
   save:
@@ -156,5 +162,9 @@ secrets:
     external: true
   db_url:
     external: true
+  keycloak_gw_secret:
+    external: true
   kc_user:
+    external: true
   kc_password:
+    external: true

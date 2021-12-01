@@ -14,9 +14,6 @@ spring:
   security:
     oauth2:
       client:
-        provider:
-          keycloak:
-            issuer-uri: http://keycloak:9400/auth/realms/master
         registration:
           keycloak:
             client-id: save-cloud

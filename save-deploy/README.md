@@ -26,7 +26,8 @@ Deployment is performed on server via docker swarm or locally via docker-compose
 * Loki logging driver should be added to docker installation: [instruction](https://grafana.com/docs/loki/latest/clients/docker-driver/#installing)
 * Pull new changes to the server and run `./gradlew -Psave.profile=prod deployDockerStack`.
   * If you wish to deploy save-cloud, that is not present in docker registry (e.g. to deploy from a branch), run `./gradlew -Psave.profile=prod buildAndDeployDockerStack` instead.
-  * If you would like to use `docker-compose.override.yaml`, add `-PuseOverride=true` to the execution of tasks above
+  * If you would like to use `docker-compose.override.yaml`, add `-PuseOverride=true` to the execution of tasks above.
+    This file is configured to be read from `$HOME/configs`; you can use the one from the repository as an example.
 * [`docker-compose.yaml.template`](../docker-compose.yaml.template) is configured so that all services use Loki for logging
   and configuration files from `~/configs`, which are copied from `save-deploy` during gradle build.
 
@@ -57,6 +58,11 @@ preprocessor:
 ## Database
 The service is designed to work with MySQL database. Migrations are applied with liquibase. They expect event scheduler to be enabled on the DB.
 
+## Enabling api-gateway and keycloak server
+* Property `spring.security.oauth2.client.provider.keycloak.issuer-uri` should be provided via `/home/saveu/configs/gateway/application.properties`.
+  This setting is specific for a particular deployment environment.
+* Three more secrets need to be added: `keycloak_gw_secret`, `kc_user`, `kc_password`
+
 ## Local deployment
 * Ensure that docker daemon is running and docker-compose is installed.
 * To make things easier, add line `save.profile=dev` to `gradle.properties`. This will make project version `SNAPSHOT` instead of timetamp-based suffix and allow caching of gradle tasks.
@@ -67,17 +73,17 @@ If a snapshot version of save-cli is required (i.e., the one which is not availa
 manually placed in `save-orchestrator/build/resources/main` before build, and it's version should be provided via `-PsaveCliVersion=...` when executing gradle.
 
 ## Ports allocation
-| port | description |
-| ---- | ----------- |
-| 3306 | database (locally) |
-| 5000 | save-backend |
-| 5100 | save-orchestrator |
-| 5200 | save-test-preprocessor |
-| 5300 | api-gateway |
+| port | description                                |
+|------|--------------------------------------------|
+| 3306 | database (locally)                         |
+| 5000 | save-backend                               |
+| 5100 | save-orchestrator                          |
+| 5200 | save-test-preprocessor                     |
+| 5300 | api-gateway                                |
 | 6000 | local docker registry (not used currently) |
-| 9090 | prometheus |
-| 9091 | node_exporter |
-| 9100 | grafana |
+| 9090 | prometheus                                 |
+| 9091 | node_exporter                              |
+| 9100 | grafana                                    |
 
 ## Secrets
 * Liquibase is reading secrets from the secrets file located on the server in the `home` directory.
@@ -88,3 +94,9 @@ manually placed in `save-orchestrator/build/resources/main` before build, and it
 Nginx is used as a reverse proxy, which allows access from external network to backend and some other services.
 File `save-deploy/reverse-proxy.conf` should be copied to `/etc/nginx/sites-available`. Symlink should be created:
 `sudo ln -s /etc/nginx/sites-available/reverse-proxy.conf /etc/nginx/sites-enabled/` (or to `/etc/nginx/conf.d` on some distributions).
+
+# Adding a new service
+Sometimes it's necessary to create a new service. These steps are required to seamlessly add it to deployment:
+* Add it to [docker-compose.yaml.template](../docker-compose.yaml.template)
+* Add it to task `depoyDockerStack` in [`DockerStackConfiguration.kt`](../buildSrc/src/main/kotlin/org/cqfn/save/buildutils/DockerStackConfiguration.kt)
+  so that config directory is created (if it's another Spring Boot service)
