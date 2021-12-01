@@ -6,6 +6,7 @@ import org.cqfn.save.entities.TestSuite
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionUpdateDto
 import org.cqfn.save.orchestrator.config.ConfigProperties
+import org.cqfn.save.orchestrator.copyRecursivelyWithAttributes
 import org.cqfn.save.orchestrator.docker.ContainerManager
 import org.cqfn.save.testsuite.TestSuiteDto
 import org.cqfn.save.utils.PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE
@@ -262,7 +263,7 @@ class DockerService(private val configProperties: ConfigProperties) {
                 )
             val currentSuiteDestination = destination.resolve("$PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE${it.testSuiteRepoUrl.hashCode()}_${it.testRootPath.hashCode()}")
             log.info("Copying suite ${it.name} from $standardTestSuiteAbsolutePath into $currentSuiteDestination/...")
-            standardTestSuiteAbsolutePath.copyRecursively(currentSuiteDestination, overwrite = true)
+            copyRecursivelyWithAttributes(standardTestSuiteAbsolutePath, currentSuiteDestination)
         }
         // orchestrator is executed as root (to access docker socket), but files are in a shared volume
         val lookupService = destination.toPath().fileSystem.userPrincipalLookupService
