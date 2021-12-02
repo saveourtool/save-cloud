@@ -23,10 +23,10 @@ import org.cqfn.save.preprocessor.utils.decodeFromPropertiesFile
 import org.cqfn.save.preprocessor.utils.toHash
 import org.cqfn.save.testsuite.TestSuiteDto
 import org.cqfn.save.testsuite.TestSuiteType
+import org.cqfn.save.utils.moveFileWithAttributes
 
 import okio.ExperimentalFileSystem
 import okio.FileSystem
-import org.cqfn.save.utils.moveFileWithAttributes
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.api.errors.GitAPIException
 import org.eclipse.jgit.api.errors.InvalidRemoteException

@@ -11,13 +11,13 @@ import org.cqfn.save.orchestrator.docker.ContainerManager
 import org.cqfn.save.testsuite.TestSuiteDto
 import org.cqfn.save.utils.PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE
 import org.cqfn.save.utils.STANDARD_TEST_SUITE_DIR
+import org.cqfn.save.utils.moveFileWithAttributes
 
 import com.github.dockerjava.api.exception.DockerException
 import generated.SAVE_CORE_VERSION
 import net.lingala.zip4j.ZipFile
 import net.lingala.zip4j.exception.ZipException
 import org.apache.commons.io.FileUtils
-import org.cqfn.save.utils.moveFileWithAttributes
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
@@ -276,14 +276,12 @@ class DockerService(private val configProperties: ConfigProperties) {
             }
 
             val file = fileLocation.resolve(File(it).name)
-
             val shouldBeExecutable = file.canExecute()
+            log.debug("Unzip ${file.absolutePath} into ${fileLocation.absolutePath}")
 
-            log.info("Unzip ${file.absolutePath} into ${fileLocation.absolutePath}")
             file.unzipInto(fileLocation)
             if (shouldBeExecutable) {
-                println("\n\nDIR $fileLocation ${(fileLocation).exists()}")
-                (fileLocation).walkTopDown().forEach { source ->
+                fileLocation.walkTopDown().forEach { source ->
                     if (!source.setExecutable(true)) {
                         log.warn("Failed to mark file ${source.name} as executable")
                     }
@@ -324,7 +322,7 @@ class DockerService(private val configProperties: ConfigProperties) {
                 )
             val currentSuiteDestination = destination.resolve("$PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE${it.testSuiteRepoUrl.hashCode()}_${it.testRootPath.hashCode()}")
             if (!currentSuiteDestination.exists()) {
-                log.info("Copying suite ${it.name} from $standardTestSuiteAbsolutePath into $currentSuiteDestination/...")
+                log.debug("Copying suite ${it.name} from $standardTestSuiteAbsolutePath into $currentSuiteDestination/...")
                 copyRecursivelyWithAttributes(standardTestSuiteAbsolutePath, currentSuiteDestination)
             }
         }
