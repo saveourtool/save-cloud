@@ -17,6 +17,7 @@ import generated.SAVE_CORE_VERSION
 import net.lingala.zip4j.ZipFile
 import net.lingala.zip4j.exception.ZipException
 import org.apache.commons.io.FileUtils
+import org.cqfn.save.utils.moveFileWithAttributes
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
@@ -31,8 +32,6 @@ import org.springframework.web.reactive.function.client.bodyToMono
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.LinkOption
-import java.nio.file.Paths
-import java.nio.file.StandardCopyOption
 import java.nio.file.attribute.PosixFileAttributeView
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -189,10 +188,9 @@ class DockerService(private val configProperties: ConfigProperties) {
             copyTestSuitesToResourcesPath(testSuitesForDocker, testSuitesDir)
             // move additional files, which were downloaded into the root dit to the execution dir for standard suites
             execution.additionalFiles?.split(";")?.filter { it.isNotBlank() }?.forEach {
-                val additionalFilePath = Paths.get(resourcesPath.resolve(File(it).name).absolutePath)
-                val destination = Paths.get(testSuitesDir.absolutePath).resolve(File(it).name)
-                log.info("Move additional file $additionalFilePath into $destination")
-                Files.move(additionalFilePath, destination, StandardCopyOption.REPLACE_EXISTING)
+                val additionalFilePath = resourcesPath.resolve(File(it).name)
+                log.info("Move additional file $additionalFilePath into $testSuitesDir")
+                moveFileWithAttributes(additionalFilePath, testSuitesDir)
             }
         }
 
@@ -279,8 +277,18 @@ class DockerService(private val configProperties: ConfigProperties) {
 
             val file = fileLocation.resolve(File(it).name)
 
-            log.debug("Unzip ${file.absolutePath} into ${fileLocation.absolutePath}")
+            val shouldBeExecutable = file.canExecute()
+
+            log.info("Unzip ${file.absolutePath} into ${fileLocation.absolutePath}")
             file.unzipInto(fileLocation)
+            if (shouldBeExecutable) {
+                println("\n\nDIR $fileLocation ${(fileLocation).exists()}")
+                (fileLocation).walkTopDown().forEach { source ->
+                    if (!source.setExecutable(true)) {
+                        log.warn("Failed to mark file ${source.name} as executable")
+                    }
+                }
+            }
             file.delete()
         }
     }

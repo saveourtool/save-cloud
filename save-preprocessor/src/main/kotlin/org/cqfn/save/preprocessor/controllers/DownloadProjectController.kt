@@ -26,6 +26,7 @@ import org.cqfn.save.testsuite.TestSuiteType
 
 import okio.ExperimentalFileSystem
 import okio.FileSystem
+import org.cqfn.save.utils.moveFileWithAttributes
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.api.errors.GitAPIException
 import org.eclipse.jgit.api.errors.InvalidRemoteException
@@ -327,10 +328,8 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
     ): Mono<StatusResponse> {
         val tmpDir = generateDirectory(calculateTmpNameForFiles(files))
         files.forEach {
-            val source = Paths.get(it.absolutePath)
-            val destination = Paths.get((tmpDir.resolve(it.name)).absolutePath)
-            log.debug("Move $source into $destination")
-            Files.move(source, destination)
+            log.debug("Move $it into $tmpDir")
+            moveFileWithAttributes(it, tmpDir)
         }
         val project = executionRequestForStandardSuites.project
         // TODO: Save the proper version https://github.com/diktat-static-analysis/save-cloud/issues/321
