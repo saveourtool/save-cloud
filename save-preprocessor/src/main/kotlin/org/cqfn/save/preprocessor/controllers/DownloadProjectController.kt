@@ -189,7 +189,12 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
 
                     files.forEach { file ->
                         log.debug("Copy additional file $file into ${resourcesLocation.resolve(file.name)}")
-                        Files.copy(Paths.get(file.absolutePath), Paths.get(resourcesLocation.resolve(file.name).absolutePath), StandardCopyOption.REPLACE_EXISTING)
+                        Files.copy(
+                            Paths.get(file.absolutePath),
+                            Paths.get(resourcesLocation.resolve(file.name).absolutePath),
+                            StandardCopyOption.REPLACE_EXISTING,
+                            StandardCopyOption.COPY_ATTRIBUTES
+                        )
                     }
                     sendToBackendAndOrchestrator(
                         execution,

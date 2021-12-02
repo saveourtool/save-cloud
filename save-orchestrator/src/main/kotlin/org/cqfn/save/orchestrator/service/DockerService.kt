@@ -281,6 +281,7 @@ class DockerService(private val configProperties: ConfigProperties) {
 
             file.unzipInto(fileLocation)
             if (shouldBeExecutable) {
+                log.info("Marking files in $fileLocation executable...")
                 fileLocation.walkTopDown().forEach { source ->
                     if (!source.setExecutable(true)) {
                         log.warn("Failed to mark file ${source.name} as executable")
