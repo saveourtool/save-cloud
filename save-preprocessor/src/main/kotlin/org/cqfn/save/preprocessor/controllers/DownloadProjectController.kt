@@ -195,6 +195,10 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                             StandardCopyOption.REPLACE_EXISTING,
                             StandardCopyOption.COPY_ATTRIBUTES
                         )
+                        // FixMe: currently it's quite rough solution, to make all additional files executable
+                        if (!resourcesLocation.resolve(file.name).setExecutable(true)) {
+                            log.warn("Failed to mark file ${resourcesLocation.resolve(file.name)} as executable")
+                        }
                     }
                     sendToBackendAndOrchestrator(
                         execution,
