@@ -25,6 +25,7 @@ import org.cqfn.save.testsuite.TestSuiteDto
 import org.cqfn.save.testsuite.TestSuiteType
 
 import okio.ExperimentalFileSystem
+import okio.FileSystem
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.api.errors.GitAPIException
 import org.eclipse.jgit.api.errors.InvalidRemoteException
@@ -138,6 +139,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
      * @param fileInfos a list of [FileInfo]s associated with [files]
      * @return response entity with text
      */
+    @OptIn(ExperimentalFileSystem::class)
     @PostMapping(value = ["/uploadBin"], consumes = ["multipart/form-data"])
     fun uploadBin(
         @RequestPart executionRequestForStandardSuites: ExecutionRequestForStandardSuites,
@@ -145,7 +147,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         @RequestPart("fileInfo", required = true) fileInfos: Flux<FileInfo>,
     ) = Mono.just(ResponseEntity("Clone pending", HttpStatus.ACCEPTED))
         .doOnSuccess { _ ->
-            files.zipWith(fileInfos).download(File("."))
+            files.zipWith(fileInfos).download(File(FileSystem.SYSTEM_TEMPORARY_DIRECTORY.toString()))
                 .flatMap { files ->
                     saveBinaryFile(executionRequestForStandardSuites, files)
                 }
@@ -325,7 +327,10 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
     ): Mono<StatusResponse> {
         val tmpDir = generateDirectory(calculateTmpNameForFiles(files))
         files.forEach {
-            Files.move(Paths.get(it.absolutePath), Paths.get((tmpDir.resolve(it)).absolutePath))
+            val source = Paths.get(it.absolutePath)
+            val destination = Paths.get((tmpDir.resolve(it.name)).absolutePath)
+            log.debug("Move $source into $destination")
+            Files.move(source, destination)
         }
         val project = executionRequestForStandardSuites.project
         // TODO: Save the proper version https://github.com/diktat-static-analysis/save-cloud/issues/321

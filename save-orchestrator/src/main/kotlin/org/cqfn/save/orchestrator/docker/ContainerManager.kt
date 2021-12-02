@@ -1,6 +1,7 @@
 package org.cqfn.save.orchestrator.docker
 
 import org.cqfn.save.orchestrator.config.DockerSettings
+import org.cqfn.save.orchestrator.copyRecursivelyWithAttributes
 import org.cqfn.save.orchestrator.getHostIp
 
 import com.github.dockerjava.api.DockerClient
@@ -132,7 +133,9 @@ class ContainerManager(private val settings: DockerSettings) {
                                          runCmd: String = "RUN /bin/bash",
     ): String {
         val tmpDir = createTempDirectory().toFile()
-        baseDir.copyRecursively(File(tmpDir, "resources"))
+        val tmpResourcesDir = tmpDir.absoluteFile.resolve("resources")
+        log.debug("Copying ${baseDir.absolutePath} into $tmpResourcesDir")
+        copyRecursivelyWithAttributes(baseDir, tmpResourcesDir)
         val dockerFileAsText =
                 """
                     |FROM $baseImage
