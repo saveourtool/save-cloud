@@ -58,11 +58,12 @@ preprocessor:
 ## Database
 The service is designed to work with MySQL database. Migrations are applied with liquibase. They expect event scheduler to be enabled on the DB.
 
-## Enabling api-gateway and keycloak server
-* Property `spring.security.oauth2.client.provider.keycloak.issuer-uri` should be provided via `/home/saveu/configs/gateway/application.properties`.
-  This setting is specific for a particular deployment environment.
-* Three more secrets need to be added: `keycloak_gw_secret`, `kc_user`, `kc_password`
-
+## Enabling api-gateway with external OAuth providers
+In the file `/home/saveu/configs/gateway/application.properties` the following properties should be provided:
+* `spring.security.oauth2.client.provider.<provider name>.issuer-uri`
+* `spring.security.oauth2.client.registration.<provider name>.client-id`
+* `spring.security.oauth2.client.registration.<provider name>.client-secret`
+  
 ## Local deployment
 * Ensure that docker daemon is running and docker-compose is installed.
 * To make things easier, add line `save.profile=dev` to `gradle.properties`. This will make project version `SNAPSHOT` instead of timetamp-based suffix and allow caching of gradle tasks.

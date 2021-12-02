@@ -9,7 +9,6 @@ import org.springframework.security.core.userdetails.ReactiveUserDetailsService
 import org.springframework.security.core.userdetails.User
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.jackson2.CoreJackson2Module
-import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.ExchangeStrategies
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
@@ -17,8 +16,8 @@ import reactor.core.publisher.Mono
 
 /**
  * A service that provides `UserDetails`
+ * FixMe: disabled for now, as only OAuth login is supported
  */
-//@Service
 class RemoteUserDetailsService(
     configurationProperties: ConfigurationProperties,
 ) : ReactiveUserDetailsService {

@@ -11,13 +11,6 @@ management:
 spring:
   profiles:
     default: dev
-  security:
-    oauth2:
-      client:
-        registration:
-          keycloak:
-            client-id: save-cloud
-            # client-secret should be added manually in dev profile, or read from secrets in `prod` profile
   cloud:
     gateway:
       routes:

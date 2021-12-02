@@ -34,7 +34,6 @@ class WebSecurityConfig {
             csrf().disable()
         }
         .oauth2Login()
-        .and().formLogin()
         .and().build()
 }
 
