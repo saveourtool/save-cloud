@@ -37,7 +37,7 @@ fun getHostIp(hostname: String): String? {
  */
 fun copyRecursivelyWithAttributes(sourceDir: File, targetDir: File) {
     if (!sourceDir.exists()) {
-        throw FileNotFoundException("Source directory doesn't exists!")
+        throw FileNotFoundException("Source directory $sourceDir doesn't exist!")
     }
     sourceDir.walkTopDown().forEach { source ->
         val target = targetDir.resolve(source.relativeTo(sourceDir)).canonicalFile

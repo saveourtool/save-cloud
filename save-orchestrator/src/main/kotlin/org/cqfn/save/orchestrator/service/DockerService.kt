@@ -304,6 +304,7 @@ class DockerService(private val configProperties: ConfigProperties) {
 
     @Suppress("UnsafeCallOnNullableType", "TOO_MANY_LINES_IN_LAMBDA")
     private fun copyTestSuitesToResourcesPath(testSuitesForDocker: List<TestSuiteDto>, destination: File) {
+        destination.deleteRecursively()
         // TODO: https://github.com/diktat-static-analysis/save-cloud/issues/321
         log.info("Copying suites ${testSuitesForDocker.map { it.name }} into $destination")
         testSuitesForDocker.forEach {
