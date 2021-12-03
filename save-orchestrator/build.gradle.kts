@@ -43,6 +43,7 @@ dependencies {
     implementation(libs.kotlinx.serialization.json.jvm)
     implementation(libs.commons.compress)
     implementation(libs.kotlinx.datetime)
+    implementation(libs.zip4j)
 }
 
 configureJacoco()

@@ -57,11 +57,12 @@ class IndexView : RComponent<PropsWithChildren, IndexViewState>() {
                         marketingTitle("Analysis")
                         marketingTitle("Verification &")
                         marketingTitle("Evaluation")
-                        h3("mt-3 pl-5 ml-5") {
+                        h3("mt-3") {
                             +"Advanced eco-system for continuous integration, evaluation and benchmarking of static analyzers. Powered by"
                             attrs["style"] = kotlinext.js.jsObject<CSSProperties> {
                                 color = "#aaacba".unsafeCast<ColorProperty>()
                                 display = Display.inline
+                                fontSize = "1.8rem".unsafeCast<FontSize>()
                             }
                         }
                         a(classes = "text-info text-gradient font-weight-bold ml-2") {
@@ -73,6 +74,8 @@ class IndexView : RComponent<PropsWithChildren, IndexViewState>() {
                                     display = Display.inline
                                     textDecoration = "underline rgb(246 84 21);".unsafeCast<TextDecoration>()
                                     boxDecorationBreak = "clone;".unsafeCast<BoxDecorationBreak>()
+                                    fontSize = "1.8rem".unsafeCast<FontSize>()
+
                                 }
                             }
                         }
@@ -153,7 +156,7 @@ class IndexView : RComponent<PropsWithChildren, IndexViewState>() {
     }
 
     private fun RBuilder.marketingTitle(str: String) {
-        p("mb-0 mt-0 pl-5 ml-5") {
+        p("mb-0 mt-0") {
             h1Bold(str[0].toString())
             h1Normal(str.substring(1, str.length))
         }
