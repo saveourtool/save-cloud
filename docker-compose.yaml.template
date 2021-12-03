@@ -77,6 +77,8 @@ services:
       - "SPRING_PROFILES_ACTIVE={{profile}}"
     ports:
       - "5300:5300"
+    volumes:
+      - /home/saveu/configs/gateway:/home/cnb/config
     deploy:
       labels:
         - "prometheus-job=api-gateway"
