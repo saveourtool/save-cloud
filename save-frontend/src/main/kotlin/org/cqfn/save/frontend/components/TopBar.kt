@@ -6,8 +6,6 @@
 
 package org.cqfn.save.frontend.components
 
-import csstype.Background
-import kotlinext.js.jsObject
 import org.cqfn.save.frontend.components.modal.logoutModal
 import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
 
@@ -31,11 +29,9 @@ import react.useState
 import kotlinx.html.BUTTON
 import kotlinx.html.ButtonType
 import kotlinx.html.classes
-import kotlinx.html.hidden
 import kotlinx.html.id
 import kotlinx.html.js.onClickFunction
 import kotlinx.html.role
-import react.CSSProperties
 
 /**
  * [RProps] of the top bor component
@@ -48,14 +44,14 @@ external interface TopBarProps : PropsWithChildren {
 }
 
 private fun RBuilder.dropdownEntry(faIcon: String, text: String, handler: RDOMBuilder<BUTTON>.() -> Unit = { }) =
-        button(type = ButtonType.button, classes = "btn btn-no-outline dropdown-item rounded-0 shadow-none") {
-            fontAwesomeIcon {
-                attrs.icon = faIcon
-                attrs.className = "fas fa-sm fa-fw mr-2 text-gray-400"
-            }
-            +text
-            handler(this)
+    button(type = ButtonType.button, classes = "btn btn-no-outline dropdown-item rounded-0 shadow-none") {
+        fontAwesomeIcon {
+            attrs.icon = faIcon
+            attrs.className = "fas fa-sm fa-fw mr-2 text-gray-400"
         }
+        +text
+        handler(this)
+    }
 
 /**
  * A component for web page top bar
@@ -68,6 +64,8 @@ fun topBar() = fc<TopBarProps> { props ->
     val location = useLocation()
 
     nav("navbar navbar-expand navbar-dark bg-dark topbar mb-3 static-top shadow mr-1 ml-1 rounded") {
+        attrs.id = "navigation-top-bar"
+
         // Topbar Navbar
         nav("navbar-nav mr-auto") {
             attrs["aria-label"] = "breadcrumb"
@@ -88,7 +86,7 @@ fun topBar() = fc<TopBarProps> { props ->
                             li("breadcrumb-item") {
                                 attrs["aria-current"] = "page"
                                 if (index == size - 1) {
-                                    a(href = currentLink.removeSuffix("execution")) {
+                                    a(href = currentLink) {
                                         attrs.classes = setOf("text-warning")
                                         +pathPart
                                     }
@@ -140,7 +138,4 @@ fun topBar() = fc<TopBarProps> { props ->
     }) {
         setIsLogoutModalOpen(false)
     }
-            +text
-            handler(this)
-        }
 }
