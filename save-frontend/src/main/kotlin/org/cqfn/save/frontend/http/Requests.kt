@@ -12,6 +12,7 @@ import org.w3c.fetch.Headers
 import kotlinx.browser.window
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.cqfn.save.frontend.utils.apiUrl
 
 /**
  * Fetch debug info for test execution
@@ -20,7 +21,7 @@ import kotlinx.serialization.json.Json
  * @return Response
  */
 suspend fun getDebugInfoFor(testExecutionDto: TestExecutionDto) = post(
-    "${window.location.origin}/files/get-debug-info",
+    "$apiUrl/files/get-debug-info",
     Headers().apply {
         set("Content-Type", "application/json")
     },

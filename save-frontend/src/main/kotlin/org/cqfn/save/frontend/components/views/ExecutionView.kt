@@ -46,6 +46,7 @@ import kotlinx.datetime.Instant
 import kotlinx.html.js.onClickFunction
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
+import org.cqfn.save.frontend.utils.apiUrl
 
 /**
  * [RProps] for execution results view
@@ -86,10 +87,10 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
         GlobalScope.launch {
             val headers = Headers().also { it.set("Accept", "application/json") }
             val executionDtoFromBackend: ExecutionDto =
-                    get("${window.location.origin}/executionDto?executionId=${props.executionId}", headers)
+                    get("${apiUrl}/executionDto?executionId=${props.executionId}", headers)
                         .decodeFromJsonString()
             val count: Int = get(
-                url = "${window.location.origin}/testExecutionsCount?executionId=${props.executionId}",
+                url = "${apiUrl}/testExecutionsCount?executionId=${props.executionId}",
                 headers = Headers().also {
                     it.set("Accept", "application/json")
                 },
@@ -131,7 +132,7 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
                         attrs.disabled = true
                         GlobalScope.launch {
                             post(
-                                "${window.location.origin}/rerunExecution?id=${props.executionId}",
+                                "${apiUrl}/rerunExecution?id=${props.executionId}",
                                 Headers(),
                                 undefined
                             )
@@ -252,7 +253,7 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
             },
             getPageCount = { pageSize ->
                 val count: Int = get(
-                    url = "${window.location.origin}/testExecutionsCount?executionId=${props.executionId}",
+                    url = "${apiUrl}/testExecutionsCount?executionId=${props.executionId}",
                     headers = Headers().also {
                         it.set("Accept", "application/json")
                     },
@@ -278,7 +279,7 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
             }
         ) { page, size ->
             get(
-                url = "${window.location.origin}/testExecutions?executionId=${props.executionId}&page=$page&size=$size",
+                url = "${apiUrl}/testExecutions?executionId=${props.executionId}&page=$page&size=$size",
                 headers = Headers().apply {
                     set("Accept", "application/json")
                 },

@@ -34,7 +34,7 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
      * @param size size of page
      * @return a list of [TestExecutionDto]s
      */
-    @GetMapping("/testExecutions")
+    @GetMapping("/api/testExecutions")
     fun getTestExecutions(@RequestParam executionId: Long, @RequestParam page: Int, @RequestParam size: Int): List<TestExecutionDto> {
         log.debug("Request to get test executions on page $page with size $size for execution $executionId")
         return testExecutionService.getTestExecutions(executionId, page, size)
@@ -46,7 +46,7 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
      * @param status status for test executions
      * @return a list of test executions
      */
-    @GetMapping("/testExecutions/agent/{agentId}/{status}")
+    @GetMapping("/internal/testExecutions/agent/{agentId}/{status}")
     fun getTestExecutionsForAgentWithStatus(@PathVariable("agentId") agentContainerId: String,
                                             @PathVariable status: TestResultStatus
     ) = testExecutionService.getTestExecutions(agentContainerId, status)
@@ -59,7 +59,7 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
      * @param testResultLocation location of the test
      * @return TestExecution
      */
-    @PostMapping("/testExecutions")
+    @PostMapping("/api/testExecutions")
     fun getTestExecutionByLocation(@RequestParam executionId: Long,
                                    @RequestBody testResultLocation: TestResultLocation,
     ): TestExecutionDto = testExecutionService.getTestExecution(executionId, testResultLocation)
@@ -71,7 +71,7 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
      *
      * @param executionId an ID of Execution to group TestExecutions
      */
-    @GetMapping("/testExecutionsCount")
+    @GetMapping("/api/testExecutionsCount")
     fun getTestExecutionsCount(@RequestParam executionId: Long) =
             testExecutionService.getTestExecutionsCount(executionId)
 
@@ -79,7 +79,7 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
      * @param agentContainerId id of an agent
      * @param testDtos test that will be executed by [agentContainerId] agent
      */
-    @PostMapping(value = ["/testExecution/assignAgent"])
+    @PostMapping(value = ["/internal/testExecution/assignAgent"])
     fun assignAgentByTest(@RequestParam agentContainerId: String, @RequestBody testDtos: List<TestDto>) {
         testExecutionService.assignAgentByTest(agentContainerId, testDtos)
     }
@@ -88,7 +88,7 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
      * @param testExecutionsDto
      * @return response
      */
-    @PostMapping(value = ["/saveTestResult"])
+    @PostMapping(value = ["/internal/saveTestResult"])
     fun saveTestResult(@RequestBody testExecutionsDto: List<TestExecutionDto>) = try {
         if (testExecutionService.saveTestResult(testExecutionsDto).isEmpty()) {
             ResponseEntity.status(HttpStatus.OK).body("Saved")

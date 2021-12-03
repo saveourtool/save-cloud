@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController
 /**
  *  Controller used to initialize tests
  */
-@RestController
+@RestController("/internal")
 class TestController {
     @Autowired
     private lateinit var testService: TestService

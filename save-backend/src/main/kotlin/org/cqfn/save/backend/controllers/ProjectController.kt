@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RestController
 /**
  * Controller for working with projects.
  */
-@RestController
+@RestController("/api")
 class ProjectController {
     @Autowired
     private lateinit var projectService: ProjectService

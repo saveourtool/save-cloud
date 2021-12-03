@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController
 /**
  * Controller to manipulate with Agent related data
  */
-@RestController
+@RestController("/internal")
 class AgentsController(private val agentStatusRepository: AgentStatusRepository,
                        private val agentRepository: AgentRepository,
 ) {

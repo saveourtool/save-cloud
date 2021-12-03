@@ -53,13 +53,13 @@ class ExecutionController(private val executionService: ExecutionService,
      * @param execution
      * @return id of created [Execution]
      */
-    @PostMapping("/createExecution")
+    @PostMapping("/internal/createExecution")
     fun createExecution(@RequestBody execution: Execution): Long = executionService.saveExecution(execution)
 
     /**
      * @param executionUpdateDto
      */
-    @PostMapping("/updateExecutionByDto")
+    @PostMapping("/internal/updateExecutionByDto")
     fun updateExecution(@RequestBody executionUpdateDto: ExecutionUpdateDto) {
         executionService.updateExecution(executionUpdateDto)
     }
@@ -67,7 +67,7 @@ class ExecutionController(private val executionService: ExecutionService,
     /**
      * @param execution
      */
-    @PostMapping("/updateExecution")
+    @PostMapping("/internal/updateExecution")
     fun updateExecution(@RequestBody execution: Execution) {
         executionService.updateExecution(execution)
     }
@@ -78,7 +78,7 @@ class ExecutionController(private val executionService: ExecutionService,
      * @param id id of execution
      * @return execution if it has been found
      */
-    @GetMapping("/execution")
+    @GetMapping(path = ["/api/execution", "/internal/execution"])
     @Transactional(readOnly = true)
     fun getExecution(@RequestParam id: Long): Execution = executionService.findExecution(id).orElseThrow {
         ResponseStatusException(HttpStatus.NOT_FOUND, "Execution with id=$id is not found")

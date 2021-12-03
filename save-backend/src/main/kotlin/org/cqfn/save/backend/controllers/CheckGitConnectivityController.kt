@@ -10,7 +10,7 @@ import reactor.core.publisher.Mono
 /**
  * Controller for checking git credentials
  */
-@RestController
+@RestController("/api")
 class CheckGitConnectivityController(
     config: ConfigProperties,
 ) {

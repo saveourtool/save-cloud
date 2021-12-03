@@ -20,6 +20,7 @@ import react.table.columns
 
 import kotlinx.browser.window
 import kotlinx.html.ButtonType
+import org.cqfn.save.frontend.utils.apiUrl
 
 /**
  * A view with collection of projects
@@ -69,7 +70,7 @@ class CollectionView : RComponent<PropsWithChildren, State>() {
             usePageSelection = false,
         ) { _, _ ->
             get(
-                url = "${window.location.origin}/projects/not-deleted",
+                url = "${apiUrl}/projects/not-deleted",
                 headers = Headers().also {
                     it.set("Accept", "application/json")
                 },

@@ -37,7 +37,7 @@ import java.time.LocalDateTime
  * @property projectService service to manage projects
  * @property configProperties configuration properties
  */
-@RestController
+@RestController("/api")
 class CloneRepositoryController(
     private val projectService: ProjectService,
     private val executionService: ExecutionService,
