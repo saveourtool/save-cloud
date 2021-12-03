@@ -47,9 +47,16 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
      * @param executionId an ID of Execution to group TestExecutions
      * @param page a zero-based index of page of data
      * @param pageSize size of page
+     * @param status
      * @return a list of [TestExecutionDto]s
      */
-    internal fun getTestExecutions(executionId: Long, page: Int, pageSize: Int, status: TestResultStatus?) = testExecutionRepository.run {
+    @Suppress("AVOID_NULL_CHECKS")
+    internal fun getTestExecutions(
+        executionId: Long,
+        page: Int,
+        pageSize: Int,
+        status: TestResultStatus?,
+    ) = testExecutionRepository.run {
         if (status == null) {
             findByExecutionId(executionId, PageRequest.of(page, pageSize))
         } else {
@@ -84,8 +91,10 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
      * Returns number of TestExecutions with this [executionId]
      *
      * @param executionId an ID of Execution to group TestExecutions
+     * @param status
      * @return number of TestExecutions
      */
+    @Suppress("AVOID_NULL_CHECKS")
     internal fun getTestExecutionsCount(executionId: Long, status: TestResultStatus?) = testExecutionRepository.run {
         if (status == null) {
             countByExecutionId(executionId)

@@ -4,6 +4,7 @@
 
 package org.cqfn.save.frontend.components.views
 
+import org.cqfn.save.domain.TestResultStatus
 import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.frontend.components.tables.tableComponent
@@ -38,7 +39,6 @@ import kotlinx.browser.window
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
-import org.cqfn.save.domain.TestResultStatus
 import kotlinx.html.ButtonType
 import kotlinx.html.js.onClickFunction
 
@@ -341,7 +341,7 @@ class HistoryView : RComponent<HistoryProps, HistoryViewState>() {
     }
 
     private fun getHrefToExecution(id: Long, status: TestResultStatus?) =
-        "${window.location}/execution/$id" + if (status != null) "?status=$status" else ""
+            "${window.location}/execution/$id${status?.let { "?status=$it" } ?: ""}"
 
     /**
      * @property resColor

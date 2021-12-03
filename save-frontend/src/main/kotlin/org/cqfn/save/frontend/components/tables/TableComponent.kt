@@ -12,6 +12,7 @@ import org.cqfn.save.frontend.utils.spread
 import kotlinext.js.jsObject
 import react.PropsWithChildren
 import react.RBuilder
+import react.dom.RDOMBuilder
 import react.dom.div
 import react.dom.em
 import react.dom.h6
@@ -41,7 +42,6 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.html.THEAD
-import react.dom.RDOMBuilder
 
 /**
  * [RProps] of a data table
@@ -66,6 +66,7 @@ external interface TableProps : PropsWithChildren {
  * @param plugins
  * @param additionalOptions
  * @param renderExpandedRow how to render an expanded row if `useExpanded` plugin is used
+ * @param commonHeader (optional) a common header for the table, which will be placed above individual column headers
  * @return a functional react component
  */
 @OptIn(ExperimentalCoroutinesApi::class)

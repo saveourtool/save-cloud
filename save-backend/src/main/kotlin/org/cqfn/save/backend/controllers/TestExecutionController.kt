@@ -32,6 +32,7 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
      * @param executionId an ID of Execution to group TestExecutions
      * @param page a zero-based index of page of data
      * @param size size of page
+     * @param status
      * @return a list of [TestExecutionDto]s
      */
     @GetMapping("/testExecutions")
@@ -75,6 +76,7 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
      * Returns number of TestExecutions with this [executionId]
      *
      * @param executionId an ID of Execution to group TestExecutions
+     * @param status
      */
     @Suppress("KDOC_WITHOUT_RETURN_TAG")  // https://github.com/cqfn/diKTat/issues/965
     @GetMapping("/testExecution/count")

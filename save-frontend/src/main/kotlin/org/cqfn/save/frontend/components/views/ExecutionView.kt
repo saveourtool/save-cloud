@@ -10,8 +10,10 @@ import org.cqfn.save.domain.TestResultStatus
 import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.frontend.components.basic.executionStatistics
 import org.cqfn.save.frontend.components.basic.executionTestsNotFound
+import org.cqfn.save.frontend.components.basic.testExecutionFiltersRow
 import org.cqfn.save.frontend.components.basic.testStatusComponent
 import org.cqfn.save.frontend.components.tables.tableComponent
+import org.cqfn.save.frontend.externals.table.useFilters
 import org.cqfn.save.frontend.http.getDebugInfoFor
 import org.cqfn.save.frontend.themes.Colors
 import org.cqfn.save.frontend.utils.apiUrl
@@ -32,6 +34,7 @@ import react.buildElement
 import react.dom.button
 import react.dom.div
 import react.dom.td
+import react.dom.th
 import react.dom.tr
 import react.setState
 import react.table.columns
@@ -44,18 +47,9 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
-import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
-import org.cqfn.save.frontend.components.basic.testExecutionFiltersRow
-import org.cqfn.save.frontend.externals.fontawesome.faFilter
-import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
-import org.cqfn.save.frontend.externals.table.useFilters
-import org.w3c.dom.HTMLSelectElement
-import react.dom.option
-import react.dom.select
-import react.dom.th
 
 /**
  * [RProps] for execution results view
@@ -66,6 +60,9 @@ external interface ExecutionProps : PropsWithChildren {
      */
     var executionId: String
 
+    /**
+     * Test Result Status to filter by
+     */
     var status: TestResultStatus?
 }
 
@@ -83,6 +80,9 @@ external interface ExecutionState : State {
      */
     var countTests: Int?
 
+    /**
+     * Test Result Status to filter by
+     */
     var status: TestResultStatus?
 }
 
@@ -320,7 +320,7 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
         ) { page, size ->
             get(
                 url = "$apiUrl/testExecutions?executionId=${props.executionId}&page=$page&size=$size" +
-                    if (state.status != null) "&status=${state.status}" else "",
+                        if (state.status != null) "&status=${state.status}" else "",
                 headers = Headers().apply {
                     set("Accept", "application/json")
                 },
