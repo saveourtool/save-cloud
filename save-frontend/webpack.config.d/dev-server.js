@@ -5,6 +5,7 @@ config.devServer = Object.assign(
       proxy: [
         {
           context: ["/api/**"],
+          pathRewrite: { '^/api': '' },
           target: 'http://localhost:5000',
         }
       ]
