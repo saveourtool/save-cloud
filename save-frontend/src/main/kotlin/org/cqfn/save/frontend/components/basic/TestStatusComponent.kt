@@ -2,10 +2,6 @@
 
 package org.cqfn.save.frontend.components.basic
 
-import org.cqfn.save.core.result.Crash
-import org.cqfn.save.core.result.Fail
-import org.cqfn.save.core.result.Ignored
-import org.cqfn.save.core.result.Pass
 import org.cqfn.save.domain.TestResultDebugInfo
 import org.cqfn.save.frontend.externals.fontawesome.faExternalLinkAlt
 import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
@@ -22,6 +18,7 @@ import react.fc
 import react.table.TableInstance
 
 import kotlinx.browser.window
+import org.cqfn.save.core.result.*
 
 /**
  * A function component that renders info about [TestResultDebugInfo] into a table [tableInstance]
@@ -33,7 +30,7 @@ import kotlinx.browser.window
 @Suppress("TOO_LONG_FUNCTION")
 @OptIn(ExperimentalFileSystem::class)
 fun <D : Any> testStatusComponent(testResultDebugInfo: TestResultDebugInfo, tableInstance: TableInstance<D>) = fc<Props> {
-    val shortMessage: String = when (val status = testResultDebugInfo.testStatus) {
+    val shortMessage: String = when (val status: TestStatus = testResultDebugInfo.testStatus) {
         is Pass -> (status.shortMessage ?: "").ifBlank { "Completed successfully without additional information" }
         is Fail -> status.shortReason
         is Ignored -> status.reason

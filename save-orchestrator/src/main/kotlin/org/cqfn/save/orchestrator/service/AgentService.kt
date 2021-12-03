@@ -107,13 +107,13 @@ class AgentService {
                 .toBodilessEntity()
 
     /**
-     * Check that no TestExecution for agent [agentId] have status READY
+     * Check that no TestExecution for agent [agentId] have status READY_FOR_TESTING
      *
      * @param agentId agent for which data is checked
-     * @return true if all executions have status other than `READY`
+     * @return true if all executions have status other than `READY_FOR_TESTING`
      */
     fun checkSavedData(agentId: String): Mono<Boolean> = webClientBackend.get()
-        .uri("/testExecutions/agent/$agentId/${TestResultStatus.READY}")
+        .uri("/testExecutions/agent/$agentId/${TestResultStatus.READY_FOR_TESTING}")
         .retrieve()
         .bodyToMono<List<TestExecutionDto>>()
         .map { it.isEmpty() }

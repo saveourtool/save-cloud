@@ -95,10 +95,10 @@ class TestService(
             testRepository.findAllByTestSuiteId(testSuiteId)
 
     /**
-     * Retrieves a batch of test executions with status `READY` from the datasource and sets their statuses to `RUNNING`
+     * Retrieves a batch of test executions with status `READY_FOR_TESTING` from the datasource and sets their statuses to `RUNNING`
      *
      * @param execution execution for which a batch is requested
-     * @return a batch of [batchSize] tests with status `READY`
+     * @return a batch of [batchSize] tests with status `READY_FOR_TESTING`
      */
     @Suppress("UnsafeCallOnNullableType")
     internal fun getTestExecutionsBatchByExecutionIdAndUpdateStatus(execution: Execution): List<TestExecution> {
@@ -106,7 +106,7 @@ class TestService(
         val batchSize = execution.batchSize!!
         val pageRequest = PageRequest.of(0, batchSize)
         val testExecutions = testExecutionRepository.findByStatusAndExecutionId(
-            TestResultStatus.READY,
+            TestResultStatus.READY_FOR_TESTING,
             executionId,
             pageRequest
         )
