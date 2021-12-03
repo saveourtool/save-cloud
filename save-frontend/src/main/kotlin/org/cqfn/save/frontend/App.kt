@@ -44,6 +44,8 @@ import react.router.dom.withRouter
 
 import kotlinx.browser.document
 import kotlinx.html.id
+import org.cqfn.save.frontend.components.views.IndexView
+import org.cqfn.save.frontend.externals.fontawesome.faGithub
 
 /**
  * Top-level state of the whole App
@@ -76,15 +78,24 @@ class App : RComponent<PropsWithChildren, AppState>() {
                         userName = state.userName
                     }
                 }
-                div("container-fluid") {
-                    Switch {
+                Switch {
+                    Route {
+                        attrs {
+                            path = arrayOf("/")
+                            exact = true
+                            component = IndexView::class.react
+                        }
+                    }
+                    div("container-fluid") {
                         Route {
                             attrs {
-                                path = arrayOf("/")
+                                path = arrayOf("/projects")
                                 exact = true
                                 component = CollectionView::class.react
                             }
                         }
+                    }
+                    div("container-fluid") {
                         Route {
                             attrs {
                                 path = arrayOf("/creation")
@@ -92,6 +103,8 @@ class App : RComponent<PropsWithChildren, AppState>() {
                                 component = CreationView::class.react
                             }
                         }
+                    }
+                    div("container-fluid") {
                         Route {
                             attrs {
                                 path = arrayOf("/:owner/:name")
@@ -106,6 +119,8 @@ class App : RComponent<PropsWithChildren, AppState>() {
                                 }
                             }
                         }
+                    }
+                    div("container-fluid") {
                         Route {
                             attrs {
                                 path = arrayOf("/:owner/:name/history")
@@ -120,6 +135,8 @@ class App : RComponent<PropsWithChildren, AppState>() {
                                 }
                             }
                         }
+                    }
+                    div("container-fluid") {
                         Route {
                             attrs {
                                 path = arrayOf("/:owner/:name/history/execution/:executionId")
@@ -133,13 +150,18 @@ class App : RComponent<PropsWithChildren, AppState>() {
                                 }
                             }
                         }
+                    }
+                    div("container-fluid") {
                         Route {
                             attrs {
-                                path = arrayOf("/:owner/:name/history/execution/:executionId/details/:testSuiteName/:pluginName/:testFilePath+")
+                                path =
+                                    arrayOf("/:owner/:name/history/execution/:executionId/details/:testSuiteName/:pluginName/:testFilePath+")
                                 exact = false  // all paths parts under testFilePath should be captured
                             }
-                            child(testExecutionDetailsView()) { }
+                            child(testExecutionDetailsView()) {}
                         }
+                    }
+                    div("container-fluid") {
                         Route {
                             attrs {
                                 path = arrayOf("*")
@@ -159,7 +181,8 @@ class App : RComponent<PropsWithChildren, AppState>() {
 fun main() {
     kotlinext.js.require("../scss/save-frontend.scss")  // this is needed for webpack to include resource
     kotlinext.js.require("bootstrap")  // this is needed for webpack to include bootstrap
-    library.add(fas, faUser, faCogs, faSignOutAlt, faAngleUp, faCheck, faExclamationTriangle, faTimesCircle, faQuestionCircle,
+    library.add(
+        fas, faUser, faCogs, faSignOutAlt, faAngleUp, faCheck, faExclamationTriangle, faTimesCircle, faQuestionCircle,
         faUpload, faFile
     )
     ReactModal.setAppElement(document.getElementById("wrapper") as HTMLElement)  // required for accessibility in react-modal

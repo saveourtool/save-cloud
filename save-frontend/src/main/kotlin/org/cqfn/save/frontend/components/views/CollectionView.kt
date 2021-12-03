@@ -59,7 +59,7 @@ class CollectionView : RComponent<PropsWithChildren, State>() {
                 column(id = "passed", header = "Description") {
                     buildElement {
                         td {
-                                +(it.value.description ?: "Description not provided")
+                            +(it.value.description ?: "Description not provided")
                         }
                     }
                 }

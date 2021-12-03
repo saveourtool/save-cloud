@@ -10,6 +10,7 @@ import kotlinx.serialization.Serializable
  * @property url
  * @property description description of the project, may be absent
  * @property status status of project
+ * @property public
  */
 @Entity
 @Serializable
@@ -20,7 +21,7 @@ data class Project(
     var description: String?,
     @Enumerated(EnumType.STRING)
     var status: ProjectStatus,
-    var isPublic: Boolean = true,
+    var public: Boolean = true,
 ) {
     /**
      * id of project

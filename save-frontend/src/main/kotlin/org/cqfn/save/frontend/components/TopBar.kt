@@ -4,6 +4,8 @@
 
 package org.cqfn.save.frontend.components
 
+import csstype.Background
+import kotlinext.js.jsObject
 import org.cqfn.save.frontend.components.modal.logoutModal
 import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
 
@@ -28,9 +30,11 @@ import react.setState
 import kotlinx.html.BUTTON
 import kotlinx.html.ButtonType
 import kotlinx.html.classes
+import kotlinx.html.hidden
 import kotlinx.html.id
 import kotlinx.html.js.onClickFunction
 import kotlinx.html.role
+import react.CSSProperties
 
 /**
  * [RProps] of the top bor component
@@ -70,7 +74,8 @@ class TopBar : RComponent<TopBarProps, TopBarState>() {
 
     @Suppress("TOO_LONG_FUNCTION", "EMPTY_BLOCK_STRUCTURE_ERROR", "LongMethod")
     override fun RBuilder.render() {
-        nav("navbar navbar-expand navbar-dark bg-dark topbar mb-3 static-top shadow") {
+        nav("navbar navbar-expand navbar-dark bg-dark topbar mb-3 static-top shadow mr-1 ml-1 rounded") {
+            attrs.id = "navigation-top-bar"
             // Topbar Navbar
             nav("navbar-nav mr-auto") {
                 attrs["aria-label"] = "breadcrumb"
@@ -148,12 +153,12 @@ class TopBar : RComponent<TopBarProps, TopBarState>() {
     }
 
     private fun RBuilder.dropdownEntry(faIcon: String, text: String, handler: RDOMBuilder<BUTTON>.() -> Unit = { }) =
-            button(type = ButtonType.button, classes = "btn btn-no-outline dropdown-item rounded-0 shadow-none") {
-                fontAwesomeIcon {
-                    attrs.icon = faIcon
-                    attrs.className = "fas fa-sm fa-fw mr-2 text-gray-400"
-                }
-                +text
-                handler(this)
+        button(type = ButtonType.button, classes = "btn btn-no-outline dropdown-item rounded-0 shadow-none") {
+            fontAwesomeIcon {
+                attrs.icon = faIcon
+                attrs.className = "fas fa-sm fa-fw mr-2 text-gray-400"
             }
+            +text
+            handler(this)
+        }
 }

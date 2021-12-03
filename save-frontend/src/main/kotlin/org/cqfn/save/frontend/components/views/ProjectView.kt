@@ -6,7 +6,6 @@
 
 package org.cqfn.save.frontend.components.views
 
-import csstype.em
 import org.cqfn.save.domain.FileInfo
 import org.cqfn.save.domain.Sdk
 import org.cqfn.save.domain.getSdkVersions
@@ -24,6 +23,7 @@ import org.cqfn.save.frontend.externals.modal.modal
 import org.cqfn.save.frontend.utils.*
 import org.cqfn.save.testsuite.TestSuiteDto
 
+import csstype.em
 import org.w3c.dom.HTMLButtonElement
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.asList
@@ -52,7 +52,6 @@ import kotlinx.html.role
 import kotlinx.html.style
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.cqfn.save.frontend.externals.modal.Styles
 
 /**
  * `Props` retrieved from router
@@ -322,7 +321,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                 attrs.style = kotlinext.js.js {
                     borderRadius = 2.em
                 }
-                val publicity = if (project.isPublic) "public" else "private"
+                val publicity = if (project.public) "public" else "private"
                 +publicity
             }
         }
