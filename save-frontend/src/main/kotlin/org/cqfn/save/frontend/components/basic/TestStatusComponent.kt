@@ -2,6 +2,11 @@
 
 package org.cqfn.save.frontend.components.basic
 
+import org.cqfn.save.core.result.Crash
+import org.cqfn.save.core.result.Fail
+import org.cqfn.save.core.result.Ignored
+import org.cqfn.save.core.result.Pass
+import org.cqfn.save.core.result.TestStatus
 import org.cqfn.save.domain.TestResultDebugInfo
 import org.cqfn.save.frontend.externals.fontawesome.faExternalLinkAlt
 import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
@@ -18,7 +23,6 @@ import react.fc
 import react.table.TableInstance
 
 import kotlinx.browser.window
-import org.cqfn.save.core.result.*
 
 /**
  * A function component that renders info about [TestResultDebugInfo] into a table [tableInstance]
