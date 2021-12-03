@@ -9,6 +9,7 @@ import org.cqfn.save.core.result.Pass
 import org.cqfn.save.domain.TestResultDebugInfo
 import org.cqfn.save.domain.TestResultLocation
 import org.cqfn.save.frontend.http.getDebugInfoFor
+import org.cqfn.save.frontend.utils.apiUrl
 import org.cqfn.save.frontend.utils.decodeFromJsonString
 import org.cqfn.save.frontend.utils.multilineText
 import org.cqfn.save.frontend.utils.multilineTextWithIndices
@@ -17,12 +18,12 @@ import org.cqfn.save.frontend.utils.post
 import org.w3c.fetch.Headers
 import react.Props
 import react.RBuilder
-import react.dom.ReactHTML.div
-import react.dom.ReactHTML.tbody
 import react.dom.br
+import react.dom.div
 import react.dom.samp
 import react.dom.small
 import react.dom.table
+import react.dom.tbody
 import react.dom.td
 import react.dom.tr
 import react.fc
@@ -30,7 +31,6 @@ import react.router.dom.useParams
 import react.useEffect
 import react.useState
 
-import kotlinx.browser.window
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
@@ -118,7 +118,7 @@ fun testExecutionDetailsView() = fc<Props> {
     useEffect(listOf<dynamic>(executionId, testResultLocation)) {
         GlobalScope.launch {
             val testExecutionDtoResponse = post(
-                "${window.location.origin}/testExecutions?executionId=$executionId",
+                "$apiUrl/testExecutions?executionId=$executionId",
                 Headers().apply {
                     set("Content-Type", "application/json")
                 },

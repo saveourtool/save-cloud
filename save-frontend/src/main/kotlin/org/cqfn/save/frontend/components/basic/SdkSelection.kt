@@ -69,7 +69,7 @@ private fun <T : Tag> RDOMBuilder<T>.selection(
  */
 fun sdkSelection(onSdkChange: (HTMLSelectElement) -> Unit, onVersionChange: (HTMLSelectElement) -> Unit) =
         fc<SdkProps> { props ->
-            h6(classes = "d-inline mr-3") {
+            label(classes = "control-label col-auto justify-content-between font-weight-bold text-gray-800 mb-1 pl-0") {
                 +"2. Select the SDK if needed:"
             }
             div("card align-items-left mb-3 pt-0 pb-0") {

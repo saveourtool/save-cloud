@@ -77,6 +77,7 @@ fun Project.createStackDeployTask(profile: String) {
             }
             // create directories for optional property files
             Files.createDirectories(configsDir.resolve("backend"))
+            Files.createDirectories(configsDir.resolve("gateway"))
             Files.createDirectories(configsDir.resolve("orchestrator"))
             Files.createDirectories(configsDir.resolve("preprocessor"))
         }
@@ -86,7 +87,7 @@ fun Project.createStackDeployTask(profile: String) {
             add("${rootProject.buildDir}/docker-compose.yaml")
             if (useOverride) {
                 add("--compose-file")
-                add("$rootDir/docker-compose.override.yaml")
+                add("$configsDir/docker-compose.override.yaml")
             }
         }.toTypedArray()
         commandLine("docker", "stack", "deploy", *args, "save")

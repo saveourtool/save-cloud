@@ -5,8 +5,8 @@
 package org.cqfn.save.frontend
 
 import org.cqfn.save.frontend.components.Footer
-import org.cqfn.save.frontend.components.TopBar
 import org.cqfn.save.frontend.components.basic.scrollToTopButton
+import org.cqfn.save.frontend.components.topBar
 import org.cqfn.save.frontend.components.views.CollectionView
 import org.cqfn.save.frontend.components.views.CreationView
 import org.cqfn.save.frontend.components.views.ExecutionView
@@ -40,7 +40,6 @@ import react.react
 import react.router.dom.HashRouter
 import react.router.dom.Route
 import react.router.dom.Switch
-import react.router.dom.withRouter
 
 import kotlinx.browser.document
 import kotlinx.html.id
@@ -72,8 +71,7 @@ class App : RComponent<PropsWithChildren, AppState>() {
         HashRouter {
             div("d-flex flex-column") {
                 attrs.id = "content-wrapper"
-                child(withRouter(TopBar::class)) {
-                    // todo: use `useRouterMatch` inside `TopBar` instead of invoking `withRouter` here?
+                child(topBar()) {
                     attrs {
                         userName = state.userName
                     }

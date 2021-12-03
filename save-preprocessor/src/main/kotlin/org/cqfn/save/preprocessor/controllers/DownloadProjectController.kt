@@ -23,8 +23,10 @@ import org.cqfn.save.preprocessor.utils.decodeFromPropertiesFile
 import org.cqfn.save.preprocessor.utils.toHash
 import org.cqfn.save.testsuite.TestSuiteDto
 import org.cqfn.save.testsuite.TestSuiteType
+import org.cqfn.save.utils.moveFileWithAttributes
 
 import okio.ExperimentalFileSystem
+import okio.FileSystem
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.api.errors.GitAPIException
 import org.eclipse.jgit.api.errors.InvalidRemoteException
@@ -138,6 +140,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
      * @param fileInfos a list of [FileInfo]s associated with [files]
      * @return response entity with text
      */
+    @OptIn(ExperimentalFileSystem::class)
     @PostMapping(value = ["/uploadBin"], consumes = ["multipart/form-data"])
     fun uploadBin(
         @RequestPart executionRequestForStandardSuites: ExecutionRequestForStandardSuites,
@@ -145,7 +148,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         @RequestPart("fileInfo", required = true) fileInfos: Flux<FileInfo>,
     ) = Mono.just(ResponseEntity("Clone pending", HttpStatus.ACCEPTED))
         .doOnSuccess { _ ->
-            files.zipWith(fileInfos).download(File("."))
+            files.zipWith(fileInfos).download(File(FileSystem.SYSTEM_TEMPORARY_DIRECTORY.toString()))
                 .flatMap { files ->
                     saveBinaryFile(executionRequestForStandardSuites, files)
                 }
@@ -186,7 +189,16 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
 
                     files.forEach { file ->
                         log.debug("Copy additional file $file into ${resourcesLocation.resolve(file.name)}")
-                        Files.copy(Paths.get(file.absolutePath), Paths.get(resourcesLocation.resolve(file.name).absolutePath), StandardCopyOption.REPLACE_EXISTING)
+                        Files.copy(
+                            Paths.get(file.absolutePath),
+                            Paths.get(resourcesLocation.resolve(file.name).absolutePath),
+                            StandardCopyOption.REPLACE_EXISTING,
+                            StandardCopyOption.COPY_ATTRIBUTES
+                        )
+                        // FixMe: currently it's quite rough solution, to make all additional files executable
+                        if (!resourcesLocation.resolve(file.name).setExecutable(true)) {
+                            log.warn("Failed to mark file ${resourcesLocation.resolve(file.name)} as executable")
+                        }
                     }
                     sendToBackendAndOrchestrator(
                         execution,
@@ -325,10 +337,11 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
     ): Mono<StatusResponse> {
         val tmpDir = generateDirectory(calculateTmpNameForFiles(files))
         files.forEach {
-            Files.move(Paths.get(it.absolutePath), Paths.get((tmpDir.resolve(it)).absolutePath))
+            log.debug("Move $it into $tmpDir")
+            moveFileWithAttributes(it, tmpDir)
         }
         val project = executionRequestForStandardSuites.project
-        // TODO: Save the proper version https://github.com/cqfn/save-cloud/issues/321
+        // TODO: Save the proper version https://github.com/diktat-static-analysis/save-cloud/issues/321
         val version = files.first().name
         return updateExecution(
             executionRequestForStandardSuites.project,
@@ -439,7 +452,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
 
     private fun getTmpDirName(seeds: List<String>) = File("${configProperties.repository}/${seeds.hashCode()}")
 
-    private fun calculateTmpNameForFiles(files: List<File>) = files.map { it.toHash() }
+    private fun calculateTmpNameForFiles(files: List<File>) = files.map { it.toHash() }.sorted()
 
     private fun getExecutionLocation(executionRerunRequest: ExecutionRequest, executionType: ExecutionType) = if (executionType == ExecutionType.GIT) {
         downLoadRepository(executionRerunRequest).map { (location, _) -> location }

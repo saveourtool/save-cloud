@@ -21,7 +21,6 @@ import react.PropsWithChildren
 import react.dom.attrs
 import react.dom.button
 import react.dom.div
-import react.dom.h6
 import react.dom.input
 import react.dom.label
 import react.dom.li
@@ -89,7 +88,7 @@ fun fileUploader(
         }
 
         div {
-            h6(classes = "d-inline mr-3") {
+            label(classes = "control-label col-auto justify-content-between font-weight-bold text-gray-800 mb-1 pl-0") {
                 +"1. Upload or select the tool (and other resources) for testing:"
             }
 
@@ -147,6 +146,9 @@ fun fileUploader(
                             }
                         }
                         fontAwesomeIcon(icon = faUpload)
+                        attrs["data-toggle"] = "tooltip"
+                        attrs["data-placement"] = "top"
+                        attrs["title"] = "Regular files/Executable files/ZIP Archives"
                         strong { +"Upload files:" }
                     }
                 }
@@ -167,7 +169,7 @@ fun fileUploader(
  * @param onExecutableChange a handler that is invoked when icon is clicked
  * @return a functional component
  */
-@Suppress("TYPE_ALIAS", "STRING_CONCATENATION")  // https://github.com/cqfn/diKTat/issues/1076
+@Suppress("TYPE_ALIAS", "STRING_CONCATENATION")  // https://github.com/diktat-static-analysis/diKTat/issues/1076
 internal fun fileIconWithMode(fileInfo: FileInfo, onExecutableChange: (file: FileInfo, checked: Boolean) -> Unit) = fc<Props> {
     span("fa-layers mr-3") {
         attrs["data-toggle"] = "tooltip"

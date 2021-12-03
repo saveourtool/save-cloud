@@ -5,9 +5,10 @@
 package org.cqfn.save.agent
 
 import org.cqfn.save.agent.utils.readProperties
-import org.cqfn.save.core.logging.isDebugEnabled
+import org.cqfn.save.core.config.LogType
 import org.cqfn.save.core.logging.logDebug
 import org.cqfn.save.core.logging.logInfo
+import org.cqfn.save.core.logging.logType
 
 import generated.SAVE_CLOUD_VERSION
 import io.ktor.client.HttpClient
@@ -45,7 +46,7 @@ fun main() {
     val config: AgentConfiguration = Properties.decodeFromStringMap(
         readProperties("agent.properties")
     )
-    isDebugEnabled = config.debug
+    logType = if (config.debug) LogType.ALL else LogType.WARN
     logDebug("Instantiating save-agent version $SAVE_CLOUD_VERSION with config $config")
 
     signal(SIGTERM, staticCFunction<Int, Unit> {
