@@ -7,12 +7,6 @@ plugins {
     kotlin("jvm")
 }
 
-repositories {
-    mavenCentral()
-    // fixme: remove this after Spring Cloud supports Boot 2.6.x in release channel
-    maven("https://repo.spring.io/milestone/")
-}
-
 configureSpringBoot()
 
 tasks.withType<KotlinCompile> {
