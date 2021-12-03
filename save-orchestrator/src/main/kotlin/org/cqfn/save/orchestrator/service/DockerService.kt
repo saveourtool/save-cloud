@@ -11,6 +11,7 @@ import org.cqfn.save.orchestrator.docker.ContainerManager
 import org.cqfn.save.testsuite.TestSuiteDto
 import org.cqfn.save.utils.PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE
 import org.cqfn.save.utils.STANDARD_TEST_SUITE_DIR
+import org.cqfn.save.utils.moveFileWithAttributes
 
 import com.github.dockerjava.api.exception.DockerException
 import generated.SAVE_CORE_VERSION
@@ -31,8 +32,6 @@ import org.springframework.web.reactive.function.client.bodyToMono
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.LinkOption
-import java.nio.file.Paths
-import java.nio.file.StandardCopyOption
 import java.nio.file.attribute.PosixFileAttributeView
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -189,10 +188,9 @@ class DockerService(private val configProperties: ConfigProperties) {
             copyTestSuitesToResourcesPath(testSuitesForDocker, testSuitesDir)
             // move additional files, which were downloaded into the root dit to the execution dir for standard suites
             execution.additionalFiles?.split(";")?.filter { it.isNotBlank() }?.forEach {
-                val additionalFilePath = Paths.get(resourcesPath.resolve(File(it).name).absolutePath)
-                val destination = Paths.get(testSuitesDir.absolutePath).resolve(File(it).name)
-                log.info("Move additional file $additionalFilePath into $destination")
-                Files.move(additionalFilePath, destination, StandardCopyOption.REPLACE_EXISTING)
+                val additionalFilePath = resourcesPath.resolve(File(it).name)
+                log.info("Move additional file $additionalFilePath into $testSuitesDir")
+                moveFileWithAttributes(additionalFilePath, testSuitesDir)
             }
         }
 
@@ -278,9 +276,18 @@ class DockerService(private val configProperties: ConfigProperties) {
             }
 
             val file = fileLocation.resolve(File(it).name)
-
+            val shouldBeExecutable = file.canExecute()
             log.debug("Unzip ${file.absolutePath} into ${fileLocation.absolutePath}")
+
             file.unzipInto(fileLocation)
+            if (shouldBeExecutable) {
+                log.info("Marking files in $fileLocation executable...")
+                fileLocation.walkTopDown().forEach { source ->
+                    if (!source.setExecutable(true)) {
+                        log.warn("Failed to mark file ${source.name} as executable")
+                    }
+                }
+            }
             file.delete()
         }
     }
@@ -316,7 +323,7 @@ class DockerService(private val configProperties: ConfigProperties) {
                 )
             val currentSuiteDestination = destination.resolve("$PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE${it.testSuiteRepoUrl.hashCode()}_${it.testRootPath.hashCode()}")
             if (!currentSuiteDestination.exists()) {
-                log.info("Copying suite ${it.name} from $standardTestSuiteAbsolutePath into $currentSuiteDestination/...")
+                log.debug("Copying suite ${it.name} from $standardTestSuiteAbsolutePath into $currentSuiteDestination/...")
                 copyRecursivelyWithAttributes(standardTestSuiteAbsolutePath, currentSuiteDestination)
             }
         }

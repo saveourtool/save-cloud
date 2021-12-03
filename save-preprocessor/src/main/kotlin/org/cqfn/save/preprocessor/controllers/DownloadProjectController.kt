@@ -23,6 +23,7 @@ import org.cqfn.save.preprocessor.utils.decodeFromPropertiesFile
 import org.cqfn.save.preprocessor.utils.toHash
 import org.cqfn.save.testsuite.TestSuiteDto
 import org.cqfn.save.testsuite.TestSuiteType
+import org.cqfn.save.utils.moveFileWithAttributes
 
 import okio.ExperimentalFileSystem
 import okio.FileSystem
@@ -188,7 +189,16 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
 
                     files.forEach { file ->
                         log.debug("Copy additional file $file into ${resourcesLocation.resolve(file.name)}")
-                        Files.copy(Paths.get(file.absolutePath), Paths.get(resourcesLocation.resolve(file.name).absolutePath), StandardCopyOption.REPLACE_EXISTING)
+                        Files.copy(
+                            Paths.get(file.absolutePath),
+                            Paths.get(resourcesLocation.resolve(file.name).absolutePath),
+                            StandardCopyOption.REPLACE_EXISTING,
+                            StandardCopyOption.COPY_ATTRIBUTES
+                        )
+                        // FixMe: currently it's quite rough solution, to make all additional files executable
+                        if (!resourcesLocation.resolve(file.name).setExecutable(true)) {
+                            log.warn("Failed to mark file ${resourcesLocation.resolve(file.name)} as executable")
+                        }
                     }
                     sendToBackendAndOrchestrator(
                         execution,
@@ -327,10 +337,8 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
     ): Mono<StatusResponse> {
         val tmpDir = generateDirectory(calculateTmpNameForFiles(files))
         files.forEach {
-            val source = Paths.get(it.absolutePath)
-            val destination = Paths.get((tmpDir.resolve(it.name)).absolutePath)
-            log.debug("Move $source into $destination")
-            Files.move(source, destination)
+            log.debug("Move $it into $tmpDir")
+            moveFileWithAttributes(it, tmpDir)
         }
         val project = executionRequestForStandardSuites.project
         // TODO: Save the proper version https://github.com/diktat-static-analysis/save-cloud/issues/321
