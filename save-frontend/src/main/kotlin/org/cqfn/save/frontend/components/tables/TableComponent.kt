@@ -40,6 +40,8 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
+import kotlinx.html.THEAD
+import react.dom.RDOMBuilder
 
 /**
  * [RProps] of a data table
@@ -86,6 +88,7 @@ fun <D : Any> tableComponent(
     getRowProps: ((Row<D>) -> TableRowProps) = { jsObject() },
     getPageCount: (suspend (pageSize: Int) -> Int)? = null,
     renderExpandedRow: (RBuilder.(table: TableInstance<D>, row: Row<D>) -> Unit)? = undefined,
+    commonHeader: RDOMBuilder<THEAD>.(table: TableInstance<D>) -> Unit = {},
     getData: suspend (pageIndex: Int, pageSize: Int) -> Array<out D>,
 ) = fc<TableProps> { props ->
     require(useServerPaging xor (getPageCount == null)) {
@@ -160,6 +163,7 @@ fun <D : Any> tableComponent(
                     attrs["width"] = "100%"
                     attrs["cellSpacing"] = "0"
                     thead {
+                        commonHeader(tableInstance)
                         tableInstance.headerGroups.map { headerGroup ->
                             tr {
                                 spread(headerGroup.getHeaderGroupProps())

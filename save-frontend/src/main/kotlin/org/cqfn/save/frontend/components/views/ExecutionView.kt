@@ -44,9 +44,18 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
+import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
+import org.cqfn.save.frontend.components.basic.testExecutionFiltersRow
+import org.cqfn.save.frontend.externals.fontawesome.faFilter
+import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
+import org.cqfn.save.frontend.externals.table.useFilters
+import org.w3c.dom.HTMLSelectElement
+import react.dom.option
+import react.dom.select
+import react.dom.th
 
 /**
  * [RProps] for execution results view
@@ -73,6 +82,8 @@ external interface ExecutionState : State {
      * Count tests with executionId
      */
     var countTests: Int?
+
+    var status: TestResultStatus?
 }
 
 /**
@@ -83,6 +94,7 @@ external interface ExecutionState : State {
 class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
     init {
         state.executionDto = null
+        state.status = null
     }
 
     override fun componentDidMount() {
@@ -102,6 +114,7 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
                 .unsafeCast<Int>()
             setState {
                 executionDto = executionDtoFromBackend
+                status = props.status
                 countTests = count
             }
         }
@@ -235,6 +248,7 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
             useServerPaging = true,
             usePageSelection = true,
             plugins = arrayOf(
+                useFilters,
                 useSortBy,
                 useExpanded,
                 usePagination,
@@ -253,10 +267,33 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
                     }
                 }
             },
+            additionalOptions = {
+                this.asDynamic().manualFilters = true
+            },
+            commonHeader = { tableInstance ->
+                tr {
+                    th {
+                        attrs.colSpan = "${tableInstance.columns.size}"
+                        child(testExecutionFiltersRow(
+                            initialValue = state.status?.name ?: "ANY"
+                        ) { value ->
+                            if (value == "ANY") {
+                                setState {
+                                    status = null
+                                }
+                            } else {
+                                setState {
+                                    status = TestResultStatus.valueOf(value)
+                                }
+                            }
+                        })
+                    }
+                }
+            },
             getPageCount = { pageSize ->
                 val count: Int = get(
                     url = "$apiUrl/testExecution/count?executionId=${props.executionId}" +
-                            if (props.status != null) "&status=${props.status}" else "",
+                            if (state.status != null) "&status=${state.status}" else "",
                     headers = Headers().also {
                         it.set("Accept", "application/json")
                     },
@@ -283,7 +320,7 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
         ) { page, size ->
             get(
                 url = "$apiUrl/testExecutions?executionId=${props.executionId}&page=$page&size=$size" +
-                    if (props.status != null) "&status=${props.status}" else "",
+                    if (state.status != null) "&status=${state.status}" else "",
                 headers = Headers().apply {
                     set("Accept", "application/json")
                 },
