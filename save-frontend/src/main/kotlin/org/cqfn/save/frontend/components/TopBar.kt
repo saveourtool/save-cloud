@@ -76,6 +76,7 @@ fun topBar() = fc<TopBarProps> { props ->
                     }
                 }
                 location.pathname
+                    .substringBeforeLast("?")
                     .split("/")
                     .filterNot { it.isBlank() }
                     .apply {

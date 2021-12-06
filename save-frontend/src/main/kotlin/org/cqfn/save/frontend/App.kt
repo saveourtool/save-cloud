@@ -4,6 +4,7 @@
 
 package org.cqfn.save.frontend
 
+import org.cqfn.save.domain.TestResultStatus
 import org.cqfn.save.frontend.components.Footer
 import org.cqfn.save.frontend.components.basic.scrollToTopButton
 import org.cqfn.save.frontend.components.topBar
@@ -29,6 +30,7 @@ import org.cqfn.save.frontend.externals.fontawesome.library
 import org.cqfn.save.frontend.externals.modal.ReactModal
 
 import org.w3c.dom.HTMLElement
+import org.w3c.dom.url.URLSearchParams
 import react.PropsWithChildren
 import react.RBuilder
 import react.RComponent
@@ -126,6 +128,9 @@ class App : RComponent<PropsWithChildren, AppState>() {
                                     buildElement {
                                         child(ExecutionView::class) {
                                             attrs.executionId = props.match.params["executionId"]!!
+                                            attrs.status = URLSearchParams(props.location.search).get("status")?.let(
+                                                TestResultStatus::valueOf
+                                            )
                                         }
                                     }
                                 }

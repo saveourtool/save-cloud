@@ -4,6 +4,7 @@
 
 package org.cqfn.save.frontend.components.views
 
+import org.cqfn.save.domain.TestResultStatus
 import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.frontend.components.tables.tableComponent
@@ -157,7 +158,7 @@ class HistoryView : RComponent<HistoryProps, HistoryViewState>() {
                     }
                     buildElement {
                         td {
-                            a(href = getHrefToExecution(cellProps.value.id)) {
+                            a(href = getHrefToExecution(cellProps.value.id, null)) {
                                 fontAwesomeIcon(result.resIcon, classes = result.resColor)
                             }
                         }
@@ -166,7 +167,7 @@ class HistoryView : RComponent<HistoryProps, HistoryViewState>() {
                 column("status", "Status") {
                     buildElement {
                         td {
-                            a(href = getHrefToExecution(it.value.id)) {
+                            a(href = getHrefToExecution(it.value.id, null)) {
                                 +"${it.value.status}"
                             }
                         }
@@ -175,7 +176,7 @@ class HistoryView : RComponent<HistoryProps, HistoryViewState>() {
                 column("startDate", "Start time") {
                     buildElement {
                         td {
-                            a(href = getHrefToExecution(it.value.id)) {
+                            a(href = getHrefToExecution(it.value.id, null)) {
                                 +(formattingDate(it.value.startTime) ?: "Starting")
                             }
                         }
@@ -184,7 +185,7 @@ class HistoryView : RComponent<HistoryProps, HistoryViewState>() {
                 column("endDate", "End time") {
                     buildElement {
                         td {
-                            a(href = getHrefToExecution(it.value.id)) {
+                            a(href = getHrefToExecution(it.value.id, null)) {
                                 +(formattingDate(it.value.endTime) ?: "Starting")
                             }
                         }
@@ -193,7 +194,7 @@ class HistoryView : RComponent<HistoryProps, HistoryViewState>() {
                 column("running", "Running") {
                     buildElement {
                         td {
-                            a(href = getHrefToExecution(it.value.id)) {
+                            a(href = getHrefToExecution(it.value.id, TestResultStatus.RUNNING)) {
                                 +"${it.value.runningTests}"
                             }
                         }
@@ -202,7 +203,7 @@ class HistoryView : RComponent<HistoryProps, HistoryViewState>() {
                 column("passed", "Passed") {
                     buildElement {
                         td {
-                            a(href = getHrefToExecution(it.value.id)) {
+                            a(href = getHrefToExecution(it.value.id, TestResultStatus.PASSED)) {
                                 +"${it.value.passedTests}"
                             }
                         }
@@ -211,7 +212,7 @@ class HistoryView : RComponent<HistoryProps, HistoryViewState>() {
                 column("failed", "Failed") {
                     buildElement {
                         td {
-                            a(href = getHrefToExecution(it.value.id)) {
+                            a(href = getHrefToExecution(it.value.id, TestResultStatus.FAILED)) {
                                 +"${it.value.failedTests}"
                             }
                         }
@@ -220,7 +221,7 @@ class HistoryView : RComponent<HistoryProps, HistoryViewState>() {
                 column("skipped", "Skipped") {
                     buildElement {
                         td {
-                            a(href = getHrefToExecution(it.value.id)) {
+                            a(href = getHrefToExecution(it.value.id, TestResultStatus.IGNORED)) {
                                 +"${it.value.skippedTests}"
                             }
                         }
@@ -339,7 +340,8 @@ class HistoryView : RComponent<HistoryProps, HistoryViewState>() {
         }
     }
 
-    private fun getHrefToExecution(id: Long) = "${window.location}/execution/$id"
+    private fun getHrefToExecution(id: Long, status: TestResultStatus?) =
+            "${window.location}/execution/$id${status?.let { "?status=$it" } ?: ""}"
 
     /**
      * @property resColor

@@ -24,3 +24,4 @@ external val faCalendarAlt: dynamic
 external val faExternalLinkAlt: dynamic
 external val faTrashAlt: dynamic
 external val faEdit: dynamic
+external val faFilter: dynamic

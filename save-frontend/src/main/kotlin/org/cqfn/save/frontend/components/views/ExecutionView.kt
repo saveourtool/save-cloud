@@ -10,8 +10,10 @@ import org.cqfn.save.domain.TestResultStatus
 import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.frontend.components.basic.executionStatistics
 import org.cqfn.save.frontend.components.basic.executionTestsNotFound
+import org.cqfn.save.frontend.components.basic.testExecutionFiltersRow
 import org.cqfn.save.frontend.components.basic.testStatusComponent
 import org.cqfn.save.frontend.components.tables.tableComponent
+import org.cqfn.save.frontend.externals.table.useFilters
 import org.cqfn.save.frontend.http.getDebugInfoFor
 import org.cqfn.save.frontend.themes.Colors
 import org.cqfn.save.frontend.utils.apiUrl
@@ -32,6 +34,7 @@ import react.buildElement
 import react.dom.button
 import react.dom.div
 import react.dom.td
+import react.dom.th
 import react.dom.tr
 import react.setState
 import react.table.columns
@@ -56,6 +59,11 @@ external interface ExecutionProps : PropsWithChildren {
      * ID of execution
      */
     var executionId: String
+
+    /**
+     * Test Result Status to filter by
+     */
+    var status: TestResultStatus?
 }
 
 /**
@@ -71,6 +79,11 @@ external interface ExecutionState : State {
      * Count tests with executionId
      */
     var countTests: Int?
+
+    /**
+     * Test Result Status to filter by
+     */
+    var status: TestResultStatus?
 }
 
 /**
@@ -81,6 +94,7 @@ external interface ExecutionState : State {
 class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
     init {
         state.executionDto = null
+        state.status = null
     }
 
     override fun componentDidMount() {
@@ -90,7 +104,7 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
                     get("$apiUrl/executionDto?executionId=${props.executionId}", headers)
                         .decodeFromJsonString()
             val count: Int = get(
-                url = "$apiUrl/testExecutionsCount?executionId=${props.executionId}",
+                url = "$apiUrl/testExecutions/count?executionId=${props.executionId}",
                 headers = Headers().also {
                     it.set("Accept", "application/json")
                 },
@@ -100,6 +114,7 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
                 .unsafeCast<Int>()
             setState {
                 executionDto = executionDtoFromBackend
+                status = props.status
                 countTests = count
             }
         }
@@ -233,9 +248,10 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
             useServerPaging = true,
             usePageSelection = true,
             plugins = arrayOf(
+                useFilters,
                 useSortBy,
                 useExpanded,
-                usePagination
+                usePagination,
             ),
             renderExpandedRow = { tableInstance, row ->
                 // todo: placeholder before, render data once it's available
@@ -251,9 +267,33 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
                     }
                 }
             },
+            additionalOptions = {
+                this.asDynamic().manualFilters = true
+            },
+            commonHeader = { tableInstance ->
+                tr {
+                    th {
+                        attrs.colSpan = "${tableInstance.columns.size}"
+                        child(testExecutionFiltersRow(
+                            initialValue = state.status?.name ?: "ANY"
+                        ) { value ->
+                            if (value == "ANY") {
+                                setState {
+                                    status = null
+                                }
+                            } else {
+                                setState {
+                                    status = TestResultStatus.valueOf(value)
+                                }
+                            }
+                        })
+                    }
+                }
+            },
             getPageCount = { pageSize ->
                 val count: Int = get(
-                    url = "$apiUrl/testExecutionsCount?executionId=${props.executionId}",
+                    url = "$apiUrl/testExecution/count?executionId=${props.executionId}" +
+                            if (state.status != null) "&status=${state.status}" else "",
                     headers = Headers().also {
                         it.set("Accept", "application/json")
                     },
@@ -279,7 +319,8 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
             }
         ) { page, size ->
             get(
-                url = "$apiUrl/testExecutions?executionId=${props.executionId}&page=$page&size=$size",
+                url = "$apiUrl/testExecutions?executionId=${props.executionId}&page=$page&size=$size" +
+                        if (state.status != null) "&status=${state.status}" else "",
                 headers = Headers().apply {
                     set("Accept", "application/json")
                 },
