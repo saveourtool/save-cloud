@@ -146,6 +146,9 @@ fun fileUploader(
                             }
                         }
                         fontAwesomeIcon(icon = faUpload)
+                        attrs["data-toggle"] = "tooltip"
+                        attrs["data-placement"] = "top"
+                        attrs["title"] = "Regular files/Executable files/ZIP Archives"
                         strong { +"Upload files:" }
                     }
                 }

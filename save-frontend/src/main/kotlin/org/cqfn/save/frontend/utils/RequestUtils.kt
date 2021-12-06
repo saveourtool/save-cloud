@@ -16,6 +16,8 @@ import kotlinx.coroutines.await
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 
+val apiUrl = "${window.location.origin}/api"
+
 /**
  * Perform a mapping operation on a [Response] if it's status is OK or throw an exception otherwise.
  *
@@ -87,7 +89,7 @@ suspend fun request(url: String,
  * @return project
  */
 suspend fun getProject(name: String, owner: String) =
-        get("${window.location.origin}/getProject?name=$name&owner=$owner", Headers().apply {
+        get("$apiUrl/getProject?name=$name&owner=$owner", Headers().apply {
             set("Accept", "application/json")
         })
             .decodeFromJsonString<Project>()
