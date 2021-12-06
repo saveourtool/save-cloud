@@ -5,11 +5,10 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
 
-    <include file="user-insert.xml" relativeToChangelogFile="true"/>
-    <include file="test-suite-insert.xml" relativeToChangelogFile="true"/>
-
-    <changeSet id="02-petertrr" author="petertrr">
-        <tagDatabase tag="v2.0-insert"/>
+    <changeSet id="add-language-column" author="petertrr" context="dev or prod">
+        <addColumn tableName="test_suite">
+            <column name="language" type="varchar(256)" defaultValue="NULL"/>
+        </addColumn>
     </changeSet>
 
 </databaseChangeLog>

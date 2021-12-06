@@ -37,7 +37,9 @@ class TestSuite(
 
     var testRootPath: String,
 
-    var testSuiteRepoUrl: String? = null
+    var testSuiteRepoUrl: String? = null,
+
+    var language: String? = null,
 ) : BaseEntity() {
     /**
      * @return Dto of testSuite
@@ -50,5 +52,6 @@ class TestSuite(
                 this.project,
                 this.testRootPath,
                 this.testSuiteRepoUrl,
+                this.language,
             )
 }

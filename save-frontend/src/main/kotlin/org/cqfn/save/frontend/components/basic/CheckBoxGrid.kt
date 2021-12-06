@@ -18,7 +18,11 @@ import react.fc
 import react.useEffect
 
 import kotlinx.html.InputType
+import kotlinx.html.classes
 import kotlinx.html.js.onClickFunction
+import react.dom.a
+import react.dom.li
+import react.dom.nav
 
 /**
  * Props for ChecboxGrid component
@@ -33,6 +37,24 @@ external interface CheckBoxGridProps : PropsWithChildren {
      * Currently selected elements
      */
     var selectedStandardSuites: MutableList<String>
+}
+
+fun suitesTable(suites: List<TestSuiteDto>) = fc<CheckBoxGridProps> { props ->
+    nav("nav nav-tabs") {
+        suites.map { it.language }
+            .distinct()
+            .forEachIndexed { index, s ->
+                li("nav-item") {
+                    a("nav-link") {
+                        if (index == 0) {
+                            // todo: store selected language in state?
+                            attrs.classes += "active"
+                        }
+                        +(s ?: "N/A")
+                    }
+                }
+            }
+    }
 }
 
 /**
