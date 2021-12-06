@@ -15,7 +15,6 @@ import org.cqfn.save.reporter.Report
 import org.cqfn.save.utils.STANDARD_TEST_SUITE_DIR
 import org.cqfn.save.utils.toTestResultDebugInfo
 import org.cqfn.save.utils.toTestResultStatus
-import org.cqfn.save.utils.withAdjustedLocation
 
 import generated.SAVE_CLOUD_VERSION
 import io.ktor.client.HttpClient
@@ -42,6 +41,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
+import org.cqfn.save.utils.adjustLocation
 
 /**
  * A main class for SAVE Agent
@@ -167,27 +167,20 @@ class SaveAgent(internal val config: AgentConfiguration,
     private fun CoroutineScope.readExecutionResults(jsonFile: String): List<TestExecutionDto> {
         val currentTime = Clock.System.now()
         val reports: List<Report> = readExecutionReportFromFile(jsonFile)
-        reports.flatMap { report ->
-            report.pluginExecutions.flatMap { pluginExecution ->
-                pluginExecution.testResults.map { tr ->
-                    tr.toTestResultDebugInfo(report.testSuite, pluginExecution.plugin)
-                }
-            }
-        }.forEach {
-            launch {
-                // todo: launch on a dedicated thread (https://github.com/diktat-static-analysis/save-cloud/issues/315)
-                logDebug("Posting debug info for test ${it.testResultLocation}")
-                sendDataToBackend {
-                    sendReport(it)
-                }
-            }
-        }
         return reports.flatMap { report ->
             report.pluginExecutions.flatMap { pluginExecution ->
-                pluginExecution.testResults.map {
-                    val testResultStatus = it.status.toTestResultStatus()
+                pluginExecution.testResults.map { tr ->
+                    val debugInfo = tr.toTestResultDebugInfo(report.testSuite, pluginExecution.plugin)
+                    launch {
+                        // todo: launch on a dedicated thread (https://github.com/diktat-static-analysis/save-cloud/issues/315)
+                        logDebug("Posting debug info for test ${debugInfo.testResultLocation}")
+                        sendDataToBackend {
+                            sendReport(debugInfo)
+                        }
+                    }
+                    val testResultStatus = tr.status.toTestResultStatus()
                     TestExecutionDto(
-                        it.resources.test.toString(),
+                        adjustLocation(tr.resources.test.toString()),
                         pluginExecution.plugin,
                         config.id,
                         testResultStatus,
@@ -201,17 +194,7 @@ class SaveAgent(internal val config: AgentConfiguration,
 
     private fun readExecutionReportFromFile(jsonFile: String) = reportFormat.decodeFromString<List<Report>>(
         readFile(jsonFile).joinToString(separator = "")
-    ).map { report ->
-        report.copy(
-            pluginExecutions = report.pluginExecutions.map { pluginExecution ->
-                pluginExecution.copy(
-                    testResults = pluginExecution.testResults.map {
-                        it.withAdjustedLocation()
-                    }
-                )
-            }
-        )
-    }
+    )
 
     private fun CoroutineScope.launchLogSendingJob(executionLogs: ExecutionLogs) = launch {
         runCatching {

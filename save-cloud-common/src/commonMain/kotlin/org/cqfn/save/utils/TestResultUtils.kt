@@ -16,7 +16,6 @@ import org.cqfn.save.domain.TestResultLocation
 import org.cqfn.save.domain.TestResultStatus
 
 import okio.ExperimentalFileSystem
-import okio.Path.Companion.toPath
 
 /**
  * Maps `TestStatus` to `TestResultStatus`
@@ -29,24 +28,12 @@ fun TestStatus.toTestResultStatus() = when (this) {
     else -> error("Unknown test status $this")
 }
 
-/**
- * Trims leading [PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE] from paths to resources of current [TestResult]
- *
- * @return a copy of [TestResult] with adjusted resource paths
- */
-@OptIn(ExperimentalFileSystem::class)
-fun TestResult.withAdjustedLocation(): TestResult {
-    // In standard mode we have extra paths in json reporter, since we created extra directories,
-    // and this information won't be matched with data from DB without such removal
-    val location = resources.test.parent!!.toString()
-    return if (location.startsWith(PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE)) {
-        logTrace("Adjusting path to test file [$location/${resources.test.name}]: trimming $PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE")
-        val actualTestRoot = location.split('/').first().toPath()
-        this.copy(resources = resources.withRelativePaths(actualTestRoot))
-    } else {
-        // Use filePath as is for Git mode
-        this
-    }
+fun adjustLocation(location: String) = if (location.startsWith(PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE)) {
+    logTrace("Adjusting path to [$location]: trimming $PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE")
+    location.dropWhile { it != '/' }.drop(1)
+} else {
+    // Use filePath as is for Git mode
+    location
 }
 
 /**
@@ -57,13 +44,19 @@ fun TestResult.withAdjustedLocation(): TestResult {
  * @return an instance of [TestResultDebugInfo] representing execution info
  */
 @OptIn(ExperimentalFileSystem::class)
-fun TestResult.toTestResultDebugInfo(testSuiteName: String, pluginName: String): TestResultDebugInfo = TestResultDebugInfo(
-    TestResultLocation(
-        testSuiteName,
-        pluginName,
-        resources.test.parent!!.toString(),
-        resources.test.name
-    ),
-    debugInfo,
-    status,
-)
+fun TestResult.toTestResultDebugInfo(testSuiteName: String, pluginName: String): TestResultDebugInfo {
+    // In standard mode we have extra paths in json reporter, since we created extra directories,
+    // and this information won't be matched with data from DB without such removal
+    val location = resources.test.parent!!.toString()
+    val adjustedLocation = adjustLocation(location)
+    return TestResultDebugInfo(
+        TestResultLocation(
+            testSuiteName,
+            pluginName,
+            adjustedLocation,
+            resources.test.name
+        ),
+        debugInfo,
+        status,
+    )
+}
