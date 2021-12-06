@@ -7,20 +7,14 @@ import org.cqfn.save.core.logging.logDebug
 import org.cqfn.save.core.logging.logError
 import org.cqfn.save.core.logging.logInfo
 import org.cqfn.save.core.plugin.Plugin
-import org.cqfn.save.core.result.Crash
-import org.cqfn.save.core.result.Fail
-import org.cqfn.save.core.result.Ignored
-import org.cqfn.save.core.result.Pass
-import org.cqfn.save.core.result.TestResult
-import org.cqfn.save.core.result.TestStatus
 import org.cqfn.save.core.utils.ExecutionResult
 import org.cqfn.save.core.utils.ProcessBuilder
 import org.cqfn.save.domain.TestResultDebugInfo
-import org.cqfn.save.domain.TestResultLocation
-import org.cqfn.save.domain.TestResultStatus
 import org.cqfn.save.plugins.fix.FixPlugin
 import org.cqfn.save.reporter.Report
 import org.cqfn.save.utils.STANDARD_TEST_SUITE_DIR
+import org.cqfn.save.utils.toTestResultDebugInfo
+import org.cqfn.save.utils.toTestResultStatus
 
 import generated.SAVE_CLOUD_VERSION
 import io.ktor.client.HttpClient
@@ -183,6 +177,7 @@ class SaveAgent(internal val config: AgentConfiguration,
         }.forEach {
             launch {
                 // todo: launch on a dedicated thread (https://github.com/diktat-static-analysis/save-cloud/issues/315)
+                logDebug("Posting debug info for test ${it.testResultLocation}")
                 sendDataToBackend {
                     sendReport(it)
                 }
@@ -271,24 +266,4 @@ class SaveAgent(internal val config: AgentConfiguration,
         contentType(ContentType.Application.Json)
         body = AgentVersion(config.id, SAVE_CLOUD_VERSION)
     }
-
-    private fun TestStatus.toTestResultStatus() = when (this) {
-        is Pass -> TestResultStatus.PASSED
-        is Fail -> TestResultStatus.FAILED
-        is Ignored -> TestResultStatus.IGNORED
-        is Crash -> TestResultStatus.TEST_ERROR
-        else -> error("Unknown test status $this")
-    }
-
-    private fun TestResult.toTestResultDebugInfo(testSuiteName: String, pluginName: String) =
-            TestResultDebugInfo(
-                TestResultLocation(
-                    testSuiteName,
-                    pluginName,
-                    resources.test.parent!!.toString(),
-                    resources.test.name
-                ),
-                debugInfo,
-                status,
-            )
 }

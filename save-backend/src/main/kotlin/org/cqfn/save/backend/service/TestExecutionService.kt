@@ -10,7 +10,6 @@ import org.cqfn.save.domain.TestResultLocation
 import org.cqfn.save.domain.TestResultStatus
 import org.cqfn.save.entities.TestExecution
 import org.cqfn.save.test.TestDto
-import org.cqfn.save.utils.PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE
 
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.PageRequest
@@ -124,16 +123,7 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
         val executionId = agent.execution.id!!
         val lostTests: MutableList<TestExecutionDto> = mutableListOf()
         val counters = Counters()
-        testExecutionsDtos.forEach {
-            // In standard mode we have extra paths in json reporter, since we created extra directories,
-            // and this information won't be matched with data from DB without such removement
-            val filePathWithDroppedPrefixForStandardMode = if (it.filePath.startsWith(PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE)) {
-                it.filePath.dropWhile { it != '/' }.drop(1)
-                // Use filePath as is for Git mode
-            } else {
-                it.filePath
-            }
-            val testExecDto = it.copy(filePath = filePathWithDroppedPrefixForStandardMode)
+        testExecutionsDtos.forEach { testExecDto ->
             val foundTestExec = testExecutionRepository.findByExecutionIdAndTestPluginNameAndTestFilePath(
                 executionId,
                 testExecDto.pluginName,
