@@ -154,32 +154,30 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
                         }
                     }
                 }
-                column(id = "startTime", header = "Start time") {
+                column(id = "startTime", header = "Start time", { startTimeSeconds }) {
                     buildElement {
                         td {
                             +"${
-                                it.value.startTimeSeconds
-                                ?.let { Instant.fromEpochSeconds(it, 0) }
-                                ?: "Running"
+                                it.value?.let { Instant.fromEpochSeconds(it, 0) }
+                                    ?: "Running"
                             }"
                         }
                     }
                 }
-                column(id = "endTime", header = "End time") {
+                column(id = "endTime", header = "End time", { endTimeSeconds }) {
                     buildElement {
                         td {
                             +"${
-                                it.value.endTimeSeconds
-                                ?.let { Instant.fromEpochSeconds(it, 0) }
-                                ?: "Running"
+                                it.value?.let { Instant.fromEpochSeconds(it, 0) }
+                                    ?: "Running"
                             }"
                         }
                     }
                 }
-                column(id = "status", header = "Status") {
+                column(id = "status", header = "Status", { status.name }) {
                     buildElement {
                         td {
-                            +"${it.value.status}"
+                            +it.value
                         }
                     }
                 }
@@ -201,17 +199,17 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
                         }
                     }
                 }
-                column(id = "plugin", header = "Plugin type") {
+                column(id = "plugin", header = "Plugin type", { pluginName }) {
                     buildElement {
                         td {
-                            +it.value.pluginName
+                            +it.value
                         }
                     }
                 }
-                column(id = "suiteName", header = "Test suite") {
+                column(id = "suiteName", header = "Test suite", { testSuiteName }) {
                     buildElement {
                         td {
-                            +"${it.value.testSuiteName}"
+                            +"${it.value}"
                         }
                     }
                 }
