@@ -13,6 +13,7 @@ import org.cqfn.save.domain.TestResultDebugInfo
 import org.cqfn.save.plugins.fix.FixPlugin
 import org.cqfn.save.reporter.Report
 import org.cqfn.save.utils.STANDARD_TEST_SUITE_DIR
+import org.cqfn.save.utils.adjustLocation
 import org.cqfn.save.utils.toTestResultDebugInfo
 import org.cqfn.save.utils.toTestResultStatus
 
@@ -41,7 +42,6 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
-import org.cqfn.save.utils.adjustLocation
 
 /**
  * A main class for SAVE Agent
