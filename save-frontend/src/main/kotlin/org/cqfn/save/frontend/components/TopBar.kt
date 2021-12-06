@@ -16,7 +16,7 @@ import react.dom.a
 import react.dom.attrs
 import react.dom.button
 import react.dom.div
-import react.dom.img
+import react.dom.i
 import react.dom.li
 import react.dom.nav
 import react.dom.ol
@@ -32,7 +32,6 @@ import kotlinx.html.classes
 import kotlinx.html.id
 import kotlinx.html.js.onClickFunction
 import kotlinx.html.role
-import react.dom.i
 
 /**
  * [RProps] of the top bor component
@@ -45,14 +44,14 @@ external interface TopBarProps : PropsWithChildren {
 }
 
 private fun RBuilder.dropdownEntry(faIcon: String, text: String, handler: RDOMBuilder<BUTTON>.() -> Unit = { }) =
-    button(type = ButtonType.button, classes = "btn btn-no-outline dropdown-item rounded-0 shadow-none") {
-        fontAwesomeIcon {
-            attrs.icon = faIcon
-            attrs.className = "fas fa-sm fa-fw mr-2 text-gray-400"
+        button(type = ButtonType.button, classes = "btn btn-no-outline dropdown-item rounded-0 shadow-none") {
+            fontAwesomeIcon {
+                attrs.icon = faIcon
+                attrs.className = "fas fa-sm fa-fw mr-2 text-gray-400"
+            }
+            +text
+            handler(this)
         }
-        +text
-        handler(this)
-    }
 
 /**
  * A component for web page top bar
@@ -88,7 +87,7 @@ fun topBar() = fc<TopBarProps> { props ->
                             li("breadcrumb-item") {
                                 attrs["aria-current"] = "page"
                                 if (index == size - 1) {
-                                    a(href = currentLink) {
+                                    a(href = currentLink.removeSuffix("execution")) {
                                         attrs.classes = setOf("text-warning")
                                         +pathPart
                                     }

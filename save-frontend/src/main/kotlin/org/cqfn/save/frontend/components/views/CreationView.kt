@@ -11,6 +11,9 @@ import org.cqfn.save.entities.GitDto
 import org.cqfn.save.entities.NewProjectDto
 import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.ProjectStatus
+import org.cqfn.save.frontend.components.basic.InputTypes
+import org.cqfn.save.frontend.components.basic.inputTextFormOptional
+import org.cqfn.save.frontend.components.basic.inputTextFormRequired
 import org.cqfn.save.frontend.utils.apiUrl
 import org.cqfn.save.frontend.utils.get
 import org.cqfn.save.frontend.utils.post
@@ -22,7 +25,6 @@ import org.w3c.dom.events.Event
 import org.w3c.fetch.Headers
 import react.PropsWithChildren
 import react.RBuilder
-import react.RComponent
 import react.State
 import react.dom.*
 import react.setState
@@ -32,14 +34,10 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
 import kotlinx.html.ButtonType
-import kotlinx.html.InputType
 import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.cqfn.save.frontend.components.basic.InputTypes
-import org.cqfn.save.frontend.components.basic.inputTextFormOptional
-import org.cqfn.save.frontend.components.basic.inputTextFormRequired
 
 /**
  * [RState] of project creation view component
@@ -279,9 +277,9 @@ class CreationView : AbstractView<PropsWithChildren, ProjectSaveViewState>(true)
                                             changeFields(InputTypes.PROJECT_URL, it)
                                         }
                                         inputTextFormOptional(
-                                                InputTypes.GIT_URL,
-                                                "col-md-6 mt-3 pl-0",
-                                                "Test repository Git Url"
+                                            InputTypes.GIT_URL,
+                                            "col-md-6 mt-3 pl-0",
+                                            "Test repository Git Url"
                                         ) {
                                             changeFields(InputTypes.GIT_URL, it, false)
                                         }
@@ -325,8 +323,8 @@ class CreationView : AbstractView<PropsWithChildren, ProjectSaveViewState>(true)
                                         when (state.gitConnectionCheckingStatus) {
                                             GitConnectionStatusEnum.CHECKED_NOT_OK ->
                                                 createDiv(
-                                                        "invalid-feedback d-block",
-                                                        "Validation failed: please check your git URL and credentials"
+                                                    "invalid-feedback d-block",
+                                                    "Validation failed: please check your git URL and credentials"
                                                 )
                                             GitConnectionStatusEnum.CHECKED_OK ->
                                                 createDiv("valid-feedback d-block", "Successful validation of git configuration")
@@ -354,5 +352,3 @@ class CreationView : AbstractView<PropsWithChildren, ProjectSaveViewState>(true)
                 +text
             }
 }
-
-

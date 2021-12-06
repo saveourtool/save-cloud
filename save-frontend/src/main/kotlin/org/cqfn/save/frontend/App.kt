@@ -14,6 +14,7 @@ import org.cqfn.save.frontend.components.views.ExecutionView
 import org.cqfn.save.frontend.components.views.FallbackView
 import org.cqfn.save.frontend.components.views.HistoryView
 import org.cqfn.save.frontend.components.views.ProjectView
+import org.cqfn.save.frontend.components.views.WelcomeView
 import org.cqfn.save.frontend.components.views.testExecutionDetailsView
 import org.cqfn.save.frontend.externals.fontawesome.faAngleUp
 import org.cqfn.save.frontend.externals.fontawesome.faCheck
@@ -45,7 +46,6 @@ import react.router.dom.Switch
 
 import kotlinx.browser.document
 import kotlinx.html.id
-import org.cqfn.save.frontend.components.views.WelcomeView
 
 /**
  * Top-level state of the whole App
@@ -94,7 +94,6 @@ class App : RComponent<PropsWithChildren, AppState>() {
                             }
                         }
 
-
                         Route {
                             attrs {
                                 path = arrayOf("/projects")
@@ -102,7 +101,6 @@ class App : RComponent<PropsWithChildren, AppState>() {
                                 component = CollectionView::class.react
                             }
                         }
-
 
                         Route {
                             attrs {
@@ -166,7 +164,6 @@ class App : RComponent<PropsWithChildren, AppState>() {
                                 component = FallbackView::class.react
                             }
                         }
-
                     }
                 }
                 child(Footer::class) {}

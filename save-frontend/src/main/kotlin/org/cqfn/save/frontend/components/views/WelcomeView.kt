@@ -1,23 +1,25 @@
+/**
+ * A view related to the sign-in view
+ */
+
 package org.cqfn.save.frontend.components.views
+
+import org.cqfn.save.frontend.components.basic.InputTypes
+import org.cqfn.save.frontend.components.basic.inputTextFormRequired
+import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
 
 import csstype.ColorProperty
 import csstype.Display
 import csstype.FontSize
 import csstype.FontWeight
 import csstype.TextDecoration
-import kotlinx.browser.document
-import kotlinx.html.ButtonType
+import react.CSSProperties
 import react.PropsWithChildren
 import react.RBuilder
-import react.RComponent
 import react.State
 import react.dom.a
-import react.dom.div
-import org.cqfn.save.frontend.components.basic.InputTypes
-import org.cqfn.save.frontend.components.basic.inputTextFormRequired
-import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
-import react.CSSProperties
 import react.dom.button
+import react.dom.div
 import react.dom.form
 import react.dom.h1
 import react.dom.h3
@@ -26,25 +28,35 @@ import react.dom.main
 import react.dom.p
 import react.dom.span
 
+import kotlinx.html.ButtonType
 
 /**
  * [RState] of project creation view component
  */
 external interface IndexViewState : State {
+    /**
+     * State that checks the validity of login
+     */
     var isValidLogin: Boolean?
+
+    /**
+     * State that checks the validity of password
+     */
+    var isValidPassword: Boolean?
 }
 
 /**
- * A view with collection of projects
+ * Main entry point view with sign-in page
  */
 @JsExport
 @OptIn(ExperimentalJsExport::class)
 class WelcomeView : AbstractView<PropsWithChildren, IndexViewState>(true) {
     init {
         state.isValidLogin = true
+        state.isValidPassword = true
     }
 
-    @Suppress("ForbiddenComment", "LongMethod")
+    @Suppress("ForbiddenComment", "LongMethod", "TOO_LONG_FUNCTION")
     override fun RBuilder.render() {
         main("main-content mt-0 ps") {
             div("page-header align-items-start min-vh-100") {
@@ -74,7 +86,6 @@ class WelcomeView : AbstractView<PropsWithChildren, IndexViewState>(true) {
                                     display = Display.inline
                                     textDecoration = "underline rgb(246 84 21)".unsafeCast<TextDecoration>()
                                     fontSize = "1.8rem".unsafeCast<FontSize>()
-
                                 }
                             }
                         }
@@ -114,7 +125,7 @@ class WelcomeView : AbstractView<PropsWithChildren, IndexViewState>(true) {
 
                                     inputTextFormRequired(
                                         InputTypes.PASSWORD,
-                                        state.isValidLogin!!,
+                                        state.isValidPassword!!,
                                         "col-lg ml-0 mr-0 pr-0 pl-0",
                                         "Password"
                                     ) {

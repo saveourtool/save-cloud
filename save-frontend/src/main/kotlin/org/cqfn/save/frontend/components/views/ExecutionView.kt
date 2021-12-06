@@ -28,7 +28,6 @@ import kotlinext.js.jsObject
 import org.w3c.fetch.Headers
 import react.PropsWithChildren
 import react.RBuilder
-import react.RComponent
 import react.State
 import react.buildElement
 import react.dom.button
