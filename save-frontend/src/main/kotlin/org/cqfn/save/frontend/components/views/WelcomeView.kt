@@ -101,7 +101,11 @@ class WelcomeView : AbstractView<PropsWithChildren, IndexViewState>(true) {
                                     }
                                     div("row") {
                                         div("col text-center px-1") {
-                                            button(classes = "btn btn-link px-3 text-white text-lg text-center") {
+                                            a(
+                                                href = "oauth2/authorization/github",
+                                                classes = "btn btn-link px-3 text-white text-lg text-center"
+                                            ) {
+                                                + "via GitHub"
                                                 fontAwesomeIcon {
                                                     attrs.icon = "github"
                                                     attrs.className = "fas fa-lg fa-fw mr-2 text-gray-400"
