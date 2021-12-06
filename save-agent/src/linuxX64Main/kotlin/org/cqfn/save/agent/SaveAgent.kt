@@ -15,6 +15,7 @@ import org.cqfn.save.reporter.Report
 import org.cqfn.save.utils.STANDARD_TEST_SUITE_DIR
 import org.cqfn.save.utils.toTestResultDebugInfo
 import org.cqfn.save.utils.toTestResultStatus
+import org.cqfn.save.utils.withAdjustedLocation
 
 import generated.SAVE_CLOUD_VERSION
 import io.ktor.client.HttpClient
@@ -165,9 +166,7 @@ class SaveAgent(internal val config: AgentConfiguration,
     @Suppress("TOO_MANY_LINES_IN_LAMBDA")
     private fun CoroutineScope.readExecutionResults(jsonFile: String): List<TestExecutionDto> {
         val currentTime = Clock.System.now()
-        val reports: List<Report> = reportFormat.decodeFromString(
-            readFile(jsonFile).joinToString(separator = "")
-        )
+        val reports: List<Report> = readExecutionReportFromFile(jsonFile)
         reports.flatMap { report ->
             report.pluginExecutions.flatMap { pluginExecution ->
                 pluginExecution.testResults.map { tr ->
@@ -198,6 +197,20 @@ class SaveAgent(internal val config: AgentConfiguration,
                 }
             }
         }
+    }
+
+    private fun readExecutionReportFromFile(jsonFile: String) = reportFormat.decodeFromString<List<Report>>(
+        readFile(jsonFile).joinToString(separator = "")
+    ).map { report ->
+        report.copy(
+            pluginExecutions = report.pluginExecutions.map { pluginExecution ->
+                pluginExecution.copy(
+                    testResults = pluginExecution.testResults.map {
+                        it.withAdjustedLocation()
+                    }
+                )
+            }
+        )
     }
 
     private fun CoroutineScope.launchLogSendingJob(executionLogs: ExecutionLogs) = launch {

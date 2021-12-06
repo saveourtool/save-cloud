@@ -16,6 +16,7 @@ import org.cqfn.save.domain.TestResultLocation
 import org.cqfn.save.domain.TestResultStatus
 
 import okio.ExperimentalFileSystem
+import okio.Path.Companion.toPath
 
 /**
  * Maps `TestStatus` to `TestResultStatus`
@@ -29,6 +30,26 @@ fun TestStatus.toTestResultStatus() = when (this) {
 }
 
 /**
+ * Trims leading [PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE] from paths to resources of current [TestResult]
+ *
+ * @return a copy of [TestResult] with adjusted resource paths
+ */
+@OptIn(ExperimentalFileSystem::class)
+fun TestResult.withAdjustedLocation(): TestResult {
+    // In standard mode we have extra paths in json reporter, since we created extra directories,
+    // and this information won't be matched with data from DB without such removal
+    val location = resources.test.parent!!.toString()
+    val actualTestRoot = if (location.startsWith(PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE)) {
+        logTrace("Adjusting path to test file [$location/${resources.test.name}]: trimming $PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE")
+        location.dropWhile { it != '/' }.drop(1).toPath()
+    } else {
+        // Use filePath as is for Git mode
+        location.toPath()
+    }
+    return this.copy(resources = resources.withRelativePaths(actualTestRoot))
+}
+
+/**
  * Maps `TestResult` to `TestResultDebugInfo`
  *
  * @param testSuiteName name of the test suite
@@ -36,25 +57,13 @@ fun TestStatus.toTestResultStatus() = when (this) {
  * @return an instance of [TestResultDebugInfo] representing execution info
  */
 @OptIn(ExperimentalFileSystem::class)
-fun TestResult.toTestResultDebugInfo(testSuiteName: String, pluginName: String): TestResultDebugInfo {
-    // In standard mode we have extra paths in json reporter, since we created extra directories,
-    // and this information won't be matched with data from DB without such removement
-    val location = resources.test.parent!!.toString()
-    val adjustedLocation = if (location.startsWith(PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE)) {
-        logTrace("Adjusting path to test file [$location/${resources.test.name}]: trimming $PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE")
-        location.dropWhile { it != '/' }.drop(1)
-    } else {
-        // Use filePath as is for Git mode
-        location
-    }
-    return TestResultDebugInfo(
-        TestResultLocation(
-            testSuiteName,
-            pluginName,
-            adjustedLocation,
-            resources.test.name
-        ),
-        debugInfo,
-        status,
-    )
-}
+fun TestResult.toTestResultDebugInfo(testSuiteName: String, pluginName: String): TestResultDebugInfo = TestResultDebugInfo(
+    TestResultLocation(
+        testSuiteName,
+        pluginName,
+        resources.test.parent!!.toString(),
+        resources.test.name
+    ),
+    debugInfo,
+    status,
+)
