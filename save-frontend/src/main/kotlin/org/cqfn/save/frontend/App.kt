@@ -63,7 +63,7 @@ external interface AppState : State {
 @OptIn(ExperimentalJsExport::class)
 class App : RComponent<PropsWithChildren, AppState>() {
     init {
-        state.userName = "User Name"
+        state.userName = ""
     }
 
     @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR", "TOO_LONG_FUNCTION", "LongMethod")

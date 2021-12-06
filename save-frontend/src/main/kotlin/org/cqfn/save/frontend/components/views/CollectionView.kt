@@ -1,5 +1,6 @@
 package org.cqfn.save.frontend.components.views
 
+import kotlinx.browser.document
 import org.cqfn.save.entities.Project
 import org.cqfn.save.frontend.components.tables.tableComponent
 import org.cqfn.save.frontend.utils.decodeFromJsonString
@@ -85,5 +86,25 @@ class CollectionView : RComponent<PropsWithChildren, State>() {
                     it.decodeFromJsonString<Array<Project>>()
                 }
         }) { }
+    }
+
+    // A small hack to avoid duplication of main content-wrapper from App.kt
+    // We will change the background only for sign-up and sign-in views
+    override fun componentDidMount() {
+        document.getElementById("content-wrapper")?.setAttribute(
+            "style",
+            "background: bg-light"
+        )
+
+        val topBar = document.getElementById("navigation-top-bar")
+        topBar?.setAttribute(
+            "class",
+            "navbar navbar-expand bg-dark navbar-dark topbar mb-3 static-top shadow mr-1 ml-1 rounded"
+        )
+
+        topBar?.setAttribute(
+            "style",
+            "background: bg-dark"
+        )
     }
 }

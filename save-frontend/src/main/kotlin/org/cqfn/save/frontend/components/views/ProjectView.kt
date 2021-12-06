@@ -193,6 +193,22 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
     }
 
     override fun componentDidMount() {
+        document.getElementById("content-wrapper")?.setAttribute(
+            "style",
+            "background: bg-light"
+        )
+
+        document.getElementById("navigation-top-bar")?.setAttribute(
+            "class",
+            "navbar navbar-expand bg-dark navbar-dark topbar mb-3 static-top shadow mr-1 ml-1 rounded"
+        )
+
+        document.getElementById("navigation-top-bar")?.setAttribute(
+            "style",
+            "background: bg-dark"
+        )
+
+
         GlobalScope.launch {
             project = getProject(props.name, props.owner)
             val jsonProject = Json.encodeToString(project)

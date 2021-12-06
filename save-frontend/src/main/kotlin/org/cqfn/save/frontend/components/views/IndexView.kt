@@ -16,6 +16,7 @@ import react.dom.a
 import react.dom.div
 import org.cqfn.save.frontend.components.basic.InputTypes
 import org.cqfn.save.frontend.components.basic.inputTextFormRequired
+import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
 import react.CSSProperties
 import react.dom.button
 import react.dom.form
@@ -52,12 +53,12 @@ class IndexView : RComponent<PropsWithChildren, IndexViewState>() {
 
                 div("row") {
                     // Marketing information
-                    div("col-lg-4  ml-auto mt-4 mb-5 mr-0 ml-0 text-white") {
+                    div("col-lg-4 ml-auto mt-3 mb-5 mr-5 ml-0 text-white") {
                         marketingTitle("Static")
                         marketingTitle("Analysis")
                         marketingTitle("Verification &")
                         marketingTitle("Evaluation")
-                        h3("mt-3") {
+                        h3("mt-4") {
                             +"Advanced eco-system for continuous integration, evaluation and benchmarking of static analyzers. Powered by"
                             attrs["style"] = kotlinext.js.jsObject<CSSProperties> {
                                 color = "#aaacba".unsafeCast<ColorProperty>()
@@ -72,7 +73,7 @@ class IndexView : RComponent<PropsWithChildren, IndexViewState>() {
                                 attrs["style"] = kotlinext.js.jsObject<CSSProperties> {
                                     color = "rgb(246 84 21)".unsafeCast<ColorProperty>()
                                     display = Display.inline
-                                    textDecoration = "underline rgb(246 84 21);".unsafeCast<TextDecoration>()
+                                    textDecoration = "underline rgb(246 84 21)".unsafeCast<TextDecoration>()
                                     boxDecorationBreak = "clone;".unsafeCast<BoxDecorationBreak>()
                                     fontSize = "1.8rem".unsafeCast<FontSize>()
 
@@ -82,7 +83,7 @@ class IndexView : RComponent<PropsWithChildren, IndexViewState>() {
                     }
 
                     // Sign-in header
-                    div("col-lg-3 col-md-8 col-12 mx-auto mt-4 mb-5") {
+                    div("col-lg-3 mr-auto ml-5 mt-5 mb-5") {
                         div("card z-index-0 fadeIn3 fadeInBottom") {
                             div("card-header p-0 position-relative mt-n4 mx-3 z-index-2 rounded") {
                                 div("bg-info shadow-primary border-radius-lg py-3 pe-1 rounded") {
@@ -92,8 +93,10 @@ class IndexView : RComponent<PropsWithChildren, IndexViewState>() {
                                     div("row") {
                                         div("col text-center px-1") {
                                             button(classes = "btn btn-link px-3 text-white text-lg text-center") {
-                                                // FixMe: <fa>cking fontAwesome icons do not work here
-                                                +"via GITHUB"
+                                                fontAwesomeIcon {
+                                                    attrs.icon = "github"
+                                                    attrs.className = "fas fa-lg fa-fw mr-2 text-gray-400"
+                                                }
                                             }
                                         }
                                     }
@@ -128,7 +131,6 @@ class IndexView : RComponent<PropsWithChildren, IndexViewState>() {
                                             +"Sign in"
                                         }
                                     }
-
 
                                     p("mt-4 text-sm text-center") {
                                         +"Don't have an account?"
@@ -186,12 +188,13 @@ class IndexView : RComponent<PropsWithChildren, IndexViewState>() {
             "background: -webkit-linear-gradient(270deg, rgb(84, 83, 97), rgb(25, 34, 99), rgb(49, 70, 180))"
         )
 
-        document.getElementById("navigation-top-bar")?.setAttribute(
+        val topBar = document.getElementById("navigation-top-bar")
+        topBar?.setAttribute(
             "class",
             "navbar navbar-expand navbar-dark topbar mb-3 static-top shadow mr-1 ml-1 rounded"
         )
 
-        document.getElementById("navigation-top-bar")?.setAttribute(
+        topBar?.setAttribute(
             "style",
             "background: transparent"
         )
