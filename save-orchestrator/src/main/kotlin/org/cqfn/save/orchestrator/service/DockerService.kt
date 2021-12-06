@@ -221,6 +221,8 @@ class DockerService(private val configProperties: ConfigProperties) {
             saveCli
         )
 
+        changeOwnerRecursively(resourcesPath, "cnb")
+
         val baseImage = execution.sdk
         val aptCmd = "apt-get ${configProperties.aptExtraFlags}"
         // fixme: https://github.com/diktat-static-analysis/save-cloud/issues/352
@@ -250,6 +252,17 @@ class DockerService(private val configProperties: ConfigProperties) {
         saveAgent.delete()
         saveCli.delete()
         return Triple(imageId, agentRunCmd, saveCliExecFlags)
+    }
+
+    private fun changeOwnerRecursively(directory: File, user: String) {
+        // orchestrator is executed as root (to access docker socket), but files are in a shared volume
+        val lookupService = directory.toPath().fileSystem.userPrincipalLookupService
+        directory.walk().forEach {
+            Files.getFileAttributeView(it.toPath(), PosixFileAttributeView::class.java, LinkOption.NOFOLLOW_LINKS).apply {
+                setGroup(lookupService.lookupPrincipalByGroupName(user))
+                setOwner(lookupService.lookupPrincipalByName(user))
+            }
+        }
     }
 
     @Suppress("TOO_MANY_LINES_IN_LAMBDA")
@@ -325,14 +338,6 @@ class DockerService(private val configProperties: ConfigProperties) {
             if (!currentSuiteDestination.exists()) {
                 log.debug("Copying suite ${it.name} from $standardTestSuiteAbsolutePath into $currentSuiteDestination/...")
                 copyRecursivelyWithAttributes(standardTestSuiteAbsolutePath, currentSuiteDestination)
-            }
-        }
-        // orchestrator is executed as root (to access docker socket), but files are in a shared volume
-        val lookupService = destination.toPath().fileSystem.userPrincipalLookupService
-        destination.walk().forEach {
-            Files.getFileAttributeView(it.toPath(), PosixFileAttributeView::class.java, LinkOption.NOFOLLOW_LINKS).apply {
-                setGroup(lookupService.lookupPrincipalByGroupName("cnb"))
-                setOwner(lookupService.lookupPrincipalByName("cnb"))
             }
         }
     }
