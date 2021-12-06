@@ -28,6 +28,7 @@ data class ConfigProperties(
     val executionLogs: String,
     val shutdownChecksIntervalMillis: Long,
     val aptExtraFlags: String = "",
+    val resourceOwner: String = "cnb",
 )
 
 /**
