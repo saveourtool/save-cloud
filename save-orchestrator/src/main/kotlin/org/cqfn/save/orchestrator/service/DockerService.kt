@@ -221,7 +221,7 @@ class DockerService(private val configProperties: ConfigProperties) {
             saveCli
         )
 
-        changeOwnerRecursively(resourcesPath, "cnb")
+        changeOwnerRecursively(resourcesPath, configProperties.resourceOwner)
 
         val baseImage = execution.sdk
         val aptCmd = "apt-get ${configProperties.aptExtraFlags}"

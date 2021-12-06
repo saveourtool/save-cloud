@@ -379,6 +379,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
      * @param seeds a list of strings for directory name creation
      * @return a [File] representing the created temporary directory
      */
+    @Suppress("TooGenericExceptionCaught")
     internal fun generateDirectory(seeds: List<String>): File {
         val tmpDir = getTmpDirName(seeds)
         if (tmpDir.exists()) {
