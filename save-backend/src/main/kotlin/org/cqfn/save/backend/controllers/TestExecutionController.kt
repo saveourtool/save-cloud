@@ -78,7 +78,6 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
      * @param executionId an ID of Execution to group TestExecutions
      * @param status
      */
-    @Suppress("KDOC_WITHOUT_RETURN_TAG")  // https://github.com/cqfn/diKTat/issues/965
     @GetMapping("/testExecution/count")
     fun getTestExecutionsCount(@RequestParam executionId: Long, @RequestParam(required = false) status: TestResultStatus?) =
             testExecutionService.getTestExecutionsCount(executionId, status)
