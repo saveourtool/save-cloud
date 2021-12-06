@@ -11,6 +11,7 @@ dependencyResolutionManagement {
     }
 }
 
+include("api-gateway")
 include("save-backend")
 include("save-orchestrator")
 include("save-frontend")
