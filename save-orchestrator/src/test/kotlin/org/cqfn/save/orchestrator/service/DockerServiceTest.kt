@@ -123,9 +123,6 @@ class DockerServiceTest {
                 mockServer.start()
                 "http://localhost:${mockServer.port}"
             }
-            registry.add("orchestrator.resourceOwner") {
-                System.getProperty("user.name")
-            }
         }
     }
 }
