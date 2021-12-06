@@ -229,7 +229,9 @@ class SaveAgent(internal val config: AgentConfiguration,
             readExecutionResults(jsonReport)
         }
         if (testExecutionDtos.isFailure) {
-            logError("Couldn't read execution results from JSON report, reason: ${testExecutionDtos.exceptionOrNull()?.describe()}")
+            logError("Couldn't read execution results from JSON report, reason: ${testExecutionDtos.exceptionOrNull()?.describe()}" +
+                    "\n${testExecutionDtos.exceptionOrNull()?.stackTraceToString()}"
+            )
         } else {
             sendDataToBackend {
                 postExecutionData(testExecutionDtos.getOrThrow())
