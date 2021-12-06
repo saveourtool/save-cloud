@@ -25,4 +25,4 @@ external val faExternalLinkAlt: dynamic
 external val faTrashAlt: dynamic
 external val faEdit: dynamic
 external val faGithub: dynamic
-
+external val faFilter: dynamic

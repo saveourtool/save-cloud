@@ -201,9 +201,9 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 set("Accept", "application/json")
                 set("Content-Type", "application/json")
             }
-            gitDto = post("${window.location.origin}/getGit", headers, jsonProject)
+            gitDto = post("$apiUrl/getGit", headers, jsonProject)
                 .decodeFromJsonString<GitDto>()
-            standardTestSuites = get("${window.location.origin}/allStandardTestSuites", headers)
+            standardTestSuites = get("$apiUrl/allStandardTestSuites", headers)
                 .decodeFromJsonString()
 
             val availableFiles = getFilesList()
@@ -272,7 +272,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             isLoading = true
         }
         GlobalScope.launch {
-            val response = post(window.location.origin + url, headers, body)
+            val response = post(apiUrl + url, headers, body)
             if (!response.ok) {
                 response.text().then { text ->
                     setState {
@@ -566,7 +566,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 }
                 element.files!!.asList().forEach { file ->
                     val response: FileInfo = post(
-                        "${window.location.origin}/files/upload",
+                        "$apiUrl/files/upload",
                         Headers(),
                         FormData().apply {
                             append("file", file)
@@ -686,7 +686,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         project.url = url
         project.owner = owner
         GlobalScope.launch {
-            post("${window.location.origin}/updateProject", headers, Json.encodeToString(project))
+            post("$apiUrl/updateProject", headers, Json.encodeToString(project))
         }
     }
 
@@ -697,7 +697,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         }
         GlobalScope.launch {
             responseFromDeleteProject =
-                    post("${window.location.origin}/updateProject", headers, Json.encodeToString(project))
+                    post("$apiUrl/updateProject", headers, Json.encodeToString(project))
         }.invokeOnCompletion {
             if (responseFromDeleteProject.ok) {
                 window.location.href = "${window.location.origin}/"
@@ -716,7 +716,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     private suspend fun switchToLatestExecution() {
         val headers = Headers().apply { set("Accept", "application/json") }
         val response = get(
-            "${window.location.origin}/latestExecution?name=${project.name}&owner=${project.owner}",
+            "$apiUrl/latestExecution?name=${project.name}&owner=${project.owner}",
             headers
         )
         if (!response.ok) {
@@ -734,7 +734,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         }
     }
 
-    private suspend fun getFilesList() = get("${window.location.origin}/files/list", Headers())
+    private suspend fun getFilesList() = get("$apiUrl/files/list", Headers())
         .unsafeMap {
             it.decodeFromJsonString<List<FileInfo>>()
         }

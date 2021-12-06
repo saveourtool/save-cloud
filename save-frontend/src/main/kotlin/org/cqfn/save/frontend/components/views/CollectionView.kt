@@ -2,6 +2,7 @@ package org.cqfn.save.frontend.components.views
 
 import org.cqfn.save.entities.Project
 import org.cqfn.save.frontend.components.tables.tableComponent
+import org.cqfn.save.frontend.utils.apiUrl
 import org.cqfn.save.frontend.utils.decodeFromJsonString
 import org.cqfn.save.frontend.utils.get
 import org.cqfn.save.frontend.utils.unsafeMap
@@ -17,7 +18,6 @@ import react.dom.div
 import react.dom.td
 import react.table.columns
 
-import kotlinx.browser.window
 import kotlinx.html.ButtonType
 
 /**
@@ -75,7 +75,7 @@ class CollectionView : AbstractView<PropsWithChildren, State>(false) {
             usePageSelection = false,
         ) { _, _ ->
             get(
-                url = "${window.location.origin}/projects/not-deleted",
+                url = "$apiUrl/projects/not-deleted",
                 headers = Headers().also {
                     it.set("Accept", "application/json")
                 },

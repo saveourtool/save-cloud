@@ -14,7 +14,7 @@ import react.router.dom.Link
  */
 @JsExport
 @OptIn(ExperimentalJsExport::class)
-class FallbackView : AbstractView<PropsWithChildren, State>(true) {
+class FallbackView : AbstractView<PropsWithChildren, State>(false) {
     @Suppress("ForbiddenComment")
     override fun RBuilder.render() {
         div("text-center") {

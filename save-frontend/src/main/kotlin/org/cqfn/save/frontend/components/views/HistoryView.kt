@@ -4,12 +4,14 @@
 
 package org.cqfn.save.frontend.components.views
 
+import org.cqfn.save.domain.TestResultStatus
 import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.frontend.components.tables.tableComponent
 import org.cqfn.save.frontend.externals.fontawesome.faTrashAlt
 import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
 import org.cqfn.save.frontend.themes.Colors
+import org.cqfn.save.frontend.utils.apiUrl
 import org.cqfn.save.frontend.utils.decodeFromJsonString
 import org.cqfn.save.frontend.utils.get
 import org.cqfn.save.frontend.utils.post
@@ -155,7 +157,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
                     }
                     buildElement {
                         td {
-                            a(href = getHrefToExecution(cellProps.value.id)) {
+                            a(href = getHrefToExecution(cellProps.value.id, null)) {
                                 fontAwesomeIcon(result.resIcon, classes = result.resColor)
                             }
                         }
@@ -164,7 +166,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
                 column("status", "Status") {
                     buildElement {
                         td {
-                            a(href = getHrefToExecution(it.value.id)) {
+                            a(href = getHrefToExecution(it.value.id, null)) {
                                 +"${it.value.status}"
                             }
                         }
@@ -173,7 +175,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
                 column("startDate", "Start time") {
                     buildElement {
                         td {
-                            a(href = getHrefToExecution(it.value.id)) {
+                            a(href = getHrefToExecution(it.value.id, null)) {
                                 +(formattingDate(it.value.startTime) ?: "Starting")
                             }
                         }
@@ -182,7 +184,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
                 column("endDate", "End time") {
                     buildElement {
                         td {
-                            a(href = getHrefToExecution(it.value.id)) {
+                            a(href = getHrefToExecution(it.value.id, null)) {
                                 +(formattingDate(it.value.endTime) ?: "Starting")
                             }
                         }
@@ -191,7 +193,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
                 column("running", "Running") {
                     buildElement {
                         td {
-                            a(href = getHrefToExecution(it.value.id)) {
+                            a(href = getHrefToExecution(it.value.id, TestResultStatus.RUNNING)) {
                                 +"${it.value.runningTests}"
                             }
                         }
@@ -200,7 +202,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
                 column("passed", "Passed") {
                     buildElement {
                         td {
-                            a(href = getHrefToExecution(it.value.id)) {
+                            a(href = getHrefToExecution(it.value.id, TestResultStatus.PASSED)) {
                                 +"${it.value.passedTests}"
                             }
                         }
@@ -209,7 +211,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
                 column("failed", "Failed") {
                     buildElement {
                         td {
-                            a(href = getHrefToExecution(it.value.id)) {
+                            a(href = getHrefToExecution(it.value.id, TestResultStatus.FAILED)) {
                                 +"${it.value.failedTests}"
                             }
                         }
@@ -218,7 +220,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
                 column("skipped", "Skipped") {
                     buildElement {
                         td {
-                            a(href = getHrefToExecution(it.value.id)) {
+                            a(href = getHrefToExecution(it.value.id, TestResultStatus.IGNORED)) {
                                 +"${it.value.skippedTests}"
                             }
                         }
@@ -252,7 +254,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
             }
         ) { _, _ ->
             get(
-                url = "${window.location.origin}/executionDtoList?name=${props.name}&owner=${props.owner}",
+                url = "$apiUrl/executionDtoList?name=${props.name}&owner=${props.owner}",
                 headers = Headers().also {
                     it.set("Accept", "application/json")
                     it.set("Content-Type", "application/json")
@@ -289,7 +291,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
         }
         GlobalScope.launch {
             responseFromDeleteExecutions =
-                    post("${window.location.origin}/execution/deleteAll?name=${props.name}&owner=${props.owner}", headers, undefined)
+                    post("$apiUrl/execution/deleteAll?name=${props.name}&owner=${props.owner}", headers, undefined)
             if (responseFromDeleteExecutions.ok) {
                 window.location.href = "${window.location.origin}#/${props.owner}/${props.name}"
             } else {
@@ -321,7 +323,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
         }
         GlobalScope.launch {
             responseFromDeleteExecutions =
-                    post("${window.location.origin}/execution/delete?executionIds=${executionIds.joinToString(",")}", headers, undefined)
+                    post("$apiUrl/execution/delete?executionIds=${executionIds.joinToString(",")}", headers, undefined)
 
             if (responseFromDeleteExecutions.ok) {
                 window.location.reload()
@@ -337,7 +339,8 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
         }
     }
 
-    private fun getHrefToExecution(id: Long) = "${window.location}/execution/$id"
+    private fun getHrefToExecution(id: Long, status: TestResultStatus?) =
+            "${window.location}/execution/$id${status?.let { "?status=$it" } ?: ""}"
 
     /**
      * @property resColor
