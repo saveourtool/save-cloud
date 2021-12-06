@@ -14,6 +14,7 @@ import org.cqfn.save.frontend.components.views.ExecutionView
 import org.cqfn.save.frontend.components.views.FallbackView
 import org.cqfn.save.frontend.components.views.HistoryView
 import org.cqfn.save.frontend.components.views.ProjectView
+import org.cqfn.save.frontend.components.views.WelcomeView
 import org.cqfn.save.frontend.components.views.testExecutionDetailsView
 import org.cqfn.save.frontend.externals.fontawesome.faAngleUp
 import org.cqfn.save.frontend.externals.fontawesome.faCheck
@@ -63,7 +64,7 @@ external interface AppState : State {
 @OptIn(ExperimentalJsExport::class)
 class App : RComponent<PropsWithChildren, AppState>() {
     init {
-        state.userName = "User Name"
+        state.userName = ""
     }
 
     @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR", "TOO_LONG_FUNCTION", "LongMethod")
@@ -82,7 +83,7 @@ class App : RComponent<PropsWithChildren, AppState>() {
                             attrs {
                                 path = arrayOf("/")
                                 exact = true
-                                component = CollectionView::class.react
+                                component = WelcomeView::class.react
                             }
                         }
                         Route {
@@ -92,6 +93,15 @@ class App : RComponent<PropsWithChildren, AppState>() {
                                 component = CreationView::class.react
                             }
                         }
+
+                        Route {
+                            attrs {
+                                path = arrayOf("/projects")
+                                exact = true
+                                component = CollectionView::class.react
+                            }
+                        }
+
                         Route {
                             attrs {
                                 path = arrayOf("/:owner/:name")
@@ -106,6 +116,7 @@ class App : RComponent<PropsWithChildren, AppState>() {
                                 }
                             }
                         }
+
                         Route {
                             attrs {
                                 path = arrayOf("/:owner/:name/history")
@@ -120,6 +131,7 @@ class App : RComponent<PropsWithChildren, AppState>() {
                                 }
                             }
                         }
+
                         Route {
                             attrs {
                                 path = arrayOf("/:owner/:name/history/execution/:executionId")
@@ -136,13 +148,16 @@ class App : RComponent<PropsWithChildren, AppState>() {
                                 }
                             }
                         }
+
                         Route {
                             attrs {
-                                path = arrayOf("/:owner/:name/history/execution/:executionId/details/:testSuiteName/:pluginName/:testFilePath+")
+                                path =
+                                        arrayOf("/:owner/:name/history/execution/:executionId/details/:testSuiteName/:pluginName/:testFilePath+")
                                 exact = false  // all paths parts under testFilePath should be captured
                             }
-                            child(testExecutionDetailsView()) { }
+                            child(testExecutionDetailsView()) {}
                         }
+
                         Route {
                             attrs {
                                 path = arrayOf("*")
@@ -162,7 +177,8 @@ class App : RComponent<PropsWithChildren, AppState>() {
 fun main() {
     kotlinext.js.require("../scss/save-frontend.scss")  // this is needed for webpack to include resource
     kotlinext.js.require("bootstrap")  // this is needed for webpack to include bootstrap
-    library.add(fas, faUser, faCogs, faSignOutAlt, faAngleUp, faCheck, faExclamationTriangle, faTimesCircle, faQuestionCircle,
+    library.add(
+        fas, faUser, faCogs, faSignOutAlt, faAngleUp, faCheck, faExclamationTriangle, faTimesCircle, faQuestionCircle,
         faUpload, faFile
     )
     ReactModal.setAppElement(document.getElementById("wrapper") as HTMLElement)  // required for accessibility in react-modal

@@ -16,7 +16,7 @@ import react.dom.a
 import react.dom.attrs
 import react.dom.button
 import react.dom.div
-import react.dom.img
+import react.dom.i
 import react.dom.li
 import react.dom.nav
 import react.dom.ol
@@ -63,7 +63,9 @@ fun topBar() = fc<TopBarProps> { props ->
     val (isLogoutModalOpen, setIsLogoutModalOpen) = useState(false)
     val location = useLocation()
 
-    nav("navbar navbar-expand navbar-dark bg-dark topbar mb-3 static-top shadow") {
+    nav("navbar navbar-expand navbar-dark bg-dark topbar mb-3 static-top shadow mr-1 ml-1 rounded") {
+        attrs.id = "navigation-top-bar"
+
         // Topbar Navbar
         nav("navbar-nav mr-auto") {
             attrs["aria-label"] = "breadcrumb"
@@ -85,7 +87,7 @@ fun topBar() = fc<TopBarProps> { props ->
                             li("breadcrumb-item") {
                                 attrs["aria-current"] = "page"
                                 if (index == size - 1) {
-                                    a(href = currentLink) {
+                                    a(href = currentLink.removeSuffix("execution")) {
                                         attrs.classes = setOf("text-warning")
                                         +pathPart
                                     }
@@ -101,6 +103,38 @@ fun topBar() = fc<TopBarProps> { props ->
                     }
             }
         }
+
+        ul("navbar-nav mx-auto") {
+            li("nav-item") {
+                a(classes = "nav-link d-flex align-items-center me-2 active") {
+                    attrs["aria-current"] = "Unified SAVE Format"
+                    attrs.href = "https://github.com/diktat-static-analysis/save"
+                    +"Spec"
+                }
+            }
+            li("nav-item") {
+                a(classes = "nav-link me-2") {
+                    attrs.href = "https://github.com/diktat-static-analysis/save-cloud"
+                    +"GitHub"
+                }
+            }
+            li("nav-item") {
+                a(classes = "nav-link me-2") {
+                    attrs.href = "#/projects"
+                    +"Leaderboard"
+                }
+            }
+            li("nav-item") {
+                a(classes = "nav-link me-2") {
+                    attrs.href = "https://github.com/diktat-static-analysis/save-cloud"
+                    i("fa fa-user opacity-6 text-dark me-1") {
+                        attrs["aria-hidden"] = "true"
+                    }
+                    +"About"
+                }
+            }
+        }
+
         ul("navbar-nav ml-auto") {
             div("topbar-divider d-none d-sm-block") {}
             // Nav Item - User Information
@@ -114,15 +148,18 @@ fun topBar() = fc<TopBarProps> { props ->
                         set("aria-expanded", "false")
                     }
                     span("mr-2 d-none d-lg-inline text-gray-600 small") {
-                        +(props.userName ?: "Log In")
+                        +(props.userName ?: "")
                     }
-                    img(classes = "img-profile rounded-circle", src = "img/undraw_profile.svg") {}
+
+                    fontAwesomeIcon {
+                        attrs.icon = "user"
+                        attrs.className = "fas fa-lg fa-fw mr-2 text-gray-400"
+                    }
                 }
                 // Dropdown - User Information
                 div("dropdown-menu dropdown-menu-right shadow animated--grow-in") {
                     attrs["aria-labelledby"] = "userDropdown"
-                    dropdownEntry("user", "Profile")
-                    dropdownEntry("cogs", "Settings")
+                    dropdownEntry("cogs", "Profile")
                     dropdownEntry("sign-out-alt", "Log out") {
                         attrs.onClickFunction = {
                             setIsLogoutModalOpen(true)

@@ -28,7 +28,6 @@ import kotlinext.js.jsObject
 import org.w3c.fetch.Headers
 import react.PropsWithChildren
 import react.RBuilder
-import react.RComponent
 import react.State
 import react.buildElement
 import react.dom.button
@@ -91,13 +90,15 @@ external interface ExecutionState : State {
  */
 @JsExport
 @OptIn(ExperimentalJsExport::class)
-class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
+class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
     init {
         state.executionDto = null
         state.status = null
     }
 
     override fun componentDidMount() {
+        super.componentDidMount()
+
         GlobalScope.launch {
             val headers = Headers().also { it.set("Accept", "application/json") }
             val executionDtoFromBackend: ExecutionDto =
