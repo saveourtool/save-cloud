@@ -39,14 +39,14 @@ fun TestResult.withAdjustedLocation(): TestResult {
     // In standard mode we have extra paths in json reporter, since we created extra directories,
     // and this information won't be matched with data from DB without such removal
     val location = resources.test.parent!!.toString()
-    val actualTestRoot = if (location.startsWith(PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE)) {
+    return if (location.startsWith(PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE)) {
         logTrace("Adjusting path to test file [$location/${resources.test.name}]: trimming $PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE")
-        location.dropWhile { it != '/' }.drop(1).toPath()
+        val actualTestRoot = location.split('/').first().toPath()
+        this.copy(resources = resources.withRelativePaths(actualTestRoot))
     } else {
         // Use filePath as is for Git mode
-        location.toPath()
+        this
     }
-    return this.copy(resources = resources.withRelativePaths(actualTestRoot))
 }
 
 /**
