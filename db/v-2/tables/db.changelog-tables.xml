@@ -9,6 +9,7 @@
     <include file="project.xml" relativeToChangelogFile="true"/>
     <include file="agent-status.xml" relativeToChangelogFile="true"/>
     <include file="user.xml" relativeToChangelogFile="true"/>
+    <include file = "test-execution.xml" relativeToChangelogFile="true"/>
 
     <changeSet id="02-tables" author="frolov">
         <tagDatabase tag="v2.0-tables"/>
