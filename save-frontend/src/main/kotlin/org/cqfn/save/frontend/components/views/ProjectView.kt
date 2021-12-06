@@ -32,7 +32,6 @@ import org.w3c.fetch.Response
 import org.w3c.xhr.FormData
 import react.PropsWithChildren
 import react.RBuilder
-import react.RComponent
 import react.State
 import react.dom.*
 import react.setState
@@ -163,7 +162,7 @@ enum class ConfirmationType {
  */
 @JsExport
 @OptIn(ExperimentalJsExport::class)
-class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
+class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(false) {
     private var standardTestSuites: List<TestSuiteDto> = emptyList()
     private val selectedStandardSuites: MutableList<String> = mutableListOf()
     private var gitDto: GitDto? = null
@@ -193,21 +192,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
     }
 
     override fun componentDidMount() {
-        document.getElementById("content-wrapper")?.setAttribute(
-            "style",
-            "background: bg-light"
-        )
-
-        document.getElementById("navigation-top-bar")?.setAttribute(
-            "class",
-            "navbar navbar-expand bg-dark navbar-dark topbar mb-3 static-top shadow mr-1 ml-1 rounded"
-        )
-
-        document.getElementById("navigation-top-bar")?.setAttribute(
-            "style",
-            "background: bg-dark"
-        )
-
+        super.componentDidMount()
 
         GlobalScope.launch {
             project = getProject(props.name, props.owner)

@@ -1,6 +1,5 @@
 package org.cqfn.save.frontend.components.views
 
-import csstype.BoxDecorationBreak
 import csstype.ColorProperty
 import csstype.Display
 import csstype.FontSize
@@ -40,12 +39,12 @@ external interface IndexViewState : State {
  */
 @JsExport
 @OptIn(ExperimentalJsExport::class)
-class IndexView : RComponent<PropsWithChildren, IndexViewState>() {
+class WelcomeView : AbstractView<PropsWithChildren, IndexViewState>(true) {
     init {
         state.isValidLogin = true
     }
 
-    @Suppress("ForbiddenComment")
+    @Suppress("ForbiddenComment", "LongMethod")
     override fun RBuilder.render() {
         main("main-content mt-0 ps") {
             div("page-header align-items-start min-vh-100") {
@@ -74,7 +73,6 @@ class IndexView : RComponent<PropsWithChildren, IndexViewState>() {
                                     color = "rgb(246 84 21)".unsafeCast<ColorProperty>()
                                     display = Display.inline
                                     textDecoration = "underline rgb(246 84 21)".unsafeCast<TextDecoration>()
-                                    boxDecorationBreak = "clone;".unsafeCast<BoxDecorationBreak>()
                                     fontSize = "1.8rem".unsafeCast<FontSize>()
 
                                 }
@@ -158,7 +156,7 @@ class IndexView : RComponent<PropsWithChildren, IndexViewState>() {
     }
 
     private fun RBuilder.marketingTitle(str: String) {
-        p("mb-0 mt-0") {
+        div("mb-0 mt-0") {
             h1Bold(str[0].toString())
             h1Normal(str.substring(1, str.length))
         }
@@ -178,25 +176,5 @@ class IndexView : RComponent<PropsWithChildren, IndexViewState>() {
         attrs["style"] = kotlinext.js.jsObject<CSSProperties> {
             display = Display.inline
         }
-    }
-
-    // A small hack to avoid duplication of main content-wrapper from App.kt
-    // We will change the background only for sign-up and sign-in views
-    override fun componentDidMount() {
-        document.getElementById("content-wrapper")?.setAttribute(
-            "style",
-            "background: -webkit-linear-gradient(270deg, rgb(84, 83, 97), rgb(25, 34, 99), rgb(49, 70, 180))"
-        )
-
-        val topBar = document.getElementById("navigation-top-bar")
-        topBar?.setAttribute(
-            "class",
-            "navbar navbar-expand navbar-dark topbar mb-3 static-top shadow mr-1 ml-1 rounded"
-        )
-
-        topBar?.setAttribute(
-            "style",
-            "background: transparent"
-        )
     }
 }

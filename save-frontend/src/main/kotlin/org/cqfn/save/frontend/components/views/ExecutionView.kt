@@ -77,12 +77,14 @@ external interface ExecutionState : State {
  */
 @JsExport
 @OptIn(ExperimentalJsExport::class)
-class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
+class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
     init {
         state.executionDto = null
     }
 
     override fun componentDidMount() {
+        super.componentDidMount()
+
         GlobalScope.launch {
             val headers = Headers().also { it.set("Accept", "application/json") }
             val executionDtoFromBackend: ExecutionDto =

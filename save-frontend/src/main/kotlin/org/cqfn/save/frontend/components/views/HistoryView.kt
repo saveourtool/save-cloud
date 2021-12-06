@@ -23,7 +23,6 @@ import org.w3c.fetch.Headers
 import org.w3c.fetch.Response
 import react.PropsWithChildren
 import react.RBuilder
-import react.RComponent
 import react.State
 import react.buildElement
 import react.dom.a
@@ -110,7 +109,7 @@ external interface HistoryViewState : State {
  */
 @JsExport
 @OptIn(ExperimentalJsExport::class)
-class HistoryView : RComponent<HistoryProps, HistoryViewState>() {
+class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
     private lateinit var responseFromDeleteExecutions: Response
 
     @Suppress(

@@ -1,6 +1,5 @@
 package org.cqfn.save.frontend.components.views
 
-import kotlinx.browser.document
 import org.cqfn.save.entities.Project
 import org.cqfn.save.frontend.components.tables.tableComponent
 import org.cqfn.save.frontend.utils.decodeFromJsonString
@@ -10,7 +9,6 @@ import org.cqfn.save.frontend.utils.unsafeMap
 import org.w3c.fetch.Headers
 import react.PropsWithChildren
 import react.RBuilder
-import react.RComponent
 import react.State
 import react.buildElement
 import react.dom.a
@@ -27,7 +25,7 @@ import kotlinx.html.ButtonType
  */
 @JsExport
 @OptIn(ExperimentalJsExport::class)
-class CollectionView : RComponent<PropsWithChildren, State>() {
+class CollectionView : AbstractView<PropsWithChildren, State>(false) {
     @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR", "TOO_LONG_FUNCTION", "MAGIC_NUMBER")
     override fun RBuilder.render() {
         div {
@@ -86,25 +84,5 @@ class CollectionView : RComponent<PropsWithChildren, State>() {
                     it.decodeFromJsonString<Array<Project>>()
                 }
         }) { }
-    }
-
-    // A small hack to avoid duplication of main content-wrapper from App.kt
-    // We will change the background only for sign-up and sign-in views
-    override fun componentDidMount() {
-        document.getElementById("content-wrapper")?.setAttribute(
-            "style",
-            "background: bg-light"
-        )
-
-        val topBar = document.getElementById("navigation-top-bar")
-        topBar?.setAttribute(
-            "class",
-            "navbar navbar-expand bg-dark navbar-dark topbar mb-3 static-top shadow mr-1 ml-1 rounded"
-        )
-
-        topBar?.setAttribute(
-            "style",
-            "background: bg-dark"
-        )
     }
 }
