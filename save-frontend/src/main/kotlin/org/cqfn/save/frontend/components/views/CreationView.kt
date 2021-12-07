@@ -310,6 +310,18 @@ class CreationView : AbstractView<PropsWithChildren, ProjectSaveViewState>(true)
                                                 }
                                             }
                                         }
+
+                                        div("form-check form-switch") {
+                                            input(classes = "form-check-input") {
+                                                attrs["type"] = "checkbox"
+                                                attrs["id"] = "isPublicSwitch"
+                                                attrs["checked"] = "true"
+                                            }
+                                            label("form-check-label") {
+                                                attrs["htmlFor"] = "isPublicSwitch"
+                                                +"Checked switch checkbox input"
+                                            }
+                                        }
                                     }
                                     button(type = ButtonType.submit, classes = "btn btn-info mt-4 mr-3") {
                                         +"Create test project"
