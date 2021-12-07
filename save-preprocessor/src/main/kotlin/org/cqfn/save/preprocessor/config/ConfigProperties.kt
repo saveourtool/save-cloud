@@ -9,7 +9,8 @@ import org.springframework.boot.context.properties.ConstructorBinding
  * @property repository path to save repository
  * @property backend
  * @property orchestrator
- * @property reposFileName
+ * @property reposFileName path to the file with standard repositories
+ * @property reposTokenFileName path to the file with git token for standard repositories
  */
 @ConstructorBinding
 @ConfigurationProperties(prefix = "save")
@@ -18,4 +19,5 @@ data class ConfigProperties(
     val backend: String,
     val orchestrator: String,
     val reposFileName: String,
+    val reposTokenFileName:  String,
 )
