@@ -97,7 +97,7 @@ fun fileUploader(
     onFileSelect: (HTMLSelectElement) -> Unit,
     onFileRemove: (FileInfo) -> Unit,
     onFileInput: (HTMLInputElement) -> Unit,
-    onExecutableChange: (file: FileInfo, checked: Boolean) -> Unit
+    onExecutableChange: (file: FileInfo, checked: Boolean) -> Unit,
 ) = fc<UploaderProps> { props ->
     div("mb-3") {
         div("text-xs text-center font-weight-bold text-primary text-uppercase mb-3") {
@@ -174,7 +174,7 @@ fun fileUploader(
                     attrs.hidden = !props.isUploading
                     div("progress-bar progress-bar-striped progress-bar-animated") {
                         attrs["style"] = kotlinext.js.jsObject<CSSProperties> {
-                            width = if (props.suiteByteSize != 0.toLong()) {
+                            width = if (props.suiteByteSize != 0L) {
                                 "${ (100 * props.bytesReceived / props.suiteByteSize) }%"
                             } else {
                                 "100%"
