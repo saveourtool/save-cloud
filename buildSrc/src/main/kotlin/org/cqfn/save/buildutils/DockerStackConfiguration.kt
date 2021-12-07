@@ -10,6 +10,7 @@ import org.gradle.kotlin.dsl.register
 import org.gradle.kotlin.dsl.withType
 import org.springframework.boot.gradle.tasks.bundling.BootBuildImage
 import java.io.ByteArrayOutputStream
+import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
 
@@ -67,8 +68,14 @@ fun Project.createStackDeployTask(profile: String) {
             }
         }
 
-        val useOverride = (findProperty("useOverride") as String?).toBoolean()
         val configsDir = Paths.get("${System.getProperty("user.home")}/configs")
+        val useOverride = (properties.getOrDefault("useOverride", "true") as String).toBoolean()
+        val composeOverride = File("$configsDir/docker-compose.override.yaml")
+        if (useOverride && !composeOverride.exists()) {
+            logger.warn("`useOverride` option is set to true, but can't use override configuration, because ${composeOverride.canonicalPath} doesn't exist")
+        } else {
+            logger.info("Using override configuration from ${composeOverride.canonicalPath}")
+        }
         doFirst {
             copy {
                 description = "Copy configuration files from repo to actual locations"
@@ -85,9 +92,9 @@ fun Project.createStackDeployTask(profile: String) {
         val args = buildList {
             add("--compose-file")
             add("${rootProject.buildDir}/docker-compose.yaml")
-            if (useOverride) {
+            if (useOverride && composeOverride.exists()) {
                 add("--compose-file")
-                add("$configsDir/docker-compose.override.yaml")
+                add(composeOverride.canonicalPath)
             }
         }.toTypedArray()
         commandLine("docker", "stack", "deploy", *args, "save")

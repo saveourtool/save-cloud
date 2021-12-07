@@ -6,14 +6,18 @@ package org.cqfn.save.buildutils
 
 import org.gradle.accessors.dm.LibrariesForLibs
 import org.gradle.api.Project
+import org.gradle.jvm.toolchain.JavaLanguageVersion
+import org.gradle.jvm.toolchain.JavaToolchainSpec
 import org.gradle.kotlin.dsl.apply
 import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.dependencies
+import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.named
 import org.gradle.kotlin.dsl.the
 import org.jetbrains.kotlin.allopen.gradle.AllOpenExtension
 import org.jetbrains.kotlin.allopen.gradle.AllOpenGradleSubplugin
 import org.jetbrains.kotlin.allopen.gradle.SpringGradleSubplugin
+import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
 import org.springframework.boot.gradle.dsl.SpringBootExtension
 import org.springframework.boot.gradle.plugin.SpringBootPlugin
 import org.springframework.boot.gradle.tasks.bundling.BootBuildImage
@@ -26,6 +30,10 @@ import org.springframework.boot.gradle.tasks.bundling.BootBuildImage
 @Suppress("TOO_LONG_FUNCTION", "GENERIC_VARIABLE_WRONG_DECLARATION", "COMPLEX_EXPRESSION")
 fun Project.configureSpringBoot(withSpringDataJpa: Boolean = false) {
     apply<SpringBootPlugin>()
+
+    extensions.getByType<KotlinJvmProjectExtension>().jvmToolchain {
+        (this as JavaToolchainSpec).languageVersion.set(JavaLanguageVersion.of(Versions.jdk))
+    }
 
     val libs = the<LibrariesForLibs>()
     dependencies {
@@ -72,7 +80,7 @@ fun Project.configureSpringBoot(withSpringDataJpa: Boolean = false) {
     tasks.named<BootBuildImage>("bootBuildImage") {
         imageName = "ghcr.io/diktat-static-analysis/${project.name}:${project.versionForDockerImages()}"
         environment = mapOf(
-            "BP_JVM_VERSION" to Versions.BP_JVM_VERSION,
+            "BP_JVM_VERSION" to Versions.jdk,
             "BPE_DELIM_JAVA_TOOL_OPTIONS" to " ",
             "BPE_APPEND_JAVA_TOOL_OPTIONS" to "-Dreactor.netty.pool.maxIdleTime=60000 -Dreactor.netty.pool.leasingStrategy=lifo " +
                     "-Dspring.config.additional-location=optional:file:/home/cnb/config/application.properties"

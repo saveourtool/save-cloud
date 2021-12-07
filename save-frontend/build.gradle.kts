@@ -53,7 +53,7 @@ kotlin {
 
             // web-specific dependencies
             implementation(npm("@fortawesome/fontawesome-svg-core", "^1.2.36"))
-            implementation(npm("@fortawesome/free-solid-svg-icons", "^5.15.4"))
+            implementation(npm("@fortawesome/free-solid-svg-icons", "5.15.3"))
             implementation(npm("@fortawesome/react-fontawesome", "^0.1.16"))
             implementation(npm("jquery", "3.6.0"))
             implementation(npm("popper.js", "1.16.1"))
