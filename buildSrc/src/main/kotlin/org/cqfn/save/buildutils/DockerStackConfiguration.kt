@@ -72,7 +72,7 @@ fun Project.createStackDeployTask(profile: String) {
         val useOverride = (properties.getOrDefault("useOverride", "true") as String).toBoolean()
         val composeOverride = File("$configsDir/docker-compose.override.yaml")
         if (useOverride && !composeOverride.exists()) {
-            logger.warn("Can't use override configuration, because ${composeOverride.canonicalPath} doesn't exist")
+            logger.warn("`useOverride` option is set to true, but can't use override configuration, because ${composeOverride.canonicalPath} doesn't exist")
         } else {
             logger.info("Using override configuration from ${composeOverride.canonicalPath}")
         }
