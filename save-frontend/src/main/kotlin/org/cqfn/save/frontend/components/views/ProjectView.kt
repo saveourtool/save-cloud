@@ -23,6 +23,7 @@ import org.cqfn.save.frontend.externals.modal.modal
 import org.cqfn.save.frontend.utils.*
 import org.cqfn.save.testsuite.TestSuiteDto
 
+import csstype.em
 import org.w3c.dom.HTMLButtonElement
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.asList
@@ -31,7 +32,6 @@ import org.w3c.fetch.Response
 import org.w3c.xhr.FormData
 import react.PropsWithChildren
 import react.RBuilder
-import react.RComponent
 import react.State
 import react.dom.*
 import react.setState
@@ -48,6 +48,7 @@ import kotlinx.html.id
 import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
 import kotlinx.html.role
+import kotlinx.html.style
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -176,11 +177,11 @@ enum class ConfirmationType {
  */
 @JsExport
 @OptIn(ExperimentalJsExport::class)
-class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
+class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(false) {
     private var standardTestSuites: List<TestSuiteDto> = emptyList()
     private val selectedStandardSuites: MutableList<String> = mutableListOf()
     private var gitDto: GitDto? = null
-    private var project = Project("stub", "stub", "stub", "stub", ProjectStatus.CREATED)
+    private var project = Project("N/A", "N/A", "N/A", "N/A", ProjectStatus.CREATED)
     private val projectInformation = mutableMapOf(
         "Tested tool name: " to "",
         "Description: " to "",
@@ -209,6 +210,8 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
     }
 
     override fun componentDidMount() {
+        super.componentDidMount()
+
         GlobalScope.launch {
             project = getProject(props.name, props.owner)
             val jsonProject = Json.encodeToString(project)
@@ -332,6 +335,13 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
         div("d-sm-flex align-items-center justify-content-center mb-4") {
             h1("h3 mb-0 text-gray-800") {
                 +"Project ${project.name}"
+            }
+            span("border ml-2 pr-1 pl-1 text-xs text-muted ") {
+                attrs.style = kotlinext.js.js {
+                    borderRadius = 2.em
+                }
+                val publicity = if (project.public) "public" else "private"
+                +publicity
             }
         }
 

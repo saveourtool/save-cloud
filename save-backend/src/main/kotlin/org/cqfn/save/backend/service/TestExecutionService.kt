@@ -10,7 +10,6 @@ import org.cqfn.save.domain.TestResultLocation
 import org.cqfn.save.domain.TestResultStatus
 import org.cqfn.save.entities.TestExecution
 import org.cqfn.save.test.TestDto
-import org.cqfn.save.utils.PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE
 
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.PageRequest
@@ -47,10 +46,22 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
      * @param executionId an ID of Execution to group TestExecutions
      * @param page a zero-based index of page of data
      * @param pageSize size of page
+     * @param status
      * @return a list of [TestExecutionDto]s
      */
-    internal fun getTestExecutions(executionId: Long, page: Int, pageSize: Int) = testExecutionRepository
-        .findByExecutionId(executionId, PageRequest.of(page, pageSize))
+    @Suppress("AVOID_NULL_CHECKS")
+    internal fun getTestExecutions(
+        executionId: Long,
+        page: Int,
+        pageSize: Int,
+        status: TestResultStatus?,
+    ) = testExecutionRepository.run {
+        if (status == null) {
+            findByExecutionId(executionId, PageRequest.of(page, pageSize))
+        } else {
+            findByExecutionIdAndStatus(executionId, status, PageRequest.of(page, pageSize))
+        }
+    }
 
     /**
      * Get test executions by [agentContainerId] and [status]
@@ -79,10 +90,17 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
      * Returns number of TestExecutions with this [executionId]
      *
      * @param executionId an ID of Execution to group TestExecutions
+     * @param status
      * @return number of TestExecutions
      */
-    internal fun getTestExecutionsCount(executionId: Long) = testExecutionRepository
-        .countByExecutionId(executionId)
+    @Suppress("AVOID_NULL_CHECKS")
+    internal fun getTestExecutionsCount(executionId: Long, status: TestResultStatus?) = testExecutionRepository.run {
+        if (status == null) {
+            countByExecutionId(executionId)
+        } else {
+            countByExecutionIdAndStatus(executionId, status)
+        }
+    }
 
     /**
      * @param projectId
@@ -124,16 +142,7 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
         val executionId = agent.execution.id!!
         val lostTests: MutableList<TestExecutionDto> = mutableListOf()
         val counters = Counters()
-        testExecutionsDtos.forEach {
-            // In standard mode we have extra paths in json reporter, since we created extra directories,
-            // and this information won't be matched with data from DB without such removement
-            val filePathWithDroppedPrefixForStandardMode = if (it.filePath.startsWith(PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE)) {
-                it.filePath.dropWhile { it != '/' }.drop(1)
-                // Use filePath as is for Git mode
-            } else {
-                it.filePath
-            }
-            val testExecDto = it.copy(filePath = filePathWithDroppedPrefixForStandardMode)
+        testExecutionsDtos.forEach { testExecDto ->
             val foundTestExec = testExecutionRepository.findByExecutionIdAndTestPluginNameAndTestFilePath(
                 executionId,
                 testExecDto.pluginName,

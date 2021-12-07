@@ -10,7 +10,6 @@ import org.cqfn.save.frontend.utils.unsafeMap
 import org.w3c.fetch.Headers
 import react.PropsWithChildren
 import react.RBuilder
-import react.RComponent
 import react.State
 import react.buildElement
 import react.dom.a
@@ -26,7 +25,7 @@ import kotlinx.html.ButtonType
  */
 @JsExport
 @OptIn(ExperimentalJsExport::class)
-class CollectionView : RComponent<PropsWithChildren, State>() {
+class CollectionView : AbstractView<PropsWithChildren, State>(false) {
     @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR", "TOO_LONG_FUNCTION", "MAGIC_NUMBER")
     override fun RBuilder.render() {
         div {
@@ -38,14 +37,16 @@ class CollectionView : RComponent<PropsWithChildren, State>() {
         }
         child(tableComponent(
             columns = columns {
-                column(id = "owner", header = "Owner") {
+                column(id = "owner", header = "Project Owner") {
                     buildElement {
                         td {
-                            +it.value.owner
+                            a(href = "#/${it.value.owner}") {
+                                +it.value.owner
+                            }
                         }
                     }
                 }
-                column(id = "name", header = "Name") {
+                column(id = "name", header = "Evaluated Tool") {
                     buildElement {
                         td {
                             a(href = "#/${it.value.owner}/${it.value.name}") {
@@ -57,9 +58,14 @@ class CollectionView : RComponent<PropsWithChildren, State>() {
                 column(id = "passed", header = "Description") {
                     buildElement {
                         td {
-                            a(href = "#/${it.value.owner}/${it.value.name}/history") {
-                                +(it.value.description ?: "Description not provided")
-                            }
+                            +(it.value.description ?: "Description not provided")
+                        }
+                    }
+                }
+                column(id = "rating", header = "Contest Rating") {
+                    buildElement {
+                        td {
+                            +"0"
                         }
                     }
                 }

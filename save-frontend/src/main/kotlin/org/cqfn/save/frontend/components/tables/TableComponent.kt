@@ -12,6 +12,7 @@ import org.cqfn.save.frontend.utils.spread
 import kotlinext.js.jsObject
 import react.PropsWithChildren
 import react.RBuilder
+import react.dom.RDOMBuilder
 import react.dom.div
 import react.dom.em
 import react.dom.h6
@@ -40,6 +41,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
+import kotlinx.html.THEAD
 
 /**
  * [RProps] of a data table
@@ -64,6 +66,7 @@ external interface TableProps : PropsWithChildren {
  * @param plugins
  * @param additionalOptions
  * @param renderExpandedRow how to render an expanded row if `useExpanded` plugin is used
+ * @param commonHeader (optional) a common header for the table, which will be placed above individual column headers
  * @return a functional react component
  */
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -86,6 +89,7 @@ fun <D : Any> tableComponent(
     getRowProps: ((Row<D>) -> TableRowProps) = { jsObject() },
     getPageCount: (suspend (pageSize: Int) -> Int)? = null,
     renderExpandedRow: (RBuilder.(table: TableInstance<D>, row: Row<D>) -> Unit)? = undefined,
+    commonHeader: RDOMBuilder<THEAD>.(table: TableInstance<D>) -> Unit = {},
     getData: suspend (pageIndex: Int, pageSize: Int) -> Array<out D>,
 ) = fc<TableProps> { props ->
     require(useServerPaging xor (getPageCount == null)) {
@@ -160,6 +164,7 @@ fun <D : Any> tableComponent(
                     attrs["width"] = "100%"
                     attrs["cellSpacing"] = "0"
                     thead {
+                        commonHeader(tableInstance)
                         tableInstance.headerGroups.map { headerGroup ->
                             tr {
                                 spread(headerGroup.getHeaderGroupProps())

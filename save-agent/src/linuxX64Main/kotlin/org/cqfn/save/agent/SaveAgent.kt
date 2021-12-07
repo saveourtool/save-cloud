@@ -7,20 +7,15 @@ import org.cqfn.save.core.logging.logDebug
 import org.cqfn.save.core.logging.logError
 import org.cqfn.save.core.logging.logInfo
 import org.cqfn.save.core.plugin.Plugin
-import org.cqfn.save.core.result.Crash
-import org.cqfn.save.core.result.Fail
-import org.cqfn.save.core.result.Ignored
-import org.cqfn.save.core.result.Pass
-import org.cqfn.save.core.result.TestResult
-import org.cqfn.save.core.result.TestStatus
 import org.cqfn.save.core.utils.ExecutionResult
 import org.cqfn.save.core.utils.ProcessBuilder
 import org.cqfn.save.domain.TestResultDebugInfo
-import org.cqfn.save.domain.TestResultLocation
-import org.cqfn.save.domain.TestResultStatus
 import org.cqfn.save.plugins.fix.FixPlugin
 import org.cqfn.save.reporter.Report
 import org.cqfn.save.utils.STANDARD_TEST_SUITE_DIR
+import org.cqfn.save.utils.adjustLocation
+import org.cqfn.save.utils.toTestResultDebugInfo
+import org.cqfn.save.utils.toTestResultStatus
 
 import generated.SAVE_CLOUD_VERSION
 import io.ktor.client.HttpClient
@@ -162,7 +157,7 @@ class SaveAgent(internal val config: AgentConfiguration,
                 // cliArgs could be not empty only in the Git mode and this variable contain the `testRootPath` + set of tests in this case
                 // in standard mode just use command, which we created in DockerService, it already contain all necessary configuration
                 if (!it.contains(STANDARD_TEST_SUITE_DIR)) "$it $cliArgs" else it
-            } + " --report-type json --result-output file",
+            } + " --report-type json --result-output file --log all",
             "",
             config.logFilePath.toPath(),
             100_000L
@@ -171,29 +166,21 @@ class SaveAgent(internal val config: AgentConfiguration,
     @Suppress("TOO_MANY_LINES_IN_LAMBDA")
     private fun CoroutineScope.readExecutionResults(jsonFile: String): List<TestExecutionDto> {
         val currentTime = Clock.System.now()
-        val reports: List<Report> = reportFormat.decodeFromString(
-            readFile(jsonFile).joinToString(separator = "")
-        )
-        reports.flatMap { report ->
-            report.pluginExecutions.flatMap { pluginExecution ->
-                pluginExecution.testResults.map { tr ->
-                    tr.toTestResultDebugInfo(report.testSuite, pluginExecution.plugin)
-                }
-            }
-        }.forEach {
-            launch {
-                // todo: launch on a dedicated thread (https://github.com/diktat-static-analysis/save-cloud/issues/315)
-                sendDataToBackend {
-                    sendReport(it)
-                }
-            }
-        }
+        val reports: List<Report> = readExecutionReportFromFile(jsonFile)
         return reports.flatMap { report ->
             report.pluginExecutions.flatMap { pluginExecution ->
-                pluginExecution.testResults.map {
-                    val testResultStatus = it.status.toTestResultStatus()
+                pluginExecution.testResults.map { tr ->
+                    val debugInfo = tr.toTestResultDebugInfo(report.testSuite, pluginExecution.plugin)
+                    launch {
+                        // todo: launch on a dedicated thread (https://github.com/diktat-static-analysis/save-cloud/issues/315)
+                        logDebug("Posting debug info for test ${debugInfo.testResultLocation}")
+                        sendDataToBackend {
+                            sendReport(debugInfo)
+                        }
+                    }
+                    val testResultStatus = tr.status.toTestResultStatus()
                     TestExecutionDto(
-                        it.resources.test.toString(),
+                        adjustLocation(tr.resources.test.toString()),
                         pluginExecution.plugin,
                         config.id,
                         testResultStatus,
@@ -204,6 +191,10 @@ class SaveAgent(internal val config: AgentConfiguration,
             }
         }
     }
+
+    private fun readExecutionReportFromFile(jsonFile: String) = reportFormat.decodeFromString<List<Report>>(
+        readFile(jsonFile).joinToString(separator = "")
+    )
 
     private fun CoroutineScope.launchLogSendingJob(executionLogs: ExecutionLogs) = launch {
         runCatching {
@@ -221,7 +212,9 @@ class SaveAgent(internal val config: AgentConfiguration,
             readExecutionResults(jsonReport)
         }
         if (testExecutionDtos.isFailure) {
-            logError("Couldn't read execution results from JSON report, reason: ${testExecutionDtos.exceptionOrNull()?.describe()}")
+            logError("Couldn't read execution results from JSON report, reason: ${testExecutionDtos.exceptionOrNull()?.describe()}" +
+                    "\n${testExecutionDtos.exceptionOrNull()?.stackTraceToString()}"
+            )
         } else {
             sendDataToBackend {
                 postExecutionData(testExecutionDtos.getOrThrow())
@@ -271,24 +264,4 @@ class SaveAgent(internal val config: AgentConfiguration,
         contentType(ContentType.Application.Json)
         body = AgentVersion(config.id, SAVE_CLOUD_VERSION)
     }
-
-    private fun TestStatus.toTestResultStatus() = when (this) {
-        is Pass -> TestResultStatus.PASSED
-        is Fail -> TestResultStatus.FAILED
-        is Ignored -> TestResultStatus.IGNORED
-        is Crash -> TestResultStatus.TEST_ERROR
-        else -> error("Unknown test status $this")
-    }
-
-    private fun TestResult.toTestResultDebugInfo(testSuiteName: String, pluginName: String) =
-            TestResultDebugInfo(
-                TestResultLocation(
-                    testSuiteName,
-                    pluginName,
-                    resources.test.parent!!.toString(),
-                    resources.test.name
-                ),
-                debugInfo,
-                status,
-            )
 }
