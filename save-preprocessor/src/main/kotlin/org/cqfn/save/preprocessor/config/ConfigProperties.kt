@@ -19,5 +19,5 @@ data class ConfigProperties(
     val backend: String,
     val orchestrator: String,
     val reposFileName: String,
-    val reposTokenFileName:  String,
+    val reposTokenFileName: String,
 )

@@ -224,14 +224,19 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
     @OptIn(ExperimentalFileSystem::class)
     @Suppress("TOO_LONG_FUNCTION", "TYPE_ALIAS")
     @PostMapping("/uploadStandardTestSuite")
-    fun uploadStandardTestSuite() = Mono.just(ResponseEntity("Upload standard test suites pending", HttpStatus.ACCEPTED))
+    fun uploadStandardTestSuite() = Mono.just(ResponseEntity("Upload standard test suites pending...\n", HttpStatus.ACCEPTED))
         .doOnSuccess {
+            val (user, token) = readGitCredentialsForStandardMode(configProperties.reposTokenFileName)
             val newTestSuites: MutableList<TestSuiteDto> = mutableListOf()
             Flux.fromIterable(readStandardTestSuitesFile(configProperties.reposFileName).entries).flatMap { (testSuiteUrl, testSuitePaths) ->
                 log.info("Starting clone repository url=$testSuiteUrl for standard test suites")
                 val tmpDir = generateDirectory(listOf(testSuiteUrl))
                 Mono.fromCallable {
-                    cloneFromGit(GitDto(testSuiteUrl), tmpDir)
+                    if (user != null && token != null) {
+                        cloneFromGit(GitDto(url = testSuiteUrl, username = user, password = token), tmpDir)
+                    } else {
+                        cloneFromGit(GitDto(testSuiteUrl), tmpDir)
+                    }
                         .use { /* noop here, just need to close Git object */ }
                 }
                     .flatMapMany { Flux.fromIterable(testSuitePaths) }
@@ -714,3 +719,19 @@ fun readStandardTestSuitesFile(name: String) =
                 require(splitRow.size == 2)
                 splitRow.first() to splitRow[1].split(";")
             }
+
+private fun readGitCredentialsForStandardMode(name: String): Pair<String?, String?> {
+    val credentialsFile = ClassPathResource(name)
+    val fileData = if (credentialsFile.exists()) {
+        credentialsFile.file.readText()
+            .lines()
+            .filter { it.isNotBlank() }
+            .single()
+    } else {
+        return null to null
+    }
+
+    val splitRow = fileData.split("\\s".toRegex())
+    require(splitRow.size == 2)
+    return splitRow.first() to splitRow[1]
+}
