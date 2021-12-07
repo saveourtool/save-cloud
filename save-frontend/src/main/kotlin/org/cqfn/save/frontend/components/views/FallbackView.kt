@@ -3,7 +3,6 @@ package org.cqfn.save.frontend.components.views
 import kotlinext.js.jsObject
 import react.PropsWithChildren
 import react.RBuilder
-import react.RComponent
 import react.State
 import react.dom.div
 import react.dom.p
@@ -14,7 +13,7 @@ import react.router.dom.Link
  */
 @JsExport
 @OptIn(ExperimentalJsExport::class)
-class FallbackView : RComponent<PropsWithChildren, State>() {
+class FallbackView : AbstractView<PropsWithChildren, State>(false) {
     @Suppress("ForbiddenComment")
     override fun RBuilder.render() {
         div("text-center") {

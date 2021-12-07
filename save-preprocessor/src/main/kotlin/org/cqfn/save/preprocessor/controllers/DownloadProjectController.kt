@@ -41,6 +41,7 @@ import org.springframework.http.ReactiveHttpOutputMessage
 import org.springframework.http.ResponseEntity
 import org.springframework.http.client.MultipartBodyBuilder
 import org.springframework.http.codec.multipart.FilePart
+import org.springframework.util.FileSystemUtils
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestParam
@@ -63,12 +64,14 @@ import reactor.util.function.Tuple2
 
 import java.io.File
 import java.io.FileOutputStream
+import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.nio.file.StandardCopyOption
 import java.time.Duration
 
 import kotlin.io.path.ExperimentalPathApi
+import kotlin.io.path.createDirectories
 
 typealias Status = Mono<ResponseEntity<HttpStatus>>
 
@@ -376,19 +379,23 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
      * @param seeds a list of strings for directory name creation
      * @return a [File] representing the created temporary directory
      */
+    @Suppress("TooGenericExceptionCaught")
     internal fun generateDirectory(seeds: List<String>): File {
         val tmpDir = getTmpDirName(seeds)
         if (tmpDir.exists()) {
-            if (tmpDir.deleteRecursively()) {
-                log.info("For $seeds: dir $tmpDir was deleted")
-            } else {
-                error("Couldn't properly delete $tmpDir")
+            try {
+                if (FileSystemUtils.deleteRecursively(tmpDir.toPath())) {
+                    log.info("For $seeds: dir $tmpDir was deleted")
+                }
+            } catch (e: IOException) {
+                log.error("Couldn't properly delete $tmpDir", e)
             }
         }
-        if (tmpDir.mkdirs()) {
+        try {
+            tmpDir.toPath().createDirectories()
             log.info("For $seeds: dir $tmpDir was created")
-        } else {
-            error("Couldn't create directories for $tmpDir")
+        } catch (e: Exception) {
+            log.error("Couldn't create directories for $tmpDir", e)
         }
         return tmpDir
     }
