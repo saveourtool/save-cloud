@@ -17,3 +17,9 @@ dependencies {
     implementation(libs.reckon.gradle.plugin)
     implementation(libs.kotlin.plugin.allopen)
 }
+
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+    kotlinOptions {
+        freeCompilerArgs = freeCompilerArgs + "-Xopt-in=kotlin.RequiresOptIn"
+    }
+}
