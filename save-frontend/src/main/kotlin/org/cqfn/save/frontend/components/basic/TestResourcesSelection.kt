@@ -42,6 +42,7 @@ external interface TestResourcesProps : PropsWithChildren {
 
     // properties for CUSTOM_TESTS mode
     var gitUrlFromInputField: String?
+    var gitBranchOrCommitFromInputField: String?
     var testRootPath: String
 
     // properties for STANDARD_BENCHMARKS mode
