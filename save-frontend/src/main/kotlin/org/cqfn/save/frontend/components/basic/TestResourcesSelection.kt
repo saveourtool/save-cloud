@@ -130,7 +130,7 @@ fun testResourcesSelection(
                                     props.gitBranchOrCommitFromInputField?.let {
                                         value = it
                                     }
-                                    placeholder = "leave empty if branch and commit are default: main/master - latest commit"
+                                    placeholder = "leave empty to use default branch and latest commit"
                                     onChangeFunction = {
                                         updateGitBranchOrCommitInputField(it)
                                     }
