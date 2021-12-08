@@ -169,15 +169,17 @@ fun <D : Any> tableComponent(
                             tr {
                                 spread(headerGroup.getHeaderGroupProps())
                                 headerGroup.headers.map { column ->
-                                    val columnProps = column.getHeaderProps(column.getSortByToggleProps())
-                                    th(classes = columnProps.className) {
-                                        spread(columnProps)
+                                    th {
                                         +column.render("Header")
-                                        span {
-                                            +when {
-                                                column.isSorted -> " 🔽"
-                                                column.isSortedDesc -> " 🔼"
-                                                else -> ""
+                                        if (column.canSort) {
+                                            val columnProps = column.getHeaderProps(column.getSortByToggleProps())
+                                            spread(columnProps)
+                                            span {
+                                                +when {
+                                                    column.isSorted -> " 🔽"
+                                                    column.isSortedDesc -> " 🔼"
+                                                    else -> ""
+                                                }
                                             }
                                         }
                                     }

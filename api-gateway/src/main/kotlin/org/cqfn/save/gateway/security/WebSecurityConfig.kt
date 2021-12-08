@@ -22,7 +22,7 @@ class WebSecurityConfig {
         // `CollectionView` is a public page
         // todo: backend should tell which endpoint is public, and gateway should provide user data
         authorizeExchange()
-            .pathMatchers("/", "/api/projects/not-deleted", "/save-frontend*.js*")
+            .pathMatchers("/", "/info/**", "/api/projects/not-deleted", "/save-frontend*.js*")
             .permitAll()
     }
         .and().run {
