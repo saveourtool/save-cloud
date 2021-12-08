@@ -723,15 +723,14 @@ fun readStandardTestSuitesFile(name: String) =
 private fun readGitCredentialsForStandardMode(name: String): Pair<String?, String?> {
     val credentialsFile = ClassPathResource(name)
     val fileData = if (credentialsFile.exists()) {
-        credentialsFile.file.readText()
-            .lines()
-            .filter { it.isNotBlank() }
-            .single()
+        credentialsFile.file.readLines().single { it.isNotBlank() }
     } else {
         return null to null
     }
 
     val splitRow = fileData.split("\\s".toRegex())
-    require(splitRow.size == 2)
+    require(splitRow.size == 2) {
+        "Credentials file should contain git username and git token, separated by whitespace, but provided $splitRow"
+    }
     return splitRow.first() to splitRow[1]
 }
