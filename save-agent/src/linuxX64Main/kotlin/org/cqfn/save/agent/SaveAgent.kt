@@ -116,6 +116,7 @@ class SaveAgent(internal val config: AgentConfiguration,
                 }
                     .exceptionOrNull()
                     ?.let {
+                        state.value = AgentState.CLI_FAILED
                         logError("Error executing SAVE: ${it.describe()}")
                     }
             }
@@ -160,7 +161,7 @@ class SaveAgent(internal val config: AgentConfiguration,
             } + " --report-type json --result-output file --log all",
             "",
             config.logFilePath.toPath(),
-            100_000L
+            1_000_000L
         )
 
     @Suppress("TOO_MANY_LINES_IN_LAMBDA")
