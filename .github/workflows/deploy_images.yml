@@ -39,6 +39,7 @@ jobs:
           gradle-dependencies-cache-key: |
             buildSrc/**/Versions.kt
           arguments: |
+            :api-gateway:bootBuildImage
             :save-backend:bootBuildImage
             :save-orchestrator:bootBuildImage
             :save-preprocessor:bootBuildImage
