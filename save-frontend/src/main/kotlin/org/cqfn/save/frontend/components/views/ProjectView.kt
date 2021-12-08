@@ -144,6 +144,11 @@ external interface ProjectViewState : State {
      * Directory in the repository where tests are placed
      */
     var testRootPath: String
+
+    /**
+     * Selected languages in the list of standard tests
+     */
+    var selectedLanguageForStandardTests: String
 }
 
 /**
@@ -189,6 +194,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         state.availableFiles = mutableListOf()
         state.selectedSdk = Sdk.Default.name
         state.selectedSdkVersion = Sdk.Default.version
+        state.selectedLanguageForStandardTests = ""
     }
 
     override fun componentDidMount() {
@@ -418,7 +424,12 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                         setState {
                             testRootPath = it
                         }
-                    }
+                    },
+                        setSelectedLanguageForStandardTests = {
+                            setState {
+                                selectedLanguageForStandardTests = it
+                            }
+                        }
                 )) {
                     attrs.testingType = state.testingType
                     attrs.isSubmitButtonPressed = state.isSubmitButtonPressed
@@ -429,6 +440,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                     // properties for STANDARD_BENCHMARKS mode
                     attrs.selectedStandardSuites = selectedStandardSuites
                     attrs.standardTestSuites = standardTestSuites
+                    attrs.selectedLanguageForStandardTests = state.selectedLanguageForStandardTests
                 }
 
                 div("d-sm-flex align-items-center justify-content-center") {

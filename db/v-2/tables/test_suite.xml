@@ -7,7 +7,11 @@
 
     <changeSet id="add-language-column" author="petertrr" context="dev or prod">
         <addColumn tableName="test_suite">
-            <column name="language" type="varchar(256)" defaultValue="NULL"/>
+            <column name="language" type="varchar(255)" defaultValue="NULL"/>
+        </addColumn>
+
+        <addColumn tableName="test_suite" author="petertrr" context="dev or prod">
+            <column name="tags" type="varchar(255)" defaultValue="NULL"/>
         </addColumn>
     </changeSet>
 
