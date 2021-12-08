@@ -1,5 +1,6 @@
 package org.cqfn.save.frontend.components.views
 
+import csstype.BorderRadius
 import org.cqfn.save.entities.Project
 import org.cqfn.save.frontend.components.tables.tableComponent
 import org.cqfn.save.frontend.utils.apiUrl
@@ -8,17 +9,11 @@ import org.cqfn.save.frontend.utils.get
 import org.cqfn.save.frontend.utils.unsafeMap
 
 import org.w3c.fetch.Headers
-import react.PropsWithChildren
-import react.RBuilder
-import react.State
-import react.buildElement
-import react.dom.a
-import react.dom.button
-import react.dom.div
-import react.dom.td
 import react.table.columns
 
 import kotlinx.html.ButtonType
+import react.*
+import react.dom.*
 
 /**
  * A view with collection of projects
@@ -51,6 +46,13 @@ class CollectionView : AbstractView<PropsWithChildren, State>(false) {
                         td {
                             a(href = "#/${it.value.owner}/${it.value.name}") {
                                 +it.value.name
+                            }
+                            span("border ml-2 pr-1 pl-1 text-xs text-muted ") {
+                                attrs["style"] = kotlinext.js.jsObject<CSSProperties> {
+                                    borderRadius = "2em".unsafeCast<BorderRadius>()
+                                }
+                                val publicity = if (it.value.public) "public" else "private"
+                                +publicity
                             }
                         }
                     }
