@@ -231,8 +231,13 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 if (urlWithTests.isBlank()) {
                     return
                 } else {
-                    // TODO: how to identify whether there is a branch and whether commit?
-                    val newGitDto = gitDto?.copy(url = urlWithTests) ?: GitDto(url = urlWithTests)
+                    // if provided value contains `origin` then it's a branch, otherwise a commit
+                    val (newBranch, newCommit) = if (branchOrCommit.contains("origin/")) {
+                        branchOrCommit to null
+                    } else {
+                        null to branchOrCommit
+                    }
+                    val newGitDto = gitDto?.copy(url = urlWithTests, branch = newBranch, hash = newCommit) ?: GitDto(url = urlWithTests, branch = newBranch, hash = newCommit)
                     submitExecutionRequestWithCustomTests(newGitDto)
                 }
             }
@@ -664,9 +669,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                         "Git Url with test suites in save format was not provided,but it is required for the testing process." +
                                 " Save is not able to run your tests without an information of where to download them from."
                 errorLabel = "Git Url"
-            }
-            state.gitBranchOrCommitFromInputField.isBlank() && state.testingType == TestingType.CUSTOM_TESTS -> setState {
-                // TODO
             }
             // no binaries were provided
             state.files.isEmpty() -> setState {

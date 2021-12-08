@@ -1,5 +1,7 @@
 package org.cqfn.save.preprocessor.controllers
 
+import okio.ExperimentalFileSystem
+import okio.FileSystem
 import org.cqfn.save.core.config.SaveProperties
 import org.cqfn.save.core.config.TestConfig
 import org.cqfn.save.core.config.defaultConfig
@@ -24,12 +26,10 @@ import org.cqfn.save.preprocessor.utils.toHash
 import org.cqfn.save.testsuite.TestSuiteDto
 import org.cqfn.save.testsuite.TestSuiteType
 import org.cqfn.save.utils.moveFileWithAttributes
-
-import okio.ExperimentalFileSystem
-import okio.FileSystem
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.api.errors.GitAPIException
 import org.eclipse.jgit.api.errors.InvalidRemoteException
+import org.eclipse.jgit.api.errors.RefNotFoundException
 import org.eclipse.jgit.api.errors.TransportException
 import org.eclipse.jgit.transport.CredentialsProvider
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
@@ -61,7 +61,6 @@ import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
 import reactor.netty.http.client.HttpClientRequest
 import reactor.util.function.Tuple2
-
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -69,7 +68,6 @@ import java.nio.file.Files
 import java.nio.file.Paths
 import java.nio.file.StandardCopyOption
 import java.time.Duration
-
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.createDirectories
 
@@ -82,8 +80,9 @@ typealias Status = Mono<ResponseEntity<HttpStatus>>
  */
 @OptIn(ExperimentalPathApi::class)
 @RestController
-class DownloadProjectController(private val configProperties: ConfigProperties,
-                                private val testDiscoveringService: TestDiscoveringService,
+class DownloadProjectController(
+    private val configProperties: ConfigProperties,
+    private val testDiscoveringService: TestDiscoveringService,
 ) {
     private val log = LoggerFactory.getLogger(DownloadProjectController::class.java)
     private val webClientBackend = WebClient.create(configProperties.backend)
@@ -316,9 +315,14 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         val tmpDir = generateDirectory(listOf(gitDto.url))
         return Mono.fromCallable {
             cloneFromGit(gitDto, tmpDir)?.use { git ->
-                val branchOrCommit = gitDto.branch ?: gitDto.hash ?: null
-                branchOrCommit?.let {
-                    git.checkout().setName(it).call()
+                val branchOrCommit = gitDto.branch ?: gitDto.hash
+                if (branchOrCommit != null && branchOrCommit.isNotBlank()) {
+                    log.debug("For ${gitDto.url} switching to the $branchOrCommit")
+                    try {
+                        git.checkout().setName(branchOrCommit).call()
+                    } catch (ex: RefNotFoundException) {
+                        log.warn("Provided branch/commit $branchOrCommit wasn't found, will use default branch")
+                    }
                 }
                 val version = git.log().call().first()
                     .name

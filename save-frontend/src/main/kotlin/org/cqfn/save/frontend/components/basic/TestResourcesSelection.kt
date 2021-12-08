@@ -116,8 +116,9 @@ fun testResourcesSelection(
                     }
 
                     div("input-group-sm") {
+                        // TODO: add proprs about origin
                         div("row") {
-                            h6(classes = "d-inline ml-2") {
+                            h6(classes = "d-inline ml-3") {
                                 +"Git branch or specific commit in your repository:"
                             }
                         }
@@ -126,7 +127,9 @@ fun testResourcesSelection(
                                 key = "itemText"
                                 attrs.set("class", "form-control")
                                 attrs {
-                                    value = props.testRootPath
+                                    props.gitBranchOrCommitFromInputField?.let {
+                                        value = it
+                                    }
                                     placeholder = "leave empty if branch and commit are default: main/master - latest commit"
                                     onChangeFunction = {
                                         updateGitBranchOrCommitInputField(it)
@@ -136,7 +139,7 @@ fun testResourcesSelection(
                         }
                     }
 
-                    div("input-group-sm") {
+                    div("input-group-sm mt-3") {
                         div("row") {
                             sup("tooltip-and-popover") {
                                 fontAwesomeIcon(icon = faQuestionCircle)
