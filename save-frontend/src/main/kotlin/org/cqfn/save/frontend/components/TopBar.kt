@@ -2,7 +2,7 @@
  * Top bar of web page
  */
 
-@file:Suppress("FILE_NAME_MATCH_CLASS")
+@file:Suppress("FILE_NAME_MATCH_CLASS", "FILE_WILDCARD_IMPORTS", "WildcardImport")
 
 package org.cqfn.save.frontend.components
 
@@ -11,6 +11,7 @@ import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
 
 import react.PropsWithChildren
 import react.RBuilder
+import react.dom.*
 import react.fc
 import react.router.dom.useLocation
 import react.useState
@@ -21,7 +22,6 @@ import kotlinx.html.classes
 import kotlinx.html.id
 import kotlinx.html.js.onClickFunction
 import kotlinx.html.role
-import react.dom.*
 
 /**
  * [RProps] of the top bor component

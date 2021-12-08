@@ -6,8 +6,8 @@ package org.cqfn.save.frontend.components.views
 
 import org.cqfn.save.frontend.components.basic.InputTypes
 import org.cqfn.save.frontend.components.basic.inputTextFormRequired
-import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
 import org.cqfn.save.frontend.externals.fontawesome.faGithub
+import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
 
 import csstype.ColorProperty
 import csstype.Display

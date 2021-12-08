@@ -6,7 +6,6 @@
 
 package org.cqfn.save.frontend.components.views
 
-import csstype.BorderRadius
 import org.cqfn.save.domain.FileInfo
 import org.cqfn.save.domain.Sdk
 import org.cqfn.save.domain.getSdkVersions
@@ -24,13 +23,14 @@ import org.cqfn.save.frontend.externals.modal.modal
 import org.cqfn.save.frontend.utils.*
 import org.cqfn.save.testsuite.TestSuiteDto
 
-import csstype.em
+import csstype.BorderRadius
 import org.w3c.dom.HTMLButtonElement
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.asList
 import org.w3c.fetch.Headers
 import org.w3c.fetch.Response
 import org.w3c.xhr.FormData
+import react.*
 import react.dom.*
 
 import kotlinx.browser.document
@@ -45,10 +45,8 @@ import kotlinx.html.id
 import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
 import kotlinx.html.role
-import kotlinx.html.style
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import react.*
 
 /**
  * `Props` retrieved from router
