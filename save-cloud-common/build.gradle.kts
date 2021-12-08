@@ -17,6 +17,9 @@ kotlin {
             }
         }
     }
+    jvmToolchain {
+        (this as JavaToolchainSpec).languageVersion.set(JavaLanguageVersion.of(Versions.jdk))
+    }
     js(BOTH).browser()
 
     // setup native compilation

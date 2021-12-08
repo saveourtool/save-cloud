@@ -14,8 +14,10 @@ import org.cqfn.save.frontend.externals.fontawesome.faUpload
 import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
 import org.cqfn.save.frontend.utils.toPrettyString
 
+import csstype.Width
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.HTMLSelectElement
+import react.CSSProperties
 import react.Props
 import react.PropsWithChildren
 import react.dom.attrs
@@ -66,6 +68,21 @@ external interface UploaderProps : PropsWithChildren {
      * state for the creation of unified confirmation logic
      */
     var confirmationType: ConfirmationType
+
+    /**
+     * General size of test suite in bytes
+     */
+    var suiteByteSize: Long
+
+    /**
+     * Bytes received by server
+     */
+    var bytesReceived: Long
+
+    /**
+     * Flag to handle uploading a file
+     */
+    var isUploading: Boolean
 }
 
 /**
@@ -150,6 +167,20 @@ fun fileUploader(
                         attrs["data-placement"] = "top"
                         attrs["title"] = "Regular files/Executable files/ZIP Archives"
                         strong { +"Upload files:" }
+                    }
+                }
+
+                div("progress") {
+                    attrs.hidden = !props.isUploading
+                    div("progress-bar progress-bar-striped progress-bar-animated") {
+                        attrs["style"] = kotlinext.js.jsObject<CSSProperties> {
+                            width = if (props.suiteByteSize != 0L) {
+                                "${ (100 * props.bytesReceived / props.suiteByteSize) }%"
+                            } else {
+                                "100%"
+                            }.unsafeCast<Width>()
+                        }
+                        +"${props.bytesReceived / 1024} / ${props.suiteByteSize / 1024} kb"
                     }
                 }
             }

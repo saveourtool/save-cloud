@@ -11,6 +11,9 @@ import org.cqfn.save.entities.GitDto
 import org.cqfn.save.entities.NewProjectDto
 import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.ProjectStatus
+import org.cqfn.save.frontend.components.basic.InputTypes
+import org.cqfn.save.frontend.components.basic.inputTextFormOptional
+import org.cqfn.save.frontend.components.basic.inputTextFormRequired
 import org.cqfn.save.frontend.utils.apiUrl
 import org.cqfn.save.frontend.utils.get
 import org.cqfn.save.frontend.utils.post
@@ -22,7 +25,6 @@ import org.w3c.dom.events.Event
 import org.w3c.fetch.Headers
 import react.PropsWithChildren
 import react.RBuilder
-import react.RComponent
 import react.State
 import react.dom.*
 import react.setState
@@ -32,7 +34,6 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
 import kotlinx.html.ButtonType
-import kotlinx.html.InputType
 import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
 import kotlinx.serialization.encodeToString
@@ -102,7 +103,7 @@ enum class GitConnectionStatusEnum {
  */
 @JsExport
 @OptIn(ExperimentalJsExport::class)
-class CreationView : RComponent<PropsWithChildren, ProjectSaveViewState>() {
+class CreationView : AbstractView<PropsWithChildren, ProjectSaveViewState>(true) {
     private val fieldsMap: MutableMap<InputTypes, String> = mutableMapOf()
 
     init {
@@ -254,84 +255,89 @@ class CreationView : RComponent<PropsWithChildren, ProjectSaveViewState>() {
             setState { isErrorWithProjectSave = false }
         }
 
-        div("row justify-content-center") {
-            div("col-sm-5") {
-                div("container card o-hidden border-0 shadow-lg my-2 card-body p-0") {
-                    div("p-5 text-center") {
-                        h1("h4 text-gray-900 mb-4") {
-                            +"Create new test project"
-                        }
-                        form(classes = "needs-validation") {
-                            div("row g-3") {
-                                inputTextFormRequired(InputTypes.OWNER, "col-md-6 pl-0", "Owner name") {
-                                    changeFields(InputTypes.OWNER, it)
+        main("main-content mt-0 ps") {
+            div("page-header align-items-start min-vh-100") {
+                span("mask bg-gradient-dark opacity-6") {}
+                div("row justify-content-center") {
+                    div("col-sm-5") {
+                        div("container card o-hidden border-0 shadow-lg my-2 card-body p-0") {
+                            div("p-5 text-center") {
+                                h1("h4 text-gray-900 mb-4") {
+                                    +"Create new test project"
                                 }
-                                inputTextFormRequired(InputTypes.PROJECT_NAME, "col-md-6", "Tested tool name") {
-                                    changeFields(InputTypes.PROJECT_NAME, it)
-                                }
-                                inputTextFormOptional(InputTypes.PROJECT_URL, "col-md-6 pr-0 mt-3", "Tested tool Url") {
-                                    changeFields(InputTypes.PROJECT_URL, it)
-                                }
-                                inputTextFormOptional(
-                                    InputTypes.GIT_URL,
-                                    "col-md-6 mt-3 pl-0",
-                                    "Test repository Git Url"
-                                ) {
-                                    changeFields(InputTypes.GIT_URL, it, false)
-                                }
-                                inputTextFormOptional(InputTypes.GIT_USER, "col-md-6 mt-3", "Git Username") {
-                                    changeFields(InputTypes.GIT_USER, it, false)
-                                }
-                                inputTextFormOptional(InputTypes.GIT_TOKEN, "col-md-6 mt-3 pr-0", "Git Token") {
-                                    changeFields(InputTypes.GIT_TOKEN, it, false)
-                                }
-                                div("col-md-12 mt-3 mb-3 pl-0 pr-0") {
-                                    label("form-label") {
-                                        attrs.set("for", InputTypes.DESCRIPTION.name)
-                                        +"Description"
-                                    }
-                                    div("input-group has-validation") {
-                                        textarea("form-control") {
-                                            attrs {
-                                                onChangeFunction = {
-                                                    val tg = it.target as HTMLTextAreaElement
-                                                    fieldsMap[InputTypes.DESCRIPTION] = tg.value
+                                form(classes = "needs-validation") {
+                                    div("row g-3") {
+                                        inputTextFormRequired(InputTypes.OWNER, state.isValidOwner!!, "col-md-6 pl-0 pl-2 pr-2", "Owner name") {
+                                            changeFields(InputTypes.OWNER, it)
+                                        }
+                                        inputTextFormRequired(InputTypes.PROJECT_NAME, state.isValidProjectName!!, "col-md-6 pl-2 pr-2", "Tested tool name") {
+                                            changeFields(InputTypes.PROJECT_NAME, it)
+                                        }
+                                        inputTextFormOptional(InputTypes.PROJECT_URL, "col-md-6 pr-0 mt-3", "Tested tool Url") {
+                                            changeFields(InputTypes.PROJECT_URL, it)
+                                        }
+                                        inputTextFormOptional(
+                                            InputTypes.GIT_URL,
+                                            "col-md-6 mt-3 pl-0",
+                                            "Test repository Git Url"
+                                        ) {
+                                            changeFields(InputTypes.GIT_URL, it, false)
+                                        }
+                                        inputTextFormOptional(InputTypes.GIT_USER, "col-md-6 mt-3", "Git Username") {
+                                            changeFields(InputTypes.GIT_USER, it, false)
+                                        }
+                                        inputTextFormOptional(InputTypes.GIT_TOKEN, "col-md-6 mt-3 pr-0", "Git Token") {
+                                            changeFields(InputTypes.GIT_TOKEN, it, false)
+                                        }
+                                        div("col-md-12 mt-3 mb-3 pl-0 pr-0") {
+                                            label("form-label") {
+                                                attrs.set("for", InputTypes.DESCRIPTION.name)
+                                                +"Description"
+                                            }
+                                            div("input-group has-validation") {
+                                                textarea("form-control") {
+                                                    attrs {
+                                                        onChangeFunction = {
+                                                            val tg = it.target as HTMLTextAreaElement
+                                                            fieldsMap[InputTypes.DESCRIPTION] = tg.value
+                                                        }
+                                                    }
+                                                    attrs["aria-describedby"] = "${InputTypes.DESCRIPTION.name}Span"
+                                                    attrs["row"] = "2"
+                                                    attrs["id"] = InputTypes.DESCRIPTION.name
+                                                    attrs["required"] = false
+                                                    attrs["class"] = "form-control"
                                                 }
                                             }
-                                            attrs["aria-describedby"] = "${InputTypes.DESCRIPTION.name}Span"
-                                            attrs["row"] = "2"
-                                            attrs["id"] = InputTypes.DESCRIPTION.name
-                                            attrs["required"] = false
-                                            attrs["class"] = "form-control"
                                         }
                                     }
-                                }
-                            }
-                            button(type = ButtonType.submit, classes = "btn btn-primary mt-4 mr-3") {
-                                +"Create test project"
-                                attrs.onClickFunction = { saveProject() }
-                            }
-                            button(type = ButtonType.button, classes = "btn btn-success mt-4 ml-3") {
-                                +"Validate connection"
-                                attrs.onClickFunction = { validateGitConnection() }
-                            }
-                            div("row justify-content-center") {
-                                when (state.gitConnectionCheckingStatus) {
-                                    GitConnectionStatusEnum.CHECKED_NOT_OK ->
-                                        createDiv(
-                                            "invalid-feedback d-block",
-                                            "Validation failed: please check your git URL and credentials"
-                                        )
-                                    GitConnectionStatusEnum.CHECKED_OK ->
-                                        createDiv("valid-feedback d-block", "Successful validation of git configuration")
-                                    GitConnectionStatusEnum.NOT_CHECKED ->
-                                        createDiv("invalid-feedback d-block", "")
-                                    GitConnectionStatusEnum.INTERNAL_SERVER_ERROR ->
-                                        createDiv("invalid-feedback d-block", "Internal server error during git validation")
-                                    GitConnectionStatusEnum.VALIDATING ->
-                                        div("spinner-border spinner-border-sm mt-3") {
-                                            attrs["role"] = "status"
+                                    button(type = ButtonType.submit, classes = "btn btn-info mt-4 mr-3") {
+                                        +"Create test project"
+                                        attrs.onClickFunction = { saveProject() }
+                                    }
+                                    button(type = ButtonType.button, classes = "btn btn-success mt-4 ml-3") {
+                                        +"Validate connection"
+                                        attrs.onClickFunction = { validateGitConnection() }
+                                    }
+                                    div("row justify-content-center") {
+                                        when (state.gitConnectionCheckingStatus) {
+                                            GitConnectionStatusEnum.CHECKED_NOT_OK ->
+                                                createDiv(
+                                                    "invalid-feedback d-block",
+                                                    "Validation failed: please check your git URL and credentials"
+                                                )
+                                            GitConnectionStatusEnum.CHECKED_OK ->
+                                                createDiv("valid-feedback d-block", "Successful validation of git configuration")
+                                            GitConnectionStatusEnum.NOT_CHECKED ->
+                                                createDiv("invalid-feedback d-block", "")
+                                            GitConnectionStatusEnum.INTERNAL_SERVER_ERROR ->
+                                                createDiv("invalid-feedback d-block", "Internal server error during git validation")
+                                            GitConnectionStatusEnum.VALIDATING ->
+                                                div("spinner-border spinner-border-sm mt-3") {
+                                                    attrs["role"] = "status"
+                                                }
                                         }
+                                    }
                                 }
                             }
                         }
@@ -345,92 +351,4 @@ class CreationView : RComponent<PropsWithChildren, ProjectSaveViewState>() {
             div("$blockName mt-2") {
                 +text
             }
-
-    @Suppress("TOO_LONG_FUNCTION")
-    private fun RBuilder.inputTextFormRequired(
-        form: InputTypes,
-        classes: String,
-        text: String,
-        onChangeFun: (Event) -> Unit
-    ) =
-            div("$classes pl-2 pr-2") {
-                label("form-label") {
-                    attrs.set("for", form.name)
-                    +text
-                }
-
-                val validInput = when (form) {
-                    InputTypes.OWNER -> state.isValidOwner
-                    InputTypes.PROJECT_NAME -> state.isValidProjectName
-                    else -> true
-                }
-
-                div("input-group has-validation") {
-                    span("input-group-text") {
-                        attrs["id"] = "${form.name}Span"
-                        +"*"
-                    }
-                    input(type = InputType.text) {
-                        attrs {
-                            onChangeFunction = onChangeFun
-                        }
-                        attrs["id"] = form.name
-                        attrs["required"] = true
-                        if (validInput!!) {
-                            attrs["class"] = "form-control"
-                        } else {
-                            attrs["class"] = "form-control is-invalid"
-                        }
-                    }
-
-                    if (!validInput!!) {
-                        if (form == InputTypes.GIT_URL) {
-                            div("invalid-feedback d-block") {
-                                +"Input a valid URL. Note: spaces are not allowed and URL should start from http"
-                            }
-                        } else {
-                            div("invalid-feedback d-block") {
-                                +"Please input a valid ${form.str}"
-                            }
-                        }
-                    }
-                }
-            }
-
-    private fun RBuilder.inputTextFormOptional(
-        form: InputTypes,
-        classes: String,
-        text: String,
-        onChangeFun: (Event) -> Unit
-    ) =
-            div("$classes pl-2 pr-2") {
-                label("form-label") {
-                    attrs.set("for", form.name)
-                    +text
-                }
-                input(type = InputType.text) {
-                    attrs {
-                        onChangeFunction = onChangeFun
-                    }
-                    attrs["aria-describedby"] = "${form.name}Span"
-                    attrs["id"] = form.name
-                    attrs["required"] = false
-                    attrs["class"] = "form-control"
-                }
-            }
-}
-
-/**
- * @property str
- */
-internal enum class InputTypes(val str: String) {
-    DESCRIPTION("project description"),
-    GIT_BRANCH("git branch"),
-    GIT_TOKEN("git token"),
-    GIT_URL("git Url"),
-    GIT_USER("git username"),
-    OWNER("owner name"),
-    PROJECT_NAME("project name"),
-    PROJECT_URL("project Url"),
-    ;
 }

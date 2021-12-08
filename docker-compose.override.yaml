@@ -5,6 +5,8 @@ services:
   preprocessor:
     volumes:
       - '/home/saveu/configs/certificates:/home/cnb/certificates'
+      - '/home/saveu/configs/TestSuitesRepos:/workspace/BOOT-INF/classes/TestSuitesRepos'
+      - '/home/saveu/configs/TestSuitesToken:/workspace/BOOT-INF/classes/TestSuitesToken'
     command: [
         "-c",
         'mkdir -p /home/cnb/files/ && mkdir -p /home/cnb/config && mkdir -p /home/cnb/certificates &&
