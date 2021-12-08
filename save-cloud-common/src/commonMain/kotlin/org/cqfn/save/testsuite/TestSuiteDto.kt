@@ -11,6 +11,7 @@ import kotlinx.serialization.Serializable
  * @property testRootPath [TestSuite.testRootPath]
  * @property testSuiteRepoUrl url of the repo with test suites
  * @property description [TestSuite.description]
+ * @property language
  */
 @Serializable
 data class TestSuiteDto(

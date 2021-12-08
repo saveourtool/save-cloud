@@ -18,6 +18,7 @@ import javax.persistence.ManyToOne
  * @property testRootPath location of save.properties file for this test suite, relative to project's root directory
  * @property testSuiteRepoUrl url of the repo with test suites
  * @property description description of the test suite
+ * @property language
  */
 @Suppress("USE_DATA_CLASS", "LongParameterList")
 @Entity

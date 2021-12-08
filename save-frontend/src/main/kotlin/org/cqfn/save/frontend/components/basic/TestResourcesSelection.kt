@@ -47,7 +47,6 @@ external interface TestResourcesProps : PropsWithChildren {
     // properties for STANDARD_BENCHMARKS mode
     var standardTestSuites: List<TestSuiteDto>
     var selectedStandardSuites: MutableList<String>
-
     var selectedLanguageForStandardTests: String?
 }
 
@@ -55,7 +54,8 @@ external interface TestResourcesProps : PropsWithChildren {
  * @param updateGitUrlFromInputField
  * @param updateTestRootPath
  * @param setTestRootPathFromHistory
- * @return a RComponent
+ * @param setSelectedLanguageForStandardTests
+ * @return an RComponent
  */
 @Suppress("LongMethod", "TOO_LONG_FUNCTION")
 fun testResourcesSelection(
@@ -152,9 +152,9 @@ fun testResourcesSelection(
                 attrs.classes = cardStyleByTestingType(props, TestingType.STANDARD_BENCHMARKS)
                 div("card-body") {
                     child(suitesTable(
-                            props.standardTestSuites,
-                            props.selectedLanguageForStandardTests,
-                            setSelectedLanguageForStandardTests
+                        props.standardTestSuites,
+                        props.selectedLanguageForStandardTests,
+                        setSelectedLanguageForStandardTests
                     )) {}
 
                     child(checkBoxGrid(props.standardTestSuites, props.selectedLanguageForStandardTests)) {

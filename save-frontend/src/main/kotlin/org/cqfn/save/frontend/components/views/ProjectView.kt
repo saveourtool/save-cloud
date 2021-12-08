@@ -425,11 +425,11 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                             testRootPath = it
                         }
                     },
-                        setSelectedLanguageForStandardTests = {
-                            setState {
-                                selectedLanguageForStandardTests = it
-                            }
+                    setSelectedLanguageForStandardTests = {
+                        setState {
+                            selectedLanguageForStandardTests = it
                         }
+                    }
                 )) {
                     attrs.testingType = state.testingType
                     attrs.isSubmitButtonPressed = state.isSubmitButtonPressed
