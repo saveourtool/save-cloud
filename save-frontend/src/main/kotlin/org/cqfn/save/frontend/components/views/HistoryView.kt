@@ -341,8 +341,6 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
 
     private fun getHrefToExecution(id: Long, status: TestResultStatus?) =
             "${window.location}/execution/$id${status?.let { "?status=$it" } ?: ""}"
-                // small hack to have a proper URL after the redirection from history/execution -> history
-                .replace("history//execution", "history/execution")
 
     /**
      * @property resColor

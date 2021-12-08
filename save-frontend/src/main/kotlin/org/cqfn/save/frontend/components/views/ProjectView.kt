@@ -338,13 +338,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             h1("h3 mb-0 text-gray-800") {
                 +" Project ${project.name}"
             }
-            span("border ml-2 pr-1 pl-1 text-xs text-muted ") {
-                attrs["style"] = kotlinext.js.jsObject<CSSProperties> {
-                    borderRadius = "2em".unsafeCast<BorderRadius>()
-                }
-                val publicity = if (project.public) "public" else "private"
-                +publicity
-            }
+            privacySpan(project)
         }
 
         div("row justify-content-center") {

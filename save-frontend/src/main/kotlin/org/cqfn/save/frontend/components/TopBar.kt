@@ -83,7 +83,7 @@ fun topBar() = fc<TopBarProps> { props ->
                                     }
                                 } else {
                                     // small hack to redirect from history/execution to history
-                                    a(currentLink.removeSuffix("execution")) {
+                                    a(currentLink.removeSuffix("/execution")) {
                                         attrs.classes = setOf("text-light")
                                         +pathPart
                                     }

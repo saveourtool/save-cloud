@@ -16,6 +16,7 @@ import react.dom.*
 import react.table.columns
 
 import kotlinx.html.ButtonType
+import org.cqfn.save.frontend.components.basic.privacySpan
 
 /**
  * A view with collection of projects
@@ -51,12 +52,7 @@ class CollectionView : AbstractView<PropsWithChildren, State>(false) {
                     buildElement {
                         td {
                             a(href = "#/${it.value.owner}/${it.value.name}") { +it.value.name }
-                            span("border ml-2 pr-1 pl-1 text-xs text-muted ") {
-                                attrs["style"] = kotlinext.js.jsObject<CSSProperties> {
-                                    borderRadius = "2em".unsafeCast<BorderRadius>()
-                                }
-                                +if (it.value.public) "public" else "private"
-                            }
+                            privacySpan(it.value)
                         }
                     }
                 }
