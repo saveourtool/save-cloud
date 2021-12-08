@@ -3,20 +3,19 @@
 package org.cqfn.save.frontend.components.views
 
 import org.cqfn.save.entities.Project
+import org.cqfn.save.frontend.components.basic.privacySpan
 import org.cqfn.save.frontend.components.tables.tableComponent
 import org.cqfn.save.frontend.utils.apiUrl
 import org.cqfn.save.frontend.utils.decodeFromJsonString
 import org.cqfn.save.frontend.utils.get
 import org.cqfn.save.frontend.utils.unsafeMap
 
-import csstype.BorderRadius
 import org.w3c.fetch.Headers
 import react.*
 import react.dom.*
 import react.table.columns
 
 import kotlinx.html.ButtonType
-import org.cqfn.save.frontend.components.basic.privacySpan
 
 /**
  * A view with collection of projects

@@ -23,7 +23,6 @@ import org.cqfn.save.frontend.externals.modal.modal
 import org.cqfn.save.frontend.utils.*
 import org.cqfn.save.testsuite.TestSuiteDto
 
-import csstype.BorderRadius
 import org.w3c.dom.HTMLButtonElement
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.asList
