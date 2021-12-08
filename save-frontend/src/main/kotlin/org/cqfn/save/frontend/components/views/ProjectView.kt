@@ -23,18 +23,14 @@ import org.cqfn.save.frontend.externals.modal.modal
 import org.cqfn.save.frontend.utils.*
 import org.cqfn.save.testsuite.TestSuiteDto
 
-import csstype.em
 import org.w3c.dom.HTMLButtonElement
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.asList
 import org.w3c.fetch.Headers
 import org.w3c.fetch.Response
 import org.w3c.xhr.FormData
-import react.PropsWithChildren
-import react.RBuilder
-import react.State
+import react.*
 import react.dom.*
-import react.setState
 
 import kotlinx.browser.document
 import kotlinx.browser.window
@@ -48,7 +44,6 @@ import kotlinx.html.id
 import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
 import kotlinx.html.role
-import kotlinx.html.style
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -257,7 +252,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                     setState {
                         isErrorOpen = true
                         errorLabel = "Both type of project"
-                        errorMessage = "Please choose one of type test suites"
+                        errorMessage = "Please choose at least one test suite"
                     }
                     return
                 }
@@ -340,15 +335,9 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         // Page Heading
         div("d-sm-flex align-items-center justify-content-center mb-4") {
             h1("h3 mb-0 text-gray-800") {
-                +"Project ${project.name}"
+                +" Project ${project.name}"
             }
-            span("border ml-2 pr-1 pl-1 text-xs text-muted ") {
-                attrs.style = kotlinext.js.js {
-                    borderRadius = 2.em
-                }
-                val publicity = if (project.public) "public" else "private"
-                +publicity
-            }
+            privacySpan(project)
         }
 
         div("row justify-content-center") {
