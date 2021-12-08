@@ -316,8 +316,9 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         val tmpDir = generateDirectory(listOf(gitDto.url))
         return Mono.fromCallable {
             cloneFromGit(gitDto, tmpDir)?.use { git ->
-                executionRequest.gitDto.hash?.let { hash ->
-                    git.checkout().setName(hash).call()
+                val branchOrCommit = gitDto.branch ?: gitDto.hash ?: null
+                branchOrCommit?.let {
+                    git.checkout().setName(it).call()
                 }
                 val version = git.log().call().first()
                     .name

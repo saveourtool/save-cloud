@@ -51,6 +51,7 @@ external interface TestResourcesProps : PropsWithChildren {
 
 /**
  * @param updateGitUrlFromInputField
+ * @param updateGitBranchOrCommitInputField:
  * @param updateTestRootPath
  * @param setTestRootPathFromHistory
  * @return a RComponent
@@ -58,6 +59,7 @@ external interface TestResourcesProps : PropsWithChildren {
 @Suppress("LongMethod", "TOO_LONG_FUNCTION")
 fun testResourcesSelection(
     updateGitUrlFromInputField: (Event) -> Unit,
+    updateGitBranchOrCommitInputField: (Event) -> Unit,
     updateTestRootPath: (Event) -> Unit,
     setTestRootPathFromHistory: (String) -> Unit
 ) =
@@ -106,6 +108,27 @@ fun testResourcesSelection(
                                     placeholder = "https://github.com/my-project"
                                     onChangeFunction = {
                                         updateGitUrlFromInputField(it)
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    div("input-group-sm") {
+                        div("row") {
+                            h6(classes = "d-inline ml-2") {
+                                +"Git branch or specific commit in your repository:"
+                            }
+                        }
+                        div("input-group-prepend") {
+                            input(type = InputType.text, name = "itemText") {
+                                key = "itemText"
+                                attrs.set("class", "form-control")
+                                attrs {
+                                    value = props.testRootPath
+                                    placeholder = "leave empty if branch and commit are default: main/master - latest commit"
+                                    onChangeFunction = {
+                                        updateGitBranchOrCommitInputField(it)
                                     }
                                 }
                             }

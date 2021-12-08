@@ -141,6 +141,11 @@ external interface ProjectViewState : State {
     var gitUrlFromInputField: String
 
     /**
+     * Branch of commit in current repo
+     */
+    var gitBranchOrCommitFromInputField: String
+
+    /**
      * Directory in the repository where tests are placed
      */
     var testRootPath: String
@@ -177,6 +182,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
 
     init {
         state.gitUrlFromInputField = ""
+        state.gitBranchOrCommitFromInputField = ""
         state.testRootPath = ""
         state.confirmationType = ConfirmationType.NO_CONFIRM
         state.testingType = TestingType.CUSTOM_TESTS
@@ -220,10 +226,12 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         when (state.testingType) {
             TestingType.CUSTOM_TESTS -> {
                 val urlWithTests = state.gitUrlFromInputField
+                val branchOrCommit = state.gitBranchOrCommitFromInputField
                 // URL is required in all cases, the processing should not be done without it
                 if (urlWithTests.isBlank()) {
                     return
                 } else {
+                    // TODO: how to identify whether there is a branch and whether commit?
                     val newGitDto = gitDto?.copy(url = urlWithTests) ?: GitDto(url = urlWithTests)
                     submitExecutionRequestWithCustomTests(newGitDto)
                 }
@@ -409,6 +417,11 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                             gitUrlFromInputField = (it.target as HTMLInputElement).value
                         }
                     },
+                    updateGitBranchOrCommitInputField = {
+                        setState {
+                            gitBranchOrCommitFromInputField = (it.target as HTMLInputElement).value
+                        }
+                    },
                     updateTestRootPath = {
                         setState {
                             testRootPath = (it.target as HTMLInputElement).value
@@ -426,6 +439,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                     // properties for CUSTOM_TESTS mode
                     attrs.testRootPath = state.testRootPath
                     attrs.gitUrlFromInputField = state.gitUrlFromInputField
+                    attrs.gitBranchOrCommitFromInputField = state.gitBranchOrCommitFromInputField
                     // properties for STANDARD_BENCHMARKS mode
                     attrs.selectedStandardSuites = selectedStandardSuites
                     attrs.standardTestSuites = standardTestSuites
@@ -650,6 +664,9 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                         "Git Url with test suites in save format was not provided,but it is required for the testing process." +
                                 " Save is not able to run your tests without an information of where to download them from."
                 errorLabel = "Git Url"
+            }
+            state.gitBranchOrCommitFromInputField.isBlank() && state.testingType == TestingType.CUSTOM_TESTS -> setState {
+                // TODO
             }
             // no binaries were provided
             state.files.isEmpty() -> setState {
