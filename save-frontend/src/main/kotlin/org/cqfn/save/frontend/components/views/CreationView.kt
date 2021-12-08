@@ -289,6 +289,7 @@ class CreationView : AbstractView<PropsWithChildren, ProjectSaveViewState>(true)
                                         inputTextFormOptional(InputTypes.GIT_TOKEN, "col-md-6 mt-3 pr-0", "Git Token") {
                                             changeFields(InputTypes.GIT_TOKEN, it, false)
                                         }
+
                                         div("col-md-12 mt-3 mb-3 pl-0 pr-0") {
                                             label("form-label") {
                                                 attrs.set("for", InputTypes.DESCRIPTION.name)
@@ -319,10 +320,11 @@ class CreationView : AbstractView<PropsWithChildren, ProjectSaveViewState>(true)
                                             }
                                             label("form-check-label") {
                                                 attrs["htmlFor"] = "isPublicSwitch"
-                                                +"Checked switch checkbox input"
+                                                +"Public project"
                                             }
                                         }
                                     }
+
                                     button(type = ButtonType.submit, classes = "btn btn-info mt-4 mr-3") {
                                         +"Create test project"
                                         attrs.onClickFunction = { saveProject() }
