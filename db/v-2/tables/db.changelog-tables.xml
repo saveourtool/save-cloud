@@ -10,6 +10,7 @@
     <include file="agent-status.xml" relativeToChangelogFile="true"/>
     <include file="user.xml" relativeToChangelogFile="true"/>
     <include file="project-privacy.xml" relativeToChangelogFile="true"/>
+    <include file="test_suite.xml" relativeToChangelogFile="true"/>
 
     <changeSet id="02-tables" author="frolov">
         <tagDatabase tag="v2.0-tables"/>
