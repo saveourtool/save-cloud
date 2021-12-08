@@ -46,6 +46,8 @@ jobs:
           sudo /usr/local/bin/runsc install
           sudo systemctl reload docker
       - uses: burrunan/gradle-cache-action@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         with:
           gradle-version: wrapper
           # additional files to calculate key for dependency cache
