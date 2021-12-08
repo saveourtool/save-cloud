@@ -146,6 +146,11 @@ external interface ProjectViewState : State {
     var testRootPath: String
 
     /**
+     * Selected languages in the list of standard tests
+     */
+    var selectedLanguageForStandardTests: String
+
+    /**
      * General size of test suite in bytes
      */
     var suiteByteSize: Long
@@ -204,6 +209,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         state.availableFiles = mutableListOf()
         state.selectedSdk = Sdk.Default.name
         state.selectedSdkVersion = Sdk.Default.version
+        state.selectedLanguageForStandardTests = ""
         state.suiteByteSize = state.files.sumOf { it.sizeBytes }
         state.bytesReceived = state.availableFiles.sumOf { it.sizeBytes }
         state.isUploading = false
@@ -443,6 +449,11 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                         setState {
                             testRootPath = it
                         }
+                    },
+                    setSelectedLanguageForStandardTests = {
+                        setState {
+                            selectedLanguageForStandardTests = it
+                        }
                     }
                 )) {
                     attrs.testingType = state.testingType
@@ -454,6 +465,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                     // properties for STANDARD_BENCHMARKS mode
                     attrs.selectedStandardSuites = selectedStandardSuites
                     attrs.standardTestSuites = standardTestSuites
+                    attrs.selectedLanguageForStandardTests = state.selectedLanguageForStandardTests
                 }
 
                 div("d-sm-flex align-items-center justify-content-center") {
