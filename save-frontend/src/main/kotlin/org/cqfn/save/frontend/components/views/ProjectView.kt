@@ -144,6 +144,26 @@ external interface ProjectViewState : State {
      * Directory in the repository where tests are placed
      */
     var testRootPath: String
+
+    /**
+     * Selected languages in the list of standard tests
+     */
+    var selectedLanguageForStandardTests: String
+
+    /**
+     * General size of test suite in bytes
+     */
+    var suiteByteSize: Long
+
+    /**
+     * Bytes received by server
+     */
+    var bytesReceived: Long
+
+    /**
+     * Flag to handle uploading a file
+     */
+    var isUploading: Boolean
 }
 
 /**
@@ -189,6 +209,10 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         state.availableFiles = mutableListOf()
         state.selectedSdk = Sdk.Default.name
         state.selectedSdkVersion = Sdk.Default.version
+        state.selectedLanguageForStandardTests = ""
+        state.suiteByteSize = state.files.sumOf { it.sizeBytes }
+        state.bytesReceived = state.availableFiles.sumOf { it.sizeBytes }
+        state.isUploading = false
     }
 
     override fun componentDidMount() {
@@ -366,12 +390,16 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                         setState {
                             val availableFile = availableFiles.first { it.name == element.value }
                             files.add(availableFile)
+                            bytesReceived += availableFile.sizeBytes
+                            suiteByteSize += availableFile.sizeBytes
                             availableFiles.remove(availableFile)
                         }
                     },
                     onFileRemove = {
                         setState {
                             files.remove(it)
+                            bytesReceived -= it.sizeBytes
+                            suiteByteSize -= it.sizeBytes
                             availableFiles.add(it)
                         }
                     },
@@ -387,6 +415,9 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                     attrs.files = state.files
                     attrs.availableFiles = state.availableFiles
                     attrs.confirmationType = state.confirmationType
+                    attrs.suiteByteSize = state.suiteByteSize
+                    attrs.bytesReceived = state.bytesReceived
+                    attrs.isUploading = state.isUploading
                 }
 
                 // ======== sdk selection =========
@@ -418,6 +449,11 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                         setState {
                             testRootPath = it
                         }
+                    },
+                    setSelectedLanguageForStandardTests = {
+                        setState {
+                            selectedLanguageForStandardTests = it
+                        }
                     }
                 )) {
                     attrs.testingType = state.testingType
@@ -429,6 +465,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                     // properties for STANDARD_BENCHMARKS mode
                     attrs.selectedStandardSuites = selectedStandardSuites
                     attrs.standardTestSuites = standardTestSuites
+                    attrs.selectedLanguageForStandardTests = state.selectedLanguageForStandardTests
                 }
 
                 div("d-sm-flex align-items-center justify-content-center") {
@@ -562,8 +599,12 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     private fun postFileUpload(element: HTMLInputElement) =
             GlobalScope.launch {
                 setState {
-                    isLoading = true
+                    isUploading = true
+                    element.files!!.asList().forEach { file ->
+                        suiteByteSize += file.size.toLong()
+                    }
                 }
+
                 element.files!!.asList().forEach { file ->
                     val response: FileInfo = post(
                         "$apiUrl/files/upload",
@@ -576,10 +617,11 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                     setState {
                         // add only to selected files so that this entry isn't duplicated
                         files.add(response)
+                        bytesReceived += response.sizeBytes
                     }
                 }
                 setState {
-                    isLoading = false
+                    isUploading = false
                 }
             }
 

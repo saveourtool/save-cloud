@@ -67,7 +67,8 @@ class TestDiscoveringService {
                 config.description,
                 project,
                 testRootPath,
-                testSuiteRepoUrl
+                testSuiteRepoUrl,
+                config.language,
             )
         }
         .distinct()
