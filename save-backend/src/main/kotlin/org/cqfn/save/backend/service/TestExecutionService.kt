@@ -211,7 +211,7 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
                 val id = testExecutionRepository.save(
                     TestExecution(test,
                         execution,
-                        null, TestResultStatus.READY, null, null,
+                        null, TestResultStatus.READY, null, null, null, null,
                     )
                 )
                 log.debug("Created TestExecution $id for test $testId")
