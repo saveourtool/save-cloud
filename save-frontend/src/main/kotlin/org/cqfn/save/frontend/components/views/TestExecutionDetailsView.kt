@@ -9,6 +9,7 @@ import org.cqfn.save.core.result.Pass
 import org.cqfn.save.domain.TestResultDebugInfo
 import org.cqfn.save.domain.TestResultLocation
 import org.cqfn.save.frontend.http.getDebugInfoFor
+import org.cqfn.save.frontend.utils.apiUrl
 import org.cqfn.save.frontend.utils.decodeFromJsonString
 import org.cqfn.save.frontend.utils.multilineText
 import org.cqfn.save.frontend.utils.multilineTextWithIndices
@@ -30,7 +31,6 @@ import react.router.dom.useParams
 import react.useEffect
 import react.useState
 
-import kotlinx.browser.window
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
@@ -119,7 +119,7 @@ fun testExecutionDetailsView() = fc<Props> {
     useEffect(listOf<dynamic>(executionId, testResultLocation)) {
         GlobalScope.launch {
             val testExecutionDtoResponse = post(
-                "${apiUrl}/testExecutions?executionId=$executionId",
+                "$apiUrl/testExecutions?executionId=$executionId",
                 Headers().apply {
                     set("Content-Type", "application/json")
                 },

@@ -29,12 +29,8 @@ import org.w3c.dom.asList
 import org.w3c.fetch.Headers
 import org.w3c.fetch.Response
 import org.w3c.xhr.FormData
-import react.PropsWithChildren
-import react.RBuilder
-import react.RComponent
-import react.State
+import react.*
 import react.dom.*
-import react.setState
 
 import kotlinx.browser.document
 import kotlinx.browser.window
@@ -143,6 +139,26 @@ external interface ProjectViewState : State {
      * Directory in the repository where tests are placed
      */
     var testRootPath: String
+
+    /**
+     * Selected languages in the list of standard tests
+     */
+    var selectedLanguageForStandardTests: String
+
+    /**
+     * General size of test suite in bytes
+     */
+    var suiteByteSize: Long
+
+    /**
+     * Bytes received by server
+     */
+    var bytesReceived: Long
+
+    /**
+     * Flag to handle uploading a file
+     */
+    var isUploading: Boolean
 }
 
 /**
@@ -161,11 +177,11 @@ enum class ConfirmationType {
  */
 @JsExport
 @OptIn(ExperimentalJsExport::class)
-class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
+class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(false) {
     private var standardTestSuites: List<TestSuiteDto> = emptyList()
     private val selectedStandardSuites: MutableList<String> = mutableListOf()
     private var gitDto: GitDto? = null
-    private var project = Project("stub", "stub", "stub", "stub", ProjectStatus.CREATED)
+    private var project = Project("N/A", "N/A", "N/A", "N/A", ProjectStatus.CREATED)
     private val projectInformation = mutableMapOf(
         "Tested tool name: " to "",
         "Description: " to "",
@@ -188,9 +204,15 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
         state.availableFiles = mutableListOf()
         state.selectedSdk = Sdk.Default.name
         state.selectedSdkVersion = Sdk.Default.version
+        state.selectedLanguageForStandardTests = ""
+        state.suiteByteSize = state.files.sumOf { it.sizeBytes }
+        state.bytesReceived = state.availableFiles.sumOf { it.sizeBytes }
+        state.isUploading = false
     }
 
     override fun componentDidMount() {
+        super.componentDidMount()
+
         GlobalScope.launch {
             project = getProject(props.name, props.owner)
             val jsonProject = Json.encodeToString(project)
@@ -198,9 +220,9 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                 set("Accept", "application/json")
                 set("Content-Type", "application/json")
             }
-            gitDto = post("${apiUrl}/getGit", headers, jsonProject)
+            gitDto = post("$apiUrl/getGit", headers, jsonProject)
                 .decodeFromJsonString<GitDto>()
-            standardTestSuites = get("${apiUrl}/allStandardTestSuites", headers)
+            standardTestSuites = get("$apiUrl/allStandardTestSuites", headers)
                 .decodeFromJsonString()
 
             val availableFiles = getFilesList()
@@ -230,7 +252,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                     setState {
                         isErrorOpen = true
                         errorLabel = "Both type of project"
-                        errorMessage = "Please choose one of type test suites"
+                        errorMessage = "Please choose at least one test suite"
                     }
                     return
                 }
@@ -313,8 +335,9 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
         // Page Heading
         div("d-sm-flex align-items-center justify-content-center mb-4") {
             h1("h3 mb-0 text-gray-800") {
-                +"Project ${project.name}"
+                +" Project ${project.name}"
             }
+            privacySpan(project)
         }
 
         div("row justify-content-center") {
@@ -356,12 +379,16 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                         setState {
                             val availableFile = availableFiles.first { it.name == element.value }
                             files.add(availableFile)
+                            bytesReceived += availableFile.sizeBytes
+                            suiteByteSize += availableFile.sizeBytes
                             availableFiles.remove(availableFile)
                         }
                     },
                     onFileRemove = {
                         setState {
                             files.remove(it)
+                            bytesReceived -= it.sizeBytes
+                            suiteByteSize -= it.sizeBytes
                             availableFiles.add(it)
                         }
                     },
@@ -377,6 +404,9 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                     attrs.files = state.files
                     attrs.availableFiles = state.availableFiles
                     attrs.confirmationType = state.confirmationType
+                    attrs.suiteByteSize = state.suiteByteSize
+                    attrs.bytesReceived = state.bytesReceived
+                    attrs.isUploading = state.isUploading
                 }
 
                 // ======== sdk selection =========
@@ -408,6 +438,11 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                         setState {
                             testRootPath = it
                         }
+                    },
+                    setSelectedLanguageForStandardTests = {
+                        setState {
+                            selectedLanguageForStandardTests = it
+                        }
                     }
                 )) {
                     attrs.testingType = state.testingType
@@ -419,6 +454,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                     // properties for STANDARD_BENCHMARKS mode
                     attrs.selectedStandardSuites = selectedStandardSuites
                     attrs.standardTestSuites = standardTestSuites
+                    attrs.selectedLanguageForStandardTests = state.selectedLanguageForStandardTests
                 }
 
                 div("d-sm-flex align-items-center justify-content-center") {
@@ -552,11 +588,15 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
     private fun postFileUpload(element: HTMLInputElement) =
             GlobalScope.launch {
                 setState {
-                    isLoading = true
+                    isUploading = true
+                    element.files!!.asList().forEach { file ->
+                        suiteByteSize += file.size.toLong()
+                    }
                 }
+
                 element.files!!.asList().forEach { file ->
                     val response: FileInfo = post(
-                        "${apiUrl}/files/upload",
+                        "$apiUrl/files/upload",
                         Headers(),
                         FormData().apply {
                             append("file", file)
@@ -566,10 +606,11 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
                     setState {
                         // add only to selected files so that this entry isn't duplicated
                         files.add(response)
+                        bytesReceived += response.sizeBytes
                     }
                 }
                 setState {
-                    isLoading = false
+                    isUploading = false
                 }
             }
 
@@ -676,7 +717,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
         project.url = url
         project.owner = owner
         GlobalScope.launch {
-            post("${apiUrl}/updateProject", headers, Json.encodeToString(project))
+            post("$apiUrl/updateProject", headers, Json.encodeToString(project))
         }
     }
 
@@ -687,7 +728,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
         }
         GlobalScope.launch {
             responseFromDeleteProject =
-                    post("${apiUrl}/updateProject", headers, Json.encodeToString(project))
+                    post("$apiUrl/updateProject", headers, Json.encodeToString(project))
         }.invokeOnCompletion {
             if (responseFromDeleteProject.ok) {
                 window.location.href = "${window.location.origin}/"
@@ -706,7 +747,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
     private suspend fun switchToLatestExecution() {
         val headers = Headers().apply { set("Accept", "application/json") }
         val response = get(
-            "${apiUrl}/latestExecution?name=${project.name}&owner=${project.owner}",
+            "$apiUrl/latestExecution?name=${project.name}&owner=${project.owner}",
             headers
         )
         if (!response.ok) {
@@ -724,7 +765,7 @@ class ProjectView : RComponent<ProjectExecutionRouteProps, ProjectViewState>() {
         }
     }
 
-    private suspend fun getFilesList() = get("${apiUrl}/files/list", Headers())
+    private suspend fun getFilesList() = get("$apiUrl/files/list", Headers())
         .unsafeMap {
             it.decodeFromJsonString<List<FileInfo>>()
         }

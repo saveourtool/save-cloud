@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+    <changeSet id="test-suite-insert" author="petertrr" context="dev">
+        <update dbms="mysql" tableName="test_suite">
+            <column name="language" value="Java"/>
+            <where>id=2</where>
+        </update>
+
+        <update dbms="mysql" tableName="test_suite">
+            <column name="language" value="null"/>
+            <where>id=3</where>
+        </update>
+
+        <update dbms="mysql" tableName="test_suite">
+            <column name="language" value="C++"/>
+            <where>id=4</where>
+        </update>
+
+        <insert dbms="mysql" tableName="test_suite">
+            <column name="id" value="5"/>
+            <column name="name" value="Security issues for Unknown language"/>
+            <column name="type" value="STANDARD"/>
+            <column name="project_id" value="2"/>
+            <column name="date_added" value="2021-01-01 00:00:00"/>
+            <column name="test_root_path" value=""/>
+            <column name="description" value="description"/>
+            <column name="test_suite_repo_url" value="null"/>
+            <column name="language" value="null"/>
+            <column name="tags" value="security,codestyle"/>
+        </insert>
+
+        <insert dbms="mysql" tableName="test_suite">
+            <column name="id" value="6"/>
+            <column name="name" value="Security issues"/>
+            <column name="type" value="STANDARD"/>
+            <column name="project_id" value="2"/>
+            <column name="date_added" value="2021-01-01 00:00:00"/>
+            <column name="test_root_path" value=""/>
+            <column name="description" value="description"/>
+            <column name="test_suite_repo_url" value="null"/>
+            <column name="language" value="C++"/>
+            <column name="tags" value="security,NPE,hardcode"/>
+        </insert>
+
+        <insert dbms="mysql" tableName="test_suite">
+            <column name="id" value="7"/>
+            <column name="name" value="Formatting"/>
+            <column name="type" value="STANDARD"/>
+            <column name="project_id" value="2"/>
+            <column name="date_added" value="2021-01-01 00:00:00"/>
+            <column name="test_root_path" value=""/>
+            <column name="description" value="description"/>
+            <column name="test_suite_repo_url" value="null"/>
+            <column name="language" value="Java"/>
+            <column name="tags" value="NPE,security"/>
+        </insert>
+
+        <insert dbms="mysql" tableName="test_suite">
+            <column name="id" value="8"/>
+            <column name="name" value="Code style issues"/>
+            <column name="type" value="STANDARD"/>
+            <column name="project_id" value="2"/>
+            <column name="date_added" value="2021-01-01 00:00:00"/>
+            <column name="test_root_path" value=""/>
+            <column name="description" value="description"/>
+            <column name="test_suite_repo_url" value="null"/>
+            <column name="language" value="C++"/>
+            <column name="tags" value="security,NPE,hardcode"/>
+        </insert>
+
+
+        <insert dbms="mysql" tableName="test_suite">
+            <column name="id" value="9"/>
+            <column name="name" value="Null pointer issues"/>
+            <column name="type" value="STANDARD"/>
+            <column name="project_id" value="2"/>
+            <column name="date_added" value="2021-01-01 00:00:00"/>
+            <column name="test_root_path" value=""/>
+            <column name="description" value="description"/>
+            <column name="test_suite_repo_url" value="null"/>
+            <column name="language" value="C++"/>
+            <column name="tags" value="security,NPE,hardcode"/>
+        </insert>
+
+        <insert dbms="mysql" tableName="test_suite">
+            <column name="id" value="10"/>
+            <column name="name" value="Hardcoded values"/>
+            <column name="type" value="STANDARD"/>
+            <column name="project_id" value="2"/>
+            <column name="date_added" value="2021-01-01 00:00:00"/>
+            <column name="test_root_path" value=""/>
+            <column name="description" value="description"/>
+            <column name="test_suite_repo_url" value="null"/>
+            <column name="language" value="C++"/>
+            <column name="tags" value="security,NPE,hardcode"/>
+        </insert>
+    </changeSet>
+        </databaseChangeLog>

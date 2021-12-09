@@ -41,6 +41,7 @@ import org.springframework.http.ReactiveHttpOutputMessage
 import org.springframework.http.ResponseEntity
 import org.springframework.http.client.MultipartBodyBuilder
 import org.springframework.http.codec.multipart.FilePart
+import org.springframework.util.FileSystemUtils
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestParam
@@ -63,12 +64,14 @@ import reactor.util.function.Tuple2
 
 import java.io.File
 import java.io.FileOutputStream
+import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.nio.file.StandardCopyOption
 import java.time.Duration
 
 import kotlin.io.path.ExperimentalPathApi
+import kotlin.io.path.createDirectories
 
 typealias Status = Mono<ResponseEntity<HttpStatus>>
 
@@ -221,14 +224,19 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
     @OptIn(ExperimentalFileSystem::class)
     @Suppress("TOO_LONG_FUNCTION", "TYPE_ALIAS")
     @PostMapping("/uploadStandardTestSuite")
-    fun uploadStandardTestSuite() = Mono.just(ResponseEntity("Upload standard test suites pending", HttpStatus.ACCEPTED))
+    fun uploadStandardTestSuite() = Mono.just(ResponseEntity("Upload standard test suites pending...\n", HttpStatus.ACCEPTED))
         .doOnSuccess {
+            val (user, token) = readGitCredentialsForStandardMode(configProperties.reposTokenFileName)
             val newTestSuites: MutableList<TestSuiteDto> = mutableListOf()
             Flux.fromIterable(readStandardTestSuitesFile(configProperties.reposFileName).entries).flatMap { (testSuiteUrl, testSuitePaths) ->
                 log.info("Starting clone repository url=$testSuiteUrl for standard test suites")
                 val tmpDir = generateDirectory(listOf(testSuiteUrl))
                 Mono.fromCallable {
-                    cloneFromGit(GitDto(testSuiteUrl), tmpDir)
+                    if (user != null && token != null) {
+                        cloneFromGit(GitDto(url = testSuiteUrl, username = user, password = token), tmpDir)
+                    } else {
+                        cloneFromGit(GitDto(testSuiteUrl), tmpDir)
+                    }
                         .use { /* noop here, just need to close Git object */ }
                 }
                     .flatMapMany { Flux.fromIterable(testSuitePaths) }
@@ -376,19 +384,23 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
      * @param seeds a list of strings for directory name creation
      * @return a [File] representing the created temporary directory
      */
+    @Suppress("TooGenericExceptionCaught")
     internal fun generateDirectory(seeds: List<String>): File {
         val tmpDir = getTmpDirName(seeds)
         if (tmpDir.exists()) {
-            if (tmpDir.deleteRecursively()) {
-                log.info("For $seeds: dir $tmpDir was deleted")
-            } else {
-                error("Couldn't properly delete $tmpDir")
+            try {
+                if (FileSystemUtils.deleteRecursively(tmpDir.toPath())) {
+                    log.info("For $seeds: dir $tmpDir was deleted")
+                }
+            } catch (e: IOException) {
+                log.error("Couldn't properly delete $tmpDir", e)
             }
         }
-        if (tmpDir.mkdirs()) {
+        try {
+            tmpDir.toPath().createDirectories()
             log.info("For $seeds: dir $tmpDir was created")
-        } else {
-            error("Couldn't create directories for $tmpDir")
+        } catch (e: Exception) {
+            log.error("Couldn't create directories for $tmpDir", e)
         }
         return tmpDir
     }
@@ -707,3 +719,18 @@ fun readStandardTestSuitesFile(name: String) =
                 require(splitRow.size == 2)
                 splitRow.first() to splitRow[1].split(";")
             }
+
+private fun readGitCredentialsForStandardMode(name: String): Pair<String?, String?> {
+    val credentialsFile = ClassPathResource(name)
+    val fileData = if (credentialsFile.exists()) {
+        credentialsFile.file.readLines().single { it.isNotBlank() }
+    } else {
+        return null to null
+    }
+
+    val splitRow = fileData.split("\\s".toRegex())
+    require(splitRow.size == 2) {
+        "Credentials file should contain git username and git token, separated by whitespace, but provided $splitRow"
+    }
+    return splitRow.first() to splitRow[1]
+}

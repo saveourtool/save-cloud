@@ -16,6 +16,8 @@ import kotlinx.coroutines.await
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 
+val apiUrl = "${window.location.origin}/api"
+
 /**
  * Perform a mapping operation on a [Response] if it's status is OK or throw an exception otherwise.
  *

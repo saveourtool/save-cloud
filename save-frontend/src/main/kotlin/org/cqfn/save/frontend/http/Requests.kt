@@ -5,11 +5,11 @@
 package org.cqfn.save.frontend.http
 
 import org.cqfn.save.agent.TestExecutionDto
+import org.cqfn.save.frontend.utils.apiUrl
 import org.cqfn.save.frontend.utils.post
 
 import org.w3c.fetch.Headers
 
-import kotlinx.browser.window
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.cqfn.save.frontend.utils.apiUrl

@@ -17,6 +17,7 @@ import org.springframework.boot.context.properties.ConstructorBinding
  * @property executionLogs path to folder to store cli logs
  * @property shutdownChecksIntervalMillis interval between checks whether agents are really finished
  * @property aptExtraFlags additional flags that will be passed to `apt-get` when building image for tests
+ * @property adjustResourceOwner whether Linux user that will be set as owner of resources copied into docker build directory
  */
 @ConstructorBinding
 @ConfigurationProperties(prefix = "orchestrator")
@@ -28,6 +29,7 @@ data class ConfigProperties(
     val executionLogs: String,
     val shutdownChecksIntervalMillis: Long,
     val aptExtraFlags: String = "",
+    val adjustResourceOwner: Boolean = true,
 )
 
 /**
