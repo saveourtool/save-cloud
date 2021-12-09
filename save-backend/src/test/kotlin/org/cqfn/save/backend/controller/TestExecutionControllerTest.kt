@@ -87,8 +87,8 @@ class TestExecutionControllerTest {
             TestResultStatus.FAILED,
             DEFAULT_DATE_TEST_EXECUTION,
             DEFAULT_DATE_TEST_EXECUTION,
-            missing = null,
-            matched = null,
+            missingWarnings = null,
+            matchedWarnings = null,
         )
         val testExecutionDtoSecond = TestExecutionDto(
             "testPath42",
@@ -97,8 +97,8 @@ class TestExecutionControllerTest {
             TestResultStatus.PASSED,
             DEFAULT_DATE_TEST_EXECUTION,
             DEFAULT_DATE_TEST_EXECUTION,
-            missing = null,
-            matched = null,
+            missingWarnings = null,
+            matchedWarnings = null,
         )
         val passedTestsBefore = getExecutionsTestsResultByAgentContainerId(testExecutionDtoSecond.agentContainerId!!, true)
         val failedTestsBefore = getExecutionsTestsResultByAgentContainerId(testExecutionDtoFirst.agentContainerId!!, false)
@@ -128,8 +128,8 @@ class TestExecutionControllerTest {
             TestResultStatus.FAILED,
             DEFAULT_DATE_TEST_EXECUTION,
             DEFAULT_DATE_TEST_EXECUTION,
-            missing = null,
-            matched = null,
+            missingWarnings = null,
+            matchedWarnings = null,
         )
         webClient.post()
             .uri("/saveTestResult")

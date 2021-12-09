@@ -202,14 +202,14 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                 column(id = "missing", header = "Missing") {
                     buildElement {
                         td {
-                            +"${it.value.missing}"
+                            +"${it.value.missingWarnings ?: ""}"
                         }
                     }
                 }
                 column(id = "matched", header = "Matched") {
                     buildElement {
                         td {
-                            +"${it.value.matched}"
+                            +"${it.value.matchedWarnings ?: ""}"
                         }
                     }
                 }

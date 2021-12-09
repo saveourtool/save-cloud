@@ -18,8 +18,8 @@ import javax.persistence.ManyToOne
  * @property status status of test execution
  * @property startTime start time
  * @property endTime finish time
- * @property missing missing warnings
- * @property matched matched warnings
+ * @property missingWarnings missing warnings
+ * @property matchedWarnings matched warnings
  */
 @Entity
 @Suppress("LongParameterList")
@@ -44,9 +44,9 @@ class TestExecution(
 
     var endTime: LocalDateTime?,
 
-    var missing: Int?,
+    var missingWarnings: Int?,
 
-    var matched: Int?,
+    var matchedWarnings: Int?,
 
 ) : BaseEntity() {
     /**
@@ -64,7 +64,7 @@ class TestExecution(
         endTime?.toEpochSecond(ZoneOffset.UTC),
         test.testSuite.name,
         test.tags?.split(";")?.filter { it.isNotBlank() } ?: emptyList(),
-        missing,
-        matched,
+        missingWarnings,
+        matchedWarnings,
     )
 }
