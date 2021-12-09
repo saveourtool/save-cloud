@@ -205,7 +205,7 @@ class DockerService(private val configProperties: ConfigProperties) {
             // create stub toml config in aim to execute all test suites directories from `testSuitesDir`
             testSuitesDir.resolve("save.toml").apply { createNewFile() }.writeText("[general]")
             val testPaths = calculatePathsToTheTestsForCurrentExecution(execution)
-            log.debug("Discover the following tests for execution ${testPaths}")
+            log.debug("Discover the following tests for execution $testPaths")
             " \"$STANDARD_TEST_SUITE_DIR\" ${testPaths.joinToString(" ")}"
         } else {
             ""
@@ -260,6 +260,7 @@ class DockerService(private val configProperties: ConfigProperties) {
         return Triple(imageId, agentRunCmd, saveCliExecFlags)
     }
 
+    @Suppress("UnsafeCallOnNullableType")
     private fun calculatePathsToTheTestsForCurrentExecution(execution: Execution): MutableList<String> {
         val testPaths: MutableList<String> = mutableListOf()
         execution.testSuiteIds!!.split(", ").forEach { id ->
@@ -370,7 +371,7 @@ class DockerService(private val configProperties: ConfigProperties) {
     }
 
     private fun getLocationInStandardDirForTestSuite(testSuiteDto: TestSuiteDto) =
-             "$PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE${testSuiteDto.testSuiteRepoUrl.hashCode()}_${testSuiteDto.testRootPath.hashCode()}"
+            "$PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE${testSuiteDto.testSuiteRepoUrl.hashCode()}_${testSuiteDto.testRootPath.hashCode()}"
 
     private fun createContainerForExecution(
         execution: Execution,
