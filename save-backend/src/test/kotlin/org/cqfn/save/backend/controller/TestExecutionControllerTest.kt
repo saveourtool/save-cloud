@@ -78,7 +78,7 @@ class TestExecutionControllerTest {
      * that check data read.
      */
     @Test
-    @Suppress("UnsafeCallOnNullableType")
+    @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
     fun `should save TestExecutionDto into the DB`() {
         val testExecutionDtoFirst = TestExecutionDto(
             "testPath63",
@@ -86,7 +86,9 @@ class TestExecutionControllerTest {
             "container-3",
             TestResultStatus.FAILED,
             DEFAULT_DATE_TEST_EXECUTION,
-            DEFAULT_DATE_TEST_EXECUTION
+            DEFAULT_DATE_TEST_EXECUTION,
+            missing = null,
+            matched = null,
         )
         val testExecutionDtoSecond = TestExecutionDto(
             "testPath42",
@@ -94,7 +96,9 @@ class TestExecutionControllerTest {
             "container-3",
             TestResultStatus.PASSED,
             DEFAULT_DATE_TEST_EXECUTION,
-            DEFAULT_DATE_TEST_EXECUTION
+            DEFAULT_DATE_TEST_EXECUTION,
+            missing = null,
+            matched = null,
         )
         val passedTestsBefore = getExecutionsTestsResultByAgentContainerId(testExecutionDtoSecond.agentContainerId!!, true)
         val failedTestsBefore = getExecutionsTestsResultByAgentContainerId(testExecutionDtoFirst.agentContainerId!!, false)
@@ -123,7 +127,9 @@ class TestExecutionControllerTest {
             "container-1",
             TestResultStatus.FAILED,
             DEFAULT_DATE_TEST_EXECUTION,
-            DEFAULT_DATE_TEST_EXECUTION
+            DEFAULT_DATE_TEST_EXECUTION,
+            missing = null,
+            matched = null,
         )
         webClient.post()
             .uri("/saveTestResult")

@@ -13,6 +13,8 @@ import kotlinx.serialization.Serializable
  * @property pluginName name of a plugin which will execute test at [filePath]
  * @property testSuiteName a name of test suite, a test from which has been executed
  * @property tags list of tags of current test
+ * @property missing missing warnings
+ * @property matched matched warnings
  */
 @Serializable
 data class TestExecutionDto(
@@ -24,4 +26,6 @@ data class TestExecutionDto(
     val endTimeSeconds: Long?,
     val testSuiteName: String? = null,
     val tags: List<String> = emptyList(),
+    val missing: Int?,
+    val matched: Int?,
 )
