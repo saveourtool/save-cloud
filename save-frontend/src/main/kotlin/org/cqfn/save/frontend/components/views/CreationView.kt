@@ -38,7 +38,6 @@ import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.cqfn.save.frontend.utils.apiUrl
 
 /**
  * [RState] of project creation view component

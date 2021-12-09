@@ -7,7 +7,6 @@ import org.cqfn.save.testsuite.TestSuiteDto
 import org.quartz.JobKey
 import org.quartz.Scheduler
 
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.transaction.annotation.Transactional
@@ -26,11 +25,9 @@ typealias ResponseListTestSuites = ResponseEntity<List<TestSuiteDto>>
  */
 @RestController
 class TestSuitesController(
+    private val testSuitesService: TestSuitesService,
     private val scheduler: Scheduler,
 ) {
-    @Autowired
-    private lateinit var testSuitesService: TestSuitesService
-
     /**
      * Save new test suites into DB
      *

@@ -93,5 +93,3 @@ suspend fun getProject(name: String, owner: String) =
             set("Accept", "application/json")
         })
             .decodeFromJsonString<Project>()
-
-val apiUrl = "${window.location.origin}/api"

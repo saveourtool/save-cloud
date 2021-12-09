@@ -40,7 +40,6 @@ import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
 import kotlinx.html.ButtonType
 import kotlinx.html.js.onClickFunction
-import org.cqfn.save.frontend.utils.apiUrl
 
 /**
  * [RProps] for tests execution history

@@ -49,7 +49,6 @@ import kotlinx.datetime.Instant
 import kotlinx.html.js.onClickFunction
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
-import org.cqfn.save.frontend.utils.apiUrl
 
 /**
  * [RProps] for execution results view

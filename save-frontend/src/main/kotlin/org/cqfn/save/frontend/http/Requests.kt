@@ -12,7 +12,6 @@ import org.w3c.fetch.Headers
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.cqfn.save.frontend.utils.apiUrl
 
 /**
  * Fetch debug info for test execution

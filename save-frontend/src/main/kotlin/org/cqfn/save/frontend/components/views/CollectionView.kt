@@ -16,7 +16,6 @@ import react.dom.*
 import react.table.columns
 
 import kotlinx.html.ButtonType
-import org.cqfn.save.frontend.utils.apiUrl
 
 /**
  * A view with collection of projects
