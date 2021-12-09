@@ -98,7 +98,7 @@ class DownloadFilesTest {
         Paths.get(configProperties.fileStorage.location).createDirectories()
         val sampleFileInfo = fileSystemRepository.saveFile(tmpFile)
 
-        webTestClient.method(HttpMethod.GET).uri("/files/download")
+        webTestClient.method(HttpMethod.GET).uri("/api/files/download")
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(sampleFileInfo)
             .accept(MediaType.APPLICATION_OCTET_STREAM)
@@ -108,7 +108,7 @@ class DownloadFilesTest {
                 Assertions.assertArrayEquals("Lorem ipsum${System.lineSeparator()}".toByteArray(), it.responseBody)
             }
 
-        webTestClient.get().uri("/files/list")
+        webTestClient.get().uri("/api/files/list")
             .exchange()
             .expectStatus().isOk
             .expectBodyList<FileInfo>()
@@ -125,7 +125,7 @@ class DownloadFilesTest {
 
     @Test
     fun `should return 404 for non-existent files`() {
-        webTestClient.get().uri("/files/download/invalid-name").exchange()
+        webTestClient.get().uri("/api/files/download/invalid-name").exchange()
             .expectStatus().isNotFound
     }
 
@@ -139,7 +139,7 @@ class DownloadFilesTest {
         }
             .build()
 
-        webTestClient.post().uri("/files/upload")
+        webTestClient.post().uri("/api/files/upload")
             .contentType(MediaType.MULTIPART_FORM_DATA)
             .body(BodyInserters.fromMultipartData(body))
             .exchange()
@@ -159,7 +159,7 @@ class DownloadFilesTest {
         whenever(agentRepository.findByContainerId("container-1"))
             .thenReturn(Agent("container-1", execution, "0.0.1"))
 
-        webTestClient.post().uri("/files/debug-info?agentId=container-1")
+        webTestClient.post().uri("/api/files/debug-info?agentId=container-1")
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(
                 TestResultDebugInfo(

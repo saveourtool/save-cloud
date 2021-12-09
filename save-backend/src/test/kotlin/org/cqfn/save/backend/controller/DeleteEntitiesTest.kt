@@ -29,7 +29,7 @@ class DeleteEntitiesTest {
     fun testDeleteExecutionById() {
         val ids = listOf(1L, 2L, 3L).joinToString(",")
         webClient.post()
-            .uri("/execution/delete?executionIds=$ids")
+            .uri("/api/execution/delete?executionIds=$ids")
             .contentType(MediaType.APPLICATION_JSON)
             .exchange()
             .expectStatus()
@@ -40,7 +40,7 @@ class DeleteEntitiesTest {
     @Disabled("should rollback after committing in the db")
     fun testDeleteExecution() {
         webClient.post()
-            .uri("/execution/deleteAll?name=huaweiName&owner=Huawei")
+            .uri("/api/execution/deleteAll?name=huaweiName&owner=Huawei")
             .contentType(MediaType.APPLICATION_JSON)
             .exchange()
             .expectStatus()
