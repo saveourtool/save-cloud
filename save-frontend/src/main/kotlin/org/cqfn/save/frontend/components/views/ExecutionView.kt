@@ -105,7 +105,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                     get("$apiUrl/executionDto?executionId=${props.executionId}", headers)
                         .decodeFromJsonString()
             val count: Int = get(
-                url = "$apiUrl/testExecutions/count?executionId=${props.executionId}",
+                url = "$apiUrl/testExecution/count?executionId=${props.executionId}",
                 headers = Headers().also {
                     it.set("Accept", "application/json")
                 },
