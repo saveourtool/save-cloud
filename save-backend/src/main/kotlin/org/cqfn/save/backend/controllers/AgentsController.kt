@@ -12,13 +12,15 @@ import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 /**
  * Controller to manipulate with Agent related data
  */
-@RestController("/internal")
+@RestController
+@RequestMapping("/internal")
 class AgentsController(private val agentStatusRepository: AgentStatusRepository,
                        private val agentRepository: AgentRepository,
 ) {

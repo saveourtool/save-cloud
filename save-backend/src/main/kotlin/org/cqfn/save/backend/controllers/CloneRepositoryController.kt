@@ -21,6 +21,7 @@ import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.http.client.MultipartBodyBuilder
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestPart
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.reactive.function.BodyInserters
@@ -37,7 +38,8 @@ import java.time.LocalDateTime
  * @property projectService service to manage projects
  * @property configProperties configuration properties
  */
-@RestController("/api")
+@RestController
+@RequestMapping("/api")
 class CloneRepositoryController(
     private val projectService: ProjectService,
     private val executionService: ExecutionService,
