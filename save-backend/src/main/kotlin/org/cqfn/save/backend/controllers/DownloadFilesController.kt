@@ -36,7 +36,7 @@ import kotlin.io.path.readText
  * A Spring controller for file downloading
  */
 @RestController
-@RequestMapping("/files")
+@RequestMapping("/api/files")
 class DownloadFilesController(
     private val additionalToolsFileSystemRepository: TimestampBasedFileSystemRepository,
     private val testDataFilesystemRepository: TestDataFilesystemRepository,

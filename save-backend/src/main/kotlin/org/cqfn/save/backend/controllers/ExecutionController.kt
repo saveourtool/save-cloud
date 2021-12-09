@@ -53,13 +53,13 @@ class ExecutionController(private val executionService: ExecutionService,
      * @param execution
      * @return id of created [Execution]
      */
-    @PostMapping("/createExecution")
+    @PostMapping("/internal/createExecution")
     fun createExecution(@RequestBody execution: Execution): Long = executionService.saveExecution(execution)
 
     /**
      * @param executionUpdateDto
      */
-    @PostMapping("/updateExecutionByDto")
+    @PostMapping("/internal/updateExecutionByDto")
     fun updateExecution(@RequestBody executionUpdateDto: ExecutionUpdateDto) {
         executionService.updateExecution(executionUpdateDto)
     }
@@ -67,7 +67,7 @@ class ExecutionController(private val executionService: ExecutionService,
     /**
      * @param execution
      */
-    @PostMapping("/updateExecution")
+    @PostMapping("/internal/updateExecution")
     fun updateExecution(@RequestBody execution: Execution) {
         executionService.updateExecution(execution)
     }
@@ -78,7 +78,7 @@ class ExecutionController(private val executionService: ExecutionService,
      * @param id id of execution
      * @return execution if it has been found
      */
-    @GetMapping("/execution")
+    @GetMapping(path = ["/api/execution", "/internal/execution"])
     @Transactional(readOnly = true)
     fun getExecution(@RequestParam id: Long): Execution = executionService.findExecution(id).orElseThrow {
         ResponseStatusException(HttpStatus.NOT_FOUND, "Execution with id=$id is not found")
@@ -88,7 +88,7 @@ class ExecutionController(private val executionService: ExecutionService,
      * @param executionInitializationDto
      * @return execution
      */
-    @PostMapping("/updateNewExecution")
+    @PostMapping("/internal/updateNewExecution")
     fun updateNewExecution(@RequestBody executionInitializationDto: ExecutionInitializationDto): ResponseEntity<Execution> =
             executionService.updateNewExecution(executionInitializationDto)?.let {
                 ResponseEntity.status(HttpStatus.OK).body(it)
@@ -98,7 +98,7 @@ class ExecutionController(private val executionService: ExecutionService,
      * @param executionId
      * @return execution dto
      */
-    @GetMapping("/executionDto")
+    @GetMapping("/api/executionDto")
     fun getExecutionDto(@RequestParam executionId: Long): ResponseEntity<ExecutionDto> =
             executionService.getExecutionDto(executionId)?.let {
                 ResponseEntity.status(HttpStatus.OK).body(it)
@@ -109,7 +109,7 @@ class ExecutionController(private val executionService: ExecutionService,
      * @param owner
      * @return list of execution dtos
      */
-    @GetMapping("/executionDtoList")
+    @GetMapping("/api/executionDtoList")
     fun getExecutionByProject(@RequestParam name: String, @RequestParam owner: String): ExecutionDtoListResponse =
             ResponseEntity
                 .status(HttpStatus.OK)
@@ -123,7 +123,7 @@ class ExecutionController(private val executionService: ExecutionService,
      * @return Execution
      * @throws ResponseStatusException if execution is not found
      */
-    @GetMapping("/latestExecution")
+    @GetMapping("/api/latestExecution")
     fun getLatestExecutionForProject(@RequestParam name: String, @RequestParam owner: String): Mono<ExecutionDto> =
             Mono.fromCallable { executionService.getLatestExecutionByProjectNameAndProjectOwner(name, owner) }
                 .map { execOpt ->
@@ -140,7 +140,7 @@ class ExecutionController(private val executionService: ExecutionService,
      * @return ResponseEntity
      * @throws ResponseStatusException
      */
-    @PostMapping("/execution/deleteAll")
+    @PostMapping("/api/execution/deleteAll")
     @Suppress("UnsafeCallOnNullableType")
     fun deleteExecutionForProject(@RequestParam name: String, @RequestParam owner: String): ResponseEntity<String> {
         try {
@@ -162,7 +162,7 @@ class ExecutionController(private val executionService: ExecutionService,
      * @return ResponseEntity
      * @throws ResponseStatusException
      */
-    @PostMapping("/execution/delete")
+    @PostMapping("/api/execution/delete")
     fun deleteExecutionsByExecutionIds(@RequestParam executionIds: List<Long>): ResponseEntity<String>? {
         try {
             testExecutionService.deleteTestExecutionByExecutionIds(executionIds)
@@ -182,7 +182,7 @@ class ExecutionController(private val executionService: ExecutionService,
      * @param id id of an existing execution
      * @return bodiless response
      */
-    @PostMapping("/rerunExecution")
+    @PostMapping("/api/rerunExecution")
     @Transactional
     @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
     fun rerunExecution(@RequestParam id: Long): Mono<String> {
@@ -232,6 +232,6 @@ class ExecutionController(private val executionService: ExecutionService,
      * @param execution
      * @return the list of the testRootPaths for current execution; size of the list could be >1 only in standard mode
      */
-    @PostMapping("/findTestRootPathForExecutionByTestSuites")
+    @PostMapping("/internal/findTestRootPathForExecutionByTestSuites")
     fun findTestRootPathByTestSuites(@RequestBody execution: Execution): List<String> = execution.getTestRootPathByTestSuites()
 }

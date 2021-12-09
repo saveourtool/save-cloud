@@ -81,7 +81,7 @@ class ExecutionControllerTest {
             null
         )
         webClient.post()
-            .uri("/createExecution")
+            .uri("/internal/createExecution")
             .contentType(MediaType.APPLICATION_JSON)
             .body(BodyInserters.fromValue(execution))
             .exchange()
@@ -110,7 +110,7 @@ class ExecutionControllerTest {
             null
         )
         webClient.post()
-            .uri("/createExecution")
+            .uri("/internal/createExecution")
             .contentType(MediaType.APPLICATION_JSON)
             .body(BodyInserters.fromValue(execution))
             .exchange()
@@ -145,7 +145,7 @@ class ExecutionControllerTest {
         )
 
         webClient.post()
-            .uri("/createExecution")
+            .uri("/internal/createExecution")
             .contentType(MediaType.APPLICATION_JSON)
             .body(BodyInserters.fromValue(execution))
             .exchange()
@@ -157,7 +157,7 @@ class ExecutionControllerTest {
         )
 
         webClient.post()
-            .uri("/updateExecutionByDto")
+            .uri("/internal/updateExecutionByDto")
             .contentType(MediaType.APPLICATION_JSON)
             .body(BodyInserters.fromValue(executionUpdateDto))
             .exchange()
@@ -179,7 +179,7 @@ class ExecutionControllerTest {
             -1, ExecutionStatus.FINISHED
         )
         webClient.post()
-            .uri("/updateExecutionByDto")
+            .uri("/internal/updateExecutionByDto")
             .contentType(MediaType.APPLICATION_JSON)
             .body(BodyInserters.fromValue(executionUpdateDto))
             .exchange()
@@ -190,7 +190,7 @@ class ExecutionControllerTest {
     @Test
     fun checkExecutionDto() {
         webClient.get()
-            .uri("/executionDto?executionId=1")
+            .uri("/api/executionDto?executionId=1")
             .exchange()
             .expectStatus()
             .isOk
@@ -206,7 +206,7 @@ class ExecutionControllerTest {
         val project = projectRepository.findById(1).get()
         val executionCounts = executionRepository.findAll().filter { it.project == project }.count()
         webClient.get()
-            .uri("/executionDtoList?name=${project.name}&owner=${project.owner}")
+            .uri("/api/executionDtoList?name=${project.name}&owner=${project.owner}")
             .exchange()
             .expectStatus()
             .isOk
@@ -223,7 +223,7 @@ class ExecutionControllerTest {
         val execution = Execution(projectRepository.findAll().first(), LocalDateTime.now(), null, ExecutionStatus.PENDING, null,
             null, 20, ExecutionType.GIT, null, 0, 0, 0, 0, Sdk.Default.toString(), null)
         webClient.post()
-            .uri("/createExecution")
+            .uri("/internal/createExecution")
             .contentType(MediaType.APPLICATION_JSON)
             .body(BodyInserters.fromValue(execution))
             .exchange()
@@ -232,7 +232,7 @@ class ExecutionControllerTest {
 
         val executionUpdate = ExecutionInitializationDto(execution.project, "1, 2, 3", "testPath", "executionVersion")
         webClient.post()
-            .uri("/updateNewExecution")
+            .uri("/internal/updateNewExecution")
             .contentType(MediaType.APPLICATION_JSON)
             .body(BodyInserters.fromValue(executionUpdate))
             .exchange()
@@ -270,7 +270,7 @@ class ExecutionControllerTest {
         }
 
         webClient.post()
-            .uri("/rerunExecution?id=2")
+            .uri("/api/rerunExecution?id=2")
             .exchange()
             .expectStatus()
             .isOk
