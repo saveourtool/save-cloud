@@ -2,6 +2,7 @@ package org.cqfn.save.orchestrator.service
 
 import org.cqfn.save.domain.Python
 import org.cqfn.save.entities.Execution
+import org.cqfn.save.entities.Test
 import org.cqfn.save.entities.TestSuite
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionUpdateDto
@@ -32,6 +33,7 @@ import org.springframework.web.reactive.function.client.bodyToMono
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.LinkOption
+import java.nio.file.Paths
 import java.nio.file.attribute.PosixFileAttributeView
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -202,7 +204,9 @@ class DockerService(private val configProperties: ConfigProperties) {
         val saveCliExecFlags = if (isStandardMode) {
             // create stub toml config in aim to execute all test suites directories from `testSuitesDir`
             testSuitesDir.resolve("save.toml").apply { createNewFile() }.writeText("[general]")
-            " \"$STANDARD_TEST_SUITE_DIR\" --include-suites \"${testSuitesForDocker.joinToString(",") { it.name }}\""
+            val testPaths = calculatePathsToTheTestsForCurrentExecution(execution)
+            log.debug("Discover the following tests for execution ${testPaths}")
+            " \"$STANDARD_TEST_SUITE_DIR\" ${testPaths.joinToString(" ")}"
         } else {
             ""
         }
@@ -254,6 +258,27 @@ class DockerService(private val configProperties: ConfigProperties) {
         saveAgent.delete()
         saveCli.delete()
         return Triple(imageId, agentRunCmd, saveCliExecFlags)
+    }
+
+    private fun calculatePathsToTheTestsForCurrentExecution(execution: Execution): MutableList<String> {
+        val testPaths: MutableList<String> = mutableListOf()
+        execution.testSuiteIds!!.split(", ").forEach { id ->
+            val testSuite = webClientBackend.get()
+                .uri("/testSuite/${id.toLong()}")
+                .retrieve()
+                .bodyToMono<TestSuite>()
+                .block()!!
+
+            webClientBackend.get()
+                .uri("/getTestsByTestSuiteId?testSuiteId=${id.toLong()}")
+                .retrieve()
+                .bodyToMono<List<Test>>()
+                .block()!!.forEach {
+                val testFilePathInStandardDir = Paths.get(getLocationInStandardDirForTestSuite(testSuite.toDto())).resolve(Paths.get(it.filePath))
+                testPaths.add(testFilePathInStandardDir.toString())
+            }
+        }
+        return testPaths
     }
 
     private fun changeOwnerRecursively(directory: File, user: String) {
@@ -336,13 +361,16 @@ class DockerService(private val configProperties: ConfigProperties) {
                 .resolve(File("${listOf(it.testSuiteRepoUrl!!).hashCode()}")
                     .resolve(it.testRootPath)
                 )
-            val currentSuiteDestination = destination.resolve("$PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE${it.testSuiteRepoUrl.hashCode()}_${it.testRootPath.hashCode()}")
+            val currentSuiteDestination = destination.resolve(getLocationInStandardDirForTestSuite(it))
             if (!currentSuiteDestination.exists()) {
                 log.debug("Copying suite ${it.name} from $standardTestSuiteAbsolutePath into $currentSuiteDestination/...")
                 copyRecursivelyWithAttributes(standardTestSuiteAbsolutePath, currentSuiteDestination)
             }
         }
     }
+
+    private fun getLocationInStandardDirForTestSuite(testSuiteDto: TestSuiteDto) =
+             "$PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE${testSuiteDto.testSuiteRepoUrl.hashCode()}_${testSuiteDto.testRootPath.hashCode()}"
 
     private fun createContainerForExecution(
         execution: Execution,
