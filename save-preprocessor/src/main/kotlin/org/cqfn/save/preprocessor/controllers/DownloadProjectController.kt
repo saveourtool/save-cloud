@@ -54,9 +54,9 @@ import org.springframework.web.reactive.function.client.bodyToMono
 import org.springframework.web.reactive.function.client.toEntity
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
-import reactor.core.publisher.Flux.fromIterable
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
+import reactor.kotlin.core.publisher.toFlux
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
 import reactor.netty.http.client.HttpClientRequest
@@ -255,21 +255,18 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                         }
                             .flatMap { testSuites ->
                                 log.info("Starting to save new tests for config test root $testRootPath")
-                                webClientBackend.makeRequest(
-                                    BodyInserters.fromValue(
-                                        testDiscoveringService.getAllTests(
-                                            rootTestConfig,
-                                            testSuites
-                                        )
-                                    ),
-                                    "/initializeTests"
-                                ) { it.toBodilessEntity() }
+                                initializeTests(
+                                    testSuites,
+                                    rootTestConfig,
+                                    null,
+                                )
                             }
                     }
                     .doOnError {
-                        log.error("Error to update test with url=$testSuiteUrl, path=$testSuitePaths")
+                        log.error("Error to update test suite with url=$testSuiteUrl, path=$testSuitePaths")
                     }
-            }.collectList()
+            }
+                .collectList()
                 .flatMap {
                     markObsoleteOldStandardTestSuites(newTestSuites)
                 }
@@ -531,7 +528,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                                            execution: Execution,
                                            testRootPath: String,
                                            projectRootRelativePath: String,
-                                           gitUrl: String): Mono<EmptyResponse> = Mono.fromCallable {
+                                           gitUrl: String): Mono<List<EmptyResponse>> = Mono.fromCallable {
         val testResourcesRootAbsolutePath =
                 getTestResourcesRootAbsolutePath(testRootPath, projectRootRelativePath)
         testDiscoveringService.getRootTestConfig(testResourcesRootAbsolutePath)
@@ -554,13 +551,13 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         execution: Execution
     ): Mono<ResponseEntity<HttpStatus>> {
         val testSuiteIds: MutableList<Long> = mutableListOf()
-        return fromIterable(testSuiteDtos).flatMap<List<TestSuite>?> {
+        return Flux.fromIterable(testSuiteDtos).flatMap<List<TestSuite>?> {
             webClientBackend.get()
                 .uri("/standardTestSuitesWithName?name=${it.name}")
                 .retrieve()
                 .bodyToMono()
         }.flatMap { testSuites ->
-            fromIterable(testSuites).flatMap { testSuite ->
+            Flux.fromIterable(testSuites).flatMap { testSuite ->
                 testSuiteIds.add(testSuite.id!!)
                 webClientBackend.makeRequest(
                     BodyInserters.fromValue(execution.id!!),
@@ -608,17 +605,30 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
     /**
      * Discover tests and send them to backend
      */
+    @Suppress("MagicNumber")
     private fun initializeTests(testSuites: List<TestSuite>,
                                 rootTestConfig: TestConfig,
-                                executionId: Long) = webClientBackend.makeRequest(
-        BodyInserters.fromValue(testDiscoveringService.getAllTests(rootTestConfig, testSuites)),
-        "/initializeTests?executionId=$executionId"
-    ) {
-        it.toBodilessEntity()
-    }
+                                executionId: Long?,
+    ): Mono<List<EmptyResponse>> = testDiscoveringService.getAllTests(
+        rootTestConfig,
+        testSuites,
+    )
+        // default Webflux in-memory buffer is 256 KiB
+        .chunked(128)
+        .toFlux()
+        .doOnNext {
+            log.debug("Processing chuck of tests [${it.first()} ... ${it.last()}]")
+        }
+        .flatMap { testDtos ->
+            webClientBackend.makeRequest(
+                BodyInserters.fromValue(testDtos),
+                "/initializeTests${(executionId?.let { "?executionId=$it" } ?: "")}"
+            ) { it.toBodilessEntity() }
+        }
+        .collectList()
 
     /**
-     * Post request to orchestrator to initiate its work
+     * POST request to orchestrator to initiate its work
      */
     private fun initializeAgents(execution: Execution, testSuiteDtos: List<TestSuiteDto>?): Status {
         val bodyBuilder = MultipartBodyBuilder().apply {
