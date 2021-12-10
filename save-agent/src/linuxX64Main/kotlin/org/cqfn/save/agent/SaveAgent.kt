@@ -92,17 +92,6 @@ class SaveAgent(internal val config: AgentConfiguration,
     @Suppress("WHEN_WITHOUT_ELSE")  // when with sealed class
     private suspend fun startHeartbeats() = coroutineScope {
         logInfoCustom("Scheduling heartbeats")
-
-        runBlocking {
-            val job2 = async { delay(15_000); logInfoCustom("Hi, I'm in a second launch") }
-            val job1 = async(newSingleThreadContext("test-1")) {
-                logInfoCustom("Hi, I'm in a first launch")
-                system("sleep 10")
-                job2.cancel()
-            }
-            joinAll(job1, job2)
-        }
-
         sendDataToBackend { saveAdditionalData() }
         while (true) {
             val response = runCatching {
