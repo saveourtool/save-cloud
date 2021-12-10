@@ -29,6 +29,8 @@ import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
 import kotlinx.serialization.properties.Properties
 import kotlinx.serialization.properties.decodeFromStringMap
+import org.cqfn.save.agent.utils.logDebugCustom
+import org.cqfn.save.agent.utils.logInfoCustom
 
 internal val json = Json {
     serializersModule = SerializersModule {
@@ -47,10 +49,10 @@ fun main() {
         readProperties("agent.properties")
     )
     logType = if (config.debug) LogType.ALL else LogType.WARN
-    logDebug("Instantiating save-agent version $SAVE_CLOUD_VERSION with config $config")
+    logDebugCustom("Instantiating save-agent version $SAVE_CLOUD_VERSION with config $config")
 
     signal(SIGTERM, staticCFunction<Int, Unit> {
-        logInfo("Agent is shutting down because SIGTERM has been received")
+        logInfoCustom("Agent is shutting down because SIGTERM has been received")
         exit(1)
     })
 
@@ -66,5 +68,5 @@ fun main() {
     runBlocking {
         saveAgent.start()
     }
-    logInfo("Agent is shutting down")
+    logInfoCustom("Agent is shutting down")
 }

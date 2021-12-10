@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalCoroutinesApi::class)
+
 package org.cqfn.save.agent
 
 import org.cqfn.save.agent.utils.readFile
@@ -32,16 +34,21 @@ import okio.Path.Companion.toPath
 import kotlin.native.concurrent.AtomicLong
 import kotlin.native.concurrent.AtomicReference
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.newSingleThreadContext
+import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.Clock
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
+import org.cqfn.save.agent.utils.logDebugCustom
+import org.cqfn.save.agent.utils.logInfoCustom
 
 /**
  * A main class for SAVE Agent
@@ -73,14 +80,14 @@ class SaveAgent(internal val config: AgentConfiguration,
      * @return Unit
      */
     suspend fun start() = coroutineScope {
-        logInfo("Starting agent")
+        logInfoCustom("Starting agent")
         val heartbeatsJob = launch { startHeartbeats() }
         heartbeatsJob.join()
     }
 
     @Suppress("WHEN_WITHOUT_ELSE")  // when with sealed class
     private suspend fun startHeartbeats() = coroutineScope {
-        logInfo("Scheduling heartbeats")
+        logInfoCustom("Scheduling heartbeats")
         sendDataToBackend { saveAdditionalData() }
         while (true) {
             val response = runCatching {
@@ -89,7 +96,7 @@ class SaveAgent(internal val config: AgentConfiguration,
             }
             if (response.isSuccess) {
                 when (val heartbeatResponse = response.getOrNull().also {
-                    logDebug("Got heartbeat response $it")
+                    logDebugCustom("Got heartbeat response $it")
                 }) {
                     is NewJobResponse -> maybeStartSaveProcess(heartbeatResponse.cliArgs)
                     is WaitResponse -> state.value = AgentState.IDLE
@@ -100,7 +107,7 @@ class SaveAgent(internal val config: AgentConfiguration,
                 response.exceptionOrNull()?.printStackTrace()
             }
             // todo: start waiting after request was sent, not after response?
-            logInfo("Waiting for ${config.heartbeat.intervalMillis} ms")
+            logInfoCustom("Waiting for ${config.heartbeat.intervalMillis} ms")
             delay(config.heartbeat.intervalMillis)
         }
     }
@@ -109,7 +116,9 @@ class SaveAgent(internal val config: AgentConfiguration,
         if (saveProcessJob?.isCompleted == false) {
             logError("Shouldn't start new process when there is the previous running")
         } else {
-            saveProcessJob = launch {
+            saveProcessJob = launch(
+                newSingleThreadContext("save-execution")
+            ) {
                 runCatching {
                     // new job received from Orchestrator, spawning SAVE CLI process
                     startSaveProcess(cliArgs)
@@ -131,9 +140,9 @@ class SaveAgent(internal val config: AgentConfiguration,
         // blocking execution of OS process
         state.value = AgentState.BUSY
         executionStartSeconds.value = Clock.System.now().epochSeconds
-        logInfo("Starting SAVE with provided args $cliArgs")
+        logInfoCustom("Starting SAVE with provided args $cliArgs")
         val executionResult = runSave(cliArgs)
-        logInfo("SAVE has completed execution with status ${executionResult.code}")
+        logInfoCustom("SAVE has completed execution with status ${executionResult.code}")
         val executionLogs = ExecutionLogs(config.id, readFile(config.logFilePath))
         val logsSendingJob = launchLogSendingJob(executionLogs)
         when (executionResult.code) {
@@ -174,7 +183,7 @@ class SaveAgent(internal val config: AgentConfiguration,
                     val debugInfo = tr.toTestResultDebugInfo(report.testSuite, pluginExecution.plugin)
                     launch {
                         // todo: launch on a dedicated thread (https://github.com/diktat-static-analysis/save-cloud/issues/315)
-                        logDebug("Posting debug info for test ${debugInfo.testResultLocation}")
+                        logDebugCustom("Posting debug info for test ${debugInfo.testResultLocation}")
                         sendDataToBackend {
                             sendReport(debugInfo)
                         }
@@ -245,7 +254,7 @@ class SaveAgent(internal val config: AgentConfiguration,
      * @return a [HeartbeatResponse] from Orchestrator
      */
     internal suspend fun sendHeartbeat(executionProgress: ExecutionProgress): HeartbeatResponse {
-        logDebug("Sending heartbeat to ${config.orchestratorUrl}")
+        logDebugCustom("Sending heartbeat to ${config.orchestratorUrl}")
         // if current state is IDLE or FINISHED, should accept new jobs as a response
         return httpClient.post("${config.orchestratorUrl}/heartbeat") {
             contentType(ContentType.Application.Json)
@@ -255,14 +264,14 @@ class SaveAgent(internal val config: AgentConfiguration,
     }
 
     private suspend fun postExecutionData(testExecutionDtos: List<TestExecutionDto>) = httpClient.post<HttpResponse> {
-        logInfo("Posting execution data to backend, ${testExecutionDtos.size} test executions")
+        logInfoCustom("Posting execution data to backend, ${testExecutionDtos.size} test executions")
         url("${config.backend.url}/${config.backend.executionDataEndpoint}")
         contentType(ContentType.Application.Json)
         body = testExecutionDtos
     }
 
     private suspend fun saveAdditionalData() = httpClient.post<HttpResponse> {
-        logInfo("Posting additional data to backend")
+        logInfoCustom("Posting additional data to backend")
         url("${config.backend.url}/${config.backend.additionalDataEndpoint}")
         contentType(ContentType.Application.Json)
         body = AgentVersion(config.id, SAVE_CLOUD_VERSION)
