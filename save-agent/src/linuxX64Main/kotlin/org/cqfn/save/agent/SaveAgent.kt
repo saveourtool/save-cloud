@@ -149,6 +149,10 @@ class SaveAgent(internal val config: AgentConfiguration,
         logInfoCustom("SAVE has completed execution with status ${executionResult.code}")
         val executionLogs = ExecutionLogs(config.id, readFile(config.logFilePath))
         val logsSendingJob = launchLogSendingJob(executionLogs)
+        logDebugCustom("SAVE has completed execution, execution logs:")
+        executionLogs.cliLogs.forEach {
+            logDebugCustom("[SAVE] $it")
+        }
         when (executionResult.code) {
             0 -> if (executionLogs.cliLogs.isEmpty()) {
                 state.value = AgentState.CLI_FAILED
