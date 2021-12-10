@@ -22,7 +22,7 @@ internal fun readFile(filePath: String): List<String> = try {
         generateSequence { readUtf8Line() }.toList()
     }
 } catch (e: FileNotFoundException) {
-    logError("Not able to find file in the following path: $filePath")
+    logErrorCustom("Not able to find file in the following path: $filePath")
     emptyList()
 }
 

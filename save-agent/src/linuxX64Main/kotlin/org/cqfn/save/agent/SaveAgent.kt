@@ -2,6 +2,9 @@
 
 package org.cqfn.save.agent
 
+import org.cqfn.save.agent.utils.logDebugCustom
+import org.cqfn.save.agent.utils.logErrorCustom
+import org.cqfn.save.agent.utils.logInfoCustom
 import org.cqfn.save.agent.utils.readFile
 import org.cqfn.save.agent.utils.sendDataToBackend
 import org.cqfn.save.core.logging.describe
@@ -47,8 +50,6 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
-import org.cqfn.save.agent.utils.logDebugCustom
-import org.cqfn.save.agent.utils.logInfoCustom
 
 /**
  * A main class for SAVE Agent
@@ -105,7 +106,7 @@ class SaveAgent(internal val config: AgentConfiguration,
                     is ContinueResponse -> Unit  // do nothing
                 }
             } else {
-                logError("Exception during heartbeat: ${response.exceptionOrNull()?.message}")
+                logErrorCustom("Exception during heartbeat: ${response.exceptionOrNull()?.message}")
                 response.exceptionOrNull()?.printStackTrace()
             }
             // todo: start waiting after request was sent, not after response?
@@ -116,7 +117,7 @@ class SaveAgent(internal val config: AgentConfiguration,
 
     private suspend fun maybeStartSaveProcess(cliArgs: String) = coroutineScope {
         if (saveProcessJob?.isCompleted == false) {
-            logError("Shouldn't start new process when there is the previous running")
+            logErrorCustom("Shouldn't start new process when there is the previous running")
         } else {
             saveProcessJob = launch(
                 newSingleThreadContext("save-execution")
@@ -128,7 +129,7 @@ class SaveAgent(internal val config: AgentConfiguration,
                     .exceptionOrNull()
                     ?.let {
                         state.value = AgentState.CLI_FAILED
-                        logError("Error executing SAVE: ${it.describe()}")
+                        logErrorCustom("Error executing SAVE: ${it.describe()}")
                     }
             }
         }
@@ -155,7 +156,7 @@ class SaveAgent(internal val config: AgentConfiguration,
                 state.value = AgentState.FINISHED
             }
             else -> {
-                logError("SAVE has exited abnormally with status ${executionResult.code}")
+                logErrorCustom("SAVE has exited abnormally with status ${executionResult.code}")
                 state.value = AgentState.CLI_FAILED
             }
         }
@@ -216,7 +217,7 @@ class SaveAgent(internal val config: AgentConfiguration,
         }
             .exceptionOrNull()
             ?.let {
-                logError("Couldn't send logs, reason: ${it.message}")
+                logErrorCustom("Couldn't send logs, reason: ${it.message}")
             }
     }
 
@@ -226,7 +227,7 @@ class SaveAgent(internal val config: AgentConfiguration,
             readExecutionResults(jsonReport)
         }
         if (testExecutionDtos.isFailure) {
-            logError("Couldn't read execution results from JSON report, reason: ${testExecutionDtos.exceptionOrNull()?.describe()}" +
+            logErrorCustom("Couldn't read execution results from JSON report, reason: ${testExecutionDtos.exceptionOrNull()?.describe()}" +
                     "\n${testExecutionDtos.exceptionOrNull()?.stackTraceToString()}"
             )
         } else {

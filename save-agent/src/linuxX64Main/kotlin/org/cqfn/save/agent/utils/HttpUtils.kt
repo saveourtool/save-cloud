@@ -30,7 +30,7 @@ internal suspend fun SaveAgent.sendDataToBackend(
         state.value = AgentState.BACKEND_UNREACHABLE
         "Backend is unreachable, ${result.exceptionOrNull()?.message}"
     }
-    logError("Cannot post data (x${attempt + 1}), will retry in ${config.retry.initialRetryMillis} ms. Reason: $reason")
+    logErrorCustom("Cannot post data (x${attempt + 1}), will retry in ${config.retry.initialRetryMillis} ms. Reason: $reason")
 }
 
 /**
