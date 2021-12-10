@@ -89,24 +89,18 @@ class SaveAgent(internal val config: AgentConfiguration,
      */
     suspend fun start() = coroutineScope {
         logInfoCustom("Starting agent")
-
-        val job = launch(newSingleThreadContext("test")) {
-            logInfoCustom("Foo from test")
-//            executionStartSeconds.value = Clock.System.now().epochSeconds
-//            state.value = AgentState.CLI_FAILED
-            val cliArgs = "foo bar baz"
-            maybeStartSaveProcess(this@coroutineScope.coroutineContext, cliArgs)
-        }
-        job.join()
-
-        val heartbeatsJob = launch { startHeartbeats() }
+        val heartbeatsJob = launch(
+            newSingleThreadContext("heartbeats")
+        ) { startHeartbeats(this@coroutineScope.coroutineContext) }
         heartbeatsJob.join()
     }
 
     @Suppress("WHEN_WITHOUT_ELSE")  // when with sealed class
-    private suspend fun startHeartbeats() = coroutineScope {
+    private suspend fun startHeartbeats(context: CoroutineContext) = coroutineScope {
         logInfoCustom("Scheduling heartbeats")
-        sendDataToBackend { saveAdditionalData() }
+        launch(newSingleThreadContext("background")) {
+            sendDataToBackend { saveAdditionalData() }
+        }
         while (true) {
             val response = runCatching {
                 // TODO: get execution progress here. However, with current implementation JSON report won't be valid until all tests are finished.
@@ -116,7 +110,7 @@ class SaveAgent(internal val config: AgentConfiguration,
                 when (val heartbeatResponse = response.getOrNull().also {
                     logDebugCustom("Got heartbeat response $it")
                 }) {
-                    is NewJobResponse -> maybeStartSaveProcess(this@coroutineScope.coroutineContext, heartbeatResponse.cliArgs)
+                    is NewJobResponse -> maybeStartSaveProcess(context, heartbeatResponse.cliArgs)
                     is WaitResponse -> state.value = AgentState.IDLE
                     is ContinueResponse -> Unit  // do nothing
                 }
