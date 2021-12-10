@@ -116,6 +116,7 @@ class SaveAgent(internal val config: AgentConfiguration,
                 }
                     .exceptionOrNull()
                     ?.let {
+                        state.value = AgentState.CLI_FAILED
                         logError("Error executing SAVE: ${it.describe()}")
                     }
             }
@@ -160,7 +161,7 @@ class SaveAgent(internal val config: AgentConfiguration,
             } + " --report-type json --result-output file --log all",
             "",
             config.logFilePath.toPath(),
-            100_000L
+            1_000_000L
         )
 
     @Suppress("TOO_MANY_LINES_IN_LAMBDA")
@@ -185,7 +186,9 @@ class SaveAgent(internal val config: AgentConfiguration,
                         config.id,
                         testResultStatus,
                         executionStartSeconds.value,
-                        currentTime.epochSeconds
+                        currentTime.epochSeconds,
+                        missingWarnings = debugInfo.debugInfo?.countWarnings?.missing,
+                        matchedWarnings = debugInfo.debugInfo?.countWarnings?.match,
                     )
                 }
             }
@@ -232,7 +235,7 @@ class SaveAgent(internal val config: AgentConfiguration,
     }
 
     private suspend fun sendReport(testResultDebugInfo: TestResultDebugInfo) = httpClient.post<HttpResponse> {
-        url("${config.backend.url}/files/debug-info?agentId=${config.id}")
+        url("${config.backend.url}/${config.backend.filesEndpoint}/debug-info?agentId=${config.id}")
         contentType(ContentType.Application.Json)
         body = testResultDebugInfo
     }

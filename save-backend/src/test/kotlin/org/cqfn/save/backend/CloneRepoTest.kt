@@ -63,7 +63,7 @@ class CloneRepoTest {
         }
             .build()
         webClient.post()
-            .uri("/submitExecutionRequest")
+            .uri("/api/submitExecutionRequest")
             .contentType(MediaType.MULTIPART_FORM_DATA)
             .body(BodyInserters.fromMultipartData(multipart))
             .exchange()
@@ -95,7 +95,7 @@ class CloneRepoTest {
         }
         multiparts.forEach {
             webClient.post()
-                .uri("/submitExecutionRequest")
+                .uri("/api/submitExecutionRequest")
                 .contentType(MediaType.MULTIPART_FORM_DATA)
                 .body(BodyInserters.fromMultipartData(it))
                 .exchange()

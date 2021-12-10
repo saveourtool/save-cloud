@@ -16,6 +16,7 @@ import org.cqfn.save.preprocessor.config.ConfigProperties
 import org.cqfn.save.preprocessor.service.TestDiscoveringService
 import org.cqfn.save.preprocessor.utils.RepositoryVolume
 import org.cqfn.save.preprocessor.utils.toHash
+import org.cqfn.save.test.TestDto
 import org.cqfn.save.testsuite.TestSuiteDto
 import org.cqfn.save.testsuite.TestSuiteType
 
@@ -78,6 +79,9 @@ class DownloadProjectTest(
     fun webClientSetUp() {
         webClient.mutate().responseTimeout(Duration.ofSeconds(2)).build()
         whenever(testDiscoveringService.getRootTestConfig(any())).thenReturn(mock())
+        whenever(testDiscoveringService.getAllTests(any(), any())).thenReturn(
+            sequenceOf(TestDto("foo", "fooPlugin", 15, "86", emptyList()))
+        )
     }
 
     @BeforeAll

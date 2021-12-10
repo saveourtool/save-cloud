@@ -55,7 +55,7 @@ class TestExecutionControllerTest {
     @Test
     fun `should count TestExecutions for a particular Execution`() {
         webClient.get()
-            .uri("/testExecution/count?executionId=1")
+            .uri("/api/testExecution/count?executionId=1")
             .exchange()
             .expectBody<Int>()
             .isEqualTo(28)
@@ -64,7 +64,7 @@ class TestExecutionControllerTest {
     @Test
     fun `should return a page of TestExecutions for a particular Execution`() {
         webClient.get()
-            .uri("/testExecutions?executionId=1&page=0&size=20")
+            .uri("/api/testExecutions?executionId=1&page=0&size=20")
             .exchange()
             .expectBody<List<TestExecutionDto>>()
             .consumeWith {
@@ -78,7 +78,7 @@ class TestExecutionControllerTest {
      * that check data read.
      */
     @Test
-    @Suppress("UnsafeCallOnNullableType")
+    @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
     fun `should save TestExecutionDto into the DB`() {
         val testExecutionDtoFirst = TestExecutionDto(
             "testPath63",
@@ -86,7 +86,9 @@ class TestExecutionControllerTest {
             "container-3",
             TestResultStatus.FAILED,
             DEFAULT_DATE_TEST_EXECUTION,
-            DEFAULT_DATE_TEST_EXECUTION
+            DEFAULT_DATE_TEST_EXECUTION,
+            missingWarnings = null,
+            matchedWarnings = null,
         )
         val testExecutionDtoSecond = TestExecutionDto(
             "testPath42",
@@ -94,12 +96,14 @@ class TestExecutionControllerTest {
             "container-3",
             TestResultStatus.PASSED,
             DEFAULT_DATE_TEST_EXECUTION,
-            DEFAULT_DATE_TEST_EXECUTION
+            DEFAULT_DATE_TEST_EXECUTION,
+            missingWarnings = null,
+            matchedWarnings = null,
         )
         val passedTestsBefore = getExecutionsTestsResultByAgentContainerId(testExecutionDtoSecond.agentContainerId!!, true)
         val failedTestsBefore = getExecutionsTestsResultByAgentContainerId(testExecutionDtoFirst.agentContainerId!!, false)
         webClient.post()
-            .uri("/saveTestResult")
+            .uri("/internal/saveTestResult")
             .contentType(MediaType.APPLICATION_JSON)
             .body(BodyInserters.fromValue(listOf(testExecutionDtoFirst, testExecutionDtoSecond)))
             .exchange()
@@ -123,10 +127,12 @@ class TestExecutionControllerTest {
             "container-1",
             TestResultStatus.FAILED,
             DEFAULT_DATE_TEST_EXECUTION,
-            DEFAULT_DATE_TEST_EXECUTION
+            DEFAULT_DATE_TEST_EXECUTION,
+            missingWarnings = null,
+            matchedWarnings = null,
         )
         webClient.post()
-            .uri("/saveTestResult")
+            .uri("/internal/saveTestResult")
             .contentType(MediaType.APPLICATION_JSON)
             .body(BodyInserters.fromValue(listOf(testExecutionDto)))
             .exchange()

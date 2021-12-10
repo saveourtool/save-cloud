@@ -18,6 +18,7 @@ import javax.persistence.ManyToOne
  * @property testRootPath location of save.properties file for this test suite, relative to project's root directory
  * @property testSuiteRepoUrl url of the repo with test suites
  * @property description description of the test suite
+ * @property language
  */
 @Suppress("USE_DATA_CLASS", "LongParameterList")
 @Entity
@@ -37,7 +38,9 @@ class TestSuite(
 
     var testRootPath: String,
 
-    var testSuiteRepoUrl: String? = null
+    var testSuiteRepoUrl: String? = null,
+
+    var language: String? = null,
 ) : BaseEntity() {
     /**
      * @return Dto of testSuite
@@ -50,5 +53,6 @@ class TestSuite(
                 this.project,
                 this.testRootPath,
                 this.testSuiteRepoUrl,
+                this.language,
             )
 }
