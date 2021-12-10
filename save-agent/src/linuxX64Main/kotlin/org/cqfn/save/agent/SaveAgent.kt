@@ -82,15 +82,21 @@ class SaveAgent(internal val config: AgentConfiguration,
      */
     suspend fun start() = coroutineScope {
         logInfoCustom("Starting agent")
-        val heartbeatsJob = launch(
-            newSingleThreadContext("save-execution")
-        ) { startHeartbeats() }
+        val heartbeatsJob = launch { startHeartbeats() }
         heartbeatsJob.join()
     }
 
     @Suppress("WHEN_WITHOUT_ELSE")  // when with sealed class
     private suspend fun startHeartbeats() = coroutineScope {
         logInfoCustom("Scheduling heartbeats")
+
+        runBlocking {
+            launch(newSingleThreadContext("test-1")) {
+                logInfoCustom("Hi, I'm in a first launch")
+            }
+            logInfoCustom("Hi, I'm in a second launch")
+        }
+
         sendDataToBackend { saveAdditionalData() }
         while (true) {
             val response = runCatching {
