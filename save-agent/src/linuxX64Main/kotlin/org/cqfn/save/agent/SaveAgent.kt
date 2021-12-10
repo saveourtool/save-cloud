@@ -39,8 +39,10 @@ import kotlin.native.concurrent.AtomicReference
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.newSingleThreadContext
 import kotlinx.coroutines.runBlocking
@@ -50,6 +52,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
+import platform.posix.system
 
 /**
  * A main class for SAVE Agent
@@ -91,10 +94,12 @@ class SaveAgent(internal val config: AgentConfiguration,
         logInfoCustom("Scheduling heartbeats")
 
         runBlocking {
-            launch(newSingleThreadContext("test-1")) {
+            val job1 = async(newSingleThreadContext("test-1")) {
                 logInfoCustom("Hi, I'm in a first launch")
+                system("sleep 20")
             }
-            logInfoCustom("Hi, I'm in a second launch")
+            val job2 = async { delay(15_000); logInfoCustom("Hi, I'm in a second launch") }
+            joinAll(job1, job2)
         }
 
         sendDataToBackend { saveAdditionalData() }
