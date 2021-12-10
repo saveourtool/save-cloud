@@ -94,11 +94,12 @@ class SaveAgent(internal val config: AgentConfiguration,
         logInfoCustom("Scheduling heartbeats")
 
         runBlocking {
+            val job2 = async { delay(15_000); logInfoCustom("Hi, I'm in a second launch") }
             val job1 = async(newSingleThreadContext("test-1")) {
                 logInfoCustom("Hi, I'm in a first launch")
-                system("sleep 20")
+                system("sleep 10")
+                job2.cancel()
             }
-            val job2 = async { delay(15_000); logInfoCustom("Hi, I'm in a second launch") }
             joinAll(job1, job2)
         }
 
