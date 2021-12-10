@@ -7,7 +7,6 @@ package org.cqfn.save.agent.utils
 import org.cqfn.save.agent.AgentState
 import org.cqfn.save.agent.RetryConfig
 import org.cqfn.save.agent.SaveAgent
-import org.cqfn.save.core.logging.logError
 
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.HttpStatusCode

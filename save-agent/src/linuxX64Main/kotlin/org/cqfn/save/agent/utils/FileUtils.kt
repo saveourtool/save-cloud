@@ -4,8 +4,6 @@
 
 package org.cqfn.save.agent.utils
 
-import org.cqfn.save.core.logging.logError
-
 import okio.FileNotFoundException
 import okio.FileSystem
 import okio.Path.Companion.toPath

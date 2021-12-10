@@ -8,9 +8,6 @@ import org.cqfn.save.agent.utils.logInfoCustom
 import org.cqfn.save.agent.utils.readFile
 import org.cqfn.save.agent.utils.sendDataToBackend
 import org.cqfn.save.core.logging.describe
-import org.cqfn.save.core.logging.logDebug
-import org.cqfn.save.core.logging.logError
-import org.cqfn.save.core.logging.logInfo
 import org.cqfn.save.core.plugin.Plugin
 import org.cqfn.save.core.utils.ExecutionResult
 import org.cqfn.save.core.utils.ProcessBuilder
@@ -34,29 +31,22 @@ import okio.ExperimentalFileSystem
 import okio.FileSystem
 import okio.Path.Companion.toPath
 
+import kotlin.coroutines.CoroutineContext
 import kotlin.native.concurrent.AtomicLong
 import kotlin.native.concurrent.AtomicReference
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.newSingleThreadContext
-import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.Clock
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
-import platform.posix.system
-import kotlin.coroutines.CoroutineContext
-import kotlin.native.concurrent.freeze
 
 /**
  * A main class for SAVE Agent
@@ -74,7 +64,7 @@ class SaveAgent(internal val config: AgentConfiguration,
     // fixme: can't use atomic reference to Instant here, because when using `Clock.System.now()` as an assined value
     // Kotlin throws `kotlin.native.concurrent.InvalidMutabilityException: mutation attempt of frozen kotlinx.datetime.Instant...`
     private val executionStartSeconds = AtomicLong()
-    private var saveProcessJob = AtomicReference<Job?>(null)
+    private var saveProcessJob: AtomicReference<Job?> = AtomicReference(null)
     private val reportFormat = Json {
         serializersModule = SerializersModule {
             polymorphic(Plugin.TestFiles::class) {

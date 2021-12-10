@@ -1,10 +1,17 @@
+/**
+ * Logging utilities for save-agent
+ */
+
+@file:Suppress("MISSING_KDOC_TOP_LEVEL", "MISSING_KDOC_ON_FUNCTION")
+
 package org.cqfn.save.agent.utils
+
+import platform.linux.__NR_gettid
+import platform.posix.syscall
 
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
-import platform.linux.__NR_gettid
-import platform.posix.syscall
 
 fun logErrorCustom(msg: String) = logMessage(
     "ERROR",

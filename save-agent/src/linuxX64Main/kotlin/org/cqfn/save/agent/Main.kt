@@ -4,10 +4,10 @@
 
 package org.cqfn.save.agent
 
+import org.cqfn.save.agent.utils.logDebugCustom
+import org.cqfn.save.agent.utils.logInfoCustom
 import org.cqfn.save.agent.utils.readProperties
 import org.cqfn.save.core.config.LogType
-import org.cqfn.save.core.logging.logDebug
-import org.cqfn.save.core.logging.logInfo
 import org.cqfn.save.core.logging.logType
 
 import generated.SAVE_CLOUD_VERSION
@@ -29,8 +29,6 @@ import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
 import kotlinx.serialization.properties.Properties
 import kotlinx.serialization.properties.decodeFromStringMap
-import org.cqfn.save.agent.utils.logDebugCustom
-import org.cqfn.save.agent.utils.logInfoCustom
 
 internal val json = Json {
     serializersModule = SerializersModule {
