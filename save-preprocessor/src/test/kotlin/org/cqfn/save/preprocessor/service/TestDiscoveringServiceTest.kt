@@ -90,7 +90,7 @@ class TestDiscoveringServiceTest {
                 createTestSuiteStub("Directory: Chapter2", 6),
                 createTestSuiteStub("Directory: Chapter3", 7),
             )
-        )
+        ).toList()
 
         println("Discovered the following tests: $testDtos")
         Assertions.assertEquals(16, testDtos.size)
