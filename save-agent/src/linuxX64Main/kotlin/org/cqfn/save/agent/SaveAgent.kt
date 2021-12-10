@@ -37,7 +37,9 @@ import okio.Path.Companion.toPath
 import kotlin.native.concurrent.AtomicLong
 import kotlin.native.concurrent.AtomicReference
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -53,6 +55,7 @@ import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
 import platform.posix.system
+import kotlin.coroutines.CoroutineContext
 import kotlin.native.concurrent.freeze
 
 /**
@@ -92,7 +95,7 @@ class SaveAgent(internal val config: AgentConfiguration,
 //            executionStartSeconds.value = Clock.System.now().epochSeconds
 //            state.value = AgentState.CLI_FAILED
             val cliArgs = "foo bar baz"
-            maybeStartSaveProcess(cliArgs)
+            maybeStartSaveProcess(this@coroutineScope.coroutineContext, cliArgs)
         }
         job.join()
 
@@ -113,7 +116,7 @@ class SaveAgent(internal val config: AgentConfiguration,
                 when (val heartbeatResponse = response.getOrNull().also {
                     logDebugCustom("Got heartbeat response $it")
                 }) {
-                    is NewJobResponse -> maybeStartSaveProcess(heartbeatResponse.cliArgs)
+                    is NewJobResponse -> maybeStartSaveProcess(this@coroutineScope.coroutineContext, heartbeatResponse.cliArgs)
                     is WaitResponse -> state.value = AgentState.IDLE
                     is ContinueResponse -> Unit  // do nothing
                 }
@@ -127,13 +130,11 @@ class SaveAgent(internal val config: AgentConfiguration,
         }
     }
 
-    private suspend fun maybeStartSaveProcess(cliArgs: String) = coroutineScope {
+    private suspend fun maybeStartSaveProcess(context: CoroutineContext, cliArgs: String) = coroutineScope {
         if (saveProcessJob.value?.isCompleted == false) {
             logErrorCustom("Shouldn't start new process when there is the previous running")
         } else {
-            saveProcessJob.value = launch(
-                newSingleThreadContext("save-execution")
-            ) {
+            saveProcessJob.value = launch(context) {
                 runCatching {
                     // new job received from Orchestrator, spawning SAVE CLI process
                     startSaveProcess(cliArgs)
