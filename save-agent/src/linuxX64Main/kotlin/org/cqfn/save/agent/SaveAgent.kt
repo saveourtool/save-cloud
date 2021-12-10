@@ -53,6 +53,7 @@ import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
 import platform.posix.system
+import kotlin.native.concurrent.freeze
 
 /**
  * A main class for SAVE Agent
@@ -70,7 +71,7 @@ class SaveAgent(internal val config: AgentConfiguration,
     // fixme: can't use atomic reference to Instant here, because when using `Clock.System.now()` as an assined value
     // Kotlin throws `kotlin.native.concurrent.InvalidMutabilityException: mutation attempt of frozen kotlinx.datetime.Instant...`
     private val executionStartSeconds = AtomicLong()
-    private var saveProcessJob: Job? = null
+    private var saveProcessJob = AtomicReference<Job?>(null)
     private val reportFormat = Json {
         serializersModule = SerializersModule {
             polymorphic(Plugin.TestFiles::class) {
@@ -90,7 +91,8 @@ class SaveAgent(internal val config: AgentConfiguration,
             logInfoCustom("Foo from test")
 //            executionStartSeconds.value = Clock.System.now().epochSeconds
 //            state.value = AgentState.CLI_FAILED
-            maybeStartSaveProcess("foo bar baz")
+            val cliArgs = "foo bar baz"
+            maybeStartSaveProcess(cliArgs)
         }
         job.join()
 
@@ -126,10 +128,10 @@ class SaveAgent(internal val config: AgentConfiguration,
     }
 
     private suspend fun maybeStartSaveProcess(cliArgs: String) = coroutineScope {
-        if (saveProcessJob?.isCompleted == false) {
+        if (saveProcessJob.value?.isCompleted == false) {
             logErrorCustom("Shouldn't start new process when there is the previous running")
         } else {
-            saveProcessJob = launch(
+            saveProcessJob.value = launch(
                 newSingleThreadContext("save-execution")
             ) {
                 runCatching {
@@ -139,7 +141,7 @@ class SaveAgent(internal val config: AgentConfiguration,
                     .exceptionOrNull()
                     ?.let {
                         state.value = AgentState.CLI_FAILED
-                        logErrorCustom("Error executing SAVE: ${it.describe()}")
+                        logErrorCustom("Error executing SAVE: ${it.describe()}\n" + it.stackTraceToString())
                     }
             }
         }
