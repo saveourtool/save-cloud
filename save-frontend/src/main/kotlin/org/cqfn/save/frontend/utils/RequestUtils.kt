@@ -81,7 +81,14 @@ suspend fun request(url: String,
         credentials = credentials,
     )
 )
-    .await()
+    .await().also {
+        if (it.status == 401.toShort()) {
+            // if 401 - change current URL to /login
+            // fixme: this should happen if there is no logged in user on FE
+            // otherwise 401 means that the user has insufficient permissions
+            window.location.href = "${window.location.origin}/login"
+        }
+    }
 
 /**
  * @param name
