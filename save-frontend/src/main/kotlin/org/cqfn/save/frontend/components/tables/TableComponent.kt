@@ -170,14 +170,18 @@ fun <D : Any> tableComponent(
                                 spread(headerGroup.getHeaderGroupProps())
                                 headerGroup.headers.map { column ->
                                     val columnProps = column.getHeaderProps(column.getSortByToggleProps())
-                                    th(classes = columnProps.className) {
-                                        spread(columnProps)
+                                    val className = if (column.canSort) columnProps.className else ""
+                                    th(classes = className) {
                                         +column.render("Header")
-                                        span {
-                                            +when {
-                                                column.isSorted -> " 🔽"
-                                                column.isSortedDesc -> " 🔼"
-                                                else -> ""
+                                        // fixme: find a way to set `canSort`; now it's always true
+                                        if (column.canSort) {
+                                            spread(columnProps)
+                                            span {
+                                                +when {
+                                                    column.isSorted -> " 🔽"
+                                                    column.isSortedDesc -> " 🔼"
+                                                    else -> ""
+                                                }
                                             }
                                         }
                                     }

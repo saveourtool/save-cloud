@@ -162,7 +162,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
         }
         // fixme: table is rendered twice because of state change when `executionDto` is fetched
         child(tableComponent(
-            columns = columns {
+            columns = columns<TestExecutionDto> {
                 column(id = "index", header = "#") {
                     buildElement {
                         td {
@@ -175,7 +175,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                         td {
                             +"${
                                 it.value?.let { Instant.fromEpochSeconds(it, 0) }
-                                    ?: "Running"
+                                ?: "Running"
                             }"
                         }
                     }
@@ -185,7 +185,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                         td {
                             +"${
                                 it.value?.let { Instant.fromEpochSeconds(it, 0) }
-                                    ?: "Running"
+                                ?: "Running"
                             }"
                         }
                     }
@@ -197,17 +197,17 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                         }
                     }
                 }
-                column(id = "missing", header = "Missing") {
+                column(id = "missing", header = "Missing", { missingWarnings }) {
                     buildElement {
                         td {
-                            +"${it.value.missingWarnings ?: ""}"
+                            +"${it.value ?: ""}"
                         }
                     }
                 }
-                column(id = "matched", header = "Matched") {
+                column(id = "matched", header = "Matched", { matchedWarnings }) {
                     buildElement {
                         td {
-                            +"${it.value.matchedWarnings ?: ""}"
+                            +"${it.value ?: ""}"
                         }
                     }
                 }
