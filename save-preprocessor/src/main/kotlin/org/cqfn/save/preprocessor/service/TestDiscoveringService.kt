@@ -53,7 +53,8 @@ class TestDiscoveringService {
         project: Project?,
         rootTestConfig: TestConfig,
         testRootPath: String,
-        testSuiteRepoUrl: String) = rootTestConfig
+        testSuiteRepoUrl: String,
+    ) = rootTestConfig
         .getAllTestConfigs()
         .asSequence()
         .mapNotNull { it.getGeneralConfigOrNull() }

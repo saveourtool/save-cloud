@@ -59,7 +59,8 @@ class CheckGitConnectivityTest(
         user: String,
         token: String,
         url: String,
-        value: Boolean) {
+        value: Boolean,
+    ) {
         webClient
             .get()
             .uri("/check-git-connectivity?user=$user&token=$token&url=$url")

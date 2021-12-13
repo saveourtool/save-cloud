@@ -307,7 +307,8 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         "TYPE_ALIAS",
         "TOO_LONG_FUNCTION",
         "TOO_MANY_LINES_IN_LAMBDA",
-        "UnsafeCallOnNullableType")
+        "UnsafeCallOnNullableType"
+    )
     private fun downLoadRepository(executionRequest: ExecutionRequest): Mono<Pair<String, String>> {
         val gitDto = executionRequest.gitDto
         val tmpDir = generateDirectory(listOf(gitDto.url))
@@ -449,7 +450,8 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         executionType: ExecutionType,
         location: String,
         testRootPath: String,
-        files: List<File>) = if (executionType == ExecutionType.GIT) {
+        files: List<File>,
+    ) = if (executionType == ExecutionType.GIT) {
         getResourceLocationForGit(location, testRootPath)
     } else {
         getTmpDirName(calculateTmpNameForFiles(files))
@@ -497,7 +499,8 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         project: Project,
         projectRootRelativePath: String,
         executionVersion: String,
-        testSuiteIds: String = "ALL"): Mono<Execution> {
+        testSuiteIds: String = "ALL",
+    ): Mono<Execution> {
         val executionUpdate = ExecutionInitializationDto(project, testSuiteIds, projectRootRelativePath, executionVersion)
         return webClientBackend.makeRequest(BodyInserters.fromValue(executionUpdate), "/updateNewExecution") {
             it.onStatus({ status -> status != HttpStatus.OK }) { clientResponse ->
@@ -528,7 +531,8 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                                            execution: Execution,
                                            testRootPath: String,
                                            projectRootRelativePath: String,
-                                           gitUrl: String): Mono<List<EmptyResponse>> = Mono.fromCallable {
+                                           gitUrl: String,
+    ): Mono<List<EmptyResponse>> = Mono.fromCallable {
         val testResourcesRootAbsolutePath =
                 getTestResourcesRootAbsolutePath(testRootPath, projectRootRelativePath)
         testDiscoveringService.getRootTestConfig(testResourcesRootAbsolutePath)
@@ -595,7 +599,8 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
     private fun discoverAndSaveTestSuites(project: Project,
                                           rootTestConfig: TestConfig,
                                           testRootPath: String,
-                                          gitUrl: String): Mono<List<TestSuite>> {
+                                          gitUrl: String,
+    ): Mono<List<TestSuite>> {
         val testSuites: List<TestSuiteDto> = testDiscoveringService.getAllTestSuites(project, rootTestConfig, testRootPath, gitUrl)
         return webClientBackend.makeRequest(BodyInserters.fromValue(testSuites), "/saveTestSuites") {
             it.bodyToMono()
