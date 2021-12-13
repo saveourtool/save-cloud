@@ -6,11 +6,13 @@ import org.cqfn.save.agent.Heartbeat
 import org.cqfn.save.agent.NewJobResponse
 import org.cqfn.save.entities.AgentStatusDto
 import org.cqfn.save.entities.AgentStatusesForExecution
+import org.cqfn.save.entities.TestSuite
 import org.cqfn.save.orchestrator.config.Beans
 import org.cqfn.save.orchestrator.service.AgentService
 import org.cqfn.save.orchestrator.service.DockerService
 import org.cqfn.save.test.TestBatch
 import org.cqfn.save.test.TestDto
+import org.cqfn.save.testsuite.TestSuiteType
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import okhttp3.mockwebserver.MockResponse
@@ -94,6 +96,18 @@ class HeartbeatControllerTest {
             MockResponse()
                 .setBody(Json.encodeToString(TestBatch(list, mapOf(0L to ""))))
                 .addHeader("Content-Type", "application/json")
+        )
+
+        val testSuite = TestSuite(TestSuiteType.PROJECT, "", null, null, LocalDateTime.now(), ".", ".").apply {
+            id = 0
+        }
+
+        // /testSuite/{id}
+        mockServer.enqueue(
+            MockResponse()
+                .setResponseCode(200)
+                .setHeader("Content-Type", "application/json")
+                .setBody(objectMapper.writeValueAsString(testSuite))
         )
 
         val monoResponse = agentService.getNewTestsIds("container-1").block() as NewJobResponse
@@ -250,6 +264,19 @@ class HeartbeatControllerTest {
                 .setBody(Json.encodeToString(testBatch))
                 .addHeader("Content-Type", "application/json")
         )
+
+        val testSuite = TestSuite(TestSuiteType.PROJECT, "", null, null, LocalDateTime.now(), ".", ".").apply {
+            id = 0
+        }
+
+        // /testSuite/{id}
+        mockServer.enqueue(
+            MockResponse()
+                .setResponseCode(200)
+                .setHeader("Content-Type", "application/json")
+                .setBody(objectMapper.writeValueAsString(testSuite))
+        )
+
         if (mockAgentStatuses) {
             // /getAgentsStatusesForSameExecution
             mockServer.enqueue(
