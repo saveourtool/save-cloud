@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
 import reactor.util.Loggers
@@ -255,8 +256,8 @@ class AgentService {
             .map { testSuite ->
                 val testPaths: MutableList<String> = mutableListOf()
                 val isStandardMode = testSuite.type == TestSuiteType.STANDARD
-                tests.forEach { test ->
-                    if (isStandardMode) {
+                if (isStandardMode) {
+                    Flux.fromIterable(tests).flatMap { test ->
                         webClientBackend.get()
                             .uri("/testSuite/${test.testSuiteId}")
                             .retrieve()
@@ -269,11 +270,14 @@ class AgentService {
                                 println("\n\n\ntestFilePathInStandardDir ${testFilePathInStandardDir}")
                                 testPaths.add(testFilePathInStandardDir.toString())
                             }
-                            .subscribeOn(scheduler)
-                            .subscribe()
 
-                    } else {
-                        testPaths.add(test.filePath)
+                    }
+                        .collectList()
+                        .subscribeOn(scheduler)
+                        .subscribe()
+                } else {
+                    tests.forEach {
+                        testPaths.add(it.filePath)
                     }
                 }
 
