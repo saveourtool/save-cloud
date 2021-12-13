@@ -156,7 +156,8 @@ class SaveAgent(internal val config: AgentConfiguration,
                 // cliArgs actually contains `testRootPath` + set of tests
                 // in standard mode, however, we created an additional directories, so this options is not suitable
                 // we will use another command, which we created in DockerService, it already contain all necessary configuration
-                if (!it.contains(STANDARD_TEST_SUITE_DIR)) "$it $cliArgs" else it
+                println("\n\n\nEXECUTION CMD: \"$it $cliArgs\"")
+               "$it $cliArgs"
             } + " --report-type json --result-output file --log all",
             "",
             config.logFilePath.toPath(),

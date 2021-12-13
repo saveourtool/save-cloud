@@ -10,7 +10,6 @@ import org.cqfn.save.entities.Agent
 import org.cqfn.save.entities.AgentStatus
 import org.cqfn.save.entities.AgentStatusDto
 import org.cqfn.save.entities.AgentStatusesForExecution
-import org.cqfn.save.entities.Test
 import org.cqfn.save.entities.TestSuite
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionUpdateDto
@@ -234,39 +233,12 @@ class AgentService {
     private fun TestBatch.toHeartbeatResponse(agentId: String) =
             if (tests.isNotEmpty()) {
                 // fixme: do we still need suitesToArgs, since we have execFlags in save.toml?
-                webClientBackend.get()
-                    .uri("/testSuite/${tests.first().testSuiteId}")
-                    .retrieve()
-                    .bodyToMono<TestSuite>()
-                    .map { testSuite ->
-                        val testPaths: MutableList<String> = mutableListOf()
-                        val isStandardMode = testSuite.type == TestSuiteType.STANDARD
-                        tests.forEach { test ->
-                            if (isStandardMode) {
-                                webClientBackend.get()
-                                    .uri("/testSuite/${test.testSuiteId}")
-                                    .retrieve()
-                                    .bodyToMono<TestSuite>()
-                                    .map {
-                                        val testFilePathInStandardDir =
-                                            Paths.get(getLocationInStandardDirForTestSuite(it.toDto())).resolve(
-                                                Paths.get(test.filePath)
-                                            )
-                                        testPaths.add(testFilePathInStandardDir.toString())
-                                    }
-
-                            } else {
-                                testPaths.add(test.filePath)
-                            }
-                        }
-                        println("\n\n\nTESTS PATHS ${testPaths}")
-                        println("\nCMD ${suitesToArgs.values.first() +
-                                " " + testPaths.joinToString(" ")}")
-                        NewJobResponse(
-                            tests,
-                            suitesToArgs.values.first() +
-                                    " " + testPaths.joinToString(" "))
+                constructCliCommand(tests, suitesToArgs).flatMap { cliArgs ->
+                   println("\n\nCLI ARGS ${cliArgs}")
+                   Mono.fromCallable {
+                        NewJobResponse(tests, cliArgs)
                     }
+                }
 
             } else {
                 log.info("Next test batch for agentId=$agentId is empty, setting it to wait")
@@ -274,6 +246,45 @@ class AgentService {
                     WaitResponse
                 }
             }
+
+    private fun constructCliCommand(tests: List<TestDto>, suitesToArgs: Map<Long, String>): Mono<String> {
+        return webClientBackend.get()
+            .uri("/testSuite/${tests.first().testSuiteId}")
+            .retrieve()
+            .bodyToMono<TestSuite>()
+            .map { testSuite ->
+                val testPaths: MutableList<String> = mutableListOf()
+                val isStandardMode = testSuite.type == TestSuiteType.STANDARD
+                tests.forEach { test ->
+                    if (isStandardMode) {
+                        webClientBackend.get()
+                            .uri("/testSuite/${test.testSuiteId}")
+                            .retrieve()
+                            .bodyToMono<TestSuite>()
+                            .map {
+                                val testFilePathInStandardDir =
+                                    Paths.get(getLocationInStandardDirForTestSuite(it.toDto())).resolve(
+                                        Paths.get(test.filePath)
+                                    )
+                                println("\n\n\ntestFilePathInStandardDir ${testFilePathInStandardDir}")
+                                testPaths.add(testFilePathInStandardDir.toString())
+                            }
+                            .subscribeOn(scheduler)
+                            .subscribe()
+
+                    } else {
+                        testPaths.add(test.filePath)
+                    }
+                }
+
+                val cliArgs = if (!isStandardMode) {
+                    suitesToArgs.values.first()
+                } else {
+                    ""
+                } + " " + testPaths.joinToString(" ")
+                cliArgs
+            }
+    }
 
     private fun Collection<AgentStatusDto>.areIdleOrFinished() = all {
         it.state == AgentState.IDLE || it.state == AgentState.FINISHED || it.state == AgentState.STOPPED_BY_ORCH

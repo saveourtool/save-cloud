@@ -204,9 +204,7 @@ class DockerService(private val configProperties: ConfigProperties) {
         val saveCliExecFlags = if (isStandardMode) {
             // create stub toml config in aim to execute all test suites directories from `testSuitesDir`
             testSuitesDir.resolve("save.toml").apply { createNewFile() }.writeText("[general]")
-            val testPaths = calculatePathsToTheTestsForCurrentExecution(execution)
-            log.debug("Discover the following tests for execution $testPaths")
-            " \"$STANDARD_TEST_SUITE_DIR\" ${testPaths.joinToString(" ")}"
+            " $STANDARD_TEST_SUITE_DIR "
         } else {
             ""
         }
@@ -258,28 +256,6 @@ class DockerService(private val configProperties: ConfigProperties) {
         saveAgent.delete()
         saveCli.delete()
         return Triple(imageId, agentRunCmd, saveCliExecFlags)
-    }
-
-    @Suppress("UnsafeCallOnNullableType")
-    private fun calculatePathsToTheTestsForCurrentExecution(execution: Execution): MutableList<String> {
-        val testPaths: MutableList<String> = mutableListOf()
-        execution.testSuiteIds!!.split(", ").forEach { id ->
-            val testSuite = webClientBackend.get()
-                .uri("/testSuite/${id.toLong()}")
-                .retrieve()
-                .bodyToMono<TestSuite>()
-                .block()!!
-
-            webClientBackend.get()
-                .uri("/getTestsByTestSuiteId?testSuiteId=${id.toLong()}")
-                .retrieve()
-                .bodyToMono<List<Test>>()
-                .block()!!.forEach {
-                val testFilePathInStandardDir = Paths.get(getLocationInStandardDirForTestSuite(testSuite.toDto())).resolve(Paths.get(it.filePath))
-                testPaths.add(testFilePathInStandardDir.toString())
-            }
-        }
-        return testPaths
     }
 
     private fun changeOwnerRecursively(directory: File, user: String) {
