@@ -105,7 +105,7 @@ class CloningRepositoryControllerTest {
         }
             .build()
         webTestClient.post()
-            .uri("/submitExecutionRequest")
+            .uri("/api/submitExecutionRequest")
             .contentType(MediaType.MULTIPART_FORM_DATA)
             .body(BodyInserters.fromMultipartData(multipart))
             .exchange()
@@ -147,7 +147,7 @@ class CloningRepositoryControllerTest {
             .thenReturn(project)
 
         webTestClient.post()
-            .uri("/executionRequestStandardTests")
+            .uri("/api/executionRequestStandardTests")
             .contentType(MediaType.MULTIPART_FORM_DATA)
             .body(BodyInserters.fromMultipartData(bodyBuilder.build()))
             .exchange()

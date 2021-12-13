@@ -77,6 +77,7 @@ class App : RComponent<PropsWithChildren, AppState>() {
                         userName = state.userName
                     }
                 }
+
                 div("container-fluid") {
                     Switch {
                         Route {
@@ -86,6 +87,7 @@ class App : RComponent<PropsWithChildren, AppState>() {
                                 component = WelcomeView::class.react
                             }
                         }
+
                         Route {
                             attrs {
                                 path = arrayOf("/creation")

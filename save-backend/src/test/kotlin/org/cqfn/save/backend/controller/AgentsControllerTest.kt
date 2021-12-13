@@ -63,7 +63,7 @@ class AgentsControllerTest {
     fun `should save agent statuses`() {
         webTestClient
             .method(HttpMethod.POST)
-            .uri("/updateAgentStatusesWithDto")
+            .uri("/internal/updateAgentStatusesWithDto")
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
             .body(BodyInserters.fromValue(
@@ -89,7 +89,7 @@ class AgentsControllerTest {
 
         webTestClient
             .method(HttpMethod.POST)
-            .uri("/updateAgentStatusesWithDto")
+            .uri("/internal/updateAgentStatusesWithDto")
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
             .body(BodyInserters.fromValue(
@@ -129,7 +129,7 @@ class AgentsControllerTest {
     fun `should return latest status by container id`() {
         webTestClient
             .method(HttpMethod.GET)
-            .uri("/getAgentsStatusesForSameExecution?agentId=container-1")
+            .uri("/internal/getAgentsStatusesForSameExecution?agentId=container-1")
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
             .exchange()
@@ -147,7 +147,7 @@ class AgentsControllerTest {
         val agentVersion = AgentVersion("container-1", "0.0.1")
         webTestClient
             .method(HttpMethod.POST)
-            .uri("/saveAgentVersion")
+            .uri("/internal/saveAgentVersion")
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
             .body(BodyInserters.fromValue(agentVersion))
@@ -160,7 +160,7 @@ class AgentsControllerTest {
     private fun updateAgentStatuses(body: List<AgentStatusDto>) {
         webTestClient
             .method(HttpMethod.POST)
-            .uri("/updateAgentStatusesWithDto")
+            .uri("/internal/updateAgentStatusesWithDto")
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
             .body(BodyInserters.fromValue(

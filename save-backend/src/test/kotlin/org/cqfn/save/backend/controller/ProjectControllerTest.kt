@@ -44,7 +44,7 @@ class ProjectControllerTest {
     fun `should return all projects`() {
         webClient
             .get()
-            .uri("/projects")
+            .uri("/api/projects")
             .accept(MediaType.APPLICATION_JSON)
             .exchange()
             .expectStatus()
@@ -60,7 +60,7 @@ class ProjectControllerTest {
     fun `should return project based on name and owner`() {
         webClient
             .get()
-            .uri("/getProject?name=huaweiName&owner=Huawei")
+            .uri("/api/getProject?name=huaweiName&owner=Huawei")
             .accept(MediaType.APPLICATION_JSON)
             .exchange()
             .expectStatus()
@@ -78,7 +78,7 @@ class ProjectControllerTest {
         projectRepository.findById(1).ifPresent {
             webClient
                 .post()
-                .uri("/getGit")
+                .uri("/api/getGit")
                 .body(BodyInserters.fromValue(it))
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
@@ -103,7 +103,7 @@ class ProjectControllerTest {
         )
         webClient
             .post()
-            .uri("/saveProject")
+            .uri("/api/saveProject")
             .body(BodyInserters.fromValue(newProject))
             .accept(MediaType.APPLICATION_JSON)
             .exchange()
@@ -112,7 +112,7 @@ class ProjectControllerTest {
 
         webClient
             .get()
-            .uri("/getProject?name=${project.name}&owner=${project.owner}")
+            .uri("/api/getProject?name=${project.name}&owner=${project.owner}")
             .accept(MediaType.APPLICATION_JSON)
             .exchange()
             .expectStatus()

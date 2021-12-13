@@ -25,7 +25,6 @@ import org.cqfn.save.testsuite.TestSuiteDto
 import org.cqfn.save.testsuite.TestSuiteType
 import org.cqfn.save.utils.moveFileWithAttributes
 
-import okio.ExperimentalFileSystem
 import okio.FileSystem
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.api.errors.GitAPIException
@@ -54,9 +53,9 @@ import org.springframework.web.reactive.function.client.bodyToMono
 import org.springframework.web.reactive.function.client.toEntity
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
-import reactor.core.publisher.Flux.fromIterable
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
+import reactor.kotlin.core.publisher.toFlux
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
 import reactor.netty.http.client.HttpClientRequest
@@ -143,7 +142,6 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
      * @param fileInfos a list of [FileInfo]s associated with [files]
      * @return response entity with text
      */
-    @OptIn(ExperimentalFileSystem::class)
     @PostMapping(value = ["/uploadBin"], consumes = ["multipart/form-data"])
     fun uploadBin(
         @RequestPart executionRequestForStandardSuites: ExecutionRequestForStandardSuites,
@@ -221,7 +219,6 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
      *
      * @return Empty response entity
      */
-    @OptIn(ExperimentalFileSystem::class)
     @Suppress("TOO_LONG_FUNCTION", "TYPE_ALIAS")
     @PostMapping("/uploadStandardTestSuite")
     fun uploadStandardTestSuite() = Mono.just(ResponseEntity("Upload standard test suites pending...\n", HttpStatus.ACCEPTED))
@@ -255,21 +252,18 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                         }
                             .flatMap { testSuites ->
                                 log.info("Starting to save new tests for config test root $testRootPath")
-                                webClientBackend.makeRequest(
-                                    BodyInserters.fromValue(
-                                        testDiscoveringService.getAllTests(
-                                            rootTestConfig,
-                                            testSuites
-                                        )
-                                    ),
-                                    "/initializeTests"
-                                ) { it.toBodilessEntity() }
+                                initializeTests(
+                                    testSuites,
+                                    rootTestConfig,
+                                    null,
+                                )
                             }
                     }
                     .doOnError {
-                        log.error("Error to update test with url=$testSuiteUrl, path=$testSuitePaths")
+                        log.error("Error to update test suite with url=$testSuiteUrl, path=$testSuitePaths")
                     }
-            }.collectList()
+            }
+                .collectList()
                 .flatMap {
                     markObsoleteOldStandardTestSuites(newTestSuites)
                 }
@@ -310,7 +304,8 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         "TYPE_ALIAS",
         "TOO_LONG_FUNCTION",
         "TOO_MANY_LINES_IN_LAMBDA",
-        "UnsafeCallOnNullableType")
+        "UnsafeCallOnNullableType"
+    )
     private fun downLoadRepository(executionRequest: ExecutionRequest): Mono<Pair<String, String>> {
         val gitDto = executionRequest.gitDto
         val tmpDir = generateDirectory(listOf(gitDto.url))
@@ -452,7 +447,8 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         executionType: ExecutionType,
         location: String,
         testRootPath: String,
-        files: List<File>) = if (executionType == ExecutionType.GIT) {
+        files: List<File>,
+    ) = if (executionType == ExecutionType.GIT) {
         getResourceLocationForGit(location, testRootPath)
     } else {
         getTmpDirName(calculateTmpNameForFiles(files))
@@ -500,7 +496,8 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         project: Project,
         projectRootRelativePath: String,
         executionVersion: String,
-        testSuiteIds: String = "ALL"): Mono<Execution> {
+        testSuiteIds: String = "ALL",
+    ): Mono<Execution> {
         val executionUpdate = ExecutionInitializationDto(project, testSuiteIds, projectRootRelativePath, executionVersion)
         return webClientBackend.makeRequest(BodyInserters.fromValue(executionUpdate), "/updateNewExecution") {
             it.onStatus({ status -> status != HttpStatus.OK }) { clientResponse ->
@@ -531,7 +528,8 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                                            execution: Execution,
                                            testRootPath: String,
                                            projectRootRelativePath: String,
-                                           gitUrl: String): Mono<EmptyResponse> = Mono.fromCallable {
+                                           gitUrl: String,
+    ): Mono<List<EmptyResponse>> = Mono.fromCallable {
         val testResourcesRootAbsolutePath =
                 getTestResourcesRootAbsolutePath(testRootPath, projectRootRelativePath)
         testDiscoveringService.getRootTestConfig(testResourcesRootAbsolutePath)
@@ -554,13 +552,13 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         execution: Execution
     ): Mono<ResponseEntity<HttpStatus>> {
         val testSuiteIds: MutableList<Long> = mutableListOf()
-        return fromIterable(testSuiteDtos).flatMap<List<TestSuite>?> {
+        return Flux.fromIterable(testSuiteDtos).flatMap<List<TestSuite>?> {
             webClientBackend.get()
                 .uri("/standardTestSuitesWithName?name=${it.name}")
                 .retrieve()
                 .bodyToMono()
         }.flatMap { testSuites ->
-            fromIterable(testSuites).flatMap { testSuite ->
+            Flux.fromIterable(testSuites).flatMap { testSuite ->
                 testSuiteIds.add(testSuite.id!!)
                 webClientBackend.makeRequest(
                     BodyInserters.fromValue(execution.id!!),
@@ -598,7 +596,8 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
     private fun discoverAndSaveTestSuites(project: Project,
                                           rootTestConfig: TestConfig,
                                           testRootPath: String,
-                                          gitUrl: String): Mono<List<TestSuite>> {
+                                          gitUrl: String,
+    ): Mono<List<TestSuite>> {
         val testSuites: List<TestSuiteDto> = testDiscoveringService.getAllTestSuites(project, rootTestConfig, testRootPath, gitUrl)
         return webClientBackend.makeRequest(BodyInserters.fromValue(testSuites), "/saveTestSuites") {
             it.bodyToMono()
@@ -608,17 +607,30 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
     /**
      * Discover tests and send them to backend
      */
+    @Suppress("MagicNumber")
     private fun initializeTests(testSuites: List<TestSuite>,
                                 rootTestConfig: TestConfig,
-                                executionId: Long) = webClientBackend.makeRequest(
-        BodyInserters.fromValue(testDiscoveringService.getAllTests(rootTestConfig, testSuites)),
-        "/initializeTests?executionId=$executionId"
-    ) {
-        it.toBodilessEntity()
-    }
+                                executionId: Long?,
+    ): Mono<List<EmptyResponse>> = testDiscoveringService.getAllTests(
+        rootTestConfig,
+        testSuites,
+    )
+        // default Webflux in-memory buffer is 256 KiB
+        .chunked(128)
+        .toFlux()
+        .doOnNext {
+            log.debug("Processing chuck of tests [${it.first()} ... ${it.last()}]")
+        }
+        .flatMap { testDtos ->
+            webClientBackend.makeRequest(
+                BodyInserters.fromValue(testDtos),
+                "/initializeTests${(executionId?.let { "?executionId=$it" } ?: "")}"
+            ) { it.toBodilessEntity() }
+        }
+        .collectList()
 
     /**
-     * Post request to orchestrator to initiate its work
+     * POST request to orchestrator to initiate its work
      */
     private fun initializeAgents(execution: Execution, testSuiteDtos: List<TestSuiteDto>?): Status {
         val bodyBuilder = MultipartBodyBuilder().apply {
