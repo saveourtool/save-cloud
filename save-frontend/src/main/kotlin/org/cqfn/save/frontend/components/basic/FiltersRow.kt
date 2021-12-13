@@ -22,22 +22,22 @@ import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
 
 /**
- * A row of filter selectors for table with `TestExecutionDto`s. Currently the only filter is "status".
+ * A row of filter selectors for table with `TestExecutionDto`s. Currently filters are "status" and "test suite".
  *
- * @param initialValue initial value of `TestResultStatus`
+ * @param initialValueStatus initial value of `TestResultStatus`
+ * @param initialValueTestSuite initial value of `test suite`
  * @param onChange handler for selected value change
- * @param initialValueTestSuite
- * @param onChangeTestSuite
+ * @param onChangeTestSuite handler for input value
  * @return a function component
  */
 @Suppress("TOO_LONG_FUNCTION")
 fun testExecutionFiltersRow(
-    initialValue: String,
+    initialValueStatus: String,
     initialValueTestSuite: String,
     onChange: (String) -> Unit,
     onChangeTestSuite: (String) -> Unit,
 ) = fc<Props> {
-    var status: String = initialValue
+    var status: String = initialValueStatus
     var testSuite: String = initialValueTestSuite
     div("container-fluid") {
         div("row justify-content-start") {
@@ -53,7 +53,7 @@ fun testExecutionFiltersRow(
                     elements.add(0, "ANY")
                     elements.forEach { element ->
                         option {
-                            if (element == initialValue) {
+                            if (element == initialValueStatus) {
                                 attrs.selected = true
                             }
                             +element

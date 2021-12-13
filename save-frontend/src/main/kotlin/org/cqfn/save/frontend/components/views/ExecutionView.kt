@@ -63,11 +63,6 @@ external interface ExecutionProps : PropsWithChildren {
      * Test Result Status to filter by
      */
     var status: TestResultStatus?
-
-    /**
-     * Name of test suite
-     */
-    var testSuite: String?
 }
 
 /**
@@ -127,7 +122,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
             setState {
                 executionDto = executionDtoFromBackend
                 status = props.status
-                testSuite = props.testSuite
+                // testSuite = props.testSuite
                 countTests = count
             }
         }
@@ -302,7 +297,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                     th {
                         attrs.colSpan = "${tableInstance.columns.size}"
                         child(testExecutionFiltersRow(
-                            initialValue = state.status?.name ?: "ANY",
+                            initialValueStatus = state.status?.name ?: "ANY",
                             initialValueTestSuite = state.testSuite ?: "",
                             onChange = { value ->
                                 if (value == "ANY") {
