@@ -235,7 +235,6 @@ class AgentService {
             if (tests.isNotEmpty()) {
                 // fixme: do we still need suitesToArgs, since we have execFlags in save.toml?
                 constructCliCommand(tests, suitesToArgs).flatMap { cliArgs ->
-                   println("\n\nCLI ARGS ${cliArgs}")
                    Mono.fromCallable {
                         NewJobResponse(tests, cliArgs)
                     }
@@ -249,13 +248,14 @@ class AgentService {
             }
 
     private fun constructCliCommand(tests: List<TestDto>, suitesToArgs: Map<Long, String>): Mono<String> {
+        var isStandardMode = false
+        val testPaths: MutableList<String> = mutableListOf()
         return webClientBackend.get()
             .uri("/testSuite/${tests.first().testSuiteId}")
             .retrieve()
             .bodyToMono<TestSuite>()
-            .map { testSuite ->
-                val testPaths: MutableList<String> = mutableListOf()
-                val isStandardMode = testSuite.type == TestSuiteType.STANDARD
+            .flatMap { testSuite ->
+               isStandardMode = testSuite.type == TestSuiteType.STANDARD
                 if (isStandardMode) {
                     Flux.fromIterable(tests).flatMap { test ->
                         webClientBackend.get()
@@ -273,14 +273,16 @@ class AgentService {
 
                     }
                         .collectList()
-                        .subscribeOn(scheduler)
-                        .subscribe()
                 } else {
-                    tests.forEach {
-                        testPaths.add(it.filePath)
+                    Mono.fromCallable {
+                        tests.forEach {
+                            testPaths.add(it.filePath)
+                        }
                     }
                 }
 
+            }
+            .map {
                 val cliArgs = if (!isStandardMode) {
                     suitesToArgs.values.first()
                 } else {
