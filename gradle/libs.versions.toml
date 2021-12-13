@@ -12,7 +12,6 @@ spring-boot = "2.6.1"
 spring-security = "5.6.0"
 spring-cloud = "3.1.0"
 junit = "5.8.2"
-ktoml = "0.2.9"
 multiplatform-diff = "0.3.0"
 kotlinpoet = "1.10.2"
 diktat = "1.0.0"
@@ -107,8 +106,6 @@ reactor-kotlin-extensions = { module = "io.projectreactor.kotlin:reactor-kotlin-
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 logback-core = { module = "ch.qos.logback:logback-core", version.ref = "logback" }
 junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit" }
-ktoml-core = { module = "com.akuleshov7:ktoml-core", version.ref = "ktoml" }
-ktoml-file = { module = "com.akuleshov7:ktoml-file", version.ref = "ktoml" }
 multiplatform-diff = { module = "io.github.petertrr:kotlin-multiplatform-diff", version.ref = "multiplatform-diff" }
 square-kotlinpoet = { module = "com.squareup:kotlinpoet", version.ref = "kotlinpoet" }
 dockerJava-core = { module = "com.github.docker-java:docker-java-core", version.ref = "docker-java" }

@@ -61,7 +61,7 @@ import kotlin.io.path.writeLines
     WebConfig::class,
     NoopWebSecurityConfig::class,
     TimestampBasedFileSystemRepository::class,
-    TestDataFilesystemRepository::class
+    TestDataFilesystemRepository::class,
 )
 @AutoConfigureWebTestClient
 @EnableConfigurationProperties(ConfigProperties::class)
