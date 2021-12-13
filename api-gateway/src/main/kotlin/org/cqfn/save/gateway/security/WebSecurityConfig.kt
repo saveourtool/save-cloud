@@ -5,6 +5,7 @@
 package org.cqfn.save.gateway.security
 
 import org.springframework.context.annotation.Bean
+import org.springframework.core.annotation.Order
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity
 import org.springframework.security.config.web.server.ServerHttpSecurity
 import org.springframework.security.crypto.factory.PasswordEncoderFactories
@@ -27,7 +28,7 @@ class WebSecurityConfig {
     }
         .and().run {
             authorizeExchange()
-                .pathMatchers("/**")
+                .pathMatchers("/**", "!/actuator/**")
                 .authenticated()
         }
         .and().run {
@@ -38,6 +39,18 @@ class WebSecurityConfig {
             it.authenticationSuccessHandler(RedirectServerAuthenticationSuccessHandler("/#/projects"))
         }
         .build()
+
+    @Bean
+    @Order(1)
+    fun actuatorSecurityWebFilterChain(
+        http: ServerHttpSecurity
+    ): SecurityWebFilterChain = http.run {
+        authorizeExchange()
+            .pathMatchers("/actuator/**")
+            .authenticated()
+    }
+        .and().httpBasic()
+        .and().build()
 }
 
 /**
