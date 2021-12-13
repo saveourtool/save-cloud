@@ -51,7 +51,8 @@ class TestDiscoveringService {
         project: Project?,
         rootTestConfig: TestConfig,
         testRootPath: String,
-        testSuiteRepoUrl: String) = rootTestConfig
+        testSuiteRepoUrl: String,
+    ) = rootTestConfig
         .getAllTestConfigs()
         .asSequence()
         .mapNotNull { it.getGeneralConfigOrNull() }
@@ -83,17 +84,18 @@ class TestDiscoveringService {
     @Suppress("UnsafeCallOnNullableType")
     fun getAllTests(rootTestConfig: TestConfig, testSuites: List<TestSuite>) = rootTestConfig
         .getAllTestConfigs()
+        .asSequence()
         .flatMap { testConfig ->
             val plugins = testConfig.buildActivePlugins(emptyList())
             val generalConfig = testConfig.getGeneralConfigOrNull()
             if (plugins.isEmpty() || generalConfig == null) {
-                return@flatMap emptyList()
+                return@flatMap emptySequence()
             }
             val testSuite = testSuites.firstOrNull { it.name == generalConfig.suiteName }
             requireNotNull(testSuite) {
                 "No test suite matching name=${generalConfig.suiteName} is provided. Provided names are: ${testSuites.map { it.name }}"
             }
-            plugins.flatMap { plugin ->
+            plugins.asSequence().flatMap { plugin ->
                 plugin.discoverTestFiles(testConfig.directory)
                     .map {
                         val testRelativePath = it.test.toFile()
@@ -103,8 +105,8 @@ class TestDiscoveringService {
                     }
             }
         }
-        .also {
-            log.debug("Discovered the following tests: $it")
+        .onEach {
+            log.debug("Discovered the following test: $it")
         }
 
     private fun TestConfig.getGeneralConfigOrNull() = pluginConfigs.filterIsInstance<GeneralConfig>().singleOrNull()

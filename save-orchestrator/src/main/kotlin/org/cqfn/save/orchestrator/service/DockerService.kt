@@ -298,7 +298,8 @@ class DockerService(private val configProperties: ConfigProperties) {
         execution: Execution,
         isStandardMode: Boolean,
         testSuitesDir: File,
-        resourcesPath: File) {
+        resourcesPath: File,
+    ) {
         // FixMe: for now support only .zip files
         execution.additionalFiles?.split(";")?.filter { it.endsWith(".zip") }?.forEach {
             val fileLocation = if (isStandardMode) {
