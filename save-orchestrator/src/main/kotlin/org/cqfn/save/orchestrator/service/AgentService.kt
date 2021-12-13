@@ -59,7 +59,7 @@ class AgentService {
                 .uri("/getTestBatches?agentId=$agentId")
                 .retrieve()
                 .bodyToMono<TestBatch>()
-                .map { batch -> batch.toHeartbeatResponse(agentId) }
+                .flatMap { batch -> batch.toHeartbeatResponse(agentId) }
                 .doOnSuccess {
                     if (it is NewJobResponse) {
                         updateAssignedAgent(agentId, it)
@@ -238,9 +238,9 @@ class AgentService {
                     .uri("/testSuite/${tests.first().testSuiteId}")
                     .retrieve()
                     .bodyToMono<TestSuite>()
-                    .map {
+                    .map { testSuite ->
                         val testPaths: MutableList<String> = mutableListOf()
-                        val isStandardMode = it.type == TestSuiteType.STANDARD
+                        val isStandardMode = testSuite.type == TestSuiteType.STANDARD
                         tests.forEach { test ->
                             if (isStandardMode) {
                                 webClientBackend.get()
@@ -259,10 +259,13 @@ class AgentService {
                                 testPaths.add(test.filePath)
                             }
                         }
+                        println("\n\n\nTESTS PATHS ${testPaths}")
+                        println("\nCMD ${suitesToArgs.values.first() +
+                                " " + testPaths.joinToString(" ")}")
                         NewJobResponse(
                             tests,
                             suitesToArgs.values.first() +
-                                    " " + testPaths)
+                                    " " + testPaths.joinToString(" "))
                     }
 
             } else {

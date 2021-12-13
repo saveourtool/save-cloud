@@ -25,7 +25,6 @@ import org.cqfn.save.testsuite.TestSuiteDto
 import org.cqfn.save.testsuite.TestSuiteType
 import org.cqfn.save.utils.moveFileWithAttributes
 
-import okio.ExperimentalFileSystem
 import okio.FileSystem
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.api.errors.GitAPIException
@@ -143,7 +142,6 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
      * @param fileInfos a list of [FileInfo]s associated with [files]
      * @return response entity with text
      */
-    @OptIn(ExperimentalFileSystem::class)
     @PostMapping(value = ["/uploadBin"], consumes = ["multipart/form-data"])
     fun uploadBin(
         @RequestPart executionRequestForStandardSuites: ExecutionRequestForStandardSuites,
@@ -221,7 +219,6 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
      *
      * @return Empty response entity
      */
-    @OptIn(ExperimentalFileSystem::class)
     @Suppress("TOO_LONG_FUNCTION", "TYPE_ALIAS")
     @PostMapping("/uploadStandardTestSuite")
     fun uploadStandardTestSuite() = Mono.just(ResponseEntity("Upload standard test suites pending...\n", HttpStatus.ACCEPTED))
