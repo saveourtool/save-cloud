@@ -370,9 +370,6 @@ class DockerService(private val configProperties: ConfigProperties) {
         }
     }
 
-    private fun getLocationInStandardDirForTestSuite(testSuiteDto: TestSuiteDto) =
-            "$PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE${testSuiteDto.testSuiteRepoUrl.hashCode()}_${testSuiteDto.testRootPath.hashCode()}"
-
     private fun createContainerForExecution(
         execution: Execution,
         imageId: String,
@@ -428,3 +425,9 @@ internal fun imageName(executionId: Long) = "save-execution:$executionId"
  * @param id
  */
 internal fun containerName(id: String) = "save-execution-$id"
+
+/**
+ * @param testSuiteDto
+ */
+internal fun getLocationInStandardDirForTestSuite(testSuiteDto: TestSuiteDto) =
+    "$PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE${testSuiteDto.testSuiteRepoUrl.hashCode()}_${testSuiteDto.testRootPath.hashCode()}"

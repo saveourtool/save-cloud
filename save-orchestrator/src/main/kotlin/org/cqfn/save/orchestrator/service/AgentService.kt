@@ -10,11 +10,14 @@ import org.cqfn.save.entities.Agent
 import org.cqfn.save.entities.AgentStatus
 import org.cqfn.save.entities.AgentStatusDto
 import org.cqfn.save.entities.AgentStatusesForExecution
+import org.cqfn.save.entities.Test
+import org.cqfn.save.entities.TestSuite
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionUpdateDto
 import org.cqfn.save.orchestrator.BodilessResponseEntity
 import org.cqfn.save.test.TestBatch
 import org.cqfn.save.test.TestDto
+import org.cqfn.save.testsuite.TestSuiteType
 
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
@@ -25,6 +28,7 @@ import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
 import reactor.util.Loggers
+import java.nio.file.Paths
 
 import java.time.LocalDateTime
 import java.util.logging.Level
@@ -230,14 +234,42 @@ class AgentService {
     private fun TestBatch.toHeartbeatResponse(agentId: String) =
             if (tests.isNotEmpty()) {
                 // fixme: do we still need suitesToArgs, since we have execFlags in save.toml?
-                NewJobResponse(
-                    tests,
-                    suitesToArgs.values.first() +
-                            " " + tests.joinToString(separator = " ") { it.filePath }
-                )
+                webClientBackend.get()
+                    .uri("/testSuite/${tests.first().testSuiteId}")
+                    .retrieve()
+                    .bodyToMono<TestSuite>()
+                    .map {
+                        val testPaths: MutableList<String> = mutableListOf()
+                        val isStandardMode = it.type == TestSuiteType.STANDARD
+                        tests.forEach { test ->
+                            if (isStandardMode) {
+                                webClientBackend.get()
+                                    .uri("/testSuite/${test.testSuiteId}")
+                                    .retrieve()
+                                    .bodyToMono<TestSuite>()
+                                    .map {
+                                        val testFilePathInStandardDir =
+                                            Paths.get(getLocationInStandardDirForTestSuite(it.toDto())).resolve(
+                                                Paths.get(test.filePath)
+                                            )
+                                        testPaths.add(testFilePathInStandardDir.toString())
+                                    }
+
+                            } else {
+                                testPaths.add(test.filePath)
+                            }
+                        }
+                        NewJobResponse(
+                            tests,
+                            suitesToArgs.values.first() +
+                                    " " + testPaths)
+                    }
+
             } else {
                 log.info("Next test batch for agentId=$agentId is empty, setting it to wait")
-                WaitResponse
+                Mono.fromCallable {
+                    WaitResponse
+                }
             }
 
     private fun Collection<AgentStatusDto>.areIdleOrFinished() = all {
