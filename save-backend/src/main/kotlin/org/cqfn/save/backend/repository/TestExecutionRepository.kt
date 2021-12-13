@@ -32,6 +32,12 @@ interface TestExecutionRepository : BaseEntityRepository<TestExecution>, JpaSpec
     @Suppress("MISSING_KDOC_ON_FUNCTION", "MISSING_KDOC_CLASS_ELEMENTS")
     fun countByExecutionIdAndStatus(executionId: Long, status: TestResultStatus): Int
 
+    @Suppress("MISSING_KDOC_ON_FUNCTION", "MISSING_KDOC_CLASS_ELEMENTS")
+    fun countByExecutionIdAndTestTestSuiteName(executionId: Long, name: String): Int
+
+    @Suppress("MISSING_KDOC_ON_FUNCTION", "MISSING_KDOC_CLASS_ELEMENTS")
+    fun countByExecutionIdAndStatusAndTestTestSuiteName(executionId: Long, status: TestResultStatus, name: String): Int
+
     /**
      * Returns a page of [TestExecution]s with [executionId]
      *
@@ -43,6 +49,17 @@ interface TestExecutionRepository : BaseEntityRepository<TestExecution>, JpaSpec
 
     @Suppress("MISSING_KDOC_ON_FUNCTION", "MISSING_KDOC_CLASS_ELEMENTS")
     fun findByExecutionIdAndStatus(executionId: Long, status: TestResultStatus, pageable: Pageable): List<TestExecution>
+
+    @Suppress("MISSING_KDOC_ON_FUNCTION", "MISSING_KDOC_CLASS_ELEMENTS")
+    fun findByExecutionIdAndTestTestSuiteName(executionId: Long, name: String, pageable: Pageable): List<TestExecution>
+
+    @Suppress("MISSING_KDOC_ON_FUNCTION", "MISSING_KDOC_CLASS_ELEMENTS")
+    fun findByExecutionIdAndStatusAndTestTestSuiteName(
+        executionId: Long,
+        status: TestResultStatus,
+        name: String,
+        pageable: Pageable
+    ): List<TestExecution>
 
     /**
      * Returns test executions for agent [agentContainerId] and status [status]

@@ -47,19 +47,25 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
      * @param page a zero-based index of page of data
      * @param pageSize size of page
      * @param status
+     * @param testSuite
      * @return a list of [TestExecutionDto]s
      */
-    @Suppress("AVOID_NULL_CHECKS")
+    @Suppress("AVOID_NULL_CHECKS", "UnsafeCallOnNullableType")
     internal fun getTestExecutions(
         executionId: Long,
         page: Int,
         pageSize: Int,
         status: TestResultStatus?,
+        testSuite: String?,
     ) = testExecutionRepository.run {
-        if (status == null) {
+        if (status == null && testSuite == null) {
             findByExecutionId(executionId, PageRequest.of(page, pageSize))
-        } else {
+        } else if (status != null && testSuite == null) {
             findByExecutionIdAndStatus(executionId, status, PageRequest.of(page, pageSize))
+        } else if (status == null && testSuite != null) {
+            findByExecutionIdAndTestTestSuiteName(executionId, testSuite, PageRequest.of(page, pageSize))
+        } else {
+            findByExecutionIdAndStatusAndTestTestSuiteName(executionId, status!!, testSuite!!, PageRequest.of(page, pageSize))
         }
     }
 
@@ -91,14 +97,19 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
      *
      * @param executionId an ID of Execution to group TestExecutions
      * @param status
+     * @param testSuite
      * @return number of TestExecutions
      */
-    @Suppress("AVOID_NULL_CHECKS")
-    internal fun getTestExecutionsCount(executionId: Long, status: TestResultStatus?) = testExecutionRepository.run {
-        if (status == null) {
+    @Suppress("AVOID_NULL_CHECKS", "UnsafeCallOnNullableType")
+    internal fun getTestExecutionsCount(executionId: Long, status: TestResultStatus?, testSuite: String?) = testExecutionRepository.run {
+        if (status == null && testSuite == null) {
             countByExecutionId(executionId)
-        } else {
+        } else if (status != null && testSuite == null) {
             countByExecutionIdAndStatus(executionId, status)
+        } else if (status == null && testSuite != null) {
+            countByExecutionIdAndTestTestSuiteName(executionId, testSuite)
+        } else {
+            countByExecutionIdAndStatusAndTestTestSuiteName(executionId, status!!, testSuite!!)
         }
     }
 

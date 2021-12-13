@@ -63,6 +63,11 @@ external interface ExecutionProps : PropsWithChildren {
      * Test Result Status to filter by
      */
     var status: TestResultStatus?
+
+    /**
+     * Name of test suite
+     */
+    var testSuite: String?
 }
 
 /**
@@ -83,6 +88,11 @@ external interface ExecutionState : State {
      * Test Result Status to filter by
      */
     var status: TestResultStatus?
+
+    /**
+     * Name of test suite
+     */
+    var testSuite: String?
 }
 
 /**
@@ -94,6 +104,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
     init {
         state.executionDto = null
         state.status = null
+        state.testSuite = null
     }
 
     override fun componentDidMount() {
@@ -116,6 +127,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
             setState {
                 executionDto = executionDtoFromBackend
                 status = props.status
+                testSuite = props.testSuite
                 countTests = count
             }
         }
@@ -290,25 +302,38 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                     th {
                         attrs.colSpan = "${tableInstance.columns.size}"
                         child(testExecutionFiltersRow(
-                            initialValue = state.status?.name ?: "ANY"
-                        ) { value ->
-                            if (value == "ANY") {
-                                setState {
-                                    status = null
+                            initialValue = state.status?.name ?: "ANY",
+                            initialValueTestSuite = state.testSuite ?: "",
+                            onChange = { value ->
+                                if (value == "ANY") {
+                                    setState {
+                                        status = null
+                                    }
+                                } else {
+                                    setState {
+                                        status = TestResultStatus.valueOf(value)
+                                    }
                                 }
-                            } else {
-                                setState {
-                                    status = TestResultStatus.valueOf(value)
+                            },
+                            onChangeTestSuite = { testSuiteValue ->
+                                if (testSuiteValue == "") {
+                                    setState {
+                                        testSuite = null
+                                    }
+                                } else {
+                                    setState {
+                                        testSuite = testSuiteValue
+                                    }
                                 }
-                            }
-                        })
+                            }))
                     }
                 }
             },
             getPageCount = { pageSize ->
+                val status = if (state.status != null) "&status=${state.status}" else ""
+                val testSuite = if (state.testSuite != null) "&testSuite=${state.testSuite}" else ""
                 val count: Int = get(
-                    url = "$apiUrl/testExecution/count?executionId=${props.executionId}" +
-                            if (state.status != null) "&status=${state.status}" else "",
+                    url = "$apiUrl/testExecution/count?executionId=${props.executionId}$status$testSuite",
                     headers = Headers().also {
                         it.set("Accept", "application/json")
                     },
@@ -333,9 +358,10 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                 }
             }
         ) { page, size ->
+            val status = if (state.status != null) "&status=${state.status}" else ""
+            val testSuite = if (state.testSuite != null) "&testSuite=${state.testSuite}" else ""
             get(
-                url = "$apiUrl/testExecutions?executionId=${props.executionId}&page=$page&size=$size" +
-                        if (state.status != null) "&status=${state.status}" else "",
+                url = "$apiUrl/testExecutions?executionId=${props.executionId}&page=$page&size=$size$status$testSuite",
                 headers = Headers().apply {
                     set("Accept", "application/json")
                 },

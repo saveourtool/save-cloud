@@ -33,6 +33,7 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
      * @param page a zero-based index of page of data
      * @param size size of page
      * @param status
+     * @param testSuite
      * @return a list of [TestExecutionDto]s
      */
     @GetMapping("/api/testExecutions")
@@ -41,9 +42,10 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
         @RequestParam page: Int,
         @RequestParam size: Int,
         @RequestParam(required = false) status: TestResultStatus?,
+        @RequestParam(required = false) testSuite: String?,
     ): List<TestExecutionDto> {
         log.debug("Request to get test executions on page $page with size $size for execution $executionId")
-        return testExecutionService.getTestExecutions(executionId, page, size, status)
+        return testExecutionService.getTestExecutions(executionId, page, size, status, testSuite)
             .map { it.toDto() }
     }
 
@@ -77,10 +79,11 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
      *
      * @param executionId an ID of Execution to group TestExecutions
      * @param status
+     * @param testSuite
      */
     @GetMapping("/api/testExecution/count")
-    fun getTestExecutionsCount(@RequestParam executionId: Long, @RequestParam(required = false) status: TestResultStatus?) =
-            testExecutionService.getTestExecutionsCount(executionId, status)
+    fun getTestExecutionsCount(@RequestParam executionId: Long, @RequestParam(required = false) status: TestResultStatus?, @RequestParam(required = false) testSuite: String?) =
+            testExecutionService.getTestExecutionsCount(executionId, status, testSuite)
 
     /**
      * @param agentContainerId id of an agent
