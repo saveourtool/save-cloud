@@ -235,11 +235,10 @@ class AgentService {
             if (tests.isNotEmpty()) {
                 // fixme: do we still need suitesToArgs, since we have execFlags in save.toml?
                 constructCliCommand(tests, suitesToArgs).flatMap { cliArgs ->
-                   Mono.fromCallable {
+                    Mono.fromCallable {
                         NewJobResponse(tests, cliArgs)
                     }
                 }
-
             } else {
                 log.info("Next test batch for agentId=$agentId is empty, setting it to wait")
                 Mono.fromCallable {
@@ -247,6 +246,7 @@ class AgentService {
                 }
             }
 
+    @Suppress("TOO_LONG_FUNCTION")
     private fun constructCliCommand(tests: List<TestDto>, suitesToArgs: Map<Long, String>): Mono<String> {
         var isStandardMode = false
         val testPaths: MutableList<String> = mutableListOf()
@@ -255,8 +255,9 @@ class AgentService {
             .retrieve()
             .bodyToMono<TestSuite>()
             .flatMap { testSuite ->
-               isStandardMode = testSuite.type == TestSuiteType.STANDARD
+                isStandardMode = testSuite.type == TestSuiteType.STANDARD
                 if (isStandardMode) {
+                    // in standard mode for each test get proper prefix location, since we created extra directories
                     Flux.fromIterable(tests).flatMap { test ->
                         webClientBackend.get()
                             .uri("/testSuite/${test.testSuiteId}")
@@ -264,13 +265,10 @@ class AgentService {
                             .bodyToMono<TestSuite>()
                             .map {
                                 val testFilePathInStandardDir =
-                                    Paths.get(getLocationInStandardDirForTestSuite(it.toDto())).resolve(
-                                        Paths.get(test.filePath)
-                                    )
-                                println("\n\n\ntestFilePathInStandardDir ${testFilePathInStandardDir}")
+                                        Paths.get(getLocationInStandardDirForTestSuite(it.toDto()))
+                                            .resolve(Paths.get(test.filePath))
                                 testPaths.add(testFilePathInStandardDir.toString())
                             }
-
                     }
                         .collectList()
                 } else {
@@ -280,7 +278,6 @@ class AgentService {
                         }
                     }
                 }
-
             }
             .map {
                 val cliArgs = if (!isStandardMode) {

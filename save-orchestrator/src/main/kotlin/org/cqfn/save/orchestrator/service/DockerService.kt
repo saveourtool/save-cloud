@@ -2,7 +2,6 @@ package org.cqfn.save.orchestrator.service
 
 import org.cqfn.save.domain.Python
 import org.cqfn.save.entities.Execution
-import org.cqfn.save.entities.Test
 import org.cqfn.save.entities.TestSuite
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionUpdateDto
@@ -33,7 +32,6 @@ import org.springframework.web.reactive.function.client.bodyToMono
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.LinkOption
-import java.nio.file.Paths
 import java.nio.file.attribute.PosixFileAttributeView
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -407,4 +405,4 @@ internal fun containerName(id: String) = "save-execution-$id"
  * @param testSuiteDto
  */
 internal fun getLocationInStandardDirForTestSuite(testSuiteDto: TestSuiteDto) =
-    "$PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE${testSuiteDto.testSuiteRepoUrl.hashCode()}_${testSuiteDto.testRootPath.hashCode()}"
+        "$PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE${testSuiteDto.testSuiteRepoUrl.hashCode()}_${testSuiteDto.testRootPath.hashCode()}"

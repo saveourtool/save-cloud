@@ -12,7 +12,6 @@ import org.cqfn.save.core.utils.ProcessBuilder
 import org.cqfn.save.domain.TestResultDebugInfo
 import org.cqfn.save.plugins.fix.FixPlugin
 import org.cqfn.save.reporter.Report
-import org.cqfn.save.utils.STANDARD_TEST_SUITE_DIR
 import org.cqfn.save.utils.adjustLocation
 import org.cqfn.save.utils.toTestResultDebugInfo
 import org.cqfn.save.utils.toTestResultStatus
@@ -153,11 +152,7 @@ class SaveAgent(internal val config: AgentConfiguration,
     private fun runSave(cliArgs: String): ExecutionResult = ProcessBuilder(true, FileSystem.SYSTEM)
         .exec(
             config.cliCommand.let {
-                // cliArgs actually contains `testRootPath` + set of tests
-                // in standard mode, however, we created an additional directories, so this options is not suitable
-                // we will use another command, which we created in DockerService, it already contain all necessary configuration
-                println("\n\n\nEXECUTION CMD: \"$it $cliArgs\"")
-               "$it $cliArgs"
+                "$it $cliArgs"
             } + " --report-type json --result-output file --log all",
             "",
             config.logFilePath.toPath(),
