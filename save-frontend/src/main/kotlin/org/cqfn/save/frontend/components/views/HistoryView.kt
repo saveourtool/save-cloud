@@ -118,7 +118,8 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
         "TOO_LONG_FUNCTION",
         "MAGIC_NUMBER",
         "ForbiddenComment",
-        "LongMethod")
+        "LongMethod",
+    )
     override fun RBuilder.render() {
         runErrorModal(state.isErrorOpen, state.errorLabel, state.errorMessage) {
             setState { isErrorOpen = false }

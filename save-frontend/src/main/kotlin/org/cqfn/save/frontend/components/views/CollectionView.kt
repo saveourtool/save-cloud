@@ -27,7 +27,8 @@ class CollectionView : AbstractView<PropsWithChildren, State>(false) {
         "EMPTY_BLOCK_STRUCTURE_ERROR",
         "TOO_LONG_FUNCTION",
         "MAGIC_NUMBER",
-        "LongMethod")
+        "LongMethod",
+    )
     override fun RBuilder.render() {
         div {
             button(type = ButtonType.button, classes = "btn btn-primary mb-2") {

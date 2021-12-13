@@ -15,8 +15,6 @@ import org.cqfn.save.domain.TestResultDebugInfo
 import org.cqfn.save.domain.TestResultLocation
 import org.cqfn.save.domain.TestResultStatus
 
-import okio.ExperimentalFileSystem
-
 /**
  * Maps `TestStatus` to `TestResultStatus`
  */
@@ -35,7 +33,6 @@ fun TestStatus.toTestResultStatus() = when (this) {
  * @param pluginName name of the plugin that has been executed
  * @return an instance of [TestResultDebugInfo] representing execution info
  */
-@OptIn(ExperimentalFileSystem::class)
 fun TestResult.toTestResultDebugInfo(testSuiteName: String, pluginName: String): TestResultDebugInfo {
     // In standard mode we have extra paths in json reporter, since we created extra directories,
     // and this information won't be matched with data from DB without such removal
