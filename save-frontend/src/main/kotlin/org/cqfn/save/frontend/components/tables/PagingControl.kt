@@ -70,7 +70,8 @@ fun <T : Tag, D : Any> RDOMBuilder<T>.pagingControl(
     tableInstance: TableInstance<D>,
     setPageIndex: StateSetter<Int>,
     pageIndex: Int,
-    pageCount: Int) =
+    pageCount: Int,
+) =
         div("row") {
             // First page
             button(type = ButtonType.button, classes = "btn btn-link") {

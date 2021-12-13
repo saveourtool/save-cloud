@@ -29,7 +29,8 @@ import kotlinx.html.role
 fun RBuilder.errorModal(errorHeader: String,
                         errorText: String,
                         handler: RHandler<ModalProps>,
-                        closeCallback: () -> Unit) = modal {
+                        closeCallback: () -> Unit,
+) = modal {
     handler(this)
     div("modal-dialog") {
         attrs.role = "document"

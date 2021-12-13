@@ -25,7 +25,6 @@ import io.ktor.client.request.url
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
-import okio.ExperimentalFileSystem
 import okio.FileSystem
 import okio.Path.Companion.toPath
 
@@ -47,7 +46,6 @@ import kotlinx.serialization.modules.subclass
  * A main class for SAVE Agent
  * @property config
  */
-@OptIn(ExperimentalFileSystem::class)
 class SaveAgent(internal val config: AgentConfiguration,
                 private val httpClient: HttpClient
 ) {
