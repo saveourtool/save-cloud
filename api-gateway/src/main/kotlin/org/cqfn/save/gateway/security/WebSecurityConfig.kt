@@ -8,6 +8,7 @@ import org.cqfn.save.gateway.config.ConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.core.annotation.Order
 import org.springframework.security.authentication.UserDetailsRepositoryReactiveAuthenticationManager
+import org.springframework.http.HttpStatus
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity
 import org.springframework.security.config.web.server.ServerHttpSecurity
 import org.springframework.security.core.userdetails.MapReactiveUserDetailsService
@@ -15,6 +16,7 @@ import org.springframework.security.core.userdetails.User
 import org.springframework.security.crypto.factory.PasswordEncoderFactories
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.server.SecurityWebFilterChain
+import org.springframework.security.web.server.authentication.HttpStatusServerEntryPoint
 import org.springframework.security.web.server.authentication.RedirectServerAuthenticationSuccessHandler
 import org.springframework.security.web.server.util.matcher.AndServerWebExchangeMatcher
 import org.springframework.security.web.server.util.matcher.NegatedServerWebExchangeMatcher
@@ -38,14 +40,13 @@ class WebSecurityConfig(
                     ServerWebExchangeMatchers.pathMatchers("/actuator", "/actuator/**")
                 )
             )
-        )
-        .run {
-            // `CollectionView` is a public page
-            // todo: backend should tell which endpoint is public, and gateway should provide user data
-            authorizeExchange()
-                .pathMatchers("/", "/info/**", "/api/projects/not-deleted", "/save-frontend*.js*")
-                .permitAll()
-        }
+        ).run {
+        // `CollectionView` is a public page
+        // todo: backend should tell which endpoint is public, and gateway should provide user data
+        authorizeExchange()
+            .pathMatchers("/", "/login", "/info/**", "/api/projects/not-deleted", "/save-frontend*.js*")
+            .permitAll()
+    }
         .and().run {
             authorizeExchange()
                 .pathMatchers("/**")
@@ -55,8 +56,15 @@ class WebSecurityConfig(
             // FixMe: Properly support CSRF protection https://github.com/diktat-static-analysis/save-cloud/issues/34
             csrf().disable()
         }
+        .exceptionHandling {
+            it.authenticationEntryPoint(
+                HttpStatusServerEntryPoint(HttpStatus.UNAUTHORIZED)
+            )
+        }
         .oauth2Login {
-            it.authenticationSuccessHandler(RedirectServerAuthenticationSuccessHandler("/#/projects"))
+            it.authenticationSuccessHandler(
+                RedirectServerAuthenticationSuccessHandler("/#/projects")
+            )
         }
         .build()
 
