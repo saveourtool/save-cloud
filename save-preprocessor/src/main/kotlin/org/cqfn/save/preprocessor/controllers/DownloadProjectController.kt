@@ -736,6 +736,7 @@ class DownloadProjectController(
  * @param name file name to read
  * @return map repository to paths to test configs
  */
+@Suppress("MagicNumber")
 fun readStandardTestSuitesFile(name: String) =
         ClassPathResource(name)
             .file
