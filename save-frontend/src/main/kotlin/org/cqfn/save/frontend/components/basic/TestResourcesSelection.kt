@@ -53,7 +53,7 @@ external interface TestResourcesProps : PropsWithChildren {
 
 /**
  * @param updateGitUrlFromInputField
- * @param updateGitBranchOrCommitInputField:
+ * @param updateGitBranchOrCommitInputField
  * @param updateTestRootPath
  * @param setTestRootPathFromHistory
  * @param setSelectedLanguageForStandardTests

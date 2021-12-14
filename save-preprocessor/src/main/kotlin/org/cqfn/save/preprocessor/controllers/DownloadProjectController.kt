@@ -227,7 +227,8 @@ class DownloadProjectController(
         .doOnSuccess {
             val (user, token) = readGitCredentialsForStandardMode(configProperties.reposTokenFileName)
             val newTestSuites: MutableList<TestSuiteDto> = mutableListOf()
-            Flux.fromIterable(readStandardTestSuitesFile(configProperties.reposFileName).entries).flatMap { (testSuiteUrl, testSuitePaths) ->
+            Flux.fromIterable(readStandardTestSuitesFile(configProperties.reposFileName).entries).flatMap { (testSuiteRepoInfo, testSuitePaths) ->
+                val testSuiteUrl = testSuiteRepoInfo.first
                 log.info("Starting clone repository url=$testSuiteUrl for standard test suites")
                 val tmpDir = generateDirectory(listOf(testSuiteUrl))
                 Mono.fromCallable {
@@ -236,7 +237,9 @@ class DownloadProjectController(
                     } else {
                         cloneFromGit(GitDto(testSuiteUrl), tmpDir)
                     }
-                        .use { /* noop here, just need to close Git object */ }
+                        ?.use { git ->
+                            switchBranch(git, testSuiteUrl, branchOrCommit = testSuiteRepoInfo.second)
+                        }
                 }
                     .flatMapMany { Flux.fromIterable(testSuitePaths) }
                     .flatMap { testRootPath ->
@@ -315,12 +318,7 @@ class DownloadProjectController(
             cloneFromGit(gitDto, tmpDir)?.use { git ->
                 val branchOrCommit = gitDto.branch ?: gitDto.hash
                 if (branchOrCommit != null && branchOrCommit.isNotBlank()) {
-                    log.debug("For ${gitDto.url} switching to the $branchOrCommit")
-                    try {
-                        git.checkout().setName(branchOrCommit).call()
-                    } catch (ex: RefNotFoundException) {
-                        log.warn("Provided branch/commit $branchOrCommit wasn't found, will use default branch")
-                    }
+                    switchBranch(git, gitDto.url, branchOrCommit)
                 }
                 val version = git.log().call().first()
                     .name
@@ -340,6 +338,15 @@ class DownloadProjectController(
                     Mono.error(exception)
                 }
             }
+    }
+
+    private fun switchBranch(git: Git, repoUrl: String, branchOrCommit: String) {
+        log.debug("For $repoUrl switching to the $branchOrCommit")
+        try {
+            git.checkout().setName(branchOrCommit).call()
+        } catch (ex: RefNotFoundException) {
+            log.warn("Provided branch/commit $branchOrCommit wasn't found, will use default branch")
+        }
     }
 
     private fun saveBinaryFile(
@@ -736,8 +743,10 @@ fun readStandardTestSuitesFile(name: String) =
             .filter { it.isNotBlank() }
             .associate {
                 val splitRow = it.split("\\s".toRegex())
-                require(splitRow.size == 2)
-                splitRow.first() to splitRow[1].split(";")
+                require(splitRow.size == 3) {
+                    "Follow the format for each line: (Gir url) (branch or commit hash) (testRootPath1;testRootPath2;...)"
+                }
+                (splitRow.first() to splitRow[1]) to splitRow[2].split(";")
             }
 
 private fun readGitCredentialsForStandardMode(name: String): Pair<String?, String?> {
