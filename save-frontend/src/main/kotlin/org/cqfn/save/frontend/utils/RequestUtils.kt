@@ -84,8 +84,7 @@ suspend fun request(url: String,
     .await().also {
         if (it.status == 401.toShort()) {
             // if 401 - change current URL to the main page (with login screen)
-            // fixme: this should happen if there is no logged in user on FE
-            // otherwise 401 means that the user has insufficient permissions
+            // note: we may have other uses for 401 in the future
             window.location.href = "${window.location.origin}/#"
         }
     }
