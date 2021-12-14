@@ -62,6 +62,7 @@ class WebSecurityConfig(
 
     @Bean
     @Order(2)
+    @Suppress("AVOID_NULL_CHECKS")
     fun actuatorSecurityWebFilterChain(
         http: ServerHttpSecurity
     ): SecurityWebFilterChain = http.run {
@@ -69,15 +70,20 @@ class WebSecurityConfig(
             .pathMatchers("/actuator/**")
             .authenticated()
     }
-        .and().httpBasic().authenticationManager(
-            UserDetailsRepositoryReactiveAuthenticationManager(
-                MapReactiveUserDetailsService(
-                    configurationProperties.basicCredentials.split(' ').run {
-                        User(first(), last(), emptyList())
-                    }
+        .and().httpBasic().run {
+            val userFromProps = configurationProperties.basicCredentials?.split(' ')?.run {
+                User(first(), last(), emptyList())
+            }
+            if (userFromProps != null) {
+                authenticationManager(
+                    UserDetailsRepositoryReactiveAuthenticationManager(
+                        MapReactiveUserDetailsService(userFromProps)
+                    )
                 )
-            )
-        )
+            } else {
+                this
+            }
+        }
         .and().build()
 }
 

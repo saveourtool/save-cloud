@@ -11,7 +11,7 @@ import org.springframework.boot.context.properties.ConstructorBinding
 @ConfigurationProperties(prefix = "gateway")
 data class ConfigurationProperties(
     val backend: Backend,
-    val basicCredentials: String,
+    val basicCredentials: String?,
 ) {
     /**
      * @property url URL of save-backend
