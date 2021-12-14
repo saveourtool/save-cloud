@@ -234,22 +234,17 @@ class AgentService {
     private fun TestBatch.toHeartbeatResponse(agentId: String) =
             if (tests.isNotEmpty()) {
                 // fixme: do we still need suitesToArgs, since we have execFlags in save.toml?
-                constructCliCommand(tests, suitesToArgs).flatMap { cliArgs ->
-                    Mono.fromCallable {
-                        NewJobResponse(tests, cliArgs)
-                    }
+                constructCliCommand(tests, suitesToArgs).map { cliArgs ->
+                    NewJobResponse(tests, cliArgs)
                 }
             } else {
                 log.info("Next test batch for agentId=$agentId is empty, setting it to wait")
-                Mono.fromCallable {
-                    WaitResponse
-                }
+                Mono.just(WaitResponse)
             }
 
     @Suppress("TOO_LONG_FUNCTION")
     private fun constructCliCommand(tests: List<TestDto>, suitesToArgs: Map<Long, String>): Mono<String> {
         var isStandardMode = false
-        val testPaths: MutableList<String> = mutableListOf()
         // first, need to check the current mode, it could be done by looking of type of any test suite for current tests
         return webClientBackend.get()
             .uri("/testSuite/${tests.first().testSuiteId}")
@@ -259,28 +254,32 @@ class AgentService {
                 isStandardMode = testSuite.type == TestSuiteType.STANDARD
                 if (isStandardMode) {
                     // in standard mode for each test get proper prefix location, since we created extra directories
-                    Flux.fromIterable(tests).flatMap { test ->
+                    // parent location for each test under one test suite is the same, so we can group them as the following
+                    Flux.fromIterable(tests.groupBy { it.testSuiteId }.values).flatMap { testGroup ->
                         webClientBackend.get()
-                            .uri("/testSuite/${test.testSuiteId}")
+                            .uri("/testSuite/${testGroup.first().testSuiteId}")
                             .retrieve()
                             .bodyToMono<TestSuite>()
-                            .map {
-                                val testFilePathInStandardDir =
-                                        Paths.get(getLocationInStandardDirForTestSuite(it.toDto()))
+                            .flatMapIterable {
+                                val locationInStandardDir = getLocationInStandardDirForTestSuite(it.toDto())
+                                testGroup.map { test ->
+                                    val testFilePathInStandardDir =
+                                        Paths.get(locationInStandardDir)
                                             .resolve(Paths.get(test.filePath))
-                                testPaths.add(testFilePathInStandardDir.toString())
+                                    testFilePathInStandardDir.toString()
+                                }
                             }
                     }
                         .collectList()
                 } else {
                     Mono.fromCallable {
-                        tests.forEach {
-                            testPaths.add(it.filePath)
+                        tests.map {
+                            it.filePath
                         }
                     }
                 }
             }
-            .map {
+            .map { testPaths ->
                 val cliArgs = if (!isStandardMode) {
                     suitesToArgs.values.first()
                 } else {
