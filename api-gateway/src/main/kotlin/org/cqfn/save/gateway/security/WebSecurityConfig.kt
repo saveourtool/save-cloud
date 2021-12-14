@@ -5,16 +5,13 @@
 package org.cqfn.save.gateway.security
 
 import org.cqfn.save.gateway.config.ConfigurationProperties
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.core.annotation.Order
-import org.springframework.core.io.ClassPathResource
 import org.springframework.security.authentication.UserDetailsRepositoryReactiveAuthenticationManager
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity
 import org.springframework.security.config.web.server.ServerHttpSecurity
 import org.springframework.security.core.userdetails.MapReactiveUserDetailsService
 import org.springframework.security.core.userdetails.User
-import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.crypto.factory.PasswordEncoderFactories
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.server.SecurityWebFilterChain
@@ -48,7 +45,7 @@ class WebSecurityConfig(
             authorizeExchange()
                 .pathMatchers("/", "/info/**", "/api/projects/not-deleted", "/save-frontend*.js*")
                 .permitAll()
-    }
+        }
         .and().run {
             authorizeExchange()
                 .pathMatchers("/**")
@@ -72,18 +69,16 @@ class WebSecurityConfig(
             .pathMatchers("/actuator/**")
             .authenticated()
     }
-        .and().httpBasic {
-            it.authenticationManager(
-                UserDetailsRepositoryReactiveAuthenticationManager(
-                    MapReactiveUserDetailsService(
-                        configurationProperties.basicCredentials.split(' ').run {
-                            User(first(), last(), emptyList())
-                        }
-                    )
+        .and().httpBasic().authenticationManager(
+            UserDetailsRepositoryReactiveAuthenticationManager(
+                MapReactiveUserDetailsService(
+                    configurationProperties.basicCredentials.split(' ').run {
+                        User(first(), last(), emptyList())
+                    }
                 )
             )
-        }
-        .build()
+        )
+        .and().build()
 }
 
 /**
