@@ -1,9 +1,11 @@
-@file:Suppress("HEADER_MISSING_IN_NON_SINGLE_CLASS_FILE")
+@file:Suppress("HEADER_MISSING_IN_NON_SINGLE_CLASS_FILE", "FILE_NAME_MATCH_CLASS")
 
 package org.cqfn.save.frontend.components.basic
 
 import org.cqfn.save.domain.TestResultStatus
+import org.cqfn.save.frontend.components.basic.SelectOption.Companion.ANY
 import org.cqfn.save.frontend.externals.fontawesome.faFilter
+import org.cqfn.save.frontend.externals.fontawesome.faSearch
 import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
 
 import org.w3c.dom.HTMLInputElement
@@ -21,12 +23,19 @@ import kotlinx.html.InputType
 import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
 
+@Suppress("MISSING_KDOC_TOP_LEVEL", "UtilityClassWithPublicConstructor")
+class SelectOption {
+    companion object {
+        const val ANY = "ANY"
+    }
+}
+
 /**
  * A row of filter selectors for table with `TestExecutionDto`s. Currently filters are "status" and "test suite".
  *
  * @param initialValueStatus initial value of `TestResultStatus`
  * @param initialValueTestSuite initial value of `test suite`
- * @param onChange handler for selected value change
+ * @param onChangeStatus handler for selected value change
  * @param onChangeTestSuite handler for input value
  * @return a function component
  */
@@ -34,7 +43,7 @@ import kotlinx.html.js.onClickFunction
 fun testExecutionFiltersRow(
     initialValueStatus: String,
     initialValueTestSuite: String,
-    onChange: (String) -> Unit,
+    onChangeStatus: (String) -> Unit,
     onChangeTestSuite: (String) -> Unit,
 ) = fc<Props> {
     var status: String = initialValueStatus
@@ -50,7 +59,7 @@ fun testExecutionFiltersRow(
             div("col-auto") {
                 select("form-control") {
                     val elements = TestResultStatus.values().map { it.name }.toMutableList()
-                    elements.add(0, "ANY")
+                    elements.add(0, ANY)
                     elements.forEach { element ->
                         option {
                             if (element == initialValueStatus) {
@@ -78,9 +87,10 @@ fun testExecutionFiltersRow(
                 }
             }
             button(classes = "btn btn-primary") {
-                +"Find"
+                fontAwesomeIcon(icon = faSearch, classes = "trash-alt")
+                // +"Find"
                 attrs.onClickFunction = {
-                    onChange(status)
+                    onChangeStatus(status)
                     onChangeTestSuite(testSuite)
                 }
             }

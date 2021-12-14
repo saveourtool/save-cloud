@@ -57,17 +57,7 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
         pageSize: Int,
         status: TestResultStatus?,
         testSuite: String?,
-    ) = testExecutionRepository.run {
-        if (status == null && testSuite == null) {
-            findByExecutionId(executionId, PageRequest.of(page, pageSize))
-        } else if (status != null && testSuite == null) {
-            findByExecutionIdAndStatus(executionId, status, PageRequest.of(page, pageSize))
-        } else if (status == null && testSuite != null) {
-            findByExecutionIdAndTestTestSuiteName(executionId, testSuite, PageRequest.of(page, pageSize))
-        } else {
-            findByExecutionIdAndStatusAndTestTestSuiteName(executionId, status!!, testSuite!!, PageRequest.of(page, pageSize))
-        }
-    }
+    ) = testExecutionRepository.findByExecutionIdAndStatusAndTestTestSuiteName(executionId, status, testSuite, PageRequest.of(page, pageSize))
 
     /**
      * Get test executions by [agentContainerId] and [status]
@@ -101,17 +91,8 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
      * @return number of TestExecutions
      */
     @Suppress("AVOID_NULL_CHECKS", "UnsafeCallOnNullableType")
-    internal fun getTestExecutionsCount(executionId: Long, status: TestResultStatus?, testSuite: String?) = testExecutionRepository.run {
-        if (status == null && testSuite == null) {
-            countByExecutionId(executionId)
-        } else if (status != null && testSuite == null) {
-            countByExecutionIdAndStatus(executionId, status)
-        } else if (status == null && testSuite != null) {
-            countByExecutionIdAndTestTestSuiteName(executionId, testSuite)
-        } else {
-            countByExecutionIdAndStatusAndTestTestSuiteName(executionId, status!!, testSuite!!)
-        }
-    }
+    internal fun getTestExecutionsCount(executionId: Long, status: TestResultStatus?, testSuite: String?) =
+            testExecutionRepository.countByExecutionIdAndStatusAndTestTestSuiteName(executionId, status, testSuite)
 
     /**
      * @param projectId

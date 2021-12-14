@@ -4,6 +4,8 @@ import org.cqfn.save.domain.TestResultStatus
 import org.cqfn.save.entities.TestExecution
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
+import org.springframework.data.jpa.repository.Query
+import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
 import java.util.Optional
 import javax.transaction.Transactional
@@ -22,42 +24,52 @@ interface TestExecutionRepository : BaseEntityRepository<TestExecution>, JpaSpec
     fun findByStatusAndExecutionId(status: TestResultStatus, id: Long, pageable: Pageable): List<TestExecution>
 
     /**
-     * Returns number of TestExecutions with this [executionId]
+     * Returns a page of [TestExecution]s with [executionId]
      *
      * @param executionId an ID of Execution to group TestExecutions
+     * @param status test status
+     * @param name suite name
      * @return number of TestExecutions
      */
-    fun countByExecutionId(executionId: Long): Int
-
-    @Suppress("MISSING_KDOC_ON_FUNCTION", "MISSING_KDOC_CLASS_ELEMENTS")
-    fun countByExecutionIdAndStatus(executionId: Long, status: TestResultStatus): Int
-
-    @Suppress("MISSING_KDOC_ON_FUNCTION", "MISSING_KDOC_CLASS_ELEMENTS")
-    fun countByExecutionIdAndTestTestSuiteName(executionId: Long, name: String): Int
-
-    @Suppress("MISSING_KDOC_ON_FUNCTION", "MISSING_KDOC_CLASS_ELEMENTS")
-    fun countByExecutionIdAndStatusAndTestTestSuiteName(executionId: Long, status: TestResultStatus, name: String): Int
+    @Query(
+        """SELECT COUNT(te) FROM TestExecution te
+           JOIN Test t ON t.id = te.test
+           JOIN Execution e ON e.id = te.execution
+           JOIN TestSuite ts ON t.testSuite = ts.id
+           WHERE 1 = 1
+            and (:status is null or te.status = :status)
+            and (:name is null or ts.name = :name)
+            and e.id = :executionId"""
+    )
+    fun countByExecutionIdAndStatusAndTestTestSuiteName(
+        @Param("executionId") executionId: Long,
+        @Param("status") status: TestResultStatus?,
+        @Param("name") name: String?,
+    ): Int
 
     /**
      * Returns a page of [TestExecution]s with [executionId]
      *
      * @param executionId an ID of Execution to group TestExecutions
+     * @param status test status
+     * @param name suite name
      * @param pageable a request for a page
      * @return a list of [TestExecutionDto]s
      */
-    fun findByExecutionId(executionId: Long, pageable: Pageable): List<TestExecution>
-
-    @Suppress("MISSING_KDOC_ON_FUNCTION", "MISSING_KDOC_CLASS_ELEMENTS")
-    fun findByExecutionIdAndStatus(executionId: Long, status: TestResultStatus, pageable: Pageable): List<TestExecution>
-
-    @Suppress("MISSING_KDOC_ON_FUNCTION", "MISSING_KDOC_CLASS_ELEMENTS")
-    fun findByExecutionIdAndTestTestSuiteName(executionId: Long, name: String, pageable: Pageable): List<TestExecution>
-
-    @Suppress("MISSING_KDOC_ON_FUNCTION", "MISSING_KDOC_CLASS_ELEMENTS")
+    @Query(
+        """SELECT te FROM TestExecution te
+           JOIN Test t ON t.id = te.test
+           JOIN Execution e ON e.id = te.execution
+           JOIN TestSuite ts ON t.testSuite = ts.id
+           WHERE 1 = 1
+            and (:status is null or te.status = :status)
+            and (:name is null or ts.name = :name)
+            and e.id = :executionId"""
+    )
     fun findByExecutionIdAndStatusAndTestTestSuiteName(
-        executionId: Long,
-        status: TestResultStatus,
-        name: String,
+        @Param("executionId") executionId: Long,
+        @Param("status") status: TestResultStatus?,
+        @Param("name") name: String?,
         pageable: Pageable
     ): List<TestExecution>
 

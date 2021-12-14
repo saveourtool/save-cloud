@@ -8,6 +8,7 @@ import org.cqfn.save.agent.TestExecutionDto
 import org.cqfn.save.domain.TestResultDebugInfo
 import org.cqfn.save.domain.TestResultStatus
 import org.cqfn.save.execution.ExecutionDto
+import org.cqfn.save.frontend.components.basic.SelectOption.Companion.ANY
 import org.cqfn.save.frontend.components.basic.executionStatistics
 import org.cqfn.save.frontend.components.basic.executionTestsNotFound
 import org.cqfn.save.frontend.components.basic.testExecutionFiltersRow
@@ -122,7 +123,6 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
             setState {
                 executionDto = executionDtoFromBackend
                 status = props.status
-                // testSuite = props.testSuite
                 countTests = count
             }
         }
@@ -297,9 +297,9 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                     th {
                         attrs.colSpan = "${tableInstance.columns.size}"
                         child(testExecutionFiltersRow(
-                            initialValueStatus = state.status?.name ?: "ANY",
+                            initialValueStatus = state.status?.name ?: ANY,
                             initialValueTestSuite = state.testSuite ?: "",
-                            onChange = { value ->
+                            onChangeStatus = { value ->
                                 if (value == "ANY") {
                                     setState {
                                         status = null
