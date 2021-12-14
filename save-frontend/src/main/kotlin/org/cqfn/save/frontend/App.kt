@@ -29,6 +29,7 @@ import org.cqfn.save.frontend.externals.fontawesome.faUser
 import org.cqfn.save.frontend.externals.fontawesome.fas
 import org.cqfn.save.frontend.externals.fontawesome.library
 import org.cqfn.save.frontend.externals.modal.ReactModal
+import org.cqfn.save.frontend.utils.withRouter
 
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.url.URLSearchParams
@@ -39,10 +40,9 @@ import react.State
 import react.buildElement
 import react.dom.div
 import react.dom.render
-import react.react
+import react.router.Route
+import react.router.Routes
 import react.router.dom.HashRouter
-import react.router.dom.Route
-import react.router.dom.Switch
 
 import kotlinx.browser.document
 import kotlinx.html.id
@@ -79,91 +79,93 @@ class App : RComponent<PropsWithChildren, AppState>() {
                 }
 
                 div("container-fluid") {
-                    Switch {
+                    Routes {
                         Route {
                             attrs {
-                                path = arrayOf("/")
-                                exact = true
-                                component = WelcomeView::class.react
+                                path = "/"
+                                element = buildElement {
+                                    child(WelcomeView::class) {}
+                                }
                             }
                         }
 
                         Route {
                             attrs {
-                                path = arrayOf("/creation")
-                                exact = true
-                                component = CreationView::class.react
+                                path = "/creation"
+                                element = buildElement {
+                                    child(CreationView::class) {}
+                                }
                             }
                         }
 
                         Route {
                             attrs {
-                                path = arrayOf("/projects")
-                                exact = true
-                                component = CollectionView::class.react
+                                path = "/projects"
+                                element = buildElement {
+                                    child(CollectionView::class) {}
+                                }
                             }
                         }
 
                         Route {
                             attrs {
-                                path = arrayOf("/:owner/:name")
-                                exact = true
-                                render = { routeResultProps ->
-                                    buildElement {
+                                path = "/:owner/:name"
+                                element = buildElement {
+                                    child(withRouter { _, params ->
                                         child(ProjectView::class) {
-                                            attrs.name = routeResultProps.match.params["name"]!!
-                                            attrs.owner = routeResultProps.match.params["owner"]!!
+                                            attrs.name = params["name"]!!
+                                            attrs.owner = params["owner"]!!
                                         }
-                                    }
+                                    })
                                 }
                             }
                         }
 
                         Route {
                             attrs {
-                                path = arrayOf("/:owner/:name/history")
-                                exact = true
-                                render = { routeResultProps ->
-                                    buildElement {
+                                path = "/:owner/:name/history"
+                                element = buildElement {
+                                    child(withRouter { _, params ->
                                         child(HistoryView::class) {
-                                            attrs.name = routeResultProps.match.params["name"]!!
-                                            attrs.owner = routeResultProps.match.params["owner"]!!
+                                            attrs.name = params["name"]!!
+                                            attrs.owner = params["owner"]!!
                                         }
-                                    }
+                                    })
                                 }
                             }
                         }
 
                         Route {
                             attrs {
-                                path = arrayOf("/:owner/:name/history/execution/:executionId")
-                                exact = true
-                                render = { props ->
-                                    buildElement {
+                                path = "/:owner/:name/history/execution/:executionId"
+                                element = buildElement {
+                                    child(withRouter { location, params ->
                                         child(ExecutionView::class) {
-                                            attrs.executionId = props.match.params["executionId"]!!
-                                            attrs.status = URLSearchParams(props.location.search).get("status")?.let(
+                                            attrs.executionId = params["executionId"]!!
+                                            attrs.status = URLSearchParams(location.search).get("status")?.let(
                                                 TestResultStatus::valueOf
                                             )
                                         }
-                                    }
+                                    })
                                 }
                             }
                         }
 
                         Route {
                             attrs {
-                                path =
-                                        arrayOf("/:owner/:name/history/execution/:executionId/details/:testSuiteName/:pluginName/:testFilePath+")
-                                exact = false  // all paths parts under testFilePath should be captured
+                                path = "/:owner/:name/history/execution/:executionId/details/:testSuiteName/:pluginName/:testFilePath/*"
+                                element = buildElement {
+                                    child(testExecutionDetailsView()) {}
+                                }
                             }
-                            child(testExecutionDetailsView()) {}
                         }
 
                         Route {
                             attrs {
-                                path = arrayOf("*")
-                                component = FallbackView::class.react
+                                path = "*"
+                                element = buildElement {
+                                    child(FallbackView::class) {}
+                                }
                             }
                         }
                     }

@@ -13,7 +13,7 @@ import react.PropsWithChildren
 import react.RBuilder
 import react.dom.*
 import react.fc
-import react.router.dom.useLocation
+import react.router.useLocation
 import react.useState
 
 import kotlinx.html.BUTTON
