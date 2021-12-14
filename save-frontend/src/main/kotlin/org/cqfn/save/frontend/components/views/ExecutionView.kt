@@ -24,18 +24,9 @@ import org.cqfn.save.frontend.utils.spread
 import org.cqfn.save.frontend.utils.unsafeMap
 
 import csstype.Background
+import csstype.Width
 import kotlinext.js.jsObject
 import org.w3c.fetch.Headers
-import react.PropsWithChildren
-import react.RBuilder
-import react.State
-import react.buildElement
-import react.dom.button
-import react.dom.div
-import react.dom.td
-import react.dom.th
-import react.dom.tr
-import react.setState
 import react.table.columns
 import react.table.useExpanded
 import react.table.usePagination
@@ -49,6 +40,8 @@ import kotlinx.datetime.Instant
 import kotlinx.html.js.onClickFunction
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
+import react.*
+import react.dom.*
 
 /**
  * [RProps] for execution results view
@@ -142,24 +135,98 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                     attrs.executionDto = state.executionDto
                     attrs.countTests = state.countTests
                 }
-                button(classes = "btn btn-primary") {
-                    +"Rerun execution"
-                    attrs.onClickFunction = {
-                        attrs.disabled = true
-                        GlobalScope.launch {
-                            post(
-                                "$apiUrl/rerunExecution?id=${props.executionId}",
-                                Headers(),
-                                undefined
-                            )
-                        }.invokeOnCompletion {
-                            window.alert("Rerun request successfully submitted")
-                            window.location.reload()
+                div("pr-0") {
+                    button(classes = "btn btn-primary") {
+                        +"Rerun execution"
+                        attrs.onClickFunction = {
+                            attrs.disabled = true
+                            GlobalScope.launch {
+                                post(
+                                    "$apiUrl/rerunExecution?id=${props.executionId}",
+                                    Headers(),
+                                    undefined
+                                )
+                            }.invokeOnCompletion {
+                                window.alert("Rerun request successfully submitted")
+                                window.location.reload()
+                            }
                         }
                     }
                 }
             }
         }
+
+        div("row") {
+            div("col-md-2 mb-4") {
+                div("card bg-success text-white h-100 shadow py-2") {
+                    div("card-body") {
+                            +"""RUNNING"""
+                            div("text-white-50 small") { +"""Project version: 0.0.1""" }
+                    }
+                }
+            }
+
+            div("col-xl-3 col-md-6 mb-4") {
+                div("card border-left-info shadow h-100 py-2") {
+                    div("card-body") {
+                        div("row no-gutters align-items-center") {
+                            div("col mr-2") {
+                                div("text-xs font-weight-bold text-info text-uppercase mb-1") { +"""Pass Rate""" }
+                                div("row no-gutters align-items-center") {
+                                    div("col-auto") {
+                                        div("h5 mb-0 mr-3 font-weight-bold text-gray-800") { +"""50%""" }
+                                    }
+                                    div("col") {
+                                        div("progress progress-sm mr-2") {
+                                            div("progress-bar bg-info") {
+                                                attrs["role"] = "progressbar"
+                                                attrs["style"] = kotlinext.js.jsObject<CSSProperties> {
+                                                    width = "50%;".unsafeCast<Width>()
+                                                }
+                                                attrs["aria-valuenow"] = "50"
+                                                attrs["aria-valuemin"] = "0"
+                                                attrs["aria-valuemax"] = "100"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            div("col-auto") {
+                                i("fas fa-clipboard-list fa-2x text-gray-300") {
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            div("col-xl-4 col-md-6 mb-4") {
+                div("card border-left-success shadow h-100 py-2") {
+                    div("card-body") {
+                        div("row no-gutters align-items-center") {
+                            div("col mr-2") {
+                                div("text-xs font-weight-bold text-success text-uppercase mb-1") { +"""Tests""" }
+                                div("h5 mb-0 font-weight-bold text-gray-800") { +"""100000""" }
+                            }
+                            div("col mr-2") {
+                                div("text-xs font-weight-bold text-success text-uppercase mb-1") { +"""Running""" }
+                                div("h5 mb-0 font-weight-bold text-gray-800") { +"""543""" }
+                            }
+                            div("col mr-2") {
+                                div("text-xs font-weight-bold text-success text-uppercase mb-1") { +"""Failed""" }
+                                div("h5 mb-0 font-weight-bold text-gray-800") { +"""100000""" }
+                            }
+                            div("col mr-2") {
+                                div("text-xs font-weight-bold text-success text-uppercase mb-1") { +"""Passed""" }
+                                div("h5 mb-0 font-weight-bold text-gray-800") { +"""9000""" }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+
+
         // fixme: table is rendered twice because of state change when `executionDto` is fetched
         child(tableComponent(
             columns = columns {
