@@ -79,14 +79,15 @@ class SaveAgent(internal val config: AgentConfiguration,
      */
     suspend fun start() = coroutineScope {
         logInfoCustom("Starting agent")
-        val heartbeatsJob = launch(
-            newSingleThreadContext("heartbeats")
-        ) { startHeartbeats(this@coroutineScope.coroutineContext) }
+        launch(newSingleThreadContext("save-process")) {
+            startSaveProcess("cliArgs")
+        }
+        val heartbeatsJob = launch { startHeartbeats() }
         heartbeatsJob.join()
     }
 
     @Suppress("WHEN_WITHOUT_ELSE")  // when with sealed class
-    private suspend fun startHeartbeats(context: CoroutineContext) = coroutineScope {
+    private suspend fun startHeartbeats() = coroutineScope {
         logInfoCustom("Scheduling heartbeats")
         launch(newSingleThreadContext("background")) {
             sendDataToBackend { saveAdditionalData() }
@@ -100,7 +101,7 @@ class SaveAgent(internal val config: AgentConfiguration,
                 when (val heartbeatResponse = response.getOrNull().also {
                     logDebugCustom("Got heartbeat response $it")
                 }) {
-                    is NewJobResponse -> maybeStartSaveProcess(context, heartbeatResponse.cliArgs)
+                    is NewJobResponse -> maybeStartSaveProcess(heartbeatResponse.cliArgs)
                     is WaitResponse -> state.value = AgentState.IDLE
                     is ContinueResponse -> Unit  // do nothing
                 }
@@ -114,11 +115,11 @@ class SaveAgent(internal val config: AgentConfiguration,
         }
     }
 
-    private suspend fun maybeStartSaveProcess(context: CoroutineContext, cliArgs: String) = coroutineScope {
+    private suspend fun maybeStartSaveProcess(cliArgs: String) = coroutineScope {
         if (saveProcessJob.value?.isCompleted == false) {
             logErrorCustom("Shouldn't start new process when there is the previous running")
         } else {
-            saveProcessJob.value = launch(context) {
+            saveProcessJob.value = launch(newSingleThreadContext("save-process")) {
                 runCatching {
                     // new job received from Orchestrator, spawning SAVE CLI process
                     startSaveProcess(cliArgs)
