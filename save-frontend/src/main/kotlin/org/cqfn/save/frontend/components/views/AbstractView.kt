@@ -16,7 +16,7 @@ abstract class AbstractView<P : Props, S : State>(private val hasBg: Boolean = t
     override fun componentDidMount() {
         val style = if (hasBg) {
             Style(
-                "-webkit-linear-gradient(270deg, rgb(84, 83, 97), rgb(25, 34, 99), rgb(49, 70, 180))",
+                "-webkit-linear-gradient(270deg, rgb(84, 83, 97), rgb(25, 34, 99), rgb(102 103 171))",
                 "",
                 "transparent"
             )
