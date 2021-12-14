@@ -2,13 +2,12 @@
 
 package org.cqfn.save.frontend.components.basic
 
+import csstype.Width
 import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.execution.ExecutionStatus
+import react.CSSProperties
 import react.Props
-import react.dom.button
-import react.dom.div
-import react.dom.h1
-import react.dom.img
+import react.dom.*
 import react.fc
 
 /**
@@ -38,19 +37,77 @@ fun executionStatistics(classes: String = "") = fc<ExecutionStatisticsProps> { p
     val isInProgress = props.executionDto?.run { status == ExecutionStatus.RUNNING || status == ExecutionStatus.PENDING } ?: true
     val isSuccess = props.executionDto?.run { passedTests == totalTests } ?: false
     val style = if (isInProgress) {
-        "btn-info"
+        "info"
     } else if (isSuccess) {
-        "btn-success"
+        "success"
     } else {
-        "btn-danger"
+        "danger"
     }
-    div(classes) {
-        button(classes = "btn $style") {
-            attrs.disabled = true
-            val passRate = props.executionDto?.run {
-                if (totalTests > 0) (passedTests.toFloat() / totalTests * 100).toInt() else 0
-            } ?: "N/A"
-            +"$totalTests tests, $passRate% passed, ${props.executionDto?.runningTests} running"
+
+    val passedTests = props.executionDto?.passedTests ?: 0L
+    val failedTests = props.executionDto?.failedTests ?: 0L
+    val runningTests = props.executionDto?.runningTests ?: 0L
+
+    val passRate = props.executionDto?.run {
+        if (totalTests > 0) (passedTests.toFloat() / totalTests * 100).toInt() else 0
+    } ?: "0"
+
+    div("col-xl-3 col-md-6 mb-4") {
+        div("card border-left-info shadow h-100 py-2") {
+            div("card-body") {
+                div("row no-gutters align-items-center") {
+                    div("col mr-2") {
+                        div("text-xs font-weight-bold text-info text-uppercase mb-1") { +"Pass Rate" }
+                        div("row no-gutters align-items-center") {
+                            div("col-auto") {
+                                div("h5 mb-0 mr-3 font-weight-bold text-gray-800") { +"$passRate%" }
+                            }
+                            div("col") {
+                                div("progress progress-sm mr-2") {
+                                    div("progress-bar bg-info") {
+                                        attrs["role"] = "progressbar"
+                                        attrs["style"] = kotlinext.js.jsObject<CSSProperties> {
+                                            width = "$passRate%".unsafeCast<Width>()
+                                        }
+                                        attrs["aria-valuenow"] = "$passRate"
+                                        attrs["aria-valuemin"] = "0"
+                                        attrs["aria-valuemax"] = "100"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    div("col-auto") {
+                        i("fas fa-clipboard-list fa-2x text-gray-300") {
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    div("col-xl-4 col-md-6 mb-4") {
+        div("card border-left-$style shadow h-100 py-2") {
+            div("card-body") {
+                div("row no-gutters align-items-center") {
+                    div("col mr-2") {
+                        div("text-xs font-weight-bold text-info text-uppercase mb-1") { +"Tests" }
+                        div("h5 mb-0 font-weight-bold text-gray-800") { +"$totalTests" }
+                    }
+                    div("col mr-2") {
+                        div("text-xs font-weight-bold text-info text-uppercase mb-1") { +"Running" }
+                        div("h5 mb-0 font-weight-bold text-gray-800") { +"$runningTests" }
+                    }
+                    div("col mr-2") {
+                        div("text-xs font-weight-bold text-danger text-uppercase mb-1") { +"Failed" }
+                        div("h5 mb-0 font-weight-bold text-gray-800") { +"$failedTests" }
+                    }
+                    div("col mr-2") {
+                        div("text-xs font-weight-bold text-success text-uppercase mb-1") { +"Passed" }
+                        div("h5 mb-0 font-weight-bold text-gray-800") { +"$passedTests" }
+                    }
+                }
+            }
         }
     }
 }
