@@ -81,7 +81,13 @@ suspend fun request(url: String,
         credentials = credentials,
     )
 )
-    .await()
+    .await().also {
+        if (it.status == 401.toShort()) {
+            // if 401 - change current URL to the main page (with login screen)
+            // note: we may have other uses for 401 in the future
+            window.location.href = "${window.location.origin}/#"
+        }
+    }
 
 /**
  * @param name

@@ -24,7 +24,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import okhttp3.mockwebserver.QueueDispatcher
-import okio.ExperimentalFileSystem
 import okio.FileSystem
 import okio.Path.Companion.toPath
 import org.junit.jupiter.api.AfterAll
@@ -292,7 +291,6 @@ class DownloadProjectTest(
     }
 
     @Test
-    @OptIn(ExperimentalFileSystem::class)
     fun testStandardTestSuites() {
         val requestSize = readStandardTestSuitesFile(configProperties.reposFileName)
             .toList()
