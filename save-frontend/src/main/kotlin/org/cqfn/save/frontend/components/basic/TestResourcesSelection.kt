@@ -125,9 +125,9 @@ fun testResourcesSelection(
                                 attrs["tooltip-placement"] = "top"
                                 attrs["tooltip-title"] = ""
                                 attrs["popover-placement"] = "left"
-                                attrs["popover-title"] = "Provide full name of your brach with `origin` prefix: origin/your_branch\n" +
-                                        "Or hash of the concrete commit"
-                                attrs["popover-content"] = ""
+                                attrs["popover-title"] = "Keep in mind the following rules:"
+                                attrs["popover-content"] = "Provide full name of your brach with `origin` prefix: origin/your_branch." +
+                                        " Or in aim to use the concrete commit just provide hash of it."
                                 attrs["data-trigger"] = "focus"
                                 attrs["tabindex"] = "0"
                             }
