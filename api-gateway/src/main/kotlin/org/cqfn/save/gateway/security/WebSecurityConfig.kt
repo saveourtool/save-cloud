@@ -12,23 +12,37 @@ import org.springframework.security.crypto.factory.PasswordEncoderFactories
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.server.SecurityWebFilterChain
 import org.springframework.security.web.server.authentication.RedirectServerAuthenticationSuccessHandler
+import org.springframework.security.web.server.util.matcher.AndServerWebExchangeMatcher
+import org.springframework.security.web.server.util.matcher.NegatedServerWebExchangeMatcher
+import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers
 
 @EnableWebFluxSecurity
 @Suppress("MISSING_KDOC_TOP_LEVEL", "MISSING_KDOC_CLASS_ELEMENTS", "MISSING_KDOC_ON_FUNCTION")
 class WebSecurityConfig {
     @Bean
+    @Order(1)
     fun securityWebFilterChain(
         http: ServerHttpSecurity
-    ): SecurityWebFilterChain = http.run {
-        // `CollectionView` is a public page
-        // todo: backend should tell which endpoint is public, and gateway should provide user data
-        authorizeExchange()
-            .pathMatchers("/", "/info/**", "/api/projects/not-deleted", "/save-frontend*.js*")
-            .permitAll()
+    ): SecurityWebFilterChain = http
+        .securityMatcher(
+            // access to actuator is managed separately
+            AndServerWebExchangeMatcher(
+                ServerWebExchangeMatchers.pathMatchers("/**"),
+                NegatedServerWebExchangeMatcher(
+                    ServerWebExchangeMatchers.pathMatchers("/actuator", "/actuator/**")
+                )
+            )
+        )
+        .run {
+            // `CollectionView` is a public page
+            // todo: backend should tell which endpoint is public, and gateway should provide user data
+            authorizeExchange()
+                .pathMatchers("/", "/info/**", "/api/projects/not-deleted", "/save-frontend*.js*")
+                .permitAll()
     }
         .and().run {
             authorizeExchange()
-                .pathMatchers("/**", "!/actuator/**")
+                .pathMatchers("/**")
                 .authenticated()
         }
         .and().run {
@@ -41,7 +55,7 @@ class WebSecurityConfig {
         .build()
 
     @Bean
-    @Order(1)
+    @Order(2)
     fun actuatorSecurityWebFilterChain(
         http: ServerHttpSecurity
     ): SecurityWebFilterChain = http.run {
