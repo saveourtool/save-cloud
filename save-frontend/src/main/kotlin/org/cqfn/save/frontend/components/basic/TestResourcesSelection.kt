@@ -119,9 +119,19 @@ fun testResourcesSelection(
                     }
 
                     div("input-group-sm") {
-                        // TODO: add proprs about origin
                         div("row") {
-                            h6(classes = "d-inline ml-3") {
+                            sup("tooltip-and-popover") {
+                                fontAwesomeIcon(icon = faQuestionCircle)
+                                attrs["tooltip-placement"] = "top"
+                                attrs["tooltip-title"] = ""
+                                attrs["popover-placement"] = "left"
+                                attrs["popover-title"] = "Provide full name of your brach with `origin` prefix: origin/your_branch\n" +
+                                        "Or hash of the concrete commit"
+                                attrs["popover-content"] = ""
+                                attrs["data-trigger"] = "focus"
+                                attrs["tabindex"] = "0"
+                            }
+                            h6(classes = "d-inline ml-2") {
                                 +"Git branch or specific commit in your repository:"
                             }
                         }
@@ -133,7 +143,7 @@ fun testResourcesSelection(
                                     props.gitBranchOrCommitFromInputField?.let {
                                         value = it
                                     }
-                                    placeholder = "leave empty to use default branch and latest commit"
+                                    placeholder = "leave empty if you would like to use default branch with latest commit"
                                     onChangeFunction = {
                                         updateGitBranchOrCommitInputField(it)
                                     }
