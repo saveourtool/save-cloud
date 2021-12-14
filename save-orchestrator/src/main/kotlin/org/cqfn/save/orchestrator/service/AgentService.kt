@@ -250,6 +250,7 @@ class AgentService {
     private fun constructCliCommand(tests: List<TestDto>, suitesToArgs: Map<Long, String>): Mono<String> {
         var isStandardMode = false
         val testPaths: MutableList<String> = mutableListOf()
+        // first, need to check the current mode, it could be done by looking of type of any test suite for current tests
         return webClientBackend.get()
             .uri("/testSuite/${tests.first().testSuiteId}")
             .retrieve()
@@ -285,6 +286,7 @@ class AgentService {
                 } else {
                     ""
                 } + " " + testPaths.joinToString(" ")
+                log.debug("Constructed cli args for SAVE-cli: $cliArgs")
                 cliArgs
             }
     }
