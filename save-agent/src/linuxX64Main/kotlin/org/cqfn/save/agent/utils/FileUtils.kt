@@ -4,8 +4,6 @@
 
 package org.cqfn.save.agent.utils
 
-import org.cqfn.save.core.logging.logError
-
 import okio.FileNotFoundException
 import okio.FileSystem
 import okio.Path.Companion.toPath
@@ -22,7 +20,7 @@ internal fun readFile(filePath: String): List<String> = try {
         generateSequence { readUtf8Line() }.toList()
     }
 } catch (e: FileNotFoundException) {
-    logError("Not able to find file in the following path: $filePath")
+    logErrorCustom("Not able to find file in the following path: $filePath")
     emptyList()
 }
 
