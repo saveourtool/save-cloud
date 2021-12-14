@@ -46,7 +46,7 @@ fun main() {
     val config: AgentConfiguration = Properties.decodeFromStringMap(
         readProperties("agent.properties")
     )
-    logType = if (config.debug) LogType.ALL else LogType.WARN
+    logType.set(if (config.debug) LogType.ALL else LogType.WARN)
     logDebugCustom("Instantiating save-agent version $SAVE_CLOUD_VERSION with config $config")
 
     signal(SIGTERM, staticCFunction<Int, Unit> {

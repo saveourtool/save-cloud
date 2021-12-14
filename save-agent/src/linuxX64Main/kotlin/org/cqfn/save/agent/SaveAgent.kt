@@ -29,7 +29,6 @@ import io.ktor.http.contentType
 import okio.FileSystem
 import okio.Path.Companion.toPath
 
-import kotlin.coroutines.CoroutineContext
 import kotlin.native.concurrent.AtomicLong
 import kotlin.native.concurrent.AtomicReference
 import kotlinx.coroutines.CoroutineScope
@@ -76,9 +75,6 @@ class SaveAgent(internal val config: AgentConfiguration,
      */
     suspend fun start() = coroutineScope {
         logInfoCustom("Starting agent")
-        launch(newSingleThreadContext("save-process")) {
-            startSaveProcess("cliArgs")
-        }
         val heartbeatsJob = launch { startHeartbeats() }
         heartbeatsJob.join()
     }

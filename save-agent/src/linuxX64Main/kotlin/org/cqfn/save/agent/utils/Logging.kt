@@ -6,35 +6,21 @@
 
 package org.cqfn.save.agent.utils
 
+import org.cqfn.save.core.logging.logDebug
+import org.cqfn.save.core.logging.logError
+import org.cqfn.save.core.logging.logInfo
+
 import platform.linux.__NR_gettid
 import platform.posix.syscall
 
-import kotlinx.datetime.Clock
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
-
-fun logErrorCustom(msg: String) = logMessage(
-    "ERROR",
+fun logErrorCustom(msg: String) = logError(
     "[tid ${syscall(__NR_gettid.toLong())}] $msg"
 )
 
-fun logInfoCustom(msg: String) = logMessage(
-    "INFO",
+fun logInfoCustom(msg: String) = logInfo(
     "[tid ${syscall(__NR_gettid.toLong())}] $msg"
 )
 
-fun logDebugCustom(msg: String) = logMessage(
-    "DEBUG",
+fun logDebugCustom(msg: String) = logDebug(
     "[tid ${syscall(__NR_gettid.toLong())}] $msg"
 )
-
-private fun logMessage(
-    level: String,
-    msg: String,
-) {
-    val currentTime = run {
-        val currentTimeInstance = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
-        " ${currentTimeInstance.date} ${currentTimeInstance.hour}:${currentTimeInstance.minute}:${currentTimeInstance.second}"
-    }
-    println("[$level]$currentTime: $msg")
-}
