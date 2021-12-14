@@ -264,8 +264,8 @@ class AgentService {
                                 val locationInStandardDir = getLocationInStandardDirForTestSuite(it.toDto())
                                 testGroup.map { test ->
                                     val testFilePathInStandardDir =
-                                        Paths.get(locationInStandardDir)
-                                            .resolve(Paths.get(test.filePath))
+                                            Paths.get(locationInStandardDir)
+                                                .resolve(Paths.get(test.filePath))
                                     testFilePathInStandardDir.toString()
                                 }
                             }
