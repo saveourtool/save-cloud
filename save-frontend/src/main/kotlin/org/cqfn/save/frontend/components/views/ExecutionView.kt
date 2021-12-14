@@ -8,12 +8,15 @@ import org.cqfn.save.agent.TestExecutionDto
 import org.cqfn.save.domain.TestResultDebugInfo
 import org.cqfn.save.domain.TestResultStatus
 import org.cqfn.save.execution.ExecutionDto
+import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.frontend.components.basic.SelectOption.Companion.ANY
 import org.cqfn.save.frontend.components.basic.executionStatistics
 import org.cqfn.save.frontend.components.basic.executionTestsNotFound
 import org.cqfn.save.frontend.components.basic.testExecutionFiltersRow
 import org.cqfn.save.frontend.components.basic.testStatusComponent
 import org.cqfn.save.frontend.components.tables.tableComponent
+import org.cqfn.save.frontend.externals.fontawesome.faRedo
+import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
 import org.cqfn.save.frontend.externals.table.useFilters
 import org.cqfn.save.frontend.http.getDebugInfoFor
 import org.cqfn.save.frontend.themes.Colors
@@ -28,6 +31,8 @@ import csstype.Background
 import csstype.TextDecoration
 import kotlinext.js.jsObject
 import org.w3c.fetch.Headers
+import react.*
+import react.dom.*
 import react.table.columns
 import react.table.useExpanded
 import react.table.usePagination
@@ -41,11 +46,6 @@ import kotlinx.datetime.Instant
 import kotlinx.html.js.onClickFunction
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
-import org.cqfn.save.execution.ExecutionStatus
-import org.cqfn.save.frontend.externals.fontawesome.faRedo
-import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
-import react.*
-import react.dom.*
 
 /**
  * [RProps] for execution results view
@@ -135,13 +135,12 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
     override fun RBuilder.render() {
         div {
             div("d-flex") {
-
                 val statusVal = state.executionDto?.status
                 val statusColor = when (statusVal) {
                     ExecutionStatus.ERROR -> "bg-danger"
                     ExecutionStatus.RUNNING, ExecutionStatus.PENDING -> "bg-info"
                     ExecutionStatus.FINISHED -> "bg-success"
-                    else -> { "bg-secondary" }
+                    else -> "bg-secondary"
                 }
 
                 div("col-md-2 mb-4") {
@@ -165,6 +164,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                                 a("") {
                                     +"Rerun execution"
                                     fontAwesomeIcon(icon = faRedo, classes = "ml-2")
+                                    @Suppress("TOO_MANY_LINES_IN_LAMBDA")
                                     attrs.onClickFunction = {
                                         GlobalScope.launch {
                                             post(
@@ -176,7 +176,6 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                                             window.alert("Rerun request successfully submitted")
                                             window.location.reload()
                                         }
-
                                         it.preventDefault()
                                     }
                                 }

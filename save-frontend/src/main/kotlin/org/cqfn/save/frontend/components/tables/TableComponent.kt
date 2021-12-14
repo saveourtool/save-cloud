@@ -203,18 +203,18 @@ fun <D : Any> tableComponent(
                         }
                     }
                 }
-                //if (tableInstance.pageCount > 1) {
-                    // block with paging controls
-                    div("wrapper container m-0 p-0") {
-                        pagingControl(tableInstance, setPageIndex, pageIndex, pageCount)
+                // if (tableInstance.pageCount > 1) {
+                // block with paging controls
+                div("wrapper container m-0 p-0") {
+                    pagingControl(tableInstance, setPageIndex, pageIndex, pageCount)
 
-                        div("row ml-1") {
-                            +"Page "
-                            em {
-                                +"${tableInstance.state.pageIndex + 1} of ${tableInstance.pageCount}"
-                            }
+                    div("row ml-1") {
+                        +"Page "
+                        em {
+                            +"${tableInstance.state.pageIndex + 1} of ${tableInstance.pageCount}"
                         }
                     }
+                }
 
                 // }
             }

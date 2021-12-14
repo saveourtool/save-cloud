@@ -1,10 +1,11 @@
-@file:Suppress("FILE_NAME_MATCH_CLASS")
+@file:Suppress("FILE_NAME_MATCH_CLASS", "FILE_WILDCARD_IMPORTS", "WildcardImport")
 
 package org.cqfn.save.frontend.components.basic
 
-import csstype.Width
 import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.execution.ExecutionStatus
+
+import csstype.Width
 import react.CSSProperties
 import react.Props
 import react.dom.*
@@ -31,7 +32,7 @@ external interface ExecutionStatisticsProps : Props {
  * @param classes HTML classes for the enclosing div
  * @return a functional react component
  */
-@Suppress("MAGIC_NUMBER")
+@Suppress("MAGIC_NUMBER", "TOO_LONG_FUNCTION", "LongMethod", "ComplexMethod")
 fun executionStatistics(classes: String = "") = fc<ExecutionStatisticsProps> { props ->
     val totalTests = props.countTests?.toLong() ?: 0L
     val isInProgress = props.executionDto?.run { status == ExecutionStatus.RUNNING || status == ExecutionStatus.PENDING } ?: true
@@ -69,7 +70,7 @@ fun executionStatistics(classes: String = "") = fc<ExecutionStatisticsProps> { p
                                         attrs["style"] = kotlinext.js.jsObject<CSSProperties> {
                                             width = "$passRate%".unsafeCast<Width>()
                                         }
-                                        attrs["aria-valuenow"] = "$passRate"
+                                        attrs["aria-valuenow"] = passRate
                                         attrs["aria-valuemin"] = "0"
                                         attrs["aria-valuemax"] = "100"
                                     }
@@ -79,7 +80,7 @@ fun executionStatistics(classes: String = "") = fc<ExecutionStatisticsProps> { p
                     }
                     div("col-auto") {
                         i("fas fa-clipboard-list fa-2x text-gray-300") {
-                        }
+                            }
                     }
                 }
             }
@@ -92,19 +93,19 @@ fun executionStatistics(classes: String = "") = fc<ExecutionStatisticsProps> { p
                 div("row no-gutters align-items-center") {
                     div("col mr-2") {
                         div("text-xs font-weight-bold text-info text-uppercase mb-1") { +"Tests" }
-                        div("h5 mb-0 font-weight-bold text-gray-800") { +"$totalTests" }
+                        div("h5 mb-0 font-weight-bold text-gray-800") { +totalTests.toString() }
                     }
                     div("col mr-2") {
                         div("text-xs font-weight-bold text-info text-uppercase mb-1") { +"Running" }
-                        div("h5 mb-0 font-weight-bold text-gray-800") { +"$runningTests" }
+                        div("h5 mb-0 font-weight-bold text-gray-800") { +runningTests.toString() }
                     }
                     div("col mr-2") {
                         div("text-xs font-weight-bold text-danger text-uppercase mb-1") { +"Failed" }
-                        div("h5 mb-0 font-weight-bold text-gray-800") { +"$failedTests" }
+                        div("h5 mb-0 font-weight-bold text-gray-800") { +failedTests.toString() }
                     }
                     div("col mr-2") {
                         div("text-xs font-weight-bold text-success text-uppercase mb-1") { +"Passed" }
-                        div("h5 mb-0 font-weight-bold text-gray-800") { +"$passedTests" }
+                        div("h5 mb-0 font-weight-bold text-gray-800") { +passedTests.toString() }
                     }
                 }
             }
