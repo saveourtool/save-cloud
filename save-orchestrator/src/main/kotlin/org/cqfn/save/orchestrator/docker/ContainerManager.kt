@@ -61,7 +61,8 @@ class ContainerManager(private val settings: DockerSettings) {
     internal fun createContainerFromImage(baseImageId: String,
                                           workingDir: String,
                                           runCmd: String,
-                                          containerName: String): String {
+                                          containerName: String,
+    ): String {
         val baseImage = dockerClient.listImagesCmd().exec().find {
             // fixme: sometimes createImageCmd returns short id without prefix, sometimes full and with prefix.
             it.id.replaceFirst("sha256:", "").startsWith(baseImageId.replaceFirst("sha256:", ""))

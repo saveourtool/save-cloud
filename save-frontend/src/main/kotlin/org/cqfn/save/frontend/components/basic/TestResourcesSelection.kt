@@ -48,6 +48,7 @@ external interface TestResourcesProps : PropsWithChildren {
     // properties for STANDARD_BENCHMARKS mode
     var standardTestSuites: List<TestSuiteDto>
     var selectedStandardSuites: MutableList<String>
+    var selectedLanguageForStandardTests: String?
 }
 
 /**
@@ -55,14 +56,16 @@ external interface TestResourcesProps : PropsWithChildren {
  * @param updateGitBranchOrCommitInputField:
  * @param updateTestRootPath
  * @param setTestRootPathFromHistory
- * @return a RComponent
+ * @param setSelectedLanguageForStandardTests
+ * @return an RComponent
  */
 @Suppress("LongMethod", "TOO_LONG_FUNCTION")
 fun testResourcesSelection(
     updateGitUrlFromInputField: (Event) -> Unit,
     updateGitBranchOrCommitInputField: (Event) -> Unit,
     updateTestRootPath: (Event) -> Unit,
-    setTestRootPathFromHistory: (String) -> Unit
+    setTestRootPathFromHistory: (String) -> Unit,
+    setSelectedLanguageForStandardTests: (String) -> Unit,
 ) =
         fc<TestResourcesProps> { props ->
             label(classes = "control-label col-auto justify-content-between font-weight-bold text-gray-800 mb-1 pl-0") {
@@ -175,7 +178,13 @@ fun testResourcesSelection(
             div {
                 attrs.classes = cardStyleByTestingType(props, TestingType.STANDARD_BENCHMARKS)
                 div("card-body") {
-                    child(checkBoxGrid(props.standardTestSuites)) {
+                    child(suitesTable(
+                        props.standardTestSuites,
+                        props.selectedLanguageForStandardTests,
+                        setSelectedLanguageForStandardTests
+                    )) {}
+
+                    child(checkBoxGrid(props.standardTestSuites, props.selectedLanguageForStandardTests)) {
                         attrs.selectedStandardSuites = props.selectedStandardSuites
                         attrs.rowSize = ProjectView.TEST_SUITE_ROW
                     }

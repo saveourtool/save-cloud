@@ -42,7 +42,7 @@ class TestSuitesService {
                 it.copy(description = null)
             }
             .map {
-                TestSuite(it.type, it.name, it.description, it.project, null, it.testRootPath, it.testSuiteRepoUrl)
+                TestSuite(it.type, it.name, it.description, it.project, null, it.testRootPath, it.testSuiteRepoUrl, it.language)
             }
             .map { testSuite ->
                 // try to find TestSuite in the DB based on all non-null properties of `testSuite`

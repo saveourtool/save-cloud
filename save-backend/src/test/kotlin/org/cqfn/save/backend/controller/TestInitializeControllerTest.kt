@@ -52,7 +52,7 @@ class TestInitializeControllerTest {
         )
 
         webClient.post()
-            .uri("/initializeTests?executionId=2")
+            .uri("/internal/initializeTests?executionId=2")
             .contentType(MediaType.APPLICATION_JSON)
             .body(BodyInserters.fromValue(listOf(test)))
             .exchange()
@@ -75,7 +75,7 @@ class TestInitializeControllerTest {
             listOf("tag"),
         )
         webClient.post()
-            .uri("/initializeTests?executionId=2")
+            .uri("/internal/initializeTests?executionId=2")
             .contentType(MediaType.APPLICATION_JSON)
             .body(BodyInserters.fromValue(listOf(test)))
             .exchange()
@@ -99,7 +99,7 @@ class TestInitializeControllerTest {
             listOf("tag"),
         )
         webClient.post()
-            .uri("/initializeTests")
+            .uri("/internal/initializeTests")
             .contentType(MediaType.APPLICATION_JSON)
             .body(BodyInserters.fromValue(listOf(test)))
             .exchange()
@@ -114,7 +114,7 @@ class TestInitializeControllerTest {
     @Test
     fun `should return test executions in batches`() {
         webClient.get()
-            .uri("/getTestBatches?agentId=container-1")
+            .uri("/internal/getTestBatches?agentId=container-1")
             .exchange()
             .expectStatus()
             .isOk
@@ -127,7 +127,7 @@ class TestInitializeControllerTest {
             }
 
         webClient.get()
-            .uri("/getTestBatches?agentId=container-1")
+            .uri("/internal/getTestBatches?agentId=container-1")
             .exchange()
             .expectStatus()
             .isOk

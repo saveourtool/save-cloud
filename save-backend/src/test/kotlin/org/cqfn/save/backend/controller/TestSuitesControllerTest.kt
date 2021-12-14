@@ -132,7 +132,7 @@ class TestSuitesControllerTest {
 
     private fun saveTestSuites(testSuites: List<TestSuiteDto>, spec: WebTestClient.ResponseSpec.() -> Unit) {
         webClient.post()
-            .uri("/saveTestSuites")
+            .uri("/internal/saveTestSuites")
             .contentType(MediaType.APPLICATION_JSON)
             .body(BodyInserters.fromValue(testSuites))
             .exchange()
@@ -156,7 +156,7 @@ class TestSuitesControllerTest {
         }
         val allStandardTestSuite = testSuiteRepository.findAll().count { it.type == TestSuiteType.STANDARD }
         webClient.get()
-            .uri("/allStandardTestSuites")
+            .uri("/api/allStandardTestSuites")
             .exchange()
             .expectStatus()
             .isOk
@@ -185,7 +185,7 @@ class TestSuitesControllerTest {
         }
 
         webClient.get()
-            .uri("/standardTestSuitesWithName?name=$name")
+            .uri("/internal/standardTestSuitesWithName?name=$name")
             .exchange()
             .expectStatus()
             .isOk
@@ -201,7 +201,7 @@ class TestSuitesControllerTest {
         whenever(scheduler.scheduleJob(any())).thenReturn(Date.from(Instant.now()))
 
         webClient.post()
-            .uri("/updateStandardTestSuites")
+            .uri("/api/updateStandardTestSuites")
             .exchange()
             .expectStatus()
             .isOk

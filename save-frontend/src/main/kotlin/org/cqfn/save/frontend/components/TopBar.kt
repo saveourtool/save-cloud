@@ -2,7 +2,7 @@
  * Top bar of web page
  */
 
-@file:Suppress("FILE_NAME_MATCH_CLASS")
+@file:Suppress("FILE_NAME_MATCH_CLASS", "FILE_WILDCARD_IMPORTS", "WildcardImport")
 
 package org.cqfn.save.frontend.components
 
@@ -11,17 +11,7 @@ import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
 
 import react.PropsWithChildren
 import react.RBuilder
-import react.dom.RDOMBuilder
-import react.dom.a
-import react.dom.attrs
-import react.dom.button
-import react.dom.div
-import react.dom.i
-import react.dom.li
-import react.dom.nav
-import react.dom.ol
-import react.dom.span
-import react.dom.ul
+import react.dom.*
 import react.fc
 import react.router.dom.useLocation
 import react.useState
@@ -67,7 +57,7 @@ fun topBar() = fc<TopBarProps> { props ->
         attrs.id = "navigation-top-bar"
 
         // Topbar Navbar
-        nav("navbar-nav mr-auto") {
+        nav("navbar-nav mr-auto w-100") {
             attrs["aria-label"] = "breadcrumb"
             ol("breadcrumb mb-0") {
                 li("breadcrumb-item") {
@@ -87,12 +77,13 @@ fun topBar() = fc<TopBarProps> { props ->
                             li("breadcrumb-item") {
                                 attrs["aria-current"] = "page"
                                 if (index == size - 1) {
-                                    a(href = currentLink.removeSuffix("execution")) {
+                                    a {
                                         attrs.classes = setOf("text-warning")
                                         +pathPart
                                     }
                                 } else {
-                                    a(href = currentLink) {
+                                    // small hack to redirect from history/execution to history
+                                    a(currentLink.removeSuffix("/execution")) {
                                         attrs.classes = setOf("text-light")
                                         +pathPart
                                     }

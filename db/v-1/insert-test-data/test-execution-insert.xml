@@ -7,7 +7,6 @@ xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
 
     <changeSet id="test_execution-insert" author="frolov" context="dev">
         <loadData tableName="test_execution" encoding="UTF-8" separator=";" quotchar="&quot;" file="db/v-1/insert-test-data/sqlRequests/test_execution.csv">
-            <column header="id" name="id" type="SEQUENCE" />
             <column header="test_id" name="test_id" type="NUMERIC" />
             <column header="agent_id" name="agent_id" type="NUMERIC" />
             <column header="execution_id" name="execution_id" type="NUMERIC" />

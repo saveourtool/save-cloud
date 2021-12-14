@@ -75,7 +75,7 @@ class HeartbeatController(private val agentService: AgentService,
                 }
             )
             .map {
-                Json.encodeToString(it)
+                Json.encodeToString(HeartbeatResponse.serializer(), it)
             }
     }
 
