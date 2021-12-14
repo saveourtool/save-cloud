@@ -31,22 +31,22 @@ class WebSecurityConfig(
     @Order(1)
     fun securityWebFilterChain(
         http: ServerHttpSecurity
-    ): SecurityWebFilterChain = http
-        .securityMatcher(
-            // access to actuator is managed separately
-            AndServerWebExchangeMatcher(
-                ServerWebExchangeMatchers.pathMatchers("/**"),
-                NegatedServerWebExchangeMatcher(
-                    ServerWebExchangeMatchers.pathMatchers("/actuator", "/actuator/**")
-                )
+    ): SecurityWebFilterChain = http.securityMatcher(
+        // access to actuator is managed separately
+        AndServerWebExchangeMatcher(
+            ServerWebExchangeMatchers.pathMatchers("/**"),
+            NegatedServerWebExchangeMatcher(
+                ServerWebExchangeMatchers.pathMatchers("/actuator", "/actuator/**")
             )
-        ).run {
-        // `CollectionView` is a public page
-        // todo: backend should tell which endpoint is public, and gateway should provide user data
-        authorizeExchange()
-            .pathMatchers("/", "/login", "/info/**", "/api/projects/not-deleted", "/save-frontend*.js*")
-            .permitAll()
-    }
+        )
+    )
+        .run {
+            // `CollectionView` is a public page
+            // todo: backend should tell which endpoint is public, and gateway should provide user data
+            authorizeExchange()
+                .pathMatchers("/", "/login", "/info/**", "/api/projects/not-deleted", "/save-frontend*.js*")
+                .permitAll()
+        }
         .and().run {
             authorizeExchange()
                 .pathMatchers("/**")
