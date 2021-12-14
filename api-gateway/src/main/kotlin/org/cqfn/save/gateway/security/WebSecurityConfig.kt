@@ -4,10 +4,17 @@
 
 package org.cqfn.save.gateway.security
 
+import org.cqfn.save.gateway.config.ConfigurationProperties
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.core.annotation.Order
+import org.springframework.core.io.ClassPathResource
+import org.springframework.security.authentication.UserDetailsRepositoryReactiveAuthenticationManager
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity
 import org.springframework.security.config.web.server.ServerHttpSecurity
+import org.springframework.security.core.userdetails.MapReactiveUserDetailsService
+import org.springframework.security.core.userdetails.User
+import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.crypto.factory.PasswordEncoderFactories
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.server.SecurityWebFilterChain
@@ -18,7 +25,9 @@ import org.springframework.security.web.server.util.matcher.ServerWebExchangeMat
 
 @EnableWebFluxSecurity
 @Suppress("MISSING_KDOC_TOP_LEVEL", "MISSING_KDOC_CLASS_ELEMENTS", "MISSING_KDOC_ON_FUNCTION")
-class WebSecurityConfig {
+class WebSecurityConfig(
+    private val configurationProperties: ConfigurationProperties,
+) {
     @Bean
     @Order(1)
     fun securityWebFilterChain(
@@ -63,8 +72,18 @@ class WebSecurityConfig {
             .pathMatchers("/actuator/**")
             .authenticated()
     }
-        .and().httpBasic()
-        .and().build()
+        .and().httpBasic {
+            it.authenticationManager(
+                UserDetailsRepositoryReactiveAuthenticationManager(
+                    MapReactiveUserDetailsService(
+                        configurationProperties.basicCredentials.split(' ').run {
+                            User(first(), last(), emptyList())
+                        }
+                    )
+                )
+            )
+        }
+        .build()
 }
 
 /**
