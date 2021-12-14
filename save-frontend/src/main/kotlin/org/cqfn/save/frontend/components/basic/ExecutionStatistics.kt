@@ -32,7 +32,12 @@ external interface ExecutionStatisticsProps : Props {
  * @param classes HTML classes for the enclosing div
  * @return a functional react component
  */
-@Suppress("MAGIC_NUMBER", "TOO_LONG_FUNCTION", "LongMethod", "ComplexMethod")
+@Suppress(
+    "MAGIC_NUMBER",
+    "TOO_LONG_FUNCTION",
+    "LongMethod",
+    "ComplexMethod"
+)
 fun executionStatistics(classes: String = "") = fc<ExecutionStatisticsProps> { props ->
     val totalTests = props.countTests?.toLong() ?: 0L
     val isInProgress = props.executionDto?.run { status == ExecutionStatus.RUNNING || status == ExecutionStatus.PENDING } ?: true
