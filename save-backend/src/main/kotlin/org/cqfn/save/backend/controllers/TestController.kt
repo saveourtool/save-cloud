@@ -2,6 +2,7 @@ package org.cqfn.save.backend.controllers
 
 import org.cqfn.save.backend.service.TestExecutionService
 import org.cqfn.save.backend.service.TestService
+import org.cqfn.save.entities.Test
 import org.cqfn.save.test.TestDto
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -34,6 +35,13 @@ class TestController {
         val testsIds = testService.saveTests(testDtos)
         executionId?.let { testExecutionService.saveTestExecution(executionId, testsIds) }
     }
+
+    /**
+     * @param testSuiteId ID of the [TestSuite], for which all corresponding tests will be returned
+     * @return list of tests
+     */
+    @GetMapping("/getTestsByTestSuiteId")
+    fun getTestsByTestSuiteId(@RequestParam testSuiteId: Long): List<Test> = testService.findTestsByTestSuiteId(testSuiteId)
 
     /**
      * @param executionId ID of the [Execution], during which these tests will be executed

@@ -202,7 +202,7 @@ class DockerService(private val configProperties: ConfigProperties) {
         val saveCliExecFlags = if (isStandardMode) {
             // create stub toml config in aim to execute all test suites directories from `testSuitesDir`
             testSuitesDir.resolve("save.toml").apply { createNewFile() }.writeText("[general]")
-            " \"$STANDARD_TEST_SUITE_DIR\" --include-suites \"${testSuitesForDocker.joinToString(",") { it.name }}\""
+            " $STANDARD_TEST_SUITE_DIR "
         } else {
             ""
         }
@@ -337,7 +337,7 @@ class DockerService(private val configProperties: ConfigProperties) {
                 .resolve(File("${listOf(it.testSuiteRepoUrl!!).hashCode()}")
                     .resolve(it.testRootPath)
                 )
-            val currentSuiteDestination = destination.resolve("$PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE${it.testSuiteRepoUrl.hashCode()}_${it.testRootPath.hashCode()}")
+            val currentSuiteDestination = destination.resolve(getLocationInStandardDirForTestSuite(it))
             if (!currentSuiteDestination.exists()) {
                 log.debug("Copying suite ${it.name} from $standardTestSuiteAbsolutePath into $currentSuiteDestination/...")
                 copyRecursivelyWithAttributes(standardTestSuiteAbsolutePath, currentSuiteDestination)
@@ -400,3 +400,9 @@ internal fun imageName(executionId: Long) = "save-execution:$executionId"
  * @param id
  */
 internal fun containerName(id: String) = "save-execution-$id"
+
+/**
+ * @param testSuiteDto
+ */
+internal fun getLocationInStandardDirForTestSuite(testSuiteDto: TestSuiteDto) =
+        "$PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE${testSuiteDto.testSuiteRepoUrl.hashCode()}_${testSuiteDto.testRootPath.hashCode()}"
