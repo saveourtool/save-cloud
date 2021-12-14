@@ -46,7 +46,12 @@ fun suitesTable(
     setSelectedLanguageForStandardTests: (String) -> Unit,
 ) = fc<CheckBoxGridProps> { props ->
     nav("nav nav-tabs mb-4") {
-        val languages = suites.map { it.language }.distinct()
+        val languages: MutableList<String?> = suites.map { it.language }.filterNotNull().distinct()
+            .sortedBy { it }.toMutableList()
+        // fixme: The method is called for the first time on an empty list, so you cannot add Null at this moment
+        if (languages.isNotEmpty()) {
+            languages.add(null)
+        }
         languages.forEachIndexed { index, langStr ->
             val lang = langStr?.trim() ?: "Other"
             li("nav-item") {
@@ -99,7 +104,7 @@ fun checkBoxGrid(suites: List<TestSuiteDto>, selectedLanguageForStandardTests: S
                                         }
 
                                         val suiteName = suite.name.replaceFirstChar { it.uppercaseChar() }
-                                        +if (suiteName.length > 20) "${suiteName.take(20)}..." else suiteName
+                                        +if (suiteName.length > 11) "${suiteName.take(11)}..." else suiteName
 
                                         sup("tooltip-and-popover ml-1") {
                                             fontAwesomeIcon(icon = faQuestionCircle)
