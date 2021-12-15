@@ -74,9 +74,11 @@ class TestService(
     fun getTestBatches(agentId: String): Mono<TestBatch> {
         val agent = agentRepository.findByContainerId(agentId) ?: error("The specified agent does not exist")
         log.debug("Agent found, id=${agent.id}")
-        val execution = agent.execution
-        val lock = locks.computeIfAbsent(execution.id!!) { Any() }
+        val executionId = agent.execution.id!!
+        val lock = locks.computeIfAbsent(executionId) { Any() }
         return synchronized(lock) {
+            // we need to read execution from DB under `synchronized` to have correct values for updating
+            val execution = executionRepository.getById(executionId)
             val testExecutions = transactionTemplate.execute {
                 getTestExecutionsBatchByExecutionIdAndUpdateStatus(execution)
             }!!
