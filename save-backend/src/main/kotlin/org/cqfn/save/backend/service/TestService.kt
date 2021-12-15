@@ -111,14 +111,15 @@ class TestService(
             pageRequest
         )
         log.debug("Retrieved ${testExecutions.size} tests for page request $pageRequest, test IDs: ${testExecutions.map { it.id!! }}")
-        testExecutions.forEach {
+        val newRunningTestExecutions = testExecutions.onEach {
             testExecutionRepository.save(it.apply {
                 status = TestResultStatus.RUNNING
             })
-            executionRepository.save(execution.apply {
-                runningTests++
-            })
-        }
+        }.count()
+        executionRepository.save(execution.apply {
+            log.debug("Updating counter for running tests: $runningTests -> ${runningTests + newRunningTestExecutions}")
+            runningTests += newRunningTestExecutions
+        })
         return testExecutions
     }
 
