@@ -109,10 +109,12 @@ fun checkBoxGrid(suites: List<TestSuiteDto>, selectedLanguageForStandardTests: S
                                         sup("tooltip-and-popover ml-1") {
                                             fontAwesomeIcon(icon = faQuestionCircle)
                                             attrs["tooltip-placement"] = "top"
-                                            attrs["tooltip-title"] = suite.description?.take(100) ?: ""
+                                            attrs["tooltip-title"] = ""
                                             attrs["popover-placement"] = "right"
                                             attrs["popover-title"] = suite.name
                                             attrs["popover-content"] = suiteDescription(suite)
+                                            attrs["data-trigger"] = "focus"
+                                            attrs["tabindex"] = "0"
                                         }
                                     }
                                 }

@@ -71,24 +71,7 @@ class WelcomeView : AbstractView<PropsWithChildren, IndexViewState>(true) {
                         marketingTitle("Verification &")
                         marketingTitle("Evaluation")
                         h3("mt-4") {
-                            +"Advanced eco-system for continuous integration, evaluation and benchmarking of static analyzers. Powered by"
-                            attrs["style"] = kotlinext.js.jsObject<CSSProperties> {
-                                color = "#aaacba".unsafeCast<ColorProperty>()
-                                display = Display.inline
-                                fontSize = "1.8rem".unsafeCast<FontSize>()
-                            }
-                        }
-                        a(classes = "text-info text-gradient font-weight-bold ml-2") {
-                            attrs.href = "https://www.huaweicloud.com/"
-                            h3 {
-                                +"Huawei Cloud."
-                                attrs["style"] = kotlinext.js.jsObject<CSSProperties> {
-                                    color = "rgb(246 84 21)".unsafeCast<ColorProperty>()
-                                    display = Display.inline
-                                    textDecoration = "underline rgb(246 84 21)".unsafeCast<TextDecoration>()
-                                    fontSize = "1.8rem".unsafeCast<FontSize>()
-                                }
-                            }
+                            +"Advanced eco-system for continuous integration, evaluation and benchmarking of static analyzers."
                         }
                     }
 
