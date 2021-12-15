@@ -374,7 +374,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                         )
                         testingTypeButton(
                             TestingType.CONTEST_MODE,
-                            "Participate in Save contests with your tool",
+                            "Participate in SAVE contests with your tool",
                             "mt-3 mr-2"
                         )
                     }
@@ -698,7 +698,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 isErrorOpen = true
                 errorMessage =
                         "Git Url with test suites in save format was not provided,but it is required for the testing process." +
-                                " Save is not able to run your tests without an information of where to download them from."
+                                " SAVE is not able to run your tests without an information of where to download them from."
                 errorLabel = "Git Url"
             }
             // no binaries were provided

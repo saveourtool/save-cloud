@@ -86,7 +86,7 @@ fun testResourcesSelection(
                                 attrs["popover-title"] =
                                         "Use the following link to read more about save format:"
                                 attrs["popover-content"] =
-                                        "<a href =\"https://github.com/cqfn/save/blob/main/README.md\" > Save core README </a>"
+                                        "<a href =\"https://github.com/cqfn/save/blob/main/README.md\" > SAVE core README </a>"
                                 attrs["data-trigger"] = "focus"
                                 attrs["tabindex"] = "0"
                             }
@@ -165,7 +165,7 @@ fun testResourcesSelection(
                                 attrs["tabindex"] = "0"
                             }
                             h6(classes = "d-inline ml-2") {
-                                +"Relative path to the root directory with tests in the repo:"
+                                +"Relative path（to the root directory）of the test suites in the repo:"
                             }
                         }
                         div("input-group-prepend") {

@@ -20,6 +20,7 @@ import react.dom.select
 import react.fc
 
 import kotlinx.html.InputType
+import kotlinx.html.classes
 import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
 
@@ -79,6 +80,7 @@ fun testExecutionFiltersRow(
             }
             div("col-auto") {
                 input(type = InputType.text) {
+                    attrs.classes = setOf("form-control")
                     attrs.defaultValue = initialValueTestSuite
                     attrs.required = false
                     attrs.onChangeFunction = {
