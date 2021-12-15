@@ -88,7 +88,7 @@ fun testResourcesSelection(
                                 attrs["tabindex"] = "0"
                             }
                             h6(classes = "d-inline ml-2") {
-                                +"Git Url of your project with test suites (in save format):"
+                                +"Git Url of your test suites (in save format):"
                             }
                         }
                         div("input-group-prepend") {
