@@ -37,6 +37,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.newSingleThreadContext
 import kotlinx.datetime.Clock
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
@@ -81,7 +82,7 @@ class SaveAgent(internal val config: AgentConfiguration,
     @Suppress("WHEN_WITHOUT_ELSE")  // when with sealed class
     private suspend fun startHeartbeats() = coroutineScope {
         logInfoCustom("Scheduling heartbeats")
-        launch {
+        launch(newSingleThreadContext("background")) {
             sendDataToBackend { saveAdditionalData() }
         }
         while (true) {
@@ -111,7 +112,7 @@ class SaveAgent(internal val config: AgentConfiguration,
         if (saveProcessJob.value?.isCompleted == false) {
             logErrorCustom("Shouldn't start new process when there is the previous running")
         } else {
-            saveProcessJob.value = launch {
+            saveProcessJob.value = launch(newSingleThreadContext("save-process")) {
                 runCatching {
                     // new job received from Orchestrator, spawning SAVE CLI process
                     startSaveProcess(cliArgs)
