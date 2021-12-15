@@ -18,6 +18,7 @@ import org.cqfn.save.preprocessor.EmptyResponse
 import org.cqfn.save.preprocessor.StatusResponse
 import org.cqfn.save.preprocessor.TextResponse
 import org.cqfn.save.preprocessor.config.ConfigProperties
+import org.cqfn.save.preprocessor.config.TestSuitesRepo
 import org.cqfn.save.preprocessor.service.TestDiscoveringService
 import org.cqfn.save.preprocessor.utils.decodeFromPropertiesFile
 import org.cqfn.save.preprocessor.utils.toHash
@@ -227,8 +228,8 @@ class DownloadProjectController(
         .doOnSuccess {
             val (user, token) = readGitCredentialsForStandardMode(configProperties.reposTokenFileName)
             val newTestSuites: MutableList<TestSuiteDto> = mutableListOf()
-            Flux.fromIterable(readStandardTestSuitesFile(configProperties.reposFileName).entries).flatMap { (testSuiteRepoInfo, testSuitePaths) ->
-                val testSuiteUrl = testSuiteRepoInfo.first
+            Flux.fromIterable(readStandardTestSuitesFile(configProperties.reposFileName)).flatMap { testSuiteRepoInfo ->
+                val testSuiteUrl = testSuiteRepoInfo.gitUrl
                 log.info("Starting clone repository url=$testSuiteUrl for standard test suites")
                 val tmpDir = generateDirectory(listOf(testSuiteUrl))
                 Mono.fromCallable {
@@ -238,10 +239,10 @@ class DownloadProjectController(
                         cloneFromGit(GitDto(testSuiteUrl), tmpDir)
                     }
                         ?.use { git ->
-                            switchBranch(git, testSuiteUrl, branchOrCommit = testSuiteRepoInfo.second)
+                            switchBranch(git, testSuiteUrl, branchOrCommit = testSuiteRepoInfo.gitBranchOrCommit)
                         }
                 }
-                    .flatMapMany { Flux.fromIterable(testSuitePaths) }
+                    .flatMapMany { Flux.fromIterable(testSuiteRepoInfo.testSuitePaths) }
                     .flatMap { testRootPath ->
                         log.info("Starting to discover root test config in test root path: $testRootPath")
                         val testResourcesRootAbsolutePath = tmpDir.resolve(testRootPath).absolutePath
@@ -265,7 +266,7 @@ class DownloadProjectController(
                             }
                     }
                     .doOnError {
-                        log.error("Error to update test suite with url=$testSuiteUrl, path=$testSuitePaths")
+                        log.error("Error to update test suite with url=$testSuiteUrl, path=${testSuiteRepoInfo.testSuitePaths}")
                     }
             }
                 .collectList()
@@ -736,19 +737,23 @@ class DownloadProjectController(
  * @param name file name to read
  * @return map repository to paths to test configs
  */
-@Suppress("MagicNumber")
+@Suppress("MagicNumber", "TOO_MANY_LINES_IN_LAMBDA")
 fun readStandardTestSuitesFile(name: String) =
         ClassPathResource(name)
             .file
             .readText()
             .lines()
             .filter { it.isNotBlank() }
-            .associate {
+            .map {
                 val splitRow = it.split("\\s".toRegex())
                 require(splitRow.size == 3) {
                     "Follow the format for each line: (Gir url) (branch or commit hash) (testRootPath1;testRootPath2;...)"
                 }
-                (splitRow.first() to splitRow[1]) to splitRow[2].split(";")
+                TestSuitesRepo(
+                    gitUrl = splitRow.first(),
+                    gitBranchOrCommit = splitRow[1],
+                    testSuitePaths = splitRow[2].split(";")
+                )
             }
 
 private fun readGitCredentialsForStandardMode(name: String): Pair<String?, String?> {
