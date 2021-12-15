@@ -9,11 +9,9 @@ import org.cqfn.save.frontend.components.basic.inputTextFormRequired
 import org.cqfn.save.frontend.externals.fontawesome.faGithub
 import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
 
-import csstype.ColorProperty
 import csstype.Display
 import csstype.FontSize
 import csstype.FontWeight
-import csstype.TextDecoration
 import react.CSSProperties
 import react.PropsWithChildren
 import react.RBuilder
