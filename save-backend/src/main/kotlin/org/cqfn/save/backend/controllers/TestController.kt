@@ -1,5 +1,6 @@
 package org.cqfn.save.backend.controllers
 
+import io.micrometer.core.instrument.Metrics
 import org.cqfn.save.backend.service.TestExecutionService
 import org.cqfn.save.backend.service.TestService
 import org.cqfn.save.entities.Test
@@ -32,8 +33,14 @@ class TestController {
     @PostMapping("/initializeTests")
     fun initializeTests(@RequestBody testDtos: List<TestDto>, @RequestParam(required = false) executionId: Long?) {
         log.debug("Received the following tests for initialization under executionId=$executionId: $testDtos")
-        val testsIds = testService.saveTests(testDtos)
-        executionId?.let { testExecutionService.saveTestExecution(executionId, testsIds) }
+        val testsIds = Metrics.timer("save.backend.saveTests").record<List<Long>> {
+            testService.saveTests(testDtos)
+        }!!
+        executionId?.let {
+            Metrics.timer("save.backend.saveTestExecution").record {
+                testExecutionService.saveTestExecution(executionId, testsIds)
+            }
+        }
     }
 
     /**
