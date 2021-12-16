@@ -54,7 +54,7 @@ class TestService(
             it
         }
             .orElseGet {
-                log.debug("Test $testDto is not found in the DB, will save it")
+                log.trace("Test $testDto is not found in the DB, will save it")
                 val testSuiteStub = TestSuite(testRootPath = "N/A").apply {
                     id = testDto.testSuiteId
                 }
