@@ -20,7 +20,6 @@ import java.time.Duration
 import java.time.LocalDateTime
 
 import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 /**
@@ -34,6 +33,9 @@ class HeartbeatController(private val agentService: AgentService,
                           private val dockerService: DockerService,
                           private val configProperties: ConfigProperties) {
     private val logger = LoggerFactory.getLogger(HeartbeatController::class.java)
+
+    private val agentsLatestHeartBeatsList: MutableMap<String, Pair<String, LocalDateTime>> = mutableMapOf()
+    private val agentsStartTimesList: MutableMap<String, Pair<String, LocalDateTime>> = mutableMapOf()
 
     /**
      * This controller accepts heartbeat and depending on the state it returns the needed response
@@ -50,6 +52,7 @@ class HeartbeatController(private val agentService: AgentService,
     @OptIn(ExperimentalSerializationApi::class)
     fun acceptHeartbeat(@RequestBody heartbeat: Heartbeat): Mono<String> {
         logger.info("Got heartbeat state: ${heartbeat.state.name} from ${heartbeat.agentId}")
+        updateAgentHeartbeatTimeStamps(heartbeat.agentId, heartbeat.state)
         // store new state into DB
         return agentService.updateAgentStatusesWithDto(
             listOf(
@@ -85,6 +88,22 @@ class HeartbeatController(private val agentService: AgentService,
                 initiateShutdownSequence(agentId)
             }
         }
+
+
+    fun updateAgentHeartbeatTimeStamps(agentId: String, state: AgentState) {
+        println("\n\n\nCURRENT AGENT $agentId ${state}")
+        val currentTime = LocalDateTime.now()
+        if (state == AgentState.STARTING) {
+            agentsStartTimesList[agentId] = state.name to currentTime
+        }
+        agentsLatestHeartBeatsList[agentId] = state.name to currentTime
+        println("CURRENT AGENTS LIST:")
+        agentsLatestHeartBeatsList.forEach { (k, v) ->
+            println("agent ${k}: ${v.first} ${v.second} DURATION ${Duration.between(v.second, currentTime).toMillis()}")
+        }
+        println("--------------------------------")
+
+    }
 
     /**
      * If agent was IDLE and there are no new tests - we check if the Execution is completed.

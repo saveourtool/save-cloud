@@ -238,7 +238,7 @@ class AgentService {
                     NewJobResponse(tests, cliArgs)
                 }
             } else {
-                log.info("Next test batch for agentId=$agentId is empty, setting it to wait")
+                log.debug("Next test batch for agentId=$agentId is empty, setting it to wait")
                 Mono.just(WaitResponse)
             }
 
