@@ -75,21 +75,7 @@ class SaveAgent(internal val config: AgentConfiguration,
      */
     suspend fun start() = coroutineScope {
         logInfoCustom("Starting agent")
-        val heartbeatsJob = launch(newSingleThreadContext("heartbeats")) {
-            launch {
-                startHeartbeats()
-            }
-            coroutineScope {
-                launch(newSingleThreadContext("save-process")) {
-                    ProcessBuilder(true, FileSystem.SYSTEM).exec(
-                        "sleep 1000",
-                        ".",
-                        null,
-                        15_000_000
-                    )
-                }
-            }
-        }
+        val heartbeatsJob = launch { startHeartbeats() }
         heartbeatsJob.join()
     }
 
