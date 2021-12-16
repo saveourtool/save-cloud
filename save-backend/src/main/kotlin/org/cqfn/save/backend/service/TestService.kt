@@ -78,9 +78,8 @@ class TestService(
         val lock = locks.computeIfAbsent(executionId) { Any() }
         return synchronized(lock) {
             log.debug("Acquired lock for executionId=$executionId")
-            // we need to read execution from DB under `synchronized` to have correct values for updating
-            val execution = executionRepository.getById(executionId)
             val testExecutions = transactionTemplate.execute {
+                val execution = executionRepository.getById(executionId)
                 getTestExecutionsBatchByExecutionIdAndUpdateStatus(execution)
             }!!
             val testDtos = testExecutions.map { it.test.toDto() }
