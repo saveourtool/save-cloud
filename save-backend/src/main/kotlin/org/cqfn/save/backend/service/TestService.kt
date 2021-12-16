@@ -47,22 +47,24 @@ class TestService(
      * @return list tests id's
      */
     @Suppress("UnsafeCallOnNullableType")
-    fun saveTests(tests: List<TestDto>): List<Long> = tests.map { testDto ->
-        // only match fields that are present in DTO
-        testRepository.findByHashAndFilePathAndTestSuiteId(testDto.hash, testDto.filePath, testDto.testSuiteId).map {
-            log.debug("Test $testDto is already present with id=${it.id} and testSuiteId=${it.testSuite.id}")
-            it
-        }
-            .orElseGet {
-                log.trace("Test $testDto is not found in the DB, will save it")
-                val testSuiteStub = TestSuite(testRootPath = "N/A").apply {
-                    id = testDto.testSuiteId
-                }
-                testRepository.save(
-                    Test(testDto.hash, testDto.filePath, testDto.pluginName, LocalDateTime.now(), testSuiteStub, testDto.tags.joinToString(";"))
-                )
+    fun saveTests(tests: List<TestDto>): List<Long> {
+        val (existingTests, nonExistentTests) = tests.map { testDto ->
+            // only match fields that are present in DTO
+            testRepository.findByHashAndFilePathAndTestSuiteId(testDto.hash, testDto.filePath, testDto.testSuiteId).map {
+                log.debug("Test $testDto is already present with id=${it.id} and testSuiteId=${it.testSuite.id}")
+                it
             }
-            .id!!
+                .orElseGet {
+                    log.trace("Test $testDto is not found in the DB, will save it")
+                    val testSuiteStub = TestSuite(testRootPath = "N/A").apply {
+                        id = testDto.testSuiteId
+                    }
+                        Test(testDto.hash, testDto.filePath, testDto.pluginName, LocalDateTime.now(), testSuiteStub, testDto.tags.joinToString(";"))
+                }
+        }
+            .partition { it.id != null }
+        testRepository.saveAll(nonExistentTests)
+        return (existingTests + nonExistentTests).map { it.id!! }
     }
 
     /**
