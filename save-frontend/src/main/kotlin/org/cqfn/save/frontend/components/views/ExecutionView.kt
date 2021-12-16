@@ -188,7 +188,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
 
         // fixme: table is rendered twice because of state change when `executionDto` is fetched
         child(tableComponent(
-            columns = columns {
+            columns = columns<TestExecutionDto> {
                 column(id = "index", header = "#") {
                     buildElement {
                         td {
@@ -196,46 +196,44 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                         }
                     }
                 }
-                column(id = "startTime", header = "Start time") {
+                column(id = "startTime", header = "Start time", { startTimeSeconds }) {
                     buildElement {
                         td {
                             +"${
-                                it.value.startTimeSeconds
-                                ?.let { Instant.fromEpochSeconds(it, 0) }
+                                it.value?.let { Instant.fromEpochSeconds(it, 0) }
                                 ?: "Running"
                             }"
                         }
                     }
                 }
-                column(id = "endTime", header = "End time") {
+                column(id = "endTime", header = "End time", { endTimeSeconds }) {
                     buildElement {
                         td {
                             +"${
-                                it.value.endTimeSeconds
-                                ?.let { Instant.fromEpochSeconds(it, 0) }
+                                it.value?.let { Instant.fromEpochSeconds(it, 0) }
                                 ?: "Running"
                             }"
                         }
                     }
                 }
-                column(id = "status", header = "Status") {
+                column(id = "status", header = "Status", { status.name }) {
                     buildElement {
                         td {
-                            +"${it.value.status}"
+                            +it.value
                         }
                     }
                 }
-                column(id = "missing", header = "Missing") {
+                column(id = "missing", header = "Missing", { missingWarnings }) {
                     buildElement {
                         td {
-                            +"${it.value.missingWarnings ?: ""}"
+                            +"${it.value ?: ""}"
                         }
                     }
                 }
-                column(id = "matched", header = "Matched") {
+                column(id = "matched", header = "Matched", { matchedWarnings }) {
                     buildElement {
                         td {
-                            +"${it.value.matchedWarnings ?: ""}"
+                            +"${it.value ?: ""}"
                         }
                     }
                 }
@@ -270,17 +268,17 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                         }
                     }
                 }
-                column(id = "plugin", header = "Plugin type") {
+                column(id = "plugin", header = "Plugin type", { pluginName }) {
                     buildElement {
                         td {
-                            +it.value.pluginName
+                            +it.value
                         }
                     }
                 }
-                column(id = "suiteName", header = "Test suite") {
+                column(id = "suiteName", header = "Test suite", { testSuiteName }) {
                     buildElement {
                         td {
-                            +"${it.value.testSuiteName}"
+                            +"${it.value}"
                         }
                     }
                 }
