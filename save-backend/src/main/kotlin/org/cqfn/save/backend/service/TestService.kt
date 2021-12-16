@@ -121,7 +121,7 @@ class TestService(
                 status = TestResultStatus.RUNNING
             })
         }.count()
-        executionRepository.save(execution.apply {
+        executionRepository.saveAndFlush(execution.apply {
             log.debug("Updating counter for running tests: $runningTests -> ${runningTests + newRunningTestExecutions}")
             runningTests += newRunningTestExecutions
         })
