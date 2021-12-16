@@ -78,6 +78,14 @@ class SaveAgent(internal val config: AgentConfiguration,
         val heartbeatsJob = launch(newSingleThreadContext("heartbeats")) {
             startHeartbeats()
         }
+        launch(newSingleThreadContext("save-process")) {
+            ProcessBuilder(true, FileSystem.SYSTEM).exec(
+                "sleep 150",
+                ".",
+                null,
+                15_000_000
+            )
+        }
         heartbeatsJob.join()
     }
 
@@ -93,7 +101,7 @@ class SaveAgent(internal val config: AgentConfiguration,
                 sendHeartbeat(ExecutionProgress(0))
             }
             if (response.isSuccess) {
-                when (val heartbeatResponse = response.getOrNull().also {
+                when (val heartbeatResponse = response.getOrThrow().also {
                     logDebugCustom("Got heartbeat response $it")
                 }) {
                     is NewJobResponse -> maybeStartSaveProcess(heartbeatResponse.cliArgs)
