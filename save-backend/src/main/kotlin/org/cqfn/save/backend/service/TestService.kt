@@ -51,7 +51,7 @@ class TestService(
         val (existingTests, nonExistentTests) = tests.map { testDto ->
             // only match fields that are present in DTO
             testRepository.findByHashAndFilePathAndTestSuiteId(testDto.hash, testDto.filePath, testDto.testSuiteId).map {
-                log.debug("Test $testDto is already present with id=${it.id} and testSuiteId=${it.testSuite.id}")
+                log.debug("Test $testDto is already present with id=${it.id} and testSuiteId=${testDto.testSuiteId}")
                 it
             }
                 .orElseGet {
