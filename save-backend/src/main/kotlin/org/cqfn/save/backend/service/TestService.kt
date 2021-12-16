@@ -77,6 +77,7 @@ class TestService(
         val executionId = agent.execution.id!!
         val lock = locks.computeIfAbsent(executionId) { Any() }
         return synchronized(lock) {
+            log.debug("Acquired lock for executionId=$executionId")
             // we need to read execution from DB under `synchronized` to have correct values for updating
             val execution = executionRepository.getById(executionId)
             val testExecutions = transactionTemplate.execute {
@@ -85,7 +86,9 @@ class TestService(
             val testDtos = testExecutions.map { it.test.toDto() }
             Mono.just(TestBatch(testDtos, testExecutions.map { it.test.testSuite }.associate {
                 it.id!! to it.testRootPath
-            }))
+            })).also {
+                log.debug("Releasing lock for executionId=$executionId")
+            }
         }
     }
 
