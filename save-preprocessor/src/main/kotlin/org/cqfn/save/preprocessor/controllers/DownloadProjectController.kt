@@ -618,7 +618,6 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         // default Webflux in-memory buffer is 256 KiB
         .chunked(128)
         .toFlux()
-        .delayElements(Duration.ofMillis(250))
         .doOnNext {
             log.debug("Processing chuck of tests [${it.first()} ... ${it.last()}]")
         }
