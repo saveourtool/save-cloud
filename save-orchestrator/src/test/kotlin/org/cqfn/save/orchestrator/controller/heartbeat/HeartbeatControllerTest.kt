@@ -6,11 +6,13 @@ import org.cqfn.save.agent.Heartbeat
 import org.cqfn.save.agent.NewJobResponse
 import org.cqfn.save.entities.AgentStatusDto
 import org.cqfn.save.entities.AgentStatusesForExecution
+import org.cqfn.save.entities.TestSuite
 import org.cqfn.save.orchestrator.config.Beans
 import org.cqfn.save.orchestrator.service.AgentService
 import org.cqfn.save.orchestrator.service.DockerService
 import org.cqfn.save.test.TestBatch
 import org.cqfn.save.test.TestDto
+import org.cqfn.save.testsuite.TestSuiteType
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import okhttp3.mockwebserver.MockResponse
@@ -96,6 +98,18 @@ class HeartbeatControllerTest {
                 .addHeader("Content-Type", "application/json")
         )
 
+        val testSuite = TestSuite(TestSuiteType.PROJECT, "", null, null, LocalDateTime.now(), ".", ".").apply {
+            id = 0
+        }
+
+        // /testSuite/{id}
+        mockServer.enqueue(
+            MockResponse()
+                .setResponseCode(200)
+                .setHeader("Content-Type", "application/json")
+                .setBody(objectMapper.writeValueAsString(testSuite))
+        )
+
         val monoResponse = agentService.getNewTestsIds("container-1").block() as NewJobResponse
 
         assertTrue(monoResponse.tests.isNotEmpty() && monoResponse.tests.first().filePath == "qwe")
@@ -110,6 +124,7 @@ class HeartbeatControllerTest {
             ),
             heartbeat = Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100)),
             testBatch = TestBatch(emptyList(), emptyMap()),
+            testSuite = null,
             mockAgentStatuses = true,
         ) {
             verify(dockerService, times(0)).stopAgents(any())
@@ -132,6 +147,9 @@ class HeartbeatControllerTest {
                 ),
                 mapOf(1L to "")
             ),
+            testSuite = TestSuite(TestSuiteType.PROJECT, "", null, null, LocalDateTime.now(), ".", ".").apply {
+                id = 0
+            },
             mockAgentStatuses = false,
         ) {
             verify(dockerService, times(0)).stopAgents(any())
@@ -149,6 +167,7 @@ class HeartbeatControllerTest {
             agentStatusDtos = agentStatusDtos,
             heartbeat = Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100)),
             testBatch = TestBatch(emptyList(), emptyMap()),
+            testSuite = null,
             mockAgentStatuses = true,
             {
                 // /getAgentsStatusesForSameExecution after shutdownIntervalMillis
@@ -188,6 +207,9 @@ class HeartbeatControllerTest {
                 ),
                 mapOf(1L to "")
             ),
+            testSuite = TestSuite(TestSuiteType.PROJECT, "", null, null, LocalDateTime.now(), ".", ".").apply {
+                id = 0
+            },
             mockAgentStatuses = false,
         ) {
             verify(dockerService, times(0)).stopAgents(any())
@@ -206,6 +228,7 @@ class HeartbeatControllerTest {
             agentStatusDtos = agentStatusDtos,
             heartbeat = Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100)),
             testBatch = TestBatch(emptyList(), emptyMap()),
+            testSuite = null,
             mockAgentStatuses = true,
             {
                 // /getAgentsStatusesForSameExecution after shutdownIntervalMillis
@@ -240,6 +263,7 @@ class HeartbeatControllerTest {
         agentStatusDtos: List<AgentStatusDto>,
         heartbeat: Heartbeat,
         testBatch: TestBatch,
+        testSuite: TestSuite?,
         mockAgentStatuses: Boolean = false,
         additionalSetup: () -> Unit = {},
         verification: () -> Unit,
@@ -250,6 +274,17 @@ class HeartbeatControllerTest {
                 .setBody(Json.encodeToString(testBatch))
                 .addHeader("Content-Type", "application/json")
         )
+
+        // /testSuite/{id}
+        testSuite?.let {
+            mockServer.enqueue(
+                MockResponse()
+                    .setResponseCode(200)
+                    .setHeader("Content-Type", "application/json")
+                    .setBody(objectMapper.writeValueAsString(testSuite))
+            )
+        }
+
         if (mockAgentStatuses) {
             // /getAgentsStatusesForSameExecution
             mockServer.enqueue(
