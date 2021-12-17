@@ -19,8 +19,8 @@ class UserDetailsService(
     override fun findByUsername(username: String): Mono<UserDetails> = Mono.fromCallable {
         userRepository.findByName(username)
     }
-        .filter { it != null }
-        .map { requireNotNull(it) }
+        .filter { it.isPresent }
+        .map { it.get() }
         .map {
             User.builder()
                 .username(it.name)

@@ -1,0 +1,48 @@
+package org.cqfn.save.backend.controllers
+
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
+import org.cqfn.save.backend.repository.UserRepository
+import org.cqfn.save.entities.User
+import org.slf4j.LoggerFactory
+import org.springframework.security.core.Authentication
+import org.springframework.security.jackson2.CoreJackson2Module
+import org.springframework.security.oauth2.client.jackson2.OAuth2ClientJackson2Module
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
+
+@RestController
+@RequestMapping("/internal/users")
+class UsersController(
+    private val userRepository: UserRepository,
+) {
+    private val objectMapper = ObjectMapper()
+        .findAndRegisterModules()
+        .registerModule(CoreJackson2Module())
+        .registerModule(OAuth2ClientJackson2Module())
+
+    private val logger = LoggerFactory.getLogger(javaClass)
+
+    @PostMapping("/new")
+    fun saveNewUser(@RequestBody rawAuthentication: String) {
+        val authentication = objectMapper.readValue<Authentication>(rawAuthentication)
+        userRepository.findByName(authentication.name).ifPresentOrElse({
+            logger.debug("User ${authentication.name} is already present in the DB")
+        }) {
+            logger.info("Saving user ${authentication.name} to the DB")
+            userRepository.save(authentication.toUser())
+        }
+        logger.info("Received authentication of type ${authentication::class}: $authentication")
+    }
+}
+
+fun Authentication.toUser(): User {
+    // fixme: get proper name depending on auth provider
+    return User(
+        name,
+        null,
+        authorities.firstOrNull()?.authority,
+    )
+}
