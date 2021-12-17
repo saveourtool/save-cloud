@@ -38,13 +38,14 @@ class CollectionView : AbstractView<PropsWithChildren, State>(false) {
             }
         }
         child(tableComponent(
-            columns = columns<Project> {
+            columns = columns {
                 column(id = "owner", header = "Project Owner", { owner }) {
                     buildElement {
                         td {
-                            a(href = "#/${it.value}") {
+                            // FixMe: temporary disable links, until we will make a beat
+                            // a(href = "#/${it.value}") {
                                 +it.value
-                            }
+                            // }
                         }
                     }
                 }

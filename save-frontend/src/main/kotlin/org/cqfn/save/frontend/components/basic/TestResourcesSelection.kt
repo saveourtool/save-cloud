@@ -65,8 +65,15 @@ fun testResourcesSelection(
     setSelectedLanguageForStandardTests: (String) -> Unit,
 ) =
         fc<TestResourcesProps> { props ->
-            label(classes = "control-label col-auto justify-content-between font-weight-bold text-gray-800 mb-1 pl-0") {
-                +"3. Specify test-resources that will be used for testing:"
+
+            if (props.testingType == TestingType.CONTEST_MODE) {
+                label(classes = "control-label col-auto justify-content-between font-weight-bold text-red mb-1 pl-0") {
+                    +"Stay tuned! Contests will be here soon"
+                }
+            } else {
+                label(classes = "control-label col-auto justify-content-between font-weight-bold text-gray-800 mb-4 pl-0") {
+                    +"3. Specify test-resources that will be used for testing:"
+                }
             }
 
             div {

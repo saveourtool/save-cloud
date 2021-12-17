@@ -28,6 +28,7 @@ import react.dom.p
 import react.dom.span
 
 import kotlinx.html.ButtonType
+import org.cqfn.save.info.UserInfo
 
 /**
  * [RState] of project creation view component
@@ -44,12 +45,19 @@ external interface IndexViewState : State {
     var isValidPassword: Boolean?
 }
 
+external interface WelcomeProps: PropsWithChildren {
+    /**
+     * Currently logged in user or null
+     */
+    var userInfo: UserInfo?
+}
+
 /**
  * Main entry point view with sign-in page
  */
 @JsExport
 @OptIn(ExperimentalJsExport::class)
-class WelcomeView : AbstractView<PropsWithChildren, IndexViewState>(true) {
+class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
     init {
         state.isValidLogin = true
         state.isValidPassword = true
@@ -76,67 +84,73 @@ class WelcomeView : AbstractView<PropsWithChildren, IndexViewState>(true) {
                     // Sign-in header
                     div("col-lg-3 mr-auto ml-5 mt-5 mb-5") {
                         div("card z-index-0 fadeIn3 fadeInBottom") {
-                            div("card-header p-0 position-relative mt-n4 mx-3 z-index-2 rounded") {
-                                div("bg-info shadow-primary border-radius-lg py-3 pe-1 rounded") {
-                                    h4("text-white font-weight-bolder text-center mt-2 mb-0") {
-                                        +"Sign in"
-                                    }
-                                    div("row") {
-                                        div("col text-center px-1") {
-                                            a(
-                                                href = "oauth2/authorization/github",
-                                                classes = "btn btn-link px-3 text-white text-lg text-center"
-                                            ) {
-                                                attrs["style"] = kotlinext.js.jsObject<CSSProperties> {
-                                                    fontSize = "3.2rem".unsafeCast<FontSize>()
+                            if (props.userInfo == null) {
+                                div("card-header p-0 position-relative mt-n4 mx-3 z-index-2 rounded") {
+                                    div("bg-info shadow-primary border-radius-lg py-3 pe-1 rounded") {
+                                        h4("text-white font-weight-bolder text-center mt-2 mb-0") {
+                                            +"Sign in"
+                                        }
+                                        div("row") {
+                                            div("col text-center px-1") {
+                                                a(
+                                                    href = "oauth2/authorization/github",
+                                                    classes = "btn btn-link px-3 text-white text-lg text-center"
+                                                ) {
+                                                    attrs["style"] = kotlinext.js.jsObject<CSSProperties> {
+                                                        fontSize = "3.2rem".unsafeCast<FontSize>()
+                                                    }
+                                                    fontAwesomeIcon(icon = faGithub)
                                                 }
-                                                fontAwesomeIcon(icon = faGithub)
                                             }
                                         }
                                     }
                                 }
-                            }
 
-                            div("card-body") {
-                                form(classes = "needs-validation") {
-                                    inputTextFormRequired(
-                                        InputTypes.LOGIN,
-                                        state.isValidLogin!!,
-                                        "col-lg ml-0 mr-0 pr-0 pl-0",
-                                        "Login"
-                                    ) {
-                                        // changeFields()
-                                    }
-
-                                    inputTextFormRequired(
-                                        InputTypes.PASSWORD,
-                                        state.isValidPassword!!,
-                                        "col-lg ml-0 mr-0 pr-0 pl-0",
-                                        "Password"
-                                    ) {
-                                        // changeFields()
-                                    }
-
-                                    div("row text-center") {
-                                        button(
-                                            type = ButtonType.button,
-                                            classes = "btn btn-info w-100 my-4 mb-2 ml-2 mr-2"
+                                div("card-body") {
+                                    form(classes = "needs-validation") {
+                                        inputTextFormRequired(
+                                            InputTypes.LOGIN,
+                                            state.isValidLogin!!,
+                                            "col-lg ml-0 mr-0 pr-0 pl-0",
+                                            "Login"
                                         ) {
-                                            +"Sign in"
+                                            // changeFields()
                                         }
-                                    }
 
-                                    p("mt-4 text-sm text-center") {
-                                        +"Don't have an account?"
+                                        inputTextFormRequired(
+                                            InputTypes.PASSWORD,
+                                            state.isValidPassword!!,
+                                            "col-lg ml-0 mr-0 pr-0 pl-0",
+                                            "Password"
+                                        ) {
+                                            // changeFields()
+                                        }
 
-                                        p("text-sm text-center") {
-                                            a(classes = "text-info text-gradient font-weight-bold ml-2 mr-2") {
-                                                attrs.href = "#/projects"
-                                                +"Continue"
+                                        div("row text-center") {
+                                            button(
+                                                type = ButtonType.button,
+                                                classes = "btn btn-info w-100 my-4 mb-2 ml-2 mr-2"
+                                            ) {
+                                                +"Sign in"
                                             }
-                                            +"without registration"
+                                        }
+
+                                        p("mt-4 text-sm text-center") {
+                                            +"Don't have an account?"
+
+                                            p("text-sm text-center") {
+                                                a(classes = "text-info text-gradient font-weight-bold ml-2 mr-2") {
+                                                    attrs.href = "#/projects"
+                                                    +"Continue"
+                                                }
+                                                +"without registration"
+                                            }
                                         }
                                     }
+                                }
+                            } else {
+                                p {
+                                    +"Welcome ${props.userInfo?.userName}!"
                                 }
                             }
                         }

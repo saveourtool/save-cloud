@@ -60,7 +60,7 @@ external interface AppState : State {
 @OptIn(ExperimentalJsExport::class)
 class App : RComponent<PropsWithChildren, AppState>() {
     init {
-        state.userInfo = UserInfo("")
+        state.userInfo = null
     }
 
     @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR", "TOO_LONG_FUNCTION", "LongMethod")
@@ -84,8 +84,15 @@ class App : RComponent<PropsWithChildren, AppState>() {
                             attrs {
                                 path = arrayOf("/")
                                 exact = true
-                                component = WelcomeView::class.react
+                                render = { routeResultProps ->
+                                    buildElement {
+                                        child(WelcomeView::class) {
+                                            attrs.userInfo = state.userInfo
+                                        }
+                                    }
+                                }
                             }
+
                         }
 
                         Route {

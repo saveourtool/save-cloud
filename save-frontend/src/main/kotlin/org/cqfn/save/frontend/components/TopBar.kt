@@ -153,7 +153,7 @@ fun topBar(propagateUserInfo: (UserInfo) -> Unit) = fc<TopBarProps> { props ->
                     }
 
                     span("mr-2 d-none d-lg-inline text-gray-600 small") {
-                        +(props.userInfo?.userName ?: "NULL")
+                        +(props.userInfo?.userName ?: "")
                     }
 
                     fontAwesomeIcon {
