@@ -38,7 +38,7 @@ class CollectionView : AbstractView<PropsWithChildren, State>(false) {
             }
         }
         child(tableComponent(
-            columns = columns {
+            columns = columns<Project> {
                 column(id = "owner", header = "Project Owner", { owner }) {
                     buildElement {
                         td {

@@ -39,9 +39,12 @@ import react.router.dom.Route
 import react.router.dom.Switch
 
 import kotlinx.browser.document
+import kotlinx.browser.window
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.html.id
+import org.cqfn.save.frontend.utils.decodeFromJsonString
+import org.cqfn.save.frontend.utils.get
 import org.cqfn.save.info.UserInfo
 import org.w3c.fetch.Headers
 import react.*
@@ -67,20 +70,17 @@ class App : RComponent<PropsWithChildren, AppState>() {
     }
 
     fun getUser() {
-            GlobalScope.launch {
-                val headers = Headers().also { it.set("Accept", "application/json") }
-                val userInfoNew: UserInfo? = UserInfo("HELLO")
-//                get("${window.location.origin}/sec/user", headers)
-//                    .decodeFromJsonString()
-                console.log("kek lol")
-                setState{
-                    userInfo = userInfoNew
-                }
+        GlobalScope.launch {
+            val headers = Headers().also { it.set("Accept", "application/json") }
+            val userInfoNew: UserInfo = get("${window.location.origin}/sec/user", headers)
+                .decodeFromJsonString()
+            setState {
+                userInfo = userInfoNew
             }
+        }
     }
 
     override fun componentDidMount() {
-//        super.componentDidMount()
         getUser()
     }
 
