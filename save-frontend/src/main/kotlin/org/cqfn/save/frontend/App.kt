@@ -32,20 +32,22 @@ import org.cqfn.save.frontend.externals.modal.ReactModal
 
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.url.URLSearchParams
-import react.PropsWithChildren
-import react.RBuilder
-import react.RComponent
-import react.State
-import react.buildElement
 import react.dom.div
 import react.dom.render
-import react.react
 import react.router.dom.HashRouter
 import react.router.dom.Route
 import react.router.dom.Switch
 
 import kotlinx.browser.document
+import kotlinx.browser.window
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import kotlinx.html.id
+import org.cqfn.save.frontend.utils.decodeFromJsonString
+import org.cqfn.save.frontend.utils.get
+import org.cqfn.save.info.UserInfo
+import org.w3c.fetch.Headers
+import react.*
 
 /**
  * Top-level state of the whole App
@@ -54,7 +56,7 @@ external interface AppState : State {
     /**
      * Currently logged in user or null
      */
-    var userName: String?
+    var userInfo: UserInfo?
 }
 
 /**
@@ -64,7 +66,22 @@ external interface AppState : State {
 @OptIn(ExperimentalJsExport::class)
 class App : RComponent<PropsWithChildren, AppState>() {
     init {
-        state.userName = ""
+        state.userInfo = null
+    }
+
+    fun getUser() {
+        GlobalScope.launch {
+            val headers = Headers().also { it.set("Accept", "application/json") }
+            val userInfoNew: UserInfo = get("${window.location.origin}/sec/user", headers)
+                .decodeFromJsonString()
+            setState {
+                userInfo = userInfoNew
+            }
+        }
+    }
+
+    override fun componentDidMount() {
+        getUser()
     }
 
     @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR", "TOO_LONG_FUNCTION", "LongMethod")
@@ -74,7 +91,7 @@ class App : RComponent<PropsWithChildren, AppState>() {
                 attrs.id = "content-wrapper"
                 child(topBar()) {
                     attrs {
-                        userName = state.userName
+                        userInfo = state.userInfo
                     }
                 }
 
@@ -84,8 +101,15 @@ class App : RComponent<PropsWithChildren, AppState>() {
                             attrs {
                                 path = arrayOf("/")
                                 exact = true
-                                component = WelcomeView::class.react
+                                render = { routeResultProps ->
+                                    buildElement {
+                                        child(WelcomeView::class) {
+                                            attrs.userInfo = state.userInfo
+                                        }
+                                    }
+                                }
                             }
+
                         }
 
                         Route {
