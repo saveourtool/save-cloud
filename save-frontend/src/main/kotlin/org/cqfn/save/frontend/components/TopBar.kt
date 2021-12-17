@@ -32,14 +32,14 @@ external interface TopBarProps : PropsWithChildren {
 }
 
 private fun RBuilder.dropdownEntry(faIcon: String, text: String, handler: RDOMBuilder<BUTTON>.() -> Unit = { }) =
-        button(type = ButtonType.button, classes = "btn btn-no-outline dropdown-item rounded-0 shadow-none") {
-            fontAwesomeIcon {
-                attrs.icon = faIcon
-                attrs.className = "fas fa-sm fa-fw mr-2 text-gray-400"
-            }
-            +text
-            handler(this)
+    button(type = ButtonType.button, classes = "btn btn-no-outline dropdown-item rounded-0 shadow-none") {
+        fontAwesomeIcon {
+            attrs.icon = faIcon
+            attrs.className = "fas fa-sm fa-fw mr-2 text-gray-400"
         }
+        +text
+        handler(this)
+    }
 
 /**
  * A component for web page top bar
@@ -71,7 +71,10 @@ fun topBar() = fc<TopBarProps> { props ->
                     .filterNot { it.isBlank() }
                     .apply {
                         foldIndexed("#") { index: Int, acc: String, pathPart: String ->
-                            val currentLink = "$acc/$pathPart"
+                            // small temp workaround to replace owner URL with "project"
+                            // should be removed when we will finish with OWNER pages
+                            val currentLink = if (index == 1) "$acc/$pathPart" else "$acc/projects"
+
                             li("breadcrumb-item") {
                                 attrs["aria-current"] = "page"
                                 if (index == size - 1) {
@@ -137,7 +140,7 @@ fun topBar() = fc<TopBarProps> { props ->
                         set("aria-expanded", "false")
                     }
 
-                    span("mr-2 d-none d-lg-inline text-gray-600 small") {
+                    span("mr-2 d-none d-lg-inline text-gray-600") {
                         +(props.userInfo?.userName ?: "")
                     }
 
