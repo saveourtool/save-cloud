@@ -67,7 +67,7 @@ fun testResourcesSelection(
         fc<TestResourcesProps> { props ->
 
             if (props.testingType == TestingType.CONTEST_MODE) {
-                label(classes = "control-label col-auto justify-content-between font-weight-bold text-red mb-1 pl-0") {
+                label(classes = "control-label col-auto justify-content-between justify-content-center font-weight-bold text-danger mb-4 pl-0") {
                     +"Stay tuned! Contests will be here soon"
                 }
             } else {

@@ -57,13 +57,15 @@ fun topBar(propagateUserInfo: (UserInfo) -> Unit) = fc<TopBarProps> { props ->
     val (isLogoutModalOpen, setIsLogoutModalOpen) = useState(false)
     val location = useLocation()
 
-    GlobalScope.launch {
-        val headers = Headers().also { it.set("Accept", "application/json") }
-        val userInfo: UserInfo =
-            get("${window.location.origin}/sec/user", headers)
-                .decodeFromJsonString()
-        propagateUserInfo(userInfo)
-        props.userInfo = userInfo
+    useEffect(listOf<dynamic>()) {
+        GlobalScope.launch {
+            val headers = Headers().also { it.set("Accept", "application/json") }
+            val userInfo: UserInfo =
+                get("${window.location.origin}/sec/user", headers)
+                    .decodeFromJsonString()
+            propagateUserInfo(userInfo)
+            props.userInfo = userInfo
+        }
     }
 
     nav("navbar navbar-expand navbar-dark bg-dark topbar mb-3 static-top shadow mr-1 ml-1 rounded") {

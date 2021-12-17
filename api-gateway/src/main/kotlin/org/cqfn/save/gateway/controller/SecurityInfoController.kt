@@ -2,7 +2,10 @@ package org.cqfn.save.gateway.controller
 
 import org.cqfn.save.info.OauthProviderInfo
 import org.cqfn.save.info.UserInfo
+import org.slf4j.LoggerFactory
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken
 import org.springframework.security.oauth2.client.registration.InMemoryReactiveClientRegistrationRepository
+import org.springframework.security.oauth2.core.user.OAuth2User
 import org.springframework.web.bind.annotation.*
 import java.security.Principal
 
@@ -14,6 +17,9 @@ import java.security.Principal
 class SecurityInfoController(
     private val clientRegistrationRepository: InMemoryReactiveClientRegistrationRepository,
 ) {
+
+    private val logger = LoggerFactory.getLogger(SecurityInfoController::class.java)
+
     /**
      * @return a list of [OauthProviderInfo] for all configured providers
      */
@@ -28,6 +34,13 @@ class SecurityInfoController(
 
     @GetMapping("/user")
     fun currentUserName(principal: Principal): UserInfo {
-        return UserInfo(principal.name)
+        logger.info(principal.javaClass.toString())
+
+        return UserInfo((
+                (principal as? OAuth2AuthenticationToken)
+                    ?.principal
+                    ?.attributes
+                    ?.get("login") as String?
+                )?: principal.name)
     }
 }
