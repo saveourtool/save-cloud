@@ -6,8 +6,13 @@
 
 package org.cqfn.save.frontend.components
 
+import kotlinx.browser.window
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import org.w3c.fetch.Headers
 import org.cqfn.save.frontend.components.modal.logoutModal
 import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
+import org.cqfn.save.frontend.utils.post
 
 import react.PropsWithChildren
 import react.RBuilder
@@ -162,7 +167,16 @@ fun topBar() = fc<TopBarProps> { props ->
     }
     logoutModal({
         attrs.isOpen = isLogoutModalOpen
-    }) {
+    }, {
         setIsLogoutModalOpen(false)
-    }
+    }, {
+        GlobalScope.launch {
+            val replyToLogout = post("${window.location.origin}/logout", Headers(), "ping")
+            if (replyToLogout.ok) {
+                // logout went good, need either to reload page or to setUserInfo(null) and use redirection like `window.location.href = window.location.origin`
+                window.location.reload()
+            }
+        }
+    })
 }
+

@@ -26,7 +26,7 @@ import kotlinx.html.role
  * @return a Component
  */
 @Suppress("TOO_LONG_FUNCTION")
-fun RBuilder.logoutModal(handler: RHandler<ModalProps>, closeCallback: () -> Unit) = modal {
+fun RBuilder.logoutModal(handler: RHandler<ModalProps>, closeCallback: () -> Unit, logoutCallback: () -> Unit) = modal {
     handler(this)
     div("modal-dialog") {
         attrs.role = "document"
@@ -57,7 +57,8 @@ fun RBuilder.logoutModal(handler: RHandler<ModalProps>, closeCallback: () -> Uni
                 attrs.onClickFunction = { closeCallback() }
                 +"Cancel"
             }
-            a(classes = "btn btn-primary", href = "/logout") {
+            button(type = ButtonType.button, classes = "btn btn-primary") {
+                attrs.onClickFunction = { logoutCallback() }
                 +"Logout"
             }
         }
