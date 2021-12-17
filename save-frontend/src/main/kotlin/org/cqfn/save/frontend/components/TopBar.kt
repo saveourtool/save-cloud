@@ -20,6 +20,7 @@ import kotlinx.html.classes
 import kotlinx.html.id
 import kotlinx.html.js.onClickFunction
 import kotlinx.html.role
+import kotlin.js.console
 
 /**
  * [RProps] of the top bor component
@@ -71,9 +72,8 @@ fun topBar() = fc<TopBarProps> { props ->
                     .filterNot { it.isBlank() }
                     .apply {
                         foldIndexed("#") { index: Int, acc: String, pathPart: String ->
-                            // small temp workaround to replace owner URL with "project"
-                            // should be removed when we will finish with OWNER pages
-                            val currentLink = if (index == 1) "$acc/$pathPart" else "$acc/projects"
+
+                            val currentLink = "$acc/$pathPart"
 
                             li("breadcrumb-item") {
                                 attrs["aria-current"] = "page"
@@ -84,7 +84,10 @@ fun topBar() = fc<TopBarProps> { props ->
                                     }
                                 } else {
                                     // small hack to redirect from history/execution to history
-                                    a(currentLink.removeSuffix("/execution")) {
+                                    // AND small temp workaround to replace owner URL with "project"
+                                    // should be removed when we will finish with OWNER pages
+                                    val resultingLink = if (index == 0) currentLink.replace(pathPart, "projects") else currentLink.removeSuffix("/execution")
+                                    a(resultingLink) {
                                         attrs.classes = setOf("text-light")
                                         +pathPart
                                     }
