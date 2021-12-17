@@ -59,7 +59,7 @@ class TestService(
                     val testSuiteStub = TestSuite(testRootPath = "N/A").apply {
                         id = testDto.testSuiteId
                     }
-                        Test(testDto.hash, testDto.filePath, testDto.pluginName, LocalDateTime.now(), testSuiteStub, testDto.tags.joinToString(";"))
+                    Test(testDto.hash, testDto.filePath, testDto.pluginName, LocalDateTime.now(), testSuiteStub, testDto.tags.joinToString(";"))
                 }
         }
             .partition { it.id != null }
