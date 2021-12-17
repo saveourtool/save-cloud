@@ -28,6 +28,7 @@ import react.dom.p
 import react.dom.span
 
 import kotlinx.html.ButtonType
+import org.cqfn.save.frontend.externals.fontawesome.faExternalLinkAlt
 import org.cqfn.save.info.UserInfo
 
 /**
@@ -45,7 +46,7 @@ external interface IndexViewState : State {
     var isValidPassword: Boolean?
 }
 
-external interface WelcomeProps: PropsWithChildren {
+external interface WelcomeProps : PropsWithChildren {
     /**
      * Currently logged in user or null
      */
@@ -149,8 +150,25 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                                     }
                                 }
                             } else {
-                                p {
-                                    +"Welcome ${props.userInfo?.userName}!"
+                                div("card-header p-0 position-relative mt-n4 mx-3 z-index-2 rounded") {
+                                    div("bg-info shadow-primary border-radius-lg py-3 pe-1 rounded") {
+                                        h4("text-white font-weight-bolder text-center mt-2 mb-0") {
+                                            +"Welcome ${props.userInfo?.userName}!"
+
+                                        }
+                                    }
+                                }
+
+                                div("card-body") {
+                                    p("mt-4 text-sm text-center") {
+                                        a(classes = "text-info text-gradient font-weight-bold ml-2 mr-2") {
+                                            attrs.href = "#/projects"
+                                            h4 {
+                                                +"List of Projects"
+                                                fontAwesomeIcon(icon = faExternalLinkAlt, "ml-2")
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }

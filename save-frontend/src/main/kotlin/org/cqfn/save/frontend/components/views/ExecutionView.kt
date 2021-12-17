@@ -314,7 +314,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                     tr {
                         td {
                             attrs.colSpan = "${tableInstance.columns.size}"
-                            +"Debug info not available for this test execution"
+                            +"Debug info not available yet for this test execution"
                         }
                     }
                 }

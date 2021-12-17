@@ -72,8 +72,7 @@ class App : RComponent<PropsWithChildren, AppState>() {
     fun getUser() {
         GlobalScope.launch {
             val headers = Headers().also { it.set("Accept", "application/json") }
-            val userInfoNew: UserInfo = get("${window.location.origin}/sec/user", headers)
-                .decodeFromJsonString()
+            val userInfoNew: UserInfo? = get("${window.location.origin}/sec/user", headers).decodeFromJsonString()
             setState {
                 userInfo = userInfoNew
             }
