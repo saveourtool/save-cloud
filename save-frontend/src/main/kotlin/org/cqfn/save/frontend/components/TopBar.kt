@@ -6,12 +6,11 @@
 
 package org.cqfn.save.frontend.components
 
-import kotlinx.browser.window
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import org.cqfn.save.frontend.components.modal.logoutModal
 import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
+import org.cqfn.save.info.UserInfo
 
+import react.*
 import react.dom.*
 import react.router.dom.useLocation
 
@@ -21,11 +20,6 @@ import kotlinx.html.classes
 import kotlinx.html.id
 import kotlinx.html.js.onClickFunction
 import kotlinx.html.role
-import org.cqfn.save.frontend.utils.decodeFromJsonString
-import org.cqfn.save.frontend.utils.get
-import org.cqfn.save.info.UserInfo
-import org.w3c.fetch.Headers
-import react.*
 
 /**
  * [RProps] of the top bor component
@@ -166,9 +160,8 @@ fun topBar() = fc<TopBarProps> { props ->
             }
         }
     }
-    logoutModal({
-        attrs.isOpen = isLogoutModalOpen
-    }) {
+    logoutModal({ attrs.isOpen = isLogoutModalOpen }) {
         setIsLogoutModalOpen(false)
     }
 }
+
