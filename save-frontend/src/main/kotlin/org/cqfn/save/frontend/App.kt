@@ -39,8 +39,11 @@ import react.router.dom.Route
 import react.router.dom.Switch
 
 import kotlinx.browser.document
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import kotlinx.html.id
 import org.cqfn.save.info.UserInfo
+import org.w3c.fetch.Headers
 import react.*
 
 /**
@@ -63,16 +66,30 @@ class App : RComponent<PropsWithChildren, AppState>() {
         state.userInfo = null
     }
 
+    fun getUser() {
+            GlobalScope.launch {
+                val headers = Headers().also { it.set("Accept", "application/json") }
+                val userInfoNew: UserInfo? = UserInfo("HELLO")
+//                get("${window.location.origin}/sec/user", headers)
+//                    .decodeFromJsonString()
+                console.log("kek lol")
+                setState{
+                    userInfo = userInfoNew
+                }
+            }
+    }
+
+    override fun componentDidMount() {
+//        super.componentDidMount()
+        getUser()
+    }
+
     @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR", "TOO_LONG_FUNCTION", "LongMethod")
     override fun RBuilder.render() {
         HashRouter {
             div("d-flex flex-column") {
                 attrs.id = "content-wrapper"
-                child(topBar {
-                    setState {
-                        userInfo = it
-                    }
-                }) {
+                child(topBar()) {
                     attrs {
                         userInfo = state.userInfo
                     }
