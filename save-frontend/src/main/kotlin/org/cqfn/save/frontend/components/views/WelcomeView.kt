@@ -128,13 +128,8 @@ class WelcomeView : AbstractView<PropsWithChildren, IndexViewState>(true) {
 
                                     p("mt-4 text-sm text-center") {
                                         +"Don't have an account?"
-                                        a(classes = "text-info text-gradient font-weight-bold ml-2") {
-                                            attrs.href = "#/"
-                                            +"Sign up"
-                                        }
 
                                         p("text-sm text-center") {
-                                            +"Or"
                                             a(classes = "text-info text-gradient font-weight-bold ml-2 mr-2") {
                                                 attrs.href = "#/projects"
                                                 +"Continue"

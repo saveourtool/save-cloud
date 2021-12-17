@@ -247,8 +247,8 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                             }
 
                             val testName = cellProps.value.filePath
-                            val shortTestName = if (testName.length > 41) {
-                                testName.take(20) + " ... " + testName.takeLast(20)
+                            val shortTestName = if (testName.length > 35) {
+                                testName.take(15) + " ... " + testName.takeLast(15)
                             } else {
                                 testName
                             }

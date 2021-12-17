@@ -32,20 +32,16 @@ import org.cqfn.save.frontend.externals.modal.ReactModal
 
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.url.URLSearchParams
-import react.PropsWithChildren
-import react.RBuilder
-import react.RComponent
-import react.State
-import react.buildElement
 import react.dom.div
 import react.dom.render
-import react.react
 import react.router.dom.HashRouter
 import react.router.dom.Route
 import react.router.dom.Switch
 
 import kotlinx.browser.document
 import kotlinx.html.id
+import org.cqfn.save.info.UserInfo
+import react.*
 
 /**
  * Top-level state of the whole App
@@ -54,7 +50,7 @@ external interface AppState : State {
     /**
      * Currently logged in user or null
      */
-    var userName: String?
+    var userInfo: UserInfo?
 }
 
 /**
@@ -64,7 +60,7 @@ external interface AppState : State {
 @OptIn(ExperimentalJsExport::class)
 class App : RComponent<PropsWithChildren, AppState>() {
     init {
-        state.userName = ""
+        state.userInfo = UserInfo("")
     }
 
     @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR", "TOO_LONG_FUNCTION", "LongMethod")
@@ -72,9 +68,13 @@ class App : RComponent<PropsWithChildren, AppState>() {
         HashRouter {
             div("d-flex flex-column") {
                 attrs.id = "content-wrapper"
-                child(topBar()) {
+                child(topBar {
+                    setState {
+                        userInfo = it
+                    }
+                }) {
                     attrs {
-                        userName = state.userName
+                        userInfo = state.userInfo
                     }
                 }
 
