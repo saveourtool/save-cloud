@@ -41,19 +41,19 @@ jobs:
             ${{ runner.os }}-gradle-konan
       - run: |
           cd save && git status && git diff
-      - uses: burrunan/gradle-cache-action@v1
-        with:
-          gradle-version: wrapper
-          build-root-directory: save
-          arguments: |
-            :save-cli:linkReleaseExecutableLinuxX64
-          properties: |
-            org.gradle.caching=true
-      - name: Set environment variable with save-cli version
-        run: |
-          mkdir -p save-cloud/save-orchestrator/build/resources/main
-          find save/save-cli/build/bin/linuxX64/releaseExecutable -name "save-*.kexe" -exec cp {} save-cloud/save-orchestrator/build/resources/main \;
-          find save/save-cli/build/bin/linuxX64/releaseExecutable -name "save-*.kexe" -exec sh -c 'printf "$1" | sed -r "s/.*save-(.*)-linuxX64.kexe/\1/" | echo "SAVE_CLI_VERSION=$(cat)" >> $GITHUB_ENV' _ {} \;
+#      - uses: burrunan/gradle-cache-action@v1
+#        with:
+#          gradle-version: wrapper
+#          build-root-directory: save
+#          arguments: |
+#            :save-cli:linkReleaseExecutableLinuxX64
+#          properties: |
+#            org.gradle.caching=true
+#      - name: Set environment variable with save-cli version
+#        run: |
+#          mkdir -p save-cloud/save-orchestrator/build/resources/main
+#          find save/save-cli/build/bin/linuxX64/releaseExecutable -name "save-*.kexe" -exec cp {} save-cloud/save-orchestrator/build/resources/main \;
+#          find save/save-cli/build/bin/linuxX64/releaseExecutable -name "save-*.kexe" -exec sh -c 'printf "$1" | sed -r "s/.*save-(.*)-linuxX64.kexe/\1/" | echo "SAVE_CLI_VERSION=$(cat)" >> $GITHUB_ENV' _ {} \;
       - uses: burrunan/gradle-cache-action@v1
         with:
           gradle-version: wrapper
@@ -63,10 +63,8 @@ jobs:
             :save-backend:bootBuildImage
             :save-orchestrator:bootBuildImage
             :save-preprocessor:bootBuildImage
-            --refresh-dependencies
             --stacktrace
           properties: |
-            saveCliVersion=${{ env.SAVE_CLI_VERSION }}
             org.gradle.caching=true
             detekt.multiplatform.disabled=true
       - name: Upload gradle reports
