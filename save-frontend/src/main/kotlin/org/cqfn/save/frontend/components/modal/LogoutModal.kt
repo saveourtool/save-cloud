@@ -4,12 +4,16 @@
 
 package org.cqfn.save.frontend.components.modal
 
+import kotlinx.browser.window
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import org.cqfn.save.frontend.externals.modal.ModalProps
 import org.cqfn.save.frontend.externals.modal.modal
+import org.cqfn.save.frontend.utils.post
+import org.w3c.fetch.Headers
 
 import react.RBuilder
 import react.RHandler
-import react.dom.a
 import react.dom.attrs
 import react.dom.button
 import react.dom.div
@@ -26,7 +30,7 @@ import kotlinx.html.role
  * @return a Component
  */
 @Suppress("TOO_LONG_FUNCTION")
-fun RBuilder.logoutModal(handler: RHandler<ModalProps>, closeCallback: () -> Unit, logoutCallback: () -> Unit) = modal {
+fun RBuilder.logoutModal(handler: RHandler<ModalProps>, closeCallback: () -> Unit) = modal {
     handler(this)
     div("modal-dialog") {
         attrs.role = "document"
@@ -58,7 +62,15 @@ fun RBuilder.logoutModal(handler: RHandler<ModalProps>, closeCallback: () -> Uni
                 +"Cancel"
             }
             button(type = ButtonType.button, classes = "btn btn-primary") {
-                attrs.onClickFunction = { logoutCallback() }
+                attrs.onClickFunction = {
+                    GlobalScope.launch {
+                        val replyToLogout = post("${window.location.origin}/logout", Headers(), "ping")
+                        if (replyToLogout.ok) {
+                            // logout went good, need either to reload page or to setUserInfo(null) and use redirection like `window.location.href = window.location.origin`
+                            window.location.reload()
+                        }
+                    }
+                }
                 +"Logout"
             }
         }
