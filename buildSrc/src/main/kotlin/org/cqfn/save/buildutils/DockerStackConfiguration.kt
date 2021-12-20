@@ -139,7 +139,7 @@ fun Project.createStackDeployTask(profile: String) {
     tasks.register<Exec>("buildAndDeployComponent") {
         description = "Build and deploy a single component of save-cloud. Component name should be provided via `-Pcomponent=<name> " +
                 "and it should be a name of one of gradle subprojects."
-        val componentName = findProperty("component") as String?
+        val componentName = findProperty("save.component") as String?
         requireNotNull(componentName) { "Component name should be provided for `deployComponent` task" }
         require(componentName in allprojects.map { it.name }) { "Component name should be one of gradle subproject names" }
         val buildTask = project(componentName).tasks.named<BootBuildImage>("bootBuildImage")
