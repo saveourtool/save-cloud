@@ -8,13 +8,11 @@ package org.cqfn.save.frontend.components
 
 import org.cqfn.save.frontend.components.modal.logoutModal
 import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
+import org.cqfn.save.info.UserInfo
 
-import react.PropsWithChildren
-import react.RBuilder
+import react.*
 import react.dom.*
-import react.fc
 import react.router.dom.useLocation
-import react.useState
 
 import kotlinx.html.BUTTON
 import kotlinx.html.ButtonType
@@ -30,7 +28,7 @@ external interface TopBarProps : PropsWithChildren {
     /**
      * Currently logged in user or null
      */
-    var userName: String?
+    var userInfo: UserInfo?
 }
 
 private fun RBuilder.dropdownEntry(faIcon: String, text: String, handler: RDOMBuilder<BUTTON>.() -> Unit = { }) =
@@ -73,7 +71,9 @@ fun topBar() = fc<TopBarProps> { props ->
                     .filterNot { it.isBlank() }
                     .apply {
                         foldIndexed("#") { index: Int, acc: String, pathPart: String ->
+
                             val currentLink = "$acc/$pathPart"
+
                             li("breadcrumb-item") {
                                 attrs["aria-current"] = "page"
                                 if (index == size - 1) {
@@ -83,7 +83,10 @@ fun topBar() = fc<TopBarProps> { props ->
                                     }
                                 } else {
                                     // small hack to redirect from history/execution to history
-                                    a(currentLink.removeSuffix("/execution")) {
+                                    // AND small temp workaround to replace owner URL with "project"
+                                    // should be removed when we will finish with OWNER pages
+                                    val resultingLink = if (index == 0) currentLink.replace(pathPart, "projects") else currentLink.removeSuffix("/execution")
+                                    a(resultingLink) {
                                         attrs.classes = setOf("text-light")
                                         +pathPart
                                     }
@@ -138,8 +141,9 @@ fun topBar() = fc<TopBarProps> { props ->
                         set("aria-haspopup", "true")
                         set("aria-expanded", "false")
                     }
-                    span("mr-2 d-none d-lg-inline text-gray-600 small") {
-                        +(props.userName ?: "")
+
+                    span("mr-2 d-none d-lg-inline text-gray-600") {
+                        +(props.userInfo?.userName ?: "")
                     }
 
                     fontAwesomeIcon {
@@ -150,7 +154,8 @@ fun topBar() = fc<TopBarProps> { props ->
                 // Dropdown - User Information
                 div("dropdown-menu dropdown-menu-right shadow animated--grow-in") {
                     attrs["aria-labelledby"] = "userDropdown"
-                    dropdownEntry("cogs", "Profile")
+                    // FixMe: temporary disable Profile DropDown, will need to link it with the user in the future
+                    // dropdownEntry("cogs", "Profile")
                     dropdownEntry("sign-out-alt", "Log out") {
                         attrs.onClickFunction = {
                             setIsLogoutModalOpen(true)
@@ -160,9 +165,7 @@ fun topBar() = fc<TopBarProps> { props ->
             }
         }
     }
-    logoutModal({
-        attrs.isOpen = isLogoutModalOpen
-    }) {
+    logoutModal({ attrs.isOpen = isLogoutModalOpen }) {
         setIsLogoutModalOpen(false)
     }
 }
