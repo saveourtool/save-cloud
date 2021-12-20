@@ -13,6 +13,7 @@ import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.server.SecurityWebFilterChain
 import org.springframework.security.web.server.authentication.HttpStatusServerEntryPoint
 import org.springframework.security.web.server.authentication.RedirectServerAuthenticationSuccessHandler
+import org.springframework.security.web.server.authentication.logout.HttpStatusReturningServerLogoutSuccessHandler
 
 @EnableWebFluxSecurity
 @Suppress("MISSING_KDOC_TOP_LEVEL", "MISSING_KDOC_CLASS_ELEMENTS", "MISSING_KDOC_ON_FUNCTION")
@@ -45,6 +46,10 @@ class WebSecurityConfig {
             it.authenticationSuccessHandler(
                 RedirectServerAuthenticationSuccessHandler("/#/projects")
             )
+        }
+        .logout {
+            // fixme: when frontend can handle logout without reloading, use `RedirectServerLogoutSuccessHandler` here
+            it.logoutSuccessHandler(HttpStatusReturningServerLogoutSuccessHandler(HttpStatus.OK))
         }
         .build()
 }
