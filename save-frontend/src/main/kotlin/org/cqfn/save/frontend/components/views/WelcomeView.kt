@@ -14,6 +14,9 @@ import org.cqfn.save.info.UserInfo
 import csstype.Display
 import csstype.FontSize
 import csstype.FontWeight
+import kotlinx.browser.window
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import react.CSSProperties
 import react.PropsWithChildren
 import react.RBuilder
@@ -30,6 +33,13 @@ import react.dom.p
 import react.dom.span
 
 import kotlinx.html.ButtonType
+import org.cqfn.save.frontend.externals.fontawesome.faCopyright
+import org.cqfn.save.frontend.externals.fontawesome.faSignInAlt
+import org.cqfn.save.frontend.utils.decodeFromJsonString
+import org.cqfn.save.frontend.utils.get
+import org.cqfn.save.info.OauthProviderInfo
+import org.w3c.fetch.Headers
+import react.setState
 
 /**
  * [RState] of project creation view component
@@ -44,6 +54,8 @@ external interface IndexViewState : State {
      * State that checks the validity of password
      */
     var isValidPassword: Boolean?
+
+    var oauthProviders: List<OauthProviderInfo>?
 }
 
 /**
@@ -65,6 +77,20 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
     init {
         state.isValidLogin = true
         state.isValidPassword = true
+    }
+
+    override fun componentDidMount() {
+        super.componentDidMount()
+        GlobalScope.launch {
+            val oauthProviderInfoList: List<OauthProviderInfo>? = get("${window.location.origin}/sec/oauth-providers", Headers()).run {
+                if (ok) decodeFromJsonString() else null
+            }
+            oauthProviderInfoList?.let {
+                setState {
+                    oauthProviders = it
+                }
+            }
+        }
     }
 
     @Suppress("ForbiddenComment", "LongMethod", "TOO_LONG_FUNCTION")
@@ -110,16 +136,12 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                     +"Sign in"
                 }
                 div("row") {
-                    div("col text-center px-1") {
-                        a(
-                            href = "oauth2/authorization/github",
-                            classes = "btn btn-link px-3 text-white text-lg text-center"
-                        ) {
-                            attrs["style"] = kotlinext.js.jsObject<CSSProperties> {
-                                fontSize = "3.2rem".unsafeCast<FontSize>()
-                            }
-                            fontAwesomeIcon(icon = faGithub)
-                        }
+                    state.oauthProviders?.map {
+                        oauthLogin(it, when (it.registrationId) {
+                            "github" -> faGithub
+                            "codehub" -> faCopyright
+                            else -> faSignInAlt
+                        })
                     }
                 }
             }
@@ -211,6 +233,20 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
         +str
         attrs["style"] = kotlinext.js.jsObject<CSSProperties> {
             display = Display.inline
+        }
+    }
+
+    private fun RBuilder.oauthLogin(provider: OauthProviderInfo, icon: dynamic) {
+        div("col text-center px-1") {
+            a(
+                href = provider.authorizationLink,
+                classes = "btn btn-link px-3 text-white text-lg text-center"
+            ) {
+                attrs["style"] = kotlinext.js.jsObject<CSSProperties> {
+                    fontSize = "3.2rem".unsafeCast<FontSize>()
+                }
+                fontAwesomeIcon(icon = icon)
+            }
         }
     }
 }
