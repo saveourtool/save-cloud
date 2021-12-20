@@ -6,6 +6,7 @@ package org.cqfn.save.buildutils
 
 import org.gradle.api.Project
 import org.gradle.api.tasks.Exec
+import org.gradle.kotlin.dsl.named
 import org.gradle.kotlin.dsl.register
 import org.gradle.kotlin.dsl.withType
 import org.springframework.boot.gradle.tasks.bundling.BootBuildImage
@@ -133,5 +134,21 @@ fun Project.createStackDeployTask(profile: String) {
         dependsOn(subprojects.flatMap { it.tasks.withType<BootBuildImage>() })
         dependsOn("startMysqlDb")
         commandLine("docker-compose", "--file", "$buildDir/docker-compose.yaml", "up", "-d", "orchestrator", "backend", "preprocessor")
+    }
+
+    tasks.register<Exec>("buildAndDeployComponent") {
+        description = "Build and deploy a single component of save-cloud. Component name should be provided via `-Pcomponent=<name> " +
+                "and it should be a name of one of gradle subprojects."
+        val componentName = findProperty("component") as String?
+        requireNotNull(componentName) { "Component name should be provided for `deployComponent` task" }
+        require(componentName in allprojects.map { it.name }) { "Component name should be one of gradle subproject names" }
+        val buildTask = project(componentName).tasks.named<BootBuildImage>("bootBuildImage")
+        dependsOn(buildTask)
+        val serviceName = when (componentName) {
+            "save-backend", "save-orchestrator", "save-preprocessor" -> "save_$componentName"
+            "api-gateway" -> "save_gateway"
+            else -> error("Wrong component name $componentName")
+        }
+        commandLine("docker", "service", "update", "--image-name=${buildTask.get().imageName}", serviceName)
     }
 }
