@@ -29,9 +29,14 @@ import org.cqfn.save.frontend.externals.fontawesome.faUser
 import org.cqfn.save.frontend.externals.fontawesome.fas
 import org.cqfn.save.frontend.externals.fontawesome.library
 import org.cqfn.save.frontend.externals.modal.ReactModal
+import org.cqfn.save.frontend.utils.decodeFromJsonString
+import org.cqfn.save.frontend.utils.get
+import org.cqfn.save.info.UserInfo
 
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.url.URLSearchParams
+import org.w3c.fetch.Headers
+import react.*
 import react.dom.div
 import react.dom.render
 import react.router.dom.HashRouter
@@ -43,11 +48,6 @@ import kotlinx.browser.window
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.html.id
-import org.cqfn.save.frontend.utils.decodeFromJsonString
-import org.cqfn.save.frontend.utils.get
-import org.cqfn.save.info.UserInfo
-import org.w3c.fetch.Headers
-import react.*
 
 /**
  * Top-level state of the whole App
@@ -69,7 +69,7 @@ class App : RComponent<PropsWithChildren, AppState>() {
         state.userInfo = null
     }
 
-    fun getUser() {
+    private fun getUser() {
         GlobalScope.launch {
             val headers = Headers().also { it.set("Accept", "application/json") }
             val userInfoNew: UserInfo? = get("${window.location.origin}/sec/user", headers).decodeFromJsonString()
@@ -108,7 +108,6 @@ class App : RComponent<PropsWithChildren, AppState>() {
                                     }
                                 }
                             }
-
                         }
 
                         Route {

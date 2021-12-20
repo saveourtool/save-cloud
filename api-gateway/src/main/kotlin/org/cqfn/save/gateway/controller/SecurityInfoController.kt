@@ -5,7 +5,6 @@ import org.cqfn.save.info.UserInfo
 import org.slf4j.LoggerFactory
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken
 import org.springframework.security.oauth2.client.registration.InMemoryReactiveClientRegistrationRepository
-import org.springframework.security.oauth2.core.user.OAuth2User
 import org.springframework.web.bind.annotation.*
 import java.security.Principal
 
@@ -17,7 +16,6 @@ import java.security.Principal
 class SecurityInfoController(
     private val clientRegistrationRepository: InMemoryReactiveClientRegistrationRepository,
 ) {
-
     private val logger = LoggerFactory.getLogger(SecurityInfoController::class.java)
 
     /**
@@ -32,15 +30,18 @@ class SecurityInfoController(
         )
     }
 
+    /**
+     * Endpoint that provides the information about the current logged-in user (powered by spring security and OAUTH)
+     *
+     * @param principal
+     * @return user information
+     */
     @GetMapping("/user")
-    fun currentUserName(principal: Principal): UserInfo {
-        logger.info(principal.javaClass.toString())
-
-        return UserInfo((
-                (principal as? OAuth2AuthenticationToken)
-                    ?.principal
-                    ?.attributes
-                    ?.get("login") as String?
-                )?: principal.name)
-    }
+    fun currentUserName(principal: Principal): UserInfo = UserInfo((
+        (principal as? OAuth2AuthenticationToken)
+            ?.principal
+            ?.attributes
+            // small hack that will work with GitHub API, where GitHub provides username as "login" in the response
+            ?.get("login") as String?
+    ) ?: principal.name)
 }

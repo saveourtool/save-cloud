@@ -284,7 +284,6 @@ class CreationView : AbstractView<PropsWithChildren, ProjectSaveViewState>(true)
                                             changeFields(InputTypes.GIT_URL, it, false)
                                         }
 
-
                                         div("col-md-12 mt-3 mb-3 pl-0 pr-0") {
                                             label("form-label") {
                                                 attrs.set("for", InputTypes.DESCRIPTION.name)

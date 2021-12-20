@@ -4,14 +4,11 @@
 
 package org.cqfn.save.frontend.components.modal
 
-import kotlinx.browser.window
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import org.cqfn.save.frontend.externals.modal.ModalProps
 import org.cqfn.save.frontend.externals.modal.modal
 import org.cqfn.save.frontend.utils.post
-import org.w3c.fetch.Headers
 
+import org.w3c.fetch.Headers
 import react.RBuilder
 import react.RHandler
 import react.dom.attrs
@@ -20,6 +17,9 @@ import react.dom.div
 import react.dom.h5
 import react.dom.span
 
+import kotlinx.browser.window
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import kotlinx.html.ButtonType
 import kotlinx.html.js.onClickFunction
 import kotlinx.html.role

@@ -44,7 +44,7 @@ class CollectionView : AbstractView<PropsWithChildren, State>(false) {
                         td {
                             // FixMe: temporary disable links, until we will make a beat
                             // a(href = "#/${it.value}") {
-                                +it.value
+                            +it.value
                             // }
                         }
                     }
