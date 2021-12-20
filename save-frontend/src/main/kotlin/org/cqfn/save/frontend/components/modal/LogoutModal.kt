@@ -67,6 +67,7 @@ fun RBuilder.logoutModal(handler: RHandler<ModalProps>, closeCallback: () -> Uni
                         val replyToLogout = post("${window.location.origin}/logout", Headers(), "ping")
                         if (replyToLogout.ok) {
                             // logout went good, need either to reload page or to setUserInfo(null) and use redirection like `window.location.href = window.location.origin`
+                            window.location.href = "${window.location.origin}/#"
                             window.location.reload()
                         }
                     }
