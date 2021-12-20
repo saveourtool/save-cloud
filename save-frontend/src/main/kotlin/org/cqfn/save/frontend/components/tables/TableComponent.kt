@@ -145,12 +145,6 @@ fun <D : Any> tableComponent(
         }
     }
 
-    if (usePageSelection) {
-        div {
-            setEntries(tableInstance, setPageIndex)
-        }
-    }
-
     div("card shadow mb-4") {
         div("card-header py-3") {
             h6("m-0 font-weight-bold text-primary") {
@@ -170,14 +164,18 @@ fun <D : Any> tableComponent(
                                 spread(headerGroup.getHeaderGroupProps())
                                 headerGroup.headers.map { column ->
                                     val columnProps = column.getHeaderProps(column.getSortByToggleProps())
-                                    th(classes = columnProps.className) {
-                                        spread(columnProps)
+                                    val className = if (column.canSort) columnProps.className else ""
+                                    th(classes = className) {
                                         +column.render("Header")
-                                        span {
-                                            +when {
-                                                column.isSorted -> " 🔽"
-                                                column.isSortedDesc -> " 🔼"
-                                                else -> ""
+                                        // fixme: find a way to set `canSort`; now it's always true
+                                        if (column.canSort) {
+                                            spread(columnProps)
+                                            span {
+                                                +when {
+                                                    column.isSorted -> " 🔽"
+                                                    column.isSortedDesc -> " 🔼"
+                                                    else -> ""
+                                                }
                                             }
                                         }
                                     }
@@ -209,18 +207,20 @@ fun <D : Any> tableComponent(
                         }
                     }
                 }
-                if (tableInstance.pageCount > 1) {
-                    // block with paging controls
-                    div("wrapper container m-0 p-0") {
-                        pagingControl(tableInstance, setPageIndex, pageIndex, pageCount)
-                    }
-                    div {
+                // if (tableInstance.pageCount > 1) {
+                // block with paging controls
+                div("wrapper container m-0 p-0") {
+                    pagingControl(tableInstance, setPageIndex, pageIndex, pageCount)
+
+                    div("row ml-1") {
                         +"Page "
                         em {
                             +"${tableInstance.state.pageIndex + 1} of ${tableInstance.pageCount}"
                         }
                     }
                 }
+
+                // }
             }
         }
     }

@@ -7,7 +7,6 @@ package org.cqfn.save.agent.utils
 import org.cqfn.save.agent.AgentState
 import org.cqfn.save.agent.RetryConfig
 import org.cqfn.save.agent.SaveAgent
-import org.cqfn.save.core.logging.logError
 
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.HttpStatusCode
@@ -30,7 +29,7 @@ internal suspend fun SaveAgent.sendDataToBackend(
         state.value = AgentState.BACKEND_UNREACHABLE
         "Backend is unreachable, ${result.exceptionOrNull()?.message}"
     }
-    logError("Cannot post data (x${attempt + 1}), will retry in ${config.retry.initialRetryMillis} ms. Reason: $reason")
+    logErrorCustom("Cannot post data (x${attempt + 1}), will retry in ${config.retry.initialRetryMillis} ms. Reason: $reason")
 }
 
 /**

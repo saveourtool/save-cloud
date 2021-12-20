@@ -7,6 +7,9 @@
 test sets for the language that you are developing analyzer for. It provides you also a service that can be used to determine the readiness of your tool. SAVE has a committee of static analysis experts
 that regularly updates tests and discuss the best practices for particular programming languages.
 
+## How it looks like from the high-level perspective?
+![SAVE processing](https://user-images.githubusercontent.com/58667063/146387903-24ba9c91-a2a3-45e7-a07a-cb7bc388e4aa.jpg)
+
 ## What is SAVE Cloud?
 SAVE Cloud is a service for executing tests using the SAVE tool. You can provide a link to a git repository with a project, configured to
 run SAVE. These tests will then be executed server-side, providing you access to execution results, statistics and logs.
