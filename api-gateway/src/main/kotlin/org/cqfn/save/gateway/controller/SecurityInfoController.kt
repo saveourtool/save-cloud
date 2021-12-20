@@ -1,19 +1,23 @@
 package org.cqfn.save.gateway.controller
 
 import org.cqfn.save.info.OauthProviderInfo
+import org.cqfn.save.info.UserInfo
+import org.slf4j.LoggerFactory
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken
 import org.springframework.security.oauth2.client.registration.InMemoryReactiveClientRegistrationRepository
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
+import java.security.Principal
 
 /**
  * Controller that returns various public information
  */
 @RestController
-@RequestMapping("/info")
+@RequestMapping("/sec")
 class SecurityInfoController(
     private val clientRegistrationRepository: InMemoryReactiveClientRegistrationRepository,
 ) {
+    private val logger = LoggerFactory.getLogger(SecurityInfoController::class.java)
+
     /**
      * @return a list of [OauthProviderInfo] for all configured providers
      */
@@ -25,4 +29,19 @@ class SecurityInfoController(
             "/oauth2/authorization/${it.registrationId}",
         )
     }
+
+    /**
+     * Endpoint that provides the information about the current logged-in user (powered by spring security and OAUTH)
+     *
+     * @param principal
+     * @return user information
+     */
+    @GetMapping("/user")
+    fun currentUserName(principal: Principal): UserInfo = UserInfo((
+        (principal as? OAuth2AuthenticationToken)
+            ?.principal
+            ?.attributes
+            // small hack that will work with GitHub API, where GitHub provides username as "login" in the response
+            ?.get("login") as String?
+    ) ?: principal.name)
 }
