@@ -1,5 +1,6 @@
 package org.cqfn.save.gateway.controller
 
+import org.cqfn.save.gateway.config.ConfigurationProperties
 import org.cqfn.save.info.OauthProviderInfo
 import org.cqfn.save.info.UserInfo
 import org.slf4j.LoggerFactory
@@ -14,6 +15,7 @@ import java.security.Principal
 @RestController
 @RequestMapping("/sec")
 class SecurityInfoController(
+    private val configurationProperties: ConfigurationProperties,
     private val clientRegistrationRepository: InMemoryReactiveClientRegistrationRepository,
 ) {
     private val logger = LoggerFactory.getLogger(SecurityInfoController::class.java)
@@ -27,6 +29,7 @@ class SecurityInfoController(
             it.registrationId,
             // Default authorization link format, see https://docs.spring.io/spring-security/reference/reactive/oauth2/login/advanced.html#webflux-oauth2-login-advanced-login-page
             "/oauth2/authorization/${it.registrationId}",
+            configurationProperties.oauth2.providerNameToUsernameAttribute[it.registrationId]!!
         )
     }
 
@@ -37,11 +40,14 @@ class SecurityInfoController(
      * @return user information
      */
     @GetMapping("/user")
-    fun currentUserName(principal: Principal): UserInfo = UserInfo((
-        (principal as? OAuth2AuthenticationToken)
-            ?.principal
-            ?.attributes
-            // small hack that will work with GitHub API, where GitHub provides username as "login" in the response
-            ?.get("login") as String?
-    ) ?: principal.name)
+    fun currentUserName(principal: Principal): UserInfo {
+        val userName = if (principal is OAuth2AuthenticationToken) {
+            principal.principal.attributes[
+                    configurationProperties.oauth2.providerNameToUsernameAttribute[principal.authorizedClientRegistrationId]
+            ] as String
+        } else {
+            principal.name
+        }
+        return UserInfo(userName)
+    }
 }

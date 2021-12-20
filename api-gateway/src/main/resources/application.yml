@@ -3,6 +3,10 @@ server:
 gateway:
   backend:
     url: http://backend:5000
+  oauth2:
+    providerNameToUsernameAttribute:
+      # https://docs.github.com/en/rest/reference/users#get-the-authenticated-user
+      "github": "login"
 management:
   endpoints:
     web:

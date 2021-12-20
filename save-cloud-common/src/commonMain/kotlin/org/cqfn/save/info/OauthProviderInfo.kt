@@ -12,4 +12,5 @@ import kotlinx.serialization.Serializable
 data class OauthProviderInfo(
     val registrationId: String,
     val authorizationLink: String,
+    val usernameAttributeName: String,
 )
