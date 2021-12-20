@@ -12,7 +12,9 @@ import org.cqfn.save.info.UserInfo
 
 import react.*
 import react.dom.*
-import react.router.dom.useLocation
+import react.fc
+import react.router.useLocation
+import react.useState
 
 import kotlinx.html.BUTTON
 import kotlinx.html.ButtonType
