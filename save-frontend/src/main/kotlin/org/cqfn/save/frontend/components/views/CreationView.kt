@@ -259,7 +259,7 @@ class CreationView : AbstractView<PropsWithChildren, ProjectSaveViewState>(true)
             div("page-header align-items-start min-vh-100") {
                 span("mask bg-gradient-dark opacity-6") {}
                 div("row justify-content-center") {
-                    div("col-sm-5") {
+                    div("col-sm-4") {
                         div("container card o-hidden border-0 shadow-lg my-2 card-body p-0") {
                             div("p-5 text-center") {
                                 h1("h4 text-gray-900 mb-4") {
@@ -273,21 +273,15 @@ class CreationView : AbstractView<PropsWithChildren, ProjectSaveViewState>(true)
                                         inputTextFormRequired(InputTypes.PROJECT_NAME, state.isValidProjectName!!, "col-md-6 pl-2 pr-2", "Tested tool name") {
                                             changeFields(InputTypes.PROJECT_NAME, it)
                                         }
-                                        inputTextFormOptional(InputTypes.PROJECT_URL, "col-md-6 pr-0 mt-3", "Tested tool Url") {
+                                        inputTextFormOptional(InputTypes.PROJECT_URL, "col-md-6 pr-0 mt-3", "Tested Tool Website") {
                                             changeFields(InputTypes.PROJECT_URL, it)
                                         }
                                         inputTextFormOptional(
                                             InputTypes.GIT_URL,
                                             "col-md-6 mt-3 pl-0",
-                                            "Test repository Git Url"
+                                            "Test Suite Git URL"
                                         ) {
                                             changeFields(InputTypes.GIT_URL, it, false)
-                                        }
-                                        inputTextFormOptional(InputTypes.GIT_USER, "col-md-6 mt-3", "Git Username") {
-                                            changeFields(InputTypes.GIT_USER, it, false)
-                                        }
-                                        inputTextFormOptional(InputTypes.GIT_TOKEN, "col-md-6 mt-3 pr-0", "Git Token") {
-                                            changeFields(InputTypes.GIT_TOKEN, it, false)
                                         }
 
                                         div("col-md-12 mt-3 mb-3 pl-0 pr-0") {
@@ -312,7 +306,20 @@ class CreationView : AbstractView<PropsWithChildren, ProjectSaveViewState>(true)
                                             }
                                         }
 
-                                        div("form-check form-switch") {
+                                        div("col-md-12 mt-3 border-top") {
+                                            p("mx-auto mt-2") {
+                                                +"Provide Credentials if your repo with Test Suites is private:"
+                                            }
+                                        }
+
+                                        inputTextFormOptional(InputTypes.GIT_USER, "col-md-6 mt-1", "Git Username") {
+                                            changeFields(InputTypes.GIT_USER, it, false)
+                                        }
+                                        inputTextFormOptional(InputTypes.GIT_TOKEN, "col-md-6 mt-1 pr-0", "Git Token") {
+                                            changeFields(InputTypes.GIT_TOKEN, it, false)
+                                        }
+
+                                        div("form-check form-switch mt-2") {
                                             input(classes = "form-check-input") {
                                                 attrs["type"] = "checkbox"
                                                 attrs["id"] = "isPublicSwitch"
