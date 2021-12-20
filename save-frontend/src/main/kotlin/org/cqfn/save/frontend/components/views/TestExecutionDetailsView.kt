@@ -27,7 +27,7 @@ import react.dom.tbody
 import react.dom.td
 import react.dom.tr
 import react.fc
-import react.router.dom.useParams
+import react.router.useParams
 import react.useEffect
 import react.useState
 
