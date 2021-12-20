@@ -145,7 +145,7 @@ fun Project.createStackDeployTask(profile: String) {
         val buildTask = project(componentName).tasks.named<BootBuildImage>("bootBuildImage")
         dependsOn(buildTask)
         val serviceName = when (componentName) {
-            "save-backend", "save-orchestrator", "save-preprocessor" -> "save_$componentName"
+            "save-backend", "save-orchestrator", "save-preprocessor" -> "save_${componentName.substringAfter("save-")}"
             "api-gateway" -> "save_gateway"
             else -> error("Wrong component name $componentName")
         }
