@@ -11,6 +11,7 @@ import org.quartz.JobBuilder
 import org.quartz.JobExecutionContext
 import org.quartz.Scheduler
 import org.quartz.TriggerBuilder
+import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
@@ -39,11 +40,12 @@ class UpdateJob(
  * A component that is capable of scheduling [UpdateJob]
  */
 @Service
-@Profile("automatic-updates")
+@Profile("prod")
 class StandardSuitesUpdateScheduler(
     private val scheduler: Scheduler,
     configProperties: ConfigProperties,
 ) {
+    private val logger = LoggerFactory.getLogger(javaClass)
     private val jobDetail = JobBuilder.newJob(UpdateJob::class.java)
         .storeDurably()
         .withIdentity(jobName)
@@ -62,6 +64,15 @@ class StandardSuitesUpdateScheduler(
     fun schedule() {
         if (!scheduler.checkExists(jobDetail.key)) {
             scheduler.scheduleJob(jobDetail, trigger)
+        } else {
+            val triggers = scheduler.getTriggersOfJob(jobDetail.key)
+            if (triggers.size != 1) {
+                logger.warn("Job $jobDetail has multiple triggers: $triggers. Will drop them and reschedule.")
+                triggers.forEach { scheduler.unscheduleJob(it.key) }
+                scheduler.scheduleJob(jobDetail, trigger)
+            } else {
+                scheduler.rescheduleJob(triggers.single().key, trigger)
+            }
         }
     }
 
