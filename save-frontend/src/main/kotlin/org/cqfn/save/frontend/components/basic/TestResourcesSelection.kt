@@ -172,7 +172,7 @@ fun testResourcesSelection(
                                 attrs["tabindex"] = "0"
                             }
                             h6(classes = "d-inline ml-2") {
-                                +"Relative path（to the root directory）of the test suites in the repo:"
+                                +"Relative path (to the root directory) of the test suites in the repo:"
                             }
                         }
                         div("input-group-prepend") {
@@ -204,6 +204,24 @@ fun testResourcesSelection(
                     child(checkBoxGrid(props.standardTestSuites, props.selectedLanguageForStandardTests)) {
                         attrs.selectedStandardSuites = props.selectedStandardSuites
                         attrs.rowSize = ProjectView.TEST_SUITE_ROW
+                    }
+                }
+                h6(classes = "d-inline ml-2") {
+                    +"Git branch or specific commit in your repository:"
+                }
+                div("input-group-prepend") {
+                    input(type = InputType.text, name = "itemText") {
+                        key = "itemText"
+                        attrs.set("class", "form-control")
+                        attrs {
+                            props.gitBranchOrCommitFromInputField?.let {
+                                value = it
+                            }
+                            placeholder = "leave empty if you would like to use default branch with latest commit"
+                            onChangeFunction = {
+                                updateGitBranchOrCommitInputField(it)
+                            }
+                        }
                     }
                 }
             }
