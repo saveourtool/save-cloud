@@ -40,7 +40,7 @@ class UpdateJob(
  * A component that is capable of scheduling [UpdateJob]
  */
 @Service
-@Profile("automatic-updates")
+@Profile("prod")
 class StandardSuitesUpdateScheduler(
     private val scheduler: Scheduler,
     configProperties: ConfigProperties,
@@ -63,17 +63,17 @@ class StandardSuitesUpdateScheduler(
     @PostConstruct
     fun schedule() {
         if (!scheduler.checkExists(jobDetail.key)) {
-            logger.info("Scheduling job $jobDetail, because it didn't exist.")
+            logger.info("Scheduling job [$jobDetail], because it didn't exist.")
             scheduler.scheduleJob(jobDetail, trigger)
         } else {
             val triggers = scheduler.getTriggersOfJob(jobDetail.key)
             if (triggers.size != 1) {
-                logger.warn("Job $jobDetail has multiple triggers: $triggers. Will drop them and reschedule.")
+                logger.warn("Job [$jobDetail] has multiple triggers: $triggers. Will drop them and reschedule.")
                 triggers.forEach { scheduler.unscheduleJob(it.key) }
                 scheduler.scheduleJob(jobDetail, trigger)
             } else {
                 val oldTrigger = triggers.single()
-                logger.info("Rescheduling job $jobDetail from $oldTrigger to $trigger")
+                logger.info("Rescheduling job [$jobDetail] from [$oldTrigger] to [$trigger]")
                 scheduler.rescheduleJob(oldTrigger.key, trigger)
             }
         }
