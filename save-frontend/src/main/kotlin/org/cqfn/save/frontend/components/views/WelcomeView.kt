@@ -6,17 +6,20 @@ package org.cqfn.save.frontend.components.views
 
 import org.cqfn.save.frontend.components.basic.InputTypes
 import org.cqfn.save.frontend.components.basic.inputTextFormRequired
+import org.cqfn.save.frontend.externals.fontawesome.faCopyright
 import org.cqfn.save.frontend.externals.fontawesome.faExternalLinkAlt
 import org.cqfn.save.frontend.externals.fontawesome.faGithub
+import org.cqfn.save.frontend.externals.fontawesome.faSignInAlt
 import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
+import org.cqfn.save.frontend.utils.decodeFromJsonString
+import org.cqfn.save.frontend.utils.get
+import org.cqfn.save.info.OauthProviderInfo
 import org.cqfn.save.info.UserInfo
 
 import csstype.Display
 import csstype.FontSize
 import csstype.FontWeight
-import kotlinx.browser.window
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import org.w3c.fetch.Headers
 import react.CSSProperties
 import react.PropsWithChildren
 import react.RBuilder
@@ -31,15 +34,12 @@ import react.dom.h4
 import react.dom.main
 import react.dom.p
 import react.dom.span
-
-import kotlinx.html.ButtonType
-import org.cqfn.save.frontend.externals.fontawesome.faCopyright
-import org.cqfn.save.frontend.externals.fontawesome.faSignInAlt
-import org.cqfn.save.frontend.utils.decodeFromJsonString
-import org.cqfn.save.frontend.utils.get
-import org.cqfn.save.info.OauthProviderInfo
-import org.w3c.fetch.Headers
 import react.setState
+
+import kotlinx.browser.window
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.html.ButtonType
 
 /**
  * [RState] of project creation view component
@@ -55,6 +55,9 @@ external interface IndexViewState : State {
      */
     var isValidPassword: Boolean?
 
+    /**
+     * List of OAuth providers, that can be accepted by backend
+     */
     var oauthProviders: List<OauthProviderInfo>?
 }
 
