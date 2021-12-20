@@ -39,7 +39,7 @@ class UpdateJob(
  * A component that is capable of scheduling [UpdateJob]
  */
 @Service
-@Profile("prod")
+@Profile("automatic-updates")
 class StandardSuitesUpdateScheduler(
     private val scheduler: Scheduler,
     configProperties: ConfigProperties,

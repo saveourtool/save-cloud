@@ -22,7 +22,8 @@ fun RBuilder.modal(
                 "top" to "25%",
                 "left" to "35%",
                 "right" to "35%",
-                "bottom" to "50%"
+                "bottom" to "45%",
+                "overflow" to "hide"
             ).unsafeCast<CssProperties>()
         )
         shouldCloseOnOverlayClick = true
