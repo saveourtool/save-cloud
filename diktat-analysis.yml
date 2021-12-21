@@ -28,7 +28,7 @@
   configuration:
     useRecommendedImportsOrder: true
 - name: FILE_WILDCARD_IMPORTS
-  enabled: true
+  enabled: false
   configuration:
     allowedWildcards: "kotlinx.serialization.*"
 - name: BRACES_BLOCK_STRUCTURE_ERROR
@@ -108,3 +108,6 @@
     valueParameter: true
 - name: MAGIC_NUMBER
   enabled: true
+- name: COMPLEX_EXPRESSION
+  # https://github.com/diktat-static-analysis/diKTat/issues/1148
+  enabled: false

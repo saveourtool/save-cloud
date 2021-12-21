@@ -39,9 +39,10 @@ class UpdateJob(
  * A component that is capable of scheduling [UpdateJob]
  */
 @Service
-@Profile("prod")
+@Profile("automatic-updates")
 class StandardSuitesUpdateScheduler(
     private val scheduler: Scheduler,
+    configProperties: ConfigProperties,
 ) {
     private val jobDetail = JobBuilder.newJob(UpdateJob::class.java)
         .storeDurably()
@@ -50,7 +51,7 @@ class StandardSuitesUpdateScheduler(
         .build()
     private val trigger = TriggerBuilder.newTrigger()
         .withSchedule(
-            CronScheduleBuilder.cronSchedule("0 0 */1 * * ?")
+            CronScheduleBuilder.cronSchedule(configProperties.standardSuitesUpdateCron)
         )
         .build()
 

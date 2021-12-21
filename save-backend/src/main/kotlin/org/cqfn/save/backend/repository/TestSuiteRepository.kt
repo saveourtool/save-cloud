@@ -40,5 +40,6 @@ interface TestSuiteRepository : BaseEntityRepository<TestSuite>, QueryByExampleE
         name: String,
         type: TestSuiteType,
         testRootPath: String,
-        testSuiteRepoUrl: String?): TestSuite
+        testSuiteRepoUrl: String?,
+    ): TestSuite
 }

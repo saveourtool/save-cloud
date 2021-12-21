@@ -5,5 +5,6 @@ const BundleAnalyzerPlugin = require("webpack-bundle-analyzer").BundleAnalyzerPl
 //);
 
 config.resolve.fallback = {
-    "os": require.resolve("os-browserify/browser")
+    "os": require.resolve("os-browserify/browser"),
+    "path": require.resolve("path-browserify")
 }

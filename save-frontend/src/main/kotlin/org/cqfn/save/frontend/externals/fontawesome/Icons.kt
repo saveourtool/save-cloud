@@ -25,3 +25,7 @@ external val faExternalLinkAlt: dynamic
 external val faTrashAlt: dynamic
 external val faEdit: dynamic
 external val faFilter: dynamic
+external val faSearch: dynamic
+external val faRedo: dynamic
+external val faCopyright: dynamic
+external val faSignInAlt: dynamic

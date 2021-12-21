@@ -18,6 +18,7 @@ import org.cqfn.save.preprocessor.EmptyResponse
 import org.cqfn.save.preprocessor.StatusResponse
 import org.cqfn.save.preprocessor.TextResponse
 import org.cqfn.save.preprocessor.config.ConfigProperties
+import org.cqfn.save.preprocessor.config.TestSuitesRepo
 import org.cqfn.save.preprocessor.service.TestDiscoveringService
 import org.cqfn.save.preprocessor.utils.decodeFromPropertiesFile
 import org.cqfn.save.preprocessor.utils.toHash
@@ -25,11 +26,11 @@ import org.cqfn.save.testsuite.TestSuiteDto
 import org.cqfn.save.testsuite.TestSuiteType
 import org.cqfn.save.utils.moveFileWithAttributes
 
-import okio.ExperimentalFileSystem
 import okio.FileSystem
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.api.errors.GitAPIException
 import org.eclipse.jgit.api.errors.InvalidRemoteException
+import org.eclipse.jgit.api.errors.RefNotFoundException
 import org.eclipse.jgit.api.errors.TransportException
 import org.eclipse.jgit.transport.CredentialsProvider
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
@@ -82,8 +83,9 @@ typealias Status = Mono<ResponseEntity<HttpStatus>>
  */
 @OptIn(ExperimentalPathApi::class)
 @RestController
-class DownloadProjectController(private val configProperties: ConfigProperties,
-                                private val testDiscoveringService: TestDiscoveringService,
+class DownloadProjectController(
+    private val configProperties: ConfigProperties,
+    private val testDiscoveringService: TestDiscoveringService,
 ) {
     private val log = LoggerFactory.getLogger(DownloadProjectController::class.java)
     private val webClientBackend = WebClient.create(configProperties.backend)
@@ -143,7 +145,6 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
      * @param fileInfos a list of [FileInfo]s associated with [files]
      * @return response entity with text
      */
-    @OptIn(ExperimentalFileSystem::class)
     @PostMapping(value = ["/uploadBin"], consumes = ["multipart/form-data"])
     fun uploadBin(
         @RequestPart executionRequestForStandardSuites: ExecutionRequestForStandardSuites,
@@ -221,14 +222,14 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
      *
      * @return Empty response entity
      */
-    @OptIn(ExperimentalFileSystem::class)
     @Suppress("TOO_LONG_FUNCTION", "TYPE_ALIAS")
     @PostMapping("/uploadStandardTestSuite")
     fun uploadStandardTestSuite() = Mono.just(ResponseEntity("Upload standard test suites pending...\n", HttpStatus.ACCEPTED))
         .doOnSuccess {
             val (user, token) = readGitCredentialsForStandardMode(configProperties.reposTokenFileName)
             val newTestSuites: MutableList<TestSuiteDto> = mutableListOf()
-            Flux.fromIterable(readStandardTestSuitesFile(configProperties.reposFileName).entries).flatMap { (testSuiteUrl, testSuitePaths) ->
+            Flux.fromIterable(readStandardTestSuitesFile(configProperties.reposFileName)).flatMap { testSuiteRepoInfo ->
+                val testSuiteUrl = testSuiteRepoInfo.gitUrl
                 log.info("Starting clone repository url=$testSuiteUrl for standard test suites")
                 val tmpDir = generateDirectory(listOf(testSuiteUrl))
                 Mono.fromCallable {
@@ -237,9 +238,11 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                     } else {
                         cloneFromGit(GitDto(testSuiteUrl), tmpDir)
                     }
-                        .use { /* noop here, just need to close Git object */ }
+                        ?.use { git ->
+                            switchBranch(git, testSuiteUrl, branchOrCommit = testSuiteRepoInfo.gitBranchOrCommit)
+                        }
                 }
-                    .flatMapMany { Flux.fromIterable(testSuitePaths) }
+                    .flatMapMany { Flux.fromIterable(testSuiteRepoInfo.testSuitePaths) }
                     .flatMap { testRootPath ->
                         log.info("Starting to discover root test config in test root path: $testRootPath")
                         val testResourcesRootAbsolutePath = tmpDir.resolve(testRootPath).absolutePath
@@ -263,7 +266,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                             }
                     }
                     .doOnError {
-                        log.error("Error to update test suite with url=$testSuiteUrl, path=$testSuitePaths")
+                        log.error("Error to update test suite with url=$testSuiteUrl, path=${testSuiteRepoInfo.testSuitePaths}")
                     }
             }
                 .collectList()
@@ -307,14 +310,16 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         "TYPE_ALIAS",
         "TOO_LONG_FUNCTION",
         "TOO_MANY_LINES_IN_LAMBDA",
-        "UnsafeCallOnNullableType")
+        "UnsafeCallOnNullableType"
+    )
     private fun downLoadRepository(executionRequest: ExecutionRequest): Mono<Pair<String, String>> {
         val gitDto = executionRequest.gitDto
         val tmpDir = generateDirectory(listOf(gitDto.url))
         return Mono.fromCallable {
             cloneFromGit(gitDto, tmpDir)?.use { git ->
-                executionRequest.gitDto.hash?.let { hash ->
-                    git.checkout().setName(hash).call()
+                val branchOrCommit = gitDto.branch ?: gitDto.hash
+                if (branchOrCommit != null && branchOrCommit.isNotBlank()) {
+                    switchBranch(git, gitDto.url, branchOrCommit)
                 }
                 val version = git.log().call().first()
                     .name
@@ -334,6 +339,16 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                     Mono.error(exception)
                 }
             }
+    }
+
+    // Notice: branches should contain explicit `origin/` prefix
+    private fun switchBranch(git: Git, repoUrl: String, branchOrCommit: String) {
+        log.debug("For $repoUrl switching to the $branchOrCommit")
+        try {
+            git.checkout().setName(branchOrCommit).call()
+        } catch (ex: RefNotFoundException) {
+            log.warn("Provided branch/commit $branchOrCommit wasn't found, will use default branch")
+        }
     }
 
     private fun saveBinaryFile(
@@ -449,7 +464,8 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         executionType: ExecutionType,
         location: String,
         testRootPath: String,
-        files: List<File>) = if (executionType == ExecutionType.GIT) {
+        files: List<File>,
+    ) = if (executionType == ExecutionType.GIT) {
         getResourceLocationForGit(location, testRootPath)
     } else {
         getTmpDirName(calculateTmpNameForFiles(files))
@@ -497,7 +513,8 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         project: Project,
         projectRootRelativePath: String,
         executionVersion: String,
-        testSuiteIds: String = "ALL"): Mono<Execution> {
+        testSuiteIds: String = "ALL",
+    ): Mono<Execution> {
         val executionUpdate = ExecutionInitializationDto(project, testSuiteIds, projectRootRelativePath, executionVersion)
         return webClientBackend.makeRequest(BodyInserters.fromValue(executionUpdate), "/updateNewExecution") {
             it.onStatus({ status -> status != HttpStatus.OK }) { clientResponse ->
@@ -528,7 +545,8 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                                            execution: Execution,
                                            testRootPath: String,
                                            projectRootRelativePath: String,
-                                           gitUrl: String): Mono<List<EmptyResponse>> = Mono.fromCallable {
+                                           gitUrl: String,
+    ): Mono<List<EmptyResponse>> = Mono.fromCallable {
         val testResourcesRootAbsolutePath =
                 getTestResourcesRootAbsolutePath(testRootPath, projectRootRelativePath)
         testDiscoveringService.getRootTestConfig(testResourcesRootAbsolutePath)
@@ -595,7 +613,8 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
     private fun discoverAndSaveTestSuites(project: Project,
                                           rootTestConfig: TestConfig,
                                           testRootPath: String,
-                                          gitUrl: String): Mono<List<TestSuite>> {
+                                          gitUrl: String,
+    ): Mono<List<TestSuite>> {
         val testSuites: List<TestSuiteDto> = testDiscoveringService.getAllTestSuites(project, rootTestConfig, testRootPath, gitUrl)
         return webClientBackend.makeRequest(BodyInserters.fromValue(testSuites), "/saveTestSuites") {
             it.bodyToMono()
@@ -718,16 +737,23 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
  * @param name file name to read
  * @return map repository to paths to test configs
  */
+@Suppress("MagicNumber", "TOO_MANY_LINES_IN_LAMBDA")
 fun readStandardTestSuitesFile(name: String) =
         ClassPathResource(name)
             .file
             .readText()
             .lines()
             .filter { it.isNotBlank() }
-            .associate {
+            .map {
                 val splitRow = it.split("\\s".toRegex())
-                require(splitRow.size == 2)
-                splitRow.first() to splitRow[1].split(";")
+                require(splitRow.size == 3) {
+                    "Follow the format for each line: (Gir url) (branch or commit hash) (testRootPath1;testRootPath2;...)"
+                }
+                TestSuitesRepo(
+                    gitUrl = splitRow.first(),
+                    gitBranchOrCommit = splitRow[1],
+                    testSuitePaths = splitRow[2].split(";")
+                )
             }
 
 private fun readGitCredentialsForStandardMode(name: String): Pair<String?, String?> {

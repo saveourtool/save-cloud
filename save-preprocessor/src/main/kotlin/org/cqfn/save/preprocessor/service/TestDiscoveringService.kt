@@ -12,7 +12,6 @@ import org.cqfn.save.test.TestDto
 import org.cqfn.save.testsuite.TestSuiteDto
 import org.cqfn.save.testsuite.TestSuiteType
 
-import okio.ExperimentalFileSystem
 import okio.FileSystem
 import okio.Path.Companion.toPath
 import org.slf4j.LoggerFactory
@@ -30,7 +29,6 @@ class TestDiscoveringService {
      * @return a root [TestConfig]
      * @throws IllegalArgumentException in case of invalid testConfig file
      */
-    @OptIn(ExperimentalFileSystem::class)
     fun getRootTestConfig(testResourcesRootAbsolutePath: String): TestConfig =
             ConfigDetector(FileSystem.SYSTEM).configFromFile(testResourcesRootAbsolutePath.toPath()).apply {
                 getAllTestConfigs().onEach {
@@ -53,7 +51,8 @@ class TestDiscoveringService {
         project: Project?,
         rootTestConfig: TestConfig,
         testRootPath: String,
-        testSuiteRepoUrl: String) = rootTestConfig
+        testSuiteRepoUrl: String,
+    ) = rootTestConfig
         .getAllTestConfigs()
         .asSequence()
         .mapNotNull { it.getGeneralConfigOrNull() }
@@ -82,7 +81,6 @@ class TestDiscoveringService {
      * @return a list of [TestDto]s
      * @throws PluginException if configs use unknown plugin
      */
-    @OptIn(ExperimentalFileSystem::class)
     @Suppress("UnsafeCallOnNullableType")
     fun getAllTests(rootTestConfig: TestConfig, testSuites: List<TestSuite>) = rootTestConfig
         .getAllTestConfigs()

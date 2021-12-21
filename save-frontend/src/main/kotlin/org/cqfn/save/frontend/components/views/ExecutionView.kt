@@ -8,11 +8,15 @@ import org.cqfn.save.agent.TestExecutionDto
 import org.cqfn.save.domain.TestResultDebugInfo
 import org.cqfn.save.domain.TestResultStatus
 import org.cqfn.save.execution.ExecutionDto
+import org.cqfn.save.execution.ExecutionStatus
+import org.cqfn.save.frontend.components.basic.SelectOption.Companion.ANY
 import org.cqfn.save.frontend.components.basic.executionStatistics
 import org.cqfn.save.frontend.components.basic.executionTestsNotFound
 import org.cqfn.save.frontend.components.basic.testExecutionFiltersRow
 import org.cqfn.save.frontend.components.basic.testStatusComponent
 import org.cqfn.save.frontend.components.tables.tableComponent
+import org.cqfn.save.frontend.externals.fontawesome.faRedo
+import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
 import org.cqfn.save.frontend.externals.table.useFilters
 import org.cqfn.save.frontend.http.getDebugInfoFor
 import org.cqfn.save.frontend.themes.Colors
@@ -24,18 +28,11 @@ import org.cqfn.save.frontend.utils.spread
 import org.cqfn.save.frontend.utils.unsafeMap
 
 import csstype.Background
+import csstype.TextDecoration
 import kotlinext.js.jsObject
 import org.w3c.fetch.Headers
-import react.PropsWithChildren
-import react.RBuilder
-import react.State
-import react.buildElement
-import react.dom.button
-import react.dom.div
-import react.dom.td
-import react.dom.th
-import react.dom.tr
-import react.setState
+import react.*
+import react.dom.*
 import react.table.columns
 import react.table.useExpanded
 import react.table.usePagination
@@ -83,6 +80,11 @@ external interface ExecutionState : State {
      * Test Result Status to filter by
      */
     var status: TestResultStatus?
+
+    /**
+     * Name of test suite
+     */
+    var testSuite: String?
 }
 
 /**
@@ -94,6 +96,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
     init {
         state.executionDto = null
         state.status = null
+        state.testSuite = null
     }
 
     override fun componentDidMount() {
@@ -131,38 +134,61 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
     )
     override fun RBuilder.render() {
         div {
-            div("p-2 flex-auto") {
-                +("Project version: ${(state.executionDto?.version ?: "N/A")}")
-            }
             div("d-flex") {
-                div("p-2 mr-auto") {
-                    +"Status: ${state.executionDto?.status?.name ?: "N/A"}"
+                val statusVal = state.executionDto?.status
+                val statusColor = when (statusVal) {
+                    ExecutionStatus.ERROR -> "bg-danger"
+                    ExecutionStatus.RUNNING, ExecutionStatus.PENDING -> "bg-info"
+                    ExecutionStatus.FINISHED -> "bg-success"
+                    else -> "bg-secondary"
                 }
+
+                div("col-md-2 mb-4") {
+                    div("card $statusColor text-white h-100 shadow py-2") {
+                        div("card-body") {
+                            +(statusVal?.name ?: "N/A")
+                            div("text-white-50 small") { +"Project version: ${(state.executionDto?.version ?: "N/A")}" }
+                        }
+                    }
+                }
+
                 child(executionStatistics("mr-auto")) {
                     attrs.executionDto = state.executionDto
                     attrs.countTests = state.countTests
                 }
-                button(classes = "btn btn-primary") {
-                    +"Rerun execution"
-                    attrs.onClickFunction = {
-                        attrs.disabled = true
-                        GlobalScope.launch {
-                            post(
-                                "$apiUrl/rerunExecution?id=${props.executionId}",
-                                Headers(),
-                                undefined
-                            )
-                        }.invokeOnCompletion {
-                            window.alert("Rerun request successfully submitted")
-                            window.location.reload()
+
+                div("col-md-3 mb-4") {
+                    div("card border-left-info shadow h-100 py-2") {
+                        div("card-body") {
+                            div("row no-gutters align-items-center mx-auto") {
+                                a("") {
+                                    +"Rerun execution"
+                                    fontAwesomeIcon(icon = faRedo, classes = "ml-2")
+                                    @Suppress("TOO_MANY_LINES_IN_LAMBDA")
+                                    attrs.onClickFunction = {
+                                        GlobalScope.launch {
+                                            post(
+                                                "$apiUrl/rerunExecution?id=${props.executionId}",
+                                                Headers(),
+                                                undefined
+                                            )
+                                        }.invokeOnCompletion {
+                                            window.alert("Rerun request successfully submitted")
+                                            window.location.reload()
+                                        }
+                                        it.preventDefault()
+                                    }
+                                }
+                            }
                         }
                     }
                 }
             }
         }
+
         // fixme: table is rendered twice because of state change when `executionDto` is fetched
         child(tableComponent(
-            columns = columns {
+            columns = columns<TestExecutionDto> {
                 column(id = "index", header = "#") {
                     buildElement {
                         td {
@@ -170,46 +196,44 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                         }
                     }
                 }
-                column(id = "startTime", header = "Start time") {
+                column(id = "startTime", header = "Start time", { startTimeSeconds }) {
                     buildElement {
                         td {
                             +"${
-                                it.value.startTimeSeconds
-                                ?.let { Instant.fromEpochSeconds(it, 0) }
+                                it.value?.let { Instant.fromEpochSeconds(it, 0) }
                                 ?: "Running"
                             }"
                         }
                     }
                 }
-                column(id = "endTime", header = "End time") {
+                column(id = "endTime", header = "End time", { endTimeSeconds }) {
                     buildElement {
                         td {
                             +"${
-                                it.value.endTimeSeconds
-                                ?.let { Instant.fromEpochSeconds(it, 0) }
+                                it.value?.let { Instant.fromEpochSeconds(it, 0) }
                                 ?: "Running"
                             }"
                         }
                     }
                 }
-                column(id = "status", header = "Status") {
+                column(id = "status", header = "Status", { status.name }) {
                     buildElement {
                         td {
-                            +"${it.value.status}"
+                            +it.value
                         }
                     }
                 }
-                column(id = "missing", header = "Missing") {
+                column(id = "missing", header = "Missing", { missingWarnings }) {
                     buildElement {
                         td {
-                            +"${it.value.missingWarnings ?: ""}"
+                            +"${it.value ?: ""}"
                         }
                     }
                 }
-                column(id = "matched", header = "Matched") {
+                column(id = "matched", header = "Matched", { matchedWarnings }) {
                     buildElement {
                         td {
-                            +"${it.value.matchedWarnings ?: ""}"
+                            +"${it.value ?: ""}"
                         }
                     }
                 }
@@ -217,7 +241,20 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                     buildElement {
                         td {
                             spread(cellProps.row.getToggleRowExpandedProps())
-                            +cellProps.value.filePath
+
+                            attrs["style"] = kotlinext.js.jsObject<CSSProperties> {
+                                textDecoration = "underline grey".unsafeCast<TextDecoration>()
+                            }
+
+                            val testName = cellProps.value.filePath
+                            val shortTestName = if (testName.length > 35) {
+                                testName.take(15) + " ... " + testName.takeLast(15)
+                            } else {
+                                testName
+                            }
+
+                            +shortTestName
+
                             attrs.onClickFunction = {
                                 GlobalScope.launch {
                                     val te = cellProps.value
@@ -231,17 +268,17 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                         }
                     }
                 }
-                column(id = "plugin", header = "Plugin type") {
+                column(id = "plugin", header = "Plugin type", { pluginName }) {
                     buildElement {
                         td {
-                            +it.value.pluginName
+                            +it.value
                         }
                     }
                 }
-                column(id = "suiteName", header = "Test suite") {
+                column(id = "suiteName", header = "Test suite", { testSuiteName }) {
                     buildElement {
                         td {
-                            +"${it.value.testSuiteName}"
+                            +"${it.value}"
                         }
                     }
                 }
@@ -277,7 +314,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                     tr {
                         td {
                             attrs.colSpan = "${tableInstance.columns.size}"
-                            +"Debug info not available for this test execution"
+                            +"Debug info not available yet for this test execution"
                         }
                     }
                 }
@@ -290,25 +327,39 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                     th {
                         attrs.colSpan = "${tableInstance.columns.size}"
                         child(testExecutionFiltersRow(
-                            initialValue = state.status?.name ?: "ANY"
-                        ) { value ->
-                            if (value == "ANY") {
-                                setState {
-                                    status = null
+                            initialValueStatus = state.status?.name ?: ANY,
+                            initialValueTestSuite = state.testSuite ?: "",
+                            onChangeStatus = { value ->
+                                if (value == "ANY") {
+                                    setState {
+                                        status = null
+                                    }
+                                } else {
+                                    setState {
+                                        status = TestResultStatus.valueOf(value)
+                                    }
                                 }
-                            } else {
-                                setState {
-                                    status = TestResultStatus.valueOf(value)
+                            },
+                            onChangeTestSuite = { testSuiteValue ->
+                                if (testSuiteValue == "") {
+                                    setState {
+                                        testSuite = null
+                                    }
+                                } else {
+                                    setState {
+                                        testSuite = testSuiteValue
+                                    }
                                 }
                             }
-                        })
+                        ))
                     }
                 }
             },
             getPageCount = { pageSize ->
+                val status = if (state.status != null) "&status=${state.status}" else ""
+                val testSuite = if (state.testSuite != null) "&testSuite=${state.testSuite}" else ""
                 val count: Int = get(
-                    url = "$apiUrl/testExecution/count?executionId=${props.executionId}" +
-                            if (state.status != null) "&status=${state.status}" else "",
+                    url = "$apiUrl/testExecution/count?executionId=${props.executionId}$status$testSuite",
                     headers = Headers().also {
                         it.set("Accept", "application/json")
                     },
@@ -333,9 +384,10 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                 }
             }
         ) { page, size ->
+            val status = if (state.status != null) "&status=${state.status}" else ""
+            val testSuite = if (state.testSuite != null) "&testSuite=${state.testSuite}" else ""
             get(
-                url = "$apiUrl/testExecutions?executionId=${props.executionId}&page=$page&size=$size" +
-                        if (state.status != null) "&status=${state.status}" else "",
+                url = "$apiUrl/testExecutions?executionId=${props.executionId}&page=$page&size=$size$status$testSuite",
                 headers = Headers().apply {
                     set("Accept", "application/json")
                 },
