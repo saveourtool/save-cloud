@@ -41,13 +41,13 @@ class SecurityInfoController(
      */
     @GetMapping("/user")
     fun currentUserName(principal: Principal): UserInfo {
-        val userName = if (principal is OAuth2AuthenticationToken) {
+        val userName = /*if (principal is OAuth2AuthenticationToken) {
             principal.principal.attributes[
                     configurationProperties.oauth2.providerNameToUsernameAttribute[principal.authorizedClientRegistrationId]
             ] as String
-        } else {
+        } else {*/
             principal.name
-        }
+//        }
         return UserInfo(userName)
     }
 }
