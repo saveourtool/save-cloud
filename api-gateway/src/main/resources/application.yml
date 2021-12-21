@@ -40,3 +40,10 @@ spring:
           uri: http://grafana:9100
           predicates:
             - Path=/grafana/**
+  security:
+    oauth2:
+      client:
+        provider:
+          github:
+            # value that will work with GitHub API, where GitHub provides username as "login" in the response
+            user-name-attribute: login

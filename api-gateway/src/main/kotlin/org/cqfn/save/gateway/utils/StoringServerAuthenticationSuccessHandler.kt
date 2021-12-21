@@ -1,6 +1,7 @@
 package org.cqfn.save.gateway.utils
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import org.cqfn.save.entities.User
 import org.cqfn.save.gateway.config.ConfigurationProperties
 import org.slf4j.LoggerFactory
 import org.springframework.security.core.Authentication
@@ -29,11 +30,21 @@ class StoringServerAuthenticationSuccessHandler(
 
         logger.info("Will send authentication as `${objectMapper.writeValueAsString(authentication)}`")
 
+        val user = authentication.toUser()
         return webClient.post()
             .uri("/internal/users/new")
-            .bodyValue(objectMapper.writeValueAsString(authentication))
+            .bodyValue(objectMapper.writeValueAsString(user))
             .retrieve()
             .toBodilessEntity()
             .then()
     }
+}
+
+fun Authentication.toUser(): User {
+    return User(
+        userName(),
+        null,
+        authorities.joinToString(",") { it.authority },
+        toIdentitySource(),
+    )
 }

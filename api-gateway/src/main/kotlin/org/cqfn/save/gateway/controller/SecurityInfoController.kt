@@ -1,5 +1,6 @@
 package org.cqfn.save.gateway.controller
 
+import org.cqfn.save.gateway.utils.userName
 import org.cqfn.save.info.OauthProviderInfo
 import org.cqfn.save.info.UserInfo
 import org.slf4j.LoggerFactory
@@ -37,11 +38,5 @@ class SecurityInfoController(
      * @return user information
      */
     @GetMapping("/user")
-    fun currentUserName(principal: Principal): UserInfo = UserInfo((
-        (principal as? OAuth2AuthenticationToken)
-            ?.principal
-            ?.attributes
-            // small hack that will work with GitHub API, where GitHub provides username as "login" in the response
-            ?.get("login") as String?
-    ) ?: principal.name)
+    fun currentUserName(principal: Principal): UserInfo = UserInfo(principal.userName())
 }
