@@ -42,6 +42,7 @@ external interface TestResourcesProps : PropsWithChildren {
 
     // properties for CUSTOM_TESTS mode
     var gitUrlFromInputField: String?
+    var gitBranchOrCommitFromInputField: String?
     var testRootPath: String
 
     // properties for STANDARD_BENCHMARKS mode
@@ -52,6 +53,7 @@ external interface TestResourcesProps : PropsWithChildren {
 
 /**
  * @param updateGitUrlFromInputField
+ * @param updateGitBranchOrCommitInputField
  * @param updateTestRootPath
  * @param setTestRootPathFromHistory
  * @param setSelectedLanguageForStandardTests
@@ -60,13 +62,21 @@ external interface TestResourcesProps : PropsWithChildren {
 @Suppress("LongMethod", "TOO_LONG_FUNCTION")
 fun testResourcesSelection(
     updateGitUrlFromInputField: (Event) -> Unit,
+    updateGitBranchOrCommitInputField: (Event) -> Unit,
     updateTestRootPath: (Event) -> Unit,
     setTestRootPathFromHistory: (String) -> Unit,
     setSelectedLanguageForStandardTests: (String) -> Unit,
 ) =
         fc<TestResourcesProps> { props ->
-            label(classes = "control-label col-auto justify-content-between font-weight-bold text-gray-800 mb-1 pl-0") {
-                +"3. Specify test-resources that will be used for testing:"
+
+            if (props.testingType == TestingType.CONTEST_MODE) {
+                label(classes = "control-label col-auto justify-content-between justify-content-center font-weight-bold text-danger mb-4 pl-0") {
+                    +"Stay tuned! Contests will be here soon"
+                }
+            } else {
+                label(classes = "control-label col-auto justify-content-between font-weight-bold text-gray-800 mb-4 pl-0") {
+                    +"3. Specify test-resources that will be used for testing:"
+                }
             }
 
             div {
@@ -116,6 +126,40 @@ fun testResourcesSelection(
                     }
 
                     div("input-group-sm") {
+                        div("row") {
+                            sup("tooltip-and-popover") {
+                                fontAwesomeIcon(icon = faQuestionCircle)
+                                attrs["tooltip-placement"] = "top"
+                                attrs["tooltip-title"] = ""
+                                attrs["popover-placement"] = "left"
+                                attrs["popover-title"] = "Keep in mind the following rules:"
+                                attrs["popover-content"] = "Provide full name of your brach with `origin` prefix: origin/your_branch." +
+                                        " Or in aim to use the concrete commit just provide hash of it."
+                                attrs["data-trigger"] = "focus"
+                                attrs["tabindex"] = "0"
+                            }
+                            h6(classes = "d-inline ml-2") {
+                                +"Git branch or specific commit in your repository:"
+                            }
+                        }
+                        div("input-group-prepend") {
+                            input(type = InputType.text, name = "itemText") {
+                                key = "itemText"
+                                attrs.set("class", "form-control")
+                                attrs {
+                                    props.gitBranchOrCommitFromInputField?.let {
+                                        value = it
+                                    }
+                                    placeholder = "leave empty if you would like to use default branch with latest commit"
+                                    onChangeFunction = {
+                                        updateGitBranchOrCommitInputField(it)
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    div("input-group-sm mt-3") {
                         div("row") {
                             sup("tooltip-and-popover") {
                                 fontAwesomeIcon(icon = faQuestionCircle)
