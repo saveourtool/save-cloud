@@ -9,7 +9,6 @@
     <include file="project.xml" relativeToChangelogFile="true"/>
     <include file="agent-status.xml" relativeToChangelogFile="true"/>
     <include file="user.xml" relativeToChangelogFile="true"/>
-    <include file="test-execution.xml" relativeToChangelogFile="true"/>
     <include file="project-privacy.xml" relativeToChangelogFile="true"/>
     <include file="test_suite.xml" relativeToChangelogFile="true"/>
     <include file="test_execution.xml" relativeToChangelogFile="true"/>
