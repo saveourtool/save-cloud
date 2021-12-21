@@ -4,7 +4,6 @@ import org.cqfn.save.gateway.utils.userName
 import org.cqfn.save.info.OauthProviderInfo
 import org.cqfn.save.info.UserInfo
 import org.slf4j.LoggerFactory
-import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken
 import org.springframework.security.oauth2.client.registration.InMemoryReactiveClientRegistrationRepository
 import org.springframework.web.bind.annotation.*
 import java.security.Principal

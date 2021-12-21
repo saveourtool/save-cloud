@@ -46,4 +46,5 @@ spring:
         provider:
           github:
             # value that will work with GitHub API, where GitHub provides username as "login" in the response
+            # https://docs.github.com/en/rest/reference/users#get-the-authenticated-user
             user-name-attribute: login

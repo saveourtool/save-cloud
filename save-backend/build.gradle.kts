@@ -35,7 +35,6 @@ dependencies {
     implementation(libs.spring.boot.starter.quartz)
     implementation(libs.spring.boot.starter.security)
     implementation(libs.spring.security.core)
-    implementation(libs.spring.security.oauth2.client)
     testImplementation(libs.spring.security.test)
 }
 
