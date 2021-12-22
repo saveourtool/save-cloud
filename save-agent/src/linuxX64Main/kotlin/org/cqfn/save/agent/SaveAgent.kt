@@ -91,7 +91,7 @@ class SaveAgent(internal val config: AgentConfiguration,
                 sendHeartbeat(ExecutionProgress(0))
             }
             if (response.isSuccess) {
-                when (val heartbeatResponse = response.getOrNull().also {
+                when (val heartbeatResponse = response.getOrThrow().also {
                     logDebugCustom("Got heartbeat response $it")
                 }) {
                     is NewJobResponse -> maybeStartSaveProcess(heartbeatResponse.cliArgs)

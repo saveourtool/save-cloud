@@ -13,8 +13,16 @@ jobs:
       GHCR_PWD: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
-      - uses: actions/checkout@v2.4.0
+      - name: checkout save-cloud
+        uses: actions/checkout@v2.4.0
         with:
+          path: save-cloud
+          fetch-depth: 0
+      - name: checkout save-core
+        uses: actions/checkout@v2.4.0
+        with:
+          repository: diktat-static-analysis/save
+          path: save
           fetch-depth: 0
       - name: Set up JDK 11
         uses: actions/setup-java@v2
@@ -31,23 +39,35 @@ jobs:
           key: ${{ runner.os }}-gradle-konan
           restore-keys: |
             ${{ runner.os }}-gradle-konan
-      # https://gvisor.dev/docs/user_guide/install/
+      - run: |
+          cd save && git status && git diff
       - uses: burrunan/gradle-cache-action@v1
         with:
           gradle-version: wrapper
-          # additional files to calculate key for dependency cache
-          gradle-dependencies-cache-key: |
-            buildSrc/**/Versions.kt
+          build-root-directory: save
+          arguments: |
+            :save-cli:linkReleaseExecutableLinuxX64
+          properties: |
+            org.gradle.caching=true
+      - name: Set environment variable with save-cli version
+        run: |
+          mkdir -p save-cloud/save-orchestrator/build/resources/main
+          find save/save-cli/build/bin/linuxX64/releaseExecutable -name "save-*.kexe" -exec cp {} save-cloud/save-orchestrator/build/resources/main \;
+          find save/save-cli/build/bin/linuxX64/releaseExecutable -name "save-*.kexe" -exec sh -c 'printf "$1" | sed -r "s/.*save-(.*)-linuxX64.kexe/\1/" | echo "SAVE_CLI_VERSION=$(cat)" >> $GITHUB_ENV' _ {} \;
+      - uses: burrunan/gradle-cache-action@v1
+        with:
+          gradle-version: wrapper
+          build-root-directory: save-cloud
           arguments: |
             :api-gateway:bootBuildImage
             :save-backend:bootBuildImage
             :save-orchestrator:bootBuildImage
             :save-preprocessor:bootBuildImage
-            --refresh-dependencies
             --stacktrace
           properties: |
             org.gradle.caching=true
             detekt.multiplatform.disabled=true
+            saveCliVersion=${{ env.SAVE_CLI_VERSION }}
       - name: Upload gradle reports
         if: ${{ always() }}
         uses: actions/upload-artifact@v2

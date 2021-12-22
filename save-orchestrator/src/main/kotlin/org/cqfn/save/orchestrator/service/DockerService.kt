@@ -202,7 +202,7 @@ class DockerService(private val configProperties: ConfigProperties) {
         val saveCliExecFlags = if (isStandardMode) {
             // create stub toml config in aim to execute all test suites directories from `testSuitesDir`
             testSuitesDir.resolve("save.toml").apply { createNewFile() }.writeText("[general]")
-            " $STANDARD_TEST_SUITE_DIR "
+            " $STANDARD_TEST_SUITE_DIR --include-suites \"${testSuitesForDocker.joinToString(",") { it.name }}\""
         } else {
             ""
         }

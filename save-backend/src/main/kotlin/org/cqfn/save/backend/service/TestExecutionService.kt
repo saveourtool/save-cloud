@@ -154,6 +154,9 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
                     it.startTime = testExecDto.startTimeSeconds?.secondsToLocalDateTime()
                     it.endTime = testExecDto.endTimeSeconds?.secondsToLocalDateTime()
                     it.status = testExecDto.status
+                    it.missingWarnings = testExecDto.missingWarnings
+                    it.matchedWarnings = testExecDto.matchedWarnings
+
                     when (testExecDto.status) {
                         TestResultStatus.PASSED -> counters.passed++
                         TestResultStatus.FAILED -> counters.failed++
@@ -203,7 +206,7 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
                 val id = testExecutionRepository.save(
                     TestExecution(test,
                         execution,
-                        null, TestResultStatus.READY, null, null, null, null,
+                        null, TestResultStatus.READY_FOR_TESTING, null, null, null, null,
                     )
                 )
                 log.debug("Created TestExecution $id for test $testId")
