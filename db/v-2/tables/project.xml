@@ -13,4 +13,12 @@
         </addColumn>
     </changeSet>
 
+    <changeSet id="project-add-user" author="petertrr" context="dev or prod">
+        <addColumn tableName="project">
+            <column name="user_id" type="bigint">
+<!-- Shouldn't be nullable, but mappings should be done at first -->
+                <constraints foreignKeyName="fk_project_user" references="user(id)" nullable="true"/>
+            </column>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>
