@@ -5,12 +5,14 @@ import org.cqfn.save.gateway.config.ConfigurationProperties
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.LoggerFactory
+import org.springframework.http.MediaType
 import org.springframework.security.core.Authentication
 import org.springframework.security.jackson2.CoreJackson2Module
 import org.springframework.security.oauth2.client.jackson2.OAuth2ClientJackson2Module
 import org.springframework.security.web.server.WebFilterExchange
 import org.springframework.security.web.server.authentication.ServerAuthenticationSuccessHandler
 import org.springframework.web.reactive.function.client.WebClient
+import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
 
 /**
@@ -32,13 +34,17 @@ class StoringServerAuthenticationSuccessHandler(
     ): Mono<Void> {
         logger.info("Authenticated user with authentication type ${authentication::class}")
 
-        logger.info("Will send authentication as `${objectMapper.writeValueAsString(authentication)}`")
+        logger.info("Will send authentication for user ${authentication.userName()}")
 
         val user = authentication.toUser()
         return webClient.post()
             .uri("/internal/users/new")
+            .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(objectMapper.writeValueAsString(user))
             .retrieve()
+            .onStatus({ it.is4xxClientError }) {
+                Mono.error(ResponseStatusException(it.statusCode()))
+            }
             .toBodilessEntity()
             .then()
     }

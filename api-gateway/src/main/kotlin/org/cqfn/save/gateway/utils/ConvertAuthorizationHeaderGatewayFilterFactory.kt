@@ -18,7 +18,6 @@ class ConvertAuthorizationHeaderGatewayFilterFactory : AbstractGatewayFilterFact
         exchange.getPrincipal<Principal>()
             .map { it.userName() }
             .map { name ->
-                println("Changing Authorization header")
                 exchange.mutate().request {
                     it.headers { headers: HttpHeaders ->
                         headers.set(HttpHeaders.AUTHORIZATION, "Basic ${

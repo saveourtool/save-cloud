@@ -24,8 +24,10 @@ class WebSecurityConfig(
         http: ServerHttpSecurity
     ): SecurityWebFilterChain = http.run {
         // `CollectionView` is a public page
+        // all `/internal/**` requests should be sent only from internal network
+        // they are not proxied from gateway
         authorizeExchange()
-            .pathMatchers("/", "/projects/not-deleted")
+            .pathMatchers("/", "/projects/not-deleted", "/internal/**")
             .permitAll()
     }
         .and().run {
