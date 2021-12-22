@@ -4,18 +4,24 @@
 
 package org.cqfn.save.backend.configs
 
+import org.cqfn.save.backend.utils.ConvertingAuthenticationManager
+import org.cqfn.save.backend.utils.GithubOauthTokenIntrospector
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Profile
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity
 import org.springframework.security.config.web.server.ServerHttpSecurity
 import org.springframework.security.crypto.factory.PasswordEncoderFactories
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.server.SecurityWebFilterChain
+import reactor.core.publisher.Mono
 
 @EnableWebFluxSecurity
 @Profile("secure")
 @Suppress("MISSING_KDOC_TOP_LEVEL", "MISSING_KDOC_CLASS_ELEMENTS", "MISSING_KDOC_ON_FUNCTION")
-class WebSecurityConfig {
+class WebSecurityConfig(
+    private val authenticationManager: ConvertingAuthenticationManager,
+) {
     @Bean
     fun securityWebFilterChain(
         http: ServerHttpSecurity
@@ -34,7 +40,8 @@ class WebSecurityConfig {
             // FixMe: Properly support CSRF protection https://github.com/diktat-static-analysis/save-cloud/issues/34
             csrf().disable()
         }
-        .formLogin()
+        .httpBasic()
+        .authenticationManager(authenticationManager)
         .and().build()
 }
 

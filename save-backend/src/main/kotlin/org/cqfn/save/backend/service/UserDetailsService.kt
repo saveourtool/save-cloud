@@ -24,7 +24,7 @@ class UserDetailsService(
         .map {
             User.builder()
                 .username(it.name)
-                .password(it.password)
+                .password(it.password ?: "")
                 .roles(it.role)
                 .authorities(emptyList())
                 .build()

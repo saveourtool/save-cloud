@@ -21,7 +21,7 @@ spring:
           filters:
             # If SESSION cookie is passed to downstream, it is then removed, because downstream discards it
             - RemoveRequestHeader=Cookie
-            - TokenRelay=
+            - ConvertAuthorizationHeader=
         - id: index_route
           uri: http://backend:5000/index.html
           predicates:
