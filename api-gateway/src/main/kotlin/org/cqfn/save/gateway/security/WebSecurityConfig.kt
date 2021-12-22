@@ -28,10 +28,12 @@ class WebSecurityConfig(
     fun securityWebFilterChain(
         http: ServerHttpSecurity
     ): SecurityWebFilterChain = http.run {
-        // `CollectionView` is a public page
-        // todo: backend should tell which endpoint is public, and gateway should provide user data
         authorizeExchange()
-            .pathMatchers("/", "/login", "/sec/oauth-providers", "/api/projects/not-deleted", "/save-frontend*.js*")
+            // this is default data that is required by FE to operate properly
+            .pathMatchers("/", "/login", "/logout", "/sec/oauth-providers")
+            .permitAll()
+            // all requests to backend are permitted on gateway, and backend returns 401 for those that require authentication
+            .pathMatchers("/api/**", "/save-frontend*.js*")
             .permitAll()
     }
         .and().run {
