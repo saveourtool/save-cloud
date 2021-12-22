@@ -12,4 +12,7 @@
             </column>
         </addColumn>
     </changeSet>
+    <changeSet id="user-unique-name" author="petertrr" context="dev or prod">
+        <addUniqueConstraint tableName="user" columnNames="name"/>
+    </changeSet>
 </databaseChangeLog>
