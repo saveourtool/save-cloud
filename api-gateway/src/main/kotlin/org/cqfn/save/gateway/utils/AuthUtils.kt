@@ -15,7 +15,7 @@ import java.security.Principal
 fun Principal.userName(): String = (this as? OAuth2AuthenticationToken)
     ?.principal
     ?.name
-        ?: this.name
+    ?: this.name
 
 /**
  * @return stirng representation of source of this [Authentication]

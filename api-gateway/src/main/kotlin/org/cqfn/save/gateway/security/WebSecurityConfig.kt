@@ -6,6 +6,7 @@ package org.cqfn.save.gateway.security
 
 import org.cqfn.save.gateway.config.ConfigurationProperties
 import org.cqfn.save.gateway.utils.StoringServerAuthenticationSuccessHandler
+
 import org.springframework.context.annotation.Bean
 import org.springframework.http.HttpStatus
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity
@@ -13,8 +14,8 @@ import org.springframework.security.config.web.server.ServerHttpSecurity
 import org.springframework.security.crypto.factory.PasswordEncoderFactories
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.server.SecurityWebFilterChain
-import org.springframework.security.web.server.authentication.HttpStatusServerEntryPoint
 import org.springframework.security.web.server.authentication.DelegatingServerAuthenticationSuccessHandler
+import org.springframework.security.web.server.authentication.HttpStatusServerEntryPoint
 import org.springframework.security.web.server.authentication.RedirectServerAuthenticationSuccessHandler
 import org.springframework.security.web.server.authentication.logout.HttpStatusReturningServerLogoutSuccessHandler
 

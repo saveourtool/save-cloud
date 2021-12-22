@@ -20,6 +20,7 @@ class UsersController(
 
     /**
      * Stores [user] in the DB
+     *
      * @param user user to store
      */
     @PostMapping("/new")
