@@ -42,7 +42,6 @@ jobs:
       - run: |
           cd save && git status && git diff
       - uses: burrunan/gradle-cache-action@v1
-        if: ${{ false }}  # disabled while save-cloud uses non-snapshot dependency on save-core
         with:
           gradle-version: wrapper
           build-root-directory: save
@@ -51,7 +50,6 @@ jobs:
           properties: |
             org.gradle.caching=true
       - name: Set environment variable with save-cli version
-        if: ${{ false }}  # disabled while save-cloud uses non-snapshot dependency on save-core
         run: |
           mkdir -p save-cloud/save-orchestrator/build/resources/main
           find save/save-cli/build/bin/linuxX64/releaseExecutable -name "save-*.kexe" -exec cp {} save-cloud/save-orchestrator/build/resources/main \;
@@ -69,7 +67,7 @@ jobs:
           properties: |
             org.gradle.caching=true
             detekt.multiplatform.disabled=true
-          #  saveCliVersion=${{ env.SAVE_CLI_VERSION }}
+            saveCliVersion=${{ env.SAVE_CLI_VERSION }}
       - name: Upload gradle reports
         if: ${{ always() }}
         uses: actions/upload-artifact@v2
