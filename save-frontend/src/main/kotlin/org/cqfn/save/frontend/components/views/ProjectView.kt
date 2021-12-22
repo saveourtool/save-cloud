@@ -141,6 +141,11 @@ external interface ProjectViewState : State {
     var gitBranchOrCommitFromInputField: String
 
     /**
+     * Execution command for standard mode
+     */
+    var execCmd: String
+
+    /**
      * Directory in the repository where tests are placed
      */
     var testRootPath: String
@@ -198,6 +203,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     init {
         state.gitUrlFromInputField = ""
         state.gitBranchOrCommitFromInputField = ""
+        state.execCmd = ""
         state.testRootPath = ""
         state.confirmationType = ConfirmationType.NO_CONFIRM
         state.testingType = TestingType.CUSTOM_TESTS
@@ -269,13 +275,13 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                     }
                     return
                 }
-                submitExecutionRequestWithStandardTests()
+                submitExecutionRequestWithStandardTests(state.execCmd)
             }
         }
     }
 
     @Suppress("UnsafeCallOnNullableType")
-    private fun submitExecutionRequestWithStandardTests() {
+    private fun submitExecutionRequestWithStandardTests(execCmd: String) {
         val headers = Headers()
         val formData = FormData()
         val selectedSdk = "${state.selectedSdk}:${state.selectedSdkVersion}".toSdk()
@@ -457,6 +463,11 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                             testRootPath = it
                         }
                     },
+                    setExecCmd = {
+                        setState {
+                            execCmd = (it.target as HTMLInputElement).value
+                        }
+                    },
                     setSelectedLanguageForStandardTests = {
                         setState {
                             selectedLanguageForStandardTests = it
@@ -474,6 +485,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                     attrs.selectedStandardSuites = selectedStandardSuites
                     attrs.standardTestSuites = standardTestSuites
                     attrs.selectedLanguageForStandardTests = state.selectedLanguageForStandardTests
+                    attrs.execCmd = state.execCmd
                 }
 
                 div("d-sm-flex align-items-center justify-content-center") {

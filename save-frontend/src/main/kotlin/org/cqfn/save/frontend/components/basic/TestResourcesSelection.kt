@@ -43,6 +43,7 @@ external interface TestResourcesProps : PropsWithChildren {
     // properties for CUSTOM_TESTS mode
     var gitUrlFromInputField: String?
     var gitBranchOrCommitFromInputField: String?
+    var execCmd: String
     var testRootPath: String
 
     // properties for STANDARD_BENCHMARKS mode
@@ -65,6 +66,7 @@ fun testResourcesSelection(
     updateGitBranchOrCommitInputField: (Event) -> Unit,
     updateTestRootPath: (Event) -> Unit,
     setTestRootPathFromHistory: (String) -> Unit,
+    setExecCmd: (Event) -> Unit,
     setSelectedLanguageForStandardTests: (String) -> Unit,
 ) =
         fc<TestResourcesProps> { props ->
@@ -206,20 +208,15 @@ fun testResourcesSelection(
                         attrs.rowSize = ProjectView.TEST_SUITE_ROW
                     }
                 }
-                h6(classes = "d-inline ml-2") {
-                    +"Git branch or specific commit in your repository:"
-                }
                 div("input-group-prepend") {
                     input(type = InputType.text, name = "itemText") {
                         key = "itemText"
                         attrs.set("class", "form-control")
                         attrs {
-                            props.gitBranchOrCommitFromInputField?.let {
-                                value = it
-                            }
-                            placeholder = "leave empty if you would like to use default branch with latest commit"
+                            value = props.execCmd
+                            placeholder = "Execution command:"
                             onChangeFunction = {
-                                updateGitBranchOrCommitInputField(it)
+                                setExecCmd(it)
                             }
                         }
                     }
