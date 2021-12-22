@@ -46,10 +46,10 @@ fun suitesTable(
     setSelectedLanguageForStandardTests: (String) -> Unit,
 ) = fc<CheckBoxGridProps> { props ->
     nav("nav nav-tabs mb-4") {
-        val languages: MutableList<String?> = suites.map { it.language }.filterNotNull().distinct()
-            .sortedBy { it }.toMutableList()
-        // fixme: The method is called for the first time on an empty list, so you cannot add Null at this moment
-        if (languages.isNotEmpty()) {
+        val (languagesWithoutNull, otherLanguages) = suites.map { it.language }.distinct()
+            .sortedBy { it }.partition { it != null }
+        val languages = languagesWithoutNull.toMutableList()
+        if (otherLanguages.isNotEmpty()) {
             languages.add(null)
         }
         languages.forEachIndexed { index, langStr ->
