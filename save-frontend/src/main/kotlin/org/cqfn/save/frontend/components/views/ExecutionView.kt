@@ -373,7 +373,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                 val color = when (row.original.status) {
                     TestResultStatus.FAILED -> Colors.RED
                     TestResultStatus.IGNORED -> Colors.GOLD
-                    TestResultStatus.READY, TestResultStatus.RUNNING -> Colors.GREY
+                    TestResultStatus.READY_FOR_TESTING, TestResultStatus.RUNNING -> Colors.GREY
                     TestResultStatus.INTERNAL_ERROR, TestResultStatus.TEST_ERROR -> Colors.DARK_RED
                     TestResultStatus.PASSED -> Colors.GREEN
                 }
