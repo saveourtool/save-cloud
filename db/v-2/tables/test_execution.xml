@@ -16,4 +16,11 @@
         </addColumn>
     </changeSet>
 
+    <changeSet id="rename-ready-to-ready-for-testing-status" author="sanyavertolet" context="dev or prod">
+        <update tableName="test_execution">
+            <column name="status" value="READY_FOR_TESTING"/>
+            <where>status='READY'</where>
+        </update>
+    </changeSet>
+
 </databaseChangeLog>

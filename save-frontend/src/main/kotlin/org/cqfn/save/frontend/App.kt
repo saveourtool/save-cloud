@@ -210,7 +210,7 @@ fun main() {
     )
     ReactModal.setAppElement(document.getElementById("wrapper") as HTMLElement)  // required for accessibility in react-modal
 
-    render(document.getElementById("wrapper")) {
+    render(document.getElementById("wrapper") as HTMLElement) {
         child(App::class) {}
     }
 }

@@ -60,7 +60,7 @@ external interface UploaderProps : PropsWithChildren {
     var files: List<FileInfo>
 
     /**
-     * Sumbit button was pressed
+     * Submit button was pressed
      */
     var isSubmitButtonPressed: Boolean?
 
