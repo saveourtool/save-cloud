@@ -9,7 +9,7 @@ import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.Test
 import org.cqfn.save.entities.TestExecution
 import org.cqfn.save.entities.TestSuite
-import org.cqfn.save.execution.ExecutionStatus
+import org.cqfn.save.domain.execution.ExecutionStatus
 import org.cqfn.save.test.TestBatch
 import org.cqfn.save.test.TestDto
 

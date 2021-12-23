@@ -3,8 +3,8 @@ package org.cqfn.save.orchestrator.service
 import org.cqfn.save.domain.Python
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.TestSuite
-import org.cqfn.save.execution.ExecutionStatus
-import org.cqfn.save.execution.ExecutionUpdateDto
+import org.cqfn.save.domain.execution.ExecutionStatus
+import org.cqfn.save.domain.execution.ExecutionUpdateDto
 import org.cqfn.save.orchestrator.config.ConfigProperties
 import org.cqfn.save.orchestrator.copyRecursivelyWithAttributes
 import org.cqfn.save.orchestrator.docker.ContainerManager

@@ -9,7 +9,7 @@ import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.GitDto
 import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.ProjectStatus
-import org.cqfn.save.execution.ExecutionType
+import org.cqfn.save.domain.execution.ExecutionType
 
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer

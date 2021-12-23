@@ -1,8 +1,8 @@
 package org.cqfn.save.entities
 
-import org.cqfn.save.execution.ExecutionDto
-import org.cqfn.save.execution.ExecutionStatus
-import org.cqfn.save.execution.ExecutionType
+import org.cqfn.save.domain.execution.ExecutionDto
+import org.cqfn.save.domain.execution.ExecutionStatus
+import org.cqfn.save.domain.execution.ExecutionType
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import javax.persistence.Entity

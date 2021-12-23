@@ -12,8 +12,8 @@ import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.ExecutionRequestBase
 import org.cqfn.save.entities.ExecutionRequestForStandardSuites
 import org.cqfn.save.entities.Project
-import org.cqfn.save.execution.ExecutionStatus
-import org.cqfn.save.execution.ExecutionType
+import org.cqfn.save.domain.execution.ExecutionStatus
+import org.cqfn.save.domain.execution.ExecutionType
 
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus

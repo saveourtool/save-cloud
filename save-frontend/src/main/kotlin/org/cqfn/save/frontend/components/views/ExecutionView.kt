@@ -7,8 +7,8 @@ package org.cqfn.save.frontend.components.views
 import org.cqfn.save.agent.TestExecutionDto
 import org.cqfn.save.domain.TestResultDebugInfo
 import org.cqfn.save.domain.TestResultStatus
-import org.cqfn.save.execution.ExecutionDto
-import org.cqfn.save.execution.ExecutionStatus
+import org.cqfn.save.domain.execution.ExecutionDto
+import org.cqfn.save.domain.execution.ExecutionStatus
 import org.cqfn.save.frontend.components.basic.SelectOption.Companion.ANY
 import org.cqfn.save.frontend.components.basic.executionStatistics
 import org.cqfn.save.frontend.components.basic.executionTestsNotFound

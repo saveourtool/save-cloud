@@ -8,11 +8,11 @@ import org.cqfn.save.backend.scheduling.StandardSuitesUpdateScheduler
 import org.cqfn.save.backend.utils.MySqlExtension
 import org.cqfn.save.domain.Sdk
 import org.cqfn.save.entities.Execution
-import org.cqfn.save.execution.ExecutionDto
-import org.cqfn.save.execution.ExecutionInitializationDto
-import org.cqfn.save.execution.ExecutionStatus
-import org.cqfn.save.execution.ExecutionType
-import org.cqfn.save.execution.ExecutionUpdateDto
+import org.cqfn.save.domain.execution.ExecutionDto
+import org.cqfn.save.domain.execution.ExecutionInitializationDto
+import org.cqfn.save.domain.execution.ExecutionStatus
+import org.cqfn.save.domain.execution.ExecutionType
+import org.cqfn.save.domain.execution.ExecutionUpdateDto
 
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer

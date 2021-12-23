@@ -10,10 +10,10 @@ import org.cqfn.save.entities.ExecutionRequestForStandardSuites
 import org.cqfn.save.entities.GitDto
 import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.TestSuite
-import org.cqfn.save.execution.ExecutionInitializationDto
-import org.cqfn.save.execution.ExecutionStatus
-import org.cqfn.save.execution.ExecutionType
-import org.cqfn.save.execution.ExecutionUpdateDto
+import org.cqfn.save.domain.execution.ExecutionInitializationDto
+import org.cqfn.save.domain.execution.ExecutionStatus
+import org.cqfn.save.domain.execution.ExecutionType
+import org.cqfn.save.domain.execution.ExecutionUpdateDto
 import org.cqfn.save.preprocessor.EmptyResponse
 import org.cqfn.save.preprocessor.StatusResponse
 import org.cqfn.save.preprocessor.TextResponse

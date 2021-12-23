@@ -11,8 +11,8 @@ import org.cqfn.save.entities.AgentStatus
 import org.cqfn.save.entities.AgentStatusDto
 import org.cqfn.save.entities.AgentStatusesForExecution
 import org.cqfn.save.entities.TestSuite
-import org.cqfn.save.execution.ExecutionStatus
-import org.cqfn.save.execution.ExecutionUpdateDto
+import org.cqfn.save.domain.execution.ExecutionStatus
+import org.cqfn.save.domain.execution.ExecutionUpdateDto
 import org.cqfn.save.orchestrator.BodilessResponseEntity
 import org.cqfn.save.test.TestBatch
 import org.cqfn.save.test.TestDto

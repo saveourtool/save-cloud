@@ -11,10 +11,10 @@ import org.cqfn.save.backend.service.TestSuitesService
 import org.cqfn.save.domain.toSdk
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.ExecutionRequest
-import org.cqfn.save.execution.ExecutionDto
-import org.cqfn.save.execution.ExecutionInitializationDto
-import org.cqfn.save.execution.ExecutionType
-import org.cqfn.save.execution.ExecutionUpdateDto
+import org.cqfn.save.domain.execution.ExecutionDto
+import org.cqfn.save.domain.execution.ExecutionInitializationDto
+import org.cqfn.save.domain.execution.ExecutionType
+import org.cqfn.save.domain.execution.ExecutionUpdateDto
 import org.slf4j.LoggerFactory
 
 import org.springframework.http.HttpStatus

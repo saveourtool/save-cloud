@@ -11,7 +11,7 @@ import org.cqfn.save.domain.Sdk
 import org.cqfn.save.domain.getSdkVersions
 import org.cqfn.save.domain.toSdk
 import org.cqfn.save.entities.*
-import org.cqfn.save.execution.ExecutionDto
+import org.cqfn.save.domain.execution.ExecutionDto
 import org.cqfn.save.frontend.components.basic.*
 import org.cqfn.save.frontend.externals.fontawesome.faCalendarAlt
 import org.cqfn.save.frontend.externals.fontawesome.faCheck
