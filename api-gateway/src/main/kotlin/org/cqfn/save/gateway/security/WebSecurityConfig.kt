@@ -49,7 +49,9 @@ class WebSecurityConfig(
                 authentication.map {
                     AuthorizationDecision(
                         it.isAuthenticated ||
-                            authorizationContext.exchange.request.headers[HttpHeaders.AUTHORIZATION].isNullOrEmpty()
+                            authorizationContext.exchange.request.headers[HttpHeaders.AUTHORIZATION].also {
+                                println("Authorization: $it")
+                            }.isNullOrEmpty()
                     )
                 }
             }
