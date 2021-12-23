@@ -5,8 +5,8 @@
 package org.cqfn.save.frontend.components.views
 
 import org.cqfn.save.domain.TestResultStatus
-import org.cqfn.save.domain.execution.ExecutionDto
-import org.cqfn.save.domain.execution.ExecutionStatus
+import org.cqfn.save.execution.ExecutionDto
+import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.frontend.components.tables.tableComponent
 import org.cqfn.save.frontend.externals.fontawesome.faTrashAlt
 import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon

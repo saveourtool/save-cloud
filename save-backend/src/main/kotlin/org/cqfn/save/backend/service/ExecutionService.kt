@@ -3,10 +3,10 @@ package org.cqfn.save.backend.service
 import org.cqfn.save.backend.repository.ExecutionRepository
 import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.entities.Execution
-import org.cqfn.save.domain.execution.ExecutionDto
-import org.cqfn.save.domain.execution.ExecutionInitializationDto
-import org.cqfn.save.domain.execution.ExecutionStatus
-import org.cqfn.save.domain.execution.ExecutionUpdateDto
+import org.cqfn.save.execution.ExecutionDto
+import org.cqfn.save.execution.ExecutionInitializationDto
+import org.cqfn.save.execution.ExecutionStatus
+import org.cqfn.save.execution.ExecutionUpdateDto
 
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired

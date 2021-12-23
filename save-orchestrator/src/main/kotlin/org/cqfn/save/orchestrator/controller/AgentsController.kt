@@ -3,7 +3,7 @@ package org.cqfn.save.orchestrator.controller
 import org.cqfn.save.agent.ExecutionLogs
 import org.cqfn.save.entities.Agent
 import org.cqfn.save.entities.Execution
-import org.cqfn.save.domain.execution.ExecutionStatus
+import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.orchestrator.BodilessResponseEntity
 import org.cqfn.save.orchestrator.config.ConfigProperties
 import org.cqfn.save.orchestrator.service.AgentService

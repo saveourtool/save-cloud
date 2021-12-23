@@ -2,8 +2,8 @@
 
 package org.cqfn.save.frontend.components.basic
 
-import org.cqfn.save.domain.execution.ExecutionDto
-import org.cqfn.save.domain.execution.ExecutionStatus
+import org.cqfn.save.execution.ExecutionDto
+import org.cqfn.save.execution.ExecutionStatus
 
 import csstype.Width
 import react.CSSProperties

@@ -1,4 +1,4 @@
-package org.cqfn.save.domain.execution
+package org.cqfn.save.execution
 
 import kotlinx.serialization.Serializable
 
