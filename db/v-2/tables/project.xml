@@ -20,5 +20,10 @@
                 <constraints foreignKeyName="fk_project_user" references="user(id)" nullable="true"/>
             </column>
         </addColumn>
+        <addColumn tableName="project">
+            <column name="admin_ids" type="varchar(256)">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
     </changeSet>
 </databaseChangeLog>
