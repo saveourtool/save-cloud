@@ -8,31 +8,28 @@ import org.cqfn.save.gateway.config.ConfigurationProperties
 import org.cqfn.save.gateway.utils.StoringServerAuthenticationSuccessHandler
 
 import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
-import org.springframework.security.authentication.UserDetailsRepositoryReactiveAuthenticationManager
 import org.springframework.security.authorization.AuthenticatedReactiveAuthorizationManager
 import org.springframework.security.authorization.AuthorizationDecision
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity
 import org.springframework.security.config.web.server.ServerHttpSecurity
-import org.springframework.security.core.authority.SimpleGrantedAuthority
-import org.springframework.security.core.userdetails.MapReactiveUserDetailsService
-import org.springframework.security.core.userdetails.User
 import org.springframework.security.crypto.factory.PasswordEncoderFactories
 import org.springframework.security.crypto.password.PasswordEncoder
-import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken
 import org.springframework.security.web.server.SecurityWebFilterChain
 import org.springframework.security.web.server.authentication.DelegatingServerAuthenticationSuccessHandler
 import org.springframework.security.web.server.authentication.HttpStatusServerEntryPoint
 import org.springframework.security.web.server.authentication.RedirectServerAuthenticationSuccessHandler
 import org.springframework.security.web.server.authentication.logout.HttpStatusReturningServerLogoutSuccessHandler
 import org.springframework.security.web.server.authorization.AuthorizationContext
-import reactor.core.publisher.Mono
-import reactor.kotlin.core.publisher.switchIfEmpty
 
 @EnableWebFluxSecurity
-@Suppress("MISSING_KDOC_TOP_LEVEL", "MISSING_KDOC_CLASS_ELEMENTS", "MISSING_KDOC_ON_FUNCTION")
+@Suppress(
+    "MISSING_KDOC_TOP_LEVEL",
+    "MISSING_KDOC_CLASS_ELEMENTS",
+    "MISSING_KDOC_ON_FUNCTION",
+    "TOO_LONG_FUNCTION",
+)
 class WebSecurityConfig(
     private val configurationProperties: ConfigurationProperties,
 ) {
@@ -53,10 +50,10 @@ class WebSecurityConfig(
                     authentication, authorizationContext
                 ).map {
                     if (!it.isGranted) {
+                        // if request is not authorized by configured authorization manager, then we allow only requests w/o Authorization hedaer
+                        // then backend will return 401, if endpoint is protected for anonymous access
                         AuthorizationDecision(
-                            authorizationContext.exchange.request.headers[HttpHeaders.AUTHORIZATION].also {
-                                println("Authorization: $it")
-                            }.isNullOrEmpty()
+                            authorizationContext.exchange.request.headers[HttpHeaders.AUTHORIZATION].isNullOrEmpty()
                         )
                     } else {
                         it
