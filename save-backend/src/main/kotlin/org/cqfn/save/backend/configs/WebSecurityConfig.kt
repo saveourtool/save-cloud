@@ -31,6 +31,9 @@ class WebSecurityConfig(
         authorizeExchange()
             .pathMatchers("/", "/api/projects/not-deleted", "/internal/**")
             .permitAll()
+            // resources for frontend
+            .pathMatchers("/*.html" ,"/*.js*" ,"img/**" ,"*.gif" ,"*.svg")
+            .permitAll()
     }
         .and().run {
             authorizeExchange()
