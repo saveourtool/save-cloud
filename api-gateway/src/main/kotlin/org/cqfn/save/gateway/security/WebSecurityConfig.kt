@@ -51,17 +51,15 @@ class WebSecurityConfig(
             .access { authentication, authorizationContext ->
                 AuthenticatedReactiveAuthorizationManager.authenticated<AuthorizationContext>().check(
                     authentication, authorizationContext
-                ).flatMap {
+                ).map {
                     if (!it.isGranted) {
-                        authentication.map {
-                            AuthorizationDecision(
-                                authorizationContext.exchange.request.headers[HttpHeaders.AUTHORIZATION].also {
-                                    println("Authorization: $it")
-                                }.isNullOrEmpty()
-                            )
-                        }.defaultIfEmpty(AuthorizationDecision(true))
+                        AuthorizationDecision(
+                            authorizationContext.exchange.request.headers[HttpHeaders.AUTHORIZATION].also {
+                                println("Authorization: $it")
+                            }.isNullOrEmpty()
+                        )
                     } else {
-                        Mono.just(it)
+                        it
                     }
                 }
             }
