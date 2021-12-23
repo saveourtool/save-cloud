@@ -25,7 +25,7 @@ class UserDetailsService(
             User.builder()
                 .username(it.name)
                 .password(it.password ?: "")
-                .roles(it.role)
+                .authorities(it.role)
                 .build()
         }
         .switchIfEmpty {
