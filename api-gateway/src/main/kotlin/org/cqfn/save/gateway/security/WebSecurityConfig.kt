@@ -12,6 +12,7 @@ import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.security.authentication.UserDetailsRepositoryReactiveAuthenticationManager
+import org.springframework.security.authorization.AuthenticatedReactiveAuthorizationManager
 import org.springframework.security.authorization.AuthorizationDecision
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity
 import org.springframework.security.config.web.server.ServerHttpSecurity
@@ -26,7 +27,9 @@ import org.springframework.security.web.server.authentication.DelegatingServerAu
 import org.springframework.security.web.server.authentication.HttpStatusServerEntryPoint
 import org.springframework.security.web.server.authentication.RedirectServerAuthenticationSuccessHandler
 import org.springframework.security.web.server.authentication.logout.HttpStatusReturningServerLogoutSuccessHandler
+import org.springframework.security.web.server.authorization.AuthorizationContext
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.switchIfEmpty
 
 @EnableWebFluxSecurity
 @Suppress("MISSING_KDOC_TOP_LEVEL", "MISSING_KDOC_CLASS_ELEMENTS", "MISSING_KDOC_ON_FUNCTION")
@@ -46,13 +49,20 @@ class WebSecurityConfig(
             // backend returns 401 for those endpoints that require authentication
             .pathMatchers("/api/**")
             .access { authentication, authorizationContext ->
-                authentication.map {
-                    AuthorizationDecision(
-                        it.isAuthenticated ||
-                            authorizationContext.exchange.request.headers[HttpHeaders.AUTHORIZATION].also {
-                                println("Authorization: $it")
-                            }.isNullOrEmpty()
-                    )
+                AuthenticatedReactiveAuthorizationManager.authenticated<AuthorizationContext>().check(
+                    authentication, authorizationContext
+                ).flatMap {
+                    if (!it.isGranted) {
+                        authentication.map {
+                            AuthorizationDecision(
+                                authorizationContext.exchange.request.headers[HttpHeaders.AUTHORIZATION].also {
+                                    println("Authorization: $it")
+                                }.isNullOrEmpty()
+                            )
+                        }
+                    } else {
+                        Mono.just(it)
+                    }
                 }
             }
             // resources for frontend
