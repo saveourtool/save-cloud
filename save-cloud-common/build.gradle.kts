@@ -1,5 +1,6 @@
 plugins {
     kotlin("multiplatform")
+    kotlin("kapt")
     alias(libs.plugins.kotlin.plugin.serialization)
     kotlin("plugin.allopen")
     alias(libs.plugins.kotlin.plugin.jpa)
@@ -39,6 +40,11 @@ kotlin {
         val jvmMain by getting {
             dependencies {
                 implementation(libs.hibernate.jpa21.api)
+
+                compileOnly("org.mapstruct:mapstruct:1.4.2.Final")
+                configurations.get("kapt").dependencies.add(
+                    project.dependencies.create("org.mapstruct:mapstruct-processor:1.4.2.Final")
+                )
             }
         }
     }
