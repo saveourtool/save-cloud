@@ -645,8 +645,8 @@ style:
     imports: []
     forbiddenPatterns: ''
   ForbiddenMethodCall:
-    excludes: ['**/resources/**']
-    active: false
+    excludes: ['**/resources/**', 'src/test/**']
+    active: true
     methods: ['kotlin.io.println', 'kotlin.io.print']
   ForbiddenPublicDataClass:
     excludes: ['**/resources/**']
