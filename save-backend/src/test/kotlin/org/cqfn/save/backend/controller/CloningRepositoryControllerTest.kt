@@ -99,7 +99,7 @@ class CloningRepositoryControllerTest {
             .thenReturn(project)
         val sdk = Jdk("8")
         val gitRepo = GitDto("1")
-        val executionRequest = ExecutionRequest(project, gitRepo, sdk = sdk, executionId = null, testRootPath = ".")
+        val executionRequest = ExecutionRequest(project, gitRepo, sdk = sdk, executionId = null, testRootPath = ".", execCmd = "", batchSizeForAnalyzer = "")
         val multipart = MultipartBodyBuilder().apply {
             part("executionRequest", executionRequest)
         }
@@ -130,7 +130,7 @@ class CloningRepositoryControllerTest {
             id = 1
         }
         val sdk = Jdk("8")
-        val request = ExecutionRequestForStandardSuites(project, emptyList(), sdk)
+        val request = ExecutionRequestForStandardSuites(project, emptyList(), sdk, execCmd = "", batchSizeForAnalyzer = "")
         val bodyBuilder = MultipartBodyBuilder()
         bodyBuilder.part("execution", request)
         bodyBuilder.part("file", property.toFileInfo())

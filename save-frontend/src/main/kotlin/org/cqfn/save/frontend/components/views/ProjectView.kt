@@ -146,6 +146,12 @@ external interface ProjectViewState : State {
     var execCmd: String
 
     /**
+     * Batch size for static analyzer tool in standard mode
+     */
+    var batchSizeForAnalyzer: String
+
+
+    /**
      * Directory in the repository where tests are placed
      */
     var testRootPath: String
@@ -204,6 +210,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         state.gitUrlFromInputField = ""
         state.gitBranchOrCommitFromInputField = ""
         state.execCmd = ""
+        state.batchSizeForAnalyzer = ""
         state.testRootPath = ""
         state.confirmationType = ConfirmationType.NO_CONFIRM
         state.testingType = TestingType.CUSTOM_TESTS
@@ -275,17 +282,17 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                     }
                     return
                 }
-                submitExecutionRequestWithStandardTests(state.execCmd)
+                submitExecutionRequestWithStandardTests()
             }
         }
     }
 
     @Suppress("UnsafeCallOnNullableType")
-    private fun submitExecutionRequestWithStandardTests(execCmd: String) {
+    private fun submitExecutionRequestWithStandardTests() {
         val headers = Headers()
         val formData = FormData()
         val selectedSdk = "${state.selectedSdk}:${state.selectedSdkVersion}".toSdk()
-        val request = ExecutionRequestForStandardSuites(project, selectedStandardSuites, selectedSdk)
+        val request = ExecutionRequestForStandardSuites(project, selectedStandardSuites, selectedSdk, state.execCmd, state.batchSizeForAnalyzer.ifBlank { "1" })
         formData.appendJson("execution", request)
         state.files.forEach {
             formData.appendJson("file", it)
@@ -297,7 +304,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         val selectedSdk = "${state.selectedSdk}:${state.selectedSdkVersion}".toSdk()
         val formData = FormData()
         val testRootPath = if (state.testRootPath.isBlank()) "." else state.testRootPath
-        val executionRequest = ExecutionRequest(project, correctGitDto, testRootPath, selectedSdk, null)
+        val executionRequest = ExecutionRequest(project, correctGitDto, testRootPath, selectedSdk, null, "N/A", "N/A")
         formData.appendJson("executionRequest", executionRequest)
         state.files.forEach {
             formData.appendJson("file", it)
@@ -468,6 +475,11 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                             execCmd = (it.target as HTMLInputElement).value
                         }
                     },
+                    setBatchSize = {
+                        setState {
+                            batchSizeForAnalyzer = (it.target as HTMLInputElement).value
+                        }
+                    },
                     setSelectedLanguageForStandardTests = {
                         setState {
                             selectedLanguageForStandardTests = it
@@ -486,6 +498,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                     attrs.standardTestSuites = standardTestSuites
                     attrs.selectedLanguageForStandardTests = state.selectedLanguageForStandardTests
                     attrs.execCmd = state.execCmd
+                    attrs.batchSizeForAnalyzer = state.batchSizeForAnalyzer
                 }
 
                 div("d-sm-flex align-items-center justify-content-center") {

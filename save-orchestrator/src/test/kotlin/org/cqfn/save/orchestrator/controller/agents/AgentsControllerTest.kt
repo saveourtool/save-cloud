@@ -77,7 +77,7 @@ class AgentsControllerTest {
     fun `should build image, query backend and start containers`() {
         val project = Project("Huawei", "huaweiName", "huaweiUrl", "description", ProjectStatus.CREATED)
         val execution = Execution(project, stubTime, stubTime, ExecutionStatus.PENDING, "stub",
-            "stub", 20, ExecutionType.GIT, "0.0.1", 0, 0, 0, 0, Sdk.Default.toString(), null).apply {
+            "stub", 20, ExecutionType.GIT, "0.0.1", 0, 0, 0, 0, Sdk.Default.toString(), null, execCmd = "", batchSizeForAnalyzer = "").apply {
             id = 42L
         }
         whenever(dockerService.buildAndCreateContainers(any(), any())).thenReturn(listOf("test-agent-id-1", "test-agent-id-2"))
@@ -111,7 +111,7 @@ class AgentsControllerTest {
     fun checkPostResponseIsNotOk() {
         val project = Project("Huawei", "huaweiName", "huaweiUrl", "description", ProjectStatus.CREATED)
         val execution = Execution(project, stubTime, stubTime, ExecutionStatus.RUNNING, "stub",
-            "stub", 20, ExecutionType.GIT, "0.0.1", 0, 0, 0, 0, Sdk.Default.toString(), null)
+            "stub", 20, ExecutionType.GIT, "0.0.1", 0, 0, 0, 0, Sdk.Default.toString(), null, execCmd = "", batchSizeForAnalyzer = "")
         val bodyBuilder = MultipartBodyBuilder().apply {
             part("execution", execution)
         }.build()

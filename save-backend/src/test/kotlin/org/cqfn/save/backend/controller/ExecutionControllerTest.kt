@@ -78,7 +78,9 @@ class ExecutionControllerTest {
             0,
             0,
             Sdk.Default.toString(),
-            null
+            null,
+            execCmd = "",
+            batchSizeForAnalyzer = ""
         )
         webClient.post()
             .uri("/internal/createExecution")
@@ -107,7 +109,9 @@ class ExecutionControllerTest {
             0,
             0,
             Sdk.Default.toString(),
-            null
+            null,
+            execCmd = "",
+            batchSizeForAnalyzer = ""
         )
         webClient.post()
             .uri("/internal/createExecution")
@@ -141,7 +145,9 @@ class ExecutionControllerTest {
             0,
             0,
             Sdk.Default.toString(),
-            null
+            null,
+            execCmd = "",
+            batchSizeForAnalyzer = ""
         )
 
         webClient.post()
@@ -221,7 +227,7 @@ class ExecutionControllerTest {
     @Suppress("UnsafeCallOnNullableType")
     fun checkUpdateNewExecution() {
         val execution = Execution(projectRepository.findAll().first(), LocalDateTime.now(), null, ExecutionStatus.PENDING, null,
-            null, 20, ExecutionType.GIT, null, 0, 0, 0, 0, Sdk.Default.toString(), null)
+            null, 20, ExecutionType.GIT, null, 0, 0, 0, 0, Sdk.Default.toString(), null, execCmd = "", batchSizeForAnalyzer = "")
         webClient.post()
             .uri("/internal/createExecution")
             .contentType(MediaType.APPLICATION_JSON)
@@ -230,7 +236,7 @@ class ExecutionControllerTest {
             .expectStatus()
             .isOk
 
-        val executionUpdate = ExecutionInitializationDto(execution.project, "1, 2, 3", "testPath", "executionVersion")
+        val executionUpdate = ExecutionInitializationDto(execution.project, "1, 2, 3", "testPath", "executionVersion", execCmd = "", batchSizeForAnalyzer = "")
         webClient.post()
             .uri("/internal/updateNewExecution")
             .contentType(MediaType.APPLICATION_JSON)

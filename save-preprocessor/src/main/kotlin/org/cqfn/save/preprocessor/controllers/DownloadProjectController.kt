@@ -200,6 +200,7 @@ class DownloadProjectController(
                             StandardCopyOption.COPY_ATTRIBUTES
                         )
                         // FixMe: currently it's quite rough solution, to make all additional files executable
+                        // FixMe: https://github.com/diktat-static-analysis/save-cloud/issues/442
                         if (!resourcesLocation.resolve(file.name).setExecutable(true)) {
                             log.warn("Failed to mark file ${resourcesLocation.resolve(file.name)} as executable")
                         }
@@ -210,7 +211,9 @@ class DownloadProjectController(
                         executionRerunRequest.testRootPath,
                         location,
                         testSuites?.map { it.toDto() },
-                        executionRerunRequest.gitDto.url
+                        executionRerunRequest.gitDto.url,
+                        executionRerunRequest.execCmd,
+                        executionRerunRequest.batchSizeForAnalyzer,
                     )
                 }
                 .subscribeOn(scheduler)
@@ -367,7 +370,9 @@ class DownloadProjectController(
             executionRequestForStandardSuites.project,
             tmpDir.name,
             version,
-            executionRequestForStandardSuites.testsSuites.joinToString()
+            executionRequestForStandardSuites.testsSuites.joinToString(),
+            executionRequestForStandardSuites.execCmd,
+            executionRequestForStandardSuites.batchSizeForAnalyzer,
         )
             .flatMap { execution ->
                 sendToBackendAndOrchestrator(
@@ -385,7 +390,9 @@ class DownloadProjectController(
                             // stub for standard tests that won't be used
                             "N/A"
                         )
-                    }
+                    },
+                    execCmd = executionRequestForStandardSuites.execCmd,
+                    batchSizeForAnalyzer = executionRequestForStandardSuites.batchSizeForAnalyzer,
                 )
             }
     }
@@ -439,8 +446,11 @@ class DownloadProjectController(
         projectRootRelativePath: String,
         testSuiteDtos: List<TestSuiteDto>?,
         gitUrl: String? = null,
+        execCmd: String = "N/A",
+        batchSizeForAnalyzer: String = "N/A",
     ): Mono<StatusResponse> {
         val executionType = execution.type
+        println("\n\n\n\n execCmd ${execCmd} batchSizeForAnalyzer ${batchSizeForAnalyzer}")
         testSuiteDtos?.let {
             require(executionType == ExecutionType.STANDARD) { "Test suites shouldn't be provided unless ExecutionType is STANDARD (actual: $executionType)" }
         } ?: require(executionType == ExecutionType.GIT) { "Test suites are not provided, but should for executionType=$executionType" }
@@ -514,8 +524,10 @@ class DownloadProjectController(
         projectRootRelativePath: String,
         executionVersion: String,
         testSuiteIds: String = "ALL",
+        execCmd: String = "N/A",
+        batchSizeForAnalyzer: String= "N/A",
     ): Mono<Execution> {
-        val executionUpdate = ExecutionInitializationDto(project, testSuiteIds, projectRootRelativePath, executionVersion)
+        val executionUpdate = ExecutionInitializationDto(project, testSuiteIds, projectRootRelativePath, executionVersion, execCmd, batchSizeForAnalyzer)
         return webClientBackend.makeRequest(BodyInserters.fromValue(executionUpdate), "/updateNewExecution") {
             it.onStatus({ status -> status != HttpStatus.OK }) { clientResponse ->
                 log.error("Error when making update to execution fro project id = ${project.id} ${clientResponse.statusCode()}")

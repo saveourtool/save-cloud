@@ -114,6 +114,8 @@ class ExecutionService(private val executionRepository: ExecutionRepository) {
                 it.version = executionInitializationDto.version
                 it.testSuiteIds = executionInitializationDto.testSuiteIds
                 it.resourcesRootPath = executionInitializationDto.resourcesRootPath
+                it.execCmd = executionInitializationDto.execCmd
+                it.batchSizeForAnalyzer = executionInitializationDto.batchSizeForAnalyzer
                 executionRepository.save(it)
             }
 

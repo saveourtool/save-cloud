@@ -27,6 +27,8 @@ import javax.persistence.ManyToOne
  * @property skippedTests
  * @property sdk
  * @property additionalFiles
+ * @property execCmd
+ * @property batchSizeForAnalyzer
  */
 @Suppress("USE_DATA_CLASS", "LongParameterList")
 @Entity
@@ -66,6 +68,10 @@ class Execution(
 
     var additionalFiles: String?,
 
+    var execCmd: String,
+
+    var batchSizeForAnalyzer: String,
+
 ) : BaseEntity() {
     /**
      * @return Execution dto
@@ -83,5 +89,7 @@ class Execution(
         failedTests,
         skippedTests,
         additionalFiles?.split(";")?.filter { it.isNotBlank() },
+        execCmd,
+        batchSizeForAnalyzer,
     )
 }

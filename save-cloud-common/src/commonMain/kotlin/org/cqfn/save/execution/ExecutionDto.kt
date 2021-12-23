@@ -14,6 +14,8 @@ import kotlinx.serialization.Serializable
  * @property endTime
  * @property additionalFiles
  * @property startTime
+ * @property execCmd
+ * @property batchSizeForAnalyzer
  */
 @Serializable
 @Suppress("LongParameterList")
@@ -29,4 +31,6 @@ data class ExecutionDto(
     val failedTests: Long,
     val skippedTests: Long,
     val additionalFiles: List<String>?,
+    val execCmd: String,
+    val batchSizeForAnalyzer: String,
 )

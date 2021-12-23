@@ -44,6 +44,7 @@ external interface TestResourcesProps : PropsWithChildren {
     var gitUrlFromInputField: String?
     var gitBranchOrCommitFromInputField: String?
     var execCmd: String
+    var batchSizeForAnalyzer: String
     var testRootPath: String
 
     // properties for STANDARD_BENCHMARKS mode
@@ -67,6 +68,7 @@ fun testResourcesSelection(
     updateTestRootPath: (Event) -> Unit,
     setTestRootPathFromHistory: (String) -> Unit,
     setExecCmd: (Event) -> Unit,
+    setBatchSize: (Event) -> Unit,
     setSelectedLanguageForStandardTests: (String) -> Unit,
 ) =
         fc<TestResourcesProps> { props ->
@@ -217,6 +219,19 @@ fun testResourcesSelection(
                             placeholder = "Execution command:"
                             onChangeFunction = {
                                 setExecCmd(it)
+                            }
+                        }
+                    }
+                }
+                div("input-group-prepend") {
+                    input(type = InputType.text, name = "itemText") {
+                        key = "itemText"
+                        attrs.set("class", "form-control")
+                        attrs {
+                            value = props.batchSizeForAnalyzer
+                            placeholder = "Batch size (leave empty if you would like to use default value: 1)"
+                            onChangeFunction = {
+                                setBatchSize(it)
                             }
                         }
                     }
