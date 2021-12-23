@@ -32,8 +32,11 @@ class WebSecurityConfig(
             // this is default data that is required by FE to operate properly
             .pathMatchers("/", "/login", "/logout", "/sec/oauth-providers")
             .permitAll()
-            // all requests to backend are permitted on gateway, and backend returns 401 for those that require authentication
-            .pathMatchers("/api/**", "/save-frontend*.js*")
+            // some endpoints from backend allow anonymous access; todo: should be managed only by backend
+            .pathMatchers("/api/projects/not-deleted")
+            .permitAll()
+            // resources for frontend
+            .pathMatchers("/*.html", "/*.js*", "img/**", "*.gif", "*.svg")
             .permitAll()
     }
         .and().run {
