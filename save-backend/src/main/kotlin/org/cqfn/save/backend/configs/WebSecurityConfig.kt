@@ -7,11 +7,13 @@ package org.cqfn.save.backend.configs
 import org.cqfn.save.backend.utils.ConvertingAuthenticationManager
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Profile
+import org.springframework.http.HttpStatus
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity
 import org.springframework.security.config.web.server.ServerHttpSecurity
 import org.springframework.security.crypto.factory.PasswordEncoderFactories
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.server.SecurityWebFilterChain
+import org.springframework.security.web.server.authentication.HttpStatusServerEntryPoint
 
 @EnableWebFluxSecurity
 @Profile("secure")
@@ -41,7 +43,14 @@ class WebSecurityConfig(
         }
         .httpBasic()
         .authenticationManager(authenticationManager)
-        .and().build()
+        .and().exceptionHandling {
+            it.authenticationEntryPoint(
+                HttpStatusServerEntryPoint(HttpStatus.UNAUTHORIZED)
+            )
+        }
+        .logout().disable()
+        .formLogin().disable()
+        .build()
 }
 
 @EnableWebFluxSecurity
