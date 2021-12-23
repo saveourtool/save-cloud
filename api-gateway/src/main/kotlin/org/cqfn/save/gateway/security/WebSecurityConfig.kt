@@ -59,7 +59,7 @@ class WebSecurityConfig(
                                     println("Authorization: $it")
                                 }.isNullOrEmpty()
                             )
-                        }
+                        }.defaultIfEmpty(AuthorizationDecision(true))
                     } else {
                         Mono.just(it)
                     }
