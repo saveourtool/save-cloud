@@ -1,5 +1,7 @@
 package org.cqfn.save.entities
 
+import org.cqfn.save.mappers.GitMapper
+import org.mapstruct.factory.Mappers
 import javax.persistence.Entity
 import javax.persistence.JoinColumn
 import javax.persistence.OneToOne
@@ -28,10 +30,9 @@ class Git(
     /**
      * @return git dto
      */
-    fun toDto() = GitDto(
-        this.url,
-        this.username,
-        this.password,
-        this.branch,
-    )
+    fun toDto() = mapper.toDto(this)
+
+    companion object {
+        private val mapper = Mappers.getMapper(GitMapper::class.java)
+    }
 }

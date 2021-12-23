@@ -1,6 +1,6 @@
 package org.cqfn.save.testsuite
 
-import org.cqfn.save.entities.Project
+import org.cqfn.save.entities.ProjectDto
 
 import kotlinx.serialization.Serializable
 
@@ -18,7 +18,7 @@ data class TestSuiteDto(
     val type: TestSuiteType?,
     val name: String,
     val description: String?,
-    val project: Project? = null,
+    val project: ProjectDto? = null,
     val testRootPath: String,
     val testSuiteRepoUrl: String? = null,
     val language: String? = null,

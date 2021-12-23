@@ -2,7 +2,9 @@ package org.cqfn.save.entities
 
 import org.cqfn.save.utils.EnumType
 
-import kotlinx.serialization.Serializable
+import org.cqfn.save.mappers.ProjectMapper
+import org.mapstruct.factory.Mappers
+import javax.persistence.Entity
 
 /**
  * @property owner
@@ -13,7 +15,6 @@ import kotlinx.serialization.Serializable
  * @property public
  */
 @Entity
-@Serializable
 data class Project(
     var owner: String,
     var name: String,
@@ -22,6 +23,8 @@ data class Project(
     @Enumerated(EnumType.STRING)
     var status: ProjectStatus,
     var public: Boolean = true,
+
+    var user: User,
 ) {
     /**
      * id of project
@@ -29,4 +32,10 @@ data class Project(
     @Id
     @GeneratedValue
     var id: Long? = null
+
+    fun toDto() = mapper.toDto(this)
+
+    companion object {
+        val mapper: ProjectMapper = Mappers.getMapper(ProjectMapper::class.java)
+    }
 }

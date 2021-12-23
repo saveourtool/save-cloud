@@ -15,7 +15,7 @@ sealed class ExecutionRequestBase {
     /**
      * a [Project] for which execution is being requested
      */
-    abstract val project: Project
+    abstract val project: ProjectDto
 
     /**
      * An SDK for this execution
@@ -35,7 +35,7 @@ sealed class ExecutionRequestBase {
 @Suppress("KDOC_NO_CONSTRUCTOR_PROPERTY_WITH_COMMENT")
 @Serializable
 data class ExecutionRequest(
-    override val project: Project,
+    override val project: ProjectDto,
     val gitDto: GitDto,
     val testRootPath: String,
     override val sdk: Sdk,
@@ -49,7 +49,7 @@ data class ExecutionRequest(
  */
 @Serializable
 data class ExecutionRequestForStandardSuites(
-    override val project: Project,
+    override val project: ProjectDto,
     val testsSuites: List<String>,
     override val sdk: Sdk,
 ) : ExecutionRequestBase()

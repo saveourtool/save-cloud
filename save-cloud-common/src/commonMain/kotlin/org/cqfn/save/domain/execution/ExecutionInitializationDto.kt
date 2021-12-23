@@ -1,6 +1,6 @@
 package org.cqfn.save.domain.execution
 
-import org.cqfn.save.entities.Project
+import org.cqfn.save.entities.ProjectDto
 import kotlinx.serialization.Serializable
 
 /**
@@ -13,7 +13,7 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class ExecutionInitializationDto(
-    val project: Project,
+    val project: ProjectDto,
     val testSuiteIds: String,
     val resourcesRootPath: String,
     val version: String,

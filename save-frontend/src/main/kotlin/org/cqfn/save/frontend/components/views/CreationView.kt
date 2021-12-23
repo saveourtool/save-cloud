@@ -9,7 +9,7 @@ package org.cqfn.save.frontend.components.views
 
 import org.cqfn.save.entities.GitDto
 import org.cqfn.save.entities.NewProjectDto
-import org.cqfn.save.entities.Project
+import org.cqfn.save.entities.ProjectDto
 import org.cqfn.save.entities.ProjectStatus
 import org.cqfn.save.frontend.components.basic.InputTypes
 import org.cqfn.save.frontend.components.basic.inputTextFormOptional
@@ -163,7 +163,7 @@ class CreationView : AbstractView<PropsWithChildren, ProjectSaveViewState>(true)
             return
         }
         val newProjectRequest = NewProjectDto(
-            Project(
+            ProjectDto(
                 fieldsMap[InputTypes.OWNER]!!.trim(),
                 fieldsMap[InputTypes.PROJECT_NAME]!!.trim(),
                 fieldsMap[InputTypes.PROJECT_URL]?.trim(),
