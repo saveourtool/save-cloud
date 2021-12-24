@@ -44,7 +44,7 @@ data class Project(
     )
 
     companion object {
-        val STUB = Project(
+        fun stub(id: Long) = Project(
             owner = "stub",
             name = "stub",
             url = null,
@@ -52,7 +52,9 @@ data class Project(
             status = ProjectStatus.CREATED,
             user = null,
             adminIds = null,
-        )
+        ).apply {
+            this.id = id
+        }
 
         fun fromDto(projectDto: ProjectDto) = with(projectDto) {
             Project(

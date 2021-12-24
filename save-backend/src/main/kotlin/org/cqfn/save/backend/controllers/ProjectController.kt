@@ -74,7 +74,6 @@ class ProjectController {
      */
     @PostMapping("/saveProject")
     fun saveProject(@RequestBody newProjectDto: NewProjectDto): ResponseEntity<String>? {
-        val newProject = newProjectDto.project
         val (projectId, projectStatus) = projectService.saveProject(newProjectDto.project)
         if (projectStatus == ProjectSaveStatus.EXIST) {
             log.warn("Project with id = $projectId already exists")

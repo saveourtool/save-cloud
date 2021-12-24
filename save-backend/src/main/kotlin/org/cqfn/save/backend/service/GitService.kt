@@ -23,8 +23,6 @@ class GitService(private val gitRepository: GitRepository) {
      * @return saved git dto
      */
     fun saveGit(gitDto: GitDto, projectId: Long) = gitRepository.save(
-        Git(gitDto.url, gitDto.username, gitDto.password, gitDto.branch, Project.STUB.apply {
-            id = projectId
-        })
+        Git(gitDto.url, gitDto.username, gitDto.password, gitDto.branch, Project.stub(projectId))
     )
 }
