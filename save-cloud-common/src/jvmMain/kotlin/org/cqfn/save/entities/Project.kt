@@ -2,8 +2,6 @@ package org.cqfn.save.entities
 
 import org.cqfn.save.utils.EnumType
 
-import org.cqfn.save.mappers.ProjectMapper
-import org.mapstruct.factory.Mappers
 import javax.persistence.Entity
 
 /**
@@ -33,9 +31,12 @@ data class Project(
     @GeneratedValue
     var id: Long? = null
 
-    fun toDto() = mapper.toDto(this)
-
-    companion object {
-        val mapper: ProjectMapper = Mappers.getMapper(ProjectMapper::class.java)
-    }
+    fun toDto() = ProjectDto(
+        owner = owner,
+        name = name,
+        url = url,
+        description = description,
+        status = status,
+        public = public,
+    )
 }
