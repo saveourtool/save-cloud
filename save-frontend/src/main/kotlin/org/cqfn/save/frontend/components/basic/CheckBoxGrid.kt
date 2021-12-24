@@ -46,7 +46,12 @@ fun suitesTable(
     setSelectedLanguageForStandardTests: (String) -> Unit,
 ) = fc<CheckBoxGridProps> { props ->
     nav("nav nav-tabs mb-4") {
-        val languages = suites.map { it.language }.distinct()
+        val (languagesWithoutNull, otherLanguages) = suites.map { it.language }.distinct()
+            .sortedBy { it }.partition { it != null }
+        val languages = languagesWithoutNull.toMutableList()
+        if (otherLanguages.isNotEmpty()) {
+            languages.add(null)
+        }
         languages.forEachIndexed { index, langStr ->
             val lang = langStr?.trim() ?: "Other"
             li("nav-item") {
@@ -99,15 +104,17 @@ fun checkBoxGrid(suites: List<TestSuiteDto>, selectedLanguageForStandardTests: S
                                         }
 
                                         val suiteName = suite.name.replaceFirstChar { it.uppercaseChar() }
-                                        +if (suiteName.length > 20) "${suiteName.take(20)}..." else suiteName
+                                        +if (suiteName.length > 11) "${suiteName.take(11)}..." else suiteName
 
                                         sup("tooltip-and-popover ml-1") {
                                             fontAwesomeIcon(icon = faQuestionCircle)
                                             attrs["tooltip-placement"] = "top"
-                                            attrs["tooltip-title"] = suite.description?.take(100) ?: ""
+                                            attrs["tooltip-title"] = ""
                                             attrs["popover-placement"] = "right"
                                             attrs["popover-title"] = suite.name
                                             attrs["popover-content"] = suiteDescription(suite)
+                                            attrs["data-trigger"] = "focus"
+                                            attrs["tabindex"] = "0"
                                         }
                                     }
                                 }

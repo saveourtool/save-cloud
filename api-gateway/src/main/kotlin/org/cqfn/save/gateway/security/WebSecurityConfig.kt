@@ -21,6 +21,7 @@ import org.springframework.security.web.server.authentication.RedirectServerAuth
 import org.springframework.security.web.server.util.matcher.AndServerWebExchangeMatcher
 import org.springframework.security.web.server.util.matcher.NegatedServerWebExchangeMatcher
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers
+import org.springframework.security.web.server.authentication.logout.HttpStatusReturningServerLogoutSuccessHandler
 
 @EnableWebFluxSecurity
 @Suppress("MISSING_KDOC_TOP_LEVEL", "MISSING_KDOC_CLASS_ELEMENTS", "MISSING_KDOC_ON_FUNCTION")
@@ -44,7 +45,7 @@ class WebSecurityConfig(
             // `CollectionView` is a public page
             // todo: backend should tell which endpoint is public, and gateway should provide user data
             authorizeExchange()
-                .pathMatchers("/", "/login", "/info/**", "/api/projects/not-deleted", "/save-frontend*.js*")
+                .pathMatchers("/", "/login", "/sec/oauth-providers", "/api/projects/not-deleted", "/save-frontend*.js*")
                 .permitAll()
         }
         .and().run {
@@ -65,6 +66,10 @@ class WebSecurityConfig(
             it.authenticationSuccessHandler(
                 RedirectServerAuthenticationSuccessHandler("/#/projects")
             )
+        }
+        .logout {
+            // fixme: when frontend can handle logout without reloading, use `RedirectServerLogoutSuccessHandler` here
+            it.logoutSuccessHandler(HttpStatusReturningServerLogoutSuccessHandler(HttpStatus.OK))
         }
         .build()
 

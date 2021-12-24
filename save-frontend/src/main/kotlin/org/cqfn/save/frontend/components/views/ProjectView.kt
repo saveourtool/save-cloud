@@ -136,6 +136,11 @@ external interface ProjectViewState : State {
     var gitUrlFromInputField: String
 
     /**
+     * Branch of commit in current repo
+     */
+    var gitBranchOrCommitFromInputField: String
+
+    /**
      * Directory in the repository where tests are placed
      */
     var testRootPath: String
@@ -192,6 +197,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
 
     init {
         state.gitUrlFromInputField = ""
+        state.gitBranchOrCommitFromInputField = ""
         state.testRootPath = ""
         state.confirmationType = ConfirmationType.NO_CONFIRM
         state.testingType = TestingType.CUSTOM_TESTS
@@ -239,11 +245,18 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         when (state.testingType) {
             TestingType.CUSTOM_TESTS -> {
                 val urlWithTests = state.gitUrlFromInputField
+                val branchOrCommit = state.gitBranchOrCommitFromInputField
                 // URL is required in all cases, the processing should not be done without it
                 if (urlWithTests.isBlank()) {
                     return
                 } else {
-                    val newGitDto = gitDto?.copy(url = urlWithTests) ?: GitDto(url = urlWithTests)
+                    // if provided value contains `origin` then it's a branch, otherwise a commit
+                    val (newBranch, newCommit) = if (branchOrCommit.contains("origin/")) {
+                        branchOrCommit to null
+                    } else {
+                        null to branchOrCommit
+                    }
+                    val newGitDto = gitDto?.copy(url = urlWithTests, branch = newBranch, hash = newCommit) ?: GitDto(url = urlWithTests, branch = newBranch, hash = newCommit)
                     submitExecutionRequestWithCustomTests(newGitDto)
                 }
             }
@@ -361,7 +374,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                         )
                         testingTypeButton(
                             TestingType.CONTEST_MODE,
-                            "Participate in Save contests with your tool",
+                            "Participate in SAVE contests with your tool",
                             "mt-3 mr-2"
                         )
                     }
@@ -429,6 +442,11 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                             gitUrlFromInputField = (it.target as HTMLInputElement).value
                         }
                     },
+                    updateGitBranchOrCommitInputField = {
+                        setState {
+                            gitBranchOrCommitFromInputField = (it.target as HTMLInputElement).value
+                        }
+                    },
                     updateTestRootPath = {
                         setState {
                             testRootPath = (it.target as HTMLInputElement).value
@@ -451,6 +469,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                     // properties for CUSTOM_TESTS mode
                     attrs.testRootPath = state.testRootPath
                     attrs.gitUrlFromInputField = state.gitUrlFromInputField
+                    attrs.gitBranchOrCommitFromInputField = state.gitBranchOrCommitFromInputField
                     // properties for STANDARD_BENCHMARKS mode
                     attrs.selectedStandardSuites = selectedStandardSuites
                     attrs.standardTestSuites = standardTestSuites
@@ -679,7 +698,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 isErrorOpen = true
                 errorMessage =
                         "Git Url with test suites in save format was not provided,but it is required for the testing process." +
-                                " Save is not able to run your tests without an information of where to download them from."
+                                " SAVE is not able to run your tests without an information of where to download them from."
                 errorLabel = "Git Url"
             }
             // no binaries were provided

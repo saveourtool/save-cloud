@@ -38,21 +38,22 @@ class CollectionView : AbstractView<PropsWithChildren, State>(false) {
             }
         }
         child(tableComponent(
-            columns = columns {
-                column(id = "owner", header = "Project Owner") {
+            columns = columns<Project> {
+                column(id = "owner", header = "Project Owner", { owner }) {
                     buildElement {
                         td {
-                            a(href = "#/${it.value.owner}") {
-                                +it.value.owner
-                            }
+                            // FixMe: temporary disable links, until we will make a beat
+                            // a(href = "#/${it.value}") {
+                            +it.value
+                            // }
                         }
                     }
                 }
-                column(id = "name", header = "Evaluated Tool") {
+                column(id = "name", header = "Evaluated Tool", { name }) {
                     buildElement {
                         td {
-                            a(href = "#/${it.value.owner}/${it.value.name}") { +it.value.name }
-                            privacySpan(it.value)
+                            a(href = "#/${it.row.original.owner}/${it.value}") { +it.value }
+                            privacySpan(it.row.original)
                         }
                     }
                 }
