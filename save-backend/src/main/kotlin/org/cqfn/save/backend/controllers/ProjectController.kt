@@ -6,6 +6,7 @@ import org.cqfn.save.domain.ProjectSaveStatus
 import org.cqfn.save.entities.GitDto
 import org.cqfn.save.entities.NewProjectDto
 import org.cqfn.save.entities.Project
+import org.cqfn.save.entities.ProjectDto
 import org.slf4j.LoggerFactory
 
 import org.springframework.beans.factory.annotation.Autowired
@@ -73,15 +74,15 @@ class ProjectController {
      */
     @PostMapping("/saveProject")
     fun saveProject(@RequestBody newProjectDto: NewProjectDto): ResponseEntity<String>? {
+        val newProject = newProjectDto.project
         val (projectId, projectStatus) = projectService.saveProject(newProjectDto.project)
         if (projectStatus == ProjectSaveStatus.EXIST) {
             log.warn("Project with id = $projectId already exists")
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(projectStatus.message)
         }
         log.info("Save new project id = $projectId")
-        newProjectDto.project.id = projectId
         newProjectDto.gitDto?.let {
-            val saveGit = gitService.saveGit(it, newProjectDto.project)
+            val saveGit = gitService.saveGit(it, projectId)
             log.info("Save new git id = ${saveGit.id}")
         }
         return ResponseEntity.status(HttpStatus.OK).body(projectStatus.message)
@@ -92,8 +93,8 @@ class ProjectController {
      * @return response
      */
     @PostMapping("/updateProject")
-    fun updateProject(@RequestBody project: Project): ResponseEntity<String>? {
-        val (_, projectStatus) = projectService.saveProject(project)
+    fun updateProject(@RequestBody projectDto: ProjectDto): ResponseEntity<String> {
+        val (_, projectStatus) = projectService.saveProject(projectDto)
         return ResponseEntity.status(HttpStatus.OK).body(projectStatus.message)
     }
 

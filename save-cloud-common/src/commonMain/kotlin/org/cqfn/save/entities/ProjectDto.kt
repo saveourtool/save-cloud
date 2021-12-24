@@ -14,10 +14,12 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class ProjectDto(
+    val id: Long,
     val owner: String,
     val name: String,
     val url: String?,
     val description: String?,
     val status: ProjectStatus,
     val public: Boolean = true,
+    val username: String,
 )

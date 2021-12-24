@@ -26,6 +26,7 @@ import org.cqfn.save.entities.ProjectStatus
 
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
+import org.cqfn.save.entities.User
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -93,13 +94,13 @@ class CloningRepositoryControllerTest {
                 .setBody("Clone pending")
                 .addHeader("Content-Type", "application/json")
         )
-        val project = Project("Huawei", "huaweiName", "huawei.com", "test description", ProjectStatus.CREATED)
+        val project = Project("Huawei", "huaweiName", "huawei.com", "test description", ProjectStatus.CREATED, user = User("John Doe", null, null))
         Mockito
             .`when`(projectService.findByNameAndOwner("huaweiName", "Huawei"))
             .thenReturn(project)
         val sdk = Jdk("8")
         val gitRepo = GitDto("1")
-        val executionRequest = ExecutionRequest(project, gitRepo, sdk = sdk, executionId = null, testRootPath = ".")
+        val executionRequest = ExecutionRequest(project.toDto(), gitRepo, sdk = sdk, executionId = null, testRootPath = ".")
         val multipart = MultipartBodyBuilder().apply {
             part("executionRequest", executionRequest)
         }
@@ -126,11 +127,11 @@ class CloningRepositoryControllerTest {
         fileSystemRepository.saveFile(binFile)
         fileSystemRepository.saveFile(property)
 
-        val project = Project("Huawei", "huaweiName", "huawei.com", "test description", ProjectStatus.CREATED).apply {
+        val project = Project("Huawei", "huaweiName", "huawei.com", "test description", ProjectStatus.CREATED, user = User("John Doe", null, null)).apply {
             id = 1
         }
         val sdk = Jdk("8")
-        val request = ExecutionRequestForStandardSuites(project, emptyList(), sdk)
+        val request = ExecutionRequestForStandardSuites(project.toDto(), emptyList(), sdk)
         val bodyBuilder = MultipartBodyBuilder()
         bodyBuilder.part("execution", request)
         bodyBuilder.part("file", property.toFileInfo())

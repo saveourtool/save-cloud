@@ -3,6 +3,7 @@ package org.cqfn.save.backend.service
 import org.cqfn.save.backend.repository.ExecutionRepository
 import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.entities.Execution
+import org.cqfn.save.entities.Project
 import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.execution.ExecutionInitializationDto
 import org.cqfn.save.execution.ExecutionStatus
@@ -109,7 +110,11 @@ class ExecutionService(private val executionRepository: ExecutionRepository) {
      * @return execution
      */
     fun updateNewExecution(executionInitializationDto: ExecutionInitializationDto) =
-            executionRepository.findTopByProjectOrderByStartTimeDesc(executionInitializationDto.project)?.let {
+            executionRepository.findTopByProjectOrderByStartTimeDesc(
+                Project.STUB.apply {
+                    id = executionInitializationDto.project.id
+                }
+            )?.let {
                 require(it.version == null) { "Execution was already updated" }
                 it.version = executionInitializationDto.version
                 it.testSuiteIds = executionInitializationDto.testSuiteIds

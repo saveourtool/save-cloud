@@ -204,9 +204,16 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
             testRepository.findById(testId).ifPresentOrElse({ test ->
                 log.debug("Creating TestExecution for test $testId")
                 val id = testExecutionRepository.save(
-                    TestExecution(test,
-                        execution,
-                        null, TestResultStatus.READY_FOR_TESTING, null, null, null, null,
+                    TestExecution(
+                        test = test,
+                        execution = execution,
+                        agent = null,
+                        status = TestResultStatus.READY_FOR_TESTING,
+                        startTime = null,
+                        endTime = null,
+                        missingWarnings = null,
+                        matchedWarnings = null,
+                        user = null,
                     )
                 )
                 log.debug("Created TestExecution $id for test $testId")

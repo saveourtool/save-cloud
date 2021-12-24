@@ -28,23 +28,45 @@ data class Project(
 
     @ManyToOne
     @JoinColumn(name = "user_id")
-    var user: User,
+    var user: User?,
 
-    var adminIds: String,
-) {
-    /**
-     * id of project
-     */
-    @Id
-    @GeneratedValue
-    var id: Long? = null
-
+    var adminIds: String? = "",
+) : BaseEntity() {
     fun toDto() = ProjectDto(
+        id = id!!,
         owner = owner,
         name = name,
         url = url,
         description = description,
         status = status,
         public = public,
+        username = user!!.name!!,
     )
+
+    companion object {
+        val STUB = Project(
+            owner = "stub",
+            name = "stub",
+            url = null,
+            description = null,
+            status = ProjectStatus.CREATED,
+            user = null,
+            adminIds = null,
+        )
+
+        fun fromDto(projectDto: ProjectDto) = with(projectDto) {
+            Project(
+                owner = owner,
+                name = name,
+                url = url,
+                description = description,
+                status = status,
+                public = public,
+                user = User(name = username, null, null),
+                adminIds = null,
+            ).apply {
+                id = id?.takeIf { it > 0 }
+            }
+        }
+    }
 }

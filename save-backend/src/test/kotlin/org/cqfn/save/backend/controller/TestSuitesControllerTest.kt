@@ -65,7 +65,7 @@ class TestSuitesControllerTest {
             TestSuiteType.PROJECT,
             "test",
             null,
-            project,
+            project.toDto(),
             "save.properties"
         )
 
@@ -88,7 +88,7 @@ class TestSuitesControllerTest {
             TestSuiteType.PROJECT,
             "test",
             null,
-            project,
+            project.toDto(),
             "save.properties"
         )
 
@@ -107,7 +107,7 @@ class TestSuitesControllerTest {
             TestSuiteType.PROJECT,
             "test",
             null,
-            project,
+            project.toDto(),
             "save.properties"
         )
         saveTestSuites(listOf(testSuite)) {
@@ -120,7 +120,7 @@ class TestSuitesControllerTest {
             TestSuiteType.PROJECT,
             "test2",
             null,
-            project,
+            project.toDto(),
             "save.properties"
         )
         saveTestSuites(listOf(testSuite, testSuite2)) {
@@ -146,7 +146,7 @@ class TestSuitesControllerTest {
             TestSuiteType.STANDARD,
             "tester",
             null,
-            project,
+            project.toDto(),
             "save.properties"
         )
         saveTestSuites(listOf(testSuite)) {
@@ -175,7 +175,7 @@ class TestSuitesControllerTest {
             TestSuiteType.STANDARD,
             name,
             null,
-            project,
+            project.toDto(),
             "save.properties"
         )
         saveTestSuites(listOf(testSuite)) {

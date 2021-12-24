@@ -42,7 +42,16 @@ class TestSuitesService {
                 it.copy(description = null)
             }
             .map {
-                TestSuite(it.type, it.name, it.description, it.project, null, it.testRootPath, it.testSuiteRepoUrl, it.language)
+                TestSuite(
+                    type = it.type,
+                    name = it.name,
+                    description = it.description,
+                    project = it.project?.let { Project.STUB.apply { id = it.id } },
+                    dateAdded = null,
+                    testRootPath = it.testRootPath,
+                    testSuiteRepoUrl = it.testSuiteRepoUrl,
+                    language = it.language
+                )
             }
             .map { testSuite ->
                 // try to find TestSuite in the DB based on all non-null properties of `testSuite`

@@ -164,11 +164,14 @@ class CreationView : AbstractView<PropsWithChildren, ProjectSaveViewState>(true)
         }
         val newProjectRequest = NewProjectDto(
             ProjectDto(
+                id = -1,
                 fieldsMap[InputTypes.OWNER]!!.trim(),
                 fieldsMap[InputTypes.PROJECT_NAME]!!.trim(),
                 fieldsMap[InputTypes.PROJECT_URL]?.trim(),
                 fieldsMap[InputTypes.DESCRIPTION]?.trim(),
                 ProjectStatus.CREATED,
+                // FIXME: currently authenticated user
+                username = "N/A",
             ),
             GitDto(
                 fieldsMap[InputTypes.GIT_URL]?.trim() ?: "",
