@@ -32,9 +32,7 @@ class StoringServerAuthenticationSuccessHandler(
         webFilterExchange: WebFilterExchange,
         authentication: Authentication
     ): Mono<Void> {
-        logger.info("Authenticated user with authentication type ${authentication::class}")
-
-        logger.info("Will send authentication for user ${authentication.userName()}")
+        logger.info("Authenticated user ${authentication.userName()} with authentication type ${authentication::class}, will send data to backend")
 
         val user = authentication.toUser()
         return webClient.post()
