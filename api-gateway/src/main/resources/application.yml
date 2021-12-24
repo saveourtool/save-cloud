@@ -32,7 +32,7 @@ spring:
         - id: resource_route
           uri: http://backend:5000
           predicates:
-            - Path=/*.html,/*.js*,/img/**,/*.gif,/*.svg
+            - Path=/*.html,/*.js*,/img/**
           filters:
             # If SESSION cookie is passed to downstream, it is then removed, because downstream discards it
             - RemoveRequestHeader=Cookie
