@@ -204,7 +204,7 @@ class ExecutionControllerTest {
     @Test
     fun checkExecutionDtoByProject() {
         val project = projectRepository.findById(1).get()
-        val executionCounts = executionRepository.findAll().filter { it.project == project }.count()
+        val executionCounts = executionRepository.findAll().count { it.project.id == project.id }
         webClient.get()
             .uri("/api/executionDtoList?name=${project.name}&owner=${project.owner}")
             .exchange()

@@ -94,7 +94,9 @@ class CloningRepositoryControllerTest {
                 .setBody("Clone pending")
                 .addHeader("Content-Type", "application/json")
         )
-        val project = Project("Huawei", "huaweiName", "huawei.com", "test description", ProjectStatus.CREATED, user = User("John Doe", null, null))
+        val project = Project("Huawei", "huaweiName", "huawei.com", "test description", ProjectStatus.CREATED, user = User("John Doe", null, null)).apply {
+            id = 1
+        }
         Mockito
             .`when`(projectService.findByNameAndOwner("huaweiName", "Huawei"))
             .thenReturn(project)

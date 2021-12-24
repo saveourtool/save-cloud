@@ -62,7 +62,7 @@ data class Project(
                 description = description,
                 status = status,
                 public = public,
-                user = User(name = username, null, null),
+                user = User(name = username, null, null, ""),
                 adminIds = null,
             ).apply {
                 id = id?.takeIf { it > 0 }

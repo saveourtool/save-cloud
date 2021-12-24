@@ -8,6 +8,7 @@ import org.cqfn.save.backend.utils.MySqlExtension
 import org.cqfn.save.entities.GitDto
 import org.cqfn.save.entities.NewProjectDto
 import org.cqfn.save.entities.Project
+import org.cqfn.save.entities.ProjectDto
 import org.cqfn.save.entities.ProjectStatus
 import org.cqfn.save.entities.User
 
@@ -97,9 +98,10 @@ class ProjectControllerTest {
     @Suppress("UnsafeCallOnNullableType", "TOO_MANY_LINES_IN_LAMBDA")
     fun `check save new project`() {
         val gitDto = GitDto("qweqwe")
-        val project = Project("I", "Name", "uurl", "nullsss", ProjectStatus.CREATED, user = User("John Doe", null, null))
+        // `project` references an existing user from test data
+        val project = ProjectDto(-1, "I", "Name", "uurl", "nullsss", ProjectStatus.CREATED, username = "John Doe")
         val newProject = NewProjectDto(
-            project.toDto(),
+            project,
             gitDto
         )
         webClient

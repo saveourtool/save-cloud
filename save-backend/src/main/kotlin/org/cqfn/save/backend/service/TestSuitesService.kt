@@ -1,5 +1,6 @@
 package org.cqfn.save.backend.service
 
+import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.repository.TestExecutionRepository
 import org.cqfn.save.backend.repository.TestRepository
 import org.cqfn.save.backend.repository.TestSuiteRepository
@@ -17,16 +18,12 @@ import java.time.LocalDateTime
  * Service for test suites
  */
 @Service
-class TestSuitesService {
-    @Autowired
-    private lateinit var testSuiteRepository: TestSuiteRepository
-
-    @Autowired
-    private lateinit var testRepository: TestRepository
-
-    @Autowired
-    private lateinit var testExecutionRepository: TestExecutionRepository
-
+class TestSuitesService(
+    private val testSuiteRepository: TestSuiteRepository,
+    private val testRepository: TestRepository,
+    private val testExecutionRepository: TestExecutionRepository,
+    private val projectRepository: ProjectRepository,
+) {
     /**
      * Save new test suites to DB
      *
@@ -46,7 +43,7 @@ class TestSuitesService {
                     type = it.type,
                     name = it.name,
                     description = it.description,
-                    project = it.project?.let { Project.STUB.apply { id = it.id } },
+                    project = it.project?.let { projectRepository.findById(it.id).get() },
                     dateAdded = null,
                     testRootPath = it.testRootPath,
                     testSuiteRepoUrl = it.testSuiteRepoUrl,

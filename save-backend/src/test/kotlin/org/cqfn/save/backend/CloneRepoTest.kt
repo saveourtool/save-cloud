@@ -13,6 +13,7 @@ import org.cqfn.save.execution.ExecutionType
 
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
+import org.cqfn.save.entities.ProjectDto
 import org.cqfn.save.entities.User
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions
@@ -83,9 +84,9 @@ class CloneRepoTest {
     @Test
     fun checkNonExistingProject() {
         val sdk = Jdk("11")
-        val project = Project("noname", "1", "1", "1", ProjectStatus.CREATED, user = User(name = "noname", null, null), adminIds = "")
+        val project = ProjectDto(-1, "noname", "1", "1", "1", ProjectStatus.CREATED, username = "noname")
         val gitRepo = GitDto("1")
-        val executionRequest = ExecutionRequest(project.toDto(), gitRepo, executionId = null, sdk = sdk, testRootPath = ".")
+        val executionRequest = ExecutionRequest(project, gitRepo, executionId = null, sdk = sdk, testRootPath = ".")
         val executionsClones = listOf(executionRequest, executionRequest, executionRequest)
         // fixme: why is it repeated 3 times?
         val multiparts = executionsClones.map {
