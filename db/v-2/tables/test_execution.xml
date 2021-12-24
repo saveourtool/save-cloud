@@ -23,4 +23,11 @@
         </update>
     </changeSet>
 
+    <changeSet id="test-execution-user" author="petertrr" context="dev or prod">
+        <addColumn tableName="test_execution">
+            <column name="user_id" type="bigint">
+                <constraints foreignKeyName="fk_project_user" references="user(id)" nullable="true"/>
+            </column>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>

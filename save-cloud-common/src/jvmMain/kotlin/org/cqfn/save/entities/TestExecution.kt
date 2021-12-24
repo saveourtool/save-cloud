@@ -48,6 +48,10 @@ class TestExecution(
 
     var matchedWarnings: Int?,
 
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    var user: User?,
+
 ) : BaseEntity() {
     /**
      * Converts `this` to [TestExecutionDto]
