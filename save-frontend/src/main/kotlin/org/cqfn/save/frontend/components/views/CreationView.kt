@@ -38,6 +38,7 @@ import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.cqfn.save.info.UserInfo
 
 /**
  * [RState] of project creation view component
@@ -84,6 +85,13 @@ external interface ProjectSaveViewState : State {
     var gitConnectionCheckingStatus: GitConnectionStatusEnum?
 }
 
+external interface ProjectSaveViewProps : PropsWithChildren {
+    /**
+     * Currently logged in user or null
+     */
+    var userInfo: UserInfo?
+}
+
 /**
  * Special enum that stores the value with the result of testing git credentials
  */
@@ -103,7 +111,7 @@ enum class GitConnectionStatusEnum {
  */
 @JsExport
 @OptIn(ExperimentalJsExport::class)
-class CreationView : AbstractView<PropsWithChildren, ProjectSaveViewState>(true) {
+class CreationView : AbstractView<ProjectSaveViewProps, ProjectSaveViewState>(true) {
     private val fieldsMap: MutableMap<InputTypes, String> = mutableMapOf()
 
     init {
@@ -170,8 +178,7 @@ class CreationView : AbstractView<PropsWithChildren, ProjectSaveViewState>(true)
                 fieldsMap[InputTypes.PROJECT_URL]?.trim(),
                 fieldsMap[InputTypes.DESCRIPTION]?.trim(),
                 ProjectStatus.CREATED,
-                // FIXME: currently authenticated user
-                username = "N/A",
+                username = props.userInfo!!.userName,
             ),
             GitDto(
                 fieldsMap[InputTypes.GIT_URL]?.trim() ?: "",

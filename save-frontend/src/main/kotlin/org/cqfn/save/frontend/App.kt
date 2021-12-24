@@ -116,7 +116,9 @@ class App : RComponent<PropsWithChildren, AppState>() {
                             attrs {
                                 path = "/creation"
                                 element = buildElement {
-                                    child(CreationView::class) {}
+                                    child(CreationView::class) {
+                                        attrs.userInfo = state.userInfo
+                                    }
                                 }
                             }
                         }
