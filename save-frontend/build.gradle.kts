@@ -76,7 +76,7 @@ rootProject.plugins.withType(NodeJsRootPlugin::class.java) {
         .version = "4.9.0"
 }
 // store yarn.lock in the root directory
-extensions.configure<org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension> {
+rootProject.extensions.configure<org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension> {
     lockFileDirectory = rootProject.projectDir
 }
 
