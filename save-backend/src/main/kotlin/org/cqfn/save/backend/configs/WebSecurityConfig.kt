@@ -5,14 +5,17 @@
 package org.cqfn.save.backend.configs
 
 import org.cqfn.save.backend.utils.ConvertingAuthenticationManager
+import org.cqfn.save.backend.utils.CustomAuthenticationBasicConverter
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity
+import org.springframework.security.config.web.server.SecurityWebFiltersOrder
 import org.springframework.security.config.web.server.ServerHttpSecurity
 import org.springframework.security.crypto.factory.PasswordEncoderFactories
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.server.SecurityWebFilterChain
+import org.springframework.security.web.server.authentication.AuthenticationWebFilter
 import org.springframework.security.web.server.authentication.HttpStatusServerEntryPoint
 
 @EnableWebFluxSecurity
@@ -44,9 +47,13 @@ class WebSecurityConfig(
             // FixMe: Properly support CSRF protection https://github.com/diktat-static-analysis/save-cloud/issues/34
             csrf().disable()
         }
-        .httpBasic()
-        .authenticationManager(authenticationManager)
-        .and().exceptionHandling {
+        .addFilterBefore(
+            AuthenticationWebFilter(authenticationManager).apply {
+                setServerAuthenticationConverter(CustomAuthenticationBasicConverter())
+            },
+            SecurityWebFiltersOrder.HTTP_BASIC,
+        )
+        .exceptionHandling {
             it.authenticationEntryPoint(
                 HttpStatusServerEntryPoint(HttpStatus.UNAUTHORIZED)
             )

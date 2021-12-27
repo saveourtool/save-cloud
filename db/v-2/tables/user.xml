@@ -36,6 +36,6 @@
     </changeSet>
 
     <changeSet id="user-unique-name" author="petertrr" context="dev or prod">
-        <addUniqueConstraint tableName="user" columnNames="name"/>
+        <addUniqueConstraint tableName="user" columnNames="name,source"/>
     </changeSet>
 </databaseChangeLog>

@@ -1,8 +1,9 @@
 package org.cqfn.save.backend.service
 
 import org.cqfn.save.backend.repository.UserRepository
+import org.cqfn.save.backend.utils.IdentitySourceAwareUserDetails
+import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.userdetails.ReactiveUserDetailsService
-import org.springframework.security.core.userdetails.User
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.stereotype.Service
@@ -21,12 +22,17 @@ class UserDetailsService(
     }
         .filter { it.isPresent }
         .map { it.get() }
-        .map {
-            User.builder()
-                .username(it.name)
-                .password(it.password ?: "")
-                .authorities(it.role)
-                .build()
+        .map<UserDetails> { user ->
+            IdentitySourceAwareUserDetails(
+                username = user.name!!,
+                password = user.password ?: "",
+                authorities = user.role
+                    ?.split(',')
+                    ?.filter { it.isNotBlank() }
+                    ?.map { SimpleGrantedAuthority(it) }
+                    ?: emptyList(),
+                identitySource = user.source,
+            )
         }
         .switchIfEmpty {
             Mono.error(UsernameNotFoundException(username))
