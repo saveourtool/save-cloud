@@ -17,6 +17,7 @@ import reactor.kotlin.core.publisher.switchIfEmpty
 class UserDetailsService(
     private val userRepository: UserRepository,
 ) : ReactiveUserDetailsService {
+    @Suppress("UnsafeCallOnNullableType")
     override fun findByUsername(username: String): Mono<UserDetails> = Mono.fromCallable {
         userRepository.findByName(username)
     }
