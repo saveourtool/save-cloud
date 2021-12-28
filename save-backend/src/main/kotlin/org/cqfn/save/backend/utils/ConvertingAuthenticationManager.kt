@@ -22,10 +22,11 @@ class ConvertingAuthenticationManager : ReactiveAuthenticationManager {
 
     override fun authenticate(authentication: Authentication): Mono<Authentication> = if (authentication is UsernamePasswordAuthenticationToken) {
         val identitySource = (authentication.details as Map<*, *>)["identitySource"] as String?
+        requireNotNull(identitySource) { "Identity source should be provided for all authorized requests in backend" }
         if (!authentication.name.startsWith("$identitySource:")) {
             throw BadCredentialsException(authentication.name)
         }
-        val name = identitySource?.let { authentication.name.drop(it.length + 1) } ?: authentication.name
+        val name = authentication.name.drop(identitySource.length + 1)
         userDetailsService.findByUsername(name)
             .map { it as IdentitySourceAwareUserDetails }
             .filter { it.identitySource == identitySource }

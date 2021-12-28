@@ -2,7 +2,6 @@ package org.cqfn.save.backend.service
 
 import org.cqfn.save.backend.repository.UserRepository
 import org.cqfn.save.backend.utils.IdentitySourceAwareUserDetails
-import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.userdetails.ReactiveUserDetailsService
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.core.userdetails.UsernameNotFoundException
@@ -26,11 +25,7 @@ class UserDetailsService(
             IdentitySourceAwareUserDetails(
                 username = user.name!!,
                 password = user.password ?: "",
-                authorities = user.role
-                    ?.split(',')
-                    ?.filter { it.isNotBlank() }
-                    ?.map { SimpleGrantedAuthority(it) }
-                    ?: emptyList(),
+                authorities = user.role,
                 identitySource = user.source,
             )
         }
