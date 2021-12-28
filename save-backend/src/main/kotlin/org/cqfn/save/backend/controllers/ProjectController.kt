@@ -73,7 +73,7 @@ class ProjectController {
      */
     @PostMapping("/saveProject")
     fun saveProject(@RequestBody newProjectDto: NewProjectDto): ResponseEntity<String>? {
-        val (projectId, projectStatus) = projectService.saveProject(newProjectDto.project)
+        val (projectId, projectStatus) = projectService.saveProject(newProjectDto.project, newProjectDto.username)
         if (projectStatus == ProjectSaveStatus.EXIST) {
             log.warn("Project with id = $projectId already exists")
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(projectStatus.message)
@@ -92,7 +92,7 @@ class ProjectController {
      */
     @PostMapping("/updateProject")
     fun updateProject(@RequestBody project: Project): ResponseEntity<String> {
-        val (_, projectStatus) = projectService.saveProject(project)
+        val (_, projectStatus) = projectService.saveProject(project, null)
         return ResponseEntity.status(HttpStatus.OK).body(projectStatus.message)
     }
 

@@ -7,7 +7,9 @@ import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.ProjectStatus
 import org.springframework.data.domain.Example
 import org.springframework.data.domain.ExampleMatcher
+import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
+import org.springframework.web.server.ResponseStatusException
 import java.lang.IllegalArgumentException
 
 /**
@@ -23,15 +25,25 @@ class ProjectService(private val projectRepository: ProjectRepository,
      * Store [project] in the database
      *
      * @param project a [Project] to store
+     * @param username name of the user that should be associated as a creator of this project. If null, [project] should contain valid user id.
      * @return project's id, should never return null
      */
-    fun saveProject(project: Project): Pair<Long, ProjectSaveStatus> {
+    fun saveProject(project: Project, username: String?): Pair<Long, ProjectSaveStatus> {
         val exampleMatcher = ExampleMatcher.matchingAll()
             .withMatcher("name", ExampleMatcher.GenericPropertyMatchers.exact())
             .withMatcher("owner", ExampleMatcher.GenericPropertyMatchers.exact())
         val (projectId, projectSaveStatus) = projectRepository.findOne(Example.of(project, exampleMatcher)).map {
             Pair(it.id, ProjectSaveStatus.EXIST)
         }.orElseGet {
+            username?.let { userRepository.findByName(username)
+                .map {
+                    project.userId = it.id!!
+                    it
+                }
+                .orElseThrow {
+                    ResponseStatusException(HttpStatus.BAD_REQUEST, "Attempt to create project for a non-existent user $username")
+                }
+            }
             val savedProject = projectRepository.save(project)
             Pair(savedProject.id, ProjectSaveStatus.NEW)
         }
