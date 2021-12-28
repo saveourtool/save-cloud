@@ -36,7 +36,6 @@ import kotlin.io.path.readText
  * A Spring controller for file downloading
  */
 @RestController
-@RequestMapping("/api/files")
 class DownloadFilesController(
     private val additionalToolsFileSystemRepository: TimestampBasedFileSystemRepository,
     private val testDataFilesystemRepository: TestDataFilesystemRepository,
@@ -47,7 +46,7 @@ class DownloadFilesController(
     /**
      * @return a list of files in [additionalToolsFileSystemRepository]
      */
-    @GetMapping("/list")
+    @GetMapping("/api/files/list")
     fun list(): List<FileInfo> = additionalToolsFileSystemRepository.getFilesList().map {
         FileInfo(
             it.name,
@@ -61,7 +60,7 @@ class DownloadFilesController(
      * @param fileInfo a FileInfo based on which a file should be located
      * @return [Mono] with file contents
      */
-    @GetMapping(value = ["/download"], produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
+    @GetMapping(value = ["/api/files/download"], produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
     fun download(@RequestBody fileInfo: FileInfo): Mono<ByteArrayResponse> = Mono.fromCallable {
         logger.info("Sending file ${fileInfo.name} to a client")
         ResponseEntity.ok().contentType(MediaType.APPLICATION_OCTET_STREAM).body(
@@ -83,7 +82,7 @@ class DownloadFilesController(
      * @param file a file to be uploaded
      * @return [Mono] with response
      */
-    @PostMapping(value = ["/upload"], consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
+    @PostMapping(value = ["/api/files/upload"], consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     fun upload(@RequestPart("file") file: Mono<FilePart>) =
             additionalToolsFileSystemRepository.saveFile(file).map { fileInfo ->
                 ResponseEntity.status(
@@ -102,7 +101,7 @@ class DownloadFilesController(
      * @throws ResponseStatusException if request is invalid or result cannot be returned
      */
     @Suppress("ThrowsCount", "UnsafeCallOnNullableType")
-    @PostMapping(value = ["/get-debug-info"])
+    @PostMapping(value = ["/api/files/get-debug-info"])
     fun getDebugInfo(
         @RequestBody testExecutionDto: TestExecutionDto,
     ): String {
@@ -129,7 +128,7 @@ class DownloadFilesController(
      * @param testResultDebugInfo additional info that should be stored
      * @return [Mono] with response
      */
-    @PostMapping(value = ["/debug-info"])
+    @PostMapping(value = ["/internal/files/debug-info"])
     @Suppress("UnsafeCallOnNullableType")
     fun uploadDebugInfo(@RequestParam("agentId") agentContainerId: String,
                         @RequestBody testResultDebugInfo: TestResultDebugInfo,

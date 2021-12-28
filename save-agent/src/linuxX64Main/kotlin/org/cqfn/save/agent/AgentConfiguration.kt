@@ -53,7 +53,7 @@ data class BackendConfig(
     val url: String,
     val additionalDataEndpoint: String = "internal/saveAgentVersion",
     val executionDataEndpoint: String = "internal/saveTestResult",
-    val filesEndpoint: String = "api/files",
+    val filesEndpoint: String = "internal/files",
 )
 
 /**
