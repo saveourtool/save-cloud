@@ -178,7 +178,7 @@ class SaveAgent(internal val config: AgentConfiguration,
                 pluginExecution.testResults.map { tr ->
                     val debugInfo = tr.toTestResultDebugInfo(report.testSuite, pluginExecution.plugin)
                     launch {
-                        // todo: launch on a dedicated thread (https://github.com/diktat-static-analysis/save-cloud/issues/315)
+                        // todo: launch on a dedicated thread (https://github.com/analysis-dev/save-cloud/issues/315)
                         logDebugCustom("Posting debug info for test ${debugInfo.testResultLocation}")
                         sendDataToBackend {
                             sendReport(debugInfo)

@@ -44,7 +44,7 @@ class WebSecurityConfig(
                 .authenticated()
         }
         .and().run {
-            // FixMe: Properly support CSRF protection https://github.com/diktat-static-analysis/save-cloud/issues/34
+            // FixMe: Properly support CSRF protection https://github.com/analysis-dev/save-cloud/issues/34
             csrf().disable()
         }
         .addFilterBefore(
