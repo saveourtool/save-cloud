@@ -22,8 +22,7 @@ class ConvertingAuthenticationManager : ReactiveAuthenticationManager {
 
     override fun authenticate(authentication: Authentication): Mono<Authentication> = if (authentication is UsernamePasswordAuthenticationToken) {
         val identitySource = (authentication.details as Map<*, *>)["identitySource"] as String?
-        requireNotNull(identitySource) { "Identity source should be provided for all authorized requests in backend" }
-        if (!authentication.name.startsWith("$identitySource:")) {
+        if (identitySource == null || !authentication.name.startsWith("$identitySource:")) {
             throw BadCredentialsException(authentication.name)
         }
         val name = authentication.name.drop(identitySource.length + 1)
