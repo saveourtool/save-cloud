@@ -18,6 +18,7 @@ import org.cqfn.save.frontend.utils.apiUrl
 import org.cqfn.save.frontend.utils.get
 import org.cqfn.save.frontend.utils.post
 import org.cqfn.save.frontend.utils.runErrorModal
+import org.cqfn.save.info.UserInfo
 
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.HTMLTextAreaElement
@@ -38,7 +39,6 @@ import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.cqfn.save.info.UserInfo
 
 /**
  * [RState] of project creation view component
@@ -85,6 +85,9 @@ external interface ProjectSaveViewState : State {
     var gitConnectionCheckingStatus: GitConnectionStatusEnum?
 }
 
+/**
+ * State of ProjectView component
+ */
 external interface ProjectSaveViewProps : PropsWithChildren {
     /**
      * Currently logged in user or null

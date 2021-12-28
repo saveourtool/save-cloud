@@ -29,7 +29,7 @@ class TestSuitesService(
      * @param testSuitesDto test suites, that should be checked and possibly saved
      * @return list of *all* TestSuites
      */
-    @Suppress("UnsafeCallOnNullableType")
+    @Suppress("TOO_MANY_LINES_IN_LAMBDA", "UnsafeCallOnNullableType")
     fun saveTestSuite(testSuitesDto: List<TestSuiteDto>): List<TestSuite> {
         val testSuites = testSuitesDto
             .distinctBy {
@@ -42,7 +42,7 @@ class TestSuitesService(
                     type = it.type,
                     name = it.name,
                     description = it.description,
-                    project = it.project?.let { projectRepository.findById(it.id).get() },
+                    project = it.project,
                     dateAdded = null,
                     testRootPath = it.testRootPath,
                     testSuiteRepoUrl = it.testSuiteRepoUrl,

@@ -22,6 +22,7 @@ expect annotation class GeneratedValue()
 
 @OptIn(ExperimentalMultiplatform::class)
 @OptionalExpectation
+@Suppress("KDOC_NO_CONSTRUCTOR_PROPERTY", "LongParameterList")
 expect annotation class JoinColumn(
     val name: String,
     val referencedColumnName: String,

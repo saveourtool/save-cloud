@@ -20,6 +20,7 @@ import javax.persistence.ManyToOne
  * @property endTime finish time
  * @property missingWarnings missing warnings
  * @property matchedWarnings matched warnings
+ * @property user
  */
 @Entity
 @Suppress("LongParameterList")

@@ -2,7 +2,6 @@ package org.cqfn.save.preprocessor.service
 
 import org.cqfn.save.core.config.TestConfig
 import org.cqfn.save.entities.Project
-import org.cqfn.save.entities.ProjectStatus
 import org.cqfn.save.entities.TestSuite
 import org.cqfn.save.preprocessor.config.ConfigProperties
 import org.cqfn.save.testsuite.TestSuiteType

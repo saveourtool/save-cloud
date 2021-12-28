@@ -19,7 +19,7 @@ class GitService(private val gitRepository: GitRepository) {
 
     /**
      * @param gitDto
-     * @param project
+     * @param projectId associate Git with this project
      * @return saved git dto
      */
     fun saveGit(gitDto: GitDto, projectId: Long) = gitRepository.save(
