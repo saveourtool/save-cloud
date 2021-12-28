@@ -37,7 +37,7 @@ services:
   backend:
     image: ghcr.io/diktat-static-analysis/save-backend:{{project.version}}
     environment:
-      - "SPRING_PROFILES_ACTIVE={{profile}}"
+      - "SPRING_PROFILES_ACTIVE={{profile}},secure"
       - "MYSQL_USER=/run/secrets/db_username"
       - "MYSQL_PASSWORD_FILE=/run/secrets/db_password"
     secrets:

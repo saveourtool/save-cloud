@@ -26,4 +26,16 @@
                     tableName="user" />
         </rollback>
     </changeSet>
+
+    <changeSet id="user-identity-source" author="petertrr" context="dev or prod">
+        <addColumn tableName="user">
+            <column name="source" type="varchar(64)">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="user-unique-name" author="petertrr" context="dev or prod">
+        <addUniqueConstraint tableName="user" columnNames="name,source"/>
+    </changeSet>
 </databaseChangeLog>
