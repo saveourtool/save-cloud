@@ -75,6 +75,10 @@ rootProject.plugins.withType(NodeJsRootPlugin::class.java) {
     rootProject.the<NodeJsRootExtension>().versions.webpackCli
         .version = "4.9.0"
 }
+// store yarn.lock in the root directory
+rootProject.extensions.configure<org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension> {
+    lockFileDirectory = rootProject.projectDir
+}
 
 // generate kotlin file with project version to include in web page
 val generateVersionFileTaskProvider = tasks.register("generateVersionFile") {
