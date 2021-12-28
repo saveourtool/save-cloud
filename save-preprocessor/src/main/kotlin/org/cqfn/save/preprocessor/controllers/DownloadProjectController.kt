@@ -361,7 +361,7 @@ class DownloadProjectController(
             moveFileWithAttributes(it, tmpDir)
         }
         val project = executionRequestForStandardSuites.project
-        // TODO: Save the proper version https://github.com/diktat-static-analysis/save-cloud/issues/321
+        // TODO: Save the proper version https://github.com/analysis-dev/save-cloud/issues/321
         val version = files.first().name
         return updateExecution(
             executionRequestForStandardSuites.project,
