@@ -78,7 +78,7 @@ fun Project.configureSpringBoot(withSpringDataJpa: Boolean = false) {
     }
 
     tasks.named<BootBuildImage>("bootBuildImage") {
-        imageName = "ghcr.io/diktat-static-analysis/${project.name}:${project.versionForDockerImages()}"
+        imageName = "ghcr.io/analysis-dev/${project.name}:${project.versionForDockerImages()}"
         environment = mapOf(
             "BP_JVM_VERSION" to Versions.jdk,
             "BPE_DELIM_JAVA_TOOL_OPTIONS" to " ",
@@ -91,7 +91,7 @@ fun Project.configureSpringBoot(withSpringDataJpa: Boolean = false) {
         if (isPublish) {
             docker {
                 publishRegistry {
-                    username = "diktat-static-analysis"
+                    username = "analysis-dev"
                     password = registryPassword
                     url = "https://ghcr.io"
                 }

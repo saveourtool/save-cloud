@@ -104,13 +104,13 @@ fun topBar() = fc<TopBarProps> { props ->
             li("nav-item") {
                 a(classes = "nav-link d-flex align-items-center me-2 active") {
                     attrs["aria-current"] = "Unified SAVE Format"
-                    attrs.href = "https://github.com/diktat-static-analysis/save"
+                    attrs.href = "https://github.com/analysis-dev/save"
                     +"Spec"
                 }
             }
             li("nav-item") {
                 a(classes = "nav-link me-2") {
-                    attrs.href = "https://github.com/diktat-static-analysis/save-cloud"
+                    attrs.href = "https://github.com/analysis-dev/save-cloud"
                     +"GitHub"
                 }
             }
@@ -122,7 +122,7 @@ fun topBar() = fc<TopBarProps> { props ->
             }
             li("nav-item") {
                 a(classes = "nav-link me-2") {
-                    attrs.href = "https://github.com/diktat-static-analysis/save-cloud"
+                    attrs.href = "https://github.com/analysis-dev/save-cloud"
                     i("fa fa-user opacity-6 text-dark me-1") {
                         attrs["aria-hidden"] = "true"
                     }
