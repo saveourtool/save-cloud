@@ -45,6 +45,7 @@ import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.createTempDirectory
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.cqfn.save.entities.User
 
 @WebFluxTest(controllers = [AgentsController::class])
 @Import(AgentService::class, Beans::class)
@@ -75,7 +76,7 @@ class AgentsControllerTest {
 
     @Test
     fun `should build image, query backend and start containers`() {
-        val project = Project("Huawei", "huaweiName", "huaweiUrl", "description", ProjectStatus.CREATED)
+        val project = Project("Huawei", "huaweiName", "huaweiUrl", "description", ProjectStatus.CREATED, user = User("user", null, null, "basic"))
         val execution = Execution(project, stubTime, stubTime, ExecutionStatus.PENDING, "stub",
             "stub", 20, ExecutionType.GIT, "0.0.1", 0, 0, 0, 0, Sdk.Default.toString(), null).apply {
             id = 42L
@@ -109,7 +110,7 @@ class AgentsControllerTest {
 
     @Test
     fun checkPostResponseIsNotOk() {
-        val project = Project("Huawei", "huaweiName", "huaweiUrl", "description", ProjectStatus.CREATED)
+        val project = Project("Huawei", "huaweiName", "huaweiUrl", "description", ProjectStatus.CREATED, user = User("user", null, null, "basic"))
         val execution = Execution(project, stubTime, stubTime, ExecutionStatus.RUNNING, "stub",
             "stub", 20, ExecutionType.GIT, "0.0.1", 0, 0, 0, 0, Sdk.Default.toString(), null)
         val bodyBuilder = MultipartBodyBuilder().apply {

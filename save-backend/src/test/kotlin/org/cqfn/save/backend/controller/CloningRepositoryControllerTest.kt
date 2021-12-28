@@ -23,16 +23,16 @@ import org.cqfn.save.entities.ExecutionRequestForStandardSuites
 import org.cqfn.save.entities.GitDto
 import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.ProjectStatus
+import org.cqfn.save.entities.User
 
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
-import org.cqfn.save.entities.User
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.io.TempDir
-import org.mockito.Mockito
+import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
@@ -72,6 +72,16 @@ import kotlin.io.path.createFile
 )
 @Suppress("TOO_LONG_FUNCTION")
 class CloningRepositoryControllerTest {
+    private val testProject = Project(
+        owner = "Huawei",
+        name = "huaweiName",
+        url = "huawei.com",
+        description = "test description",
+        status = ProjectStatus.CREATED,
+        user = User("John Doe", null, null, "basic")
+    ).apply {
+        id = 1
+    }
     @Autowired private lateinit var fileSystemRepository: TimestampBasedFileSystemRepository
 
     @Autowired
@@ -84,6 +94,9 @@ class CloningRepositoryControllerTest {
     @BeforeEach
     fun webClientSetUp() {
         webTestClient.mutate().responseTimeout(Duration.ofSeconds(2)).build()
+
+        whenever(projectService.findByNameAndOwner("huaweiName", "Huawei"))
+            .thenReturn(testProject)
     }
 
     @Test
@@ -94,15 +107,9 @@ class CloningRepositoryControllerTest {
                 .setBody("Clone pending")
                 .addHeader("Content-Type", "application/json")
         )
-        val project = Project("Huawei", "huaweiName", "huawei.com", "test description", ProjectStatus.CREATED, user = User("John Doe", null, null)).apply {
-            id = 1
-        }
-        Mockito
-            .`when`(projectService.findByNameAndOwner("huaweiName", "Huawei"))
-            .thenReturn(project)
         val sdk = Jdk("8")
         val gitRepo = GitDto("1")
-        val executionRequest = ExecutionRequest(project.toDto(), gitRepo, sdk = sdk, executionId = null, testRootPath = ".")
+        val executionRequest = ExecutionRequest(testProject.toDto(), gitRepo, sdk = sdk, executionId = null, testRootPath = ".")
         val multipart = MultipartBodyBuilder().apply {
             part("executionRequest", executionRequest)
         }
@@ -129,11 +136,8 @@ class CloningRepositoryControllerTest {
         fileSystemRepository.saveFile(binFile)
         fileSystemRepository.saveFile(property)
 
-        val project = Project("Huawei", "huaweiName", "huawei.com", "test description", ProjectStatus.CREATED, user = User("John Doe", null, null)).apply {
-            id = 1
-        }
         val sdk = Jdk("8")
-        val request = ExecutionRequestForStandardSuites(project.toDto(), emptyList(), sdk)
+        val request = ExecutionRequestForStandardSuites(testProject.toDto(), emptyList(), sdk)
         val bodyBuilder = MultipartBodyBuilder()
         bodyBuilder.part("execution", request)
         bodyBuilder.part("file", property.toFileInfo())
@@ -145,9 +149,6 @@ class CloningRepositoryControllerTest {
                 .setBody("Clone pending")
                 .addHeader("Content-Type", "application/json")
         )
-        Mockito
-            .`when`(projectService.findByNameAndOwner("huaweiName", "Huawei"))
-            .thenReturn(project)
 
         webTestClient.post()
             .uri("/api/executionRequestStandardTests")

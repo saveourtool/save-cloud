@@ -14,6 +14,7 @@ import com.github.dockerjava.api.async.ResultCallback
 import com.github.dockerjava.api.model.Frame
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
+import org.cqfn.save.entities.User
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -58,7 +59,7 @@ class DockerServiceTest {
     @Suppress("UnsafeCallOnNullableType")
     fun `should create a container with save agent and test resources and start it`() {
         // build base image
-        val project = Project("Huawei", "huaweiName", "huaweiUrl", "description", ProjectStatus.CREATED)
+        val project = Project("Huawei", "huaweiName", "huaweiUrl", "description", ProjectStatus.CREATED, user = User("user", null, null, "basic"))
         val testExecution = Execution(project, LocalDateTime.now(), LocalDateTime.now(), ExecutionStatus.PENDING, "1",
             "foo", 20, ExecutionType.GIT, "0.0.1", 0, 0, 0, 0, Sdk.Default.toString(), null).apply {
             id = 42L
