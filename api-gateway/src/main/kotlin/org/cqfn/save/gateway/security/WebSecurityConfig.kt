@@ -24,11 +24,11 @@ import org.springframework.security.web.server.SecurityWebFilterChain
 import org.springframework.security.web.server.authentication.DelegatingServerAuthenticationSuccessHandler
 import org.springframework.security.web.server.authentication.HttpStatusServerEntryPoint
 import org.springframework.security.web.server.authentication.RedirectServerAuthenticationSuccessHandler
+import org.springframework.security.web.server.authentication.logout.HttpStatusReturningServerLogoutSuccessHandler
+import org.springframework.security.web.server.authorization.AuthorizationContext
 import org.springframework.security.web.server.util.matcher.AndServerWebExchangeMatcher
 import org.springframework.security.web.server.util.matcher.NegatedServerWebExchangeMatcher
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers
-import org.springframework.security.web.server.authentication.logout.HttpStatusReturningServerLogoutSuccessHandler
-import org.springframework.security.web.server.authorization.AuthorizationContext
 
 @EnableWebFluxSecurity
 @Suppress(
@@ -36,6 +36,7 @@ import org.springframework.security.web.server.authorization.AuthorizationContex
     "MISSING_KDOC_CLASS_ELEMENTS",
     "MISSING_KDOC_ON_FUNCTION",
     "TOO_LONG_FUNCTION",
+    "TOO_MANY_LINES_IN_LAMBDA",
 )
 class WebSecurityConfig(
     private val configurationProperties: ConfigurationProperties,
@@ -52,11 +53,9 @@ class WebSecurityConfig(
                 ServerWebExchangeMatchers.pathMatchers("/actuator", "/actuator/**")
             )
         )
-    )
-        .run {
-            authorizeExchange()
-            // this is default data that is required by FE to operate properly
-            .pathMatchers("/", "/login", "/logout", "/sec/oauth-providers")
+    ).authorizeExchange { authorizeExchangeSpec ->
+        // this is default data that is required by FE to operate properly
+        authorizeExchangeSpec.pathMatchers("/", "/login", "/logout", "/sec/oauth-providers")
             .permitAll()
             // all requests to backend are permitted on gateway, if user agent is authenticated in gateway or doesn't have
             // any authentication data at all.
@@ -81,7 +80,7 @@ class WebSecurityConfig(
             .pathMatchers("/*.html", "/*.js*", "img/**")
             .permitAll()
     }
-        .and().run {
+        .run {
             authorizeExchange()
                 .pathMatchers("/**")
                 .authenticated()
