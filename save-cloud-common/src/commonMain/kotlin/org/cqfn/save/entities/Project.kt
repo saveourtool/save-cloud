@@ -24,18 +24,7 @@ data class Project(
     @Enumerated(EnumType.STRING)
     var status: ProjectStatus,
     var public: Boolean = true,
-    @ManyToOne
-    @JoinColumn(
-        name = "user_id",
-        columnDefinition = "",
-        referencedColumnName = "",
-        unique = false,
-        nullable = false,
-        insertable = false,
-        updatable = false,
-        table = "",
-        foreignKey = ForeignKey()
-    )
+    /* no automatic mapping here */
     var userId: Long,
     var adminIds: String?,
 ) {
