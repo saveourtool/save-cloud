@@ -10,6 +10,6 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class NewProjectDto(
-    val project: ProjectDto,
+    val project: Project,
     val gitDto: GitDto?
 )

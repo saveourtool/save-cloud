@@ -50,7 +50,7 @@ class TestSuite(
                 this.type,
                 this.name,
                 this.description,
-                this.project?.toDto(),
+                this.project,
                 this.testRootPath,
                 this.testSuiteRepoUrl,
                 this.language,

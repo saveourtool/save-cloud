@@ -4,7 +4,7 @@
 
 package org.cqfn.save.frontend.utils
 
-import org.cqfn.save.entities.ProjectDto
+import org.cqfn.save.entities.Project
 
 import org.w3c.fetch.Headers
 import org.w3c.fetch.RequestCredentials
@@ -98,4 +98,4 @@ suspend fun getProject(name: String, owner: String) =
         get("$apiUrl/getProject?name=$name&owner=$owner", Headers().apply {
             set("Accept", "application/json")
         })
-            .decodeFromJsonString<ProjectDto>()
+            .decodeFromJsonString<Project>()

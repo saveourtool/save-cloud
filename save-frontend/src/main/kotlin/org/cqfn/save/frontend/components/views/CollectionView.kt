@@ -2,7 +2,7 @@
 
 package org.cqfn.save.frontend.components.views
 
-import org.cqfn.save.entities.ProjectDto
+import org.cqfn.save.entities.Project
 import org.cqfn.save.frontend.components.basic.privacySpan
 import org.cqfn.save.frontend.components.tables.tableComponent
 import org.cqfn.save.frontend.utils.apiUrl
@@ -38,7 +38,7 @@ class CollectionView : AbstractView<PropsWithChildren, State>(false) {
             }
         }
         child(tableComponent(
-            columns = columns<ProjectDto> {
+            columns = columns<Project> {
                 column(id = "owner", header = "Project Owner", { owner }) {
                     buildElement {
                         td {
@@ -83,7 +83,7 @@ class CollectionView : AbstractView<PropsWithChildren, State>(false) {
                 },
             )
                 .unsafeMap {
-                    it.decodeFromJsonString<Array<ProjectDto>>()
+                    it.decodeFromJsonString<Array<Project>>()
                 }
         }) { }
     }
