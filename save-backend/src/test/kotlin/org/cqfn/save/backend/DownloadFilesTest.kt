@@ -160,7 +160,7 @@ class DownloadFilesTest {
         whenever(agentRepository.findByContainerId("container-1"))
             .thenReturn(Agent("container-1", execution, "0.0.1"))
 
-        webTestClient.post().uri("/api/files/debug-info?agentId=container-1")
+        webTestClient.post().uri("/internal/files/debug-info?agentId=container-1")
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(
                 TestResultDebugInfo(

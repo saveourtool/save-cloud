@@ -21,7 +21,7 @@ spring:
           filters:
             # If SESSION cookie is passed to downstream, it is then removed, because downstream discards it
             - RemoveRequestHeader=Cookie
-            - TokenRelay=
+            - ConvertAuthorizationHeader=
         - id: index_route
           uri: http://backend:5000/index.html
           predicates:
@@ -32,7 +32,7 @@ spring:
         - id: resource_route
           uri: http://backend:5000
           predicates:
-            - Path=/*.html,/*.js*,/img/**,/*.gif,/*.svg
+            - Path=/*.html,/*.js*,/img/**
           filters:
             # If SESSION cookie is passed to downstream, it is then removed, because downstream discards it
             - RemoveRequestHeader=Cookie
@@ -40,3 +40,11 @@ spring:
           uri: http://grafana:9100
           predicates:
             - Path=/grafana/**
+  security:
+    oauth2:
+      client:
+        provider:
+          github:
+            # value that will work with GitHub API, where GitHub provides username as "login" in the response
+            # https://docs.github.com/en/rest/reference/users#get-the-authenticated-user
+            user-name-attribute: login
