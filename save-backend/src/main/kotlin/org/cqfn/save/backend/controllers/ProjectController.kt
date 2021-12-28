@@ -6,7 +6,6 @@ import org.cqfn.save.domain.ProjectSaveStatus
 import org.cqfn.save.entities.GitDto
 import org.cqfn.save.entities.NewProjectDto
 import org.cqfn.save.entities.Project
-import org.cqfn.save.entities.ProjectDto
 import org.slf4j.LoggerFactory
 
 import org.springframework.beans.factory.annotation.Autowired
@@ -92,8 +91,8 @@ class ProjectController {
      * @return response
      */
     @PostMapping("/updateProject")
-    fun updateProject(@RequestBody projectDto: ProjectDto): ResponseEntity<String> {
-        val (_, projectStatus) = projectService.saveProject(projectDto)
+    fun updateProject(@RequestBody project: Project): ResponseEntity<String> {
+        val (_, projectStatus) = projectService.saveProject(project)
         return ResponseEntity.status(HttpStatus.OK).body(projectStatus.message)
     }
 

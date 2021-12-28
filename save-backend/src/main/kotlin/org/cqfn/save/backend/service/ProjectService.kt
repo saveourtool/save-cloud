@@ -4,7 +4,6 @@ import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.repository.UserRepository
 import org.cqfn.save.domain.ProjectSaveStatus
 import org.cqfn.save.entities.Project
-import org.cqfn.save.entities.ProjectDto
 import org.cqfn.save.entities.ProjectStatus
 import org.springframework.data.domain.Example
 import org.springframework.data.domain.ExampleMatcher
@@ -26,12 +25,7 @@ class ProjectService(private val projectRepository: ProjectRepository,
      * @param project a [Project] to store
      * @return project's id, should never return null
      */
-    fun saveProject(projectDto: ProjectDto): Pair<Long, ProjectSaveStatus> {
-        val project = Project.fromDto(projectDto).apply {
-            user = userRepository.findByName(projectDto.username).orElseThrow {
-                IllegalArgumentException("Attempt to create a project for a non existing user ${projectDto.username}")
-            }
-        }
+    fun saveProject(project: Project): Pair<Long, ProjectSaveStatus> {
         val exampleMatcher = ExampleMatcher.matchingAll()
             .withMatcher("name", ExampleMatcher.GenericPropertyMatchers.exact())
             .withMatcher("owner", ExampleMatcher.GenericPropertyMatchers.exact())

@@ -78,7 +78,8 @@ class CloningRepositoryControllerTest {
         url = "huawei.com",
         description = "test description",
         status = ProjectStatus.CREATED,
-        user = User("John Doe", null, null, "basic")
+        userId = 1,
+        adminIds = null,
     ).apply {
         id = 1
     }
@@ -109,7 +110,7 @@ class CloningRepositoryControllerTest {
         )
         val sdk = Jdk("8")
         val gitRepo = GitDto("1")
-        val executionRequest = ExecutionRequest(testProject.toDto(), gitRepo, sdk = sdk, executionId = null, testRootPath = ".")
+        val executionRequest = ExecutionRequest(testProject, gitRepo, sdk = sdk, executionId = null, testRootPath = ".")
         val multipart = MultipartBodyBuilder().apply {
             part("executionRequest", executionRequest)
         }
@@ -137,7 +138,7 @@ class CloningRepositoryControllerTest {
         fileSystemRepository.saveFile(property)
 
         val sdk = Jdk("8")
-        val request = ExecutionRequestForStandardSuites(testProject.toDto(), emptyList(), sdk)
+        val request = ExecutionRequestForStandardSuites(testProject, emptyList(), sdk)
         val bodyBuilder = MultipartBodyBuilder()
         bodyBuilder.part("execution", request)
         bodyBuilder.part("file", property.toFileInfo())

@@ -54,7 +54,7 @@ class TestDiscoveringServiceTest {
     @Test
     fun `should discover test suites`() {
         val testSuites = testDiscoveringService.getAllTestSuites(
-            Project("stub", "stub", "stub", null, ProjectStatus.CREATED),
+            Project.stub(null),
             rootTestConfig,
             propertiesRelativePath,
             "not-provided"
@@ -69,7 +69,7 @@ class TestDiscoveringServiceTest {
     fun `should throw exception with invalid path for test suites discovering`() {
         assertThrows<IllegalArgumentException> {
             testDiscoveringService.getAllTestSuites(
-                Project("stub", "stub", "stub", null, ProjectStatus.CREATED),
+                Project.stub(null),
                 testDiscoveringService.getRootTestConfig(tmpDir.resolve("buildSrc").toString()),
                 propertiesRelativePath,
                 "not-provided"

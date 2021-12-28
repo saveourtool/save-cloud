@@ -64,7 +64,7 @@ class TestSuitesControllerTest {
             TestSuiteType.PROJECT,
             "test",
             null,
-            project.toDto(),
+            project,
             "save.properties"
         )
 
@@ -74,7 +74,7 @@ class TestSuitesControllerTest {
                     val body = it.responseBody!!
                     assertEquals(listOf(testSuite).size, body.size)
                     assertEquals(testSuite.name, body[0].name)
-                    assertEquals(testSuite.project, body[0].project?.toDto())
+                    assertEquals(testSuite.project, body[0].project)
                     assertEquals(testSuite.type, body[0].type)
                 }
         }
@@ -87,7 +87,7 @@ class TestSuitesControllerTest {
             TestSuiteType.PROJECT,
             "test",
             null,
-            project.toDto(),
+            project,
             "save.properties"
         )
 
@@ -106,7 +106,7 @@ class TestSuitesControllerTest {
             TestSuiteType.PROJECT,
             "test",
             null,
-            project.toDto(),
+            project,
             "save.properties"
         )
         saveTestSuites(listOf(testSuite)) {
@@ -119,7 +119,7 @@ class TestSuitesControllerTest {
             TestSuiteType.PROJECT,
             "test2",
             null,
-            project.toDto(),
+            project,
             "save.properties"
         )
         saveTestSuites(listOf(testSuite, testSuite2)) {
@@ -145,7 +145,7 @@ class TestSuitesControllerTest {
             TestSuiteType.STANDARD,
             "tester",
             null,
-            project.toDto(),
+            project,
             "save.properties"
         )
         saveTestSuites(listOf(testSuite)) {
@@ -174,7 +174,7 @@ class TestSuitesControllerTest {
             TestSuiteType.STANDARD,
             name,
             null,
-            project.toDto(),
+            project,
             "save.properties"
         )
         saveTestSuites(listOf(testSuite)) {

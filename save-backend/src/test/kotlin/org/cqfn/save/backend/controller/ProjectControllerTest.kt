@@ -8,7 +8,6 @@ import org.cqfn.save.backend.utils.MySqlExtension
 import org.cqfn.save.entities.GitDto
 import org.cqfn.save.entities.NewProjectDto
 import org.cqfn.save.entities.Project
-import org.cqfn.save.entities.ProjectDto
 import org.cqfn.save.entities.ProjectStatus
 
 import org.junit.jupiter.api.Assertions
@@ -98,10 +97,11 @@ class ProjectControllerTest {
     fun `check save new project`() {
         val gitDto = GitDto("qweqwe")
         // `project` references an existing user from test data
-        val project = ProjectDto(-1, "I", "Name", "uurl", "nullsss", ProjectStatus.CREATED, username = "John Doe")
+        val project = Project("I", "Name", "uurl", "nullsss", ProjectStatus.CREATED, userId = 2, adminIds = null)
         val newProject = NewProjectDto(
             project,
-            gitDto
+            gitDto,
+            "John Doe",
         )
         webClient
             .post()

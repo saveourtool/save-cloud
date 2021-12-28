@@ -7,12 +7,12 @@ import org.cqfn.save.backend.utils.MySqlExtension
 import org.cqfn.save.domain.Jdk
 import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.GitDto
-import org.cqfn.save.entities.ProjectDto
 import org.cqfn.save.entities.ProjectStatus
 import org.cqfn.save.execution.ExecutionType
 
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
+import org.cqfn.save.entities.Project
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -57,7 +57,7 @@ class CloneRepoTest {
         )
         val project = projectRepository.findAll().first()
         val gitRepo = GitDto("1")
-        val executionRequest = ExecutionRequest(project.toDto(), gitRepo, executionId = null, sdk = sdk, testRootPath = ".")
+        val executionRequest = ExecutionRequest(project, gitRepo, executionId = null, sdk = sdk, testRootPath = ".")
         val multipart = MultipartBodyBuilder().apply {
             part("executionRequest", executionRequest)
         }
@@ -82,7 +82,7 @@ class CloneRepoTest {
     @Test
     fun checkNonExistingProject() {
         val sdk = Jdk("11")
-        val project = ProjectDto(-1, "noname", "1", "1", "1", ProjectStatus.CREATED, username = "noname")
+        val project = Project.stub(null)
         val gitRepo = GitDto("1")
         val executionRequest = ExecutionRequest(project, gitRepo, executionId = null, sdk = sdk, testRootPath = ".")
         val executionsClones = listOf(executionRequest, executionRequest, executionRequest)

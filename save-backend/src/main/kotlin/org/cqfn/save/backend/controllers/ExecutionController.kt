@@ -204,7 +204,7 @@ class ExecutionController(private val executionService: ExecutionService,
 
         executionService.resetMetrics(execution)
         val executionRequest = ExecutionRequest(
-            project = execution.project.toDto(),
+            project = execution.project,
             gitDto = git.copy(hash = execution.version),
             testRootPath = testRootPath,
             sdk = execution.sdk.toSdk(),

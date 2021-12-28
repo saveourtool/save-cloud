@@ -11,5 +11,6 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class NewProjectDto(
     val project: Project,
-    val gitDto: GitDto?
+    val gitDto: GitDto?,
+    val username: String,
 )

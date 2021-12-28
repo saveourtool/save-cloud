@@ -11,7 +11,7 @@ import kotlinx.serialization.Serializable
  * @property description description of the project, may be absent
  * @property status status of project
  * @property public
- * @property user the user that has created this project
+ * @property userId the user that has created this project
  * @property adminIds comma-separated list of IDs of users that are admins of this project
  */
 @Entity
@@ -24,6 +24,20 @@ data class Project(
     @Enumerated(EnumType.STRING)
     var status: ProjectStatus,
     var public: Boolean = true,
+    @ManyToOne
+    @JoinColumn(
+        name = "user_id",
+        columnDefinition = "",
+        referencedColumnName = "",
+        unique = false,
+        nullable = false,
+        insertable = false,
+        updatable = false,
+        table = "",
+        foreignKey = ForeignKey()
+    )
+    var userId: Long,
+    var adminIds: String?,
 ) {
     /**
      * id of project
@@ -31,4 +45,18 @@ data class Project(
     @Id
     @GeneratedValue
     var id: Long? = null
+
+    companion object {
+        fun stub(id: Long?) = Project(
+            name = "stub",
+            owner = "stub",
+            url = null,
+            description = null,
+            status = ProjectStatus.CREATED,
+            userId = -1,
+            adminIds = null,
+        ).apply {
+            this.id = id
+        }
+    }
 }

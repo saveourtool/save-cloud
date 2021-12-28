@@ -186,7 +186,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     private var standardTestSuites: List<TestSuiteDto> = emptyList()
     private val selectedStandardSuites: MutableList<String> = mutableListOf()
     private var gitDto: GitDto? = null
-    private var project = Project("N/A", "N/A", "N/A", "N/A", ProjectStatus.CREATED)
+    private var project = Project("N/A", "N/A", "N/A", "N/A", ProjectStatus.CREATED, userId = -1, adminIds = null)
     private val projectInformation = mutableMapOf(
         "Tested tool name: " to "",
         "Description: " to "",
