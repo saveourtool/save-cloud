@@ -20,6 +20,13 @@
             <column name="role" value="USER" />
             <column name="source" value="basic"/>
         </insert>
+        <insert dbms="mysql" tableName="user">
+            <column name="id" value="3" />
+            <column name="name" value="user" />
+            <column name="password" value="{noop}123" />
+            <column name="role" value="USER" />
+            <column name="source" value="basic"/>
+        </insert>
     </changeSet>
 
 </databaseChangeLog>

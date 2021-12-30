@@ -6,9 +6,19 @@ package org.cqfn.save.backend.configs
 
 import org.cqfn.save.backend.utils.ConvertingAuthenticationManager
 import org.cqfn.save.backend.utils.CustomAuthenticationBasicConverter
+import org.cqfn.save.domain.Role
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
+import org.springframework.security.access.expression.method.ExpressionBasedPostInvocationAdvice
+import org.springframework.security.access.expression.method.ExpressionBasedPreInvocationAdvice
+import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler
+import org.springframework.security.access.hierarchicalroles.RoleHierarchy
+import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl
+import org.springframework.security.access.hierarchicalroles.RoleHierarchyUtils
+import org.springframework.security.access.method.AbstractMethodSecurityMetadataSource
+import org.springframework.security.access.prepost.PrePostAdviceReactiveMethodInterceptor
+import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity
 import org.springframework.security.config.web.server.SecurityWebFiltersOrder
 import org.springframework.security.config.web.server.ServerHttpSecurity
@@ -19,6 +29,8 @@ import org.springframework.security.web.server.authentication.AuthenticationWebF
 import org.springframework.security.web.server.authentication.HttpStatusServerEntryPoint
 
 @EnableWebFluxSecurity
+@EnableReactiveMethodSecurity
+//@EnableGlobalMethodSecurity(prePostEnabled = true)
 @Profile("secure")
 @Suppress("MISSING_KDOC_TOP_LEVEL", "MISSING_KDOC_CLASS_ELEMENTS", "MISSING_KDOC_ON_FUNCTION")
 class WebSecurityConfig(
@@ -78,6 +90,16 @@ class NoopWebSecurityConfig {
         .disable()
         .build()
 }
+
+@Bean
+fun roleHierarchy(): RoleHierarchy = mapOf(
+        Role.ADMIN.asSpringSecurityRole() to listOf(Role.PROJECT_OWNER.asSpringSecurityRole()),
+        Role.PROJECT_OWNER.asSpringSecurityRole() to listOf(Role.PROJECT_ADMIN.asSpringSecurityRole()),
+        Role.PROJECT_ADMIN.asSpringSecurityRole() to listOf(Role.VIEWER.asSpringSecurityRole()),
+    ).let(RoleHierarchyUtils::roleHierarchyFromMap)
+    .let {
+        RoleHierarchyImpl().apply { setHierarchy(it) }
+    }
 
 /**
  * @return a bean with default [PasswordEncoder], that can be used throughout the application
