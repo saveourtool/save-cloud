@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PostFilter
 import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -34,12 +35,16 @@ class ProjectController {
     private lateinit var gitService: GitService
 
     /**
-     * Get all projects.
+     * Get all projects, including deleted and private. Only accessible for admins.
      *
      * @return a list of projects
      */
-    @GetMapping("/projects")
+    @GetMapping("/projects/all")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     fun getProjects() = projectService.getProjects()
+
+    @GetMapping("/projects")
+    fun getProjects(authentication: Authentication) = projectService.getProjects(authentication.name)
 
     /**
      * Get all projects without status.

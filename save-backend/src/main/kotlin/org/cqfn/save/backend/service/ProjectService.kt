@@ -1,12 +1,16 @@
 package org.cqfn.save.backend.service
 
 import org.cqfn.save.backend.repository.ProjectRepository
+import org.cqfn.save.backend.repository.UserRepository
 import org.cqfn.save.domain.ProjectSaveStatus
 import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.ProjectStatus
 import org.springframework.data.domain.Example
 import org.springframework.data.domain.ExampleMatcher
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
+import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 
 /**
  * Service for project
@@ -14,7 +18,10 @@ import org.springframework.stereotype.Service
  * @property projectRepository
  */
 @Service
-class ProjectService(private val projectRepository: ProjectRepository) {
+class ProjectService(
+    private val projectRepository: ProjectRepository,
+    private val userRepository: UserRepository,
+) {
     /**
      * Store [project] in the database
      *
@@ -33,6 +40,20 @@ class ProjectService(private val projectRepository: ProjectRepository) {
         }
         requireNotNull(projectId) { "Should have gotten an ID for project from the database" }
         return Pair(projectId, projectSaveStatus)
+    }
+
+    @Transactional
+    fun getProjects(username: String): Flux<Project> {
+        return Mono.fromCallable {
+            userRepository.findByName(username).get()
+        }
+            .flatMapIterable { user ->
+                projectRepository.findAll().map { user to it }
+            }
+            .filter { (user, project) ->
+                project.public || project.userId == user.id!!
+            }
+            .map { (_, project) -> project }
     }
 
     /**
