@@ -5,6 +5,10 @@ plugins {
     kotlin("js")
 }
 
+rootProject.plugins.withType<org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin> {
+    rootProject.the<org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension>().nodeVersion = "17.3.0"
+}
+
 dependencies {
     implementation(projects.saveCloudCommon)
 
