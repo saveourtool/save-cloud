@@ -10,6 +10,9 @@ jobs:
   build_and_test_with_code_coverage:
     name: Build, test and upload code coverage
     runs-on: ubuntu-20.04
+    # https://github.com/webpack/webpack/issues/14532
+    env:
+      NODE_OPTIONS: --openssl-legacy-provider
 
     steps:
       - uses: actions/checkout@v2.4.0
@@ -45,9 +48,6 @@ jobs:
           sudo mv runsc containerd-shim-runsc-v1 /usr/local/bin
           sudo /usr/local/bin/runsc install
           sudo systemctl reload docker
-      - name: Setup enviroment (https://github.com/webpack/webpack/issues/14532)
-        run: |
-          export NODE_OPTIONS=--openssl-legacy-provider
       - uses: burrunan/gradle-cache-action@v1
         with:
           gradle-version: wrapper
