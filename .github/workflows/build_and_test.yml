@@ -10,9 +10,6 @@ jobs:
   build_and_test_with_code_coverage:
     name: Build, test and upload code coverage
     runs-on: ubuntu-20.04
-    # https://github.com/webpack/webpack/issues/14532
-    env:
-      NODE_OPTIONS: --openssl-legacy-provider
 
     steps:
       - uses: actions/checkout@v2.4.0
@@ -61,6 +58,7 @@ jobs:
           properties: |
             org.gradle.caching=true
             detekt.multiplatform.disabled=true
+
       - name: Upload gradle reports
         if: ${{ always() }}
         uses: actions/upload-artifact@v2
