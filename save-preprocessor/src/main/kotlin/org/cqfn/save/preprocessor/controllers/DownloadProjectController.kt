@@ -27,6 +27,8 @@ import org.cqfn.save.testsuite.TestSuiteType
 import org.cqfn.save.utils.moveFileWithAttributes
 
 import okio.FileSystem
+import org.cqfn.save.preprocessor.utils.cloneFromGit
+import org.cqfn.save.preprocessor.utils.generateDirectory
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.api.errors.GitAPIException
 import org.eclipse.jgit.api.errors.InvalidRemoteException
@@ -231,7 +233,7 @@ class DownloadProjectController(
             Flux.fromIterable(readStandardTestSuitesFile(configProperties.reposFileName)).flatMap { testSuiteRepoInfo ->
                 val testSuiteUrl = testSuiteRepoInfo.gitUrl
                 log.info("Starting clone repository url=$testSuiteUrl for standard test suites")
-                val tmpDir = generateDirectory(listOf(testSuiteUrl))
+                val tmpDir = generateDirectory(listOf(testSuiteUrl), configProperties.repository)
                 Mono.fromCallable {
                     if (user != null && token != null) {
                         cloneFromGit(GitDto(url = testSuiteUrl, username = user, password = token), tmpDir)
@@ -293,19 +295,6 @@ class DownloadProjectController(
             }
         }
 
-    private fun cloneFromGit(gitDto: GitDto, tmpDir: File): Git? {
-        val userCredentials = if (gitDto.username != null && gitDto.password != null) {
-            UsernamePasswordCredentialsProvider(gitDto.username, gitDto.password)
-        } else {
-            CredentialsProvider.getDefault()
-        }
-        return Git.cloneRepository()
-            .setURI(gitDto.url)
-            .setCredentialsProvider(userCredentials)
-            .setDirectory(tmpDir)
-            .call()
-    }
-
     @Suppress(
         "TYPE_ALIAS",
         "TOO_LONG_FUNCTION",
@@ -314,7 +303,7 @@ class DownloadProjectController(
     )
     private fun downLoadRepository(executionRequest: ExecutionRequest): Mono<Pair<String, String>> {
         val gitDto = executionRequest.gitDto
-        val tmpDir = generateDirectory(listOf(gitDto.url))
+        val tmpDir = generateDirectory(listOf(gitDto.url), configProperties.repository)
         return Mono.fromCallable {
             cloneFromGit(gitDto, tmpDir)?.use { git ->
                 val branchOrCommit = gitDto.branch ?: gitDto.hash
@@ -355,7 +344,7 @@ class DownloadProjectController(
         executionRequestForStandardSuites: ExecutionRequestForStandardSuites,
         files: List<File>,
     ): Mono<StatusResponse> {
-        val tmpDir = generateDirectory(calculateTmpNameForFiles(files))
+        val tmpDir = generateDirectory(calculateTmpNameForFiles(files), configProperties.repository)
         files.forEach {
             log.debug("Move $it into $tmpDir")
             moveFileWithAttributes(it, tmpDir)
@@ -390,32 +379,7 @@ class DownloadProjectController(
             }
     }
 
-    /**
-     * Create a temporary directory with name based on [seeds]
-     *
-     * @param seeds a list of strings for directory name creation
-     * @return a [File] representing the created temporary directory
-     */
-    @Suppress("TooGenericExceptionCaught")
-    internal fun generateDirectory(seeds: List<String>): File {
-        val tmpDir = getTmpDirName(seeds)
-        if (tmpDir.exists()) {
-            try {
-                if (FileSystemUtils.deleteRecursively(tmpDir.toPath())) {
-                    log.info("For $seeds: dir $tmpDir was deleted")
-                }
-            } catch (e: IOException) {
-                log.error("Couldn't properly delete $tmpDir", e)
-            }
-        }
-        try {
-            tmpDir.toPath().createDirectories()
-            log.info("For $seeds: dir $tmpDir was created")
-        } catch (e: Exception) {
-            log.error("Couldn't create directories for $tmpDir", e)
-        }
-        return tmpDir
-    }
+
 
     /**
      * Note: `testSuiteDtos != null` only if execution type is STANDARD
