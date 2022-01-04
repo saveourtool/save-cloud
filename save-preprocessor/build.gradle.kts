@@ -17,7 +17,6 @@ dependencies {
     implementation(libs.save.plugins.fixAndWarn.jvm)
     implementation(libs.jgit)
     implementation(libs.kotlinx.serialization.properties)
-    implementation("com.akuleshov7:ktoml-file:0.2.9")
     implementation(libs.ktoml.file)
     implementation(libs.ktoml.core)
 }
