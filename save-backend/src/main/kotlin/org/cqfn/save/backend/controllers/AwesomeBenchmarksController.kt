@@ -4,7 +4,6 @@ import org.cqfn.save.entities.benchmarks.BenchmarkEntity
 import org.cqfn.save.backend.service.AwesomeBenchmarksService
 import org.slf4j.LoggerFactory
 import org.springframework.web.bind.annotation.*
-import reactor.core.publisher.Flux
 
 @RestController
 class AwesomeBenchmarksController(
@@ -19,7 +18,7 @@ class AwesomeBenchmarksController(
         log.info("Saved requested awesome-benchmarks to the db")
     }
 
-    @GetMapping("/internal/awesome-benchmarks")
+    @GetMapping("/api/awesome-benchmarks")
     fun getAllAwesomeBenchmarks() =
         awesomeBenchmarksService.getAllBenchmarks()
 }

@@ -32,7 +32,7 @@ class WebSecurityConfig(
         // all `/internal/**` requests should be sent only from internal network
         // they are not proxied from gateway
         authorizeExchange()
-            .pathMatchers("/", "/api/projects/not-deleted", "/internal/**")
+            .pathMatchers("/", "/api/projects/not-deleted", "/api/awesome-benchmarks", "/internal/**")
             .permitAll()
             // resources for frontend
             .pathMatchers("/*.html", "/*.js*", "img/**")

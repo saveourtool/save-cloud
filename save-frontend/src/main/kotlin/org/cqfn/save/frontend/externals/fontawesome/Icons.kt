@@ -29,3 +29,9 @@ external val faSearch: dynamic
 external val faRedo: dynamic
 external val faCopyright: dynamic
 external val faSignInAlt: dynamic
+external val faCopy: dynamic
+external val faFolderOpen: dynamic
+external val faCheckCircle: dynamic
+external val faPlus: dynamic
+external val faArrowRight: dynamic
+

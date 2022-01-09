@@ -33,7 +33,7 @@
             <column name="scenarios_num" type="bigint">
                 <constraints nullable="false"/>
             </column>
-            <column name="description" type="varchar(999)">
+            <column name="description" type="varchar(1500)">
                 <constraints nullable="false"/>
             </column>
             <column name="homepage" type="varchar(255)">
