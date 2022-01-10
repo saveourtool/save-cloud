@@ -59,9 +59,16 @@ external interface TestResourcesProps : PropsWithChildren {
  * @param updateTestRootPath
  * @param setTestRootPathFromHistory
  * @param setSelectedLanguageForStandardTests
+ * @param setExecCmd
+ * @param setBatchSize
  * @return an RComponent
  */
-@Suppress("LongMethod", "TOO_LONG_FUNCTION")
+@Suppress(
+    "LongMethod",
+    "TOO_LONG_FUNCTION",
+    "TOO_MANY_PARAMETERS",
+    "LongParameterList",
+)
 fun testResourcesSelection(
     updateGitUrlFromInputField: (Event) -> Unit,
     updateGitBranchOrCommitInputField: (Event) -> Unit,

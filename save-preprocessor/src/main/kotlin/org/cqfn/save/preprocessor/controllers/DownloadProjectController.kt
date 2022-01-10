@@ -354,6 +354,7 @@ class DownloadProjectController(
         }
     }
 
+    @Suppress("TOO_LONG_FUNCTION")
     private fun saveBinaryFile(
         executionRequestForStandardSuites: ExecutionRequestForStandardSuites,
         files: List<File>,
@@ -450,7 +451,7 @@ class DownloadProjectController(
         batchSizeForAnalyzer: String = "N/A",
     ): Mono<StatusResponse> {
         val executionType = execution.type
-        println("\n\n\n\n execCmd ${execCmd} batchSizeForAnalyzer ${batchSizeForAnalyzer}")
+        println("\n\n\n\n execCmd $execCmd batchSizeForAnalyzer $batchSizeForAnalyzer")
         testSuiteDtos?.let {
             require(executionType == ExecutionType.STANDARD) { "Test suites shouldn't be provided unless ExecutionType is STANDARD (actual: $executionType)" }
         } ?: require(executionType == ExecutionType.GIT) { "Test suites are not provided, but should for executionType=$executionType" }
@@ -519,13 +520,14 @@ class DownloadProjectController(
             .collectList()
     }
 
+    @Suppress("TOO_MANY_PARAMETERS")
     private fun updateExecution(
         project: Project,
         projectRootRelativePath: String,
         executionVersion: String,
         testSuiteIds: String = "ALL",
         execCmd: String = "N/A",
-        batchSizeForAnalyzer: String= "N/A",
+        batchSizeForAnalyzer: String = "N/A",
     ): Mono<Execution> {
         val executionUpdate = ExecutionInitializationDto(project, testSuiteIds, projectRootRelativePath, executionVersion, execCmd, batchSizeForAnalyzer)
         return webClientBackend.makeRequest(BodyInserters.fromValue(executionUpdate), "/updateNewExecution") {

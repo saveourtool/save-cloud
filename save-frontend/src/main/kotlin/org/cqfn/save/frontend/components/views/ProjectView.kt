@@ -150,7 +150,6 @@ external interface ProjectViewState : State {
      */
     var batchSizeForAnalyzer: String
 
-
     /**
      * Directory in the repository where tests are placed
      */

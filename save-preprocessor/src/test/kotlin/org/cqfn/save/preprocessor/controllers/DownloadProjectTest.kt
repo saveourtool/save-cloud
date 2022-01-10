@@ -379,7 +379,14 @@ class DownloadProjectTest(
             "foo", 20, ExecutionType.GIT, "0.0.1", 0, 0, 0, 0, Sdk.Default.toString(), null, execCmd = "", batchSizeForAnalyzer = "").apply {
             id = 98L
         }
-        val request = ExecutionRequest(project, GitDto("https://github.com/analysis-dev/save"), "examples/kotlin-diktat/", Sdk.Default, execution.id, execCmd = "", batchSizeForAnalyzer = "")
+        val request = ExecutionRequest(
+            project,
+            GitDto("https://github.com/analysis-dev/save"), "examples/kotlin-diktat/",
+            Sdk.Default,
+            execution.id,
+            execCmd = "",
+            batchSizeForAnalyzer = ""
+        )
 
         // /updateExecutionByDto
         mockServerBackend.enqueue(
@@ -463,7 +470,14 @@ class DownloadProjectTest(
             "foo", 20, ExecutionType.STANDARD, "0.0.1", 0, 0, 0, 0, Sdk.Default.toString(), null, execCmd = "", batchSizeForAnalyzer = "").apply {
             id = 98L
         }
-        val request = ExecutionRequest(project, GitDto("https://github.com/diktat-static-analysis/save"), "examples/kotlin-diktat/", Sdk.Default, execution.id, execCmd = "", batchSizeForAnalyzer = "")
+        val request = ExecutionRequest(
+            project,
+            GitDto("https://github.com/diktat-static-analysis/save"), "examples/kotlin-diktat/",
+            Sdk.Default,
+            execution.id,
+            execCmd = "",
+            batchSizeForAnalyzer = ""
+        )
 
         val testSuite = TestSuite(TestSuiteType.STANDARD, "", null, project, LocalDateTime.now(), ".").apply {
             id = 42
