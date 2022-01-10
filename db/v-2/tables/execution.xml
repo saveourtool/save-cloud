@@ -7,11 +7,11 @@
 
     <changeSet id="add-execCmd-and-batchSizeForAnalyzer-columns" author="kgevorkyan" context="dev or prod">
         <addColumn tableName="execution">
-            <column name="execCmd" type="varchar(255)" defaultValue="NULL"/>
+            <column name="exec_cmd" type="varchar(255)" defaultValue="NULL"/>
         </addColumn>
 
         <addColumn tableName="execution">
-            <column name="batchSizeForAnalyzer" type="varchar(255)" defaultValue="NULL"/>
+            <column name="batch_size_for_analyzer" type="varchar(255)" defaultValue="NULL"/>
         </addColumn>
     </changeSet>
 

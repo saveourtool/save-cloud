@@ -200,7 +200,7 @@ class DownloadProjectController(
                             StandardCopyOption.COPY_ATTRIBUTES
                         )
                         // FixMe: currently it's quite rough solution, to make all additional files executable
-                        // FixMe: https://github.com/diktat-static-analysis/save-cloud/issues/442
+                        // FixMe: https://github.com/analysis-dev/save-cloud/issues/442
                         if (!resourcesLocation.resolve(file.name).setExecutable(true)) {
                             log.warn("Failed to mark file ${resourcesLocation.resolve(file.name)} as executable")
                         }

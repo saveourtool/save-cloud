@@ -31,6 +31,6 @@ data class ExecutionDto(
     val failedTests: Long,
     val skippedTests: Long,
     val additionalFiles: List<String>?,
-    val execCmd: String,
-    val batchSizeForAnalyzer: String,
+    val execCmd: String?,
+    val batchSizeForAnalyzer: String?,
 )

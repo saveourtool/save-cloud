@@ -68,9 +68,9 @@ class Execution(
 
     var additionalFiles: String?,
 
-    var execCmd: String,
+    var execCmd: String?,
 
-    var batchSizeForAnalyzer: String,
+    var batchSizeForAnalyzer: String?,
 
 ) : BaseEntity() {
     /**
