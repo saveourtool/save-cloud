@@ -17,7 +17,7 @@ x-logging:
 
 services:
   orchestrator:
-    image: ghcr.io/diktat-static-analysis/save-orchestrator:{{project.version}}
+    image: ghcr.io/analysis-dev/save-orchestrator:{{project.version}}
     user: root  # to access host's docker socket
     environment:
       - "SPRING_PROFILES_ACTIVE={{profile}}"
@@ -35,9 +35,9 @@ services:
         - "prometheus-job=save-orchestrator"
     logging: *loki-logging-jvm
   backend:
-    image: ghcr.io/diktat-static-analysis/save-backend:{{project.version}}
+    image: ghcr.io/analysis-dev/save-backend:{{project.version}}
     environment:
-      - "SPRING_PROFILES_ACTIVE={{profile}}"
+      - "SPRING_PROFILES_ACTIVE={{profile}},secure"
       - "MYSQL_USER=/run/secrets/db_username"
       - "MYSQL_PASSWORD_FILE=/run/secrets/db_password"
     secrets:
@@ -54,7 +54,7 @@ services:
         - "prometheus-job=save-backend"
     logging: *loki-logging-jvm
   preprocessor:
-    image: ghcr.io/diktat-static-analysis/save-preprocessor:{{project.version}}
+    image: ghcr.io/analysis-dev/save-preprocessor:{{project.version}}
     environment:
       - "SPRING_PROFILES_ACTIVE={{profile}}"
     volumes:
@@ -72,7 +72,7 @@ services:
         max_attempts: 3
     logging: *loki-logging-jvm
   gateway:
-    image: ghcr.io/diktat-static-analysis/api-gateway:{{project.version}}
+    image: ghcr.io/analysis-dev/api-gateway:{{project.version}}
     environment:
       - "SPRING_PROFILES_ACTIVE={{profile}}"
     ports:

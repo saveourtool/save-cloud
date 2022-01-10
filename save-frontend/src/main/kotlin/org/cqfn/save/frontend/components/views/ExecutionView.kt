@@ -247,8 +247,8 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                             }
 
                             val testName = cellProps.value.filePath
-                            val shortTestName = if (testName.length > 41) {
-                                testName.take(20) + " ... " + testName.takeLast(20)
+                            val shortTestName = if (testName.length > 35) {
+                                testName.take(15) + " ... " + testName.takeLast(15)
                             } else {
                                 testName
                             }
@@ -314,7 +314,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                     tr {
                         td {
                             attrs.colSpan = "${tableInstance.columns.size}"
-                            +"Debug info not available for this test execution"
+                            +"Debug info not available yet for this test execution"
                         }
                     }
                 }
@@ -373,7 +373,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                 val color = when (row.original.status) {
                     TestResultStatus.FAILED -> Colors.RED
                     TestResultStatus.IGNORED -> Colors.GOLD
-                    TestResultStatus.READY, TestResultStatus.RUNNING -> Colors.GREY
+                    TestResultStatus.READY_FOR_TESTING, TestResultStatus.RUNNING -> Colors.GREY
                     TestResultStatus.INTERNAL_ERROR, TestResultStatus.TEST_ERROR -> Colors.DARK_RED
                     TestResultStatus.PASSED -> Colors.GREEN
                 }

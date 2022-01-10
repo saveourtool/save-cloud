@@ -29,22 +29,25 @@ import org.cqfn.save.frontend.externals.fontawesome.faUser
 import org.cqfn.save.frontend.externals.fontawesome.fas
 import org.cqfn.save.frontend.externals.fontawesome.library
 import org.cqfn.save.frontend.externals.modal.ReactModal
+import org.cqfn.save.frontend.utils.decodeFromJsonString
+import org.cqfn.save.frontend.utils.get
+import org.cqfn.save.frontend.utils.withRouter
+import org.cqfn.save.info.UserInfo
 
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.url.URLSearchParams
-import react.PropsWithChildren
-import react.RBuilder
-import react.RComponent
-import react.State
-import react.buildElement
+import org.w3c.fetch.Headers
+import react.*
 import react.dom.div
 import react.dom.render
-import react.react
+import react.router.Route
+import react.router.Routes
 import react.router.dom.HashRouter
-import react.router.dom.Route
-import react.router.dom.Switch
 
 import kotlinx.browser.document
+import kotlinx.browser.window
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import kotlinx.html.id
 
 /**
@@ -54,7 +57,7 @@ external interface AppState : State {
     /**
      * Currently logged in user or null
      */
-    var userName: String?
+    var userInfo: UserInfo?
 }
 
 /**
@@ -64,7 +67,25 @@ external interface AppState : State {
 @OptIn(ExperimentalJsExport::class)
 class App : RComponent<PropsWithChildren, AppState>() {
     init {
-        state.userName = ""
+        state.userInfo = null
+    }
+
+    private fun getUser() {
+        GlobalScope.launch {
+            val headers = Headers().also { it.set("Accept", "application/json") }
+            val userInfoNew: UserInfo? = get("${window.location.origin}/sec/user", headers).run {
+                if (ok) decodeFromJsonString() else null
+            }
+            userInfoNew?.let {
+                setState {
+                    userInfo = userInfoNew
+                }
+            }
+        }
+    }
+
+    override fun componentDidMount() {
+        getUser()
     }
 
     @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR", "TOO_LONG_FUNCTION", "LongMethod")
@@ -74,96 +95,100 @@ class App : RComponent<PropsWithChildren, AppState>() {
                 attrs.id = "content-wrapper"
                 child(topBar()) {
                     attrs {
-                        userName = state.userName
+                        userInfo = state.userInfo
                     }
                 }
 
                 div("container-fluid") {
-                    Switch {
+                    Routes {
                         Route {
                             attrs {
-                                path = arrayOf("/")
-                                exact = true
-                                component = WelcomeView::class.react
+                                path = "/"
+                                element = buildElement {
+                                    child(WelcomeView::class) {
+                                        attrs.userInfo = state.userInfo
+                                    }
+                                }
                             }
                         }
 
                         Route {
                             attrs {
-                                path = arrayOf("/creation")
-                                exact = true
-                                component = CreationView::class.react
+                                path = "/creation"
+                                element = buildElement {
+                                    child(CreationView::class) {}
+                                }
                             }
                         }
 
                         Route {
                             attrs {
-                                path = arrayOf("/projects")
-                                exact = true
-                                component = CollectionView::class.react
+                                path = "/projects"
+                                element = buildElement {
+                                    child(CollectionView::class) {}
+                                }
                             }
                         }
 
                         Route {
                             attrs {
-                                path = arrayOf("/:owner/:name")
-                                exact = true
-                                render = { routeResultProps ->
-                                    buildElement {
+                                path = "/:owner/:name"
+                                element = buildElement {
+                                    child(withRouter { _, params ->
                                         child(ProjectView::class) {
-                                            attrs.name = routeResultProps.match.params["name"]!!
-                                            attrs.owner = routeResultProps.match.params["owner"]!!
+                                            attrs.name = params["name"]!!
+                                            attrs.owner = params["owner"]!!
                                         }
-                                    }
+                                    })
                                 }
                             }
                         }
 
                         Route {
                             attrs {
-                                path = arrayOf("/:owner/:name/history")
-                                exact = true
-                                render = { routeResultProps ->
-                                    buildElement {
+                                path = "/:owner/:name/history"
+                                element = buildElement {
+                                    child(withRouter { _, params ->
                                         child(HistoryView::class) {
-                                            attrs.name = routeResultProps.match.params["name"]!!
-                                            attrs.owner = routeResultProps.match.params["owner"]!!
+                                            attrs.name = params["name"]!!
+                                            attrs.owner = params["owner"]!!
                                         }
-                                    }
+                                    })
                                 }
                             }
                         }
 
                         Route {
                             attrs {
-                                path = arrayOf("/:owner/:name/history/execution/:executionId")
-                                exact = true
-                                render = { props ->
-                                    buildElement {
+                                path = "/:owner/:name/history/execution/:executionId"
+                                element = buildElement {
+                                    child(withRouter { location, params ->
                                         child(ExecutionView::class) {
-                                            attrs.executionId = props.match.params["executionId"]!!
-                                            attrs.status = URLSearchParams(props.location.search).get("status")?.let(
+                                            attrs.executionId = params["executionId"]!!
+                                            attrs.status = URLSearchParams(location.search).get("status")?.let(
                                                 TestResultStatus::valueOf
                                             )
                                         }
-                                    }
+                                    })
                                 }
                             }
                         }
 
                         Route {
                             attrs {
-                                path =
-                                        arrayOf("/:owner/:name/history/execution/:executionId/details/:testSuiteName/:pluginName/:testFilePath+")
-                                exact = false  // all paths parts under testFilePath should be captured
+                                path = "/:owner/:name/history/execution/:executionId/details/:testSuiteName/:pluginName/:testFilePath/*"
+                                element = buildElement {
+                                    child(testExecutionDetailsView()) {}
+                                }
                             }
-                            child(testExecutionDetailsView()) {}
                         }
 
                         Route {
                             attrs {
-                                path = arrayOf("*")
-                                component = FallbackView::class.react
+                                path = "*"
+                                element = buildElement {
+                                    child(FallbackView::class) {}
+                                }
                             }
                         }
                     }
@@ -185,7 +210,7 @@ fun main() {
     )
     ReactModal.setAppElement(document.getElementById("wrapper") as HTMLElement)  // required for accessibility in react-modal
 
-    render(document.getElementById("wrapper")) {
+    render(document.getElementById("wrapper") as HTMLElement) {
         child(App::class) {}
     }
 }

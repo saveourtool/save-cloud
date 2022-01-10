@@ -60,7 +60,7 @@ external interface UploaderProps : PropsWithChildren {
     var files: List<FileInfo>
 
     /**
-     * Sumbit button was pressed
+     * Submit button was pressed
      */
     var isSubmitButtonPressed: Boolean?
 
@@ -200,7 +200,7 @@ fun fileUploader(
  * @param onExecutableChange a handler that is invoked when icon is clicked
  * @return a functional component
  */
-@Suppress("TYPE_ALIAS", "STRING_CONCATENATION")  // https://github.com/diktat-static-analysis/diKTat/issues/1076
+@Suppress("TYPE_ALIAS", "STRING_CONCATENATION")  // https://github.com/analysis-dev/diKTat/issues/1076
 internal fun fileIconWithMode(fileInfo: FileInfo, onExecutableChange: (file: FileInfo, checked: Boolean) -> Unit) = fc<Props> {
     span("fa-layers mr-3") {
         attrs["data-toggle"] = "tooltip"

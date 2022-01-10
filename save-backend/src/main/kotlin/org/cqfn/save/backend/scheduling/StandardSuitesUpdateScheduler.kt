@@ -11,6 +11,7 @@ import org.quartz.JobBuilder
 import org.quartz.JobExecutionContext
 import org.quartz.Scheduler
 import org.quartz.TriggerBuilder
+import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
@@ -44,6 +45,7 @@ class StandardSuitesUpdateScheduler(
     private val scheduler: Scheduler,
     configProperties: ConfigProperties,
 ) {
+    private val logger = LoggerFactory.getLogger(javaClass)
     private val jobDetail = JobBuilder.newJob(UpdateJob::class.java)
         .storeDurably()
         .withIdentity(jobName)
@@ -61,7 +63,19 @@ class StandardSuitesUpdateScheduler(
     @PostConstruct
     fun schedule() {
         if (!scheduler.checkExists(jobDetail.key)) {
+            logger.info("Scheduling job [$jobDetail], because it didn't exist.")
             scheduler.scheduleJob(jobDetail, trigger)
+        } else {
+            val triggers = scheduler.getTriggersOfJob(jobDetail.key)
+            if (triggers.size != 1) {
+                logger.warn("Job [$jobDetail] has multiple triggers: $triggers. Will drop them and reschedule.")
+                triggers.forEach { scheduler.unscheduleJob(it.key) }
+                scheduler.scheduleJob(jobDetail, trigger)
+            } else {
+                val oldTrigger = triggers.single()
+                logger.info("Rescheduling job [$jobDetail] from [$oldTrigger] to [$trigger]")
+                scheduler.rescheduleJob(oldTrigger.key, trigger)
+            }
         }
     }
 

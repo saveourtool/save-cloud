@@ -27,7 +27,7 @@ import react.dom.tbody
 import react.dom.td
 import react.dom.tr
 import react.fc
-import react.router.dom.useParams
+import react.router.useParams
 import react.useEffect
 import react.useState
 
@@ -114,7 +114,7 @@ fun testExecutionDetailsView() = fc<Props> {
     val (status, setStatus) = useState("Loading...")
     val (testResultDebugInfo, setTestResultDebugInfo) = useState<TestResultDebugInfo?>(null)
 
-    // fixme: after https://github.com/diktat-static-analysis/save-cloud/issues/364 can be passed via history state to avoid requests
+    // fixme: after https://github.com/analysis-dev/save-cloud/issues/364 can be passed via history state to avoid requests
     useEffect(listOf<dynamic>(executionId, testResultLocation)) {
         GlobalScope.launch {
             val testExecutionDtoResponse = post(

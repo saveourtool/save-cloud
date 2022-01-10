@@ -21,7 +21,7 @@ jobs:
       - name: checkout save-core
         uses: actions/checkout@v2.4.0
         with:
-          repository: diktat-static-analysis/save
+          repository: analysis-dev/save
           path: save
           fetch-depth: 0
       - name: Set up JDK 11
@@ -63,12 +63,11 @@ jobs:
             :save-backend:bootBuildImage
             :save-orchestrator:bootBuildImage
             :save-preprocessor:bootBuildImage
-            --refresh-dependencies
             --stacktrace
           properties: |
-            saveCliVersion=${{ env.SAVE_CLI_VERSION }}
             org.gradle.caching=true
             detekt.multiplatform.disabled=true
+            saveCliVersion=${{ env.SAVE_CLI_VERSION }}
       - name: Upload gradle reports
         if: ${{ always() }}
         uses: actions/upload-artifact@v2

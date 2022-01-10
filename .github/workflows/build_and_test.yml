@@ -53,12 +53,12 @@ jobs:
             buildSrc/**/Versions.kt
           arguments: |
             build
-            --refresh-dependencies
             -x detekt
             -x :save-agent:linkDebugExecutableLinuxX64
           properties: |
             org.gradle.caching=true
             detekt.multiplatform.disabled=true
+
       - name: Upload gradle reports
         if: ${{ always() }}
         uses: actions/upload-artifact@v2

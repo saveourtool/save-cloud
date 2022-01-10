@@ -136,6 +136,11 @@ external interface ProjectViewState : State {
     var gitUrlFromInputField: String
 
     /**
+     * Branch of commit in current repo
+     */
+    var gitBranchOrCommitFromInputField: String
+
+    /**
      * Directory in the repository where tests are placed
      */
     var testRootPath: String
@@ -192,6 +197,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
 
     init {
         state.gitUrlFromInputField = ""
+        state.gitBranchOrCommitFromInputField = ""
         state.testRootPath = ""
         state.confirmationType = ConfirmationType.NO_CONFIRM
         state.testingType = TestingType.CUSTOM_TESTS
@@ -239,11 +245,18 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         when (state.testingType) {
             TestingType.CUSTOM_TESTS -> {
                 val urlWithTests = state.gitUrlFromInputField
+                val branchOrCommit = state.gitBranchOrCommitFromInputField
                 // URL is required in all cases, the processing should not be done without it
                 if (urlWithTests.isBlank()) {
                     return
                 } else {
-                    val newGitDto = gitDto?.copy(url = urlWithTests) ?: GitDto(url = urlWithTests)
+                    // if provided value contains `origin` then it's a branch, otherwise a commit
+                    val (newBranch, newCommit) = if (branchOrCommit.contains("origin/")) {
+                        branchOrCommit to null
+                    } else {
+                        null to branchOrCommit
+                    }
+                    val newGitDto = gitDto?.copy(url = urlWithTests, branch = newBranch, hash = newCommit) ?: GitDto(url = urlWithTests, branch = newBranch, hash = newCommit)
                     submitExecutionRequestWithCustomTests(newGitDto)
                 }
             }
@@ -429,6 +442,11 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                             gitUrlFromInputField = (it.target as HTMLInputElement).value
                         }
                     },
+                    updateGitBranchOrCommitInputField = {
+                        setState {
+                            gitBranchOrCommitFromInputField = (it.target as HTMLInputElement).value
+                        }
+                    },
                     updateTestRootPath = {
                         setState {
                             testRootPath = (it.target as HTMLInputElement).value
@@ -451,6 +469,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                     // properties for CUSTOM_TESTS mode
                     attrs.testRootPath = state.testRootPath
                     attrs.gitUrlFromInputField = state.gitUrlFromInputField
+                    attrs.gitBranchOrCommitFromInputField = state.gitBranchOrCommitFromInputField
                     // properties for STANDARD_BENCHMARKS mode
                     attrs.selectedStandardSuites = selectedStandardSuites
                     attrs.standardTestSuites = standardTestSuites
@@ -773,12 +792,12 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     companion object {
         const val TEST_ROOT_DIR_HINT = """
             The path you are providing should be relative to the root directory of your repository.
-            This directory should contain <a href = "https://github.com/diktat-static-analysis/save#how-to-configure"> save.properties </a>
-            or <a href = "https://github.com/diktat-static-analysis/save#-savetoml-configuration-file">save.toml</a> files.
+            This directory should contain <a href = "https://github.com/analysis-dev/save#how-to-configure"> save.properties </a>
+            or <a href = "https://github.com/analysis-dev/save#-savetoml-configuration-file">save.toml</a> files.
             For example, if the URL to your repo with tests is: 
-            <a href ="https://github.com/diktat-static-analysis/save/">https://github.com/diktat-static-analysis/save</a>, then
+            <a href ="https://github.com/analysis-dev/save/">https://github.com/analysis-dev/save</a>, then
             you need to specify the following directory with 'save.toml': 
-            <a href ="https://github.com/diktat-static-analysis/save/tree/main/examples/kotlin-diktat">examples/kotlin-diktat/</a>.
+            <a href ="https://github.com/analysis-dev/save/tree/main/examples/kotlin-diktat">examples/kotlin-diktat/</a>.
  
             Please note, that the tested tool and it's resources will be copied to this directory before the run.
             """
