@@ -48,7 +48,9 @@ class AgentsController(
     @Suppress("TOO_LONG_FUNCTION", "LongMethod", "UnsafeCallOnNullableType")
     @PostMapping("/initializeAgents")
     fun initialize(@RequestPart(required = true) execution: Execution,
-                   @RequestPart(required = false) testSuiteDtos: List<TestSuiteDto>?): Mono<BodilessResponseEntity> {
+                   @RequestPart(required = false) testSuiteDtos: List<TestSuiteDto>?,
+                   @RequestPart(required = false) execCmd: String?,
+                   @RequestPart(required = false) batchSizeForAnalyzer: String?): Mono<BodilessResponseEntity> {
         if (execution.status != ExecutionStatus.PENDING) {
             throw ResponseStatusException(
                 HttpStatus.BAD_REQUEST,
@@ -62,7 +64,7 @@ class AgentsController(
                     "status=${execution.status}, resourcesRootPath=${execution.resourcesRootPath}]")
             Mono.fromCallable {
                 // todo: pass SDK via request body
-                dockerService.buildAndCreateContainers(execution, testSuiteDtos)
+                dockerService.buildAndCreateContainers(execution, testSuiteDtos, execCmd, batchSizeForAnalyzer)
             }
                 .doOnError(DockerException::class) {
                     log.error("Unable to build image and containers for executionId=${execution.id}, will mark it as ERROR")

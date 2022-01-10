@@ -65,9 +65,9 @@ class DockerService(private val configProperties: ConfigProperties) {
      * @return list of IDs of created containers
      * @throws DockerException if interaction with docker daemon is not successful
      */
-    fun buildAndCreateContainers(execution: Execution, testSuiteDtos: List<TestSuiteDto>?): List<String> {
+    fun buildAndCreateContainers(execution: Execution, testSuiteDtos: List<TestSuiteDto>?, execCmd: String?, batchSizeForAnalyzer: String?): List<String> {
         log.info("Building base image for execution.id=${execution.id}")
-        val (imageId, runCmd, saveCliExecFlags) = buildBaseImageForExecution(execution, testSuiteDtos)
+        val (imageId, runCmd, saveCliExecFlags) = buildBaseImageForExecution(execution, testSuiteDtos, execCmd, batchSizeForAnalyzer)
         log.info("Built base image for execution.id=${execution.id}")
         return (1..configProperties.agentsCount).map { number ->
             log.info("Building container #$number for execution.id=${execution.id}")
@@ -169,7 +169,7 @@ class DockerService(private val configProperties: ConfigProperties) {
         "UnsafeCallOnNullableType",
         "LongMethod",
     )
-    private fun buildBaseImageForExecution(execution: Execution, testSuiteDtos: List<TestSuiteDto>?): Triple<String, String, String> {
+    private fun buildBaseImageForExecution(execution: Execution, testSuiteDtos: List<TestSuiteDto>?, execCmd: String?, batchSizeForAnalyzer: String?): Triple<String, String, String> {
         val resourcesPath = File(
             configProperties.testResources.basePath,
             execution.resourcesRootPath!!,
@@ -201,7 +201,13 @@ class DockerService(private val configProperties: ConfigProperties) {
 
         val saveCliExecFlags = if (isStandardMode) {
             // create stub toml config in aim to execute all test suites directories from `testSuitesDir`
-            testSuitesDir.resolve("save.toml").apply { createNewFile() }.writeText("[general]")
+            val configData = """
+                             [general]
+                                execCmd = ${execCmd ?: ""}
+                                batchSize = ${batchSizeForAnalyzer ?: "1"}
+                             """.trim()
+
+            testSuitesDir.resolve("save.toml").apply { createNewFile() }.writeText(configData)
             " $STANDARD_TEST_SUITE_DIR --include-suites \"${testSuitesForDocker.joinToString(",") { it.name }}\""
         } else {
             ""

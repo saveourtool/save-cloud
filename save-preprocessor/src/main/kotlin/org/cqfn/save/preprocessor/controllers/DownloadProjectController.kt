@@ -463,7 +463,7 @@ class DownloadProjectController(
         } else {
             prepareExecutionForStandard(testSuiteDtos!!, execution)
         }
-            .then(initializeAgents(execution, testSuiteDtos))
+            .then(initializeAgents(execution, testSuiteDtos, execCmd, batchSizeForAnalyzer))
             .onErrorResume { ex ->
                 log.error(
                     "Error during preprocessing, will mark execution.id=${execution.id} as failed; error: ",
@@ -665,13 +665,21 @@ class DownloadProjectController(
     /**
      * POST request to orchestrator to initiate its work
      */
-    private fun initializeAgents(execution: Execution, testSuiteDtos: List<TestSuiteDto>?): Status {
+    private fun initializeAgents(execution: Execution, testSuiteDtos: List<TestSuiteDto>?, execCmd: String?, batchSizeForAnalyzer: String?): Status {
         val bodyBuilder = MultipartBodyBuilder().apply {
             part("execution", execution)
         }
 
         testSuiteDtos?.let {
             bodyBuilder.part("testSuiteDtos", testSuiteDtos)
+        }
+
+        execCmd?.let {
+            bodyBuilder.part("execCmd", execCmd)
+        }
+
+        batchSizeForAnalyzer?.let {
+            bodyBuilder.part("batchSizeForAnalyzer", batchSizeForAnalyzer)
         }
 
         return webClientOrchestrator
