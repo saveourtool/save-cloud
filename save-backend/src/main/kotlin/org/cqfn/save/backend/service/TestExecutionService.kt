@@ -156,7 +156,6 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
                     it.status = testExecDto.status
                     it.missingWarnings = testExecDto.missingWarnings
                     it.matchedWarnings = testExecDto.matchedWarnings
-
                     when (testExecDto.status) {
                         TestResultStatus.PASSED -> counters.passed++
                         TestResultStatus.FAILED -> counters.failed++
