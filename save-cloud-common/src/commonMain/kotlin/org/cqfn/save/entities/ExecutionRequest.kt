@@ -42,8 +42,8 @@ data class ExecutionRequest(
     val testRootPath: String,
     override val sdk: Sdk,
     val executionId: Long?,
-    val execCmd: String,
-    val batchSizeForAnalyzer: String,
+    val execCmd: String?,
+    val batchSizeForAnalyzer: String?,
     // fixme move into base class
 ) : ExecutionRequestBase()
 
@@ -59,6 +59,6 @@ data class ExecutionRequestForStandardSuites(
     override val project: Project,
     val testsSuites: List<String>,
     override val sdk: Sdk,
-    val execCmd: String,
-    val batchSizeForAnalyzer: String,
+    val execCmd: String?,
+    val batchSizeForAnalyzer: String?,
 ) : ExecutionRequestBase()

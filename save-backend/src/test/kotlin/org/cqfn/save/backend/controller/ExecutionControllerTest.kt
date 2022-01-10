@@ -79,8 +79,8 @@ class ExecutionControllerTest {
             0,
             Sdk.Default.toString(),
             null,
-            execCmd = "",
-            batchSizeForAnalyzer = ""
+            null,
+            null
         )
         webClient.post()
             .uri("/internal/createExecution")
@@ -110,8 +110,8 @@ class ExecutionControllerTest {
             0,
             Sdk.Default.toString(),
             null,
-            execCmd = "",
-            batchSizeForAnalyzer = ""
+            null,
+            null
         )
         webClient.post()
             .uri("/internal/createExecution")
@@ -146,10 +146,9 @@ class ExecutionControllerTest {
             0,
             Sdk.Default.toString(),
             null,
-            execCmd = "",
-            batchSizeForAnalyzer = ""
+            null,
+            null
         )
-
         webClient.post()
             .uri("/internal/createExecution")
             .contentType(MediaType.APPLICATION_JSON)
@@ -227,7 +226,7 @@ class ExecutionControllerTest {
     @Suppress("UnsafeCallOnNullableType")
     fun checkUpdateNewExecution() {
         val execution = Execution(projectRepository.findAll().first(), LocalDateTime.now(), null, ExecutionStatus.PENDING, null,
-            null, 20, ExecutionType.GIT, null, 0, 0, 0, 0, Sdk.Default.toString(), null, execCmd = "", batchSizeForAnalyzer = "")
+            null, 20, ExecutionType.GIT, null, 0, 0, 0, 0, Sdk.Default.toString(), null, null, null)
         webClient.post()
             .uri("/internal/createExecution")
             .contentType(MediaType.APPLICATION_JSON)
@@ -236,7 +235,7 @@ class ExecutionControllerTest {
             .expectStatus()
             .isOk
 
-        val executionUpdate = ExecutionInitializationDto(execution.project, "1, 2, 3", "testPath", "executionVersion", execCmd = "", batchSizeForAnalyzer = "")
+        val executionUpdate = ExecutionInitializationDto(execution.project, "1, 2, 3", "testPath", "executionVersion", null, null)
         webClient.post()
             .uri("/internal/updateNewExecution")
             .contentType(MediaType.APPLICATION_JSON)
@@ -246,11 +245,11 @@ class ExecutionControllerTest {
             .isOk
             .expectBody<Execution>()
             .consumeWith {
-                requireNotNull(it.responseBody)
-                assertEquals("1, 2, 3", it.responseBody.testSuiteIds)
-                assertEquals("testPath", it.responseBody.resourcesRootPath)
-                assertEquals(20, it.responseBody.batchSize)
-                assertEquals("executionVersion", it.responseBody.version)
+                val responseBody = requireNotNull(it.responseBody)
+                assertEquals("1, 2, 3", responseBody.testSuiteIds)
+                assertEquals("testPath", responseBody.resourcesRootPath)
+                assertEquals(20, responseBody.batchSize)
+                assertEquals("executionVersion", responseBody.version)
             }
         val isUpdatedExecution = executionRepository.findAll().any {
             it.testSuiteIds == "1, 2, 3" &&

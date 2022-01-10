@@ -367,13 +367,15 @@ class DownloadProjectController(
         val project = executionRequestForStandardSuites.project
         // TODO: Save the proper version https://github.com/analysis-dev/save-cloud/issues/321
         val version = files.first().name
+        val execCmd = executionRequestForStandardSuites.execCmd
+        val batchSizeForAnalyzer = executionRequestForStandardSuites.batchSizeForAnalyzer
         return updateExecution(
             executionRequestForStandardSuites.project,
             tmpDir.name,
             version,
             executionRequestForStandardSuites.testsSuites.joinToString(),
-            executionRequestForStandardSuites.execCmd,
-            executionRequestForStandardSuites.batchSizeForAnalyzer,
+            execCmd,
+            batchSizeForAnalyzer,
         )
             .flatMap { execution ->
                 sendToBackendAndOrchestrator(
@@ -392,8 +394,8 @@ class DownloadProjectController(
                             "N/A"
                         )
                     },
-                    execCmd = executionRequestForStandardSuites.execCmd,
-                    batchSizeForAnalyzer = executionRequestForStandardSuites.batchSizeForAnalyzer,
+                    execCmd = execCmd,
+                    batchSizeForAnalyzer = batchSizeForAnalyzer,
                 )
             }
     }
@@ -447,8 +449,8 @@ class DownloadProjectController(
         projectRootRelativePath: String,
         testSuiteDtos: List<TestSuiteDto>?,
         gitUrl: String? = null,
-        execCmd: String = "N/A",
-        batchSizeForAnalyzer: String = "N/A",
+        execCmd: String? = null,
+        batchSizeForAnalyzer: String? = null,
     ): Mono<StatusResponse> {
         val executionType = execution.type
         println("\n\n\n\n execCmd $execCmd batchSizeForAnalyzer $batchSizeForAnalyzer")
@@ -520,14 +522,14 @@ class DownloadProjectController(
             .collectList()
     }
 
-    @Suppress("TOO_MANY_PARAMETERS")
+    @Suppress("TOO_MANY_PARAMETERS", "LongParameterList")
     private fun updateExecution(
         project: Project,
         projectRootRelativePath: String,
         executionVersion: String,
         testSuiteIds: String = "ALL",
-        execCmd: String = "N/A",
-        batchSizeForAnalyzer: String = "N/A",
+        execCmd: String? = null,
+        batchSizeForAnalyzer: String? = null,
     ): Mono<Execution> {
         val executionUpdate = ExecutionInitializationDto(project, testSuiteIds, projectRootRelativePath, executionVersion, execCmd, batchSizeForAnalyzer)
         return webClientBackend.makeRequest(BodyInserters.fromValue(executionUpdate), "/updateNewExecution") {

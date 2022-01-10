@@ -19,6 +19,6 @@ data class ExecutionInitializationDto(
     val testSuiteIds: String,
     val resourcesRootPath: String,
     val version: String,
-    val execCmd: String,
-    val batchSizeForAnalyzer: String,
+    val execCmd: String?,
+    val batchSizeForAnalyzer: String?,
 )

@@ -291,7 +291,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         val headers = Headers()
         val formData = FormData()
         val selectedSdk = "${state.selectedSdk}:${state.selectedSdkVersion}".toSdk()
-        val request = ExecutionRequestForStandardSuites(project, selectedStandardSuites, selectedSdk, state.execCmd, state.batchSizeForAnalyzer.ifBlank { "1" })
+        val request = ExecutionRequestForStandardSuites(project, selectedStandardSuites, selectedSdk, state.execCmd, state.batchSizeForAnalyzer)
         formData.appendJson("execution", request)
         state.files.forEach {
             formData.appendJson("file", it)
@@ -303,7 +303,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         val selectedSdk = "${state.selectedSdk}:${state.selectedSdkVersion}".toSdk()
         val formData = FormData()
         val testRootPath = if (state.testRootPath.isBlank()) "." else state.testRootPath
-        val executionRequest = ExecutionRequest(project, correctGitDto, testRootPath, selectedSdk, null, "N/A", "N/A")
+        val executionRequest = ExecutionRequest(project, correctGitDto, testRootPath, selectedSdk, null, null, null)
         formData.appendJson("executionRequest", executionRequest)
         state.files.forEach {
             formData.appendJson("file", it)
