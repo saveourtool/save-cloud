@@ -5,12 +5,18 @@ plugins {
     kotlin("js")
 }
 
+rootProject.plugins.withType<org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin> {
+    rootProject.the<org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension>().nodeVersion = "16.13.1"
+}
+
 dependencies {
     implementation(projects.saveCloudCommon)
 
     implementation(enforcedPlatform(libs.kotlin.wrappers.bom))
     implementation("org.jetbrains.kotlin-wrappers:kotlin-react")
+    implementation("org.jetbrains.kotlin-wrappers:kotlin-react-legacy")
     implementation("org.jetbrains.kotlin-wrappers:kotlin-react-dom")
+    implementation("org.jetbrains.kotlin-wrappers:kotlin-react-dom-legacy")
     implementation("org.jetbrains.kotlin-wrappers:kotlin-react-router-dom")
     implementation("org.jetbrains.kotlin-wrappers:kotlin-react-table")
 
@@ -74,6 +80,10 @@ kotlin {
 rootProject.plugins.withType(NodeJsRootPlugin::class.java) {
     rootProject.the<NodeJsRootExtension>().versions.webpackCli
         .version = "4.9.0"
+}
+// store yarn.lock in the root directory
+rootProject.extensions.configure<org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension> {
+    lockFileDirectory = rootProject.projectDir
 }
 
 // generate kotlin file with project version to include in web page
