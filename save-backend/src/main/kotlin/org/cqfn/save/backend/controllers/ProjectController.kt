@@ -18,6 +18,8 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
+import java.security.Principal
+
 /**
  * Controller for working with projects.
  */
@@ -69,11 +71,12 @@ class ProjectController {
 
     /**
      * @param newProjectDto newProjectDto
+     * @param principal a Principal of an authenticated request
      * @return response
      */
     @PostMapping("/saveProject")
-    fun saveProject(@RequestBody newProjectDto: NewProjectDto): ResponseEntity<String>? {
-        val (projectId, projectStatus) = projectService.saveProject(newProjectDto.project, newProjectDto.username)
+    fun saveProject(@RequestBody newProjectDto: NewProjectDto, principal: Principal): ResponseEntity<String> {
+        val (projectId, projectStatus) = projectService.saveProject(newProjectDto.project, principal.name)
         if (projectStatus == ProjectSaveStatus.EXIST) {
             log.warn("Project with id = $projectId already exists")
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(projectStatus.message)

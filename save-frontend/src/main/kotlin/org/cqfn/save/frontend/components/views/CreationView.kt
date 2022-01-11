@@ -189,7 +189,6 @@ class CreationView : AbstractView<ProjectSaveViewProps, ProjectSaveViewState>(tr
                 fieldsMap[InputTypes.GIT_TOKEN]?.trim(),
                 fieldsMap[InputTypes.GIT_BRANCH]?.trim()
             ),
-            username = props.userInfo!!.userName,
         )
         val headers = Headers().also {
             it.set("Accept", "application/json")
