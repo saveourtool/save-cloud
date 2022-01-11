@@ -29,6 +29,7 @@ import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
+import java.security.Principal
 
 typealias ExecutionDtoListResponse = ResponseEntity<List<ExecutionDto>>
 
@@ -51,10 +52,11 @@ class ExecutionController(private val executionService: ExecutionService,
 
     /**
      * @param execution
+     * @param principal a user that creates an execution
      * @return id of created [Execution]
      */
     @PostMapping("/internal/createExecution")
-    fun createExecution(@RequestBody execution: Execution): Long = executionService.saveExecution(execution)
+    fun createExecution(@RequestBody execution: Execution, principal: Principal): Long = executionService.saveExecution(execution, principal.name)
 
     /**
      * @param executionUpdateDto

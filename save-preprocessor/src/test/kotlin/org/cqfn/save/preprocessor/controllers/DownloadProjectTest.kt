@@ -93,7 +93,7 @@ class DownloadProjectTest(
         val project = Project("owner", "someName", "wrongGit", "descr", ProjectStatus.CREATED, userId = 2, adminIds = null)
         val wrongRepo = GitDto("wrongGit")
         val execution = Execution(project, LocalDateTime.now(), LocalDateTime.now(), ExecutionStatus.PENDING, "1",
-            "foo", 20, ExecutionType.GIT, "0.0.1", 0, 0, 0, 0, Sdk.Default.toString(), null).apply {
+            "foo", 20, ExecutionType.GIT, "0.0.1", 0, 0, 0, 0, Sdk.Default.toString(), null, null).apply {
             id = 97L
         }
         val request = ExecutionRequest(project, wrongRepo, sdk = Sdk.Default, executionId = execution.id, testRootPath = ".")
@@ -126,7 +126,7 @@ class DownloadProjectTest(
             url = "https://github.com/analysis-dev/save.git"
         }
         val execution = Execution(project, LocalDateTime.now(), LocalDateTime.now(), ExecutionStatus.PENDING, "1",
-            "foo", 20, ExecutionType.GIT, "0.0.1", 0, 0, 0, 0, Sdk.Default.toString(), null).apply {
+            "foo", 20, ExecutionType.GIT, "0.0.1", 0, 0, 0, 0, Sdk.Default.toString(), null, null).apply {
             id = 99L
         }
         val validRepo = GitDto("https://github.com/analysis-dev/save.git")
@@ -208,7 +208,7 @@ class DownloadProjectTest(
         val property = File(propertyPath)
         val project = Project.stub(42)
         val execution = Execution(project, LocalDateTime.now(), LocalDateTime.now(), ExecutionStatus.PENDING, "1",
-            "foo", 20, ExecutionType.STANDARD, "0.0.1", 0, 0, 0, 0, Sdk.Default.toString(), null).apply {
+            "foo", 20, ExecutionType.STANDARD, "0.0.1", 0, 0, 0, 0, Sdk.Default.toString(), null, null).apply {
             id = 98L
         }
         val request = ExecutionRequestForStandardSuites(project, listOf("Chapter1"), Sdk.Default)
@@ -370,7 +370,7 @@ class DownloadProjectTest(
     fun `rerun execution type git`() {
         val project = Project.stub(42)
         val execution = Execution(project, LocalDateTime.now(), LocalDateTime.now(), ExecutionStatus.PENDING, "1",
-            "foo", 20, ExecutionType.GIT, "0.0.1", 0, 0, 0, 0, Sdk.Default.toString(), null).apply {
+            "foo", 20, ExecutionType.GIT, "0.0.1", 0, 0, 0, 0, Sdk.Default.toString(), null, null).apply {
             id = 98L
         }
         val request = ExecutionRequest(project, GitDto("https://github.com/analysis-dev/save"), "examples/kotlin-diktat/", Sdk.Default, execution.id)
@@ -452,7 +452,7 @@ class DownloadProjectTest(
     fun `rerun execution type standard`() {
         val project = Project.stub(42)
         val execution = Execution(project, LocalDateTime.now(), LocalDateTime.now(), ExecutionStatus.PENDING, "1",
-            "foo", 20, ExecutionType.STANDARD, "0.0.1", 0, 0, 0, 0, Sdk.Default.toString(), null).apply {
+            "foo", 20, ExecutionType.STANDARD, "0.0.1", 0, 0, 0, 0, Sdk.Default.toString(), null, null).apply {
             id = 98L
         }
         val request = ExecutionRequest(project, GitDto("https://github.com/analysis-dev/save"), "examples/kotlin-diktat/", Sdk.Default, execution.id)

@@ -20,7 +20,6 @@ import javax.persistence.ManyToOne
  * @property endTime finish time
  * @property missingWarnings missing warnings
  * @property matchedWarnings matched warnings
- * @property user
  */
 @Entity
 @Suppress("LongParameterList")
@@ -48,10 +47,6 @@ class TestExecution(
     var missingWarnings: Int?,
 
     var matchedWarnings: Int?,
-
-    @ManyToOne
-    @JoinColumn(name = "user_id")
-    var user: User?,
 
 ) : BaseEntity() {
     /**

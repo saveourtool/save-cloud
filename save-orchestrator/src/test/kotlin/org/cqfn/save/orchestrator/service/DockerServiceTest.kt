@@ -59,7 +59,7 @@ class DockerServiceTest {
         // build base image
         val project = Project.stub(null)
         val testExecution = Execution(project, LocalDateTime.now(), LocalDateTime.now(), ExecutionStatus.PENDING, "1",
-            "foo", 20, ExecutionType.GIT, "0.0.1", 0, 0, 0, 0, Sdk.Default.toString(), null).apply {
+            "foo", 20, ExecutionType.GIT, "0.0.1", 0, 0, 0, 0, Sdk.Default.toString(), null, null).apply {
             id = 42L
         }
         testContainerId = dockerService.buildAndCreateContainers(testExecution, null).single()

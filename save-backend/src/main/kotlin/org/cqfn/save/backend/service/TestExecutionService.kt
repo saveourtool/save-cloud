@@ -212,7 +212,6 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
                         endTime = null,
                         missingWarnings = null,
                         matchedWarnings = null,
-                        user = null,
                     )
                 )
                 log.debug("Created TestExecution $id for test $testId")

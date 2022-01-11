@@ -122,7 +122,7 @@ class CloneRepositoryController(
         sdk: Sdk
     ): Execution {
         val execution = Execution(project, LocalDateTime.now(), null, ExecutionStatus.PENDING, null,
-            null, batchSize, type, null, 0, 0, 0, 0, sdk.toString(), null).apply {
+            null, batchSize, type, null, 0, 0, 0, 0, sdk.toString(), null, null).apply {
             id = executionService.saveExecution(this)
         }
         log.info("Creating a new execution id=${execution.id} for project id=${project.id}")

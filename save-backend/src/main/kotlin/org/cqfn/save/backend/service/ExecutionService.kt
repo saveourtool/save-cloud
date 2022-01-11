@@ -2,6 +2,7 @@ package org.cqfn.save.backend.service
 
 import org.cqfn.save.backend.repository.ExecutionRepository
 import org.cqfn.save.backend.repository.ProjectRepository
+import org.cqfn.save.backend.repository.UserRepository
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.execution.ExecutionInitializationDto
@@ -21,7 +22,9 @@ import java.util.Optional
  * Service that is used to manipulate executions
  */
 @Service
-class ExecutionService(private val executionRepository: ExecutionRepository) {
+class ExecutionService(private val executionRepository: ExecutionRepository,
+                       private val userRepository: UserRepository,
+) {
     private val log = LoggerFactory.getLogger(ExecutionService::class.java)
 
     @Autowired
@@ -34,6 +37,16 @@ class ExecutionService(private val executionRepository: ExecutionRepository) {
      * @return execution if it has been found
      */
     fun findExecution(id: Long) = executionRepository.findById(id)
+
+    /**
+     * @param execution
+     * @param username username of the user that has started the execution
+     * @return id of the created [Execution]
+     */
+    @Suppress("UnsafeCallOnNullableType")  // hibernate should always assign ids
+    fun saveExecution(execution: Execution, username: String): Long = executionRepository.save(execution.apply {
+        this.user = userRepository.findByName(username).orElseThrow()
+    }).id!!
 
     /**
      * @param execution

@@ -18,13 +18,12 @@ import org.cqfn.save.frontend.utils.apiUrl
 import org.cqfn.save.frontend.utils.get
 import org.cqfn.save.frontend.utils.post
 import org.cqfn.save.frontend.utils.runErrorModal
-import org.cqfn.save.info.UserInfo
 
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.HTMLTextAreaElement
 import org.w3c.dom.events.Event
 import org.w3c.fetch.Headers
-import react.PropsWithChildren
+import react.Props
 import react.RBuilder
 import react.State
 import react.dom.*
@@ -86,16 +85,6 @@ external interface ProjectSaveViewState : State {
 }
 
 /**
- * State of ProjectView component
- */
-external interface ProjectSaveViewProps : PropsWithChildren {
-    /**
-     * Currently logged in user or null
-     */
-    var userInfo: UserInfo?
-}
-
-/**
  * Special enum that stores the value with the result of testing git credentials
  */
 enum class GitConnectionStatusEnum {
@@ -114,7 +103,7 @@ enum class GitConnectionStatusEnum {
  */
 @JsExport
 @OptIn(ExperimentalJsExport::class)
-class CreationView : AbstractView<ProjectSaveViewProps, ProjectSaveViewState>(true) {
+class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
     private val fieldsMap: MutableMap<InputTypes, String> = mutableMapOf()
 
     init {

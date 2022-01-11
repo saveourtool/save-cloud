@@ -26,6 +26,7 @@ class ProjectService(private val projectRepository: ProjectRepository,
      * @param project a [Project] to store
      * @param username name of the user that should be associated as a creator of this project. If null, [project] should contain valid user id.
      * @return project's id, should never return null
+     * @throws ResponseStatusException if project doesn't exist and no username has been provided
      */
     @Suppress("UnsafeCallOnNullableType")
     fun saveProject(project: Project, username: String?): Pair<Long, ProjectSaveStatus> {
@@ -35,6 +36,7 @@ class ProjectService(private val projectRepository: ProjectRepository,
         val (projectId, projectSaveStatus) = projectRepository.findOne(Example.of(project, exampleMatcher)).map {
             Pair(it.id, ProjectSaveStatus.EXIST)
         }.orElseGet {
+            // if project is not found, add mapping to a user and save it
             username?.let {
                 userRepository.findByName(username)
                     .map {
@@ -45,6 +47,9 @@ class ProjectService(private val projectRepository: ProjectRepository,
                         ResponseStatusException(HttpStatus.BAD_REQUEST, "Attempt to create project for a non-existent user $username")
                     }
             }
+            // if no username is provided, then we are trying to update the project. Then, if the project is not found,
+            // this is an error. Todo: make this logic more obvious
+                ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Attempt to update non-existent project")
             val savedProject = projectRepository.save(project)
             Pair(savedProject.id, ProjectSaveStatus.NEW)
         }
