@@ -2,6 +2,7 @@ package org.cqfn.save.backend.controllers
 
 import org.cqfn.save.backend.service.GitService
 import org.cqfn.save.backend.service.ProjectService
+import org.cqfn.save.backend.utils.toUser
 import org.cqfn.save.domain.ProjectSaveStatus
 import org.cqfn.save.entities.GitDto
 import org.cqfn.save.entities.NewProjectDto
@@ -76,7 +77,7 @@ class ProjectController {
      */
     @PostMapping("/saveProject")
     fun saveProject(@RequestBody newProjectDto: NewProjectDto, principal: Principal): ResponseEntity<String> {
-        val (projectId, projectStatus) = projectService.saveProject(newProjectDto.project, principal.name)
+        val (projectId, projectStatus) = projectService.saveProject(newProjectDto.project, principal.toUser().name)
         if (projectStatus == ProjectSaveStatus.EXIST) {
             log.warn("Project with id = $projectId already exists")
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(projectStatus.message)

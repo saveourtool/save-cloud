@@ -24,8 +24,8 @@ data class Project(
     @Enumerated(EnumType.STRING)
     var status: ProjectStatus,
     var public: Boolean = true,
-    var userId: Long,
-    var adminIds: String?,
+    var userId: Long? = null,
+    var adminIds: String? = null,
 ) {
     /**
      * id of project
