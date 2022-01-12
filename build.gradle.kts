@@ -40,6 +40,7 @@ dependencies {
     liquibaseRuntime(libs.liquibase.core)
     liquibaseRuntime(libs.mysql.connector.java)
     liquibaseRuntime(libs.picocli)
+    liquibaseRuntime(libs.snakeyaml)
 }
 
 talaiot {

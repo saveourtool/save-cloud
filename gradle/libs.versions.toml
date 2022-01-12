@@ -118,3 +118,4 @@ reckon-gradle-plugin = { module = "org.ajoberstar.reckon:reckon-gradle", version
 commons-compress = { module = "org.apache.commons:commons-compress", version.ref = "commons-compress" }
 picocli = { module = "info.picocli:picocli", version.ref = "picocli" }
 zip4j = { module = "net.lingala.zip4j:zip4j", version.ref = "zip4j" }
+snakeyaml = { module = "org.yaml:snakeyaml", version = "1.30" }
