@@ -11,14 +11,12 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 @Service
-class AwesomeBenchmarksService {
-    @Autowired
-    private lateinit var awesomeBenchmarksRepository: AwesomeBenchmarksRepository
+class AwesomeBenchmarksService(val awesomeBenchmarksRepository: AwesomeBenchmarksRepository) {
     private val log = LoggerFactory.getLogger(AwesomeBenchmarksService::class.java)
 
     @Transactional
     internal fun saveBenchmarksToDb(benchmarks: List<BenchmarkEntity>) {
-        log.info("Saving Awesome Benchmarks to 'awesome_benchmarks' table in DB: $benchmarks")
+        log.debug("Saving Awesome Benchmarks to 'awesome_benchmarks' table in DB: $benchmarks")
         // as we plan to override everything, we can simple delete all records in the table
         awesomeBenchmarksRepository.deleteAll()
         // flush is always needed after the deletion

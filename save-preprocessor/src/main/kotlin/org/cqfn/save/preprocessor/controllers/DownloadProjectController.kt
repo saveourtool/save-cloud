@@ -20,14 +20,12 @@ import org.cqfn.save.preprocessor.TextResponse
 import org.cqfn.save.preprocessor.config.ConfigProperties
 import org.cqfn.save.preprocessor.config.TestSuitesRepo
 import org.cqfn.save.preprocessor.service.TestDiscoveringService
-import org.cqfn.save.preprocessor.utils.decodeFromPropertiesFile
-import org.cqfn.save.preprocessor.utils.toHash
 import org.cqfn.save.testsuite.TestSuiteDto
 import org.cqfn.save.testsuite.TestSuiteType
 import org.cqfn.save.utils.moveFileWithAttributes
 
 import okio.FileSystem
-import org.cqfn.save.preprocessor.utils.cloneFromGit
+import org.cqfn.save.preprocessor.utils.*
 import org.cqfn.save.preprocessor.utils.generateDirectory
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.api.errors.GitAPIException
@@ -432,14 +430,13 @@ class DownloadProjectController(
     ) = if (executionType == ExecutionType.GIT) {
         getResourceLocationForGit(location, testRootPath)
     } else {
-        getTmpDirName(calculateTmpNameForFiles(files))
+        getTmpDirName(calculateTmpNameForFiles(files), "${configProperties.repository}")
     }
 
     private fun getResourceLocationForGit(location: String, testRootPath: String) = File(configProperties.repository)
         .resolve(location)
         .resolve(testRootPath)
 
-    private fun getTmpDirName(seeds: List<String>) = File("${configProperties.repository}/${seeds.hashCode()}")
 
     private fun calculateTmpNameForFiles(files: List<File>) = files.map { it.toHash() }.sorted()
 

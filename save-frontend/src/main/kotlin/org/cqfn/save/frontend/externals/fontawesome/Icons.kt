@@ -34,4 +34,5 @@ external val faFolderOpen: dynamic
 external val faCheckCircle: dynamic
 external val faPlus: dynamic
 external val faArrowRight: dynamic
+external val faLightbulb: dynamic
 

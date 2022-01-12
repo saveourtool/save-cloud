@@ -76,5 +76,5 @@ internal fun generateDirectory(seeds: List<String>, repository: String): File {
     return tmpDir
 }
 
-private fun getTmpDirName(seeds: List<String>, repository: String) = File("$repository/${seeds.hashCode()}")
+internal fun getTmpDirName(seeds: List<String>, repository: String) = File("$repository/${seeds.hashCode()}")
 

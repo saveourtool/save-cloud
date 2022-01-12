@@ -46,7 +46,7 @@ class AwesomeBenchmarksDownloadController(
     fun downloadAwesomeBenchmarks() =
             Mono.just(ResponseEntity("Downloading awesome-benchmarks", HttpStatus.ACCEPTED))
                     .doOnSuccess {
-                        log.info("Starting to download awesome-benchmarks to ${tmpDir.absolutePath}")
+                        log.debug("Starting to download awesome-benchmarks to ${tmpDir.absolutePath}")
                         cloneFromGit(gitDto, tmpDir)
                         log.info("Awesome-benchmarks were downloaded to ${tmpDir.absolutePath}")
                         processDirectoryAndCleanUp().subscribe()
