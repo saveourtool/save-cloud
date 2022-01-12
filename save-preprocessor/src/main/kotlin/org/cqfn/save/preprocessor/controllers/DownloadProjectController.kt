@@ -453,7 +453,6 @@ class DownloadProjectController(
         batchSizeForAnalyzer: String? = null,
     ): Mono<StatusResponse> {
         val executionType = execution.type
-        println("\n\n\n\n execCmd $execCmd batchSizeForAnalyzer $batchSizeForAnalyzer")
         testSuiteDtos?.let {
             require(executionType == ExecutionType.STANDARD) { "Test suites shouldn't be provided unless ExecutionType is STANDARD (actual: $executionType)" }
         } ?: require(executionType == ExecutionType.GIT) { "Test suites are not provided, but should for executionType=$executionType" }
@@ -665,7 +664,12 @@ class DownloadProjectController(
     /**
      * POST request to orchestrator to initiate its work
      */
-    private fun initializeAgents(execution: Execution, testSuiteDtos: List<TestSuiteDto>?, execCmd: String?, batchSizeForAnalyzer: String?): Status {
+    private fun initializeAgents(
+        execution: Execution,
+        testSuiteDtos: List<TestSuiteDto>?,
+        execCmd: String?,
+        batchSizeForAnalyzer: String?
+    ): Status {
         val bodyBuilder = MultipartBodyBuilder().apply {
             part("execution", execution)
         }

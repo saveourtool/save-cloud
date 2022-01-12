@@ -62,10 +62,17 @@ class DockerService(private val configProperties: ConfigProperties) {
      *
      * @param execution [Execution] from which this workflow is started
      * @param testSuiteDtos test suites, selected by user
+     * @param execCmd execCmd for SAVE-cli for testing in standard mode
+     * @param batchSizeForAnalyzer batchSize for SAVE-cli for testing in standard mode
      * @return list of IDs of created containers
      * @throws DockerException if interaction with docker daemon is not successful
      */
-    fun buildAndCreateContainers(execution: Execution, testSuiteDtos: List<TestSuiteDto>?, execCmd: String?, batchSizeForAnalyzer: String?): List<String> {
+    fun buildAndCreateContainers(
+        execution: Execution,
+        testSuiteDtos: List<TestSuiteDto>?,
+        execCmd: String?,
+        batchSizeForAnalyzer: String?
+    ): List<String> {
         log.info("Building base image for execution.id=${execution.id}")
         val (imageId, runCmd, saveCliExecFlags) = buildBaseImageForExecution(execution, testSuiteDtos, execCmd, batchSizeForAnalyzer)
         log.info("Built base image for execution.id=${execution.id}")
@@ -169,7 +176,12 @@ class DockerService(private val configProperties: ConfigProperties) {
         "UnsafeCallOnNullableType",
         "LongMethod",
     )
-    private fun buildBaseImageForExecution(execution: Execution, testSuiteDtos: List<TestSuiteDto>?, execCmd: String?, batchSizeForAnalyzer: String?): Triple<String, String, String> {
+    private fun buildBaseImageForExecution(
+        execution: Execution,
+        testSuiteDtos: List<TestSuiteDto>?,
+        execCmd: String?,
+        batchSizeForAnalyzer: String?
+    ): Triple<String, String, String> {
         val resourcesPath = File(
             configProperties.testResources.basePath,
             execution.resourcesRootPath!!,
@@ -201,11 +213,22 @@ class DockerService(private val configProperties: ConfigProperties) {
 
         val saveCliExecFlags = if (isStandardMode) {
             // create stub toml config in aim to execute all test suites directories from `testSuitesDir`
+            val exeCmdForTomlConfig = if (execCmd.isNullOrBlank()) "" else "execCmd =  \"$execCmd\""
+            val batchSizeForTomlConfig = if (batchSizeForAnalyzer.isNullOrBlank()) {
+                ""
+            } else {
+                """
+                |[fix]
+                |   batchSize = $batchSizeForAnalyzer
+                |[warn]
+                |   batchSize = $batchSizeForAnalyzer
+                """
+            }
             val configData = """
-                             [general]
-                                execCmd = ${execCmd ?: ""}
-                                batchSize = ${batchSizeForAnalyzer ?: "1"}
-                             """.trim()
+                             |[general]
+                             |$exeCmdForTomlConfig
+                             |$batchSizeForTomlConfig
+                             """.trimMargin()
 
             testSuitesDir.resolve("save.toml").apply { createNewFile() }.writeText(configData)
             " $STANDARD_TEST_SUITE_DIR --include-suites \"${testSuitesForDocker.joinToString(",") { it.name }}\""
