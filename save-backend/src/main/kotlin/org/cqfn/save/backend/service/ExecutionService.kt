@@ -2,6 +2,7 @@ package org.cqfn.save.backend.service
 
 import org.cqfn.save.backend.repository.ExecutionRepository
 import org.cqfn.save.backend.repository.ProjectRepository
+import org.cqfn.save.backend.repository.UserRepository
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.execution.ExecutionInitializationDto
@@ -12,6 +13,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.server.ResponseStatusException
 
 import java.time.LocalDateTime
@@ -21,7 +23,9 @@ import java.util.Optional
  * Service that is used to manipulate executions
  */
 @Service
-class ExecutionService(private val executionRepository: ExecutionRepository) {
+class ExecutionService(private val executionRepository: ExecutionRepository,
+                       private val userRepository: UserRepository,
+) {
     private val log = LoggerFactory.getLogger(ExecutionService::class.java)
 
     @Autowired
@@ -34,6 +38,16 @@ class ExecutionService(private val executionRepository: ExecutionRepository) {
      * @return execution if it has been found
      */
     fun findExecution(id: Long) = executionRepository.findById(id)
+
+    /**
+     * @param execution
+     * @param username username of the user that has started the execution
+     * @return id of the created [Execution]
+     */
+    @Suppress("UnsafeCallOnNullableType")  // hibernate should always assign ids
+    fun saveExecution(execution: Execution, username: String): Long = executionRepository.save(execution.apply {
+        this.user = userRepository.findByName(username).orElseThrow()
+    }).id!!
 
     /**
      * @param execution
@@ -109,7 +123,9 @@ class ExecutionService(private val executionRepository: ExecutionRepository) {
      * @return execution
      */
     fun updateNewExecution(executionInitializationDto: ExecutionInitializationDto) =
-            executionRepository.findTopByProjectOrderByStartTimeDesc(executionInitializationDto.project)?.let {
+            executionRepository.findTopByProjectOrderByStartTimeDesc(
+                executionInitializationDto.project
+            )?.let {
                 require(it.version == null) { "Execution was already updated" }
                 it.version = executionInitializationDto.version
                 it.testSuiteIds = executionInitializationDto.testSuiteIds
@@ -151,5 +167,19 @@ class ExecutionService(private val executionRepository: ExecutionRepository) {
             skippedTests = 0
         }
         saveExecution(execution)
+    }
+
+    /**
+     * Map [execution] to a user by their name [username]
+     *
+     * @param execution
+     * @param username
+     */
+    @Transactional
+    fun updateExecutionWithUser(execution: Execution, username: String) {
+        val user = userRepository.findByName(username).orElseThrow()
+        executionRepository.save(execution.apply {
+            this.user = user
+        })
     }
 }
