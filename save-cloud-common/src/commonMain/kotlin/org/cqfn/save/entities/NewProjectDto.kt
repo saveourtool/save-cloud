@@ -6,10 +6,10 @@ import kotlinx.serialization.Serializable
  * Data class of new project information
  *
  * @property project project
- * @property gitDto github repository
+ * @property gitDto info about git repository
  */
 @Serializable
 data class NewProjectDto(
     val project: Project,
-    val gitDto: GitDto?
+    val gitDto: GitDto?,
 )
