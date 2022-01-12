@@ -1,7 +1,6 @@
 package org.cqfn.save.backend.controller
 
 import org.cqfn.save.backend.SaveApplication
-import org.cqfn.save.backend.controllers.ExecutionController
 import org.cqfn.save.backend.repository.ExecutionRepository
 import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.scheduling.StandardSuitesUpdateScheduler
@@ -28,6 +27,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.boot.test.mock.mockito.MockBeans
 import org.springframework.http.MediaType
+import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.web.reactive.server.WebTestClient
@@ -57,41 +57,8 @@ class ExecutionControllerTest {
     @Autowired
     lateinit var projectRepository: ProjectRepository
 
-    @Autowired
-    lateinit var executionController: ExecutionController
-
     @Test
-    fun testConnection() {
-        val project = projectRepository.findById(1).get()
-        val execution = Execution(
-            project,
-            testLocalDateTime,
-            testLocalDateTime,
-            ExecutionStatus.RUNNING,
-            "0,1,2",
-            "stub",
-            20,
-            ExecutionType.GIT,
-            "0.0.1",
-            0,
-            0,
-            0,
-            0,
-            Sdk.Default.toString(),
-            null,
-            null,
-            null
-        )
-        webClient.post()
-            .uri("/internal/createExecution")
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(BodyInserters.fromValue(execution))
-            .exchange()
-            .expectStatus()
-            .isOk
-    }
-
-    @Test
+    @WithMockUser("John Doe")
     fun testDataSave() {
         val project = projectRepository.findById(1).get()
         val execution = Execution(
@@ -111,7 +78,8 @@ class ExecutionControllerTest {
             Sdk.Default.toString(),
             null,
             null,
-            null
+            null,
+            null,
         )
         webClient.post()
             .uri("/internal/createExecution")
@@ -127,6 +95,7 @@ class ExecutionControllerTest {
     }
 
     @Test
+    @WithMockUser("John Doe")
     @Suppress("TOO_LONG_FUNCTION")
     fun testUpdateExecution() {
         val project = projectRepository.findById(1).get()
@@ -147,8 +116,10 @@ class ExecutionControllerTest {
             Sdk.Default.toString(),
             null,
             null,
-            null
+            null,
+            null,
         )
+
         webClient.post()
             .uri("/internal/createExecution")
             .contentType(MediaType.APPLICATION_JSON)
@@ -209,7 +180,7 @@ class ExecutionControllerTest {
     @Test
     fun checkExecutionDtoByProject() {
         val project = projectRepository.findById(1).get()
-        val executionCounts = executionRepository.findAll().count { it.project == project }
+        val executionCounts = executionRepository.findAll().count { it.project.id == project.id }
         webClient.get()
             .uri("/api/executionDtoList?name=${project.name}&owner=${project.owner}")
             .exchange()
@@ -223,10 +194,11 @@ class ExecutionControllerTest {
     }
 
     @Test
-    @Suppress("UnsafeCallOnNullableType")
+    @WithMockUser("John Doe")
+    @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
     fun checkUpdateNewExecution() {
         val execution = Execution(projectRepository.findAll().first(), LocalDateTime.now(), null, ExecutionStatus.PENDING, null,
-            null, 20, ExecutionType.GIT, null, 0, 0, 0, 0, Sdk.Default.toString(), null, null, null)
+            null, 20, ExecutionType.GIT, null, 0, 0, 0, 0, Sdk.Default.toString(), null, null, null, null)
         webClient.post()
             .uri("/internal/createExecution")
             .contentType(MediaType.APPLICATION_JSON)
@@ -261,6 +233,7 @@ class ExecutionControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "John Doe")
     fun `should send request to preprocessor to rerun execution`() {
         mockServerPreprocessor.enqueue(
             MockResponse().setResponseCode(202)

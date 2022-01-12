@@ -27,6 +27,7 @@ import javax.persistence.ManyToOne
  * @property skippedTests
  * @property sdk
  * @property additionalFiles
+ * @property user user that has started this execution
  * @property execCmd
  * @property batchSizeForAnalyzer
  */
@@ -67,7 +68,9 @@ class Execution(
     var sdk: String,
 
     var additionalFiles: String?,
-
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    var user: User?,
     var execCmd: String?,
 
     var batchSizeForAnalyzer: String?,

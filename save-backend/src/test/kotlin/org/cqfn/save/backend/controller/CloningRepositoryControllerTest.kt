@@ -31,7 +31,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.io.TempDir
-import org.mockito.Mockito
+import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
@@ -41,6 +41,7 @@ import org.springframework.context.annotation.Import
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.client.MultipartBodyBuilder
+import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.web.reactive.server.WebTestClient
@@ -71,6 +72,17 @@ import kotlin.io.path.createFile
 )
 @Suppress("TOO_LONG_FUNCTION")
 class CloningRepositoryControllerTest {
+    private val testProject = Project(
+        owner = "Huawei",
+        name = "huaweiName",
+        url = "huawei.com",
+        description = "test description",
+        status = ProjectStatus.CREATED,
+        userId = 1,
+        adminIds = null,
+    ).apply {
+        id = 1
+    }
     @Autowired private lateinit var fileSystemRepository: TimestampBasedFileSystemRepository
 
     @Autowired
@@ -83,9 +95,13 @@ class CloningRepositoryControllerTest {
     @BeforeEach
     fun webClientSetUp() {
         webTestClient.mutate().responseTimeout(Duration.ofSeconds(2)).build()
+
+        whenever(projectService.findByNameAndOwner("huaweiName", "Huawei"))
+            .thenReturn(testProject)
     }
 
     @Test
+    @WithMockUser(username = "John Doe")
     fun checkNewJobResponse() {
         mockServerPreprocessor.enqueue(
             MockResponse()
@@ -93,13 +109,9 @@ class CloningRepositoryControllerTest {
                 .setBody("Clone pending")
                 .addHeader("Content-Type", "application/json")
         )
-        val project = Project("Huawei", "huaweiName", "huawei.com", "test description", ProjectStatus.CREATED)
-        Mockito
-            .`when`(projectService.findByNameAndOwner("huaweiName", "Huawei"))
-            .thenReturn(project)
         val sdk = Jdk("8")
         val gitRepo = GitDto("1")
-        val executionRequest = ExecutionRequest(project, gitRepo, sdk = sdk, executionId = null, testRootPath = ".", execCmd = null, batchSizeForAnalyzer = null)
+        val executionRequest = ExecutionRequest(testProject, gitRepo, sdk = sdk, executionId = null, testRootPath = ".", execCmd = null, batchSizeForAnalyzer = null)
         val multipart = MultipartBodyBuilder().apply {
             part("executionRequest", executionRequest)
         }
@@ -116,6 +128,7 @@ class CloningRepositoryControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "John Doe")
     fun checkNewJobResponseForBin() {
         val binFile = tmpDir.resolve("binFile").apply {
             createFile()
@@ -126,11 +139,8 @@ class CloningRepositoryControllerTest {
         fileSystemRepository.saveFile(binFile)
         fileSystemRepository.saveFile(property)
 
-        val project = Project("Huawei", "huaweiName", "huawei.com", "test description", ProjectStatus.CREATED).apply {
-            id = 1
-        }
         val sdk = Jdk("8")
-        val request = ExecutionRequestForStandardSuites(project, emptyList(), sdk, null, null)
+        val request = ExecutionRequestForStandardSuites(testProject, emptyList(), sdk, null, null)
         val bodyBuilder = MultipartBodyBuilder()
         bodyBuilder.part("execution", request)
         bodyBuilder.part("file", property.toFileInfo())
@@ -142,9 +152,6 @@ class CloningRepositoryControllerTest {
                 .setBody("Clone pending")
                 .addHeader("Content-Type", "application/json")
         )
-        Mockito
-            .`when`(projectService.findByNameAndOwner("huaweiName", "Huawei"))
-            .thenReturn(project)
 
         webTestClient.post()
             .uri("/api/executionRequestStandardTests")

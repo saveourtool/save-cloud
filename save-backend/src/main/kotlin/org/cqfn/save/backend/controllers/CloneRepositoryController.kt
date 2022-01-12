@@ -5,6 +5,7 @@ import org.cqfn.save.backend.configs.ConfigProperties
 import org.cqfn.save.backend.repository.TimestampBasedFileSystemRepository
 import org.cqfn.save.backend.service.ExecutionService
 import org.cqfn.save.backend.service.ProjectService
+import org.cqfn.save.backend.utils.username
 import org.cqfn.save.domain.FileInfo
 import org.cqfn.save.domain.Sdk
 import org.cqfn.save.entities.Execution
@@ -20,6 +21,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.http.client.MultipartBodyBuilder
+import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestPart
@@ -54,15 +56,18 @@ class CloneRepositoryController(
      *
      * @param executionRequest information about project
      * @param files resources for execution
+     * @param authentication [Authentication] representing an authenticated request
      * @return mono string
      */
     @PostMapping(value = ["/submitExecutionRequest"], consumes = ["multipart/form-data"])
     fun submitExecutionRequest(
         @RequestPart(required = true) executionRequest: ExecutionRequest,
         @RequestPart("file", required = false) files: Flux<FileInfo>,
+        authentication: Authentication,
     ): Mono<StringResponse> = sendToPreprocessor(
         executionRequest,
         ExecutionType.GIT,
+        authentication.username(),
         files
     ) { newExecutionId ->
         part("executionRequest", executionRequest.copy(executionId = newExecutionId))
@@ -73,15 +78,18 @@ class CloneRepositoryController(
      *
      * @param executionRequestForStandardSuites information about project
      * @param files files required for execution
+     * @param authentication [Authentication] representing an authenticated request
      * @return mono string
      */
     @PostMapping(value = ["/executionRequestStandardTests"], consumes = ["multipart/form-data"])
     fun executionRequestStandardTests(
         @RequestPart("execution", required = true) executionRequestForStandardSuites: ExecutionRequestForStandardSuites,
         @RequestPart("file", required = true) files: Flux<FileInfo>,
+        authentication: Authentication,
     ): Mono<StringResponse> = sendToPreprocessor(
         executionRequestForStandardSuites,
         ExecutionType.STANDARD,
+        authentication.username(),
         files
     ) {
         part("executionRequestForStandardSuites", executionRequestForStandardSuites)
@@ -91,6 +99,7 @@ class CloneRepositoryController(
     private fun sendToPreprocessor(
         executionRequest: ExecutionRequestBase,
         executionType: ExecutionType,
+        username: String,
         files: Flux<FileInfo>,
         configure: MultipartBodyBuilder.(newExecutionId: Long) -> Unit
     ): Mono<StringResponse> {
@@ -98,7 +107,7 @@ class CloneRepositoryController(
             projectService.findByNameAndOwner(name, owner)
         }
         return project?.let {
-            val newExecution = saveExecution(project, executionType, configProperties.initialBatchSize, executionRequest.sdk)
+            val newExecution = saveExecution(project, username, executionType, configProperties.initialBatchSize, executionRequest.sdk)
             val newExecutionId = newExecution.id!!
             log.info("Sending request to preprocessor (executionType $executionType) to start save file for project id=${project.id}")
             val bodyBuilder = MultipartBodyBuilder().apply {
@@ -117,15 +126,16 @@ class CloneRepositoryController(
 
     private fun saveExecution(
         project: Project,
+        username: String,
         type: ExecutionType,
         batchSize: Int,
-        sdk: Sdk
+        sdk: Sdk,
     ): Execution {
         val execution = Execution(project, LocalDateTime.now(), null, ExecutionStatus.PENDING, null,
             null, batchSize, type, null, 0, 0, 0, 0, sdk.toString(),
-            null, null, null
+            null, null, null, null
         ).apply {
-            id = executionService.saveExecution(this)
+            id = executionService.saveExecution(this, username)
         }
         log.info("Creating a new execution id=${execution.id} for project id=${project.id}")
         return execution

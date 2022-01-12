@@ -4,7 +4,7 @@ import org.cqfn.save.entities.Project
 import kotlinx.serialization.Serializable
 
 /**
- * Additional information about execution that will be save for already created execution
+ * Additional information about execution that will be saved for already created execution
  *
  * @property project project of new execution
  * @property testSuiteIds test suite ids of new execution

@@ -5,6 +5,14 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
 
+    <changeSet id="execution-user" author="petertrr" context="dev or prod">
+        <addColumn tableName="execution">
+            <column name="user_id" type="bigint">
+                <constraints foreignKeyName="fk_execution_user" references="user(id)" nullable="true"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
     <changeSet id="add-execCmd-and-batchSizeForAnalyzer-columns" author="kgevorkyan" context="dev or prod">
         <addColumn tableName="execution">
             <column name="exec_cmd" type="varchar(255)" defaultValue="NULL"/>

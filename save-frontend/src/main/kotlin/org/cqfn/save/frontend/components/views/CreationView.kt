@@ -23,7 +23,7 @@ import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.HTMLTextAreaElement
 import org.w3c.dom.events.Event
 import org.w3c.fetch.Headers
-import react.PropsWithChildren
+import react.Props
 import react.RBuilder
 import react.State
 import react.dom.*
@@ -103,7 +103,7 @@ enum class GitConnectionStatusEnum {
  */
 @JsExport
 @OptIn(ExperimentalJsExport::class)
-class CreationView : AbstractView<PropsWithChildren, ProjectSaveViewState>(true) {
+class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
     private val fieldsMap: MutableMap<InputTypes, String> = mutableMapOf()
 
     init {
@@ -169,13 +169,15 @@ class CreationView : AbstractView<PropsWithChildren, ProjectSaveViewState>(true)
                 fieldsMap[InputTypes.PROJECT_URL]?.trim(),
                 fieldsMap[InputTypes.DESCRIPTION]?.trim(),
                 ProjectStatus.CREATED,
+                userId = -1,
+                adminIds = null,
             ),
             GitDto(
                 fieldsMap[InputTypes.GIT_URL]?.trim() ?: "",
                 fieldsMap[InputTypes.GIT_USER]?.trim(),
                 fieldsMap[InputTypes.GIT_TOKEN]?.trim(),
                 fieldsMap[InputTypes.GIT_BRANCH]?.trim()
-            )
+            ),
         )
         val headers = Headers().also {
             it.set("Accept", "application/json")
