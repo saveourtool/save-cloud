@@ -27,6 +27,7 @@ import javax.persistence.ManyToOne
  * @property skippedTests
  * @property sdk
  * @property additionalFiles
+ * @property user user that has started this execution
  */
 @Suppress("USE_DATA_CLASS", "LongParameterList")
 @Entity
@@ -65,6 +66,10 @@ class Execution(
     var sdk: String,
 
     var additionalFiles: String?,
+
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    var user: User?,
 
 ) : BaseEntity() {
     /**
