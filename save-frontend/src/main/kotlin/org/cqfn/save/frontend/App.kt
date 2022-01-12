@@ -9,7 +9,6 @@ import org.cqfn.save.frontend.components.Footer
 import org.cqfn.save.frontend.components.basic.scrollToTopButton
 import org.cqfn.save.frontend.components.topBar
 import org.cqfn.save.frontend.externals.modal.ReactModal
-import org.cqfn.save.frontend.utils.decodeFromJsonString
 import org.cqfn.save.frontend.utils.get
 import org.cqfn.save.frontend.utils.withRouter
 import org.cqfn.save.info.UserInfo
@@ -27,8 +26,11 @@ import react.router.dom.HashRouter
 import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
 import kotlinx.html.id
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
 import org.cqfn.save.frontend.components.views.*
 import org.cqfn.save.frontend.externals.fontawesome.*
 
@@ -56,7 +58,8 @@ class App : RComponent<PropsWithChildren, AppState>() {
         GlobalScope.launch {
             val headers = Headers().also { it.set("Accept", "application/json") }
             val userInfoNew: UserInfo? = get("${window.location.origin}/sec/user", headers).run {
-                if (ok) decodeFromJsonString() else null
+                val responseText = text().await()
+                if (!ok || responseText == "null") null else Json.decodeFromString(responseText)
             }
             userInfoNew?.let {
                 setState {
@@ -205,3 +208,5 @@ fun main() {
         child(App::class) {}
     }
 }
+
+

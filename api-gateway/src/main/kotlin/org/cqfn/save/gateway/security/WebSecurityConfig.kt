@@ -39,7 +39,7 @@ class WebSecurityConfig(
     ): SecurityWebFilterChain = http.run {
         authorizeExchange()
             // this is default data that is required by FE to operate properly
-            .pathMatchers("/", "/login", "/logout", "/sec/oauth-providers")
+            .pathMatchers("/", "/login", "/logout", "/sec/oauth-providers", "/sec/user")
             .permitAll()
             // all requests to backend are permitted on gateway, if user agent is authenticated in gateway or doesn't have
             // any authentication data at all.
