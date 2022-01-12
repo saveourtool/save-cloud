@@ -1,12 +1,15 @@
 package org.cqfn.save.backend.service
 
 import org.cqfn.save.backend.repository.ProjectRepository
+import org.cqfn.save.backend.repository.UserRepository
 import org.cqfn.save.domain.ProjectSaveStatus
 import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.ProjectStatus
 import org.springframework.data.domain.Example
 import org.springframework.data.domain.ExampleMatcher
+import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
+import org.springframework.web.server.ResponseStatusException
 
 /**
  * Service for project
@@ -14,20 +17,39 @@ import org.springframework.stereotype.Service
  * @property projectRepository
  */
 @Service
-class ProjectService(private val projectRepository: ProjectRepository) {
+class ProjectService(private val projectRepository: ProjectRepository,
+                     private val userRepository: UserRepository,
+) {
     /**
      * Store [project] in the database
      *
      * @param project a [Project] to store
+     * @param username name of the user that should be associated as a creator of this project. If null, [project] should contain valid user id.
      * @return project's id, should never return null
+     * @throws ResponseStatusException if project doesn't exist and no username has been provided
      */
-    fun saveProject(project: Project): Pair<Long, ProjectSaveStatus> {
+    @Suppress("UnsafeCallOnNullableType")
+    fun saveProject(project: Project, username: String?): Pair<Long, ProjectSaveStatus> {
         val exampleMatcher = ExampleMatcher.matchingAll()
             .withMatcher("name", ExampleMatcher.GenericPropertyMatchers.exact())
             .withMatcher("owner", ExampleMatcher.GenericPropertyMatchers.exact())
         val (projectId, projectSaveStatus) = projectRepository.findOne(Example.of(project, exampleMatcher)).map {
             Pair(it.id, ProjectSaveStatus.EXIST)
         }.orElseGet {
+            // if project is not found, add mapping to a user and save it
+            username?.let {
+                userRepository.findByName(username)
+                    .map {
+                        project.userId = it.id!!
+                        it
+                    }
+                    .orElseThrow {
+                        ResponseStatusException(HttpStatus.BAD_REQUEST, "Attempt to create project for a non-existent user $username")
+                    }
+            }
+            // if no username is provided, then we are trying to update the project. Then, if the project is not found,
+            // this is an error. Todo: make this logic more obvious
+                ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Attempt to update non-existent project")
             val savedProject = projectRepository.save(project)
             Pair(savedProject.id, ProjectSaveStatus.NEW)
         }

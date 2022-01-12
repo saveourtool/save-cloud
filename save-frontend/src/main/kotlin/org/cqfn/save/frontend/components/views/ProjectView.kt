@@ -186,7 +186,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     private var standardTestSuites: List<TestSuiteDto> = emptyList()
     private val selectedStandardSuites: MutableList<String> = mutableListOf()
     private var gitDto: GitDto? = null
-    private var project = Project("N/A", "N/A", "N/A", "N/A", ProjectStatus.CREATED)
+    private var project = Project("N/A", "N/A", "N/A", "N/A", ProjectStatus.CREATED, userId = -1, adminIds = null)
     private val projectInformation = mutableMapOf(
         "Tested tool name: " to "",
         "Description: " to "",
@@ -715,7 +715,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     }
 
     private fun deleteProject() {
-        project.status = ProjectStatus.DELETED
+        project = project.copy(status = ProjectStatus.DELETED)
 
         setState {
             confirmationType = ConfirmationType.DELETE_CONFIRM
@@ -731,10 +731,12 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             it.set("Content-Type", "application/json")
         }
         val (name, description, url, owner) = projectInfo.values.toList()
-        project.name = name
-        project.description = description
-        project.url = url
-        project.owner = owner
+        project = project.copy(
+            name = name,
+            description = description,
+            url = url,
+            owner = owner,
+        )
         GlobalScope.launch {
             post("$apiUrl/updateProject", headers, Json.encodeToString(project))
         }
