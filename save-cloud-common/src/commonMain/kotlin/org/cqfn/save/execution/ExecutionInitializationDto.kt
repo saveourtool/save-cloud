@@ -10,8 +10,8 @@ import kotlinx.serialization.Serializable
  * @property testSuiteIds test suite ids of new execution
  * @property resourcesRootPath path to resources of new execution
  * @property version version of new execution
- * @property execCmd execution command of new execution, applicable only in standard mode
- * @property batchSizeForAnalyzer batch size of new execution, applicable only in standard mode
+ * @property execCmd execCmd for SAVE-cli for testing in standard mode
+ * @property batchSizeForAnalyzer batchSize for SAVE-cli for testing in standard mode
  */
 @Serializable
 data class ExecutionInitializationDto(

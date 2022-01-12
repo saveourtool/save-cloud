@@ -68,9 +68,11 @@ class Execution(
     var sdk: String,
 
     var additionalFiles: String?,
+
     @ManyToOne
     @JoinColumn(name = "user_id")
     var user: User?,
+
     var execCmd: String?,
 
     var batchSizeForAnalyzer: String?,
