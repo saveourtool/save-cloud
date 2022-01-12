@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.server.ResponseStatusException
 
 import java.time.LocalDateTime
@@ -166,5 +167,19 @@ class ExecutionService(private val executionRepository: ExecutionRepository,
             skippedTests = 0
         }
         saveExecution(execution)
+    }
+
+    /**
+     * Map [execution] to a user by their name [username]
+     *
+     * @param execution
+     * @param username
+     */
+    @Transactional
+    fun updateExecutionWithUser(execution: Execution, username: String) {
+        val user = userRepository.findByName(username).orElseThrow()
+        executionRepository.save(execution.apply {
+            this.user = user
+        })
     }
 }

@@ -24,6 +24,7 @@ import org.springframework.boot.test.mock.mockito.MockBeans
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.client.MultipartBodyBuilder
+import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.web.reactive.server.WebTestClient
@@ -46,6 +47,7 @@ class CloneRepoTest {
     private lateinit var executionRepository: ExecutionRepository
 
     @Test
+    @WithMockUser(username = "John Doe")
     fun checkSaveProject() {
         val sdk = Jdk("8")
         mockServerPreprocessor.enqueue(
@@ -79,6 +81,7 @@ class CloneRepoTest {
     }
 
     @Test
+    @WithMockUser(username = "John Doe")
     fun checkNonExistingProject() {
         val sdk = Jdk("11")
         val project = Project.stub(null)

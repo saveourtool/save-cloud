@@ -245,6 +245,7 @@ class ExecutionControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "John Doe")
     fun `should send request to preprocessor to rerun execution`() {
         mockServerPreprocessor.enqueue(
             MockResponse().setResponseCode(202)

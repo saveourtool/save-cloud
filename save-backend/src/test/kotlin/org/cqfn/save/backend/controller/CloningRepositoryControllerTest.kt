@@ -41,6 +41,7 @@ import org.springframework.context.annotation.Import
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.client.MultipartBodyBuilder
+import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.web.reactive.server.WebTestClient
@@ -100,6 +101,7 @@ class CloningRepositoryControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "John Doe")
     fun checkNewJobResponse() {
         mockServerPreprocessor.enqueue(
             MockResponse()
@@ -126,6 +128,7 @@ class CloningRepositoryControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "John Doe")
     fun checkNewJobResponseForBin() {
         val binFile = tmpDir.resolve("binFile").apply {
             createFile()

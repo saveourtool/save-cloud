@@ -8,6 +8,7 @@ import org.cqfn.save.backend.service.GitService
 import org.cqfn.save.backend.service.ProjectService
 import org.cqfn.save.backend.service.TestExecutionService
 import org.cqfn.save.backend.service.TestSuitesService
+import org.cqfn.save.backend.utils.username
 import org.cqfn.save.domain.toSdk
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.ExecutionRequest
@@ -19,6 +20,7 @@ import org.slf4j.LoggerFactory
 
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.core.Authentication
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
@@ -29,7 +31,6 @@ import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
-import java.security.Principal
 
 typealias ExecutionDtoListResponse = ResponseEntity<List<ExecutionDto>>
 
@@ -52,11 +53,10 @@ class ExecutionController(private val executionService: ExecutionService,
 
     /**
      * @param execution
-     * @param principal a user that creates an execution
      * @return id of created [Execution]
      */
     @PostMapping("/internal/createExecution")
-    fun createExecution(@RequestBody execution: Execution, principal: Principal): Long = executionService.saveExecution(execution, principal.name)
+    fun createExecution(@RequestBody execution: Execution): Long = executionService.saveExecution(execution)
 
     /**
      * @param executionUpdateDto
@@ -182,12 +182,13 @@ class ExecutionController(private val executionService: ExecutionService,
      * Accepts a request to rerun an existing execution
      *
      * @param id id of an existing execution
+     * @param authentication [Authentication] representing an authenticated request
      * @return bodiless response
      */
     @PostMapping("/api/rerunExecution")
     @Transactional
     @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
-    fun rerunExecution(@RequestParam id: Long): Mono<String> {
+    fun rerunExecution(@RequestParam id: Long, authentication: Authentication): Mono<String> {
         val execution = executionService.findExecution(id).orElseThrow {
             IllegalArgumentException("Can't rerun execution $id, because it does not exist")
         }
@@ -205,6 +206,7 @@ class ExecutionController(private val executionService: ExecutionService,
         }
 
         executionService.resetMetrics(execution)
+        executionService.updateExecutionWithUser(execution, authentication.username())
         val executionRequest = ExecutionRequest(
             project = execution.project,
             gitDto = git.copy(hash = execution.version),

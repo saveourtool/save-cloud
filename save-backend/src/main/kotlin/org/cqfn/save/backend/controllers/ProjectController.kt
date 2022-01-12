@@ -2,7 +2,7 @@ package org.cqfn.save.backend.controllers
 
 import org.cqfn.save.backend.service.GitService
 import org.cqfn.save.backend.service.ProjectService
-import org.cqfn.save.backend.utils.toUser
+import org.cqfn.save.backend.utils.username
 import org.cqfn.save.domain.ProjectSaveStatus
 import org.cqfn.save.entities.GitDto
 import org.cqfn.save.entities.NewProjectDto
@@ -12,14 +12,13 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
-
-import java.security.Principal
 
 /**
  * Controller for working with projects.
@@ -72,12 +71,15 @@ class ProjectController {
 
     /**
      * @param newProjectDto newProjectDto
-     * @param principal a Principal of an authenticated request
+     * @param authentication an [Authentication] representing an authenticated request
      * @return response
      */
     @PostMapping("/saveProject")
-    fun saveProject(@RequestBody newProjectDto: NewProjectDto, principal: Principal): ResponseEntity<String> {
-        val (projectId, projectStatus) = projectService.saveProject(newProjectDto.project, principal.toUser().name)
+    fun saveProject(@RequestBody newProjectDto: NewProjectDto, authentication: Authentication): ResponseEntity<String> {
+        val (projectId, projectStatus) = projectService.saveProject(
+            newProjectDto.project,
+            authentication.username()
+        )
         if (projectStatus == ProjectSaveStatus.EXIST) {
             log.warn("Project with id = $projectId already exists")
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(projectStatus.message)
