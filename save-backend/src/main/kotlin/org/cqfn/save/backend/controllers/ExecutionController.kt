@@ -213,8 +213,6 @@ class ExecutionController(private val executionService: ExecutionService,
             testRootPath = testRootPath,
             sdk = execution.sdk.toSdk(),
             executionId = execution.id,
-            execCmd = execution.execCmd,
-            batchSizeForAnalyzer = execution.batchSizeForAnalyzer
         )
         return preprocessorWebClient.post()
             .uri("/rerunExecution?executionType=$executionType")

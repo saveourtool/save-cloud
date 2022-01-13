@@ -212,8 +212,8 @@ class DownloadProjectController(
                         location,
                         testSuites?.map { it.toDto() },
                         executionRerunRequest.gitDto.url,
-                        executionRerunRequest.execCmd,
-                        executionRerunRequest.batchSizeForAnalyzer,
+                        execution.execCmd,
+                        execution.batchSizeForAnalyzer,
                     )
                 }
                 .subscribeOn(scheduler)

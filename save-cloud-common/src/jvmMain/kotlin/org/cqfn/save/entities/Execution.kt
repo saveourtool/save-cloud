@@ -94,7 +94,5 @@ class Execution(
         failedTests,
         skippedTests,
         additionalFiles?.split(";")?.filter { it.isNotBlank() },
-        execCmd,
-        batchSizeForAnalyzer,
     )
 }

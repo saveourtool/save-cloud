@@ -303,7 +303,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         val selectedSdk = "${state.selectedSdk}:${state.selectedSdkVersion}".toSdk()
         val formData = FormData()
         val testRootPath = if (state.testRootPath.isBlank()) "." else state.testRootPath
-        val executionRequest = ExecutionRequest(project, correctGitDto, testRootPath, selectedSdk, null, null, null)
+        val executionRequest = ExecutionRequest(project, correctGitDto, testRootPath, selectedSdk, null)
         formData.appendJson("executionRequest", executionRequest)
         state.files.forEach {
             formData.appendJson("file", it)

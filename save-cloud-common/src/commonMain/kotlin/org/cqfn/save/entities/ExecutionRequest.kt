@@ -31,8 +31,6 @@ sealed class ExecutionRequestBase {
  * @property testRootPath root path of the test repository where save.properties file and high level save.toml file could be stored
  * @property executionId id of execution. It is null until execution is created (when request comes from frontend).
  * @property sdk
- * @property execCmd
- * @property batchSizeForAnalyzer
  */
 @Suppress("KDOC_NO_CONSTRUCTOR_PROPERTY_WITH_COMMENT")
 @Serializable
@@ -42,9 +40,6 @@ data class ExecutionRequest(
     val testRootPath: String,
     override val sdk: Sdk,
     val executionId: Long?,
-    val execCmd: String?,
-    val batchSizeForAnalyzer: String?,
-    // fixme move into base class
 ) : ExecutionRequestBase()
 
 /**
