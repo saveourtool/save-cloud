@@ -154,6 +154,7 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
 
                                 div("row mt-3") {
                                     div("col-lg-8") {
+                                        // https://devicon.dev
                                         state.benchmarks.forEachIndexed { i, benchmark ->
                                             div("media text-muted ${if (i != 0) "pt-3" else ""}") {
                                                 img(classes = "rounded mt-1") {
@@ -242,7 +243,9 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                     }
 
                                     +""" that can be used for testing and evaluating dev tools.
-                                            Our focus is mainly on the code analysis, but is not limited by this category, in this list we are trying to collect all benchmarks that could be useful for creators of dev-tools."""
+                                            Our focus is mainly on the code analysis, but is not limited by this category,
+                                             in this list we are trying to collect all benchmarks that could be useful 
+                                             for creators of dev-tools."""
                                 }
 
                                 div("text-center") {
