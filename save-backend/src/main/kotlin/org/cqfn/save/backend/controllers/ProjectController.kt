@@ -35,10 +35,9 @@ import reactor.kotlin.core.publisher.switchIfEmpty
  */
 @RestController
 @RequestMapping("/api")
-class ProjectController(
-    private val projectService: ProjectService,
-    private val gitService: GitService,
-    private val projectPermissionEvaluator: ProjectPermissionEvaluator,
+class ProjectController(private val projectService: ProjectService,
+                        private val gitService: GitService,
+                        private val projectPermissionEvaluator: ProjectPermissionEvaluator,
 ) {
     /**
      * Get all projects, including deleted and private. Only accessible for admins.
@@ -49,8 +48,15 @@ class ProjectController(
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     fun getProjects() = projectService.getProjects()
 
+    /**
+     * Get all projects, accessible for the current user.
+     * Note: `@PostFilter` is not yet supported for webflux: https://github.com/spring-projects/spring-security/issues/5249
+     *
+     * @return flux of projects
+     */
     @GetMapping("/projects")
-    fun getProjects(authentication: Authentication) = projectService.getProjects(authentication.username())
+    fun getProjects(authentication: Authentication): Flux<Project> = projectService.getProjects()
+        .filter { projectPermissionEvaluator.hasPermission(authentication, it, "read") }
 
     /**
      * Get all projects without status.
@@ -96,8 +102,8 @@ class ProjectController(
     @PostMapping("/getGit")
     fun getRepositoryDtoByProject(@RequestBody project: Project): ResponseEntity<GitDto> =
             gitService.getRepositoryDtoByProject(project)?.let {
-                ResponseEntity.status(HttpStatus.OK).body(it)
-            } ?: ResponseEntity.status(HttpStatus.NOT_FOUND).build()
+                ResponseEntity.ok(it)
+            } ?: ResponseEntity.notFound().build()
 
     /**
      * @param newProjectDto newProjectDto
@@ -112,14 +118,14 @@ class ProjectController(
         )
         if (projectStatus == ProjectSaveStatus.EXIST) {
             log.warn("Project with id = $projectId already exists")
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(projectStatus.message)
+            return ResponseEntity.badRequest().body(projectStatus.message)
         }
         log.info("Save new project id = $projectId")
         newProjectDto.gitDto?.let {
             val saveGit = gitService.saveGit(it, projectId)
             log.info("Save new git id = ${saveGit.id}")
         }
-        return ResponseEntity.status(HttpStatus.OK).body(projectStatus.message)
+        return ResponseEntity.ok(projectStatus.message)
     }
 
     /**
@@ -127,13 +133,14 @@ class ProjectController(
      * @return response
      */
     @PostMapping("/updateProject")
-    @PreAuthorize("#project.getUserId()")  // todo
+    @PreAuthorize("@projectPermissionEvaluator.hasPermission(authentication, project, 'write')")
     fun updateProject(@RequestBody project: Project): ResponseEntity<String> {
         val (_, projectStatus) = projectService.saveProject(project, null)
-        return ResponseEntity.status(HttpStatus.OK).body(projectStatus.message)
+        return ResponseEntity.ok(projectStatus.message)
     }
 
     companion object {
+        @JvmStatic
         private val log = LoggerFactory.getLogger(ProjectController::class.java)
     }
 }

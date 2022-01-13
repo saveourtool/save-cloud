@@ -61,24 +61,10 @@ class ProjectService(private val projectRepository: ProjectRepository,
         return Pair(projectId, projectSaveStatus)
     }
 
-    @Transactional
-    fun getProjects(username: String): Flux<Project> {
-        return Mono.fromCallable {
-            userRepository.findByName(username).orElse(null)
-        }
-            .flatMapIterable { user ->
-                projectRepository.findAll().map { user to it }
-            }
-            .filter { (user, project) ->
-                project.public || project.userId == user.id!!
-            }
-            .map { (_, project) -> project }
-    }
-
     /**
      * @return list of all projects
      */
-    fun getProjects(): List<Project> = projectRepository.findAll()
+    fun getProjects(): Flux<Project> = projectRepository.findAll().let { Flux.fromIterable(it) }
 
     /**
      * @param name

@@ -95,7 +95,6 @@ class ProjectControllerTest {
     }
 
     @Test
-//    @WithMockUser(username = "admin", roles = ["ADMIN"])
     @WithUserDetails
     fun `check git from project`() {
         val project = projectRepository.findById(1).get()
