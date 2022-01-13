@@ -1,0 +1,16 @@
+# https://docs.docker.com/compose/extends/
+version: '3.9'
+
+services:
+  preprocessor:
+    volumes:
+      - '/home/saveu/configs/certificates:/home/cnb/certificates'
+      - '/home/saveu/configs/TestSuitesRepos:/workspace/BOOT-INF/classes/TestSuitesRepos'
+      - '/home/saveu/configs/TestSuitesToken:/workspace/BOOT-INF/classes/TestSuitesToken'
+    command: [
+        "-c",
+        'mkdir -p /home/cnb/files/ && mkdir -p /home/cnb/config && mkdir -p /home/cnb/certificates &&
+         for cert in /home/cnb/certificates/*; do
+         find /layers -name jre -type d -exec {}/bin/keytool -keystore {}/lib/security/cacerts -storepass changeit -noprompt -trustcacerts -importcert -alias $${cert%.*} -file $$cert \;
+         ; done && /cnb/process/web'
+    ]

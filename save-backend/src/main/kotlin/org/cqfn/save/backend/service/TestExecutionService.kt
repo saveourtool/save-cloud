@@ -3,10 +3,10 @@ package org.cqfn.save.backend.service
 import org.cqfn.save.agent.TestExecutionDto
 import org.cqfn.save.backend.repository.AgentRepository
 import org.cqfn.save.backend.repository.ExecutionRepository
-import org.cqfn.save.backend.repository.TestDataFilesystemRepository
 import org.cqfn.save.backend.repository.TestExecutionRepository
 import org.cqfn.save.backend.repository.TestRepository
 import org.cqfn.save.backend.utils.secondsToLocalDateTime
+import org.cqfn.save.domain.TestResultLocation
 import org.cqfn.save.domain.TestResultStatus
 import org.cqfn.save.entities.TestExecution
 import org.cqfn.save.test.TestDto
@@ -14,8 +14,15 @@ import org.cqfn.save.test.TestDto
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
+import org.springframework.transaction.PlatformTransactionManager
+import org.springframework.transaction.TransactionDefinition
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.transaction.support.TransactionTemplate
+
+import java.nio.file.Paths
 import java.util.concurrent.ConcurrentHashMap
+
+import kotlin.io.path.pathString
 
 /**
  * Service for test result
@@ -25,10 +32,13 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
                            private val testRepository: TestRepository,
                            private val agentRepository: AgentRepository,
                            private val executionRepository: ExecutionRepository,
-                           private val testDataFilesystemRepository: TestDataFilesystemRepository,
+                           transactionManager: PlatformTransactionManager,
 ) {
     private val log = LoggerFactory.getLogger(TestExecutionService::class.java)
     private val locks: ConcurrentHashMap<Long, Any> = ConcurrentHashMap()
+    private val transactionTemplate = TransactionTemplate(transactionManager).apply {
+        propagationBehavior = TransactionDefinition.PROPAGATION_REQUIRES_NEW
+    }
 
     /**
      * Returns a page of [TestExecution]s with [executionId]
@@ -36,10 +46,18 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
      * @param executionId an ID of Execution to group TestExecutions
      * @param page a zero-based index of page of data
      * @param pageSize size of page
+     * @param status
+     * @param testSuite
      * @return a list of [TestExecutionDto]s
      */
-    internal fun getTestExecutions(executionId: Long, page: Int, pageSize: Int) = testExecutionRepository
-        .findByExecutionId(executionId, PageRequest.of(page, pageSize))
+    @Suppress("AVOID_NULL_CHECKS", "UnsafeCallOnNullableType")
+    internal fun getTestExecutions(
+        executionId: Long,
+        page: Int,
+        pageSize: Int,
+        status: TestResultStatus?,
+        testSuite: String?,
+    ) = testExecutionRepository.findByExecutionIdAndStatusAndTestTestSuiteName(executionId, status, testSuite, PageRequest.of(page, pageSize))
 
     /**
      * Get test executions by [agentContainerId] and [status]
@@ -52,19 +70,56 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
         .findByAgentContainerIdAndStatus(agentContainerId, status)
 
     /**
+     * Finds TestExecution by test location
+     *
+     * @param executionId under this executionId test has been executed
+     * @param testResultLocation location of the test
+     * @return optional TestExecution
+     */
+    internal fun getTestExecution(executionId: Long, testResultLocation: TestResultLocation) = with(testResultLocation) {
+        testExecutionRepository.findByExecutionIdAndTestPluginNameAndTestFilePath(
+            executionId, pluginName, Paths.get(testLocation, testName).pathString
+        )
+    }
+
+    /**
      * Returns number of TestExecutions with this [executionId]
      *
      * @param executionId an ID of Execution to group TestExecutions
+     * @param status
+     * @param testSuite
      * @return number of TestExecutions
      */
-    internal fun getTestExecutionsCount(executionId: Long) = testExecutionRepository
-        .countByExecutionId(executionId)
+    @Suppress("AVOID_NULL_CHECKS", "UnsafeCallOnNullableType")
+    internal fun getTestExecutionsCount(executionId: Long, status: TestResultStatus?, testSuite: String?) =
+            testExecutionRepository.countByExecutionIdAndStatusAndTestTestSuiteName(executionId, status, testSuite)
+
+    /**
+     * @param projectId
+     */
+    internal fun deleteTestExecutionWithProjectId(projectId: Long?) {
+        projectId?.let {
+            testExecutionRepository.deleteByExecutionProjectId(projectId)
+        }
+    }
+
+    /**
+     * @param executionIds list of ids
+     * @return Unit
+     */
+    internal fun deleteTestExecutionByExecutionIds(executionIds: List<Long>) =
+            testExecutionRepository.deleteByExecutionIdIn(executionIds)
 
     /**
      * @param testExecutionsDtos
      * @return list of lost tests
      */
-    @Suppress("TOO_MANY_LINES_IN_LAMBDA", "TOO_LONG_FUNCTION", "UnsafeCallOnNullableType")
+    @Suppress(
+        "TOO_MANY_LINES_IN_LAMBDA",
+        "TOO_LONG_FUNCTION",
+        "UnsafeCallOnNullableType",
+        "LongMethod"
+    )
     @Transactional
     fun saveTestResult(testExecutionsDtos: List<TestExecutionDto>): List<TestExecutionDto> {
         log.debug("Saving ${testExecutionsDtos.size} test results from agent ${testExecutionsDtos.first().agentContainerId}")
@@ -75,6 +130,7 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
         val agent = requireNotNull(agentRepository.findByContainerId(agentContainerId)) {
             "Agent with containerId=[$agentContainerId] was not found in the DB"
         }
+
         val executionId = agent.execution.id!!
         val lostTests: MutableList<TestExecutionDto> = mutableListOf()
         val counters = Counters()
@@ -84,6 +140,7 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
                 testExecDto.pluginName,
                 testExecDto.filePath
             )
+            val testExecutionId: Long? = foundTestExec.map { it.id }.orElse(null)
             foundTestExec.also {
                 if (it.isEmpty) {
                     log.error("Test execution $testExecDto for execution id=$executionId was not found in the DB")
@@ -97,6 +154,8 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
                     it.startTime = testExecDto.startTimeSeconds?.secondsToLocalDateTime()
                     it.endTime = testExecDto.endTimeSeconds?.secondsToLocalDateTime()
                     it.status = testExecDto.status
+                    it.missingWarnings = testExecDto.missingWarnings
+                    it.matchedWarnings = testExecDto.matchedWarnings
                     when (testExecDto.status) {
                         TestResultStatus.PASSED -> counters.passed++
                         TestResultStatus.FAILED -> counters.failed++
@@ -106,19 +165,24 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
                 },
                     {
                         lostTests.add(testExecDto)
-                        log.error("Test execution $testExecDto for execution id=$executionId cannot be updated because its status is not RUNNING")
+                        log.error("Test execution $testExecDto with id=$testExecutionId for execution id=$executionId cannot be updated because its status is not RUNNING")
                     })
         }
         val lock = locks.computeIfAbsent(executionId) { Any() }
         synchronized(lock) {
-            val execution = executionRepository.findById(executionId).get()
-            execution.apply {
-                runningTests -= counters.total()
-                passedTests += counters.passed
-                failedTests += counters.failed
-                skippedTests += counters.skipped
+            transactionTemplate.execute {
+                val execution = executionRepository.findById(executionId).get()
+                execution.apply {
+                    log.debug("Updating counters in execution id=$executionId: running=$runningTests-${counters.total()}, " +
+                            "passed=$passedTests+${counters.passed}, failed=$failedTests+${counters.failed}, skipped=$skippedTests+${counters.skipped}"
+                    )
+                    runningTests -= counters.total()
+                    passedTests += counters.passed
+                    failedTests += counters.failed
+                    skippedTests += counters.skipped
+                }
+                executionRepository.save(execution)
             }
-            executionRepository.save(execution)
         }
         return lostTests
     }
@@ -132,15 +196,22 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
         testIds.map { testId ->
             val testExecutionList = testExecutionRepository.findByExecutionIdAndTestId(executionId, testId)
             if (testExecutionList.isNotEmpty()) {
-                log.debug("For execution with id=$executionId test id=$testId already exist in DB, deleting it")
+                log.debug("For execution with id=$executionId test id=$testId already exists in DB, deleting it")
                 testExecutionRepository.deleteAllByExecutionIdAndTestId(executionId, testId)
             }
+            val execution = executionRepository.findById(executionId).get()
             testRepository.findById(testId).ifPresentOrElse({ test ->
                 log.debug("Creating TestExecution for test $testId")
                 val id = testExecutionRepository.save(
-                    TestExecution(test,
-                        executionId,
-                        null, TestResultStatus.READY, null, null,
+                    TestExecution(
+                        test = test,
+                        execution = execution,
+                        agent = null,
+                        status = TestResultStatus.READY_FOR_TESTING,
+                        startTime = null,
+                        endTime = null,
+                        missingWarnings = null,
+                        matchedWarnings = null,
                     )
                 )
                 log.debug("Created TestExecution $id for test $testId")

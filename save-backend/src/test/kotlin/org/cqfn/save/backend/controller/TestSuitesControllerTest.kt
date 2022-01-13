@@ -12,7 +12,6 @@ import org.cqfn.save.testsuite.TestSuiteType
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import okhttp3.mockwebserver.QueueDispatcher
-import org.junit.Assert
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -73,10 +72,10 @@ class TestSuitesControllerTest {
             expectBody<List<TestSuite>>()
                 .consumeWith {
                     val body = it.responseBody!!
-                    Assert.assertEquals(listOf(testSuite).size, body.size)
-                    Assert.assertEquals(testSuite.name, body[0].name)
-                    Assert.assertEquals(testSuite.project, body[0].project)
-                    Assert.assertEquals(testSuite.type, body[0].type)
+                    assertEquals(listOf(testSuite).size, body.size)
+                    assertEquals(testSuite.name, body[0].name)
+                    assertEquals(testSuite.project, body[0].project)
+                    assertEquals(testSuite.type, body[0].type)
                 }
         }
     }
@@ -132,7 +131,7 @@ class TestSuitesControllerTest {
 
     private fun saveTestSuites(testSuites: List<TestSuiteDto>, spec: WebTestClient.ResponseSpec.() -> Unit) {
         webClient.post()
-            .uri("/saveTestSuites")
+            .uri("/internal/saveTestSuites")
             .contentType(MediaType.APPLICATION_JSON)
             .body(BodyInserters.fromValue(testSuites))
             .exchange()
@@ -156,7 +155,7 @@ class TestSuitesControllerTest {
         }
         val allStandardTestSuite = testSuiteRepository.findAll().count { it.type == TestSuiteType.STANDARD }
         webClient.get()
-            .uri("/allStandardTestSuites")
+            .uri("/api/allStandardTestSuites")
             .exchange()
             .expectStatus()
             .isOk
@@ -185,7 +184,7 @@ class TestSuitesControllerTest {
         }
 
         webClient.get()
-            .uri("/standardTestSuitesWithName?name=$name")
+            .uri("/internal/standardTestSuitesWithName?name=$name")
             .exchange()
             .expectStatus()
             .isOk
@@ -201,7 +200,7 @@ class TestSuitesControllerTest {
         whenever(scheduler.scheduleJob(any())).thenReturn(Date.from(Instant.now()))
 
         webClient.post()
-            .uri("/updateStandardTestSuites")
+            .uri("/api/updateStandardTestSuites")
             .exchange()
             .expectStatus()
             .isOk

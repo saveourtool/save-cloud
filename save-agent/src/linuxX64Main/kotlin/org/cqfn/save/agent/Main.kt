@@ -4,10 +4,11 @@
 
 package org.cqfn.save.agent
 
+import org.cqfn.save.agent.utils.logDebugCustom
+import org.cqfn.save.agent.utils.logInfoCustom
 import org.cqfn.save.agent.utils.readProperties
-import org.cqfn.save.core.logging.isDebugEnabled
-import org.cqfn.save.core.logging.logDebug
-import org.cqfn.save.core.logging.logInfo
+import org.cqfn.save.core.config.LogType
+import org.cqfn.save.core.logging.logType
 
 import generated.SAVE_CLOUD_VERSION
 import io.ktor.client.HttpClient
@@ -46,11 +47,11 @@ fun main() {
     val config: AgentConfiguration = Properties.decodeFromStringMap(
         readProperties("agent.properties")
     )
-    isDebugEnabled = config.debug
-    logDebug("Instantiating save-agent version $SAVE_CLOUD_VERSION with config $config")
+    logType.set(if (config.debug) LogType.ALL else LogType.WARN)
+    logDebugCustom("Instantiating save-agent version $SAVE_CLOUD_VERSION with config $config")
 
     signal(SIGTERM, staticCFunction<Int, Unit> {
-        logInfo("Agent is shutting down because SIGTERM has been received")
+        logInfoCustom("Agent is shutting down because SIGTERM has been received")
         exit(1)
     })
 
@@ -69,5 +70,5 @@ fun main() {
     runBlocking {
         saveAgent.start()
     }
-    logInfo("Agent is shutting down")
+    logInfoCustom("Agent is shutting down")
 }

@@ -30,12 +30,12 @@ import kotlinx.html.js.onClickFunction
  * @param setPageIndex
  * @return set entries block
  */
-fun <T : Tag, D : Any> RDOMBuilder<T>.setEntries(tableInstance: TableInstance<D>, setPageIndex: StateSetter<Int>) = div("row") {
-    div("col-0 pt-3 pl-3 pr-0") {
+fun <T : Tag, D : Any> RDOMBuilder<T>.setEntries(tableInstance: TableInstance<D>, setPageIndex: StateSetter<Int>) = div("row mt-3") {
+    div("col-0 pt-1 pr-0") {
         +"Show "
     }
-    div("col-1 pr-0") {
-        div("input-group input-group-sm mb-3 mt-3") {
+    div("col-5 pr-0") {
+        div("input-group-sm input-group") {
             select(classes = "form-control") {
                 listOf("10", "25", "50", "100").forEach {
                     option("list-group-item") {
@@ -53,7 +53,7 @@ fun <T : Tag, D : Any> RDOMBuilder<T>.setEntries(tableInstance: TableInstance<D>
             }
         }
     }
-    div("col-0 pt-3 pl-2") {
+    div("col-0 pt-1 pl-2") {
         +" entries"
     }
 }
@@ -70,7 +70,8 @@ fun <T : Tag, D : Any> RDOMBuilder<T>.pagingControl(
     tableInstance: TableInstance<D>,
     setPageIndex: StateSetter<Int>,
     pageIndex: Int,
-    pageCount: Int) =
+    pageCount: Int,
+) =
         div("row") {
             // First page
             button(type = ButtonType.button, classes = "btn btn-link") {
@@ -155,6 +156,8 @@ fun <T : Tag, D : Any> RDOMBuilder<T>.pagingControl(
             }
             // Jump to the concrete page
             jumpToPage(tableInstance, setPageIndex, pageCount)
+
+            setEntries(tableInstance, setPageIndex)
         }
 
 /**
@@ -168,7 +171,7 @@ fun <T : Tag, D : Any> RDOMBuilder<T>.jumpToPage(tableInstance: TableInstance<D>
         form {
             var number = 0
             div("row") {
-                div("col-8 pr-0") {
+                div("col-7 pr-0") {
                     div("input-group input-group-sm mb-3 mt-3") {
                         input(type = InputType.text, classes = "form-control") {
                             attrs["aria-describedby"] = "basic-addon2"
@@ -205,7 +208,11 @@ fun <T : Tag, D : Any> RDOMBuilder<T>.jumpToPage(tableInstance: TableInstance<D>
             }
         }
 
-private fun <T : Tag, D : Any> RDOMBuilder<T>.setPageIndexAndGoToPage(tableInstance: TableInstance<D>, setPageIndex: StateSetter<Int>, index: Int) {
+private fun <D : Any> setPageIndexAndGoToPage(
+    tableInstance: TableInstance<D>,
+    setPageIndex: StateSetter<Int>,
+    index: Int
+) {
     setPageIndex(index)
     tableInstance.gotoPage(index)
 }

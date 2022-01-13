@@ -2,28 +2,19 @@
  * Top bar of web page
  */
 
+@file:Suppress("FILE_NAME_MATCH_CLASS", "FILE_WILDCARD_IMPORTS", "WildcardImport")
+
 package org.cqfn.save.frontend.components
 
 import org.cqfn.save.frontend.components.modal.logoutModal
 import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
+import org.cqfn.save.info.UserInfo
 
-import react.PropsWithChildren
-import react.RBuilder
-import react.RComponent
-import react.State
-import react.dom.RDOMBuilder
-import react.dom.a
-import react.dom.attrs
-import react.dom.button
-import react.dom.div
-import react.dom.img
-import react.dom.li
-import react.dom.nav
-import react.dom.ol
-import react.dom.span
-import react.dom.ul
-import react.router.dom.Location
-import react.setState
+import react.*
+import react.dom.*
+import react.fc
+import react.router.useLocation
+import react.useState
 
 import kotlinx.html.BUTTON
 import kotlinx.html.ButtonType
@@ -39,121 +30,144 @@ external interface TopBarProps : PropsWithChildren {
     /**
      * Currently logged in user or null
      */
-    var userName: String?
-
-    /**
-     * Current path received from router
-     */
-    var location: Location
+    var userInfo: UserInfo?
 }
 
-/**
- * A state of top bar component
- */
-external interface TopBarState : State {
-    /**
-     * Whether logout window is opened
-     */
-    var isLogoutModalOpen: Boolean?
-}
+private fun RBuilder.dropdownEntry(faIcon: String, text: String, handler: RDOMBuilder<BUTTON>.() -> Unit = { }) =
+        button(type = ButtonType.button, classes = "btn btn-no-outline dropdown-item rounded-0 shadow-none") {
+            fontAwesomeIcon {
+                attrs.icon = faIcon
+                attrs.className = "fas fa-sm fa-fw mr-2 text-gray-400"
+            }
+            +text
+            handler(this)
+        }
 
 /**
  * A component for web page top bar
+ *
+ * @return a function component
  */
-@JsExport
-@OptIn(ExperimentalJsExport::class)
-class TopBar : RComponent<TopBarProps, TopBarState>() {
-    // RouteResultProps - how to add other props??? Only via contexts?
-    init {
-        state.isLogoutModalOpen = false
-    }
+@Suppress("TOO_LONG_FUNCTION", "LongMethod")
+fun topBar() = fc<TopBarProps> { props ->
+    val (isLogoutModalOpen, setIsLogoutModalOpen) = useState(false)
+    val location = useLocation()
 
-    @Suppress("TOO_LONG_FUNCTION", "EMPTY_BLOCK_STRUCTURE_ERROR", "LongMethod")
-    override fun RBuilder.render() {
-        nav("navbar navbar-expand navbar-dark bg-dark topbar mb-3 static-top shadow") {
-            // Topbar Navbar
-            nav("navbar-nav mr-auto") {
-                attrs["aria-label"] = "breadcrumb"
-                ol("breadcrumb mb-0") {
-                    li("breadcrumb-item") {
-                        attrs["aria-current"] = "page"
-                        a(href = "#/") {
-                            attrs.classes = setOf("text-light")
-                            +"SAVE"
-                        }
+    nav("navbar navbar-expand navbar-dark bg-dark topbar mb-3 static-top shadow mr-1 ml-1 rounded") {
+        attrs.id = "navigation-top-bar"
+
+        // Topbar Navbar
+        nav("navbar-nav mr-auto w-100") {
+            attrs["aria-label"] = "breadcrumb"
+            ol("breadcrumb mb-0") {
+                li("breadcrumb-item") {
+                    attrs["aria-current"] = "page"
+                    a(href = "#/") {
+                        attrs.classes = setOf("text-light")
+                        +"SAVE"
                     }
-                    props.location.pathname
-                        .split("/")
-                        .filterNot { it.isBlank() }
-                        .apply {
-                            foldIndexed("#") { index: Int, acc: String, pathPart: String ->
-                                val currentLink = "$acc/$pathPart"
-                                li("breadcrumb-item") {
-                                    attrs["aria-current"] = "page"
-                                    if (index == size - 1) {
-                                        a(href = currentLink) {
-                                            attrs.classes = setOf("text-warning")
-                                            +pathPart
-                                        }
-                                    } else {
-                                        a(href = currentLink) {
-                                            attrs.classes = setOf("text-light")
-                                            +pathPart
-                                        }
+                }
+                location.pathname
+                    .substringBeforeLast("?")
+                    .split("/")
+                    .filterNot { it.isBlank() }
+                    .apply {
+                        foldIndexed("#") { index: Int, acc: String, pathPart: String ->
+
+                            val currentLink = "$acc/$pathPart"
+
+                            li("breadcrumb-item") {
+                                attrs["aria-current"] = "page"
+                                if (index == size - 1) {
+                                    a {
+                                        attrs.classes = setOf("text-warning")
+                                        +pathPart
+                                    }
+                                } else {
+                                    // small hack to redirect from history/execution to history
+                                    // AND small temp workaround to replace owner URL with "project"
+                                    // should be removed when we will finish with OWNER pages
+                                    val resultingLink = if (index == 0) currentLink.replace(pathPart, "projects") else currentLink.removeSuffix("/execution")
+                                    a(resultingLink) {
+                                        attrs.classes = setOf("text-light")
+                                        +pathPart
                                     }
                                 }
-                                currentLink
                             }
+                            currentLink
                         }
+                    }
+            }
+        }
+
+        ul("navbar-nav mx-auto") {
+            li("nav-item") {
+                a(classes = "nav-link d-flex align-items-center me-2 active") {
+                    attrs["aria-current"] = "Unified SAVE Format"
+                    attrs.href = "https://github.com/analysis-dev/save"
+                    +"Spec"
                 }
             }
-            ul("navbar-nav ml-auto") {
-                div("topbar-divider d-none d-sm-block") {}
-                // Nav Item - User Information
-                li("nav-item dropdown no-arrow") {
-                    a("#", classes = "nav-link dropdown-toggle") {
-                        attrs {
-                            id = "userDropdown"
-                            role = "button"
-                            set("data-toggle", "dropdown")
-                            set("aria-haspopup", "true")
-                            set("aria-expanded", "false")
-                        }
-                        span("mr-2 d-none d-lg-inline text-gray-600 small") {
-                            +(props.userName ?: "Log In")
-                        }
-                        img(classes = "img-profile rounded-circle", src = "img/undraw_profile.svg") {}
+            li("nav-item") {
+                a(classes = "nav-link me-2") {
+                    attrs.href = "https://github.com/analysis-dev/save-cloud"
+                    +"GitHub"
+                }
+            }
+            li("nav-item") {
+                a(classes = "nav-link me-2") {
+                    attrs.href = "#/projects"
+                    +"Leaderboard"
+                }
+            }
+            li("nav-item") {
+                a(classes = "nav-link me-2") {
+                    attrs.href = "https://github.com/analysis-dev/save-cloud"
+                    i("fa fa-user opacity-6 text-dark me-1") {
+                        attrs["aria-hidden"] = "true"
                     }
-                    // Dropdown - User Information
-                    div("dropdown-menu dropdown-menu-right shadow animated--grow-in") {
-                        attrs["aria-labelledby"] = "userDropdown"
-                        dropdownEntry("user", "Profile")
-                        dropdownEntry("cogs", "Settings")
-                        dropdownEntry("sign-out-alt", "Log out") {
-                            attrs.onClickFunction = {
-                                setState {
-                                    isLogoutModalOpen = true
-                                }
-                            }
-                        }
-                    }
+                    +"About"
                 }
             }
         }
-        logoutModal({
-            attrs.isOpen = state.isLogoutModalOpen
-        }) {
-            setState { isLogoutModalOpen = false }
+
+        ul("navbar-nav ml-auto") {
+            div("topbar-divider d-none d-sm-block") {}
+            // Nav Item - User Information
+            li("nav-item dropdown no-arrow") {
+                a("#", classes = "nav-link dropdown-toggle") {
+                    attrs {
+                        id = "userDropdown"
+                        role = "button"
+                        set("data-toggle", "dropdown")
+                        set("aria-haspopup", "true")
+                        set("aria-expanded", "false")
+                    }
+
+                    span("mr-2 d-none d-lg-inline text-gray-600") {
+                        +(props.userInfo?.userName ?: "")
+                    }
+
+                    fontAwesomeIcon {
+                        attrs.icon = "user"
+                        attrs.className = "fas fa-lg fa-fw mr-2 text-gray-400"
+                    }
+                }
+                // Dropdown - User Information
+                div("dropdown-menu dropdown-menu-right shadow animated--grow-in") {
+                    attrs["aria-labelledby"] = "userDropdown"
+                    // FixMe: temporary disable Profile DropDown, will need to link it with the user in the future
+                    // dropdownEntry("cogs", "Profile")
+                    dropdownEntry("sign-out-alt", "Log out") {
+                        attrs.onClickFunction = {
+                            setIsLogoutModalOpen(true)
+                        }
+                    }
+                }
+            }
         }
     }
-
-    private fun RBuilder.dropdownEntry(faIcon: String, text: String, handler: RDOMBuilder<BUTTON>.() -> Unit = { }) =
-            button(type = ButtonType.button, classes = "btn btn-no-outline dropdown-item rounded-0 shadow-none") {
-                fontAwesomeIcon {
-                    attrs.icon = faIcon
-                    attrs.className = "fas fa-sm fa-fw mr-2 text-gray-400"
-                }
-                +text
-                handler(this)
-            }
+    logoutModal({ attrs.isOpen = isLogoutModalOpen }) {
+        setIsLogoutModalOpen(false)
+    }
 }

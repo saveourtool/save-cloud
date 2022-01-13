@@ -1,0 +1,50 @@
+server:
+  port: 5300
+gateway:
+  backend:
+    url: http://backend:5000
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,gateway
+spring:
+  profiles:
+    default: dev
+  cloud:
+    gateway:
+      routes:
+        - id: api_route
+          uri: http://backend:5000
+          predicates:
+            - Path=/api/**
+          filters:
+            # If SESSION cookie is passed to downstream, it is then removed, because downstream discards it
+            - RemoveRequestHeader=Cookie
+            - ConvertAuthorizationHeader=
+        - id: index_route
+          uri: http://backend:5000/index.html
+          predicates:
+            - Path=/
+          filters:
+            # If SESSION cookie is passed to downstream, it is then removed, because downstream discards it
+            - RemoveRequestHeader=Cookie
+        - id: resource_route
+          uri: http://backend:5000
+          predicates:
+            - Path=/*.html,/*.js*,/img/**
+          filters:
+            # If SESSION cookie is passed to downstream, it is then removed, because downstream discards it
+            - RemoveRequestHeader=Cookie
+        - id: grafana
+          uri: http://grafana:9100
+          predicates:
+            - Path=/grafana/**
+  security:
+    oauth2:
+      client:
+        provider:
+          github:
+            # value that will work with GitHub API, where GitHub provides username as "login" in the response
+            # https://docs.github.com/en/rest/reference/users#get-the-authenticated-user
+            user-name-attribute: login

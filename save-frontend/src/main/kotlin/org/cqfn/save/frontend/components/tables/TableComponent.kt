@@ -12,6 +12,7 @@ import org.cqfn.save.frontend.utils.spread
 import kotlinext.js.jsObject
 import react.PropsWithChildren
 import react.RBuilder
+import react.dom.RDOMBuilder
 import react.dom.div
 import react.dom.em
 import react.dom.h6
@@ -40,6 +41,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
+import kotlinx.html.THEAD
 
 /**
  * [RProps] of a data table
@@ -64,6 +66,7 @@ external interface TableProps : PropsWithChildren {
  * @param plugins
  * @param additionalOptions
  * @param renderExpandedRow how to render an expanded row if `useExpanded` plugin is used
+ * @param commonHeader (optional) a common header for the table, which will be placed above individual column headers
  * @return a functional react component
  */
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -86,6 +89,7 @@ fun <D : Any> tableComponent(
     getRowProps: ((Row<D>) -> TableRowProps) = { jsObject() },
     getPageCount: (suspend (pageSize: Int) -> Int)? = null,
     renderExpandedRow: (RBuilder.(table: TableInstance<D>, row: Row<D>) -> Unit)? = undefined,
+    commonHeader: RDOMBuilder<THEAD>.(table: TableInstance<D>) -> Unit = {},
     getData: suspend (pageIndex: Int, pageSize: Int) -> Array<out D>,
 ) = fc<TableProps> { props ->
     require(useServerPaging xor (getPageCount == null)) {
@@ -141,12 +145,6 @@ fun <D : Any> tableComponent(
         }
     }
 
-    if (usePageSelection) {
-        div {
-            setEntries(tableInstance, setPageIndex)
-        }
-    }
-
     div("card shadow mb-4") {
         div("card-header py-3") {
             h6("m-0 font-weight-bold text-primary") {
@@ -160,19 +158,24 @@ fun <D : Any> tableComponent(
                     attrs["width"] = "100%"
                     attrs["cellSpacing"] = "0"
                     thead {
+                        commonHeader(tableInstance)
                         tableInstance.headerGroups.map { headerGroup ->
                             tr {
                                 spread(headerGroup.getHeaderGroupProps())
                                 headerGroup.headers.map { column ->
                                     val columnProps = column.getHeaderProps(column.getSortByToggleProps())
-                                    th(classes = columnProps.className) {
-                                        spread(columnProps)
+                                    val className = if (column.canSort) columnProps.className else ""
+                                    th(classes = className) {
                                         +column.render("Header")
-                                        span {
-                                            +when {
-                                                column.isSorted -> " 🔽"
-                                                column.isSortedDesc -> " 🔼"
-                                                else -> ""
+                                        // fixme: find a way to set `canSort`; now it's always true
+                                        if (column.canSort) {
+                                            spread(columnProps)
+                                            span {
+                                                +when {
+                                                    column.isSorted -> " 🔽"
+                                                    column.isSortedDesc -> " 🔼"
+                                                    else -> ""
+                                                }
                                             }
                                         }
                                     }
@@ -204,18 +207,20 @@ fun <D : Any> tableComponent(
                         }
                     }
                 }
-                if (tableInstance.pageCount > 1) {
-                    // block with paging controls
-                    div("wrapper container m-0 p-0") {
-                        pagingControl(tableInstance, setPageIndex, pageIndex, pageCount)
-                    }
-                    div {
+                // if (tableInstance.pageCount > 1) {
+                // block with paging controls
+                div("wrapper container m-0 p-0") {
+                    pagingControl(tableInstance, setPageIndex, pageIndex, pageCount)
+
+                    div("row ml-1") {
                         +"Page "
                         em {
                             +"${tableInstance.state.pageIndex + 1} of ${tableInstance.pageCount}"
                         }
                     }
                 }
+
+                // }
             }
         }
     }

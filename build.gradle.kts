@@ -8,9 +8,9 @@ import org.cqfn.save.buildutils.getDatabaseCredentials
 import org.cqfn.save.buildutils.installGitHooks
 
 plugins {
-    id("com.github.ben-manes.versions") version "0.39.0"
-    id("com.cdsap.talaiot.plugin.base") version "1.4.2"
-    id("org.liquibase.gradle") version Versions.liquibaseGradlePlugin
+    alias(libs.plugins.versions.plugin)
+    alias(libs.plugins.talaiot.base)
+    alias(libs.plugins.liquibase.gradle)
 }
 
 val profile = properties.getOrDefault("save.profile", "dev") as String
@@ -37,8 +37,9 @@ liquibase {
 }
 
 dependencies {
-    liquibaseRuntime("org.liquibase:liquibase-core:${Versions.liquibase}")
-    liquibaseRuntime("mysql:mysql-connector-java:${Versions.mySql}")
+    liquibaseRuntime(libs.liquibase.core)
+    liquibaseRuntime(libs.mysql.connector.java)
+    liquibaseRuntime(libs.picocli)
 }
 
 talaiot {
@@ -50,6 +51,10 @@ talaiot {
 allprojects {
     configureDiktat()
     configureDetekt()
+    configurations.all {
+        // if SNAPSHOT dependencies are used, refresh them periodically
+        resolutionStrategy.cacheDynamicVersionsFor(10, TimeUnit.MINUTES)
+    }
 }
 
 createStackDeployTask(profile)

@@ -645,8 +645,8 @@ style:
     imports: []
     forbiddenPatterns: ''
   ForbiddenMethodCall:
-    excludes: ['**/resources/**']
-    active: false
+    excludes: ['**/resources/**', '**/src/test/**']
+    active: true
     methods: ['kotlin.io.println', 'kotlin.io.print']
   ForbiddenPublicDataClass:
     excludes: ['**/resources/**']
@@ -831,6 +831,6 @@ style:
     excludes: ['**/resources/**']
     active: false
   WildcardImport:
-    active: true
+    active: false
     excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/jsTest/**', '**/iosTest/**']
     excludeImports: ['java.util.*', 'kotlinx.android.synthetic.*', 'kotlinx.serialization']

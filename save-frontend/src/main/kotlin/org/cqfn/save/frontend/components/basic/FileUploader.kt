@@ -14,14 +14,15 @@ import org.cqfn.save.frontend.externals.fontawesome.faUpload
 import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
 import org.cqfn.save.frontend.utils.toPrettyString
 
+import csstype.Width
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.HTMLSelectElement
+import react.CSSProperties
 import react.Props
 import react.PropsWithChildren
 import react.dom.attrs
 import react.dom.button
 import react.dom.div
-import react.dom.h6
 import react.dom.input
 import react.dom.label
 import react.dom.li
@@ -59,7 +60,7 @@ external interface UploaderProps : PropsWithChildren {
     var files: List<FileInfo>
 
     /**
-     * Sumbit button was pressed
+     * Submit button was pressed
      */
     var isSubmitButtonPressed: Boolean?
 
@@ -67,6 +68,21 @@ external interface UploaderProps : PropsWithChildren {
      * state for the creation of unified confirmation logic
      */
     var confirmationType: ConfirmationType
+
+    /**
+     * General size of test suite in bytes
+     */
+    var suiteByteSize: Long
+
+    /**
+     * Bytes received by server
+     */
+    var bytesReceived: Long
+
+    /**
+     * Flag to handle uploading a file
+     */
+    var isUploading: Boolean
 }
 
 /**
@@ -89,7 +105,7 @@ fun fileUploader(
         }
 
         div {
-            h6(classes = "d-inline mr-3") {
+            label(classes = "control-label col-auto justify-content-between font-weight-bold text-gray-800 mb-1 pl-0") {
                 +"1. Upload or select the tool (and other resources) for testing:"
             }
 
@@ -147,7 +163,24 @@ fun fileUploader(
                             }
                         }
                         fontAwesomeIcon(icon = faUpload)
+                        attrs["data-toggle"] = "tooltip"
+                        attrs["data-placement"] = "top"
+                        attrs["title"] = "Regular files/Executable files/ZIP Archives"
                         strong { +"Upload files:" }
+                    }
+                }
+
+                div("progress") {
+                    attrs.hidden = !props.isUploading
+                    div("progress-bar progress-bar-striped progress-bar-animated") {
+                        attrs["style"] = kotlinext.js.jsObject<CSSProperties> {
+                            width = if (props.suiteByteSize != 0L) {
+                                "${ (100 * props.bytesReceived / props.suiteByteSize) }%"
+                            } else {
+                                "100%"
+                            }.unsafeCast<Width>()
+                        }
+                        +"${props.bytesReceived / 1024} / ${props.suiteByteSize / 1024} kb"
                     }
                 }
             }
@@ -167,7 +200,7 @@ fun fileUploader(
  * @param onExecutableChange a handler that is invoked when icon is clicked
  * @return a functional component
  */
-@Suppress("TYPE_ALIAS", "STRING_CONCATENATION")  // https://github.com/cqfn/diKTat/issues/1076
+@Suppress("TYPE_ALIAS", "STRING_CONCATENATION")  // https://github.com/analysis-dev/diKTat/issues/1076
 internal fun fileIconWithMode(fileInfo: FileInfo, onExecutableChange: (file: FileInfo, checked: Boolean) -> Unit) = fc<Props> {
     span("fa-layers mr-3") {
         attrs["data-toggle"] = "tooltip"

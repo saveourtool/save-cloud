@@ -8,11 +8,19 @@ import org.cqfn.save.agent.TestExecutionDto
 import org.cqfn.save.domain.TestResultDebugInfo
 import org.cqfn.save.domain.TestResultStatus
 import org.cqfn.save.execution.ExecutionDto
+import org.cqfn.save.execution.ExecutionStatus
+import org.cqfn.save.frontend.components.basic.SelectOption.Companion.ANY
 import org.cqfn.save.frontend.components.basic.executionStatistics
 import org.cqfn.save.frontend.components.basic.executionTestsNotFound
+import org.cqfn.save.frontend.components.basic.testExecutionFiltersRow
 import org.cqfn.save.frontend.components.basic.testStatusComponent
 import org.cqfn.save.frontend.components.tables.tableComponent
+import org.cqfn.save.frontend.externals.fontawesome.faRedo
+import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
+import org.cqfn.save.frontend.externals.table.useFilters
+import org.cqfn.save.frontend.http.getDebugInfoFor
 import org.cqfn.save.frontend.themes.Colors
+import org.cqfn.save.frontend.utils.apiUrl
 import org.cqfn.save.frontend.utils.decodeFromJsonString
 import org.cqfn.save.frontend.utils.get
 import org.cqfn.save.frontend.utils.post
@@ -20,18 +28,11 @@ import org.cqfn.save.frontend.utils.spread
 import org.cqfn.save.frontend.utils.unsafeMap
 
 import csstype.Background
+import csstype.TextDecoration
 import kotlinext.js.jsObject
 import org.w3c.fetch.Headers
-import react.PropsWithChildren
-import react.RBuilder
-import react.RComponent
-import react.State
-import react.buildElement
-import react.dom.button
-import react.dom.div
-import react.dom.td
-import react.dom.tr
-import react.setState
+import react.*
+import react.dom.*
 import react.table.columns
 import react.table.useExpanded
 import react.table.usePagination
@@ -44,7 +45,6 @@ import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
 import kotlinx.html.js.onClickFunction
 import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 /**
@@ -55,6 +55,11 @@ external interface ExecutionProps : PropsWithChildren {
      * ID of execution
      */
     var executionId: String
+
+    /**
+     * Test Result Status to filter by
+     */
+    var status: TestResultStatus?
 }
 
 /**
@@ -65,6 +70,21 @@ external interface ExecutionState : State {
      * Execution dto
      */
     var executionDto: ExecutionDto?
+
+    /**
+     * Count tests with executionId
+     */
+    var countTests: Int?
+
+    /**
+     * Test Result Status to filter by
+     */
+    var status: TestResultStatus?
+
+    /**
+     * Name of test suite
+     */
+    var testSuite: String?
 }
 
 /**
@@ -72,18 +92,35 @@ external interface ExecutionState : State {
  */
 @JsExport
 @OptIn(ExperimentalJsExport::class)
-class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
+class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
     init {
         state.executionDto = null
+        state.status = null
+        state.testSuite = null
     }
 
     override fun componentDidMount() {
+        super.componentDidMount()
+
         GlobalScope.launch {
             val headers = Headers().also { it.set("Accept", "application/json") }
             val executionDtoFromBackend: ExecutionDto =
-                    get("${window.location.origin}/executionDto?executionId=${props.executionId}", headers)
+                    get("$apiUrl/executionDto?executionId=${props.executionId}", headers)
                         .decodeFromJsonString()
-            setState { executionDto = executionDtoFromBackend }
+            val count: Int = get(
+                url = "$apiUrl/testExecution/count?executionId=${props.executionId}",
+                headers = Headers().also {
+                    it.set("Accept", "application/json")
+                },
+            )
+                .json()
+                .await()
+                .unsafeCast<Int>()
+            setState {
+                executionDto = executionDtoFromBackend
+                status = props.status
+                countTests = count
+            }
         }
     }
 
@@ -97,36 +134,61 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
     )
     override fun RBuilder.render() {
         div {
-            div("p-2 flex-auto") {
-                +("Project version: ${(state.executionDto?.version ?: "N/A")}")
-            }
             div("d-flex") {
-                div("p-2 mr-auto") {
-                    +"Status: ${state.executionDto?.status?.name ?: "N/A"}"
+                val statusVal = state.executionDto?.status
+                val statusColor = when (statusVal) {
+                    ExecutionStatus.ERROR -> "bg-danger"
+                    ExecutionStatus.RUNNING, ExecutionStatus.PENDING -> "bg-info"
+                    ExecutionStatus.FINISHED -> "bg-success"
+                    else -> "bg-secondary"
                 }
+
+                div("col-md-2 mb-4") {
+                    div("card $statusColor text-white h-100 shadow py-2") {
+                        div("card-body") {
+                            +(statusVal?.name ?: "N/A")
+                            div("text-white-50 small") { +"Project version: ${(state.executionDto?.version ?: "N/A")}" }
+                        }
+                    }
+                }
+
                 child(executionStatistics("mr-auto")) {
                     attrs.executionDto = state.executionDto
+                    attrs.countTests = state.countTests
                 }
-                button(classes = "btn btn-primary") {
-                    +"Rerun execution"
-                    attrs.onClickFunction = {
-                        attrs.disabled = true
-                        GlobalScope.launch {
-                            post(
-                                "${window.location.origin}/rerunExecution?id=${props.executionId}",
-                                Headers(),
-                                undefined
-                            )
-                        }.invokeOnCompletion {
-                            window.alert("Rerun request successfully submitted")
+
+                div("col-md-3 mb-4") {
+                    div("card border-left-info shadow h-100 py-2") {
+                        div("card-body") {
+                            div("row no-gutters align-items-center mx-auto") {
+                                a("") {
+                                    +"Rerun execution"
+                                    fontAwesomeIcon(icon = faRedo, classes = "ml-2")
+                                    @Suppress("TOO_MANY_LINES_IN_LAMBDA")
+                                    attrs.onClickFunction = {
+                                        GlobalScope.launch {
+                                            post(
+                                                "$apiUrl/rerunExecution?id=${props.executionId}",
+                                                Headers(),
+                                                undefined
+                                            )
+                                        }.invokeOnCompletion {
+                                            window.alert("Rerun request successfully submitted")
+                                            window.location.reload()
+                                        }
+                                        it.preventDefault()
+                                    }
+                                }
+                            }
                         }
                     }
                 }
             }
         }
+
         // fixme: table is rendered twice because of state change when `executionDto` is fetched
         child(tableComponent(
-            columns = columns {
+            columns = columns<TestExecutionDto> {
                 column(id = "index", header = "#") {
                     buildElement {
                         td {
@@ -134,21 +196,44 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
                         }
                     }
                 }
-                column(id = "startTime", header = "Start time") {
+                column(id = "startTime", header = "Start time", { startTimeSeconds }) {
                     buildElement {
                         td {
                             +"${
-                                it.value.startTimeSeconds
-                                ?.let { Instant.fromEpochSeconds(it, 0) }
+                                it.value?.let { Instant.fromEpochSeconds(it, 0) }
                                 ?: "Running"
                             }"
                         }
                     }
                 }
-                column(id = "status", header = "Status") {
+                column(id = "endTime", header = "End time", { endTimeSeconds }) {
                     buildElement {
                         td {
-                            +"${it.value.status}"
+                            +"${
+                                it.value?.let { Instant.fromEpochSeconds(it, 0) }
+                                ?: "Running"
+                            }"
+                        }
+                    }
+                }
+                column(id = "status", header = "Status", { status.name }) {
+                    buildElement {
+                        td {
+                            +it.value
+                        }
+                    }
+                }
+                column(id = "missing", header = "Missing", { missingWarnings }) {
+                    buildElement {
+                        td {
+                            +"${it.value ?: ""}"
+                        }
+                    }
+                }
+                column(id = "matched", header = "Matched", { matchedWarnings }) {
+                    buildElement {
+                        td {
+                            +"${it.value ?: ""}"
                         }
                     }
                 }
@@ -156,17 +241,24 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
                     buildElement {
                         td {
                             spread(cellProps.row.getToggleRowExpandedProps())
-                            +cellProps.value.filePath
+
+                            attrs["style"] = kotlinext.js.jsObject<CSSProperties> {
+                                textDecoration = "underline grey".unsafeCast<TextDecoration>()
+                            }
+
+                            val testName = cellProps.value.filePath
+                            val shortTestName = if (testName.length > 35) {
+                                testName.take(15) + " ... " + testName.takeLast(15)
+                            } else {
+                                testName
+                            }
+
+                            +shortTestName
+
                             attrs.onClickFunction = {
                                 GlobalScope.launch {
                                     val te = cellProps.value
-                                    val trdi = post(
-                                        "${window.location.origin}/files/get-debug-info",
-                                        Headers().apply {
-                                            set("Content-Type", "application/json")
-                                        },
-                                        Json.encodeToString(te)
-                                    )
+                                    val trdi = getDebugInfoFor(te)
                                     if (trdi.ok) {
                                         cellProps.row.original.asDynamic().debugInfo = trdi.decodeFromJsonString<TestResultDebugInfo>()
                                     }
@@ -176,17 +268,17 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
                         }
                     }
                 }
-                column(id = "plugin", header = "Plugin type") {
+                column(id = "plugin", header = "Plugin type", { pluginName }) {
                     buildElement {
                         td {
-                            +it.value.pluginName
+                            +it.value
                         }
                     }
                 }
-                column(id = "suiteName", header = "Test suite") {
+                column(id = "suiteName", header = "Test suite", { testSuiteName }) {
                     buildElement {
                         td {
-                            +"${it.value.testSuiteName}"
+                            +"${it.value}"
                         }
                     }
                 }
@@ -208,9 +300,10 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
             useServerPaging = true,
             usePageSelection = true,
             plugins = arrayOf(
+                useFilters,
                 useSortBy,
                 useExpanded,
-                usePagination
+                usePagination,
             ),
             renderExpandedRow = { tableInstance, row ->
                 // todo: placeholder before, render data once it's available
@@ -221,14 +314,52 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
                     tr {
                         td {
                             attrs.colSpan = "${tableInstance.columns.size}"
-                            +"Debug info not available for this test execution"
+                            +"Debug info not available yet for this test execution"
                         }
                     }
                 }
             },
+            additionalOptions = {
+                this.asDynamic().manualFilters = true
+            },
+            commonHeader = { tableInstance ->
+                tr {
+                    th {
+                        attrs.colSpan = "${tableInstance.columns.size}"
+                        child(testExecutionFiltersRow(
+                            initialValueStatus = state.status?.name ?: ANY,
+                            initialValueTestSuite = state.testSuite ?: "",
+                            onChangeStatus = { value ->
+                                if (value == "ANY") {
+                                    setState {
+                                        status = null
+                                    }
+                                } else {
+                                    setState {
+                                        status = TestResultStatus.valueOf(value)
+                                    }
+                                }
+                            },
+                            onChangeTestSuite = { testSuiteValue ->
+                                if (testSuiteValue == "") {
+                                    setState {
+                                        testSuite = null
+                                    }
+                                } else {
+                                    setState {
+                                        testSuite = testSuiteValue
+                                    }
+                                }
+                            }
+                        ))
+                    }
+                }
+            },
             getPageCount = { pageSize ->
+                val status = if (state.status != null) "&status=${state.status}" else ""
+                val testSuite = if (state.testSuite != null) "&testSuite=${state.testSuite}" else ""
                 val count: Int = get(
-                    url = "${window.location.origin}/testExecutionsCount?executionId=${props.executionId}",
+                    url = "$apiUrl/testExecution/count?executionId=${props.executionId}$status$testSuite",
                     headers = Headers().also {
                         it.set("Accept", "application/json")
                     },
@@ -242,7 +373,7 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
                 val color = when (row.original.status) {
                     TestResultStatus.FAILED -> Colors.RED
                     TestResultStatus.IGNORED -> Colors.GOLD
-                    TestResultStatus.READY, TestResultStatus.RUNNING -> Colors.GREY
+                    TestResultStatus.READY_FOR_TESTING, TestResultStatus.RUNNING -> Colors.GREY
                     TestResultStatus.INTERNAL_ERROR, TestResultStatus.TEST_ERROR -> Colors.DARK_RED
                     TestResultStatus.PASSED -> Colors.GREEN
                 }
@@ -253,8 +384,10 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
                 }
             }
         ) { page, size ->
+            val status = if (state.status != null) "&status=${state.status}" else ""
+            val testSuite = if (state.testSuite != null) "&testSuite=${state.testSuite}" else ""
             get(
-                url = "${window.location.origin}/testExecutions?executionId=${props.executionId}&page=$page&size=$size",
+                url = "$apiUrl/testExecutions?executionId=${props.executionId}&page=$page&size=$size$status$testSuite",
                 headers = Headers().apply {
                     set("Accept", "application/json")
                 },
@@ -268,7 +401,7 @@ class ExecutionView : RComponent<ExecutionProps, ExecutionState>() {
                     asDynamic().debugInfo = null
                 }
         }) { }
-        child(executionTestsNotFound()) {
+        child(executionTestsNotFound(state.countTests)) {
             attrs.executionDto = state.executionDto
         }
     }

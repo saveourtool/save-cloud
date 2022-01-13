@@ -12,7 +12,6 @@ import org.cqfn.save.test.TestDto
 import org.cqfn.save.testsuite.TestSuiteDto
 import org.cqfn.save.testsuite.TestSuiteType
 
-import okio.ExperimentalFileSystem
 import okio.FileSystem
 import okio.Path.Companion.toPath
 import org.slf4j.LoggerFactory
@@ -30,7 +29,6 @@ class TestDiscoveringService {
      * @return a root [TestConfig]
      * @throws IllegalArgumentException in case of invalid testConfig file
      */
-    @OptIn(ExperimentalFileSystem::class)
     fun getRootTestConfig(testResourcesRootAbsolutePath: String): TestConfig =
             ConfigDetector(FileSystem.SYSTEM).configFromFile(testResourcesRootAbsolutePath.toPath()).apply {
                 getAllTestConfigs().onEach {
@@ -53,7 +51,8 @@ class TestDiscoveringService {
         project: Project?,
         rootTestConfig: TestConfig,
         testRootPath: String,
-        testSuiteRepoUrl: String) = rootTestConfig
+        testSuiteRepoUrl: String,
+    ) = rootTestConfig
         .getAllTestConfigs()
         .asSequence()
         .mapNotNull { it.getGeneralConfigOrNull() }
@@ -67,7 +66,8 @@ class TestDiscoveringService {
                 config.description,
                 project,
                 testRootPath,
-                testSuiteRepoUrl
+                testSuiteRepoUrl,
+                config.language,
             )
         }
         .distinct()
@@ -81,21 +81,21 @@ class TestDiscoveringService {
      * @return a list of [TestDto]s
      * @throws PluginException if configs use unknown plugin
      */
-    @OptIn(ExperimentalFileSystem::class)
     @Suppress("UnsafeCallOnNullableType")
     fun getAllTests(rootTestConfig: TestConfig, testSuites: List<TestSuite>) = rootTestConfig
         .getAllTestConfigs()
+        .asSequence()
         .flatMap { testConfig ->
             val plugins = testConfig.buildActivePlugins(emptyList())
             val generalConfig = testConfig.getGeneralConfigOrNull()
             if (plugins.isEmpty() || generalConfig == null) {
-                return@flatMap emptyList()
+                return@flatMap emptySequence()
             }
             val testSuite = testSuites.firstOrNull { it.name == generalConfig.suiteName }
             requireNotNull(testSuite) {
                 "No test suite matching name=${generalConfig.suiteName} is provided. Provided names are: ${testSuites.map { it.name }}"
             }
-            plugins.flatMap { plugin ->
+            plugins.asSequence().flatMap { plugin ->
                 plugin.discoverTestFiles(testConfig.directory)
                     .map {
                         val testRelativePath = it.test.toFile()
@@ -105,8 +105,8 @@ class TestDiscoveringService {
                     }
             }
         }
-        .also {
-            log.debug("Discovered the following tests: $it")
+        .onEach {
+            log.debug("Discovered the following test: $it")
         }
 
     private fun TestConfig.getGeneralConfigOrNull() = pluginConfigs.filterIsInstance<GeneralConfig>().singleOrNull()

@@ -7,12 +7,19 @@ repositories {
     mavenCentral()
 }
 
-val kotlinVersion = "1.5.31"
 dependencies {
-    runtimeOnly(kotlin("gradle-plugin", kotlinVersion))
-    implementation("org.springframework.boot:spring-boot-gradle-plugin:2.5.4")
-    implementation("org.cqfn.diktat:diktat-gradle-plugin:1.0.0-rc.3")
-    implementation("io.gitlab.arturbosch.detekt:detekt-gradle-plugin:1.17.1")
-    implementation("org.ajoberstar.reckon:reckon-gradle:0.13.0")
-    implementation(kotlin("allopen", kotlinVersion))
+    // workaround https://github.com/gradle/gradle/issues/15383
+    implementation(files(project.libs.javaClass.superclass.protectionDomain.codeSource.location))
+    implementation(libs.kotlin.gradle.plugin)
+    implementation(libs.spring.boot.gradle.plugin)
+    implementation(libs.diktat.gradle.plugin)
+    implementation(libs.detekt.gradle.plugin)
+    implementation(libs.reckon.gradle.plugin)
+    implementation(libs.kotlin.plugin.allopen)
+}
+
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+    kotlinOptions {
+        freeCompilerArgs = freeCompilerArgs + "-Xopt-in=kotlin.RequiresOptIn"
+    }
 }

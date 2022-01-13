@@ -20,6 +20,7 @@ import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.boot.test.mock.mockito.MockBeans
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.MediaType
+import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
@@ -44,7 +45,7 @@ class ProjectControllerTest {
     fun `should return all projects`() {
         webClient
             .get()
-            .uri("/projects")
+            .uri("/api/projects")
             .accept(MediaType.APPLICATION_JSON)
             .exchange()
             .expectStatus()
@@ -60,7 +61,7 @@ class ProjectControllerTest {
     fun `should return project based on name and owner`() {
         webClient
             .get()
-            .uri("/getProject?name=huaweiName&owner=Huawei")
+            .uri("/api/getProject?name=huaweiName&owner=Huawei")
             .accept(MediaType.APPLICATION_JSON)
             .exchange()
             .expectStatus()
@@ -78,7 +79,7 @@ class ProjectControllerTest {
         projectRepository.findById(1).ifPresent {
             webClient
                 .post()
-                .uri("/getGit")
+                .uri("/api/getGit")
                 .body(BodyInserters.fromValue(it))
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
@@ -93,35 +94,51 @@ class ProjectControllerTest {
     }
 
     @Test
-    @Suppress("UnsafeCallOnNullableType", "TOO_MANY_LINES_IN_LAMBDA")
+    @WithMockUser(username = "John Doe")
+    @Suppress("UnsafeCallOnNullableType")
     fun `check save new project`() {
         val gitDto = GitDto("qweqwe")
-        val project = Project("I", "Name", "uurl", "nullsss", ProjectStatus.CREATED)
+        // `project` references an existing user from test data
+        val project = Project("I", "Name", "uurl", "nullsss", ProjectStatus.CREATED, userId = 2, adminIds = null)
         val newProject = NewProjectDto(
             project,
-            gitDto
+            gitDto,
         )
+
+        saveProjectAndAssert(
+            newProject,
+            { expectStatus().isOk }
+        ) {
+            expectStatus()
+                .isOk
+                .expectBody<Project>()
+                .consumeWith {
+                    requireNotNull(it.responseBody)
+                    Assertions.assertEquals(it.responseBody!!.url, project.url)
+                }
+        }
+
+        Assertions.assertNotNull(gitRepository.findAll().find { it.url == gitDto.url })
+    }
+
+    private fun saveProjectAndAssert(newProject: NewProjectDto,
+                                     saveAssertion: WebTestClient.ResponseSpec.() -> Unit,
+                                     getAssertion: WebTestClient.ResponseSpec.() -> Unit,
+    ) {
         webClient
             .post()
-            .uri("/saveProject")
+            .uri("/api/saveProject")
             .body(BodyInserters.fromValue(newProject))
             .accept(MediaType.APPLICATION_JSON)
             .exchange()
-            .expectStatus()
-            .isOk
+            .let { saveAssertion(it) }
 
+        val project = newProject.project
         webClient
             .get()
-            .uri("/getProject?name=${project.name}&owner=${project.owner}")
+            .uri("/api/getProject?name=${project.name}&owner=${project.owner}")
             .accept(MediaType.APPLICATION_JSON)
             .exchange()
-            .expectStatus()
-            .isOk
-            .expectBody<Project>()
-            .consumeWith {
-                requireNotNull(it.responseBody)
-                Assertions.assertEquals(it.responseBody!!.url, project.url)
-            }
-        Assertions.assertNotNull(gitRepository.findAll().find { it.url == gitDto.url })
+            .let { getAssertion(it) }
     }
 }

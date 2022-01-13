@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="project-match-missing" author="frolov" context="dev or prod">
+        <addColumn tableName="test_execution">
+            <column name="missing_warnings" type="bigint">
+                <constraints nullable="true"/>
+            </column>
+            <column name="matched_warnings" type="bigint">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="rename-ready-to-ready-for-testing-status" author="sanyavertolet" context="dev or prod">
+        <update tableName="test_execution">
+            <column name="status" value="READY_FOR_TESTING"/>
+            <where>status='READY'</where>
+        </update>
+    </changeSet>
+</databaseChangeLog>

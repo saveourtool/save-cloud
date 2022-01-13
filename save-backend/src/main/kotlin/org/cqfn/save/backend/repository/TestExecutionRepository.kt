@@ -3,6 +3,9 @@ package org.cqfn.save.backend.repository
 import org.cqfn.save.domain.TestResultStatus
 import org.cqfn.save.entities.TestExecution
 import org.springframework.data.domain.Pageable
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor
+import org.springframework.data.jpa.repository.Query
+import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
 import java.util.Optional
 import javax.transaction.Transactional
@@ -11,7 +14,7 @@ import javax.transaction.Transactional
  * Repository of execution
  */
 @Repository
-interface TestExecutionRepository : BaseEntityRepository<TestExecution> {
+interface TestExecutionRepository : BaseEntityRepository<TestExecution>, JpaSpecificationExecutor<TestExecution> {
     /**
      * @param status
      * @param id
@@ -21,21 +24,54 @@ interface TestExecutionRepository : BaseEntityRepository<TestExecution> {
     fun findByStatusAndExecutionId(status: TestResultStatus, id: Long, pageable: Pageable): List<TestExecution>
 
     /**
-     * Returns number of TestExecutions with this [executionId]
+     * Returns a page of [TestExecution]s with [executionId]
      *
      * @param executionId an ID of Execution to group TestExecutions
+     * @param status test status
+     * @param name suite name
      * @return number of TestExecutions
      */
-    fun countByExecutionId(executionId: Long): Int
+    @Query(
+        """SELECT COUNT(te) FROM TestExecution te
+           JOIN Test t ON t.id = te.test
+           JOIN Execution e ON e.id = te.execution
+           JOIN TestSuite ts ON t.testSuite = ts.id
+           WHERE 1 = 1
+            and (:status is null or te.status = :status)
+            and (:name is null or ts.name = :name)
+            and e.id = :executionId"""
+    )
+    fun countByExecutionIdAndStatusAndTestTestSuiteName(
+        @Param("executionId") executionId: Long,
+        @Param("status") status: TestResultStatus?,
+        @Param("name") name: String?,
+    ): Int
 
     /**
      * Returns a page of [TestExecution]s with [executionId]
      *
      * @param executionId an ID of Execution to group TestExecutions
+     * @param status test status
+     * @param name suite name
      * @param pageable a request for a page
      * @return a list of [TestExecutionDto]s
      */
-    fun findByExecutionId(executionId: Long, pageable: Pageable): List<TestExecution>
+    @Query(
+        """SELECT te FROM TestExecution te
+           JOIN Test t ON t.id = te.test
+           JOIN Execution e ON e.id = te.execution
+           JOIN TestSuite ts ON t.testSuite = ts.id
+           WHERE 1 = 1
+            and (:status is null or te.status = :status)
+            and (:name is null or ts.name = :name)
+            and e.id = :executionId"""
+    )
+    fun findByExecutionIdAndStatusAndTestTestSuiteName(
+        @Param("executionId") executionId: Long,
+        @Param("status") status: TestResultStatus?,
+        @Param("name") name: String?,
+        pageable: Pageable
+    ): List<TestExecution>
 
     /**
      * Returns test executions for agent [agentContainerId] and status [status]
@@ -80,4 +116,20 @@ interface TestExecutionRepository : BaseEntityRepository<TestExecution> {
      * @return Optional TestExecution
      */
     fun findByTestId(testId: Long): Optional<TestExecution>
+
+    /**
+     * Delete a TestExecution with execution Ids
+     *
+     * @param executionIds list ids of execution
+     */
+    @Transactional
+    fun deleteByExecutionIdIn(executionIds: List<Long>)
+
+    /**
+     * Delete a TestExecution with execution Ids
+     *
+     * @param id project id
+     */
+    @Transactional
+    fun deleteByExecutionProjectId(id: Long)
 }

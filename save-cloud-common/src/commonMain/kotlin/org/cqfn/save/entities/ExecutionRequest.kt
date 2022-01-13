@@ -32,11 +32,12 @@ sealed class ExecutionRequestBase {
  * @property executionId id of execution. It is null until execution is created (when request comes from frontend).
  * @property sdk
  */
+@Suppress("KDOC_NO_CONSTRUCTOR_PROPERTY_WITH_COMMENT")
 @Serializable
 data class ExecutionRequest(
     override val project: Project,
     val gitDto: GitDto,
-    val testRootPath: String = "",
+    val testRootPath: String,
     override val sdk: Sdk,
     val executionId: Long?,
 ) : ExecutionRequestBase()

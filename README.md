@@ -1,11 +1,14 @@
-![Build and test](https://github.com/cqfn/save-cloud/workflows/Build%20and%20test/badge.svg)
-[![License](https://img.shields.io/github/license/cqfn/save-cloud)](https://github.com/cqfn/save-cloud/blob/master/LICENSE)
-[![codecov](https://codecov.io/gh/cqfn/save-cloud/branch/master/graph/badge.svg)](https://codecov.io/gh/cqfn/save-cloud)
+![Build and test](https://github.com/analysis-dev/save-cloud/workflows/Build%20and%20test/badge.svg)
+[![License](https://img.shields.io/github/license/analysis-dev/save-cloud)](https://github.com/analysis-dev/save-cloud/blob/master/LICENSE)
+[![codecov](https://codecov.io/gh/analysis-dev/save-cloud/branch/master/graph/badge.svg)](https://codecov.io/gh/analysis-dev/save-cloud)
 
 ## What is SAVE?
-[SAVE](https://github.com/cqfn/save) - is an eco-system for measuring, testing and certification of static code analyzers. Instead of writing your test framework SAVE will provide you a command line application with a
+[SAVE](https://github.com/analysis-dev/save) - is an eco-system for measuring, testing and certification of static code analyzers. Instead of writing your test framework SAVE will provide you a command line application with a
 test sets for the language that you are developing analyzer for. It provides you also a service that can be used to determine the readiness of your tool. SAVE has a committee of static analysis experts
 that regularly updates tests and discuss the best practices for particular programming languages.
+
+## How it looks like from the high-level perspective?
+![SAVE processing](https://user-images.githubusercontent.com/58667063/146387903-24ba9c91-a2a3-45e7-a07a-cb7bc388e4aa.jpg)
 
 ## What is SAVE Cloud?
 SAVE Cloud is a service for executing tests using the SAVE tool. You can provide a link to a git repository with a project, configured to

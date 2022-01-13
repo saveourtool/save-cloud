@@ -24,14 +24,25 @@ Deployment is performed on server via docker swarm or locally via docker-compose
 * Secrets should be added to the swarm as well as to `$HOME/secrets` file.
 * If custom SSL certificates are used, they should be installed on the server and added into JDK's truststore inside images. See section below for details.
 * Loki logging driver should be added to docker installation: [instruction](https://grafana.com/docs/loki/latest/clients/docker-driver/#installing)
-* Pull new changes to the server and run `./gradlew -Pprofile=prod deployDockerStack`.
+* Pull new changes to the server and run `./gradlew -Psave.profile=prod deployDockerStack`.
+  * If you wish to deploy save-cloud, that is not present in docker registry (e.g. to deploy from a branch), run `./gradlew -Psave.profile=prod buildAndDeployDockerStack` instead.
+  * If you would like to use `docker-compose.override.yaml`, add `-PuseOverride=true` to the execution of tasks above.
+    This file is configured to be read from `$HOME/configs`; you can use the one from the repository as an example.
 * [`docker-compose.yaml.template`](../docker-compose.yaml.template) is configured so that all services use Loki for logging
   and configuration files from `~/configs`, which are copied from `save-deploy` during gradle build.
 
+## Override configuration per server
+If you wish to customize services configuration externally (i.e. leaving docker images intact), this is possible via additional properties files.
+In [docker-compose.yaml.template](../docker-compose.yaml.template) all services have `/home/saveu/configs/<service name>` directory mounted. If it contains
+`application.properties` file, it will override config from default `application.properties`.
+
 ## Running behind proxy
 If save-cloud is running behind proxy, docker daemon should be configured to use proxy. See [docker docs](https://docs.docker.com/network/proxy/).
-Additionally, `APT_HTTP_PROXY` and `APT_HTTPS_PROXY` should be passed as environment variables into orchestrator. These should be
-URLs which can be resolved from inside the container (e.g. `host.docker.internal`).
+Additionally, use `/home/saveu/configs/orchestrator/application.properties` to add two flags to `apt-get`:
+```properties
+orchestrator.aptExtraFlags=-o Acquire::http::proxy="http://host.docker.internal:3128" -o Acquire::https::proxy="http://host.docker.internal:3128"
+```
+Proxy URLs will be resolved from inside the container.
 
 ## Custom SSL certificates
 If custom SSL certificates are used, they should be installed on the server and added into JDK's truststore inside images.
@@ -47,26 +58,33 @@ preprocessor:
 ## Database
 The service is designed to work with MySQL database. Migrations are applied with liquibase. They expect event scheduler to be enabled on the DB.
 
+## Enabling api-gateway with external OAuth providers
+In the file `/home/saveu/configs/gateway/application.properties` the following properties should be provided:
+* `spring.security.oauth2.client.provider.<provider name>.issuer-uri`
+* `spring.security.oauth2.client.registration.<provider name>.client-id`
+* `spring.security.oauth2.client.registration.<provider name>.client-secret`
+  
 ## Local deployment
 * Ensure that docker daemon is running and docker-compose is installed.
 * To make things easier, add line `save.profile=dev` to `gradle.properties`. This will make project version `SNAPSHOT` instead of timetamp-based suffix and allow caching of gradle tasks.
-* Run `./gradlew deployLocal -Pprofile=dev` to start the database and microservices.
+* Run `./gradlew deployLocal -Psave.profile=dev` to start the database and microservices.
 
 #### Note:
 If a snapshot version of save-cli is required (i.e., the one which is not available on GitHub releases), then it can be
 manually placed in `save-orchestrator/build/resources/main` before build, and it's version should be provided via `-PsaveCliVersion=...` when executing gradle.
 
 ## Ports allocation
-| port | description |
-| ---- | ----------- |
-| 3306 | database (locally) |
-| 5000 | save-backend |
-| 5100 | save-orchestrator |
-| 5200 | save-test-preprocessor |
+| port | description                                |
+|------|--------------------------------------------|
+| 3306 | database (locally)                         |
+| 5000 | save-backend                               |
+| 5100 | save-orchestrator                          |
+| 5200 | save-test-preprocessor                     |
+| 5300 | api-gateway                                |
 | 6000 | local docker registry (not used currently) |
-| 9090 | prometheus |
-| 9091 | node_exporter |
-| 9100 | grafana |
+| 9090 | prometheus                                 |
+| 9091 | node_exporter                              |
+| 9100 | grafana                                    |
 
 ## Secrets
 * Liquibase is reading secrets from the secrets file located on the server in the `home` directory.
@@ -77,3 +95,9 @@ manually placed in `save-orchestrator/build/resources/main` before build, and it
 Nginx is used as a reverse proxy, which allows access from external network to backend and some other services.
 File `save-deploy/reverse-proxy.conf` should be copied to `/etc/nginx/sites-available`. Symlink should be created:
 `sudo ln -s /etc/nginx/sites-available/reverse-proxy.conf /etc/nginx/sites-enabled/` (or to `/etc/nginx/conf.d` on some distributions).
+
+# Adding a new service
+Sometimes it's necessary to create a new service. These steps are required to seamlessly add it to deployment:
+* Add it to [docker-compose.yaml.template](../docker-compose.yaml.template)
+* Add it to task `depoyDockerStack` in [`DockerStackConfiguration.kt`](../buildSrc/src/main/kotlin/org/cqfn/save/buildutils/DockerStackConfiguration.kt)
+  so that config directory is created (if it's another Spring Boot service)

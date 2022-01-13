@@ -10,11 +10,13 @@ import org.cqfn.save.entities.Agent
 import org.cqfn.save.entities.AgentStatus
 import org.cqfn.save.entities.AgentStatusDto
 import org.cqfn.save.entities.AgentStatusesForExecution
+import org.cqfn.save.entities.TestSuite
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionUpdateDto
 import org.cqfn.save.orchestrator.BodilessResponseEntity
 import org.cqfn.save.test.TestBatch
 import org.cqfn.save.test.TestDto
+import org.cqfn.save.testsuite.TestSuiteType
 
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
@@ -22,9 +24,11 @@ import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
 import reactor.util.Loggers
+import java.nio.file.Paths
 
 import java.time.LocalDateTime
 import java.util.logging.Level
@@ -55,7 +59,7 @@ class AgentService {
                 .uri("/getTestBatches?agentId=$agentId")
                 .retrieve()
                 .bodyToMono<TestBatch>()
-                .map { batch -> batch.toHeartbeatResponse(agentId) }
+                .flatMap { batch -> batch.toHeartbeatResponse(agentId) }
                 .doOnSuccess {
                     if (it is NewJobResponse) {
                         updateAssignedAgent(agentId, it)
@@ -107,13 +111,13 @@ class AgentService {
                 .toBodilessEntity()
 
     /**
-     * Check that no TestExecution for agent [agentId] have status READY
+     * Check that no TestExecution for agent [agentId] have status READY_FOR_TESTING
      *
      * @param agentId agent for which data is checked
-     * @return true if all executions have status other than `READY`
+     * @return true if all executions have status other than `READY_FOR_TESTING`
      */
     fun checkSavedData(agentId: String): Mono<Boolean> = webClientBackend.get()
-        .uri("/testExecutions/agent/$agentId/${TestResultStatus.READY}")
+        .uri("/testExecutions/agent/$agentId/${TestResultStatus.READY_FOR_TESTING}")
         .retrieve()
         .bodyToMono<List<TestExecutionDto>>()
         .map { it.isEmpty() }
@@ -190,7 +194,7 @@ class AgentService {
                 executionId to if (agentStatuses.areIdleOrFinished()) {
                     // We assume, that all agents will eventually have one of these statuses.
                     // Situations when agent gets stuck with a different status and for whatever reason is unable to update
-                    // it, are not handled. Anyway, such agents should be eventually stopped: https://github.com/cqfn/save-cloud/issues/208
+                    // it, are not handled. Anyway, such agents should be eventually stopped: https://github.com/analysis-dev/save-cloud/issues/208
                     agentStatuses.map { it.containerId }
                 } else {
                     emptyList()
@@ -230,17 +234,61 @@ class AgentService {
     private fun TestBatch.toHeartbeatResponse(agentId: String) =
             if (tests.isNotEmpty()) {
                 // fixme: do we still need suitesToArgs, since we have execFlags in save.toml?
-                NewJobResponse(
-                    tests,
-                    suitesToArgs.values.first() +
-                            " --report-type json" +
-                            " --result-output file" +
-                            " " + tests.joinToString(separator = " ") { it.filePath }
-                )
+                constructCliCommand(tests, suitesToArgs).map { cliArgs ->
+                    NewJobResponse(tests, cliArgs)
+                }
             } else {
                 log.info("Next test batch for agentId=$agentId is empty, setting it to wait")
-                WaitResponse
+                Mono.just(WaitResponse)
             }
+
+    @Suppress("TOO_LONG_FUNCTION")
+    private fun constructCliCommand(tests: List<TestDto>, suitesToArgs: Map<Long, String>): Mono<String> {
+        var isStandardMode = false
+        // first, need to check the current mode, it could be done by looking of type of any test suite for current tests
+        return webClientBackend.get()
+            .uri("/testSuite/${tests.first().testSuiteId}")
+            .retrieve()
+            .bodyToMono<TestSuite>()
+            .flatMap { testSuite ->
+                isStandardMode = testSuite.type == TestSuiteType.STANDARD
+                if (isStandardMode) {
+                    // in standard mode for each test get proper prefix location, since we created extra directories
+                    // parent location for each test under one test suite is the same, so we can group them as the following
+                    Flux.fromIterable(tests.groupBy { it.testSuiteId }.values).flatMap { testGroup ->
+                        webClientBackend.get()
+                            .uri("/testSuite/${testGroup.first().testSuiteId}")
+                            .retrieve()
+                            .bodyToMono<TestSuite>()
+                            .flatMapIterable {
+                                val locationInStandardDir = getLocationInStandardDirForTestSuite(it.toDto())
+                                testGroup.map { test ->
+                                    val testFilePathInStandardDir =
+                                            Paths.get(locationInStandardDir)
+                                                .resolve(Paths.get(test.filePath))
+                                    testFilePathInStandardDir.toString()
+                                }
+                            }
+                    }
+                        .collectList()
+                } else {
+                    Mono.fromCallable {
+                        tests.map {
+                            it.filePath
+                        }
+                    }
+                }
+            }
+            .map { testPaths ->
+                val cliArgs = if (!isStandardMode) {
+                    suitesToArgs.values.first()
+                } else {
+                    ""
+                } + " " + testPaths.joinToString(" ")
+                log.debug("Constructed cli args for SAVE-cli: $cliArgs")
+                cliArgs
+            }
+    }
 
     private fun Collection<AgentStatusDto>.areIdleOrFinished() = all {
         it.state == AgentState.IDLE || it.state == AgentState.FINISHED || it.state == AgentState.STOPPED_BY_ORCH

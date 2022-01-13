@@ -27,6 +27,7 @@ import javax.persistence.ManyToOne
  * @property skippedTests
  * @property sdk
  * @property additionalFiles
+ * @property user user that has started this execution
  */
 @Suppress("USE_DATA_CLASS", "LongParameterList")
 @Entity
@@ -66,6 +67,10 @@ class Execution(
 
     var additionalFiles: String?,
 
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    var user: User?,
+
 ) : BaseEntity() {
     /**
      * @return Execution dto
@@ -76,6 +81,7 @@ class Execution(
         status,
         type,
         version,
+        startTime.toEpochSecond(ZoneOffset.UTC),
         endTime?.toEpochSecond(ZoneOffset.UTC),
         runningTests,
         passedTests,

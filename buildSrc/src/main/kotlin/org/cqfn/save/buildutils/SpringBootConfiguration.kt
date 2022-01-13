@@ -4,14 +4,20 @@
 
 package org.cqfn.save.buildutils
 
+import org.gradle.accessors.dm.LibrariesForLibs
 import org.gradle.api.Project
+import org.gradle.jvm.toolchain.JavaLanguageVersion
+import org.gradle.jvm.toolchain.JavaToolchainSpec
 import org.gradle.kotlin.dsl.apply
 import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.dependencies
+import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.named
+import org.gradle.kotlin.dsl.the
 import org.jetbrains.kotlin.allopen.gradle.AllOpenExtension
 import org.jetbrains.kotlin.allopen.gradle.AllOpenGradleSubplugin
 import org.jetbrains.kotlin.allopen.gradle.SpringGradleSubplugin
+import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
 import org.springframework.boot.gradle.dsl.SpringBootExtension
 import org.springframework.boot.gradle.plugin.SpringBootPlugin
 import org.springframework.boot.gradle.tasks.bundling.BootBuildImage
@@ -21,23 +27,27 @@ import org.springframework.boot.gradle.tasks.bundling.BootBuildImage
  *
  * @param withSpringDataJpa whether spring-data related dependencies should be included
  */
-@Suppress("TOO_LONG_FUNCTION")
+@Suppress("TOO_LONG_FUNCTION", "GENERIC_VARIABLE_WRONG_DECLARATION", "COMPLEX_EXPRESSION")
 fun Project.configureSpringBoot(withSpringDataJpa: Boolean = false) {
     apply<SpringBootPlugin>()
 
+    extensions.getByType<KotlinJvmProjectExtension>().jvmToolchain {
+        (this as JavaToolchainSpec).languageVersion.set(JavaLanguageVersion.of(Versions.jdk))
+    }
+
+    val libs = the<LibrariesForLibs>()
     dependencies {
-        // FixMe: this is mostly all we need for spring security #314 :)
-        // add("implementation", "org.springframework.boot:spring-boot-starter-security:${Versions.springBoot}")
-        add("implementation", "org.springframework.boot:spring-boot-starter-webflux:${Versions.springBoot}")
-        add("implementation", "org.springframework.boot:spring-boot-starter-actuator:${Versions.springBoot}")
-        add("implementation", "io.micrometer:micrometer-registry-prometheus:${Versions.micrometer}")  // expose prometheus metrics in actuator
-        add("implementation", "org.springframework.security:spring-security-core:${Versions.springSecurity}")
-        add("implementation", "com.fasterxml.jackson.module:jackson-module-kotlin:2.12.3")
-        add("implementation", "org.slf4j:slf4j-api:${Versions.slf4j}")
-        add("implementation", "ch.qos.logback:logback-core:${Versions.logback}")
-        add("implementation", "io.projectreactor.kotlin:reactor-kotlin-extensions:${Versions.reactor}")
-        add("testImplementation", "org.springframework.boot:spring-boot-starter-test:${Versions.springBoot}")
-        add("testImplementation", "org.mockito.kotlin:mockito-kotlin:3.2.0")
+        add("implementation", libs.spring.boot.starter.webflux)
+        add("implementation", libs.spring.boot.starter.actuator)
+        add("implementation", libs.micrometer.registry.prometheus)  // expose prometheus metrics in actuator
+        add("implementation", libs.jackson.module.kotlin)
+        add("implementation", libs.slf4j.api)
+        add("implementation", libs.logback.core)
+        add("implementation", libs.reactor.kotlin.extensions)
+        add("testImplementation", libs.spring.boot.starter.test)
+        add("testImplementation", libs.mockito.kotlin)
+        add("testImplementation", libs.okhttp)
+        add("testImplementation", libs.okhttp.mockwebserver)
     }
 
     configure<SpringBootExtension> {
@@ -56,23 +66,24 @@ fun Project.configureSpringBoot(withSpringDataJpa: Boolean = false) {
         }
 
         dependencies {
-            add("implementation", "org.hibernate:hibernate-core:${Versions.hibernate}")
-            add("implementation", "org.liquibase:liquibase-core:${Versions.liquibase}")
-            add("implementation", "org.springframework.boot:spring-boot-starter-data-jpa:${Versions.springBoot}")
-            add("implementation", "org.jetbrains.kotlin:kotlin-reflect:${Versions.kotlin}")
-            add("implementation", "mysql:mysql-connector-java:${Versions.mySql}")
-            add("testImplementation", "org.testcontainers:testcontainers:${Versions.testcontainers}")
-            add("testImplementation", "org.testcontainers:mysql:${Versions.testcontainers}")
-            add("testImplementation", "org.testcontainers:junit-jupiter:${Versions.testcontainers}")
+            add("implementation", libs.hibernate.core)
+            add("implementation", libs.liquibase.core)
+            add("implementation", libs.spring.boot.starter.data.jpa)
+            add("implementation", libs.kotlin.reflect)
+            add("implementation", libs.mysql.connector.java)
+            add("testImplementation", libs.testcontainers)
+            add("testImplementation", libs.testcontainers.mysql)
+            add("testImplementation", libs.testcontainers.junit.jupiter)
         }
     }
 
     tasks.named<BootBuildImage>("bootBuildImage") {
-        imageName = "ghcr.io/diktat-static-analysis/${project.name}:${project.versionForDockerImages()}"
+        imageName = "ghcr.io/analysis-dev/${project.name}:${project.versionForDockerImages()}"
         environment = mapOf(
-            "BP_JVM_VERSION" to Versions.BP_JVM_VERSION,
+            "BP_JVM_VERSION" to Versions.jdk,
             "BPE_DELIM_JAVA_TOOL_OPTIONS" to " ",
-            "BPE_APPEND_JAVA_TOOL_OPTIONS" to "-Dreactor.netty.pool.maxIdleTime=60000 -Dreactor.netty.pool.leasingStrategy=lifo"
+            "BPE_APPEND_JAVA_TOOL_OPTIONS" to "-Dreactor.netty.pool.maxIdleTime=60000 -Dreactor.netty.pool.leasingStrategy=lifo " +
+                    "-Dspring.config.additional-location=optional:file:/home/cnb/config/application.properties"
         )
         isVerboseLogging = true
         val registryPassword: String? = System.getenv("GHCR_PWD")
@@ -80,7 +91,7 @@ fun Project.configureSpringBoot(withSpringDataJpa: Boolean = false) {
         if (isPublish) {
             docker {
                 publishRegistry {
-                    username = "diktat-static-analysis"
+                    username = "analysis-dev"
                     password = registryPassword
                     url = "https://ghcr.io"
                 }

@@ -16,6 +16,7 @@ import org.cqfn.save.preprocessor.config.ConfigProperties
 import org.cqfn.save.preprocessor.service.TestDiscoveringService
 import org.cqfn.save.preprocessor.utils.RepositoryVolume
 import org.cqfn.save.preprocessor.utils.toHash
+import org.cqfn.save.test.TestDto
 import org.cqfn.save.testsuite.TestSuiteDto
 import org.cqfn.save.testsuite.TestSuiteType
 
@@ -23,7 +24,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import okhttp3.mockwebserver.QueueDispatcher
-import okio.ExperimentalFileSystem
 import okio.FileSystem
 import okio.Path.Companion.toPath
 import org.junit.jupiter.api.AfterAll
@@ -78,6 +78,9 @@ class DownloadProjectTest(
     fun webClientSetUp() {
         webClient.mutate().responseTimeout(Duration.ofSeconds(2)).build()
         whenever(testDiscoveringService.getRootTestConfig(any())).thenReturn(mock())
+        whenever(testDiscoveringService.getAllTests(any(), any())).thenReturn(
+            sequenceOf(TestDto("foo", "fooPlugin", 15, "86", emptyList()))
+        )
     }
 
     @BeforeAll
@@ -87,13 +90,13 @@ class DownloadProjectTest(
 
     @Test
     fun testBadRequest() {
-        val project = Project("owner", "someName", "wrongGit", "descr", ProjectStatus.CREATED)
+        val project = Project("owner", "someName", "wrongGit", "descr", ProjectStatus.CREATED, userId = 2, adminIds = null)
         val wrongRepo = GitDto("wrongGit")
         val execution = Execution(project, LocalDateTime.now(), LocalDateTime.now(), ExecutionStatus.PENDING, "1",
-            "foo", 20, ExecutionType.GIT, "0.0.1", 0, 0, 0, 0, Sdk.Default.toString(), null).apply {
+            "foo", 20, ExecutionType.GIT, "0.0.1", 0, 0, 0, 0, Sdk.Default.toString(), null, null).apply {
             id = 97L
         }
-        val request = ExecutionRequest(project, wrongRepo, sdk = Sdk.Default, executionId = execution.id)
+        val request = ExecutionRequest(project, wrongRepo, sdk = Sdk.Default, executionId = execution.id, testRootPath = ".")
         // /updateExecutionByDto
         mockServerBackend.enqueue(
             MockResponse().setResponseCode(200)
@@ -119,15 +122,15 @@ class DownloadProjectTest(
      */
     @Test
     fun testCorrectDownload() {
-        val project = Project("owner", "someName", "https://github.com/cqfn/save.git", "descr", ProjectStatus.CREATED).apply {
-            id = 42L
+        val project = Project.stub(42).apply {
+            url = "https://github.com/analysis-dev/save.git"
         }
         val execution = Execution(project, LocalDateTime.now(), LocalDateTime.now(), ExecutionStatus.PENDING, "1",
-            "foo", 20, ExecutionType.GIT, "0.0.1", 0, 0, 0, 0, Sdk.Default.toString(), null).apply {
+            "foo", 20, ExecutionType.GIT, "0.0.1", 0, 0, 0, 0, Sdk.Default.toString(), null, null).apply {
             id = 99L
         }
-        val validRepo = GitDto("https://github.com/cqfn/save.git")
-        val request = ExecutionRequest(project, validRepo, "examples/kotlin-diktat/save.properties", Sdk.Default, execution.id)
+        val validRepo = GitDto("https://github.com/analysis-dev/save.git")
+        val request = ExecutionRequest(project, validRepo, "examples/kotlin-diktat/", Sdk.Default, execution.id)
         // /createExecution
         mockServerBackend.enqueue(
             MockResponse()
@@ -142,9 +145,17 @@ class DownloadProjectTest(
                 .setHeader("Content-Type", "application/json")
                 .setBody(objectMapper.writeValueAsString(
                     listOf(
-                        TestSuite(TestSuiteType.PROJECT, "", null, project, LocalDateTime.now(), "save.properties", "https://github.com/cqfn/save.git")
+                        TestSuite(TestSuiteType.PROJECT, "", null, project, LocalDateTime.now(), "save.properties", "https://github.com/analysis-dev/save.git").apply {
+                            id = 42L
+                        }
                     )
                 )),
+        )
+
+        // /updateExecution
+        mockServerBackend.enqueue(
+            MockResponse()
+                .setResponseCode(200)
         )
         // /initializeTests?executionId=$executionId
         mockServerBackend.enqueue(
@@ -158,6 +169,7 @@ class DownloadProjectTest(
         )
         val assertions = CompletableFuture.supplyAsync {
             listOf(
+                mockServerBackend.takeRequest(60, TimeUnit.SECONDS),
                 mockServerBackend.takeRequest(60, TimeUnit.SECONDS),
                 mockServerBackend.takeRequest(60, TimeUnit.SECONDS),
                 mockServerBackend.takeRequest(60, TimeUnit.SECONDS),
@@ -194,11 +206,9 @@ class DownloadProjectTest(
 
         val binFile = File(binFilePath)
         val property = File(propertyPath)
-        val project = Project("owner", "someName", "stub", "descr", ProjectStatus.CREATED).apply {
-            id = 42L
-        }
+        val project = Project.stub(42)
         val execution = Execution(project, LocalDateTime.now(), LocalDateTime.now(), ExecutionStatus.PENDING, "1",
-            "foo", 20, ExecutionType.STANDARD, "0.0.1", 0, 0, 0, 0, Sdk.Default.toString(), null).apply {
+            "foo", 20, ExecutionType.STANDARD, "0.0.1", 0, 0, 0, 0, Sdk.Default.toString(), null, null).apply {
             id = 98L
         }
         val request = ExecutionRequestForStandardSuites(project, listOf("Chapter1"), Sdk.Default)
@@ -271,7 +281,7 @@ class DownloadProjectTest(
             .isEqualTo("Clone pending")
         Thread.sleep(15_000)
 
-        val dirName = listOf(property, binFile).map { it.toHash() }.hashCode()
+        val dirName = listOf(property, binFile).map { it.toHash() }.sorted().hashCode()
         Assertions.assertTrue(File("${configProperties.repository}/$dirName").exists())
         assertions.forEach { Assertions.assertNotNull(it) }
         Assertions.assertEquals("echo 0", File("${configProperties.repository}/$dirName/${binFile.name}").readText())
@@ -279,18 +289,15 @@ class DownloadProjectTest(
     }
 
     @Test
-    @OptIn(ExperimentalFileSystem::class)
     fun testStandardTestSuites() {
         val requestSize = readStandardTestSuitesFile(configProperties.reposFileName)
             .toList()
-            .flatMap { it.second }
+            .flatMap { it.testSuitePaths }
             .size
         repeat(requestSize) {
-            val project = Project("owner", "someName", null, "descr", ProjectStatus.CREATED).apply {
-                id = 42L
-            }
+            val project = Project.stub(42)
 
-            val tempDir = "${configProperties.repository}/${"https://github.com/cqfn/save".hashCode()}/examples/kotlin-diktat/"
+            val tempDir = "${configProperties.repository}/${"https://github.com/analysis-dev/save".hashCode()}/examples/kotlin-diktat/"
             val config = "${tempDir}save.toml"
             File(tempDir).mkdirs()
             File(config).createNewFile()
@@ -355,20 +362,18 @@ class DownloadProjectTest(
             .isAccepted
         Thread.sleep(15_000)
         assertions.orTimeout(60, TimeUnit.SECONDS).join().forEach { Assertions.assertNotNull(it) }
-        Assertions.assertTrue(File("${configProperties.repository}/${"https://github.com/cqfn/save".hashCode()}").exists())
+        Assertions.assertTrue(File("${configProperties.repository}/${"https://github.com/analysis-dev/save".hashCode()}").exists())
     }
 
     @Test
     @Suppress("LongMethod")
     fun `rerun execution type git`() {
-        val project = Project("owner", "someName", "stub", "descr", ProjectStatus.CREATED).apply {
-            id = 42L
-        }
+        val project = Project.stub(42)
         val execution = Execution(project, LocalDateTime.now(), LocalDateTime.now(), ExecutionStatus.PENDING, "1",
-            "foo", 20, ExecutionType.GIT, "0.0.1", 0, 0, 0, 0, Sdk.Default.toString(), null).apply {
+            "foo", 20, ExecutionType.GIT, "0.0.1", 0, 0, 0, 0, Sdk.Default.toString(), null, null).apply {
             id = 98L
         }
-        val request = ExecutionRequest(project, GitDto("https://github.com/cqfn/save"), "examples/kotlin-diktat/save.properties", Sdk.Default, execution.id)
+        val request = ExecutionRequest(project, GitDto("https://github.com/analysis-dev/save"), "examples/kotlin-diktat/", Sdk.Default, execution.id)
 
         // /updateExecutionByDto
         mockServerBackend.enqueue(
@@ -393,9 +398,17 @@ class DownloadProjectTest(
                 .setHeader("Content-Type", "application/json")
                 .setBody(objectMapper.writeValueAsString(
                     listOf(
-                        TestSuite(TestSuiteType.PROJECT, "", null, project, LocalDateTime.now(), "save.properties")
+                        TestSuite(TestSuiteType.PROJECT, "", null, project, LocalDateTime.now(), "save.properties").apply {
+                            id = 42L
+                        }
                     )
                 )),
+        )
+
+        // /updateExecution
+        mockServerBackend.enqueue(
+            MockResponse()
+                .setResponseCode(200)
         )
         // /initializeTests?executionId=$executionId
         mockServerBackend.enqueue(
@@ -410,6 +423,7 @@ class DownloadProjectTest(
         val assertions = sequence {
             yield(mockServerBackend.takeRequest(60, TimeUnit.SECONDS))
             yield(mockServerOrchestrator.takeRequest(60, TimeUnit.SECONDS))
+            yield(mockServerBackend.takeRequest(60, TimeUnit.SECONDS))
             yield(mockServerBackend.takeRequest(60, TimeUnit.SECONDS))
             yield(mockServerBackend.takeRequest(60, TimeUnit.SECONDS))
             yield(mockServerBackend.takeRequest(60, TimeUnit.SECONDS))
@@ -436,16 +450,14 @@ class DownloadProjectTest(
     @Test
     @Suppress("LongMethod")
     fun `rerun execution type standard`() {
-        val project = Project("owner", "someName", "stub", "descr", ProjectStatus.CREATED).apply {
-            id = 42L
-        }
+        val project = Project.stub(42)
         val execution = Execution(project, LocalDateTime.now(), LocalDateTime.now(), ExecutionStatus.PENDING, "1",
-            "foo", 20, ExecutionType.STANDARD, "0.0.1", 0, 0, 0, 0, Sdk.Default.toString(), null).apply {
+            "foo", 20, ExecutionType.STANDARD, "0.0.1", 0, 0, 0, 0, Sdk.Default.toString(), null, null).apply {
             id = 98L
         }
-        val request = ExecutionRequest(project, GitDto("https://github.com/cqfn/save"), "examples/kotlin-diktat/save.properties", Sdk.Default, execution.id)
+        val request = ExecutionRequest(project, GitDto("https://github.com/analysis-dev/save"), "examples/kotlin-diktat/", Sdk.Default, execution.id)
 
-        val testSuite = TestSuite(TestSuiteType.STANDARD, "", null, project, LocalDateTime.now(), "save.properties").apply {
+        val testSuite = TestSuite(TestSuiteType.STANDARD, "", null, project, LocalDateTime.now(), ".").apply {
             id = 42
         }
 

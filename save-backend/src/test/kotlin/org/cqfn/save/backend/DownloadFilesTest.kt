@@ -1,6 +1,7 @@
 package org.cqfn.save.backend
 
 import org.cqfn.save.backend.configs.ConfigProperties
+import org.cqfn.save.backend.configs.NoopWebSecurityConfig
 import org.cqfn.save.backend.configs.WebConfig
 import org.cqfn.save.backend.controllers.DownloadFilesController
 import org.cqfn.save.backend.repository.AgentRepository
@@ -13,6 +14,7 @@ import org.cqfn.save.backend.repository.TestExecutionRepository
 import org.cqfn.save.backend.repository.TestRepository
 import org.cqfn.save.backend.repository.TestSuiteRepository
 import org.cqfn.save.backend.repository.TimestampBasedFileSystemRepository
+import org.cqfn.save.backend.repository.UserRepository
 import org.cqfn.save.backend.scheduling.StandardSuitesUpdateScheduler
 import org.cqfn.save.core.result.DebugInfo
 import org.cqfn.save.core.result.Pass
@@ -55,7 +57,12 @@ import kotlin.io.path.name
 import kotlin.io.path.writeLines
 
 @WebFluxTest(controllers = [DownloadFilesController::class])
-@Import(WebConfig::class, TimestampBasedFileSystemRepository::class, TestDataFilesystemRepository::class)
+@Import(
+    WebConfig::class,
+    NoopWebSecurityConfig::class,
+    TimestampBasedFileSystemRepository::class,
+    TestDataFilesystemRepository::class,
+)
 @AutoConfigureWebTestClient
 @EnableConfigurationProperties(ConfigProperties::class)
 @MockBeans(
@@ -67,6 +74,7 @@ import kotlin.io.path.writeLines
     MockBean(TestSuiteRepository::class),
     MockBean(GitRepository::class),
     MockBean(StandardSuitesUpdateScheduler::class),
+    MockBean(UserRepository::class),
 )
 class DownloadFilesTest {
     @Autowired
@@ -91,7 +99,7 @@ class DownloadFilesTest {
         Paths.get(configProperties.fileStorage.location).createDirectories()
         val sampleFileInfo = fileSystemRepository.saveFile(tmpFile)
 
-        webTestClient.method(HttpMethod.GET).uri("/files/download")
+        webTestClient.method(HttpMethod.GET).uri("/api/files/download")
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(sampleFileInfo)
             .accept(MediaType.APPLICATION_OCTET_STREAM)
@@ -101,7 +109,7 @@ class DownloadFilesTest {
                 Assertions.assertArrayEquals("Lorem ipsum${System.lineSeparator()}".toByteArray(), it.responseBody)
             }
 
-        webTestClient.get().uri("/files/list")
+        webTestClient.get().uri("/api/files/list")
             .exchange()
             .expectStatus().isOk
             .expectBodyList<FileInfo>()
@@ -118,7 +126,7 @@ class DownloadFilesTest {
 
     @Test
     fun `should return 404 for non-existent files`() {
-        webTestClient.get().uri("/files/download/invalid-name").exchange()
+        webTestClient.get().uri("/api/files/download/invalid-name").exchange()
             .expectStatus().isNotFound
     }
 
@@ -132,7 +140,7 @@ class DownloadFilesTest {
         }
             .build()
 
-        webTestClient.post().uri("/files/upload")
+        webTestClient.post().uri("/api/files/upload")
             .contentType(MediaType.MULTIPART_FORM_DATA)
             .body(BodyInserters.fromMultipartData(body))
             .exchange()
@@ -152,7 +160,7 @@ class DownloadFilesTest {
         whenever(agentRepository.findByContainerId("container-1"))
             .thenReturn(Agent("container-1", execution, "0.0.1"))
 
-        webTestClient.post().uri("/files/debug-info?agentId=container-1")
+        webTestClient.post().uri("/internal/files/debug-info?agentId=container-1")
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(
                 TestResultDebugInfo(

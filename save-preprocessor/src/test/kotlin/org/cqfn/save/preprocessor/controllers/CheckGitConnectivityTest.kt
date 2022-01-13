@@ -46,12 +46,12 @@ class CheckGitConnectivityTest(
     fun testController() {
         var user = "test"
         var token = "test-token"
-        var url = "https://github.com/diktat-static-analysis/save-cloud"
+        var url = "https://github.com/analysis-dev/save-cloud"
         validate(user, token, url, true)
 
         user = "akuleshov7"
         token = "test-token"
-        url = "https://github.com/diktat-static-analysis/save-cloud111"
+        url = "https://github.com/analysis-dev/save-cloud111"
         validate(user, token, url, false)
     }
 
@@ -59,7 +59,8 @@ class CheckGitConnectivityTest(
         user: String,
         token: String,
         url: String,
-        value: Boolean) {
+        value: Boolean,
+    ) {
         webClient
             .get()
             .uri("/check-git-connectivity?user=$user&token=$token&url=$url")

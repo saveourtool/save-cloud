@@ -2,6 +2,7 @@ package org.cqfn.save.backend.controllers
 
 import org.cqfn.save.agent.TestExecutionDto
 import org.cqfn.save.backend.service.TestExecutionService
+import org.cqfn.save.domain.TestResultLocation
 import org.cqfn.save.domain.TestResultStatus
 import org.cqfn.save.test.TestDto
 import org.slf4j.LoggerFactory
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.server.ResponseStatusException
 
 /**
  * Controller to work with test execution
@@ -30,12 +32,20 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
      * @param executionId an ID of Execution to group TestExecutions
      * @param page a zero-based index of page of data
      * @param size size of page
+     * @param status
+     * @param testSuite
      * @return a list of [TestExecutionDto]s
      */
-    @GetMapping("/testExecutions")
-    fun getTestExecutions(@RequestParam executionId: Long, @RequestParam page: Int, @RequestParam size: Int): List<TestExecutionDto> {
+    @GetMapping("/api/testExecutions")
+    fun getTestExecutions(
+        @RequestParam executionId: Long,
+        @RequestParam page: Int,
+        @RequestParam size: Int,
+        @RequestParam(required = false) status: TestResultStatus?,
+        @RequestParam(required = false) testSuite: String?,
+    ): List<TestExecutionDto> {
         log.debug("Request to get test executions on page $page with size $size for execution $executionId")
-        return testExecutionService.getTestExecutions(executionId, page, size)
+        return testExecutionService.getTestExecutions(executionId, page, size, status, testSuite)
             .map { it.toDto() }
     }
 
@@ -44,27 +54,42 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
      * @param status status for test executions
      * @return a list of test executions
      */
-    @GetMapping("/testExecutions/agent/{agentId}/{status}")
+    @GetMapping("/internal/testExecutions/agent/{agentId}/{status}")
     fun getTestExecutionsForAgentWithStatus(@PathVariable("agentId") agentContainerId: String,
                                             @PathVariable status: TestResultStatus
     ) = testExecutionService.getTestExecutions(agentContainerId, status)
         .map { it.toDto() }
 
     /**
+     * Finds TestExecution by test location, returns 404 if not found
+     *
+     * @param executionId under this executionId test has been executed
+     * @param testResultLocation location of the test
+     * @return TestExecution
+     */
+    @PostMapping("/api/testExecutions")
+    fun getTestExecutionByLocation(@RequestParam executionId: Long,
+                                   @RequestBody testResultLocation: TestResultLocation,
+    ): TestExecutionDto = testExecutionService.getTestExecution(executionId, testResultLocation)
+        .map { it.toDto() }
+        .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "Test execution not found for executionId=$executionId and $testResultLocation") }
+
+    /**
      * Returns number of TestExecutions with this [executionId]
      *
      * @param executionId an ID of Execution to group TestExecutions
+     * @param status
+     * @param testSuite
      */
-    @Suppress("KDOC_WITHOUT_RETURN_TAG")  // https://github.com/cqfn/diKTat/issues/965
-    @GetMapping("/testExecutionsCount")
-    fun getTestExecutionsCount(@RequestParam executionId: Long) =
-            testExecutionService.getTestExecutionsCount(executionId)
+    @GetMapping("/api/testExecution/count")
+    fun getTestExecutionsCount(@RequestParam executionId: Long, @RequestParam(required = false) status: TestResultStatus?, @RequestParam(required = false) testSuite: String?) =
+            testExecutionService.getTestExecutionsCount(executionId, status, testSuite)
 
     /**
      * @param agentContainerId id of an agent
      * @param testDtos test that will be executed by [agentContainerId] agent
      */
-    @PostMapping(value = ["/testExecution/assignAgent"])
+    @PostMapping(value = ["/internal/testExecution/assignAgent"])
     fun assignAgentByTest(@RequestParam agentContainerId: String, @RequestBody testDtos: List<TestDto>) {
         testExecutionService.assignAgentByTest(agentContainerId, testDtos)
     }
@@ -73,7 +98,7 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
      * @param testExecutionsDto
      * @return response
      */
-    @PostMapping(value = ["/saveTestResult"])
+    @PostMapping(value = ["/internal/saveTestResult"])
     fun saveTestResult(@RequestBody testExecutionsDto: List<TestExecutionDto>) = try {
         if (testExecutionService.saveTestResult(testExecutionsDto).isEmpty()) {
             ResponseEntity.status(HttpStatus.OK).body("Saved")

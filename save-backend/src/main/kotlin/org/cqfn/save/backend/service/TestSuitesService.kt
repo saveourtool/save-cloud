@@ -1,5 +1,6 @@
 package org.cqfn.save.backend.service
 
+import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.repository.TestExecutionRepository
 import org.cqfn.save.backend.repository.TestRepository
 import org.cqfn.save.backend.repository.TestSuiteRepository
@@ -8,7 +9,6 @@ import org.cqfn.save.entities.TestSuite
 import org.cqfn.save.testsuite.TestSuiteDto
 import org.cqfn.save.testsuite.TestSuiteType
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.Example
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
@@ -17,23 +17,19 @@ import java.time.LocalDateTime
  * Service for test suites
  */
 @Service
-class TestSuitesService {
-    @Autowired
-    private lateinit var testSuiteRepository: TestSuiteRepository
-
-    @Autowired
-    private lateinit var testRepository: TestRepository
-
-    @Autowired
-    private lateinit var testExecutionRepository: TestExecutionRepository
-
+class TestSuitesService(
+    private val testSuiteRepository: TestSuiteRepository,
+    private val testRepository: TestRepository,
+    private val testExecutionRepository: TestExecutionRepository,
+    private val projectRepository: ProjectRepository,
+) {
     /**
      * Save new test suites to DB
      *
      * @param testSuitesDto test suites, that should be checked and possibly saved
      * @return list of *all* TestSuites
      */
-    @Suppress("UnsafeCallOnNullableType")
+    @Suppress("TOO_MANY_LINES_IN_LAMBDA", "UnsafeCallOnNullableType")
     fun saveTestSuite(testSuitesDto: List<TestSuiteDto>): List<TestSuite> {
         val testSuites = testSuitesDto
             .distinctBy {
@@ -42,7 +38,16 @@ class TestSuitesService {
                 it.copy(description = null)
             }
             .map {
-                TestSuite(it.type, it.name, it.description, it.project, null, it.testRootPath, it.testSuiteRepoUrl)
+                TestSuite(
+                    type = it.type,
+                    name = it.name,
+                    description = it.description,
+                    project = it.project,
+                    dateAdded = null,
+                    testRootPath = it.testRootPath,
+                    testSuiteRepoUrl = it.testSuiteRepoUrl,
+                    language = it.language
+                )
             }
             .map { testSuite ->
                 // try to find TestSuite in the DB based on all non-null properties of `testSuite`

@@ -6,11 +6,11 @@ import org.cqfn.save.core.result.Crash
 import org.cqfn.save.core.result.Fail
 import org.cqfn.save.core.result.Ignored
 import org.cqfn.save.core.result.Pass
+import org.cqfn.save.core.result.TestStatus
 import org.cqfn.save.domain.TestResultDebugInfo
 import org.cqfn.save.frontend.externals.fontawesome.faExternalLinkAlt
 import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
 
-import okio.ExperimentalFileSystem
 import okio.Path.Companion.toPath
 import react.Props
 import react.dom.a
@@ -31,10 +31,8 @@ import kotlinx.browser.window
  * @return a function component
  */
 @Suppress("TOO_LONG_FUNCTION")
-@OptIn(ExperimentalFileSystem::class)
 fun <D : Any> testStatusComponent(testResultDebugInfo: TestResultDebugInfo, tableInstance: TableInstance<D>) = fc<Props> {
-    // todo: also display execCmd here
-    val shortMessage: String = when (val status = testResultDebugInfo.testStatus) {
+    val shortMessage: String = when (val status: TestStatus = testResultDebugInfo.testStatus) {
         is Pass -> (status.shortMessage ?: "").ifBlank { "Completed successfully without additional information" }
         is Fail -> status.shortReason
         is Ignored -> status.reason

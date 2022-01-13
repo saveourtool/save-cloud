@@ -27,6 +27,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.boot.test.mock.mockito.MockBeans
 import org.springframework.http.MediaType
+import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.web.reactive.server.WebTestClient
@@ -57,35 +58,7 @@ class ExecutionControllerTest {
     lateinit var projectRepository: ProjectRepository
 
     @Test
-    fun testConnection() {
-        val project = projectRepository.findById(1).get()
-        val execution = Execution(
-            project,
-            testLocalDateTime,
-            testLocalDateTime,
-            ExecutionStatus.RUNNING,
-            "0,1,2",
-            "stub",
-            20,
-            ExecutionType.GIT,
-            "0.0.1",
-            0,
-            0,
-            0,
-            0,
-            Sdk.Default.toString(),
-            null
-        )
-        webClient.post()
-            .uri("/createExecution")
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(BodyInserters.fromValue(execution))
-            .exchange()
-            .expectStatus()
-            .isOk
-    }
-
-    @Test
+    @WithMockUser("John Doe")
     fun testDataSave() {
         val project = projectRepository.findById(1).get()
         val execution = Execution(
@@ -103,10 +76,11 @@ class ExecutionControllerTest {
             0,
             0,
             Sdk.Default.toString(),
-            null
+            null,
+            null,
         )
         webClient.post()
-            .uri("/createExecution")
+            .uri("/internal/createExecution")
             .contentType(MediaType.APPLICATION_JSON)
             .body(BodyInserters.fromValue(execution))
             .exchange()
@@ -119,6 +93,7 @@ class ExecutionControllerTest {
     }
 
     @Test
+    @WithMockUser("John Doe")
     @Suppress("TOO_LONG_FUNCTION")
     fun testUpdateExecution() {
         val project = projectRepository.findById(1).get()
@@ -137,11 +112,12 @@ class ExecutionControllerTest {
             0,
             0,
             Sdk.Default.toString(),
-            null
+            null,
+            null,
         )
 
         webClient.post()
-            .uri("/createExecution")
+            .uri("/internal/createExecution")
             .contentType(MediaType.APPLICATION_JSON)
             .body(BodyInserters.fromValue(execution))
             .exchange()
@@ -153,7 +129,7 @@ class ExecutionControllerTest {
         )
 
         webClient.post()
-            .uri("/updateExecutionByDto")
+            .uri("/internal/updateExecutionByDto")
             .contentType(MediaType.APPLICATION_JSON)
             .body(BodyInserters.fromValue(executionUpdateDto))
             .exchange()
@@ -175,7 +151,7 @@ class ExecutionControllerTest {
             -1, ExecutionStatus.FINISHED
         )
         webClient.post()
-            .uri("/updateExecutionByDto")
+            .uri("/internal/updateExecutionByDto")
             .contentType(MediaType.APPLICATION_JSON)
             .body(BodyInserters.fromValue(executionUpdateDto))
             .exchange()
@@ -186,7 +162,7 @@ class ExecutionControllerTest {
     @Test
     fun checkExecutionDto() {
         webClient.get()
-            .uri("/executionDto?executionId=1")
+            .uri("/api/executionDto?executionId=1")
             .exchange()
             .expectStatus()
             .isOk
@@ -200,9 +176,9 @@ class ExecutionControllerTest {
     @Test
     fun checkExecutionDtoByProject() {
         val project = projectRepository.findById(1).get()
-        val executionCounts = executionRepository.findAll().filter { it.project == project }.count()
+        val executionCounts = executionRepository.findAll().count { it.project.id == project.id }
         webClient.get()
-            .uri("/executionDtoList?name=${project.name}&owner=${project.owner}")
+            .uri("/api/executionDtoList?name=${project.name}&owner=${project.owner}")
             .exchange()
             .expectStatus()
             .isOk
@@ -214,21 +190,38 @@ class ExecutionControllerTest {
     }
 
     @Test
-    @Suppress("UnsafeCallOnNullableType")
+    @WithMockUser("John Doe")
+    @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
     fun checkUpdateNewExecution() {
-        val execution = Execution(projectRepository.findAll().first(), LocalDateTime.now(), null, ExecutionStatus.PENDING, null,
-            null, 20, ExecutionType.GIT, null, 0, 0, 0, 0, Sdk.Default.toString(), null)
+        val execution = Execution(
+            projectRepository.findAll().first(),
+            LocalDateTime.now(),
+            null,
+            ExecutionStatus.PENDING,
+            null,
+            null,
+            20,
+            ExecutionType.GIT,
+            null,
+            0,
+            0,
+            0,
+            0,
+            Sdk.Default.toString(),
+            null,
+            null,
+        )
         webClient.post()
-            .uri("/createExecution")
+            .uri("/internal/createExecution")
             .contentType(MediaType.APPLICATION_JSON)
             .body(BodyInserters.fromValue(execution))
             .exchange()
             .expectStatus()
             .isOk
 
-        val executionUpdate = ExecutionInitializationDto(execution.project, "ALL", "testPath", "executionVersion")
+        val executionUpdate = ExecutionInitializationDto(execution.project, "1, 2, 3", "testPath", "executionVersion")
         webClient.post()
-            .uri("/updateNewExecution")
+            .uri("/internal/updateNewExecution")
             .contentType(MediaType.APPLICATION_JSON)
             .body(BodyInserters.fromValue(executionUpdate))
             .exchange()
@@ -236,14 +229,14 @@ class ExecutionControllerTest {
             .isOk
             .expectBody<Execution>()
             .consumeWith {
-                requireNotNull(it.responseBody)
-                assertEquals("ALL", it.responseBody.testSuiteIds)
-                assertEquals("testPath", it.responseBody.resourcesRootPath)
-                assertEquals(20, it.responseBody.batchSize)
-                assertEquals("executionVersion", it.responseBody.version)
+                val responseBody = requireNotNull(it.responseBody)
+                assertEquals("1, 2, 3", responseBody.testSuiteIds)
+                assertEquals("testPath", responseBody.resourcesRootPath)
+                assertEquals(20, responseBody.batchSize)
+                assertEquals("executionVersion", responseBody.version)
             }
         val isUpdatedExecution = executionRepository.findAll().any {
-            it.testSuiteIds == "ALL" &&
+            it.testSuiteIds == "1, 2, 3" &&
                     it.resourcesRootPath == "testPath" &&
                     it.batchSize == 20 &&
                     it.version == "executionVersion"
@@ -252,6 +245,7 @@ class ExecutionControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "John Doe")
     fun `should send request to preprocessor to rerun execution`() {
         mockServerPreprocessor.enqueue(
             MockResponse().setResponseCode(202)
@@ -266,7 +260,7 @@ class ExecutionControllerTest {
         }
 
         webClient.post()
-            .uri("/rerunExecution?id=2")
+            .uri("/api/rerunExecution?id=2")
             .exchange()
             .expectStatus()
             .isOk

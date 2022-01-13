@@ -46,12 +46,14 @@ data class HeartbeatConfig(
  * @property url URL of backend
  * @property additionalDataEndpoint endpoint to post additional data (version etc.) to
  * @property executionDataEndpoint endpoint to post execution data to
+ * @property filesEndpoint endpoint to post debug info to
  */
 @Serializable
 data class BackendConfig(
     val url: String,
-    val additionalDataEndpoint: String = "saveAgentVersion",
-    val executionDataEndpoint: String = "saveTestResult",
+    val additionalDataEndpoint: String = "internal/saveAgentVersion",
+    val executionDataEndpoint: String = "internal/saveTestResult",
+    val filesEndpoint: String = "internal/files",
 )
 
 /**

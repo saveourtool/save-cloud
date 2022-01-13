@@ -7,6 +7,7 @@ package org.cqfn.save.frontend.utils
 import org.cqfn.save.entities.Project
 
 import org.w3c.fetch.Headers
+import org.w3c.fetch.RequestCredentials
 import org.w3c.fetch.RequestInit
 import org.w3c.fetch.Response
 
@@ -14,6 +15,8 @@ import kotlinx.browser.window
 import kotlinx.coroutines.await
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
+
+val apiUrl = "${window.location.origin}/api"
 
 /**
  * Perform a mapping operation on a [Response] if it's status is OK or throw an exception otherwise.
@@ -61,21 +64,30 @@ suspend fun post(url: String, headers: Headers, body: dynamic) = request(url, "P
  * @param method HTTP request method
  * @param headers HTTP headers
  * @param body request body
+ * @param credentials [RequestCredentials] for fetch API
  * @return [Response] instance
  */
 suspend fun request(url: String,
                     method: String,
                     headers: Headers,
                     body: dynamic = undefined,
+                    credentials: RequestCredentials? = undefined,
 ): Response = window.fetch(
     input = url,
     RequestInit(
         method = method,
         headers = headers,
         body = body,
+        credentials = credentials,
     )
 )
-    .await()
+    .await().also {
+        if (it.status == 401.toShort()) {
+            // if 401 - change current URL to the main page (with login screen)
+            // note: we may have other uses for 401 in the future
+            window.location.href = "${window.location.origin}/#"
+        }
+    }
 
 /**
  * @param name
@@ -83,7 +95,7 @@ suspend fun request(url: String,
  * @return project
  */
 suspend fun getProject(name: String, owner: String) =
-        get("${window.location.origin}/getProject?name=$name&owner=$owner", Headers().apply {
+        get("$apiUrl/getProject?name=$name&owner=$owner", Headers().apply {
             set("Accept", "application/json")
         })
             .decodeFromJsonString<Project>()

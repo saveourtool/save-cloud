@@ -17,7 +17,7 @@ x-logging:
 
 services:
   orchestrator:
-    image: ghcr.io/diktat-static-analysis/save-orchestrator:{{project.version}}
+    image: ghcr.io/analysis-dev/save-orchestrator:{{project.version}}
     user: root  # to access host's docker socket
     environment:
       - "SPRING_PROFILES_ACTIVE={{profile}}"
@@ -27,6 +27,7 @@ services:
       - "/var/run/docker.sock:/var/run/docker.sock"
       - save:/home/cnb
       - /home/saveu/executionLogs:/home/cnb/executionLogs/
+      - /home/saveu/configs/orchestrator:/home/cnb/config
     extra_hosts:
       - "host.docker.internal:host-gateway"
     deploy:
@@ -34,9 +35,9 @@ services:
         - "prometheus-job=save-orchestrator"
     logging: *loki-logging-jvm
   backend:
-    image: ghcr.io/diktat-static-analysis/save-backend:{{project.version}}
+    image: ghcr.io/analysis-dev/save-backend:{{project.version}}
     environment:
-      - "SPRING_PROFILES_ACTIVE={{profile}}"
+      - "SPRING_PROFILES_ACTIVE={{profile}},secure"
       - "MYSQL_USER=/run/secrets/db_username"
       - "MYSQL_PASSWORD_FILE=/run/secrets/db_password"
     secrets:
@@ -45,11 +46,7 @@ services:
       - db_url
     volumes:
       - save-fs-storage:/home/cnb/files
-    entrypoint: /bin/bash
-    command: [
-    "-c",
-    'mkdir -p /home/cnb/files/ && /cnb/process/web'
-    ]
+      - /home/saveu/configs/backend:/home/cnb/config
     ports:
       - "5000:5000"
     deploy:
@@ -57,22 +54,34 @@ services:
         - "prometheus-job=save-backend"
     logging: *loki-logging-jvm
   preprocessor:
-    image: ghcr.io/diktat-static-analysis/save-preprocessor:{{project.version}}
+    image: ghcr.io/analysis-dev/save-preprocessor:{{project.version}}
     environment:
       - "SPRING_PROFILES_ACTIVE={{profile}}"
     volumes:
       - save:/home/cnb/
       - save-fs-storage:/home/cnb/files
-    entrypoint: /bin/bash
-    command: [
-    "-c",
-    'mkdir -p /home/cnb/files/ && /cnb/process/web'
-    ]
+      - /home/saveu/configs/preprocessor:/home/cnb/config
     ports:
       - "5200:5200"
     deploy:
       labels:
         - "prometheus-job=save-preprocessor"
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+    logging: *loki-logging-jvm
+  gateway:
+    image: ghcr.io/analysis-dev/api-gateway:{{project.version}}
+    environment:
+      - "SPRING_PROFILES_ACTIVE={{profile}}"
+    ports:
+      - "5300:5300"
+    volumes:
+      - /home/saveu/configs/gateway:/home/cnb/config
+    deploy:
+      labels:
+        - "prometheus-job=api-gateway"
     logging: *loki-logging-jvm
   prometheus:
     image: prom/prometheus

@@ -9,13 +9,11 @@ import org.springframework.web.reactive.function.server.router
 
 /**
  * Configuration class that enables serving static resources
- *
- * @property configProperties properties in application.properties
  */
 @Configuration
 class WebConfiguration {
     /**
-     * @return a rotuer bean
+     * @return a router bean
      */
     @Bean
     fun staticResourceRouter() = router {

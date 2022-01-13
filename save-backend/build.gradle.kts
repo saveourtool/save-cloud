@@ -29,12 +29,13 @@ tasks.withType<Test> {
 }
 
 dependencies {
-    implementation(project(":save-cloud-common"))
+    implementation(projects.saveCloudCommon)
     runtimeOnly(project(":save-frontend", "distribution"))  // static resources packed as a jar, will be accessed from classpath
-    implementation("org.cqfn.save:save-common-jvm:${Versions.saveCore}")
-    implementation("org.springframework.boot:spring-boot-starter-quartz:${Versions.springBoot}")
-    testImplementation("com.squareup.okhttp3:okhttp:${Versions.okhttp3}")
-    testImplementation("com.squareup.okhttp3:mockwebserver:${Versions.okhttp3}")
+    implementation(libs.save.common.jvm)
+    implementation(libs.spring.boot.starter.quartz)
+    implementation(libs.spring.boot.starter.security)
+    implementation(libs.spring.security.core)
+    testImplementation(libs.spring.security.test)
 }
 
 configureJacoco()
