@@ -5,6 +5,7 @@ import org.cqfn.save.backend.repository.UserRepository
 import org.cqfn.save.domain.ProjectSaveStatus
 import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.ProjectStatus
+import org.cqfn.save.entities.User
 import org.springframework.data.domain.Example
 import org.springframework.data.domain.ExampleMatcher
 import org.springframework.http.HttpStatus
@@ -63,7 +64,7 @@ class ProjectService(private val projectRepository: ProjectRepository,
     @Transactional
     fun getProjects(username: String): Flux<Project> {
         return Mono.fromCallable {
-            userRepository.findByName(username).get()
+            userRepository.findByName(username).orElse(null)
         }
             .flatMapIterable { user ->
                 projectRepository.findAll().map { user to it }
@@ -94,5 +95,12 @@ class ProjectService(private val projectRepository: ProjectRepository,
             cb.notEqual(root.get<String>("status"), ProjectStatus.DELETED)
         }
         return projects
+    }
+
+    fun hasWriteAccess(username: String, project: Project): Boolean {
+        return userRepository.findByName(username).map { user ->
+            project.userId == user.id!! ||
+                    user.id!! in project.adminIdList()
+        }.orElse(false)
     }
 }

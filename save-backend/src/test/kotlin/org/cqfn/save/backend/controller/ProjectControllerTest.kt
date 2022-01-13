@@ -33,6 +33,7 @@ import org.springframework.web.reactive.function.BodyInserters
 @MockBeans(
     MockBean(StandardSuitesUpdateScheduler::class),
 )
+@Suppress("UnsafeCallOnNullableType")
 class ProjectControllerTest {
     @Autowired
     private lateinit var projectRepository: ProjectRepository
@@ -53,38 +54,52 @@ class ProjectControllerTest {
             .exchange()
             .expectStatus()
             .isOk
-            .expectBody(ParameterizedTypeReference.forType<List<Project>>(List::class.java))
-            .value<Nothing> {
-                Assertions.assertTrue(it.isNotEmpty())
-                it.forEach { Assertions.assertTrue(it.public) }
+            .expectBody<List<Project>>()
+            .consumeWith { exchangeResult ->
+                val projects = exchangeResult.responseBody!!
+                Assertions.assertTrue(projects.isNotEmpty())
+                projects.forEach { Assertions.assertTrue(it.public) }
             }
     }
 
     @Test
-    @Suppress("UnsafeCallOnNullableType")
+    @WithMockUser(username = "admin", roles = ["ADIMN"])
     fun `should return project based on name and owner`() {
-        webClient
-            .get()
-            .uri("/api/getProject?name=huaweiName&owner=Huawei")
-            .accept(MediaType.APPLICATION_JSON)
-            .exchange()
-            .expectStatus()
+        getProjectAndAsser("huaweiName", "huawei") {
+            expectStatus()
             .isOk
             .expectBody<Project>()
             .consumeWith {
                 requireNotNull(it.responseBody)
                 Assertions.assertEquals(it.responseBody!!.url, "huawei.com")
             }
+        }
     }
 
     @Test
-    @Suppress("UnsafeCallOnNullableType", "TOO_MANY_LINES_IN_LAMBDA")
+    @WithMockUser(username = "Mr. Bruh", roles = ["VIEWER"])
+    fun `should return 403 if user doesn't have write access`() {
+        getProjectAndAsser("huaweiName", "huawei") {
+            expectStatus().isForbidden
+        }
+    }
+
+    @Test
+    @WithMockUser(username = "Mr. Bruh", roles = ["VIEWER"])
+    fun `should return 404 if user doesn't have access`() {
+        getProjectAndAsser("The Project", "Example.com") {
+            expectStatus().isNotFound
+        }
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = ["ADMIN"])
     fun `check git from project`() {
-        projectRepository.findById(1).ifPresent {
+        val project = projectRepository.findById(1).get()
             webClient
                 .post()
                 .uri("/api/getGit")
-                .body(BodyInserters.fromValue(it))
+                .body(BodyInserters.fromValue(project))
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus()
@@ -92,14 +107,12 @@ class ProjectControllerTest {
                 .expectBody<GitDto>()
                 .consumeWith {
                     requireNotNull(it.responseBody)
-                    Assertions.assertEquals(it.responseBody!!.url, "github")
+                    Assertions.assertEquals("github", it.responseBody!!.url)
                 }
-        }
     }
 
     @Test
-    @WithMockUser(username = "John Doe")
-    @Suppress("UnsafeCallOnNullableType")
+    @WithMockUser(username = "John Doe", roles = ["PROJECT_OWNER"])
     fun `check save new project`() {
         val gitDto = GitDto("qweqwe")
         // `project` references an existing user from test data
@@ -124,6 +137,16 @@ class ProjectControllerTest {
 
         Assertions.assertNotNull(gitRepository.findAll().find { it.url == gitDto.url })
     }
+
+    private fun getProjectAndAsser(name: String,
+                                   owner: String,
+                                   assertion: WebTestClient.ResponseSpec.() -> Unit
+    ) = webClient
+            .get()
+            .uri("/api/getProject?name=$name&owner=$owner")
+            .accept(MediaType.APPLICATION_JSON)
+            .exchange()
+            .let { assertion(it) }
 
     private fun saveProjectAndAssert(newProject: NewProjectDto,
                                      saveAssertion: WebTestClient.ResponseSpec.() -> Unit,

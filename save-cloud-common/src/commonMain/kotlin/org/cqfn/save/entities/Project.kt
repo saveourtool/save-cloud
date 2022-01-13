@@ -34,6 +34,8 @@ data class Project(
     @GeneratedValue
     var id: Long? = null
 
+    fun adminIdList() = adminIds?.split(",")?.map { it.toLong() } ?: emptyList()
+
     companion object {
         /**
          * Create a stub for testing. Since all fields are mutable, only required ones can be set after calling this method.

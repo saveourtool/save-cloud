@@ -21,7 +21,10 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.reactive.function.server.EntityResponse
+import org.springframework.web.reactive.function.server.ServerResponse
 import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 
 /**
  * Controller for working with projects.
@@ -61,10 +64,22 @@ class ProjectController {
      * @return project by name and owner
      */
     @GetMapping("/getProject")
-    fun getProjectByNameAndOwner(@RequestParam name: String, @RequestParam owner: String) =
-            projectService.findByNameAndOwner(name, owner)?.let {
-                ResponseEntity.status(HttpStatus.OK).body(it)
-            } ?: ResponseEntity.status(HttpStatus.NOT_FOUND).build()
+    fun getProjectByNameAndOwner(@RequestParam name: String,
+                                 @RequestParam owner: String,
+                                 authentication: Authentication,
+    ): ResponseEntity<Project> {
+        val project = projectService.findByNameAndOwner(name, owner)
+        return if (project != null && project.public) {
+            if (projectService.hasWriteAccess(authentication.username(), project)) {
+                ResponseEntity.ok(project)
+            } else {
+                ResponseEntity.status(HttpStatus.FORBIDDEN).build()
+            }
+        } else {
+            // if project either is not found or shouldn't be visible for current user
+            ResponseEntity.notFound().build()
+        }
+    }
 
     /**
      * @param project
