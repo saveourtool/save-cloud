@@ -1,5 +1,6 @@
 package org.cqfn.save.backend.controllers
 
+import org.cqfn.save.backend.security.ProjectPermissionEvaluator
 import org.cqfn.save.backend.service.GitService
 import org.cqfn.save.backend.service.ProjectService
 import org.cqfn.save.backend.utils.username
@@ -12,6 +13,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PostAuthorize
 import org.springframework.security.access.prepost.PostFilter
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
@@ -23,21 +25,21 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.reactive.function.server.EntityResponse
 import org.springframework.web.reactive.function.server.ServerResponse
+import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.switchIfEmpty
 
 /**
  * Controller for working with projects.
  */
 @RestController
 @RequestMapping("/api")
-class ProjectController {
-    @Autowired
-    private lateinit var projectService: ProjectService
-
-    @Autowired
-    private lateinit var gitService: GitService
-
+class ProjectController(
+    private val projectService: ProjectService,
+    private val gitService: GitService,
+    private val projectPermissionEvaluator: ProjectPermissionEvaluator,
+) {
     /**
      * Get all projects, including deleted and private. Only accessible for admins.
      *
@@ -59,26 +61,32 @@ class ProjectController {
     fun getNotDeletedProjects() = projectService.getNotDeletedProjects()
 
     /**
+     * 200 - if user can access the project
+     * 403 - if project is public, but user can't access it
+     * 404 - if project is not found or private and user can't access it
+     *
      * @param name name of project
      * @param owner owner of project
      * @return project by name and owner
      */
     @GetMapping("/getProject")
+    @PreAuthorize("hasRole('VIEWER')")
+    @PostAuthorize("@projectPermissionEvaluator.hasPermission(authentication, returnObject, 'read')")
     fun getProjectByNameAndOwner(@RequestParam name: String,
                                  @RequestParam owner: String,
                                  authentication: Authentication,
-    ): ResponseEntity<Project> {
-        val project = projectService.findByNameAndOwner(name, owner)
-        return if (project != null && project.public) {
-            if (projectService.hasWriteAccess(authentication.username(), project)) {
-                ResponseEntity.ok(project)
-            } else {
-                ResponseEntity.status(HttpStatus.FORBIDDEN).build()
-            }
-        } else {
-            // if project either is not found or shouldn't be visible for current user
-            ResponseEntity.notFound().build()
+    ): Mono<Project> {
+        return Mono.fromCallable {
+            projectService.findByNameAndOwner(name, owner)
         }
+            .map { it!! /* if value is null, then Mono is empty and this lambda won't be called */ }
+            .filter {
+                it.public || projectPermissionEvaluator.hasPermission(authentication, it, "read")
+            }
+            .switchIfEmpty {
+                // if project either is not found or shouldn't be visible for current user
+                Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
+            }
     }
 
     /**

@@ -12,6 +12,7 @@ class IdentitySourceAwareUserDetails(
     password: String?,
     authorities: String?,
     val identitySource: String,
+    val id: Long,
 ) : User(
     username,
     password,

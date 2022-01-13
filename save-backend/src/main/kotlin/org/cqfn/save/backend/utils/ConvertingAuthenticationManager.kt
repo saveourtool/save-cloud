@@ -40,7 +40,12 @@ class ConvertingAuthenticationManager : ReactiveAuthenticationManager {
                     "$identitySource:${it.username}",
                     authentication.credentials,
                     it.authorities
-                )
+                ).apply {
+                    details = mapOf(
+                        "identitySource" to identitySource,
+                        "id" to it.id,
+                    )
+                }
             }
     } else {
         Mono.error { BadCredentialsException("Unsupported authentication type ${authentication::class}") }

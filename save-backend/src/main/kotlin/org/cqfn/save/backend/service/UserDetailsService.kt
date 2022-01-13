@@ -28,6 +28,7 @@ class UserDetailsService(
                 password = user.password ?: "",
                 authorities = user.role,
                 identitySource = user.source,
+                id = user.id!!,
             )
         }
         .switchIfEmpty {
