@@ -79,7 +79,7 @@ class AgentsControllerTest {
             "stub", 20, ExecutionType.GIT, "0.0.1", 0, 0, 0, 0, Sdk.Default.toString(), null, null, null, null).apply {
             id = 42L
         }
-        whenever(dockerService.buildAndCreateContainers(any(), any())).thenReturn(listOf("test-agent-id-1", "test-agent-id-2"))
+        whenever(dockerService.buildAndCreateContainers(any(), any(), any(), any())).thenReturn(listOf("test-agent-id-1", "test-agent-id-2"))
         // /addAgents
         mockServer.enqueue(MockResponse()
             .setResponseCode(200)
@@ -102,7 +102,7 @@ class AgentsControllerTest {
             .expectStatus()
             .isAccepted
         Thread.sleep(2_500)  // wait for background task to complete on mocks
-        verify(dockerService).buildAndCreateContainers(any(), any())
+        verify(dockerService).buildAndCreateContainers(any(), any(), any(), any())
         verify(dockerService).startContainersAndUpdateExecution(any(), anyList())
     }
 
