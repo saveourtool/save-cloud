@@ -45,7 +45,7 @@ class ProjectController {
     fun getProjects() = projectService.getProjects()
 
     @GetMapping("/projects")
-    fun getProjects(authentication: Authentication) = projectService.getProjects(authentication.name)
+    fun getProjects(authentication: Authentication) = projectService.getProjects(authentication.username())
 
     /**
      * Get all projects without status.
