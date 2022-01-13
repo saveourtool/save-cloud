@@ -11,6 +11,7 @@ plugins {
     alias(libs.plugins.versions.plugin)
     alias(libs.plugins.talaiot.base)
     alias(libs.plugins.liquibase.gradle)
+    java
 }
 
 val profile = properties.getOrDefault("save.profile", "dev") as String
@@ -40,6 +41,12 @@ dependencies {
     liquibaseRuntime(libs.liquibase.core)
     liquibaseRuntime(libs.mysql.connector.java)
     liquibaseRuntime(libs.picocli)
+}
+
+tasks.withType<org.liquibase.gradle.LiquibaseTask>().configureEach {
+    this.javaLauncher.set(project.extensions.getByType<JavaToolchainService>().launcherFor {
+        languageVersion.set(JavaLanguageVersion.of(Versions.jdk))
+    })
 }
 
 talaiot {
