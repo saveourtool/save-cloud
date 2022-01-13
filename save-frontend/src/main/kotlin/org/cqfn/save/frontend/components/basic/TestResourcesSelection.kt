@@ -212,35 +212,36 @@ fun testResourcesSelection(
                         setSelectedLanguageForStandardTests
                     )) {}
 
+                    div("input-group-prepend") {
+                        input(type = InputType.text, name = "itemText") {
+                            key = "itemText"
+                            attrs.set("class", "form-control")
+                            attrs {
+                                value = props.execCmd
+                                placeholder = "Execution command:"
+                                onChangeFunction = {
+                                    setExecCmd(it)
+                                }
+                            }
+                        }
+                    }
+                    div("input-group-prepend") {
+                        input(type = InputType.text, name = "itemText") {
+                            key = "itemText"
+                            attrs.set("class", "form-control")
+                            attrs {
+                                value = props.batchSizeForAnalyzer
+                                placeholder = "Batch size (one by default)"
+                                onChangeFunction = {
+                                    setBatchSize(it)
+                                }
+                            }
+                        }
+                    }
+
                     child(checkBoxGrid(props.standardTestSuites, props.selectedLanguageForStandardTests)) {
                         attrs.selectedStandardSuites = props.selectedStandardSuites
                         attrs.rowSize = ProjectView.TEST_SUITE_ROW
-                    }
-                }
-                div("input-group-prepend") {
-                    input(type = InputType.text, name = "itemText") {
-                        key = "itemText"
-                        attrs.set("class", "form-control")
-                        attrs {
-                            value = props.execCmd
-                            placeholder = "Execution command:"
-                            onChangeFunction = {
-                                setExecCmd(it)
-                            }
-                        }
-                    }
-                }
-                div("input-group-prepend") {
-                    input(type = InputType.text, name = "itemText") {
-                        key = "itemText"
-                        attrs.set("class", "form-control")
-                        attrs {
-                            value = props.batchSizeForAnalyzer
-                            placeholder = "Batch size (leave empty if you would like to use default value: 1)"
-                            onChangeFunction = {
-                                setBatchSize(it)
-                            }
-                        }
                     }
                 }
             }
