@@ -61,26 +61,10 @@ class ExecutionControllerTest {
     @WithMockUser("John Doe")
     fun testDataSave() {
         val project = projectRepository.findById(1).get()
-        val execution = Execution(
-            project,
-            testLocalDateTime,
-            testLocalDateTime,
-            ExecutionStatus.RUNNING,
-            "0,1,2",
-            "stub",
-            20,
-            ExecutionType.GIT,
-            "0.0.1",
-            0,
-            0,
-            0,
-            0,
-            Sdk.Default.toString(),
-            null,
-            null,
-            null,
-            null,
-        )
+        val execution = Execution.stub(project).apply {
+            startTime = testLocalDateTime
+            endTime = testLocalDateTime
+        }
         webClient.post()
             .uri("/internal/createExecution")
             .contentType(MediaType.APPLICATION_JSON)
@@ -99,26 +83,7 @@ class ExecutionControllerTest {
     @Suppress("TOO_LONG_FUNCTION")
     fun testUpdateExecution() {
         val project = projectRepository.findById(1).get()
-        val execution = Execution(
-            project,
-            testLocalDateTime,
-            testLocalDateTime,
-            ExecutionStatus.RUNNING,
-            "0,1,2",
-            "stub",
-            20,
-            ExecutionType.GIT,
-            "0.0.1",
-            0,
-            0,
-            0,
-            0,
-            Sdk.Default.toString(),
-            null,
-            null,
-            null,
-            null,
-        )
+        val execution = Execution.stub(project)
 
         webClient.post()
             .uri("/internal/createExecution")
@@ -197,8 +162,7 @@ class ExecutionControllerTest {
     @WithMockUser("John Doe")
     @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
     fun checkUpdateNewExecution() {
-        val execution = Execution(projectRepository.findAll().first(), LocalDateTime.now(), null, ExecutionStatus.PENDING, null,
-            null, 20, ExecutionType.GIT, null, 0, 0, 0, 0, Sdk.Default.toString(), null, null, null, null)
+        val execution = Execution.stub(projectRepository.findAll().first())
         webClient.post()
             .uri("/internal/createExecution")
             .contentType(MediaType.APPLICATION_JSON)

@@ -22,7 +22,7 @@ class Footer : RComponent<PropsWithChildren, State>() {
             div("container my-auto") {
                 div("copyright text-center my-auto") {
                     span {
-                        +"Copyright ${js("String.fromCharCode(169)")} SAVE 2022"
+                        +"Copyright ${js("String.fromCharCode(169)")} SAVE 2021-2022"
                         br {}
                         +"Version $SAVE_VERSION"
                     }

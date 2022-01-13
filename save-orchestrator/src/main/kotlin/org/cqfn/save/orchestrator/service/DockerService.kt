@@ -62,19 +62,15 @@ class DockerService(private val configProperties: ConfigProperties) {
      *
      * @param execution [Execution] from which this workflow is started
      * @param testSuiteDtos test suites, selected by user
-     * @param execCmd execCmd for SAVE-cli for testing in standard mode
-     * @param batchSizeForAnalyzer batchSize for SAVE-cli for testing in standard mode
      * @return list of IDs of created containers
      * @throws DockerException if interaction with docker daemon is not successful
      */
     fun buildAndCreateContainers(
         execution: Execution,
         testSuiteDtos: List<TestSuiteDto>?,
-        execCmd: String?,
-        batchSizeForAnalyzer: String?
     ): List<String> {
         log.info("Building base image for execution.id=${execution.id}")
-        val (imageId, runCmd, saveCliExecFlags) = buildBaseImageForExecution(execution, testSuiteDtos, execCmd, batchSizeForAnalyzer)
+        val (imageId, runCmd, saveCliExecFlags) = buildBaseImageForExecution(execution, testSuiteDtos)
         log.info("Built base image for execution.id=${execution.id}")
         return (1..configProperties.agentsCount).map { number ->
             log.info("Building container #$number for execution.id=${execution.id}")
@@ -178,9 +174,7 @@ class DockerService(private val configProperties: ConfigProperties) {
     )
     private fun buildBaseImageForExecution(
         execution: Execution,
-        testSuiteDtos: List<TestSuiteDto>?,
-        execCmd: String?,
-        batchSizeForAnalyzer: String?
+        testSuiteDtos: List<TestSuiteDto>?
     ): Triple<String, String, String> {
         val resourcesPath = File(
             configProperties.testResources.basePath,
@@ -212,6 +206,8 @@ class DockerService(private val configProperties: ConfigProperties) {
         unzipArchivesAmongAdditionalFiles(execution, isStandardMode, testSuitesDir, resourcesPath)
 
         val saveCliExecFlags = if (isStandardMode) {
+            val execCmd = execution.execCmd
+            val batchSizeForAnalyzer = execution.batchSizeForAnalyzer
             // create stub toml config in aim to execute all test suites directories from `testSuitesDir`
             val exeCmdForTomlConfig = if (execCmd.isNullOrBlank()) "" else "execCmd =  \"$execCmd\""
             val batchSizeForTomlConfig = if (batchSizeForAnalyzer.isNullOrBlank()) {

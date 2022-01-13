@@ -212,7 +212,7 @@ class ExecutionController(private val executionService: ExecutionService,
             gitDto = git.copy(hash = execution.version),
             testRootPath = testRootPath,
             sdk = execution.sdk.toSdk(),
-            executionId = execution.id,
+            executionId = execution.id
         )
         return preprocessorWebClient.post()
             .uri("/rerunExecution?executionType=$executionType")

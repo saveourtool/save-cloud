@@ -212,8 +212,6 @@ class DownloadProjectController(
                         location,
                         testSuites?.map { it.toDto() },
                         executionRerunRequest.gitDto.url,
-                        execution.execCmd,
-                        execution.batchSizeForAnalyzer,
                     )
                 }
                 .subscribeOn(scheduler)
@@ -393,9 +391,7 @@ class DownloadProjectController(
                             // stub for standard tests that won't be used
                             "N/A"
                         )
-                    },
-                    execCmd = execCmd,
-                    batchSizeForAnalyzer = batchSizeForAnalyzer,
+                    }
                 )
             }
     }
@@ -449,8 +445,6 @@ class DownloadProjectController(
         projectRootRelativePath: String,
         testSuiteDtos: List<TestSuiteDto>?,
         gitUrl: String? = null,
-        execCmd: String? = null,
-        batchSizeForAnalyzer: String? = null,
     ): Mono<StatusResponse> {
         val executionType = execution.type
         testSuiteDtos?.let {
@@ -462,7 +456,7 @@ class DownloadProjectController(
         } else {
             prepareExecutionForStandard(testSuiteDtos!!, execution)
         }
-            .then(initializeAgents(execution, testSuiteDtos, execCmd, batchSizeForAnalyzer))
+            .then(initializeAgents(execution, testSuiteDtos))
             .onErrorResume { ex ->
                 log.error(
                     "Error during preprocessing, will mark execution.id=${execution.id} as failed; error: ",
@@ -666,9 +660,7 @@ class DownloadProjectController(
      */
     private fun initializeAgents(
         execution: Execution,
-        testSuiteDtos: List<TestSuiteDto>?,
-        execCmd: String?,
-        batchSizeForAnalyzer: String?
+        testSuiteDtos: List<TestSuiteDto>?
     ): Status {
         val bodyBuilder = MultipartBodyBuilder().apply {
             part("execution", execution)
@@ -676,14 +668,6 @@ class DownloadProjectController(
 
         testSuiteDtos?.let {
             bodyBuilder.part("testSuiteDtos", testSuiteDtos)
-        }
-
-        execCmd?.let {
-            bodyBuilder.part("execCmd", execCmd)
-        }
-
-        batchSizeForAnalyzer?.let {
-            bodyBuilder.part("batchSizeForAnalyzer", batchSizeForAnalyzer)
         }
 
         return webClientOrchestrator
