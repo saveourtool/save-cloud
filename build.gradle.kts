@@ -11,6 +11,7 @@ plugins {
     alias(libs.plugins.versions.plugin)
     alias(libs.plugins.talaiot.base)
     alias(libs.plugins.liquibase.gradle)
+    id("com.louiscad.complete-kotlin") version "1.1.0"
 }
 
 val profile = properties.getOrDefault("save.profile", "dev") as String
