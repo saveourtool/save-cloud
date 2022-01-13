@@ -28,6 +28,7 @@ kotlin {
                 implementation(libs.ktor.client.core)
                 implementation(libs.ktor.client.curl)
                 implementation(libs.ktor.client.serialization)
+                implementation(libs.ktor.client.encoding)
                 implementation(libs.kotlinx.serialization.properties)
                 implementation(libs.okio)
                 implementation(libs.kotlinx.datetime)
