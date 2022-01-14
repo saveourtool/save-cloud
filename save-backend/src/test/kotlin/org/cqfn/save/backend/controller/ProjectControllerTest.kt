@@ -4,7 +4,9 @@ import org.cqfn.save.backend.SaveApplication
 import org.cqfn.save.backend.repository.GitRepository
 import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.scheduling.StandardSuitesUpdateScheduler
+import org.cqfn.save.backend.utils.AuthenticationDetails
 import org.cqfn.save.backend.utils.MySqlExtension
+import org.cqfn.save.backend.utils.mutateMockedUser
 import org.cqfn.save.entities.GitDto
 import org.cqfn.save.entities.NewProjectDto
 import org.cqfn.save.entities.Project
@@ -20,6 +22,8 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.boot.test.mock.mockito.MockBeans
 import org.springframework.http.MediaType
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.security.test.context.support.WithUserDetails
 import org.springframework.test.context.ActiveProfiles
@@ -48,6 +52,10 @@ class ProjectControllerTest {
     @Test
     @WithMockUser
     fun `should return all public projects`() {
+        mutateMockedUser {
+            details = AuthenticationDetails(id = 99)
+        }
+
         webClient
             .get()
             .uri("/api/projects/not-deleted")
@@ -66,6 +74,10 @@ class ProjectControllerTest {
     @Test
     @WithUserDetails(value = "admin")
     fun `should return project based on name and owner`() {
+        mutateMockedUser {
+            details = AuthenticationDetails(id = 1)
+        }
+
         getProjectAndAssert("huaweiName", "Huawei") {
             expectStatus()
             .isOk
@@ -78,9 +90,12 @@ class ProjectControllerTest {
     }
 
     @Test
-    @Disabled("Do we need access control for public projects?")
     @WithMockUser(username = "Mr. Bruh", roles = ["VIEWER"])
     fun `should return 403 if user doesn't have write access`() {
+        mutateMockedUser {
+            details = AuthenticationDetails(id = 99)
+        }
+
         getProjectAndAssert("huaweiName", "Huawei") {
             expectStatus().isForbidden
         }
@@ -89,34 +104,45 @@ class ProjectControllerTest {
     @Test
     @WithMockUser(username = "Mr. Bruh", roles = ["VIEWER"])
     fun `should return 404 if user doesn't have access to a private project`() {
+        mutateMockedUser {
+            details = AuthenticationDetails(id = 99)
+        }
+
         getProjectAndAssert("The Project", "Example.com") {
             expectStatus().isNotFound
         }
     }
 
     @Test
-    @WithUserDetails
+    @WithMockUser(username = "Tester", roles = ["PROJECT_ADMIN"])
     fun `check git from project`() {
+        mutateMockedUser {
+            details = AuthenticationDetails(id = 1)
+        }
+
         val project = projectRepository.findById(1).get()
-            webClient
-                .post()
-                .uri("/api/projects/git")
-                .body(BodyInserters.fromValue(project))
-                .accept(MediaType.APPLICATION_JSON)
-                .exchange()
-                .expectStatus()
-                .isOk
-                .expectBody<GitDto>()
-                .consumeWith {
-                    requireNotNull(it.responseBody)
-                    Assertions.assertEquals("github", it.responseBody!!.url)
-                }
+        webClient
+            .post()
+            .uri("/api/projects/git")
+            .body(BodyInserters.fromValue(project))
+            .accept(MediaType.APPLICATION_JSON)
+            .exchange()
+            .expectStatus()
+            .isOk
+            .expectBody<GitDto>()
+            .consumeWith {
+                requireNotNull(it.responseBody)
+                Assertions.assertEquals("github", it.responseBody!!.url)
+            }
     }
 
     @Test
     @WithMockUser(username = "John Doe", roles = ["PROJECT_OWNER"])
-    // fixme: userId is not injected into Authentication
     fun `check save new project`() {
+        mutateMockedUser {
+            details = AuthenticationDetails(id = 2)
+        }
+
         val gitDto = GitDto("qweqwe")
         // `project` references an existing user from test data
         val project = Project("I", "Name", "uurl", "nullsss", ProjectStatus.CREATED, userId = 2, adminIds = null)

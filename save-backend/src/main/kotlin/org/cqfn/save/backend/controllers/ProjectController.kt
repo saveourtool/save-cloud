@@ -3,6 +3,7 @@ package org.cqfn.save.backend.controllers
 import org.cqfn.save.backend.security.ProjectPermissionEvaluator
 import org.cqfn.save.backend.service.GitService
 import org.cqfn.save.backend.service.ProjectService
+import org.cqfn.save.backend.utils.AuthenticationDetails
 import org.cqfn.save.backend.utils.username
 import org.cqfn.save.domain.ProjectSaveStatus
 import org.cqfn.save.entities.GitDto
@@ -110,7 +111,7 @@ class ProjectController(private val projectService: ProjectService,
      * @return gitDto
      */
     @PostMapping("/git")
-    @PreAuthorize("@projectPermissionEvaluator.hasPermission(authentication, project, 'write')")
+    @PreAuthorize("@projectPermissionEvaluator.hasPermission(authentication, #project, 'write')")
     fun getRepositoryDtoByProject(@RequestBody project: Project): Mono<GitDto> =
         Mono.fromCallable {
             gitService.getRepositoryDtoByProject(project)
@@ -125,13 +126,13 @@ class ProjectController(private val projectService: ProjectService,
      * @param authentication an [Authentication] representing an authenticated request
      * @return response
      */
-    // todo: change it to use userId from Authentication
     @PostMapping("/save")
     fun saveProject(@RequestBody newProjectDto: NewProjectDto, authentication: Authentication): ResponseEntity<String> {
-//        val userId = (authentication.details as Map<String, Any>)["id"] as Long
+        val userId = (authentication.details as AuthenticationDetails).id
         val (projectId, projectStatus) = projectService.saveProject(
-            newProjectDto.project,
-            authentication.username()
+            newProjectDto.project.apply {
+                this.userId = userId
+            }
         )
         if (projectStatus == ProjectSaveStatus.EXIST) {
             log.warn("Project with id = $projectId already exists")
@@ -152,7 +153,7 @@ class ProjectController(private val projectService: ProjectService,
     @PostMapping("/update")
     @PreAuthorize("@projectPermissionEvaluator.hasPermission(authentication, project, 'write')")
     fun updateProject(@RequestBody project: Project): ResponseEntity<String> {
-        val (_, projectStatus) = projectService.saveProject(project, null)
+        val (_, projectStatus) = projectService.saveProject(project)
         return ResponseEntity.ok(projectStatus.message)
     }
 
