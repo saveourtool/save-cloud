@@ -50,7 +50,7 @@ class ProjectControllerTest {
     fun `should return all public projects`() {
         webClient
             .get()
-            .uri("/api/projects")
+            .uri("/api/projects/not-deleted")
             .accept(MediaType.APPLICATION_JSON)
             .exchange()
             .expectStatus()
@@ -100,7 +100,7 @@ class ProjectControllerTest {
         val project = projectRepository.findById(1).get()
             webClient
                 .post()
-                .uri("/api/getGit")
+                .uri("/api/projects/git")
                 .body(BodyInserters.fromValue(project))
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
@@ -115,6 +115,7 @@ class ProjectControllerTest {
 
     @Test
     @WithMockUser(username = "John Doe", roles = ["PROJECT_OWNER"])
+    // fixme: userId is not injected into Authentication
     fun `check save new project`() {
         val gitDto = GitDto("qweqwe")
         // `project` references an existing user from test data
@@ -145,7 +146,7 @@ class ProjectControllerTest {
                                     assertion: WebTestClient.ResponseSpec.() -> Unit
     ) = webClient
             .get()
-            .uri("/api/getProject?name=$name&owner=$owner")
+            .uri("/api/projects/get?name=$name&owner=$owner")
             .accept(MediaType.APPLICATION_JSON)
             .exchange()
             .let { assertion(it) }
@@ -156,7 +157,7 @@ class ProjectControllerTest {
     ) {
         webClient
             .post()
-            .uri("/api/saveProject")
+            .uri("/api/projects/save")
             .body(BodyInserters.fromValue(newProject))
             .accept(MediaType.APPLICATION_JSON)
             .exchange()
@@ -165,7 +166,7 @@ class ProjectControllerTest {
         val project = newProject.project
         webClient
             .get()
-            .uri("/api/getProject?name=${project.name}&owner=${project.owner}")
+            .uri("/api/projects/get?name=${project.name}&owner=${project.owner}")
             .accept(MediaType.APPLICATION_JSON)
             .exchange()
             .let { getAssertion(it) }

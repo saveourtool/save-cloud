@@ -34,7 +34,7 @@ import reactor.kotlin.core.publisher.switchIfEmpty
  * Controller for working with projects.
  */
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/projects")
 class ProjectController(private val projectService: ProjectService,
                         private val gitService: GitService,
                         private val projectPermissionEvaluator: ProjectPermissionEvaluator,
@@ -44,7 +44,7 @@ class ProjectController(private val projectService: ProjectService,
      *
      * @return a list of projects
      */
-    @GetMapping("/projects/all")
+    @GetMapping("/all")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     fun getProjects() = projectService.getProjects()
 
@@ -54,7 +54,7 @@ class ProjectController(private val projectService: ProjectService,
      *
      * @return flux of projects
      */
-    @GetMapping("/projects")
+    @GetMapping("/")
     fun getProjects(authentication: Authentication): Flux<Project> = projectService.getProjects()
         .filter { projectPermissionEvaluator.hasPermission(authentication, it, "read") }
 
@@ -63,21 +63,22 @@ class ProjectController(private val projectService: ProjectService,
      *
      * @return a list of projects
      */
-    @GetMapping("/projects/not-deleted")
-    fun getNotDeletedProjects() = projectService.getNotDeletedProjects()
+    @GetMapping("/not-deleted")
+    fun getNotDeletedProjects(authentication: Authentication) = projectService.getNotDeletedProjects()
+        .filter { projectPermissionEvaluator.hasPermission(authentication, it, "read") }
 
     /**
      * 200 - if user can access the project
      * 403 - if project is public, but user can't access it
      * 404 - if project is not found or private and user can't access it
+     * FixMe: requires 'write' permission, because now we rely on this endpoint to load `ProjectView`
      *
      * @param name name of project
      * @param owner owner of project
      * @return project by name and owner
      */
-    @GetMapping("/getProject")
+    @GetMapping("/get")
     @PreAuthorize("hasRole('VIEWER')")
-    @PostAuthorize("@projectPermissionEvaluator.hasPermission(authentication, returnObject, 'read')")
     fun getProjectByNameAndOwner(@RequestParam name: String,
                                  @RequestParam owner: String,
                                  authentication: Authentication,
@@ -85,9 +86,18 @@ class ProjectController(private val projectService: ProjectService,
         return Mono.fromCallable {
             projectService.findByNameAndOwner(name, owner)
         }
-            .map { it!! /* if value is null, then Mono is empty and this lambda won't be called */ }
-            .filter {
-                it.public || projectPermissionEvaluator.hasPermission(authentication, it, "read")
+            .map {
+                // if value is null, then Mono is empty and this lambda won't be called
+                it!! to projectPermissionEvaluator.hasPermission(authentication, it, "write")
+            }
+            .filter { (project, hasWriteAccess) -> project.public || hasWriteAccess }
+            .map { (project, hasWriteAccess) ->
+                if (hasWriteAccess) {
+                    project
+                } else {
+                    // project is public, but current user lacks permissions
+                    throw ResponseStatusException(HttpStatus.FORBIDDEN)
+                }
             }
             .switchIfEmpty {
                 // if project either is not found or shouldn't be visible for current user
@@ -99,19 +109,26 @@ class ProjectController(private val projectService: ProjectService,
      * @param project
      * @return gitDto
      */
-    @PostMapping("/getGit")
-    fun getRepositoryDtoByProject(@RequestBody project: Project): ResponseEntity<GitDto> =
-            gitService.getRepositoryDtoByProject(project)?.let {
-                ResponseEntity.ok(it)
-            } ?: ResponseEntity.notFound().build()
+    @PostMapping("/git")
+    @PreAuthorize("@projectPermissionEvaluator.hasPermission(authentication, project, 'write')")
+    fun getRepositoryDtoByProject(@RequestBody project: Project): Mono<GitDto> =
+        Mono.fromCallable {
+            gitService.getRepositoryDtoByProject(project)
+        }
+            .mapNotNull { it!! }
+            .switchIfEmpty {
+                Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
+            }
 
     /**
      * @param newProjectDto newProjectDto
      * @param authentication an [Authentication] representing an authenticated request
      * @return response
      */
-    @PostMapping("/saveProject")
+    // todo: change it to use userId from Authentication
+    @PostMapping("/save")
     fun saveProject(@RequestBody newProjectDto: NewProjectDto, authentication: Authentication): ResponseEntity<String> {
+//        val userId = (authentication.details as Map<String, Any>)["id"] as Long
         val (projectId, projectStatus) = projectService.saveProject(
             newProjectDto.project,
             authentication.username()
@@ -132,7 +149,7 @@ class ProjectController(private val projectService: ProjectService,
      * @param project
      * @return response
      */
-    @PostMapping("/updateProject")
+    @PostMapping("/update")
     @PreAuthorize("@projectPermissionEvaluator.hasPermission(authentication, project, 'write')")
     fun updateProject(@RequestBody project: Project): ResponseEntity<String> {
         val (_, projectStatus) = projectService.saveProject(project, null)
