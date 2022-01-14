@@ -20,8 +20,8 @@ import org.cqfn.save.preprocessor.TextResponse
 import org.cqfn.save.preprocessor.config.ConfigProperties
 import org.cqfn.save.preprocessor.config.TestSuitesRepo
 import org.cqfn.save.preprocessor.service.TestDiscoveringService
-import org.cqfn.save.preprocessor.utils.decodeFromPropertiesFile
-import org.cqfn.save.preprocessor.utils.toHash
+import org.cqfn.save.preprocessor.utils.*
+import org.cqfn.save.preprocessor.utils.generateDirectory
 import org.cqfn.save.testsuite.TestSuiteDto
 import org.cqfn.save.testsuite.TestSuiteType
 import org.cqfn.save.utils.moveFileWithAttributes
@@ -32,8 +32,6 @@ import org.eclipse.jgit.api.errors.GitAPIException
 import org.eclipse.jgit.api.errors.InvalidRemoteException
 import org.eclipse.jgit.api.errors.RefNotFoundException
 import org.eclipse.jgit.api.errors.TransportException
-import org.eclipse.jgit.transport.CredentialsProvider
-import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
 import org.slf4j.LoggerFactory
 import org.springframework.core.io.ClassPathResource
 import org.springframework.http.HttpStatus
@@ -42,7 +40,6 @@ import org.springframework.http.ReactiveHttpOutputMessage
 import org.springframework.http.ResponseEntity
 import org.springframework.http.client.MultipartBodyBuilder
 import org.springframework.http.codec.multipart.FilePart
-import org.springframework.util.FileSystemUtils
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestParam
@@ -65,14 +62,12 @@ import reactor.util.function.Tuple2
 
 import java.io.File
 import java.io.FileOutputStream
-import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.nio.file.StandardCopyOption
 import java.time.Duration
 
 import kotlin.io.path.ExperimentalPathApi
-import kotlin.io.path.createDirectories
 
 typealias Status = Mono<ResponseEntity<HttpStatus>>
 
@@ -231,7 +226,7 @@ class DownloadProjectController(
             Flux.fromIterable(readStandardTestSuitesFile(configProperties.reposFileName)).flatMap { testSuiteRepoInfo ->
                 val testSuiteUrl = testSuiteRepoInfo.gitUrl
                 log.info("Starting clone repository url=$testSuiteUrl for standard test suites")
-                val tmpDir = generateDirectory(listOf(testSuiteUrl))
+                val tmpDir = generateDirectory(listOf(testSuiteUrl), configProperties.repository)
                 Mono.fromCallable {
                     if (user != null && token != null) {
                         cloneFromGit(GitDto(url = testSuiteUrl, username = user, password = token), tmpDir)
@@ -293,19 +288,6 @@ class DownloadProjectController(
             }
         }
 
-    private fun cloneFromGit(gitDto: GitDto, tmpDir: File): Git? {
-        val userCredentials = if (gitDto.username != null && gitDto.password != null) {
-            UsernamePasswordCredentialsProvider(gitDto.username, gitDto.password)
-        } else {
-            CredentialsProvider.getDefault()
-        }
-        return Git.cloneRepository()
-            .setURI(gitDto.url)
-            .setCredentialsProvider(userCredentials)
-            .setDirectory(tmpDir)
-            .call()
-    }
-
     @Suppress(
         "TYPE_ALIAS",
         "TOO_LONG_FUNCTION",
@@ -314,7 +296,7 @@ class DownloadProjectController(
     )
     private fun downLoadRepository(executionRequest: ExecutionRequest): Mono<Pair<String, String>> {
         val gitDto = executionRequest.gitDto
-        val tmpDir = generateDirectory(listOf(gitDto.url))
+        val tmpDir = generateDirectory(listOf(gitDto.url), configProperties.repository)
         return Mono.fromCallable {
             cloneFromGit(gitDto, tmpDir)?.use { git ->
                 val branchOrCommit = gitDto.branch ?: gitDto.hash
@@ -355,7 +337,7 @@ class DownloadProjectController(
         executionRequestForStandardSuites: ExecutionRequestForStandardSuites,
         files: List<File>,
     ): Mono<StatusResponse> {
-        val tmpDir = generateDirectory(calculateTmpNameForFiles(files))
+        val tmpDir = generateDirectory(calculateTmpNameForFiles(files), configProperties.repository)
         files.forEach {
             log.debug("Move $it into $tmpDir")
             moveFileWithAttributes(it, tmpDir)
@@ -388,33 +370,6 @@ class DownloadProjectController(
                     }
                 )
             }
-    }
-
-    /**
-     * Create a temporary directory with name based on [seeds]
-     *
-     * @param seeds a list of strings for directory name creation
-     * @return a [File] representing the created temporary directory
-     */
-    @Suppress("TooGenericExceptionCaught")
-    internal fun generateDirectory(seeds: List<String>): File {
-        val tmpDir = getTmpDirName(seeds)
-        if (tmpDir.exists()) {
-            try {
-                if (FileSystemUtils.deleteRecursively(tmpDir.toPath())) {
-                    log.info("For $seeds: dir $tmpDir was deleted")
-                }
-            } catch (e: IOException) {
-                log.error("Couldn't properly delete $tmpDir", e)
-            }
-        }
-        try {
-            tmpDir.toPath().createDirectories()
-            log.info("For $seeds: dir $tmpDir was created")
-        } catch (e: Exception) {
-            log.error("Couldn't create directories for $tmpDir", e)
-        }
-        return tmpDir
     }
 
     /**
@@ -468,14 +423,12 @@ class DownloadProjectController(
     ) = if (executionType == ExecutionType.GIT) {
         getResourceLocationForGit(location, testRootPath)
     } else {
-        getTmpDirName(calculateTmpNameForFiles(files))
+        getTmpDirName(calculateTmpNameForFiles(files), "${configProperties.repository}")
     }
 
     private fun getResourceLocationForGit(location: String, testRootPath: String) = File(configProperties.repository)
         .resolve(location)
         .resolve(testRootPath)
-
-    private fun getTmpDirName(seeds: List<String>) = File("${configProperties.repository}/${seeds.hashCode()}")
 
     private fun calculateTmpNameForFiles(files: List<File>) = files.map { it.toHash() }.sorted()
 

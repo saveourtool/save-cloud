@@ -69,3 +69,11 @@ configureVersioning()
 createDiktatTask()
 createDetektTask()
 installGitHooks()
+
+allprojects {
+    tasks.withType<org.cqfn.diktat.plugin.gradle.DiktatJavaExecTaskBase>().configureEach {
+        javaLauncher.set(project.extensions.getByType<JavaToolchainService>().launcherFor {
+            languageVersion.set(JavaLanguageVersion.of(11))
+        })
+    }
+}
