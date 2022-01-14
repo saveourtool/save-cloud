@@ -6,17 +6,12 @@
 
 package org.cqfn.save.frontend.components
 
-import csstype.Background
-import csstype.Width
-import csstype.rem
-import kotlinext.js.jsObject
 import org.cqfn.save.frontend.components.modal.logoutModal
 import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
 import org.cqfn.save.info.UserInfo
 
 import csstype.Width
 import csstype.rem
-import kotlinext.js.jsObject
 import react.*
 import react.dom.*
 import react.fc

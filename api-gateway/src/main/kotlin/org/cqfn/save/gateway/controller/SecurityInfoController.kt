@@ -37,5 +37,7 @@ class SecurityInfoController(
      * @return user information
      */
     @GetMapping("/user")
-    fun currentUserName(principal: Principal?): UserInfo? = if (principal == null) null else UserInfo(principal.userName())
+    fun currentUserName(principal: Principal?): UserInfo? = principal?.let {
+        UserInfo(principal.userName())
+    }
 }
