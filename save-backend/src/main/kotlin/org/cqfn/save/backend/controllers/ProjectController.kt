@@ -4,18 +4,14 @@ import org.cqfn.save.backend.security.ProjectPermissionEvaluator
 import org.cqfn.save.backend.service.GitService
 import org.cqfn.save.backend.service.ProjectService
 import org.cqfn.save.backend.utils.AuthenticationDetails
-import org.cqfn.save.backend.utils.username
 import org.cqfn.save.domain.ProjectSaveStatus
 import org.cqfn.save.entities.GitDto
 import org.cqfn.save.entities.NewProjectDto
 import org.cqfn.save.entities.Project
 import org.slf4j.LoggerFactory
 
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.security.access.prepost.PostAuthorize
-import org.springframework.security.access.prepost.PostFilter
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.GetMapping
@@ -24,8 +20,6 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
-import org.springframework.web.reactive.function.server.EntityResponse
-import org.springframework.web.reactive.function.server.ServerResponse
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -62,6 +56,7 @@ class ProjectController(private val projectService: ProjectService,
     /**
      * Get all projects without status.
      *
+     * @param authentication
      * @return a list of projects
      */
     @GetMapping("/not-deleted")
@@ -76,35 +71,35 @@ class ProjectController(private val projectService: ProjectService,
      *
      * @param name name of project
      * @param owner owner of project
+     * @param authentication
      * @return project by name and owner
+     * @throws ResponseStatusException
      */
     @GetMapping("/get")
     @PreAuthorize("hasRole('VIEWER')")
     fun getProjectByNameAndOwner(@RequestParam name: String,
                                  @RequestParam owner: String,
                                  authentication: Authentication,
-    ): Mono<Project> {
-        return Mono.fromCallable {
-            projectService.findByNameAndOwner(name, owner)
-        }
-            .map {
-                // if value is null, then Mono is empty and this lambda won't be called
-                it!! to projectPermissionEvaluator.hasPermission(authentication, it, "write")
-            }
-            .filter { (project, hasWriteAccess) -> project.public || hasWriteAccess }
-            .map { (project, hasWriteAccess) ->
-                if (hasWriteAccess) {
-                    project
-                } else {
-                    // project is public, but current user lacks permissions
-                    throw ResponseStatusException(HttpStatus.FORBIDDEN)
-                }
-            }
-            .switchIfEmpty {
-                // if project either is not found or shouldn't be visible for current user
-                Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
-            }
+    ): Mono<Project> = Mono.fromCallable {
+        projectService.findByNameAndOwner(name, owner)
     }
+        .map {
+            // if value is null, then Mono is empty and this lambda won't be called
+            it!! to projectPermissionEvaluator.hasPermission(authentication, it, "write")
+        }
+        .filter { (project, hasWriteAccess) -> project.public || hasWriteAccess }
+        .map { (project, hasWriteAccess) ->
+            if (hasWriteAccess) {
+                project
+            } else {
+                // project is public, but current user lacks permissions
+                throw ResponseStatusException(HttpStatus.FORBIDDEN)
+            }
+        }
+        .switchIfEmpty {
+            // if project either is not found or shouldn't be visible for current user
+            Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
+        }
 
     /**
      * @param project
@@ -113,13 +108,13 @@ class ProjectController(private val projectService: ProjectService,
     @PostMapping("/git")
     @PreAuthorize("@projectPermissionEvaluator.hasPermission(authentication, #project, 'write')")
     fun getRepositoryDtoByProject(@RequestBody project: Project): Mono<GitDto> =
-        Mono.fromCallable {
-            gitService.getRepositoryDtoByProject(project)
-        }
-            .mapNotNull { it!! }
-            .switchIfEmpty {
-                Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
+            Mono.fromCallable {
+                gitService.getRepositoryDtoByProject(project)
             }
+                .mapNotNull { it!! }
+                .switchIfEmpty {
+                    Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
+                }
 
     /**
      * @param newProjectDto newProjectDto

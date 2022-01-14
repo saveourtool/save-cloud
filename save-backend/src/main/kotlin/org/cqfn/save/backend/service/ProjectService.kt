@@ -5,15 +5,10 @@ import org.cqfn.save.backend.repository.UserRepository
 import org.cqfn.save.domain.ProjectSaveStatus
 import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.ProjectStatus
-import org.cqfn.save.entities.User
 import org.springframework.data.domain.Example
 import org.springframework.data.domain.ExampleMatcher
-import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
-import org.springframework.transaction.annotation.Transactional
-import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
-import reactor.core.publisher.Mono
 
 /**
  * Service for project
@@ -69,10 +64,13 @@ class ProjectService(private val projectRepository: ProjectRepository,
         return projects
     }
 
-    fun hasWriteAccess(username: String, project: Project): Boolean {
-        return userRepository.findByName(username).map { user ->
-            project.userId == user.id!! ||
-                    user.id!! in project.adminIdList()
-        }.orElse(false)
-    }
+    /**
+     * @param username
+     * @param project
+     * @return
+     */
+    fun hasWriteAccess(username: String, project: Project): Boolean = userRepository.findByName(username).map { user ->
+        project.userId == user.id!! ||
+                user.id!! in project.adminIdList()
+    }.orElse(false)
 }

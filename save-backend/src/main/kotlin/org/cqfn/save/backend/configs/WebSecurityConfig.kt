@@ -27,7 +27,6 @@ import org.springframework.security.web.server.authentication.AuthenticationWebF
 import org.springframework.security.web.server.authentication.HttpStatusServerEntryPoint
 import javax.annotation.PostConstruct
 
-
 @EnableWebFluxSecurity
 @EnableReactiveMethodSecurity
 @Profile("secure")

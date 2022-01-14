@@ -13,7 +13,6 @@ import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.ProjectStatus
 
 import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
@@ -22,8 +21,6 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.boot.test.mock.mockito.MockBeans
 import org.springframework.http.MediaType
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
-import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.security.test.context.support.WithUserDetails
 import org.springframework.test.context.ActiveProfiles
@@ -80,12 +77,12 @@ class ProjectControllerTest {
 
         getProjectAndAssert("huaweiName", "Huawei") {
             expectStatus()
-            .isOk
-            .expectBody<Project>()
-            .consumeWith {
-                requireNotNull(it.responseBody)
-                Assertions.assertEquals(it.responseBody!!.url, "huawei.com")
-            }
+                .isOk
+                .expectBody<Project>()
+                .consumeWith {
+                    requireNotNull(it.responseBody)
+                    Assertions.assertEquals(it.responseBody!!.url, "huawei.com")
+                }
         }
     }
 
@@ -171,11 +168,11 @@ class ProjectControllerTest {
                                     owner: String,
                                     assertion: WebTestClient.ResponseSpec.() -> Unit
     ) = webClient
-            .get()
-            .uri("/api/projects/get?name=$name&owner=$owner")
-            .accept(MediaType.APPLICATION_JSON)
-            .exchange()
-            .let { assertion(it) }
+        .get()
+        .uri("/api/projects/get?name=$name&owner=$owner")
+        .accept(MediaType.APPLICATION_JSON)
+        .exchange()
+        .let { assertion(it) }
 
     private fun saveProjectAndAssert(newProject: NewProjectDto,
                                      saveAssertion: WebTestClient.ResponseSpec.() -> Unit,
