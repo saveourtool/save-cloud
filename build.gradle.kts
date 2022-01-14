@@ -6,7 +6,6 @@ import org.cqfn.save.buildutils.createDiktatTask
 import org.cqfn.save.buildutils.createStackDeployTask
 import org.cqfn.save.buildutils.getDatabaseCredentials
 import org.cqfn.save.buildutils.installGitHooks
-import org.gradle.api.tasks.JavaExec
 
 plugins {
     alias(libs.plugins.versions.plugin)

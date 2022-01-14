@@ -2,7 +2,11 @@
 
 package org.cqfn.save.preprocessor.utils
 
+import org.slf4j.LoggerFactory
+import org.springframework.util.FileSystemUtils
+
 import java.io.File
+import java.io.IOException
 import java.math.BigInteger
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -10,15 +14,12 @@ import java.security.DigestInputStream
 import java.security.MessageDigest
 import java.util.Properties
 
+import kotlin.io.path.createDirectories
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.properties.decodeFromMap
-import org.slf4j.LoggerFactory
-import org.springframework.util.FileSystemUtils
-import java.io.IOException
-import kotlin.io.path.createDirectories
 
 private const val RADIX = 16
-private val log = LoggerFactory.getLogger(object{}.javaClass.enclosingClass::class.java)
+private val log = LoggerFactory.getLogger(object {}.javaClass.enclosingClass::class.java)
 
 /**
  * @return hash of file content
@@ -76,5 +77,9 @@ internal fun generateDirectory(seeds: List<String>, repository: String): File {
     return tmpDir
 }
 
+/**
+ * @param seeds
+ * @param repository
+ * @return the file entity with a hashcode created from the list of seeds
+ */
 internal fun getTmpDirName(seeds: List<String>, repository: String) = File("$repository/${seeds.hashCode()}")
-

@@ -8,6 +8,8 @@ import org.cqfn.save.domain.TestResultStatus
 import org.cqfn.save.frontend.components.Footer
 import org.cqfn.save.frontend.components.basic.scrollToTopButton
 import org.cqfn.save.frontend.components.topBar
+import org.cqfn.save.frontend.components.views.*
+import org.cqfn.save.frontend.externals.fontawesome.*
 import org.cqfn.save.frontend.externals.modal.ReactModal
 import org.cqfn.save.frontend.utils.decodeFromJsonString
 import org.cqfn.save.frontend.utils.get
@@ -29,8 +31,6 @@ import kotlinx.browser.window
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.html.id
-import org.cqfn.save.frontend.components.views.*
-import org.cqfn.save.frontend.externals.fontawesome.*
 
 /**
  * Top-level state of the whole App

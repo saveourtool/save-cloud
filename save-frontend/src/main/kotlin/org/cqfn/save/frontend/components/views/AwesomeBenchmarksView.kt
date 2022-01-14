@@ -2,31 +2,39 @@
  * A view with project creation details
  */
 
-@file:Suppress("WildcardImport", "FILE_WILDCARD_IMPORTS")
+@file:Suppress("MAGIC_NUMBER", "WildcardImport", "FILE_WILDCARD_IMPORTS")
 
 package org.cqfn.save.frontend.components.views
 
+import org.cqfn.save.entities.benchmarks.BenchmarkCategoryEnum
+import org.cqfn.save.frontend.externals.fontawesome.*
+import org.cqfn.save.frontend.utils.*
+import org.cqfn.save.utils.AwesomeBenchmarks
 
 import csstype.Height
 import csstype.Width
 import csstype.rem
 import org.w3c.fetch.Headers
+import react.*
 import react.dom.*
 
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.html.ButtonType
-import org.cqfn.save.entities.benchmarks.BenchmarkCategoryEnum
-import org.cqfn.save.frontend.externals.fontawesome.*
-import org.cqfn.save.frontend.utils.*
-import org.cqfn.save.utils.AwesomeBenchmarks
-import react.*
 
 /**
  * [RState] of project creation view component
+ *
  */
 external interface AwesomeBenchmarksState : State {
+    /**
+     * list of benchmarks from DB
+     */
     var benchmarks: List<AwesomeBenchmarks>
+
+    /**
+     * list of unique languages from benchmarks
+     */
     var languages: List<String>
 }
 
@@ -38,7 +46,6 @@ external interface AwesomeBenchmarksState : State {
 @JsExport
 @OptIn(ExperimentalJsExport::class)
 class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksState>(true) {
-
     init {
         state.benchmarks = emptyList()
         getBenchmarks()
@@ -50,7 +57,6 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
             div("page-header align-items-start min-vh-100") {
                 div("row justify-content-center") {
                     div("col-lg-6") {
-
                         div("row mb-2") {
                             div("col-md-6") {
                                 div("card flex-md-row mb-1 box-shadow") {
@@ -82,7 +88,6 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                             }
                             div("col-md-6") {
                                 div("card flex-md-row mb-1 box-shadow") {
-
                                     attrs["style"] = kotlinext.js.jsObject<CSSProperties> {
                                         height = 14.rem
                                     }.unsafeCast<Height>()
@@ -101,7 +106,6 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                         a(href = "https://github.com/analysis-dev/save") {
                                             +" SAVE-cli"
                                         }
-
                                     }
                                     img(classes = "card-img-right flex-auto d-none d-md-block") {
                                         attrs["data-src"] = "holder.js/200x250?theme=thumb"
@@ -114,9 +118,6 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                 }
                             }
                         }
-
-
-
                         span("mask opacity-6") {
                             form(classes = "d-none d-inline-block form-inline w-100 navbar-search") {
                                 div("input-group") {
@@ -146,7 +147,7 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                         BenchmarkCategoryEnum.values().forEachIndexed { i, value ->
                                             li("nav-item") {
                                                 val classVal = if (i == 0) " active font-weight-bold" else ""
-                                                p("nav-link $classVal text-gray-800") { +"$value" }
+                                                p("nav-link $classVal text-gray-800") { +value.name }
                                             }
                                         }
                                     }
@@ -159,11 +160,11 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                             div("media text-muted ${if (i != 0) "pt-3" else ""}") {
                                                 img(classes = "rounded mt-1") {
                                                     attrs["data-src"] =
-                                                        "holder.js/32x32?theme=thumb&amp;bg=007bff&amp;fg=007bff&amp;size=1"
+                                                            "holder.js/32x32?theme=thumb&amp;bg=007bff&amp;fg=007bff&amp;size=1"
                                                     attrs["src"] = "img/undraw_code_inspection_bdl7.svg"
-                                                        attrs["data-holder-rendered"] = "true"
+                                                    attrs["data-holder-rendered"] = "true"
                                                     attrs["style"] = kotlinext.js.jsObject<CSSProperties> {
-                                                        width = 4.2.rem;
+                                                        width = 4.2.rem
                                                     }.unsafeCast<Width>()
                                                 }
 
@@ -316,7 +317,7 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
         }
 
         GlobalScope.launch {
-            val response = get("$apiUrl/awesome-benchmarks", headers).decodeFromJsonString<List<AwesomeBenchmarks>>()
+            val response: List<AwesomeBenchmarks> = get("$apiUrl/awesome-benchmarks", headers).decodeFromJsonString()
 
             setState {
                 benchmarks = response

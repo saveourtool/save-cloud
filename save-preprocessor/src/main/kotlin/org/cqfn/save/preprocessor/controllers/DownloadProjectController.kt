@@ -20,20 +20,18 @@ import org.cqfn.save.preprocessor.TextResponse
 import org.cqfn.save.preprocessor.config.ConfigProperties
 import org.cqfn.save.preprocessor.config.TestSuitesRepo
 import org.cqfn.save.preprocessor.service.TestDiscoveringService
+import org.cqfn.save.preprocessor.utils.*
+import org.cqfn.save.preprocessor.utils.generateDirectory
 import org.cqfn.save.testsuite.TestSuiteDto
 import org.cqfn.save.testsuite.TestSuiteType
 import org.cqfn.save.utils.moveFileWithAttributes
 
 import okio.FileSystem
-import org.cqfn.save.preprocessor.utils.*
-import org.cqfn.save.preprocessor.utils.generateDirectory
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.api.errors.GitAPIException
 import org.eclipse.jgit.api.errors.InvalidRemoteException
 import org.eclipse.jgit.api.errors.RefNotFoundException
 import org.eclipse.jgit.api.errors.TransportException
-import org.eclipse.jgit.transport.CredentialsProvider
-import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
 import org.slf4j.LoggerFactory
 import org.springframework.core.io.ClassPathResource
 import org.springframework.http.HttpStatus
@@ -42,7 +40,6 @@ import org.springframework.http.ReactiveHttpOutputMessage
 import org.springframework.http.ResponseEntity
 import org.springframework.http.client.MultipartBodyBuilder
 import org.springframework.http.codec.multipart.FilePart
-import org.springframework.util.FileSystemUtils
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestParam
@@ -65,14 +62,12 @@ import reactor.util.function.Tuple2
 
 import java.io.File
 import java.io.FileOutputStream
-import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.nio.file.StandardCopyOption
 import java.time.Duration
 
 import kotlin.io.path.ExperimentalPathApi
-import kotlin.io.path.createDirectories
 
 typealias Status = Mono<ResponseEntity<HttpStatus>>
 
@@ -377,8 +372,6 @@ class DownloadProjectController(
             }
     }
 
-
-
     /**
      * Note: `testSuiteDtos != null` only if execution type is STANDARD
      *
@@ -436,7 +429,6 @@ class DownloadProjectController(
     private fun getResourceLocationForGit(location: String, testRootPath: String) = File(configProperties.repository)
         .resolve(location)
         .resolve(testRootPath)
-
 
     private fun calculateTmpNameForFiles(files: List<File>) = files.map { it.toHash() }.sorted()
 
