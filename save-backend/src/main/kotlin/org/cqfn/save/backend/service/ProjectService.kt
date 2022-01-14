@@ -63,14 +63,4 @@ class ProjectService(private val projectRepository: ProjectRepository,
         }
         return projects
     }
-
-    /**
-     * @param username
-     * @param project
-     * @return
-     */
-    fun hasWriteAccess(username: String, project: Project): Boolean = userRepository.findByName(username).map { user ->
-        project.userId == user.id!! ||
-                user.id!! in project.adminIdList()
-    }.orElse(false)
 }

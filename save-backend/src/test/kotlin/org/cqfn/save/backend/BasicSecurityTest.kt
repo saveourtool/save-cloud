@@ -18,6 +18,7 @@ import org.cqfn.save.backend.service.UserDetailsService
 import org.cqfn.save.backend.utils.ConvertingAuthenticationManager
 import org.cqfn.save.entities.User
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.mockito.kotlin.whenever
@@ -58,6 +59,7 @@ import java.util.Optional
     MockBean(StandardSuitesUpdateScheduler::class),
 )
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+@Disabled("This test shouldn't rely on a particular controller, it should be substituted with unit tests for security-related components.")
 class BasicSecurityTest {
     @Autowired
     private lateinit var webTestClient: WebTestClient

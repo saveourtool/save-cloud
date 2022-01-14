@@ -77,6 +77,7 @@ class ProjectController(private val projectService: ProjectService,
      */
     @GetMapping("/get")
     @PreAuthorize("hasRole('VIEWER')")
+    @Suppress("UnsafeCallOnNullableType")
     fun getProjectByNameAndOwner(@RequestParam name: String,
                                  @RequestParam owner: String,
                                  authentication: Authentication,
@@ -107,6 +108,7 @@ class ProjectController(private val projectService: ProjectService,
      */
     @PostMapping("/git")
     @PreAuthorize("@projectPermissionEvaluator.hasPermission(authentication, #project, 'write')")
+    @Suppress("UnsafeCallOnNullableType")
     fun getRepositoryDtoByProject(@RequestBody project: Project): Mono<GitDto> =
             Mono.fromCallable {
                 gitService.getRepositoryDtoByProject(project)

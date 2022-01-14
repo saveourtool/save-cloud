@@ -12,6 +12,7 @@ import org.cqfn.save.testsuite.TestSuiteType
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import okhttp3.mockwebserver.QueueDispatcher
+import org.cqfn.save.backend.controllers.ProjectController
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -43,6 +44,7 @@ import java.util.Date
 @ExtendWith(MySqlExtension::class)
 @MockBeans(
     MockBean(StandardSuitesUpdateScheduler::class),
+    MockBean(ProjectController::class),
 )
 class TestSuitesControllerTest {
     @Autowired
