@@ -74,4 +74,6 @@ jobs:
           path: 'save-frontend/build/libs/save-frontend-*-distribution.jar'
           retention-days: 1
       - name: Code coverage report
-        run: bash <(curl -s https://codecov.io/bash)
+        uses: codecov/codecov-action@v2
+        with:
+          fail_ci_if_error: false
