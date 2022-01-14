@@ -12,7 +12,6 @@ import org.cqfn.save.info.UserInfo
 
 import csstype.Width
 import csstype.rem
-import kotlinext.js.jsObject
 import react.*
 import react.dom.*
 import react.fc
