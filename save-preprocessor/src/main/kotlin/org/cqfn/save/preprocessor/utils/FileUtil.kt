@@ -2,7 +2,11 @@
 
 package org.cqfn.save.preprocessor.utils
 
+import org.slf4j.LoggerFactory
+import org.springframework.util.FileSystemUtils
+
 import java.io.File
+import java.io.IOException
 import java.math.BigInteger
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -10,10 +14,12 @@ import java.security.DigestInputStream
 import java.security.MessageDigest
 import java.util.Properties
 
+import kotlin.io.path.createDirectories
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.properties.decodeFromMap
 
 private const val RADIX = 16
+private val log = LoggerFactory.getLogger(object {}.javaClass.enclosingClass::class.java)
 
 /**
  * @return hash of file content
@@ -42,3 +48,38 @@ inline fun <reified T> decodeFromPropertiesFile(file: File): T {
         rawProperties as Map<String, Any>
     )
 }
+
+/**
+ * Create a temporary directory with name based on [seeds]
+ *
+ * @param seeds a list of strings for directory name creation
+ * @param repository name of the repository used for the creation of tmp dir
+ * @return a [File] representing the created temporary directory
+ */
+@Suppress("TooGenericExceptionCaught")
+internal fun generateDirectory(seeds: List<String>, repository: String): File {
+    val tmpDir = getTmpDirName(seeds, repository)
+    if (tmpDir.exists()) {
+        try {
+            if (FileSystemUtils.deleteRecursively(tmpDir.toPath())) {
+                log.info("For $seeds: dir $tmpDir was deleted")
+            }
+        } catch (e: IOException) {
+            log.error("Couldn't properly delete $tmpDir", e)
+        }
+    }
+    try {
+        tmpDir.toPath().createDirectories()
+        log.info("For $seeds: dir $tmpDir was created")
+    } catch (e: Exception) {
+        log.error("Couldn't create directories for $tmpDir", e)
+    }
+    return tmpDir
+}
+
+/**
+ * @param seeds
+ * @param repository
+ * @return the file entity with a hashcode created from the list of seeds
+ */
+internal fun getTmpDirName(seeds: List<String>, repository: String) = File("$repository/${seeds.hashCode()}")
