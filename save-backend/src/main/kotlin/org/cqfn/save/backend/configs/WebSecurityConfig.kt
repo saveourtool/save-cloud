@@ -35,7 +35,7 @@ class WebSecurityConfig(
             .pathMatchers("/", "/api/projects/not-deleted", "/api/awesome-benchmarks", "/internal/**")
             .permitAll()
             // resources for frontend
-            .pathMatchers("/*.html", "/*.js*", "img/**")
+            .pathMatchers("/*.html", "/*.js*", "/img/**")
             .permitAll()
     }
         .and().run {

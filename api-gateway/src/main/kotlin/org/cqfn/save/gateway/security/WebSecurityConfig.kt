@@ -61,7 +61,7 @@ class WebSecurityConfig(
                 }
             }
             // resources for frontend
-            .pathMatchers("/*.html", "/*.js*", "img/**")
+            .pathMatchers("/*.html", "/*.js*", "/img/**")
             .permitAll()
     }
         .and().run {

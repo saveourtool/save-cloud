@@ -2,31 +2,39 @@
  * A view with project creation details
  */
 
-@file:Suppress("WildcardImport", "FILE_WILDCARD_IMPORTS")
+@file:Suppress("MAGIC_NUMBER", "WildcardImport", "FILE_WILDCARD_IMPORTS")
 
 package org.cqfn.save.frontend.components.views
 
+import org.cqfn.save.entities.benchmarks.BenchmarkCategoryEnum
+import org.cqfn.save.frontend.externals.fontawesome.*
+import org.cqfn.save.frontend.utils.*
+import org.cqfn.save.utils.AwesomeBenchmarks
 
 import csstype.Height
 import csstype.Width
 import csstype.rem
 import org.w3c.fetch.Headers
+import react.*
 import react.dom.*
 
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.html.ButtonType
-import org.cqfn.save.entities.benchmarks.BenchmarkCategoryEnum
-import org.cqfn.save.frontend.externals.fontawesome.*
-import org.cqfn.save.frontend.utils.*
-import org.cqfn.save.utils.AwesomeBenchmarks
-import react.*
 
 /**
  * [RState] of project creation view component
+ *
  */
 external interface AwesomeBenchmarksState : State {
+    /**
+     * list of benchmarks from DB
+     */
     var benchmarks: List<AwesomeBenchmarks>
+
+    /**
+     * list of unique languages from benchmarks
+     */
     var languages: List<String>
 }
 
@@ -38,7 +46,6 @@ external interface AwesomeBenchmarksState : State {
 @JsExport
 @OptIn(ExperimentalJsExport::class)
 class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksState>(true) {
-
     init {
         state.benchmarks = emptyList()
         getBenchmarks()
@@ -50,7 +57,6 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
             div("page-header align-items-start min-vh-100") {
                 div("row justify-content-center") {
                     div("col-lg-6") {
-
                         div("row mb-2") {
                             div("col-md-6") {
                                 div("card flex-md-row mb-1 box-shadow") {
@@ -82,7 +88,6 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                             }
                             div("col-md-6") {
                                 div("card flex-md-row mb-1 box-shadow") {
-
                                     attrs["style"] = kotlinext.js.jsObject<CSSProperties> {
                                         height = 14.rem
                                     }.unsafeCast<Height>()
@@ -101,7 +106,6 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                         a(href = "https://github.com/analysis-dev/save") {
                                             +" SAVE-cli"
                                         }
-
                                     }
                                     img(classes = "card-img-right flex-auto d-none d-md-block") {
                                         attrs["data-src"] = "holder.js/200x250?theme=thumb"
@@ -114,9 +118,6 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                 }
                             }
                         }
-
-
-
                         span("mask opacity-6") {
                             form(classes = "d-none d-inline-block form-inline w-100 navbar-search") {
                                 div("input-group") {
@@ -138,7 +139,7 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                         div("container card o-hidden border-0 shadow-lg my-2 card-body p-0") {
                             div("p-5 text-center") {
                                 h1("h3 text-gray-900 mb-5") {
-                                    +"Awesome Benchmarks List"
+                                    +"Awesome Benchmarks Archive"
                                 }
 
                                 div("row") {
@@ -146,7 +147,7 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                         BenchmarkCategoryEnum.values().forEachIndexed { i, value ->
                                             li("nav-item") {
                                                 val classVal = if (i == 0) " active font-weight-bold" else ""
-                                                p("nav-link $classVal text-gray-800") { +"$value" }
+                                                p("nav-link $classVal text-gray-800") { +value.name }
                                             }
                                         }
                                     }
@@ -154,26 +155,26 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
 
                                 div("row mt-3") {
                                     div("col-lg-8") {
+                                        // https://devicon.dev
                                         state.benchmarks.forEachIndexed { i, benchmark ->
                                             div("media text-muted ${if (i != 0) "pt-3" else ""}") {
-                                                img(classes = "mr-2 rounded") {
+                                                img(classes = "rounded mt-1") {
                                                     attrs["data-src"] =
-                                                        "holder.js/32x32?theme=thumb&amp;bg=007bff&amp;fg=007bff&amp;size=1"
-                                                    attrs["alt"] = "32x32"
-                                                    attrs["src"] =
-                                                        "data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2232%22%20height%3D%2232%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%20preserveAspectRatio%3D%22none%22%3E%3Cdefs%3E%3Cstyle%20type%3D%22text%2Fcss%22%3E%23holder_17e345bc94a%20text%20%7B%20fill%3A%23007bff%3Bfont-weight%3Abold%3Bfont-family%3AArial%2C%20Helvetica%2C%20Open%20Sans%2C%20sans-serif%2C%20monospace%3Bfont-size%3A2pt%20%7D%20%3C%2Fstyle%3E%3C%2Fdefs%3E%3Cg%20id%3D%22holder_17e345bc94a%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20fill%3D%22%23007bff%22%3E%3C%2Frect%3E%3Cg%3E%3Ctext%20x%3D%2212.5234375%22%20y%3D%2216.8390625%22%3E32x32%3C%2Ftext%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E"
+                                                            "holder.js/32x32?theme=thumb&amp;bg=007bff&amp;fg=007bff&amp;size=1"
+                                                    attrs["src"] = "img/undraw_code_inspection_bdl7.svg"
                                                     attrs["data-holder-rendered"] = "true"
                                                     attrs["style"] = kotlinext.js.jsObject<CSSProperties> {
-                                                        width = 3.2.rem;
+                                                        width = 4.2.rem
                                                     }.unsafeCast<Width>()
                                                 }
+
                                                 p("media-body pb-3 mb-0 small lh-125 border-bottom border-gray text-left") {
                                                     strong("d-block text-gray-dark") { +benchmark.name }
                                                     +benchmark.description
                                                     div("navbar-landing mt-2") {
                                                         // FixMe: links should be limited with the length of the div
                                                         benchmark.tags.split(",").map { " #$it " }.forEach {
-                                                            // FixMe: support proper logic
+                                                            // FixMe: support proper logic here
                                                             a("/#/awesome-benchmarks") {
                                                                 +it
                                                             }
@@ -243,7 +244,9 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                     }
 
                                     +""" that can be used for testing and evaluating dev tools.
-                                            Our focus is mainly on the code analysis, but is not limited by this category, in this list we are trying to collect all benchmarks that could be useful for creators of dev-tools."""
+                                            Our focus is mainly on the code analysis, but is not limited by this category,
+                                             in this list we are trying to collect all benchmarks that could be useful 
+                                             for creators of dev-tools."""
                                 }
 
                                 div("text-center") {
@@ -251,7 +254,7 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                         attrs["style"] = kotlinext.js.jsObject<CSSProperties> {
                                             width = 20.rem
                                         }.unsafeCast<Width>()
-                                        attrs["src"] = "img/undraw_knowledge_re_leit.svg"
+                                        attrs["src"] = "img/undraw_programming_re_kg9v.svg"
                                         attrs["alt"] = "..."
                                     }
                                 }
@@ -314,7 +317,7 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
         }
 
         GlobalScope.launch {
-            val response = get("$apiUrl/awesome-benchmarks", headers).decodeFromJsonString<List<AwesomeBenchmarks>>()
+            val response: List<AwesomeBenchmarks> = get("$apiUrl/awesome-benchmarks", headers).decodeFromJsonString()
 
             setState {
                 benchmarks = response
