@@ -8,26 +8,8 @@ import org.cqfn.save.domain.TestResultStatus
 import org.cqfn.save.frontend.components.Footer
 import org.cqfn.save.frontend.components.basic.scrollToTopButton
 import org.cqfn.save.frontend.components.topBar
-import org.cqfn.save.frontend.components.views.CollectionView
-import org.cqfn.save.frontend.components.views.CreationView
-import org.cqfn.save.frontend.components.views.ExecutionView
-import org.cqfn.save.frontend.components.views.FallbackView
-import org.cqfn.save.frontend.components.views.HistoryView
-import org.cqfn.save.frontend.components.views.ProjectView
-import org.cqfn.save.frontend.components.views.WelcomeView
-import org.cqfn.save.frontend.components.views.testExecutionDetailsView
-import org.cqfn.save.frontend.externals.fontawesome.faAngleUp
-import org.cqfn.save.frontend.externals.fontawesome.faCheck
-import org.cqfn.save.frontend.externals.fontawesome.faCogs
-import org.cqfn.save.frontend.externals.fontawesome.faExclamationTriangle
-import org.cqfn.save.frontend.externals.fontawesome.faFile
-import org.cqfn.save.frontend.externals.fontawesome.faQuestionCircle
-import org.cqfn.save.frontend.externals.fontawesome.faSignOutAlt
-import org.cqfn.save.frontend.externals.fontawesome.faTimesCircle
-import org.cqfn.save.frontend.externals.fontawesome.faUpload
-import org.cqfn.save.frontend.externals.fontawesome.faUser
-import org.cqfn.save.frontend.externals.fontawesome.fas
-import org.cqfn.save.frontend.externals.fontawesome.library
+import org.cqfn.save.frontend.components.views.*
+import org.cqfn.save.frontend.externals.fontawesome.*
 import org.cqfn.save.frontend.externals.modal.ReactModal
 import org.cqfn.save.frontend.utils.decodeFromJsonString
 import org.cqfn.save.frontend.utils.get
@@ -108,6 +90,15 @@ class App : RComponent<PropsWithChildren, AppState>() {
                                     child(WelcomeView::class) {
                                         attrs.userInfo = state.userInfo
                                     }
+                                }
+                            }
+                        }
+
+                        Route {
+                            attrs {
+                                path = "/awesome-benchmarks"
+                                element = buildElement {
+                                    child(AwesomeBenchmarksView::class) {}
                                 }
                             }
                         }
@@ -206,7 +197,7 @@ fun main() {
     kotlinext.js.require("bootstrap")  // this is needed for webpack to include bootstrap
     library.add(
         fas, faUser, faCogs, faSignOutAlt, faAngleUp, faCheck, faExclamationTriangle, faTimesCircle, faQuestionCircle,
-        faUpload, faFile
+        faUpload, faFile, faCheckCircle
     )
     ReactModal.setAppElement(document.getElementById("wrapper") as HTMLElement)  // required for accessibility in react-modal
 
