@@ -42,8 +42,6 @@ class AgentsController(
      *
      * @param execution
      * @param testSuiteDtos test suites, selected by user
-     * @param execCmd execCmd for SAVE-cli for testing in standard mode
-     * @param batchSizeForAnalyzer batchSize for SAVE-cli for testing in standard mode
      * @return OK if everything went fine.
      * @throws ResponseStatusException
      */

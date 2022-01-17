@@ -7,6 +7,7 @@ import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionUpdateDto
 import org.cqfn.save.orchestrator.config.ConfigProperties
 import org.cqfn.save.orchestrator.copyRecursivelyWithAttributes
+import org.cqfn.save.orchestrator.createSyntheticTomlConfig
 import org.cqfn.save.orchestrator.docker.ContainerManager
 import org.cqfn.save.testsuite.TestSuiteDto
 import org.cqfn.save.utils.PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE
@@ -208,23 +209,9 @@ class DockerService(private val configProperties: ConfigProperties) {
         val saveCliExecFlags = if (isStandardMode) {
             val execCmd = execution.execCmd
             val batchSizeForAnalyzer = execution.batchSizeForAnalyzer
+
             // create stub toml config in aim to execute all test suites directories from `testSuitesDir`
-            val exeCmdForTomlConfig = if (execCmd.isNullOrBlank()) "" else "execCmd =  \"$execCmd\""
-            val batchSizeForTomlConfig = if (batchSizeForAnalyzer.isNullOrBlank()) {
-                ""
-            } else {
-                """
-                |[fix]
-                |   batchSize = $batchSizeForAnalyzer
-                |[warn]
-                |   batchSize = $batchSizeForAnalyzer
-                """
-            }
-            val configData = """
-                             |[general]
-                             |$exeCmdForTomlConfig
-                             |$batchSizeForTomlConfig
-                             """.trimMargin()
+            val configData = createSyntheticTomlConfig(execCmd, batchSizeForAnalyzer)
 
             testSuitesDir.resolve("save.toml").apply { createNewFile() }.writeText(configData)
             " $STANDARD_TEST_SUITE_DIR --include-suites \"${testSuitesForDocker.joinToString(",") { it.name }}\""

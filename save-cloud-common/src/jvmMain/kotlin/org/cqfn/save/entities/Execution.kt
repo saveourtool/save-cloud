@@ -1,12 +1,10 @@
 package org.cqfn.save.entities
 
-import org.cqfn.save.domain.Jdk
 import org.cqfn.save.domain.Sdk
 import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionType
 import java.time.LocalDateTime
-import java.time.Month
 import java.time.ZoneOffset
 import javax.persistence.Entity
 import javax.persistence.EnumType

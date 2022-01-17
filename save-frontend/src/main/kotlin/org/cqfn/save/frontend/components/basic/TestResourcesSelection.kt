@@ -14,6 +14,7 @@ import org.cqfn.save.testsuite.TestSuiteDto
 
 import org.w3c.dom.events.Event
 import react.PropsWithChildren
+import react.RBuilder
 import react.dom.*
 import react.fc
 
@@ -51,6 +52,30 @@ external interface TestResourcesProps : PropsWithChildren {
     var standardTestSuites: List<TestSuiteDto>
     var selectedStandardSuites: MutableList<String>
     var selectedLanguageForStandardTests: String?
+}
+
+private fun RBuilder.setAdditionalPropertiesForStandardMode(
+    value: String,
+    placeholder: String,
+    tooltipText: String,
+    onChangeFunc: (Event) -> Unit
+) = div("input-group-prepend") {
+    input(type = InputType.text, name = "itemText") {
+        key = "itemText"
+        attrs["class"] = "form-control"
+        if (tooltipText.isNotBlank()) {
+            attrs["data-toggle"] = "tooltip"
+            attrs["data-placement"] = "right"
+            attrs["title"] = tooltipText
+        }
+        attrs {
+            this.value = value
+            this.placeholder = placeholder
+            onChangeFunction = {
+                onChangeFunc(it)
+            }
+        }
+    }
 }
 
 /**
@@ -212,32 +237,10 @@ fun testResourcesSelection(
                         setSelectedLanguageForStandardTests
                     )) {}
 
-                    div("input-group-prepend") {
-                        input(type = InputType.text, name = "itemText") {
-                            key = "itemText"
-                            attrs.set("class", "form-control")
-                            attrs {
-                                value = props.execCmd
-                                placeholder = "Execution command:"
-                                onChangeFunction = {
-                                    setExecCmd(it)
-                                }
-                            }
-                        }
-                    }
-                    div("input-group-prepend") {
-                        input(type = InputType.text, name = "itemText") {
-                            key = "itemText"
-                            attrs.set("class", "form-control")
-                            attrs {
-                                value = props.batchSizeForAnalyzer
-                                placeholder = "Batch size (one by default)"
-                                onChangeFunction = {
-                                    setBatchSize(it)
-                                }
-                            }
-                        }
-                    }
+                    setAdditionalPropertiesForStandardMode(props.execCmd, "Execution command:", "", setExecCmd)
+                    val toolTipTextForBatchSize = "Batch size controls how many files will be processed at the same time." +
+                            " To know more about batch size, please visit: https://github.com/analysis-dev/save."
+                    setAdditionalPropertiesForStandardMode(props.batchSizeForAnalyzer, "Batch size (default: 1)", toolTipTextForBatchSize, setBatchSize)
 
                     child(checkBoxGrid(props.standardTestSuites, props.selectedLanguageForStandardTests)) {
                         attrs.selectedStandardSuites = props.selectedStandardSuites

@@ -32,7 +32,6 @@ import org.springframework.web.reactive.function.client.toEntity
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import java.lang.StringBuilder
-import java.time.LocalDateTime
 
 /**
  * Controller to save project

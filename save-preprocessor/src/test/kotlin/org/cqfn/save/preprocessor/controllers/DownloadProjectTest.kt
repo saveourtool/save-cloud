@@ -10,7 +10,6 @@ import org.cqfn.save.entities.GitDto
 import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.ProjectStatus
 import org.cqfn.save.entities.TestSuite
-import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionType
 import org.cqfn.save.preprocessor.config.ConfigProperties
 import org.cqfn.save.preprocessor.service.TestDiscoveringService

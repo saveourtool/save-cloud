@@ -1,10 +1,7 @@
 package org.cqfn.save.orchestrator.service
 
-import org.cqfn.save.domain.Sdk
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.Project
-import org.cqfn.save.execution.ExecutionStatus
-import org.cqfn.save.execution.ExecutionType
 import org.cqfn.save.orchestrator.config.Beans
 import org.cqfn.save.orchestrator.config.ConfigProperties
 import org.cqfn.save.orchestrator.controller.AgentsController
@@ -31,8 +28,6 @@ import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.context.TestPropertySource
 import org.springframework.test.context.junit.jupiter.SpringExtension
 
-import java.time.LocalDateTime
-
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.Path
 import kotlin.io.path.createDirectory
@@ -58,11 +53,10 @@ class DockerServiceTest {
     fun `should create a container with save agent and test resources and start it`() {
         // build base image
         val project = Project.stub(null)
-        val testExecution = Execution(project, LocalDateTime.now(), LocalDateTime.now(), ExecutionStatus.PENDING, "1",
-            "foo", 20, ExecutionType.GIT, "0.0.1", 0, 0, 0, 0, Sdk.Default.toString(), null, null, null, null).apply {
+        val testExecution = Execution.stub(project).apply {
             id = 42L
         }
-        testContainerId = dockerService.buildAndCreateContainers(testExecution, null, null, null).single()
+        testContainerId = dockerService.buildAndCreateContainers(testExecution, null).single()
         println("Created container $testContainerId")
 
         // start container and query backend

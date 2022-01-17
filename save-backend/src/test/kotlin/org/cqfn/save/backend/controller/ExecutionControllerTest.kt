@@ -5,7 +5,6 @@ import org.cqfn.save.backend.repository.ExecutionRepository
 import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.scheduling.StandardSuitesUpdateScheduler
 import org.cqfn.save.backend.utils.MySqlExtension
-import org.cqfn.save.domain.Sdk
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.execution.ExecutionInitializationDto
