@@ -29,7 +29,7 @@ import org.cqfn.save.frontend.utils.unsafeMap
 
 import csstype.Background
 import csstype.TextDecoration
-import kotlinext.js.jsObject
+import kotlinext.js.jso
 import org.w3c.fetch.Headers
 import react.*
 import react.dom.*
@@ -242,7 +242,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                         td {
                             spread(cellProps.row.getToggleRowExpandedProps())
 
-                            attrs["style"] = kotlinext.js.jsObject<CSSProperties> {
+                            attrs["style"] = kotlinext.js.jso<CSSProperties> {
                                 textDecoration = "underline grey".unsafeCast<TextDecoration>()
                             }
 
@@ -377,8 +377,8 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                     TestResultStatus.INTERNAL_ERROR, TestResultStatus.TEST_ERROR -> Colors.DARK_RED
                     TestResultStatus.PASSED -> Colors.GREEN
                 }
-                jsObject {
-                    style = jsObject {
+                jso {
+                    style = jso {
                         background = color.value.unsafeCast<Background>()
                     }
                 }

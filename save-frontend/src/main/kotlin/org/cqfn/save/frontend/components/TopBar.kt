@@ -12,7 +12,6 @@ import org.cqfn.save.info.UserInfo
 
 import csstype.Width
 import csstype.rem
-import kotlinext.js.jsObject
 import react.*
 import react.dom.*
 import react.fc
@@ -106,7 +105,7 @@ fun topBar() = fc<TopBarProps> { props ->
         ul("navbar-nav mx-auto") {
             li("nav-item") {
                 a(classes = "nav-link d-flex align-items-center me-2 active") {
-                    attrs["style"] = kotlinext.js.jsObject<CSSProperties> {
+                    attrs["style"] = kotlinext.js.jso<CSSProperties> {
                         width = 12.rem
                     }.unsafeCast<Width>()
                     attrs.href = "#/awesome-benchmarks"
@@ -115,7 +114,7 @@ fun topBar() = fc<TopBarProps> { props ->
             }
             li("nav-item") {
                 a(classes = "nav-link d-flex align-items-center me-2 active") {
-                    attrs["style"] = kotlinext.js.jsObject<CSSProperties> {
+                    attrs["style"] = kotlinext.js.jso<CSSProperties> {
                         width = 8.rem
                     }.unsafeCast<Width>()
                     attrs.href = "https://github.com/analysis-dev/save"
@@ -124,7 +123,7 @@ fun topBar() = fc<TopBarProps> { props ->
             }
             li("nav-item") {
                 a(classes = "nav-link me-2") {
-                    attrs["style"] = kotlinext.js.jsObject<CSSProperties> {
+                    attrs["style"] = kotlinext.js.jso<CSSProperties> {
                         width = 9.rem
                     }.unsafeCast<Width>()
                     attrs.href = "https://github.com/analysis-dev/save-cloud"
@@ -133,7 +132,7 @@ fun topBar() = fc<TopBarProps> { props ->
             }
             li("nav-item") {
                 a(classes = "nav-link me-2") {
-                    attrs["style"] = kotlinext.js.jsObject<CSSProperties> {
+                    attrs["style"] = kotlinext.js.jso<CSSProperties> {
                         width = 8.rem
                     }.unsafeCast<Width>()
                     attrs.href = "#/projects"
@@ -142,7 +141,7 @@ fun topBar() = fc<TopBarProps> { props ->
             }
             li("nav-item") {
                 a(classes = "nav-link me-2") {
-                    attrs["style"] = kotlinext.js.jsObject<CSSProperties> {
+                    attrs["style"] = kotlinext.js.jso<CSSProperties> {
                         width = 6.rem
                     }.unsafeCast<Width>()
                     attrs.href = "https://github.com/analysis-dev/save-cloud"
