@@ -60,7 +60,7 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                         div("row mb-2") {
                             div("col-md-6") {
                                 div("card flex-md-row mb-1 box-shadow") {
-                                    attrs["style"] = kotlinext.js.jsObject<CSSProperties> {
+                                    attrs["style"] = kotlinext.js.jso<CSSProperties> {
                                         height = 14.rem
                                     }.unsafeCast<Height>()
 
@@ -80,7 +80,7 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                         attrs["data-src"] = "holder.js/200x250?theme=thumb"
                                         attrs["src"] = "img/undraw_result_re_uj08.svg"
                                         attrs["data-holder-rendered"] = "true"
-                                        attrs["style"] = kotlinext.js.jsObject<CSSProperties> {
+                                        attrs["style"] = kotlinext.js.jso<CSSProperties> {
                                             width = 12.rem
                                         }.unsafeCast<Width>()
                                     }
@@ -88,7 +88,7 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                             }
                             div("col-md-6") {
                                 div("card flex-md-row mb-1 box-shadow") {
-                                    attrs["style"] = kotlinext.js.jsObject<CSSProperties> {
+                                    attrs["style"] = kotlinext.js.jso<CSSProperties> {
                                         height = 14.rem
                                     }.unsafeCast<Height>()
 
@@ -111,7 +111,7 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                         attrs["data-src"] = "holder.js/200x250?theme=thumb"
                                         attrs["src"] = "img/undraw_happy_news_re_tsbd.svg"
                                         attrs["data-holder-rendered"] = "true"
-                                        attrs["style"] = kotlinext.js.jsObject<CSSProperties> {
+                                        attrs["style"] = kotlinext.js.jso<CSSProperties> {
                                             width = 12.rem
                                         }.unsafeCast<Width>()
                                     }
@@ -163,7 +163,7 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                                             "holder.js/32x32?theme=thumb&amp;bg=007bff&amp;fg=007bff&amp;size=1"
                                                     attrs["src"] = "img/undraw_code_inspection_bdl7.svg"
                                                     attrs["data-holder-rendered"] = "true"
-                                                    attrs["style"] = kotlinext.js.jsObject<CSSProperties> {
+                                                    attrs["style"] = kotlinext.js.jso<CSSProperties> {
                                                         width = 4.2.rem
                                                     }.unsafeCast<Width>()
                                                 }
@@ -251,7 +251,7 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
 
                                 div("text-center") {
                                     img(classes = "img-fluid px-3 px-sm-4 mt-3 mb-4") {
-                                        attrs["style"] = kotlinext.js.jsObject<CSSProperties> {
+                                        attrs["style"] = kotlinext.js.jso<CSSProperties> {
                                             width = 20.rem
                                         }.unsafeCast<Width>()
                                         attrs["src"] = "img/undraw_programming_re_kg9v.svg"
