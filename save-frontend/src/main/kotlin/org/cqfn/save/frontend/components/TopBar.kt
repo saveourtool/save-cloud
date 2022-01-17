@@ -10,6 +10,8 @@ import org.cqfn.save.frontend.components.modal.logoutModal
 import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
 import org.cqfn.save.info.UserInfo
 
+import csstype.Width
+import csstype.rem
 import react.*
 import react.dom.*
 import react.fc
@@ -103,25 +105,45 @@ fun topBar() = fc<TopBarProps> { props ->
         ul("navbar-nav mx-auto") {
             li("nav-item") {
                 a(classes = "nav-link d-flex align-items-center me-2 active") {
-                    attrs["aria-current"] = "Unified SAVE Format"
+                    attrs["style"] = kotlinext.js.jsObject<CSSProperties> {
+                        width = 12.rem
+                    }.unsafeCast<Width>()
+                    attrs.href = "#/awesome-benchmarks"
+                    +"Awesome Benchmarks"
+                }
+            }
+            li("nav-item") {
+                a(classes = "nav-link d-flex align-items-center me-2 active") {
+                    attrs["style"] = kotlinext.js.jsObject<CSSProperties> {
+                        width = 8.rem
+                    }.unsafeCast<Width>()
                     attrs.href = "https://github.com/analysis-dev/save"
-                    +"Spec"
+                    +"SAVE format"
                 }
             }
             li("nav-item") {
                 a(classes = "nav-link me-2") {
+                    attrs["style"] = kotlinext.js.jsObject<CSSProperties> {
+                        width = 9.rem
+                    }.unsafeCast<Width>()
                     attrs.href = "https://github.com/analysis-dev/save-cloud"
-                    +"GitHub"
+                    +"SAVE on GitHub"
                 }
             }
             li("nav-item") {
                 a(classes = "nav-link me-2") {
+                    attrs["style"] = kotlinext.js.jsObject<CSSProperties> {
+                        width = 8.rem
+                    }.unsafeCast<Width>()
                     attrs.href = "#/projects"
                     +"Leaderboard"
                 }
             }
             li("nav-item") {
                 a(classes = "nav-link me-2") {
+                    attrs["style"] = kotlinext.js.jsObject<CSSProperties> {
+                        width = 6.rem
+                    }.unsafeCast<Width>()
                     attrs.href = "https://github.com/analysis-dev/save-cloud"
                     i("fa fa-user opacity-6 text-dark me-1") {
                         attrs["aria-hidden"] = "true"

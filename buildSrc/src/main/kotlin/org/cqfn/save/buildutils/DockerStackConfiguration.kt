@@ -150,6 +150,6 @@ fun Project.createStackDeployTask(profile: String) {
             "api-gateway" -> "save_gateway"
             else -> error("Wrong component name $componentName")
         }
-        commandLine("docker", "service", "update", "--image", "${buildTask.get().imageName}", serviceName)
+        commandLine("docker", "service", "update", "--image", buildTask.get().imageName, serviceName)
     }
 }

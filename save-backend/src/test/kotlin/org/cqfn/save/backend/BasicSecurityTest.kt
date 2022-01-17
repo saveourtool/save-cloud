@@ -2,15 +2,7 @@ package org.cqfn.save.backend
 
 import org.cqfn.save.backend.configs.WebSecurityConfig
 import org.cqfn.save.backend.controllers.ProjectController
-import org.cqfn.save.backend.repository.AgentRepository
-import org.cqfn.save.backend.repository.AgentStatusRepository
-import org.cqfn.save.backend.repository.ExecutionRepository
-import org.cqfn.save.backend.repository.GitRepository
-import org.cqfn.save.backend.repository.ProjectRepository
-import org.cqfn.save.backend.repository.TestExecutionRepository
-import org.cqfn.save.backend.repository.TestRepository
-import org.cqfn.save.backend.repository.TestSuiteRepository
-import org.cqfn.save.backend.repository.UserRepository
+import org.cqfn.save.backend.repository.*
 import org.cqfn.save.backend.scheduling.StandardSuitesUpdateScheduler
 import org.cqfn.save.backend.service.GitService
 import org.cqfn.save.backend.service.ProjectService
@@ -56,6 +48,7 @@ import java.util.Optional
     MockBean(TestSuiteRepository::class),
     MockBean(GitRepository::class),
     MockBean(StandardSuitesUpdateScheduler::class),
+    MockBean(AwesomeBenchmarksRepository::class),
 )
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class BasicSecurityTest {

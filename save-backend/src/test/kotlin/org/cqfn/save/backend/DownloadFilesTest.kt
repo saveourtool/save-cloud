@@ -4,17 +4,7 @@ import org.cqfn.save.backend.configs.ConfigProperties
 import org.cqfn.save.backend.configs.NoopWebSecurityConfig
 import org.cqfn.save.backend.configs.WebConfig
 import org.cqfn.save.backend.controllers.DownloadFilesController
-import org.cqfn.save.backend.repository.AgentRepository
-import org.cqfn.save.backend.repository.AgentStatusRepository
-import org.cqfn.save.backend.repository.ExecutionRepository
-import org.cqfn.save.backend.repository.GitRepository
-import org.cqfn.save.backend.repository.ProjectRepository
-import org.cqfn.save.backend.repository.TestDataFilesystemRepository
-import org.cqfn.save.backend.repository.TestExecutionRepository
-import org.cqfn.save.backend.repository.TestRepository
-import org.cqfn.save.backend.repository.TestSuiteRepository
-import org.cqfn.save.backend.repository.TimestampBasedFileSystemRepository
-import org.cqfn.save.backend.repository.UserRepository
+import org.cqfn.save.backend.repository.*
 import org.cqfn.save.backend.scheduling.StandardSuitesUpdateScheduler
 import org.cqfn.save.core.result.DebugInfo
 import org.cqfn.save.core.result.Pass
@@ -75,6 +65,7 @@ import kotlin.io.path.writeLines
     MockBean(GitRepository::class),
     MockBean(StandardSuitesUpdateScheduler::class),
     MockBean(UserRepository::class),
+    MockBean(AwesomeBenchmarksRepository::class)
 )
 class DownloadFilesTest {
     @Autowired
