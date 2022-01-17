@@ -42,6 +42,12 @@ dependencies {
     liquibaseRuntime(libs.picocli)
 }
 
+tasks.withType<org.liquibase.gradle.LiquibaseTask>().configureEach {
+    this.javaLauncher.set(project.extensions.getByType<JavaToolchainService>().launcherFor {
+        languageVersion.set(JavaLanguageVersion.of(Versions.jdk))
+    })
+}
+
 talaiot {
     publishers {
         timelinePublisher = true
