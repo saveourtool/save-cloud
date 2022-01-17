@@ -207,11 +207,8 @@ class DockerService(private val configProperties: ConfigProperties) {
         unzipArchivesAmongAdditionalFiles(execution, isStandardMode, testSuitesDir, resourcesPath)
 
         val saveCliExecFlags = if (isStandardMode) {
-            val execCmd = execution.execCmd
-            val batchSizeForAnalyzer = execution.batchSizeForAnalyzer
-
             // create stub toml config in aim to execute all test suites directories from `testSuitesDir`
-            val configData = createSyntheticTomlConfig(execCmd, batchSizeForAnalyzer)
+            val configData = createSyntheticTomlConfig(execution.execCmd, execution.batchSizeForAnalyzer)
 
             testSuitesDir.resolve("save.toml").apply { createNewFile() }.writeText(configData)
             " $STANDARD_TEST_SUITE_DIR --include-suites \"${testSuitesForDocker.joinToString(",") { it.name }}\""

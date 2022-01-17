@@ -54,6 +54,7 @@ class DockerServiceTest {
         // build base image
         val project = Project.stub(null)
         val testExecution = Execution.stub(project).apply {
+            resourcesRootPath = "foo"
             id = 42L
         }
         testContainerId = dockerService.buildAndCreateContainers(testExecution, null).single()
