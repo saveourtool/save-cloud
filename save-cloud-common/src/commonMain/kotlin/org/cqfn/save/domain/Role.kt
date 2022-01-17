@@ -10,16 +10,6 @@ enum class Role {
     ADMIN,
 
     /**
-     * Has write access to project, can start executions.
-     */
-    PROJECT_ADMIN,
-
-    /**
-     * User that created a project. Can modify and delete the project and invite admins.
-     */
-    PROJECT_OWNER,
-
-    /**
      * Has readonly access to public projects.
      */
     VIEWER,

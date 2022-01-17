@@ -79,9 +79,7 @@ class WebSecurityConfig(
     fun projectPermissionEvaluator() = ProjectPermissionEvaluator()
 
     fun roleHierarchy(): RoleHierarchy = mapOf(
-        Role.ADMIN to listOf(Role.PROJECT_OWNER, Role.PROJECT_ADMIN, Role.VIEWER),
-        Role.PROJECT_OWNER to listOf(Role.PROJECT_ADMIN),
-        Role.PROJECT_ADMIN to listOf(Role.VIEWER),
+        Role.ADMIN to listOf(Role.VIEWER),
     )
         .mapKeys { it.key.asSpringSecurityRole() }
         .mapValues { it.value.map { it.asSpringSecurityRole() } }

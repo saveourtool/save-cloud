@@ -111,7 +111,7 @@ class ProjectControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "Tester", roles = ["PROJECT_ADMIN"])
+    @WithMockUser(username = "Tester", roles = ["VIEWER"])
     fun `check git from project`() {
         mutateMockedUser {
             details = AuthenticationDetails(id = 1)
@@ -134,7 +134,7 @@ class ProjectControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "John Doe", roles = ["PROJECT_OWNER"])
+    @WithMockUser(username = "John Doe", roles = ["VIEWER"])
     fun `check save new project`() {
         mutateMockedUser {
             details = AuthenticationDetails(id = 2)
