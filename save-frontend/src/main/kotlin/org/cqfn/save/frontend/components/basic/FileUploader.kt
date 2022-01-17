@@ -173,7 +173,7 @@ fun fileUploader(
                 div("progress") {
                     attrs.hidden = !props.isUploading
                     div("progress-bar progress-bar-striped progress-bar-animated") {
-                        attrs["style"] = kotlinext.js.jsObject<CSSProperties> {
+                        attrs["style"] = kotlinext.js.jso<CSSProperties> {
                             width = if (props.suiteByteSize != 0L) {
                                 "${ (100 * props.bytesReceived / props.suiteByteSize) }%"
                             } else {
