@@ -225,7 +225,7 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
 
     private fun RBuilder.h1Bold(str: String) = h1 {
         +str
-        attrs["style"] = kotlinext.js.jsObject<CSSProperties> {
+        attrs["style"] = kotlinext.js.jso<CSSProperties> {
             fontWeight = "bold".unsafeCast<FontWeight>()
             display = Display.inline
             fontSize = "4.5rem".unsafeCast<FontSize>()
@@ -234,7 +234,7 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
 
     private fun RBuilder.h1Normal(str: String) = h1 {
         +str
-        attrs["style"] = kotlinext.js.jsObject<CSSProperties> {
+        attrs["style"] = kotlinext.js.jso<CSSProperties> {
             display = Display.inline
         }
     }
@@ -245,7 +245,7 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                 href = provider.authorizationLink,
                 classes = "btn btn-link px-3 text-white text-lg text-center"
             ) {
-                attrs["style"] = kotlinext.js.jsObject<CSSProperties> {
+                attrs["style"] = kotlinext.js.jso<CSSProperties> {
                     fontSize = "3.2rem".unsafeCast<FontSize>()
                 }
                 fontAwesomeIcon(icon = icon)

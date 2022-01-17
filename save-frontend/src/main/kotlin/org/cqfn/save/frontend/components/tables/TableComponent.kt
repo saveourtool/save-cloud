@@ -9,7 +9,7 @@ package org.cqfn.save.frontend.components.tables
 import org.cqfn.save.frontend.components.modal.errorModal
 import org.cqfn.save.frontend.utils.spread
 
-import kotlinext.js.jsObject
+import kotlinext.js.jso
 import react.PropsWithChildren
 import react.RBuilder
 import react.dom.RDOMBuilder
@@ -86,7 +86,7 @@ fun <D : Any> tableComponent(
     usePageSelection: Boolean = false,
     plugins: Array<PluginHook<D>> = arrayOf(useSortBy, usePagination),
     additionalOptions: TableOptions<D>.() -> Unit = {},
-    getRowProps: ((Row<D>) -> TableRowProps) = { jsObject() },
+    getRowProps: ((Row<D>) -> TableRowProps) = { jso() },
     getPageCount: (suspend (pageSize: Int) -> Int)? = null,
     renderExpandedRow: (RBuilder.(table: TableInstance<D>, row: Row<D>) -> Unit)? = undefined,
     commonHeader: RDOMBuilder<THEAD>.(table: TableInstance<D>) -> Unit = {},
@@ -102,14 +102,14 @@ fun <D : Any> tableComponent(
     val (isModalOpen, setIsModalOpen) = useState(false)
     val (dataAccessException, setDataAccessException) = useState<Exception?>(null)
 
-    val tableInstance: TableInstance<D> = useTable(options = jsObject {
+    val tableInstance: TableInstance<D> = useTable(options = jso {
         this.columns = useMemo { columns }
         this.data = data
         this.manualPagination = useServerPaging
         if (useServerPaging) {
             this.pageCount = pageCount
         }
-        this.initialState = jsObject {
+        this.initialState = jso {
             this.pageSize = initialPageSize
             this.pageIndex = pageIndex
         }
