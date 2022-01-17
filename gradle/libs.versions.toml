@@ -11,7 +11,6 @@ spring-boot = "2.6.2"
 spring-security = "5.6.1"
 spring-cloud = "3.1.0"
 junit = "5.8.2"
-multiplatform-diff = "0.4.0"
 kotlinpoet = "1.10.2"
 diktat = "1.0.1"
 detekt = "1.19.0"
@@ -42,7 +41,6 @@ kotlin-plugin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization"
 kotlin-plugin-jpa = { id = "org.jetbrains.kotlin.plugin.jpa", version.ref = "kotlin" }
 diktat = { id = "org.cqfn.diktat.diktat-gradle-plugin", version.ref = "diktat" }
 liquibase-gradle = { id = "org.liquibase.gradle", version = "2.1.1" }
-versions-plugin = { id = "com.github.ben-manes.versions", version = "0.41.0" }
 talaiot-base = { id = "com.cdsap.talaiot.plugin.base", version = "1.4.2" }
 
 [libraries]
@@ -109,7 +107,6 @@ reactor-kotlin-extensions = { module = "io.projectreactor.kotlin:reactor-kotlin-
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 logback-core = { module = "ch.qos.logback:logback-core", version.ref = "logback" }
 junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit" }
-multiplatform-diff = { module = "io.github.petertrr:kotlin-multiplatform-diff", version.ref = "multiplatform-diff" }
 square-kotlinpoet = { module = "com.squareup:kotlinpoet", version.ref = "kotlinpoet" }
 dockerJava-core = { module = "com.github.docker-java:docker-java-core", version.ref = "docker-java" }
 dockerJava-transport-httpclient5 = { module = "com.github.docker-java:docker-java-transport-httpclient5", version.ref = "docker-java" }

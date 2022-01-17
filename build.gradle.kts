@@ -8,7 +8,6 @@ import org.cqfn.save.buildutils.getDatabaseCredentials
 import org.cqfn.save.buildutils.installGitHooks
 
 plugins {
-    alias(libs.plugins.versions.plugin)
     alias(libs.plugins.talaiot.base)
     alias(libs.plugins.liquibase.gradle)
     java
