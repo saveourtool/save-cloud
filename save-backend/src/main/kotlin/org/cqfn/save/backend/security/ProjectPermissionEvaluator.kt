@@ -15,17 +15,16 @@ class ProjectPermissionEvaluator {
      * @param permission
      * @return whether user described by [authentication] can have [permission] on project [project]
      */
-    fun hasPermission(authentication: Authentication, project: Project, permission: String): Boolean {
+    fun hasPermission(authentication: Authentication, project: Project, permission: Permission): Boolean {
         if (authentication.hasRole(Role.ADMIN)) {
             return true
         }
 
         val userId = (authentication.details as AuthenticationDetails).id
         return when (permission) {
-            "read" -> project.public || hasWriteAccess(userId, project)
-            "write" -> hasWriteAccess(userId, project)
-            "delete" -> project.userId == userId
-            else -> false
+            Permission.READ -> project.public || hasWriteAccess(userId, project)
+            Permission.WRITE -> hasWriteAccess(userId, project)
+            Permission.DELETE -> project.userId == userId
         }
     }
 

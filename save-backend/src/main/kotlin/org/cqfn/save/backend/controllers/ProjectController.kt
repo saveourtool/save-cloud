@@ -1,5 +1,6 @@
 package org.cqfn.save.backend.controllers
 
+import org.cqfn.save.backend.security.Permission
 import org.cqfn.save.backend.security.ProjectPermissionEvaluator
 import org.cqfn.save.backend.service.GitService
 import org.cqfn.save.backend.service.ProjectService
@@ -52,7 +53,7 @@ class ProjectController(private val projectService: ProjectService,
      */
     @GetMapping("/")
     fun getProjects(authentication: Authentication): Flux<Project> = projectService.getProjects()
-        .filter { projectPermissionEvaluator.hasPermission(authentication, it, "read") }
+        .filter { projectPermissionEvaluator.hasPermission(authentication, it, Permission.READ) }
 
     /**
      * Get all projects without status.
@@ -62,7 +63,7 @@ class ProjectController(private val projectService: ProjectService,
      */
     @GetMapping("/not-deleted")
     fun getNotDeletedProjects(authentication: Authentication) = projectService.getNotDeletedProjects()
-        .filter { projectPermissionEvaluator.hasPermission(authentication, it, "read") }
+        .filter { projectPermissionEvaluator.hasPermission(authentication, it, Permission.READ) }
 
     /**
      * 200 - if user can access the project
@@ -87,7 +88,7 @@ class ProjectController(private val projectService: ProjectService,
     }
         .map {
             // if value is null, then Mono is empty and this lambda won't be called
-            it!! to projectPermissionEvaluator.hasPermission(authentication, it, "write")
+            it!! to projectPermissionEvaluator.hasPermission(authentication, it, Permission.WRITE)
         }
         .filter { (project, hasWriteAccess) -> project.public || hasWriteAccess }
         .map { (project, hasWriteAccess) ->
@@ -108,7 +109,7 @@ class ProjectController(private val projectService: ProjectService,
      * @return gitDto
      */
     @PostMapping("/git")
-    @PreAuthorize("@projectPermissionEvaluator.hasPermission(authentication, #project, 'write')")
+    @PreAuthorize("@projectPermissionEvaluator.hasPermission(authentication, #project, T(org.cqfn.save.backend.security.Permission).WRITE)")
     @Suppress("UnsafeCallOnNullableType")
     fun getRepositoryDtoByProject(@RequestBody project: Project): Mono<GitDto> =
             Mono.fromCallable {
@@ -149,7 +150,7 @@ class ProjectController(private val projectService: ProjectService,
      * @return response
      */
     @PostMapping("/update")
-    @PreAuthorize("@projectPermissionEvaluator.hasPermission(authentication, project, 'write')")
+    @PreAuthorize("@projectPermissionEvaluator.hasPermission(authentication, project, T(org.cqfn.save.backend.security.Permission).WRITE)")
     fun updateProject(@RequestBody project: Project): ResponseEntity<String> {
         val (_, projectStatus) = projectService.saveProject(project)
         return ResponseEntity.ok(projectStatus.message)
