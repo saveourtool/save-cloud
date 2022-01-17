@@ -36,18 +36,24 @@ class ConvertingAuthenticationManager : ReactiveAuthenticationManager {
                 BadCredentialsException(name)
             }
             .map {
-                UsernamePasswordAuthenticationToken(
-                    "$identitySource:${it.username}",
-                    authentication.credentials,
-                    it.authorities
-                ).apply {
-                    details = AuthenticationDetails(
-                        id = it.id,
-                        identitySource = identitySource,
-                    )
-                }
+                it.toAuthenticationWithDetails(authentication)
             }
     } else {
         Mono.error { BadCredentialsException("Unsupported authentication type ${authentication::class}") }
     }
+
+    /**
+     * Fixme: since identitySource is in `AuthenticationDetails`, it can be removed from principal
+     */
+    private fun IdentitySourceAwareUserDetails.toAuthenticationWithDetails(authentication: Authentication) =
+            UsernamePasswordAuthenticationToken(
+                "$identitySource:$username",
+                authentication.credentials,
+                authorities
+            ).apply {
+                details = AuthenticationDetails(
+                    id = id,
+                    identitySource = identitySource,
+                )
+            }
 }

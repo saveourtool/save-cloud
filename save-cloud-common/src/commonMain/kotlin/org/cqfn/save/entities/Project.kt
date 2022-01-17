@@ -34,6 +34,9 @@ data class Project(
     @GeneratedValue
     var id: Long? = null
 
+    /**
+     * @return [adminIds] as a list of numbers
+     */
     fun adminIdList() = adminIds?.split(",")?.map { it.toLong() } ?: emptyList()
 
     companion object {

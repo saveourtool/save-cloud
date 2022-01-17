@@ -5,12 +5,15 @@ import org.cqfn.save.domain.Role
 import org.cqfn.save.entities.Project
 import org.springframework.security.core.Authentication
 
+/**
+ * Class that is capable of assessing user's permissions regarding projects.
+ */
 class ProjectPermissionEvaluator {
     /**
-     * @param authentication
+     * @param authentication [Authentication] describing an authenticated request
      * @param project
      * @param permission
-     * @return
+     * @return whether user described by [authentication] can have [permission] on project [project]
      */
     fun hasPermission(authentication: Authentication, project: Project, permission: String): Boolean {
         if (authentication.hasRole(Role.ADMIN)) {

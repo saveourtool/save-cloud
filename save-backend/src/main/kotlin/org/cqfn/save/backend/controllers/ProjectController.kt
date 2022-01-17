@@ -47,6 +47,7 @@ class ProjectController(private val projectService: ProjectService,
      * Get all projects, accessible for the current user.
      * Note: `@PostFilter` is not yet supported for webflux: https://github.com/spring-projects/spring-security/issues/5249
      *
+     * @param authentication [Authentication] describing an authenticated request
      * @return flux of projects
      */
     @GetMapping("/")

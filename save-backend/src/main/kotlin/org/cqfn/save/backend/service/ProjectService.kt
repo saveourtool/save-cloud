@@ -23,9 +23,7 @@ class ProjectService(private val projectRepository: ProjectRepository,
      * Store [project] in the database
      *
      * @param project a [Project] to store
-     * @param username name of the user that should be associated as a creator of this project. If null, [project] should contain valid user id.
      * @return project's id, should never return null
-     * @throws ResponseStatusException if project doesn't exist and no username has been provided
      */
     @Suppress("UnsafeCallOnNullableType")
     fun saveProject(project: Project): Pair<Long, ProjectSaveStatus> {

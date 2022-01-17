@@ -28,7 +28,6 @@ import java.util.Optional
 class BasicSecurityTest {
     @Autowired
     private lateinit var convertingAuthenticationManager: ConvertingAuthenticationManager
-
     @MockBean private lateinit var userRepository: UserRepository
 
     @BeforeEach
