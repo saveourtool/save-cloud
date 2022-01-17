@@ -3,6 +3,7 @@ package org.cqfn.save.orchestrator.controller.agents
 import org.cqfn.save.agent.ExecutionLogs
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.Project
+import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.orchestrator.config.Beans
 import org.cqfn.save.orchestrator.config.ConfigProperties
 import org.cqfn.save.orchestrator.controller.AgentsController
@@ -41,9 +42,6 @@ import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.createTempDirectory
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.cqfn.save.domain.Sdk
-import org.cqfn.save.execution.ExecutionStatus
-import org.cqfn.save.execution.ExecutionType
 
 @WebFluxTest(controllers = [AgentsController::class])
 @Import(AgentService::class, Beans::class)
@@ -75,8 +73,9 @@ class AgentsControllerTest {
     @Test
     fun `should build image, query backend and start containers`() {
         val project = Project.stub(null)
-        val execution = Execution(project, stubTime, stubTime, ExecutionStatus.PENDING, "stub",
-            "stub", 20, ExecutionType.GIT, "0.0.1", 0, 0, 0, 0, Sdk.Default.toString(), null, null, null, null).apply {
+        val execution = Execution.stub(project).apply {
+            status = ExecutionStatus.PENDING
+            testSuiteIds = "1"
             id = 42L
         }
         whenever(dockerService.buildAndCreateContainers(any(), any())).thenReturn(listOf("test-agent-id-1", "test-agent-id-2"))
