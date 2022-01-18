@@ -21,8 +21,9 @@ ServerAuthenticationConverter {
             "$source:$name",
             it.credentials as String
         ).apply {
-            details = mapOf(
-                "identitySource" to source
+            details = AuthenticationDetails(
+                id = -1,
+                identitySource = source,
             )
         }
     }

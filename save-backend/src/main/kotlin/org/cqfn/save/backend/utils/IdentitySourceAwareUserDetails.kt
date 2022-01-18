@@ -6,12 +6,14 @@ import org.springframework.security.core.userdetails.User
 /**
  * @param authorities comma-separated authorities as a single string
  * @property identitySource
+ * @property id
  */
 class IdentitySourceAwareUserDetails(
     username: String,
     password: String?,
     authorities: String?,
     val identitySource: String,
+    val id: Long,
 ) : User(
     username,
     password,

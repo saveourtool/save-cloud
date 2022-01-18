@@ -1,6 +1,7 @@
 package org.cqfn.save.backend.controller
 
 import org.cqfn.save.backend.SaveApplication
+import org.cqfn.save.backend.controllers.ProjectController
 import org.cqfn.save.backend.repository.ExecutionRepository
 import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.scheduling.StandardSuitesUpdateScheduler
@@ -44,6 +45,7 @@ import java.util.concurrent.TimeUnit
 @ExtendWith(MySqlExtension::class)
 @MockBeans(
     MockBean(StandardSuitesUpdateScheduler::class),
+    MockBean(ProjectController::class),
 )
 class ExecutionControllerTest {
     private val testLocalDateTime = LocalDateTime.of(2020, Month.APRIL, 10, 16, 30, 20)

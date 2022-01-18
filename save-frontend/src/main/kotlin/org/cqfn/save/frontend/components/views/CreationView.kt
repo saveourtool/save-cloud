@@ -185,7 +185,7 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
         }
         GlobalScope.launch {
             val responseFromCreationProject =
-                    post("$apiUrl/saveProject", headers, Json.encodeToString(newProjectRequest))
+                    post("$apiUrl/projects/save", headers, Json.encodeToString(newProjectRequest))
 
             if (responseFromCreationProject.ok == true) {
                 window.location.href =
