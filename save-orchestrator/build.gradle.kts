@@ -76,3 +76,7 @@ kotlin.sourceSets.getByName("main") {
 tasks.withType<KotlinCompile>().forEach {
     it.dependsOn(generateVersionFileTaskProvider)
 }
+
+tasks.withType<Test> {
+    testLogging.showStandardStreams = true
+}

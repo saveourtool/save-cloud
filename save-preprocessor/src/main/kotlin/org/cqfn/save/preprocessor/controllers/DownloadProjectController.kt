@@ -195,6 +195,7 @@ class DownloadProjectController(
                             StandardCopyOption.COPY_ATTRIBUTES
                         )
                         // FixMe: currently it's quite rough solution, to make all additional files executable
+                        // FixMe: https://github.com/analysis-dev/save-cloud/issues/442
                         if (!resourcesLocation.resolve(file.name).setExecutable(true)) {
                             log.warn("Failed to mark file ${resourcesLocation.resolve(file.name)} as executable")
                         }
@@ -205,7 +206,7 @@ class DownloadProjectController(
                         executionRerunRequest.testRootPath,
                         location,
                         testSuites?.map { it.toDto() },
-                        executionRerunRequest.gitDto.url
+                        executionRerunRequest.gitDto.url,
                     )
                 }
                 .subscribeOn(scheduler)
@@ -333,6 +334,7 @@ class DownloadProjectController(
         }
     }
 
+    @Suppress("TOO_LONG_FUNCTION")
     private fun saveBinaryFile(
         executionRequestForStandardSuites: ExecutionRequestForStandardSuites,
         files: List<File>,
@@ -345,11 +347,15 @@ class DownloadProjectController(
         val project = executionRequestForStandardSuites.project
         // TODO: Save the proper version https://github.com/analysis-dev/save-cloud/issues/321
         val version = files.first().name
+        val execCmd = executionRequestForStandardSuites.execCmd
+        val batchSizeForAnalyzer = executionRequestForStandardSuites.batchSizeForAnalyzer
         return updateExecution(
             executionRequestForStandardSuites.project,
             tmpDir.name,
             version,
-            executionRequestForStandardSuites.testsSuites.joinToString()
+            executionRequestForStandardSuites.testsSuites.joinToString(),
+            execCmd,
+            batchSizeForAnalyzer,
         )
             .flatMap { execution ->
                 sendToBackendAndOrchestrator(
@@ -462,13 +468,16 @@ class DownloadProjectController(
             .collectList()
     }
 
+    @Suppress("TOO_MANY_PARAMETERS", "LongParameterList")
     private fun updateExecution(
         project: Project,
         projectRootRelativePath: String,
         executionVersion: String,
         testSuiteIds: String = "ALL",
+        execCmd: String? = null,
+        batchSizeForAnalyzer: String? = null,
     ): Mono<Execution> {
-        val executionUpdate = ExecutionInitializationDto(project, testSuiteIds, projectRootRelativePath, executionVersion)
+        val executionUpdate = ExecutionInitializationDto(project, testSuiteIds, projectRootRelativePath, executionVersion, execCmd, batchSizeForAnalyzer)
         return webClientBackend.makeRequest(BodyInserters.fromValue(executionUpdate), "/updateNewExecution") {
             it.onStatus({ status -> status != HttpStatus.OK }) { clientResponse ->
                 log.error("Error when making update to execution fro project id = ${project.id} ${clientResponse.statusCode()}")
@@ -602,7 +611,10 @@ class DownloadProjectController(
     /**
      * POST request to orchestrator to initiate its work
      */
-    private fun initializeAgents(execution: Execution, testSuiteDtos: List<TestSuiteDto>?): Status {
+    private fun initializeAgents(
+        execution: Execution,
+        testSuiteDtos: List<TestSuiteDto>?
+    ): Status {
         val bodyBuilder = MultipartBodyBuilder().apply {
             part("execution", execution)
         }

@@ -132,7 +132,7 @@ class CloningRepositoryControllerTest {
         fileSystemRepository.saveFile(property)
 
         val sdk = Jdk("8")
-        val request = ExecutionRequestForStandardSuites(testProject, emptyList(), sdk)
+        val request = ExecutionRequestForStandardSuites(testProject, emptyList(), sdk, null, null)
         val bodyBuilder = MultipartBodyBuilder()
         bodyBuilder.part("execution", request)
         bodyBuilder.part("file", property.toFileInfo())

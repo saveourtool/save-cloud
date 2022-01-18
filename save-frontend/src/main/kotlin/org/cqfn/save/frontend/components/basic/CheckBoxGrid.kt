@@ -84,7 +84,7 @@ fun suitesTable(
 @Suppress("TOO_LONG_FUNCTION", "LongMethod")
 fun checkBoxGrid(suites: List<TestSuiteDto>, selectedLanguageForStandardTests: String?) =
         fc<CheckBoxGridProps> { props ->
-            div {
+            div("mt-3") {
                 suites.chunked(props.rowSize)
                     .forEach { row ->
                         div("row g-3") {
