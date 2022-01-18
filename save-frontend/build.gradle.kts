@@ -51,10 +51,10 @@ kotlin {
             compileOnly(devNpm("css-loader", "*"))
             compileOnly(devNpm("url-loader", "*"))
             compileOnly(devNpm("file-loader", "*"))
-            // these dependenceies are bound to postcss 7.x instead of 8.x, because bootstrap 4.x guide uses them
-            compileOnly(devNpm("postcss-loader", "3.*"))
-            compileOnly(devNpm("postcss", "7.*"))
-            compileOnly(devNpm("autoprefixer", "9.*"))
+            // https://getbootstrap.com/docs/4.0/getting-started/webpack/#importing-precompiled-sass
+            compileOnly(devNpm("postcss-loader", "^6.2.1"))
+            compileOnly(devNpm("postcss", "^8.2.13"))
+            compileOnly(devNpm("autoprefixer", ">9"))
             compileOnly(devNpm("webpack-bundle-analyzer", "*"))
 
             // web-specific dependencies

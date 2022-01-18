@@ -9,5 +9,25 @@
         <update dbms="mysql" tableName="project">
             <column name="user_id" value="1" />
         </update>
+      
+        <insert dbms="mysql" tableName="project">
+            <column name="id" value="3" />
+            <column name="owner" value="Example.com" />
+            <column name="name" value="The Project" />
+            <column name="url" value="example.com" />
+            <column name="description" value="This is an example project" />
+            <column name="public" valueBoolean="false" />
+            <column name="user_id" value="2" />
+        </insert>
+        <insert dbms="mysql" tableName="project">
+            <column name="id" value="4" />
+            <column name="owner" value="Example.com" />
+            <column name="name" value="The Project #2" />
+            <column name="url" value="example.com" />
+            <column name="description" value="This is a second example project" />
+            <column name="status" value="DELETED" />
+            <column name="public" valueBoolean="true" />
+            <column name="user_id" value="2" />
+        </insert>
     </changeSet>
 </databaseChangeLog>

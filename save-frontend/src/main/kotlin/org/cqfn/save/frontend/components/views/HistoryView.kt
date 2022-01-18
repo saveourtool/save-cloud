@@ -20,7 +20,7 @@ import org.cqfn.save.frontend.utils.runErrorModal
 import org.cqfn.save.frontend.utils.unsafeMap
 
 import csstype.Background
-import kotlinext.js.jsObject
+import kotlinext.js.jso
 import org.w3c.fetch.Headers
 import org.w3c.fetch.Response
 import react.PropsWithChildren
@@ -247,8 +247,8 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
                     ExecutionStatus.RUNNING -> Colors.GREY
                     ExecutionStatus.FINISHED -> if (row.original.failedTests != 0L) Colors.DARK_RED else Colors.GREEN
                 }
-                jsObject {
-                    style = jsObject {
+                jso {
+                    style = jso {
                         background = color.value.unsafeCast<Background>()
                     }
                 }
