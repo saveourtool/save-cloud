@@ -227,7 +227,7 @@ class DownloadProjectController(
             Flux.fromIterable(readStandardTestSuitesFile(configProperties.reposFileName)).flatMap { testSuiteRepoInfo ->
                 val testSuiteUrl = testSuiteRepoInfo.gitUrl
                 log.info("Starting clone repository url=$testSuiteUrl for standard test suites")
-                val tmpDir = generateDirectory(listOf(testSuiteUrl), configProperties.repository)
+                val tmpDir = generateDirectory(listOf(testSuiteUrl), configProperties.repository, deleteExisting = false)
                 Mono.fromCallable {
                     if (user != null && token != null) {
                         cloneFromGit(GitDto(url = testSuiteUrl, username = user, password = token), tmpDir)
@@ -297,7 +297,7 @@ class DownloadProjectController(
     )
     private fun downLoadRepository(executionRequest: ExecutionRequest): Mono<Pair<String, String>> {
         val gitDto = executionRequest.gitDto
-        val tmpDir = generateDirectory(listOf(gitDto.url), configProperties.repository)
+        val tmpDir = generateDirectory(listOf(gitDto.url), configProperties.repository, deleteExisting = false)
         return Mono.fromCallable {
             cloneFromGit(gitDto, tmpDir)?.use { git ->
                 val branchOrCommit = gitDto.branch ?: gitDto.hash
@@ -339,6 +339,7 @@ class DownloadProjectController(
         executionRequestForStandardSuites: ExecutionRequestForStandardSuites,
         files: List<File>,
     ): Mono<StatusResponse> {
+        // Move files into local storage
         val tmpDir = generateDirectory(calculateTmpNameForFiles(files), configProperties.repository)
         files.forEach {
             log.debug("Move $it into $tmpDir")

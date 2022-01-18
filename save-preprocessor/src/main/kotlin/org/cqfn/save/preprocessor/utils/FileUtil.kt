@@ -57,9 +57,9 @@ inline fun <reified T> decodeFromPropertiesFile(file: File): T {
  * @return a [File] representing the created temporary directory
  */
 @Suppress("TooGenericExceptionCaught")
-internal fun generateDirectory(seeds: List<String>, repository: String): File {
+internal fun generateDirectory(seeds: List<String>, repository: String, deleteExisting: Boolean = true): File {
     val tmpDir = getTmpDirName(seeds, repository)
-    if (tmpDir.exists()) {
+    if (tmpDir.exists() && deleteExisting) {
         try {
             if (FileSystemUtils.deleteRecursively(tmpDir.toPath())) {
                 log.info("For $seeds: dir $tmpDir was deleted")
@@ -67,6 +67,9 @@ internal fun generateDirectory(seeds: List<String>, repository: String): File {
         } catch (e: IOException) {
             log.error("Couldn't properly delete $tmpDir", e)
         }
+    } else if (tmpDir.exists() && !deleteExisting) {
+        log.info("Directory $tmpDir already exists and delete strategy wasn't provided, won't perform any actions")
+        return tmpDir
     }
     try {
         tmpDir.toPath().createDirectories()
