@@ -1,6 +1,7 @@
 package org.cqfn.save.backend
 
 import org.cqfn.save.agent.AgentState
+import org.cqfn.save.backend.controllers.ProjectController
 import org.cqfn.save.backend.repository.AgentStatusRepository
 import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.repository.TestExecutionRepository
@@ -19,6 +20,7 @@ import org.springframework.boot.test.mock.mockito.MockBeans
 @ExtendWith(MySqlExtension::class)
 @MockBeans(
     MockBean(StandardSuitesUpdateScheduler::class),
+    MockBean(ProjectController::class),
 )
 class DatabaseTest {
     @Autowired

@@ -238,7 +238,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 set("Accept", "application/json")
                 set("Content-Type", "application/json")
             }
-            gitDto = post("$apiUrl/getGit", headers, jsonProject)
+            gitDto = post("$apiUrl/projects/git", headers, jsonProject)
                 .decodeFromJsonString<GitDto>()
             standardTestSuites = get("$apiUrl/allStandardTestSuites", headers)
                 .decodeFromJsonString()
@@ -762,7 +762,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             owner = owner,
         )
         GlobalScope.launch {
-            post("$apiUrl/updateProject", headers, Json.encodeToString(project))
+            post("$apiUrl/projects/update", headers, Json.encodeToString(project))
         }
     }
 
@@ -773,7 +773,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         }
         GlobalScope.launch {
             responseFromDeleteProject =
-                    post("$apiUrl/updateProject", headers, Json.encodeToString(project))
+                    post("$apiUrl/projects/update", headers, Json.encodeToString(project))
         }.invokeOnCompletion {
             if (responseFromDeleteProject.ok) {
                 window.location.href = "${window.location.origin}/"

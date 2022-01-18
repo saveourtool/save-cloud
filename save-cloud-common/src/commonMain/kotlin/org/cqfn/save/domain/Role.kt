@@ -1,0 +1,22 @@
+package org.cqfn.save.domain
+
+/**
+ * User roles
+ */
+enum class Role {
+    /**
+     * Superuser, that has access to everything
+     */
+    ADMIN,
+
+    /**
+     * Has readonly access to public projects.
+     */
+    VIEWER,
+    ;
+
+    /**
+     * @return this role with default prefix for spring-security
+     */
+    fun asSpringSecurityRole() = "ROLE_$name"
+}
