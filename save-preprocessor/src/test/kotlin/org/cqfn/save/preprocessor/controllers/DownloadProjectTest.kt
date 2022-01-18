@@ -10,7 +10,6 @@ import org.cqfn.save.entities.GitDto
 import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.ProjectStatus
 import org.cqfn.save.entities.TestSuite
-import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionType
 import org.cqfn.save.preprocessor.config.ConfigProperties
 import org.cqfn.save.preprocessor.service.TestDiscoveringService
@@ -92,8 +91,7 @@ class DownloadProjectTest(
     fun testBadRequest() {
         val project = Project("owner", "someName", "wrongGit", "descr", ProjectStatus.CREATED, userId = 2, adminIds = null)
         val wrongRepo = GitDto("wrongGit")
-        val execution = Execution(project, LocalDateTime.now(), LocalDateTime.now(), ExecutionStatus.PENDING, "1",
-            "foo", 20, ExecutionType.GIT, "0.0.1", 0, 0, 0, 0, Sdk.Default.toString(), null, null).apply {
+        val execution = Execution.stub(project).apply {
             id = 97L
         }
         val request = ExecutionRequest(project, wrongRepo, sdk = Sdk.Default, executionId = execution.id, testRootPath = ".")
@@ -125,8 +123,7 @@ class DownloadProjectTest(
         val project = Project.stub(42).apply {
             url = "https://github.com/analysis-dev/save.git"
         }
-        val execution = Execution(project, LocalDateTime.now(), LocalDateTime.now(), ExecutionStatus.PENDING, "1",
-            "foo", 20, ExecutionType.GIT, "0.0.1", 0, 0, 0, 0, Sdk.Default.toString(), null, null).apply {
+        val execution = Execution.stub(project).apply {
             id = 99L
         }
         val validRepo = GitDto("https://github.com/analysis-dev/save.git")
@@ -207,11 +204,12 @@ class DownloadProjectTest(
         val binFile = File(binFilePath)
         val property = File(propertyPath)
         val project = Project.stub(42)
-        val execution = Execution(project, LocalDateTime.now(), LocalDateTime.now(), ExecutionStatus.PENDING, "1",
-            "foo", 20, ExecutionType.STANDARD, "0.0.1", 0, 0, 0, 0, Sdk.Default.toString(), null, null).apply {
+        val execution = Execution.stub(project).apply {
+            testSuiteIds = "1"
+            type = ExecutionType.STANDARD
             id = 98L
         }
-        val request = ExecutionRequestForStandardSuites(project, listOf("Chapter1"), Sdk.Default)
+        val request = ExecutionRequestForStandardSuites(project, listOf("Chapter1"), Sdk.Default, null, null)
         val bodyBuilder = MultipartBodyBuilder()
         bodyBuilder.part("executionRequestForStandardSuites", request)
         bodyBuilder.part("file", FileSystemResource(property))
@@ -369,8 +367,7 @@ class DownloadProjectTest(
     @Suppress("LongMethod")
     fun `rerun execution type git`() {
         val project = Project.stub(42)
-        val execution = Execution(project, LocalDateTime.now(), LocalDateTime.now(), ExecutionStatus.PENDING, "1",
-            "foo", 20, ExecutionType.GIT, "0.0.1", 0, 0, 0, 0, Sdk.Default.toString(), null, null).apply {
+        val execution = Execution.stub(project).apply {
             id = 98L
         }
         val request = ExecutionRequest(project, GitDto("https://github.com/analysis-dev/save"), "examples/kotlin-diktat/", Sdk.Default, execution.id)
@@ -451,8 +448,9 @@ class DownloadProjectTest(
     @Suppress("LongMethod")
     fun `rerun execution type standard`() {
         val project = Project.stub(42)
-        val execution = Execution(project, LocalDateTime.now(), LocalDateTime.now(), ExecutionStatus.PENDING, "1",
-            "foo", 20, ExecutionType.STANDARD, "0.0.1", 0, 0, 0, 0, Sdk.Default.toString(), null, null).apply {
+        val execution = Execution.stub(project).apply {
+            testSuiteIds = "1"
+            type = ExecutionType.STANDARD
             id = 98L
         }
         val request = ExecutionRequest(project, GitDto("https://github.com/analysis-dev/save"), "examples/kotlin-diktat/", Sdk.Default, execution.id)

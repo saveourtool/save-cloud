@@ -141,6 +141,16 @@ external interface ProjectViewState : State {
     var gitBranchOrCommitFromInputField: String
 
     /**
+     * Execution command for standard mode
+     */
+    var execCmd: String
+
+    /**
+     * Batch size for static analyzer tool in standard mode
+     */
+    var batchSizeForAnalyzer: String
+
+    /**
      * Directory in the repository where tests are placed
      */
     var testRootPath: String
@@ -198,6 +208,8 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     init {
         state.gitUrlFromInputField = ""
         state.gitBranchOrCommitFromInputField = ""
+        state.execCmd = ""
+        state.batchSizeForAnalyzer = ""
         state.testRootPath = ""
         state.confirmationType = ConfirmationType.NO_CONFIRM
         state.testingType = TestingType.CUSTOM_TESTS
@@ -279,7 +291,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         val headers = Headers()
         val formData = FormData()
         val selectedSdk = "${state.selectedSdk}:${state.selectedSdkVersion}".toSdk()
-        val request = ExecutionRequestForStandardSuites(project, selectedStandardSuites, selectedSdk)
+        val request = ExecutionRequestForStandardSuites(project, selectedStandardSuites, selectedSdk, state.execCmd, state.batchSizeForAnalyzer)
         formData.appendJson("execution", request)
         state.files.forEach {
             formData.appendJson("file", it)
@@ -457,6 +469,16 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                             testRootPath = it
                         }
                     },
+                    setExecCmd = {
+                        setState {
+                            execCmd = (it.target as HTMLInputElement).value
+                        }
+                    },
+                    setBatchSize = {
+                        setState {
+                            batchSizeForAnalyzer = (it.target as HTMLInputElement).value
+                        }
+                    },
                     setSelectedLanguageForStandardTests = {
                         setState {
                             selectedLanguageForStandardTests = it
@@ -474,6 +496,8 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                     attrs.selectedStandardSuites = selectedStandardSuites
                     attrs.standardTestSuites = standardTestSuites
                     attrs.selectedLanguageForStandardTests = state.selectedLanguageForStandardTests
+                    attrs.execCmd = state.execCmd
+                    attrs.batchSizeForAnalyzer = state.batchSizeForAnalyzer
                 }
 
                 div("d-sm-flex align-items-center justify-content-center") {
