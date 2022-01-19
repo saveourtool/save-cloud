@@ -59,21 +59,30 @@ inline fun <reified T> decodeFromPropertiesFile(file: File): T {
 @Suppress("TooGenericExceptionCaught")
 internal fun generateDirectory(seeds: List<String>, repository: String, deleteExisting: Boolean = true): File {
     val tmpDir = getTmpDirName(seeds, repository)
+    log.info("For $seeds: starting generate directory $tmpDir")
     if (tmpDir.exists() && deleteExisting) {
-        try {
-            if (FileSystemUtils.deleteRecursively(tmpDir.toPath())) {
-                log.info("For $seeds: dir $tmpDir was deleted")
-            }
-        } catch (e: IOException) {
-            log.error("Couldn't properly delete $tmpDir", e)
-        }
+        deleteDirectory(tmpDir)
     } else if (tmpDir.exists() && !deleteExisting) {
         log.info("Directory $tmpDir already exists and delete strategy wasn't provided, won't perform any actions")
         return tmpDir
     }
+    return generateDirectory(tmpDir)
+}
+
+internal fun deleteDirectory(tmpDir: File) {
+    try {
+        if (FileSystemUtils.deleteRecursively(tmpDir.toPath())) {
+            log.debug("Dir $tmpDir was deleted")
+        }
+    } catch (e: IOException) {
+        log.error("Couldn't properly delete $tmpDir", e)
+    }
+}
+
+internal fun generateDirectory(tmpDir: File): File {
     try {
         tmpDir.toPath().createDirectories()
-        log.info("For $seeds: dir $tmpDir was created")
+        log.debug("Dir $tmpDir was created")
     } catch (e: Exception) {
         log.error("Couldn't create directories for $tmpDir", e)
     }

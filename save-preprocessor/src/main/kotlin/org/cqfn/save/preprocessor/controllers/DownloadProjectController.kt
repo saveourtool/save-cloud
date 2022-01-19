@@ -231,9 +231,9 @@ class DownloadProjectController(
                 val tmpDir = generateDirectory(listOf(testSuiteUrl), configProperties.repository, deleteExisting = false)
                 Mono.fromCallable {
                     if (user != null && token != null) {
-                        cloneFromGit(GitDto(url = testSuiteUrl, username = user, password = token), tmpDir)
+                        pullOrCloneFromGit(GitDto(url = testSuiteUrl, username = user, password = token), tmpDir)
                     } else {
-                        cloneFromGit(GitDto(testSuiteUrl), tmpDir)
+                        pullOrCloneFromGit(GitDto(testSuiteUrl), tmpDir)
                     }
                         ?.use { git ->
                             switchBranch(git, testSuiteUrl, branchOrCommit = testSuiteRepoInfo.gitBranchOrCommit)
@@ -300,7 +300,7 @@ class DownloadProjectController(
         val gitDto = executionRequest.gitDto
         val tmpDir = generateDirectory(listOf(gitDto.url), configProperties.repository, deleteExisting = false)
         return Mono.fromCallable {
-            cloneFromGit(gitDto, tmpDir)?.use { git ->
+            pullOrCloneFromGit(gitDto, tmpDir)?.use { git ->
                 val branchOrCommit = gitDto.branch ?: gitDto.hash
                 if (branchOrCommit != null && branchOrCommit.isNotBlank()) {
                     switchBranch(git, gitDto.url, branchOrCommit)

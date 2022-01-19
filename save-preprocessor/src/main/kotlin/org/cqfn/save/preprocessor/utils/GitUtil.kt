@@ -19,44 +19,32 @@ private val log = LoggerFactory.getLogger(object {}.javaClass.enclosingClass::cl
  * @param tmpDir
  * @return jGit git entity
  */
-fun cloneFromGit(gitDto: GitDto, tmpDir: File): Git? {
+fun pullOrCloneFromGit(gitDto: GitDto, tmpDir: File): Git? {
     val userCredentials = if (gitDto.username != null && gitDto.password != null) {
         UsernamePasswordCredentialsProvider(gitDto.username, gitDto.password)
     } else {
         CredentialsProvider.getDefault()
     }
-    return if (tmpDir.exists() && !tmpDir.list().isNullOrEmpty()) {
-        log.info("Starting pull project ${gitDto.url} into the $tmpDir")
-        val git = Git.open(tmpDir)
-        val remoteName = Constants.DEFAULT_REMOTE_NAME
-        val fullBranchName = git.repository.branch
-
-        if (!fullBranchName.contains("$remoteName/")) {
-            log.error("Provided branch $fullBranchName seems to be an detached commit, pull command won't be performed!")
-            // FixMe should we delete this dir manually or here? or leave as is?
+    // FixMe tmpDir.list() contain .git dir?
+    if (tmpDir.exists() && !tmpDir.list().isNullOrEmpty()) {
+        val ok = pullGitProject(gitDto, tmpDir, userCredentials)
+        if (ok) {
+            // Just nothing, since no new git instance was created
             return null
         }
-        val branchName = fullBranchName.replace("$remoteName/", "")
-        println("\n\n\nCurrent branch ${branchName}")
-        git.pull()
-            .setCredentialsProvider(userCredentials)
-            .setRemote(remoteName)
-            .setRemoteBranchName(branchName)
-            .call()
-        // Just nothing, since no new git instance was created
-        null
-    } else {
-        log.info("Starting clone project ${gitDto.url} into the $tmpDir")
-        Git.cloneRepository()
-            .setURI(gitDto.url)
-            .setCredentialsProvider(userCredentials)
-            .setDirectory(tmpDir)
-            .call()
+        // Pull was unsuccessful, clean directory before cloning
+        deleteDirectory(tmpDir)
+        generateDirectory(tmpDir)
     }
+    log.info("Starting clone project ${gitDto.url} into the $tmpDir")
+    return Git.cloneRepository()
+        .setURI(gitDto.url)
+        .setCredentialsProvider(userCredentials)
+        .setDirectory(tmpDir)
+        .call()
 }
 
 fun pullGitProject(gitDto: GitDto, tmpDir: File, userCredentials: CredentialsProvider): Boolean {
-    if (tmpDir.exists() && !tmpDir.list().isNullOrEmpty()) {
         log.info("Starting pull project ${gitDto.url} into the $tmpDir")
         val git = Git.open(tmpDir)
         val remoteName = Constants.DEFAULT_REMOTE_NAME
@@ -68,6 +56,7 @@ fun pullGitProject(gitDto: GitDto, tmpDir: File, userCredentials: CredentialsPro
         }
         val branchName = fullBranchName.replace("$remoteName/", "")
         println("\n\n\nCurrent branch ${branchName}")
+        // FixMe: Any try catch block?
         git.pull()
             .setCredentialsProvider(userCredentials)
             .setRemote(remoteName)
@@ -75,6 +64,4 @@ fun pullGitProject(gitDto: GitDto, tmpDir: File, userCredentials: CredentialsPro
             .call()
 
         return true
-    }
-    return false
 }
