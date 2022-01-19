@@ -327,7 +327,7 @@ class DownloadProjectController(
 
     // Notice: branches should contain explicit `origin/` prefix
     private fun switchBranch(git: Git, repoUrl: String, branchOrCommit: String) {
-        log.debug("For $repoUrl switching to the $branchOrCommit")
+        log.info("\n\nFor $repoUrl switching to the $branchOrCommit")
         try {
             git.checkout()
             .setCreateBranch(true)
