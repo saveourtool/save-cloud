@@ -6,6 +6,9 @@ package org.cqfn.save.preprocessor.utils
 
 import org.cqfn.save.entities.GitDto
 import org.eclipse.jgit.api.Git
+import org.eclipse.jgit.api.ListBranchCommand
+import org.eclipse.jgit.lib.Constants
+import org.eclipse.jgit.lib.Ref
 import org.eclipse.jgit.transport.CredentialsProvider
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
 import org.slf4j.LoggerFactory
@@ -27,8 +30,15 @@ fun cloneFromGit(gitDto: GitDto, tmpDir: File): Git? {
     return if (tmpDir.exists() && !tmpDir.list().isNullOrEmpty()) {
         log.info("Starting pull project ${gitDto.url} into the $tmpDir")
         val git = Git.open(tmpDir)
-        // FixMe will be pulled the current branch?
-        git.pull().setCredentialsProvider(userCredentials).call()
+        // TODO what if the concrete commit were used while cloning?
+        val branch = git.repository.branch.replace("origin/", "")
+        println("\n\n\nCurrent branch ${branch}")
+        git.pull()
+            .setCredentialsProvider(userCredentials)
+            .setRemote(Constants.DEFAULT_REMOTE_NAME)
+            .setRemoteBranchName(branch)
+            .call()
+
         null
     } else {
         log.info("Starting clone project ${gitDto.url} into the $tmpDir")

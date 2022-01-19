@@ -27,6 +27,7 @@ import org.cqfn.save.testsuite.TestSuiteType
 import org.cqfn.save.utils.moveFileWithAttributes
 
 import okio.FileSystem
+import org.eclipse.jgit.api.CreateBranchCommand
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.api.errors.GitAPIException
 import org.eclipse.jgit.api.errors.InvalidRemoteException
@@ -328,7 +329,12 @@ class DownloadProjectController(
     private fun switchBranch(git: Git, repoUrl: String, branchOrCommit: String) {
         log.debug("For $repoUrl switching to the $branchOrCommit")
         try {
-            git.checkout().setName(branchOrCommit).call()
+            git.checkout()
+            .setCreateBranch(true)
+            .setName(branchOrCommit)
+            .setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.TRACK)
+            //.setStartPoint("origin/$branchOrCommit")
+            .call()
         } catch (ex: RefNotFoundException) {
             log.warn("Provided branch/commit $branchOrCommit wasn't found, will use default branch")
         }

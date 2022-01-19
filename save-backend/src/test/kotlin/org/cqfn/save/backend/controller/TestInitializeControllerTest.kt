@@ -62,7 +62,7 @@ class TestInitializeControllerTest {
             .isOk
 
         assertNotNull(testRepository.findAllByTestSuiteId(2))
-        assertNotNull(testRepository.findByHashAndFilePathAndTestSuiteId("newHash", "testPath", 2))
+        assertNotNull(testRepository.findByHashAndFilePathAndTestSuiteIdAndPluginName("newHash", "testPath", 2, "WarnPlugin"))
     }
 
     @Test
