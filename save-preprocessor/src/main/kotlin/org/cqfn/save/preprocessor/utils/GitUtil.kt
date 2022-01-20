@@ -26,18 +26,16 @@ private val log = LoggerFactory.getLogger(object {}.javaClass.enclosingClass::cl
  * @return jGit git entity
  */
 fun pullOrCloneFromGit(gitDto: GitDto, tmpDir: File): Git? {
-    println("\n\n\npullOrCloneFromGit")
+    // println("\n\n\npullOrCloneFromGit")
     val userCredentials = if (gitDto.username != null && gitDto.password != null) {
         UsernamePasswordCredentialsProvider(gitDto.username, gitDto.password)
     } else {
         CredentialsProvider.getDefault()
     }
-    // FixMe tmpDir.list() contain .git dir?
+
     if (tmpDir.exists() && !tmpDir.list().isNullOrEmpty()) {
-        val ok = isPullProjectSuccessful(gitDto, tmpDir, userCredentials)
-        if (ok) {
-            // Just nothing, since no new git instance was created
-            return null
+        pullProject(gitDto, tmpDir, userCredentials)?.let {
+            return it
         }
         // Pull was unsuccessful, clean directory before cloning
         deleteDirectory(tmpDir)
@@ -55,36 +53,36 @@ fun pullOrCloneFromGit(gitDto: GitDto, tmpDir: File): Git? {
  * @param gitDto
  * @param tmpDir
  * @param userCredentials
- * @return whether pull command was successful
+ * @return jGit git entity
  */
-fun isPullProjectSuccessful(gitDto: GitDto, tmpDir: File, userCredentials: CredentialsProvider?): Boolean {
+fun pullProject(gitDto: GitDto, tmpDir: File, userCredentials: CredentialsProvider?): Git? {
     log.info("Starting pull project ${gitDto.url} into the $tmpDir")
     val git = Git.open(tmpDir)
-    val remoteName = Constants.DEFAULT_REMOTE_NAME
-    val fullBranchName = git.repository.branch
-    println("\n\n\nCurrent branch $fullBranchName")
-    val branchName = fullBranchName.replace("$remoteName/", "")
 
-    log.info("Reset all changes in $tmpDir before pull command")
+    log.debug("Reset all changes in $tmpDir before pull command")
     git.reset()
         .setMode(ResetCommand.ResetType.HARD)
         .call()
 
+    val branchName = git.repository.branch
+    // println("\n\n\nCurrent branch $branchName")
+
     try {
         git.pull()
             .setCredentialsProvider(userCredentials)
-            .setRemote(remoteName)
+            .setRemote(Constants.DEFAULT_REMOTE_NAME)
             .setRemoteBranchName(branchName)
             .setFastForward(MergeCommand.FastForwardMode.FF)
             .call()
     } catch (ex: RefNotAdvertisedException) {
-        log.error("Provided branch $fullBranchName seems to be an detached commit, pull command won't be performed!")
-        return false
+        log.error("Provided branch $branchName seems to be an detached commit, pull command won't be performed!")
+        return null
     } catch (ex: GitAPIException) {
         log.error("Error during pull project: ", ex)
-        return false
+        return null
     }
-    return true
+    log.info("Successfully pull branch $branchName for project ${gitDto.url}")
+    return git
 }
 
 /**
@@ -93,7 +91,11 @@ fun isPullProjectSuccessful(gitDto: GitDto, tmpDir: File, userCredentials: Crede
  * @param branchOrCommit
  */
 fun switchBranch(git: Git, repoUrl: String, branchOrCommit: String) {
-    println("\n\n\n")
+    // println("\n\n\n")
+    if (git.repository.branch == branchOrCommit.replace("${Constants.DEFAULT_REMOTE_NAME}/", "")) {
+        log.warn("Requested branch $branchOrCommit for git checkout command equals to the current branch, won't provide any actions")
+        return
+    }
     log.info("For $repoUrl switching to the $branchOrCommit")
     try {
         git.checkout()
