@@ -228,13 +228,11 @@ class DownloadProjectController(
                 val tmpDir = generateDirectory(listOf(testSuiteUrl), configProperties.repository, deleteExisting = false)
                 Mono.fromCallable {
                     if (user != null && token != null) {
-                        pullOrCloneFromGit(GitDto(url = testSuiteUrl, username = user, password = token), tmpDir)
+                        pullOrCloneProjectWithSpecificBranch(GitDto(url = testSuiteUrl, username = user, password = token), tmpDir, testSuiteRepoInfo.gitBranchOrCommit)
                     } else {
-                        pullOrCloneFromGit(GitDto(testSuiteUrl), tmpDir)
+                        pullOrCloneProjectWithSpecificBranch(GitDto(testSuiteUrl), tmpDir, testSuiteRepoInfo.gitBranchOrCommit)
                     }
-                        ?.use { git ->
-                            switchBranch(git, testSuiteUrl, branchOrCommit = testSuiteRepoInfo.gitBranchOrCommit)
-                        }
+                        ?.use { /* noop here, just need to close Git object */ }
                 }
                     .flatMapMany { Flux.fromIterable(testSuiteRepoInfo.testSuitePaths) }
                     .flatMap { testRootPath ->
@@ -297,11 +295,7 @@ class DownloadProjectController(
         val gitDto = executionRequest.gitDto
         val tmpDir = generateDirectory(listOf(gitDto.url), configProperties.repository, deleteExisting = false)
         return Mono.fromCallable {
-            pullOrCloneFromGit(gitDto, tmpDir)?.use { git ->
-                val branchOrCommit = gitDto.branch ?: gitDto.hash
-                if (branchOrCommit != null && branchOrCommit.isNotBlank()) {
-                    switchBranch(git, gitDto.url, branchOrCommit)
-                }
+            pullOrCloneProjectWithSpecificBranch(gitDto, tmpDir, branchOrCommit = gitDto.branch ?: gitDto.hash)?.use { git ->
                 val version = git.log().call().first()
                     .name
                 log.info("Cloned repository ${gitDto.url}, head is at $version")

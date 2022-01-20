@@ -10,6 +10,7 @@ import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.api.MergeCommand
 import org.eclipse.jgit.api.ResetCommand
 import org.eclipse.jgit.api.errors.GitAPIException
+import org.eclipse.jgit.api.errors.RefAlreadyExistsException
 import org.eclipse.jgit.api.errors.RefNotAdvertisedException
 import org.eclipse.jgit.api.errors.RefNotFoundException
 import org.eclipse.jgit.lib.Constants
@@ -25,8 +26,8 @@ private val log = LoggerFactory.getLogger(object {}.javaClass.enclosingClass::cl
  * @param tmpDir
  * @return jGit git entity
  */
-fun pullOrCloneFromGit(gitDto: GitDto, tmpDir: File): Git? {
-    // println("\n\n\npullOrCloneFromGit")
+fun pullOrCloneProjectWithSpecificBranch(gitDto: GitDto, tmpDir: File, branchOrCommit: String?): Git? {
+    println("\n\n\npullOrCloneFromGit")
     val userCredentials = if (gitDto.username != null && gitDto.password != null) {
         UsernamePasswordCredentialsProvider(gitDto.username, gitDto.password)
     } else {
@@ -34,7 +35,7 @@ fun pullOrCloneFromGit(gitDto: GitDto, tmpDir: File): Git? {
     }
 
     if (tmpDir.exists() && !tmpDir.list().isNullOrEmpty()) {
-        pullProject(gitDto, tmpDir, userCredentials)?.let {
+        pullProject(gitDto, tmpDir, userCredentials, branchOrCommit)?.let {
             return it
         }
         // Pull was unsuccessful, clean directory before cloning
@@ -46,7 +47,9 @@ fun pullOrCloneFromGit(gitDto: GitDto, tmpDir: File): Git? {
         .setURI(gitDto.url)
         .setCredentialsProvider(userCredentials)
         .setDirectory(tmpDir)
-        .call()
+        .call().also { git ->
+            switchBranch(git, gitDto.url, branchOrCommit)
+    }
 }
 
 /**
@@ -55,9 +58,11 @@ fun pullOrCloneFromGit(gitDto: GitDto, tmpDir: File): Git? {
  * @param userCredentials
  * @return jGit git entity
  */
-fun pullProject(gitDto: GitDto, tmpDir: File, userCredentials: CredentialsProvider?): Git? {
+fun pullProject(gitDto: GitDto, tmpDir: File, userCredentials: CredentialsProvider?, branchOrCommit: String?): Git? {
     log.info("Starting pull project ${gitDto.url} into the $tmpDir")
     val git = Git.open(tmpDir)
+
+    switchBranch(git, gitDto.url, branchOrCommit)
 
     log.debug("Reset all changes in $tmpDir before pull command")
     git.reset()
@@ -65,7 +70,7 @@ fun pullProject(gitDto: GitDto, tmpDir: File, userCredentials: CredentialsProvid
         .call()
 
     val branchName = git.repository.branch
-    // println("\n\n\nCurrent branch $branchName")
+    println("\n\n\nCurrent branch $branchName")
 
     try {
         git.pull()
@@ -90,13 +95,30 @@ fun pullProject(gitDto: GitDto, tmpDir: File, userCredentials: CredentialsProvid
  * @param repoUrl
  * @param branchOrCommit
  */
-fun switchBranch(git: Git, repoUrl: String, branchOrCommit: String) {
-    // println("\n\n\n")
+fun switchBranch(git: Git, repoUrl: String, branchOrCommit: String?) {
+    println("\n\n\ngit.repository.branch ${git.repository.branch}")
+    if (branchOrCommit == null || branchOrCommit.isBlank()) {
+        return
+    }
     if (git.repository.branch == branchOrCommit.replace("${Constants.DEFAULT_REMOTE_NAME}/", "")) {
         log.warn("Requested branch $branchOrCommit for git checkout command equals to the current branch, won't provide any actions")
         return
     }
     log.info("For $repoUrl switching to the $branchOrCommit")
+    try {
+//        git.checkout()
+//            .setCreateBranch(true)
+//            .setName(branchOrCommit.replace("${Constants.DEFAULT_REMOTE_NAME}/", ""))
+//            .setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.TRACK)
+//            .setStartPoint(branchOrCommit)
+//            .call()
+        checkout(git, branchOrCommit)
+    } catch (ex: RefNotFoundException) {
+        log.warn("Provided branch/commit $branchOrCommit wasn't found, will use default branch")
+    }
+}
+
+private fun checkout(git: Git, branchOrCommit: String) {
     try {
         git.checkout()
             .setCreateBranch(true)
@@ -104,7 +126,12 @@ fun switchBranch(git: Git, repoUrl: String, branchOrCommit: String) {
             .setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.TRACK)
             .setStartPoint(branchOrCommit)
             .call()
-    } catch (ex: RefNotFoundException) {
-        log.warn("Provided branch/commit $branchOrCommit wasn't found, will use default branch")
+    } catch (ex: RefAlreadyExistsException) {
+        git.checkout()
+            .setCreateBranch(false)
+            .setName(branchOrCommit.replace("${Constants.DEFAULT_REMOTE_NAME}/", ""))
+            .setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.TRACK)
+            .setStartPoint(branchOrCommit)
+            .call()
     }
 }
