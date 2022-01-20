@@ -6,6 +6,9 @@ package org.cqfn.save.preprocessor.utils
 
 import org.cqfn.save.entities.GitDto
 import org.eclipse.jgit.api.Git
+import org.eclipse.jgit.api.MergeCommand
+import org.eclipse.jgit.api.ResetCommand
+import org.eclipse.jgit.api.errors.RefNotAdvertisedException
 import org.eclipse.jgit.lib.Constants
 import org.eclipse.jgit.transport.CredentialsProvider
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
@@ -20,6 +23,7 @@ private val log = LoggerFactory.getLogger(object {}.javaClass.enclosingClass::cl
  * @return jGit git entity
  */
 fun pullOrCloneFromGit(gitDto: GitDto, tmpDir: File): Git? {
+    println("\n\n\npullOrCloneFromGit")
     val userCredentials = if (gitDto.username != null && gitDto.password != null) {
         UsernamePasswordCredentialsProvider(gitDto.username, gitDto.password)
     } else {
@@ -44,24 +48,29 @@ fun pullOrCloneFromGit(gitDto: GitDto, tmpDir: File): Git? {
         .call()
 }
 
-fun pullGitProject(gitDto: GitDto, tmpDir: File, userCredentials: CredentialsProvider): Boolean {
+fun pullGitProject(gitDto: GitDto, tmpDir: File, userCredentials: CredentialsProvider?): Boolean {
         log.info("Starting pull project ${gitDto.url} into the $tmpDir")
         val git = Git.open(tmpDir)
         val remoteName = Constants.DEFAULT_REMOTE_NAME
         val fullBranchName = git.repository.branch
+        println("\n\n\nCurrent branch ${fullBranchName}")
+        val branchName = fullBranchName.replace("$remoteName/", "")
 
-        if (!fullBranchName.contains("$remoteName/")) {
+        log.info("Reset all changes in $tmpDir before pull command")
+        git.reset()
+            .setMode(ResetCommand.ResetType.HARD)
+            .call()
+
+        try {
+            git.pull()
+                .setCredentialsProvider(userCredentials)
+                .setRemote(remoteName)
+                .setRemoteBranchName(branchName)
+                .setFastForward(MergeCommand.FastForwardMode.FF)
+                .call()
+        } catch (ex: RefNotAdvertisedException) {
             log.error("Provided branch $fullBranchName seems to be an detached commit, pull command won't be performed!")
             return false
         }
-        val branchName = fullBranchName.replace("$remoteName/", "")
-        println("\n\n\nCurrent branch ${branchName}")
-        // FixMe: Any try catch block?
-        git.pull()
-            .setCredentialsProvider(userCredentials)
-            .setRemote(remoteName)
-            .setRemoteBranchName(branchName)
-            .call()
-
         return true
 }

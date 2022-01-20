@@ -33,6 +33,7 @@ import org.eclipse.jgit.api.errors.GitAPIException
 import org.eclipse.jgit.api.errors.InvalidRemoteException
 import org.eclipse.jgit.api.errors.RefNotFoundException
 import org.eclipse.jgit.api.errors.TransportException
+import org.eclipse.jgit.lib.Constants
 import org.slf4j.LoggerFactory
 import org.springframework.core.io.ClassPathResource
 import org.springframework.http.HttpStatus
@@ -325,15 +326,15 @@ class DownloadProjectController(
             }
     }
 
-    // Notice: branches should contain explicit `origin/` prefix
     private fun switchBranch(git: Git, repoUrl: String, branchOrCommit: String) {
-        log.info("\n\nFor $repoUrl switching to the $branchOrCommit")
+        println("\n\n\n")
+        log.info("For $repoUrl switching to the $branchOrCommit")
         try {
             git.checkout()
             .setCreateBranch(true)
-            .setName(branchOrCommit)
+            .setName(branchOrCommit.replace("${Constants.DEFAULT_REMOTE_NAME}/", ""))
             .setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.TRACK)
-            //.setStartPoint("origin/$branchOrCommit")
+            .setStartPoint(branchOrCommit)
             .call()
         } catch (ex: RefNotFoundException) {
             log.warn("Provided branch/commit $branchOrCommit wasn't found, will use default branch")
