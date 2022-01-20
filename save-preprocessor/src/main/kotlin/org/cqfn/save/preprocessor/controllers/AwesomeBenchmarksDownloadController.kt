@@ -3,8 +3,8 @@ package org.cqfn.save.preprocessor.controllers
 import org.cqfn.save.entities.GitDto
 import org.cqfn.save.entities.benchmarks.BenchmarkEntity
 import org.cqfn.save.preprocessor.config.ConfigProperties
-import org.cqfn.save.preprocessor.utils.pullOrCloneFromGit
 import org.cqfn.save.preprocessor.utils.generateDirectory
+import org.cqfn.save.preprocessor.utils.pullOrCloneFromGit
 
 import com.akuleshov7.ktoml.file.TomlFileReader
 import org.eclipse.jgit.api.errors.GitAPIException

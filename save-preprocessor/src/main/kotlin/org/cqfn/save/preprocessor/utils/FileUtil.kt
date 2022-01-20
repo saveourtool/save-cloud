@@ -54,6 +54,7 @@ inline fun <reified T> decodeFromPropertiesFile(file: File): T {
  *
  * @param seeds a list of strings for directory name creation
  * @param repository name of the repository used for the creation of tmp dir
+ * @param deleteExisting whether to delete existing directory
  * @return a [File] representing the created temporary directory
  */
 @Suppress("TooGenericExceptionCaught")
@@ -69,6 +70,9 @@ internal fun generateDirectory(seeds: List<String>, repository: String, deleteEx
     return generateDirectory(tmpDir)
 }
 
+/**
+ * @param tmpDir directory which need to be deleted
+ */
 internal fun deleteDirectory(tmpDir: File) {
     try {
         if (FileSystemUtils.deleteRecursively(tmpDir.toPath())) {
@@ -79,6 +83,10 @@ internal fun deleteDirectory(tmpDir: File) {
     }
 }
 
+/**
+ * @param tmpDir directory which need to be created
+ * @return a [File] representing the created temporary directory
+ */
 internal fun generateDirectory(tmpDir: File): File {
     try {
         tmpDir.toPath().createDirectories()

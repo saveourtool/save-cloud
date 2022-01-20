@@ -44,7 +44,7 @@ dependencies {
 
 tasks.withType<org.liquibase.gradle.LiquibaseTask>().configureEach {
     this.javaLauncher.set(project.extensions.getByType<JavaToolchainService>().launcherFor {
-        languageVersion.set(JavaLanguageVersion.of(Versions.jdk))
+        languageVersion.set(JavaLanguageVersion.of(11))
     })
 }
 
