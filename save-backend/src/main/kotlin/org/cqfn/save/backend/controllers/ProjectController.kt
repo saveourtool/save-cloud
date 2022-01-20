@@ -63,7 +63,7 @@ class ProjectController(private val projectService: ProjectService,
      */
     @GetMapping("/not-deleted")
     fun getNotDeletedProjects(authentication: Authentication?) = projectService.getNotDeletedProjects()
-        .filter { project -> authentication?.let { projectPermissionEvaluator.hasPermission(it, project, Permission.READ) } ?: project.public }
+        .filter { projectPermissionEvaluator.hasPermission(authentication, it, Permission.READ) }
 
     /**
      * 200 - if user can access the project
