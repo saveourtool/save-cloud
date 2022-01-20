@@ -15,7 +15,13 @@ class ProjectPermissionEvaluator {
      * @param permission
      * @return whether user described by [authentication] can have [permission] on project [project]
      */
-    fun hasPermission(authentication: Authentication, project: Project, permission: Permission): Boolean {
+    fun hasPermission(authentication: Authentication?, project: Project, permission: Permission): Boolean {
+        authentication ?: return when (permission) {
+            Permission.READ -> project.public
+            Permission.WRITE -> false
+            Permission.DELETE -> false
+        }
+
         if (authentication.hasRole(Role.ADMIN)) {
             return true
         }
