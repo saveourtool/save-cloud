@@ -9,6 +9,7 @@ import org.eclipse.jgit.api.CreateBranchCommand
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.api.MergeCommand
 import org.eclipse.jgit.api.ResetCommand
+import org.eclipse.jgit.api.errors.GitAPIException
 import org.eclipse.jgit.api.errors.RefNotAdvertisedException
 import org.eclipse.jgit.api.errors.RefNotFoundException
 import org.eclipse.jgit.lib.Constants
@@ -78,6 +79,9 @@ fun isPullProjectSuccessful(gitDto: GitDto, tmpDir: File, userCredentials: Crede
             .call()
     } catch (ex: RefNotAdvertisedException) {
         log.error("Provided branch $fullBranchName seems to be an detached commit, pull command won't be performed!")
+        return false
+    } catch (ex: GitAPIException) {
+        log.error("Error during pull project: ", ex)
         return false
     }
     return true
