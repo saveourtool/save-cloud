@@ -62,7 +62,7 @@ class ProjectController(private val projectService: ProjectService,
      * @return a list of projects
      */
     @GetMapping("/not-deleted")
-    fun getNotDeletedProjects(authentication: Authentication) = projectService.getNotDeletedProjects()
+    fun getNotDeletedProjects(authentication: Authentication?) = projectService.getNotDeletedProjects()
         .filter { projectPermissionEvaluator.hasPermission(authentication, it, Permission.READ) }
 
     /**
