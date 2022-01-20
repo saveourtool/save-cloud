@@ -44,7 +44,8 @@ dependencies {
 
 tasks.withType<org.liquibase.gradle.LiquibaseTask>().configureEach {
     this.javaLauncher.set(project.extensions.getByType<JavaToolchainService>().launcherFor {
-        languageVersion.set(JavaLanguageVersion.of(Versions.jdk))
+        // liquibase-core 4.7.0 and liquibase-gradle 2.1.1 fails on Java >= 13
+        languageVersion.set(JavaLanguageVersion.of(11))
     })
 }
 
