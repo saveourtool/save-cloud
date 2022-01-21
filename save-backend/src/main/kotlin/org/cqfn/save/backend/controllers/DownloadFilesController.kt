@@ -6,10 +6,12 @@ import org.cqfn.save.backend.repository.AgentRepository
 import org.cqfn.save.backend.repository.TestDataFilesystemRepository
 import org.cqfn.save.backend.repository.TimestampBasedFileSystemRepository
 import org.cqfn.save.domain.FileInfo
+import org.cqfn.save.domain.ImageInfo
 import org.cqfn.save.domain.TestResultDebugInfo
 import org.cqfn.save.domain.TestResultLocation
 import org.cqfn.save.from
 
+import com.mchange.io.FileUtils
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -24,12 +26,11 @@ import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
 
+import java.io.File
 import java.io.FileNotFoundException
+import java.util.*
 
-import kotlin.io.path.fileSize
-import kotlin.io.path.name
-import kotlin.io.path.notExists
-import kotlin.io.path.readText
+import kotlin.io.path.*
 
 /**
  * A Spring controller for file downloading
@@ -51,6 +52,19 @@ class DownloadFilesController(
             it.name,
             // assuming here, that we always store files in timestamp-based directories
             it.parent.name.toLong(),
+            it.fileSize(),
+        )
+    }
+
+    /**
+     * @param owner owner name
+     * @return a image
+     */
+    @GetMapping("/api/avatar")
+    fun avatar(@RequestParam owner: String): ImageInfo? = additionalToolsFileSystemRepository.getAvatar(owner)?.let {
+        ImageInfo(
+            it.name,
+            Base64.getEncoder().encodeToString(FileUtils.getBytes(File(it.pathString))),
             it.fileSize(),
         )
     }
@@ -86,6 +100,25 @@ class DownloadFilesController(
             additionalToolsFileSystemRepository.saveFile(file).map { fileInfo ->
                 ResponseEntity.status(
                     if (fileInfo.sizeBytes > 0) HttpStatus.OK else HttpStatus.INTERNAL_SERVER_ERROR
+                )
+                    .body(fileInfo)
+            }
+                .onErrorReturn(
+                    FileAlreadyExistsException::class.java,
+                    ResponseEntity.status(HttpStatus.CONFLICT).build()
+                )
+
+    /**
+     * @param file image to be uploaded
+     * @param owner owner name
+     * @return [Mono] with response
+     */
+    @Suppress("UnsafeCallOnNullableType")
+    @PostMapping(value = ["/api/image/upload"], consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
+    fun uploadImage(@RequestPart("file") file: Mono<FilePart>, @RequestParam owner: String) =
+            additionalToolsFileSystemRepository.saveImage(file, owner).map { fileInfo ->
+                ResponseEntity.status(
+                    if (fileInfo.sizeBytes != null && fileInfo.sizeBytes!! > 0) HttpStatus.OK else HttpStatus.INTERNAL_SERVER_ERROR
                 )
                     .body(fileInfo)
             }

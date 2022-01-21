@@ -15,3 +15,15 @@ data class FileInfo(
     val sizeBytes: Long,
     val isExecutable: Boolean = false,
 )
+
+/**
+ * @property name name of a file
+ * @property base64 byte string of image
+ * @property sizeBytes size in bytes
+ */
+@Serializable
+data class ImageInfo(
+    val name: String?,
+    val base64: String?,
+    val sizeBytes: Long?,
+)

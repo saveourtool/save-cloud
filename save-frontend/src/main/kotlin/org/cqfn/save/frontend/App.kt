@@ -126,6 +126,19 @@ class App : RComponent<PropsWithChildren, AppState>() {
 
                         Route {
                             attrs {
+                                path = "/:owner"
+                                element = buildElement {
+                                    child(withRouter { _, params ->
+                                        child(OwnerView::class) {
+                                            attrs.owner = params["owner"]!!
+                                        }
+                                    })
+                                }
+                            }
+                        }
+
+                        Route {
+                            attrs {
                                 path = "/:owner/:name"
                                 element = buildElement {
                                     child(withRouter { _, params ->
