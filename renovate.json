@@ -33,7 +33,7 @@
       "groupSlug": "core-kotlin"
     },
     {
-      "managers": ["docker"],
+      "managers": ["docker-compose"],
       "groupName": "all docker images",
       "groupSlug": "all-docker-images"
     }

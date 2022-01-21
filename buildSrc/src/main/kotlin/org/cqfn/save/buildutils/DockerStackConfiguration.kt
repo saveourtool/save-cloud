@@ -109,7 +109,7 @@ fun Project.createStackDeployTask(profile: String) {
                 ""
             } +
                 " save"
-        commandLine("bash", "-c", "'$composeCmd | $stackCmd'")
+        commandLine("bash", "-c", "$composeCmd | $stackCmd")
     }
 
     tasks.register("buildAndDeployDockerStack") {
