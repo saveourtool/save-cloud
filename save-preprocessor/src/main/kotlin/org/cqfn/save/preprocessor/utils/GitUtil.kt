@@ -25,10 +25,10 @@ private val log = LoggerFactory.getLogger(object {}.javaClass.enclosingClass::cl
 /**
  * @param gitDto
  * @param tmpDir
+ * @param branchOrCommit
  * @return jGit git entity
  */
 fun pullOrCloneProjectWithSpecificBranch(gitDto: GitDto, tmpDir: File, branchOrCommit: String?): Git? {
-    println("\n\n\npullOrCloneFromGit")
     val userCredentials = if (gitDto.username != null && gitDto.password != null) {
         UsernamePasswordCredentialsProvider(gitDto.username, gitDto.password)
     } else {
@@ -50,16 +50,22 @@ fun pullOrCloneProjectWithSpecificBranch(gitDto: GitDto, tmpDir: File, branchOrC
         .setDirectory(tmpDir)
         .call().also { git ->
             switchBranch(git, gitDto.url, branchOrCommit)
-    }
+        }
 }
 
 /**
  * @param gitDto
  * @param tmpDir
  * @param userCredentials
+ * @param branchOrCommit
  * @return jGit git entity
  */
-fun pullProject(gitDto: GitDto, tmpDir: File, userCredentials: CredentialsProvider?, branchOrCommit: String?): Git? {
+fun pullProject(
+    gitDto: GitDto,
+    tmpDir: File,
+    userCredentials: CredentialsProvider?,
+    branchOrCommit: String?
+): Git? {
     log.info("Starting pull project ${gitDto.url} into the $tmpDir")
     val git = Git.open(tmpDir)
 
@@ -73,7 +79,6 @@ fun pullProject(gitDto: GitDto, tmpDir: File, userCredentials: CredentialsProvid
     }
 
     val branchName = git.repository.branch
-    println("\n\n\nCurrent branch $branchName")
 
     try {
         git.pull()
@@ -97,11 +102,13 @@ fun pullProject(gitDto: GitDto, tmpDir: File, userCredentials: CredentialsProvid
  * @param git
  * @param repoUrl
  * @param branchOrCommit
+ * @return flag, whether the switching was successful
  */
+@Suppress("FUNCTION_BOOLEAN_PREFIX")
 fun switchBranch(git: Git, repoUrl: String, branchOrCommit: String?): Boolean {
     val branchName = if (branchOrCommit.isNullOrBlank()) getDefaultBranchName(repoUrl) else branchOrCommit
-    println("\n\n\nswitchBranch to the $branchName, current: ${git.repository.branch}")
-    if (branchName == null) {
+    log.info("Start switch branch from ${git.repository.branch} to the $branchName for $repoUrl")
+    branchName ?: run {
         log.error("Branch name wasn't provided and couldn't get default branch for repo $repoUrl")
         return false
     }
@@ -110,36 +117,38 @@ fun switchBranch(git: Git, repoUrl: String, branchOrCommit: String?): Boolean {
         log.warn("Requested branch $branchName for git checkout command equals to the current branch, won't provide any actions")
         return true
     }
-    log.info("For $repoUrl switching to the $branchName")
+
     try {
         try {
-            checkout(git, branchName , true)
+            checkout(git, branchName, true)
         } catch (ex: RefAlreadyExistsException) {
             log.warn("Branch $branchName for $repoUrl already exists, won't create it one more time")
-            checkout(git, branchName , false)
+            checkout(git, branchName, false)
         }
     } catch (ex: RefNotFoundException) {
         log.warn("Provided branch/commit $branchName wasn't found, will use current branch: ${git.repository.branch}")
     }
+
     return true
 }
 
 private fun getDefaultBranchName(repoUrl: String): String? {
     val head: Ref? = Git.lsRemoteRepository().setRemote(repoUrl).callAsMap()["HEAD"]
-    val defaultBranch = if (head != null) {
+    val defaultBranch = head?.let {
         if (head.isSymbolic) {
             // Branch name
             head.target.name
         } else {
-            // SHA-1
+            // SHA-1 hash
             head.objectId.name
         }
-    } else {
-        log.error("Couldn't get default branch name for $repoUrl")
-        return null
     }
+        ?: run {
+            log.error("Couldn't get default branch name for $repoUrl")
+            return null
+        }
 
-    log.debug("Default branch name: $defaultBranch")
+    log.debug("Getting default branch name: $defaultBranch")
 
     return defaultBranch.replace("refs/heads/", "${Constants.DEFAULT_REMOTE_NAME}/")
 }
