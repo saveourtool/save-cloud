@@ -96,7 +96,7 @@ fun pullProject(
     } catch (ex: RefNotAdvertisedException) {
         git.close()
         return Result.failure(
-            IllegalArgumentException("Provided branch $branchName seems to be an detached commit, pull command won't be performed! $ex")
+            IllegalArgumentException("Provided branch $branchName seems to be an detached commit, pull command won't be performed! $ex", ex)
         )
     } catch (ex: GitAPIException) {
         git.close()
