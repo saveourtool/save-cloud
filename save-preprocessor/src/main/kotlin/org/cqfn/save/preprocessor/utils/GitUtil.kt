@@ -10,6 +10,7 @@ import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.api.MergeCommand
 import org.eclipse.jgit.api.ResetCommand
 import org.eclipse.jgit.api.errors.GitAPIException
+import org.eclipse.jgit.api.errors.InvalidConfigurationException
 import org.eclipse.jgit.api.errors.RefAlreadyExistsException
 import org.eclipse.jgit.api.errors.RefNotAdvertisedException
 import org.eclipse.jgit.api.errors.RefNotFoundException
@@ -36,8 +37,11 @@ fun pullOrCloneProjectWithSpecificBranch(gitDto: GitDto, tmpDir: File, branchOrC
     }
 
     if (tmpDir.exists() && !tmpDir.list().isNullOrEmpty()) {
-        pullProject(gitDto, tmpDir, userCredentials, branchOrCommit)?.let {
-            return it
+        val result = pullProject(gitDto, tmpDir, userCredentials, branchOrCommit)
+        if (result.isFailure) {
+            log.error(result.toString())
+        } else {
+            return result.getOrNull()
         }
         // Pull was unsuccessful, clean directory before cloning
         deleteDirectory(tmpDir)
@@ -65,7 +69,7 @@ fun pullProject(
     tmpDir: File,
     userCredentials: CredentialsProvider?,
     branchOrCommit: String?
-): Git? {
+): Result<Git> {
     log.info("Starting pull project ${gitDto.url} into the $tmpDir")
     val git = Git.open(tmpDir)
 
@@ -75,7 +79,8 @@ fun pullProject(
         .call()
 
     if (!switchBranch(git, gitDto.url, branchOrCommit)) {
-        return null
+        git.close()
+        return Result.failure(InvalidConfigurationException("Error: cannot switch branch"))
     }
 
     val branchName = git.repository.branch
@@ -88,14 +93,14 @@ fun pullProject(
             .setFastForward(MergeCommand.FastForwardMode.FF)
             .call()
     } catch (ex: RefNotAdvertisedException) {
-        log.error("Provided branch $branchName seems to be an detached commit, pull command won't be performed!")
-        return null
+        git.close()
+        return Result.failure(RefNotAdvertisedException("Provided branch $branchName seems to be an detached commit, pull command won't be performed!"))
     } catch (ex: GitAPIException) {
-        log.error("Error during pull project: ", ex)
-        return null
+        git.close()
+        return Result.failure(Exception("Error during pull project: ", ex))
     }
     log.info("Successfully pull branch $branchName for project ${gitDto.url}")
-    return git
+    return Result.success(git)
 }
 
 /**
@@ -106,10 +111,15 @@ fun pullProject(
  */
 @Suppress("FUNCTION_BOOLEAN_PREFIX")
 fun switchBranch(git: Git, repoUrl: String, branchOrCommit: String?): Boolean {
-    val branchName = if (branchOrCommit.isNullOrBlank()) getDefaultBranchName(repoUrl) else branchOrCommit
+    val branchName = if (branchOrCommit.isNullOrBlank()) {
+        log.info("Branch name wasn't provided, will checkout to the default branch")
+        getDefaultBranchName(repoUrl)
+    } else {
+        branchOrCommit
+    }
     log.info("Start switch branch from ${git.repository.branch} to the $branchName for $repoUrl")
     branchName ?: run {
-        log.error("Branch name wasn't provided and couldn't get default branch for repo $repoUrl")
+        log.error("Couldn't get default branch for repo $repoUrl")
         return false
     }
 
