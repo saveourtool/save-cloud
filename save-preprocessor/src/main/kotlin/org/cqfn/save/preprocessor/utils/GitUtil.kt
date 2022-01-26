@@ -20,6 +20,7 @@ import org.eclipse.jgit.transport.CredentialsProvider
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
 import org.slf4j.LoggerFactory
 import java.io.File
+import java.lang.IllegalArgumentException
 
 private val log = LoggerFactory.getLogger(object {}.javaClass.enclosingClass::class.java)
 
@@ -94,7 +95,9 @@ fun pullProject(
             .call()
     } catch (ex: RefNotAdvertisedException) {
         git.close()
-        return Result.failure(RefNotAdvertisedException("Provided branch $branchName seems to be an detached commit, pull command won't be performed!"))
+        return Result.failure(
+            IllegalArgumentException("Provided branch $branchName seems to be an detached commit, pull command won't be performed! $ex")
+        )
     } catch (ex: GitAPIException) {
         git.close()
         return Result.failure(Exception("Error during pull project: ", ex))
