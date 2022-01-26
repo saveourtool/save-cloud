@@ -27,10 +27,8 @@ import org.cqfn.save.testsuite.TestSuiteType
 import org.cqfn.save.utils.moveFileWithAttributes
 
 import okio.FileSystem
-import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.api.errors.GitAPIException
 import org.eclipse.jgit.api.errors.InvalidRemoteException
-import org.eclipse.jgit.api.errors.RefNotFoundException
 import org.eclipse.jgit.api.errors.TransportException
 import org.slf4j.LoggerFactory
 import org.springframework.core.io.ClassPathResource
@@ -227,16 +225,14 @@ class DownloadProjectController(
             Flux.fromIterable(readStandardTestSuitesFile(configProperties.reposFileName)).flatMap { testSuiteRepoInfo ->
                 val testSuiteUrl = testSuiteRepoInfo.gitUrl
                 log.info("Starting clone repository url=$testSuiteUrl for standard test suites")
-                val tmpDir = generateDirectory(listOf(testSuiteUrl), configProperties.repository)
+                val tmpDir = generateDirectory(listOf(testSuiteUrl), configProperties.repository, deleteExisting = false)
                 Mono.fromCallable {
                     if (user != null && token != null) {
-                        cloneFromGit(GitDto(url = testSuiteUrl, username = user, password = token), tmpDir)
+                        pullOrCloneProjectWithSpecificBranch(GitDto(url = testSuiteUrl, username = user, password = token), tmpDir, testSuiteRepoInfo.gitBranchOrCommit)
                     } else {
-                        cloneFromGit(GitDto(testSuiteUrl), tmpDir)
+                        pullOrCloneProjectWithSpecificBranch(GitDto(testSuiteUrl), tmpDir, testSuiteRepoInfo.gitBranchOrCommit)
                     }
-                        ?.use { git ->
-                            switchBranch(git, testSuiteUrl, branchOrCommit = testSuiteRepoInfo.gitBranchOrCommit)
-                        }
+                        ?.use { /* noop here, just need to close Git object */ }
                 }
                     .flatMapMany { Flux.fromIterable(testSuiteRepoInfo.testSuitePaths) }
                     .flatMap { testRootPath ->
@@ -297,13 +293,9 @@ class DownloadProjectController(
     )
     private fun downLoadRepository(executionRequest: ExecutionRequest): Mono<Pair<String, String>> {
         val gitDto = executionRequest.gitDto
-        val tmpDir = generateDirectory(listOf(gitDto.url), configProperties.repository)
+        val tmpDir = generateDirectory(listOf(gitDto.url), configProperties.repository, deleteExisting = false)
         return Mono.fromCallable {
-            cloneFromGit(gitDto, tmpDir)?.use { git ->
-                val branchOrCommit = gitDto.branch ?: gitDto.hash
-                if (branchOrCommit != null && branchOrCommit.isNotBlank()) {
-                    switchBranch(git, gitDto.url, branchOrCommit)
-                }
+            pullOrCloneProjectWithSpecificBranch(gitDto, tmpDir, branchOrCommit = gitDto.branch ?: gitDto.hash)?.use { git ->
                 val version = git.log().call().first()
                     .name
                 log.info("Cloned repository ${gitDto.url}, head is at $version")
@@ -324,21 +316,12 @@ class DownloadProjectController(
             }
     }
 
-    // Notice: branches should contain explicit `origin/` prefix
-    private fun switchBranch(git: Git, repoUrl: String, branchOrCommit: String) {
-        log.debug("For $repoUrl switching to the $branchOrCommit")
-        try {
-            git.checkout().setName(branchOrCommit).call()
-        } catch (ex: RefNotFoundException) {
-            log.warn("Provided branch/commit $branchOrCommit wasn't found, will use default branch")
-        }
-    }
-
     @Suppress("TOO_LONG_FUNCTION")
     private fun saveBinaryFile(
         executionRequestForStandardSuites: ExecutionRequestForStandardSuites,
         files: List<File>,
     ): Mono<StatusResponse> {
+        // Move files into local storage
         val tmpDir = generateDirectory(calculateTmpNameForFiles(files), configProperties.repository)
         files.forEach {
             log.debug("Move $it into $tmpDir")

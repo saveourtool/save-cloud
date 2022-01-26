@@ -553,7 +553,7 @@ class DownloadProjectTest(
         }
     }
 
-    @AfterAll
+    @AfterEach
     fun removeBinDir() {
         File(configProperties.repository).deleteRecursively()
         File(binFolder).deleteRecursively()
