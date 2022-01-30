@@ -13,6 +13,8 @@
     <include file="test_suite.xml" relativeToChangelogFile="true"/>
     <include file="test_execution.xml" relativeToChangelogFile="true"/>
     <include file="execution.xml" relativeToChangelogFile="true"/>
+    <include file="organization.xml" relativeToChangelogFile="true"/>
+    <include file="lnk-user-project.xml" relativeToChangelogFile="true"/>
 
     <changeSet id="02-tables" author="frolov">
         <tagDatabase tag="v2.0-tables"/>
