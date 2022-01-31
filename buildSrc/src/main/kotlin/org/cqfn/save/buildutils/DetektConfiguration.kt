@@ -21,6 +21,9 @@ fun Project.configureDetekt() {
         config = rootProject.files("detekt.yml")
         buildUponDefaultConfig = true
     }
+    tasks.withType<Detekt>().configureEach {
+        reports.sarif.required.set(true)
+    }
 }
 
 /**

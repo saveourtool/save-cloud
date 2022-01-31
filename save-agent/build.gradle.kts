@@ -90,6 +90,7 @@ registerSaveCliVersionCheckTask()
 val generateVersionFileTaskProvider = tasks.register("generateVersionFile") {
     val versionsFile = File("$buildDir/generated/src/generated/Versions.kt")
 
+    dependsOn("getSaveCliVersion")
     inputs.file(pathToSaveCliVersion)
     inputs.property("project version", version.toString())
     outputs.file(versionsFile)
