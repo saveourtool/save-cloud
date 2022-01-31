@@ -63,9 +63,8 @@ val generateVersionFileTaskProvider = tasks.register("generateVersionFile") {
     inputs.property("project version", version.toString())
     outputs.file(versionsFile)
 
-    val saveCliVersion = readSaveCliVersion()
-
     doFirst {
+        val saveCliVersion = readSaveCliVersion()
         versionsFile.parentFile.mkdirs()
         versionsFile.writeText(
             """
