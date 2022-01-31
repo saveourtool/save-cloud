@@ -10,6 +10,11 @@ enum class Role {
     ADMIN,
 
     /**
+     * User that has created this project
+     */
+    OWNER,
+
+    /**
      * Has readonly access to public projects.
      */
     VIEWER,

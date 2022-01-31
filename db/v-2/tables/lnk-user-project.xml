@@ -23,6 +23,7 @@
       </column>
       <column name="user_role" type="varchar(250)" />
     </createTable>
+
     <rollback>
       <dropTable
         cascadeConstraints="true"

@@ -8,6 +8,7 @@
     <changeSet id="project-insert" author="petertrr" context="dev">
         <update dbms="mysql" tableName="project">
             <column name="user_id" value="1" />
+            <column name="organization_id" value="1" />
         </update>
       
         <insert dbms="mysql" tableName="project">
@@ -18,6 +19,7 @@
             <column name="description" value="This is an example project" />
             <column name="public" valueBoolean="false" />
             <column name="user_id" value="2" />
+            <column name="organization_id" value="2" />
         </insert>
         <insert dbms="mysql" tableName="project">
             <column name="id" value="4" />
@@ -28,6 +30,7 @@
             <column name="status" value="DELETED" />
             <column name="public" valueBoolean="true" />
             <column name="user_id" value="2" />
+            <column name="organization_id" value="2" />
         </insert>
     </changeSet>
 </databaseChangeLog>

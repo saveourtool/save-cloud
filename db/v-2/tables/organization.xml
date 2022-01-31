@@ -16,13 +16,14 @@
         <constraints primaryKey="true" nullable="false"/>
       </column>
       <column name="name" type="varchar(250)" />
-      <column name="owner" type="bigint">
+      <column name="owner_id" type="bigint">
           <constraints foreignKeyName="fk_user_organization" references="user(id)" nullable="false"/>
       </column>
       <column name="date_created" type="timestamp">
         <constraints nullable="false"/>
       </column>
     </createTable>
+
     <rollback>
       <dropTable
         cascadeConstraints="true"
