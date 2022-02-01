@@ -56,12 +56,14 @@ talaiot {
 }
 
 allprojects {
-    configureDiktat()
     configureDetekt()
     configurations.all {
         // if SNAPSHOT dependencies are used, refresh them periodically
         resolutionStrategy.cacheDynamicVersionsFor(10, TimeUnit.MINUTES)
     }
+}
+subprojects {
+    configureDiktat()
 }
 
 createStackDeployTask(profile)
