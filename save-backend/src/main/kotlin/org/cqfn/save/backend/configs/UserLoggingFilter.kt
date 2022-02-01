@@ -16,6 +16,6 @@ class UserLoggingFilter : WebFilter {
     private val logger = LoggerFactory.getLogger(UserLoggingFilter::class.java)
 
     override fun filter(exchange: ServerWebExchange, chain: WebFilterChain): Mono<Void> = exchange.getPrincipal<Principal>().doOnNext {
-        logger.info("${exchange.request.method} ${exchange.request.path} request authorized by $it")
+        logger.debug("${exchange.request.method} ${exchange.request.path} request authorized by $it")
     }.then(chain.filter(exchange))
 }

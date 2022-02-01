@@ -72,7 +72,7 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
                                    @RequestBody testResultLocation: TestResultLocation,
     ): TestExecutionDto = testExecutionService.getTestExecution(executionId, testResultLocation)
         .map { it.toDto() }
-        .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "Test execution not found for executionId=$executionId and $testResultLocation") }
+        .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "\n\n\n\nTest execution not found for executionId=$executionId and $testResultLocation") }
 
     /**
      * Returns number of TestExecutions with this [executionId]

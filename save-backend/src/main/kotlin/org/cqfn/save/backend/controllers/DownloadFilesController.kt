@@ -114,6 +114,9 @@ class DownloadFilesController(
             executionId,
             testResultLocation
         )
+
+        println("\n\n\n\n\n\ndebugInfoFile ${debugInfoFile}")
+
         return if (debugInfoFile.notExists()) {
             logger.warn("File $debugInfoFile not found")
             throw ResponseStatusException(HttpStatus.NOT_FOUND, "File not found")

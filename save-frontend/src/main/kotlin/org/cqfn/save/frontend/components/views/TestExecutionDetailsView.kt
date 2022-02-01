@@ -104,6 +104,10 @@ private fun RBuilder.fallback(status: String) = div {
 fun testExecutionDetailsView() = fc<Props> {
     val params = useParams()
     val executionId = params["executionId"]!!.toLong()
+
+
+    console.log("\n\n\ntestFilePath in testExecutionDetailsView ${params["testFilePath"]!!}")
+
     val testResultLocation = TestResultLocation(
         params["testSuiteName"]!!,
         params["pluginName"]!!,
