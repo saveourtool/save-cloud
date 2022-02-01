@@ -24,11 +24,13 @@ jobs:
           arguments: |
             detektAll
       - name: Copy SARIF reports into a single directory
+        if: ${{ always() }}
         run: |
           mkdir -p build/detekt-sarif-reports
           i=0
           find . -name "detekt.sarif" | while read -r f; do echo "$f -> detekt-$i.sarif" && cp $f build/detekt-sarif-reports/detekt-$i.sarif || echo Cannot copy && echo Copied && i=$((i+1)); done
       - name: Upload SARIF to Github
+        if: ${{ always() }}
         uses: github/codeql-action/upload-sarif@v1
         with:
           sarif_file: build/detekt-sarif-reports
