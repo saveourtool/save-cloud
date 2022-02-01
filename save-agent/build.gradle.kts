@@ -1,4 +1,6 @@
-import org.cqfn.save.buildutils.getSaveCliVersion
+import org.cqfn.save.buildutils.pathToSaveCliVersion
+import org.cqfn.save.buildutils.readSaveCliVersion
+import org.cqfn.save.buildutils.registerSaveCliVersionCheckTask
 
 plugins {
     kotlin("multiplatform")
@@ -84,15 +86,17 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinTest> {
 }
 
 // todo: this logic is duplicated between agent and frontend, can be moved to a shared plugin in buildSrc
+registerSaveCliVersionCheckTask()
 val generateVersionFileTaskProvider = tasks.register("generateVersionFile") {
     val versionsFile = File("$buildDir/generated/src/generated/Versions.kt")
 
-    val saveCliVersion = getSaveCliVersion()
-    inputs.property("Version of save-cli", saveCliVersion)
+    dependsOn("getSaveCliVersion")
+    inputs.file(pathToSaveCliVersion)
     inputs.property("project version", version.toString())
     outputs.file(versionsFile)
 
     doFirst {
+        val saveCliVersion = readSaveCliVersion()
         versionsFile.parentFile.mkdirs()
         versionsFile.writeText(
             """

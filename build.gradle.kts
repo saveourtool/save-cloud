@@ -42,6 +42,13 @@ dependencies {
     liquibaseRuntime(libs.picocli)
 }
 
+tasks.withType<org.liquibase.gradle.LiquibaseTask>().configureEach {
+    this.javaLauncher.set(project.extensions.getByType<JavaToolchainService>().launcherFor {
+        // liquibase-core 4.7.0 and liquibase-gradle 2.1.1 fails on Java >= 13
+        languageVersion.set(JavaLanguageVersion.of(11))
+    })
+}
+
 talaiot {
     publishers {
         timelinePublisher = true
@@ -49,12 +56,14 @@ talaiot {
 }
 
 allprojects {
-    configureDiktat()
     configureDetekt()
     configurations.all {
         // if SNAPSHOT dependencies are used, refresh them periodically
         resolutionStrategy.cacheDynamicVersionsFor(10, TimeUnit.MINUTES)
     }
+}
+subprojects {
+    configureDiktat()
 }
 
 createStackDeployTask(profile)

@@ -26,4 +26,13 @@
             </column>
         </addColumn>
     </changeSet>
+
+    <!-- Should be foreignKeyName on Organization -->
+    <changeSet id="project-add-organization" author="frolov" context="dev or prod">
+        <addColumn tableName="project">
+            <column name="organization_id" type="bigint">
+            </column>
+        </addColumn>
+    </changeSet>
+
 </databaseChangeLog>

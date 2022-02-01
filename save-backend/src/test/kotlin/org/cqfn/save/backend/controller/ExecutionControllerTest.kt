@@ -1,11 +1,11 @@
 package org.cqfn.save.backend.controller
 
 import org.cqfn.save.backend.SaveApplication
+import org.cqfn.save.backend.controllers.ProjectController
 import org.cqfn.save.backend.repository.ExecutionRepository
 import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.scheduling.StandardSuitesUpdateScheduler
 import org.cqfn.save.backend.utils.MySqlExtension
-import org.cqfn.save.domain.Sdk
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.execution.ExecutionInitializationDto
@@ -44,6 +44,7 @@ import java.util.concurrent.TimeUnit
 @ExtendWith(MySqlExtension::class)
 @MockBeans(
     MockBean(StandardSuitesUpdateScheduler::class),
+    MockBean(ProjectController::class),
 )
 class ExecutionControllerTest {
     private val testLocalDateTime = LocalDateTime.of(2020, Month.APRIL, 10, 16, 30, 20)
@@ -61,24 +62,10 @@ class ExecutionControllerTest {
     @WithMockUser("John Doe")
     fun testDataSave() {
         val project = projectRepository.findById(1).get()
-        val execution = Execution(
-            project,
-            testLocalDateTime,
-            testLocalDateTime,
-            ExecutionStatus.RUNNING,
-            "0,1,2",
-            "stub",
-            20,
-            ExecutionType.GIT,
-            "0.0.1",
-            0,
-            0,
-            0,
-            0,
-            Sdk.Default.toString(),
-            null,
-            null,
-        )
+        val execution = Execution.stub(project).apply {
+            startTime = testLocalDateTime
+            endTime = testLocalDateTime
+        }
         webClient.post()
             .uri("/internal/createExecution")
             .contentType(MediaType.APPLICATION_JSON)
@@ -97,24 +84,7 @@ class ExecutionControllerTest {
     @Suppress("TOO_LONG_FUNCTION")
     fun testUpdateExecution() {
         val project = projectRepository.findById(1).get()
-        val execution = Execution(
-            project,
-            testLocalDateTime,
-            testLocalDateTime,
-            ExecutionStatus.RUNNING,
-            "0,1,2",
-            "stub",
-            20,
-            ExecutionType.GIT,
-            "0.0.1",
-            0,
-            0,
-            0,
-            0,
-            Sdk.Default.toString(),
-            null,
-            null,
-        )
+        val execution = Execution.stub(project)
 
         webClient.post()
             .uri("/internal/createExecution")
@@ -193,24 +163,7 @@ class ExecutionControllerTest {
     @WithMockUser("John Doe")
     @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
     fun checkUpdateNewExecution() {
-        val execution = Execution(
-            projectRepository.findAll().first(),
-            LocalDateTime.now(),
-            null,
-            ExecutionStatus.PENDING,
-            null,
-            null,
-            20,
-            ExecutionType.GIT,
-            null,
-            0,
-            0,
-            0,
-            0,
-            Sdk.Default.toString(),
-            null,
-            null,
-        )
+        val execution = Execution.stub(projectRepository.findAll().first())
         webClient.post()
             .uri("/internal/createExecution")
             .contentType(MediaType.APPLICATION_JSON)
@@ -219,7 +172,7 @@ class ExecutionControllerTest {
             .expectStatus()
             .isOk
 
-        val executionUpdate = ExecutionInitializationDto(execution.project, "1, 2, 3", "testPath", "executionVersion")
+        val executionUpdate = ExecutionInitializationDto(execution.project, "1, 2, 3", "testPath", "executionVersion", null, null)
         webClient.post()
             .uri("/internal/updateNewExecution")
             .contentType(MediaType.APPLICATION_JSON)

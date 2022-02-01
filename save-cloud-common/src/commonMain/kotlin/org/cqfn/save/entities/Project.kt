@@ -13,6 +13,7 @@ import kotlinx.serialization.Serializable
  * @property public
  * @property userId the user that has created this project. No automatic mapping, because Hibernate is not available in common code.
  * @property adminIds comma-separated list of IDs of users that are admins of this project
+ * @property organizationId
  */
 @Entity
 @Serializable
@@ -26,6 +27,7 @@ data class Project(
     var public: Boolean = true,
     var userId: Long? = null,
     var adminIds: String? = null,
+    var organizationId: Long? = null,
 ) {
     /**
      * id of project
@@ -33,6 +35,11 @@ data class Project(
     @Id
     @GeneratedValue
     var id: Long? = null
+
+    /**
+     * @return [adminIds] as a list of numbers
+     */
+    fun adminIdList() = adminIds?.split(",")?.map { it.toLong() } ?: emptyList()
 
     companion object {
         /**
@@ -49,6 +56,7 @@ data class Project(
             status = ProjectStatus.CREATED,
             userId = -1,
             adminIds = null,
+            organizationId = -1,
         ).apply {
             this.id = id
         }

@@ -7,6 +7,7 @@ import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionUpdateDto
 import org.cqfn.save.orchestrator.config.ConfigProperties
 import org.cqfn.save.orchestrator.copyRecursivelyWithAttributes
+import org.cqfn.save.orchestrator.createSyntheticTomlConfig
 import org.cqfn.save.orchestrator.docker.ContainerManager
 import org.cqfn.save.testsuite.TestSuiteDto
 import org.cqfn.save.utils.PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE
@@ -65,7 +66,10 @@ class DockerService(private val configProperties: ConfigProperties) {
      * @return list of IDs of created containers
      * @throws DockerException if interaction with docker daemon is not successful
      */
-    fun buildAndCreateContainers(execution: Execution, testSuiteDtos: List<TestSuiteDto>?): List<String> {
+    fun buildAndCreateContainers(
+        execution: Execution,
+        testSuiteDtos: List<TestSuiteDto>?,
+    ): List<String> {
         log.info("Building base image for execution.id=${execution.id}")
         val (imageId, runCmd, saveCliExecFlags) = buildBaseImageForExecution(execution, testSuiteDtos)
         log.info("Built base image for execution.id=${execution.id}")
@@ -169,7 +173,10 @@ class DockerService(private val configProperties: ConfigProperties) {
         "UnsafeCallOnNullableType",
         "LongMethod",
     )
-    private fun buildBaseImageForExecution(execution: Execution, testSuiteDtos: List<TestSuiteDto>?): Triple<String, String, String> {
+    private fun buildBaseImageForExecution(
+        execution: Execution,
+        testSuiteDtos: List<TestSuiteDto>?
+    ): Triple<String, String, String> {
         val resourcesPath = File(
             configProperties.testResources.basePath,
             execution.resourcesRootPath!!,
@@ -201,7 +208,9 @@ class DockerService(private val configProperties: ConfigProperties) {
 
         val saveCliExecFlags = if (isStandardMode) {
             // create stub toml config in aim to execute all test suites directories from `testSuitesDir`
-            testSuitesDir.resolve("save.toml").apply { createNewFile() }.writeText("[general]")
+            val configData = createSyntheticTomlConfig(execution.execCmd, execution.batchSizeForAnalyzer)
+
+            testSuitesDir.resolve("save.toml").apply { createNewFile() }.writeText(configData)
             " $STANDARD_TEST_SUITE_DIR --include-suites \"${testSuitesForDocker.joinToString(",") { it.name }}\""
         } else {
             ""

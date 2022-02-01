@@ -3,8 +3,8 @@ package org.cqfn.save.preprocessor.controllers
 import org.cqfn.save.entities.GitDto
 import org.cqfn.save.entities.benchmarks.BenchmarkEntity
 import org.cqfn.save.preprocessor.config.ConfigProperties
-import org.cqfn.save.preprocessor.utils.cloneFromGit
 import org.cqfn.save.preprocessor.utils.generateDirectory
+import org.cqfn.save.preprocessor.utils.pullOrCloneProjectWithSpecificBranch
 
 import com.akuleshov7.ktoml.file.TomlFileReader
 import org.eclipse.jgit.api.errors.GitAPIException
@@ -48,7 +48,7 @@ class AwesomeBenchmarksDownloadController(
             Mono.just(ResponseEntity("Downloading awesome-benchmarks", HttpStatus.ACCEPTED))
                 .doOnSuccess {
                     log.debug("Starting to download awesome-benchmarks to ${tmpDir.absolutePath}")
-                    cloneFromGit(gitDto, tmpDir)
+                    pullOrCloneProjectWithSpecificBranch(gitDto, tmpDir, null)
                     log.info("Awesome-benchmarks were downloaded to ${tmpDir.absolutePath}")
                     processDirectoryAndCleanUp().subscribe()
                     tmpDir.deleteRecursively()

@@ -50,7 +50,7 @@ class TestService(
     fun saveTests(tests: List<TestDto>): List<Long> {
         val (existingTests, nonExistentTests) = tests.map { testDto ->
             // only match fields that are present in DTO
-            testRepository.findByHashAndFilePathAndTestSuiteId(testDto.hash, testDto.filePath, testDto.testSuiteId).map {
+            testRepository.findByHashAndFilePathAndTestSuiteIdAndPluginName(testDto.hash, testDto.filePath, testDto.testSuiteId, testDto.pluginName).map {
                 log.debug("Test $testDto is already present with id=${it.id} and testSuiteId=${testDto.testSuiteId}")
                 it
             }

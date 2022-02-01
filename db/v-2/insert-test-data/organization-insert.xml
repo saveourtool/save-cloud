@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+    <changeSet id="organization-insert" author="frolov" context="dev">
+
+        <loadData tableName="organization" encoding="UTF-8" separator=";" quotchar="&quot;" file="db/v-2/insert-test-data/sqlRequests/organization.csv">
+            <column header="id" name="id" type="NUMERIC" />
+            <column header="name" name="name" type="STRING" />
+            <column header="owner_id" name="owner_id" type="NUMERIC" />
+            <column header="date_created" name="date_created" type="DATE" />
+        </loadData>
+
+    </changeSet>
+
+</databaseChangeLog>
