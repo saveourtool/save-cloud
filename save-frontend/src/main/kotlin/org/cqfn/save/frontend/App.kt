@@ -170,7 +170,8 @@ class App : RComponent<PropsWithChildren, AppState>() {
 
                         Route {
                             attrs {
-                                path = "/:owner/:name/history/execution/:executionId/details/:testSuiteName/:pluginName/:testFilePath/*"
+                                // Since testFilePath can represent the nested path, we catch it as *
+                                path = "/:owner/:name/history/execution/:executionId/details/:testSuiteName/:pluginName/*"
                                 element = buildElement {
                                     child(testExecutionDetailsView()) {}
                                 }

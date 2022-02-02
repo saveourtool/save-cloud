@@ -44,9 +44,6 @@ fun <D : Any> testStatusComponent(testResultDebugInfo: TestResultDebugInfo, tabl
     val testFilePath = with(testResultDebugInfo.testResultLocation) {
         testLocation.toPath() / testName
     }
-
-    println("\n\ntestFilePath ${testFilePath}")
-
     tr("table-sm") {
         td {
             attrs.colSpan = "2"

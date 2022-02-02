@@ -258,10 +258,8 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                             attrs.onClickFunction = {
                                 GlobalScope.launch {
                                     val te = cellProps.value
-                                    println("\n\n\n\nte ${te.filePath} ${te}")
                                     val trdi = getDebugInfoFor(te)
                                     if (trdi.ok) {
-                                        //println("\n\ntrdi ${trdi.decodeFromJsonString<TestResultDebugInfo>().testResultLocation} ")
                                         cellProps.row.original.asDynamic().debugInfo = trdi.decodeFromJsonString<TestResultDebugInfo>()
                                     }
                                     cellProps.row.toggleRowExpanded()
@@ -310,7 +308,6 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
             renderExpandedRow = { tableInstance, row ->
                 // todo: placeholder before, render data once it's available
                 val trdi = row.original.asDynamic().debugInfo as TestResultDebugInfo?
-                println("\n\n2222 trdi ${trdi?.testResultLocation} ")
                 if (trdi != null) {
                     child(testStatusComponent(trdi, tableInstance))
                 } else {
