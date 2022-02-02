@@ -104,11 +104,13 @@ private fun RBuilder.fallback(status: String) = div {
 fun testExecutionDetailsView() = fc<Props> {
     val params = useParams()
     val executionId = params["executionId"]!!.toLong()
+
+    val testFilePath = params["*"]!!
     val testResultLocation = TestResultLocation(
         params["testSuiteName"]!!,
         params["pluginName"]!!,
-        params["testFilePath"]!!.substringBeforeLast("/", ""),
-        params["testFilePath"]!!.substringAfterLast("/"),
+        testFilePath.substringBeforeLast("/", ""),
+        testFilePath.substringAfterLast("/"),
     )
 
     val (status, setStatus) = useState("Loading...")
