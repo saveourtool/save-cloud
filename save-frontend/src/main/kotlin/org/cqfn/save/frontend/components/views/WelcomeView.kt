@@ -179,7 +179,7 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                 }
 
                 div("mt-4 text-sm text-center") {
-                    p {
+                    p("mb-0") {
                         +"Don't have an account?"
                     }
 

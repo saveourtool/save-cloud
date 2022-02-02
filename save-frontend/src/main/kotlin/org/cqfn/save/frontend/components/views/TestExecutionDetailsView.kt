@@ -16,7 +16,6 @@ import org.cqfn.save.frontend.utils.multilineTextWithIndices
 import org.cqfn.save.frontend.utils.post
 
 import org.w3c.fetch.Headers
-import react.Cleanup
 import react.Props
 import react.RBuilder
 import react.dom.br
@@ -144,11 +143,9 @@ fun testExecutionDetailsView() = fc<Props> {
                 setStatus("Additional test info is not available (code ${testExecutionDtoResponse.status})")
             }
         }
-        this.unsafeCast<Array<Cleanup>>().run {
-            set(lastIndex + 1) {
-                if (scope.isActive) {
-                    scope.cancel()
-                }
+        cleanup {
+            if (scope.isActive) {
+                scope.cancel()
             }
         }
     }

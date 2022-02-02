@@ -60,9 +60,7 @@ fun topBar() = fc<TopBarProps> { props ->
     val location = useLocation()
     val scope = CoroutineScope(Dispatchers.Default)
     useEffect(listOf<dynamic>()) {
-        console.log("useEffect in TopBar")
         cleanup {
-            console.log("Cleanup in useEffect in TopBar")
             if (scope.isActive) {
                 scope.cancel()
             }
