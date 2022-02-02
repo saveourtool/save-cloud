@@ -16,6 +16,7 @@ import org.cqfn.save.frontend.utils.multilineTextWithIndices
 import org.cqfn.save.frontend.utils.post
 
 import org.w3c.fetch.Headers
+import react.Cleanup
 import react.Props
 import react.RBuilder
 import react.dom.br
@@ -31,7 +32,10 @@ import react.router.useParams
 import react.useEffect
 import react.useState
 
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -116,9 +120,10 @@ fun testExecutionDetailsView() = fc<Props> {
     val (status, setStatus) = useState("Loading...")
     val (testResultDebugInfo, setTestResultDebugInfo) = useState<TestResultDebugInfo?>(null)
 
+    val scope = CoroutineScope(Dispatchers.Default)
     // fixme: after https://github.com/analysis-dev/save-cloud/issues/364 can be passed via history state to avoid requests
     useEffect(listOf<dynamic>(executionId, testResultLocation)) {
-        GlobalScope.launch {
+        scope.launch {
             val testExecutionDtoResponse = post(
                 "$apiUrl/testExecutions?executionId=$executionId",
                 Headers().apply {
@@ -137,6 +142,13 @@ fun testExecutionDetailsView() = fc<Props> {
                 }
             } else {
                 setStatus("Additional test info is not available (code ${testExecutionDtoResponse.status})")
+            }
+        }
+        this.unsafeCast<Array<Cleanup>>().run {
+            set(lastIndex + 1) {
+                if (scope.isActive) {
+                    scope.cancel()
+                }
             }
         }
     }

@@ -13,6 +13,9 @@ import kotlinx.coroutines.isActive
  * Base class for react components with CoroutineScope, that will be cancelled on unmounting.
  */
 abstract class ComponentWithScope<P : Props, S : State> : RComponent<P, S>() {
+    /**
+     * A [CoroutineScope] that should be used by implementing classes. Will be cancelled on unmounting.
+     */
     protected val scope: CoroutineScope = CoroutineScope(Dispatchers.Default)
 
     override fun componentWillUnmount() {

@@ -9,6 +9,8 @@ import org.cqfn.save.domain.FileInfo
 import org.w3c.files.Blob
 import org.w3c.files.BlobPropertyBag
 import org.w3c.xhr.FormData
+import react.Cleanup
+import react.EffectBuilder
 import react.RBuilder
 import react.dom.br
 import react.dom.samp
@@ -84,5 +86,14 @@ internal fun RBuilder.multilineTextWithIndices(text: String) {
                 }
             }
         }
+    }
+}
+
+/**
+ * @param cleanupCallback
+ */
+internal fun EffectBuilder.cleanup(cleanupCallback: Cleanup) {
+    this.unsafeCast<Array<Cleanup>>().run {
+        set(lastIndex + 1, cleanupCallback)
     }
 }

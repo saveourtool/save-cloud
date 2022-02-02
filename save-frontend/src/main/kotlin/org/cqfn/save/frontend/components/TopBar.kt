@@ -18,6 +18,10 @@ import react.fc
 import react.router.useLocation
 import react.useState
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.isActive
 import kotlinx.html.BUTTON
 import kotlinx.html.ButtonType
 import kotlinx.html.classes
@@ -54,6 +58,16 @@ private fun RBuilder.dropdownEntry(faIcon: String, text: String, handler: RDOMBu
 fun topBar() = fc<TopBarProps> { props ->
     val (isLogoutModalOpen, setIsLogoutModalOpen) = useState(false)
     val location = useLocation()
+    val scope = CoroutineScope(Dispatchers.Default)
+    useEffect(listOf<dynamic>()) {
+        console.log("useEffect in TopBar")
+        cleanup {
+            console.log("Cleanup in useEffect in TopBar")
+            if (scope.isActive) {
+                scope.cancel()
+            }
+        }
+    }
 
     nav("navbar navbar-expand navbar-dark bg-dark topbar mb-3 static-top shadow mr-1 ml-1 rounded") {
         attrs.id = "navigation-top-bar"
@@ -189,7 +203,7 @@ fun topBar() = fc<TopBarProps> { props ->
             }
         }
     }
-    logoutModal({ attrs.isOpen = isLogoutModalOpen }) {
+    logoutModal(scope, { attrs.isOpen = isLogoutModalOpen }) {
         setIsLogoutModalOpen(false)
     }
 }
