@@ -14,6 +14,7 @@ import org.cqfn.save.testsuite.TestSuiteDto
 import com.github.dockerjava.api.exception.DockerException
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -100,8 +101,10 @@ class AgentsController(
     /**
      * @param executionLogs ExecutionLogs
      */
-    @PostMapping("/executionLogs")
-    fun saveAgentsLog(@RequestBody executionLogs: ExecutionLogs) {
+    @PostMapping("/executionLogs", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
+    //fun saveAgentsLog(@RequestBody executionLogs: ExecutionLogs) {
+    fun saveAgentsLog(@RequestPart(required = true) executionLogs: ExecutionLogs) {
+        println("\n\n\n\n\nsaveAgentsLog!")
         val logDir = File(configProperties.executionLogs)
         if (!logDir.exists()) {
             log.info("Folder to store logs from agents was created: ${logDir.name}")

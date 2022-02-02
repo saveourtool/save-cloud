@@ -21,11 +21,13 @@ import org.cqfn.save.utils.toTestResultStatus
 import generated.SAVE_CLOUD_VERSION
 import io.ktor.client.HttpClient
 import io.ktor.client.request.accept
+import io.ktor.client.request.forms.*
 import io.ktor.client.request.post
 import io.ktor.client.request.url
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
+import io.ktor.util.*
 import okio.FileSystem
 import okio.Path.Companion.toPath
 
@@ -40,6 +42,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.newSingleThreadContext
 import kotlinx.datetime.Clock
 import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
@@ -163,7 +166,7 @@ class SaveAgent(internal val config: AgentConfiguration,
         .exec(
             config.cliCommand.let {
                 "$it $cliArgs"
-            } + " --report-type json --result-output file --log all",
+            } + " --report-type json --result-output file",
             "",
             config.logFilePath.toPath(),
             1_000_000L
@@ -233,11 +236,34 @@ class SaveAgent(internal val config: AgentConfiguration,
     /**
      * @param executionLogs logs of CLI execution progress that will be sent in a message
      */
+    @OptIn(InternalAPI::class)
     private suspend fun sendLogs(executionLogs: ExecutionLogs) = httpClient.post<HttpResponse> {
         url("${config.orchestratorUrl}/executionLogs")
-        contentType(ContentType.Application.Json)
-        body = executionLogs
+        //contentType(ContentType.MultiPart.FormData)
+        body = MultiPartFormDataContent(formData {
+            append(key = "executionLogs", value = Json.encodeToString(executionLogs),
+
+//                headers = Headers.build {
+//                    append(HttpHeaders.ContentType, ContentType.Application.Json)
+//                    //append(HttpHeaders.ContentType, ContentType.MultiPart.FormData)
+//                    //append(HttpHeaders.ContentDisposition, "filename=ambient.jpg")
+//                })
+            )
+//            headers {
+//                append("Accept", ContentType.Application.Json)
+//            }
+        })
     }
+
+//    val multipart = MultipartBodyBuilder().apply {
+//        part("executionRequest", executionRequest)
+//    }
+//        .build()
+//    webClient.post()
+//    .uri("/api/submitExecutionRequest")
+//    .contentType(MediaType.MULTIPART_FORM_DATA)
+//    .body(BodyInserters.fromMultipartData(multipart))
+
 
     private suspend fun sendReport(testResultDebugInfo: TestResultDebugInfo) = httpClient.post<HttpResponse> {
         url("${config.backend.url}/${config.backend.filesEndpoint}/debug-info?agentId=${config.id}")
