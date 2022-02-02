@@ -88,12 +88,3 @@ internal fun RBuilder.multilineTextWithIndices(text: String) {
         }
     }
 }
-
-/**
- * @param cleanupCallback
- */
-internal fun EffectBuilder.cleanup(cleanupCallback: Cleanup) {
-    this.unsafeCast<Array<Cleanup>>().run {
-        set(lastIndex + 1, cleanupCallback)
-    }
-}
