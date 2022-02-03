@@ -28,5 +28,17 @@ fun CoroutineScope.logDebugCustom(msg: String) = logDebug(
     "[tid ${syscall(__NR_gettid.toLong())}] [ctx ${worker()}] $msg"
 )
 
+fun logErrorCustom(msg: String) = logError(
+    "[tid ${syscall(__NR_gettid.toLong())}] $msg"
+)
+
+fun logInfoCustom(msg: String) = logInfo(
+    "[tid ${syscall(__NR_gettid.toLong())}] $msg"
+)
+
+fun logDebugCustom(msg: String) = logDebug(
+    "[tid ${syscall(__NR_gettid.toLong())}] $msg"
+)
+
 @OptIn(ExperimentalCoroutinesApi::class)
 private fun CoroutineScope.worker() = (coroutineContext as? CloseableCoroutineDispatcher)?.worker
