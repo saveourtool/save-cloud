@@ -20,13 +20,14 @@ import org.cqfn.save.utils.toTestResultStatus
 
 import generated.SAVE_CLOUD_VERSION
 import io.ktor.client.HttpClient
+import io.ktor.client.features.*
 import io.ktor.client.request.accept
 import io.ktor.client.request.forms.*
 import io.ktor.client.request.post
 import io.ktor.client.request.url
 import io.ktor.client.statement.HttpResponse
-import io.ktor.http.ContentType
-import io.ktor.http.contentType
+import io.ktor.http.*
+
 import io.ktor.util.*
 import okio.FileSystem
 import okio.Path.Companion.toPath
@@ -40,6 +41,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.newSingleThreadContext
+import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.Clock
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
@@ -47,6 +49,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
+import okio.buffer
 
 /**
  * A main class for SAVE Agent
@@ -140,14 +143,15 @@ class SaveAgent(internal val config: AgentConfiguration,
         logInfoCustom("Starting SAVE with provided args $cliArgs")
         val executionResult = runSave(cliArgs)
         logInfoCustom("SAVE has completed execution with status ${executionResult.code}")
-        val executionLogs = ExecutionLogs(config.id, readFile(config.logFilePath))
-        val logsSendingJob = launchLogSendingJob(executionLogs)
+        val saveCliLogFile = config.logFilePath
+        val saveCliLogs = readFile(saveCliLogFile)
+        val logsSendingJob = launchLogSendingJob(saveCliLogFile)
         logDebugCustom("SAVE has completed execution, execution logs:")
-        executionLogs.cliLogs.forEach {
+        saveCliLogs.forEach {
             logDebugCustom("[SAVE] $it")
         }
         when (executionResult.code) {
-            0 -> if (executionLogs.cliLogs.isEmpty()) {
+            0 -> if (saveCliLogs.isEmpty()) {
                 state.value = AgentState.CLI_FAILED
             } else {
                 handleSuccessfulExit()
@@ -207,14 +211,14 @@ class SaveAgent(internal val config: AgentConfiguration,
         readFile(jsonFile).joinToString(separator = "")
     )
 
-    private fun CoroutineScope.launchLogSendingJob(executionLogs: ExecutionLogs) = launch {
+    private fun CoroutineScope.launchLogSendingJob(saveCliLogFile: String) = launch {
         runCatching {
-            sendLogs(executionLogs)
+            sendLogs(saveCliLogFile)
         }
-            .exceptionOrNull()
-            ?.let {
-                logErrorCustom("Couldn't send logs, reason: ${it.message}")
-            }
+//            .exceptionOrNull()
+//            ?.let {
+//                logErrorCustom("\n\n\nCouldn't send logs, reason: ${it.message} ${it}\n\n\n")
+//            }
     }
 
     private suspend fun handleSuccessfulExit() = coroutineScope {
@@ -236,33 +240,39 @@ class SaveAgent(internal val config: AgentConfiguration,
     /**
      * @param executionLogs logs of CLI execution progress that will be sent in a message
      */
+
     @OptIn(InternalAPI::class)
-    private suspend fun sendLogs(executionLogs: ExecutionLogs) = httpClient.post<HttpResponse> {
-        url("${config.orchestratorUrl}/executionLogs")
-        //contentType(ContentType.MultiPart.FormData)
-        body = MultiPartFormDataContent(formData {
-            append(key = "executionLogs", value = Json.encodeToString(executionLogs),
-
-//                headers = Headers.build {
-//                    append(HttpHeaders.ContentType, ContentType.Application.Json)
-//                    //append(HttpHeaders.ContentType, ContentType.MultiPart.FormData)
-//                    //append(HttpHeaders.ContentDisposition, "filename=ambient.jpg")
-//                })
-            )
-//            headers {
-//                append("Accept", ContentType.Application.Json)
-//            }
-        })
+    private suspend fun sendLogs(saveCliLogFile: String): HttpResponse {
+        return httpClient.submitFormWithBinaryData(
+            url = "${config.orchestratorUrl}/executionLogs",
+            formData = formData {
+                //append("description", "Ktor logo")
+                //append(config.id, File(saveCliLogFile).readBytes(), Headers.build {
+                append(config.id, FileSystem.SYSTEM.source(saveCliLogFile.toPath()).buffer().readByteArray(), Headers.build {
+                    append(HttpHeaders.ContentType, ContentType.MultiPart.FormData)
+                    append(HttpHeaders.ContentDisposition, "filename=${config.id}")
+                })
+            }
+            ) {
+                onUpload { bytesSentTotal, contentLength ->
+                    println("Sent $bytesSentTotal bytes from $contentLength")
+                }
+            }
+//        {
+//
+//            url("${config.orchestratorUrl}/executionLogs")
+//
+////        contentType(ContentType.MultiPart.FormData)
+////        body = MultiPartFormDataContent(formData {
+////            append(key = "executionLogs", value = executionLogs,
+////
+////            )
+////        })
+//
+//            contentType(ContentType.Application.Json)
+//            body = executionLogs
+//        }
     }
-
-//    val multipart = MultipartBodyBuilder().apply {
-//        part("executionRequest", executionRequest)
-//    }
-//        .build()
-//    webClient.post()
-//    .uri("/api/submitExecutionRequest")
-//    .contentType(MediaType.MULTIPART_FORM_DATA)
-//    .body(BodyInserters.fromMultipartData(multipart))
 
 
     private suspend fun sendReport(testResultDebugInfo: TestResultDebugInfo) = httpClient.post<HttpResponse> {
