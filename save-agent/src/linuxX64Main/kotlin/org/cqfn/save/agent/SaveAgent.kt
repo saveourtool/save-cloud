@@ -143,7 +143,10 @@ class SaveAgent(internal val config: AgentConfiguration,
         state.value = AgentState.BUSY
         executionStartSeconds.value = Clock.System.now().epochSeconds
         logInfoCustom("Starting SAVE with provided args $cliArgs")
-        val executionResult = runSave(cliArgs)
+//        val executionResult = runSave(cliArgs)
+        delay(150)
+//        platform.posix.system("sleep 150")
+        val executionResult = ExecutionResult(0, emptyList(), emptyList())
         logInfoCustom("SAVE has completed execution with status ${executionResult.code}")
         val executionLogs = ExecutionLogs(config.id, readFile(config.logFilePath))
         val logsSendingJob = launchLogSendingJob(executionLogs)
@@ -172,7 +175,7 @@ class SaveAgent(internal val config: AgentConfiguration,
             /*config.cliCommand.let {
                 "$it $cliArgs"
             } + " --report-type json --result-output file --log all"*/
-            "sleep 150",
+            "sleep 15",
             "",
             config.logFilePath.toPath(),
             1_000_000L
