@@ -215,7 +215,9 @@ class SaveAgent(internal val config: AgentConfiguration,
 
     private fun CoroutineScope.launchLogSendingJob(executionLogs: ExecutionLogs) = launch(logsSendingCtx) {
         runCatching {
-            sendLogs(executionLogs)
+//            sendLogs(executionLogs)
+            logInfoCustom("Delay 2000")
+            delay(2_000)
         }
             .exceptionOrNull()
             ?.let {
