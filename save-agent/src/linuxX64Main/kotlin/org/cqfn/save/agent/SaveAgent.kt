@@ -83,7 +83,7 @@ class SaveAgent(internal val config: AgentConfiguration,
     private suspend fun startHeartbeats() = coroutineScope {
         logInfoCustom("Scheduling heartbeats")
         launch(newSingleThreadContext("background")) {
-            sendDataToBackend { saveAdditionalData() }
+            sendDataToBackend(this) { saveAdditionalData() }
         }
         maybeStartSaveProcess("")
         while (true) {
@@ -183,7 +183,7 @@ class SaveAgent(internal val config: AgentConfiguration,
                     launch {
                         // todo: launch on a dedicated thread (https://github.com/analysis-dev/save-cloud/issues/315)
                         logDebugCustom("Posting debug info for test ${debugInfo.testResultLocation}")
-                        sendDataToBackend {
+                        sendDataToBackend(this) {
                             sendReport(debugInfo)
                         }
                     }
@@ -227,7 +227,7 @@ class SaveAgent(internal val config: AgentConfiguration,
                     "\n${testExecutionDtos.exceptionOrNull()?.stackTraceToString()}"
             )
         } else {
-            sendDataToBackend {
+            sendDataToBackend(this) {
                 postExecutionData(testExecutionDtos.getOrThrow())
             }
         }

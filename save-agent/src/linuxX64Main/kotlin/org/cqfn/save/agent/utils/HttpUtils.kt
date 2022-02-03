@@ -10,6 +10,7 @@ import org.cqfn.save.agent.SaveAgent
 
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.HttpStatusCode
+import kotlinx.coroutines.CoroutineScope
 
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
@@ -20,6 +21,7 @@ import kotlinx.coroutines.delay
  * @param requestToBackend
  */
 internal suspend fun SaveAgent.sendDataToBackend(
+    coroutineScope: CoroutineScope,
     requestToBackend: suspend () -> HttpResponse
 ): Unit = sendWithRetries(config.retry, requestToBackend) { result, attempt ->
     val reason = if (result.isSuccess && result.getOrNull()?.status != HttpStatusCode.OK) {
@@ -29,7 +31,7 @@ internal suspend fun SaveAgent.sendDataToBackend(
         state.value = AgentState.BACKEND_UNREACHABLE
         "Backend is unreachable, ${result.exceptionOrNull()?.message}"
     }
-    logErrorCustom("Cannot post data (x${attempt + 1}), will retry in ${config.retry.initialRetryMillis} ms. Reason: $reason")
+    coroutineScope.logErrorCustom("Cannot post data (x${attempt + 1}), will retry in ${config.retry.initialRetryMillis} ms. Reason: $reason")
 }
 
 /**
