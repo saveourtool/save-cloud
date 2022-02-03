@@ -123,6 +123,7 @@ class SaveAgent(internal val config: AgentConfiguration,
                         logErrorCustom("Error executing SAVE: ${it.describe()}\n" + it.stackTraceToString())
                     }
             }
+            logInfoCustom("Started save-process job")
         }
     }
 
