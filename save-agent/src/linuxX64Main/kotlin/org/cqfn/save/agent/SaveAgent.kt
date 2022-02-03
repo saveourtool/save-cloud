@@ -83,6 +83,7 @@ class SaveAgent(internal val config: AgentConfiguration,
     private suspend fun startHeartbeats() = coroutineScope {
         logInfoCustom("Scheduling heartbeats")
         launch(newSingleThreadContext("background")) {
+            logInfoCustom("Currently in context of type ${coroutineContext::class}: ${coroutineContext}")
             sendDataToBackend(this) { saveAdditionalData() }
         }
         maybeStartSaveProcess("")
