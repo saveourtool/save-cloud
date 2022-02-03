@@ -104,31 +104,31 @@ class AgentsController(
      * @param executionLogs ExecutionLogs
      */
     @PostMapping("/executionLogs", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
-    fun saveAgentsLog(@RequestPart(required = true) file: Mono<FilePart>) {
+    fun saveAgentsLog(@RequestPart(required = true) executionLogs: FilePart) {
         println("\n\n\n\n\nsaveAgentsLog!")
-//        file.flatMap { executionLogs ->
-//            val fileName = executionLogs.filename()
-//            val logDir = File(configProperties.executionLogs)
-//            if (!logDir.exists()) {
-//                log.info("Folder to store logs from agents was created: ${logDir.name}")
-//                logDir.mkdirs()
-//            }
-//            val logFile = File(logDir.path + File.separator + "${fileName}.log")
-//            if (!logFile.exists()) {
-//                logFile.createNewFile()
-//                log.info("Log file for ${fileName} agent was created")
-//            }
-//            executionLogs.content().map { dtBuffer ->
-//                FileOutputStream(logFile, true).use { os ->
-//                    dtBuffer.asInputStream().use {
-//                        it.copyTo(os)
-//                    }
-//                }
-//                file
-//            }
-//            //logFile.appendText(executionLogs.cliLogs.joinToString(separator = System.lineSeparator(), postfix = System.lineSeparator()))
-//            log.info("Logs of agent id = $fileName were written")
-//        }
+        //file.flatMap { executionLogs ->
+            val fileName = executionLogs.filename()
+            val logDir = File(configProperties.executionLogs)
+            if (!logDir.exists()) {
+                log.info("Folder to store logs from agents was created: ${logDir.name}")
+                logDir.mkdirs()
+            }
+            val logFile = File(logDir.path + File.separator + "${fileName}.log")
+            if (!logFile.exists()) {
+                logFile.createNewFile()
+                log.info("Log file for ${fileName} agent was created")
+            }
+            executionLogs.content().map { dtBuffer ->
+                FileOutputStream(logFile, true).use { os ->
+                    dtBuffer.asInputStream().use {
+                        it.copyTo(os)
+                    }
+                }
+                //file
+            }
+            //logFile.appendText(executionLogs.cliLogs.joinToString(separator = System.lineSeparator(), postfix = System.lineSeparator()))
+            log.info("Logs of agent id = $fileName were written")
+        //}
     }
 
 

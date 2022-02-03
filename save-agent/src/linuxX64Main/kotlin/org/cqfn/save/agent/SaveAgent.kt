@@ -35,6 +35,7 @@ import okio.Path.Companion.toPath
 import kotlin.native.concurrent.AtomicLong
 import kotlin.native.concurrent.AtomicReference
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
@@ -211,14 +212,19 @@ class SaveAgent(internal val config: AgentConfiguration,
         readFile(jsonFile).joinToString(separator = "")
     )
 
-    private fun CoroutineScope.launchLogSendingJob(saveCliLogFile: String) = launch {
-        runCatching {
-            sendLogs(saveCliLogFile)
+    private fun CoroutineScope.launchLogSendingJob(saveCliLogFile: String): Job {
+        val byteArray = FileSystem.SYSTEM.source(saveCliLogFile.toPath()).buffer().readByteArray()
+        return launch {
+            //runBlocking {
+            runCatching {
+                sendLogs(byteArray)
+
+            }
+                .exceptionOrNull()
+                ?.let {
+                    logErrorCustom("\n\n\nCouldn't send logs, reason: ${it.message} ${it}\n\n\n")
+                }
         }
-//            .exceptionOrNull()
-//            ?.let {
-//                logErrorCustom("\n\n\nCouldn't send logs, reason: ${it.message} ${it}\n\n\n")
-//            }
     }
 
     private suspend fun handleSuccessfulExit() = coroutineScope {
@@ -242,38 +248,21 @@ class SaveAgent(internal val config: AgentConfiguration,
      */
 
     @OptIn(InternalAPI::class)
-    private suspend fun sendLogs(saveCliLogFile: String): HttpResponse {
-        return httpClient.submitFormWithBinaryData(
+    private suspend fun sendLogs(byteArray: ByteArray): HttpResponse =
+        httpClient.submitFormWithBinaryData(
             url = "${config.orchestratorUrl}/executionLogs",
             formData = formData {
-                //append("description", "Ktor logo")
                 //append(config.id, File(saveCliLogFile).readBytes(), Headers.build {
-                append(config.id, FileSystem.SYSTEM.source(saveCliLogFile.toPath()).buffer().readByteArray(), Headers.build {
+                append(config.id, byteArray, Headers.build {
                     append(HttpHeaders.ContentType, ContentType.MultiPart.FormData)
                     append(HttpHeaders.ContentDisposition, "filename=${config.id}")
                 })
             }
-            ) {
-                onUpload { bytesSentTotal, contentLength ->
-                    println("Sent $bytesSentTotal bytes from $contentLength")
-                }
+        ) {
+            onUpload { bytesSentTotal, contentLength ->
+                println("\n\n\n\nSent $bytesSentTotal bytes from $contentLength")
             }
-//        {
-//
-//            url("${config.orchestratorUrl}/executionLogs")
-//
-////        contentType(ContentType.MultiPart.FormData)
-////        body = MultiPartFormDataContent(formData {
-////            append(key = "executionLogs", value = executionLogs,
-////
-////            )
-////        })
-//
-//            contentType(ContentType.Application.Json)
-//            body = executionLogs
-//        }
-    }
-
+        }
 
     private suspend fun sendReport(testResultDebugInfo: TestResultDebugInfo) = httpClient.post<HttpResponse> {
         url("${config.backend.url}/${config.backend.filesEndpoint}/debug-info?agentId=${config.id}")
