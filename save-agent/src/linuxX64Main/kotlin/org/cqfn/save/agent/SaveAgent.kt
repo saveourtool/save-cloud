@@ -61,6 +61,8 @@ class SaveAgent(internal val config: AgentConfiguration,
     // Kotlin throws `kotlin.native.concurrent.InvalidMutabilityException: mutation attempt of frozen kotlinx.datetime.Instant...`
     private val executionStartSeconds = AtomicLong()
     private var saveProcessJob: AtomicReference<Job?> = AtomicReference(null)
+    private val saveProcessCtx = newSingleThreadContext("save-process")
+    private val logsSendingCtx = newSingleThreadContext("logs-sending")
     private val reportFormat = Json {
         serializersModule = SerializersModule {
             polymorphic(Plugin.TestFiles::class) {
@@ -77,6 +79,8 @@ class SaveAgent(internal val config: AgentConfiguration,
         logInfoCustom("Starting agent")
         val heartbeatsJob = launch { startHeartbeats() }
         heartbeatsJob.join()
+        saveProcessCtx.close()
+        logsSendingCtx.close()
     }
 
     @Suppress("WHEN_WITHOUT_ELSE")  // when with sealed class
@@ -114,7 +118,7 @@ class SaveAgent(internal val config: AgentConfiguration,
         if (saveProcessJob.value?.isCompleted == false) {
             logErrorCustom("Shouldn't start new process when there is the previous running")
         } else {
-            saveProcessJob.value = launch(newSingleThreadContext("save-process")) {
+            saveProcessJob.value = launch(saveProcessCtx) {
                 runCatching {
                     // new job received from Orchestrator, spawning SAVE CLI process
                     startSaveProcess(cliArgs)
@@ -208,7 +212,7 @@ class SaveAgent(internal val config: AgentConfiguration,
         readFile(jsonFile).joinToString(separator = "")
     )
 
-    private fun CoroutineScope.launchLogSendingJob(executionLogs: ExecutionLogs) = launch(newSingleThreadContext("logs-sending")) {
+    private fun CoroutineScope.launchLogSendingJob(executionLogs: ExecutionLogs) = launch(logsSendingCtx) {
         runCatching {
             sendLogs(executionLogs)
         }
