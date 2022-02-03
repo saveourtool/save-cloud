@@ -30,6 +30,11 @@ kotlin {
                 implementation(libs.ktor.client.core)
                 implementation(libs.ktor.client.curl)
                 implementation(libs.ktor.client.serialization)
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0-native-mt") {
+                    version {
+                        strictly("1.6.0-native-mt")
+                    }
+                }
                 implementation(libs.kotlinx.serialization.properties)
                 implementation(libs.okio)
                 implementation(libs.kotlinx.datetime)
