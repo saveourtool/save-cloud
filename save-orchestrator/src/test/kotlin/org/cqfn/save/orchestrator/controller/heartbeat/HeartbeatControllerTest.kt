@@ -13,6 +13,7 @@ import org.cqfn.save.orchestrator.service.DockerService
 import org.cqfn.save.test.TestBatch
 import org.cqfn.save.test.TestDto
 import org.cqfn.save.testsuite.TestSuiteType
+import org.cqfn.test.createMockWebServer
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import okhttp3.mockwebserver.MockResponse
@@ -50,6 +51,7 @@ import java.util.concurrent.TimeUnit
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.slf4j.LoggerFactory
 
 @WebFluxTest
 @Import(Beans::class, AgentService::class)
@@ -326,6 +328,7 @@ class HeartbeatControllerTest {
     companion object {
         @JvmStatic
         private lateinit var mockServer: MockWebServer
+        private val logger = LoggerFactory.getLogger(HeartbeatControllerTest::class.java)
 
         @AfterAll
         fun tearDown() {
@@ -336,8 +339,9 @@ class HeartbeatControllerTest {
         @JvmStatic
         fun properties(registry: DynamicPropertyRegistry) {
             // todo: should be initialized in @BeforeAll, but it gets called after @DynamicPropertySource
-            mockServer = MockWebServer()
+            mockServer = createMockWebServer(logger)
             // todo: extract request-based dispatcher to save-cloud-common
+
             mockServer.dispatcher = object : QueueDispatcher() {
                 override fun dispatch(request: RecordedRequest): MockResponse {
                     val path = request.path

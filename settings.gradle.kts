@@ -18,6 +18,7 @@ include("save-frontend")
 include("save-cloud-common")
 include("save-agent")
 include("save-preprocessor")
+include("test-utils")
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 enableFeaturePreview("VERSION_CATALOGS")

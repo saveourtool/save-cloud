@@ -30,6 +30,7 @@ tasks.withType<Test> {
 
 dependencies {
     implementation(projects.saveCloudCommon)
+    implementation(projects.testUtils)
     runtimeOnly(project(":save-frontend", "distribution"))  // static resources packed as a jar, will be accessed from classpath
     implementation(libs.save.common.jvm)
     implementation(libs.spring.boot.starter.quartz)

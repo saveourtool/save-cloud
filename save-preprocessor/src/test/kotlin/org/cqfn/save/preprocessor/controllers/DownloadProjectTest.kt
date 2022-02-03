@@ -19,6 +19,7 @@ import org.cqfn.save.preprocessor.utils.toHash
 import org.cqfn.save.test.TestDto
 import org.cqfn.save.testsuite.TestSuiteDto
 import org.cqfn.save.testsuite.TestSuiteType
+import org.cqfn.test.createMockWebServer
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import okhttp3.mockwebserver.MockResponse
@@ -587,11 +588,9 @@ class DownloadProjectTest(
         @DynamicPropertySource
         @JvmStatic
         fun properties(registry: DynamicPropertyRegistry) {
-            mockServerBackend = MockWebServer()
-            (mockServerBackend.dispatcher as QueueDispatcher).setFailFast(true)
+            mockServerBackend = createMockWebServer(logger)
             mockServerBackend.start()
-            mockServerOrchestrator = MockWebServer()
-            (mockServerOrchestrator.dispatcher as QueueDispatcher).setFailFast(true)
+            mockServerOrchestrator = createMockWebServer(logger)
             mockServerOrchestrator.start()
             registry.add("save.backend") { "http://localhost:${mockServerBackend.port}" }
             registry.add("save.orchestrator") { "http://localhost:${mockServerOrchestrator.port}" }

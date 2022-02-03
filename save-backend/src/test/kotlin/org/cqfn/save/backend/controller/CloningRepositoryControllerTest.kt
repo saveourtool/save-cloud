@@ -23,6 +23,7 @@ import org.cqfn.save.entities.ExecutionRequestForStandardSuites
 import org.cqfn.save.entities.GitDto
 import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.ProjectStatus
+import org.cqfn.test.createMockWebServer
 
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
@@ -32,6 +33,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.io.TempDir
 import org.mockito.Mockito
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
@@ -159,6 +161,7 @@ class CloningRepositoryControllerTest {
 
     companion object {
         @JvmStatic lateinit var mockServerPreprocessor: MockWebServer
+        @JvmStatic private val logger = LoggerFactory.getLogger(CloningRepositoryControllerTest::class.java)
 
         @AfterAll
         fun tearDown() {
@@ -168,7 +171,7 @@ class CloningRepositoryControllerTest {
         @DynamicPropertySource
         @JvmStatic
         fun properties(registry: DynamicPropertyRegistry) {
-            mockServerPreprocessor = MockWebServer()
+            mockServerPreprocessor = createMockWebServer(logger)
             mockServerPreprocessor.start()
             registry.add("backend.preprocessorUrl") { "http://localhost:${mockServerPreprocessor.port}" }
         }

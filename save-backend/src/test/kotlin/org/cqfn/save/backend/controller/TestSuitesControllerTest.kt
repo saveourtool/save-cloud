@@ -8,10 +8,9 @@ import org.cqfn.save.backend.utils.MySqlExtension
 import org.cqfn.save.entities.TestSuite
 import org.cqfn.save.testsuite.TestSuiteDto
 import org.cqfn.save.testsuite.TestSuiteType
+import org.cqfn.test.createMockWebServer
 
-import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
-import okhttp3.mockwebserver.QueueDispatcher
 import org.junit.Assert
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -23,6 +22,7 @@ import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import org.quartz.Scheduler
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.boot.test.context.SpringBootTest
@@ -35,7 +35,6 @@ import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
 
-import java.net.HttpURLConnection
 import java.time.Instant
 import java.util.Date
 
@@ -211,6 +210,7 @@ class TestSuitesControllerTest {
 
     companion object {
         @JvmStatic lateinit var mockServerPreprocessor: MockWebServer
+        @JvmStatic private val logger = LoggerFactory.getLogger(TestSuitesControllerTest::class.java)
 
         @AfterAll
         fun tearDown() {
@@ -220,10 +220,7 @@ class TestSuitesControllerTest {
         @DynamicPropertySource
         @JvmStatic
         fun properties(registry: DynamicPropertyRegistry) {
-            mockServerPreprocessor = MockWebServer()
-            (mockServerPreprocessor.dispatcher as QueueDispatcher).setFailFast(
-                MockResponse().setResponseCode(HttpURLConnection.HTTP_NOT_FOUND)
-            )
+            mockServerPreprocessor = createMockWebServer(logger)
             mockServerPreprocessor.start()
             registry.add("backend.preprocessorUrl") { "http://localhost:${mockServerPreprocessor.port}" }
         }

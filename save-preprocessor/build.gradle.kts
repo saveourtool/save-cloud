@@ -9,6 +9,7 @@ configureSpringBoot()
 
 dependencies {
     implementation(projects.saveCloudCommon)
+    implementation(projects.testUtils)
     implementation(libs.save.common.jvm)
     implementation(libs.save.core.jvm)
     implementation(libs.save.plugins.warn.jvm)

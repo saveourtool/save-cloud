@@ -12,10 +12,10 @@ import org.cqfn.save.orchestrator.config.ConfigProperties
 import org.cqfn.save.orchestrator.controller.AgentsController
 import org.cqfn.save.orchestrator.service.AgentService
 import org.cqfn.save.orchestrator.service.DockerService
+import org.cqfn.test.createMockWebServer
 
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
-import okhttp3.mockwebserver.QueueDispatcher
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
@@ -45,6 +45,7 @@ import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.createTempDirectory
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.slf4j.LoggerFactory
 
 @WebFluxTest(controllers = [AgentsController::class])
 @Import(AgentService::class, Beans::class)
@@ -214,6 +215,7 @@ class AgentsControllerTest {
 
         @JvmStatic
         private lateinit var mockServer: MockWebServer
+        private val logger = LoggerFactory.getLogger(AgentsControllerTest::class.java)
 
         @AfterAll
         fun tearDown() {
@@ -224,8 +226,7 @@ class AgentsControllerTest {
         @JvmStatic
         fun properties(registry: DynamicPropertyRegistry) {
             // todo: should be initialized in @BeforeAll, but it gets called after @DynamicPropertySource
-            mockServer = MockWebServer()
-            (mockServer.dispatcher as QueueDispatcher).setFailFast(true)
+            mockServer = createMockWebServer(logger)
             mockServer.start()
             registry.add("orchestrator.backendUrl") { "http://localhost:${mockServer.port}" }
             registry.add("orchestrator.executionLogs") { volume }
