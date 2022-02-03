@@ -82,10 +82,10 @@ class SaveAgent(internal val config: AgentConfiguration,
     @Suppress("WHEN_WITHOUT_ELSE")  // when with sealed class
     private suspend fun startHeartbeats() = coroutineScope {
         logInfoCustom("Scheduling heartbeats")
-        launch(newSingleThreadContext("background")) {
-            logInfoCustom("Currently in context of type ${coroutineContext::class}: ${coroutineContext}")
-            sendDataToBackend(this) { saveAdditionalData() }
-        }
+//        launch(newSingleThreadContext("background")) {
+//            logInfoCustom("Currently in context of type ${coroutineContext::class}: ${coroutineContext}")
+//            sendDataToBackend(this) { saveAdditionalData() }
+//        }
         maybeStartSaveProcess("")
         while (true) {
             val response = runCatching {
