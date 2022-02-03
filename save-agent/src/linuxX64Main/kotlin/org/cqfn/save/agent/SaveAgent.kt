@@ -157,7 +157,7 @@ class SaveAgent(internal val config: AgentConfiguration,
                 state.value = AgentState.CLI_FAILED
             }
         }
-        logsSendingJob.join()
+//        logsSendingJob.join()  // ???
     }
 
     @Suppress("MagicNumber")
@@ -207,7 +207,7 @@ class SaveAgent(internal val config: AgentConfiguration,
         readFile(jsonFile).joinToString(separator = "")
     )
 
-    private fun CoroutineScope.launchLogSendingJob(executionLogs: ExecutionLogs) = launch {
+    private fun CoroutineScope.launchLogSendingJob(executionLogs: ExecutionLogs) = launch(newSingleThreadContext("logs-sending")) {
         runCatching {
             sendLogs(executionLogs)
         }
