@@ -77,8 +77,9 @@ class SaveAgent(internal val config: AgentConfiguration,
      */
     suspend fun start() = coroutineScope {
         logInfoCustom("Starting agent")
-        val heartbeatsJob = launch { startHeartbeats() }
-        heartbeatsJob.join()
+        startHeartbeats()
+//        val heartbeatsJob = launch { startHeartbeats() }
+//        heartbeatsJob.join()
         saveProcessCtx.close()
         logsSendingCtx.close()
     }
