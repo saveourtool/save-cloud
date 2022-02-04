@@ -32,12 +32,14 @@ import okio.Path.Companion.toPath
 import kotlin.native.concurrent.AtomicLong
 import kotlin.native.concurrent.AtomicReference
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.newFixedThreadPoolContext
 import kotlinx.coroutines.newSingleThreadContext
 import kotlinx.datetime.Clock
 import kotlinx.serialization.decodeFromString
@@ -62,7 +64,7 @@ class SaveAgent(internal val config: AgentConfiguration,
     // Kotlin throws `kotlin.native.concurrent.InvalidMutabilityException: mutation attempt of frozen kotlinx.datetime.Instant...`
     private val executionStartSeconds = AtomicLong()
     private var saveProcessJob: AtomicReference<Job?> = AtomicReference(null)
-    private val saveProcessCtx = newSingleThreadContext("save-process")
+    private val saveProcessCtx = newFixedThreadPoolContext(2, "save-process")
     private val logsSendingCtx = newSingleThreadContext("logs-sending")
     private val reportFormat = Json {
         serializersModule = SerializersModule {
@@ -96,6 +98,7 @@ class SaveAgent(internal val config: AgentConfiguration,
         while (true) {
             val response = runCatching {
                 // TODO: get execution progress here. However, with current implementation JSON report won't be valid until all tests are finished.
+                logInfoCustom("About to send heartbeat")
                 sendHeartbeat(ExecutionProgress(0))
             }
             if (response.isSuccess) {
@@ -120,7 +123,7 @@ class SaveAgent(internal val config: AgentConfiguration,
         if (saveProcessJob.value?.isCompleted == false) {
             logErrorCustom("Shouldn't start new process when there is the previous running")
         } else {
-            saveProcessJob.value = launch(saveProcessCtx) {
+            saveProcessJob.value = launch(saveProcessCtx, start = CoroutineStart.LAZY) {
                 runCatching {
                     // new job received from Orchestrator, spawning SAVE CLI process
                     startSaveProcess(cliArgs)
@@ -130,6 +133,9 @@ class SaveAgent(internal val config: AgentConfiguration,
                         state.value = AgentState.CLI_FAILED
                         logErrorCustom("Error executing SAVE: ${it.describe()}\n" + it.stackTraceToString())
                     }
+            }
+            launch(saveProcessCtx) {
+                saveProcessJob.value?.join()
             }
             logInfoCustom("Started save-process job")
         }
