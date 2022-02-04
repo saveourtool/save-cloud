@@ -94,7 +94,7 @@ class SaveAgent(internal val config: AgentConfiguration,
 //            logInfoCustom("Currently in context of type ${coroutineContext::class}: ${coroutineContext}")
 //            sendDataToBackend(this) { saveAdditionalData() }
 //        }
-        maybeStartSaveProcess("")
+        maybeStartSaveProcess(this, "")
         while (true) {
             val response = runCatching {
                 // TODO: get execution progress here. However, with current implementation JSON report won't be valid until all tests are finished.
@@ -105,7 +105,7 @@ class SaveAgent(internal val config: AgentConfiguration,
                 when (val heartbeatResponse = response.getOrThrow().also {
                     logDebugCustom("Got heartbeat response $it")
                 }) {
-                    is NewJobResponse -> maybeStartSaveProcess(heartbeatResponse.cliArgs)
+                    is NewJobResponse -> maybeStartSaveProcess(this, heartbeatResponse.cliArgs)
                     is WaitResponse -> state.value = AgentState.IDLE
                     is ContinueResponse -> Unit  // do nothing
                 }
@@ -119,11 +119,11 @@ class SaveAgent(internal val config: AgentConfiguration,
         }
     }
 
-    private suspend fun maybeStartSaveProcess(cliArgs: String) = coroutineScope {
+    private suspend fun maybeStartSaveProcess(coroutineScope: CoroutineScope, cliArgs: String) {
         if (saveProcessJob.value?.isCompleted == false) {
-            logErrorCustom("Shouldn't start new process when there is the previous running")
+            coroutineScope.logErrorCustom("Shouldn't start new process when there is the previous running")
         } else {
-            saveProcessJob.value = launch(saveProcessCtx, start = CoroutineStart.LAZY) {
+            saveProcessJob.value = coroutineScope.launch(saveProcessCtx, start = CoroutineStart.LAZY) {
                 runCatching {
                     // new job received from Orchestrator, spawning SAVE CLI process
                     startSaveProcess(cliArgs)
@@ -134,10 +134,10 @@ class SaveAgent(internal val config: AgentConfiguration,
                         logErrorCustom("Error executing SAVE: ${it.describe()}\n" + it.stackTraceToString())
                     }
             }
-            launch(saveProcessCtx) {
+            coroutineScope.launch(saveProcessCtx) {
                 saveProcessJob.value?.join()
             }
-            logInfoCustom("Started save-process job")
+            coroutineScope.logInfoCustom("Started save-process job")
         }
     }
 
