@@ -10,7 +10,6 @@ import org.cqfn.save.frontend.components.modal.errorModal
 import org.cqfn.save.frontend.utils.spread
 
 import kotlinext.js.jso
-import kotlinx.coroutines.CancellationException
 import react.PropsWithChildren
 import react.RBuilder
 import react.dom.RDOMBuilder
@@ -38,6 +37,7 @@ import react.useMemo
 import react.useState
 
 import kotlin.js.json
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
