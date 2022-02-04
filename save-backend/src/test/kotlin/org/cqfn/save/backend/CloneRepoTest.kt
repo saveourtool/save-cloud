@@ -112,7 +112,7 @@ class CloneRepoTest {
 
     companion object {
         @JvmStatic lateinit var mockServerPreprocessor: MockWebServer
-        val logger = LoggerFactory.getLogger(CloneRepoTest::class.java)
+        private val logger = LoggerFactory.getLogger(CloneRepoTest::class.java)
 
         @AfterAll
         fun tearDown() {
