@@ -10,6 +10,7 @@ import org.cqfn.save.frontend.components.modal.errorModal
 import org.cqfn.save.frontend.utils.spread
 
 import kotlinext.js.jso
+import kotlinx.coroutines.CancellationException
 import react.PropsWithChildren
 import react.RBuilder
 import react.dom.RDOMBuilder
@@ -142,14 +143,14 @@ fun <D : Any> tableComponent(
         scope.launch {
             try {
                 setData(getData(tableInstance.state.pageIndex, tableInstance.state.pageSize))
+            } catch (e: CancellationException) {
+                // this means, that view is re-rendering while network request was still in progress
+                // no need to display an error message in this case
             } catch (e: Exception) {
                 setIsModalOpen(true)
                 setDataAccessException(e)
             }
         }
-    }
-    // this effect will be called only once, on component unmounting
-    useEffect(listOf<dynamic>()) {
         cleanup {
             if (scope.isActive) {
                 scope.cancel()
