@@ -61,6 +61,8 @@ class SaveAgent(internal val config: AgentConfiguration,
     // Kotlin throws `kotlin.native.concurrent.InvalidMutabilityException: mutation attempt of frozen kotlinx.datetime.Instant...`
     private val executionStartSeconds = AtomicLong()
     private var saveProcessJob: AtomicReference<Job?> = AtomicReference(null)
+    private val backgroundContext = newSingleThreadContext("background")
+    private val saveProcessContext = newSingleThreadContext("save-process")
     private val reportFormat = Json {
         serializersModule = SerializersModule {
             polymorphic(Plugin.TestFiles::class) {
@@ -73,18 +75,17 @@ class SaveAgent(internal val config: AgentConfiguration,
     /**
      * @return Unit
      */
-    suspend fun start() = coroutineScope {
+    suspend fun start(coroutineScope: CoroutineScope): Job {
         logInfoCustom("Starting agent")
-        val heartbeatsJob = launch { startHeartbeats() }
-        heartbeatsJob.join()
+        coroutineScope.launch(backgroundContext) {
+            sendDataToBackend { saveAdditionalData() }
+        }
+        return coroutineScope.launch { startHeartbeats(this) }
     }
 
     @Suppress("WHEN_WITHOUT_ELSE")  // when with sealed class
-    private suspend fun startHeartbeats() = coroutineScope {
+    private suspend fun startHeartbeats(coroutineScope: CoroutineScope) {
         logInfoCustom("Scheduling heartbeats")
-        launch(newSingleThreadContext("background")) {
-            sendDataToBackend { saveAdditionalData() }
-        }
         while (true) {
             val response = runCatching {
                 // TODO: get execution progress here. However, with current implementation JSON report won't be valid until all tests are finished.
@@ -94,7 +95,9 @@ class SaveAgent(internal val config: AgentConfiguration,
                 when (val heartbeatResponse = response.getOrThrow().also {
                     logDebugCustom("Got heartbeat response $it")
                 }) {
-                    is NewJobResponse -> maybeStartSaveProcess(heartbeatResponse.cliArgs)
+                    is NewJobResponse -> coroutineScope.launch {
+                        maybeStartSaveProcess(heartbeatResponse.cliArgs)
+                    }
                     is WaitResponse -> state.value = AgentState.IDLE
                     is ContinueResponse -> Unit  // do nothing
                 }
@@ -108,11 +111,11 @@ class SaveAgent(internal val config: AgentConfiguration,
         }
     }
 
-    private suspend fun maybeStartSaveProcess(cliArgs: String) = coroutineScope {
+    private fun CoroutineScope.maybeStartSaveProcess(cliArgs: String) {
         if (saveProcessJob.value?.isCompleted == false) {
             logErrorCustom("Shouldn't start new process when there is the previous running")
         } else {
-            saveProcessJob.value = launch(newSingleThreadContext("save-process")) {
+            saveProcessJob.value = launch(saveProcessContext) {
                 runCatching {
                     // new job received from Orchestrator, spawning SAVE CLI process
                     startSaveProcess(cliArgs)
@@ -130,7 +133,7 @@ class SaveAgent(internal val config: AgentConfiguration,
      * @param cliArgs arguments for SAVE process
      * @return Unit
      */
-    internal suspend fun startSaveProcess(cliArgs: String) = coroutineScope {
+    internal fun CoroutineScope.startSaveProcess(cliArgs: String) {
         // blocking execution of OS process
         state.value = AgentState.BUSY
         executionStartSeconds.value = Clock.System.now().epochSeconds
@@ -138,7 +141,7 @@ class SaveAgent(internal val config: AgentConfiguration,
         val executionResult = runSave(cliArgs)
         logInfoCustom("SAVE has completed execution with status ${executionResult.code}")
         val executionLogs = ExecutionLogs(config.id, readFile(config.logFilePath))
-        val logsSendingJob = launchLogSendingJob(executionLogs)
+        launchLogSendingJob(executionLogs)
         logDebugCustom("SAVE has completed execution, execution logs:")
         executionLogs.cliLogs.forEach {
             logDebugCustom("[SAVE] $it")
@@ -155,7 +158,6 @@ class SaveAgent(internal val config: AgentConfiguration,
                 state.value = AgentState.CLI_FAILED
             }
         }
-        logsSendingJob.join()
     }
 
     @Suppress("MagicNumber")
@@ -214,7 +216,7 @@ class SaveAgent(internal val config: AgentConfiguration,
             }
     }
 
-    private suspend fun handleSuccessfulExit() = coroutineScope {
+    private fun CoroutineScope.handleSuccessfulExit() {
         val jsonReport = "save.out.json"
         val testExecutionDtos = runCatching {
             readExecutionResults(jsonReport)
@@ -224,8 +226,10 @@ class SaveAgent(internal val config: AgentConfiguration,
                     "\n${testExecutionDtos.exceptionOrNull()?.stackTraceToString()}"
             )
         } else {
-            sendDataToBackend {
-                postExecutionData(testExecutionDtos.getOrThrow())
+            launch {
+                sendDataToBackend {
+                    postExecutionData(testExecutionDtos.getOrThrow())
+                }
             }
         }
     }
