@@ -1,5 +1,4 @@
-import org.cqfn.save.buildutils.configureJacoco
-import org.cqfn.save.buildutils.configureSpringBoot
+
 
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 

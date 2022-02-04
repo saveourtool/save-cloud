@@ -10,7 +10,7 @@ import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.GitDto
 import org.cqfn.save.entities.Project
 import org.cqfn.save.execution.ExecutionType
-import org.cqfn.test.createMockWebServer
+import org.cqfn.save.testutils.createMockWebServer
 
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
@@ -111,8 +111,8 @@ class CloneRepoTest {
     }
 
     companion object {
-        @JvmStatic lateinit var mockServerPreprocessor: MockWebServer
         private val logger = LoggerFactory.getLogger(CloneRepoTest::class.java)
+        @JvmStatic lateinit var mockServerPreprocessor: MockWebServer
 
         @AfterAll
         fun tearDown() {

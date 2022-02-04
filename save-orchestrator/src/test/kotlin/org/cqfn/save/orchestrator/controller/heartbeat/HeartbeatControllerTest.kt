@@ -30,6 +30,7 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
 import org.springframework.boot.test.mock.mockito.MockBean
@@ -50,7 +51,6 @@ import java.util.concurrent.TimeUnit
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.slf4j.LoggerFactory
 
 @WebFluxTest
 @Import(Beans::class, AgentService::class)
@@ -325,9 +325,10 @@ class HeartbeatControllerTest {
     }
 
     companion object {
+        private val logger = LoggerFactory.getLogger(HeartbeatControllerTest::class.java)
+
         @JvmStatic
         private lateinit var mockServer: MockWebServer
-        private val logger = LoggerFactory.getLogger(HeartbeatControllerTest::class.java)
 
         @AfterAll
         fun tearDown() {

@@ -5,7 +5,7 @@ import org.cqfn.save.entities.Project
 import org.cqfn.save.orchestrator.config.Beans
 import org.cqfn.save.orchestrator.config.ConfigProperties
 import org.cqfn.save.orchestrator.controller.AgentsController
-import org.cqfn.test.createMockWebServer
+import org.cqfn.save.testutils.createMockWebServer
 
 import com.github.dockerjava.api.async.ResultCallback
 import com.github.dockerjava.api.model.Frame

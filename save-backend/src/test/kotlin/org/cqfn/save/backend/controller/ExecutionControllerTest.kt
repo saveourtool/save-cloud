@@ -12,7 +12,7 @@ import org.cqfn.save.execution.ExecutionInitializationDto
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionType
 import org.cqfn.save.execution.ExecutionUpdateDto
-import org.cqfn.test.createMockWebServer
+import org.cqfn.save.testutils.createMockWebServer
 
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
@@ -225,8 +225,8 @@ class ExecutionControllerTest {
     }
 
     companion object {
-        @JvmStatic lateinit var mockServerPreprocessor: MockWebServer
         private val logger = LoggerFactory.getLogger(ExecutionControllerTest::class.java)
+        @JvmStatic lateinit var mockServerPreprocessor: MockWebServer
 
         @AfterAll
         fun tearDown() {

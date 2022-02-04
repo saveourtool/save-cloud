@@ -9,7 +9,7 @@ import org.cqfn.save.orchestrator.config.ConfigProperties
 import org.cqfn.save.orchestrator.controller.AgentsController
 import org.cqfn.save.orchestrator.service.AgentService
 import org.cqfn.save.orchestrator.service.DockerService
-import org.cqfn.test.createMockWebServer
+import org.cqfn.save.testutils.createMockWebServer
 
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
@@ -23,6 +23,7 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
 import org.springframework.boot.test.mock.mockito.MockBean
@@ -42,7 +43,6 @@ import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.createTempDirectory
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.slf4j.LoggerFactory
 
 @WebFluxTest(controllers = [AgentsController::class])
 @Import(AgentService::class, Beans::class)
@@ -205,6 +205,8 @@ class AgentsControllerTest {
     }
 
     companion object {
+        private val logger = LoggerFactory.getLogger(AgentsControllerTest::class.java)
+
         @OptIn(ExperimentalPathApi::class)
         private val volume: String by lazy {
             createTempDirectory("executionLogs").toAbsolutePath().toString()
@@ -212,7 +214,6 @@ class AgentsControllerTest {
 
         @JvmStatic
         private lateinit var mockServer: MockWebServer
-        private val logger = LoggerFactory.getLogger(AgentsControllerTest::class.java)
 
         @AfterAll
         fun tearDown() {
