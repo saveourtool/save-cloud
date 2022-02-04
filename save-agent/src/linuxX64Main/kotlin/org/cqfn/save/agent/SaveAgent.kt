@@ -32,6 +32,7 @@ import okio.Path.Companion.toPath
 import kotlin.native.concurrent.AtomicLong
 import kotlin.native.concurrent.AtomicReference
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
@@ -77,9 +78,9 @@ class SaveAgent(internal val config: AgentConfiguration,
      */
     suspend fun start() = coroutineScope {
         logInfoCustom("Starting agent")
-        startHeartbeats()
-//        val heartbeatsJob = launch { startHeartbeats() }
-//        heartbeatsJob.join()
+//        startHeartbeats()
+        val heartbeatsJob = launch(Dispatchers.Main) { startHeartbeats() }
+        heartbeatsJob.join()
         saveProcessCtx.close()
         logsSendingCtx.close()
     }
@@ -145,7 +146,9 @@ class SaveAgent(internal val config: AgentConfiguration,
         logInfoCustom("Starting SAVE with provided args $cliArgs")
 //        val executionResult = runSave(cliArgs)
 //        delay(150)
-        platform.posix.system("sleep 150")
+        // system() causes blocking of entire application for some reason
+        logInfoCustom("sleep 15")
+        platform.posix.system("sleep 15")
         val executionResult = ExecutionResult(0, emptyList(), emptyList())
         logInfoCustom("SAVE has completed execution with status ${executionResult.code}")
         val executionLogs = ExecutionLogs(config.id, readFile(config.logFilePath))
