@@ -34,7 +34,6 @@ import kotlin.native.concurrent.AtomicReference
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.newSingleThreadContext
@@ -73,9 +72,12 @@ class SaveAgent(internal val config: AgentConfiguration,
     }
 
     /**
-     * @return Unit
+     * Starts save-agent and required jobs in the background and then immediately returns
+     *
+     * @param coroutineScope a [CoroutineScope] to launch other jobs
+     * @return a descriptor of the main coroutine job
      */
-    suspend fun start(coroutineScope: CoroutineScope): Job {
+    fun start(coroutineScope: CoroutineScope): Job {
         logInfoCustom("Starting agent")
         coroutineScope.launch(backgroundContext) {
             sendDataToBackend { saveAdditionalData() }
@@ -133,7 +135,7 @@ class SaveAgent(internal val config: AgentConfiguration,
      * @param cliArgs arguments for SAVE process
      * @return Unit
      */
-    internal fun CoroutineScope.startSaveProcess(cliArgs: String) {
+    private fun CoroutineScope.startSaveProcess(cliArgs: String) {
         // blocking execution of OS process
         state.value = AgentState.BUSY
         executionStartSeconds.value = Clock.System.now().epochSeconds
@@ -180,7 +182,6 @@ class SaveAgent(internal val config: AgentConfiguration,
                 pluginExecution.testResults.map { tr ->
                     val debugInfo = tr.toTestResultDebugInfo(report.testSuite, pluginExecution.plugin)
                     launch {
-                        // todo: launch on a dedicated thread (https://github.com/analysis-dev/save-cloud/issues/315)
                         logDebugCustom("Posting debug info for test ${debugInfo.testResultLocation}")
                         sendDataToBackend {
                             sendReport(debugInfo)
