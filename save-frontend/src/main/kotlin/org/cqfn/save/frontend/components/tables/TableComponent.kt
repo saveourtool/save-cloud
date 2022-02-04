@@ -37,9 +37,12 @@ import react.useMemo
 import react.useState
 
 import kotlin.js.json
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.html.THEAD
 
@@ -101,6 +104,7 @@ fun <D : Any> tableComponent(
     val (pageIndex, setPageIndex) = useState(0)
     val (isModalOpen, setIsModalOpen) = useState(false)
     val (dataAccessException, setDataAccessException) = useState<Exception?>(null)
+    val scope = CoroutineScope(Dispatchers.Default)
 
     val tableInstance: TableInstance<D> = useTable(options = jso {
         this.columns = useMemo { columns }
@@ -118,7 +122,7 @@ fun <D : Any> tableComponent(
 
     useEffect(arrayOf<dynamic>(tableInstance.state.pageSize, pageCount)) {
         if (useServerPaging) {
-            val pageCountDeferred = GlobalScope.async {
+            val pageCountDeferred = scope.async {
                 getPageCount!!.invoke(tableInstance.state.pageSize)
             }
             pageCountDeferred.invokeOnCompletion {
@@ -135,12 +139,17 @@ fun <D : Any> tableComponent(
         emptyArray()
     }
     useEffect(*dependencies) {
-        GlobalScope.launch {
+        scope.launch {
             try {
                 setData(getData(tableInstance.state.pageIndex, tableInstance.state.pageSize))
             } catch (e: Exception) {
                 setIsModalOpen(true)
                 setDataAccessException(e)
+            }
+        }
+        cleanup {
+            if (scope.isActive) {
+                scope.cancel()
             }
         }
     }

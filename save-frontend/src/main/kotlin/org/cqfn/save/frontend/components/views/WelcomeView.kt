@@ -37,7 +37,6 @@ import react.dom.span
 import react.setState
 
 import kotlinx.browser.window
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.html.ButtonType
 
@@ -84,7 +83,7 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
 
     override fun componentDidMount() {
         super.componentDidMount()
-        GlobalScope.launch {
+        scope.launch {
             val oauthProviderInfoList: List<OauthProviderInfo>? = get("${window.location.origin}/sec/oauth-providers", Headers()).run {
                 if (ok) decodeFromJsonString() else null
             }
@@ -179,8 +178,10 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                     }
                 }
 
-                p("mt-4 text-sm text-center") {
-                    +"Don't have an account?"
+                div("mt-4 text-sm text-center") {
+                    p("mb-0") {
+                        +"Don't have an account?"
+                    }
 
                     p("text-sm text-center") {
                         a(classes = "text-info text-gradient font-weight-bold ml-2 mr-2") {

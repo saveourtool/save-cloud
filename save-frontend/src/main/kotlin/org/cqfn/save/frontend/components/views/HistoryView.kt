@@ -35,7 +35,6 @@ import react.setState
 import react.table.columns
 
 import kotlinx.browser.window
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
 import kotlinx.html.ButtonType
@@ -290,7 +289,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
             it.set("Accept", "application/json")
             it.set("Content-Type", "application/json")
         }
-        GlobalScope.launch {
+        scope.launch {
             responseFromDeleteExecutions =
                     post("$apiUrl/execution/deleteAll?name=${props.name}&owner=${props.owner}", headers, undefined)
             if (responseFromDeleteExecutions.ok) {
@@ -322,7 +321,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
             it.set("Accept", "application/json")
             it.set("Content-Type", "application/json")
         }
-        GlobalScope.launch {
+        scope.launch {
             responseFromDeleteExecutions =
                     post("$apiUrl/execution/delete?executionIds=${executionIds.joinToString(",")}", headers, undefined)
 
