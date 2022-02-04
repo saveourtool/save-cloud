@@ -30,7 +30,6 @@ import react.dom.*
 import react.setState
 
 import kotlinx.browser.window
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
 import kotlinx.html.ButtonType
@@ -132,7 +131,7 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
         val urlArguments =
                 "?user=${fieldsMap[InputTypes.GIT_USER]}&token=${fieldsMap[InputTypes.GIT_TOKEN]}&url=${fieldsMap[InputTypes.GIT_URL]}"
 
-        GlobalScope.launch {
+        scope.launch {
             setState {
                 gitConnectionCheckingStatus = GitConnectionStatusEnum.VALIDATING
             }
@@ -183,7 +182,7 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
             it.set("Accept", "application/json")
             it.set("Content-Type", "application/json")
         }
-        GlobalScope.launch {
+        scope.launch {
             val responseFromCreationProject =
                     post("$apiUrl/projects/save", headers, Json.encodeToString(newProjectRequest))
 
@@ -225,14 +224,14 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
         }
 
         val gitUser = fieldsMap[InputTypes.GIT_USER]
-        if (gitUser.isNullOrBlank() || gitUser.trim().matches(".*\\s.*")) {
+        if (gitUser.isNullOrBlank() || Regex(".*\\s.*").matches(gitUser.trim())) {
             setState { isValidGitUser = false }
         } else {
             setState { isValidGitUser = true }
         }
 
         val gitToken = fieldsMap[InputTypes.GIT_TOKEN]
-        if (gitToken.isNullOrBlank() || gitToken.trim().matches(".*\\s.*")) {
+        if (gitToken.isNullOrBlank() || Regex(".*\\s.*").matches(gitToken.trim())) {
             setState { isValidGitToken = false }
         } else {
             setState { isValidGitToken = true }
