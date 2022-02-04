@@ -1,7 +1,7 @@
 [versions]
 kotlin = "1.6.10"
 save-core = "0.4.0-SNAPSHOT"
-ktor = "1.6.7"
+ktor = "1.6.2-native-mm-eap-196"
 okio = "3.0.0"
 serialization = "1.3.2"
 kotlinx-datetime = "0.3.2"

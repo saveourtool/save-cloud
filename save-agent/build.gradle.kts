@@ -14,6 +14,23 @@ kotlin {
             entryPoint = "org.cqfn.save.agent.main"
             baseName = "save-agent"
         }
+        binaries.all {
+            binaryOptions["memoryModel"] = "experimental"
+            binaryOptions["freezing"] = "disabled"
+        }
+        repositories {
+            mavenCentral()
+            maven("https://maven.pkg.jetbrains.space/public/p/ktor/eap") {
+                content {
+                    includeGroup("io.ktor")
+                }
+            }
+            maven("https://oss.sonatype.org/content/repositories/snapshots") {
+                content {
+                    includeGroup("org.cqfn.save")
+                }
+            }
+        }
     }
 
     sourceSets {
@@ -30,9 +47,9 @@ kotlin {
                 implementation(libs.ktor.client.core)
                 implementation(libs.ktor.client.curl)
                 implementation(libs.ktor.client.serialization)
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0-native-mt") {
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0") {
                     version {
-                        strictly("1.6.0-native-mt")
+                        strictly("1.6.0")
                     }
                 }
                 implementation(libs.kotlinx.serialization.properties)

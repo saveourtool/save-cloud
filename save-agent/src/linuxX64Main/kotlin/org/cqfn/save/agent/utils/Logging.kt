@@ -15,17 +15,18 @@ import org.cqfn.save.core.logging.logInfo
 
 import platform.linux.__NR_gettid
 import platform.posix.syscall
+import kotlin.native.concurrent.Worker
 
 fun CoroutineScope.logErrorCustom(msg: String) = logError(
-    "[tid ${syscall(__NR_gettid.toLong())}] [ctx ${worker()}] $msg"
+    "[tid ${syscall(__NR_gettid.toLong())}] [ctx ${coroutineContext}] $msg"
 )
 
 fun CoroutineScope.logInfoCustom(msg: String) = logInfo(
-    "[tid ${syscall(__NR_gettid.toLong())}] [ctx ${worker()}] $msg"
+    "[tid ${syscall(__NR_gettid.toLong())}] [ctx ${coroutineContext}] $msg"
 )
 
 fun CoroutineScope.logDebugCustom(msg: String) = logDebug(
-    "[tid ${syscall(__NR_gettid.toLong())}] [ctx ${worker()}] $msg"
+    "[tid ${syscall(__NR_gettid.toLong())}] [ctx ${coroutineContext}] $msg"
 )
 
 fun logErrorCustom(msg: String) = logError(
@@ -40,5 +41,5 @@ fun logDebugCustom(msg: String) = logDebug(
     "[tid ${syscall(__NR_gettid.toLong())}] $msg"
 )
 
-@OptIn(ExperimentalCoroutinesApi::class)
-private fun CoroutineScope.worker() = (coroutineContext as? CloseableCoroutineDispatcher)?.worker
+//@OptIn(ExperimentalCoroutinesApi::class)
+//private fun CoroutineScope.worker(): Worker? = (coroutineContext as? CloseableCoroutineDispatcher)?.worker
