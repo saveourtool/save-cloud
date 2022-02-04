@@ -86,7 +86,6 @@ class SaveAgent(internal val config: AgentConfiguration,
     @Suppress("WHEN_WITHOUT_ELSE")  // when with sealed class
     private suspend fun startHeartbeats(coroutineScope: CoroutineScope) {
         logInfoCustom("Scheduling heartbeats")
-        coroutineScope.maybeStartSaveProcess("")
         while (true) {
             val response = runCatching {
                 // TODO: get execution progress here. However, with current implementation JSON report won't be valid until all tests are finished.
@@ -164,9 +163,9 @@ class SaveAgent(internal val config: AgentConfiguration,
     @Suppress("MagicNumber")
     private fun runSave(cliArgs: String): ExecutionResult = ProcessBuilder(true, FileSystem.SYSTEM)
         .exec(
-            /*config.cliCommand.let {
+            config.cliCommand.let {
                 "$it $cliArgs"
-            } + " --report-type json --result-output file --log all"*/ "sleep 150",
+            } + " --report-type json --result-output file --log all",
             "",
             config.logFilePath.toPath(),
             1_000_000L
