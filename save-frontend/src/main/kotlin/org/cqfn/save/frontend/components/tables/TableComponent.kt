@@ -147,6 +147,9 @@ fun <D : Any> tableComponent(
                 setDataAccessException(e)
             }
         }
+    }
+    // this effect will be called only once, on component unmounting
+    useEffect(listOf<dynamic>()) {
         cleanup {
             if (scope.isActive) {
                 scope.cancel()
