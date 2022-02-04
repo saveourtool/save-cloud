@@ -7,6 +7,7 @@ import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionUpdateDto
 import org.cqfn.save.orchestrator.config.ConfigProperties
 import org.cqfn.save.orchestrator.copyRecursivelyWithAttributes
+import org.cqfn.save.orchestrator.createSyntheticTomlConfig
 import org.cqfn.save.orchestrator.docker.ContainerManager
 import org.cqfn.save.testsuite.TestSuiteDto
 import org.cqfn.save.utils.PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE
@@ -65,7 +66,10 @@ class DockerService(private val configProperties: ConfigProperties) {
      * @return list of IDs of created containers
      * @throws DockerException if interaction with docker daemon is not successful
      */
-    fun buildAndCreateContainers(execution: Execution, testSuiteDtos: List<TestSuiteDto>?): List<String> {
+    fun buildAndCreateContainers(
+        execution: Execution,
+        testSuiteDtos: List<TestSuiteDto>?,
+    ): List<String> {
         log.info("Building base image for execution.id=${execution.id}")
         val (imageId, runCmd, saveCliExecFlags) = buildBaseImageForExecution(execution, testSuiteDtos)
         log.info("Built base image for execution.id=${execution.id}")
@@ -169,7 +173,10 @@ class DockerService(private val configProperties: ConfigProperties) {
         "UnsafeCallOnNullableType",
         "LongMethod",
     )
-    private fun buildBaseImageForExecution(execution: Execution, testSuiteDtos: List<TestSuiteDto>?): Triple<String, String, String> {
+    private fun buildBaseImageForExecution(
+        execution: Execution,
+        testSuiteDtos: List<TestSuiteDto>?
+    ): Triple<String, String, String> {
         val resourcesPath = File(
             configProperties.testResources.basePath,
             execution.resourcesRootPath!!,
@@ -201,7 +208,9 @@ class DockerService(private val configProperties: ConfigProperties) {
 
         val saveCliExecFlags = if (isStandardMode) {
             // create stub toml config in aim to execute all test suites directories from `testSuitesDir`
-            testSuitesDir.resolve("save.toml").apply { createNewFile() }.writeText("[general]")
+            val configData = createSyntheticTomlConfig(execution.execCmd, execution.batchSizeForAnalyzer)
+
+            testSuitesDir.resolve("save.toml").apply { createNewFile() }.writeText(configData)
             " $STANDARD_TEST_SUITE_DIR --include-suites \"${testSuitesForDocker.joinToString(",") { it.name }}\""
         } else {
             ""
@@ -227,7 +236,7 @@ class DockerService(private val configProperties: ConfigProperties) {
 
         val baseImage = execution.sdk
         val aptCmd = "apt-get ${configProperties.aptExtraFlags}"
-        // fixme: https://github.com/diktat-static-analysis/save-cloud/issues/352
+        // fixme: https://github.com/analysis-dev/save-cloud/issues/352
         val additionalRunCmd = if (execution.sdk.startsWith(Python.NAME, ignoreCase = true)) {
             """|RUN env DEBIAN_FRONTEND="noninteractive" $aptCmd install zip
                |RUN curl -s "https://get.sdkman.io" | bash
@@ -329,7 +338,7 @@ class DockerService(private val configProperties: ConfigProperties) {
     @Suppress("UnsafeCallOnNullableType", "TOO_MANY_LINES_IN_LAMBDA")
     private fun copyTestSuitesToResourcesPath(testSuitesForDocker: List<TestSuiteDto>, destination: File) {
         FileSystemUtils.deleteRecursively(destination)
-        // TODO: https://github.com/diktat-static-analysis/save-cloud/issues/321
+        // TODO: https://github.com/analysis-dev/save-cloud/issues/321
         log.info("Copying suites ${testSuitesForDocker.map { it.name }} into $destination")
         testSuitesForDocker.forEach {
             val standardTestSuiteAbsolutePath = File(configProperties.testResources.basePath)

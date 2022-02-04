@@ -72,7 +72,7 @@ fun executionStatistics(classes: String = "") = fc<ExecutionStatisticsProps> { p
                                 div("progress progress-sm mr-2") {
                                     div("progress-bar bg-info") {
                                         attrs["role"] = "progressbar"
-                                        attrs["style"] = kotlinext.js.jsObject<CSSProperties> {
+                                        attrs["style"] = kotlinext.js.jso<CSSProperties> {
                                             width = "$passRate%".unsafeCast<Width>()
                                         }
                                         attrs["aria-valuenow"] = passRate

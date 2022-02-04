@@ -1,12 +1,9 @@
 package org.cqfn.save.orchestrator.controller.agents
 
 import org.cqfn.save.agent.ExecutionLogs
-import org.cqfn.save.domain.Sdk
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.Project
-import org.cqfn.save.entities.ProjectStatus
 import org.cqfn.save.execution.ExecutionStatus
-import org.cqfn.save.execution.ExecutionType
 import org.cqfn.save.orchestrator.config.Beans
 import org.cqfn.save.orchestrator.config.ConfigProperties
 import org.cqfn.save.orchestrator.controller.AgentsController
@@ -76,9 +73,10 @@ class AgentsControllerTest {
 
     @Test
     fun `should build image, query backend and start containers`() {
-        val project = Project("Huawei", "huaweiName", "huaweiUrl", "description", ProjectStatus.CREATED)
-        val execution = Execution(project, stubTime, stubTime, ExecutionStatus.PENDING, "stub",
-            "stub", 20, ExecutionType.GIT, "0.0.1", 0, 0, 0, 0, Sdk.Default.toString(), null).apply {
+        val project = Project.stub(null)
+        val execution = Execution.stub(project).apply {
+            status = ExecutionStatus.PENDING
+            testSuiteIds = "1"
             id = 42L
         }
         whenever(dockerService.buildAndCreateContainers(any(), any())).thenReturn(listOf("test-agent-id-1", "test-agent-id-2"))
@@ -110,9 +108,8 @@ class AgentsControllerTest {
 
     @Test
     fun checkPostResponseIsNotOk() {
-        val project = Project("Huawei", "huaweiName", "huaweiUrl", "description", ProjectStatus.CREATED)
-        val execution = Execution(project, stubTime, stubTime, ExecutionStatus.RUNNING, "stub",
-            "stub", 20, ExecutionType.GIT, "0.0.1", 0, 0, 0, 0, Sdk.Default.toString(), null)
+        val project = Project.stub(null)
+        val execution = Execution.stub(project)
         val bodyBuilder = MultipartBodyBuilder().apply {
             part("execution", execution)
         }.build()

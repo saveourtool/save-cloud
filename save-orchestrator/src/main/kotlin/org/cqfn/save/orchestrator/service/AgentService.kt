@@ -194,7 +194,7 @@ class AgentService {
                 executionId to if (agentStatuses.areIdleOrFinished()) {
                     // We assume, that all agents will eventually have one of these statuses.
                     // Situations when agent gets stuck with a different status and for whatever reason is unable to update
-                    // it, are not handled. Anyway, such agents should be eventually stopped: https://github.com/diktat-static-analysis/save-cloud/issues/208
+                    // it, are not handled. Anyway, such agents should be eventually stopped: https://github.com/analysis-dev/save-cloud/issues/208
                     agentStatuses.map { it.containerId }
                 } else {
                     emptyList()

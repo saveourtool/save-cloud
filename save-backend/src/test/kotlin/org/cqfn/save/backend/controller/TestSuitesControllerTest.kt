@@ -1,6 +1,7 @@
 package org.cqfn.save.backend.controller
 
 import org.cqfn.save.backend.SaveApplication
+import org.cqfn.save.backend.controllers.ProjectController
 import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.repository.TestSuiteRepository
 import org.cqfn.save.backend.scheduling.StandardSuitesUpdateScheduler
@@ -8,10 +9,10 @@ import org.cqfn.save.backend.utils.MySqlExtension
 import org.cqfn.save.entities.TestSuite
 import org.cqfn.save.testsuite.TestSuiteDto
 import org.cqfn.save.testsuite.TestSuiteType
-import org.cqfn.test.createMockWebServer
 
+import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
-import org.junit.Assert
+import okhttp3.mockwebserver.QueueDispatcher
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -22,7 +23,6 @@ import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import org.quartz.Scheduler
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.boot.test.context.SpringBootTest
@@ -35,6 +35,7 @@ import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
 
+import java.net.HttpURLConnection
 import java.time.Instant
 import java.util.Date
 
@@ -43,6 +44,7 @@ import java.util.Date
 @ExtendWith(MySqlExtension::class)
 @MockBeans(
     MockBean(StandardSuitesUpdateScheduler::class),
+    MockBean(ProjectController::class),
 )
 class TestSuitesControllerTest {
     @Autowired
@@ -72,10 +74,10 @@ class TestSuitesControllerTest {
             expectBody<List<TestSuite>>()
                 .consumeWith {
                     val body = it.responseBody!!
-                    Assert.assertEquals(listOf(testSuite).size, body.size)
-                    Assert.assertEquals(testSuite.name, body[0].name)
-                    Assert.assertEquals(testSuite.project, body[0].project)
-                    Assert.assertEquals(testSuite.type, body[0].type)
+                    assertEquals(listOf(testSuite).size, body.size)
+                    assertEquals(testSuite.name, body[0].name)
+                    assertEquals(testSuite.project, body[0].project)
+                    assertEquals(testSuite.type, body[0].type)
                 }
         }
     }
@@ -210,7 +212,6 @@ class TestSuitesControllerTest {
 
     companion object {
         @JvmStatic lateinit var mockServerPreprocessor: MockWebServer
-        @JvmStatic private val logger = LoggerFactory.getLogger(TestSuitesControllerTest::class.java)
 
         @AfterAll
         fun tearDown() {
@@ -220,7 +221,10 @@ class TestSuitesControllerTest {
         @DynamicPropertySource
         @JvmStatic
         fun properties(registry: DynamicPropertyRegistry) {
-            mockServerPreprocessor = createMockWebServer(logger)
+            mockServerPreprocessor = MockWebServer()
+            (mockServerPreprocessor.dispatcher as QueueDispatcher).setFailFast(
+                MockResponse().setResponseCode(HttpURLConnection.HTTP_NOT_FOUND)
+            )
             mockServerPreprocessor.start()
             registry.add("backend.preprocessorUrl") { "http://localhost:${mockServerPreprocessor.port}" }
         }

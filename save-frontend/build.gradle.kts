@@ -5,12 +5,18 @@ plugins {
     kotlin("js")
 }
 
+rootProject.plugins.withType<org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin> {
+    rootProject.the<org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension>().nodeVersion = "16.13.1"
+}
+
 dependencies {
     implementation(projects.saveCloudCommon)
 
     implementation(enforcedPlatform(libs.kotlin.wrappers.bom))
     implementation("org.jetbrains.kotlin-wrappers:kotlin-react")
+    implementation("org.jetbrains.kotlin-wrappers:kotlin-react-legacy")
     implementation("org.jetbrains.kotlin-wrappers:kotlin-react-dom")
+    implementation("org.jetbrains.kotlin-wrappers:kotlin-react-dom-legacy")
     implementation("org.jetbrains.kotlin-wrappers:kotlin-react-router-dom")
     implementation("org.jetbrains.kotlin-wrappers:kotlin-react-table")
 
@@ -45,10 +51,10 @@ kotlin {
             compileOnly(devNpm("css-loader", "*"))
             compileOnly(devNpm("url-loader", "*"))
             compileOnly(devNpm("file-loader", "*"))
-            // these dependenceies are bound to postcss 7.x instead of 8.x, because bootstrap 4.x guide uses them
-            compileOnly(devNpm("postcss-loader", "3.*"))
-            compileOnly(devNpm("postcss", "7.*"))
-            compileOnly(devNpm("autoprefixer", "9.*"))
+            // https://getbootstrap.com/docs/4.0/getting-started/webpack/#importing-precompiled-sass
+            compileOnly(devNpm("postcss-loader", "^6.2.1"))
+            compileOnly(devNpm("postcss", "^8.2.13"))
+            compileOnly(devNpm("autoprefixer", ">9"))
             compileOnly(devNpm("webpack-bundle-analyzer", "*"))
 
             // web-specific dependencies
@@ -66,6 +72,7 @@ kotlin {
             implementation(npm("react-modal", "^3.0.0"))
             implementation(npm("os-browserify", "^0.3.0"))
             implementation(npm("path-browserify", "^1.0.1"))
+            implementation(npm("react-minimal-pie-chart", "^8.2.0"))
         }
     }
 }

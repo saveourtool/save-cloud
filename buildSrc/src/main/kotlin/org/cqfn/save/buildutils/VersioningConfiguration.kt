@@ -13,6 +13,8 @@ import org.gradle.kotlin.dsl.apply
 import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.the
 import java.net.URL
+import java.time.Duration
+import java.util.Properties
 
 /**
  * Configures reckon plugin for [this] project, should be applied for root project only
@@ -40,25 +42,43 @@ fun Project.configureVersioning() {
  */
 fun Project.versionForDockerImages() = version.toString().replace("+", "-")
 
+val Project.pathToSaveCliVersion get() = "${rootProject.buildDir}/save-cli.properties"
+
 /**
  * @return version of save-cli, either from project property, or from Versions, or latest
  */
 @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
-fun Project.getSaveCliVersion(): String {
+fun Project.registerSaveCliVersionCheckTask() {
     val libs = the<LibrariesForLibs>()
     val saveCoreVersion = libs.versions.save.core.get()
-    return if (saveCoreVersion.endsWith("SNAPSHOT")) {
-        // try to get the required version of cli
-        findProperty("saveCliVersion") as String? ?: run {
-            // as fallback, use latest release to allow the project to build successfully
-            val latestRelease = ResourceGroovyMethods.getText(
-                URL("https://api.github.com/repos/diktat-static-analysis/save/releases/latest")
-            )
-            (groovy.json.JsonSlurper().parseText(latestRelease) as Map<String, Any>)["tag_name"].let {
-                (it as String).trim('v')
-            }
+    tasks.register("getSaveCliVersion") {
+        val file = file(pathToSaveCliVersion)
+        outputs.file(file)
+        outputs.upToDateWhen {
+            // cache value of latest save-cli version for 10 minutes to keep request rate to Github reasonable
+            (System.currentTimeMillis() - file.lastModified()) < Duration.ofMinutes(10).toMillis()
         }
-    } else {
-        saveCoreVersion
+        doFirst {
+            val version = if (saveCoreVersion.endsWith("SNAPSHOT")) {
+                // try to get the required version of cli
+                findProperty("saveCliVersion") as String? ?: run {
+                    // as fallback, use latest release to allow the project to build successfully
+                    val latestRelease = ResourceGroovyMethods.getText(
+                        URL("https://api.github.com/repos/analysis-dev/save/releases/latest")
+                    )
+                    (groovy.json.JsonSlurper().parseText(latestRelease) as Map<String, Any>)["tag_name"].let {
+                        (it as String).trim('v')
+                    }
+                }
+            } else {
+                saveCoreVersion
+            }
+            file.writeText("""version=$version""")
+        }
     }
+}
+
+fun Project.readSaveCliVersion(): String {
+    val file = file(pathToSaveCliVersion)
+    return Properties().apply { load(file.reader()) }["version"] as String
 }

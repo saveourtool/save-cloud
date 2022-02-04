@@ -1,5 +1,6 @@
 package org.cqfn.save.backend
 
+import org.cqfn.save.backend.controllers.ProjectController
 import org.cqfn.save.backend.repository.ExecutionRepository
 import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.scheduling.StandardSuitesUpdateScheduler
@@ -8,7 +9,6 @@ import org.cqfn.save.domain.Jdk
 import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.GitDto
 import org.cqfn.save.entities.Project
-import org.cqfn.save.entities.ProjectStatus
 import org.cqfn.save.execution.ExecutionType
 
 import okhttp3.mockwebserver.MockResponse
@@ -25,6 +25,7 @@ import org.springframework.boot.test.mock.mockito.MockBeans
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.client.MultipartBodyBuilder
+import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.web.reactive.server.WebTestClient
@@ -35,6 +36,7 @@ import org.springframework.web.reactive.function.BodyInserters
 @ExtendWith(MySqlExtension::class)
 @MockBeans(
     MockBean(StandardSuitesUpdateScheduler::class),
+    MockBean(ProjectController::class),
 )
 class CloneRepoTest {
     @Autowired
@@ -47,6 +49,7 @@ class CloneRepoTest {
     private lateinit var executionRepository: ExecutionRepository
 
     @Test
+    @WithMockUser(username = "John Doe")
     fun checkSaveProject() {
         val sdk = Jdk("8")
         mockServerPreprocessor.enqueue(
@@ -80,9 +83,10 @@ class CloneRepoTest {
     }
 
     @Test
+    @WithMockUser(username = "John Doe")
     fun checkNonExistingProject() {
         val sdk = Jdk("11")
-        val project = Project("noname", "1", "1", "1", ProjectStatus.CREATED)
+        val project = Project.stub(null)
         val gitRepo = GitDto("1")
         val executionRequest = ExecutionRequest(project, gitRepo, executionId = null, sdk = sdk, testRootPath = ".")
         val executionsClones = listOf(executionRequest, executionRequest, executionRequest)

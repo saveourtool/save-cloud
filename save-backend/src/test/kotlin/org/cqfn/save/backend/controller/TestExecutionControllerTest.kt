@@ -2,6 +2,7 @@ package org.cqfn.save.backend.controller
 
 import org.cqfn.save.agent.TestExecutionDto
 import org.cqfn.save.backend.SaveApplication
+import org.cqfn.save.backend.controllers.ProjectController
 import org.cqfn.save.backend.repository.AgentRepository
 import org.cqfn.save.backend.repository.TestExecutionRepository
 import org.cqfn.save.backend.scheduling.StandardSuitesUpdateScheduler
@@ -32,6 +33,7 @@ import org.springframework.web.reactive.function.BodyInserters
 @ExtendWith(MySqlExtension::class)
 @MockBeans(
     MockBean(StandardSuitesUpdateScheduler::class),
+    MockBean(ProjectController::class),
 )
 class TestExecutionControllerTest {
     @Autowired
@@ -87,8 +89,8 @@ class TestExecutionControllerTest {
             TestResultStatus.FAILED,
             DEFAULT_DATE_TEST_EXECUTION,
             DEFAULT_DATE_TEST_EXECUTION,
-            missingWarnings = null,
-            matchedWarnings = null,
+            missingWarnings = 3,
+            matchedWarnings = 2,
         )
         val testExecutionDtoSecond = TestExecutionDto(
             "testPath42",
@@ -97,8 +99,8 @@ class TestExecutionControllerTest {
             TestResultStatus.PASSED,
             DEFAULT_DATE_TEST_EXECUTION,
             DEFAULT_DATE_TEST_EXECUTION,
-            missingWarnings = null,
-            matchedWarnings = null,
+            missingWarnings = 4,
+            matchedWarnings = 3,
         )
         val passedTestsBefore = getExecutionsTestsResultByAgentContainerId(testExecutionDtoSecond.agentContainerId!!, true)
         val failedTestsBefore = getExecutionsTestsResultByAgentContainerId(testExecutionDtoFirst.agentContainerId!!, false)
@@ -116,6 +118,8 @@ class TestExecutionControllerTest {
         assertTrue(tests.any { it.endTime == testExecutionDtoFirst.endTimeSeconds!!.secondsToLocalDateTime().withNano(0) })
         Assertions.assertEquals(passedTestsBefore, passedTestsAfter - 1)
         Assertions.assertEquals(failedTestsBefore, failedTestsAfter - 1)
+        assertTrue(tests.any { it.missingWarnings == testExecutionDtoFirst.missingWarnings && it.matchedWarnings == testExecutionDtoFirst.matchedWarnings })
+        assertTrue(tests.any { it.missingWarnings == testExecutionDtoSecond.missingWarnings && it.matchedWarnings == testExecutionDtoSecond.matchedWarnings })
     }
 
     @Test

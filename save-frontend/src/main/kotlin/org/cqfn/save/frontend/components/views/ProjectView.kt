@@ -141,6 +141,16 @@ external interface ProjectViewState : State {
     var gitBranchOrCommitFromInputField: String
 
     /**
+     * Execution command for standard mode
+     */
+    var execCmd: String
+
+    /**
+     * Batch size for static analyzer tool in standard mode
+     */
+    var batchSizeForAnalyzer: String
+
+    /**
      * Directory in the repository where tests are placed
      */
     var testRootPath: String
@@ -186,7 +196,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     private var standardTestSuites: List<TestSuiteDto> = emptyList()
     private val selectedStandardSuites: MutableList<String> = mutableListOf()
     private var gitDto: GitDto? = null
-    private var project = Project("N/A", "N/A", "N/A", "N/A", ProjectStatus.CREATED)
+    private var project = Project("N/A", "N/A", "N/A", "N/A", ProjectStatus.CREATED, userId = -1, adminIds = null)
     private val projectInformation = mutableMapOf(
         "Tested tool name: " to "",
         "Description: " to "",
@@ -198,6 +208,8 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     init {
         state.gitUrlFromInputField = ""
         state.gitBranchOrCommitFromInputField = ""
+        state.execCmd = ""
+        state.batchSizeForAnalyzer = ""
         state.testRootPath = ""
         state.confirmationType = ConfirmationType.NO_CONFIRM
         state.testingType = TestingType.CUSTOM_TESTS
@@ -226,7 +238,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 set("Accept", "application/json")
                 set("Content-Type", "application/json")
             }
-            gitDto = post("$apiUrl/getGit", headers, jsonProject)
+            gitDto = post("$apiUrl/projects/git", headers, jsonProject)
                 .decodeFromJsonString<GitDto>()
             standardTestSuites = get("$apiUrl/allStandardTestSuites", headers)
                 .decodeFromJsonString()
@@ -279,7 +291,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         val headers = Headers()
         val formData = FormData()
         val selectedSdk = "${state.selectedSdk}:${state.selectedSdkVersion}".toSdk()
-        val request = ExecutionRequestForStandardSuites(project, selectedStandardSuites, selectedSdk)
+        val request = ExecutionRequestForStandardSuites(project, selectedStandardSuites, selectedSdk, state.execCmd, state.batchSizeForAnalyzer)
         formData.appendJson("execution", request)
         state.files.forEach {
             formData.appendJson("file", it)
@@ -457,6 +469,16 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                             testRootPath = it
                         }
                     },
+                    setExecCmd = {
+                        setState {
+                            execCmd = (it.target as HTMLInputElement).value
+                        }
+                    },
+                    setBatchSize = {
+                        setState {
+                            batchSizeForAnalyzer = (it.target as HTMLInputElement).value
+                        }
+                    },
                     setSelectedLanguageForStandardTests = {
                         setState {
                             selectedLanguageForStandardTests = it
@@ -474,6 +496,8 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                     attrs.selectedStandardSuites = selectedStandardSuites
                     attrs.standardTestSuites = standardTestSuites
                     attrs.selectedLanguageForStandardTests = state.selectedLanguageForStandardTests
+                    attrs.execCmd = state.execCmd
+                    attrs.batchSizeForAnalyzer = state.batchSizeForAnalyzer
                 }
 
                 div("d-sm-flex align-items-center justify-content-center") {
@@ -715,7 +739,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     }
 
     private fun deleteProject() {
-        project.status = ProjectStatus.DELETED
+        project = project.copy(status = ProjectStatus.DELETED)
 
         setState {
             confirmationType = ConfirmationType.DELETE_CONFIRM
@@ -731,12 +755,14 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             it.set("Content-Type", "application/json")
         }
         val (name, description, url, owner) = projectInfo.values.toList()
-        project.name = name
-        project.description = description
-        project.url = url
-        project.owner = owner
+        project = project.copy(
+            name = name,
+            description = description,
+            url = url,
+            owner = owner,
+        )
         GlobalScope.launch {
-            post("$apiUrl/updateProject", headers, Json.encodeToString(project))
+            post("$apiUrl/projects/update", headers, Json.encodeToString(project))
         }
     }
 
@@ -747,7 +773,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         }
         GlobalScope.launch {
             responseFromDeleteProject =
-                    post("$apiUrl/updateProject", headers, Json.encodeToString(project))
+                    post("$apiUrl/projects/update", headers, Json.encodeToString(project))
         }.invokeOnCompletion {
             if (responseFromDeleteProject.ok) {
                 window.location.href = "${window.location.origin}/"
@@ -792,12 +818,12 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     companion object {
         const val TEST_ROOT_DIR_HINT = """
             The path you are providing should be relative to the root directory of your repository.
-            This directory should contain <a href = "https://github.com/diktat-static-analysis/save#how-to-configure"> save.properties </a>
-            or <a href = "https://github.com/diktat-static-analysis/save#-savetoml-configuration-file">save.toml</a> files.
+            This directory should contain <a href = "https://github.com/analysis-dev/save#how-to-configure"> save.properties </a>
+            or <a href = "https://github.com/analysis-dev/save#-savetoml-configuration-file">save.toml</a> files.
             For example, if the URL to your repo with tests is: 
-            <a href ="https://github.com/diktat-static-analysis/save/">https://github.com/diktat-static-analysis/save</a>, then
+            <a href ="https://github.com/analysis-dev/save/">https://github.com/analysis-dev/save</a>, then
             you need to specify the following directory with 'save.toml': 
-            <a href ="https://github.com/diktat-static-analysis/save/tree/main/examples/kotlin-diktat">examples/kotlin-diktat/</a>.
+            <a href ="https://github.com/analysis-dev/save/tree/main/examples/kotlin-diktat">examples/kotlin-diktat/</a>.
  
             Please note, that the tested tool and it's resources will be copied to this directory before the run.
             """

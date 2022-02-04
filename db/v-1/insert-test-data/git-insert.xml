@@ -16,7 +16,7 @@
 
         <insert dbms="mysql" tableName="git">
             <column name="id" value="2" />
-            <column name="url" value="https://github.com/diktat-static-analysis/save-cloud" />
+            <column name="url" value="https://github.com/analysis-dev/save-cloud" />
             <column name="username" value="kentr0w" />
             <column name="password" value="pass" />
             <column name="branch" value="feature/create-backend" />
