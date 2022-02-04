@@ -13,7 +13,6 @@ import org.cqfn.save.orchestrator.service.DockerService
 import org.cqfn.save.test.TestBatch
 import org.cqfn.save.test.TestDto
 import org.cqfn.save.testsuite.TestSuiteType
-import org.cqfn.test.createMockWebServer
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import okhttp3.mockwebserver.MockResponse
@@ -339,7 +338,7 @@ class HeartbeatControllerTest {
         @JvmStatic
         fun properties(registry: DynamicPropertyRegistry) {
             // todo: should be initialized in @BeforeAll, but it gets called after @DynamicPropertySource
-            mockServer = createMockWebServer(logger)
+            mockServer = MockWebServer()
             // todo: extract request-based dispatcher to save-cloud-common
 
             mockServer.dispatcher = object : QueueDispatcher() {
@@ -348,7 +347,9 @@ class HeartbeatControllerTest {
                     if (path != null && (path.contains("/testExecution/assignAgent") || path.contains("/updateAgentStatusesWithDto"))) {
                         return MockResponse().setResponseCode(200)
                     }
-                    return super.dispatch(request)
+                    return super.dispatch(request).also {
+                        logger.info("For request ${request.requestUrl} returning mocked response $it")
+                    }
                 }
             }
             (mockServer.dispatcher as QueueDispatcher).setFailFast(true)

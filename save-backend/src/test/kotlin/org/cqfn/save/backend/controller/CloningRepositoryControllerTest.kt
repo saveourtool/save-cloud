@@ -3,7 +3,17 @@ package org.cqfn.save.backend.controller
 import org.cqfn.save.backend.configs.ConfigProperties
 import org.cqfn.save.backend.configs.NoopWebSecurityConfig
 import org.cqfn.save.backend.controllers.CloneRepositoryController
-import org.cqfn.save.backend.repository.*
+import org.cqfn.save.backend.repository.AgentRepository
+import org.cqfn.save.backend.repository.AgentStatusRepository
+import org.cqfn.save.backend.repository.AwesomeBenchmarksRepository
+import org.cqfn.save.backend.repository.ExecutionRepository
+import org.cqfn.save.backend.repository.GitRepository
+import org.cqfn.save.backend.repository.ProjectRepository
+import org.cqfn.save.backend.repository.TestExecutionRepository
+import org.cqfn.save.backend.repository.TestRepository
+import org.cqfn.save.backend.repository.TestSuiteRepository
+import org.cqfn.save.backend.repository.TimestampBasedFileSystemRepository
+import org.cqfn.save.backend.repository.UserRepository
 import org.cqfn.save.backend.scheduling.StandardSuitesUpdateScheduler
 import org.cqfn.save.backend.service.ExecutionService
 import org.cqfn.save.backend.service.ProjectService
@@ -14,6 +24,7 @@ import org.cqfn.save.entities.ExecutionRequestForStandardSuites
 import org.cqfn.save.entities.GitDto
 import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.ProjectStatus
+import org.cqfn.test.createMockWebServer
 
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
@@ -23,6 +34,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.io.TempDir
 import org.mockito.kotlin.whenever
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
@@ -158,6 +170,7 @@ class CloningRepositoryControllerTest {
 
     companion object {
         @JvmStatic lateinit var mockServerPreprocessor: MockWebServer
+        private val logger = LoggerFactory.getLogger(CloningRepositoryControllerTest::class.java)
 
         @AfterAll
         fun tearDown() {
@@ -167,7 +180,7 @@ class CloningRepositoryControllerTest {
         @DynamicPropertySource
         @JvmStatic
         fun properties(registry: DynamicPropertyRegistry) {
-            mockServerPreprocessor = MockWebServer()
+            mockServerPreprocessor = createMockWebServer(logger)
             mockServerPreprocessor.start()
             registry.add("backend.preprocessorUrl") { "http://localhost:${mockServerPreprocessor.port}" }
         }
