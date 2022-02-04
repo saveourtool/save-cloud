@@ -41,7 +41,6 @@ import kotlin.js.json
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -123,11 +122,9 @@ fun <D : Any> tableComponent(
 
     useEffect(arrayOf<dynamic>(tableInstance.state.pageSize, pageCount)) {
         if (useServerPaging) {
-            val pageCountDeferred = scope.async {
-                getPageCount!!.invoke(tableInstance.state.pageSize)
-            }
-            pageCountDeferred.invokeOnCompletion {
-                setPageCount(pageCountDeferred.getCompleted())
+            scope.launch {
+                val newPageCount = getPageCount!!.invoke(tableInstance.state.pageSize)
+                setPageCount(newPageCount)
             }
         }
     }
