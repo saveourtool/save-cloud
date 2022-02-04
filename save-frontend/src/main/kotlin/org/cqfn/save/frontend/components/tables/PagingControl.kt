@@ -213,6 +213,5 @@ private fun <D : Any> setPageIndexAndGoToPage(
     setPageIndex: StateSetter<Int>,
     index: Int
 ) {
-    setPageIndex(index)
     tableInstance.gotoPage(index)
 }
