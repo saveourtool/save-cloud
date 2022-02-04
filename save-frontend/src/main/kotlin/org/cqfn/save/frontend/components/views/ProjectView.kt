@@ -34,7 +34,6 @@ import react.dom.*
 
 import kotlinx.browser.document
 import kotlinx.browser.window
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.html.ButtonType
 import kotlinx.html.InputType
@@ -231,7 +230,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     override fun componentDidMount() {
         super.componentDidMount()
 
-        GlobalScope.launch {
+        scope.launch {
             project = getProject(props.name, props.owner)
             val jsonProject = Json.encodeToString(project)
             val headers = Headers().apply {
@@ -302,7 +301,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     private fun submitExecutionRequestWithCustomTests(correctGitDto: GitDto) {
         val selectedSdk = "${state.selectedSdk}:${state.selectedSdkVersion}".toSdk()
         val formData = FormData()
-        val testRootPath = if (state.testRootPath.isBlank()) "." else state.testRootPath
+        val testRootPath = state.testRootPath.ifBlank { "." }
         val executionRequest = ExecutionRequest(project, correctGitDto, testRootPath, selectedSdk, null)
         formData.appendJson("executionRequest", executionRequest)
         state.files.forEach {
@@ -315,7 +314,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         setState {
             isLoading = true
         }
-        GlobalScope.launch {
+        scope.launch {
             val response = post(apiUrl + url, headers, body)
             if (!response.ok) {
                 response.text().then { text ->
@@ -600,7 +599,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                         button(classes = "btn btn-link text-left") {
                             +"Latest Execution"
                             attrs.onClickFunction = {
-                                GlobalScope.launch {
+                                scope.launch {
                                     switchToLatestExecution()
                                 }
                             }
@@ -629,7 +628,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     }
 
     private fun postFileUpload(element: HTMLInputElement) =
-            GlobalScope.launch {
+            scope.launch {
                 setState {
                     isUploading = true
                     element.files!!.asList().forEach { file ->
@@ -761,7 +760,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             url = url,
             owner = owner,
         )
-        GlobalScope.launch {
+        scope.launch {
             post("$apiUrl/projects/update", headers, Json.encodeToString(project))
         }
     }
@@ -771,7 +770,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             it.set("Accept", "application/json")
             it.set("Content-Type", "application/json")
         }
-        GlobalScope.launch {
+        scope.launch {
             responseFromDeleteProject =
                     post("$apiUrl/projects/update", headers, Json.encodeToString(project))
         }.invokeOnCompletion {

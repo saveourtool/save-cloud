@@ -11,6 +11,7 @@ import org.cqfn.save.frontend.components.topBar
 import org.cqfn.save.frontend.components.views.*
 import org.cqfn.save.frontend.externals.fontawesome.*
 import org.cqfn.save.frontend.externals.modal.ReactModal
+import org.cqfn.save.frontend.utils.ComponentWithScope
 import org.cqfn.save.frontend.utils.get
 import org.cqfn.save.frontend.utils.withRouter
 import org.cqfn.save.info.UserInfo
@@ -27,7 +28,6 @@ import react.router.dom.HashRouter
 
 import kotlinx.browser.document
 import kotlinx.browser.window
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
 import kotlinx.html.id
@@ -49,13 +49,13 @@ external interface AppState : State {
  */
 @JsExport
 @OptIn(ExperimentalJsExport::class)
-class App : RComponent<PropsWithChildren, AppState>() {
+class App : ComponentWithScope<PropsWithChildren, AppState>() {
     init {
         state.userInfo = null
     }
 
     private fun getUser() {
-        GlobalScope.launch {
+        scope.launch {
             val headers = Headers().also { it.set("Accept", "application/json") }
             val userInfoNew: UserInfo? = get("${window.location.origin}/sec/user", headers).run {
                 val responseText = text().await()
