@@ -1,5 +1,6 @@
 package org.cqfn.save.backend.repository
 
+import org.cqfn.save.entities.Organization
 import org.cqfn.save.entities.Project
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
@@ -14,8 +15,8 @@ interface ProjectRepository : JpaRepository<Project, Long>, QueryByExampleExecut
 JpaSpecificationExecutor<Project> {
     /**
      * @param name
-     * @param owner
+     * @param organization
      * @return project by name and owner
      */
-    fun findByNameAndOwner(name: String, owner: String): Project?
+    fun findByNameAndOrganization(name: String, organization: Organization): Project?
 }

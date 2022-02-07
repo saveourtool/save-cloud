@@ -36,6 +36,8 @@ import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.Month
 import kotlinx.html.ButtonType
 import kotlinx.html.InputType
 import kotlinx.html.classes
@@ -192,16 +194,18 @@ enum class ConfirmationType {
  */
 @JsExport
 @OptIn(ExperimentalJsExport::class)
+@Suppress("MAGIC_NUMBER")
 class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(false) {
     private var standardTestSuites: List<TestSuiteDto> = emptyList()
     private val selectedStandardSuites: MutableList<String> = mutableListOf()
     private var gitDto: GitDto? = null
-    private var project = Project("N/A", "N/A", "N/A", "N/A", ProjectStatus.CREATED, userId = -1, adminIds = null)
+    private val date = LocalDateTime(1970, Month.JANUARY, 1, 0, 0, 1)
+    private val organization = Organization("stub", null, date)
+    private var project = Project("N/A", "N/A", "N/A", ProjectStatus.CREATED, userId = -1, organization = organization)
     private val projectInformation = mutableMapOf(
         "Tested tool name: " to "",
         "Description: " to "",
         "Tested tool Url: " to "",
-        "Test project owner: " to ""
     )
     private lateinit var responseFromDeleteProject: Response
 
@@ -530,7 +534,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                                         project.name,
                                         project.description ?: "",
                                         project.url ?: "",
-                                        project.owner
                                     )
                                 )
                             )
@@ -609,7 +612,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                     div("ml-3 align-items-left") {
                         fontAwesomeIcon(icon = faCalendarAlt)
                         a(
-                            href = "#/${project.owner}/${project.name}/history",
+                            href = "#/${project.organization.name}/${project.name}/history",
                             classes = "btn btn-link text-left"
                         ) {
                             +"Execution History"
@@ -749,17 +752,18 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         }
     }
 
+    @Suppress("COMMENTED_OUT_CODE")
     private fun updateProjectBuilder(projectInfo: Map<String, String>) {
         val headers = Headers().also {
             it.set("Accept", "application/json")
             it.set("Content-Type", "application/json")
         }
-        val (name, description, url, owner) = projectInfo.values.toList()
+        val (name, description, url) = projectInfo.values.toList()
         project = project.copy(
             name = name,
             description = description,
             url = url,
-            owner = owner,
+            organization = project.organization,
         )
         GlobalScope.launch {
             post("$apiUrl/projects/update", headers, Json.encodeToString(project))
@@ -792,7 +796,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     private suspend fun switchToLatestExecution() {
         val headers = Headers().apply { set("Accept", "application/json") }
         val response = get(
-            "$apiUrl/latestExecution?name=${project.name}&owner=${project.owner}",
+            "$apiUrl/latestExecution?name=${project.name}&owner=${project.organization.name}",
             headers
         )
         if (!response.ok) {

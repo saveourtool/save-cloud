@@ -3,6 +3,7 @@ package org.cqfn.save.backend.service
 import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.repository.UserRepository
 import org.cqfn.save.domain.ProjectSaveStatus
+import org.cqfn.save.entities.Organization
 import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.ProjectStatus
 import org.springframework.data.domain.Example
@@ -47,10 +48,10 @@ class ProjectService(private val projectRepository: ProjectRepository,
 
     /**
      * @param name
-     * @param owner
+     * @param organization
      */
     @Suppress("KDOC_WITHOUT_RETURN_TAG")  // remove after new release of diktat
-    fun findByNameAndOwner(name: String, owner: String) = projectRepository.findByNameAndOwner(name, owner)
+    fun findByNameAndOrganization(name: String, organization: Organization) = projectRepository.findByNameAndOrganization(name, organization)
 
     /**
      * @return project's without status
