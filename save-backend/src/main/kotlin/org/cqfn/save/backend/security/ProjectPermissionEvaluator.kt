@@ -43,9 +43,8 @@ class ProjectPermissionEvaluator {
 
     private fun hasWriteAccess(userId: Long?, project: Project): Boolean {
         val adminIdList = lnkUserProjectRepository.findByProject(project)
-            .map { it?.user }
-            .filter { user -> user?.role == Role.ADMIN }
-            .map { it?.id }
+            .filter { it?.role == Role.ADMIN }
+            .map { it?.user?.id }
         return userId != null && (project.userId == userId || userId in adminIdList)
     }
 }

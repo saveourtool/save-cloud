@@ -44,7 +44,7 @@ fun suitesTable(
     suites: List<TestSuiteDto>,
     selectedLanguageForStandardTests: String?,
     setSelectedLanguageForStandardTests: (String) -> Unit,
-) = fc<CheckBoxGridProps> { props ->
+) = fc<CheckBoxGridProps> {
     nav("nav nav-tabs mb-4") {
         val (languagesWithoutNull, otherLanguages) = suites.map { it.language }.distinct()
             .sortedBy { it }.partition { it != null }

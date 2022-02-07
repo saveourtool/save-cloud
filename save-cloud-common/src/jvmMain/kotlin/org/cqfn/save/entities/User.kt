@@ -1,6 +1,5 @@
 package org.cqfn.save.entities
 
-import org.cqfn.save.domain.Role
 import javax.persistence.Entity
 import javax.persistence.EnumType
 import javax.persistence.Enumerated
@@ -16,6 +15,6 @@ class User(
     var name: String?,
     var password: String?,
     @Enumerated(EnumType.STRING)
-    var role: Role?,
+    var role: String?,
     var source: String,
 ) : BaseEntity()

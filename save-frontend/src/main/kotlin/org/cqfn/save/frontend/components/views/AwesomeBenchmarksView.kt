@@ -18,7 +18,6 @@ import org.w3c.fetch.Headers
 import react.*
 import react.dom.*
 
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.html.ButtonType
 
@@ -316,7 +315,7 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
             it.set("Content-Type", "application/json")
         }
 
-        GlobalScope.launch {
+        scope.launch {
             val response: List<AwesomeBenchmarks> = get("$apiUrl/awesome-benchmarks", headers).decodeFromJsonString()
 
             setState {
