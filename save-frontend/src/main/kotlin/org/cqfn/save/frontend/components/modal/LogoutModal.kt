@@ -18,7 +18,7 @@ import react.dom.h5
 import react.dom.span
 
 import kotlinx.browser.window
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.html.ButtonType
 import kotlinx.html.js.onClickFunction
@@ -27,10 +27,15 @@ import kotlinx.html.role
 /**
  * @param handler a [RHandler] for [ModalProps]
  * @param closeCallback a callback to call to close the modal
+ * @param coroutineScope a scope on which suspendable network requests can be done
  * @return a Component
  */
 @Suppress("TOO_LONG_FUNCTION")
-fun RBuilder.logoutModal(handler: RHandler<ModalProps>, closeCallback: () -> Unit) = modal {
+fun RBuilder.logoutModal(
+    coroutineScope: CoroutineScope,
+    handler: RHandler<ModalProps>,
+    closeCallback: () -> Unit
+) = modal {
     handler(this)
     div("modal-dialog") {
         attrs.role = "document"
@@ -63,7 +68,7 @@ fun RBuilder.logoutModal(handler: RHandler<ModalProps>, closeCallback: () -> Uni
             }
             button(type = ButtonType.button, classes = "btn btn-primary") {
                 attrs.onClickFunction = {
-                    GlobalScope.launch {
+                    coroutineScope.launch {
                         val replyToLogout = post("${window.location.origin}/logout", Headers(), "ping")
                         if (replyToLogout.ok) {
                             // logout went good, need either to reload page or to setUserInfo(null) and use redirection like `window.location.href = window.location.origin`

@@ -72,6 +72,7 @@ kotlin {
             implementation(npm("react-modal", "^3.0.0"))
             implementation(npm("os-browserify", "^0.3.0"))
             implementation(npm("path-browserify", "^1.0.1"))
+            implementation(npm("react-minimal-pie-chart", "^8.2.0"))
         }
     }
 }
