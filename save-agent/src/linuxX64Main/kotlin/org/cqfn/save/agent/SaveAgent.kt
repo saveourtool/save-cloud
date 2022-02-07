@@ -20,15 +20,16 @@ import org.cqfn.save.utils.toTestResultStatus
 
 import generated.SAVE_CLOUD_VERSION
 import io.ktor.client.HttpClient
-import io.ktor.client.features.*
+
 import io.ktor.client.request.accept
-import io.ktor.client.request.forms.*
+import io.ktor.http.ContentType
+import io.ktor.http.contentType
 import io.ktor.client.request.post
 import io.ktor.client.request.url
 import io.ktor.client.statement.HttpResponse
-import io.ktor.http.*
 
-import io.ktor.util.*
+
+
 import okio.FileSystem
 import okio.Path.Companion.toPath
 
@@ -96,7 +97,6 @@ class SaveAgent(internal val config: AgentConfiguration,
     @Suppress("WHEN_WITHOUT_ELSE")  // when with sealed class
     private suspend fun startHeartbeats(coroutineScope: CoroutineScope) {
         logInfoCustom("Scheduling heartbeats")
-
         while (true) {
             val response = runCatching {
                 // TODO: get execution progress here. However, with current implementation JSON report won't be valid until all tests are finished.
@@ -170,7 +170,6 @@ class SaveAgent(internal val config: AgentConfiguration,
                 state.value = AgentState.CLI_FAILED
             }
         }
-
     }
 
     @Suppress("MagicNumber")
@@ -193,7 +192,6 @@ class SaveAgent(internal val config: AgentConfiguration,
                 pluginExecution.testResults.map { tr ->
                     val debugInfo = tr.toTestResultDebugInfo(report.testSuite, pluginExecution.plugin)
                     launch {
-
                         logDebugCustom("Posting debug info for test ${debugInfo.testResultLocation}")
                         sendDataToBackend {
                             sendReport(debugInfo)
@@ -222,7 +220,6 @@ class SaveAgent(internal val config: AgentConfiguration,
     private fun CoroutineScope.launchLogSendingJob(saveCliLogFile: String): Job {
         val byteArray = FileSystem.SYSTEM.source(saveCliLogFile.toPath()).buffer().readByteArray()
         return launch {
-            //runBlocking {
             runCatching {
                 sendLogs(byteArray)
 
@@ -260,7 +257,6 @@ class SaveAgent(internal val config: AgentConfiguration,
         httpClient.submitFormWithBinaryData(
             url = "${config.orchestratorUrl}/executionLogs",
             formData = formData {
-                //append(config.id, File(saveCliLogFile).readBytes(), Headers.build {
                 append(config.id, byteArray, Headers.build {
                     append(HttpHeaders.ContentType, ContentType.MultiPart.FormData)
                     append(HttpHeaders.ContentDisposition, "filename=${config.id}")

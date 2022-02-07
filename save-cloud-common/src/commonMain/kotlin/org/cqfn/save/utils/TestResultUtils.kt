@@ -54,7 +54,7 @@ fun TestResult.toTestResultDebugInfo(testSuiteName: String, pluginName: String):
  * @param location location to be processed
  */
 fun adjustLocation(location: String) = if (location.startsWith(PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE)) {
-    //logTrace("Adjusting path to [$location]: trimming $PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE")
+    logTrace("Adjusting path to [$location]: trimming $PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE")
     location.dropWhile { it != '/' }.drop(1)
 } else {
     // Use filePath as is for Git mode
