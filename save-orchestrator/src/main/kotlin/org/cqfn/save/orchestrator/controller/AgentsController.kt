@@ -1,6 +1,5 @@
 package org.cqfn.save.orchestrator.controller
 
-import org.cqfn.save.agent.ExecutionLogs
 import org.cqfn.save.entities.Agent
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.execution.ExecutionStatus
@@ -112,10 +111,10 @@ class AgentsController(
             log.info("Folder to store logs from agents was created: ${logDir.name}")
             logDir.mkdirs()
         }
-        val logFile = File(logDir.path + File.separator + "${fileName}.log")
+        val logFile = File(logDir.path + File.separator + "$fileName.log")
         if (!logFile.exists()) {
             logFile.createNewFile()
-            log.info("Log file for ${fileName} agent was created")
+            log.info("Log file for $fileName agent was created")
         }
         executionLogs.content().map { dtBuffer ->
             FileOutputStream(logFile, true).use { os ->
@@ -126,7 +125,6 @@ class AgentsController(
         }
         log.info("Logs of agent id = $fileName were written")
     }
-
 
     /**
      * Delete containers and images associated with execution [executionId]

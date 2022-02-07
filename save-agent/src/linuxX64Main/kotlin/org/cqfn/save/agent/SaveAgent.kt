@@ -20,38 +20,34 @@ import org.cqfn.save.utils.toTestResultStatus
 
 import generated.SAVE_CLOUD_VERSION
 import io.ktor.client.HttpClient
-
+import io.ktor.client.features.*
 import io.ktor.client.request.accept
-import io.ktor.http.ContentType
-import io.ktor.http.contentType
+import io.ktor.client.request.forms.*
 import io.ktor.client.request.post
 import io.ktor.client.request.url
 import io.ktor.client.statement.HttpResponse
-
-
+import io.ktor.http.*
+import io.ktor.util.*
 
 import okio.FileSystem
 import okio.Path.Companion.toPath
+import okio.buffer
 
 import kotlin.native.concurrent.AtomicLong
 import kotlin.native.concurrent.AtomicReference
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.newSingleThreadContext
-import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.Clock
 import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
-import okio.buffer
 
 /**
  * A main class for SAVE Agent
@@ -222,11 +218,10 @@ class SaveAgent(internal val config: AgentConfiguration,
         return launch {
             runCatching {
                 sendLogs(byteArray)
-
             }
                 .exceptionOrNull()
                 ?.let {
-                    logErrorCustom("\n\n\nCouldn't send logs, reason: ${it.message} ${it}\n\n\n")
+                    logErrorCustom("\n\n\nCouldn't send logs, reason: ${it.message} $it\n\n\n")
                 }
         }
     }
@@ -254,19 +249,19 @@ class SaveAgent(internal val config: AgentConfiguration,
      */
     @OptIn(InternalAPI::class)
     private suspend fun sendLogs(byteArray: ByteArray): HttpResponse =
-        httpClient.submitFormWithBinaryData(
-            url = "${config.orchestratorUrl}/executionLogs",
-            formData = formData {
-                append(config.id, byteArray, Headers.build {
-                    append(HttpHeaders.ContentType, ContentType.MultiPart.FormData)
-                    append(HttpHeaders.ContentDisposition, "filename=${config.id}")
-                })
+            httpClient.submitFormWithBinaryData(
+                url = "${config.orchestratorUrl}/executionLogs",
+                formData = formData {
+                    append(config.id, byteArray, Headers.build {
+                        append(HttpHeaders.ContentType, ContentType.MultiPart.FormData)
+                        append(HttpHeaders.ContentDisposition, "filename=${config.id}")
+                    })
+                }
+            ) {
+                onUpload { bytesSentTotal, contentLength ->
+                    println("\n\n\n\nSent $bytesSentTotal bytes from $contentLength")
+                }
             }
-        ) {
-            onUpload { bytesSentTotal, contentLength ->
-                println("\n\n\n\nSent $bytesSentTotal bytes from $contentLength")
-            }
-        }
 
     private suspend fun sendReport(testResultDebugInfo: TestResultDebugInfo) = httpClient.post<HttpResponse> {
         url("${config.backend.url}/${config.backend.filesEndpoint}/debug-info?agentId=${config.id}")
