@@ -37,10 +37,10 @@ import react.useMemo
 import react.useState
 
 import kotlin.js.json
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -122,11 +122,9 @@ fun <D : Any> tableComponent(
 
     useEffect(arrayOf<dynamic>(tableInstance.state.pageSize, pageCount)) {
         if (useServerPaging) {
-            val pageCountDeferred = scope.async {
-                getPageCount!!.invoke(tableInstance.state.pageSize)
-            }
-            pageCountDeferred.invokeOnCompletion {
-                setPageCount(pageCountDeferred.getCompleted())
+            scope.launch {
+                val newPageCount = getPageCount!!.invoke(tableInstance.state.pageSize)
+                setPageCount(newPageCount)
             }
         }
     }
@@ -142,6 +140,9 @@ fun <D : Any> tableComponent(
         scope.launch {
             try {
                 setData(getData(tableInstance.state.pageIndex, tableInstance.state.pageSize))
+            } catch (e: CancellationException) {
+                // this means, that view is re-rendering while network request was still in progress
+                // no need to display an error message in this case
             } catch (e: Exception) {
                 setIsModalOpen(true)
                 setDataAccessException(e)
