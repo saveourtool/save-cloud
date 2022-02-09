@@ -2,8 +2,6 @@ package org.cqfn.save.entities
 
 import org.cqfn.save.utils.EnumType
 
-import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.Month
 import kotlinx.serialization.Serializable
 
 /**
@@ -25,6 +23,19 @@ data class Project(
     var status: ProjectStatus,
     var public: Boolean = true,
     var userId: Long? = null,
+
+    @ManyToOne
+    @JoinColumn(
+        name = "organization_id",
+        table = "",
+        foreignKey = ForeignKey(),
+        referencedColumnName = "",
+        unique = false,
+        nullable = true,
+        insertable = true,
+        updatable = true,
+        columnDefinition = "",
+    )
     var organization: Organization,
 ) {
     /**
@@ -35,8 +46,6 @@ data class Project(
     var id: Long? = null
 
     companion object {
-        private val date = LocalDateTime(1970, Month.JANUARY, 1, 0, 0, 1)
-
         /**
          * Create a stub for testing. Since all fields are mutable, only required ones can be set after calling this method.
          *
@@ -49,7 +58,7 @@ data class Project(
             description = null,
             status = ProjectStatus.CREATED,
             userId = -1,
-            organization = Organization("stub", null, date),
+            organization = Organization("stub", null, null),
         ).apply {
             this.id = id
         }

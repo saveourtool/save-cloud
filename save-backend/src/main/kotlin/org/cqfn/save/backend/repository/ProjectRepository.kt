@@ -19,4 +19,11 @@ JpaSpecificationExecutor<Project> {
      * @return project by name and owner
      */
     fun findByNameAndOrganization(name: String, organization: Organization): Project?
+
+    /**
+     * @param name
+     * @param organizationName
+     * @return project by name and owner
+     */
+    fun findByNameAndOrganizationName(name: String, organizationName: String): Project?
 }

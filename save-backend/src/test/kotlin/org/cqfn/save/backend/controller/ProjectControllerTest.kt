@@ -2,15 +2,13 @@ package org.cqfn.save.backend.controller
 
 import org.cqfn.save.backend.SaveApplication
 import org.cqfn.save.backend.repository.GitRepository
+import org.cqfn.save.backend.repository.OrganizationRepository
 import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.scheduling.StandardSuitesUpdateScheduler
 import org.cqfn.save.backend.utils.AuthenticationDetails
 import org.cqfn.save.backend.utils.MySqlExtension
 import org.cqfn.save.backend.utils.mutateMockedUser
-import org.cqfn.save.entities.GitDto
-import org.cqfn.save.entities.NewProjectDto
-import org.cqfn.save.entities.Project
-import org.cqfn.save.entities.ProjectStatus
+import org.cqfn.save.entities.*
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -39,6 +37,9 @@ import org.springframework.web.reactive.function.BodyInserters
 class ProjectControllerTest {
     @Autowired
     private lateinit var projectRepository: ProjectRepository
+
+    @Autowired
+    private lateinit var organizationRepository: OrganizationRepository
 
     @Autowired
     private lateinit var gitRepository: GitRepository
@@ -142,7 +143,8 @@ class ProjectControllerTest {
 
         val gitDto = GitDto("qweqwe")
         // `project` references an existing user from test data
-        val project = Project("I", "Name", "uurl", "nullsss", ProjectStatus.CREATED, userId = 2, adminIds = null)
+        val organization: Organization = organizationRepository.findById(1).get()
+        val project = Project("I", "Name", "uurl", ProjectStatus.CREATED, userId = 2, organization = organization)
         val newProject = NewProjectDto(
             project,
             gitDto,
@@ -189,7 +191,7 @@ class ProjectControllerTest {
         val project = newProject.project
         webClient
             .get()
-            .uri("/api/projects/get?name=${project.name}&owner=${project.owner}")
+            .uri("/api/projects/get?name=${project.name}&organizationId=${project.organization.id}")
             .accept(MediaType.APPLICATION_JSON)
             .exchange()
             .let { getAssertion(it) }

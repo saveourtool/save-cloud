@@ -59,6 +59,7 @@ import kotlin.io.path.writeLines
     MockBean(AgentStatusRepository::class),
     MockBean(ExecutionRepository::class),
     MockBean(ProjectRepository::class),
+    MockBean(OrganizationRepository::class),
     MockBean(TestExecutionRepository::class),
     MockBean(TestRepository::class),
     MockBean(TestSuiteRepository::class),

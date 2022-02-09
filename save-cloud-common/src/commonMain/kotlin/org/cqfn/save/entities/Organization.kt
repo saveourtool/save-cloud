@@ -1,11 +1,13 @@
 package org.cqfn.save.entities
 
-import kotlinx.datetime.LocalDateTime
+import org.cqfn.save.utils.LocalDateTime
+
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 
 /**
  * @property name organization
- * @property owner organization
+ * @property ownerId organization
  * @property dateCreated date created organization
  */
 @Entity
@@ -13,8 +15,9 @@ import kotlinx.serialization.Serializable
 @Suppress("USE_DATA_CLASS")
 class Organization(
     var name: String,
-    var owner: Long? = null,
-    var dateCreated: LocalDateTime,
+    var ownerId: Long? = null,
+    @Contextual
+    var dateCreated: LocalDateTime?,
 ) {
     /**
      * id of project

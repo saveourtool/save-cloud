@@ -3,13 +3,7 @@ package org.cqfn.save.preprocessor.controllers
 import org.cqfn.save.core.config.TestConfig
 import org.cqfn.save.domain.FileInfo
 import org.cqfn.save.domain.Sdk
-import org.cqfn.save.entities.Execution
-import org.cqfn.save.entities.ExecutionRequest
-import org.cqfn.save.entities.ExecutionRequestForStandardSuites
-import org.cqfn.save.entities.GitDto
-import org.cqfn.save.entities.Project
-import org.cqfn.save.entities.ProjectStatus
-import org.cqfn.save.entities.TestSuite
+import org.cqfn.save.entities.*
 import org.cqfn.save.execution.ExecutionType
 import org.cqfn.save.preprocessor.config.ConfigProperties
 import org.cqfn.save.preprocessor.service.TestDiscoveringService
@@ -89,7 +83,10 @@ class DownloadProjectTest(
 
     @Test
     fun testBadRequest() {
-        val project = Project("owner", "someName", "wrongGit", "descr", ProjectStatus.CREATED, userId = 2, adminIds = null)
+        val organization: Organization = Organization("Huawei", 1, null).apply {
+            id = 1
+        }
+        val project = Project("owner", "someName", "wrongGit", ProjectStatus.CREATED, userId = 2, organization = organization)
         val wrongRepo = GitDto("wrongGit")
         val execution = Execution.stub(project).apply {
             id = 97L

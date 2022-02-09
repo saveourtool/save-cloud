@@ -3,6 +3,7 @@ package org.cqfn.save.backend.controllers
 import org.cqfn.save.backend.security.Permission
 import org.cqfn.save.backend.security.ProjectPermissionEvaluator
 import org.cqfn.save.backend.service.GitService
+import org.cqfn.save.backend.service.OrganizationService
 import org.cqfn.save.backend.service.ProjectService
 import org.cqfn.save.backend.utils.AuthenticationDetails
 import org.cqfn.save.domain.ProjectSaveStatus
@@ -33,6 +34,7 @@ import reactor.kotlin.core.publisher.switchIfEmpty
 @RequestMapping("/api/projects")
 class ProjectController(private val projectService: ProjectService,
                         private val gitService: GitService,
+                        private val organizationService: OrganizationService,
                         private val projectPermissionEvaluator: ProjectPermissionEvaluator,
 ) {
     /**
@@ -72,19 +74,53 @@ class ProjectController(private val projectService: ProjectService,
      * FixMe: requires 'write' permission, because now we rely on this endpoint to load `ProjectView`
      *
      * @param name name of project
-     * @param owner owner of project
      * @param authentication
-     * @return project by name and owner
+     * @param organizationId
+     * @return project by name and organization
      * @throws ResponseStatusException
      */
     @GetMapping("/get")
     @PreAuthorize("hasRole('VIEWER')")
     @Suppress("UnsafeCallOnNullableType")
-    fun getProjectByNameAndOwner(@RequestParam name: String,
-                                 @RequestParam owner: String,
-                                 authentication: Authentication,
+    fun getProjectByNameAndOrganization(@RequestParam name: String,
+                                        @RequestParam organizationId: Long,
+                                        authentication: Authentication,
     ): Mono<Project> = Mono.fromCallable {
-        projectService.findByNameAndOwner(name, owner)
+        val organization = organizationService.getOrganizationById(organizationId)
+        projectService.findByNameAndOrganization(name, organization)
+    }
+        .map {
+            // if value is null, then Mono is empty and this lambda won't be called
+            it!! to projectPermissionEvaluator.hasPermission(authentication, it, Permission.WRITE)
+        }
+        .filter { (project, hasWriteAccess) -> project.public || hasWriteAccess }
+        .map { (project, hasWriteAccess) ->
+            if (hasWriteAccess) {
+                project
+            } else {
+                // project is public, but current user lacks permissions
+                throw ResponseStatusException(HttpStatus.FORBIDDEN)
+            }
+        }
+        .switchIfEmpty {
+            // if project either is not found or shouldn't be visible for current user
+            Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
+        }
+
+    /**
+     * @param name
+     * @param organizationName
+     * @param authentication
+     * @return project by name and organization name
+     */
+    @GetMapping("/getByOrganizationName")
+    @PreAuthorize("hasRole('VIEWER')")
+    @Suppress("UnsafeCallOnNullableType")
+    fun getProjectByNameAndOrganizationName(@RequestParam name: String,
+                                            @RequestParam organizationName: String,
+                                            authentication: Authentication,
+    ): Mono<Project> = Mono.fromCallable {
+        projectService.findByNameAndOrganizationName(name, organizationName)
     }
         .map {
             // if value is null, then Mono is empty and this lambda won't be called

@@ -5,6 +5,7 @@
 package org.cqfn.save.frontend.components.views
 
 import org.cqfn.save.domain.TestResultStatus
+import org.cqfn.save.entities.Organization
 import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.frontend.components.tables.tableComponent
@@ -45,9 +46,9 @@ import kotlinx.html.js.onClickFunction
  */
 external interface HistoryProps : PropsWithChildren {
     /**
-     * Project owner
+     * Project organization
      */
-    var owner: String
+    var organization: Organization
 
     /**
      * Project name
@@ -254,7 +255,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
             }
         ) { _, _ ->
             get(
-                url = "$apiUrl/executionDtoList?name=${props.name}&owner=${props.owner}",
+                url = "$apiUrl/executionDtoList?name=${props.name}&organizationId=${props.organization.id}",
                 headers = Headers().also {
                     it.set("Accept", "application/json")
                     it.set("Content-Type", "application/json")
@@ -291,9 +292,9 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
         }
         scope.launch {
             responseFromDeleteExecutions =
-                    post("$apiUrl/execution/deleteAll?name=${props.name}&owner=${props.owner}", headers, undefined)
+                    post("$apiUrl/execution/deleteAll?name=${props.name}&organizationId=${props.organization.id}", headers, undefined)
             if (responseFromDeleteExecutions.ok) {
-                window.location.href = "${window.location.origin}#/${props.owner}/${props.name}"
+                window.location.href = "${window.location.origin}#/${props.organization.name}/${props.name}"
             } else {
                 responseFromDeleteExecutions.text().then {
                     setState {

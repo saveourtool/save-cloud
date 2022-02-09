@@ -75,7 +75,7 @@ class CloneRepoTest {
         Assertions.assertTrue(
             executionRepository.findAll().any {
                 it.project.name == project.name &&
-                        it.project.owner == project.owner &&
+                        it.project.organization == project.organization &&
                         it.type == ExecutionType.GIT &&
                         it.sdk == sdk.toString()
             }

@@ -54,6 +54,12 @@ class ProjectService(private val projectRepository: ProjectRepository,
     fun findByNameAndOrganization(name: String, organization: Organization) = projectRepository.findByNameAndOrganization(name, organization)
 
     /**
+     * @param name
+     * @param organizationName
+     */
+    fun findByNameAndOrganizationName(name: String, organizationName: String) = projectRepository.findByNameAndOrganizationName(name, organizationName)
+
+    /**
      * @return project's without status
      */
     fun getNotDeletedProjects(): List<Project> {

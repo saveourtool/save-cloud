@@ -795,7 +795,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     private suspend fun switchToLatestExecution() {
         val headers = Headers().apply { set("Accept", "application/json") }
         val response = get(
-            "$apiUrl/latestExecution?name=${project.name}&owner=${project.organization.name}",
+            "$apiUrl/latestExecution?name=${project.name}&organizationId=${project.organization.id}",
             headers
         )
         if (!response.ok) {
