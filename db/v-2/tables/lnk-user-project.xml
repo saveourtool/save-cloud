@@ -31,4 +31,8 @@
     </rollback>
   </changeSet>
 
+  <changeSet id="lnk-user-project-2" author="frolov">
+    <renameTable newTableName="lnk_user_project" oldTableName="lnk-user-project" />
+  </changeSet>
+
 </databaseChangeLog>
