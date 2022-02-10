@@ -167,11 +167,11 @@ class ProjectControllerTest {
     }
 
     private fun getProjectAndAssert(name: String,
-                                    owner: String,
+                                    organizationName: String,
                                     assertion: WebTestClient.ResponseSpec.() -> Unit
     ) = webClient
         .get()
-        .uri("/api/projects/get?name=$name&owner=$owner")
+        .uri("/api/projects/getByOrganizationName?name=$name&organizationName=$organizationName")
         .accept(MediaType.APPLICATION_JSON)
         .exchange()
         .let { assertion(it) }
