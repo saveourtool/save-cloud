@@ -30,7 +30,7 @@ enum class TestResultStatus {
     /**
      * Ready for testing (after test discovery and execution creation)
      */
-    READY,
+    READY_FOR_TESTING,
 
     /**
      * Running state (execution of test has already started on agent)

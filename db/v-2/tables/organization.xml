@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+  <changeSet id="organization-1" author="frolov" context="dev or prod">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <tableExists tableName="organization"/>
+      </not>
+    </preConditions>
+    <createTable tableName="organization">
+      <column name="id" type="bigint" autoIncrement="true">
+        <constraints primaryKey="true" nullable="false"/>
+      </column>
+      <column name="name" type="varchar(250)" />
+      <column name="owner_id" type="bigint">
+          <constraints foreignKeyName="fk_user_organization" references="user(id)" nullable="false"/>
+      </column>
+      <column name="date_created" type="timestamp">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+
+    <rollback>
+      <dropTable
+        cascadeConstraints="true"
+        tableName="organization" />
+    </rollback>
+  </changeSet>
+
+</databaseChangeLog>

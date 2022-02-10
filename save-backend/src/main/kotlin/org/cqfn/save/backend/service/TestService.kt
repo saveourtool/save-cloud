@@ -47,22 +47,24 @@ class TestService(
      * @return list tests id's
      */
     @Suppress("UnsafeCallOnNullableType")
-    fun saveTests(tests: List<TestDto>): List<Long> = tests.map { testDto ->
-        // only match fields that are present in DTO
-        testRepository.findByHashAndFilePathAndTestSuiteId(testDto.hash, testDto.filePath, testDto.testSuiteId).map {
-            log.debug("Test $testDto is already present with id=${it.id} and testSuiteId=${it.testSuite.id}")
-            it
-        }
-            .orElseGet {
-                log.debug("Test $testDto is not found in the DB, will save it")
-                val testSuiteStub = TestSuite(testRootPath = "N/A").apply {
-                    id = testDto.testSuiteId
-                }
-                testRepository.save(
-                    Test(testDto.hash, testDto.filePath, testDto.pluginName, LocalDateTime.now(), testSuiteStub, testDto.tags.joinToString(";"))
-                )
+    fun saveTests(tests: List<TestDto>): List<Long> {
+        val (existingTests, nonExistentTests) = tests.map { testDto ->
+            // only match fields that are present in DTO
+            testRepository.findByHashAndFilePathAndTestSuiteIdAndPluginName(testDto.hash, testDto.filePath, testDto.testSuiteId, testDto.pluginName).map {
+                log.debug("Test $testDto is already present with id=${it.id} and testSuiteId=${testDto.testSuiteId}")
+                it
             }
-            .id!!
+                .orElseGet {
+                    log.trace("Test $testDto is not found in the DB, will save it")
+                    val testSuiteStub = TestSuite(testRootPath = "N/A").apply {
+                        id = testDto.testSuiteId
+                    }
+                    Test(testDto.hash, testDto.filePath, testDto.pluginName, LocalDateTime.now(), testSuiteStub, testDto.tags.joinToString(";"))
+                }
+        }
+            .partition { it.id != null }
+        testRepository.saveAll(nonExistentTests)
+        return (existingTests + nonExistentTests).map { it.id!! }
     }
 
     /**
@@ -74,16 +76,22 @@ class TestService(
     fun getTestBatches(agentId: String): Mono<TestBatch> {
         val agent = agentRepository.findByContainerId(agentId) ?: error("The specified agent does not exist")
         log.debug("Agent found, id=${agent.id}")
-        val execution = agent.execution
-        val lock = locks.computeIfAbsent(execution.id!!) { Any() }
+        val executionId = agent.execution.id!!
+        val lock = locks.computeIfAbsent(executionId) { Any() }
         return synchronized(lock) {
+            log.debug("Acquired lock for executionId=$executionId")
             val testExecutions = transactionTemplate.execute {
+                val execution = executionRepository.getById(executionId)
                 getTestExecutionsBatchByExecutionIdAndUpdateStatus(execution)
             }!!
             val testDtos = testExecutions.map { it.test.toDto() }
-            Mono.just(TestBatch(testDtos, testExecutions.map { it.test.testSuite }.associate {
-                it.id!! to it.testRootPath
-            }))
+            Mono.fromCallable {
+                val testBatch = TestBatch(testDtos, testExecutions.map { it.test.testSuite }.associate {
+                    it.id!! to it.testRootPath
+                })
+                log.debug("Releasing lock for executionId=$executionId")
+                testBatch
+            }
         }
     }
 
@@ -95,10 +103,10 @@ class TestService(
             testRepository.findAllByTestSuiteId(testSuiteId)
 
     /**
-     * Retrieves a batch of test executions with status `READY` from the datasource and sets their statuses to `RUNNING`
+     * Retrieves a batch of test executions with status `READY_FOR_TESTING` from the datasource and sets their statuses to `RUNNING`
      *
      * @param execution execution for which a batch is requested
-     * @return a batch of [batchSize] tests with status `READY`
+     * @return a batch of [batchSize] tests with status `READY_FOR_TESTING`
      */
     @Suppress("UnsafeCallOnNullableType")
     internal fun getTestExecutionsBatchByExecutionIdAndUpdateStatus(execution: Execution): List<TestExecution> {
@@ -106,19 +114,20 @@ class TestService(
         val batchSize = execution.batchSize!!
         val pageRequest = PageRequest.of(0, batchSize)
         val testExecutions = testExecutionRepository.findByStatusAndExecutionId(
-            TestResultStatus.READY,
+            TestResultStatus.READY_FOR_TESTING,
             executionId,
             pageRequest
         )
         log.debug("Retrieved ${testExecutions.size} tests for page request $pageRequest, test IDs: ${testExecutions.map { it.id!! }}")
-        testExecutions.forEach {
+        val newRunningTestExecutions = testExecutions.onEach {
             testExecutionRepository.save(it.apply {
                 status = TestResultStatus.RUNNING
             })
-            executionRepository.save(execution.apply {
-                runningTests++
-            })
-        }
+        }.count()
+        executionRepository.saveAndFlush(execution.apply {
+            log.debug("Updating counter for running tests: $runningTests -> ${runningTests + newRunningTestExecutions}")
+            runningTests += newRunningTestExecutions
+        })
         return testExecutions
     }
 

@@ -9,7 +9,7 @@ package org.cqfn.save.frontend.components.tables
 import org.cqfn.save.frontend.components.modal.errorModal
 import org.cqfn.save.frontend.utils.spread
 
-import kotlinext.js.jsObject
+import kotlinext.js.jso
 import react.PropsWithChildren
 import react.RBuilder
 import react.dom.RDOMBuilder
@@ -37,9 +37,12 @@ import react.useMemo
 import react.useState
 
 import kotlin.js.json
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.html.THEAD
 
@@ -86,7 +89,7 @@ fun <D : Any> tableComponent(
     usePageSelection: Boolean = false,
     plugins: Array<PluginHook<D>> = arrayOf(useSortBy, usePagination),
     additionalOptions: TableOptions<D>.() -> Unit = {},
-    getRowProps: ((Row<D>) -> TableRowProps) = { jsObject() },
+    getRowProps: ((Row<D>) -> TableRowProps) = { jso() },
     getPageCount: (suspend (pageSize: Int) -> Int)? = null,
     renderExpandedRow: (RBuilder.(table: TableInstance<D>, row: Row<D>) -> Unit)? = undefined,
     commonHeader: RDOMBuilder<THEAD>.(table: TableInstance<D>) -> Unit = {},
@@ -101,15 +104,16 @@ fun <D : Any> tableComponent(
     val (pageIndex, setPageIndex) = useState(0)
     val (isModalOpen, setIsModalOpen) = useState(false)
     val (dataAccessException, setDataAccessException) = useState<Exception?>(null)
+    val scope = CoroutineScope(Dispatchers.Default)
 
-    val tableInstance: TableInstance<D> = useTable(options = jsObject {
+    val tableInstance: TableInstance<D> = useTable(options = jso {
         this.columns = useMemo { columns }
         this.data = data
         this.manualPagination = useServerPaging
         if (useServerPaging) {
             this.pageCount = pageCount
         }
-        this.initialState = jsObject {
+        this.initialState = jso {
             this.pageSize = initialPageSize
             this.pageIndex = pageIndex
         }
@@ -118,11 +122,9 @@ fun <D : Any> tableComponent(
 
     useEffect(arrayOf<dynamic>(tableInstance.state.pageSize, pageCount)) {
         if (useServerPaging) {
-            val pageCountDeferred = GlobalScope.async {
-                getPageCount!!.invoke(tableInstance.state.pageSize)
-            }
-            pageCountDeferred.invokeOnCompletion {
-                setPageCount(pageCountDeferred.getCompleted())
+            scope.launch {
+                val newPageCount = getPageCount!!.invoke(tableInstance.state.pageSize)
+                setPageCount(newPageCount)
             }
         }
     }
@@ -135,12 +137,20 @@ fun <D : Any> tableComponent(
         emptyArray()
     }
     useEffect(*dependencies) {
-        GlobalScope.launch {
+        scope.launch {
             try {
                 setData(getData(tableInstance.state.pageIndex, tableInstance.state.pageSize))
+            } catch (e: CancellationException) {
+                // this means, that view is re-rendering while network request was still in progress
+                // no need to display an error message in this case
             } catch (e: Exception) {
                 setIsModalOpen(true)
                 setDataAccessException(e)
+            }
+        }
+        cleanup {
+            if (scope.isActive) {
+                scope.cancel()
             }
         }
     }
@@ -164,14 +174,18 @@ fun <D : Any> tableComponent(
                                 spread(headerGroup.getHeaderGroupProps())
                                 headerGroup.headers.map { column ->
                                     val columnProps = column.getHeaderProps(column.getSortByToggleProps())
-                                    th(classes = columnProps.className) {
-                                        spread(columnProps)
+                                    val className = if (column.canSort) columnProps.className else ""
+                                    th(classes = className) {
                                         +column.render("Header")
-                                        span {
-                                            +when {
-                                                column.isSorted -> " 🔽"
-                                                column.isSortedDesc -> " 🔼"
-                                                else -> ""
+                                        // fixme: find a way to set `canSort`; now it's always true
+                                        if (column.canSort) {
+                                            spread(columnProps)
+                                            span {
+                                                +when {
+                                                    column.isSorted -> " 🔽"
+                                                    column.isSortedDesc -> " 🔼"
+                                                    else -> ""
+                                                }
                                             }
                                         }
                                     }

@@ -27,11 +27,14 @@ import react.dom.tbody
 import react.dom.td
 import react.dom.tr
 import react.fc
-import react.router.dom.useParams
+import react.router.useParams
 import react.useEffect
 import react.useState
 
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -104,19 +107,22 @@ private fun RBuilder.fallback(status: String) = div {
 fun testExecutionDetailsView() = fc<Props> {
     val params = useParams()
     val executionId = params["executionId"]!!.toLong()
+
+    val testFilePath = params["*"]!!
     val testResultLocation = TestResultLocation(
         params["testSuiteName"]!!,
         params["pluginName"]!!,
-        params["testFilePath"]!!.substringBeforeLast("/", ""),
-        params["testFilePath"]!!.substringAfterLast("/"),
+        testFilePath.substringBeforeLast("/", ""),
+        testFilePath.substringAfterLast("/"),
     )
 
     val (status, setStatus) = useState("Loading...")
     val (testResultDebugInfo, setTestResultDebugInfo) = useState<TestResultDebugInfo?>(null)
 
-    // fixme: after https://github.com/diktat-static-analysis/save-cloud/issues/364 can be passed via history state to avoid requests
+    val scope = CoroutineScope(Dispatchers.Default)
+    // fixme: after https://github.com/analysis-dev/save-cloud/issues/364 can be passed via history state to avoid requests
     useEffect(listOf<dynamic>(executionId, testResultLocation)) {
-        GlobalScope.launch {
+        scope.launch {
             val testExecutionDtoResponse = post(
                 "$apiUrl/testExecutions?executionId=$executionId",
                 Headers().apply {
@@ -135,6 +141,11 @@ fun testExecutionDetailsView() = fc<Props> {
                 }
             } else {
                 setStatus("Additional test info is not available (code ${testExecutionDtoResponse.status})")
+            }
+        }
+        cleanup {
+            if (scope.isActive) {
+                scope.cancel()
             }
         }
     }

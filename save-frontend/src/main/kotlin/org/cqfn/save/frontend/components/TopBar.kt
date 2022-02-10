@@ -8,14 +8,20 @@ package org.cqfn.save.frontend.components
 
 import org.cqfn.save.frontend.components.modal.logoutModal
 import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
+import org.cqfn.save.info.UserInfo
 
-import react.PropsWithChildren
-import react.RBuilder
+import csstype.Width
+import csstype.rem
+import react.*
 import react.dom.*
 import react.fc
-import react.router.dom.useLocation
+import react.router.useLocation
 import react.useState
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.isActive
 import kotlinx.html.BUTTON
 import kotlinx.html.ButtonType
 import kotlinx.html.classes
@@ -30,7 +36,7 @@ external interface TopBarProps : PropsWithChildren {
     /**
      * Currently logged in user or null
      */
-    var userName: String?
+    var userInfo: UserInfo?
 }
 
 private fun RBuilder.dropdownEntry(faIcon: String, text: String, handler: RDOMBuilder<BUTTON>.() -> Unit = { }) =
@@ -52,6 +58,14 @@ private fun RBuilder.dropdownEntry(faIcon: String, text: String, handler: RDOMBu
 fun topBar() = fc<TopBarProps> { props ->
     val (isLogoutModalOpen, setIsLogoutModalOpen) = useState(false)
     val location = useLocation()
+    val scope = CoroutineScope(Dispatchers.Default)
+    useEffect(listOf<dynamic>()) {
+        cleanup {
+            if (scope.isActive) {
+                scope.cancel()
+            }
+        }
+    }
 
     nav("navbar navbar-expand navbar-dark bg-dark topbar mb-3 static-top shadow mr-1 ml-1 rounded") {
         attrs.id = "navigation-top-bar"
@@ -73,7 +87,9 @@ fun topBar() = fc<TopBarProps> { props ->
                     .filterNot { it.isBlank() }
                     .apply {
                         foldIndexed("#") { index: Int, acc: String, pathPart: String ->
+
                             val currentLink = "$acc/$pathPart"
+
                             li("breadcrumb-item") {
                                 attrs["aria-current"] = "page"
                                 if (index == size - 1) {
@@ -83,7 +99,10 @@ fun topBar() = fc<TopBarProps> { props ->
                                     }
                                 } else {
                                     // small hack to redirect from history/execution to history
-                                    a(currentLink.removeSuffix("/execution")) {
+                                    // AND small temp workaround to replace owner URL with "project"
+                                    // should be removed when we will finish with OWNER pages
+                                    val resultingLink = if (index == 0) currentLink.replace(pathPart, "projects") else currentLink.removeSuffix("/execution")
+                                    a(resultingLink) {
                                         attrs.classes = setOf("text-light")
                                         +pathPart
                                     }
@@ -98,26 +117,46 @@ fun topBar() = fc<TopBarProps> { props ->
         ul("navbar-nav mx-auto") {
             li("nav-item") {
                 a(classes = "nav-link d-flex align-items-center me-2 active") {
-                    attrs["aria-current"] = "Unified SAVE Format"
-                    attrs.href = "https://github.com/diktat-static-analysis/save"
-                    +"Spec"
+                    attrs["style"] = kotlinext.js.jso<CSSProperties> {
+                        width = 12.rem
+                    }.unsafeCast<Width>()
+                    attrs.href = "#/awesome-benchmarks"
+                    +"Awesome Benchmarks"
+                }
+            }
+            li("nav-item") {
+                a(classes = "nav-link d-flex align-items-center me-2 active") {
+                    attrs["style"] = kotlinext.js.jso<CSSProperties> {
+                        width = 8.rem
+                    }.unsafeCast<Width>()
+                    attrs.href = "https://github.com/analysis-dev/save"
+                    +"SAVE format"
                 }
             }
             li("nav-item") {
                 a(classes = "nav-link me-2") {
-                    attrs.href = "https://github.com/diktat-static-analysis/save-cloud"
-                    +"GitHub"
+                    attrs["style"] = kotlinext.js.jso<CSSProperties> {
+                        width = 9.rem
+                    }.unsafeCast<Width>()
+                    attrs.href = "https://github.com/analysis-dev/save-cloud"
+                    +"SAVE on GitHub"
                 }
             }
             li("nav-item") {
                 a(classes = "nav-link me-2") {
+                    attrs["style"] = kotlinext.js.jso<CSSProperties> {
+                        width = 8.rem
+                    }.unsafeCast<Width>()
                     attrs.href = "#/projects"
                     +"Leaderboard"
                 }
             }
             li("nav-item") {
                 a(classes = "nav-link me-2") {
-                    attrs.href = "https://github.com/diktat-static-analysis/save-cloud"
+                    attrs["style"] = kotlinext.js.jso<CSSProperties> {
+                        width = 6.rem
+                    }.unsafeCast<Width>()
+                    attrs.href = "https://github.com/analysis-dev/save-cloud"
                     i("fa fa-user opacity-6 text-dark me-1") {
                         attrs["aria-hidden"] = "true"
                     }
@@ -138,8 +177,9 @@ fun topBar() = fc<TopBarProps> { props ->
                         set("aria-haspopup", "true")
                         set("aria-expanded", "false")
                     }
-                    span("mr-2 d-none d-lg-inline text-gray-600 small") {
-                        +(props.userName ?: "")
+
+                    span("mr-2 d-none d-lg-inline text-gray-600") {
+                        +(props.userInfo?.userName ?: "")
                     }
 
                     fontAwesomeIcon {
@@ -150,7 +190,8 @@ fun topBar() = fc<TopBarProps> { props ->
                 // Dropdown - User Information
                 div("dropdown-menu dropdown-menu-right shadow animated--grow-in") {
                     attrs["aria-labelledby"] = "userDropdown"
-                    dropdownEntry("cogs", "Profile")
+                    // FixMe: temporary disable Profile DropDown, will need to link it with the user in the future
+                    // dropdownEntry("cogs", "Profile")
                     dropdownEntry("sign-out-alt", "Log out") {
                         attrs.onClickFunction = {
                             setIsLogoutModalOpen(true)
@@ -160,9 +201,7 @@ fun topBar() = fc<TopBarProps> { props ->
             }
         }
     }
-    logoutModal({
-        attrs.isOpen = isLogoutModalOpen
-    }) {
+    logoutModal(scope, { attrs.isOpen = isLogoutModalOpen }) {
         setIsLogoutModalOpen(false)
     }
 }

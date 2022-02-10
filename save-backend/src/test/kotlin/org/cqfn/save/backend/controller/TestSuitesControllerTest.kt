@@ -1,6 +1,7 @@
 package org.cqfn.save.backend.controller
 
 import org.cqfn.save.backend.SaveApplication
+import org.cqfn.save.backend.controllers.ProjectController
 import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.repository.TestSuiteRepository
 import org.cqfn.save.backend.scheduling.StandardSuitesUpdateScheduler
@@ -12,7 +13,6 @@ import org.cqfn.save.testsuite.TestSuiteType
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import okhttp3.mockwebserver.QueueDispatcher
-import org.junit.Assert
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -44,6 +44,7 @@ import java.util.Date
 @ExtendWith(MySqlExtension::class)
 @MockBeans(
     MockBean(StandardSuitesUpdateScheduler::class),
+    MockBean(ProjectController::class),
 )
 class TestSuitesControllerTest {
     @Autowired
@@ -73,10 +74,10 @@ class TestSuitesControllerTest {
             expectBody<List<TestSuite>>()
                 .consumeWith {
                     val body = it.responseBody!!
-                    Assert.assertEquals(listOf(testSuite).size, body.size)
-                    Assert.assertEquals(testSuite.name, body[0].name)
-                    Assert.assertEquals(testSuite.project, body[0].project)
-                    Assert.assertEquals(testSuite.type, body[0].type)
+                    assertEquals(listOf(testSuite).size, body.size)
+                    assertEquals(testSuite.name, body[0].name)
+                    assertEquals(testSuite.project, body[0].project)
+                    assertEquals(testSuite.type, body[0].type)
                 }
         }
     }

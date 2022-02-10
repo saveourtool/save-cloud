@@ -29,9 +29,9 @@ class Git(
      * @return git dto
      */
     fun toDto() = GitDto(
-        this.url,
-        this.username,
-        this.password,
-        this.branch,
+        url = url,
+        username = username,
+        password = password,
+        branch = branch,
     )
 }

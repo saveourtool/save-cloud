@@ -20,7 +20,7 @@ import org.cqfn.save.frontend.utils.runErrorModal
 import org.cqfn.save.frontend.utils.unsafeMap
 
 import csstype.Background
-import kotlinext.js.jsObject
+import kotlinext.js.jso
 import org.w3c.fetch.Headers
 import org.w3c.fetch.Response
 import react.PropsWithChildren
@@ -35,7 +35,6 @@ import react.setState
 import react.table.columns
 
 import kotlinx.browser.window
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
 import kotlinx.html.ButtonType
@@ -144,13 +143,13 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
             }
         }
         child(tableComponent(
-            columns = columns {
-                column("result", "") { cellProps ->
-                    val result = when (cellProps.value.status) {
+            columns = columns<ExecutionDto> {
+                column("result", "", { status }) { cellProps ->
+                    val result = when (cellProps.row.original.status) {
                         ExecutionStatus.ERROR -> ResultColorAndIcon("text-danger", "exclamation-triangle")
                         ExecutionStatus.PENDING -> ResultColorAndIcon("text-success", "spinner")
                         ExecutionStatus.RUNNING -> ResultColorAndIcon("text-success", "spinner")
-                        ExecutionStatus.FINISHED -> if (cellProps.value.failedTests != 0L) {
+                        ExecutionStatus.FINISHED -> if (cellProps.row.original.failedTests != 0L) {
                             ResultColorAndIcon("text-danger", "exclamation-triangle")
                         } else {
                             ResultColorAndIcon("text-success", "check")
@@ -158,71 +157,71 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
                     }
                     buildElement {
                         td {
-                            a(href = getHrefToExecution(cellProps.value.id, null)) {
+                            a(href = getHrefToExecution(cellProps.row.original.id, null)) {
                                 fontAwesomeIcon(result.resIcon, classes = result.resColor)
                             }
                         }
                     }
                 }
-                column("status", "Status") {
+                column("status", "Status", { status }) {
                     buildElement {
                         td {
-                            a(href = getHrefToExecution(it.value.id, null)) {
-                                +"${it.value.status}"
+                            a(href = getHrefToExecution(it.row.original.id, null)) {
+                                +"${it.value}"
                             }
                         }
                     }
                 }
-                column("startDate", "Start time") {
+                column("startDate", "Start time", { startTime }) {
                     buildElement {
                         td {
-                            a(href = getHrefToExecution(it.value.id, null)) {
-                                +(formattingDate(it.value.startTime) ?: "Starting")
+                            a(href = getHrefToExecution(it.row.original.id, null)) {
+                                +(formattingDate(it.value) ?: "Starting")
                             }
                         }
                     }
                 }
-                column("endDate", "End time") {
+                column("endDate", "End time", { endTime }) {
                     buildElement {
                         td {
-                            a(href = getHrefToExecution(it.value.id, null)) {
-                                +(formattingDate(it.value.endTime) ?: "Starting")
+                            a(href = getHrefToExecution(it.row.original.id, null)) {
+                                +(formattingDate(it.value) ?: "Starting")
                             }
                         }
                     }
                 }
-                column("running", "Running") {
+                column("running", "Running", { runningTests }) {
                     buildElement {
                         td {
-                            a(href = getHrefToExecution(it.value.id, TestResultStatus.RUNNING)) {
-                                +"${it.value.runningTests}"
+                            a(href = getHrefToExecution(it.row.original.id, TestResultStatus.RUNNING)) {
+                                +"${it.value}"
                             }
                         }
                     }
                 }
-                column("passed", "Passed") {
+                column("passed", "Passed", { passedTests }) {
                     buildElement {
                         td {
-                            a(href = getHrefToExecution(it.value.id, TestResultStatus.PASSED)) {
-                                +"${it.value.passedTests}"
+                            a(href = getHrefToExecution(it.row.original.id, TestResultStatus.PASSED)) {
+                                +"${it.value}"
                             }
                         }
                     }
                 }
-                column("failed", "Failed") {
+                column("failed", "Failed", { failedTests }) {
                     buildElement {
                         td {
-                            a(href = getHrefToExecution(it.value.id, TestResultStatus.FAILED)) {
-                                +"${it.value.failedTests}"
+                            a(href = getHrefToExecution(it.row.original.id, TestResultStatus.FAILED)) {
+                                +"${it.value}"
                             }
                         }
                     }
                 }
-                column("skipped", "Skipped") {
+                column("skipped", "Skipped", { skippedTests }) {
                     buildElement {
                         td {
-                            a(href = getHrefToExecution(it.value.id, TestResultStatus.IGNORED)) {
-                                +"${it.value.skippedTests}"
+                            a(href = getHrefToExecution(it.row.original.id, TestResultStatus.IGNORED)) {
+                                +"${it.value}"
                             }
                         }
                     }
@@ -247,8 +246,8 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
                     ExecutionStatus.RUNNING -> Colors.GREY
                     ExecutionStatus.FINISHED -> if (row.original.failedTests != 0L) Colors.DARK_RED else Colors.GREEN
                 }
-                jsObject {
-                    style = jsObject {
+                jso {
+                    style = jso {
                         background = color.value.unsafeCast<Background>()
                     }
                 }
@@ -290,7 +289,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
             it.set("Accept", "application/json")
             it.set("Content-Type", "application/json")
         }
-        GlobalScope.launch {
+        scope.launch {
             responseFromDeleteExecutions =
                     post("$apiUrl/execution/deleteAll?name=${props.name}&owner=${props.owner}", headers, undefined)
             if (responseFromDeleteExecutions.ok) {
@@ -322,7 +321,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
             it.set("Accept", "application/json")
             it.set("Content-Type", "application/json")
         }
-        GlobalScope.launch {
+        scope.launch {
             responseFromDeleteExecutions =
                     post("$apiUrl/execution/delete?executionIds=${executionIds.joinToString(",")}", headers, undefined)
 

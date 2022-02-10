@@ -29,7 +29,7 @@ import org.cqfn.save.frontend.utils.unsafeMap
 
 import csstype.Background
 import csstype.TextDecoration
-import kotlinext.js.jsObject
+import kotlinext.js.jso
 import org.w3c.fetch.Headers
 import react.*
 import react.dom.*
@@ -39,7 +39,6 @@ import react.table.usePagination
 import react.table.useSortBy
 
 import kotlinx.browser.window
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
@@ -102,7 +101,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
     override fun componentDidMount() {
         super.componentDidMount()
 
-        GlobalScope.launch {
+        scope.launch {
             val headers = Headers().also { it.set("Accept", "application/json") }
             val executionDtoFromBackend: ExecutionDto =
                     get("$apiUrl/executionDto?executionId=${props.executionId}", headers)
@@ -166,7 +165,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                                     fontAwesomeIcon(icon = faRedo, classes = "ml-2")
                                     @Suppress("TOO_MANY_LINES_IN_LAMBDA")
                                     attrs.onClickFunction = {
-                                        GlobalScope.launch {
+                                        scope.launch {
                                             post(
                                                 "$apiUrl/rerunExecution?id=${props.executionId}",
                                                 Headers(),
@@ -188,7 +187,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
 
         // fixme: table is rendered twice because of state change when `executionDto` is fetched
         child(tableComponent(
-            columns = columns {
+            columns = columns<TestExecutionDto> {
                 column(id = "index", header = "#") {
                     buildElement {
                         td {
@@ -196,46 +195,44 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                         }
                     }
                 }
-                column(id = "startTime", header = "Start time") {
+                column(id = "startTime", header = "Start time", { startTimeSeconds }) {
                     buildElement {
                         td {
                             +"${
-                                it.value.startTimeSeconds
-                                ?.let { Instant.fromEpochSeconds(it, 0) }
+                                it.value?.let { Instant.fromEpochSeconds(it, 0) }
                                 ?: "Running"
                             }"
                         }
                     }
                 }
-                column(id = "endTime", header = "End time") {
+                column(id = "endTime", header = "End time", { endTimeSeconds }) {
                     buildElement {
                         td {
                             +"${
-                                it.value.endTimeSeconds
-                                ?.let { Instant.fromEpochSeconds(it, 0) }
+                                it.value?.let { Instant.fromEpochSeconds(it, 0) }
                                 ?: "Running"
                             }"
                         }
                     }
                 }
-                column(id = "status", header = "Status") {
+                column(id = "status", header = "Status", { status.name }) {
                     buildElement {
                         td {
-                            +"${it.value.status}"
+                            +it.value
                         }
                     }
                 }
-                column(id = "missing", header = "Missing") {
+                column(id = "missing", header = "Missing", { missingWarnings }) {
                     buildElement {
                         td {
-                            +"${it.value.missingWarnings ?: ""}"
+                            +"${it.value ?: ""}"
                         }
                     }
                 }
-                column(id = "matched", header = "Matched") {
+                column(id = "matched", header = "Matched", { matchedWarnings }) {
                     buildElement {
                         td {
-                            +"${it.value.matchedWarnings ?: ""}"
+                            +"${it.value ?: ""}"
                         }
                     }
                 }
@@ -244,13 +241,13 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                         td {
                             spread(cellProps.row.getToggleRowExpandedProps())
 
-                            attrs["style"] = kotlinext.js.jsObject<CSSProperties> {
+                            attrs["style"] = kotlinext.js.jso<CSSProperties> {
                                 textDecoration = "underline grey".unsafeCast<TextDecoration>()
                             }
 
                             val testName = cellProps.value.filePath
-                            val shortTestName = if (testName.length > 41) {
-                                testName.take(20) + " ... " + testName.takeLast(20)
+                            val shortTestName = if (testName.length > 35) {
+                                testName.take(15) + " ... " + testName.takeLast(15)
                             } else {
                                 testName
                             }
@@ -258,7 +255,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                             +shortTestName
 
                             attrs.onClickFunction = {
-                                GlobalScope.launch {
+                                scope.launch {
                                     val te = cellProps.value
                                     val trdi = getDebugInfoFor(te)
                                     if (trdi.ok) {
@@ -270,17 +267,17 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                         }
                     }
                 }
-                column(id = "plugin", header = "Plugin type") {
+                column(id = "plugin", header = "Plugin type", { pluginName }) {
                     buildElement {
                         td {
-                            +it.value.pluginName
+                            +it.value
                         }
                     }
                 }
-                column(id = "suiteName", header = "Test suite") {
+                column(id = "suiteName", header = "Test suite", { testSuiteName }) {
                     buildElement {
                         td {
-                            +"${it.value.testSuiteName}"
+                            +"${it.value}"
                         }
                     }
                 }
@@ -316,7 +313,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                     tr {
                         td {
                             attrs.colSpan = "${tableInstance.columns.size}"
-                            +"Debug info not available for this test execution"
+                            +"Debug info not available yet for this test execution"
                         }
                     }
                 }
@@ -375,12 +372,12 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                 val color = when (row.original.status) {
                     TestResultStatus.FAILED -> Colors.RED
                     TestResultStatus.IGNORED -> Colors.GOLD
-                    TestResultStatus.READY, TestResultStatus.RUNNING -> Colors.GREY
+                    TestResultStatus.READY_FOR_TESTING, TestResultStatus.RUNNING -> Colors.GREY
                     TestResultStatus.INTERNAL_ERROR, TestResultStatus.TEST_ERROR -> Colors.DARK_RED
                     TestResultStatus.PASSED -> Colors.GREEN
                 }
-                jsObject {
-                    style = jsObject {
+                jso {
+                    style = jso {
                         background = color.value.unsafeCast<Background>()
                     }
                 }

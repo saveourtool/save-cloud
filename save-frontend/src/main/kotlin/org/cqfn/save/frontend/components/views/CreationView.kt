@@ -23,14 +23,13 @@ import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.HTMLTextAreaElement
 import org.w3c.dom.events.Event
 import org.w3c.fetch.Headers
-import react.PropsWithChildren
+import react.Props
 import react.RBuilder
 import react.State
 import react.dom.*
 import react.setState
 
 import kotlinx.browser.window
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
 import kotlinx.html.ButtonType
@@ -103,7 +102,7 @@ enum class GitConnectionStatusEnum {
  */
 @JsExport
 @OptIn(ExperimentalJsExport::class)
-class CreationView : AbstractView<PropsWithChildren, ProjectSaveViewState>(true) {
+class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
     private val fieldsMap: MutableMap<InputTypes, String> = mutableMapOf()
 
     init {
@@ -132,7 +131,7 @@ class CreationView : AbstractView<PropsWithChildren, ProjectSaveViewState>(true)
         val urlArguments =
                 "?user=${fieldsMap[InputTypes.GIT_USER]}&token=${fieldsMap[InputTypes.GIT_TOKEN]}&url=${fieldsMap[InputTypes.GIT_URL]}"
 
-        GlobalScope.launch {
+        scope.launch {
             setState {
                 gitConnectionCheckingStatus = GitConnectionStatusEnum.VALIDATING
             }
@@ -169,21 +168,23 @@ class CreationView : AbstractView<PropsWithChildren, ProjectSaveViewState>(true)
                 fieldsMap[InputTypes.PROJECT_URL]?.trim(),
                 fieldsMap[InputTypes.DESCRIPTION]?.trim(),
                 ProjectStatus.CREATED,
+                userId = -1,
+                adminIds = null,
             ),
             GitDto(
                 fieldsMap[InputTypes.GIT_URL]?.trim() ?: "",
                 fieldsMap[InputTypes.GIT_USER]?.trim(),
                 fieldsMap[InputTypes.GIT_TOKEN]?.trim(),
                 fieldsMap[InputTypes.GIT_BRANCH]?.trim()
-            )
+            ),
         )
         val headers = Headers().also {
             it.set("Accept", "application/json")
             it.set("Content-Type", "application/json")
         }
-        GlobalScope.launch {
+        scope.launch {
             val responseFromCreationProject =
-                    post("$apiUrl/saveProject", headers, Json.encodeToString(newProjectRequest))
+                    post("$apiUrl/projects/save", headers, Json.encodeToString(newProjectRequest))
 
             if (responseFromCreationProject.ok == true) {
                 window.location.href =
@@ -223,14 +224,14 @@ class CreationView : AbstractView<PropsWithChildren, ProjectSaveViewState>(true)
         }
 
         val gitUser = fieldsMap[InputTypes.GIT_USER]
-        if (gitUser.isNullOrBlank() || gitUser.trim().matches(".*\\s.*")) {
+        if (gitUser.isNullOrBlank() || Regex(".*\\s.*").matches(gitUser.trim())) {
             setState { isValidGitUser = false }
         } else {
             setState { isValidGitUser = true }
         }
 
         val gitToken = fieldsMap[InputTypes.GIT_TOKEN]
-        if (gitToken.isNullOrBlank() || gitToken.trim().matches(".*\\s.*")) {
+        if (gitToken.isNullOrBlank() || Regex(".*\\s.*").matches(gitToken.trim())) {
             setState { isValidGitToken = false }
         } else {
             setState { isValidGitToken = true }
@@ -259,7 +260,7 @@ class CreationView : AbstractView<PropsWithChildren, ProjectSaveViewState>(true)
             div("page-header align-items-start min-vh-100") {
                 span("mask bg-gradient-dark opacity-6") {}
                 div("row justify-content-center") {
-                    div("col-sm-5") {
+                    div("col-sm-4") {
                         div("container card o-hidden border-0 shadow-lg my-2 card-body p-0") {
                             div("p-5 text-center") {
                                 h1("h4 text-gray-900 mb-4") {
@@ -273,21 +274,15 @@ class CreationView : AbstractView<PropsWithChildren, ProjectSaveViewState>(true)
                                         inputTextFormRequired(InputTypes.PROJECT_NAME, state.isValidProjectName!!, "col-md-6 pl-2 pr-2", "Tested tool name") {
                                             changeFields(InputTypes.PROJECT_NAME, it)
                                         }
-                                        inputTextFormOptional(InputTypes.PROJECT_URL, "col-md-6 pr-0 mt-3", "Tested tool Url") {
+                                        inputTextFormOptional(InputTypes.PROJECT_URL, "col-md-6 pr-0 mt-3", "Tested Tool Website") {
                                             changeFields(InputTypes.PROJECT_URL, it)
                                         }
                                         inputTextFormOptional(
                                             InputTypes.GIT_URL,
                                             "col-md-6 mt-3 pl-0",
-                                            "Test repository Git Url"
+                                            "Test Suite Git URL"
                                         ) {
                                             changeFields(InputTypes.GIT_URL, it, false)
-                                        }
-                                        inputTextFormOptional(InputTypes.GIT_USER, "col-md-6 mt-3", "Git Username") {
-                                            changeFields(InputTypes.GIT_USER, it, false)
-                                        }
-                                        inputTextFormOptional(InputTypes.GIT_TOKEN, "col-md-6 mt-3 pr-0", "Git Token") {
-                                            changeFields(InputTypes.GIT_TOKEN, it, false)
                                         }
 
                                         div("col-md-12 mt-3 mb-3 pl-0 pr-0") {
@@ -312,7 +307,20 @@ class CreationView : AbstractView<PropsWithChildren, ProjectSaveViewState>(true)
                                             }
                                         }
 
-                                        div("form-check form-switch") {
+                                        div("col-md-12 mt-3 border-top") {
+                                            p("mx-auto mt-2") {
+                                                +"Provide Credentials if your repo with Test Suites is private:"
+                                            }
+                                        }
+
+                                        inputTextFormOptional(InputTypes.GIT_USER, "col-md-6 mt-1", "Git Username") {
+                                            changeFields(InputTypes.GIT_USER, it, false)
+                                        }
+                                        inputTextFormOptional(InputTypes.GIT_TOKEN, "col-md-6 mt-1 pr-0", "Git Token") {
+                                            changeFields(InputTypes.GIT_TOKEN, it, false)
+                                        }
+
+                                        div("form-check form-switch mt-2") {
                                             input(classes = "form-check-input") {
                                                 attrs["type"] = "checkbox"
                                                 attrs["id"] = "isPublicSwitch"

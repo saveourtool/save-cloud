@@ -24,7 +24,7 @@
             <column name="execution_id" type="bigint">
                 <constraints foreignKeyName="fk_test_execution_execution" references="execution(id)" nullable="false"/>
             </column>
-            <column name="status" type="varchar(50)" defaultValue="READY">
+            <column name="status" type="varchar(50)" defaultValue="READY_FOR_TESTING">
                 <constraints nullable="false"/>
             </column>
             <column name="start_time" type="DATETIME(3)">

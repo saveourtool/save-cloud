@@ -6,12 +6,20 @@ package org.cqfn.save.frontend.components.views
 
 import org.cqfn.save.frontend.components.basic.InputTypes
 import org.cqfn.save.frontend.components.basic.inputTextFormRequired
+import org.cqfn.save.frontend.externals.fontawesome.faCopyright
+import org.cqfn.save.frontend.externals.fontawesome.faExternalLinkAlt
 import org.cqfn.save.frontend.externals.fontawesome.faGithub
+import org.cqfn.save.frontend.externals.fontawesome.faSignInAlt
 import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
+import org.cqfn.save.frontend.utils.decodeFromJsonString
+import org.cqfn.save.frontend.utils.get
+import org.cqfn.save.info.OauthProviderInfo
+import org.cqfn.save.info.UserInfo
 
 import csstype.Display
 import csstype.FontSize
 import csstype.FontWeight
+import org.w3c.fetch.Headers
 import react.CSSProperties
 import react.PropsWithChildren
 import react.RBuilder
@@ -26,7 +34,10 @@ import react.dom.h4
 import react.dom.main
 import react.dom.p
 import react.dom.span
+import react.setState
 
+import kotlinx.browser.window
+import kotlinx.coroutines.launch
 import kotlinx.html.ButtonType
 
 /**
@@ -42,6 +53,21 @@ external interface IndexViewState : State {
      * State that checks the validity of password
      */
     var isValidPassword: Boolean?
+
+    /**
+     * List of OAuth providers, that can be accepted by backend
+     */
+    var oauthProviders: List<OauthProviderInfo>?
+}
+
+/**
+ * Properties used in WelcomeView (passed from App.kt)
+ */
+external interface WelcomeProps : PropsWithChildren {
+    /**
+     * Currently logged in user or null
+     */
+    var userInfo: UserInfo?
 }
 
 /**
@@ -49,10 +75,24 @@ external interface IndexViewState : State {
  */
 @JsExport
 @OptIn(ExperimentalJsExport::class)
-class WelcomeView : AbstractView<PropsWithChildren, IndexViewState>(true) {
+class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
     init {
         state.isValidLogin = true
         state.isValidPassword = true
+    }
+
+    override fun componentDidMount() {
+        super.componentDidMount()
+        scope.launch {
+            val oauthProviderInfoList: List<OauthProviderInfo>? = get("${window.location.origin}/sec/oauth-providers", Headers()).run {
+                if (ok) decodeFromJsonString() else null
+            }
+            oauthProviderInfoList?.let {
+                setState {
+                    oauthProviders = it
+                }
+            }
+        }
     }
 
     @Suppress("ForbiddenComment", "LongMethod", "TOO_LONG_FUNCTION")
@@ -76,75 +116,101 @@ class WelcomeView : AbstractView<PropsWithChildren, IndexViewState>(true) {
                     // Sign-in header
                     div("col-lg-3 mr-auto ml-5 mt-5 mb-5") {
                         div("card z-index-0 fadeIn3 fadeInBottom") {
-                            div("card-header p-0 position-relative mt-n4 mx-3 z-index-2 rounded") {
-                                div("bg-info shadow-primary border-radius-lg py-3 pe-1 rounded") {
-                                    h4("text-white font-weight-bolder text-center mt-2 mb-0") {
-                                        +"Sign in"
-                                    }
-                                    div("row") {
-                                        div("col text-center px-1") {
-                                            a(
-                                                href = "oauth2/authorization/github",
-                                                classes = "btn btn-link px-3 text-white text-lg text-center"
-                                            ) {
-                                                attrs["style"] = kotlinext.js.jsObject<CSSProperties> {
-                                                    fontSize = "3.2rem".unsafeCast<FontSize>()
-                                                }
-                                                fontAwesomeIcon(icon = faGithub)
-                                            }
-                                        }
-                                    }
-                                }
+                            // if user is not logged in - he needs to input credentials
+                            props.userInfo?.let {
+                                welcomeUserView()
                             }
-
-                            div("card-body") {
-                                form(classes = "needs-validation") {
-                                    inputTextFormRequired(
-                                        InputTypes.LOGIN,
-                                        state.isValidLogin!!,
-                                        "col-lg ml-0 mr-0 pr-0 pl-0",
-                                        "Login"
-                                    ) {
-                                        // changeFields()
-                                    }
-
-                                    inputTextFormRequired(
-                                        InputTypes.PASSWORD,
-                                        state.isValidPassword!!,
-                                        "col-lg ml-0 mr-0 pr-0 pl-0",
-                                        "Password"
-                                    ) {
-                                        // changeFields()
-                                    }
-
-                                    div("row text-center") {
-                                        button(
-                                            type = ButtonType.button,
-                                            classes = "btn btn-info w-100 my-4 mb-2 ml-2 mr-2"
-                                        ) {
-                                            +"Sign in"
-                                        }
-                                    }
-
-                                    p("mt-4 text-sm text-center") {
-                                        +"Don't have an account?"
-                                        a(classes = "text-info text-gradient font-weight-bold ml-2") {
-                                            attrs.href = "#/"
-                                            +"Sign up"
-                                        }
-
-                                        p("text-sm text-center") {
-                                            +"Or"
-                                            a(classes = "text-info text-gradient font-weight-bold ml-2 mr-2") {
-                                                attrs.href = "#/projects"
-                                                +"Continue"
-                                            }
-                                            +"without registration"
-                                        }
-                                    }
+                                ?: run {
+                                    inputCredentialsView()
                                 }
-                            }
                         }
+                    }
+                }
+            }
+        }
+    }
+
+    @Suppress("TOO_LONG_FUNCTION")
+    private fun RBuilder.inputCredentialsView() {
+        div("card-header p-0 position-relative mt-n4 mx-3 z-index-2 rounded") {
+            div("bg-info shadow-primary border-radius-lg py-3 pe-1 rounded") {
+                h4("text-white font-weight-bolder text-center mt-2 mb-0") {
+                    +"Sign in"
+                }
+                div("row") {
+                    state.oauthProviders?.map {
+                        oauthLogin(it, when (it.registrationId) {
+                            "github" -> faGithub
+                            "codehub" -> faCopyright
+                            else -> faSignInAlt
+                        })
+                    }
+                }
+            }
+        }
+
+        div("card-body") {
+            form(classes = "needs-validation") {
+                inputTextFormRequired(
+                    InputTypes.LOGIN,
+                    state.isValidLogin!!,
+                    "col-lg ml-0 mr-0 pr-0 pl-0",
+                    "Login"
+                ) {
+                    // changeFields()
+                }
+
+                inputTextFormRequired(
+                    InputTypes.PASSWORD,
+                    state.isValidPassword!!,
+                    "col-lg ml-0 mr-0 pr-0 pl-0",
+                    "Password"
+                ) {
+                    // changeFields()
+                }
+
+                div("row text-center") {
+                    button(
+                        type = ButtonType.button,
+                        classes = "btn btn-info w-100 my-4 mb-2 ml-2 mr-2"
+                    ) {
+                        +"Sign in"
+                    }
+                }
+
+                div("mt-4 text-sm text-center") {
+                    p("mb-0") {
+                        +"Don't have an account?"
+                    }
+
+                    p("text-sm text-center") {
+                        a(classes = "text-info text-gradient font-weight-bold ml-2 mr-2") {
+                            attrs.href = "#/projects"
+                            +"Continue"
+                        }
+                        +"without registration"
+                    }
+                }
+            }
+        }
+    }
+
+    private fun RBuilder.welcomeUserView() {
+        div("card-header p-0 position-relative mt-n4 mx-3 z-index-2 rounded") {
+            div("bg-info shadow-primary border-radius-lg py-3 pe-1 rounded") {
+                h4("text-white font-weight-bolder text-center mt-2 mb-0") {
+                    +"Welcome ${props.userInfo?.userName}!"
+                }
+            }
+        }
+
+        div("card-body") {
+            p("mt-4 text-sm text-center") {
+                a(classes = "text-info text-gradient font-weight-bold ml-2 mr-2") {
+                    attrs.href = "#/projects"
+                    h4 {
+                        +"List of Projects"
+                        fontAwesomeIcon(icon = faExternalLinkAlt, "ml-2")
                     }
                 }
             }
@@ -160,7 +226,7 @@ class WelcomeView : AbstractView<PropsWithChildren, IndexViewState>(true) {
 
     private fun RBuilder.h1Bold(str: String) = h1 {
         +str
-        attrs["style"] = kotlinext.js.jsObject<CSSProperties> {
+        attrs["style"] = kotlinext.js.jso<CSSProperties> {
             fontWeight = "bold".unsafeCast<FontWeight>()
             display = Display.inline
             fontSize = "4.5rem".unsafeCast<FontSize>()
@@ -169,8 +235,22 @@ class WelcomeView : AbstractView<PropsWithChildren, IndexViewState>(true) {
 
     private fun RBuilder.h1Normal(str: String) = h1 {
         +str
-        attrs["style"] = kotlinext.js.jsObject<CSSProperties> {
+        attrs["style"] = kotlinext.js.jso<CSSProperties> {
             display = Display.inline
+        }
+    }
+
+    private fun RBuilder.oauthLogin(provider: OauthProviderInfo, icon: dynamic) {
+        div("col text-center px-1") {
+            a(
+                href = provider.authorizationLink,
+                classes = "btn btn-link px-3 text-white text-lg text-center"
+            ) {
+                attrs["style"] = kotlinext.js.jso<CSSProperties> {
+                    fontSize = "3.2rem".unsafeCast<FontSize>()
+                }
+                fontAwesomeIcon(icon = icon)
+            }
         }
     }
 }

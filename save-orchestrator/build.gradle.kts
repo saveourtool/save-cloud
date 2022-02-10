@@ -1,6 +1,8 @@
 import org.cqfn.save.buildutils.configureJacoco
 import org.cqfn.save.buildutils.configureSpringBoot
-import org.cqfn.save.buildutils.getSaveCliVersion
+import org.cqfn.save.buildutils.pathToSaveCliVersion
+import org.cqfn.save.buildutils.readSaveCliVersion
+import org.cqfn.save.buildutils.registerSaveCliVersionCheckTask
 
 import de.undercouch.gradle.tasks.download.Download
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -20,15 +22,19 @@ tasks.withType<KotlinCompile> {
 }
 
 // if required, file can be provided manually
-val saveCliVersion = getSaveCliVersion()
-@Suppress("RUN_IN_SCRIPT")
-if (!file("$buildDir/resources/main/save-$saveCliVersion-linuxX64.kexe").exists()) {
-    tasks.getByName("processResources").finalizedBy("downloadSaveCli")
-    tasks.register<Download>("downloadSaveCli") {
-        dependsOn("processResources")
-        src("https://github.com/diktat-static-analysis/save/releases/download/v$saveCliVersion/save-$saveCliVersion-linuxX64.kexe")
-        dest("$buildDir/resources/main")
-    }
+registerSaveCliVersionCheckTask()
+tasks.getByName("processResources").finalizedBy("downloadSaveCli")
+tasks.register<Download>("downloadSaveCli") {
+    dependsOn("processResources")
+    dependsOn("getSaveCliVersion")
+    inputs.file(pathToSaveCliVersion)
+
+    src(KotlinClosure0(function = {
+        val saveCliVersion = readSaveCliVersion()
+        "https://github.com/analysis-dev/save/releases/download/v$saveCliVersion/save-$saveCliVersion-linuxX64.kexe"
+    }))
+    dest("$buildDir/resources/main")
+    overwrite(false)
 }
 
 tasks.withType<Test> {
@@ -52,12 +58,13 @@ configureJacoco()
 val generateVersionFileTaskProvider = tasks.register("generateVersionFile") {
     val versionsFile = File("$buildDir/generated/src/generated/Versions.kt")
 
-    val saveCliVersion = getSaveCliVersion()
-    inputs.property("Version of save-cli", saveCliVersion)
+    dependsOn("getSaveCliVersion")
+    inputs.file(pathToSaveCliVersion)
     inputs.property("project version", version.toString())
     outputs.file(versionsFile)
 
     doFirst {
+        val saveCliVersion = readSaveCliVersion()
         versionsFile.parentFile.mkdirs()
         versionsFile.writeText(
             """
@@ -75,4 +82,8 @@ kotlin.sourceSets.getByName("main") {
 }
 tasks.withType<KotlinCompile>().forEach {
     it.dependsOn(generateVersionFileTaskProvider)
+}
+
+tasks.withType<Test> {
+    testLogging.showStandardStreams = true
 }

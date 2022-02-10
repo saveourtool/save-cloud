@@ -18,20 +18,18 @@ import org.cqfn.save.preprocessor.EmptyResponse
 import org.cqfn.save.preprocessor.StatusResponse
 import org.cqfn.save.preprocessor.TextResponse
 import org.cqfn.save.preprocessor.config.ConfigProperties
+import org.cqfn.save.preprocessor.config.TestSuitesRepo
 import org.cqfn.save.preprocessor.service.TestDiscoveringService
-import org.cqfn.save.preprocessor.utils.decodeFromPropertiesFile
-import org.cqfn.save.preprocessor.utils.toHash
+import org.cqfn.save.preprocessor.utils.*
+import org.cqfn.save.preprocessor.utils.generateDirectory
 import org.cqfn.save.testsuite.TestSuiteDto
 import org.cqfn.save.testsuite.TestSuiteType
 import org.cqfn.save.utils.moveFileWithAttributes
 
 import okio.FileSystem
-import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.api.errors.GitAPIException
 import org.eclipse.jgit.api.errors.InvalidRemoteException
 import org.eclipse.jgit.api.errors.TransportException
-import org.eclipse.jgit.transport.CredentialsProvider
-import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
 import org.slf4j.LoggerFactory
 import org.springframework.core.io.ClassPathResource
 import org.springframework.http.HttpStatus
@@ -40,7 +38,6 @@ import org.springframework.http.ReactiveHttpOutputMessage
 import org.springframework.http.ResponseEntity
 import org.springframework.http.client.MultipartBodyBuilder
 import org.springframework.http.codec.multipart.FilePart
-import org.springframework.util.FileSystemUtils
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestParam
@@ -63,14 +60,12 @@ import reactor.util.function.Tuple2
 
 import java.io.File
 import java.io.FileOutputStream
-import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.nio.file.StandardCopyOption
 import java.time.Duration
 
 import kotlin.io.path.ExperimentalPathApi
-import kotlin.io.path.createDirectories
 
 typealias Status = Mono<ResponseEntity<HttpStatus>>
 
@@ -81,8 +76,9 @@ typealias Status = Mono<ResponseEntity<HttpStatus>>
  */
 @OptIn(ExperimentalPathApi::class)
 @RestController
-class DownloadProjectController(private val configProperties: ConfigProperties,
-                                private val testDiscoveringService: TestDiscoveringService,
+class DownloadProjectController(
+    private val configProperties: ConfigProperties,
+    private val testDiscoveringService: TestDiscoveringService,
 ) {
     private val log = LoggerFactory.getLogger(DownloadProjectController::class.java)
     private val webClientBackend = WebClient.create(configProperties.backend)
@@ -197,6 +193,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                             StandardCopyOption.COPY_ATTRIBUTES
                         )
                         // FixMe: currently it's quite rough solution, to make all additional files executable
+                        // FixMe: https://github.com/analysis-dev/save-cloud/issues/442
                         if (!resourcesLocation.resolve(file.name).setExecutable(true)) {
                             log.warn("Failed to mark file ${resourcesLocation.resolve(file.name)} as executable")
                         }
@@ -207,7 +204,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                         executionRerunRequest.testRootPath,
                         location,
                         testSuites?.map { it.toDto() },
-                        executionRerunRequest.gitDto.url
+                        executionRerunRequest.gitDto.url,
                     )
                 }
                 .subscribeOn(scheduler)
@@ -225,18 +222,19 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
         .doOnSuccess {
             val (user, token) = readGitCredentialsForStandardMode(configProperties.reposTokenFileName)
             val newTestSuites: MutableList<TestSuiteDto> = mutableListOf()
-            Flux.fromIterable(readStandardTestSuitesFile(configProperties.reposFileName).entries).flatMap { (testSuiteUrl, testSuitePaths) ->
+            Flux.fromIterable(readStandardTestSuitesFile(configProperties.reposFileName)).flatMap { testSuiteRepoInfo ->
+                val testSuiteUrl = testSuiteRepoInfo.gitUrl
                 log.info("Starting clone repository url=$testSuiteUrl for standard test suites")
-                val tmpDir = generateDirectory(listOf(testSuiteUrl))
+                val tmpDir = generateDirectory(listOf(testSuiteUrl), configProperties.repository, deleteExisting = false)
                 Mono.fromCallable {
                     if (user != null && token != null) {
-                        cloneFromGit(GitDto(url = testSuiteUrl, username = user, password = token), tmpDir)
+                        pullOrCloneProjectWithSpecificBranch(GitDto(url = testSuiteUrl, username = user, password = token), tmpDir, testSuiteRepoInfo.gitBranchOrCommit)
                     } else {
-                        cloneFromGit(GitDto(testSuiteUrl), tmpDir)
+                        pullOrCloneProjectWithSpecificBranch(GitDto(testSuiteUrl), tmpDir, testSuiteRepoInfo.gitBranchOrCommit)
                     }
-                        .use { /* noop here, just need to close Git object */ }
+                        ?.use { /* noop here, just need to close Git object */ }
                 }
-                    .flatMapMany { Flux.fromIterable(testSuitePaths) }
+                    .flatMapMany { Flux.fromIterable(testSuiteRepoInfo.testSuitePaths) }
                     .flatMap { testRootPath ->
                         log.info("Starting to discover root test config in test root path: $testRootPath")
                         val testResourcesRootAbsolutePath = tmpDir.resolve(testRootPath).absolutePath
@@ -260,7 +258,7 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                             }
                     }
                     .doOnError {
-                        log.error("Error to update test suite with url=$testSuiteUrl, path=$testSuitePaths")
+                        log.error("Error to update test suite with url=$testSuiteUrl, path=${testSuiteRepoInfo.testSuitePaths}")
                     }
             }
                 .collectList()
@@ -287,19 +285,6 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
             }
         }
 
-    private fun cloneFromGit(gitDto: GitDto, tmpDir: File): Git? {
-        val userCredentials = if (gitDto.username != null && gitDto.password != null) {
-            UsernamePasswordCredentialsProvider(gitDto.username, gitDto.password)
-        } else {
-            CredentialsProvider.getDefault()
-        }
-        return Git.cloneRepository()
-            .setURI(gitDto.url)
-            .setCredentialsProvider(userCredentials)
-            .setDirectory(tmpDir)
-            .call()
-    }
-
     @Suppress(
         "TYPE_ALIAS",
         "TOO_LONG_FUNCTION",
@@ -308,12 +293,9 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
     )
     private fun downLoadRepository(executionRequest: ExecutionRequest): Mono<Pair<String, String>> {
         val gitDto = executionRequest.gitDto
-        val tmpDir = generateDirectory(listOf(gitDto.url))
+        val tmpDir = generateDirectory(listOf(gitDto.url), configProperties.repository, deleteExisting = false)
         return Mono.fromCallable {
-            cloneFromGit(gitDto, tmpDir)?.use { git ->
-                executionRequest.gitDto.hash?.let { hash ->
-                    git.checkout().setName(hash).call()
-                }
+            pullOrCloneProjectWithSpecificBranch(gitDto, tmpDir, branchOrCommit = gitDto.branch ?: gitDto.hash)?.use { git ->
                 val version = git.log().call().first()
                     .name
                 log.info("Cloned repository ${gitDto.url}, head is at $version")
@@ -334,23 +316,29 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
             }
     }
 
+    @Suppress("TOO_LONG_FUNCTION")
     private fun saveBinaryFile(
         executionRequestForStandardSuites: ExecutionRequestForStandardSuites,
         files: List<File>,
     ): Mono<StatusResponse> {
-        val tmpDir = generateDirectory(calculateTmpNameForFiles(files))
+        // Move files into local storage
+        val tmpDir = generateDirectory(calculateTmpNameForFiles(files), configProperties.repository)
         files.forEach {
             log.debug("Move $it into $tmpDir")
             moveFileWithAttributes(it, tmpDir)
         }
         val project = executionRequestForStandardSuites.project
-        // TODO: Save the proper version https://github.com/diktat-static-analysis/save-cloud/issues/321
+        // TODO: Save the proper version https://github.com/analysis-dev/save-cloud/issues/321
         val version = files.first().name
+        val execCmd = executionRequestForStandardSuites.execCmd
+        val batchSizeForAnalyzer = executionRequestForStandardSuites.batchSizeForAnalyzer
         return updateExecution(
             executionRequestForStandardSuites.project,
             tmpDir.name,
             version,
-            executionRequestForStandardSuites.testsSuites.joinToString()
+            executionRequestForStandardSuites.testsSuites.joinToString(),
+            execCmd,
+            batchSizeForAnalyzer,
         )
             .flatMap { execution ->
                 sendToBackendAndOrchestrator(
@@ -371,33 +359,6 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
                     }
                 )
             }
-    }
-
-    /**
-     * Create a temporary directory with name based on [seeds]
-     *
-     * @param seeds a list of strings for directory name creation
-     * @return a [File] representing the created temporary directory
-     */
-    @Suppress("TooGenericExceptionCaught")
-    internal fun generateDirectory(seeds: List<String>): File {
-        val tmpDir = getTmpDirName(seeds)
-        if (tmpDir.exists()) {
-            try {
-                if (FileSystemUtils.deleteRecursively(tmpDir.toPath())) {
-                    log.info("For $seeds: dir $tmpDir was deleted")
-                }
-            } catch (e: IOException) {
-                log.error("Couldn't properly delete $tmpDir", e)
-            }
-        }
-        try {
-            tmpDir.toPath().createDirectories()
-            log.info("For $seeds: dir $tmpDir was created")
-        } catch (e: Exception) {
-            log.error("Couldn't create directories for $tmpDir", e)
-        }
-        return tmpDir
     }
 
     /**
@@ -451,14 +412,12 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
     ) = if (executionType == ExecutionType.GIT) {
         getResourceLocationForGit(location, testRootPath)
     } else {
-        getTmpDirName(calculateTmpNameForFiles(files))
+        getTmpDirName(calculateTmpNameForFiles(files), "${configProperties.repository}")
     }
 
     private fun getResourceLocationForGit(location: String, testRootPath: String) = File(configProperties.repository)
         .resolve(location)
         .resolve(testRootPath)
-
-    private fun getTmpDirName(seeds: List<String>) = File("${configProperties.repository}/${seeds.hashCode()}")
 
     private fun calculateTmpNameForFiles(files: List<File>) = files.map { it.toHash() }.sorted()
 
@@ -492,13 +451,16 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
             .collectList()
     }
 
+    @Suppress("TOO_MANY_PARAMETERS", "LongParameterList")
     private fun updateExecution(
         project: Project,
         projectRootRelativePath: String,
         executionVersion: String,
         testSuiteIds: String = "ALL",
+        execCmd: String? = null,
+        batchSizeForAnalyzer: String? = null,
     ): Mono<Execution> {
-        val executionUpdate = ExecutionInitializationDto(project, testSuiteIds, projectRootRelativePath, executionVersion)
+        val executionUpdate = ExecutionInitializationDto(project, testSuiteIds, projectRootRelativePath, executionVersion, execCmd, batchSizeForAnalyzer)
         return webClientBackend.makeRequest(BodyInserters.fromValue(executionUpdate), "/updateNewExecution") {
             it.onStatus({ status -> status != HttpStatus.OK }) { clientResponse ->
                 log.error("Error when making update to execution fro project id = ${project.id} ${clientResponse.statusCode()}")
@@ -632,7 +594,10 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
     /**
      * POST request to orchestrator to initiate its work
      */
-    private fun initializeAgents(execution: Execution, testSuiteDtos: List<TestSuiteDto>?): Status {
+    private fun initializeAgents(
+        execution: Execution,
+        testSuiteDtos: List<TestSuiteDto>?
+    ): Status {
         val bodyBuilder = MultipartBodyBuilder().apply {
             part("execution", execution)
         }
@@ -720,16 +685,23 @@ class DownloadProjectController(private val configProperties: ConfigProperties,
  * @param name file name to read
  * @return map repository to paths to test configs
  */
+@Suppress("MagicNumber", "TOO_MANY_LINES_IN_LAMBDA")
 fun readStandardTestSuitesFile(name: String) =
         ClassPathResource(name)
             .file
             .readText()
             .lines()
             .filter { it.isNotBlank() }
-            .associate {
+            .map {
                 val splitRow = it.split("\\s".toRegex())
-                require(splitRow.size == 2)
-                splitRow.first() to splitRow[1].split(";")
+                require(splitRow.size == 3) {
+                    "Follow the format for each line: (Gir url) (branch or commit hash) (testRootPath1;testRootPath2;...)"
+                }
+                TestSuitesRepo(
+                    gitUrl = splitRow.first(),
+                    gitBranchOrCommit = splitRow[1],
+                    testSuitePaths = splitRow[2].split(";")
+                )
             }
 
 private fun readGitCredentialsForStandardMode(name: String): Pair<String?, String?> {

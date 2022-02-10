@@ -1,12 +1,14 @@
 package org.cqfn.save.backend.service
 
 import org.cqfn.save.backend.repository.ProjectRepository
+import org.cqfn.save.backend.repository.UserRepository
 import org.cqfn.save.domain.ProjectSaveStatus
 import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.ProjectStatus
 import org.springframework.data.domain.Example
 import org.springframework.data.domain.ExampleMatcher
 import org.springframework.stereotype.Service
+import reactor.core.publisher.Flux
 
 /**
  * Service for project
@@ -14,13 +16,16 @@ import org.springframework.stereotype.Service
  * @property projectRepository
  */
 @Service
-class ProjectService(private val projectRepository: ProjectRepository) {
+class ProjectService(private val projectRepository: ProjectRepository,
+                     private val userRepository: UserRepository,
+) {
     /**
      * Store [project] in the database
      *
      * @param project a [Project] to store
      * @return project's id, should never return null
      */
+    @Suppress("UnsafeCallOnNullableType")
     fun saveProject(project: Project): Pair<Long, ProjectSaveStatus> {
         val exampleMatcher = ExampleMatcher.matchingAll()
             .withMatcher("name", ExampleMatcher.GenericPropertyMatchers.exact())
@@ -38,7 +43,7 @@ class ProjectService(private val projectRepository: ProjectRepository) {
     /**
      * @return list of all projects
      */
-    fun getProjects(): List<Project> = projectRepository.findAll()
+    fun getProjects(): Flux<Project> = projectRepository.findAll().let { Flux.fromIterable(it) }
 
     /**
      * @param name

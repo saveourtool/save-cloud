@@ -34,7 +34,6 @@ import react.dom.*
 
 import kotlinx.browser.document
 import kotlinx.browser.window
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.html.ButtonType
 import kotlinx.html.InputType
@@ -136,6 +135,21 @@ external interface ProjectViewState : State {
     var gitUrlFromInputField: String
 
     /**
+     * Branch of commit in current repo
+     */
+    var gitBranchOrCommitFromInputField: String
+
+    /**
+     * Execution command for standard mode
+     */
+    var execCmd: String
+
+    /**
+     * Batch size for static analyzer tool in standard mode
+     */
+    var batchSizeForAnalyzer: String
+
+    /**
      * Directory in the repository where tests are placed
      */
     var testRootPath: String
@@ -181,7 +195,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     private var standardTestSuites: List<TestSuiteDto> = emptyList()
     private val selectedStandardSuites: MutableList<String> = mutableListOf()
     private var gitDto: GitDto? = null
-    private var project = Project("N/A", "N/A", "N/A", "N/A", ProjectStatus.CREATED)
+    private var project = Project("N/A", "N/A", "N/A", "N/A", ProjectStatus.CREATED, userId = -1, adminIds = null)
     private val projectInformation = mutableMapOf(
         "Tested tool name: " to "",
         "Description: " to "",
@@ -192,6 +206,9 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
 
     init {
         state.gitUrlFromInputField = ""
+        state.gitBranchOrCommitFromInputField = ""
+        state.execCmd = ""
+        state.batchSizeForAnalyzer = ""
         state.testRootPath = ""
         state.confirmationType = ConfirmationType.NO_CONFIRM
         state.testingType = TestingType.CUSTOM_TESTS
@@ -213,14 +230,14 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     override fun componentDidMount() {
         super.componentDidMount()
 
-        GlobalScope.launch {
+        scope.launch {
             project = getProject(props.name, props.owner)
             val jsonProject = Json.encodeToString(project)
             val headers = Headers().apply {
                 set("Accept", "application/json")
                 set("Content-Type", "application/json")
             }
-            gitDto = post("$apiUrl/getGit", headers, jsonProject)
+            gitDto = post("$apiUrl/projects/git", headers, jsonProject)
                 .decodeFromJsonString<GitDto>()
             standardTestSuites = get("$apiUrl/allStandardTestSuites", headers)
                 .decodeFromJsonString()
@@ -239,11 +256,18 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         when (state.testingType) {
             TestingType.CUSTOM_TESTS -> {
                 val urlWithTests = state.gitUrlFromInputField
+                val branchOrCommit = state.gitBranchOrCommitFromInputField
                 // URL is required in all cases, the processing should not be done without it
                 if (urlWithTests.isBlank()) {
                     return
                 } else {
-                    val newGitDto = gitDto?.copy(url = urlWithTests) ?: GitDto(url = urlWithTests)
+                    // if provided value contains `origin` then it's a branch, otherwise a commit
+                    val (newBranch, newCommit) = if (branchOrCommit.contains("origin/")) {
+                        branchOrCommit to null
+                    } else {
+                        null to branchOrCommit
+                    }
+                    val newGitDto = gitDto?.copy(url = urlWithTests, branch = newBranch, hash = newCommit) ?: GitDto(url = urlWithTests, branch = newBranch, hash = newCommit)
                     submitExecutionRequestWithCustomTests(newGitDto)
                 }
             }
@@ -266,7 +290,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         val headers = Headers()
         val formData = FormData()
         val selectedSdk = "${state.selectedSdk}:${state.selectedSdkVersion}".toSdk()
-        val request = ExecutionRequestForStandardSuites(project, selectedStandardSuites, selectedSdk)
+        val request = ExecutionRequestForStandardSuites(project, selectedStandardSuites, selectedSdk, state.execCmd, state.batchSizeForAnalyzer)
         formData.appendJson("execution", request)
         state.files.forEach {
             formData.appendJson("file", it)
@@ -277,7 +301,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     private fun submitExecutionRequestWithCustomTests(correctGitDto: GitDto) {
         val selectedSdk = "${state.selectedSdk}:${state.selectedSdkVersion}".toSdk()
         val formData = FormData()
-        val testRootPath = if (state.testRootPath.isBlank()) "." else state.testRootPath
+        val testRootPath = state.testRootPath.ifBlank { "." }
         val executionRequest = ExecutionRequest(project, correctGitDto, testRootPath, selectedSdk, null)
         formData.appendJson("executionRequest", executionRequest)
         state.files.forEach {
@@ -290,7 +314,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         setState {
             isLoading = true
         }
-        GlobalScope.launch {
+        scope.launch {
             val response = post(apiUrl + url, headers, body)
             if (!response.ok) {
                 response.text().then { text ->
@@ -429,6 +453,11 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                             gitUrlFromInputField = (it.target as HTMLInputElement).value
                         }
                     },
+                    updateGitBranchOrCommitInputField = {
+                        setState {
+                            gitBranchOrCommitFromInputField = (it.target as HTMLInputElement).value
+                        }
+                    },
                     updateTestRootPath = {
                         setState {
                             testRootPath = (it.target as HTMLInputElement).value
@@ -437,6 +466,16 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                     setTestRootPathFromHistory = {
                         setState {
                             testRootPath = it
+                        }
+                    },
+                    setExecCmd = {
+                        setState {
+                            execCmd = (it.target as HTMLInputElement).value
+                        }
+                    },
+                    setBatchSize = {
+                        setState {
+                            batchSizeForAnalyzer = (it.target as HTMLInputElement).value
                         }
                     },
                     setSelectedLanguageForStandardTests = {
@@ -451,10 +490,13 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                     // properties for CUSTOM_TESTS mode
                     attrs.testRootPath = state.testRootPath
                     attrs.gitUrlFromInputField = state.gitUrlFromInputField
+                    attrs.gitBranchOrCommitFromInputField = state.gitBranchOrCommitFromInputField
                     // properties for STANDARD_BENCHMARKS mode
                     attrs.selectedStandardSuites = selectedStandardSuites
                     attrs.standardTestSuites = standardTestSuites
                     attrs.selectedLanguageForStandardTests = state.selectedLanguageForStandardTests
+                    attrs.execCmd = state.execCmd
+                    attrs.batchSizeForAnalyzer = state.batchSizeForAnalyzer
                 }
 
                 div("d-sm-flex align-items-center justify-content-center") {
@@ -557,7 +599,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                         button(classes = "btn btn-link text-left") {
                             +"Latest Execution"
                             attrs.onClickFunction = {
-                                GlobalScope.launch {
+                                scope.launch {
                                     switchToLatestExecution()
                                 }
                             }
@@ -586,7 +628,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     }
 
     private fun postFileUpload(element: HTMLInputElement) =
-            GlobalScope.launch {
+            scope.launch {
                 setState {
                     isUploading = true
                     element.files!!.asList().forEach { file ->
@@ -696,7 +738,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     }
 
     private fun deleteProject() {
-        project.status = ProjectStatus.DELETED
+        project = project.copy(status = ProjectStatus.DELETED)
 
         setState {
             confirmationType = ConfirmationType.DELETE_CONFIRM
@@ -712,12 +754,14 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             it.set("Content-Type", "application/json")
         }
         val (name, description, url, owner) = projectInfo.values.toList()
-        project.name = name
-        project.description = description
-        project.url = url
-        project.owner = owner
-        GlobalScope.launch {
-            post("$apiUrl/updateProject", headers, Json.encodeToString(project))
+        project = project.copy(
+            name = name,
+            description = description,
+            url = url,
+            owner = owner,
+        )
+        scope.launch {
+            post("$apiUrl/projects/update", headers, Json.encodeToString(project))
         }
     }
 
@@ -726,9 +770,9 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             it.set("Accept", "application/json")
             it.set("Content-Type", "application/json")
         }
-        GlobalScope.launch {
+        scope.launch {
             responseFromDeleteProject =
-                    post("$apiUrl/updateProject", headers, Json.encodeToString(project))
+                    post("$apiUrl/projects/update", headers, Json.encodeToString(project))
         }.invokeOnCompletion {
             if (responseFromDeleteProject.ok) {
                 window.location.href = "${window.location.origin}/"
@@ -773,12 +817,12 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     companion object {
         const val TEST_ROOT_DIR_HINT = """
             The path you are providing should be relative to the root directory of your repository.
-            This directory should contain <a href = "https://github.com/diktat-static-analysis/save#how-to-configure"> save.properties </a>
-            or <a href = "https://github.com/diktat-static-analysis/save#-savetoml-configuration-file">save.toml</a> files.
+            This directory should contain <a href = "https://github.com/analysis-dev/save#how-to-configure"> save.properties </a>
+            or <a href = "https://github.com/analysis-dev/save#-savetoml-configuration-file">save.toml</a> files.
             For example, if the URL to your repo with tests is: 
-            <a href ="https://github.com/diktat-static-analysis/save/">https://github.com/diktat-static-analysis/save</a>, then
+            <a href ="https://github.com/analysis-dev/save/">https://github.com/analysis-dev/save</a>, then
             you need to specify the following directory with 'save.toml': 
-            <a href ="https://github.com/diktat-static-analysis/save/tree/main/examples/kotlin-diktat">examples/kotlin-diktat/</a>.
+            <a href ="https://github.com/analysis-dev/save/tree/main/examples/kotlin-diktat">examples/kotlin-diktat/</a>.
  
             Please note, that the tested tool and it's resources will be copied to this directory before the run.
             """

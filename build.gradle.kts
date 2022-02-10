@@ -8,9 +8,9 @@ import org.cqfn.save.buildutils.getDatabaseCredentials
 import org.cqfn.save.buildutils.installGitHooks
 
 plugins {
-    alias(libs.plugins.versions.plugin)
     alias(libs.plugins.talaiot.base)
     alias(libs.plugins.liquibase.gradle)
+    java
 }
 
 val profile = properties.getOrDefault("save.profile", "dev") as String
@@ -42,6 +42,13 @@ dependencies {
     liquibaseRuntime(libs.picocli)
 }
 
+tasks.withType<org.liquibase.gradle.LiquibaseTask>().configureEach {
+    this.javaLauncher.set(project.extensions.getByType<JavaToolchainService>().launcherFor {
+        // liquibase-core 4.7.0 and liquibase-gradle 2.1.1 fails on Java >= 13
+        languageVersion.set(JavaLanguageVersion.of(11))
+    })
+}
+
 talaiot {
     publishers {
         timelinePublisher = true
@@ -49,8 +56,14 @@ talaiot {
 }
 
 allprojects {
-    configureDiktat()
     configureDetekt()
+    configurations.all {
+        // if SNAPSHOT dependencies are used, refresh them periodically
+        resolutionStrategy.cacheDynamicVersionsFor(10, TimeUnit.MINUTES)
+    }
+}
+subprojects {
+    configureDiktat()
 }
 
 createStackDeployTask(profile)
@@ -58,3 +71,11 @@ configureVersioning()
 createDiktatTask()
 createDetektTask()
 installGitHooks()
+
+allprojects {
+    tasks.withType<org.cqfn.diktat.plugin.gradle.DiktatJavaExecTaskBase>().configureEach {
+        javaLauncher.set(project.extensions.getByType<JavaToolchainService>().launcherFor {
+            languageVersion.set(JavaLanguageVersion.of(11))
+        })
+    }
+}

@@ -6,16 +6,20 @@ package org.cqfn.save.frontend.components.modal
 
 import org.cqfn.save.frontend.externals.modal.ModalProps
 import org.cqfn.save.frontend.externals.modal.modal
+import org.cqfn.save.frontend.utils.post
 
+import org.w3c.fetch.Headers
 import react.RBuilder
 import react.RHandler
-import react.dom.a
 import react.dom.attrs
 import react.dom.button
 import react.dom.div
 import react.dom.h5
 import react.dom.span
 
+import kotlinx.browser.window
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import kotlinx.html.ButtonType
 import kotlinx.html.js.onClickFunction
 import kotlinx.html.role
@@ -23,10 +27,15 @@ import kotlinx.html.role
 /**
  * @param handler a [RHandler] for [ModalProps]
  * @param closeCallback a callback to call to close the modal
+ * @param coroutineScope a scope on which suspendable network requests can be done
  * @return a Component
  */
 @Suppress("TOO_LONG_FUNCTION")
-fun RBuilder.logoutModal(handler: RHandler<ModalProps>, closeCallback: () -> Unit) = modal {
+fun RBuilder.logoutModal(
+    coroutineScope: CoroutineScope,
+    handler: RHandler<ModalProps>,
+    closeCallback: () -> Unit
+) = modal {
     handler(this)
     div("modal-dialog") {
         attrs.role = "document"
@@ -57,7 +66,17 @@ fun RBuilder.logoutModal(handler: RHandler<ModalProps>, closeCallback: () -> Uni
                 attrs.onClickFunction = { closeCallback() }
                 +"Cancel"
             }
-            a(classes = "btn btn-primary", href = "/logout") {
+            button(type = ButtonType.button, classes = "btn btn-primary") {
+                attrs.onClickFunction = {
+                    coroutineScope.launch {
+                        val replyToLogout = post("${window.location.origin}/logout", Headers(), "ping")
+                        if (replyToLogout.ok) {
+                            // logout went good, need either to reload page or to setUserInfo(null) and use redirection like `window.location.href = window.location.origin`
+                            window.location.href = "${window.location.origin}/#"
+                            window.location.reload()
+                        }
+                    }
+                }
                 +"Logout"
             }
         }

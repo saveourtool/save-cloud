@@ -2,7 +2,6 @@ package org.cqfn.save.preprocessor.service
 
 import org.cqfn.save.core.config.TestConfig
 import org.cqfn.save.entities.Project
-import org.cqfn.save.entities.ProjectStatus
 import org.cqfn.save.entities.TestSuite
 import org.cqfn.save.preprocessor.config.ConfigProperties
 import org.cqfn.save.testsuite.TestSuiteType
@@ -38,7 +37,7 @@ class TestDiscoveringServiceTest {
     fun setUp() {
         tmpDir = createTempDirectory(this::class.simpleName)
         Git.cloneRepository()
-            .setURI("https://github.com/diktat-static-analysis/save")
+            .setURI("https://github.com/analysis-dev/save")
             .setDirectory(tmpDir.toFile())
             .call().use {
                 it.checkout().setName("993aa6228cba0a9f9075fb3aca8a0a8b9196a12a").call()
@@ -54,7 +53,7 @@ class TestDiscoveringServiceTest {
     @Test
     fun `should discover test suites`() {
         val testSuites = testDiscoveringService.getAllTestSuites(
-            Project("stub", "stub", "stub", null, ProjectStatus.CREATED),
+            Project.stub(null),
             rootTestConfig,
             propertiesRelativePath,
             "not-provided"
@@ -69,7 +68,7 @@ class TestDiscoveringServiceTest {
     fun `should throw exception with invalid path for test suites discovering`() {
         assertThrows<IllegalArgumentException> {
             testDiscoveringService.getAllTestSuites(
-                Project("stub", "stub", "stub", null, ProjectStatus.CREATED),
+                Project.stub(null),
                 testDiscoveringService.getRootTestConfig(tmpDir.resolve("buildSrc").toString()),
                 propertiesRelativePath,
                 "not-provided"

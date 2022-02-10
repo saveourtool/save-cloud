@@ -6,6 +6,7 @@ package org.cqfn.save.buildutils
 
 import org.gradle.api.Project
 import org.gradle.api.tasks.Exec
+import org.gradle.kotlin.dsl.named
 import org.gradle.kotlin.dsl.register
 import org.gradle.kotlin.dsl.withType
 import org.springframework.boot.gradle.tasks.bundling.BootBuildImage
@@ -24,8 +25,9 @@ const val MYSQL_STARTUP_DELAY_MILLIS = 10_000L
 fun Project.createStackDeployTask(profile: String) {
     tasks.register("generateComposeFile") {
         description = "Set project version in docker-compose file"
-        val templateFile = "$rootDir/docker-compose.yaml.template"
+        val templateFile = "$rootDir/docker-compose.yaml"
         val composeFile = "$buildDir/docker-compose.yaml"
+        val envFile = "$buildDir/.env"
         inputs.file(templateFile)
         inputs.property("project version", version.toString())
         inputs.property("profile", profile)
@@ -48,13 +50,22 @@ fun Project.createStackDeployTask(profile: String) {
                     } else if (profile == "dev" && it.trim().startsWith("logging:")) {
                         ""
                     } else {
-                        it.replace("{{project.version}}", versionForDockerImages())
-                            .replace("{{profile}}", profile)
+                        it
                     }
                 }
             file(composeFile)
                 .apply { createNewFile() }
                 .writeText(newText)
+        }
+
+        doLast {
+            // https://docs.docker.com/compose/environment-variables/#the-env-file
+            file(envFile).writeText(
+                """
+                    TAG=${versionForDockerImages()}
+                    PROFILE=$profile
+                """.trimIndent()
+            )
         }
     }
 
@@ -89,15 +100,16 @@ fun Project.createStackDeployTask(profile: String) {
             Files.createDirectories(configsDir.resolve("preprocessor"))
         }
         description = "Deploy to docker swarm. If swarm contains more than one node, some registry for built images is required."
-        val args = buildList {
-            add("--compose-file")
-            add("${rootProject.buildDir}/docker-compose.yaml")
+        // this command puts env variables into compose file
+        val composeCmd = "docker-compose -f ${rootProject.buildDir}/docker-compose.yaml --env-file ${rootProject.buildDir}/.env config"
+        val stackCmd = "docker stack deploy --compose-file -" +
             if (useOverride && composeOverride.exists()) {
-                add("--compose-file")
-                add(composeOverride.canonicalPath)
-            }
-        }.toTypedArray()
-        commandLine("docker", "stack", "deploy", *args, "save")
+                " --compose-file ${composeOverride.canonicalPath}"
+            } else {
+                ""
+            } +
+                " save"
+        commandLine("bash", "-c", "$composeCmd | $stackCmd")
     }
 
     tasks.register("buildAndDeployDockerStack") {
@@ -110,6 +122,7 @@ fun Project.createStackDeployTask(profile: String) {
         commandLine("docker", "stack", "rm", "save")
     }
 
+    // in case you are running it on MAC, first do the following: docker pull --platform linux/x86_64 mysql
     tasks.register<Exec>("startMysqlDb") {
         dependsOn("generateComposeFile")
         commandLine("docker-compose", "--file", "$buildDir/docker-compose.yaml", "up", "-d", "mysql")
@@ -133,5 +146,21 @@ fun Project.createStackDeployTask(profile: String) {
         dependsOn(subprojects.flatMap { it.tasks.withType<BootBuildImage>() })
         dependsOn("startMysqlDb")
         commandLine("docker-compose", "--file", "$buildDir/docker-compose.yaml", "up", "-d", "orchestrator", "backend", "preprocessor")
+    }
+
+    tasks.register<Exec>("buildAndDeployComponent") {
+        description = "Build and deploy a single component of save-cloud. Component name should be provided via `-Psave.component=<name> " +
+                "and it should be a name of one of gradle subprojects."
+        val componentName = findProperty("save.component") as String?
+        requireNotNull(componentName) { "Component name should be provided for `deployComponent` task" }
+        require(componentName in allprojects.map { it.name }) { "Component name should be one of gradle subproject names" }
+        val buildTask = project(componentName).tasks.named<BootBuildImage>("bootBuildImage")
+        dependsOn(buildTask)
+        val serviceName = when (componentName) {
+            "save-backend", "save-orchestrator", "save-preprocessor" -> "save_${componentName.substringAfter("save-")}"
+            "api-gateway" -> "save_gateway"
+            else -> error("Wrong component name $componentName")
+        }
+        commandLine("docker", "service", "update", "--image", buildTask.get().imageName, serviceName)
     }
 }

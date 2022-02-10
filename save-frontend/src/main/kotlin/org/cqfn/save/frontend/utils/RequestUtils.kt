@@ -95,7 +95,7 @@ suspend fun request(url: String,
  * @return project
  */
 suspend fun getProject(name: String, owner: String) =
-        get("$apiUrl/getProject?name=$name&owner=$owner", Headers().apply {
+        get("$apiUrl/projects/get?name=$name&owner=$owner", Headers().apply {
             set("Accept", "application/json")
         })
             .decodeFromJsonString<Project>()

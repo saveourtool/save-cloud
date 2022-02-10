@@ -44,12 +44,12 @@ fun suitesTable(
     suites: List<TestSuiteDto>,
     selectedLanguageForStandardTests: String?,
     setSelectedLanguageForStandardTests: (String) -> Unit,
-) = fc<CheckBoxGridProps> { props ->
+) = fc<CheckBoxGridProps> {
     nav("nav nav-tabs mb-4") {
-        val languages: MutableList<String?> = suites.map { it.language }.filterNotNull().distinct()
-            .sortedBy { it }.toMutableList()
-        // fixme: The method is called for the first time on an empty list, so you cannot add Null at this moment
-        if (languages.isNotEmpty()) {
+        val (languagesWithoutNull, otherLanguages) = suites.map { it.language }.distinct()
+            .sortedBy { it }.partition { it != null }
+        val languages = languagesWithoutNull.toMutableList()
+        if (otherLanguages.isNotEmpty()) {
             languages.add(null)
         }
         languages.forEachIndexed { index, langStr ->
@@ -84,7 +84,7 @@ fun suitesTable(
 @Suppress("TOO_LONG_FUNCTION", "LongMethod")
 fun checkBoxGrid(suites: List<TestSuiteDto>, selectedLanguageForStandardTests: String?) =
         fc<CheckBoxGridProps> { props ->
-            div {
+            div("mt-3") {
                 suites.chunked(props.rowSize)
                     .forEach { row ->
                         div("row g-3") {

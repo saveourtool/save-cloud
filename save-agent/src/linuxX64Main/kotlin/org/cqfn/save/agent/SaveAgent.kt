@@ -34,7 +34,6 @@ import kotlin.native.concurrent.AtomicReference
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.newSingleThreadContext
@@ -61,6 +60,8 @@ class SaveAgent(internal val config: AgentConfiguration,
     // Kotlin throws `kotlin.native.concurrent.InvalidMutabilityException: mutation attempt of frozen kotlinx.datetime.Instant...`
     private val executionStartSeconds = AtomicLong()
     private var saveProcessJob: AtomicReference<Job?> = AtomicReference(null)
+    private val backgroundContext = newSingleThreadContext("background")
+    private val saveProcessContext = newSingleThreadContext("save-process")
     private val reportFormat = Json {
         serializersModule = SerializersModule {
             polymorphic(Plugin.TestFiles::class) {
@@ -71,30 +72,34 @@ class SaveAgent(internal val config: AgentConfiguration,
     }
 
     /**
-     * @return Unit
+     * Starts save-agent and required jobs in the background and then immediately returns
+     *
+     * @param coroutineScope a [CoroutineScope] to launch other jobs
+     * @return a descriptor of the main coroutine job
      */
-    suspend fun start() = coroutineScope {
+    fun start(coroutineScope: CoroutineScope): Job {
         logInfoCustom("Starting agent")
-        val heartbeatsJob = launch { startHeartbeats() }
-        heartbeatsJob.join()
+        coroutineScope.launch(backgroundContext) {
+            sendDataToBackend { saveAdditionalData() }
+        }
+        return coroutineScope.launch { startHeartbeats(this) }
     }
 
     @Suppress("WHEN_WITHOUT_ELSE")  // when with sealed class
-    private suspend fun startHeartbeats() = coroutineScope {
+    private suspend fun startHeartbeats(coroutineScope: CoroutineScope) {
         logInfoCustom("Scheduling heartbeats")
-        launch(newSingleThreadContext("background")) {
-            sendDataToBackend { saveAdditionalData() }
-        }
         while (true) {
             val response = runCatching {
                 // TODO: get execution progress here. However, with current implementation JSON report won't be valid until all tests are finished.
                 sendHeartbeat(ExecutionProgress(0))
             }
             if (response.isSuccess) {
-                when (val heartbeatResponse = response.getOrNull().also {
+                when (val heartbeatResponse = response.getOrThrow().also {
                     logDebugCustom("Got heartbeat response $it")
                 }) {
-                    is NewJobResponse -> maybeStartSaveProcess(heartbeatResponse.cliArgs)
+                    is NewJobResponse -> coroutineScope.launch {
+                        maybeStartSaveProcess(heartbeatResponse.cliArgs)
+                    }
                     is WaitResponse -> state.value = AgentState.IDLE
                     is ContinueResponse -> Unit  // do nothing
                 }
@@ -108,11 +113,11 @@ class SaveAgent(internal val config: AgentConfiguration,
         }
     }
 
-    private suspend fun maybeStartSaveProcess(cliArgs: String) = coroutineScope {
+    private fun CoroutineScope.maybeStartSaveProcess(cliArgs: String) {
         if (saveProcessJob.value?.isCompleted == false) {
             logErrorCustom("Shouldn't start new process when there is the previous running")
         } else {
-            saveProcessJob.value = launch(newSingleThreadContext("save-process")) {
+            saveProcessJob.value = launch(saveProcessContext) {
                 runCatching {
                     // new job received from Orchestrator, spawning SAVE CLI process
                     startSaveProcess(cliArgs)
@@ -130,7 +135,7 @@ class SaveAgent(internal val config: AgentConfiguration,
      * @param cliArgs arguments for SAVE process
      * @return Unit
      */
-    internal suspend fun startSaveProcess(cliArgs: String) = coroutineScope {
+    internal fun CoroutineScope.startSaveProcess(cliArgs: String) {
         // blocking execution of OS process
         state.value = AgentState.BUSY
         executionStartSeconds.value = Clock.System.now().epochSeconds
@@ -138,7 +143,7 @@ class SaveAgent(internal val config: AgentConfiguration,
         val executionResult = runSave(cliArgs)
         logInfoCustom("SAVE has completed execution with status ${executionResult.code}")
         val executionLogs = ExecutionLogs(config.id, readFile(config.logFilePath))
-        val logsSendingJob = launchLogSendingJob(executionLogs)
+        launchLogSendingJob(executionLogs)
         logDebugCustom("SAVE has completed execution, execution logs:")
         executionLogs.cliLogs.forEach {
             logDebugCustom("[SAVE] $it")
@@ -155,7 +160,6 @@ class SaveAgent(internal val config: AgentConfiguration,
                 state.value = AgentState.CLI_FAILED
             }
         }
-        logsSendingJob.join()
     }
 
     @Suppress("MagicNumber")
@@ -178,7 +182,6 @@ class SaveAgent(internal val config: AgentConfiguration,
                 pluginExecution.testResults.map { tr ->
                     val debugInfo = tr.toTestResultDebugInfo(report.testSuite, pluginExecution.plugin)
                     launch {
-                        // todo: launch on a dedicated thread (https://github.com/diktat-static-analysis/save-cloud/issues/315)
                         logDebugCustom("Posting debug info for test ${debugInfo.testResultLocation}")
                         sendDataToBackend {
                             sendReport(debugInfo)
@@ -214,7 +217,7 @@ class SaveAgent(internal val config: AgentConfiguration,
             }
     }
 
-    private suspend fun handleSuccessfulExit() = coroutineScope {
+    private fun CoroutineScope.handleSuccessfulExit() {
         val jsonReport = "save.out.json"
         val testExecutionDtos = runCatching {
             readExecutionResults(jsonReport)
@@ -224,8 +227,10 @@ class SaveAgent(internal val config: AgentConfiguration,
                     "\n${testExecutionDtos.exceptionOrNull()?.stackTraceToString()}"
             )
         } else {
-            sendDataToBackend {
-                postExecutionData(testExecutionDtos.getOrThrow())
+            launch {
+                sendDataToBackend {
+                    postExecutionData(testExecutionDtos.getOrThrow())
+                }
             }
         }
     }
