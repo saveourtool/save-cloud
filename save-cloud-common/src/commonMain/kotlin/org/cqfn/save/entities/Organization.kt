@@ -13,7 +13,7 @@ import kotlinx.serialization.Serializable
 @Entity
 @Serializable
 @Suppress("USE_DATA_CLASS")
-class Organization(
+data class Organization(
     var name: String,
     var ownerId: Long? = null,
     @Contextual
