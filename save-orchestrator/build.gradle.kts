@@ -35,9 +35,8 @@ val downloadSaveCliTaskProvider = tasks.register<Download>("downloadSaveCli") {
     dest("$buildDir/tmp")
     overwrite(false)
 
-    doFirst {
-        Files.createDirectories(dest.toPath())
-    }
+    doFirst { Files.createDirectories(dest.toPath()) }
+    doLast { copy { from(outputFiles); into("$buildDir/resources/test") } }
 }
 tasks.named<BootJar>("bootJar") {
     // include save-cli into BootJar archive
