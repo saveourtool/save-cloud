@@ -5,8 +5,8 @@ import org.cqfn.save.buildutils.readSaveCliVersion
 
 import de.undercouch.gradle.tasks.download.Download
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.jetbrains.kotlin.gradle.tasks.KotlinTest
 import org.springframework.boot.gradle.tasks.bundling.BootJar
-import java.nio.file.Files
 
 plugins {
     kotlin("jvm")
@@ -23,7 +23,7 @@ tasks.withType<KotlinCompile> {
 }
 
 // if required, file can be provided manually
-val downloadSaveCliTaskProvider = tasks.register<Download>("downloadSaveCli") {
+val downloadSaveCliTaskProvider: TaskProvider<Download> = tasks.register<Download>("downloadSaveCli") {
     dependsOn("processResources")
     dependsOn(rootProject.tasks.named("getSaveCliVersion"))
     inputs.file(pathToSaveCliVersion)
@@ -32,19 +32,12 @@ val downloadSaveCliTaskProvider = tasks.register<Download>("downloadSaveCli") {
         val saveCliVersion = readSaveCliVersion()
         "https://github.com/analysis-dev/save/releases/download/v$saveCliVersion/save-$saveCliVersion-linuxX64.kexe"
     }))
-    dest("$buildDir/tmp")
+    dest("$buildDir/resources/main")
     overwrite(false)
-
-    doFirst { Files.createDirectories(dest.toPath()) }
-    doLast { copy { from(outputFiles); into("$buildDir/resources/test") } }
 }
-tasks.named<BootJar>("bootJar") {
-    // include save-cli into BootJar archive
-    dependsOn(downloadSaveCliTaskProvider)
-    from(downloadSaveCliTaskProvider.map { it.outputFiles }) {
-        into("BOOT-INF/classes")
-    }
-}
+tasks.named<BootJar>("bootJar") { dependsOn(downloadSaveCliTaskProvider) }
+tasks.named("bootJarMainClassName") { dependsOn(downloadSaveCliTaskProvider) }
+tasks.withType<KotlinTest> { dependsOn(downloadSaveCliTaskProvider) }
 
 tasks.withType<Test> {
     useJUnitPlatform()
