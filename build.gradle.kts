@@ -77,5 +77,7 @@ allprojects {
         javaLauncher.set(project.extensions.getByType<JavaToolchainService>().launcherFor {
             languageVersion.set(JavaLanguageVersion.of(11))
         })
+        // https://github.com/analysis-dev/diktat/issues/1213
+        systemProperty("user.home", project.projectDir.toString())
     }
 }
