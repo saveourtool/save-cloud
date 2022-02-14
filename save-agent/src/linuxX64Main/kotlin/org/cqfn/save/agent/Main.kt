@@ -62,9 +62,11 @@ fun main() {
             requestTimeoutMillis = config.requestTimeoutMillis
         }
     }
+
     val saveAgent = SaveAgent(config, httpClient)
     runBlocking {
-        saveAgent.start()
+        val mainJob = saveAgent.start(this)
+        mainJob.join()
     }
     logInfoCustom("Agent is shutting down")
 }
