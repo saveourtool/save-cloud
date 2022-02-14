@@ -54,7 +54,7 @@ dependencies {
 configureJacoco()
 
 // todo: this logic is duplicated between agent and frontend, can be moved to a shared plugin in buildSrc
-val generateVersionFileTaskProvider = tasks.register("generateVersionFile") {
+val generateVersionFileTaskProvider: TaskProvider<Task> = tasks.register("generateVersionFile") {
     val versionsFile = File("$buildDir/generated/src/generated/Versions.kt")
 
     dependsOn(rootProject.tasks.named("getSaveCliVersion"))
