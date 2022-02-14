@@ -5,7 +5,6 @@ import org.cqfn.save.buildutils.readSaveCliVersion
 
 import de.undercouch.gradle.tasks.download.Download
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import org.jetbrains.kotlin.gradle.tasks.KotlinTest
 import org.springframework.boot.gradle.tasks.bundling.BootJar
 
 plugins {
