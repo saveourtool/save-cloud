@@ -71,13 +71,3 @@ configureVersioning()
 createDiktatTask()
 createDetektTask()
 installGitHooks()
-
-allprojects {
-    tasks.withType<org.cqfn.diktat.plugin.gradle.DiktatJavaExecTaskBase>().configureEach {
-        javaLauncher.set(project.extensions.getByType<JavaToolchainService>().launcherFor {
-            languageVersion.set(JavaLanguageVersion.of(11))
-        })
-        // https://github.com/analysis-dev/diktat/issues/1213
-        systemProperty("user.home", rootProject.projectDir.toString())
-    }
-}
