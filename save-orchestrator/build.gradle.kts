@@ -5,6 +5,8 @@ import org.cqfn.save.buildutils.readSaveCliVersion
 
 import de.undercouch.gradle.tasks.download.Download
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.springframework.boot.gradle.tasks.bundling.BootJar
+import java.nio.file.Files
 
 plugins {
     kotlin("jvm")
@@ -30,11 +32,20 @@ val downloadSaveCliTaskProvider = tasks.register<Download>("downloadSaveCli") {
         val saveCliVersion = readSaveCliVersion()
         "https://github.com/analysis-dev/save/releases/download/v$saveCliVersion/save-$saveCliVersion-linuxX64.kexe"
     }))
-    dest("$buildDir/resources/main")
+    dest("$buildDir/tmp")
     overwrite(false)
+
+    doFirst {
+        Files.createDirectories(dest.toPath())
+    }
 }
-tasks.named("jar") { dependsOn(downloadSaveCliTaskProvider) }
-tasks.named("bootJar") { dependsOn(downloadSaveCliTaskProvider) }
+tasks.named<BootJar>("bootJar") {
+    // include save-cli into BootJar archive
+    dependsOn(downloadSaveCliTaskProvider)
+    from(downloadSaveCliTaskProvider.map { it.outputFiles }) {
+        into("BOOT-INF/classes")
+    }
+}
 
 tasks.withType<Test> {
     useJUnitPlatform()
@@ -54,7 +65,7 @@ dependencies {
 configureJacoco()
 
 // todo: this logic is duplicated between agent and frontend, can be moved to a shared plugin in buildSrc
-val generateVersionFileTaskProvider = tasks.register("generateVersionFile") {
+val generateVersionFileTaskProvider: TaskProvider<Task> = tasks.register("generateVersionFile") {
     val versionsFile = File("$buildDir/generated/src/generated/Versions.kt")
 
     dependsOn(rootProject.tasks.named("getSaveCliVersion"))
