@@ -5,8 +5,8 @@ plugins {
     kotlin("js")
 }
 
-rootProject.plugins.withType<org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin> {
-    rootProject.the<org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension>().nodeVersion = "16.13.1"
+rootProject.plugins.withType<NodeJsRootPlugin> {
+    rootProject.the<NodeJsRootExtension>().nodeVersion = "16.13.1"
 }
 
 dependencies {
@@ -113,7 +113,7 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.Kotlin2JsCompile> {
     dependsOn(generateVersionFileTaskProvider)
     inputs.file("$buildDir/generated/src/generated/Versions.kt")
 }
-tasks.named<Jar>("kotlinSourcesJar") {
+tasks.named<org.gradle.jvm.tasks.Jar>("kotlinSourcesJar") {
     dependsOn(generateVersionFileTaskProvider)
 }
 
