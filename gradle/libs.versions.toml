@@ -94,6 +94,7 @@ ktor-client-mock = { module = "io.ktor:ktor-client-mock", version.ref = "ktor" }
 # database
 hibernate-jpa21-api = { module = "org.hibernate.javax.persistence:hibernate-jpa-2.1-api", version.ref = "jpa" }
 hibernate-core = { module = "org.hibernate:hibernate-core", version.ref = "hibernate" }
+hibernate-micrometer = { module = "org.hibernate:hibernate-micrometer", version.ref = "hibernate" }
 liquibase-core = { module = "org.liquibase:liquibase-core", version.ref = "liquibase-core" }
 mysql-connector-java = { module = "mysql:mysql-connector-java", version.ref = "mySql" }
 
