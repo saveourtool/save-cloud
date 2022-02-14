@@ -20,7 +20,6 @@ import org.cqfn.save.frontend.utils.runErrorModal
 import org.cqfn.save.frontend.utils.unsafeMap
 
 import csstype.Background
-import kotlinext.js.jso
 import org.w3c.fetch.Headers
 import org.w3c.fetch.Response
 import react.PropsWithChildren
@@ -39,6 +38,7 @@ import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
 import kotlinx.html.ButtonType
 import kotlinx.html.js.onClickFunction
+import kotlinx.js.jso
 
 /**
  * [RProps] for tests execution history

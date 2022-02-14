@@ -9,7 +9,6 @@ package org.cqfn.save.frontend.components.tables
 import org.cqfn.save.frontend.components.modal.errorModal
 import org.cqfn.save.frontend.utils.spread
 
-import kotlinext.js.jso
 import react.PropsWithChildren
 import react.RBuilder
 import react.dom.RDOMBuilder
@@ -45,6 +44,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.html.THEAD
+import kotlinx.js.jso
 
 /**
  * [RProps] of a data table

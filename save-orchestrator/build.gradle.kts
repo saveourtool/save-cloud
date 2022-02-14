@@ -2,10 +2,10 @@ import org.cqfn.save.buildutils.configureJacoco
 import org.cqfn.save.buildutils.configureSpringBoot
 import org.cqfn.save.buildutils.pathToSaveCliVersion
 import org.cqfn.save.buildutils.readSaveCliVersion
-import org.cqfn.save.buildutils.registerSaveCliVersionCheckTask
 
 import de.undercouch.gradle.tasks.download.Download
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.springframework.boot.gradle.tasks.bundling.BootJar
 
 plugins {
     kotlin("jvm")
@@ -13,6 +13,7 @@ plugins {
 }
 
 configureSpringBoot()
+configureJacoco()
 
 tasks.withType<KotlinCompile> {
     kotlinOptions {
@@ -22,11 +23,10 @@ tasks.withType<KotlinCompile> {
 }
 
 // if required, file can be provided manually
-registerSaveCliVersionCheckTask()
-tasks.getByName("processResources").finalizedBy("downloadSaveCli")
-tasks.register<Download>("downloadSaveCli") {
+@Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
+val downloadSaveCliTaskProvider: TaskProvider<Download> = tasks.register<Download>("downloadSaveCli") {
     dependsOn("processResources")
-    dependsOn("getSaveCliVersion")
+    dependsOn(rootProject.tasks.named("getSaveCliVersion"))
     inputs.file(pathToSaveCliVersion)
 
     src(KotlinClosure0(function = {
@@ -36,6 +36,14 @@ tasks.register<Download>("downloadSaveCli") {
     dest("$buildDir/resources/main")
     overwrite(false)
 }
+// since we store save-cli in resources directory, a lot of tasks start using it
+// and gradle complains about missing dependency
+tasks.named("jar") { dependsOn(downloadSaveCliTaskProvider) }
+tasks.named<BootJar>("bootJar") { dependsOn(downloadSaveCliTaskProvider) }
+tasks.named("bootJarMainClassName") { dependsOn(downloadSaveCliTaskProvider) }
+tasks.named<KotlinCompile>("compileTestKotlin") { dependsOn(downloadSaveCliTaskProvider) }
+tasks.named("test") { dependsOn(downloadSaveCliTaskProvider) }
+tasks.named("jacocoTestReport") { dependsOn(downloadSaveCliTaskProvider) }
 
 tasks.withType<Test> {
     useJUnitPlatform()
@@ -52,13 +60,11 @@ dependencies {
     implementation(libs.zip4j)
 }
 
-configureJacoco()
-
 // todo: this logic is duplicated between agent and frontend, can be moved to a shared plugin in buildSrc
-val generateVersionFileTaskProvider = tasks.register("generateVersionFile") {
+val generateVersionFileTaskProvider: TaskProvider<Task> = tasks.register("generateVersionFile") {
     val versionsFile = File("$buildDir/generated/src/generated/Versions.kt")
 
-    dependsOn("getSaveCliVersion")
+    dependsOn(rootProject.tasks.named("getSaveCliVersion"))
     inputs.file(pathToSaveCliVersion)
     inputs.property("project version", version.toString())
     outputs.file(versionsFile)
