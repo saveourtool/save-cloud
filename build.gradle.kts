@@ -6,6 +6,7 @@ import org.cqfn.save.buildutils.createDiktatTask
 import org.cqfn.save.buildutils.createStackDeployTask
 import org.cqfn.save.buildutils.getDatabaseCredentials
 import org.cqfn.save.buildutils.installGitHooks
+import org.cqfn.save.buildutils.registerSaveCliVersionCheckTask
 
 plugins {
     alias(libs.plugins.talaiot.base)
@@ -71,3 +72,4 @@ configureVersioning()
 createDiktatTask()
 createDetektTask()
 installGitHooks()
+registerSaveCliVersionCheckTask()

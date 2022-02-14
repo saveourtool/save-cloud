@@ -2,7 +2,6 @@ import org.cqfn.save.buildutils.configureJacoco
 import org.cqfn.save.buildutils.configureSpringBoot
 import org.cqfn.save.buildutils.pathToSaveCliVersion
 import org.cqfn.save.buildutils.readSaveCliVersion
-import org.cqfn.save.buildutils.registerSaveCliVersionCheckTask
 
 import de.undercouch.gradle.tasks.download.Download
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -22,11 +21,9 @@ tasks.withType<KotlinCompile> {
 }
 
 // if required, file can be provided manually
-registerSaveCliVersionCheckTask()
-tasks.getByName("processResources").finalizedBy("downloadSaveCli")
-tasks.register<Download>("downloadSaveCli") {
+val downloadSaveCliTaskProvider = tasks.register<Download>("downloadSaveCli") {
     dependsOn("processResources")
-    dependsOn("getSaveCliVersion")
+    dependsOn(rootProject.tasks.named("getSaveCliVersion"))
     inputs.file(pathToSaveCliVersion)
 
     src(KotlinClosure0(function = {
@@ -36,6 +33,8 @@ tasks.register<Download>("downloadSaveCli") {
     dest("$buildDir/resources/main")
     overwrite(false)
 }
+tasks.named("jar") { dependsOn(downloadSaveCliTaskProvider) }
+tasks.named("bootJar") { dependsOn(downloadSaveCliTaskProvider) }
 
 tasks.withType<Test> {
     useJUnitPlatform()
@@ -58,7 +57,7 @@ configureJacoco()
 val generateVersionFileTaskProvider = tasks.register("generateVersionFile") {
     val versionsFile = File("$buildDir/generated/src/generated/Versions.kt")
 
-    dependsOn("getSaveCliVersion")
+    dependsOn(rootProject.tasks.named("getSaveCliVersion"))
     inputs.file(pathToSaveCliVersion)
     inputs.property("project version", version.toString())
     outputs.file(versionsFile)
