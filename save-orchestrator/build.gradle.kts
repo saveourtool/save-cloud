@@ -14,6 +14,7 @@ plugins {
 }
 
 configureSpringBoot()
+configureJacoco()
 
 tasks.withType<KotlinCompile> {
     kotlinOptions {
@@ -23,6 +24,7 @@ tasks.withType<KotlinCompile> {
 }
 
 // if required, file can be provided manually
+@Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
 val downloadSaveCliTaskProvider: TaskProvider<Download> = tasks.register<Download>("downloadSaveCli") {
     dependsOn("processResources")
     dependsOn(rootProject.tasks.named("getSaveCliVersion"))
@@ -35,9 +37,14 @@ val downloadSaveCliTaskProvider: TaskProvider<Download> = tasks.register<Downloa
     dest("$buildDir/resources/main")
     overwrite(false)
 }
+// since we store save-cli in resources directory, a lot of tasks start using it
+// and gradle complains about missing dependency
+tasks.named("jar") { dependsOn(downloadSaveCliTaskProvider) }
 tasks.named<BootJar>("bootJar") { dependsOn(downloadSaveCliTaskProvider) }
 tasks.named("bootJarMainClassName") { dependsOn(downloadSaveCliTaskProvider) }
-tasks.withType<KotlinTest> { dependsOn(downloadSaveCliTaskProvider) }
+tasks.named<KotlinCompile>("compileTestKotlin") { dependsOn(downloadSaveCliTaskProvider) }
+tasks.named("test") { dependsOn(downloadSaveCliTaskProvider) }
+tasks.named("jacocoTestReport") { dependsOn(downloadSaveCliTaskProvider) }
 
 tasks.withType<Test> {
     useJUnitPlatform()
@@ -53,8 +60,6 @@ dependencies {
     implementation(libs.kotlinx.datetime)
     implementation(libs.zip4j)
 }
-
-configureJacoco()
 
 // todo: this logic is duplicated between agent and frontend, can be moved to a shared plugin in buildSrc
 val generateVersionFileTaskProvider: TaskProvider<Task> = tasks.register("generateVersionFile") {
