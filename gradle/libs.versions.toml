@@ -36,12 +36,15 @@ ktoml = "0.2.9"
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-js = { id = "org.jetbrains.kotlin.js", version.ref = "kotlin" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlin-plugin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 kotlin-plugin-jpa = { id = "org.jetbrains.kotlin.plugin.jpa", version.ref = "kotlin" }
+kotlin-plugin-allopen = { id = "org.jetbrains.kotlin.plugin.allopen", version.ref = "kotlin" }
 diktat = { id = "org.cqfn.diktat.diktat-gradle-plugin", version.ref = "diktat" }
 liquibase-gradle = { id = "org.liquibase.gradle", version = "2.1.1" }
 talaiot-base = { id = "com.cdsap.talaiot.plugin.base", version = "1.4.2" }
+download = { id = "de.undercouch.download", version = "5.0.1" }
 
 [libraries]
 save-common = { module = "org.cqfn.save:save-common", version.ref = "save-core" }

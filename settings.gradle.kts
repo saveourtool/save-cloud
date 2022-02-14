@@ -21,4 +21,3 @@ include("save-preprocessor")
 includeBuild("sarif4k")
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
-enableFeaturePreview("VERSION_CATALOGS")
