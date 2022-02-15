@@ -117,7 +117,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
         super.componentDidMount()
 
         scope.launch {
-            val organizationNew: Organization = get("$apiUrl/organization/get?name=${props.organizationName}", Headers().apply {
+            val organizationNew: Organization = get("$apiUrl/organization/get/organization-name?name=${props.organizationName}", Headers().apply {
                 set("Accept", "application/json")
             })
                 .decodeFromJsonString<Organization>()

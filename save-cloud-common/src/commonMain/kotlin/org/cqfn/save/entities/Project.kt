@@ -50,9 +50,12 @@ data class Project(
          * Create a stub for testing. Since all fields are mutable, only required ones can be set after calling this method.
          *
          * @param id id of created project
+         * @param organization
          * @return a project
          */
-        fun stub(id: Long?) = Project(
+        fun stub(id: Long?,
+                 organization: Organization = Organization("stub", null, null)
+        ) = Project(
             name = "stub",
             url = null,
             description = null,
@@ -61,6 +64,7 @@ data class Project(
             organization = Organization("stub", null, null),
         ).apply {
             this.id = id
+            this.organization = organization
         }
     }
 }

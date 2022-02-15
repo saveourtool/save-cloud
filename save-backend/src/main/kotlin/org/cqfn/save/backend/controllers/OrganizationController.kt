@@ -17,7 +17,7 @@ internal class OrganizationController(private val organizationService: Organizat
      * @param name
      * @return Organization
      */
-    @GetMapping("/get")
+    @GetMapping("/get/organization-name")
     fun getOrganizationByName(@RequestParam name: String): Organization =
             organizationService.findByName(name)
 }

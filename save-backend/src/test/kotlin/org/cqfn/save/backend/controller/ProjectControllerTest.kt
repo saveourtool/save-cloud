@@ -143,7 +143,7 @@ class ProjectControllerTest {
 
         val gitDto = GitDto("qweqwe")
         // `project` references an existing user from test data
-        val organization: Organization = organizationRepository.getById(1)
+        val organization: Organization = organizationRepository.getOrganizationById(1)
         val project = Project("I", "Name", "uurl", ProjectStatus.CREATED, userId = 2, organization = organization)
         val newProject = NewProjectDto(
             project,

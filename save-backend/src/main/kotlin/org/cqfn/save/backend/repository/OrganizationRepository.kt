@@ -17,4 +17,11 @@ JpaSpecificationExecutor<Organization> {
      * @return organization by name
      */
     fun findByName(name: String): Organization
+
+    /**
+     * @param id
+     * @return organization by id
+     */
+    // The getById method from JpaRepository can lead to LazyInitializationException
+    fun getOrganizationById(id: Long): Organization
 }
