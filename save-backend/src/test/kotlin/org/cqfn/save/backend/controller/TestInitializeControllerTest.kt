@@ -20,10 +20,12 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.boot.test.mock.mockito.MockBeans
 import org.springframework.http.MediaType
+import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
 
+@ActiveProfiles("secure")
 @SpringBootTest(classes = [SaveApplication::class])
 @AutoConfigureWebTestClient
 @ExtendWith(MySqlExtension::class)

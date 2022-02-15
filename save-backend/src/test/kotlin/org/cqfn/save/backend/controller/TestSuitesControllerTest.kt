@@ -29,6 +29,8 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.boot.test.mock.mockito.MockBeans
 import org.springframework.http.MediaType
+import org.springframework.security.test.context.support.WithMockUser
+import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.web.reactive.server.WebTestClient
@@ -39,6 +41,7 @@ import java.net.HttpURLConnection
 import java.time.Instant
 import java.util.Date
 
+@ActiveProfiles("secure")
 @SpringBootTest(classes = [SaveApplication::class])
 @AutoConfigureWebTestClient
 @ExtendWith(MySqlExtension::class)
@@ -141,6 +144,7 @@ class TestSuitesControllerTest {
     }
 
     @Test
+    @WithMockUser
     fun testAllStandardTestSuites() {
         val project = projectRepository.findById(1).get()
         val testSuite = TestSuiteDto(
@@ -198,6 +202,7 @@ class TestSuitesControllerTest {
     }
 
     @Test
+    @WithMockUser
     fun testUpdateStandardTestSuites() {
         whenever(scheduler.scheduleJob(any())).thenReturn(Date.from(Instant.now()))
 

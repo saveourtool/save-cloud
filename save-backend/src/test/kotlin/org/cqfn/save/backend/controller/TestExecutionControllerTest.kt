@@ -22,12 +22,15 @@ import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.boot.test.mock.mockito.MockBeans
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
+import org.springframework.security.test.context.support.WithMockUser
+import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.transaction.PlatformTransactionManager
 import org.springframework.transaction.support.TransactionTemplate
 import org.springframework.web.reactive.function.BodyInserters
 
+@ActiveProfiles("secure")
 @SpringBootTest(classes = [SaveApplication::class])
 @AutoConfigureWebTestClient
 @ExtendWith(MySqlExtension::class)
@@ -55,6 +58,7 @@ class TestExecutionControllerTest {
     }
 
     @Test
+    @WithMockUser
     fun `should count TestExecutions for a particular Execution`() {
         webClient.get()
             .uri("/api/testExecution/count?executionId=1")
@@ -64,6 +68,7 @@ class TestExecutionControllerTest {
     }
 
     @Test
+    @WithMockUser
     fun `should return a page of TestExecutions for a particular Execution`() {
         webClient.get()
             .uri("/api/testExecutions?executionId=1&page=0&size=20")
@@ -80,6 +85,7 @@ class TestExecutionControllerTest {
      * that check data read.
      */
     @Test
+    @WithMockUser
     @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
     fun `should save TestExecutionDto into the DB`() {
         val testExecutionDtoFirst = TestExecutionDto(
@@ -123,6 +129,7 @@ class TestExecutionControllerTest {
     }
 
     @Test
+    @WithMockUser
     @Suppress("UnsafeCallOnNullableType")
     fun `should not save data if provided fields are invalid`() {
         val testExecutionDto = TestExecutionDto(

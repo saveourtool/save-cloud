@@ -13,6 +13,8 @@ import org.cqfn.save.execution.ExecutionType
 
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
+import org.cqfn.save.backend.utils.AuthenticationDetails
+import org.cqfn.save.backend.utils.mutateMockedUser
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -49,8 +51,12 @@ class CloneRepoTest {
     private lateinit var executionRepository: ExecutionRepository
 
     @Test
-    @WithMockUser(username = "John Doe")
+    @WithMockUser(username = "admin")
     fun checkSaveProject() {
+        mutateMockedUser {
+            details = AuthenticationDetails(id = 1)
+        }
+
         val sdk = Jdk("8")
         mockServerPreprocessor.enqueue(
             MockResponse()
@@ -83,8 +89,12 @@ class CloneRepoTest {
     }
 
     @Test
-    @WithMockUser(username = "John Doe")
+    @WithMockUser(username = "admin")
     fun checkNonExistingProject() {
+        mutateMockedUser {
+            details = AuthenticationDetails(id = 1)
+        }
+
         val sdk = Jdk("11")
         val project = Project.stub(null)
         val gitRepo = GitDto("1")

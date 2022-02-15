@@ -6,6 +6,7 @@ import org.cqfn.save.backend.repository.AgentStatusRepository
 import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.repository.TestExecutionRepository
 import org.cqfn.save.backend.scheduling.StandardSuitesUpdateScheduler
+import org.cqfn.save.backend.security.ProjectPermissionEvaluator
 import org.cqfn.save.backend.utils.MySqlExtension
 import org.cqfn.save.domain.TestResultStatus
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -21,6 +22,7 @@ import org.springframework.boot.test.mock.mockito.MockBeans
 @MockBeans(
     MockBean(StandardSuitesUpdateScheduler::class),
     MockBean(ProjectController::class),
+    MockBean(ProjectPermissionEvaluator::class),
 )
 class DatabaseTest {
     @Autowired

@@ -28,6 +28,7 @@ import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.boot.test.mock.mockito.MockBeans
 import org.springframework.http.MediaType
 import org.springframework.security.test.context.support.WithMockUser
+import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.web.reactive.server.WebTestClient
@@ -39,6 +40,7 @@ import java.time.Month
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
 
+@ActiveProfiles("secure")
 @SpringBootTest(classes = [SaveApplication::class])
 @AutoConfigureWebTestClient
 @ExtendWith(MySqlExtension::class)
@@ -130,6 +132,7 @@ class ExecutionControllerTest {
     }
 
     @Test
+    @WithMockUser
     fun checkExecutionDto() {
         webClient.get()
             .uri("/api/executionDto?executionId=1")
@@ -144,6 +147,7 @@ class ExecutionControllerTest {
     }
 
     @Test
+    @WithMockUser
     fun checkExecutionDtoByProject() {
         val project = projectRepository.findById(1).get()
         val executionCounts = executionRepository.findAll().count { it.project.id == project.id }

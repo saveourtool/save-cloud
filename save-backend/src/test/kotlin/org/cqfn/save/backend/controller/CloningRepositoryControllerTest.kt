@@ -17,11 +17,14 @@ import org.cqfn.save.entities.ProjectStatus
 
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
+import org.cqfn.save.backend.security.ProjectPermissionEvaluator
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.io.TempDir
+import org.mockito.kotlin.any
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -38,6 +41,7 @@ import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
+import reactor.core.publisher.Mono
 
 import java.nio.file.Path
 import java.time.Duration
@@ -61,6 +65,7 @@ import kotlin.io.path.createFile
     MockBean(StandardSuitesUpdateScheduler::class),
     MockBean(UserRepository::class),
     MockBean(AwesomeBenchmarksRepository::class),
+    MockBean(ProjectPermissionEvaluator::class),
 )
 @Suppress("TOO_LONG_FUNCTION")
 class CloningRepositoryControllerTest {
@@ -90,6 +95,9 @@ class CloningRepositoryControllerTest {
 
         whenever(projectService.findByNameAndOwner("huaweiName", "Huawei"))
             .thenReturn(testProject)
+
+        whenever(projectService.checkPermissionByNameAndOwner(any(), eq("huaweiName"), eq("Huawei"), any(), any()))
+            .thenAnswer { Mono.just(it.arguments[0]) }
     }
 
     @Test
