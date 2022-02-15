@@ -1,5 +1,6 @@
 package org.cqfn.save.backend.service
 
+import org.cqfn.save.backend.repository.ExecutionRepository
 import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.repository.UserRepository
 import org.cqfn.save.backend.security.Permission
@@ -27,7 +28,6 @@ import reactor.kotlin.core.publisher.switchIfEmpty
  */
 @Service
 class ProjectService(private val projectRepository: ProjectRepository,
-                     private val userRepository: UserRepository,
                      private val projectPermissionEvaluator: ProjectPermissionEvaluator,
 ) {
     /**
@@ -73,6 +73,9 @@ class ProjectService(private val projectRepository: ProjectRepository,
         return projects
     }
 
+    /**
+     * @return `Mono` with project; `Mono.error` if project cannot be accessed by the current user.
+     */
     @Transactional(readOnly = true)
     fun checkPermissionByNameAndOwner(
         authentication: Authentication,
@@ -80,13 +83,34 @@ class ProjectService(private val projectRepository: ProjectRepository,
         owner: String,
         permission: Permission,
         statusIfForbidden: HttpStatus = HttpStatus.FORBIDDEN,
-    ): Mono<Authentication> = Mono.fromCallable {
+    ): Mono<Project> = Mono.fromCallable {
         findByNameAndOwner(name, owner)
     }
-        .switchIfEmpty { Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND)) }
+        .checkPermission(authentication, permission, statusIfForbidden)
+
+//    @Transactional(readOnly = true)
+//    fun checkPermissionByExecutionId(
+//        authentication: Authentication,
+//        executionId: Long,
+//        permission: Permission,
+//        statusIfForbidden: HttpStatus = HttpStatus.FORBIDDEN,
+//    ): Mono<Project> = Mono.fromCallable {
+//        executionRepository.findById(executionId)
+//    }
+//        .filter { it.isPresent }
+//        .map { it.get() }
+//        .map { it to it.project }
+//        .checkPermission(authentication, permission, statusIfForbidden)
+
+    internal fun Mono<Project?>.checkPermission(
+        authentication: Authentication,
+        permission: Permission,
+        statusIfForbidden: HttpStatus,
+    ) = switchIfEmpty { Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND)) }
         .cast<Project>()
-        .flatMap { actualProject ->
-            projectPermissionEvaluator.checkPermission(authentication, actualProject, Permission.WRITE)
+        .filterWhen { actualProject ->
+            projectPermissionEvaluator.checkPermission(authentication, actualProject, permission)
+                .map { true }
         }
         .switchIfEmpty { Mono.error(ResponseStatusException(statusIfForbidden)) }
 }

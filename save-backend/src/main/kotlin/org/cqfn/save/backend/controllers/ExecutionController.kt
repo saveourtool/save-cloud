@@ -1,6 +1,7 @@
 package org.cqfn.save.backend.controllers
 
 import org.cqfn.save.backend.configs.ConfigProperties
+import org.cqfn.save.backend.security.Permission
 import org.cqfn.save.backend.service.AgentService
 import org.cqfn.save.backend.service.AgentStatusService
 import org.cqfn.save.backend.service.ExecutionService
@@ -9,6 +10,8 @@ import org.cqfn.save.backend.service.ProjectService
 import org.cqfn.save.backend.service.TestExecutionService
 import org.cqfn.save.backend.service.TestSuitesService
 import org.cqfn.save.backend.utils.username
+import org.cqfn.save.backend.utils.justOrNotFound
+import org.cqfn.save.core.utils.runIf
 import org.cqfn.save.domain.toSdk
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.ExecutionRequest
@@ -31,6 +34,7 @@ import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
+import java.util.Optional
 
 typealias ExecutionDtoListResponse = ResponseEntity<List<ExecutionDto>>
 
@@ -82,8 +86,11 @@ class ExecutionController(private val executionService: ExecutionService,
      */
     @GetMapping(path = ["/api/execution", "/internal/execution"])
     @Transactional(readOnly = true)
-    fun getExecution(@RequestParam id: Long): Execution = executionService.findExecution(id).orElseThrow {
-        ResponseStatusException(HttpStatus.NOT_FOUND, "Execution with id=$id is not found")
+    fun getExecution(@RequestParam id: Long, authentication: Authentication?): Mono<Execution> {
+        return justOrNotFound(executionService.findExecution(id), "Execution with id=$id is not found")
+            .runIf({ authentication != null }) {
+                filterWhen { checkPermissions(authentication!!, it, Permission.READ) }
+            }
     }
 
     /**
@@ -101,10 +108,10 @@ class ExecutionController(private val executionService: ExecutionService,
      * @return execution dto
      */
     @GetMapping("/api/executionDto")
-    fun getExecutionDto(@RequestParam executionId: Long): ResponseEntity<ExecutionDto> =
-            executionService.getExecutionDto(executionId)?.let {
-                ResponseEntity.status(HttpStatus.OK).body(it)
-            } ?: ResponseEntity.status(HttpStatus.NOT_FOUND).build()
+    fun getExecutionDto(@RequestParam executionId: Long, authentication: Authentication): Mono<ExecutionDto> =
+        justOrNotFound(executionService.findExecution(executionId))
+            .filterWhen { checkPermissions(authentication, it, Permission.READ) }
+            .map { it.toDto() }
 
     /**
      * @param name
@@ -112,10 +119,10 @@ class ExecutionController(private val executionService: ExecutionService,
      * @return list of execution dtos
      */
     @GetMapping("/api/executionDtoList")
-    fun getExecutionByProject(@RequestParam name: String, @RequestParam owner: String): ExecutionDtoListResponse =
-            ResponseEntity
-                .status(HttpStatus.OK)
-                .body(executionService.getExecutionDtoByNameAndOwner(name, owner).reversed())
+    fun getExecutionByProject(authentication: Authentication, @RequestParam name: String, @RequestParam owner: String): Mono<List<ExecutionDto>> =
+        projectService.checkPermissionByNameAndOwner(authentication, name, owner, Permission.READ).map {
+            executionService.getExecutionDtoByNameAndOwner(name, owner).reversed()
+        }
 
     /**
      * Get latest (by start time an) execution by project name and project owner
@@ -238,4 +245,12 @@ class ExecutionController(private val executionService: ExecutionService,
      */
     @PostMapping("/internal/findTestRootPathForExecutionByTestSuites")
     fun findTestRootPathByTestSuites(@RequestBody execution: Execution): List<String> = execution.getTestRootPathByTestSuites()
+
+    private fun checkPermissions(authentication: Authentication, execution: Execution, permission: Permission): Mono<Boolean> =
+        with (projectService) {
+            Mono.justOrEmpty(execution.project)
+                .checkPermission(authentication, permission, HttpStatus.FORBIDDEN)
+                .map { true }
+                .defaultIfEmpty(false)
+        }
 }

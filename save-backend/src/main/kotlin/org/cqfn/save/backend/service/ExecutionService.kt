@@ -84,20 +84,6 @@ class ExecutionService(private val executionRepository: ExecutionRepository,
     }
 
     /**
-     * @param executionId id of execution
-     * @return execution dto based on id
-     */
-    fun getExecutionDto(executionId: Long): ExecutionDto? {
-        var executionDto: ExecutionDto? = null
-        executionRepository.findById(executionId).ifPresentOrElse({
-            executionDto = it.toDto()
-        }) {
-            log.error("Can't find execution by id = $executionId")
-        }
-        return executionDto
-    }
-
-    /**
      * @param name name of project
      * @param owner owner of project
      * @return list of execution dtos

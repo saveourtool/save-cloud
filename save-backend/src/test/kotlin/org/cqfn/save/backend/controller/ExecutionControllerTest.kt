@@ -15,6 +15,8 @@ import org.cqfn.save.execution.ExecutionUpdateDto
 
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
+import org.cqfn.save.backend.utils.AuthenticationDetails
+import org.cqfn.save.backend.utils.mutateMockedUser
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -134,6 +136,10 @@ class ExecutionControllerTest {
     @Test
     @WithMockUser
     fun checkExecutionDto() {
+        mutateMockedUser {
+            details = AuthenticationDetails(id = 99)
+        }
+
         webClient.get()
             .uri("/api/executionDto?executionId=1")
             .exchange()
@@ -149,6 +155,7 @@ class ExecutionControllerTest {
     @Test
     @WithMockUser
     fun checkExecutionDtoByProject() {
+
         val project = projectRepository.findById(1).get()
         val executionCounts = executionRepository.findAll().count { it.project.id == project.id }
         webClient.get()

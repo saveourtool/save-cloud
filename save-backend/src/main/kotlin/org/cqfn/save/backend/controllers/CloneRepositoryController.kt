@@ -50,7 +50,6 @@ class CloneRepositoryController(
     private val executionService: ExecutionService,
     private val additionalToolsFileSystemRepository: TimestampBasedFileSystemRepository,
     private val configProperties: ConfigProperties,
-    private val projectPermissionEvaluator: ProjectPermissionEvaluator,
 ) {
     private val log = LoggerFactory.getLogger(CloneRepositoryController::class.java)
     private val preprocessorWebClient = WebClient.create(configProperties.preprocessorUrl)

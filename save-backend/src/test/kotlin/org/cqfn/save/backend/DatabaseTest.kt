@@ -13,17 +13,15 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.boot.test.mock.mockito.MockBeans
 
-@SpringBootTest(classes = [SaveApplication::class])
+@DataJpaTest
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @ExtendWith(MySqlExtension::class)
-@MockBeans(
-    MockBean(StandardSuitesUpdateScheduler::class),
-    MockBean(ProjectController::class),
-    MockBean(ProjectPermissionEvaluator::class),
-)
 class DatabaseTest {
     @Autowired
     private lateinit var projectRepository: ProjectRepository
