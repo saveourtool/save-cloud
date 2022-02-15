@@ -2,6 +2,7 @@ package org.cqfn.save.backend.controllers
 
 import org.cqfn.save.backend.configs.ConfigProperties
 import org.cqfn.save.backend.security.Permission
+import org.cqfn.save.backend.security.ProjectPermissionEvaluator
 import org.cqfn.save.backend.service.AgentService
 import org.cqfn.save.backend.service.AgentStatusService
 import org.cqfn.save.backend.service.ExecutionService
@@ -34,6 +35,7 @@ import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.switchIfEmpty
 import java.util.Optional
 
 typealias ExecutionDtoListResponse = ResponseEntity<List<ExecutionDto>>
@@ -47,6 +49,7 @@ class ExecutionController(private val executionService: ExecutionService,
                           private val gitService: GitService,
                           private val testSuitesService: TestSuitesService,
                           private val projectService: ProjectService,
+                          private val projectPermissionEvaluator: ProjectPermissionEvaluator,
                           private val testExecutionService: TestExecutionService,
                           private val agentService: AgentService,
                           private val agentStatusService: AgentStatusService,
@@ -133,13 +136,13 @@ class ExecutionController(private val executionService: ExecutionService,
      * @throws ResponseStatusException if execution is not found
      */
     @GetMapping("/api/latestExecution")
-    fun getLatestExecutionForProject(@RequestParam name: String, @RequestParam owner: String): Mono<ExecutionDto> =
+    fun getLatestExecutionForProject(@RequestParam name: String, @RequestParam owner: String, authentication: Authentication): Mono<ExecutionDto> =
             Mono.fromCallable { executionService.getLatestExecutionByProjectNameAndProjectOwner(name, owner) }
-                .map { execOpt ->
-                    execOpt.map { it.toDto() }.orElseThrow {
-                        ResponseStatusException(HttpStatus.NOT_FOUND, "Execution not found for project (name=$name, owner=$owner)")
-                    }
-                }
+                .filter { it.isPresent }
+                .switchIfEmpty { Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND, "Execution not found for project (name=$name, owner=$owner)")) }
+                .map { it.get() }
+                .filterWhen { checkPermissions(authentication, it, Permission.READ) }
+                .map { it.toDto() }
 
     /**
      * Delete all executions by project name and project owner
@@ -247,7 +250,7 @@ class ExecutionController(private val executionService: ExecutionService,
     fun findTestRootPathByTestSuites(@RequestBody execution: Execution): List<String> = execution.getTestRootPathByTestSuites()
 
     private fun checkPermissions(authentication: Authentication, execution: Execution, permission: Permission): Mono<Boolean> =
-        with (projectService) {
+        with (projectPermissionEvaluator) {
             Mono.justOrEmpty(execution.project)
                 .checkPermission(authentication, permission, HttpStatus.FORBIDDEN)
                 .map { true }

@@ -1,10 +1,16 @@
 package org.cqfn.save.backend.security
 
 import org.cqfn.save.backend.utils.AuthenticationDetails
+import org.cqfn.save.core.utils.runIf
 import org.cqfn.save.domain.Role
 import org.cqfn.save.entities.Project
+import org.springframework.http.HttpStatus
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Component
+import org.springframework.web.server.ResponseStatusException
+import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.cast
+import reactor.kotlin.core.publisher.switchIfEmpty
 
 /**
  * Class that is capable of assessing user's permissions regarding projects.
@@ -35,6 +41,17 @@ class ProjectPermissionEvaluator {
             Permission.DELETE -> project.userId == userId
         }
     }
+
+    internal fun Mono<Project?>.checkPermission(
+        authentication: Authentication?,
+        permission: Permission,
+        statusIfForbidden: HttpStatus,
+    ) = switchIfEmpty { Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND)) }
+        .cast<Project>()
+        .filter { actualProject ->
+            hasPermission(authentication, actualProject, permission)
+        }
+        .switchIfEmpty { Mono.error(ResponseStatusException(statusIfForbidden)) }
 
     private fun Authentication.hasRole(role: Role): Boolean = authorities.any { it.authority == role.asSpringSecurityRole() }
 

@@ -87,30 +87,4 @@ class ProjectService(private val projectRepository: ProjectRepository,
         findByNameAndOwner(name, owner)
     }
         .checkPermission(authentication, permission, statusIfForbidden)
-
-//    @Transactional(readOnly = true)
-//    fun checkPermissionByExecutionId(
-//        authentication: Authentication,
-//        executionId: Long,
-//        permission: Permission,
-//        statusIfForbidden: HttpStatus = HttpStatus.FORBIDDEN,
-//    ): Mono<Project> = Mono.fromCallable {
-//        executionRepository.findById(executionId)
-//    }
-//        .filter { it.isPresent }
-//        .map { it.get() }
-//        .map { it to it.project }
-//        .checkPermission(authentication, permission, statusIfForbidden)
-
-    internal fun Mono<Project?>.checkPermission(
-        authentication: Authentication,
-        permission: Permission,
-        statusIfForbidden: HttpStatus,
-    ) = switchIfEmpty { Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND)) }
-        .cast<Project>()
-        .filterWhen { actualProject ->
-            projectPermissionEvaluator.checkPermission(authentication, actualProject, permission)
-                .map { true }
-        }
-        .switchIfEmpty { Mono.error(ResponseStatusException(statusIfForbidden)) }
 }

@@ -6,14 +6,17 @@ package org.cqfn.save.backend.utils
 
 import org.cqfn.save.backend.security.Permission
 import org.cqfn.save.backend.security.ProjectPermissionEvaluator
+import org.cqfn.save.core.utils.runIf
 import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.User
 import org.springframework.http.HttpStatus
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.userdetails.UserDetails
+import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.cast
+import reactor.kotlin.core.publisher.switchIfEmpty
 
 /**
  * Convert [Authentication] to [User] based on convention in backend.
@@ -46,13 +49,3 @@ fun Authentication.username(): String = when (principal) {
     is UserDetails -> (principal as UserDetails).username
     else -> error("Authentication instance $this has unsupported type of principal: $principal of type ${principal::class}")
 }
-
-fun ProjectPermissionEvaluator.checkPermission(
-    authentication: Authentication?,
-    project: Project,
-    permission: Permission,
-): Mono<Authentication> =
-    Mono.justOrEmpty(authentication).filter {
-        hasPermission(it, project, permission)
-    }
-        .cast()
