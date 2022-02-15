@@ -77,9 +77,6 @@ class WebSecurityConfig(
         .formLogin().disable()
         .build()
 
-    @Bean
-    fun projectPermissionEvaluator() = ProjectPermissionEvaluator()
-
     fun roleHierarchy(): RoleHierarchy = mapOf(
         Role.ADMIN to listOf(Role.VIEWER),
     )
