@@ -3,8 +3,11 @@ package org.cqfn.save.backend.controllers
 import org.cqfn.save.backend.StringResponse
 import org.cqfn.save.backend.configs.ConfigProperties
 import org.cqfn.save.backend.repository.TimestampBasedFileSystemRepository
+import org.cqfn.save.backend.security.Permission
+import org.cqfn.save.backend.security.ProjectPermissionEvaluator
 import org.cqfn.save.backend.service.ExecutionService
 import org.cqfn.save.backend.service.ProjectService
+import org.cqfn.save.backend.utils.checkPermissionOrError
 import org.cqfn.save.backend.utils.username
 import org.cqfn.save.domain.FileInfo
 import org.cqfn.save.domain.Sdk
@@ -21,6 +24,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.http.client.MultipartBodyBuilder
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -29,8 +33,10 @@ import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.toEntity
+import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.switchIfEmpty
 import java.lang.StringBuilder
 
 /**
@@ -46,6 +52,7 @@ class CloneRepositoryController(
     private val executionService: ExecutionService,
     private val additionalToolsFileSystemRepository: TimestampBasedFileSystemRepository,
     private val configProperties: ConfigProperties,
+    private val projectPermissionEvaluator: ProjectPermissionEvaluator,
 ) {
     private val log = LoggerFactory.getLogger(CloneRepositoryController::class.java)
     private val preprocessorWebClient = WebClient.create(configProperties.preprocessorUrl)
@@ -63,13 +70,15 @@ class CloneRepositoryController(
         @RequestPart(required = true) executionRequest: ExecutionRequest,
         @RequestPart("file", required = false) files: Flux<FileInfo>,
         authentication: Authentication,
-    ): Mono<StringResponse> = sendToPreprocessor(
-        executionRequest,
-        ExecutionType.GIT,
-        authentication.username(),
-        files
-    ) { newExecutionId ->
-        part("executionRequest", executionRequest.copy(executionId = newExecutionId))
+    ): Mono<StringResponse> = projectPermissionEvaluator.checkPermissionOrError(authentication, executionRequest.project, Permission.WRITE).flatMap {
+        sendToPreprocessor(
+            executionRequest,
+            ExecutionType.GIT,
+            authentication.username(),
+            files
+        ) { newExecutionId ->
+            part("executionRequest", executionRequest.copy(executionId = newExecutionId))
+        }
     }
 
     /**
@@ -85,13 +94,15 @@ class CloneRepositoryController(
         @RequestPart("execution", required = true) executionRequestForStandardSuites: ExecutionRequestForStandardSuites,
         @RequestPart("file", required = true) files: Flux<FileInfo>,
         authentication: Authentication,
-    ): Mono<StringResponse> = sendToPreprocessor(
-        executionRequestForStandardSuites,
-        ExecutionType.STANDARD,
-        authentication.username(),
-        files
-    ) {
-        part("executionRequestForStandardSuites", executionRequestForStandardSuites)
+    ): Mono<StringResponse> = projectPermissionEvaluator.checkPermissionOrError(authentication, executionRequestForStandardSuites.project, Permission.WRITE).flatMap {
+        sendToPreprocessor(
+            executionRequestForStandardSuites,
+            ExecutionType.STANDARD,
+            authentication.username(),
+            files
+        ) {
+            part("executionRequestForStandardSuites", executionRequestForStandardSuites)
+        }
     }
 
     @Suppress("UnsafeCallOnNullableType")

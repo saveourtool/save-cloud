@@ -16,6 +16,7 @@ import org.springframework.security.access.expression.method.DefaultMethodSecuri
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyUtils
+import org.springframework.security.authorization.AuthenticatedReactiveAuthorizationManager
 import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity
 import org.springframework.security.config.web.server.SecurityWebFiltersOrder
@@ -25,6 +26,8 @@ import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.server.SecurityWebFilterChain
 import org.springframework.security.web.server.authentication.AuthenticationWebFilter
 import org.springframework.security.web.server.authentication.HttpStatusServerEntryPoint
+import org.springframework.security.web.server.authorization.AuthorizationContext
+import org.springframework.security.web.server.authorization.DelegatingReactiveAuthorizationManager
 import javax.annotation.PostConstruct
 
 @EnableWebFluxSecurity
@@ -41,11 +44,10 @@ class WebSecurityConfig(
     fun securityWebFilterChain(
         http: ServerHttpSecurity
     ): SecurityWebFilterChain = http.run {
-        // `CollectionView` is a public page
-        // all `/internal/**` requests should be sent only from internal network
-        // they are not proxied from gateway
+        // All `/internal/**` and `/actuator/**` requests should be sent only from internal network,
+        // they are not proxied from gateway.
         authorizeExchange()
-            .pathMatchers("/", "/api/projects/not-deleted", "/api/awesome-benchmarks", "/internal/**", "/actuator/**")
+            .pathMatchers("/", "/internal/**", "/actuator/**", *PUBLIC_ENDPOINTS.toTypedArray())
             .permitAll()
             // resources for frontend
             .pathMatchers("/*.html", "/*.js*", "/img/**")
@@ -91,6 +93,20 @@ class WebSecurityConfig(
     @PostConstruct
     fun postConstruct() {
         defaultMethodSecurityExpressionHandler.setRoleHierarchy(roleHierarchy())
+    }
+
+    companion object {
+        /**
+         * These endpoints will have `permitAll` enabled on them. We can't selectively put `@PreAuthorize("permitAll")` in the code,
+         * because it won't allow us to configure authenticated access to all other endpoints by default.
+         * Or we can use custom AccessDecisionManager later.
+         */
+        internal val PUBLIC_ENDPOINTS = listOf(
+            // `CollectionView` is a public page
+            "/api/projects/not-deleted",
+            "/api/awesome-benchmarks",
+            "/check-git-connectivity-adaptor",
+        )
     }
 }
 
