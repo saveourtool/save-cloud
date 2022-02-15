@@ -81,7 +81,6 @@ class ProjectController(private val projectService: ProjectService,
      */
     @GetMapping("/get/organization-id")
     @PreAuthorize("hasRole('VIEWER')")
-    @Suppress("UnsafeCallOnNullableType")
     fun getProjectByNameAndOrganizationId(@RequestParam name: String,
                                           @RequestParam organizationId: Long,
                                           authentication: Authentication,
@@ -101,7 +100,6 @@ class ProjectController(private val projectService: ProjectService,
      */
     @GetMapping("/get/organization-name")
     @PreAuthorize("hasRole('VIEWER')")
-    @Suppress("UnsafeCallOnNullableType")
     fun getProjectByNameAndOrganizationName(@RequestParam name: String,
                                             @RequestParam organizationName: String,
                                             authentication: Authentication,
@@ -112,6 +110,7 @@ class ProjectController(private val projectService: ProjectService,
         return getPermissionProject(project, authentication)
     }
 
+    @Suppress("UnsafeCallOnNullableType")
     private fun getPermissionProject(project: Mono<Project?>, authentication: Authentication) =
             project.map {
                 // if value is null, then Mono is empty and this lambda won't be called
