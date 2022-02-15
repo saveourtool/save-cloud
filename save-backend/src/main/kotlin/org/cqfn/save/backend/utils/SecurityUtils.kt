@@ -12,10 +12,8 @@ import org.springframework.http.HttpStatus
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.userdetails.UserDetails
-import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.cast
-import reactor.kotlin.core.publisher.switchIfEmpty
 
 /**
  * Convert [Authentication] to [User] based on convention in backend.
@@ -49,16 +47,12 @@ fun Authentication.username(): String = when (principal) {
     else -> error("Authentication instance $this has unsupported type of principal: $principal of type ${principal::class}")
 }
 
-fun ProjectPermissionEvaluator.checkPermissionOrError(
+fun ProjectPermissionEvaluator.checkPermission(
     authentication: Authentication?,
     project: Project,
     permission: Permission,
-    status: HttpStatus = HttpStatus.FORBIDDEN,
 ): Mono<Authentication> =
     Mono.justOrEmpty(authentication).filter {
         hasPermission(it, project, permission)
     }
-        .cast<Authentication>()
-        .switchIfEmpty {
-            Mono.error(ResponseStatusException(status))
-        }
+        .cast()

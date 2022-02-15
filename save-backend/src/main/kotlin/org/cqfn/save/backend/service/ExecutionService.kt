@@ -28,16 +28,13 @@ class ExecutionService(private val executionRepository: ExecutionRepository,
 ) {
     private val log = LoggerFactory.getLogger(ExecutionService::class.java)
 
-    @Autowired
-    private lateinit var projectRepository: ProjectRepository
-
     /**
      * Find execution by id
      *
      * @param id id of execution
      * @return execution if it has been found
      */
-    fun findExecution(id: Long) = executionRepository.findById(id)
+    fun findExecution(id: Long): Optional<Execution> = executionRepository.findById(id)
 
     /**
      * @param execution

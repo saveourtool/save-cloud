@@ -4,10 +4,12 @@ import org.cqfn.save.backend.utils.AuthenticationDetails
 import org.cqfn.save.domain.Role
 import org.cqfn.save.entities.Project
 import org.springframework.security.core.Authentication
+import org.springframework.stereotype.Component
 
 /**
  * Class that is capable of assessing user's permissions regarding projects.
  */
+@Component
 class ProjectPermissionEvaluator {
     /**
      * @param authentication [Authentication] describing an authenticated request

@@ -2,13 +2,23 @@ package org.cqfn.save.backend.service
 
 import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.repository.UserRepository
+import org.cqfn.save.backend.security.Permission
+import org.cqfn.save.backend.security.ProjectPermissionEvaluator
+import org.cqfn.save.backend.utils.checkPermission
 import org.cqfn.save.domain.ProjectSaveStatus
 import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.ProjectStatus
 import org.springframework.data.domain.Example
 import org.springframework.data.domain.ExampleMatcher
+import org.springframework.http.HttpStatus
+import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
+import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.cast
+import reactor.kotlin.core.publisher.switchIfEmpty
 
 /**
  * Service for project
@@ -18,6 +28,7 @@ import reactor.core.publisher.Flux
 @Service
 class ProjectService(private val projectRepository: ProjectRepository,
                      private val userRepository: UserRepository,
+                     private val projectPermissionEvaluator: ProjectPermissionEvaluator,
 ) {
     /**
      * Store [project] in the database
@@ -61,4 +72,21 @@ class ProjectService(private val projectRepository: ProjectRepository,
         }
         return projects
     }
+
+    @Transactional(readOnly = true)
+    fun checkPermissionByNameAndOwner(
+        authentication: Authentication,
+        name: String,
+        owner: String,
+        permission: Permission,
+        statusIfForbidden: HttpStatus = HttpStatus.FORBIDDEN,
+    ): Mono<Authentication> = Mono.fromCallable {
+        findByNameAndOwner(name, owner)
+    }
+        .switchIfEmpty { Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND)) }
+        .cast<Project>()
+        .flatMap { actualProject ->
+            projectPermissionEvaluator.checkPermission(authentication, actualProject, Permission.WRITE)
+        }
+        .switchIfEmpty { Mono.error(ResponseStatusException(statusIfForbidden)) }
 }

@@ -7,7 +7,7 @@ import org.cqfn.save.backend.security.Permission
 import org.cqfn.save.backend.security.ProjectPermissionEvaluator
 import org.cqfn.save.backend.service.ExecutionService
 import org.cqfn.save.backend.service.ProjectService
-import org.cqfn.save.backend.utils.checkPermissionOrError
+import org.cqfn.save.backend.utils.checkPermission
 import org.cqfn.save.backend.utils.username
 import org.cqfn.save.domain.FileInfo
 import org.cqfn.save.domain.Sdk
@@ -24,7 +24,6 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.http.client.MultipartBodyBuilder
-import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -36,7 +35,6 @@ import org.springframework.web.reactive.function.client.toEntity
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-import reactor.kotlin.core.publisher.switchIfEmpty
 import java.lang.StringBuilder
 
 /**
@@ -70,16 +68,21 @@ class CloneRepositoryController(
         @RequestPart(required = true) executionRequest: ExecutionRequest,
         @RequestPart("file", required = false) files: Flux<FileInfo>,
         authentication: Authentication,
-    ): Mono<StringResponse> = projectPermissionEvaluator.checkPermissionOrError(authentication, executionRequest.project, Permission.WRITE).flatMap {
-        sendToPreprocessor(
-            executionRequest,
-            ExecutionType.GIT,
-            authentication.username(),
-            files
-        ) { newExecutionId ->
-            part("executionRequest", executionRequest.copy(executionId = newExecutionId))
-        }
+    ): Mono<StringResponse> = with(executionRequest.project) {
+        // Project cannot be taken from executionRequest directly for permission evaluation:
+        // it can be changed by user, who submits it. We should get project from DB based on name/owner combination.
+        projectService.checkPermissionByNameAndOwner(authentication, name, owner, Permission.WRITE)
     }
+        .flatMap {
+            sendToPreprocessor(
+                executionRequest,
+                ExecutionType.GIT,
+                authentication.username(),
+                files
+            ) { newExecutionId ->
+                part("executionRequest", executionRequest.copy(executionId = newExecutionId))
+            }
+        }
 
     /**
      * Endpoint to save project as binary file
@@ -94,8 +97,11 @@ class CloneRepositoryController(
         @RequestPart("execution", required = true) executionRequestForStandardSuites: ExecutionRequestForStandardSuites,
         @RequestPart("file", required = true) files: Flux<FileInfo>,
         authentication: Authentication,
-    ): Mono<StringResponse> = projectPermissionEvaluator.checkPermissionOrError(authentication, executionRequestForStandardSuites.project, Permission.WRITE).flatMap {
-        sendToPreprocessor(
+    ): Mono<StringResponse> = with(executionRequestForStandardSuites.project) {
+        projectService.checkPermissionByNameAndOwner(authentication, name,  owner, Permission.WRITE)
+    }
+        .flatMap {
+            sendToPreprocessor(
             executionRequestForStandardSuites,
             ExecutionType.STANDARD,
             authentication.username(),
