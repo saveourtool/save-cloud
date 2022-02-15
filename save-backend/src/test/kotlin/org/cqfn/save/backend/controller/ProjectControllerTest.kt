@@ -143,7 +143,7 @@ class ProjectControllerTest {
 
         val gitDto = GitDto("qweqwe")
         // `project` references an existing user from test data
-        val organization: Organization = organizationRepository.findById(1).get()
+        val organization: Organization = organizationRepository.getById(1)
         val project = Project("I", "Name", "uurl", ProjectStatus.CREATED, userId = 2, organization = organization)
         val newProject = NewProjectDto(
             project,
@@ -171,7 +171,7 @@ class ProjectControllerTest {
                                     assertion: WebTestClient.ResponseSpec.() -> Unit
     ) = webClient
         .get()
-        .uri("/api/projects/getByOrganizationName?name=$name&organizationName=$organizationName")
+        .uri("/api/projects/get/organization-name?name=$name&organizationName=$organizationName")
         .accept(MediaType.APPLICATION_JSON)
         .exchange()
         .let { assertion(it) }
@@ -191,7 +191,7 @@ class ProjectControllerTest {
         val project = newProject.project
         webClient
             .get()
-            .uri("/api/projects/get?name=${project.name}&organizationId=${project.organization.id}")
+            .uri("/api/projects/get/organization-id?name=${project.name}&organizationId=${project.organization.id}")
             .accept(MediaType.APPLICATION_JSON)
             .exchange()
             .let { getAssertion(it) }

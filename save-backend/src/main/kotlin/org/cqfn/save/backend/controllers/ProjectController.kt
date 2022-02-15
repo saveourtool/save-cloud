@@ -79,33 +79,19 @@ class ProjectController(private val projectService: ProjectService,
      * @return project by name and organization
      * @throws ResponseStatusException
      */
-    @GetMapping("/get")
+    @GetMapping("/get/organization-id")
     @PreAuthorize("hasRole('VIEWER')")
     @Suppress("UnsafeCallOnNullableType")
-    fun getProjectByNameAndOrganization(@RequestParam name: String,
-                                        @RequestParam organizationId: Long,
-                                        authentication: Authentication,
-    ): Mono<Project> = Mono.fromCallable {
-        val organization = organizationService.getOrganizationById(organizationId)
-        projectService.findByNameAndOrganization(name, organization)
+    fun getProjectByNameAndOrganizationId(@RequestParam name: String,
+                                          @RequestParam organizationId: Long,
+                                          authentication: Authentication,
+    ): Mono<Project> {
+        val project = Mono.fromCallable {
+            val organization = organizationService.getOrganizationById(organizationId)
+            projectService.findByNameAndOrganization(name, organization)
+        }
+        return getPermissionProject(project, authentication)
     }
-        .map {
-            // if value is null, then Mono is empty and this lambda won't be called
-            it!! to projectPermissionEvaluator.hasPermission(authentication, it, Permission.WRITE)
-        }
-        .filter { (project, hasWriteAccess) -> project.public || hasWriteAccess }
-        .map { (project, hasWriteAccess) ->
-            if (hasWriteAccess) {
-                project
-            } else {
-                // project is public, but current user lacks permissions
-                throw ResponseStatusException(HttpStatus.FORBIDDEN)
-            }
-        }
-        .switchIfEmpty {
-            // if project either is not found or shouldn't be visible for current user
-            Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
-        }
 
     /**
      * @param name
@@ -113,32 +99,37 @@ class ProjectController(private val projectService: ProjectService,
      * @param authentication
      * @return project by name and organization name
      */
-    @GetMapping("/getByOrganizationName")
+    @GetMapping("/get/organization-name")
     @PreAuthorize("hasRole('VIEWER')")
     @Suppress("UnsafeCallOnNullableType")
     fun getProjectByNameAndOrganizationName(@RequestParam name: String,
                                             @RequestParam organizationName: String,
                                             authentication: Authentication,
-    ): Mono<Project> = Mono.fromCallable {
-        projectService.findByNameAndOrganizationName(name, organizationName)
+    ): Mono<Project> {
+        val project = Mono.fromCallable {
+            projectService.findByNameAndOrganizationName(name, organizationName)
+        }
+        return getPermissionProject(project, authentication)
     }
-        .map {
-            // if value is null, then Mono is empty and this lambda won't be called
-            it!! to projectPermissionEvaluator.hasPermission(authentication, it, Permission.WRITE)
-        }
-        .filter { (project, hasWriteAccess) -> project.public || hasWriteAccess }
-        .map { (project, hasWriteAccess) ->
-            if (hasWriteAccess) {
-                project
-            } else {
-                // project is public, but current user lacks permissions
-                throw ResponseStatusException(HttpStatus.FORBIDDEN)
+
+    private fun getPermissionProject(project: Mono<Project?>, authentication: Authentication) =
+            project.map {
+                // if value is null, then Mono is empty and this lambda won't be called
+                it!! to projectPermissionEvaluator.hasPermission(authentication, it, Permission.WRITE)
             }
-        }
-        .switchIfEmpty {
-            // if project either is not found or shouldn't be visible for current user
-            Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
-        }
+                .filter { (project, hasWriteAccess) -> project.public || hasWriteAccess }
+                .map { (project, hasWriteAccess) ->
+                    if (hasWriteAccess) {
+                        project
+                    } else {
+                        // project is public, but current user lacks permissions
+                        throw ResponseStatusException(HttpStatus.FORBIDDEN)
+                    }
+                }
+                .switchIfEmpty {
+                    // if project either is not found or shouldn't be visible for current user
+                    Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
+                }
 
     /**
      * @param project

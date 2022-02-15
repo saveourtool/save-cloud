@@ -123,15 +123,16 @@ class ExecutionController(private val executionService: ExecutionService,
      * @throws ResponseStatusException if execution is not found
      */
     @GetMapping("/api/latestExecution")
-    fun getLatestExecutionForProject(@RequestParam name: String, @RequestParam organizationId: Long): Mono<ExecutionDto> {
+    fun getLatestExecutionForProject(@RequestParam name: String, @RequestParam organizationId: Long): Mono<ExecutionDto> = Mono.fromCallable {
         val organization = organizationService.getOrganizationById(organizationId)
-        return Mono.fromCallable { executionService.getLatestExecutionByProjectNameAndProjectOrganization(name, organization) }
-            .map { execOpt ->
-                execOpt.map { it.toDto() }.orElseThrow {
-                    ResponseStatusException(HttpStatus.NOT_FOUND, "Execution not found for project (name=$name, owner=${organization.name})")
-                }
-            }
+        executionService.getLatestExecutionByProjectNameAndProjectOrganization(name, organization)
     }
+        .map { execOpt ->
+            execOpt.map { it.toDto() }.orElseThrow {
+                ResponseStatusException(HttpStatus.NOT_FOUND, "Execution not found for project (name=$name, owner=${execOpt.get().project.organization
+                    .name})")
+            }
+        }
 
     /**
      * Delete all executions by project name and project owner

@@ -5,7 +5,6 @@
 package org.cqfn.save.frontend
 
 import org.cqfn.save.domain.TestResultStatus
-import org.cqfn.save.entities.Organization
 import org.cqfn.save.frontend.components.Footer
 import org.cqfn.save.frontend.components.basic.scrollToTopButton
 import org.cqfn.save.frontend.components.topBar
@@ -41,11 +40,6 @@ external interface AppState : State {
      * Currently logged in user or null
      */
     var userInfo: UserInfo?
-
-    /**
-     * Currently logged in user or null
-     */
-    var organization: Organization
 }
 
 /**
@@ -69,18 +63,6 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                 setState {
                     userInfo = userInfoNew
                 }
-            }
-        }
-    }
-
-    private fun getOrganization(name: String?) {
-        scope.launch {
-            val organizationNew: Organization = get("$apiUrl/organization/get?name=$name", Headers().apply {
-                set("Accept", "application/json")
-            })
-                .decodeFromJsonString<Organization>()
-            setState {
-                organization = organizationNew
             }
         }
     }
@@ -160,9 +142,8 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                 element = buildElement {
                                     child(withRouter { _, params ->
                                         child(HistoryView::class) {
-                                            getOrganization(params["owner"])
                                             attrs.name = params["name"]!!
-                                            attrs.organization = state.organization
+                                            attrs.organizationName = params["owner"]!!
                                         }
                                     })
                                 }

@@ -95,7 +95,7 @@ suspend fun request(url: String,
  * @return project
  */
 suspend fun getProject(name: String, organizationName: String) =
-        get("$apiUrl/projects/getByOrganizationName?name=$name&organizationName=$organizationName", Headers().apply {
+        get("$apiUrl/projects/get/organization-name?name=$name&organizationName=$organizationName", Headers().apply {
             set("Accept", "application/json")
         })
             .decodeFromJsonString<Project>()

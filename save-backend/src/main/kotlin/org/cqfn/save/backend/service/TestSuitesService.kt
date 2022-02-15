@@ -11,6 +11,7 @@ import org.cqfn.save.testsuite.TestSuiteType
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Example
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
 
 /**
@@ -86,6 +87,7 @@ class TestSuitesService(
      * @param project a project associated with test suites
      * @return a list of test suites
      */
+    @Transactional
     fun findTestSuitesByProject(project: Project) =
             testSuiteRepository.findByProjectId(
                 requireNotNull(project.id) { "Cannot find test suites for project with missing id (name=${project.name}, organization=${project.organization.name})" }

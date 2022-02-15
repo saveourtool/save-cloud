@@ -1,6 +1,6 @@
 package org.cqfn.save.backend.security
 
-import org.cqfn.save.backend.repository.LnkUserProjectRepository
+import org.cqfn.save.backend.service.LnkUserProjectService
 import org.cqfn.save.backend.utils.AuthenticationDetails
 import org.cqfn.save.domain.Role
 import org.cqfn.save.entities.Project
@@ -12,7 +12,7 @@ import org.springframework.security.core.Authentication
  */
 class ProjectPermissionEvaluator {
     @Autowired
-    private lateinit var lnkUserProjectRepository: LnkUserProjectRepository
+    private lateinit var lnkUserProjectService: LnkUserProjectService
 
     /**
      * @param authentication [Authentication] describing an authenticated request
@@ -41,10 +41,10 @@ class ProjectPermissionEvaluator {
 
     private fun Authentication.hasRole(role: Role): Boolean = authorities.any { it.authority == role.asSpringSecurityRole() }
 
-    private fun hasWriteAccess(userId: Long?, project: Project): Boolean {
-        val adminIdList = lnkUserProjectRepository.findByProject(project)
-            .filter { it?.role == Role.ADMIN }
-            .map { it?.user?.id }
-        return userId != null && (project.userId == userId || userId in adminIdList)
+    private fun hasWriteAccess(userId: Long?, project: Project): Boolean = if (userId != null && project.userId == userId) {
+        true
+    } else {
+        val adminIdList = lnkUserProjectService.getAllUsersByProjectAndRole(project, Role.ADMIN).map { it.id }
+        userId != null && userId in adminIdList
     }
 }

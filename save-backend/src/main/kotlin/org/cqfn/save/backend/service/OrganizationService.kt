@@ -14,7 +14,7 @@ class OrganizationService(private val organizationRepository: OrganizationReposi
      * @param organizationId
      * @return organization by id
      */
-    fun getOrganizationById(organizationId: Long) = organizationRepository.findById(organizationId).get()
+    fun getOrganizationById(organizationId: Long) = organizationRepository.getById(organizationId)
 
     /**
      * @param name
