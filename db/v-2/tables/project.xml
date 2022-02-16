@@ -27,6 +27,7 @@
         </addColumn>
     </changeSet>
 
+    <!-- Should be foreignKeyName on Organization -->
     <changeSet id="project-add-organization" author="frolov" context="dev or prod">
         <addColumn tableName="project">
             <column name="organization_id" type="bigint">
@@ -36,14 +37,6 @@
 
     <changeSet id="project-drop-adminIds" author="frolov" context="dev or prod">
         <dropColumn columnName="admin_ids" tableName="project"/>
-    </changeSet>
-
-    <changeSet id="project-addFK-organization" author="frolov" context="dev or prod">
-        <addForeignKeyConstraint baseColumnNames="organization_id"
-                                 baseTableName="project"
-                                 constraintName="fk_project_organization"
-                                 referencedColumnNames="id"
-                                 referencedTableName="organization"/>
     </changeSet>
 
 </databaseChangeLog>
