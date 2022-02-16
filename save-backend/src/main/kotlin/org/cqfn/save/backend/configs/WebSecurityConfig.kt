@@ -104,6 +104,7 @@ class WebSecurityConfig(
             "/api/awesome-benchmarks",
             "/api/check-git-connectivity-adaptor",
             "/api/organization/get/organization-name",
+            "/api/allStandardTestSuites",
         )
     }
 }

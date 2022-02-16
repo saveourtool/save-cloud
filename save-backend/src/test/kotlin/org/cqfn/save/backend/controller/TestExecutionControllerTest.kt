@@ -6,7 +6,9 @@ import org.cqfn.save.backend.controllers.ProjectController
 import org.cqfn.save.backend.repository.AgentRepository
 import org.cqfn.save.backend.repository.TestExecutionRepository
 import org.cqfn.save.backend.scheduling.StandardSuitesUpdateScheduler
+import org.cqfn.save.backend.utils.AuthenticationDetails
 import org.cqfn.save.backend.utils.MySqlExtension
+import org.cqfn.save.backend.utils.mutateMockedUser
 import org.cqfn.save.backend.utils.secondsToLocalDateTime
 import org.cqfn.save.domain.TestResultStatus
 
@@ -60,6 +62,10 @@ class TestExecutionControllerTest {
     @Test
     @WithMockUser
     fun `should count TestExecutions for a particular Execution`() {
+        mutateMockedUser {
+            details = AuthenticationDetails(id = 99)
+        }
+
         webClient.get()
             .uri("/api/testExecution/count?executionId=1")
             .exchange()
@@ -70,6 +76,10 @@ class TestExecutionControllerTest {
     @Test
     @WithMockUser
     fun `should return a page of TestExecutions for a particular Execution`() {
+        mutateMockedUser {
+            details = AuthenticationDetails(id = 99)
+        }
+
         webClient.get()
             .uri("/api/testExecutions?executionId=1&page=0&size=20")
             .exchange()

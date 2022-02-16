@@ -94,7 +94,7 @@ class ExecutionController(private val executionService: ExecutionService,
     fun getExecution(@RequestParam id: Long, authentication: Authentication?): Mono<Execution> {
         return justOrNotFound(executionService.findExecution(id), "Execution with id=$id is not found")
             .runIf({ authentication != null }) {
-                filterWhen { checkPermissions(authentication!!, it, Permission.READ) }
+                filterWhen { projectPermissionEvaluator.checkPermissions(authentication!!, it, Permission.READ) }
             }
     }
 
@@ -115,7 +115,7 @@ class ExecutionController(private val executionService: ExecutionService,
     @GetMapping("/api/executionDto")
     fun getExecutionDto(@RequestParam executionId: Long, authentication: Authentication): Mono<ExecutionDto> =
         justOrNotFound(executionService.findExecution(executionId))
-            .filterWhen { checkPermissions(authentication, it, Permission.READ) }
+            .filterWhen { projectPermissionEvaluator.checkPermissions(authentication, it, Permission.READ) }
             .map { it.toDto() }
 
     /**
@@ -145,7 +145,7 @@ class ExecutionController(private val executionService: ExecutionService,
                 executionService.getLatestExecutionByProjectNameAndProjectOrganizationId(name, organizationId),
                 "Execution not found for project (name=$name, organization id=$organizationId)"
             )
-                .filterWhen { checkPermissions(authentication, it, Permission.READ) }
+                .filterWhen { projectPermissionEvaluator.checkPermissions(authentication, it, Permission.READ) }
                 .map { it.toDto() }
 
     /**
@@ -200,7 +200,7 @@ class ExecutionController(private val executionService: ExecutionService,
             .flatMap { groupedFlux ->
                 val project = groupedFlux.key()
                 groupedFlux.filterWhenAndInvoke({ log.warn("Cannot delete execution id=${it.id}, because operation is not allowed on project id=${project.id}") }) { execution ->
-                    checkPermissions(authentication, execution, Permission.DELETE)
+                    projectPermissionEvaluator.checkPermissions(authentication, execution, Permission.DELETE)
                 }
             }
             .map { it.id!! }
@@ -279,12 +279,10 @@ class ExecutionController(private val executionService: ExecutionService,
      */
     @PostMapping("/internal/findTestRootPathForExecutionByTestSuites")
     fun findTestRootPathByTestSuites(@RequestBody execution: Execution): List<String> = execution.getTestRootPathByTestSuites()
-
-    private fun checkPermissions(authentication: Authentication, execution: Execution, permission: Permission): Mono<Boolean> =
-        with (projectPermissionEvaluator) {
-            Mono.justOrEmpty(execution.project)
-                .filterByPermission(authentication, permission, HttpStatus.FORBIDDEN)
-                .map { true }
-                .defaultIfEmpty(false)
-        }
 }
+
+internal fun ProjectPermissionEvaluator.checkPermissions(authentication: Authentication, execution: Execution, permission: Permission): Mono<Boolean> =
+        Mono.justOrEmpty(execution.project)
+            .filterByPermission(authentication, permission, HttpStatus.FORBIDDEN)
+            .map { true }
+            .defaultIfEmpty(false)

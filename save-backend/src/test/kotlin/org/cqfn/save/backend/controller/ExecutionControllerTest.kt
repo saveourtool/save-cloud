@@ -214,6 +214,10 @@ class ExecutionControllerTest {
     @Test
     @WithMockUser(username = "John Doe")
     fun `should send request to preprocessor to rerun execution`() {
+        mutateMockedUser {
+            details = AuthenticationDetails(id = 2)
+        }
+
         mockServerPreprocessor.enqueue(
             MockResponse().setResponseCode(202)
                 .setHeader("Accept", "application/json")
