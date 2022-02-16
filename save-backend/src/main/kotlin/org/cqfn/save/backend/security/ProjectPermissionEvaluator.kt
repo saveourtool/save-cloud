@@ -82,8 +82,8 @@ class ProjectPermissionEvaluator {
      * @return
      */
     internal fun checkPermissions(authentication: Authentication, execution: Execution, permission: Permission): Mono<Boolean> =
-        Mono.justOrEmpty(execution.project)
-            .filterByPermission(authentication, permission, HttpStatus.FORBIDDEN)
-            .map { true }
-            .defaultIfEmpty(false)
+            Mono.justOrEmpty(execution.project)
+                .filterByPermission(authentication, permission, HttpStatus.FORBIDDEN)
+                .map { true }
+                .defaultIfEmpty(false)
 }

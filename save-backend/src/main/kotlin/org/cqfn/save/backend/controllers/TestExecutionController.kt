@@ -36,7 +36,7 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
                               private val projectPermissionEvaluator: ProjectPermissionEvaluator,
 ) {
     /**
-     * Returns a page of [TestExecution]s with [executionId]
+     * Returns a page of [TestExecutionDto]s with [executionId]
      *
      * @param executionId an ID of Execution to group TestExecutions
      * @param page a zero-based index of page of data
@@ -47,7 +47,7 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
      * @return a list of [TestExecutionDto]s
      */
     @GetMapping("/api/testExecutions")
-    @Suppress("LongParameterList")
+    @Suppress("LongParameterList", "TOO_MANY_PARAMETERS", "TYPE_ALIAS")
     fun getTestExecutions(
         @RequestParam executionId: Long,
         @RequestParam page: Int,

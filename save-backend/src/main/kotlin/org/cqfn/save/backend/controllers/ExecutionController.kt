@@ -209,7 +209,7 @@ class ExecutionController(private val executionService: ExecutionService,
                 projectPermissionEvaluator.checkPermissions(authentication, execution, Permission.DELETE)
             }
         }
-        .map { it.id!! }
+        .mapNotNull<Long> { it.id }
         .collectList()
         .map { filteredExecutionIds ->
             testExecutionService.deleteTestExecutionByExecutionIds(filteredExecutionIds)
@@ -286,4 +286,3 @@ class ExecutionController(private val executionService: ExecutionService,
     @PostMapping("/internal/findTestRootPathForExecutionByTestSuites")
     fun findTestRootPathByTestSuites(@RequestBody execution: Execution): List<String> = execution.getTestRootPathByTestSuites()
 }
-
