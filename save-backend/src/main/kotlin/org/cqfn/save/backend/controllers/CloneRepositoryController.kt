@@ -4,10 +4,8 @@ import org.cqfn.save.backend.StringResponse
 import org.cqfn.save.backend.configs.ConfigProperties
 import org.cqfn.save.backend.repository.TimestampBasedFileSystemRepository
 import org.cqfn.save.backend.security.Permission
-import org.cqfn.save.backend.security.ProjectPermissionEvaluator
 import org.cqfn.save.backend.service.ExecutionService
 import org.cqfn.save.backend.service.ProjectService
-import org.cqfn.save.backend.utils.checkPermission
 import org.cqfn.save.backend.utils.username
 import org.cqfn.save.domain.FileInfo
 import org.cqfn.save.domain.Sdk

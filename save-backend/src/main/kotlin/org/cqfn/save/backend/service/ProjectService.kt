@@ -5,7 +5,6 @@ import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.repository.UserRepository
 import org.cqfn.save.backend.security.Permission
 import org.cqfn.save.backend.security.ProjectPermissionEvaluator
-import org.cqfn.save.backend.utils.checkPermission
 import org.cqfn.save.domain.ProjectSaveStatus
 import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.ProjectStatus
@@ -83,8 +82,8 @@ class ProjectService(private val projectRepository: ProjectRepository,
         owner: String,
         permission: Permission,
         statusIfForbidden: HttpStatus = HttpStatus.FORBIDDEN,
-    ): Mono<Project> = Mono.fromCallable {
-        findByNameAndOwner(name, owner)
+    ): Mono<Project> = with(projectPermissionEvaluator) {
+        Mono.fromCallable { findByNameAndOwner(name, owner) }
+            .checkPermission(authentication, permission, statusIfForbidden)
     }
-        .checkPermission(authentication, permission, statusIfForbidden)
 }
