@@ -39,10 +39,6 @@ import org.springframework.web.reactive.function.client.bodyToMono
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-import reactor.kotlin.core.publisher.switchIfEmpty
-import java.util.Optional
-
-typealias ExecutionDtoListResponse = ResponseEntity<List<ExecutionDto>>
 
 /**
  * Controller that accepts executions
@@ -231,6 +227,11 @@ class ExecutionController(private val executionService: ExecutionService,
     fun rerunExecution(@RequestParam id: Long, authentication: Authentication): Mono<String> {
         val execution = executionService.findExecution(id).orElseThrow {
             IllegalArgumentException("Can't rerun execution $id, because it does not exist")
+        }
+        if (!projectPermissionEvaluator.hasPermission(
+                authentication, execution.project, Permission.WRITE
+        )) {
+            throw ResponseStatusException(HttpStatus.FORBIDDEN)
         }
         val executionType = execution.type
         val git = requireNotNull(gitService.getRepositoryDtoByProject(execution.project)) {

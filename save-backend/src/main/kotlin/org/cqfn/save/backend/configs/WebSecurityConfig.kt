@@ -102,7 +102,8 @@ class WebSecurityConfig(
             // `CollectionView` is a public page
             "/api/projects/not-deleted",
             "/api/awesome-benchmarks",
-            "/check-git-connectivity-adaptor",
+            "/api/check-git-connectivity-adaptor",
+            "/api/organization/get/organization-name",
         )
     }
 }
