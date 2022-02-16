@@ -43,7 +43,7 @@ class ProjectController(private val projectService: ProjectService,
      * @return a list of projects
      */
     @GetMapping("/all")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
     fun getProjects() = projectService.getProjects()
 
     /**

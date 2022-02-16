@@ -202,7 +202,7 @@ class TestSuitesControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = ["ADMIN"])
+    @WithMockUser(roles = ["SUPER_ADMIN"])
     fun testUpdateStandardTestSuites() {
         whenever(scheduler.scheduleJob(any())).thenReturn(Date.from(Instant.now()))
 

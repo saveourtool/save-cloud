@@ -34,7 +34,7 @@ class ProjectPermissionEvaluator {
             Permission.DELETE -> false
         }
 
-        if (authentication.hasRole(Role.ADMIN)) {
+        if (authentication.hasRole(Role.SUPER_ADMIN)) {
             return true
         }
 
@@ -68,7 +68,8 @@ class ProjectPermissionEvaluator {
     private fun hasWriteAccess(userId: Long?, project: Project): Boolean = if (userId != null && project.userId == userId) {
         true
     } else {
-        val adminIdList = lnkUserProjectService.getAllUsersByProjectAndRole(project, Role.ADMIN).map { it.id }
-        userId != null && userId in adminIdList
+        val adminIds = lnkUserProjectService.getAllUsersByProjectAndRole(project, Role.ADMIN).map { it.id }
+        val ownerIds = lnkUserProjectService.getAllUsersByProjectAndRole(project, Role.OWNER).map { it.id }
+        userId != null && (userId in adminIds || userId in ownerIds)
     }
 }

@@ -68,7 +68,7 @@ class TestSuitesController(
      * @return response entity
      */
     @PostMapping(path = ["/api/updateStandardTestSuites", "/internal/updateStandardTestSuites"])
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
     fun updateStandardTestSuites() = Mono.fromCallable {
         scheduler.triggerJob(
             JobKey.jobKey(StandardSuitesUpdateScheduler.jobName)
