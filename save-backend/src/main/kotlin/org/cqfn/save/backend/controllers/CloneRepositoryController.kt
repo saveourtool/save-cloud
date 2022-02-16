@@ -94,18 +94,18 @@ class CloneRepositoryController(
         @RequestPart("file", required = true) files: Flux<FileInfo>,
         authentication: Authentication,
     ): Mono<StringResponse> = with(executionRequestForStandardSuites.project) {
-        projectService.findWithPermissionByNameAndOrganization(authentication, name,  organization, Permission.WRITE)
+        projectService.findWithPermissionByNameAndOrganization(authentication, name, organization, Permission.WRITE)
     }
         .flatMap {
             sendToPreprocessor(
-            executionRequestForStandardSuites,
-            ExecutionType.STANDARD,
-            authentication.username(),
-            files
-        ) {
-            part("executionRequestForStandardSuites", executionRequestForStandardSuites)
+                executionRequestForStandardSuites,
+                ExecutionType.STANDARD,
+                authentication.username(),
+                files
+            ) {
+                part("executionRequestForStandardSuites", executionRequestForStandardSuites)
+            }
         }
-    }
 
     @Suppress("UnsafeCallOnNullableType")
     private fun sendToPreprocessor(

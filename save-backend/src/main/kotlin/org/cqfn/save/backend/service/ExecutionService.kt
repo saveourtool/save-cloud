@@ -1,17 +1,14 @@
 package org.cqfn.save.backend.service
 
 import org.cqfn.save.backend.repository.ExecutionRepository
-import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.repository.UserRepository
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.Organization
-import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.execution.ExecutionInitializationDto
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionUpdateDto
 
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -96,7 +93,7 @@ class ExecutionService(private val executionRepository: ExecutionRepository,
      * Get latest (by start time an) execution by project name and project owner
      *
      * @param name name of project
-     * @param organization organization of project
+     * @param organizationId id of organization of project
      * @return execution or null if it was not found
      */
     fun getLatestExecutionByProjectNameAndProjectOrganizationId(name: String, organizationId: Long): Optional<Execution> =

@@ -46,6 +46,12 @@ class ProjectPermissionEvaluator {
         }
     }
 
+    /**
+     * @param authentication
+     * @param permission
+     * @param statusIfForbidden
+     * @return
+     */
     internal fun Mono<Project?>.filterByPermission(
         authentication: Authentication?,
         permission: Permission,

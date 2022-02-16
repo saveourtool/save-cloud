@@ -77,9 +77,16 @@ class ProjectService(private val projectRepository: ProjectRepository,
     }
 
     /**
+     * @param authentication [Authentication] of the user who wants to access the project
+     * @param name name of the project
+     * @param organization organization that owns the project
+     * @param permission requested [Permission]
+     * @param messageIfNotFound if project is not found, include this into 404 response body
+     * @param statusIfForbidden return this status if permission is not allowed fot the current user
      * @return `Mono` with project; `Mono.error` if project cannot be accessed by the current user.
      */
     @Transactional(readOnly = true)
+    @Suppress("LongParameterList")
     fun findWithPermissionByNameAndOrganization(
         authentication: Authentication,
         name: String,

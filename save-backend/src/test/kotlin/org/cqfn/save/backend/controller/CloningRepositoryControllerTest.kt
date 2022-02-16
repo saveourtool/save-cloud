@@ -5,6 +5,7 @@ import org.cqfn.save.backend.configs.NoopWebSecurityConfig
 import org.cqfn.save.backend.controllers.CloneRepositoryController
 import org.cqfn.save.backend.repository.*
 import org.cqfn.save.backend.scheduling.StandardSuitesUpdateScheduler
+import org.cqfn.save.backend.security.ProjectPermissionEvaluator
 import org.cqfn.save.backend.service.ExecutionService
 import org.cqfn.save.backend.service.ProjectService
 import org.cqfn.save.domain.Jdk
@@ -13,7 +14,6 @@ import org.cqfn.save.entities.*
 
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
-import org.cqfn.save.backend.security.ProjectPermissionEvaluator
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test

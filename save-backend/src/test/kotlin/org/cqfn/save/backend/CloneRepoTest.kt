@@ -5,7 +5,9 @@ import org.cqfn.save.backend.repository.ExecutionRepository
 import org.cqfn.save.backend.repository.OrganizationRepository
 import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.scheduling.StandardSuitesUpdateScheduler
+import org.cqfn.save.backend.utils.AuthenticationDetails
 import org.cqfn.save.backend.utils.MySqlExtension
+import org.cqfn.save.backend.utils.mutateMockedUser
 import org.cqfn.save.domain.Jdk
 import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.GitDto
@@ -14,8 +16,6 @@ import org.cqfn.save.execution.ExecutionType
 
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
-import org.cqfn.save.backend.utils.AuthenticationDetails
-import org.cqfn.save.backend.utils.mutateMockedUser
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test

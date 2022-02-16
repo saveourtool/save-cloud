@@ -23,6 +23,7 @@ interface ExecutionRepository : BaseEntityRepository<Execution> {
      *
      * @param name name of project
      * @param organization organization of project
+     * @param organizationId
      * @return execution or null if it was not found
      */
     fun findTopByProjectNameAndProjectOrganizationIdOrderByStartTimeDesc(name: String, organizationId: Long): Optional<Execution>

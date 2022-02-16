@@ -1,12 +1,9 @@
 package org.cqfn.save.backend
 
 import org.cqfn.save.agent.AgentState
-import org.cqfn.save.backend.controllers.ProjectController
 import org.cqfn.save.backend.repository.AgentStatusRepository
 import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.repository.TestExecutionRepository
-import org.cqfn.save.backend.scheduling.StandardSuitesUpdateScheduler
-import org.cqfn.save.backend.security.ProjectPermissionEvaluator
 import org.cqfn.save.backend.utils.MySqlExtension
 import org.cqfn.save.domain.TestResultStatus
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -15,9 +12,6 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
-import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.mock.mockito.MockBean
-import org.springframework.boot.test.mock.mockito.MockBeans
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)

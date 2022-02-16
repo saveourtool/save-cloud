@@ -13,8 +13,8 @@ import org.cqfn.save.backend.service.TestExecutionService
 import org.cqfn.save.backend.service.TestSuitesService
 import org.cqfn.save.backend.utils.filterAndInvoke
 import org.cqfn.save.backend.utils.filterWhenAndInvoke
-import org.cqfn.save.backend.utils.username
 import org.cqfn.save.backend.utils.justOrNotFound
+import org.cqfn.save.backend.utils.username
 import org.cqfn.save.core.utils.runIf
 import org.cqfn.save.domain.toSdk
 import org.cqfn.save.entities.Execution
@@ -23,8 +23,8 @@ import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.execution.ExecutionInitializationDto
 import org.cqfn.save.execution.ExecutionType
 import org.cqfn.save.execution.ExecutionUpdateDto
-import org.slf4j.LoggerFactory
 
+import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
@@ -86,17 +86,19 @@ class ExecutionController(private val executionService: ExecutionService,
      * Get execution by id
      *
      * @param id id of execution
+     * @param authentication
      * @return execution if it has been found
      */
     @GetMapping(path = ["/api/execution", "/internal/execution"])
     @Transactional(readOnly = true)
     @Suppress("UnsafeCallOnNullableType")
-    fun getExecution(@RequestParam id: Long, authentication: Authentication?): Mono<Execution> {
-        return justOrNotFound(executionService.findExecution(id), "Execution with id=$id is not found")
-            .runIf({ authentication != null }) {
-                filterWhen { projectPermissionEvaluator.checkPermissions(authentication!!, it, Permission.READ) }
-            }
-    }
+    fun getExecution(
+        @RequestParam id: Long,
+        authentication: Authentication?
+    ): Mono<Execution> = justOrNotFound(executionService.findExecution(id), "Execution with id=$id is not found")
+        .runIf({ authentication != null }) {
+            filterWhen { projectPermissionEvaluator.checkPermissions(authentication!!, it, Permission.READ) }
+        }
 
     /**
      * @param executionInitializationDto
@@ -110,25 +112,27 @@ class ExecutionController(private val executionService: ExecutionService,
 
     /**
      * @param executionId
+     * @param authentication
      * @return execution dto
      */
     @GetMapping("/api/executionDto")
     fun getExecutionDto(@RequestParam executionId: Long, authentication: Authentication): Mono<ExecutionDto> =
-        justOrNotFound(executionService.findExecution(executionId))
-            .filterWhen { projectPermissionEvaluator.checkPermissions(authentication, it, Permission.READ) }
-            .map { it.toDto() }
+            justOrNotFound(executionService.findExecution(executionId))
+                .filterWhen { projectPermissionEvaluator.checkPermissions(authentication, it, Permission.READ) }
+                .map { it.toDto() }
 
     /**
      * @param name
      * @param organizationId
+     * @param authentication
      * @return list of execution dtos
      */
     @GetMapping("/api/executionDtoList")
     fun getExecutionByProject(authentication: Authentication, @RequestParam name: String, @RequestParam organizationId: Long): Mono<List<ExecutionDto>> {
         val organization = organizationService.getOrganizationById(organizationId)
         return projectService.findWithPermissionByNameAndOrganization(authentication, name, organization, Permission.READ).map {
-                executionService.getExecutionDtoByNameAndOrganization(name, organization).reversed()
-            }
+            executionService.getExecutionDtoByNameAndOrganization(name, organization).reversed()
+        }
     }
 
     /**
@@ -136,6 +140,7 @@ class ExecutionController(private val executionService: ExecutionService,
      *
      * @param name project name
      * @param organizationId
+     * @param authentication
      * @return Execution
      * @throws ResponseStatusException if execution is not found
      */
@@ -153,6 +158,7 @@ class ExecutionController(private val executionService: ExecutionService,
      *
      * @param name name of project
      * @param organizationId organization of project
+     * @param authentication
      * @return ResponseEntity
      * @throws ResponseStatusException
      */
@@ -185,34 +191,33 @@ class ExecutionController(private val executionService: ExecutionService,
      * FixMe: do we need to add preconditions that only executions from a single project can be deleted in a single query?
      *
      * @param executionIds list of ids
+     * @param authentication
      * @return ResponseEntity
      * @throws ResponseStatusException
      */
     @PostMapping("/api/execution/delete")
-    fun deleteExecutionsByExecutionIds(@RequestParam executionIds: List<Long>, authentication: Authentication): Mono<ResponseEntity<*>> {
-       return Flux.fromIterable(executionIds)
+    fun deleteExecutionsByExecutionIds(@RequestParam executionIds: List<Long>, authentication: Authentication): Mono<ResponseEntity<*>> = Flux.fromIterable(executionIds)
         .map { it to executionService.findExecution(it) }
-            .filterAndInvoke({ (id, _) -> log.warn("Cannot delete execution id=$id because it's missing in the DB") }) { (_, execution) ->
-                execution.isPresent
+        .filterAndInvoke({ (id, _) -> log.warn("Cannot delete execution id=$id because it's missing in the DB") }) { (_, execution) ->
+            execution.isPresent
+        }
+        .map { (_, execution) -> execution.get() }
+        .groupBy { it.project }
+        .flatMap { groupedFlux ->
+            val project = groupedFlux.key()
+            groupedFlux.filterWhenAndInvoke({ log.warn("Cannot delete execution id=${it.id}, because operation is not allowed on project id=${project.id}") }) { execution ->
+                projectPermissionEvaluator.checkPermissions(authentication, execution, Permission.DELETE)
             }
-            .map { (_, execution) -> execution.get() }
-            .groupBy { it.project }
-            .flatMap { groupedFlux ->
-                val project = groupedFlux.key()
-                groupedFlux.filterWhenAndInvoke({ log.warn("Cannot delete execution id=${it.id}, because operation is not allowed on project id=${project.id}") }) { execution ->
-                    projectPermissionEvaluator.checkPermissions(authentication, execution, Permission.DELETE)
-                }
-            }
-            .map { it.id!! }
-            .collectList()
-            .map { filteredExecutionIds ->
-                testExecutionService.deleteTestExecutionByExecutionIds(filteredExecutionIds)
-                agentStatusService.deleteAgentStatusWithExecutionIds(filteredExecutionIds)
-                agentService.deleteAgentByExecutionIds(filteredExecutionIds)
-                executionService.deleteExecutionByIds(filteredExecutionIds)
-                ResponseEntity.ok().build<Void>()
-            }
-    }
+        }
+        .map { it.id!! }
+        .collectList()
+        .map { filteredExecutionIds ->
+            testExecutionService.deleteTestExecutionByExecutionIds(filteredExecutionIds)
+            agentStatusService.deleteAgentStatusWithExecutionIds(filteredExecutionIds)
+            agentService.deleteAgentByExecutionIds(filteredExecutionIds)
+            executionService.deleteExecutionByIds(filteredExecutionIds)
+            ResponseEntity.ok().build<Void>()
+        }
 
     /**
      * Accepts a request to rerun an existing execution
@@ -220,6 +225,7 @@ class ExecutionController(private val executionService: ExecutionService,
      * @param id id of an existing execution
      * @param authentication [Authentication] representing an authenticated request
      * @return bodiless response
+     * @throws ResponseStatusException
      */
     @PostMapping("/api/rerunExecution")
     @Transactional
@@ -229,7 +235,7 @@ class ExecutionController(private val executionService: ExecutionService,
             IllegalArgumentException("Can't rerun execution $id, because it does not exist")
         }
         if (!projectPermissionEvaluator.hasPermission(
-                authentication, execution.project, Permission.WRITE
+            authentication, execution.project, Permission.WRITE
         )) {
             throw ResponseStatusException(HttpStatus.FORBIDDEN)
         }
@@ -281,6 +287,12 @@ class ExecutionController(private val executionService: ExecutionService,
     fun findTestRootPathByTestSuites(@RequestBody execution: Execution): List<String> = execution.getTestRootPathByTestSuites()
 }
 
+/**
+ * @param authentication
+ * @param execution
+ * @param permission
+ * @return
+ */
 internal fun ProjectPermissionEvaluator.checkPermissions(authentication: Authentication, execution: Execution, permission: Permission): Mono<Boolean> =
         Mono.justOrEmpty(execution.project)
             .filterByPermission(authentication, permission, HttpStatus.FORBIDDEN)

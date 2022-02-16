@@ -4,7 +4,6 @@
 
 package org.cqfn.save.backend.configs
 
-import org.cqfn.save.backend.security.ProjectPermissionEvaluator
 import org.cqfn.save.backend.utils.ConvertingAuthenticationManager
 import org.cqfn.save.backend.utils.CustomAuthenticationBasicConverter
 import org.cqfn.save.domain.Role
@@ -16,7 +15,6 @@ import org.springframework.security.access.expression.method.DefaultMethodSecuri
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyUtils
-import org.springframework.security.authorization.AuthenticatedReactiveAuthorizationManager
 import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity
 import org.springframework.security.config.web.server.SecurityWebFiltersOrder
@@ -26,8 +24,6 @@ import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.server.SecurityWebFilterChain
 import org.springframework.security.web.server.authentication.AuthenticationWebFilter
 import org.springframework.security.web.server.authentication.HttpStatusServerEntryPoint
-import org.springframework.security.web.server.authorization.AuthorizationContext
-import org.springframework.security.web.server.authorization.DelegatingReactiveAuthorizationManager
 import javax.annotation.PostConstruct
 
 @EnableWebFluxSecurity
