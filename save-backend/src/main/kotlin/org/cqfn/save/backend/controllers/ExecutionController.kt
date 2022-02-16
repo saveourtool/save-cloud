@@ -10,6 +10,8 @@ import org.cqfn.save.backend.service.GitService
 import org.cqfn.save.backend.service.ProjectService
 import org.cqfn.save.backend.service.TestExecutionService
 import org.cqfn.save.backend.service.TestSuitesService
+import org.cqfn.save.backend.utils.filterAndInvoke
+import org.cqfn.save.backend.utils.filterWhenAndInvoke
 import org.cqfn.save.backend.utils.username
 import org.cqfn.save.backend.utils.justOrNotFound
 import org.cqfn.save.core.utils.runIf
@@ -34,8 +36,10 @@ import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
 import org.springframework.web.server.ResponseStatusException
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
+import java.util.Optional
 
 typealias ExecutionDtoListResponse = ResponseEntity<List<ExecutionDto>>
 
@@ -137,10 +141,10 @@ class ExecutionController(private val executionService: ExecutionService,
      */
     @GetMapping("/api/latestExecution")
     fun getLatestExecutionForProject(@RequestParam name: String, @RequestParam owner: String, authentication: Authentication): Mono<ExecutionDto> =
-            Mono.fromCallable { executionService.getLatestExecutionByProjectNameAndProjectOwner(name, owner) }
-                .filter { it.isPresent }
-                .switchIfEmpty { Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND, "Execution not found for project (name=$name, owner=$owner)")) }
-                .map { it.get() }
+            justOrNotFound(
+                executionService.getLatestExecutionByProjectNameAndProjectOwner(name, owner),
+                "Execution not found for project (name=$name, owner=$owner)"
+            )
                 .filterWhen { checkPermissions(authentication, it, Permission.READ) }
                 .map { it.toDto() }
 
@@ -154,38 +158,59 @@ class ExecutionController(private val executionService: ExecutionService,
      */
     @PostMapping("/api/execution/deleteAll")
     @Suppress("UnsafeCallOnNullableType")
-    fun deleteExecutionForProject(@RequestParam name: String, @RequestParam owner: String): ResponseEntity<String> {
-        try {
-            requireNotNull(projectService.findByNameAndOwner(name, owner)).id!!.let {
-                testExecutionService.deleteTestExecutionWithProjectId(it)
-                agentStatusService.deleteAgentStatusWithProjectId(it)
-                agentService.deleteAgentWithProjectId(it)
+    fun deleteExecutionForProject(
+        @RequestParam name: String,
+        @RequestParam owner: String,
+        authentication: Authentication,
+    ): Mono<ResponseEntity<*>> {
+        return projectService.findWithPermissionByNameAndOwner(
+            authentication,
+            name,
+            owner,
+            Permission.DELETE,
+            messageIfNotFound = "Could not find the project with name: $name and owner: $owner or related objects",
+        )
+            .mapNotNull { it.id!! }
+            .map { id ->
+                testExecutionService.deleteTestExecutionWithProjectId(id)
+                agentStatusService.deleteAgentStatusWithProjectId(id)
+                agentService.deleteAgentWithProjectId(id)
                 executionService.deleteExecutionByProjectNameAndProjectOwner(name, owner)
+                ResponseEntity.ok().build<String>()
             }
-        } catch (e: IllegalArgumentException) {
-            log.warn("Could not find the project with name: $name and owner: $owner or related objects", e)
-            throw ResponseStatusException(HttpStatus.NOT_FOUND, "Failed to delete executions for the following reason: ${e.message}")
-        }
-        return ResponseEntity.status(HttpStatus.OK).build()
     }
 
     /**
+     * FixMe: do we need to add preconditions that only executions from a single project can be deleted in a single query?
+     *
      * @param executionIds list of ids
      * @return ResponseEntity
      * @throws ResponseStatusException
      */
     @PostMapping("/api/execution/delete")
-    fun deleteExecutionsByExecutionIds(@RequestParam executionIds: List<Long>): ResponseEntity<String>? {
-        try {
-            testExecutionService.deleteTestExecutionByExecutionIds(executionIds)
-            agentStatusService.deleteAgentStatusWithExecutionIds(executionIds)
-            agentService.deleteAgentByExecutionIds(executionIds)
-            executionService.deleteExecutionByIds(executionIds)
-        } catch (e: IllegalArgumentException) {
-            log.warn("Could not find the following executions: $executionIds or related objects", e)
-            throw ResponseStatusException(HttpStatus.NOT_FOUND, "Failed to delete executions for the following reason: ${e.message}")
-        }
-        return ResponseEntity.status(HttpStatus.OK).build()
+    fun deleteExecutionsByExecutionIds(@RequestParam executionIds: List<Long>, authentication: Authentication): Mono<ResponseEntity<*>> {
+       return Flux.fromIterable(executionIds)
+        .map { it to executionService.findExecution(it) }
+            .filterAndInvoke({ (id, _) -> log.warn("Cannot delete execution id=$id because it's missing in the DB") }) { (_, execution) ->
+                execution.isPresent
+            }
+            .map { (_, execution) -> execution.get() }
+            .groupBy { it.project }
+            .flatMap { groupedFlux ->
+                val project = groupedFlux.key()
+                groupedFlux.filterWhenAndInvoke({ log.warn("Cannot delete execution id=${it.id}, because operation is not allowed on project id=${project.id}") }) { execution ->
+                    checkPermissions(authentication, execution, Permission.DELETE)
+                }
+            }
+            .map { it.id!! }
+            .collectList()
+            .map { filteredExecutionIds ->
+                testExecutionService.deleteTestExecutionByExecutionIds(filteredExecutionIds)
+                agentStatusService.deleteAgentStatusWithExecutionIds(filteredExecutionIds)
+                agentService.deleteAgentByExecutionIds(filteredExecutionIds)
+                executionService.deleteExecutionByIds(filteredExecutionIds)
+                ResponseEntity.ok().build<Void>()
+            }
     }
 
     /**

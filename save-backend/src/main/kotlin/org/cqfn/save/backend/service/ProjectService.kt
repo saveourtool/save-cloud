@@ -12,8 +12,10 @@ import org.springframework.http.HttpStatus
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.switchIfEmpty
 
 /**
  * Service for project
@@ -76,9 +78,13 @@ class ProjectService(private val projectRepository: ProjectRepository,
         name: String,
         owner: String,
         permission: Permission,
+        messageIfNotFound: String? = null,
         statusIfForbidden: HttpStatus = HttpStatus.FORBIDDEN,
     ): Mono<Project> = with(projectPermissionEvaluator) {
         Mono.fromCallable { findByNameAndOwner(name, owner) }
+            .switchIfEmpty {
+                Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND, messageIfNotFound))
+            }
             .filterByPermission(authentication, permission, statusIfForbidden)
     }
 }
