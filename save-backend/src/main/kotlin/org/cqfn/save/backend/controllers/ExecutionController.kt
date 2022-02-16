@@ -97,7 +97,7 @@ class ExecutionController(private val executionService: ExecutionService,
         authentication: Authentication?
     ): Mono<Execution> = justOrNotFound(executionService.findExecution(id), "Execution with id=$id is not found")
         .runIf({ authentication != null }) {
-            filterWhen { projectPermissionEvaluator.checkPermissions(authentication!!, it, Permission.READ) }
+            filterWhen { execution -> projectPermissionEvaluator.checkPermissions(authentication!!, execution, Permission.READ) }
         }
 
     /**
@@ -118,7 +118,7 @@ class ExecutionController(private val executionService: ExecutionService,
     @GetMapping("/api/executionDto")
     fun getExecutionDto(@RequestParam executionId: Long, authentication: Authentication): Mono<ExecutionDto> =
             justOrNotFound(executionService.findExecution(executionId))
-                .filterWhen { projectPermissionEvaluator.checkPermissions(authentication, it, Permission.READ) }
+                .filterWhen { execution -> projectPermissionEvaluator.checkPermissions(authentication, execution, Permission.READ) }
                 .map { it.toDto() }
 
     /**
@@ -287,14 +287,3 @@ class ExecutionController(private val executionService: ExecutionService,
     fun findTestRootPathByTestSuites(@RequestBody execution: Execution): List<String> = execution.getTestRootPathByTestSuites()
 }
 
-/**
- * @param authentication
- * @param execution
- * @param permission
- * @return
- */
-internal fun ProjectPermissionEvaluator.checkPermissions(authentication: Authentication, execution: Execution, permission: Permission): Mono<Boolean> =
-        Mono.justOrEmpty(execution.project)
-            .filterByPermission(authentication, permission, HttpStatus.FORBIDDEN)
-            .map { true }
-            .defaultIfEmpty(false)

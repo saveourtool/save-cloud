@@ -14,6 +14,9 @@ import org.cqfn.save.entities.*
 
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
+import org.cqfn.save.backend.configs.WebSecurityConfig
+import org.cqfn.save.backend.service.UserDetailsService
+import org.cqfn.save.backend.utils.ConvertingAuthenticationManager
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -46,7 +49,12 @@ import java.time.Duration
 import kotlin.io.path.createFile
 
 @WebFluxTest(controllers = [CloneRepositoryController::class])
-@Import(NoopWebSecurityConfig::class, TimestampBasedFileSystemRepository::class)
+@Import(
+    WebSecurityConfig::class,
+    TimestampBasedFileSystemRepository::class,
+    ConvertingAuthenticationManager::class,
+    UserDetailsService::class,
+)
 @EnableConfigurationProperties(ConfigProperties::class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @MockBeans(
@@ -95,7 +103,7 @@ class CloningRepositoryControllerTest {
         whenever(projectService.findByNameAndOrganizationName("huaweiName", "Huawei"))
             .thenReturn(testProject)
 
-        whenever(projectService.findWithPermissionByNameAndOrganization(any(), eq("huaweiName"), any(), any(), anyOrNull(), any()))
+        whenever(projectService.findWithPermissionByNameAndOrganization(any(), eq(testProject.name), any(), any(), anyOrNull(), any()))
             .thenAnswer { Mono.just(testProject) }
     }
 

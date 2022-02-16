@@ -66,7 +66,7 @@ class CloneRepositoryController(
         authentication: Authentication,
     ): Mono<StringResponse> = with(executionRequest.project) {
         // Project cannot be taken from executionRequest directly for permission evaluation:
-        // it can be changed by user, who submits it. We should get project from DB based on name/owner combination.
+        // it can be fudged by user, who submits it. We should get project from DB based on name/owner combination.
         projectService.findWithPermissionByNameAndOrganization(authentication, name, organization, Permission.WRITE)
     }
         .flatMap {

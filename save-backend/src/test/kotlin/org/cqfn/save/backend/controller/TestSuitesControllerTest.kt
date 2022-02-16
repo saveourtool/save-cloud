@@ -41,7 +41,6 @@ import java.net.HttpURLConnection
 import java.time.Instant
 import java.util.Date
 
-@ActiveProfiles("secure")
 @SpringBootTest(classes = [SaveApplication::class])
 @AutoConfigureWebTestClient
 @ExtendWith(MySqlExtension::class)

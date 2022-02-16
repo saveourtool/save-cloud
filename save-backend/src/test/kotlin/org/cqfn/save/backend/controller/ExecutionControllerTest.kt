@@ -42,7 +42,6 @@ import java.time.Month
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
 
-@ActiveProfiles("secure")
 @SpringBootTest(classes = [SaveApplication::class])
 @AutoConfigureWebTestClient
 @ExtendWith(MySqlExtension::class)

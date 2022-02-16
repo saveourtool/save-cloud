@@ -3,6 +3,7 @@ package org.cqfn.save.backend.security
 import org.cqfn.save.backend.service.LnkUserProjectService
 import org.cqfn.save.backend.utils.AuthenticationDetails
 import org.cqfn.save.domain.Role
+import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.Project
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
@@ -42,6 +43,7 @@ class ProjectPermissionEvaluator {
         return when (permission) {
             Permission.READ -> project.public || hasWriteAccess(userId, project)
             Permission.WRITE -> hasWriteAccess(userId, project)
+            // fixme: check role to ensure its `OWNER`
             Permission.DELETE -> project.userId == userId
         }
     }
@@ -72,4 +74,16 @@ class ProjectPermissionEvaluator {
         val ownerIds = lnkUserProjectService.getAllUsersByProjectAndRole(project, Role.OWNER).map { it.id }
         userId != null && (userId in adminIds || userId in ownerIds)
     }
+
+    /**
+     * @param authentication
+     * @param execution
+     * @param permission
+     * @return
+     */
+    internal fun checkPermissions(authentication: Authentication, execution: Execution, permission: Permission): Mono<Boolean> =
+        Mono.justOrEmpty(execution.project)
+            .filterByPermission(authentication, permission, HttpStatus.FORBIDDEN)
+            .map { true }
+            .defaultIfEmpty(false)
 }
