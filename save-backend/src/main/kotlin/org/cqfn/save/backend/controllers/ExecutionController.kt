@@ -7,6 +7,7 @@ import org.cqfn.save.backend.service.AgentService
 import org.cqfn.save.backend.service.AgentStatusService
 import org.cqfn.save.backend.service.ExecutionService
 import org.cqfn.save.backend.service.GitService
+import org.cqfn.save.backend.service.OrganizationService
 import org.cqfn.save.backend.service.ProjectService
 import org.cqfn.save.backend.service.TestExecutionService
 import org.cqfn.save.backend.service.TestSuitesService
@@ -56,6 +57,7 @@ class ExecutionController(private val executionService: ExecutionService,
                           private val testExecutionService: TestExecutionService,
                           private val agentService: AgentService,
                           private val agentStatusService: AgentStatusService,
+                          private val organizationService: OrganizationService,
                           config: ConfigProperties,
 ) {
     private val log = LoggerFactory.getLogger(ExecutionController::class.java)
@@ -122,28 +124,30 @@ class ExecutionController(private val executionService: ExecutionService,
 
     /**
      * @param name
-     * @param owner
+     * @param organizationId
      * @return list of execution dtos
      */
     @GetMapping("/api/executionDtoList")
-    fun getExecutionByProject(authentication: Authentication, @RequestParam name: String, @RequestParam owner: String): Mono<List<ExecutionDto>> =
-        projectService.findWithPermissionByNameAndOwner(authentication, name, owner, Permission.READ).map {
-            executionService.getExecutionDtoByNameAndOwner(name, owner).reversed()
-        }
+    fun getExecutionByProject(authentication: Authentication, @RequestParam name: String, @RequestParam organizationId: Long): Mono<List<ExecutionDto>> {
+        val organization = organizationService.getOrganizationById(organizationId)
+        return projectService.findWithPermissionByNameAndOrganization(authentication, name, organization, Permission.READ).map {
+                executionService.getExecutionDtoByNameAndOrganization(name, organization).reversed()
+            }
+    }
 
     /**
      * Get latest (by start time an) execution by project name and project owner
      *
      * @param name project name
-     * @param owner project owner
+     * @param organizationId
      * @return Execution
      * @throws ResponseStatusException if execution is not found
      */
     @GetMapping("/api/latestExecution")
-    fun getLatestExecutionForProject(@RequestParam name: String, @RequestParam owner: String, authentication: Authentication): Mono<ExecutionDto> =
+    fun getLatestExecutionForProject(@RequestParam name: String, @RequestParam organizationId: Long, authentication: Authentication): Mono<ExecutionDto> =
             justOrNotFound(
-                executionService.getLatestExecutionByProjectNameAndProjectOwner(name, owner),
-                "Execution not found for project (name=$name, owner=$owner)"
+                executionService.getLatestExecutionByProjectNameAndProjectOrganizationId(name, organizationId),
+                "Execution not found for project (name=$name, organization id=$organizationId)"
             )
                 .filterWhen { checkPermissions(authentication, it, Permission.READ) }
                 .map { it.toDto() }
@@ -152,7 +156,7 @@ class ExecutionController(private val executionService: ExecutionService,
      * Delete all executions by project name and project owner
      *
      * @param name name of project
-     * @param owner owner of project
+     * @param organizationId organization of project
      * @return ResponseEntity
      * @throws ResponseStatusException
      */
@@ -160,22 +164,23 @@ class ExecutionController(private val executionService: ExecutionService,
     @Suppress("UnsafeCallOnNullableType")
     fun deleteExecutionForProject(
         @RequestParam name: String,
-        @RequestParam owner: String,
+        @RequestParam organizationId: Long,
         authentication: Authentication,
     ): Mono<ResponseEntity<*>> {
-        return projectService.findWithPermissionByNameAndOwner(
+        val organization = organizationService.getOrganizationById(organizationId)
+        return projectService.findWithPermissionByNameAndOrganization(
             authentication,
             name,
-            owner,
+            organization,
             Permission.DELETE,
-            messageIfNotFound = "Could not find the project with name: $name and owner: $owner or related objects",
+            messageIfNotFound = "Could not find the project with name: $name and owner: ${organization.name} or related objects",
         )
             .mapNotNull { it.id!! }
             .map { id ->
                 testExecutionService.deleteTestExecutionWithProjectId(id)
                 agentStatusService.deleteAgentStatusWithProjectId(id)
                 agentService.deleteAgentWithProjectId(id)
-                executionService.deleteExecutionByProjectNameAndProjectOwner(name, owner)
+                executionService.deleteExecutionByProjectNameAndProjectOrganization(name, organization)
                 ResponseEntity.ok().build<String>()
             }
     }

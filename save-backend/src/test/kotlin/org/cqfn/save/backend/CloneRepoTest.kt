@@ -2,6 +2,7 @@ package org.cqfn.save.backend
 
 import org.cqfn.save.backend.controllers.ProjectController
 import org.cqfn.save.backend.repository.ExecutionRepository
+import org.cqfn.save.backend.repository.OrganizationRepository
 import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.scheduling.StandardSuitesUpdateScheduler
 import org.cqfn.save.backend.utils.MySqlExtension
@@ -50,6 +51,9 @@ class CloneRepoTest {
     @Autowired
     private lateinit var executionRepository: ExecutionRepository
 
+    @Autowired
+    private lateinit var organizationRepository: OrganizationRepository
+
     @Test
     @WithMockUser(username = "admin")
     fun checkSaveProject() {
@@ -81,7 +85,7 @@ class CloneRepoTest {
         Assertions.assertTrue(
             executionRepository.findAll().any {
                 it.project.name == project.name &&
-                        it.project.owner == project.owner &&
+                        it.project.organization == project.organization &&
                         it.type == ExecutionType.GIT &&
                         it.sdk == sdk.toString()
             }
@@ -96,7 +100,8 @@ class CloneRepoTest {
         }
 
         val sdk = Jdk("11")
-        val project = Project.stub(null)
+        val organization = organizationRepository.getOrganizationById(1)
+        val project = Project.stub(null, organization)
         val gitRepo = GitDto("1")
         val executionRequest = ExecutionRequest(project, gitRepo, executionId = null, sdk = sdk, testRootPath = ".")
         val executionsClones = listOf(executionRequest, executionRequest, executionRequest)

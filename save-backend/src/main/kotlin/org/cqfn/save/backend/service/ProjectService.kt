@@ -4,6 +4,7 @@ import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.security.Permission
 import org.cqfn.save.backend.security.ProjectPermissionEvaluator
 import org.cqfn.save.domain.ProjectSaveStatus
+import org.cqfn.save.entities.Organization
 import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.ProjectStatus
 import org.springframework.data.domain.Example
@@ -54,10 +55,16 @@ class ProjectService(private val projectRepository: ProjectRepository,
 
     /**
      * @param name
-     * @param owner
+     * @param organization
      */
     @Suppress("KDOC_WITHOUT_RETURN_TAG")  // remove after new release of diktat
-    fun findByNameAndOwner(name: String, owner: String) = projectRepository.findByNameAndOwner(name, owner)
+    fun findByNameAndOrganization(name: String, organization: Organization) = projectRepository.findByNameAndOrganization(name, organization)
+
+    /**
+     * @param name
+     * @param organizationName
+     */
+    fun findByNameAndOrganizationName(name: String, organizationName: String) = projectRepository.findByNameAndOrganizationName(name, organizationName)
 
     /**
      * @return project's without status
@@ -73,15 +80,15 @@ class ProjectService(private val projectRepository: ProjectRepository,
      * @return `Mono` with project; `Mono.error` if project cannot be accessed by the current user.
      */
     @Transactional(readOnly = true)
-    fun findWithPermissionByNameAndOwner(
+    fun findWithPermissionByNameAndOrganization(
         authentication: Authentication,
         name: String,
-        owner: String,
+        organization: Organization,
         permission: Permission,
         messageIfNotFound: String? = null,
         statusIfForbidden: HttpStatus = HttpStatus.FORBIDDEN,
     ): Mono<Project> = with(projectPermissionEvaluator) {
-        Mono.fromCallable { findByNameAndOwner(name, owner) }
+        Mono.fromCallable { findByNameAndOrganization(name, organization) }
             .switchIfEmpty {
                 Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND, messageIfNotFound))
             }

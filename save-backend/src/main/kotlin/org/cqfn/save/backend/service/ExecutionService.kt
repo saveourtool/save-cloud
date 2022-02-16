@@ -4,6 +4,7 @@ import org.cqfn.save.backend.repository.ExecutionRepository
 import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.repository.UserRepository
 import org.cqfn.save.entities.Execution
+import org.cqfn.save.entities.Organization
 import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.execution.ExecutionInitializationDto
 import org.cqfn.save.execution.ExecutionStatus
@@ -85,21 +86,21 @@ class ExecutionService(private val executionRepository: ExecutionRepository,
 
     /**
      * @param name name of project
-     * @param owner owner of project
+     * @param organization organization of project
      * @return list of execution dtos
      */
-    fun getExecutionDtoByNameAndOwner(name: String, owner: String) =
-            executionRepository.getAllByProjectNameAndProjectOwner(name, owner).map { it.toDto() }
+    fun getExecutionDtoByNameAndOrganization(name: String, organization: Organization) =
+            executionRepository.getAllByProjectNameAndProjectOrganization(name, organization).map { it.toDto() }
 
     /**
      * Get latest (by start time an) execution by project name and project owner
      *
      * @param name name of project
-     * @param owner owner of project
+     * @param organization organization of project
      * @return execution or null if it was not found
      */
-    fun getLatestExecutionByProjectNameAndProjectOwner(name: String, owner: String): Optional<Execution> =
-            executionRepository.findTopByProjectNameAndProjectOwnerOrderByStartTimeDesc(name, owner)
+    fun getLatestExecutionByProjectNameAndProjectOrganizationId(name: String, organizationId: Long): Optional<Execution> =
+            executionRepository.findTopByProjectNameAndProjectOrganizationIdOrderByStartTimeDesc(name, organizationId)
 
     /**
      * @param executionInitializationDto execution dto to update
@@ -122,11 +123,11 @@ class ExecutionService(private val executionRepository: ExecutionRepository,
      * Delete all executions by project name and project owner
      *
      * @param name name of project
-     * @param owner owner of project
+     * @param organization organization of project
      * @return Unit
      */
-    fun deleteExecutionByProjectNameAndProjectOwner(name: String, owner: String) =
-            executionRepository.getAllByProjectNameAndProjectOwner(name, owner).forEach {
+    fun deleteExecutionByProjectNameAndProjectOrganization(name: String, organization: Organization) =
+            executionRepository.getAllByProjectNameAndProjectOrganization(name, organization).forEach {
                 executionRepository.delete(it)
             }
 

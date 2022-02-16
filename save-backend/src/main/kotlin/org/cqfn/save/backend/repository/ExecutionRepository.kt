@@ -1,6 +1,7 @@
 package org.cqfn.save.backend.repository
 
 import org.cqfn.save.entities.Execution
+import org.cqfn.save.entities.Organization
 import org.cqfn.save.entities.Project
 import org.springframework.stereotype.Repository
 import java.util.Optional
@@ -12,19 +13,19 @@ import java.util.Optional
 interface ExecutionRepository : BaseEntityRepository<Execution> {
     /**
      * @param name name of project
-     * @param owner owner of project
+     * @param organization organization of project
      * @return list of executions
      */
-    fun getAllByProjectNameAndProjectOwner(name: String, owner: String): List<Execution>
+    fun getAllByProjectNameAndProjectOrganization(name: String, organization: Organization): List<Execution>
 
     /**
      * Get latest (by start time an) execution by project name and project owner
      *
      * @param name name of project
-     * @param owner owner of project
+     * @param organization organization of project
      * @return execution or null if it was not found
      */
-    fun findTopByProjectNameAndProjectOwnerOrderByStartTimeDesc(name: String, owner: String): Optional<Execution>
+    fun findTopByProjectNameAndProjectOrganizationIdOrderByStartTimeDesc(name: String, organizationId: Long): Optional<Execution>
 
     /**
      * @param project to find execution

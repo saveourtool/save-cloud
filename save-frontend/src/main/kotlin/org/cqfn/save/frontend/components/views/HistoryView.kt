@@ -5,19 +5,14 @@
 package org.cqfn.save.frontend.components.views
 
 import org.cqfn.save.domain.TestResultStatus
+import org.cqfn.save.entities.Organization
 import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.frontend.components.tables.tableComponent
 import org.cqfn.save.frontend.externals.fontawesome.faTrashAlt
 import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
 import org.cqfn.save.frontend.themes.Colors
-import org.cqfn.save.frontend.utils.apiUrl
-import org.cqfn.save.frontend.utils.decodeFromJsonString
-import org.cqfn.save.frontend.utils.get
-import org.cqfn.save.frontend.utils.post
-import org.cqfn.save.frontend.utils.runConfirmWindowModal
-import org.cqfn.save.frontend.utils.runErrorModal
-import org.cqfn.save.frontend.utils.unsafeMap
+import org.cqfn.save.frontend.utils.*
 
 import csstype.Background
 import org.w3c.fetch.Headers
@@ -45,9 +40,9 @@ import kotlinx.js.jso
  */
 external interface HistoryProps : PropsWithChildren {
     /**
-     * Project owner
+     * Project organization name
      */
-    var owner: String
+    var organizationName: String
 
     /**
      * Project name
@@ -103,6 +98,11 @@ external interface HistoryViewState : State {
      * Error label
      */
     var errorLabel: String
+
+    /**
+     * Project organization
+     */
+    var organization: Organization
 }
 
 /**
@@ -112,6 +112,20 @@ external interface HistoryViewState : State {
 @OptIn(ExperimentalJsExport::class)
 class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
     private lateinit var responseFromDeleteExecutions: Response
+
+    override fun componentDidMount() {
+        super.componentDidMount()
+
+        scope.launch {
+            val organizationNew: Organization = get("$apiUrl/organization/get/organization-name?name=${props.organizationName}", Headers().apply {
+                set("Accept", "application/json")
+            })
+                .decodeFromJsonString<Organization>()
+            setState {
+                organization = organizationNew
+            }
+        }
+    }
 
     @Suppress(
         "TOO_LONG_FUNCTION",
@@ -254,7 +268,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
             }
         ) { _, _ ->
             get(
-                url = "$apiUrl/executionDtoList?name=${props.name}&owner=${props.owner}",
+                url = "$apiUrl/executionDtoList?name=${props.name}&organizationId=${state.organization.id}",
                 headers = Headers().also {
                     it.set("Accept", "application/json")
                     it.set("Content-Type", "application/json")
@@ -291,9 +305,9 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
         }
         scope.launch {
             responseFromDeleteExecutions =
-                    post("$apiUrl/execution/deleteAll?name=${props.name}&owner=${props.owner}", headers, undefined)
+                    post("$apiUrl/execution/deleteAll?name=${props.name}&organizationId=${state.organization.id}", headers, undefined)
             if (responseFromDeleteExecutions.ok) {
-                window.location.href = "${window.location.origin}#/${props.owner}/${props.name}"
+                window.location.href = "${window.location.origin}#/${props.organizationName}/${props.name}"
             } else {
                 responseFromDeleteExecutions.text().then {
                     setState {
