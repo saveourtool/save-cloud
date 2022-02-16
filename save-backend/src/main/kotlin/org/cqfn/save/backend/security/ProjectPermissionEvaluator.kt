@@ -1,7 +1,6 @@
 package org.cqfn.save.backend.security
 
 import org.cqfn.save.backend.utils.AuthenticationDetails
-import org.cqfn.save.core.utils.runIf
 import org.cqfn.save.domain.Role
 import org.cqfn.save.entities.Project
 import org.springframework.http.HttpStatus
@@ -42,7 +41,7 @@ class ProjectPermissionEvaluator {
         }
     }
 
-    internal fun Mono<Project?>.checkPermission(
+    internal fun Mono<Project?>.filterByPermission(
         authentication: Authentication?,
         permission: Permission,
         statusIfForbidden: HttpStatus,

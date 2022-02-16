@@ -30,7 +30,6 @@ import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.toEntity
-import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import java.lang.StringBuilder
@@ -68,7 +67,7 @@ class CloneRepositoryController(
     ): Mono<StringResponse> = with(executionRequest.project) {
         // Project cannot be taken from executionRequest directly for permission evaluation:
         // it can be changed by user, who submits it. We should get project from DB based on name/owner combination.
-        projectService.checkPermissionByNameAndOwner(authentication, name, owner, Permission.WRITE)
+        projectService.findWithPermissionByNameAndOwner(authentication, name, owner, Permission.WRITE)
     }
         .flatMap {
             sendToPreprocessor(
@@ -95,7 +94,7 @@ class CloneRepositoryController(
         @RequestPart("file", required = true) files: Flux<FileInfo>,
         authentication: Authentication,
     ): Mono<StringResponse> = with(executionRequestForStandardSuites.project) {
-        projectService.checkPermissionByNameAndOwner(authentication, name,  owner, Permission.WRITE)
+        projectService.findWithPermissionByNameAndOwner(authentication, name,  owner, Permission.WRITE)
     }
         .flatMap {
             sendToPreprocessor(

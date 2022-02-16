@@ -36,7 +36,6 @@ import org.springframework.web.reactive.function.client.bodyToMono
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
-import java.util.Optional
 
 typealias ExecutionDtoListResponse = ResponseEntity<List<ExecutionDto>>
 
@@ -89,6 +88,7 @@ class ExecutionController(private val executionService: ExecutionService,
      */
     @GetMapping(path = ["/api/execution", "/internal/execution"])
     @Transactional(readOnly = true)
+    @Suppress("UnsafeCallOnNullableType")
     fun getExecution(@RequestParam id: Long, authentication: Authentication?): Mono<Execution> {
         return justOrNotFound(executionService.findExecution(id), "Execution with id=$id is not found")
             .runIf({ authentication != null }) {
@@ -123,7 +123,7 @@ class ExecutionController(private val executionService: ExecutionService,
      */
     @GetMapping("/api/executionDtoList")
     fun getExecutionByProject(authentication: Authentication, @RequestParam name: String, @RequestParam owner: String): Mono<List<ExecutionDto>> =
-        projectService.checkPermissionByNameAndOwner(authentication, name, owner, Permission.READ).map {
+        projectService.findWithPermissionByNameAndOwner(authentication, name, owner, Permission.READ).map {
             executionService.getExecutionDtoByNameAndOwner(name, owner).reversed()
         }
 
@@ -252,7 +252,7 @@ class ExecutionController(private val executionService: ExecutionService,
     private fun checkPermissions(authentication: Authentication, execution: Execution, permission: Permission): Mono<Boolean> =
         with (projectPermissionEvaluator) {
             Mono.justOrEmpty(execution.project)
-                .checkPermission(authentication, permission, HttpStatus.FORBIDDEN)
+                .filterByPermission(authentication, permission, HttpStatus.FORBIDDEN)
                 .map { true }
                 .defaultIfEmpty(false)
         }

@@ -96,8 +96,8 @@ class CloningRepositoryControllerTest {
         whenever(projectService.findByNameAndOwner("huaweiName", "Huawei"))
             .thenReturn(testProject)
 
-        whenever(projectService.checkPermissionByNameAndOwner(any(), eq("huaweiName"), eq("Huawei"), any(), any()))
-            .thenAnswer { Mono.just(it.arguments[0]) }
+        whenever(projectService.findWithPermissionByNameAndOwner(any(), eq("huaweiName"), eq("Huawei"), any(), any()))
+            .thenAnswer { Mono.just(testProject) }
     }
 
     @Test

@@ -155,6 +155,9 @@ class ExecutionControllerTest {
     @Test
     @WithMockUser
     fun checkExecutionDtoByProject() {
+        mutateMockedUser {
+            details = AuthenticationDetails(id = 99)
+        }
 
         val project = projectRepository.findById(1).get()
         val executionCounts = executionRepository.findAll().count { it.project.id == project.id }

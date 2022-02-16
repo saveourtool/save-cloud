@@ -1,8 +1,6 @@
 package org.cqfn.save.backend.service
 
-import org.cqfn.save.backend.repository.ExecutionRepository
 import org.cqfn.save.backend.repository.ProjectRepository
-import org.cqfn.save.backend.repository.UserRepository
 import org.cqfn.save.backend.security.Permission
 import org.cqfn.save.backend.security.ProjectPermissionEvaluator
 import org.cqfn.save.domain.ProjectSaveStatus
@@ -14,11 +12,8 @@ import org.springframework.http.HttpStatus
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-import reactor.kotlin.core.publisher.cast
-import reactor.kotlin.core.publisher.switchIfEmpty
 
 /**
  * Service for project
@@ -76,7 +71,7 @@ class ProjectService(private val projectRepository: ProjectRepository,
      * @return `Mono` with project; `Mono.error` if project cannot be accessed by the current user.
      */
     @Transactional(readOnly = true)
-    fun checkPermissionByNameAndOwner(
+    fun findWithPermissionByNameAndOwner(
         authentication: Authentication,
         name: String,
         owner: String,
@@ -84,6 +79,6 @@ class ProjectService(private val projectRepository: ProjectRepository,
         statusIfForbidden: HttpStatus = HttpStatus.FORBIDDEN,
     ): Mono<Project> = with(projectPermissionEvaluator) {
         Mono.fromCallable { findByNameAndOwner(name, owner) }
-            .checkPermission(authentication, permission, statusIfForbidden)
+            .filterByPermission(authentication, permission, statusIfForbidden)
     }
 }
