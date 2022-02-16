@@ -36,7 +36,7 @@ class DatabaseTest {
     fun checkProjectDataInDataBase() {
         val projects = projectRepository.findAll()
 
-        assertTrue(projects.any { it.name == "huaweiName" && it.owner == "Huawei" && it.url == "huawei.com" })
+        assertTrue(projects.any { it.name == "huaweiName" && it.organization.name == "Huawei" && it.url == "huawei.com" })
     }
 
     @Test

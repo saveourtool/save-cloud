@@ -42,7 +42,7 @@ class DeleteEntitiesTest {
     @Disabled("should rollback after committing in the db")
     fun testDeleteExecution() {
         webClient.post()
-            .uri("/api/execution/deleteAll?name=huaweiName&owner=Huawei")
+            .uri("/api/execution/deleteAll?name=huaweiName&organizationId=1")
             .contentType(MediaType.APPLICATION_JSON)
             .exchange()
             .expectStatus()

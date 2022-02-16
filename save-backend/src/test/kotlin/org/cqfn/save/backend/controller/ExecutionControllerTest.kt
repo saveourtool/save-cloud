@@ -148,7 +148,7 @@ class ExecutionControllerTest {
         val project = projectRepository.findById(1).get()
         val executionCounts = executionRepository.findAll().count { it.project.id == project.id }
         webClient.get()
-            .uri("/api/executionDtoList?name=${project.name}&owner=${project.owner}")
+            .uri("/api/executionDtoList?name=${project.name}&organizationId=${project.organization.id}")
             .exchange()
             .expectStatus()
             .isOk
