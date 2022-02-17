@@ -86,7 +86,7 @@ class ProjectService(private val projectRepository: ProjectRepository,
      * @return `Mono` with project; `Mono.error` if project cannot be accessed by the current user.
      */
     @Transactional(readOnly = true)
-    @Suppress("LongParameterList")
+    @Suppress("LongParameterList", "TOO_MANY_PARAMETERS")
     fun findWithPermissionByNameAndOrganization(
         authentication: Authentication,
         name: String,

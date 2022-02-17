@@ -52,7 +52,7 @@ class ProjectPermissionEvaluator {
      * @param authentication
      * @param permission
      * @param statusIfForbidden
-     * @return
+     * @return a [Mono] containing the project or `Mono.error` if project can't or shouldn't be accessed by the current user
      */
     internal fun Mono<Project?>.filterByPermission(
         authentication: Authentication?,
@@ -79,7 +79,7 @@ class ProjectPermissionEvaluator {
      * @param authentication
      * @param execution
      * @param permission
-     * @return
+     * @return [Mono] containing `true` if the current user is granted [permission] on the project for this [execution] or Mono with `false` otherwise
      */
     internal fun checkPermissions(authentication: Authentication, execution: Execution, permission: Permission): Mono<Boolean> =
             Mono.justOrEmpty(execution.project)
