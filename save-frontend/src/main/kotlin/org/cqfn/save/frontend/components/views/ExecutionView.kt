@@ -29,7 +29,6 @@ import org.cqfn.save.frontend.utils.unsafeMap
 
 import csstype.Background
 import csstype.TextDecoration
-import kotlinext.js.jso
 import org.w3c.fetch.Headers
 import react.*
 import react.dom.*
@@ -39,11 +38,11 @@ import react.table.usePagination
 import react.table.useSortBy
 
 import kotlinx.browser.window
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
 import kotlinx.html.js.onClickFunction
+import kotlinx.js.jso
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 
@@ -102,7 +101,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
     override fun componentDidMount() {
         super.componentDidMount()
 
-        GlobalScope.launch {
+        scope.launch {
             val headers = Headers().also { it.set("Accept", "application/json") }
             val executionDtoFromBackend: ExecutionDto =
                     get("$apiUrl/executionDto?executionId=${props.executionId}", headers)
@@ -166,7 +165,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                                     fontAwesomeIcon(icon = faRedo, classes = "ml-2")
                                     @Suppress("TOO_MANY_LINES_IN_LAMBDA")
                                     attrs.onClickFunction = {
-                                        GlobalScope.launch {
+                                        scope.launch {
                                             post(
                                                 "$apiUrl/rerunExecution?id=${props.executionId}",
                                                 Headers(),
@@ -242,7 +241,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                         td {
                             spread(cellProps.row.getToggleRowExpandedProps())
 
-                            attrs["style"] = kotlinext.js.jso<CSSProperties> {
+                            attrs["style"] = jso<CSSProperties> {
                                 textDecoration = "underline grey".unsafeCast<TextDecoration>()
                             }
 
@@ -256,7 +255,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                             +shortTestName
 
                             attrs.onClickFunction = {
-                                GlobalScope.launch {
+                                scope.launch {
                                     val te = cellProps.value
                                     val trdi = getDebugInfoFor(te)
                                     if (trdi.ok) {

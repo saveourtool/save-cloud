@@ -1,7 +1,8 @@
 package org.cqfn.save.frontend.components.views
 
+import org.cqfn.save.frontend.utils.ComponentWithScope
+
 import react.Props
-import react.RComponent
 import react.State
 
 import kotlinx.browser.document
@@ -9,8 +10,7 @@ import kotlinx.browser.document
 /**
  * Abstract view class that should be used in all functional views
  */
-@Suppress("CLASS_SHOULD_NOT_BE_ABSTRACT")
-abstract class AbstractView<P : Props, S : State>(private val hasBg: Boolean = true) : RComponent<P, S>() {
+abstract class AbstractView<P : Props, S : State>(private val hasBg: Boolean = true) : ComponentWithScope<P, S>() {
     // A small hack to avoid duplication of main content-wrapper from App.kt
     // We will have custom background only for sign-up and sign-in views
     override fun componentDidMount() {

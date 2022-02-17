@@ -11,8 +11,7 @@ import org.cqfn.save.frontend.components.topBar
 import org.cqfn.save.frontend.components.views.*
 import org.cqfn.save.frontend.externals.fontawesome.*
 import org.cqfn.save.frontend.externals.modal.ReactModal
-import org.cqfn.save.frontend.utils.get
-import org.cqfn.save.frontend.utils.withRouter
+import org.cqfn.save.frontend.utils.*
 import org.cqfn.save.info.UserInfo
 
 import org.w3c.dom.HTMLElement
@@ -27,7 +26,6 @@ import react.router.dom.HashRouter
 
 import kotlinx.browser.document
 import kotlinx.browser.window
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
 import kotlinx.html.id
@@ -49,13 +47,13 @@ external interface AppState : State {
  */
 @JsExport
 @OptIn(ExperimentalJsExport::class)
-class App : RComponent<PropsWithChildren, AppState>() {
+class App : ComponentWithScope<PropsWithChildren, AppState>() {
     init {
         state.userInfo = null
     }
 
     private fun getUser() {
-        GlobalScope.launch {
+        scope.launch {
             val headers = Headers().also { it.set("Accept", "application/json") }
             val userInfoNew: UserInfo? = get("${window.location.origin}/sec/user", headers).run {
                 val responseText = text().await()
@@ -158,7 +156,7 @@ class App : RComponent<PropsWithChildren, AppState>() {
                                     child(withRouter { _, params ->
                                         child(HistoryView::class) {
                                             attrs.name = params["name"]!!
-                                            attrs.owner = params["owner"]!!
+                                            attrs.organizationName = params["owner"]!!
                                         }
                                     })
                                 }
@@ -183,7 +181,8 @@ class App : RComponent<PropsWithChildren, AppState>() {
 
                         Route {
                             attrs {
-                                path = "/:owner/:name/history/execution/:executionId/details/:testSuiteName/:pluginName/:testFilePath/*"
+                                // Since testFilePath can represent the nested path, we catch it as *
+                                path = "/:owner/:name/history/execution/:executionId/details/:testSuiteName/:pluginName/*"
                                 element = buildElement {
                                     child(testExecutionDetailsView()) {}
                                 }

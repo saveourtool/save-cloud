@@ -6,6 +6,7 @@ import org.cqfn.save.buildutils.createDiktatTask
 import org.cqfn.save.buildutils.createStackDeployTask
 import org.cqfn.save.buildutils.getDatabaseCredentials
 import org.cqfn.save.buildutils.installGitHooks
+import org.cqfn.save.buildutils.registerSaveCliVersionCheckTask
 
 plugins {
     alias(libs.plugins.talaiot.base)
@@ -56,12 +57,14 @@ talaiot {
 }
 
 allprojects {
-    configureDiktat()
     configureDetekt()
     configurations.all {
         // if SNAPSHOT dependencies are used, refresh them periodically
         resolutionStrategy.cacheDynamicVersionsFor(10, TimeUnit.MINUTES)
     }
+}
+subprojects {
+    configureDiktat()
 }
 
 createStackDeployTask(profile)
@@ -69,11 +72,4 @@ configureVersioning()
 createDiktatTask()
 createDetektTask()
 installGitHooks()
-
-allprojects {
-    tasks.withType<org.cqfn.diktat.plugin.gradle.DiktatJavaExecTaskBase>().configureEach {
-        javaLauncher.set(project.extensions.getByType<JavaToolchainService>().launcherFor {
-            languageVersion.set(JavaLanguageVersion.of(11))
-        })
-    }
-}
+registerSaveCliVersionCheckTask()
