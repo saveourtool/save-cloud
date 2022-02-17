@@ -21,9 +21,6 @@ jobs:
       - uses: burrunan/gradle-cache-action@v1
         with:
           gradle-version: wrapper
-          # additional files to calculate key for dependency cache
-          gradle-dependencies-cache-key: |
-            buildSrc/**/Versions.kt
           arguments: |
             diktatCheck
           properties: |
