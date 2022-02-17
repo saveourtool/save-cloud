@@ -30,7 +30,7 @@ internal val json = Json {
 class LocalDateTimeConfig {
 
     @Bean
-    fun kotlinSerializationJsonEncoder() = KotlinSerializationJsonEncoder()
+    fun kotlinSerializationJsonEncoder() = KotlinSerializationJsonEncoder(json)
 
     @Bean
     fun kotlinSerializationJsonDecoder() = KotlinSerializationJsonDecoder(json)
