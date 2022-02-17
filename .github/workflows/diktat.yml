@@ -25,7 +25,7 @@ jobs:
           gradle-dependencies-cache-key: |
             buildSrc/**/Versions.kt
           arguments: |
-            diktatCheckAll
+            diktatCheck
           properties: |
             diktat.githubActions=true
             detekt.multiplatform.disabled=true
