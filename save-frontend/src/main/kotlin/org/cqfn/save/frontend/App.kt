@@ -127,7 +127,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                 path = "/:owner"
                                 element = buildElement {
                                     child(withRouter { _, params ->
-                                        child(OwnerView::class) {
+                                        child(OrganizationView::class) {
                                             attrs.owner = params["owner"]!!
                                         }
                                     })

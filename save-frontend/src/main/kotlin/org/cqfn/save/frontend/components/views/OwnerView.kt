@@ -53,7 +53,7 @@ external interface OwnerViewState : State {
 /**
  * A Component for owner view
  */
-class OwnerView : AbstractView<OwnerProps, OwnerViewState>(false) {
+class OrganizationView : AbstractView<OwnerProps, OwnerViewState>(false) {
 
     init {
         state.isUploading = false
@@ -142,7 +142,7 @@ class OwnerView : AbstractView<OwnerProps, OwnerViewState>(false) {
                         column(id = "name", header = "Evaluated Tool", { name }) {
                             buildElement {
                                 td {
-                                    a(href = "#/${it.row.original.owner}/${it.value}") { +it.value }
+                                    a(href = "#/${it.row.original.organization.name}/${it.value}") { +it.value }
                                     privacySpan(it.row.original)
                                 }
                             }

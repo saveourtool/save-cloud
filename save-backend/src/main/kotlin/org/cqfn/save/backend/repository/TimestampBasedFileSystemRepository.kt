@@ -48,7 +48,7 @@ class TimestampBasedFileSystemRepository(configProperties: ConfigProperties) {
             createDirectories()
         }
     }
-    private val rootDirImage = (Paths.get(configProperties.fileStorage.location) / "imageAvatar").apply {
+    private val rootDirImage = (Paths.get(configProperties.fileStorage.location) / "images" / "avatars").apply {
         if (!exists()) {
             createDirectories()
         }

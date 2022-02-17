@@ -42,7 +42,7 @@ class CollectionView : AbstractView<PropsWithChildren, State>(false) {
                 column(id = "owner", header = "Project Owner", { organization.name }) {
                     buildElement {
                         td {
-                            a(href = "#/${it.row.original.owner}") { +it.value }
+                            a(href = "#/${it.row.original.organization.name}") { +it.value }
                         }
                     }
                 }
