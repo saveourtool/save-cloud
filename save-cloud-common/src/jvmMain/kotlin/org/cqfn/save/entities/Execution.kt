@@ -37,7 +37,6 @@ import javax.persistence.ManyToOne
 @Entity
 class Execution(
 
-    // todo: should be FetchType.LAZY
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "project_id")
     var project: Project,
