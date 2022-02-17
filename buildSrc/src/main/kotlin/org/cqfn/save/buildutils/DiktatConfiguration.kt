@@ -24,38 +24,14 @@ fun Project.configureDiktat() {
         diktatConfigFile = rootProject.file("diktat-analysis.yml")
         githubActions = findProperty("diktat.githubActions")?.toString()?.toBoolean() ?: false
         inputs {
-            include("src/**/*.kt", "**/*.kts")
+            if (this == rootProject) {
+                include("$rootDir/buildSrc/src/**/*.kt", "$rootDir/*.kts", "$rootDir/buildSrc/**/*.kts")
+            } else {
+                include("src/**/*.kt", "**/*.kts")
+            }
         }
     }
     fixDiktatTasks()
-}
-
-/**
- * Creates unified tasks to run diktat on all projects
- */
-fun Project.createDiktatTask() {
-    if (this == rootProject) {
-        // apply diktat to buildSrc
-        apply<DiktatGradlePlugin>()
-        configure<DiktatExtension> {
-            diktatConfigFile = rootProject.file("diktat-analysis.yml")
-            githubActions = findProperty("diktat.githubActions")?.toString()?.toBoolean() ?: false
-            inputs {
-                include("$rootDir/buildSrc/src/**/*.kt", "$rootDir/*.kts", "$rootDir/buildSrc/**/*.kts")
-            }
-        }
-        fixDiktatTasks()
-    }
-    tasks.register("diktatCheckAll") {
-        allprojects {
-            this@register.dependsOn(tasks.getByName("diktatCheck"))
-        }
-    }
-    tasks.register("diktatFixAll") {
-        allprojects {
-            this@register.dependsOn(tasks.getByName("diktatFix"))
-        }
-    }
 }
 
 private fun Project.fixDiktatTasks() {
