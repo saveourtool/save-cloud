@@ -60,10 +60,23 @@ class ProjectPermissionEvaluator {
         statusIfForbidden: HttpStatus,
     ) = switchIfEmpty { Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND)) }
         .cast<Project>()
-        .filter { actualProject ->
-            hasPermission(authentication, actualProject, permission)
+        .map { actualProject ->
+            actualProject to hasPermission(authentication, actualProject, permission)
         }
-        .switchIfEmpty { Mono.error(ResponseStatusException(statusIfForbidden)) }
+        .filter { (project, isPermissionGranted) -> project.public || isPermissionGranted }
+        .flatMap { (project, isPermissionGranted) ->
+            if (isPermissionGranted) {
+                Mono.just(project)
+            } else {
+                // project is public, but current user lacks permissions
+                Mono.error(ResponseStatusException(statusIfForbidden))
+            }
+        }
+        .switchIfEmpty {
+            // We get here if `!project.public && !isPermissionGranted`, i.e.
+            // if project either is not found or shouldn't be visible for current user.
+            Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
+        }
 
     private fun Authentication.hasRole(role: Role): Boolean = authorities.any { it.authority == role.asSpringSecurityRole() }
 
