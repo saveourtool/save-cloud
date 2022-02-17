@@ -19,6 +19,7 @@ object LocalDateTimeSerializer : KSerializer<LocalDateTime> {
     }
 
     override fun serialize(encoder: Encoder, value: LocalDateTime) {
-        encoder.encodeLong(value.toEpochSecond(ZoneOffset.UTC))
+        val listValue = listOf(value.year, value.monthValue, value.dayOfMonth, value.hour, value.minute)
+        encoder.encodeSerializableValue(serializer(), listValue)
     }
 }
