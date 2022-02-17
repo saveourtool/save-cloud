@@ -7,6 +7,7 @@ import org.cqfn.save.entities.*
 import org.cqfn.save.execution.ExecutionType
 import org.cqfn.save.preprocessor.config.ConfigProperties
 import org.cqfn.save.preprocessor.service.TestDiscoveringService
+import org.cqfn.save.preprocessor.utils.LocalDateTimeConfig
 import org.cqfn.save.preprocessor.utils.RepositoryVolume
 import org.cqfn.save.preprocessor.utils.toHash
 import org.cqfn.save.test.TestDto
@@ -19,7 +20,6 @@ import okhttp3.mockwebserver.MockWebServer
 import okhttp3.mockwebserver.QueueDispatcher
 import okio.FileSystem
 import okio.Path.Companion.toPath
-import org.cqfn.save.preprocessor.utils.LocalDateTimeConfig
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
