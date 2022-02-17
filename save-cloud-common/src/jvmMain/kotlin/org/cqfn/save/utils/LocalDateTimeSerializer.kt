@@ -1,7 +1,6 @@
 package org.cqfn.save.utils
 
 import java.time.LocalDateTime
-import java.time.ZoneOffset
 
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.PrimitiveKind
@@ -13,6 +12,7 @@ import kotlinx.serialization.serializer
 object LocalDateTimeSerializer : KSerializer<LocalDateTime> {
     override val descriptor = PrimitiveSerialDescriptor("timestamp", PrimitiveKind.LONG)
 
+    @Suppress("MagicNumber")
     override fun deserialize(decoder: Decoder): LocalDateTime {
         val dateFormat = decoder.decodeSerializableValue(serializer<List<Int>>())
         return LocalDateTime.of(dateFormat[0], dateFormat[1], dateFormat[2], dateFormat[3], dateFormat[4])

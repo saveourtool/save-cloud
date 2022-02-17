@@ -1,7 +1,7 @@
 @file:Suppress(
     "MISSING_KDOC_TOP_LEVEL",
-    "KDOC_NO_EMPTY_TAGS",
-    "KDOC_WITHOUT_PARAM_TAG"
+    "MISSING_KDOC_CLASS_ELEMENTS",
+    "MISSING_KDOC_ON_FUNCTION",
 )
 
 package org.cqfn.save.preprocessor.utils
@@ -28,7 +28,6 @@ internal val json = Json {
 
 @Configuration
 class LocalDateTimeConfig {
-
     @Bean
     fun kotlinSerializationJsonEncoder() = KotlinSerializationJsonEncoder(json)
 
