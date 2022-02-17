@@ -4,41 +4,42 @@
 
 package org.cqfn.save.frontend.components.views
 
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import org.cqfn.save.domain.ImageInfo
 import org.cqfn.save.entities.Project
 import org.cqfn.save.frontend.components.basic.privacySpan
 import org.cqfn.save.frontend.components.tables.tableComponent
 import org.cqfn.save.frontend.utils.*
+
+import csstype.Left
+import csstype.Position
+import csstype.TextAlign
+import csstype.Top
+import org.w3c.dom.HTMLInputElement
+import org.w3c.dom.asList
 import org.w3c.fetch.Headers
+import org.w3c.xhr.FormData
 import react.*
 import react.dom.*
 import react.table.columns
-import csstype.Position
-import csstype.Top
-import csstype.Left
-import csstype.TextAlign
+
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import kotlinx.html.InputType
 import kotlinx.html.hidden
 import kotlinx.html.js.onChangeFunction
-import org.cqfn.save.domain.ImageInfo
-import org.w3c.dom.HTMLInputElement
-import org.w3c.dom.asList
-import org.w3c.xhr.FormData
 
 /**
  * `Props` retrieved from router
  */
 @Suppress("MISSING_KDOC_CLASS_ELEMENTS")
-external interface OwnerProps : PropsWithChildren {
-    var owner: String
+external interface OrganizationProps : PropsWithChildren {
+    var organizationName: String
 }
 
 /**
  * [State] of project view component
  */
-external interface OwnerViewState : State {
-
+external interface OrganizationViewState : State {
     /**
      * Flag to handle uploading a file
      */
@@ -53,8 +54,7 @@ external interface OwnerViewState : State {
 /**
  * A Component for owner view
  */
-class OrganizationView : AbstractView<OwnerProps, OwnerViewState>(false) {
-
+class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(false) {
     init {
         state.isUploading = false
     }
@@ -69,12 +69,11 @@ class OrganizationView : AbstractView<OwnerProps, OwnerViewState>(false) {
         }
     }
 
-    @Suppress("TOO_LONG_FUNCTION", "LongMethod")
+    @Suppress("TOO_LONG_FUNCTION", "LongMethod", "MAGIC_NUMBER")
     override fun RBuilder.render() {
-
         div("d-sm-flex align-items-center justify-content-center mb-4") {
             h1("h3 mb-0 text-gray-800") {
-                +props.owner
+                +props.organizationName
             }
         }
 
@@ -102,7 +101,12 @@ class OrganizationView : AbstractView<OwnerProps, OwnerViewState>(false) {
                         }
                         attrs["aria-label"] = "Change avatar owner"
                         img(classes = "avatar avatar-user width-full border color-bg-default rounded-circle") {
-                            attrs.src = if (state.image?.base64 != null) ("data:image/png;base64, " + state.image?.base64) else "img/image_not_found.png"
+                            attrs.src = state.image?.base64?.let {
+                                ("data:image/png;base64, ${state.image?.base64}")
+                            }
+                                ?: run {
+                                    "img/image_not_found.png"
+                                }
                             attrs.height = "260"
                             attrs.width = "260"
                         }
@@ -167,7 +171,7 @@ class OrganizationView : AbstractView<OwnerProps, OwnerViewState>(false) {
                     usePageSelection = false,
                 ) { _, _ ->
                     get(
-                        url = "$apiUrl/projects/not-deleted",
+                        url = "$apiUrl/projects/get/projects-by-organization?organizationName=${props.organizationName}",
                         headers = Headers().also {
                             it.set("Accept", "application/json")
                         },
@@ -177,36 +181,34 @@ class OrganizationView : AbstractView<OwnerProps, OwnerViewState>(false) {
                         }
                 }) { }
             }
-
         }
     }
 
     private fun postImageUpload(element: HTMLInputElement) =
-        GlobalScope.launch {
-            setState {
-                isUploading = true
-            }
-            element.files!!.asList().single().let { file ->
-                val response: ImageInfo = post(
-                    "$apiUrl/image/upload?owner=${props.owner}",
-                    Headers(),
-                    FormData().apply {
-                        append("file", file)
-                    }
-                )
-                    .decodeFromJsonString()
+            GlobalScope.launch {
                 setState {
-                    image = response
+                    isUploading = true
+                }
+                element.files!!.asList().single().let { file ->
+                    val response: ImageInfo = post(
+                        "$apiUrl/image/upload?owner=${props.organizationName}",
+                        Headers(),
+                        FormData().apply {
+                            append("file", file)
+                        }
+                    )
+                        .decodeFromJsonString()
+                    setState {
+                        image = response
+                    }
+                }
+                setState {
+                    isUploading = false
                 }
             }
-            setState {
-                isUploading = false
-            }
-        }
 
-    private suspend fun getAvatar() = get("$apiUrl/avatar?owner=${props.owner}", Headers())
+    private suspend fun getAvatar() = get("$apiUrl/avatar?owner=${props.organizationName}", Headers())
         .unsafeMap {
             it.decodeFromJsonString<ImageInfo>()
         }
-
 }
