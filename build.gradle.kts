@@ -63,13 +63,12 @@ allprojects {
         resolutionStrategy.cacheDynamicVersionsFor(10, TimeUnit.MINUTES)
     }
 }
-subprojects {
+allprojects {
     configureDiktat()
 }
 
 createStackDeployTask(profile)
 configureVersioning()
-createDiktatTask()
 createDetektTask()
 installGitHooks()
 registerSaveCliVersionCheckTask()
