@@ -103,12 +103,12 @@ class ExecutionController(private val executionService: ExecutionService,
 
     /**
      * @param name
-     * @param organizationId
+     * @param organizationName
      * @return list of execution dtos
      */
     @GetMapping("/api/executionDtoList")
-    fun getExecutionByProject(@RequestParam name: String, @RequestParam organizationId: Long): ExecutionDtoListResponse {
-        val organization = organizationService.getOrganizationById(organizationId)
+    fun getExecutionByProject(@RequestParam name: String, @RequestParam organizationName: String): ExecutionDtoListResponse {
+        val organization = organizationService.findByName(organizationName)
         return ResponseEntity
             .status(HttpStatus.OK)
             .body(executionService.getExecutionDtoByNameAndOrganization(name, organization).reversed())
@@ -138,14 +138,14 @@ class ExecutionController(private val executionService: ExecutionService,
      * Delete all executions by project name and project owner
      *
      * @param name name of project
-     * @param organizationId organization of project
+     * @param organizationName organization of project
      * @return ResponseEntity
      * @throws ResponseStatusException
      */
     @PostMapping("/api/execution/deleteAll")
     @Suppress("UnsafeCallOnNullableType")
-    fun deleteExecutionForProject(@RequestParam name: String, @RequestParam organizationId: Long): ResponseEntity<String> {
-        val organization = organizationService.getOrganizationById(organizationId)
+    fun deleteExecutionForProject(@RequestParam name: String, @RequestParam organizationName: String): ResponseEntity<String> {
+        val organization = organizationService.findByName(organizationName)
         try {
             requireNotNull(projectService.findByNameAndOrganization(name, organization)).id!!.let {
                 testExecutionService.deleteTestExecutionWithProjectId(it)
