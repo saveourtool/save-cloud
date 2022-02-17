@@ -207,6 +207,7 @@ class ExecutionController(private val executionService: ExecutionService,
             val project = groupedFlux.key()
             groupedFlux.filterWhenAndInvoke({ log.warn("Cannot delete execution id=${it.id}, because operation is not allowed on project id=${project.id}") }) { execution ->
                 projectPermissionEvaluator.checkPermissions(authentication, execution, Permission.DELETE)
+                    .onErrorReturn(false)
             }
         }
         .mapNotNull<Long> { it.id }
@@ -216,7 +217,12 @@ class ExecutionController(private val executionService: ExecutionService,
             agentStatusService.deleteAgentStatusWithExecutionIds(filteredExecutionIds)
             agentService.deleteAgentByExecutionIds(filteredExecutionIds)
             executionService.deleteExecutionByIds(filteredExecutionIds)
-            ResponseEntity.ok().build<Void>()
+            if (filteredExecutionIds.isNotEmpty()) {
+                ResponseEntity.ok().build<Void>()
+            } else {
+                // fixme: send 403 if all ids were rejected because of incorrect permissions
+                ResponseEntity.notFound().build()
+            }
         }
 
     /**
