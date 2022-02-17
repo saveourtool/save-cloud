@@ -1,7 +1,6 @@
 package org.cqfn.save.utils
 
 import java.time.LocalDateTime
-import java.time.ZoneOffset
 
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.PrimitiveKind
@@ -19,6 +18,7 @@ object LocalDateTimeSerializer : KSerializer<LocalDateTime> {
     }
 
     override fun serialize(encoder: Encoder, value: LocalDateTime) {
-        encoder.encodeLong(value.toEpochSecond(ZoneOffset.UTC))
+        val listValue = listOf(value.year, value.monthValue, value.dayOfMonth, value.hour, value.minute, value.second)
+        encoder.encodeSerializableValue(serializer(), listValue)
     }
 }
