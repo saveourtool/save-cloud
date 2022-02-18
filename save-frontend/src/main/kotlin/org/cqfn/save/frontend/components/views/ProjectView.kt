@@ -208,7 +208,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     )
     private val testResourcesSelection = testResourcesSelection(
         updateGitUrlFromInputField = {
-            console.log("updateGitUrlFromInputField with ${it.target}")
             it.preventDefault()
             setState {
                 gitUrlFromInputField = (it.target as HTMLInputElement).value

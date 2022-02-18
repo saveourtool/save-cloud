@@ -54,6 +54,26 @@ external interface AppState : State {
 @JsExport
 @OptIn(ExperimentalJsExport::class)
 class App : ComponentWithScope<PropsWithChildren, AppState>() {
+    private val projectView: FC<Props> = withRouter { _, params ->
+        child(ProjectView::class) {
+            attrs.name = params["name"]!!
+            attrs.owner = params["owner"]!!
+        }
+    }
+    private val historyView: FC<Props> = withRouter { _, params ->
+        child(HistoryView::class) {
+            attrs.name = params["name"]!!
+            attrs.organizationName = params["owner"]!!
+        }
+    }
+    private val executionView: FC<Props> = withRouter { location, params ->
+        child(ExecutionView::class) {
+            attrs.executionId = params["executionId"]!!
+            attrs.status = URLSearchParams(location.search).get("status")?.let(
+                TestResultStatus::valueOf
+            )
+        }
+    }
     init {
         state.userInfo = null
     }
@@ -132,12 +152,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                             attrs {
                                 path = "/:owner/:name"
                                 element = buildElement {
-                                    child(withRouter { _, params ->
-                                        child(ProjectView::class) {
-                                            attrs.name = params["name"]!!
-                                            attrs.owner = params["owner"]!!
-                                        }
-                                    })
+                                    child(projectView)
                                 }
                             }
                         }
@@ -146,12 +161,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                             attrs {
                                 path = "/:owner/:name/history"
                                 element = buildElement {
-                                    child(withRouter { _, params ->
-                                        child(HistoryView::class) {
-                                            attrs.name = params["name"]!!
-                                            attrs.organizationName = params["owner"]!!
-                                        }
-                                    })
+                                    child(historyView)
                                 }
                             }
                         }
@@ -160,14 +170,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                             attrs {
                                 path = "/:owner/:name/history/execution/:executionId"
                                 element = buildElement {
-                                    child(withRouter { location, params ->
-                                        child(ExecutionView::class) {
-                                            attrs.executionId = params["executionId"]!!
-                                            attrs.status = URLSearchParams(location.search).get("status")?.let(
-                                                TestResultStatus::valueOf
-                                            )
-                                        }
-                                    })
+                                    child(executionView)
                                 }
                             }
                         }
