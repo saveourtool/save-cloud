@@ -8,6 +8,9 @@ import org.cqfn.save.domain.TestResultStatus
 import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.frontend.components.tables.tableComponent
+import org.cqfn.save.frontend.externals.fontawesome.faCheck
+import org.cqfn.save.frontend.externals.fontawesome.faExclamationTriangle
+import org.cqfn.save.frontend.externals.fontawesome.faSpinner
 import org.cqfn.save.frontend.externals.fontawesome.faTrashAlt
 import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
 import org.cqfn.save.frontend.themes.Colors
@@ -110,13 +113,13 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
         columns = columns<ExecutionDto> {
             column("result", "", { status }) { cellProps ->
                 val result = when (cellProps.row.original.status) {
-                    ExecutionStatus.ERROR -> ResultColorAndIcon("text-danger", "exclamation-triangle")
-                    ExecutionStatus.PENDING -> ResultColorAndIcon("text-success", "spinner")
-                    ExecutionStatus.RUNNING -> ResultColorAndIcon("text-success", "spinner")
+                    ExecutionStatus.ERROR -> ResultColorAndIcon("text-danger", faExclamationTriangle)
+                    ExecutionStatus.PENDING -> ResultColorAndIcon("text-success", faSpinner)
+                    ExecutionStatus.RUNNING -> ResultColorAndIcon("text-success", faSpinner)
                     ExecutionStatus.FINISHED -> if (cellProps.row.original.failedTests != 0L) {
-                        ResultColorAndIcon("text-danger", "exclamation-triangle")
+                        ResultColorAndIcon("text-danger", faExclamationTriangle)
                     } else {
-                        ResultColorAndIcon("text-success", "check")
+                        ResultColorAndIcon("text-success", faCheck)
                     }
                 }
                 buildElement {
@@ -339,5 +342,5 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
      * @property resColor
      * @property resIcon
      */
-    private data class ResultColorAndIcon(val resColor: String, val resIcon: String)
+    private data class ResultColorAndIcon(val resColor: String, val resIcon: dynamic)
 }
