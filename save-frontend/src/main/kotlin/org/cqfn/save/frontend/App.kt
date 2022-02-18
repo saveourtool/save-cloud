@@ -32,6 +32,12 @@ import kotlinx.html.id
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 
+private val scrollToTopButton = scrollToTopButton()
+
+private val topBar = topBar()
+
+private val testExecutionDetailsView = testExecutionDetailsView()
+
 /**
  * Top-level state of the whole App
  */
@@ -76,7 +82,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
         HashRouter {
             div("d-flex flex-column") {
                 attrs.id = "content-wrapper"
-                child(topBar()) {
+                child(topBar) {
                     attrs {
                         userInfo = state.userInfo
                     }
@@ -171,7 +177,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                 // Since testFilePath can represent the nested path, we catch it as *
                                 path = "/:owner/:name/history/execution/:executionId/details/:testSuiteName/:pluginName/*"
                                 element = buildElement {
-                                    child(testExecutionDetailsView()) {}
+                                    child(testExecutionDetailsView) {}
                                 }
                             }
                         }
@@ -189,7 +195,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                 child(Footer::class) {}
             }
         }
-        child(scrollToTopButton()) {}
+        child(scrollToTopButton) {}
     }
 }
 

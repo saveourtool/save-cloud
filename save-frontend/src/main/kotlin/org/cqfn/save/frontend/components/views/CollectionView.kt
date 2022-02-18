@@ -23,6 +23,56 @@ import kotlinx.html.ButtonType
 @JsExport
 @OptIn(ExperimentalJsExport::class)
 class CollectionView : AbstractView<PropsWithChildren, State>(false) {
+    @Suppress("MAGIC_NUMBER")
+    private val projectsTable = tableComponent(
+        columns = columns<Project> {
+            column(id = "owner", header = "Project Owner", { organization.name }) {
+                buildElement {
+                    td {
+                        // FixMe: temporary disable links, until we will make a beat
+                        // a(href = "#/${it.value}") {
+                        +it.value!!
+                        // }
+                    }
+                }
+            }
+            column(id = "name", header = "Evaluated Tool", { name }) {
+                buildElement {
+                    td {
+                        a(href = "#/${it.row.original.organization.name}/${it.value}") { +it.value }
+                        privacySpan(it.row.original)
+                    }
+                }
+            }
+            column(id = "passed", header = "Description") {
+                buildElement {
+                    td {
+                        +(it.value.description ?: "Description not provided")
+                    }
+                }
+            }
+            column(id = "rating", header = "Contest Rating") {
+                buildElement {
+                    td {
+                        +"0"
+                    }
+                }
+            }
+        },
+        initialPageSize = 10,
+        useServerPaging = false,
+        usePageSelection = false,
+    ) { _, _ ->
+        get(
+            url = "$apiUrl/projects/not-deleted",
+            headers = Headers().also {
+                it.set("Accept", "application/json")
+            },
+        )
+            .unsafeMap {
+                it.decodeFromJsonString<Array<Project>>()
+            }
+    }
     @Suppress(
         "EMPTY_BLOCK_STRUCTURE_ERROR",
         "TOO_LONG_FUNCTION",
@@ -37,54 +87,6 @@ class CollectionView : AbstractView<PropsWithChildren, State>(false) {
                 }
             }
         }
-        child(tableComponent(
-            columns = columns<Project> {
-                column(id = "owner", header = "Project Owner", { organization.name }) {
-                    buildElement {
-                        td {
-                            // FixMe: temporary disable links, until we will make a beat
-                            // a(href = "#/${it.value}") {
-                            +it.value!!
-                            // }
-                        }
-                    }
-                }
-                column(id = "name", header = "Evaluated Tool", { name }) {
-                    buildElement {
-                        td {
-                            a(href = "#/${it.row.original.organization.name}/${it.value}") { +it.value }
-                            privacySpan(it.row.original)
-                        }
-                    }
-                }
-                column(id = "passed", header = "Description") {
-                    buildElement {
-                        td {
-                            +(it.value.description ?: "Description not provided")
-                        }
-                    }
-                }
-                column(id = "rating", header = "Contest Rating") {
-                    buildElement {
-                        td {
-                            +"0"
-                        }
-                    }
-                }
-            },
-            initialPageSize = 10,
-            useServerPaging = false,
-            usePageSelection = false,
-        ) { _, _ ->
-            get(
-                url = "$apiUrl/projects/not-deleted",
-                headers = Headers().also {
-                    it.set("Accept", "application/json")
-                },
-            )
-                .unsafeMap {
-                    it.decodeFromJsonString<Array<Project>>()
-                }
-        }) { }
+        child(projectsTable) { }
     }
 }

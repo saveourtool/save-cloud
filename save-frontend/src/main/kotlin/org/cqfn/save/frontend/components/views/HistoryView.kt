@@ -105,11 +105,132 @@ external interface HistoryViewState : State {
 @JsExport
 @OptIn(ExperimentalJsExport::class)
 class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
+    @Suppress("MAGIC_NUMBER")
+    private val executionsTable = tableComponent(
+        columns = columns<ExecutionDto> {
+            column("result", "", { status }) { cellProps ->
+                val result = when (cellProps.row.original.status) {
+                    ExecutionStatus.ERROR -> ResultColorAndIcon("text-danger", "exclamation-triangle")
+                    ExecutionStatus.PENDING -> ResultColorAndIcon("text-success", "spinner")
+                    ExecutionStatus.RUNNING -> ResultColorAndIcon("text-success", "spinner")
+                    ExecutionStatus.FINISHED -> if (cellProps.row.original.failedTests != 0L) {
+                        ResultColorAndIcon("text-danger", "exclamation-triangle")
+                    } else {
+                        ResultColorAndIcon("text-success", "check")
+                    }
+                }
+                buildElement {
+                    td {
+                        a(href = getHrefToExecution(cellProps.row.original.id, null)) {
+                            fontAwesomeIcon(result.resIcon, classes = result.resColor)
+                        }
+                    }
+                }
+            }
+            column("status", "Status", { status }) {
+                buildElement {
+                    td {
+                        a(href = getHrefToExecution(it.row.original.id, null)) {
+                            +"${it.value}"
+                        }
+                    }
+                }
+            }
+            column("startDate", "Start time", { startTime }) {
+                buildElement {
+                    td {
+                        a(href = getHrefToExecution(it.row.original.id, null)) {
+                            +(formattingDate(it.value) ?: "Starting")
+                        }
+                    }
+                }
+            }
+            column("endDate", "End time", { endTime }) {
+                buildElement {
+                    td {
+                        a(href = getHrefToExecution(it.row.original.id, null)) {
+                            +(formattingDate(it.value) ?: "Starting")
+                        }
+                    }
+                }
+            }
+            column("running", "Running", { runningTests }) {
+                buildElement {
+                    td {
+                        a(href = getHrefToExecution(it.row.original.id, TestResultStatus.RUNNING)) {
+                            +"${it.value}"
+                        }
+                    }
+                }
+            }
+            column("passed", "Passed", { passedTests }) {
+                buildElement {
+                    td {
+                        a(href = getHrefToExecution(it.row.original.id, TestResultStatus.PASSED)) {
+                            +"${it.value}"
+                        }
+                    }
+                }
+            }
+            column("failed", "Failed", { failedTests }) {
+                buildElement {
+                    td {
+                        a(href = getHrefToExecution(it.row.original.id, TestResultStatus.FAILED)) {
+                            +"${it.value}"
+                        }
+                    }
+                }
+            }
+            column("skipped", "Skipped", { skippedTests }) {
+                buildElement {
+                    td {
+                        a(href = getHrefToExecution(it.row.original.id, TestResultStatus.IGNORED)) {
+                            +"${it.value}"
+                        }
+                    }
+                }
+            }
+            column("checkBox", "") { cellProps ->
+                buildElement {
+                    td {
+                        button(type = ButtonType.button, classes = "btn btn-small") {
+                            fontAwesomeIcon(icon = faTrashAlt, classes = "trash-alt")
+                            attrs.onClickFunction = {
+                                deleteExecution(cellProps.value.id)
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        getRowProps = { row ->
+            val color = when (row.original.status) {
+                ExecutionStatus.ERROR -> Colors.RED
+                ExecutionStatus.PENDING -> Colors.GREY
+                ExecutionStatus.RUNNING -> Colors.GREY
+                ExecutionStatus.FINISHED -> if (row.original.failedTests != 0L) Colors.DARK_RED else Colors.GREEN
+            }
+            jso {
+                style = jso {
+                    background = color.value.unsafeCast<Background>()
+                }
+            }
+        }
+    ) { _, _ ->
+        get(
+            url = "$apiUrl/executionDtoList?name=${props.name}&organizationName=${props.organizationName}",
+            headers = Headers().also {
+                it.set("Accept", "application/json")
+            },
+        )
+            .unsafeMap {
+                it.decodeFromJsonString<Array<ExecutionDto>>()
+            }
+    }
     private lateinit var responseFromDeleteExecutions: Response
 
     @Suppress(
         "TOO_LONG_FUNCTION",
-        "MAGIC_NUMBER",
         "ForbiddenComment",
         "LongMethod",
     )
@@ -136,129 +257,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
                 +"Delete all executions"
             }
         }
-        child(tableComponent(
-            columns = columns<ExecutionDto> {
-                column("result", "", { status }) { cellProps ->
-                    val result = when (cellProps.row.original.status) {
-                        ExecutionStatus.ERROR -> ResultColorAndIcon("text-danger", "exclamation-triangle")
-                        ExecutionStatus.PENDING -> ResultColorAndIcon("text-success", "spinner")
-                        ExecutionStatus.RUNNING -> ResultColorAndIcon("text-success", "spinner")
-                        ExecutionStatus.FINISHED -> if (cellProps.row.original.failedTests != 0L) {
-                            ResultColorAndIcon("text-danger", "exclamation-triangle")
-                        } else {
-                            ResultColorAndIcon("text-success", "check")
-                        }
-                    }
-                    buildElement {
-                        td {
-                            a(href = getHrefToExecution(cellProps.row.original.id, null)) {
-                                fontAwesomeIcon(result.resIcon, classes = result.resColor)
-                            }
-                        }
-                    }
-                }
-                column("status", "Status", { status }) {
-                    buildElement {
-                        td {
-                            a(href = getHrefToExecution(it.row.original.id, null)) {
-                                +"${it.value}"
-                            }
-                        }
-                    }
-                }
-                column("startDate", "Start time", { startTime }) {
-                    buildElement {
-                        td {
-                            a(href = getHrefToExecution(it.row.original.id, null)) {
-                                +(formattingDate(it.value) ?: "Starting")
-                            }
-                        }
-                    }
-                }
-                column("endDate", "End time", { endTime }) {
-                    buildElement {
-                        td {
-                            a(href = getHrefToExecution(it.row.original.id, null)) {
-                                +(formattingDate(it.value) ?: "Starting")
-                            }
-                        }
-                    }
-                }
-                column("running", "Running", { runningTests }) {
-                    buildElement {
-                        td {
-                            a(href = getHrefToExecution(it.row.original.id, TestResultStatus.RUNNING)) {
-                                +"${it.value}"
-                            }
-                        }
-                    }
-                }
-                column("passed", "Passed", { passedTests }) {
-                    buildElement {
-                        td {
-                            a(href = getHrefToExecution(it.row.original.id, TestResultStatus.PASSED)) {
-                                +"${it.value}"
-                            }
-                        }
-                    }
-                }
-                column("failed", "Failed", { failedTests }) {
-                    buildElement {
-                        td {
-                            a(href = getHrefToExecution(it.row.original.id, TestResultStatus.FAILED)) {
-                                +"${it.value}"
-                            }
-                        }
-                    }
-                }
-                column("skipped", "Skipped", { skippedTests }) {
-                    buildElement {
-                        td {
-                            a(href = getHrefToExecution(it.row.original.id, TestResultStatus.IGNORED)) {
-                                +"${it.value}"
-                            }
-                        }
-                    }
-                }
-                column("checkBox", "") { cellProps ->
-                    buildElement {
-                        td {
-                            button(type = ButtonType.button, classes = "btn btn-small") {
-                                fontAwesomeIcon(icon = faTrashAlt, classes = "trash-alt")
-                                attrs.onClickFunction = {
-                                    deleteExecution(cellProps.value.id)
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            getRowProps = { row ->
-                val color = when (row.original.status) {
-                    ExecutionStatus.ERROR -> Colors.RED
-                    ExecutionStatus.PENDING -> Colors.GREY
-                    ExecutionStatus.RUNNING -> Colors.GREY
-                    ExecutionStatus.FINISHED -> if (row.original.failedTests != 0L) Colors.DARK_RED else Colors.GREEN
-                }
-                jso {
-                    style = jso {
-                        background = color.value.unsafeCast<Background>()
-                    }
-                }
-            }
-        ) { _, _ ->
-            get(
-                url = "$apiUrl/executionDtoList?name=${props.name}&organizationName=${props.organizationName}",
-                headers = Headers().also {
-                    it.set("Accept", "application/json")
-                    it.set("Content-Type", "application/json")
-                },
-            )
-                .unsafeMap {
-                    it.decodeFromJsonString<Array<ExecutionDto>>()
-                }
-        }
-        ) {
+        child(executionsTable) {
             attrs.tableHeader = "Executions details"
         }
     }
