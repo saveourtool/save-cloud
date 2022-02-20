@@ -185,7 +185,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
     }
 
     private fun postImageUpload(element: HTMLInputElement) =
-            GlobalScope.launch {
+            scope.launch {
                 setState {
                     isUploading = true
                 }

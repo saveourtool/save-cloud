@@ -18,6 +18,7 @@ data class Organization(
     var ownerId: Long? = null,
     @Contextual
     var dateCreated: LocalDateTime?,
+    var avatar: String?,
 ) {
     /**
      * id of project

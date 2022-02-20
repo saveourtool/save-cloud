@@ -6,6 +6,7 @@ import org.cqfn.save.domain.ImageInfo
 
 import com.mchange.io.FileUtils
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.FileSystemResource
 import org.springframework.http.codec.multipart.FilePart
 import org.springframework.stereotype.Repository
@@ -53,6 +54,9 @@ class TimestampBasedFileSystemRepository(configProperties: ConfigProperties) {
             createDirectories()
         }
     }
+
+    @Autowired
+    private lateinit var organizationRepository: OrganizationRepository
 
     private fun getStorageDir(fileInfo: FileInfo) = rootDir.resolve(fileInfo.uploadedMillis.toString())
 
@@ -135,6 +139,8 @@ class TimestampBasedFileSystemRepository(configProperties: ConfigProperties) {
     fun saveImage(part: Mono<FilePart>, owner: String): Mono<ImageInfo> = part.flatMap { part ->
         val uploadedDir = rootDirImage.resolve(owner)
 
+        val organization = organizationRepository.findByName(owner)
+
         uploadedDir.apply {
             if (exists()) {
                 listDirectoryEntries().forEach { it.deleteIfExists() }
@@ -158,6 +164,8 @@ class TimestampBasedFileSystemRepository(configProperties: ConfigProperties) {
                     .collect(Collectors.summingLong { it })
                     .map {
                         logger.info("Saved $it bytes into $this")
+                        organization.avatar = pathString
+                        organizationRepository.save(organization)
                         val base64 = Base64.getEncoder().encodeToString(FileUtils.getBytes(File(pathString)))
                         ImageInfo(name, base64, it)
                     }
