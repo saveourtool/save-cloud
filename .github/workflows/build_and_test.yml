@@ -51,7 +51,7 @@ jobs:
           gradle-version: wrapper
           # additional files to calculate key for dependency cache
           gradle-dependencies-cache-key: |
-            buildSrc/**/Versions.kt
+            gradle/libs.versions.toml
           arguments: |
             build
             -x detekt
