@@ -125,8 +125,8 @@ class ExecutionController(private val executionService: ExecutionService,
 
     /**
      * @param name
-     * @param organizationId
      * @param authentication
+     * @param organizationName
      * @return list of execution dtos
      */
     @GetMapping("/api/executionDtoList")
@@ -159,10 +159,9 @@ class ExecutionController(private val executionService: ExecutionService,
      * Delete all executions by project name and project owner
      *
      * @param name name of project
-     * @param organizationId organization of project
+     * @param organizationName organization of project
      * @param authentication
      * @return ResponseEntity
-     * @throws ResponseStatusException
      */
     @PostMapping("/api/execution/deleteAll")
     @Suppress("UnsafeCallOnNullableType")
@@ -202,7 +201,7 @@ class ExecutionController(private val executionService: ExecutionService,
      * @throws ResponseStatusException
      */
     @PostMapping("/api/execution/delete")
-    @Suppress("TOO_LONG_FUNCTION")
+    @Suppress("TOO_LONG_FUNCTION", "NonBooleanPropertyPrefixedWithIs")
     fun deleteExecutionsByExecutionIds(@RequestParam executionIds: List<Long>, authentication: Authentication): Mono<ResponseEntity<*>> {
         val isProjectHidden = AtomicBoolean(false)
         return Flux.fromIterable(executionIds)
