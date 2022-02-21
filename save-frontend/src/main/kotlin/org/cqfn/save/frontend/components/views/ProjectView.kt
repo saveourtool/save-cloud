@@ -35,6 +35,8 @@ import react.dom.*
 import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.coroutines.launch
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.Month
 import kotlinx.html.ButtonType
 import kotlinx.html.InputType
 import kotlinx.html.classes
@@ -172,7 +174,7 @@ external interface ProjectViewState : State {
     /**
      * Flag to handle uploading a file
      */
-    var isUploading: Boolean
+    var isUploading: Boolean?
 }
 
 /**
@@ -191,17 +193,212 @@ enum class ConfirmationType {
  */
 @JsExport
 @OptIn(ExperimentalJsExport::class)
+@Suppress("MAGIC_NUMBER")
 class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(false) {
     private var standardTestSuites: List<TestSuiteDto> = emptyList()
     private val selectedStandardSuites: MutableList<String> = mutableListOf()
     private var gitDto: GitDto? = null
-    private var project = Project("N/A", "N/A", "N/A", "N/A", ProjectStatus.CREATED, userId = -1, adminIds = null)
+    private val date = LocalDateTime(1970, Month.JANUARY, 1, 0, 0, 1)
+    private val organization = Organization("stub", null, date)
+    private var project = Project("N/A", "N/A", "N/A", ProjectStatus.CREATED, userId = -1, organization = organization)
     private val projectInformation = mutableMapOf(
         "Tested tool name: " to "",
         "Description: " to "",
         "Tested tool Url: " to "",
-        "Test project owner: " to ""
     )
+    private val testResourcesSelection = testResourcesSelection(
+        updateGitUrlFromInputField = {
+            it.preventDefault()
+            setState {
+                gitUrlFromInputField = (it.target as HTMLInputElement).value
+            }
+        },
+        updateGitBranchOrCommitInputField = {
+            setState {
+                gitBranchOrCommitFromInputField = (it.target as HTMLInputElement).value
+            }
+        },
+        updateTestRootPath = {
+            setState {
+                testRootPath = (it.target as HTMLInputElement).value
+            }
+        },
+        setTestRootPathFromHistory = {
+            setState {
+                testRootPath = it
+            }
+        },
+        setExecCmd = {
+            setState {
+                execCmd = (it.target as HTMLInputElement).value
+            }
+        },
+        setBatchSize = {
+            setState {
+                batchSizeForAnalyzer = (it.target as HTMLInputElement).value
+            }
+        },
+        setSelectedLanguageForStandardTests = {
+            setState {
+                selectedLanguageForStandardTests = it
+            }
+        }
+    )
+    private val projectInfoCard = cardComponent(isBordered = true, hasBg = true) {
+        val newProjectInformation: MutableMap<String, String> = mutableMapOf()
+        form {
+            div("row g-3 ml-3 mr-3 pb-2 pt-2  border-bottom") {
+                projectInformation.putAll(
+                    projectInformation.keys.zip(
+                        listOf(
+                            project.name,
+                            project.description ?: "",
+                            project.url ?: "",
+                        )
+                    )
+                )
+                projectInformation
+                    .forEach { (header, text) ->
+                        div("col-md-6 pl-0 pr-0") {
+                            label(classes = "control-label col-auto justify-content-between pl-0") {
+                                +header
+                            }
+                        }
+                        div("col-md-6 pl-0") {
+                            div("controls col-auto pl-0") {
+                                input(InputType.text, classes = "form-control-plaintext pt-0 pb-0") {
+                                    attrs.id = header
+                                    attrs.defaultValue = text
+                                    attrs.disabled = true
+                                    attrs {
+                                        onChangeFunction = {
+                                            val tg = it.target as HTMLInputElement
+                                            val newValue = tg.value
+                                            newProjectInformation[header] = newValue
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+            }
+        }
+
+        div("ml-3 mt-2 align-items-right float-right") {
+            button(classes = "btn") {
+                fontAwesomeIcon {
+                    attrs.icon = faCheck
+                }
+                attrs.id = "Save new project info"
+                attrs.hidden = true
+                attrs.onClickFunction = {
+                    newProjectInformation.forEach { (key, value) ->
+                        projectInformation[key] = value
+                        (document.getElementById(key) as HTMLInputElement).value = value
+                    }
+                    updateProjectBuilder(projectInformation)
+                    turnEditMode(isOff = true)
+                }
+            }
+
+            button(classes = "btn") {
+                fontAwesomeIcon {
+                    attrs.icon = faTimesCircle
+                }
+                attrs.id = "Cancel"
+                attrs.hidden = true
+                attrs.onClickFunction = {
+                    projectInformation.forEach { (key, value) ->
+                        (document.getElementById(key) as HTMLInputElement).value = value
+                    }
+                    newProjectInformation.clear()
+                    turnEditMode(isOff = true)
+                }
+            }
+        }
+
+        div("ml-3 mt-2 align-items-left justify-content-between") {
+            fontAwesomeIcon(icon = faHistory)
+
+            button(classes = "btn btn-link text-left") {
+                +"Latest Execution"
+                attrs.onClickFunction = {
+                    scope.launch {
+                        switchToLatestExecution()
+                    }
+                }
+            }
+        }
+        div("ml-3 align-items-left") {
+            fontAwesomeIcon(icon = faCalendarAlt)
+            a(
+                href = "#/${project.organization.name}/${project.name}/history",
+                classes = "btn btn-link text-left"
+            ) {
+                +"Execution History"
+            }
+        }
+        div("ml-3 d-sm-flex align-items-left justify-content-between mt-2") {
+            button(type = ButtonType.button, classes = "btn btn-sm btn-danger") {
+                attrs.onClickFunction = {
+                    deleteProject()
+                }
+                +"Delete project"
+            }
+        }
+    }
+    private val typeSelection = cardComponent {
+        div("text-left") {
+            testingTypeButton(
+                TestingType.CUSTOM_TESTS,
+                "Evaluate your tool with your own tests from git",
+                "mr-2"
+            )
+            testingTypeButton(
+                TestingType.STANDARD_BENCHMARKS,
+                "Evaluate your tool with standard test suites",
+                "mt-3 mr-2"
+            )
+            testingTypeButton(
+                TestingType.CONTEST_MODE,
+                "Participate in SAVE contests with your tool",
+                "mt-3 mr-2"
+            )
+        }
+    }
+    private val fileUploader = fileUploader(
+        onFileSelect = { element ->
+            setState {
+                val availableFile = availableFiles.first { it.name == element.value }
+                files.add(availableFile)
+                bytesReceived += availableFile.sizeBytes
+                suiteByteSize += availableFile.sizeBytes
+                availableFiles.remove(availableFile)
+            }
+        },
+        onFileRemove = {
+            setState {
+                files.remove(it)
+                bytesReceived -= it.sizeBytes
+                suiteByteSize -= it.sizeBytes
+                availableFiles.add(it)
+            }
+        },
+        onFileInput = { postFileUpload(it) },
+        onExecutableChange = { selectedFile, checked ->
+            setState {
+                files[files.indexOf(selectedFile)] = selectedFile.copy(isExecutable = checked)
+            }
+        }
+    )
+    private val sdkSelection = sdkSelection({
+        setState {
+            selectedSdk = it.value
+            selectedSdkVersion = selectedSdk.getSdkVersions().first()
+        }
+    }, {
+        setState { selectedSdkVersion = it.value }
+    })
     private lateinit var responseFromDeleteProject: Response
 
     init {
@@ -371,25 +568,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                     +"Testing types"
                 }
 
-                child(cardComponent {
-                    div("text-left") {
-                        testingTypeButton(
-                            TestingType.CUSTOM_TESTS,
-                            "Evaluate your tool with your own tests from git",
-                            "mr-2"
-                        )
-                        testingTypeButton(
-                            TestingType.STANDARD_BENCHMARKS,
-                            "Evaluate your tool with standard test suites",
-                            "mt-3 mr-2"
-                        )
-                        testingTypeButton(
-                            TestingType.CONTEST_MODE,
-                            "Participate in SAVE contests with your tool",
-                            "mt-3 mr-2"
-                        )
-                    }
-                })
+                child(typeSelection)
             }
             // ===================== MIDDLE COLUMN =====================================================================
             div("col-4") {
@@ -398,32 +577,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 }
 
                 // ======== file selector =========
-                child(fileUploader(
-                    onFileSelect = { element ->
-                        setState {
-                            val availableFile = availableFiles.first { it.name == element.value }
-                            files.add(availableFile)
-                            bytesReceived += availableFile.sizeBytes
-                            suiteByteSize += availableFile.sizeBytes
-                            availableFiles.remove(availableFile)
-                        }
-                    },
-                    onFileRemove = {
-                        setState {
-                            files.remove(it)
-                            bytesReceived -= it.sizeBytes
-                            suiteByteSize -= it.sizeBytes
-                            availableFiles.add(it)
-                        }
-                    },
-                    onFileInput = { postFileUpload(it) },
-                    onExecutableChange = { selectedFile, checked ->
-                        setState {
-                            files[files.indexOf(selectedFile)] = selectedFile.copy(isExecutable = checked)
-                        }
-                    }
-                )
-                ) {
+                child(fileUploader) {
                     attrs.isSubmitButtonPressed = state.isSubmitButtonPressed
                     attrs.files = state.files
                     attrs.availableFiles = state.availableFiles
@@ -434,56 +588,13 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 }
 
                 // ======== sdk selection =========
-                child(sdkSelection({
-                    setState {
-                        selectedSdk = it.value
-                        selectedSdkVersion = selectedSdk.getSdkVersions().first()
-                    }
-                }, {
-                    setState { selectedSdkVersion = it.value }
-                })) {
+                child(sdkSelection) {
                     attrs.selectedSdk = state.selectedSdk
                     attrs.selectedSdkVersion = state.selectedSdkVersion
                 }
 
                 // ======== test resources selection =========
-                child(testResourcesSelection(
-                    updateGitUrlFromInputField = {
-                        setState {
-                            gitUrlFromInputField = (it.target as HTMLInputElement).value
-                        }
-                    },
-                    updateGitBranchOrCommitInputField = {
-                        setState {
-                            gitBranchOrCommitFromInputField = (it.target as HTMLInputElement).value
-                        }
-                    },
-                    updateTestRootPath = {
-                        setState {
-                            testRootPath = (it.target as HTMLInputElement).value
-                        }
-                    },
-                    setTestRootPathFromHistory = {
-                        setState {
-                            testRootPath = it
-                        }
-                    },
-                    setExecCmd = {
-                        setState {
-                            execCmd = (it.target as HTMLInputElement).value
-                        }
-                    },
-                    setBatchSize = {
-                        setState {
-                            batchSizeForAnalyzer = (it.target as HTMLInputElement).value
-                        }
-                    },
-                    setSelectedLanguageForStandardTests = {
-                        setState {
-                            selectedLanguageForStandardTests = it
-                        }
-                    }
-                )) {
+                child(testResourcesSelection) {
                     attrs.testingType = state.testingType
                     attrs.isSubmitButtonPressed = state.isSubmitButtonPressed
                     attrs.gitDto = gitDto
@@ -519,110 +630,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                     }
                 }
 
-                child(cardComponent(true, true) {
-                    val newProjectInformation: MutableMap<String, String> = mutableMapOf()
-                    form {
-                        div("row g-3 ml-3 mr-3 pb-2 pt-2  border-bottom") {
-                            projectInformation.putAll(
-                                projectInformation.keys.zip(
-                                    listOf(
-                                        project.name,
-                                        project.description ?: "",
-                                        project.url ?: "",
-                                        project.owner
-                                    )
-                                )
-                            )
-                            projectInformation
-                                .forEach { (header, text) ->
-                                    div("col-md-6 pl-0 pr-0") {
-                                        label(classes = "control-label col-auto justify-content-between pl-0") {
-                                            +header
-                                        }
-                                    }
-                                    div("col-md-6 pl-0") {
-                                        div("controls col-auto pl-0") {
-                                            input(InputType.text, classes = "form-control-plaintext pt-0 pb-0") {
-                                                attrs.id = header
-                                                attrs.defaultValue = text
-                                                attrs.disabled = true
-                                                attrs {
-                                                    onChangeFunction = {
-                                                        val tg = it.target as HTMLInputElement
-                                                        val newValue = tg.value
-                                                        newProjectInformation[header] = newValue
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                        }
-                    }
-
-                    div("ml-3 mt-2 align-items-right float-right") {
-                        button(classes = "btn") {
-                            fontAwesomeIcon {
-                                attrs.icon = faCheck
-                            }
-                            attrs.id = "Save new project info"
-                            attrs.hidden = true
-                            attrs.onClickFunction = {
-                                newProjectInformation.forEach { (key, value) ->
-                                    projectInformation[key] = value
-                                    (document.getElementById(key) as HTMLInputElement).value = value
-                                }
-                                updateProjectBuilder(projectInformation)
-                                turnEditMode(isOff = true)
-                            }
-                        }
-
-                        button(classes = "btn") {
-                            fontAwesomeIcon {
-                                attrs.icon = faTimesCircle
-                            }
-                            attrs.id = "Cancel"
-                            attrs.hidden = true
-                            attrs.onClickFunction = {
-                                projectInformation.forEach { (key, value) ->
-                                    (document.getElementById(key) as HTMLInputElement).value = value
-                                }
-                                newProjectInformation.clear()
-                                turnEditMode(isOff = true)
-                            }
-                        }
-                    }
-
-                    div("ml-3 mt-2 align-items-left justify-content-between") {
-                        fontAwesomeIcon(icon = faHistory)
-
-                        button(classes = "btn btn-link text-left") {
-                            +"Latest Execution"
-                            attrs.onClickFunction = {
-                                scope.launch {
-                                    switchToLatestExecution()
-                                }
-                            }
-                        }
-                    }
-                    div("ml-3 align-items-left") {
-                        fontAwesomeIcon(icon = faCalendarAlt)
-                        a(
-                            href = "#/${project.owner}/${project.name}/history",
-                            classes = "btn btn-link text-left"
-                        ) {
-                            +"Execution History"
-                        }
-                    }
-                    div("ml-3 d-sm-flex align-items-left justify-content-between mt-2") {
-                        button(type = ButtonType.button, classes = "btn btn-sm btn-danger") {
-                            attrs.onClickFunction = {
-                                deleteProject()
-                            }
-                            +"Delete project"
-                        }
-                    }
-                })
+                child(projectInfoCard)
             }
         }
     }
@@ -748,17 +756,18 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         }
     }
 
+    @Suppress("COMMENTED_OUT_CODE")
     private fun updateProjectBuilder(projectInfo: Map<String, String>) {
         val headers = Headers().also {
             it.set("Accept", "application/json")
             it.set("Content-Type", "application/json")
         }
-        val (name, description, url, owner) = projectInfo.values.toList()
+        val (name, description, url) = projectInfo.values.toList()
         project = project.copy(
             name = name,
             description = description,
             url = url,
-            owner = owner,
+            organization = project.organization,
         )
         scope.launch {
             post("$apiUrl/projects/update", headers, Json.encodeToString(project))
@@ -791,7 +800,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     private suspend fun switchToLatestExecution() {
         val headers = Headers().apply { set("Accept", "application/json") }
         val response = get(
-            "$apiUrl/latestExecution?name=${project.name}&owner=${project.owner}",
+            "$apiUrl/latestExecution?name=${project.name}&organizationId=${project.organization.id}",
             headers
         )
         if (!response.ok) {

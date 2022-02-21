@@ -37,6 +37,8 @@ import org.springframework.http.MediaType
 import org.springframework.http.ReactiveHttpOutputMessage
 import org.springframework.http.ResponseEntity
 import org.springframework.http.client.MultipartBodyBuilder
+import org.springframework.http.codec.json.KotlinSerializationJsonDecoder
+import org.springframework.http.codec.json.KotlinSerializationJsonEncoder
 import org.springframework.http.codec.multipart.FilePart
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -79,9 +81,15 @@ typealias Status = Mono<ResponseEntity<HttpStatus>>
 class DownloadProjectController(
     private val configProperties: ConfigProperties,
     private val testDiscoveringService: TestDiscoveringService,
+    kotlinSerializationJsonEncoder: KotlinSerializationJsonEncoder,
+    kotlinSerializationJsonDecoder: KotlinSerializationJsonDecoder,
 ) {
     private val log = LoggerFactory.getLogger(DownloadProjectController::class.java)
-    private val webClientBackend = WebClient.create(configProperties.backend)
+    private val webClientBackend = WebClient.builder().baseUrl(configProperties.backend).codecs {
+        it.defaultCodecs().kotlinSerializationJsonEncoder(kotlinSerializationJsonEncoder)
+        it.defaultCodecs().kotlinSerializationJsonDecoder(kotlinSerializationJsonDecoder)
+    }
+        .build()
     private val webClientOrchestrator = WebClient.create(configProperties.orchestrator)
     private val scheduler = Schedulers.boundedElastic()
 
