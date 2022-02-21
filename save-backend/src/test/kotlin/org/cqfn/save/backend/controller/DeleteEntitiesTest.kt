@@ -91,7 +91,7 @@ class DeleteEntitiesTest {
     @Test
     @WithMockUser
     fun `should forbid deletion of all executions for ordinary user`() {
-        deleteAllExecutionsAndAssert("huaweiName", 1) {
+        deleteAllExecutionsAndAssert("huaweiName", "Huawei") {
             expectStatus().isForbidden
         }
     }
@@ -99,7 +99,7 @@ class DeleteEntitiesTest {
     @Test
     @WithMockUser(roles = ["ADMIN"])
     fun `should delete all executions for project admin`() {
-        deleteAllExecutionsAndAssert("huaweiName", 1) {
+        deleteAllExecutionsAndAssert("huaweiName", "Huawei") {
             expectStatus().isOk
         }
     }
@@ -111,9 +111,9 @@ class DeleteEntitiesTest {
         )
     }
 
-    private fun deleteAllExecutionsAndAssert(name: String, organizationId: Long, assert: ResponseSpec.() -> Unit) {
+    private fun deleteAllExecutionsAndAssert(name: String, organizationName: String, assert: ResponseSpec.() -> Unit) {
         webClient.postJsonAndAssert(
-            uri = "/api/execution/deleteAll?name=$name&organizationId=$organizationId",
+            uri = "/api/execution/deleteAll?name=$name&organizationName=$organizationName",
             assert = assert
         )
     }

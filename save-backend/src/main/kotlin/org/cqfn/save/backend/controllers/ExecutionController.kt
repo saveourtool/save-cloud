@@ -130,8 +130,8 @@ class ExecutionController(private val executionService: ExecutionService,
      * @return list of execution dtos
      */
     @GetMapping("/api/executionDtoList")
-    fun getExecutionByProject(authentication: Authentication, @RequestParam name: String, @RequestParam organizationId: Long): Mono<List<ExecutionDto>> {
-        val organization = organizationService.getOrganizationById(organizationId)
+    fun getExecutionByProject(@RequestParam name: String, @RequestParam organizationName: String, authentication: Authentication): Mono<List<ExecutionDto>> {
+        val organization = organizationService.findByName(organizationName)
         return projectService.findWithPermissionByNameAndOrganization(authentication, name, organization, Permission.READ).map {
             executionService.getExecutionDtoByNameAndOrganization(name, organization).reversed()
         }
@@ -168,10 +168,10 @@ class ExecutionController(private val executionService: ExecutionService,
     @Suppress("UnsafeCallOnNullableType")
     fun deleteExecutionForProject(
         @RequestParam name: String,
-        @RequestParam organizationId: Long,
+        @RequestParam organizationName: String,
         authentication: Authentication,
     ): Mono<ResponseEntity<*>> {
-        val organization = organizationService.getOrganizationById(organizationId)
+        val organization = organizationService.findByName(organizationName)
         return projectService.findWithPermissionByNameAndOrganization(
             authentication,
             name,

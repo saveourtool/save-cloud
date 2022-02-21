@@ -19,6 +19,7 @@ dependencies {
     implementation(libs.kotlinx.serialization.properties)
     implementation(libs.ktoml.file)
     implementation(libs.ktoml.core)
+    implementation(libs.kotlinx.serialization.json)
 }
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
