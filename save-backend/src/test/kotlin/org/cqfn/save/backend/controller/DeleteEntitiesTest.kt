@@ -15,6 +15,7 @@ import org.cqfn.save.entities.Project
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.mockito.Mockito
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doNothing
 import org.mockito.kotlin.whenever
@@ -74,6 +75,27 @@ class DeleteEntitiesTest {
     @WithMockUser
     fun `should forbid deletion by ID for ordinary user`() {
         val ids = listOf(1L, 2L, 3L)
+        deleteExecutionsAndAssert(ids) {
+            expectStatus().isForbidden
+        }
+    }
+
+    @Test
+    @WithMockUser
+    fun `should forbid deletion by ID for ordinary user on a private project`() {
+        Mockito.reset(projectRepository, executionRepository)
+        val privateProject = Project.stub(99).apply {
+            id = 1
+            public = false
+        }
+        whenever(projectRepository.findByNameAndOrganization(any(), any())).thenReturn(
+            privateProject
+        )
+        whenever(executionRepository.findById(any())).thenAnswer {
+            Optional.of(Execution.stub(privateProject).apply { id = it.arguments[0] as Long })
+        }
+        val ids = listOf(1L, 2L, 3L)
+
         deleteExecutionsAndAssert(ids) {
             expectStatus().isNotFound
         }

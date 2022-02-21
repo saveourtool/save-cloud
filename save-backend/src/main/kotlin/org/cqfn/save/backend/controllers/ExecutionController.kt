@@ -202,6 +202,7 @@ class ExecutionController(private val executionService: ExecutionService,
      * @throws ResponseStatusException
      */
     @PostMapping("/api/execution/delete")
+    @Suppress("TOO_LONG_FUNCTION")
     fun deleteExecutionsByExecutionIds(@RequestParam executionIds: List<Long>, authentication: Authentication): Mono<ResponseEntity<*>> {
         val isProjectHidden = AtomicBoolean(false)
         return Flux.fromIterable(executionIds)
