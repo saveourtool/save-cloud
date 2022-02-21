@@ -1,13 +1,7 @@
 package org.cqfn.save.backend.controllers
 
 import org.cqfn.save.backend.configs.ConfigProperties
-import org.cqfn.save.backend.service.AgentService
-import org.cqfn.save.backend.service.AgentStatusService
-import org.cqfn.save.backend.service.ExecutionService
-import org.cqfn.save.backend.service.GitService
-import org.cqfn.save.backend.service.ProjectService
-import org.cqfn.save.backend.service.TestExecutionService
-import org.cqfn.save.backend.service.TestSuitesService
+import org.cqfn.save.backend.service.*
 import org.cqfn.save.backend.utils.username
 import org.cqfn.save.domain.toSdk
 import org.cqfn.save.entities.Execution
@@ -46,6 +40,7 @@ class ExecutionController(private val executionService: ExecutionService,
                           private val testExecutionService: TestExecutionService,
                           private val agentService: AgentService,
                           private val agentStatusService: AgentStatusService,
+                          private val organizationService: OrganizationService,
                           config: ConfigProperties,
 ) {
     private val log = LoggerFactory.getLogger(ExecutionController::class.java)
@@ -108,52 +103,58 @@ class ExecutionController(private val executionService: ExecutionService,
 
     /**
      * @param name
-     * @param owner
+     * @param organizationName
      * @return list of execution dtos
      */
     @GetMapping("/api/executionDtoList")
-    fun getExecutionByProject(@RequestParam name: String, @RequestParam owner: String): ExecutionDtoListResponse =
-            ResponseEntity
-                .status(HttpStatus.OK)
-                .body(executionService.getExecutionDtoByNameAndOwner(name, owner).reversed())
+    fun getExecutionByProject(@RequestParam name: String, @RequestParam organizationName: String): ExecutionDtoListResponse {
+        val organization = organizationService.findByName(organizationName)
+        return ResponseEntity
+            .status(HttpStatus.OK)
+            .body(executionService.getExecutionDtoByNameAndOrganization(name, organization).reversed())
+    }
 
     /**
      * Get latest (by start time an) execution by project name and project owner
      *
      * @param name project name
-     * @param owner project owner
+     * @param organizationId
      * @return Execution
      * @throws ResponseStatusException if execution is not found
      */
     @GetMapping("/api/latestExecution")
-    fun getLatestExecutionForProject(@RequestParam name: String, @RequestParam owner: String): Mono<ExecutionDto> =
-            Mono.fromCallable { executionService.getLatestExecutionByProjectNameAndProjectOwner(name, owner) }
-                .map { execOpt ->
-                    execOpt.map { it.toDto() }.orElseThrow {
-                        ResponseStatusException(HttpStatus.NOT_FOUND, "Execution not found for project (name=$name, owner=$owner)")
-                    }
-                }
+    fun getLatestExecutionForProject(@RequestParam name: String, @RequestParam organizationId: Long): Mono<ExecutionDto> = Mono.fromCallable {
+        val organization = organizationService.getOrganizationById(organizationId)
+        executionService.getLatestExecutionByProjectNameAndProjectOrganization(name, organization)
+    }
+        .map { execOpt ->
+            execOpt.map { it.toDto() }.orElseThrow {
+                ResponseStatusException(HttpStatus.NOT_FOUND, "Execution not found for project (name=$name, owner=${execOpt.get().project.organization
+                    .name})")
+            }
+        }
 
     /**
      * Delete all executions by project name and project owner
      *
      * @param name name of project
-     * @param owner owner of project
+     * @param organizationName organization of project
      * @return ResponseEntity
      * @throws ResponseStatusException
      */
     @PostMapping("/api/execution/deleteAll")
     @Suppress("UnsafeCallOnNullableType")
-    fun deleteExecutionForProject(@RequestParam name: String, @RequestParam owner: String): ResponseEntity<String> {
+    fun deleteExecutionForProject(@RequestParam name: String, @RequestParam organizationName: String): ResponseEntity<String> {
+        val organization = organizationService.findByName(organizationName)
         try {
-            requireNotNull(projectService.findByNameAndOwner(name, owner)).id!!.let {
+            requireNotNull(projectService.findByNameAndOrganization(name, organization)).id!!.let {
                 testExecutionService.deleteTestExecutionWithProjectId(it)
                 agentStatusService.deleteAgentStatusWithProjectId(it)
                 agentService.deleteAgentWithProjectId(it)
-                executionService.deleteExecutionByProjectNameAndProjectOwner(name, owner)
+                executionService.deleteExecutionByProjectNameAndProjectOrganization(name, organization)
             }
         } catch (e: IllegalArgumentException) {
-            log.warn("Could not find the project with name: $name and owner: $owner or related objects", e)
+            log.warn("Could not find the project with name: $name and owner: ${organization.name} or related objects", e)
             throw ResponseStatusException(HttpStatus.NOT_FOUND, "Failed to delete executions for the following reason: ${e.message}")
         }
         return ResponseEntity.status(HttpStatus.OK).build()

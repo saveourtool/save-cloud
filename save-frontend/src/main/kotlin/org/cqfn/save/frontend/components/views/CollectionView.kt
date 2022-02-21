@@ -39,12 +39,12 @@ class CollectionView : AbstractView<PropsWithChildren, State>(false) {
         }
         child(tableComponent(
             columns = columns<Project> {
-                column(id = "owner", header = "Project Owner", { owner }) {
+                column(id = "owner", header = "Project Owner", { organization.name }) {
                     buildElement {
                         td {
                             // FixMe: temporary disable links, until we will make a beat
                             // a(href = "#/${it.value}") {
-                            +it.value
+                            +it.value!!
                             // }
                         }
                     }
@@ -52,7 +52,7 @@ class CollectionView : AbstractView<PropsWithChildren, State>(false) {
                 column(id = "name", header = "Evaluated Tool", { name }) {
                     buildElement {
                         td {
-                            a(href = "#/${it.row.original.owner}/${it.value}") { +it.value }
+                            a(href = "#/${it.row.original.organization.name}/${it.value}") { +it.value }
                             privacySpan(it.row.original)
                         }
                     }

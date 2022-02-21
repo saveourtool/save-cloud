@@ -58,6 +58,7 @@ import kotlin.io.path.writeLines
 @MockBeans(
     MockBean(AgentStatusRepository::class),
     MockBean(ExecutionRepository::class),
+    MockBean(OrganizationRepository::class),
     MockBean(ProjectRepository::class),
     MockBean(TestExecutionRepository::class),
     MockBean(TestRepository::class),
@@ -65,7 +66,8 @@ import kotlin.io.path.writeLines
     MockBean(GitRepository::class),
     MockBean(StandardSuitesUpdateScheduler::class),
     MockBean(UserRepository::class),
-    MockBean(AwesomeBenchmarksRepository::class)
+    MockBean(AwesomeBenchmarksRepository::class),
+    MockBean(LnkUserProjectRepository::class)
 )
 class DownloadFilesTest {
     @Autowired

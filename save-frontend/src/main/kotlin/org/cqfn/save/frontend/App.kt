@@ -11,9 +11,7 @@ import org.cqfn.save.frontend.components.topBar
 import org.cqfn.save.frontend.components.views.*
 import org.cqfn.save.frontend.externals.fontawesome.*
 import org.cqfn.save.frontend.externals.modal.ReactModal
-import org.cqfn.save.frontend.utils.ComponentWithScope
-import org.cqfn.save.frontend.utils.get
-import org.cqfn.save.frontend.utils.withRouter
+import org.cqfn.save.frontend.utils.*
 import org.cqfn.save.info.UserInfo
 
 import org.w3c.dom.HTMLElement
@@ -145,7 +143,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                     child(withRouter { _, params ->
                                         child(HistoryView::class) {
                                             attrs.name = params["name"]!!
-                                            attrs.owner = params["owner"]!!
+                                            attrs.organizationName = params["owner"]!!
                                         }
                                     })
                                 }

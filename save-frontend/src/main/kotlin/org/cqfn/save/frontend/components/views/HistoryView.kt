@@ -11,16 +11,9 @@ import org.cqfn.save.frontend.components.tables.tableComponent
 import org.cqfn.save.frontend.externals.fontawesome.faTrashAlt
 import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
 import org.cqfn.save.frontend.themes.Colors
-import org.cqfn.save.frontend.utils.apiUrl
-import org.cqfn.save.frontend.utils.decodeFromJsonString
-import org.cqfn.save.frontend.utils.get
-import org.cqfn.save.frontend.utils.post
-import org.cqfn.save.frontend.utils.runConfirmWindowModal
-import org.cqfn.save.frontend.utils.runErrorModal
-import org.cqfn.save.frontend.utils.unsafeMap
+import org.cqfn.save.frontend.utils.*
 
 import csstype.Background
-import kotlinext.js.jso
 import org.w3c.fetch.Headers
 import org.w3c.fetch.Response
 import react.PropsWithChildren
@@ -39,15 +32,16 @@ import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
 import kotlinx.html.ButtonType
 import kotlinx.html.js.onClickFunction
+import kotlinx.js.jso
 
 /**
  * [RProps] for tests execution history
  */
 external interface HistoryProps : PropsWithChildren {
     /**
-     * Project owner
+     * Project organization name
      */
-    var owner: String
+    var organizationName: String
 
     /**
      * Project name
@@ -254,7 +248,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
             }
         ) { _, _ ->
             get(
-                url = "$apiUrl/executionDtoList?name=${props.name}&owner=${props.owner}",
+                url = "$apiUrl/executionDtoList?name=${props.name}&organizationName=${props.organizationName}",
                 headers = Headers().also {
                     it.set("Accept", "application/json")
                     it.set("Content-Type", "application/json")
@@ -291,9 +285,9 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
         }
         scope.launch {
             responseFromDeleteExecutions =
-                    post("$apiUrl/execution/deleteAll?name=${props.name}&owner=${props.owner}", headers, undefined)
+                    post("$apiUrl/execution/deleteAll?name=${props.name}&organizationName=${props.organizationName}", headers, undefined)
             if (responseFromDeleteExecutions.ok) {
-                window.location.href = "${window.location.origin}#/${props.owner}/${props.name}"
+                window.location.href = "${window.location.origin}#/${props.organizationName}/${props.name}"
             } else {
                 responseFromDeleteExecutions.text().then {
                     setState {

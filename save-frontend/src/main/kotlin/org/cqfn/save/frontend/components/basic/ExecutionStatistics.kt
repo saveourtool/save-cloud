@@ -11,6 +11,8 @@ import react.Props
 import react.dom.*
 import react.fc
 
+import kotlinx.js.jso
+
 /**
  * [Props] for execution statistics component
  */
@@ -72,7 +74,7 @@ fun executionStatistics(classes: String = "") = fc<ExecutionStatisticsProps> { p
                                 div("progress progress-sm mr-2") {
                                     div("progress-bar bg-info") {
                                         attrs["role"] = "progressbar"
-                                        attrs["style"] = kotlinext.js.jso<CSSProperties> {
+                                        attrs["style"] = jso<CSSProperties> {
                                             width = "$passRate%".unsafeCast<Width>()
                                         }
                                         attrs["aria-valuenow"] = passRate

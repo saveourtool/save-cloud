@@ -91,11 +91,11 @@ suspend fun request(url: String,
 
 /**
  * @param name
- * @param owner
+ * @param organizationName
  * @return project
  */
-suspend fun getProject(name: String, owner: String) =
-        get("$apiUrl/projects/get?name=$name&owner=$owner", Headers().apply {
+suspend fun getProject(name: String, organizationName: String) =
+        get("$apiUrl/projects/get/organization-name?name=$name&organizationName=$organizationName", Headers().apply {
             set("Accept", "application/json")
         })
             .decodeFromJsonString<Project>()

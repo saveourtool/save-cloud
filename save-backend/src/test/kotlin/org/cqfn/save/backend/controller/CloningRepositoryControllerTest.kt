@@ -9,11 +9,7 @@ import org.cqfn.save.backend.service.ExecutionService
 import org.cqfn.save.backend.service.ProjectService
 import org.cqfn.save.domain.Jdk
 import org.cqfn.save.domain.toFileInfo
-import org.cqfn.save.entities.ExecutionRequest
-import org.cqfn.save.entities.ExecutionRequestForStandardSuites
-import org.cqfn.save.entities.GitDto
-import org.cqfn.save.entities.Project
-import org.cqfn.save.entities.ProjectStatus
+import org.cqfn.save.entities.*
 
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
@@ -61,17 +57,19 @@ import kotlin.io.path.createFile
     MockBean(StandardSuitesUpdateScheduler::class),
     MockBean(UserRepository::class),
     MockBean(AwesomeBenchmarksRepository::class),
+    MockBean(OrganizationRepository::class),
+    MockBean(LnkUserProjectRepository::class),
 )
 @Suppress("TOO_LONG_FUNCTION")
 class CloningRepositoryControllerTest {
-    private val testProject = Project(
-        owner = "Huawei",
+    private val organization = Organization("Huawei", 1, null).apply { id = 1 }
+    private var testProject: Project = Project(
+        organization = organization,
         name = "huaweiName",
         url = "huawei.com",
         description = "test description",
         status = ProjectStatus.CREATED,
         userId = 1,
-        adminIds = null,
     ).apply {
         id = 1
     }
@@ -88,7 +86,7 @@ class CloningRepositoryControllerTest {
     fun webClientSetUp() {
         webTestClient.mutate().responseTimeout(Duration.ofSeconds(2)).build()
 
-        whenever(projectService.findByNameAndOwner("huaweiName", "Huawei"))
+        whenever(projectService.findByNameAndOrganizationName("huaweiName", "Huawei"))
             .thenReturn(testProject)
     }
 

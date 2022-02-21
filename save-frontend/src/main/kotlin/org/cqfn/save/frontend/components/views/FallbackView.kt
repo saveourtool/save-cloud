@@ -1,12 +1,13 @@
 package org.cqfn.save.frontend.components.views
 
-import kotlinext.js.jso
 import react.PropsWithChildren
 import react.RBuilder
 import react.State
 import react.dom.div
 import react.dom.p
 import react.router.dom.Link
+
+import kotlinx.js.jso
 
 /**
  * A [RComponent] representing fallback page with 404 error
