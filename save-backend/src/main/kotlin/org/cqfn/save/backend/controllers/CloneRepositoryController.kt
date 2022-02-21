@@ -21,6 +21,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.http.client.MultipartBodyBuilder
+import org.springframework.http.codec.json.Jackson2JsonEncoder
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -46,10 +47,12 @@ class CloneRepositoryController(
     private val executionService: ExecutionService,
     private val additionalToolsFileSystemRepository: TimestampBasedFileSystemRepository,
     private val configProperties: ConfigProperties,
-) {
+    private val jackson2JsonEncoder: Jackson2JsonEncoder,
+    ) {
     private val log = LoggerFactory.getLogger(CloneRepositoryController::class.java)
-    private val preprocessorWebClient = WebClient.create(configProperties.preprocessorUrl)
-
+    private val preprocessorWebClient = WebClient.builder().baseUrl(configProperties.preprocessorUrl).codecs {
+        it.defaultCodecs().jackson2JsonEncoder(jackson2JsonEncoder)
+    }.build()
     /**
      * Endpoint to save project
      *
@@ -69,7 +72,7 @@ class CloneRepositoryController(
         authentication.username(),
         files
     ) { newExecutionId ->
-        part("executionRequest", executionRequest.copy(executionId = newExecutionId))
+        part("executionRequest", executionRequest.copy(executionId = newExecutionId), MediaType.APPLICATION_JSON)
     }
 
     /**
@@ -91,7 +94,7 @@ class CloneRepositoryController(
         authentication.username(),
         files
     ) {
-        part("executionRequestForStandardSuites", executionRequestForStandardSuites)
+        part("executionRequestForStandardSuites", executionRequestForStandardSuites, MediaType.APPLICATION_JSON)
     }
 
     @Suppress("UnsafeCallOnNullableType")
