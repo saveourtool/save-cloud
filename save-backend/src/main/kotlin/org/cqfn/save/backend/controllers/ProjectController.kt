@@ -1,5 +1,6 @@
 package org.cqfn.save.backend.controllers
 
+import org.cqfn.save.backend.StringResponse
 import org.cqfn.save.backend.security.Permission
 import org.cqfn.save.backend.security.ProjectPermissionEvaluator
 import org.cqfn.save.backend.service.GitService
@@ -165,10 +166,11 @@ class ProjectController(private val projectService: ProjectService,
      * @return response
      */
     @PostMapping("/update")
-    @PreAuthorize("@projectPermissionEvaluator.hasPermission(authentication, project, T(org.cqfn.save.backend.security.Permission).WRITE)")
-    fun updateProject(@RequestBody project: Project): ResponseEntity<String> {
+    @PreAuthorize("@projectPermissionEvaluator.hasPermission(authentication, #project, T(org.cqfn.save.backend.security.Permission).WRITE)")
+    fun updateProject(@RequestBody project: Project): Mono<StringResponse> {
         val (_, projectStatus) = projectService.saveProject(project)
-        return ResponseEntity.ok(projectStatus.message)
+        // return type must be a `Publisher` to use reactive method interceptors (`PreAuthorize` in this case)
+        return Mono.just(ResponseEntity.ok(projectStatus.message))
     }
 
     companion object {
