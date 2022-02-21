@@ -5,7 +5,6 @@
 package org.cqfn.save.frontend.components.views
 
 import org.cqfn.save.domain.TestResultStatus
-import org.cqfn.save.entities.Organization
 import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.frontend.components.tables.tableComponent
@@ -98,11 +97,6 @@ external interface HistoryViewState : State {
      * Error label
      */
     var errorLabel: String
-
-    /**
-     * Project organization
-     */
-    var organization: Organization
 }
 
 /**
@@ -112,20 +106,6 @@ external interface HistoryViewState : State {
 @OptIn(ExperimentalJsExport::class)
 class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
     private lateinit var responseFromDeleteExecutions: Response
-
-    override fun componentDidMount() {
-        super.componentDidMount()
-
-        scope.launch {
-            val organizationNew: Organization = get("$apiUrl/organization/get/organization-name?name=${props.organizationName}", Headers().apply {
-                set("Accept", "application/json")
-            })
-                .decodeFromJsonString<Organization>()
-            setState {
-                organization = organizationNew
-            }
-        }
-    }
 
     @Suppress(
         "TOO_LONG_FUNCTION",
@@ -268,7 +248,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
             }
         ) { _, _ ->
             get(
-                url = "$apiUrl/executionDtoList?name=${props.name}&organizationId=${state.organization.id}",
+                url = "$apiUrl/executionDtoList?name=${props.name}&organizationName=${props.organizationName}",
                 headers = Headers().also {
                     it.set("Accept", "application/json")
                     it.set("Content-Type", "application/json")
@@ -305,7 +285,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
         }
         scope.launch {
             responseFromDeleteExecutions =
-                    post("$apiUrl/execution/deleteAll?name=${props.name}&organizationId=${state.organization.id}", headers, undefined)
+                    post("$apiUrl/execution/deleteAll?name=${props.name}&organizationName=${props.organizationName}", headers, undefined)
             if (responseFromDeleteExecutions.ok) {
                 window.location.href = "${window.location.origin}#/${props.organizationName}/${props.name}"
             } else {
