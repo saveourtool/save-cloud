@@ -11,14 +11,13 @@ import org.cqfn.save.backend.service.OrganizationService
 import org.cqfn.save.backend.service.ProjectService
 import org.cqfn.save.backend.service.TestExecutionService
 import org.cqfn.save.backend.service.TestSuitesService
-import org.cqfn.save.backend.utils.filterAndInvoke
-import org.cqfn.save.backend.utils.filterWhenAndInvoke
 import org.cqfn.save.backend.utils.justOrNotFound
 import org.cqfn.save.backend.utils.username
 import org.cqfn.save.core.utils.runIf
 import org.cqfn.save.domain.toSdk
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.ExecutionRequest
+import org.cqfn.save.entities.Project
 import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.execution.ExecutionInitializationDto
 import org.cqfn.save.execution.ExecutionType
@@ -38,7 +37,10 @@ import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
+import reactor.core.publisher.GroupedFlux
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.switchIfEmpty
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * Controller that accepts executions
@@ -188,42 +190,62 @@ class ExecutionController(private val executionService: ExecutionService,
     }
 
     /**
-     * FixMe: do we need to add preconditions that only executions from a single project can be deleted in a single query?
+     * Batch delete executions by a list of IDs.
      *
      * @param executionIds list of ids
      * @param authentication
-     * @return ResponseEntity
+     * @return ResponseEntity:
+     * - status 200 if all executions have been deleted or some have been deleted and some are missing
+     * - status 400 if all (not missing) executions don't belong to the same project
+     * - status 403 if operation is not permitted **at least for some executions**
+     * - status 404 if all executions are missing or the project is hidden from the current user
      * @throws ResponseStatusException
      */
     @PostMapping("/api/execution/delete")
-    fun deleteExecutionsByExecutionIds(@RequestParam executionIds: List<Long>, authentication: Authentication): Mono<ResponseEntity<*>> = Flux.fromIterable(executionIds)
-        .map { it to executionService.findExecution(it) }
-        .filterAndInvoke({ (id, _) -> log.warn("Cannot delete execution id=$id because it's missing in the DB") }) { (_, execution) ->
-            execution.isPresent
-        }
-        .map { (_, execution) -> execution.get() }
-        .groupBy { it.project }
-        .flatMap { groupedFlux ->
-            val project = groupedFlux.key()
-            groupedFlux.filterWhenAndInvoke({ log.warn("Cannot delete execution id=${it.id}, because operation is not allowed on project id=${project.id}") }) { execution ->
-                projectPermissionEvaluator.checkPermissions(authentication, execution, Permission.DELETE)
-                    .onErrorReturn(false)
+    fun deleteExecutionsByExecutionIds(@RequestParam executionIds: List<Long>, authentication: Authentication): Mono<ResponseEntity<*>> {
+        val isProjectHidden = AtomicBoolean(false)
+        return Flux.fromIterable(executionIds)
+            .findPresentExecutions()
+            .groupBy { it.project }
+            .singleOrEmpty()
+            .switchIfEmpty {
+                Mono.error(ResponseStatusException(HttpStatus.BAD_REQUEST, "Some executions belong to different projects, can't delete all at once"))
             }
-        }
-        .mapNotNull<Long> { it.id }
-        .collectList()
-        .map { filteredExecutionIds ->
-            testExecutionService.deleteTestExecutionByExecutionIds(filteredExecutionIds)
-            agentStatusService.deleteAgentStatusWithExecutionIds(filteredExecutionIds)
-            agentService.deleteAgentByExecutionIds(filteredExecutionIds)
-            executionService.deleteExecutionByIds(filteredExecutionIds)
-            if (filteredExecutionIds.isNotEmpty()) {
-                ResponseEntity.ok().build<Void>()
-            } else {
-                // fixme: send 403 if all ids were rejected because of incorrect permissions
-                ResponseEntity.notFound().build()
+            .flatMapMany { groupedFlux: GroupedFlux<Project, Execution> ->
+                val project = groupedFlux.key()
+                groupedFlux.flatMap { execution ->
+                    with(projectPermissionEvaluator) {
+                        Mono.justOrEmpty(execution.project).filterByPermission(
+                            authentication, Permission.DELETE, HttpStatus.FORBIDDEN
+                        )
+                    }
+                        .map { execution }
+                        .doOnError(ResponseStatusException::class.java) {
+                            log.warn("Cannot delete execution id=${execution.id}, because operation is not allowed on project id=${project.id} (status ${it.status})")
+                            if (it.status == HttpStatus.NOT_FOUND) {
+                                isProjectHidden.set(true)
+                            }
+                        }
+                }
             }
-        }
+            .mapNotNull<Long> { it.id }
+            .collectList()
+            .map { filteredExecutionIds ->
+                // at this point we should have only present executions from a project, that user has access to
+                testExecutionService.deleteTestExecutionByExecutionIds(filteredExecutionIds)
+                agentStatusService.deleteAgentStatusWithExecutionIds(filteredExecutionIds)
+                agentService.deleteAgentByExecutionIds(filteredExecutionIds)
+                executionService.deleteExecutionByIds(filteredExecutionIds)
+                if (filteredExecutionIds.isNotEmpty()) {
+                    ResponseEntity.ok().build<Void>()
+                } else if (isProjectHidden.get()) {
+                    // all executions belong to a project, that the user is not allowed to see
+                    ResponseEntity.status(HttpStatus.NOT_FOUND).body("All executions are missing")
+                } else {
+                    ResponseEntity.status(HttpStatus.FORBIDDEN).build()
+                }
+            }
+    }
 
     /**
      * Accepts a request to rerun an existing execution
@@ -291,4 +313,18 @@ class ExecutionController(private val executionService: ExecutionService,
      */
     @PostMapping("/internal/findTestRootPathForExecutionByTestSuites")
     fun findTestRootPathByTestSuites(@RequestBody execution: Execution): List<String> = execution.getTestRootPathByTestSuites()
+
+    /**
+     * @return Flux of executions, that are present by ID; or `Flux.error` with status 404 if all executions are missing
+     */
+    private fun Flux<Long>.findPresentExecutions(): Flux<Execution> = collectMap({ id -> id }) { id -> executionService.findExecution(id) }
+        .flatMapMany { idsToExecutions ->
+            idsToExecutions.filterValues { it.isEmpty }.takeIf { it.isNotEmpty() }?.let { missingExecutions ->
+                log.warn("Cannot delete executions with ids=${missingExecutions.keys} because they are missing in the DB")
+                if (missingExecutions.size == idsToExecutions.size) {
+                    return@flatMapMany Flux.error(ResponseStatusException(HttpStatus.NOT_FOUND, "All executions are missing"))
+                }
+            }
+            Flux.fromIterable(idsToExecutions.mapValues { it.value.get() }.values)
+        }
 }
