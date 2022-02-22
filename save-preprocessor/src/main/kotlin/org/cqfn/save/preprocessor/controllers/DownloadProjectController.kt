@@ -621,7 +621,7 @@ class DownloadProjectController(
             .post()
             .uri("/initializeAgents")
             .contentType(MediaType.MULTIPART_FORM_DATA)
-            .bodyValue(BodyInserters.fromMultipartData(bodyBuilder.build()))
+            .body(BodyInserters.fromMultipartData(bodyBuilder.build()))
             .retrieve()
             .toEntity<HttpStatus>()
     }
