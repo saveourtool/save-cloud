@@ -1,6 +1,5 @@
 package org.cqfn.save.preprocessor.controllers
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import org.cqfn.save.core.config.SaveProperties
 import org.cqfn.save.core.config.TestConfig
 import org.cqfn.save.core.config.defaultConfig
@@ -27,21 +26,20 @@ import org.cqfn.save.testsuite.TestSuiteDto
 import org.cqfn.save.testsuite.TestSuiteType
 import org.cqfn.save.utils.moveFileWithAttributes
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import okio.FileSystem
 import org.eclipse.jgit.api.errors.GitAPIException
 import org.eclipse.jgit.api.errors.InvalidRemoteException
 import org.eclipse.jgit.api.errors.TransportException
 import org.slf4j.LoggerFactory
+import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
 import org.springframework.core.io.ClassPathResource
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ReactiveHttpOutputMessage
 import org.springframework.http.ResponseEntity
 import org.springframework.http.client.MultipartBodyBuilder
-import org.springframework.http.codec.EncoderHttpMessageWriter
 import org.springframework.http.codec.json.Jackson2JsonEncoder
-import org.springframework.http.codec.json.KotlinSerializationJsonDecoder
-import org.springframework.http.codec.json.KotlinSerializationJsonEncoder
 import org.springframework.http.codec.multipart.FilePart
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -85,21 +83,17 @@ class DownloadProjectController(
     private val configProperties: ConfigProperties,
     private val testDiscoveringService: TestDiscoveringService,
     objectMapper: ObjectMapper,
-    kotlinSerializationJsonEncoder: KotlinSerializationJsonEncoder,
-    kotlinSerializationJsonDecoder: KotlinSerializationJsonDecoder,
+    kotlinSerializationWebClientCustomizer: WebClientCustomizer,
 ) {
     private val log = LoggerFactory.getLogger(DownloadProjectController::class.java)
-    private val webClientBackend = WebClient.builder().baseUrl(configProperties.backend).codecs {
-        it.defaultCodecs().kotlinSerializationJsonEncoder(kotlinSerializationJsonEncoder)
-        it.defaultCodecs().kotlinSerializationJsonDecoder(kotlinSerializationJsonDecoder)
-    }.build()
+    private val webClientBackend = WebClient.builder().baseUrl(configProperties.backend)
+        .apply(kotlinSerializationWebClientCustomizer::customize)
+        .build()
     private val webClientOrchestrator = WebClient.builder().baseUrl(configProperties.orchestrator).codecs {
-        it.defaultCodecs().kotlinSerializationJsonEncoder(kotlinSerializationJsonEncoder)
-        it.defaultCodecs().kotlinSerializationJsonDecoder(kotlinSerializationJsonDecoder)
         it.defaultCodecs().multipartCodecs().encoder(Jackson2JsonEncoder(objectMapper))
-//        it.defaultCodecs().multipartCodecs().writer(EncoderHttpMessageWriter(kotlinSerializationJsonEncoder))
-//        it.defaultCodecs().multipartCodecs().writer(EncoderHttpMessageWriter(kotlinSerializationJsonEncoder))
-    }.build()
+    }
+        .apply(kotlinSerializationWebClientCustomizer::customize)
+        .build()
     private val scheduler = Schedulers.boundedElastic()
 
     /**
@@ -627,7 +621,7 @@ class DownloadProjectController(
             .post()
             .uri("/initializeAgents")
             .contentType(MediaType.MULTIPART_FORM_DATA)
-            .bodyValue(bodyBuilder.build())
+            .bodyValue(BodyInserters.fromMultipartData(bodyBuilder.build()))
             .retrieve()
             .toEntity<HttpStatus>()
     }

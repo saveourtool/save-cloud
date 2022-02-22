@@ -6,23 +6,23 @@
 
 package org.cqfn.save.preprocessor.config
 
-import com.fasterxml.jackson.databind.SerializationFeature
 import org.cqfn.save.utils.LocalDateTimeSerializer
 
+import com.fasterxml.jackson.databind.SerializationFeature
+import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer
+import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.codec.ServerCodecConfigurer
 import org.springframework.http.codec.json.KotlinSerializationJsonDecoder
 import org.springframework.http.codec.json.KotlinSerializationJsonEncoder
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder
 import org.springframework.web.reactive.config.WebFluxConfigurer
 
 import java.time.LocalDateTime
 
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
-import org.cqfn.save.core.result.TestStatus
-import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer
-import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder
 
 internal val json = Json {
     serializersModule = SerializersModule {
@@ -52,4 +52,15 @@ class LocalDateTimeConfig {
                     configurer.defaultCodecs().kotlinSerializationJsonDecoder(decoder)
                 }
             }
+
+    @Bean
+    fun kotlinSerializationWebClientCustomizer(
+        kotlinSerializationJsonEncoder: KotlinSerializationJsonEncoder,
+        kotlinSerializationJsonDecoder: KotlinSerializationJsonDecoder
+    ) = WebClientCustomizer { buidler ->
+        builder.codecs {
+            it.defaultCodecs().kotlinSerializationJsonEncoder(kotlinSerializationJsonEncoder)
+            it.defaultCodecs().kotlinSerializationJsonDecoder(kotlinSerializationJsonDecoder)
+        }
+    }
 }

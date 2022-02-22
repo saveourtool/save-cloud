@@ -1,9 +1,9 @@
 package org.cqfn.save.utils
 
-import kotlinx.datetime.toJavaLocalDateTime
-import kotlinx.datetime.toKotlinLocalDateTime
 import java.time.LocalDateTime
 
+import kotlinx.datetime.toJavaLocalDateTime
+import kotlinx.datetime.toKotlinLocalDateTime
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
@@ -16,11 +16,7 @@ object LocalDateTimeSerializer : KSerializer<LocalDateTime> {
     private val kotlinxSerializer = kotlinx.datetime.LocalDateTime.serializer()
 
     @Suppress("MagicNumber")
-    override fun deserialize(decoder: Decoder): LocalDateTime {
-        return kotlinxSerializer.deserialize(decoder).toJavaLocalDateTime()
-    }
+    override fun deserialize(decoder: Decoder): LocalDateTime = kotlinxSerializer.deserialize(decoder).toJavaLocalDateTime()
 
-    override fun serialize(encoder: Encoder, value: LocalDateTime) {
-        return kotlinxSerializer.serialize(encoder, value.toKotlinLocalDateTime())
-    }
+    override fun serialize(encoder: Encoder, value: LocalDateTime) = kotlinxSerializer.serialize(encoder, value.toKotlinLocalDateTime())
 }
