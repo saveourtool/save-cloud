@@ -17,6 +17,7 @@ import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer
+import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.codec.ServerCodecConfigurer
@@ -47,6 +48,14 @@ class WebConfig {
                     configurer.defaultCodecs().jackson2JsonDecoder(decoder)
                 }
             }
+
+    @Bean
+    fun jackson2WebClientCustomizer(jackson2JsonEncoder: Jackson2JsonEncoder, jackson2JsonDecoder: Jackson2JsonDecoder): WebClientCustomizer = WebClientCustomizer { builder ->
+        builder.codecs {
+            it.defaultCodecs().jackson2JsonEncoder(jackson2JsonEncoder)
+            it.defaultCodecs().jackson2JsonDecoder(jackson2JsonDecoder)
+        }
+    }
 }
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "type")

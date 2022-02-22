@@ -18,6 +18,7 @@ import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionType
 
 import org.slf4j.LoggerFactory
+import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -47,9 +48,13 @@ class CloneRepositoryController(
     private val executionService: ExecutionService,
     private val additionalToolsFileSystemRepository: TimestampBasedFileSystemRepository,
     private val configProperties: ConfigProperties,
+    jackson2WebClientCustomizer: WebClientCustomizer,
 ) {
     private val log = LoggerFactory.getLogger(CloneRepositoryController::class.java)
-    private val preprocessorWebClient = WebClient.create(configProperties.preprocessorUrl)
+    private val preprocessorWebClient = WebClient.builder()
+        .apply(jackson2WebClientCustomizer::customize)
+        .baseUrl(configProperties.preprocessorUrl)
+        .build()
 
     /**
      * Endpoint to save project
@@ -76,7 +81,7 @@ class CloneRepositoryController(
                 authentication.username(),
                 files
             ) { newExecutionId ->
-                part("executionRequest", executionRequest.copy(executionId = newExecutionId))
+                part("executionRequest", executionRequest.copy(executionId = newExecutionId), MediaType.APPLICATION_JSON)
             }
         }
 
@@ -103,7 +108,7 @@ class CloneRepositoryController(
                 authentication.username(),
                 files
             ) {
-                part("executionRequestForStandardSuites", executionRequestForStandardSuites)
+                part("executionRequestForStandardSuites", executionRequestForStandardSuites, MediaType.APPLICATION_JSON)
             }
         }
 

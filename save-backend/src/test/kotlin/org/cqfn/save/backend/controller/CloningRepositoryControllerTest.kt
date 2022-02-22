@@ -1,6 +1,8 @@
 package org.cqfn.save.backend.controller
 
 import org.cqfn.save.backend.configs.ConfigProperties
+import org.cqfn.save.backend.configs.NoopWebSecurityConfig
+import org.cqfn.save.backend.configs.WebConfig
 import org.cqfn.save.backend.configs.WebSecurityConfig
 import org.cqfn.save.backend.controllers.CloneRepositoryController
 import org.cqfn.save.backend.repository.*
@@ -50,6 +52,7 @@ import kotlin.io.path.createFile
 @WebFluxTest(controllers = [CloneRepositoryController::class])
 @Import(
     WebSecurityConfig::class,
+    WebConfig::class,
     TimestampBasedFileSystemRepository::class,
     ConvertingAuthenticationManager::class,
     UserDetailsService::class,
