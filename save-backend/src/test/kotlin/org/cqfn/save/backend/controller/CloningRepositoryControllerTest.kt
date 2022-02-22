@@ -2,6 +2,7 @@ package org.cqfn.save.backend.controller
 
 import org.cqfn.save.backend.configs.ConfigProperties
 import org.cqfn.save.backend.configs.NoopWebSecurityConfig
+import org.cqfn.save.backend.configs.WebConfig
 import org.cqfn.save.backend.controllers.CloneRepositoryController
 import org.cqfn.save.backend.repository.*
 import org.cqfn.save.backend.scheduling.StandardSuitesUpdateScheduler
@@ -41,7 +42,7 @@ import java.time.Duration
 import kotlin.io.path.createFile
 
 @WebFluxTest(controllers = [CloneRepositoryController::class])
-@Import(NoopWebSecurityConfig::class, TimestampBasedFileSystemRepository::class)
+@Import(NoopWebSecurityConfig::class, WebConfig::class, TimestampBasedFileSystemRepository::class)
 @EnableConfigurationProperties(ConfigProperties::class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @MockBeans(
