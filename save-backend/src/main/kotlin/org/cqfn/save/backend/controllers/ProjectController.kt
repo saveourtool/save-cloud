@@ -1,5 +1,6 @@
 package org.cqfn.save.backend.controllers
 
+import org.cqfn.save.backend.StringResponse
 import org.cqfn.save.backend.security.Permission
 import org.cqfn.save.backend.security.ProjectPermissionEvaluator
 import org.cqfn.save.backend.service.GitService
@@ -71,7 +72,8 @@ class ProjectController(private val projectService: ProjectService,
      * 200 - if user can access the project
      * 403 - if project is public, but user can't access it
      * 404 - if project is not found or private and user can't access it
-     * FixMe: requires 'write' permission, because now we rely on this endpoint to load `ProjectView`
+     * FixMe: requires 'write' permission, because now we rely on this endpoint to load `ProjectView`.
+     *  And if the user isn't allowed to see `ProjectView`, we'll create another view in the future.
      *
      * @param name name of project
      * @param authentication
@@ -173,14 +175,25 @@ class ProjectController(private val projectService: ProjectService,
 
     /**
      * @param project
+     * @param authentication
      * @return response
      */
     @PostMapping("/update")
-    @PreAuthorize("@projectPermissionEvaluator.hasPermission(authentication, project, T(org.cqfn.save.backend.security.Permission).WRITE)")
-    fun updateProject(@RequestBody project: Project): ResponseEntity<String> {
-        val (_, projectStatus) = projectService.saveProject(project)
-        return ResponseEntity.ok(projectStatus.message)
-    }
+    fun updateProject(@RequestBody project: Project, authentication: Authentication): Mono<StringResponse> = projectService.findWithPermissionByNameAndOrganization(
+        authentication, project.name, project.organization, Permission.WRITE
+    )
+        .map { projectFromDb ->
+            // fixme: instead of manually updating fields, a special ProjectUpdateDto could be introduced
+            projectFromDb.apply {
+                name = project.name
+                description = project.description
+                url = project.url
+            }
+        }
+        .map { updatedProject ->
+            val (_, projectStatus) = projectService.saveProject(updatedProject)
+            ResponseEntity.ok(projectStatus.message)
+        }
 
     companion object {
         @JvmStatic

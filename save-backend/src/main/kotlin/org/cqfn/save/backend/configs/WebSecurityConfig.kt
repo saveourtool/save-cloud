@@ -4,7 +4,6 @@
 
 package org.cqfn.save.backend.configs
 
-import org.cqfn.save.backend.security.ProjectPermissionEvaluator
 import org.cqfn.save.backend.utils.ConvertingAuthenticationManager
 import org.cqfn.save.backend.utils.CustomAuthenticationBasicConverter
 import org.cqfn.save.domain.Role
@@ -74,9 +73,6 @@ class WebSecurityConfig(
         .logout().disable()
         .formLogin().disable()
         .build()
-
-    @Bean
-    fun projectPermissionEvaluator() = ProjectPermissionEvaluator()
 
     fun roleHierarchy(): RoleHierarchy = mapOf(
         Role.ADMIN to listOf(Role.VIEWER),
