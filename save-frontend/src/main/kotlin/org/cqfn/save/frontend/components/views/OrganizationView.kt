@@ -189,7 +189,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                     isUploading = true
                 }
                 element.files!!.asList().single().let { file ->
-                    val response: ImageInfo = post(
+                    val response: ImageInfo? = post(
                         "$apiUrl/image/upload?owner=${props.organizationName}",
                         Headers(),
                         FormData().apply {
