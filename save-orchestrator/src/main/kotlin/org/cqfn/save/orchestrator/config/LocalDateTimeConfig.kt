@@ -4,15 +4,18 @@
     "MISSING_KDOC_ON_FUNCTION",
 )
 
-package org.cqfn.save.preprocessor.utils
+package org.cqfn.save.orchestrator.config
 
 import org.cqfn.save.utils.LocalDateTimeSerializer
 
+import com.fasterxml.jackson.databind.SerializationFeature
+import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.codec.ServerCodecConfigurer
 import org.springframework.http.codec.json.KotlinSerializationJsonDecoder
 import org.springframework.http.codec.json.KotlinSerializationJsonEncoder
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder
 import org.springframework.web.reactive.config.WebFluxConfigurer
 
 import java.time.LocalDateTime
@@ -28,6 +31,12 @@ internal val json = Json {
 
 @Configuration
 class LocalDateTimeConfig {
+    @Bean
+    fun jackson2ObjectMapperBuilderCustomizer() = Jackson2ObjectMapperBuilderCustomizer { jacksonObjectMapperBuilder: Jackson2ObjectMapperBuilder ->
+        jacksonObjectMapperBuilder
+            .featuresToDisable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+    }
+
     @Bean
     fun kotlinSerializationJsonEncoder() = KotlinSerializationJsonEncoder(json)
 
