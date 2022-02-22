@@ -6,6 +6,7 @@
 
 package org.cqfn.save.preprocessor.config
 
+import com.fasterxml.jackson.databind.SerializationFeature
 import org.cqfn.save.utils.LocalDateTimeSerializer
 
 import org.springframework.context.annotation.Bean
@@ -19,6 +20,9 @@ import java.time.LocalDateTime
 
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
+import org.cqfn.save.core.result.TestStatus
+import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder
 
 internal val json = Json {
     serializersModule = SerializersModule {
@@ -28,6 +32,12 @@ internal val json = Json {
 
 @Configuration
 class LocalDateTimeConfig {
+    @Bean
+    fun jackson2ObjectMapperBuilderCustomizer() = Jackson2ObjectMapperBuilderCustomizer { jacksonObjectMapperBuilder: Jackson2ObjectMapperBuilder ->
+        jacksonObjectMapperBuilder
+            .featuresToDisable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+    }
+
     @Bean
     fun kotlinSerializationJsonEncoder() = KotlinSerializationJsonEncoder(json)
 

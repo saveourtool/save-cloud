@@ -1,5 +1,6 @@
 package org.cqfn.save.preprocessor.controllers
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.cqfn.save.core.config.SaveProperties
 import org.cqfn.save.core.config.TestConfig
 import org.cqfn.save.core.config.defaultConfig
@@ -37,6 +38,8 @@ import org.springframework.http.MediaType
 import org.springframework.http.ReactiveHttpOutputMessage
 import org.springframework.http.ResponseEntity
 import org.springframework.http.client.MultipartBodyBuilder
+import org.springframework.http.codec.EncoderHttpMessageWriter
+import org.springframework.http.codec.json.Jackson2JsonEncoder
 import org.springframework.http.codec.json.KotlinSerializationJsonDecoder
 import org.springframework.http.codec.json.KotlinSerializationJsonEncoder
 import org.springframework.http.codec.multipart.FilePart
@@ -81,6 +84,7 @@ typealias Status = Mono<ResponseEntity<HttpStatus>>
 class DownloadProjectController(
     private val configProperties: ConfigProperties,
     private val testDiscoveringService: TestDiscoveringService,
+    objectMapper: ObjectMapper,
     kotlinSerializationJsonEncoder: KotlinSerializationJsonEncoder,
     kotlinSerializationJsonDecoder: KotlinSerializationJsonDecoder,
 ) {
@@ -88,9 +92,14 @@ class DownloadProjectController(
     private val webClientBackend = WebClient.builder().baseUrl(configProperties.backend).codecs {
         it.defaultCodecs().kotlinSerializationJsonEncoder(kotlinSerializationJsonEncoder)
         it.defaultCodecs().kotlinSerializationJsonDecoder(kotlinSerializationJsonDecoder)
-    }
-        .build()
-    private val webClientOrchestrator = WebClient.create(configProperties.orchestrator)
+    }.build()
+    private val webClientOrchestrator = WebClient.builder().baseUrl(configProperties.orchestrator).codecs {
+        it.defaultCodecs().kotlinSerializationJsonEncoder(kotlinSerializationJsonEncoder)
+        it.defaultCodecs().kotlinSerializationJsonDecoder(kotlinSerializationJsonDecoder)
+        it.defaultCodecs().multipartCodecs().encoder(Jackson2JsonEncoder(objectMapper))
+//        it.defaultCodecs().multipartCodecs().writer(EncoderHttpMessageWriter(kotlinSerializationJsonEncoder))
+//        it.defaultCodecs().multipartCodecs().writer(EncoderHttpMessageWriter(kotlinSerializationJsonEncoder))
+    }.build()
     private val scheduler = Schedulers.boundedElastic()
 
     /**
@@ -607,18 +616,18 @@ class DownloadProjectController(
         testSuiteDtos: List<TestSuiteDto>?
     ): Status {
         val bodyBuilder = MultipartBodyBuilder().apply {
-            part("execution", execution)
+            part("execution", execution, MediaType.APPLICATION_JSON)
         }
 
         testSuiteDtos?.let {
-            bodyBuilder.part("testSuiteDtos", testSuiteDtos)
+            bodyBuilder.part("testSuiteDtos", testSuiteDtos, MediaType.APPLICATION_JSON)
         }
 
         return webClientOrchestrator
             .post()
             .uri("/initializeAgents")
             .contentType(MediaType.MULTIPART_FORM_DATA)
-            .body(BodyInserters.fromMultipartData(bodyBuilder.build()))
+            .bodyValue(bodyBuilder.build())
             .retrieve()
             .toEntity<HttpStatus>()
     }
