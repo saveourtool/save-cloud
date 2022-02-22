@@ -102,15 +102,15 @@ class DownloadFilesController(
     @PostMapping(value = ["/api/image/upload"], consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     fun uploadImage(@RequestPart("file") file: Mono<FilePart>, @RequestParam owner: String) =
             additionalToolsFileSystemRepository.saveImage(file, owner).map { imageInfo ->
-                ResponseEntity.status(
-                    imageInfo.path?.let {
-                        organizationService.saveAvatar(owner, it)
-                        HttpStatus.OK
-                    }
-                        ?: HttpStatus.INTERNAL_SERVER_ERROR
-                )
-                    .body(imageInfo)
+                imageInfo.path?.let {
+                    organizationService.saveAvatar(owner, it)
+                }
+            }.map { imageInfo ->
+                ResponseEntity.status(HttpStatus.OK).body(imageInfo)
             }
+                .switchIfEmpty(
+                    Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null))
+                )
                 .onErrorReturn(
                     FileAlreadyExistsException::class.java,
                     ResponseEntity.status(HttpStatus.CONFLICT).build()
