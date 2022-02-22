@@ -1,3 +1,8 @@
+/**
+ * Additional configuration to establish serialization of LocalDateTime consistent with other services.
+ * There is a copy of this configuration in save-orchestrator as well, and they should be consistent.
+ */
+
 @file:Suppress(
     "MISSING_KDOC_TOP_LEVEL",
     "MISSING_KDOC_CLASS_ELEMENTS",
