@@ -1,7 +1,6 @@
 package org.cqfn.save.backend.controller
 
 import org.cqfn.save.backend.configs.ConfigProperties
-import org.cqfn.save.backend.configs.NoopWebSecurityConfig
 import org.cqfn.save.backend.configs.WebConfig
 import org.cqfn.save.backend.configs.WebSecurityConfig
 import org.cqfn.save.backend.controllers.CloneRepositoryController

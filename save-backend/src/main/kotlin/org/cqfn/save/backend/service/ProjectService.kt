@@ -95,7 +95,7 @@ class ProjectService(private val projectRepository: ProjectRepository,
         messageIfNotFound: String? = null,
         statusIfForbidden: HttpStatus = HttpStatus.FORBIDDEN,
     ): Mono<Project> = with(projectPermissionEvaluator) {
-        Mono.fromCallable { findByNameAndOrganization(name, organization) }
+        Mono.fromCallable { findByNameAndOrganizationName(name, organization.name) }
             .switchIfEmpty {
                 Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND, messageIfNotFound))
             }
