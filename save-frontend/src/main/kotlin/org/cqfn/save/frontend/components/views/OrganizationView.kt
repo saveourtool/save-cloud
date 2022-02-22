@@ -81,7 +81,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             // ===================== LEFT COLUMN =======================================================================
             div("col-2 mr-3") {
                 div("text-xs text-center font-weight-bold text-primary text-uppercase mb-3") {
-                    +"Owner"
+                    +"Organization"
                 }
 
                 div {
@@ -101,8 +101,8 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                         }
                         attrs["aria-label"] = "Change avatar owner"
                         img(classes = "avatar avatar-user width-full border color-bg-default rounded-circle") {
-                            attrs.src = state.image?.base64?.let {
-                                ("data:image/png;base64, ${state.image?.base64}")
+                            attrs.src = state.image?.path?.let {
+                                "/api/avatar$it"
                             }
                                 ?: run {
                                     "img/image_not_found.png"

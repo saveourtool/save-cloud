@@ -19,13 +19,9 @@ data class FileInfo(
 )
 
 /**
- * @property name name of a file
- * @property base64 byte string of image
- * @property sizeBytes size in bytes
+ * @property path path to image
  */
 @Serializable
 data class ImageInfo(
-    val name: String?,
-    val base64: String?,
-    val sizeBytes: Long?,
+    val path: String?,
 )

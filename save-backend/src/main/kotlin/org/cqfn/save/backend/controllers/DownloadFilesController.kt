@@ -3,6 +3,7 @@ package org.cqfn.save.backend.controllers
 import org.cqfn.save.agent.TestExecutionDto
 import org.cqfn.save.backend.ByteArrayResponse
 import org.cqfn.save.backend.repository.AgentRepository
+import org.cqfn.save.backend.repository.OrganizationRepository
 import org.cqfn.save.backend.repository.TestDataFilesystemRepository
 import org.cqfn.save.backend.repository.TimestampBasedFileSystemRepository
 import org.cqfn.save.domain.FileInfo
@@ -11,7 +12,6 @@ import org.cqfn.save.domain.TestResultDebugInfo
 import org.cqfn.save.domain.TestResultLocation
 import org.cqfn.save.from
 
-import com.mchange.io.FileUtils
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -26,9 +26,7 @@ import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
 
-import java.io.File
 import java.io.FileNotFoundException
-import java.util.*
 
 import kotlin.io.path.*
 
@@ -40,6 +38,7 @@ class DownloadFilesController(
     private val additionalToolsFileSystemRepository: TimestampBasedFileSystemRepository,
     private val testDataFilesystemRepository: TestDataFilesystemRepository,
     private val agentRepository: AgentRepository,
+    private val organizationRepository: OrganizationRepository,
 ) {
     private val logger = LoggerFactory.getLogger(DownloadFilesController::class.java)
 
@@ -60,14 +59,8 @@ class DownloadFilesController(
      * @param owner owner name
      * @return a image
      */
-    @GetMapping("/api/avatar")
-    fun avatar(@RequestParam owner: String): ImageInfo? = additionalToolsFileSystemRepository.getAvatar(owner)?.let {
-        ImageInfo(
-            it.name,
-            Base64.getEncoder().encodeToString(FileUtils.getBytes(File(it.pathString))),
-            it.fileSize(),
-        )
-    }
+    @GetMapping(value = ["/api/avatar"])
+    fun avatar(@RequestParam owner: String): ImageInfo? = organizationRepository.findByName(owner).avatar.let { ImageInfo(it) }
 
     /**
      * @param fileInfo a FileInfo based on which a file should be located
@@ -116,11 +109,16 @@ class DownloadFilesController(
     @Suppress("UnsafeCallOnNullableType")
     @PostMapping(value = ["/api/image/upload"], consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     fun uploadImage(@RequestPart("file") file: Mono<FilePart>, @RequestParam owner: String) =
-            additionalToolsFileSystemRepository.saveImage(file, owner).map { fileInfo ->
+            additionalToolsFileSystemRepository.saveImage(file, owner).map { imageInfo ->
                 ResponseEntity.status(
-                    if (fileInfo.sizeBytes != null && fileInfo.sizeBytes!! > 0) HttpStatus.OK else HttpStatus.INTERNAL_SERVER_ERROR
+                    imageInfo.path?.let {
+                        HttpStatus.OK
+                    }
+                        ?: run {
+                            HttpStatus.INTERNAL_SERVER_ERROR
+                        }
                 )
-                    .body(fileInfo)
+                    .body(imageInfo)
             }
                 .onErrorReturn(
                     FileAlreadyExistsException::class.java,

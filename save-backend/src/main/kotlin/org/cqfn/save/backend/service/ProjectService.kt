@@ -62,7 +62,7 @@ class ProjectService(private val projectRepository: ProjectRepository,
     /**
      * @param organizationName
      */
-    fun findByOrganizationName(organizationName: String) = projectRepository.findByOrganizationName(organizationName)
+    fun findByOrganizationName(organizationName: String) = projectRepository.findByOrganizationName(organizationName).let { Flux.fromIterable(it) }
 
     /**
      * @return project's without status
