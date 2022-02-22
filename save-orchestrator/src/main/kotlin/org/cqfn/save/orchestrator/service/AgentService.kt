@@ -216,14 +216,14 @@ class AgentService {
             ))
         )
             .doOnSuccess {
-                log.debug("Agent $agentContainerId has been set as executor for tests ${newJobResponse.tests} and its status has been set to BUSY")
+                log.trace("Agent $agentContainerId has been set as executor for tests ${newJobResponse.tests} and its status has been set to BUSY")
             }
             .subscribeOn(scheduler)
             .subscribe()
     }
 
     private fun updateTestExecutionsWithAgent(agentId: String, testDtos: List<TestDto>): Mono<BodilessResponseEntity> {
-        log.debug("Attempt to update test executions for tests=$testDtos for agent $agentId")
+        log.trace("Attempt to update test executions for tests=$testDtos for agent $agentId")
         return webClientBackend.post()
             .uri("/testExecution/assignAgent?agentContainerId=$agentId")
             .bodyValue(testDtos)

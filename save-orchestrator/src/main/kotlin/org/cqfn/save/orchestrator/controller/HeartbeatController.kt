@@ -34,8 +34,8 @@ class HeartbeatController(private val agentService: AgentService,
                           private val configProperties: ConfigProperties) {
     private val logger = LoggerFactory.getLogger(HeartbeatController::class.java)
 
-    private val agentsLatestHeartBeatsList: MutableMap<String, Pair<String, LocalDateTime>> = mutableMapOf()
-    private val agentsStartTimesList: MutableMap<String, Pair<String, LocalDateTime>> = mutableMapOf()
+    private val agentsLatestHeartBeatsMap: MutableMap<String, Pair<String, LocalDateTime>> = mutableMapOf()
+    private val agentsStartTimesMap: MutableMap<String, Pair<String, LocalDateTime>> = mutableMapOf()
 
     /**
      * This controller accepts heartbeat and depending on the state it returns the needed response
@@ -52,7 +52,10 @@ class HeartbeatController(private val agentService: AgentService,
     @OptIn(ExperimentalSerializationApi::class)
     fun acceptHeartbeat(@RequestBody heartbeat: Heartbeat): Mono<String> {
         logger.info("Got heartbeat state: ${heartbeat.state.name} from ${heartbeat.agentId}")
-        updateAgentHeartbeatTimeStamps(heartbeat.agentId, heartbeat.state)
+        val crashedAgents = updateAgentHeartbeatTimeStamps(heartbeat.agentId, heartbeat.state)
+        crashedAgents.map {
+
+        }
         // store new state into DB
         return agentService.updateAgentStatusesWithDto(
             listOf(
@@ -74,7 +77,7 @@ class HeartbeatController(private val agentService: AgentService,
                         }
                     }
                     AgentState.BUSY -> Mono.just(ContinueResponse)
-                    AgentState.BACKEND_FAILURE, AgentState.BACKEND_UNREACHABLE, AgentState.CLI_FAILED, AgentState.STOPPED_BY_ORCH -> Mono.just(WaitResponse)
+                    AgentState.BACKEND_FAILURE, AgentState.BACKEND_UNREACHABLE, AgentState.CLI_FAILED, AgentState.STOPPED_BY_ORCH, AgentState.CRASHED -> Mono.just(WaitResponse)
                 }
             )
             .map {
@@ -90,19 +93,34 @@ class HeartbeatController(private val agentService: AgentService,
         }
 
 
-    fun updateAgentHeartbeatTimeStamps(agentId: String, state: AgentState) {
+    fun updateAgentHeartbeatTimeStamps(agentId: String, state: AgentState): MutableList<String> {
         println("\n\n\nCURRENT AGENT $agentId ${state}")
         val currentTime = LocalDateTime.now()
         if (state == AgentState.STARTING) {
-            agentsStartTimesList[agentId] = state.name to currentTime
+            agentsStartTimesMap[agentId] = state.name to currentTime
         }
-        agentsLatestHeartBeatsList[agentId] = state.name to currentTime
+        agentsLatestHeartBeatsMap[agentId] = state.name to currentTime
         println("CURRENT AGENTS LIST:")
-        agentsLatestHeartBeatsList.forEach { (k, v) ->
-            println("agent ${k}: ${v.first} ${v.second} DURATION ${Duration.between(v.second, currentTime).toMillis()}")
+        val crashedAgents: MutableList<String> = mutableListOf()
+        agentsLatestHeartBeatsMap.forEach { (currentAgentId, stateToLatestHeartBeatPair) ->
+            val duration = Duration.between(stateToLatestHeartBeatPair.second, currentTime).toMillis()
+            if (duration >= configProperties.agentsHearBeatTimeoutMillis) {
+                crashedAgents.add(currentAgentId)
+//                val areAgentStopped = dockerService.stopAgents(listOf(currentAgentId))
+//                if (areAgentStopped) {
+//                    agentsLatestHeartBeatsMap.clear()
+//                    logger.info("Agents have been stopped, will mark execution id=$executionId and agents $finishedAgentIds as FINISHED")
+//                    agentService
+//                        .markAgentsAndExecutionAsFinished(executionId, finishedAgentIds)
+//                } else {
+//                    logger.warn("Agents $finishedAgentIds are not stopped after stop command")
+//                    Mono.empty()
+//                }
+            }
+            println("agent ${currentAgentId}: ${stateToLatestHeartBeatPair.first} ${stateToLatestHeartBeatPair.second} DURATION $duration")
         }
         println("--------------------------------")
-
+        return crashedAgents
     }
 
     /**
@@ -129,6 +147,7 @@ class HeartbeatController(private val agentService: AgentService,
                     logger.debug("Agents ids=$finishedAgentIds have completed execution, will make an attempt to terminate them")
                     val areAgentsStopped = dockerService.stopAgents(finishedAgentIds)
                     if (areAgentsStopped) {
+                        agentsLatestHeartBeatsMap.clear()
                         logger.info("Agents have been stopped, will mark execution id=$executionId and agents $finishedAgentIds as FINISHED")
                         agentService
                             .markAgentsAndExecutionAsFinished(executionId, finishedAgentIds)
