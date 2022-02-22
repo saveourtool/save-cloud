@@ -82,6 +82,8 @@ class CollectionView : AbstractView<PropsWithChildren, State>(false) {
                 a(classes = "text-light", href = "#/creation/") {
                     +"Add new tested tool"
                 }
-        }) { }
+            }
+        }
+        child(projectsTable) { }
     }
 }
