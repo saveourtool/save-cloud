@@ -10,6 +10,7 @@ import org.cqfn.save.entities.Agent
 import org.cqfn.save.entities.AgentStatus
 import org.cqfn.save.entities.AgentStatusDto
 import org.cqfn.save.entities.AgentStatusesForExecution
+import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.TestSuite
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionUpdateDto
@@ -200,6 +201,14 @@ class AgentService {
                     emptyList()
                 }
             }
+    }
+
+    fun getExecutionByAgentId(agentId: String): Mono<Execution> {
+        return webClientBackend
+            .get()
+            .uri("/getExecutionByAgentId?agentId=$agentId")
+            .retrieve()
+            .bodyToMono()
     }
 
     /**

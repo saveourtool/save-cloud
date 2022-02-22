@@ -21,6 +21,7 @@ import java.time.LocalDateTime
 
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
+import reactor.core.publisher.Flux
 
 /**
  * Controller for heartbeat
@@ -52,10 +53,10 @@ class HeartbeatController(private val agentService: AgentService,
     @OptIn(ExperimentalSerializationApi::class)
     fun acceptHeartbeat(@RequestBody heartbeat: Heartbeat): Mono<String> {
         logger.info("Got heartbeat state: ${heartbeat.state.name} from ${heartbeat.agentId}")
+        // What if no heartbeats and all agents crashed, how to treat it?
         val crashedAgents = updateAgentHeartbeatTimeStamps(heartbeat.agentId, heartbeat.state)
-        crashedAgents.map {
+        processCrashedAgents(crashedAgents)
 
-        }
         // store new state into DB
         return agentService.updateAgentStatusesWithDto(
             listOf(
@@ -106,22 +107,41 @@ class HeartbeatController(private val agentService: AgentService,
             val duration = Duration.between(stateToLatestHeartBeatPair.second, currentTime).toMillis()
             if (duration >= configProperties.agentsHearBeatTimeoutMillis) {
                 crashedAgents.add(currentAgentId)
-//                val areAgentStopped = dockerService.stopAgents(listOf(currentAgentId))
-//                if (areAgentStopped) {
-//                    agentsLatestHeartBeatsMap.clear()
-//                    logger.info("Agents have been stopped, will mark execution id=$executionId and agents $finishedAgentIds as FINISHED")
-//                    agentService
-//                        .markAgentsAndExecutionAsFinished(executionId, finishedAgentIds)
-//                } else {
-//                    logger.warn("Agents $finishedAgentIds are not stopped after stop command")
-//                    Mono.empty()
-//                }
             }
             println("agent ${currentAgentId}: ${stateToLatestHeartBeatPair.first} ${stateToLatestHeartBeatPair.second} DURATION $duration")
         }
         println("--------------------------------")
         return crashedAgents
     }
+
+    fun processCrashedAgents(crashedAgents: MutableList<String>) {
+        val areAgentsStopped = dockerService.stopAgents(crashedAgents)
+        return if (areAgentsStopped) {
+            //logger.info("Agents have been stopped, will mark execution id=$executionId and agents $finishedAgentIds as FINISHED")
+            crashedAgents.map { agentId ->
+                agentService.getExecutionByAgentId(agentId).map { execution ->
+                    println("Execution id ${execution.id!!}")
+                    // findTestsByAgentIdAndExecutionId
+                    // TODO mark corresponding tests as failed
+                    //Mono.just(execution)
+//                    Mono.fromCallable {
+//                        execution
+//                    }
+                    execution
+                }
+            // .flatMapMany(Flux::fromIterable)
+            }
+            //Mono.empty()
+
+            //agentService.markAgentsAndExecutionAsFinished(executionId, finishedAgentIds)
+        } else {
+            logger.warn("Agents $crashedAgents are not stopped after stop command")
+            Mono.empty()
+        }
+        .subscribeOn(agentService.scheduler)
+        .subscribe()
+    }
+
 
     /**
      * If agent was IDLE and there are no new tests - we check if the Execution is completed.
