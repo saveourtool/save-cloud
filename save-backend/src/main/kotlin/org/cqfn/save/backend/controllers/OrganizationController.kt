@@ -26,6 +26,6 @@ internal class OrganizationController(private val organizationService: Organizat
      * @param owner owner name
      * @return a image
      */
-    @GetMapping(value = ["/api/avatar"])
+    @GetMapping("/avatar")
     fun avatar(@RequestParam owner: String): ImageInfo? = organizationService.findByName(owner).avatar.let { ImageInfo(it) }
 }

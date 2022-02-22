@@ -104,7 +104,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                                 "/api/avatar$it"
                             }
                                 ?: run {
-                                    "img/image_not_found.png"
+                                    "img/company.svg"
                                 }
                             attrs.height = "260"
                             attrs.width = "260"
@@ -206,7 +206,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 }
             }
 
-    private suspend fun getAvatar() = get("$apiUrl/avatar?owner=${props.organizationName}", Headers())
+    private suspend fun getAvatar() = get("$apiUrl/organization/avatar?owner=${props.organizationName}", Headers())
         .unsafeMap {
             it.decodeFromJsonString<ImageInfo>()
         }
