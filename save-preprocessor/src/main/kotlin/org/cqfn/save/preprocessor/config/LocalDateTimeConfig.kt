@@ -4,7 +4,7 @@
     "MISSING_KDOC_ON_FUNCTION",
 )
 
-package org.cqfn.save.preprocessor.utils
+package org.cqfn.save.preprocessor.config
 
 import org.cqfn.save.utils.LocalDateTimeSerializer
 

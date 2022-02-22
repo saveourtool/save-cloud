@@ -16,7 +16,6 @@ import org.cqfn.save.core.result.TestStatus
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.SerializationFeature
 import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -32,7 +31,6 @@ class WebConfig {
     fun jackson2ObjectMapperBuilderCustomizer() = Jackson2ObjectMapperBuilderCustomizer { jacksonObjectMapperBuilder: Jackson2ObjectMapperBuilder ->
         jacksonObjectMapperBuilder
             .mixIn(TestStatus::class.java, TestStatusMixin::class.java)
-            .featuresToEnable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
     }
 
     @Bean
