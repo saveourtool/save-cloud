@@ -7,7 +7,7 @@ import org.cqfn.save.entities.*
 import org.cqfn.save.execution.ExecutionType
 import org.cqfn.save.preprocessor.config.ConfigProperties
 import org.cqfn.save.preprocessor.service.TestDiscoveringService
-import org.cqfn.save.preprocessor.utils.LocalDateTimeConfig
+import org.cqfn.save.preprocessor.config.LocalDateTimeConfig
 import org.cqfn.save.preprocessor.utils.RepositoryVolume
 import org.cqfn.save.preprocessor.utils.toHash
 import org.cqfn.save.test.TestDto
