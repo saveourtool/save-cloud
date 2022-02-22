@@ -5,7 +5,6 @@ import org.cqfn.save.domain.FileInfo
 import org.cqfn.save.domain.ImageInfo
 
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.FileSystemResource
 import org.springframework.http.codec.multipart.FilePart
 import org.springframework.stereotype.Repository
@@ -53,9 +52,6 @@ class TimestampBasedFileSystemRepository(configProperties: ConfigProperties) {
         }
     }
 
-    @Autowired
-    private lateinit var organizationRepository: OrganizationRepository
-
     private fun getStorageDir(fileInfo: FileInfo) = rootDir.resolve(fileInfo.uploadedMillis.toString())
 
     private fun createStorageDir(fileInfo: FileInfo) = getStorageDir(fileInfo).createDirectory()
@@ -66,13 +62,6 @@ class TimestampBasedFileSystemRepository(configProperties: ConfigProperties) {
     fun getFilesList() = rootDir.listDirectoryEntries()
         .filter { it.isDirectory() }
         .flatMap { it.listDirectoryEntries() }
-
-    /**
-     * @param owner owner name
-     * @return image of avatar for owner in [rootDirImage]
-     */
-    fun getAvatar(owner: String): ImageInfo? = organizationRepository.findByName(owner)
-        .avatar.let { ImageInfo(it) }
 
     /**
      * @param fileInfo a FileInfo based on which a file should be located
@@ -122,7 +111,6 @@ class TimestampBasedFileSystemRepository(configProperties: ConfigProperties) {
      */
     fun saveImage(part: Mono<FilePart>, owner: String): Mono<ImageInfo> = part.flatMap { part ->
         val uploadedDir = rootDirImage.resolve(owner)
-        val organization = organizationRepository.findByName(owner)
 
         uploadedDir.apply {
             if (exists()) {
@@ -138,8 +126,6 @@ class TimestampBasedFileSystemRepository(configProperties: ConfigProperties) {
                     .map {
                         logger.info("Saved $it bytes into $this")
                         val relativePath = ("/$owner/$name")
-                        organization.avatar = relativePath
-                        organizationRepository.save(organization)
                         ImageInfo(relativePath)
                     }
             }

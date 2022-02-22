@@ -3,11 +3,10 @@ package org.cqfn.save.backend.controllers
 import org.cqfn.save.agent.TestExecutionDto
 import org.cqfn.save.backend.ByteArrayResponse
 import org.cqfn.save.backend.repository.AgentRepository
-import org.cqfn.save.backend.repository.OrganizationRepository
 import org.cqfn.save.backend.repository.TestDataFilesystemRepository
 import org.cqfn.save.backend.repository.TimestampBasedFileSystemRepository
+import org.cqfn.save.backend.service.OrganizationService
 import org.cqfn.save.domain.FileInfo
-import org.cqfn.save.domain.ImageInfo
 import org.cqfn.save.domain.TestResultDebugInfo
 import org.cqfn.save.domain.TestResultLocation
 import org.cqfn.save.from
@@ -38,7 +37,7 @@ class DownloadFilesController(
     private val additionalToolsFileSystemRepository: TimestampBasedFileSystemRepository,
     private val testDataFilesystemRepository: TestDataFilesystemRepository,
     private val agentRepository: AgentRepository,
-    private val organizationRepository: OrganizationRepository,
+    private val organizationService: OrganizationService,
 ) {
     private val logger = LoggerFactory.getLogger(DownloadFilesController::class.java)
 
@@ -54,13 +53,6 @@ class DownloadFilesController(
             it.fileSize(),
         )
     }
-
-    /**
-     * @param owner owner name
-     * @return a image
-     */
-    @GetMapping(value = ["/api/avatar"])
-    fun avatar(@RequestParam owner: String): ImageInfo? = organizationRepository.findByName(owner).avatar.let { ImageInfo(it) }
 
     /**
      * @param fileInfo a FileInfo based on which a file should be located
@@ -112,11 +104,10 @@ class DownloadFilesController(
             additionalToolsFileSystemRepository.saveImage(file, owner).map { imageInfo ->
                 ResponseEntity.status(
                     imageInfo.path?.let {
+                        organizationService.saveAvatar(owner, it)
                         HttpStatus.OK
                     }
-                        ?: run {
-                            HttpStatus.INTERNAL_SERVER_ERROR
-                        }
+                        ?: HttpStatus.INTERNAL_SERVER_ERROR
                 )
                     .body(imageInfo)
             }

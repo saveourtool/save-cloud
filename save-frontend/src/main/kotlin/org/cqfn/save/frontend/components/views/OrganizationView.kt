@@ -22,7 +22,6 @@ import react.*
 import react.dom.*
 import react.table.columns
 
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.html.InputType
 import kotlinx.html.hidden
@@ -61,7 +60,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
 
     override fun componentDidMount() {
         super.componentDidMount()
-        GlobalScope.launch {
+        scope.launch {
             val avatar = getAvatar()
             setState {
                 image = avatar
@@ -85,7 +84,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 }
 
                 div {
-                    attrs["style"] = kotlinext.js.jso<CSSProperties> {
+                    attrs["style"] = kotlinx.js.jso<CSSProperties> {
                         position = "relative".unsafeCast<Position>()
                         textAlign = "center".unsafeCast<TextAlign>()
                     }
@@ -151,7 +150,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                                 }
                             }
                         }
-                        column(id = "passed", header = "Description") {
+                        column(id = "description", header = "Description") {
                             buildElement {
                                 td {
                                     +(it.value.description ?: "Description not provided")
