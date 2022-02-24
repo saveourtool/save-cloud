@@ -75,7 +75,9 @@ class WebSecurityConfig(
         .build()
 
     fun roleHierarchy(): RoleHierarchy = mapOf(
-        Role.ADMIN to listOf(Role.VIEWER),
+        Role.SUPER_ADMIN to listOf(Role.ADMIN, Role.OWNER, Role.VIEWER),
+        Role.ADMIN to listOf(Role.OWNER, Role.VIEWER),
+        Role.OWNER to listOf(Role.VIEWER),
     )
         .mapKeys { it.key.asSpringSecurityRole() }
         .mapValues { it.value.map { it.asSpringSecurityRole() } }
