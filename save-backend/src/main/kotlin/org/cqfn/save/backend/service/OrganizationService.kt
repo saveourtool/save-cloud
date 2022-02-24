@@ -21,4 +21,15 @@ class OrganizationService(private val organizationRepository: OrganizationReposi
      * @return organization by name
      */
     fun findByName(name: String) = organizationRepository.findByName(name)
+
+    /**
+     * @param name
+     * @param relativePath
+     */
+    fun saveAvatar(name: String, relativePath: String) {
+        val organization = organizationRepository.findByName(name).apply {
+            avatar = relativePath
+        }
+        organizationRepository.save(organization)
+    }
 }

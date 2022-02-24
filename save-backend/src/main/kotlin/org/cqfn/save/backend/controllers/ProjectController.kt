@@ -110,6 +110,18 @@ class ProjectController(private val projectService: ProjectService,
         return getPermissionProject(project, authentication)
     }
 
+    /**
+     * @param organizationName
+     * @param authentication
+     * @return project by name and organization name
+     */
+    @GetMapping("/get/projects-by-organization")
+    @PreAuthorize("hasRole('VIEWER')")
+    fun getProjectsByOrganizationName(@RequestParam organizationName: String,
+                                      authentication: Authentication,
+    ) = projectService.findByOrganizationName(organizationName)
+        .filter { projectPermissionEvaluator.hasPermission(authentication, it, Permission.READ) }
+
     @Suppress("UnsafeCallOnNullableType")
     private fun getPermissionProject(project: Mono<Project?>, authentication: Authentication) =
             project.map {
