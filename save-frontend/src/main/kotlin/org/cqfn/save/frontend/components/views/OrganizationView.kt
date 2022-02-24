@@ -127,6 +127,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                             top = "40%".unsafeCast<Top>()
                             left = "40%".unsafeCast<Left>()
                         }
+                        // fixme: It must be replaced with the current value after creating the calculated rating.
                         h1(" mb-0 text-gray-800") {
                             +"4.5"
                         }

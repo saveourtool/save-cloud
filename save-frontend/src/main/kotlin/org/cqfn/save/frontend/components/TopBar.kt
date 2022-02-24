@@ -99,10 +99,7 @@ fun topBar() = fc<TopBarProps> { props ->
                                         +pathPart
                                     }
                                 } else {
-                                    // small hack to redirect from history/execution to history
-                                    // AND small temp workaround to replace owner URL with "project"
-                                    // should be removed when we will finish with OWNER pages
-                                    val resultingLink = if (index == 0) currentLink.replace(pathPart, "projects") else currentLink.removeSuffix("/execution")
+                                    val resultingLink = currentLink.removeSuffix("/execution")
                                     a(resultingLink) {
                                         attrs.classes = setOf("text-light")
                                         +pathPart
