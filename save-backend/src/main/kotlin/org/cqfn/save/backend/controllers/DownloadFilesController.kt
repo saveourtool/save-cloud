@@ -101,20 +101,20 @@ class DownloadFilesController(
     @Suppress("UnsafeCallOnNullableType")
     @PostMapping(value = ["/api/image/upload"], consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     fun uploadImage(@RequestPart("file") file: Mono<FilePart>, @RequestParam owner: String) =
-        additionalToolsFileSystemRepository.saveImage(file, owner).map { imageInfo ->
-            ResponseEntity.status(
-                imageInfo.path?.let {
-                    organizationService.saveAvatar(owner, it)
-                    HttpStatus.OK
-                }
-                    ?: HttpStatus.INTERNAL_SERVER_ERROR
-            )
-                .body(imageInfo)
-        }
-            .onErrorReturn(
-                FileAlreadyExistsException::class.java,
-                ResponseEntity.status(HttpStatus.CONFLICT).build()
-            )
+            additionalToolsFileSystemRepository.saveImage(file, owner).map { imageInfo ->
+                ResponseEntity.status(
+                    imageInfo.path?.let {
+                        organizationService.saveAvatar(owner, it)
+                        HttpStatus.OK
+                    }
+                        ?: HttpStatus.INTERNAL_SERVER_ERROR
+                )
+                    .body(imageInfo)
+            }
+                .onErrorReturn(
+                    FileAlreadyExistsException::class.java,
+                    ResponseEntity.status(HttpStatus.CONFLICT).build()
+                )
 
     /**
      * @param testExecutionDto
