@@ -99,6 +99,7 @@ fun topBar() = fc<TopBarProps> { props ->
                                         +pathPart
                                     }
                                 } else {
+                                    // small hack to redirect from history/execution to history
                                     val resultingLink = currentLink.removeSuffix("/execution")
                                     a(resultingLink) {
                                         attrs.classes = setOf("text-light")
