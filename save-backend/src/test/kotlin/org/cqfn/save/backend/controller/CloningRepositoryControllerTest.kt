@@ -56,6 +56,8 @@ import java.time.Duration
 
 import kotlin.io.path.createFile
 
+import org.cqfn.save.testutils.enqueue
+
 @WebFluxTest(controllers = [CloneRepositoryController::class])
 @Import(NoopWebSecurityConfig::class, TimestampBasedFileSystemRepository::class)
 @EnableConfigurationProperties(ConfigProperties::class)
@@ -108,6 +110,7 @@ class CloningRepositoryControllerTest {
     @WithMockUser(username = "John Doe")
     fun checkNewJobResponse() {
         mockServerPreprocessor.enqueue(
+            "/submitExecutionRequest",
             MockResponse()
                 .setResponseCode(202)
                 .setBody("Clone pending")
@@ -151,6 +154,7 @@ class CloningRepositoryControllerTest {
         bodyBuilder.part("file", binFile.toFileInfo())
 
         mockServerPreprocessor.enqueue(
+            "/executionRequestStandardTests",
             MockResponse()
                 .setResponseCode(202)
                 .setBody("Clone pending")

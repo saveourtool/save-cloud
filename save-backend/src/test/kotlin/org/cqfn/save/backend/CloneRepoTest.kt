@@ -33,6 +33,8 @@ import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.web.reactive.function.BodyInserters
 
+import org.cqfn.save.testutils.enqueue
+
 @SpringBootTest(classes = [SaveApplication::class])
 @AutoConfigureWebTestClient
 @ExtendWith(MySqlExtension::class)
@@ -55,6 +57,7 @@ class CloneRepoTest {
     fun checkSaveProject() {
         val sdk = Jdk("8")
         mockServerPreprocessor.enqueue(
+            "/submitExecutionRequest",
             MockResponse()
                 .setResponseCode(202)
                 .setBody("Clone pending")

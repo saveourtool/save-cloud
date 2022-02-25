@@ -43,6 +43,9 @@ import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.createTempDirectory
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.cqfn.save.testutils.peekAllResponses
+
+import org.cqfn.save.testutils.enqueue
 
 @WebFluxTest(controllers = [AgentsController::class])
 @Import(AgentService::class, Beans::class)
@@ -59,11 +62,11 @@ class AgentsControllerTest {
 
     @AfterEach
     fun tearDown() {
-        mockServer.dispatcher.peek().let { mockResponse ->
+        mockServer.peekAllResponses().forEach { (path, mockResponse) ->
             // when `QueueDispatcher.failFast` is true, default value is an empty response with code 404
             val hasDefaultEnqueuedResponse = mockResponse.status == "HTTP/1.1 404 Client Error" && mockResponse.getBody() == null
             Assertions.assertTrue(hasDefaultEnqueuedResponse) {
-                "There is an enqueued response in the MockServer after a test has completed. Enqueued body: ${mockResponse.getBody()?.readString(Charset.defaultCharset())}, " +
+                "There is an enqueued response with path $path in the MockServer after a test has completed. Enqueued body: ${mockResponse.getBody()?.readString(Charset.defaultCharset())}, " +
                         "status: ${mockResponse.status}"
             }
         }
@@ -81,13 +84,15 @@ class AgentsControllerTest {
         }
         whenever(dockerService.buildAndCreateContainers(any(), any())).thenReturn(listOf("test-agent-id-1", "test-agent-id-2"))
         // /addAgents
-        mockServer.enqueue(MockResponse()
+        mockServer.enqueue(
+            "/addAgents",
+            MockResponse()
             .setResponseCode(200)
             .addHeader("Content-Type", "application/json")
             .setBody(Json.encodeToString(listOf<Long>(1, 2)))
         )
         // /updateAgentStatuses
-        mockServer.enqueue(MockResponse().setResponseCode(200))
+        mockServer.enqueue("/updateAgentStatuses", MockResponse().setResponseCode(200))
         // /updateExecutionByDto is not mocked, because it's performed by DockerService, and it's mocked in these tests
 
         val bodyBuilder = MultipartBodyBuilder().apply {
@@ -179,6 +184,7 @@ class AgentsControllerTest {
     @Test
     fun `should cleanup execution artifacts`() {
         mockServer.enqueue(
+            "/cleanup",
             MockResponse().setResponseCode(200)
                 .setHeader("Content-Type", "application/json")
                 .setBody(Json.encodeToString(listOf("container-1", "container-2", "container-3")))

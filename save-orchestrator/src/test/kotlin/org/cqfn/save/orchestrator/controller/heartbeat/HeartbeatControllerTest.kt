@@ -17,7 +17,6 @@ import org.cqfn.save.testsuite.TestSuiteType
 import com.fasterxml.jackson.databind.ObjectMapper
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
-import okhttp3.mockwebserver.QueueDispatcher
 import okhttp3.mockwebserver.RecordedRequest
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
@@ -51,6 +50,8 @@ import java.util.concurrent.TimeUnit
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.cqfn.save.testutils.createMockWebServer
+import org.cqfn.save.testutils.enqueue
 
 @WebFluxTest
 @Import(Beans::class, AgentService::class)
@@ -94,6 +95,7 @@ class HeartbeatControllerTest {
         val list = listOf(TestDto("qwe", "WarnPlugin", 0, "hash", listOf("tag")))
         // /getTestBatches
         mockServer.enqueue(
+            "/getTestBatches",
             MockResponse()
                 .setBody(Json.encodeToString(TestBatch(list, mapOf(0L to ""))))
                 .addHeader("Content-Type", "application/json")
@@ -105,6 +107,7 @@ class HeartbeatControllerTest {
 
         // /testSuite/{id}
         mockServer.enqueue(
+            "/testSuite/",
             MockResponse()
                 .setResponseCode(200)
                 .setHeader("Content-Type", "application/json")
@@ -173,6 +176,7 @@ class HeartbeatControllerTest {
             {
                 // /getAgentsStatusesForSameExecution after shutdownIntervalMillis
                 mockServer.enqueue(
+                    "/getAgentsStatusesForSameExecution",
                     MockResponse()
                         .setBody(
                             objectMapper.writeValueAsString(
@@ -184,6 +188,7 @@ class HeartbeatControllerTest {
                 // additional setup for marking stuff as FINISHED
                 // /updateExecutionByDto
                 mockServer.enqueue(
+                    "/updateExecutionByDto",
                     MockResponse().setResponseCode(200)
                 )
             }
@@ -234,6 +239,7 @@ class HeartbeatControllerTest {
             {
                 // /getAgentsStatusesForSameExecution after shutdownIntervalMillis
                 mockServer.enqueue(
+                    "/getAgentStatusesForSameExecution",
                     MockResponse()
                         .setBody(
                             objectMapper.writeValueAsString(
@@ -271,6 +277,7 @@ class HeartbeatControllerTest {
     ) {
         // /getTestBatches
         mockServer.enqueue(
+            "/getTestBatches",
             MockResponse()
                 .setBody(Json.encodeToString(testBatch))
                 .addHeader("Content-Type", "application/json")
@@ -279,6 +286,7 @@ class HeartbeatControllerTest {
         // /testSuite/{id}
         testSuite?.let {
             mockServer.enqueue(
+                "/testSuite/",
                 MockResponse()
                     .setResponseCode(200)
                     .setHeader("Content-Type", "application/json")
@@ -289,6 +297,7 @@ class HeartbeatControllerTest {
         if (mockAgentStatuses) {
             // /getAgentsStatusesForSameExecution
             mockServer.enqueue(
+                "/getAgentsStatusesForSameExecution",
                 MockResponse()
                     .setBody(
                         objectMapper.writeValueAsString(
@@ -339,21 +348,10 @@ class HeartbeatControllerTest {
         @JvmStatic
         fun properties(registry: DynamicPropertyRegistry) {
             // todo: should be initialized in @BeforeAll, but it gets called after @DynamicPropertySource
-            mockServer = MockWebServer()
+            mockServer = createMockWebServer(logger)
+            mockServer.enqueue("/testExecution/assignAgent", MockResponse().setResponseCode(200))
+            mockServer.enqueue("/updateAgentStatusesWithDto", MockResponse().setResponseCode(200))
             // todo: extract request-based dispatcher to save-cloud-common
-
-            mockServer.dispatcher = object : QueueDispatcher() {
-                override fun dispatch(request: RecordedRequest): MockResponse {
-                    val path = request.path
-                    if (path != null && (path.contains("/testExecution/assignAgent") || path.contains("/updateAgentStatusesWithDto"))) {
-                        return MockResponse().setResponseCode(200)
-                    }
-                    return super.dispatch(request).also {
-                        logger.info("For request ${request.requestUrl} returning mocked response $it")
-                    }
-                }
-            }
-            (mockServer.dispatcher as QueueDispatcher).setFailFast(true)
             mockServer.start()
             registry.add("orchestrator.backendUrl") { "http://localhost:${mockServer.port}" }
         }
