@@ -9,6 +9,7 @@ import kotlinx.serialization.Serializable
  * @property name organization
  * @property ownerId organization
  * @property dateCreated date created organization
+ * @property avatar
  */
 @Entity
 @Serializable
@@ -18,6 +19,7 @@ data class Organization(
     var ownerId: Long? = null,
     @Contextual
     var dateCreated: LocalDateTime?,
+    var avatar: String? = null,
 ) {
     /**
      * id of project
