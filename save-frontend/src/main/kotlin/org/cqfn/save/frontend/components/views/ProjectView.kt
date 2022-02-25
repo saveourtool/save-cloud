@@ -666,12 +666,14 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
 
     private fun turnEditMode(isOff: Boolean) {
         projectInformation.keys.forEach {
-            val informationKey = (document.getElementById(it) as HTMLInputElement).apply {
-                disabled = isOff
+            val informationKey = document.getElementById(it) as HTMLInputElement
+            if (it != "Tested tool name: ") {
+                // temporary workaround for https://github.com/analysis-dev/save-cloud/issues/589#issuecomment-1049674021
+                informationKey.disabled = isOff
+                informationKey.setAttribute(
+                    "class", "form-control-plaintext pt-0 pb-0 ${if (isOff) "" else "border border-1"}"
+                )
             }
-            informationKey.setAttribute(
-                "class", "form-control-plaintext pt-0 pb-0 ${if (isOff) "" else "border border-1"}"
-            )
         }
         (document.getElementById("Save new project info") as HTMLButtonElement).hidden = isOff
         (document.getElementById("Cancel") as HTMLButtonElement).hidden = isOff
