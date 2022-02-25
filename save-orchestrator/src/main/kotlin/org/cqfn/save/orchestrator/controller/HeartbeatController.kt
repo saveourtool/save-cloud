@@ -21,6 +21,7 @@ import java.time.LocalDateTime
 
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
+import org.cqfn.save.entities.Execution
 import reactor.core.Disposable
 import reactor.core.publisher.Flux
 
@@ -54,17 +55,21 @@ class HeartbeatController(private val agentService: AgentService,
     @OptIn(ExperimentalSerializationApi::class)
     fun acceptHeartbeat(@RequestBody heartbeat: Heartbeat): Mono<String> {
         logger.info("Got heartbeat state: ${heartbeat.state.name} from ${heartbeat.agentId}")
-        // What if no heartbeats and all agents crashed, how to treat it?
+        // TODO: What if no heartbeats and all agents crashed, how to treat it?
         val crashedAgents = updateAgentHeartbeatTimeStamps(heartbeat.agentId, heartbeat.state)
         //processCrashedAgents(crashedAgents)
+        println("\n\n\nWTF1")
         processCrashedAgents(mutableListOf(heartbeat.agentId))
 
+        println("\n\n\nWTF2")
         // store new state into DB
         return agentService.updateAgentStatusesWithDto(
             listOf(
                 AgentStatusDto(LocalDateTime.now(), heartbeat.state, heartbeat.agentId)
             )
-        )
+        ).also {
+            println("\n\n\nWTF3")
+        }
             .then(
                 when (heartbeat.state) {
                     // if agent sends the first heartbeat, we try to assign work for it
@@ -116,7 +121,13 @@ class HeartbeatController(private val agentService: AgentService,
         return crashedAgents
     }
 
+    //fun processCrashedAgents(crashedAgents: MutableList<String>): Mono<MutableList<Execution>>? {
     fun processCrashedAgents(crashedAgents: MutableList<String>): Disposable {
+        println("[=============CRASHED AGENTS=============] ${crashedAgents}")
+        if (crashedAgents.isEmpty()) {
+            return Disposable {  }
+        }
+        println("\n\nSTOP AGENTS")
         val areAgentsStopped = dockerService.stopAgents(crashedAgents)
         return if (areAgentsStopped) {
             //logger.info("Agents have been stopped, will mark execution id=$executionId and agents $finishedAgentIds as FINISHED")
@@ -131,7 +142,7 @@ class HeartbeatController(private val agentService: AgentService,
             }.collectList()
 
         } else {
-            logger.warn("Agents $crashedAgents are not stopped after stop command")
+            logger.warn("[processCrashedAgents]Agents $crashedAgents are not stopped after stop command")
             Mono.empty()
         }
         .subscribeOn(agentService.scheduler)

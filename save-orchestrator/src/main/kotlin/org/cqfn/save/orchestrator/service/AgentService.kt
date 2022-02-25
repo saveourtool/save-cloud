@@ -208,7 +208,7 @@ class AgentService {
             .get()
             .uri("/getExecutionByAgentId?agentId=$agentId")
             .retrieve()
-            .bodyToMono()
+            .bodyToMono<Execution>()
     }
 
     /**
