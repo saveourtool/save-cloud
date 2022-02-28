@@ -11,5 +11,5 @@ import react.State
  * External declaration of [FontAwesomeIcon] react component
  */
 external class FontAwesomeIcon : Component<FontAwesomeIconProps, State> {
-    override fun render(): ReactElement?
+    override fun render(): ReactElement<FontAwesomeIconProps>?
 }
