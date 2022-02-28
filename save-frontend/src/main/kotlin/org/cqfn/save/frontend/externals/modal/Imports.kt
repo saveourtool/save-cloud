@@ -130,7 +130,7 @@ external class ReactModal : Component<ModalProps, State> {
      */
     var portal: ReactModalPortal? = definedExternally
 
-    override fun render(): ReactElement?
+    override fun render(): ReactElement<ModalProps>?
 
     companion object {
         /**
