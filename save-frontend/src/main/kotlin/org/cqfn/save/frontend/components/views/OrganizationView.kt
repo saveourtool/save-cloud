@@ -49,24 +49,30 @@ external interface OrganizationViewState : State {
      * Image to owner avatar
      */
     var image: ImageInfo?
+
+    /**
+     * Organization
+     */
+    var organization: Organization?
 }
 
 /**
  * A Component for owner view
  */
 class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(false) {
-    private var organization = Organization("", null, null, null)
     init {
         state.isUploading = false
+        state.organization = Organization("", null, null, null)
     }
 
     override fun componentDidMount() {
         super.componentDidMount()
         scope.launch {
             val avatar = getAvatar()
-            organization = getOrganization(props.organizationName)
+            val organizationNew = getOrganization(props.organizationName)
             setState {
                 image = avatar
+                organization = organizationNew
             }
         }
     }
@@ -75,7 +81,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
     override fun RBuilder.render() {
         div("d-sm-flex align-items-center justify-content-center mb-4") {
             h1("h3 mb-0 text-gray-800") {
-                +organization.name
+                +"${state.organization?.name}"
             }
         }
 
