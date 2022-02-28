@@ -269,7 +269,7 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
                                 }
                                 form(classes = "needs-validation") {
                                     div("row g-3") {
-                                        inputTextFormRequired(InputTypes.OWNER, state.isValidOwner!!, "col-md-6 pl-0 pl-2 pr-2", "Owner name") {
+                                        inputTextFormRequired(InputTypes.OWNER, state.isValidOwner!!, "col-md-6 pl-0 pl-2 pr-2", "Organization") {
                                             changeFields(InputTypes.OWNER, it)
                                         }
                                         inputTextFormRequired(InputTypes.PROJECT_NAME, state.isValidProjectName!!, "col-md-6 pl-2 pr-2", "Tested tool name") {

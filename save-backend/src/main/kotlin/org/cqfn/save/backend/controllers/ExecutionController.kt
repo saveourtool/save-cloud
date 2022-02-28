@@ -138,7 +138,7 @@ class ExecutionController(private val executionService: ExecutionService,
     }
 
     /**
-     * Get latest (by start time an) execution by project name and project owner
+     * Get latest (by start time an) execution by project name and organization
      *
      * @param name project name
      * @param organizationId
@@ -156,7 +156,7 @@ class ExecutionController(private val executionService: ExecutionService,
                 .map { it.toDto() }
 
     /**
-     * Delete all executions by project name and project owner
+     * Delete all executions by project name and organization
      *
      * @param name name of project
      * @param organizationName organization of project

@@ -10,7 +10,7 @@
             <column name="id" value="1" />
             <column name="name" value="admin" />
             <column name="password" value="{bcrypt}$2a$12$7jB6.fJ/uHZiti94w0.QOu0M/lPzKU1lvX9TLL3uZHFjLGIfz1gHq" />
-            <column name="role" value="ROLE_ADMIN" />
+            <column name="role" value="ROLE_SUPER_ADMIN" />
             <column name="source" value="basic"/>
         </insert>
         <insert dbms="mysql" tableName="user">

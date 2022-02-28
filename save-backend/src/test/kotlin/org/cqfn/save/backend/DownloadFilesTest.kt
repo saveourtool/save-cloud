@@ -6,6 +6,7 @@ import org.cqfn.save.backend.configs.WebConfig
 import org.cqfn.save.backend.controllers.DownloadFilesController
 import org.cqfn.save.backend.repository.*
 import org.cqfn.save.backend.scheduling.StandardSuitesUpdateScheduler
+import org.cqfn.save.backend.service.OrganizationService
 import org.cqfn.save.core.result.DebugInfo
 import org.cqfn.save.core.result.Pass
 import org.cqfn.save.domain.FileInfo
@@ -60,6 +61,7 @@ import kotlin.io.path.writeLines
 @MockBeans(
     MockBean(AgentStatusRepository::class),
     MockBean(ExecutionRepository::class),
+    MockBean(OrganizationService::class),
     MockBean(OrganizationRepository::class),
     MockBean(ProjectRepository::class),
     MockBean(TestExecutionRepository::class),
@@ -69,7 +71,7 @@ import kotlin.io.path.writeLines
     MockBean(StandardSuitesUpdateScheduler::class),
     MockBean(UserRepository::class),
     MockBean(AwesomeBenchmarksRepository::class),
-    MockBean(LnkUserProjectRepository::class)
+    MockBean(LnkUserProjectRepository::class),
 )
 class DownloadFilesTest {
     @Autowired
