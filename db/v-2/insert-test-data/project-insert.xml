@@ -13,7 +13,6 @@
       
         <insert dbms="mysql" tableName="project">
             <column name="id" value="3" />
-            <column name="owner" value="Example.com" />
             <column name="name" value="The Project" />
             <column name="url" value="example.com" />
             <column name="description" value="This is an example project" />
@@ -23,7 +22,6 @@
         </insert>
         <insert dbms="mysql" tableName="project">
             <column name="id" value="4" />
-            <column name="owner" value="Example.com" />
             <column name="name" value="The Project #2" />
             <column name="url" value="example.com" />
             <column name="description" value="This is a second example project" />
