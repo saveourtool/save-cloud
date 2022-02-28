@@ -156,7 +156,7 @@ class AgentService {
      * @param
      * @param
      */
-    fun markAgentsAndTestExecutionsCrashed(crashedAgentIds: List<String>) {
+    fun markAgentsAndTestExecutionsCrashed(crashedAgentIds: Collection<String>) {
         updateAgentStatusesWithDto(
             crashedAgentIds.map { agentId ->
                 AgentStatusDto(LocalDateTime.now(), AgentState.CRASHED, agentId)
@@ -264,7 +264,7 @@ class AgentService {
             .toBodilessEntity()
     }
 
-    private fun markTestExecutionsOfCrashedAgentsAsFailed(crashedAgentIds: List<String>): Mono<BodilessResponseEntity> {
+    private fun markTestExecutionsOfCrashedAgentsAsFailed(crashedAgentIds: Collection<String>): Mono<BodilessResponseEntity> {
         log.debug("Attempt to mark test executions of crashed agents=${crashedAgentIds} as failed with internal error")
         return webClientBackend.post()
             .uri("/testExecution/markTestExecutionsOfCrashedAgentsAsFailed")

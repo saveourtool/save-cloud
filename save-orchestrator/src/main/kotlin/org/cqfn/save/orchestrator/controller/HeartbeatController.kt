@@ -56,12 +56,6 @@ class HeartbeatController(private val agentService: AgentService,
     @OptIn(ExperimentalSerializationApi::class)
     fun acceptHeartbeat(@RequestBody heartbeat: Heartbeat): Mono<String> {
         if (isHeartbeatInProgress.compareAndSet(false, true)) {
-            // thread 1:
-            //processCrashedAgents(mutableListOf(agentsStartTimesMap.toList().first().first))
-            //processCrashedAgents(mutableListOf(heartbeat.agentId))
-
-            // thread 2:
-            // determineCrashedAgents()
             Foo(this).start()
         }
 
@@ -182,6 +176,8 @@ class HeartbeatController(private val agentService: AgentService,
 }
 
 class Foo(private val heartbeatController: HeartbeatController) : Thread() {
+    //processCrashedAgents(mutableListOf(agentsStartTimesMap.toList().first().first))
+    //processCrashedAgents(mutableListOf(heartbeat.agentId))
     override fun run() {
         while (true) {
             println("\n\n\nI'm Thread! My name is $name")
