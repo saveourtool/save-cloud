@@ -1,10 +1,11 @@
 /**
- * A view with owner details
+ * A view with organization details
  */
 
 package org.cqfn.save.frontend.components.views
 
 import org.cqfn.save.domain.ImageInfo
+import org.cqfn.save.entities.Organization
 import org.cqfn.save.entities.Project
 import org.cqfn.save.frontend.components.basic.privacySpan
 import org.cqfn.save.frontend.components.tables.tableComponent
@@ -48,6 +49,11 @@ external interface OrganizationViewState : State {
      * Image to owner avatar
      */
     var image: ImageInfo?
+
+    /**
+     * Organization
+     */
+    var organization: Organization?
 }
 
 /**
@@ -56,14 +62,17 @@ external interface OrganizationViewState : State {
 class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(false) {
     init {
         state.isUploading = false
+        state.organization = Organization("", null, null, null)
     }
 
     override fun componentDidMount() {
         super.componentDidMount()
         scope.launch {
             val avatar = getAvatar()
+            val organizationNew = getOrganization(props.organizationName)
             setState {
                 image = avatar
+                organization = organizationNew
             }
         }
     }
@@ -72,7 +81,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
     override fun RBuilder.render() {
         div("d-sm-flex align-items-center justify-content-center mb-4") {
             h1("h3 mb-0 text-gray-800") {
-                +props.organizationName
+                +"${state.organization?.name}"
             }
         }
 

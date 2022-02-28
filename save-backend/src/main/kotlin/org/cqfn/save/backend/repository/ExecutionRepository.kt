@@ -19,7 +19,7 @@ interface ExecutionRepository : BaseEntityRepository<Execution> {
     fun getAllByProjectNameAndProjectOrganization(name: String, organization: Organization): List<Execution>
 
     /**
-     * Get latest (by start time an) execution by project name and project owner
+     * Get latest (by start time an) execution by project name and organization
      *
      * @param name name of project
      * @param organization organization of project

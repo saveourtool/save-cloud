@@ -110,7 +110,7 @@ class ExecutionService(private val executionRepository: ExecutionRepository,
             executionRepository.getAllByProjectNameAndProjectOrganization(name, organization).map { it.toDto() }
 
     /**
-     * Get latest (by start time an) execution by project name and project owner
+     * Get latest (by start time an) execution by project name and organization
      *
      * @param name name of project
      * @param organization organization of project
@@ -137,7 +137,7 @@ class ExecutionService(private val executionRepository: ExecutionRepository,
             }
 
     /**
-     * Delete all executions by project name and project owner
+     * Delete all executions by project name and organization
      *
      * @param name name of project
      * @param organization organization of project
@@ -149,7 +149,7 @@ class ExecutionService(private val executionRepository: ExecutionRepository,
             }
 
     /**
-     * Delete all executions by project name and project owner
+     * Delete all executions by project name and organization
      *
      * @param executionIds list of ids
      * @return Unit
