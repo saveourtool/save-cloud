@@ -115,7 +115,7 @@ external class ReactModalPortal : Component<PropsWithChildren, State> {
      */
     val overlay: HTMLDivElement
 
-    override fun render(): ReactElement?
+    override fun render(): ReactElement<PropsWithChildren>?
 }
 
 /**
