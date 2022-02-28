@@ -95,6 +95,15 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
     }
 
     /**
+     * @param
+     * @param
+     */
+    @PostMapping(value = ["/internal/testExecution/markTestsOfCrashedAgentsAsFailed"])
+    fun markTestsOfCrashedAgentsAsFailed(@RequestBody crashedAgents: List<String>) {
+        testExecutionService.markTestsOfCrashedAgentsAsFailed(crashedAgents)
+    }
+
+    /**
      * @param testExecutionsDto
      * @return response
      */

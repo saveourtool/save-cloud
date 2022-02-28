@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
+import reactor.core.Disposable
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
@@ -148,6 +149,29 @@ class AgentService {
                     updateExecution(executionId, ExecutionStatus.FINISHED)  // todo: status based on results
                 )
 
+
+    /**
+     * Marks agent states as crashed
+     *
+     * @param
+     * @param
+     * @return a bodiless response entity
+     */
+    fun markAgentsAndTestsCrashed(crashedAgentIds: List<String>): Disposable =
+        updateAgentStatusesWithDto(
+            crashedAgentIds.map { agentId ->
+                AgentStatusDto(LocalDateTime.now(), AgentState.CRASHED, agentId)
+            }
+        )
+            .doOnSuccess {
+                println("\n\nUPDATED STATUS TO CRASHED FOR ${crashedAgentIds}")
+            }
+            .then(
+                markTestsOfCrashedAgentsAsFailed(crashedAgentIds)
+            )
+            .subscribeOn(scheduler)
+            .subscribe()
+
     /**
      * Marks the execution to specified state
      *
@@ -240,6 +264,16 @@ class AgentService {
             .toBodilessEntity()
     }
 
+    private fun markTestsOfCrashedAgentsAsFailed(crashedAgentIds: List<String>): Mono<BodilessResponseEntity> {
+        log.debug("\n\n\nAttempt to update tests for crashed agents=${crashedAgentIds}")
+        return webClientBackend.post()
+            .uri("/testExecution/testExecution/markTestsOfCrashedAgentsAsFailed")
+            .bodyValue(crashedAgentIds)
+            .retrieve()
+            .toBodilessEntity()
+    }
+
+
     private fun TestBatch.toHeartbeatResponse(agentId: String) =
             if (tests.isNotEmpty()) {
                 // fixme: do we still need suitesToArgs, since we have execFlags in save.toml?
@@ -300,7 +334,7 @@ class AgentService {
     }
 
     private fun Collection<AgentStatusDto>.areIdleOrFinished() = all {
-        it.state == AgentState.IDLE || it.state == AgentState.FINISHED || it.state == AgentState.STOPPED_BY_ORCH
+        it.state == AgentState.IDLE || it.state == AgentState.FINISHED || it.state == AgentState.STOPPED_BY_ORCH || it.state == AgentState.CRASHED
     }
 
     companion object {

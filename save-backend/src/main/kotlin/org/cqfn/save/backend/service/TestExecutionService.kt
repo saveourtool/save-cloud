@@ -1,5 +1,6 @@
 package org.cqfn.save.backend.service
 
+import liquibase.pro.packaged.F
 import org.cqfn.save.agent.TestExecutionDto
 import org.cqfn.save.backend.repository.AgentRepository
 import org.cqfn.save.backend.repository.ExecutionRepository
@@ -249,6 +250,33 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
             })
         }
     }
+
+    @Transactional
+    fun markTestsOfCrashedAgentsAsFailed(crashedAgents: List<String>) {
+        crashedAgents.forEach { agentContainerId ->
+            val agent = requireNotNull(agentRepository.findByContainerId(agentContainerId)) {
+                "Agent with containerId=[$agentContainerId] was not found in the DB"
+            }
+            val agentId = agent.id!!
+            val executionId = agent.execution.id!!
+
+            val testExecutionList = testExecutionRepository.findByExecutionIdAndAgentId(
+                executionId,
+                agentId
+            )
+                .orElseThrow {
+                    log.error("Can't find test_execution for executionId=$executionId, and agentId=${agentId}")
+                    NoSuchElementException()
+                }
+
+            testExecutionList.map { testExecution ->
+                testExecutionRepository.save(testExecution.apply {
+                    this.status = TestResultStatus.INTERNAL_ERROR
+                })
+            }
+        }
+    }
+
 
     @Suppress("KDOC_NO_CONSTRUCTOR_PROPERTY", "MISSING_KDOC_ON_FUNCTION")
     private class Counters(
