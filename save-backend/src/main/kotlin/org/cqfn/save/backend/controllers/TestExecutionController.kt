@@ -94,10 +94,6 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
         testExecutionService.assignAgentByTest(agentContainerId, testDtos)
     }
 
-    /**
-     * @param
-     * @param
-     */
     @PostMapping(value = ["/internal/testExecution/markTestExecutionsOfCrashedAgentsAsFailed"])
     fun markTestExecutionsOfCrashedAgentsAsFailed(@RequestBody crashedAgents: List<String>) {
         testExecutionService.markTestExecutionsOfCrashedAgentsAsFailed(crashedAgents)

@@ -265,16 +265,18 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
                 agentId
             )
                 .orElseThrow {
-                    log.error("Can't find test_execution for executionId=$executionId, and agentId=${agentId}")
+                    log.error("Can't find test_execution for executionId=$executionId and agentId=${agentId}")
                     NoSuchElementException()
                 }
 
             testExecutionList.map { testExecution ->
-                println("\n\nMARK TESTS FAILED ${testExecution.id} ${testExecution.test.id} ${testExecution.status}")
-                log.debug("Mark test execution with id ${testExecution.id} failed")
                 testExecutionRepository.save(testExecution.apply {
                     this.status = TestResultStatus.INTERNAL_ERROR
                 })
+            }.also {
+                if (it.isNotEmpty()) {
+                    log.info("Test executions with ids ${it.map { it.id }} were failed with internal error")
+                }
             }
         }
     }
