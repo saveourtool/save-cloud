@@ -151,26 +151,26 @@ class AgentService {
 
 
     /**
-     * Marks agent states as crashed
+     * Marks agents and corresponding tests as crashed
      *
      * @param
      * @param
-     * @return a bodiless response entity
      */
-    fun markAgentsAndTestsCrashed(crashedAgentIds: List<String>): Disposable =
+    fun markAgentsAndTestsCrashed(crashedAgentIds: List<String>) {
         updateAgentStatusesWithDto(
             crashedAgentIds.map { agentId ->
                 AgentStatusDto(LocalDateTime.now(), AgentState.CRASHED, agentId)
             }
         )
             .doOnSuccess {
-                println("\n\nUPDATED STATUS TO CRASHED FOR ${crashedAgentIds}")
+                log.trace("Agents $crashedAgentIds has been set as crashed")
             }
             .then(
-                markTestsOfCrashedAgentsAsFailed(crashedAgentIds)
+                markTestExecutionsOfCrashedAgentsAsFailed(crashedAgentIds)
             )
             .subscribeOn(scheduler)
             .subscribe()
+    }
 
     /**
      * Marks the execution to specified state
@@ -264,10 +264,10 @@ class AgentService {
             .toBodilessEntity()
     }
 
-    private fun markTestsOfCrashedAgentsAsFailed(crashedAgentIds: List<String>): Mono<BodilessResponseEntity> {
-        log.debug("\n\n\nAttempt to update tests for crashed agents=${crashedAgentIds}")
+    private fun markTestExecutionsOfCrashedAgentsAsFailed(crashedAgentIds: List<String>): Mono<BodilessResponseEntity> {
+        log.debug("Attempt to mark test executions of crashed agents=${crashedAgentIds} as failed")
         return webClientBackend.post()
-            .uri("/testExecution/testExecution/markTestsOfCrashedAgentsAsFailed")
+            .uri("/testExecution/markTestExecutionsOfCrashedAgentsAsFailed")
             .bodyValue(crashedAgentIds)
             .retrieve()
             .toBodilessEntity()

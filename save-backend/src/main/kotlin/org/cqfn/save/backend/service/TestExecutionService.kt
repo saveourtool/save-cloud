@@ -252,7 +252,7 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
     }
 
     @Transactional
-    fun markTestsOfCrashedAgentsAsFailed(crashedAgents: List<String>) {
+    fun markTestExecutionsOfCrashedAgentsAsFailed(crashedAgents: List<String>) {
         crashedAgents.forEach { agentContainerId ->
             val agent = requireNotNull(agentRepository.findByContainerId(agentContainerId)) {
                 "Agent with containerId=[$agentContainerId] was not found in the DB"
@@ -270,6 +270,8 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
                 }
 
             testExecutionList.map { testExecution ->
+                println("\n\nMARK TESTS FAILED ${testExecution.id} ${testExecution.test.id} ${testExecution.status}")
+                log.debug("Mark test execution with id ${testExecution.id} failed")
                 testExecutionRepository.save(testExecution.apply {
                     this.status = TestResultStatus.INTERNAL_ERROR
                 })

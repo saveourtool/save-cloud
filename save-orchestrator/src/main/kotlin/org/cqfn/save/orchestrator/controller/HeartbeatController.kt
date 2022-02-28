@@ -56,7 +56,8 @@ class HeartbeatController(private val agentService: AgentService,
         logger.info("Got heartbeat state: ${heartbeat.state.name} from ${heartbeat.agentId}")
         // TODO: What if no heartbeats and all agents crashed, how to treat it?
         val crashedAgents = updateAgentHeartbeatTimeStamps(heartbeat.agentId, heartbeat.state)
-        processCrashedAgents(mutableListOf(agentsStartTimesMap.toList().first().first))
+        //processCrashedAgents(mutableListOf(agentsStartTimesMap.toList().first().first))
+        processCrashedAgents(mutableListOf(heartbeat.agentId))
 
         // store new state into DB
         return agentService.updateAgentStatusesWithDto(
@@ -115,32 +116,18 @@ class HeartbeatController(private val agentService: AgentService,
         return crashedAgents
     }
 
-    //fun processCrashedAgents(crashedAgents: MutableList<String>): Mono<MutableList<Execution>>? {
-    fun processCrashedAgents(crashedAgents: MutableList<String>): Disposable {
-        println("[=============CRASHED AGENTS=============] ${crashedAgents}")
+    fun processCrashedAgents(crashedAgents: MutableList<String>) {
         if (crashedAgents.isEmpty()) {
-            return Disposable {  }
+            return
         }
-
+        logger.debug("Start disable hanging agents ${crashedAgents}")
+        println("[=============CRASHED AGENTS=============] ${crashedAgents}")
         val areAgentsStopped = dockerService.stopAgents(crashedAgents)
-        return if (areAgentsStopped) {
+        if (areAgentsStopped) {
             agentService.markAgentsAndTestsCrashed(crashedAgents)
-            //logger.info("Agents have been stopped, will mark execution id=$executionId and agents $finishedAgentIds as FINISHED")
-            Flux.fromIterable(crashedAgents).flatMap {  agentId ->
-                agentService.getExecutionByAgentId(agentId).map { execution ->
-                    println("\n\n\nExecution id ${execution.id!!}")
-                    // findTestsByAgentIdAndExecutionId
-                    // TODO mark corresponding tests as failed
-                    execution
-                }
-            }.collectList()
-
         } else {
-            logger.warn("[processCrashedAgents] Agents $crashedAgents are not stopped after stop command")
-            Mono.empty()
+            logger.warn("Crashed agents $crashedAgents are not stopped after stop command")
         }
-        .subscribeOn(agentService.scheduler)
-        .subscribe()
     }
 
 
