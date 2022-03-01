@@ -7,7 +7,6 @@ import org.cqfn.save.entities.Agent
 import org.cqfn.save.entities.AgentStatus
 import org.cqfn.save.entities.AgentStatusDto
 import org.cqfn.save.entities.AgentStatusesForExecution
-import org.hibernate.annotations.Proxy
 import org.slf4j.LoggerFactory
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.GetMapping
@@ -108,6 +107,10 @@ class AgentsController(private val agentStatusRepository: AgentStatusRepository,
     fun findAgentIdsForExecution(@RequestParam executionId: Long) = agentRepository.findByExecutionId(executionId)
         .map(Agent::containerId)
 
+    /**
+     * @param agentId
+     * @return
+     */
     @GetMapping("/getExecutionByAgentId")
     fun findExecutionByAgentId(@RequestParam agentId: String) = getAgentByContainerId(agentId).execution
 

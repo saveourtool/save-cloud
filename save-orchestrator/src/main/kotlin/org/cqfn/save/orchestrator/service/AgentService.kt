@@ -25,7 +25,6 @@ import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
-import reactor.core.Disposable
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
@@ -149,12 +148,12 @@ class AgentService {
                     updateExecution(executionId, ExecutionStatus.FINISHED)  // todo: status based on results
                 )
 
-
     /**
      * Marks agents and corresponding tests as crashed
      *
      * @param
      * @param
+     * @param crashedAgentIds
      */
     fun markAgentsAndTestExecutionsCrashed(crashedAgentIds: Collection<String>) {
         updateAgentStatusesWithDto(
@@ -227,13 +226,15 @@ class AgentService {
             }
     }
 
-    fun getExecutionByAgentId(agentId: String): Mono<Execution> {
-        return webClientBackend
-            .get()
-            .uri("/getExecutionByAgentId?agentId=$agentId")
-            .retrieve()
-            .bodyToMono<Execution>()
-    }
+    /**
+     * @param agentId
+     * @return
+     */
+    fun getExecutionByAgentId(agentId: String): Mono<Execution> = webClientBackend
+        .get()
+        .uri("/getExecutionByAgentId?agentId=$agentId")
+        .retrieve()
+        .bodyToMono<Execution>()
 
     /**
      * Perform two operations in arbitrary order: assign `agentContainerId` agent to test executions
@@ -265,14 +266,13 @@ class AgentService {
     }
 
     private fun markTestExecutionsOfCrashedAgentsAsFailed(crashedAgentIds: Collection<String>): Mono<BodilessResponseEntity> {
-        log.debug("Attempt to mark test executions of crashed agents=${crashedAgentIds} as failed with internal error")
+        log.debug("Attempt to mark test executions of crashed agents=$crashedAgentIds as failed with internal error")
         return webClientBackend.post()
             .uri("/testExecution/markTestExecutionsOfCrashedAgentsAsFailed")
             .bodyValue(crashedAgentIds)
             .retrieve()
             .toBodilessEntity()
     }
-
 
     private fun TestBatch.toHeartbeatResponse(agentId: String) =
             if (tests.isNotEmpty()) {

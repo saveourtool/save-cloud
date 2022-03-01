@@ -1,6 +1,5 @@
 package org.cqfn.save.backend.service
 
-import liquibase.pro.packaged.F
 import org.cqfn.save.agent.TestExecutionDto
 import org.cqfn.save.backend.repository.AgentRepository
 import org.cqfn.save.backend.repository.ExecutionRepository
@@ -251,6 +250,9 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
         }
     }
 
+    /**
+     * @param crashedAgents
+     */
     @Transactional
     fun markTestExecutionsOfCrashedAgentsAsFailed(crashedAgents: Collection<String>) {
         crashedAgents.forEach { agentContainerId ->
@@ -265,7 +267,7 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
                 agentId
             )
                 .orElseThrow {
-                    log.error("Can't find test_execution for executionId=$executionId and agentId=${agentId}")
+                    log.error("Can't find test_execution for executionId=$executionId and agentId=$agentId")
                     NoSuchElementException()
                 }
 
@@ -280,7 +282,6 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
             }
         }
     }
-
 
     @Suppress("KDOC_NO_CONSTRUCTOR_PROPERTY", "MISSING_KDOC_ON_FUNCTION")
     private class Counters(

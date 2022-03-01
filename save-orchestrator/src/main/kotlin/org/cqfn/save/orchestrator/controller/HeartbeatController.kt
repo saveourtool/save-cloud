@@ -1,7 +1,5 @@
 package org.cqfn.save.orchestrator.controller
 
-import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.json.Json
 import org.cqfn.save.agent.AgentState
 import org.cqfn.save.agent.ContinueResponse
 import org.cqfn.save.agent.Heartbeat
@@ -11,22 +9,26 @@ import org.cqfn.save.entities.AgentStatusDto
 import org.cqfn.save.orchestrator.config.ConfigProperties
 import org.cqfn.save.orchestrator.service.AgentService
 import org.cqfn.save.orchestrator.service.DockerService
+
 import org.slf4j.LoggerFactory
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
+
 import java.time.Duration
 import java.time.LocalDateTime
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.atomic.AtomicBoolean
 
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.json.Json
 
-private val agentsStartTimesMap: ConcurrentHashMap<String, Pair<String, LocalDateTime>> = ConcurrentHashMap<String, Pair<String, LocalDateTime>>()
+private val agentsStartTimesMap: ConcurrentHashMap<String, Pair<String, LocalDateTime>> = ConcurrentHashMap()
 
-private val agentsLatestHeartBeatsMap: ConcurrentHashMap<String, Pair<String, LocalDateTime>> = ConcurrentHashMap<String, Pair<String, LocalDateTime>>()
-private val crashedAgentsList: ConcurrentLinkedQueue<String> = ConcurrentLinkedQueue<String>()
+private val agentsLatestHeartBeatsMap: ConcurrentHashMap<String, Pair<String, LocalDateTime>> = ConcurrentHashMap()
+private val crashedAgentsList: ConcurrentLinkedQueue<String> = ConcurrentLinkedQueue()
 private val isHeartbeatInProgress = AtomicBoolean(false)
 
 /**
@@ -56,10 +58,11 @@ class HeartbeatController(private val agentService: AgentService,
     @OptIn(ExperimentalSerializationApi::class)
     fun acceptHeartbeat(@RequestBody heartbeat: Heartbeat): Mono<String> {
         if (isHeartbeatInProgress.compareAndSet(false, true)) {
+            // Wait some time for completely initialization of all agents before inspection
             Thread.sleep(5000)
             println("\n\n\n===============================[START ${heartbeat.agentId}]===================================\n\n")
             crashedAgentsList.add((heartbeat.agentId))
-            Foo(this).start()
+            HeartBeatInspector(this).start()
         }
 
         logger.info("Got heartbeat state: ${heartbeat.state.name} from ${heartbeat.agentId}")
@@ -101,7 +104,10 @@ class HeartbeatController(private val agentService: AgentService,
             }
         }
 
-
+    /**
+     * @param agentId
+     * @param state
+     */
     fun updateAgentHeartbeatTimeStamps(agentId: String, state: AgentState) {
         val currentTime = LocalDateTime.now()
         if (state == AgentState.STARTING) {
@@ -117,10 +123,10 @@ class HeartbeatController(private val agentService: AgentService,
         agentsLatestHeartBeatsMap.forEach { (currentAgentId, stateToLatestHeartBeatPair) ->
             val duration = Duration.between(stateToLatestHeartBeatPair.second, LocalDateTime.now()).toMillis()
             if (duration >= configProperties.agentsHearBeatTimeoutMillis) {
-                println("\n\n\nADDING ${currentAgentId} to crashed")
+                println("\n\n\nADDING $currentAgentId to crashed")
                 crashedAgentsList.add(currentAgentId)
             }
-            println("agent ${currentAgentId}: ${stateToLatestHeartBeatPair.first} ${stateToLatestHeartBeatPair.second} DURATION $duration")
+            println("agent $currentAgentId: ${stateToLatestHeartBeatPair.first} ${stateToLatestHeartBeatPair.second} DURATION $duration")
         }
     }
 
@@ -128,7 +134,7 @@ class HeartbeatController(private val agentService: AgentService,
         if (crashedAgentsList.isEmpty()) {
             return
         }
-        logger.debug("Start process hanging agents ${crashedAgentsList}")
+        logger.debug("Starting process hanging agents $crashedAgentsList")
         val areAgentsStopped = dockerService.stopAgents(crashedAgentsList)
         if (areAgentsStopped) {
             agentService.markAgentsAndTestExecutionsCrashed(crashedAgentsList)
@@ -136,7 +142,6 @@ class HeartbeatController(private val agentService: AgentService,
             logger.warn("Crashed agents $crashedAgentsList are not stopped after stop command")
         }
     }
-
 
     /**
      * If agent was IDLE and there are no new tests - we check if the Execution is completed.
@@ -183,7 +188,7 @@ class HeartbeatController(private val agentService: AgentService,
     }
 }
 
-class Foo(private val heartbeatController: HeartbeatController) : Thread() {
+class HeartBeatInspector(private val heartbeatController: HeartbeatController) : Thread() {
     override fun run() {
         while (true) {
             heartbeatController.determineCrashedAgents()

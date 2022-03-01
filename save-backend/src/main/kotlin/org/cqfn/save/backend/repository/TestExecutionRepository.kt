@@ -101,7 +101,11 @@ interface TestExecutionRepository : BaseEntityRepository<TestExecution>, JpaSpec
      */
     fun findByExecutionIdAndTestId(executionId: Long, testId: Long): List<TestExecution>
 
-
+    /**
+     * @param executionId
+     * @param agentId
+     * @return
+     */
     fun findByExecutionIdAndAgentId(executionId: Long, agentId: Long): Optional<List<TestExecution>>
 
     /**
