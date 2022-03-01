@@ -261,7 +261,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     )
     private val projectInfo = projectInfo(
         turnEditMode = ::turnEditMode,
-        onProjectSave = { draftProject, _ ->
+        onProjectSave = { draftProject ->
             if (draftProject != state.project) {
                 updateProject(draftProject!!)
             }

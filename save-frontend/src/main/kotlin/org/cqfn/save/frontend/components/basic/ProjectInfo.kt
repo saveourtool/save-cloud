@@ -1,37 +1,43 @@
 package org.cqfn.save.frontend.components.basic
 
-import kotlinx.html.InputType
-import kotlinx.html.hidden
-import kotlinx.html.id
-import kotlinx.html.js.onChangeFunction
-import kotlinx.html.js.onClickFunction
 import org.cqfn.save.entities.Project
 import org.cqfn.save.frontend.externals.fontawesome.faCheck
 import org.cqfn.save.frontend.externals.fontawesome.faTimesCircle
-import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
-import org.w3c.dom.HTMLInputElement
-import org.w3c.dom.events.Event
+
 import react.Props
-import react.dom.attrs
-import react.dom.button
-import react.dom.div
-import react.dom.form
-import react.dom.input
-import react.dom.label
-import react.fc
+import react.dom.html.ReactHTML.button
+import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.form
+import react.dom.html.ReactHTML.input
+import react.dom.html.InputType
+import react.dom.html.ReactHTML.label
+import react.FC
 import react.useEffect
 import react.useRef
 import react.useState
+
+import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
+
+private val projectInformationHeaders = mapOf(
+    "name" to "Tested tool name: ",
+    "description" to "Description: ",
+    "url" to "Tested tool Url: ",
+)
 
 external interface ProjectInfoProps : Props {
     var project: Project?
     var isEditDisabled: Boolean?
 }
 
+/**
+ * @param turnEditMode
+ * @param onProjectSave
+ * @return
+ */
 fun projectInfo(
     turnEditMode: (isOff: Boolean) -> Unit,
-    onProjectSave: (draftProject: Project?, event: Event) -> Unit,
-) = fc<ProjectInfoProps> { props ->
+    onProjectSave: (draftProject: Project?) -> Unit,
+) = FC<ProjectInfoProps> { props ->
     val projectRef = useRef(props.project)
     val (draftProject, setDraftProject) = useState(props.project)
     useEffect(arrayOf<dynamic>(props.project)) {
@@ -51,56 +57,60 @@ fun projectInfo(
         "description" to { s: String -> draftProject?.copy(description = s) },
     )
     form {
-        div("row g-3 ml-3 mr-3 pb-2 pt-2  border-bottom") {
-            idToValue.forEach { (id, text) ->
-                    div("col-md-6 pl-0 pr-0") {
-                        label(classes = "control-label col-auto justify-content-between pl-0") {
-                            +projectInformationHeaders[id]!!
-                        }
+        div {
+            className = "row g-3 ml-3 mr-3 pb-2 pt-2  border-bottom"
+            idToValue.forEach { (fieldId, text) ->
+                div {
+                    className = "col-md-6 pl-0 pr-0"
+                    label {
+                        className = "control-label col-auto justify-content-between pl-0"
+                        +projectInformationHeaders[fieldId]!!
                     }
-                    div("col-md-6 pl-0") {
-                        div("controls col-auto pl-0") {
-                            input(InputType.text, classes = "form-control-plaintext pt-0 pb-0") {
-                                attrs {
-                                    this.id = id
-                                    value = text ?: ""
-                                    disabled = if (id == "name") {
-                                        // temporary workaround for https://github.com/analysis-dev/save-cloud/issues/589#issuecomment-1049674021
-                                        true
-                                    } else {
-                                        props.isEditDisabled ?: true
-                                    }
-                                    onChangeFunction = { event ->
-                                        val tg = event.target as HTMLInputElement
-                                        setDraftProject(idToValueSetter[id]!!(tg.value))
-                                    }
-                                }
+                }
+                div {
+                    className = "col-md-6 pl-0"
+                    div {
+                        className = "controls col-auto pl-0"
+                        input {
+                            className = "form-control-plaintext pt-0 pb-0"
+                            type = InputType.text
+                            this.id = fieldId
+                            value = text ?: ""
+                            disabled = if (fieldId == "name") {
+                                // temporary workaround for https://github.com/analysis-dev/save-cloud/issues/589#issuecomment-1049674021
+                                true
+                            } else {
+                                props.isEditDisabled ?: true
+                            }
+                            onChange = { event ->
+                                val tg = event.target
+                                setDraftProject(idToValueSetter[fieldId]!!(tg.value))
                             }
                         }
                     }
                 }
+            }
         }
 
-        div("ml-3 mt-2 align-items-right float-right") {
-            button(classes = "btn") {
-                fontAwesomeIcon {
-                    attrs.icon = faCheck
-                }
-                attrs.id = "Save new project info"
-                attrs.hidden = true
-                attrs.onClickFunction = {
-                    onProjectSave(draftProject, it)
+        div {
+            className = "ml-3 mt-2 align-items-right float-right"
+            button {
+                className = "btn"
+                fontAwesomeIcon(icon = faCheck)
+                id = "Save new project info"
+                hidden = true
+                onClick = {
+                    onProjectSave(draftProject)
                     turnEditMode(true)
                 }
             }
 
-            button(classes = "btn") {
-                fontAwesomeIcon {
-                    attrs.icon = faTimesCircle
-                }
-                attrs.id = "Cancel"
-                attrs.hidden = true
-                attrs.onClickFunction = {
+            button {
+                className = "btn"
+                fontAwesomeIcon(icon = faTimesCircle)
+                id = "Cancel"
+                hidden = true
+                onClick = {
                     setDraftProject(props.project)
                     turnEditMode(true)
                 }
@@ -108,9 +118,3 @@ fun projectInfo(
         }
     }
 }
-
-private val projectInformationHeaders = mutableMapOf(
-    "name" to "Tested tool name: ",
-    "description" to "Description: ",
-    "url" to "Tested tool Url: ",
-)
