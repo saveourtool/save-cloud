@@ -10,6 +10,7 @@ import org.cqfn.save.orchestrator.controller.AgentsController
 import org.cqfn.save.orchestrator.service.AgentService
 import org.cqfn.save.orchestrator.service.DockerService
 import org.cqfn.save.testutils.createMockWebServer
+import org.cqfn.save.testutils.enqueue
 
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
@@ -36,16 +37,12 @@ import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.web.reactive.function.BodyInserters
 
 import java.io.File
-import java.nio.charset.Charset
 import java.time.LocalDateTime
 
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.createTempDirectory
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.cqfn.save.testutils.peekAllResponses
-
-import org.cqfn.save.testutils.enqueue
 
 @WebFluxTest(controllers = [AgentsController::class])
 @Import(AgentService::class, Beans::class)
@@ -62,14 +59,6 @@ class AgentsControllerTest {
 
     @AfterEach
     fun tearDown() {
-        mockServer.peekAllResponses().forEach { (path, mockResponse) ->
-            // when `QueueDispatcher.failFast` is true, default value is an empty response with code 404
-            val hasDefaultEnqueuedResponse = mockResponse.status == "HTTP/1.1 404 Client Error" && mockResponse.getBody() == null
-            Assertions.assertTrue(hasDefaultEnqueuedResponse) {
-                "There is an enqueued response with path $path in the MockServer after a test has completed. Enqueued body: ${mockResponse.getBody()?.readString(Charset.defaultCharset())}, " +
-                        "status: ${mockResponse.status}"
-            }
-        }
         val pathToLogs = configProperties.executionLogs
         File(pathToLogs).deleteRecursively()
     }
@@ -87,9 +76,9 @@ class AgentsControllerTest {
         mockServer.enqueue(
             "/addAgents",
             MockResponse()
-            .setResponseCode(200)
-            .addHeader("Content-Type", "application/json")
-            .setBody(Json.encodeToString(listOf<Long>(1, 2)))
+                .setResponseCode(200)
+                .addHeader("Content-Type", "application/json")
+                .setBody(Json.encodeToString(listOf<Long>(1, 2)))
         )
         // /updateAgentStatuses
         mockServer.enqueue("/updateAgentStatuses", MockResponse().setResponseCode(200))

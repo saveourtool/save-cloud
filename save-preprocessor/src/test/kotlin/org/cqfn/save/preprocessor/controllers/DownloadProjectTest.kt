@@ -18,13 +18,13 @@ import org.cqfn.save.preprocessor.utils.toHash
 import org.cqfn.save.test.TestDto
 import org.cqfn.save.testsuite.TestSuiteDto
 import org.cqfn.save.testsuite.TestSuiteType
+import org.cqfn.save.testutils.*
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import okio.FileSystem
 import okio.Path.Companion.toPath
-import org.cqfn.save.testutils.*
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions

@@ -11,6 +11,7 @@ import org.cqfn.save.entities.GitDto
 import org.cqfn.save.entities.Project
 import org.cqfn.save.execution.ExecutionType
 import org.cqfn.save.testutils.createMockWebServer
+import org.cqfn.save.testutils.enqueue
 
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
@@ -32,8 +33,6 @@ import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.web.reactive.function.BodyInserters
-
-import org.cqfn.save.testutils.enqueue
 
 @SpringBootTest(classes = [SaveApplication::class])
 @AutoConfigureWebTestClient
@@ -57,7 +56,7 @@ class CloneRepoTest {
     fun checkSaveProject() {
         val sdk = Jdk("8")
         mockServerPreprocessor.enqueue(
-            "/submitExecutionRequest",
+            "/upload",
             MockResponse()
                 .setResponseCode(202)
                 .setBody("Clone pending")

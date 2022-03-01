@@ -25,6 +25,7 @@ import org.cqfn.save.entities.GitDto
 import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.ProjectStatus
 import org.cqfn.save.testutils.createMockWebServer
+import org.cqfn.save.testutils.enqueue
 
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
@@ -55,8 +56,6 @@ import java.nio.file.Path
 import java.time.Duration
 
 import kotlin.io.path.createFile
-
-import org.cqfn.save.testutils.enqueue
 
 @WebFluxTest(controllers = [CloneRepositoryController::class])
 @Import(NoopWebSecurityConfig::class, TimestampBasedFileSystemRepository::class)
@@ -110,7 +109,7 @@ class CloningRepositoryControllerTest {
     @WithMockUser(username = "John Doe")
     fun checkNewJobResponse() {
         mockServerPreprocessor.enqueue(
-            "/submitExecutionRequest",
+            "/upload",
             MockResponse()
                 .setResponseCode(202)
                 .setBody("Clone pending")
@@ -154,7 +153,7 @@ class CloningRepositoryControllerTest {
         bodyBuilder.part("file", binFile.toFileInfo())
 
         mockServerPreprocessor.enqueue(
-            "/executionRequestStandardTests",
+            "/uploadBin",
             MockResponse()
                 .setResponseCode(202)
                 .setBody("Clone pending")

@@ -13,10 +13,10 @@ import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionType
 import org.cqfn.save.execution.ExecutionUpdateDto
 import org.cqfn.save.testutils.createMockWebServer
+import org.cqfn.save.testutils.enqueue
 
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
-import org.cqfn.save.testutils.LoggingQueueDispatcher
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -41,9 +41,6 @@ import java.time.LocalDateTime
 import java.time.Month
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
-
-import org.cqfn.save.testutils.enqueue
-import org.cqfn.save.testutils.peekAllResponses
 
 @SpringBootTest(classes = [SaveApplication::class])
 @AutoConfigureWebTestClient
@@ -207,22 +204,20 @@ class ExecutionControllerTest {
     @WithMockUser(username = "John Doe")
     fun `should send request to preprocessor to rerun execution`() {
         mockServerPreprocessor.enqueue(
-            "/api/rerunExecution?id=2",
+            "/rerunExecution",
             MockResponse().setResponseCode(202)
                 .setHeader("Accept", "application/json")
                 .setHeader("Content-Type", "application/json")
                 .setBody("Clone pending")
         )
-        println(mockServerPreprocessor.dispatcher.peek().toString())
-        println((mockServerPreprocessor.dispatcher as LoggingQueueDispatcher).peek().toString())
-        println(mockServerPreprocessor.takeRequest(60, TimeUnit.SECONDS))
+        println(mockServerPreprocessor.dispatcher.peek())
         val assertions = CompletableFuture.supplyAsync {
             listOf(
                 mockServerPreprocessor.takeRequest(60, TimeUnit.SECONDS),
             )
         }
 
-        webClient.post()
+        val status = webClient.post()
             .uri("/api/rerunExecution?id=2")
             .exchange()
             .expectStatus()

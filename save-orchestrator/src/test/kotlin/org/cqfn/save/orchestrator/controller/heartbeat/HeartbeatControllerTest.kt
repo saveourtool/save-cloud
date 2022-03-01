@@ -13,6 +13,8 @@ import org.cqfn.save.orchestrator.service.DockerService
 import org.cqfn.save.test.TestBatch
 import org.cqfn.save.test.TestDto
 import org.cqfn.save.testsuite.TestSuiteType
+import org.cqfn.save.testutils.createMockWebServer
+import org.cqfn.save.testutils.enqueue
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import okhttp3.mockwebserver.MockResponse
@@ -50,8 +52,6 @@ import java.util.concurrent.TimeUnit
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.cqfn.save.testutils.createMockWebServer
-import org.cqfn.save.testutils.enqueue
 
 @WebFluxTest
 @Import(Beans::class, AgentService::class)

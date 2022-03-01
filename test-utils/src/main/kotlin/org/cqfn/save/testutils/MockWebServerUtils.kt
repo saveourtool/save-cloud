@@ -8,75 +8,73 @@ import java.net.HttpURLConnection
 import java.util.concurrent.*
 
 private typealias ResponsesMap = ConcurrentMap<String, BlockingQueue<MockResponse>>
+
 /**
  * Queue dispatcher with additional logging
+ *
+ * @param logger
  */
 class LoggingQueueDispatcher(private val logger: Logger) : Dispatcher() {
-    val responses: ResponsesMap = ConcurrentHashMap()
-    private var failFastResponse: MockResponse? = MockResponse().setResponseCode(404)
+    private val responses: ResponsesMap = ConcurrentHashMap()
+    private var failFastResponse: MockResponse? = MockResponse().setResponseCode(HttpURLConnection.HTTP_NOT_FOUND)
 
     override fun dispatch(request: RecordedRequest): MockResponse {
-        if (failFastResponse != null && responses[request.path]?.peek() == null) {
+        val path = request.path?.substringBefore("?")
+        // println("${request.path} -> $path")
+        if (failFastResponse != null && responses[path]?.peek() == null) {
+            println("Error")
             return failFastResponse!!
         }
-        val result = responses[request.path]!!.take()
+        val result = responses[path]!!.take()
+        logger.info("Response [$result] was taken from responseQueue for request [$request].")
 
-        if (result == LoggingQueueDispatcher.DEAD_LETTER) {
-            responses[request.path]!!.add(LoggingQueueDispatcher.DEAD_LETTER)
+        if (result == deadLetter) {
+            responses[path]!!.add(deadLetter)
         }
 
         return result
     }
 
-    fun setFailFast(failFast: Boolean) {
-        val failFastResponse = if (failFast) {
-            MockResponse().setResponseCode(HttpURLConnection.HTTP_NOT_FOUND)
-        } else {
-            null
-        }
-        setFailFast(failFastResponse)
-    }
-
-    fun setFailFast(failFastResponse: MockResponse?) {
-        this.failFastResponse = failFastResponse
-    }
-
     override fun shutdown() {
-        responses.values.forEach{ it.add(DEAD_LETTER) }
+        responses.values.forEach { it.add(deadLetter) }
     }
 
-    fun peek(path: String): MockResponse {
-        val response = responses[path]?.peek() ?: failFastResponse ?: super.peek()
-        println("peek result: $response")
-        return response
-    }
+    override fun peek(): MockResponse = responses.values
+        .filter { it.isNotEmpty() }
+        .firstNotNullOfOrNull { it.peek() }
+        ?: failFastResponse
+        ?: super.peek()
 
-    fun peekAll(): List<Pair<String, MockResponse>> =
-        responses.map { (path, queue) ->
-            path to peek(path)
-        }
-
-    fun enqueue(path: String, response: MockResponse): ResponsesMap {
+    /**
+     * @param path
+     * @param response
+     */
+    fun enqueueResponse(path: String, response: MockResponse) {
         responses[path]?.add(response) ?: responses.put(path, LinkedBlockingQueue<MockResponse>().apply { add(response) })
-        return responses
     }
 
     companion object {
-        private val DEAD_LETTER = MockResponse().apply {
+        private val deadLetter = MockResponse().apply {
             this.status = "HTTP/1.1 ${HttpURLConnection.HTTP_UNAVAILABLE} shutting down"
         }
     }
 }
 
+/**
+ * @param path
+ * @param response
+ * @throws ClassCastException
+ */
 fun MockWebServer.enqueue(path: String, response: MockResponse) {
-    (dispatcher as LoggingQueueDispatcher).enqueue(path, response)
+    if (dispatcher is LoggingQueueDispatcher) {
+        (dispatcher as LoggingQueueDispatcher).enqueueResponse(path, response.clone())
+    } else {
+        throw ClassCastException("dispatcher type should be LoggingQueueDispatcher")
+    }
 }
-
-fun MockWebServer.peekAllResponses() = (dispatcher as LoggingQueueDispatcher).peekAll()
 
 /**
  * @param logger logger with which additional debug info is passed
- * @param isFailFast
  * @return MockWebServer used for testing
  */
 fun createMockWebServer(logger: Logger) = MockWebServer().apply {
