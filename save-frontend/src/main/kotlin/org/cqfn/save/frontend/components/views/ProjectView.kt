@@ -6,17 +6,6 @@
 
 package org.cqfn.save.frontend.components.views
 
-import kotlinx.browser.document
-import kotlinx.browser.window
-import kotlinx.coroutines.launch
-import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.Month
-import kotlinx.html.ButtonType
-import kotlinx.html.classes
-import kotlinx.html.js.onClickFunction
-import kotlinx.html.role
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import org.cqfn.save.domain.FileInfo
 import org.cqfn.save.domain.Sdk
 import org.cqfn.save.domain.getSdkVersions
@@ -50,6 +39,7 @@ import org.cqfn.save.frontend.utils.runConfirmWindowModal
 import org.cqfn.save.frontend.utils.runErrorModal
 import org.cqfn.save.frontend.utils.unsafeMap
 import org.cqfn.save.testsuite.TestSuiteDto
+
 import org.w3c.dom.HTMLButtonElement
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.asList
@@ -66,6 +56,18 @@ import react.dom.h1
 import react.dom.span
 import react.setState
 
+import kotlinx.browser.document
+import kotlinx.browser.window
+import kotlinx.coroutines.launch
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.Month
+import kotlinx.html.ButtonType
+import kotlinx.html.classes
+import kotlinx.html.js.onClickFunction
+import kotlinx.html.role
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+
 /**
  * `Props` retrieved from router
  */
@@ -79,6 +81,9 @@ external interface ProjectExecutionRouteProps : PropsWithChildren {
  * [State] of project view component
  */
 external interface ProjectViewState : State {
+    /**
+     * Currenty loaded for display Project
+     */
     var project: Project
 
     /**
@@ -196,6 +201,9 @@ external interface ProjectViewState : State {
      */
     var isUploading: Boolean?
 
+    /**
+     * Whether editing of project info is disabled
+     */
     var isEditDisabled: Boolean?
 }
 

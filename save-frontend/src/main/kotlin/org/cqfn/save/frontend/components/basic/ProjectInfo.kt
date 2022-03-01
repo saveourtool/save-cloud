@@ -1,22 +1,27 @@
+/**
+ * Function component for project info and edit support
+ */
+
+@file:Suppress("FILE_NAME_MATCH_CLASS")
+
 package org.cqfn.save.frontend.components.basic
 
 import org.cqfn.save.entities.Project
 import org.cqfn.save.frontend.externals.fontawesome.faCheck
 import org.cqfn.save.frontend.externals.fontawesome.faTimesCircle
+import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
 
+import react.FC
 import react.Props
+import react.dom.html.InputType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.form
 import react.dom.html.ReactHTML.input
-import react.dom.html.InputType
 import react.dom.html.ReactHTML.label
-import react.FC
 import react.useEffect
 import react.useRef
 import react.useState
-
-import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
 
 private val projectInformationHeaders = mapOf(
     "name" to "Tested tool name: ",
@@ -24,16 +29,26 @@ private val projectInformationHeaders = mapOf(
     "url" to "Tested tool Url: ",
 )
 
+/**
+ * ProjectInfo component props
+ */
 external interface ProjectInfoProps : Props {
+    /**
+     * Project passed from parent component that should be used for initial values
+     */
     var project: Project?
+
+    /**
+     * Whether fields for project info should be disabled
+     */
     var isEditDisabled: Boolean?
 }
 
 /**
  * @param turnEditMode
  * @param onProjectSave
- * @return
  */
+@Suppress("TOO_LONG_FUNCTION", "KDOC_WITHOUT_RETURN_TAG", "LongMethod")
 fun projectInfo(
     turnEditMode: (isOff: Boolean) -> Unit,
     onProjectSave: (draftProject: Project?) -> Unit,
@@ -51,10 +66,10 @@ fun projectInfo(
         "url" to draftProject?.url,
         "description" to draftProject?.description,
     )
-    val idToValueSetter = mapOf(
-        "name" to { s: String -> draftProject?.copy(name = s) },
-        "url" to { s: String -> draftProject?.copy(url = s) },
-        "description" to { s: String -> draftProject?.copy(description = s) },
+    val idToValueSetter: Map<String, (String) -> Project?> = mapOf(
+        "name" to { draftProject?.copy(name = it) },
+        "url" to { draftProject?.copy(url = it) },
+        "description" to { draftProject?.copy(description = it) },
     )
     form {
         div {

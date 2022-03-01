@@ -4,11 +4,12 @@
 
 package org.cqfn.save.frontend.externals.fontawesome
 
-import kotlinx.js.jso
 import react.ChildrenBuilder
 import react.RBuilder
 import react.RHandler
 import react.react
+
+import kotlinx.js.jso
 
 /**
  * @param icon icon. Can be an object, string or array.
@@ -36,11 +37,18 @@ fun RBuilder.fontAwesomeIcon(
     handler.invoke(this)
 }
 
+/**
+ * Builder function for new kotlin-react API
+ *
+ * @param icon
+ * @param classes
+ * @param handler
+ */
 fun ChildrenBuilder.fontAwesomeIcon(
     icon: dynamic,
     classes: String = "",
     handler: ChildrenBuilder.(props: FontAwesomeIconProps) -> Unit = {},
-) = child(FontAwesomeIcon::class.react, props = jso {
+): Unit = child(FontAwesomeIcon::class.react, props = jso {
     this.icon = icon
     this.className = classes
     handler(this)
