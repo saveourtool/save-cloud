@@ -1,5 +1,7 @@
 package org.cqfn.save.orchestrator.controller
 
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.json.Json
 import org.cqfn.save.agent.AgentState
 import org.cqfn.save.agent.ContinueResponse
 import org.cqfn.save.agent.Heartbeat
@@ -9,21 +11,16 @@ import org.cqfn.save.entities.AgentStatusDto
 import org.cqfn.save.orchestrator.config.ConfigProperties
 import org.cqfn.save.orchestrator.service.AgentService
 import org.cqfn.save.orchestrator.service.DockerService
-
 import org.slf4j.LoggerFactory
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
-
 import java.time.Duration
 import java.time.LocalDateTime
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.atomic.AtomicBoolean
-
-import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.json.Json
 
 private val agentsStartTimesMap: ConcurrentHashMap<String, Pair<String, LocalDateTime>> = ConcurrentHashMap()
 
@@ -190,10 +187,14 @@ class HeartbeatController(private val agentService: AgentService,
 
 class HeartBeatInspector(private val heartbeatController: HeartbeatController) : Thread() {
     override fun run() {
-        while (true) {
-            heartbeatController.determineCrashedAgents()
-            heartbeatController.processCrashedAgents()
-            sleep(10000)
+        try {
+            while (!interrupted()) {
+                heartbeatController.determineCrashedAgents()
+                heartbeatController.processCrashedAgents()
+                sleep(10000)
+            }
+        } catch (e: InterruptedException) {
+            e.printStackTrace()
         }
     }
 }
