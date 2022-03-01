@@ -12,5 +12,5 @@ import react.State
  */
 @JsName("PieChart")
 external class PieChart : Component<PieChartProps, State> {
-    override fun render(): ReactElement?
+    override fun render(): ReactElement<PieChartProps>?
 }

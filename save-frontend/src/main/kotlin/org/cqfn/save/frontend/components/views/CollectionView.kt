@@ -26,13 +26,10 @@ class CollectionView : AbstractView<PropsWithChildren, State>(false) {
     @Suppress("MAGIC_NUMBER")
     private val projectsTable = tableComponent(
         columns = columns<Project> {
-            column(id = "owner", header = "Project Owner", { organization.name }) {
+            column(id = "organization", header = "Organization", { organization.name }) {
                 buildElement {
                     td {
-                        // FixMe: temporary disable links, until we will make a beat
-                        // a(href = "#/${it.value}") {
-                        +it.value!!
-                        // }
+                        a(href = "#/${it.row.original.organization.name}") { +it.value }
                     }
                 }
             }

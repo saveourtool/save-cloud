@@ -166,6 +166,26 @@ class ProjectControllerTest {
         Assertions.assertNotNull(gitRepository.findAll().find { it.url == gitDto.url })
     }
 
+    @Test
+    @WithMockUser
+    fun `should forbid updating a project for a viewer`() {
+        val project = Project.stub(99).apply {
+            userId = 1
+            organization = organizationRepository.findById(1).get()
+        }
+        projectRepository.save(project)
+        mutateMockedUser {
+            details = AuthenticationDetails(id = 3)
+        }
+
+        webClient.post()
+            .uri("/api/projects/update")
+            .bodyValue(project)
+            .exchange()
+            .expectStatus()
+            .isForbidden
+    }
+
     private fun getProjectAndAssert(name: String,
                                     organizationName: String,
                                     assertion: WebTestClient.ResponseSpec.() -> Unit

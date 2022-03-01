@@ -4,7 +4,6 @@
 
 package org.cqfn.save.backend.configs
 
-import org.cqfn.save.backend.security.ProjectPermissionEvaluator
 import org.cqfn.save.backend.utils.ConvertingAuthenticationManager
 import org.cqfn.save.backend.utils.CustomAuthenticationBasicConverter
 import org.cqfn.save.domain.Role
@@ -75,11 +74,10 @@ class WebSecurityConfig(
         .formLogin().disable()
         .build()
 
-    @Bean
-    fun projectPermissionEvaluator() = ProjectPermissionEvaluator()
-
     fun roleHierarchy(): RoleHierarchy = mapOf(
-        Role.ADMIN to listOf(Role.VIEWER),
+        Role.SUPER_ADMIN to listOf(Role.ADMIN, Role.OWNER, Role.VIEWER),
+        Role.ADMIN to listOf(Role.OWNER, Role.VIEWER),
+        Role.OWNER to listOf(Role.VIEWER),
     )
         .mapKeys { it.key.asSpringSecurityRole() }
         .mapValues { it.value.map { it.asSpringSecurityRole() } }
