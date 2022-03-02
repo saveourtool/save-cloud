@@ -152,7 +152,7 @@ class AgentService {
      *
      * @param crashedAgentIds the list of agents, which weren't sent heartbeats for a some time and are considered as crashed
      */
-    fun markAgentsAndTestExecutionsCrashed(crashedAgentIds: Collection<String>) {
+    fun markAgentsAndTestExecutionsCrashed(crashedAgentIds: Collection<String>): Mono<BodilessResponseEntity> =
         updateAgentStatusesWithDto(
             crashedAgentIds.map { agentId ->
                 AgentStatusDto(LocalDateTime.now(), AgentState.CRASHED, agentId)
@@ -164,9 +164,17 @@ class AgentService {
             .then(
                 markTestExecutionsOfCrashedAgentsAsFailed(crashedAgentIds)
             )
-            .subscribeOn(scheduler)
-            .subscribe()
-    }
+
+    /**
+     * Mark execution as finished and agents with corresponding tests as crashed
+     *
+     * @param executionId execution that should be updated
+     * @param crashedAgentIds the list of agents, which weren't sent heartbeats for a some time and are considered as crashed
+     */
+    fun markAgentsAndTestExecutionsCrashedAndExecutionAsFinished(executionId: Long, crashedAgentIds: Collection<String>) = markAgentsAndTestExecutionsCrashed(crashedAgentIds)
+        .then(
+            updateExecution(executionId, ExecutionStatus.FINISHED)  // todo: status based on results
+        )
 
     /**
      * Marks the execution to specified state
