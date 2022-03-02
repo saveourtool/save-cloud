@@ -95,7 +95,7 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
     }
 
     /**
-     * @param crashedAgents
+     * @param crashedAgents the list of agents, which weren't sent heartbeats for a some time and are considered as crashed
      */
     @PostMapping(value = ["/internal/testExecution/markTestExecutionsOfCrashedAgentsAsFailed"])
     fun markTestExecutionsOfCrashedAgentsAsFailed(@RequestBody crashedAgents: Collection<String>) {

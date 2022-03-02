@@ -251,9 +251,10 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
     }
 
     /**
-     * @param crashedAgents
+     * @param crashedAgents the list of agents, which weren't sent heartbeats for a some time and are considered as crashed
      */
     @Transactional
+    @Suppress("UnsafeCallOnNullableType")
     fun markTestExecutionsOfCrashedAgentsAsFailed(crashedAgents: Collection<String>) {
         crashedAgents.forEach { agentContainerId ->
             val agent = requireNotNull(agentRepository.findByContainerId(agentContainerId)) {
