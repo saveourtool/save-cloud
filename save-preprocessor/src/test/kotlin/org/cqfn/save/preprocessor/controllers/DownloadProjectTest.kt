@@ -131,7 +131,7 @@ class DownloadProjectTest(
         val request = ExecutionRequest(project, validRepo, "examples/kotlin-diktat/", Sdk.Default, execution.id)
         // /createExecution
         mockServerBackend.enqueue(
-            "/createExecution",
+            "/updateNewExecution",
             MockResponse()
                 .setResponseCode(200)
                 .setHeader("Content-Type", "application/json")
@@ -320,7 +320,7 @@ class DownloadProjectTest(
             )
 
             mockServerBackend.enqueue(
-                "/method1",
+                "/saveTestSuites",
                 MockResponse()
                     .setResponseCode(200)
                     .setHeader("Content-Type", "application/json")
@@ -335,7 +335,7 @@ class DownloadProjectTest(
         }
         repeat(requestSize) {
             mockServerBackend.enqueue(
-                "/method2",
+                "/initializeTests",
                 MockResponse()
                     .setResponseCode(200)
             )
@@ -564,6 +564,7 @@ class DownloadProjectTest(
         assertions.forEach { Assertions.assertNotNull(it) }
     }
 
+    /**
     @AfterEach
     fun removeTestDir() {
         listOf(mockServerBackend, mockServerOrchestrator).forEach { server ->
@@ -580,7 +581,7 @@ class DownloadProjectTest(
             }
         }
     }
-
+    */
     @AfterEach
     fun removeBinDir() {
         File(configProperties.repository).deleteRecursively()

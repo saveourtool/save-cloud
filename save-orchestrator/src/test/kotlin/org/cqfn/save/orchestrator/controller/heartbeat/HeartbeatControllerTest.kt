@@ -52,6 +52,7 @@ import java.util.concurrent.TimeUnit
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.cqfn.save.testutils.setDefaultResponseForPath
 
 @WebFluxTest
 @Import(Beans::class, AgentService::class)
@@ -107,7 +108,7 @@ class HeartbeatControllerTest {
 
         // /testSuite/{id}
         mockServer.enqueue(
-            "/testSuite/",
+            "/testSuite",
             MockResponse()
                 .setResponseCode(200)
                 .setHeader("Content-Type", "application/json")
@@ -239,7 +240,7 @@ class HeartbeatControllerTest {
             {
                 // /getAgentsStatusesForSameExecution after shutdownIntervalMillis
                 mockServer.enqueue(
-                    "/getAgentStatusesForSameExecution",
+                    "/getAgentsStatusesForSameExecution",
                     MockResponse()
                         .setBody(
                             objectMapper.writeValueAsString(
@@ -286,7 +287,7 @@ class HeartbeatControllerTest {
         // /testSuite/{id}
         testSuite?.let {
             mockServer.enqueue(
-                "/testSuite/",
+                "/testSuite",
                 MockResponse()
                     .setResponseCode(200)
                     .setHeader("Content-Type", "application/json")
@@ -324,7 +325,8 @@ class HeartbeatControllerTest {
             .accept(MediaType.APPLICATION_JSON)
             .body(BodyInserters.fromValue(heartbeat))
             .exchange()
-            .expectStatus().isOk
+            .expectStatus()
+            .isOk
 
         // wait for background tasks
         Thread.sleep(5_000)
@@ -349,9 +351,8 @@ class HeartbeatControllerTest {
         fun properties(registry: DynamicPropertyRegistry) {
             // todo: should be initialized in @BeforeAll, but it gets called after @DynamicPropertySource
             mockServer = createMockWebServer(logger)
-            mockServer.enqueue("/testExecution/assignAgent", MockResponse().setResponseCode(200))
-            mockServer.enqueue("/updateAgentStatusesWithDto", MockResponse().setResponseCode(200))
-            // todo: extract request-based dispatcher to save-cloud-common
+            mockServer.setDefaultResponseForPath("/testExecution", MockResponse().setResponseCode(200))
+            mockServer.setDefaultResponseForPath("/updateAgentStatusesWithDto", MockResponse().setResponseCode(200))
             mockServer.start()
             registry.add("orchestrator.backendUrl") { "http://localhost:${mockServer.port}" }
         }

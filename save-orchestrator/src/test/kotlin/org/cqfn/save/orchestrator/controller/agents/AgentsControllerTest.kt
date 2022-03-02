@@ -48,8 +48,6 @@ import kotlinx.serialization.json.Json
 @Import(AgentService::class, Beans::class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class AgentsControllerTest {
-    private val stubTime = LocalDateTime.now()
-
     @Autowired
     lateinit var webClient: WebTestClient
 
@@ -173,7 +171,7 @@ class AgentsControllerTest {
     @Test
     fun `should cleanup execution artifacts`() {
         mockServer.enqueue(
-            "/cleanup",
+            "/getAgentsIdsForExecution",
             MockResponse().setResponseCode(200)
                 .setHeader("Content-Type", "application/json")
                 .setBody(Json.encodeToString(listOf("container-1", "container-2", "container-3")))

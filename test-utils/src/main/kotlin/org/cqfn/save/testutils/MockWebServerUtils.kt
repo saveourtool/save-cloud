@@ -16,23 +16,34 @@ private typealias ResponsesMap = ConcurrentMap<String, BlockingQueue<MockRespons
  */
 class LoggingQueueDispatcher(private val logger: Logger) : Dispatcher() {
     private val responses: ResponsesMap = ConcurrentHashMap()
+    private val defaultResponses: ConcurrentMap<String, MockResponse> = ConcurrentHashMap()
     private var failFastResponse: MockResponse? = MockResponse().setResponseCode(HttpURLConnection.HTTP_NOT_FOUND)
 
+    private fun getMethodPath(fullPath: String?) = fullPath?.let { Regex("/[\\w]*").find(it)?.value ?: "" } ?: ""
+
     override fun dispatch(request: RecordedRequest): MockResponse {
-        val path = request.path?.substringBefore("?")
-        // println("${request.path} -> $path")
-        if (failFastResponse != null && responses[path]?.peek() == null) {
-            println("Error")
+        val path = getMethodPath(request.path)
+        println("${request.path} -> $path")
+        val result = if (defaultResponses[path] != null) {
+            logger.info("Default response [${defaultResponses[path]}] exists for path [$path].")
+            defaultResponses[path]!!
+        } else if (failFastResponse != null && responses[path]?.peek() == null) {
+            logger.info("No response is present in queue with path [$path].")
+            println("Error!")
             return failFastResponse!!
+        } else {
+            responses[path]!!.take()
         }
-        val result = responses[path]!!.take()
-        logger.info("Response [$result] was taken from responseQueue for request [$request].")
 
         if (result == deadLetter) {
             responses[path]!!.add(deadLetter)
         }
 
-        return result
+        return result.also { logger.info("Response [$result] was taken for request [$request].") }
+    }
+
+    fun setDefaultResponseForPath(path: String, defaultMockResponse: MockResponse) {
+        defaultResponses[path] = defaultMockResponse
     }
 
     override fun shutdown() {
@@ -45,13 +56,19 @@ class LoggingQueueDispatcher(private val logger: Logger) : Dispatcher() {
         ?: failFastResponse
         ?: super.peek()
 
-    /**
-     * @param path
-     * @param response
-     */
-    fun enqueueResponse(path: String, response: MockResponse) {
-        responses[path]?.add(response) ?: responses.put(path, LinkedBlockingQueue<MockResponse>().apply { add(response) })
+    fun enqueueResponse(fullPath: String, response: MockResponse) {
+        val path = getMethodPath(fullPath)
+        if (responses[path] == null) {
+            responses[path] = LinkedBlockingQueue<MockResponse>().apply { add(response) }
+            logger.info("Added LinkedBlockingQueue for a new path [$path] and put there [$response]. " +
+                    "Now there are ${responses[path]!!.count()} responses.")
+        } else {
+            responses[path]!!.add(response)
+            logger.info("Added [$response] into queue with path [$path]")
+        }
     }
+    fun isQueueEmpty() = responses.keys.all { isQueueEmpty(it) }
+    private fun isQueueEmpty(path: String): Boolean = responses[getMethodPath(path)]?.isEmpty() ?: true
 
     companion object {
         private val deadLetter = MockResponse().apply {
@@ -61,8 +78,8 @@ class LoggingQueueDispatcher(private val logger: Logger) : Dispatcher() {
 }
 
 /**
- * @param path
- * @param response
+ * @param path path to store enqueued response
+ * @param response response to enqueue
  * @throws ClassCastException
  */
 fun MockWebServer.enqueue(path: String, response: MockResponse) {
@@ -73,11 +90,19 @@ fun MockWebServer.enqueue(path: String, response: MockResponse) {
     }
 }
 
+fun MockWebServer.isQueueEmpty(): Boolean = (dispatcher as LoggingQueueDispatcher).isQueueEmpty()
+
+/**
+ * @param path
+ * @param response
+ */
+fun MockWebServer.setDefaultResponseForPath(path: String, response: MockResponse) =
+    (dispatcher as LoggingQueueDispatcher).setDefaultResponseForPath(path, response)
+
 /**
  * @param logger logger with which additional debug info is passed
  * @return MockWebServer used for testing
  */
 fun createMockWebServer(logger: Logger) = MockWebServer().apply {
     dispatcher = LoggingQueueDispatcher(logger)
-    // dispatcher.enqueueResponse(path, response)
 }
