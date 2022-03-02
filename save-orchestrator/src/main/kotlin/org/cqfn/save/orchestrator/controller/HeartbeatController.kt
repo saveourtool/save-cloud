@@ -29,8 +29,6 @@ import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 
-private val agentsStartTimesMap: AgentStatesWithTimeStamps = ConcurrentHashMap()
-
 private val agentsLatestHeartBeatsMap: AgentStatesWithTimeStamps = ConcurrentHashMap()
 private val crashedAgentsList: ConcurrentLinkedQueue<String> = ConcurrentLinkedQueue()
 private val isHeartbeatInProgress = AtomicBoolean(false)
@@ -64,15 +62,9 @@ class HeartbeatController(private val agentService: AgentService,
     @OptIn(ExperimentalSerializationApi::class)
     fun acceptHeartbeat(@RequestBody heartbeat: Heartbeat): Mono<String> {
         if (isHeartbeatInProgress.compareAndSet(false, true)) {
-            // Wait some time for completely initialization of all agents before inspection
-            // saveFromInterruptionSleep(5000)
             println("\n\n\n===============================[START_ ${heartbeat.agentId}]===================================\n\n")
-//            if (heartbeat.agentId !in crashedAgentsList) {
-//                crashedAgentsList.add(heartbeat.agentId)
-//            }
             HeartBeatInspector(this).start()
         }
-
         logger.info("Got heartbeat state: ${heartbeat.state.name} from ${heartbeat.agentId}")
         updateAgentHeartbeatTimeStamps(heartbeat.agentId, heartbeat.state)
 
@@ -117,24 +109,20 @@ class HeartbeatController(private val agentService: AgentService,
      * @param state
      */
     fun updateAgentHeartbeatTimeStamps(agentId: String, state: AgentState) {
-        val currentTime = LocalDateTime.now()
-        if (state == AgentState.STARTING) {
-            agentsStartTimesMap[agentId] = state.name to currentTime
-        }
-        agentsLatestHeartBeatsMap[agentId] = state.name to currentTime
+        agentsLatestHeartBeatsMap[agentId] = state.name to LocalDateTime.now()
+        // if (AgentState.BUSY.name in agentsLatestHeartBeatsMap.map { it.value.first } && crashedAgentsList.isEmpty()) {
+        // crashedAgentsList.add(agentsLatestHeartBeatsMap.filter { it.value.first != AgentState.BUSY.name }.keys.first())
+        // }
     }
 
     /**
      * Consider agent as crashed, if it didn't send heartbeats for some time
      */
     fun determineCrashedAgents() {
-        if (agentsLatestHeartBeatsMap.isNotEmpty()) {
-            println("\n\n\nCURRENT AGENTS LIST:")
-        }
         agentsLatestHeartBeatsMap.forEach { (currentAgentId, stateToLatestHeartBeatPair) ->
             val duration = Duration.between(stateToLatestHeartBeatPair.second, LocalDateTime.now()).toMillis()
-            if (duration >= configProperties.agentsHearBeatTimeoutMillis && currentAgentId !in crashedAgentsList) {
-                println("\n\n\nADDING $currentAgentId to crashed")
+            if (duration >= configProperties.agentsHeartBeatTimeoutMillis && currentAgentId !in crashedAgentsList) {
+                logger.debug("Adding $currentAgentId to list crashed agents")
                 crashedAgentsList.add(currentAgentId)
             }
             println("agent $currentAgentId: ${stateToLatestHeartBeatPair.first} ${stateToLatestHeartBeatPair.second} DURATION $duration")
@@ -159,6 +147,8 @@ class HeartbeatController(private val agentService: AgentService,
 
     /**
      * Sleep with caught InterruptedException
+     *
+     * @param millis
      */
     fun saveFromInterruptionSleep(millis: Long) {
         try {
@@ -219,13 +209,15 @@ class HeartbeatController(private val agentService: AgentService,
  * @property heartbeatController
  */
 class HeartBeatInspector(private val heartbeatController: HeartbeatController) : Thread() {
-    private val logger = LoggerFactory.getLogger(HeartBeatInspector::class.java)
-
     override fun run() {
         while (!interrupted()) {
             heartbeatController.determineCrashedAgents()
             heartbeatController.processCrashedAgents()
-            heartbeatController.saveFromInterruptionSleep(10000)
+            heartbeatController.saveFromInterruptionSleep(SLEEP_INTERVAL)
         }
+    }
+
+    companion object {
+        private const val SLEEP_INTERVAL = 10000L
     }
 }
