@@ -31,6 +31,8 @@ import kotlinx.serialization.json.Json
 
 private val agentsLatestHeartBeatsMap: AgentStatesWithTimeStamps = ConcurrentHashMap()
 private val crashedAgentsList: ConcurrentLinkedQueue<String> = ConcurrentLinkedQueue()
+
+@Suppress("NonBooleanPropertyPrefixedWithIs")
 private val isHeartbeatInProgress = AtomicBoolean(false)
 
 typealias AgentStatesWithTimeStamps = ConcurrentHashMap<String, Pair<String, LocalDateTime>>
@@ -62,7 +64,7 @@ class HeartbeatController(private val agentService: AgentService,
     @OptIn(ExperimentalSerializationApi::class)
     fun acceptHeartbeat(@RequestBody heartbeat: Heartbeat): Mono<String> {
         if (isHeartbeatInProgress.compareAndSet(false, true)) {
-            println("\n\n\n===============================[START_ ${heartbeat.agentId}]===================================\n\n")
+            // println("\n\n\n===============================[START_ ${heartbeat.agentId}]===================================\n\n")
             HeartBeatInspector(this).start()
         }
         logger.info("Got heartbeat state: ${heartbeat.state.name} from ${heartbeat.agentId}")
@@ -125,7 +127,7 @@ class HeartbeatController(private val agentService: AgentService,
                 logger.debug("Adding $currentAgentId to list crashed agents")
                 crashedAgentsList.add(currentAgentId)
             }
-            println("agent $currentAgentId: ${stateToLatestHeartBeatPair.first} ${stateToLatestHeartBeatPair.second} DURATION $duration")
+            // println("agent $currentAgentId: ${stateToLatestHeartBeatPair.first} ${stateToLatestHeartBeatPair.second} DURATION $duration")
         }
     }
 
