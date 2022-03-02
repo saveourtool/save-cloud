@@ -29,7 +29,6 @@ import org.cqfn.save.frontend.utils.unsafeMap
 
 import csstype.Background
 import csstype.TextDecoration
-import kotlinext.js.jso
 import org.w3c.fetch.Headers
 import react.*
 import react.dom.*
@@ -43,6 +42,7 @@ import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
 import kotlinx.html.js.onClickFunction
+import kotlinx.js.jso
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 
@@ -241,7 +241,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                         td {
                             spread(cellProps.row.getToggleRowExpandedProps())
 
-                            attrs["style"] = kotlinext.js.jso<CSSProperties> {
+                            attrs["style"] = jso<CSSProperties> {
                                 textDecoration = "underline grey".unsafeCast<TextDecoration>()
                             }
 

@@ -5,8 +5,8 @@ plugins {
     kotlin("js")
 }
 
-rootProject.plugins.withType<org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin> {
-    rootProject.the<org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension>().nodeVersion = "16.13.1"
+rootProject.plugins.withType<NodeJsRootPlugin> {
+    rootProject.the<NodeJsRootExtension>().nodeVersion = "16.13.1"
 }
 
 dependencies {
@@ -109,9 +109,12 @@ val generateVersionFileTaskProvider = tasks.register("generateVersionFile") {
 kotlin.sourceSets.getByName("main") {
     kotlin.srcDir("$buildDir/generated/src")
 }
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.Kotlin2JsCompile>().forEach {
-    it.dependsOn(generateVersionFileTaskProvider)
-    it.inputs.file("$buildDir/generated/src/generated/Versions.kt")
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.Kotlin2JsCompile> {
+    dependsOn(generateVersionFileTaskProvider)
+    inputs.file("$buildDir/generated/src/generated/Versions.kt")
+}
+tasks.named<org.gradle.jvm.tasks.Jar>("kotlinSourcesJar") {
+    dependsOn(generateVersionFileTaskProvider)
 }
 
 tasks.withType<org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack>().forEach { kotlinWebpack ->
