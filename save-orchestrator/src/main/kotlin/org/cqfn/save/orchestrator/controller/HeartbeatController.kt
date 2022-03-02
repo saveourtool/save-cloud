@@ -65,9 +65,11 @@ class HeartbeatController(private val agentService: AgentService,
     fun acceptHeartbeat(@RequestBody heartbeat: Heartbeat): Mono<String> {
         if (isHeartbeatInProgress.compareAndSet(false, true)) {
             // Wait some time for completely initialization of all agents before inspection
-            Thread.sleep(5000)
-            println("\n\n\n===============================[START ${heartbeat.agentId}]===================================\n\n")
-            // crashedAgentsList.add((heartbeat.agentId))
+            // saveFromInterruptionSleep(5000)
+            println("\n\n\n===============================[START_ ${heartbeat.agentId}]===================================\n\n")
+//            if (heartbeat.agentId !in crashedAgentsList) {
+//                crashedAgentsList.add(heartbeat.agentId)
+//            }
             HeartBeatInspector(this).start()
         }
 
@@ -131,7 +133,7 @@ class HeartbeatController(private val agentService: AgentService,
         }
         agentsLatestHeartBeatsMap.forEach { (currentAgentId, stateToLatestHeartBeatPair) ->
             val duration = Duration.between(stateToLatestHeartBeatPair.second, LocalDateTime.now()).toMillis()
-            if (duration >= configProperties.agentsHearBeatTimeoutMillis) {
+            if (duration >= configProperties.agentsHearBeatTimeoutMillis && currentAgentId !in crashedAgentsList) {
                 println("\n\n\nADDING $currentAgentId to crashed")
                 crashedAgentsList.add(currentAgentId)
             }
@@ -152,6 +154,17 @@ class HeartbeatController(private val agentService: AgentService,
             agentService.markAgentsAndTestExecutionsCrashed(crashedAgentsList)
         } else {
             logger.warn("Crashed agents $crashedAgentsList are not stopped after stop command")
+        }
+    }
+
+    /**
+     * Sleep with caught InterruptedException
+     */
+    fun saveFromInterruptionSleep(millis: Long) {
+        try {
+            Thread.sleep(millis)
+        } catch (ex: InterruptedException) {
+            logger.warn("Exception while sleeping for $millis ms: ${ex.message}")
         }
     }
 
@@ -206,15 +219,13 @@ class HeartbeatController(private val agentService: AgentService,
  * @property heartbeatController
  */
 class HeartBeatInspector(private val heartbeatController: HeartbeatController) : Thread() {
+    private val logger = LoggerFactory.getLogger(HeartBeatInspector::class.java)
+
     override fun run() {
-        try {
-            while (!interrupted()) {
-                heartbeatController.determineCrashedAgents()
-                heartbeatController.processCrashedAgents()
-                sleep(10000)
-            }
-        } catch (e: InterruptedException) {
-            e.printStackTrace()
+        while (!interrupted()) {
+            heartbeatController.determineCrashedAgents()
+            heartbeatController.processCrashedAgents()
+            heartbeatController.saveFromInterruptionSleep(10000)
         }
     }
 }
