@@ -4,6 +4,7 @@ import org.cqfn.save.backend.SaveApplication
 import org.cqfn.save.backend.repository.AgentRepository
 import org.cqfn.save.backend.repository.AgentStatusRepository
 import org.cqfn.save.backend.repository.ExecutionRepository
+import org.cqfn.save.backend.repository.OrganizationRepository
 import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.repository.TestExecutionRepository
 import org.cqfn.save.backend.scheduling.StandardSuitesUpdateScheduler
@@ -11,6 +12,7 @@ import org.cqfn.save.backend.security.ProjectPermissionEvaluator
 import org.cqfn.save.backend.utils.MySqlExtension
 import org.cqfn.save.backend.utils.postJsonAndAssert
 import org.cqfn.save.entities.Execution
+import org.cqfn.save.entities.Organization
 import org.cqfn.save.entities.Project
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -46,6 +48,7 @@ class DeleteEntitiesTest {
     @MockBean private lateinit var agentRepository: AgentRepository
     @MockBean private lateinit var executionRepository: ExecutionRepository
     @MockBean private lateinit var projectRepository: ProjectRepository
+    @MockBean private lateinit var organizationRepository: OrganizationRepository
     @MockBean private lateinit var projectPermissionEvaluator: ProjectPermissionEvaluator
 
     @BeforeEach
@@ -58,8 +61,11 @@ class DeleteEntitiesTest {
         whenever(executionRepository.findById(any())).thenAnswer {
             Optional.of(Execution.stub(Project.stub(1)).apply { id = it.arguments[0] as Long })
         }
-        whenever(projectRepository.findByNameAndOrganization(any(), any())).thenReturn(
+        whenever(projectRepository.findByNameAndOrganizationName(any(), any())).thenReturn(
             Project.stub(99).apply { id = 1 }
+        )
+        whenever(organizationRepository.findByName(any())).thenReturn(
+            Organization("stub", null, null, null)
         )
         with(projectPermissionEvaluator) {
             whenever(any<Mono<Project?>>().filterByPermission(any(), any(), any())).thenCallRealMethod()
