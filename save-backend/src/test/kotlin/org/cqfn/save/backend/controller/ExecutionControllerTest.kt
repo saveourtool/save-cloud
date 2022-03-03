@@ -5,7 +5,9 @@ import org.cqfn.save.backend.controllers.ProjectController
 import org.cqfn.save.backend.repository.ExecutionRepository
 import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.scheduling.StandardSuitesUpdateScheduler
+import org.cqfn.save.backend.utils.AuthenticationDetails
 import org.cqfn.save.backend.utils.MySqlExtension
+import org.cqfn.save.backend.utils.mutateMockedUser
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.execution.ExecutionInitializationDto
@@ -130,7 +132,12 @@ class ExecutionControllerTest {
     }
 
     @Test
+    @WithMockUser
     fun checkExecutionDto() {
+        mutateMockedUser {
+            details = AuthenticationDetails(id = 99)
+        }
+
         webClient.get()
             .uri("/api/executionDto?executionId=1")
             .exchange()
@@ -144,7 +151,12 @@ class ExecutionControllerTest {
     }
 
     @Test
+    @WithMockUser
     fun checkExecutionDtoByProject() {
+        mutateMockedUser {
+            details = AuthenticationDetails(id = 99)
+        }
+
         val project = projectRepository.findById(1).get()
         val executionCounts = executionRepository.findAll().count { it.project.id == project.id }
         webClient.get()
@@ -200,6 +212,10 @@ class ExecutionControllerTest {
     @Test
     @WithMockUser(username = "John Doe")
     fun `should send request to preprocessor to rerun execution`() {
+        mutateMockedUser {
+            details = AuthenticationDetails(id = 2)
+        }
+
         mockServerPreprocessor.enqueue(
             MockResponse().setResponseCode(202)
                 .setHeader("Accept", "application/json")

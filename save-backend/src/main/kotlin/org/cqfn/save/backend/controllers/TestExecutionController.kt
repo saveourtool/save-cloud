@@ -1,7 +1,11 @@
 package org.cqfn.save.backend.controllers
 
 import org.cqfn.save.agent.TestExecutionDto
+import org.cqfn.save.backend.security.Permission
+import org.cqfn.save.backend.security.ProjectPermissionEvaluator
+import org.cqfn.save.backend.service.ExecutionService
 import org.cqfn.save.backend.service.TestExecutionService
+import org.cqfn.save.backend.utils.justOrNotFound
 import org.cqfn.save.domain.TestResultLocation
 import org.cqfn.save.domain.TestResultStatus
 import org.cqfn.save.test.TestDto
@@ -9,6 +13,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.dao.DataAccessException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.core.Authentication
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -17,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
+import reactor.core.publisher.Mono
 
 /**
  * Controller to work with test execution
@@ -25,29 +31,38 @@ import org.springframework.web.server.ResponseStatusException
  */
 @RestController
 @Transactional
-class TestExecutionController(private val testExecutionService: TestExecutionService) {
+class TestExecutionController(private val testExecutionService: TestExecutionService,
+                              private val executionService: ExecutionService,
+                              private val projectPermissionEvaluator: ProjectPermissionEvaluator,
+) {
     /**
-     * Returns a page of [TestExecution]s with [executionId]
+     * Returns a page of [TestExecutionDto]s with [executionId]
      *
      * @param executionId an ID of Execution to group TestExecutions
      * @param page a zero-based index of page of data
      * @param size size of page
      * @param status
      * @param testSuite
+     * @param authentication
      * @return a list of [TestExecutionDto]s
      */
     @GetMapping("/api/testExecutions")
+    @Suppress("LongParameterList", "TOO_MANY_PARAMETERS", "TYPE_ALIAS")
     fun getTestExecutions(
         @RequestParam executionId: Long,
         @RequestParam page: Int,
         @RequestParam size: Int,
         @RequestParam(required = false) status: TestResultStatus?,
         @RequestParam(required = false) testSuite: String?,
-    ): List<TestExecutionDto> {
-        log.debug("Request to get test executions on page $page with size $size for execution $executionId")
-        return testExecutionService.getTestExecutions(executionId, page, size, status, testSuite)
-            .map { it.toDto() }
+        authentication: Authentication,
+    ): Mono<List<TestExecutionDto>> = justOrNotFound(executionService.findExecution(executionId)).filterWhen {
+        projectPermissionEvaluator.checkPermissions(authentication, it, Permission.READ)
     }
+        .map {
+            log.debug("Request to get test executions on page $page with size $size for execution $executionId")
+            testExecutionService.getTestExecutions(executionId, page, size, status, testSuite)
+                .map { it.toDto() }
+        }
 
     /**
      * @param agentContainerId id of agent's container
@@ -65,14 +80,26 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
      *
      * @param executionId under this executionId test has been executed
      * @param testResultLocation location of the test
+     * @param authentication
      * @return TestExecution
      */
     @PostMapping("/api/testExecutions")
     fun getTestExecutionByLocation(@RequestParam executionId: Long,
                                    @RequestBody testResultLocation: TestResultLocation,
-    ): TestExecutionDto = testExecutionService.getTestExecution(executionId, testResultLocation)
-        .map { it.toDto() }
-        .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "Test execution not found for executionId=$executionId and $testResultLocation") }
+                                   authentication: Authentication,
+    ): Mono<TestExecutionDto> = justOrNotFound(executionService.findExecution(executionId)).filterWhen {
+        projectPermissionEvaluator.checkPermissions(authentication, it, Permission.READ)
+    }
+        .map {
+            testExecutionService.getTestExecution(executionId, testResultLocation)
+                .map { it.toDto() }
+                .orElseThrow {
+                    ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Test execution not found for executionId=$executionId and $testResultLocation"
+                    )
+                }
+        }
 
     /**
      * Returns number of TestExecutions with this [executionId]
@@ -80,10 +107,20 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
      * @param executionId an ID of Execution to group TestExecutions
      * @param status
      * @param testSuite
+     * @param authentication
      */
     @GetMapping("/api/testExecution/count")
-    fun getTestExecutionsCount(@RequestParam executionId: Long, @RequestParam(required = false) status: TestResultStatus?, @RequestParam(required = false) testSuite: String?) =
-            testExecutionService.getTestExecutionsCount(executionId, status, testSuite)
+    fun getTestExecutionsCount(
+        @RequestParam executionId: Long,
+        @RequestParam(required = false) status: TestResultStatus?,
+        @RequestParam(required = false) testSuite: String?,
+        authentication: Authentication,
+    ) =
+            justOrNotFound(executionService.findExecution(executionId)).filterWhen {
+                projectPermissionEvaluator.checkPermissions(authentication, it, Permission.READ)
+            }.map {
+                testExecutionService.getTestExecutionsCount(executionId, status, testSuite)
+            }
 
     /**
      * @param agentContainerId id of an agent

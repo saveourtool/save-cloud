@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.cast
 import reactor.kotlin.core.publisher.switchIfEmpty
 
 /**
@@ -44,7 +45,7 @@ class ProjectController(private val projectService: ProjectService,
      * @return a list of projects
      */
     @GetMapping("/all")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
     fun getProjects() = projectService.getProjects()
 
     /**
@@ -91,7 +92,9 @@ class ProjectController(private val projectService: ProjectService,
             val organization = organizationService.getOrganizationById(organizationId)
             projectService.findByNameAndOrganization(name, organization)
         }
-        return getPermissionProject(project, authentication)
+        return with(projectPermissionEvaluator) {
+            project.filterByPermission(authentication, Permission.WRITE, HttpStatus.FORBIDDEN)
+        }
     }
 
     /**
@@ -109,7 +112,9 @@ class ProjectController(private val projectService: ProjectService,
         val project = Mono.fromCallable {
             projectService.findByNameAndOrganizationName(name, organizationName)
         }
-        return getPermissionProject(project, authentication)
+        return with(projectPermissionEvaluator) {
+            project.filterByPermission(authentication, Permission.WRITE, HttpStatus.FORBIDDEN)
+        }
     }
 
     /**
@@ -124,41 +129,25 @@ class ProjectController(private val projectService: ProjectService,
     ) = projectService.findByOrganizationName(organizationName)
         .filter { projectPermissionEvaluator.hasPermission(authentication, it, Permission.READ) }
 
-    @Suppress("UnsafeCallOnNullableType")
-    private fun getPermissionProject(project: Mono<Project?>, authentication: Authentication) =
-            project.map {
-                // if value is null, then Mono is empty and this lambda won't be called
-                it!! to projectPermissionEvaluator.hasPermission(authentication, it, Permission.WRITE)
-            }
-                .filter { (project, hasWriteAccess) -> project.public || hasWriteAccess }
-                .map { (project, hasWriteAccess) ->
-                    if (hasWriteAccess) {
-                        project
-                    } else {
-                        // project is public, but current user lacks permissions
-                        throw ResponseStatusException(HttpStatus.FORBIDDEN)
-                    }
-                }
-                .switchIfEmpty {
-                    // if project either is not found or shouldn't be visible for current user
-                    Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
-                }
-
     /**
      * @param project
+     * @param authentication
      * @return gitDto
      */
     @PostMapping("/git")
-    @PreAuthorize("@projectPermissionEvaluator.hasPermission(authentication, #project, T(org.cqfn.save.backend.security.Permission).WRITE)")
     @Suppress("UnsafeCallOnNullableType")
-    fun getRepositoryDtoByProject(@RequestBody project: Project): Mono<GitDto> =
-            Mono.fromCallable {
-                gitService.getRepositoryDtoByProject(project)
-            }
-                .mapNotNull { it!! }
-                .switchIfEmpty {
-                    Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
-                }
+    fun getRepositoryDtoByProject(@RequestBody project: Project, authentication: Authentication): Mono<GitDto> = Mono.fromCallable {
+        with(project) {
+            projectService.findWithPermissionByNameAndOrganization(authentication, name, organization, Permission.WRITE)
+        }
+    }
+        .mapNotNull {
+            gitService.getRepositoryDtoByProject(project)
+        }
+        .cast<GitDto>()
+        .switchIfEmpty {
+            Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
+        }
 
     /**
      * @param newProjectDto newProjectDto
