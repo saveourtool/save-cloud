@@ -102,7 +102,7 @@ class HeartbeatController(private val agentService: AgentService,
     private fun handleVacantAgent(agentId: String): Mono<HeartbeatResponse> = agentService.getNewTestsIds(agentId)
         .doOnSuccess {
             if (it is WaitResponse) {
-                initiateShutdownSequence(agentId, isCalledAfterCrashed = false)
+                initiateShutdownSequence(agentId, isAllAgentsCrashed = false)
             }
         }
 
@@ -144,7 +144,7 @@ class HeartbeatController(private val agentService: AgentService,
             agentService.markAgentsAndTestExecutionsCrashed(crashedAgentsList)
             // All agents are crashed, so init shutdown sequence
             if (agentsLatestHeartBeatsMap.keys().toList() == crashedAgentsList.toList()) {
-                initiateShutdownSequence(crashedAgentsList.first(), isCalledAfterCrashed = true)
+                initiateShutdownSequence(crashedAgentsList.first(), isAllAgentsCrashed = true)
             }
         } else {
             logger.warn("Crashed agents $crashedAgentsList are not stopped after stop command")
@@ -172,7 +172,7 @@ class HeartbeatController(private val agentService: AgentService,
      * @param agentId an ID of the agent from the execution, that will be checked.
      */
     @Suppress("TOO_LONG_FUNCTION")
-    private fun initiateShutdownSequence(agentId: String, isCalledAfterCrashed: Boolean) {
+    private fun initiateShutdownSequence(agentId: String, isAllAgentsCrashed: Boolean) {
         agentService.getAgentsAwaitingStop(agentId).flatMap { (_, finishedAgentIds) ->
             if (finishedAgentIds.isNotEmpty()) {
                 // need to retry after some time, because for other agents BUSY state might have not been written completely
@@ -190,7 +190,7 @@ class HeartbeatController(private val agentService: AgentService,
                         agentsLatestHeartBeatsMap.remove(it)
                         crashedAgentsList.remove(it)
                     }
-                    if (!isCalledAfterCrashed) {
+                    if (!isAllAgentsCrashed) {
                         logger.debug("Agents ids=$finishedAgentIds have completed execution, will make an attempt to terminate them")
                         val areAgentsStopped = dockerService.stopAgents(finishedAgentIds)
                         if (areAgentsStopped) {

@@ -269,7 +269,7 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
                 agentId
             )
                 .orElseThrow {
-                    log.error("Can't find test_execution for executionId=$executionId and agentId=$agentId")
+                    log.error("Can't find `test_execution`s for executionId=$executionId and agentId=$agentId")
                     NoSuchElementException()
                 }
 
