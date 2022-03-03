@@ -50,6 +50,7 @@ import java.util.concurrent.TimeUnit
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import java.util.*
 
 @WebFluxTest
 @Import(Beans::class, AgentService::class)
@@ -122,7 +123,7 @@ class HeartbeatControllerTest {
                 AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "test-1"),
                 AgentStatusDto(LocalDateTime.now(), AgentState.BUSY, "test-2"),
             ),
-            heartbeat = Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100)),
+            heartbeats = listOf(Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100))),
             testBatch = TestBatch(emptyList(), emptyMap()),
             testSuite = null,
             mockAgentStatuses = true,
@@ -138,7 +139,7 @@ class HeartbeatControllerTest {
                 AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "test-1"),
                 AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "test-2"),
             ),
-            heartbeat = Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100)),
+            heartbeats = listOf(Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100))),
             testBatch = TestBatch(
                 listOf(
                     TestDto("/path/to/test-1", "WarnPlugin", 1, "hash1", listOf("tag")),
@@ -165,7 +166,7 @@ class HeartbeatControllerTest {
         )
         testHeartbeat(
             agentStatusDtos = agentStatusDtos,
-            heartbeat = Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100)),
+            heartbeats = listOf(Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100))),
             testBatch = TestBatch(emptyList(), emptyMap()),
             testSuite = null,
             mockAgentStatuses = true,
@@ -198,7 +199,7 @@ class HeartbeatControllerTest {
                 AgentStatusDto(LocalDateTime.now(), AgentState.STARTING, "test-1"),
                 AgentStatusDto(LocalDateTime.now(), AgentState.STARTING, "test-2"),
             ),
-            heartbeat = Heartbeat("test-1", AgentState.STARTING, ExecutionProgress(0)),
+            heartbeats = listOf(Heartbeat("test-1", AgentState.STARTING, ExecutionProgress(0))),
             testBatch = TestBatch(
                 listOf(
                     TestDto("/path/to/test-1", "WarnPlugin", 1, "hash1", listOf("tag")),
@@ -217,6 +218,43 @@ class HeartbeatControllerTest {
     }
 
     @Test
+    fun `should shutdown agent, which don't sent heartbeat for some time`() {
+        val firstAgentStartTime = LocalDateTime.now()
+        val secondAgentStartTime = LocalDateTime.now()
+
+        val heartbeatTimeOfFirstAgent = firstAgentStartTime.plusSeconds(5)
+        val heartbeatTimeOfSecondAgent = firstAgentStartTime.plusSeconds(20)
+
+        testHeartbeat(
+            agentStatusDtos = listOf(
+                AgentStatusDto(firstAgentStartTime, AgentState.STARTING, "test-1"),
+                AgentStatusDto(secondAgentStartTime, AgentState.STARTING, "test-2"),
+            ),
+            heartbeats = listOf(
+                Heartbeat("test-1", AgentState.STARTING, ExecutionProgress(0)),
+                //Heartbeat("test-2", AgentState.STARTING, ExecutionProgress(0)),
+                Heartbeat("test-1", AgentState.BUSY, ExecutionProgress(0)),
+                Heartbeat("test-1", AgentState.BUSY, ExecutionProgress(0)),
+            ),
+            testBatch = TestBatch(
+                listOf(
+                    TestDto("/path/to/test-1", "WarnPlugin", 1, "hash1", listOf("tag")),
+                    TestDto("/path/to/test-2", "WarnPlugin", 1, "hash2", listOf("tag")),
+                    TestDto("/path/to/test-3", "WarnPlugin", 1, "hash3", listOf("tag")),
+                ),
+                mapOf(1L to "")
+            ),
+            testSuite = TestSuite(TestSuiteType.PROJECT, "", null, null, LocalDateTime.now(), ".", ".").apply {
+                id = 0
+            },
+            mockAgentStatuses = false,
+        ) {
+            verify(dockerService, times(0)).stopAgents(any())
+        }
+    }
+
+
+    @Test
     fun `should shutdown agents even if there are some already FINISHED`() {
         val agentStatusDtos = listOf(
             AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "test-1"),
@@ -226,7 +264,7 @@ class HeartbeatControllerTest {
         )
         testHeartbeat(
             agentStatusDtos = agentStatusDtos,
-            heartbeat = Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100)),
+            heartbeats = listOf(Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100))),
             testBatch = TestBatch(emptyList(), emptyMap()),
             testSuite = null,
             mockAgentStatuses = true,
@@ -261,7 +299,7 @@ class HeartbeatControllerTest {
     @Suppress("TOO_LONG_FUNCTION", "TOO_MANY_PARAMETERS", "LongParameterList")
     private fun testHeartbeat(
         agentStatusDtos: List<AgentStatusDto>,
-        heartbeat: Heartbeat,
+        heartbeats: List<Heartbeat>,
         testBatch: TestBatch,
         testSuite: TestSuite?,
         mockAgentStatuses: Boolean = false,
@@ -308,13 +346,17 @@ class HeartbeatControllerTest {
             }
         }
 
-        webClient.post()
-            .uri("/heartbeat")
-            .contentType(MediaType.APPLICATION_JSON)
-            .accept(MediaType.APPLICATION_JSON)
-            .body(BodyInserters.fromValue(heartbeat))
-            .exchange()
-            .expectStatus().isOk
+        heartbeats.forEach { heartbeat ->
+            println("\nPOSTING HEARTBEAT")
+            webClient.post()
+                .uri("/heartbeat")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .body(BodyInserters.fromValue(heartbeat))
+                .exchange()
+                .expectStatus().isOk
+            Thread.sleep(5_000)
+        }
 
         // wait for background tasks
         Thread.sleep(5_000)

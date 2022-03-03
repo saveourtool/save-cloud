@@ -64,7 +64,7 @@ class HeartbeatController(private val agentService: AgentService,
     @OptIn(ExperimentalSerializationApi::class)
     fun acceptHeartbeat(@RequestBody heartbeat: Heartbeat): Mono<String> {
         if (isHeartbeatInProgress.compareAndSet(false, true)) {
-            // println("\n\n\n===============================[START_ ${heartbeat.agentId}]===================================\n\n")
+            logger.info("\n\n\n===============================[START_ ${heartbeat.agentId}]===================================\n\n")
             HeartBeatInspector(this).start()
         }
         logger.info("Got heartbeat state: ${heartbeat.state.name} from ${heartbeat.agentId}")
@@ -127,6 +127,7 @@ class HeartbeatController(private val agentService: AgentService,
                 logger.debug("Adding $currentAgentId to list crashed agents")
                 crashedAgentsList.add(currentAgentId)
             }
+            logger.info("agent $currentAgentId: ${stateToLatestHeartBeatPair.first} ${stateToLatestHeartBeatPair.second} DURATION $duration")
         }
     }
 
@@ -137,6 +138,7 @@ class HeartbeatController(private val agentService: AgentService,
         if (crashedAgentsList.isEmpty()) {
             return
         }
+        logger.info("\n\n\n\nSTART PROCESS CRASHED AGENTS")
         logger.debug("Starting stop crashed agents $crashedAgentsList")
 
         val areAgentsStopped = dockerService.stopAgents(crashedAgentsList)
