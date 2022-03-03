@@ -45,10 +45,10 @@ fun Project.configureSpringBoot(withSpringDataJpa: Boolean = false) {
         add("implementation", libs.logback.core)
         add("implementation", libs.reactor.kotlin.extensions)
 
-        add("runtimeOnly", libs.springdoc.openapi.ui)
-        add("runtimeOnly", libs.springdoc.openapi.webflux.ui)
-        add("runtimeOnly", libs.springdoc.openapi.security)
-        add("runtimeOnly", libs.springdoc.openapi.kotlin)
+        add("productionRuntimeClasspath", libs.springdoc.openapi.ui)
+        add("productionRuntimeClasspath", libs.springdoc.openapi.webflux.ui)
+        add("productionRuntimeClasspath", libs.springdoc.openapi.security)
+        add("productionRuntimeClasspath", libs.springdoc.openapi.kotlin)
 
         add("testImplementation", libs.spring.boot.starter.test)
         add("testImplementation", libs.mockito.kotlin)
