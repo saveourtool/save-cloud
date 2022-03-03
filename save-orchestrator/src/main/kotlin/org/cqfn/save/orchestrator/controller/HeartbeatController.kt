@@ -127,7 +127,6 @@ class HeartbeatController(private val agentService: AgentService,
                 logger.debug("Adding $currentAgentId to list crashed agents")
                 crashedAgentsList.add(currentAgentId)
             }
-            // println("agent $currentAgentId: ${stateToLatestHeartBeatPair.first} ${stateToLatestHeartBeatPair.second} DURATION $duration")
         }
     }
 
@@ -138,18 +137,15 @@ class HeartbeatController(private val agentService: AgentService,
         if (crashedAgentsList.isEmpty()) {
             return
         }
-        logger.debug("Starting process hanging agents $crashedAgentsList")
+        logger.debug("Starting stop crashed agents $crashedAgentsList")
 
-        // All agents are crashed
-        if (agentsLatestHeartBeatsMap.keys().toList() == crashedAgentsList.toList()) {
-            initiateShutdownSequence(crashedAgentsList.first(), isCalledAfterCrashed = true)
-            return
-        }
         val areAgentsStopped = dockerService.stopAgents(crashedAgentsList)
         if (areAgentsStopped) {
             agentService.markAgentsAndTestExecutionsCrashed(crashedAgentsList)
-                .subscribeOn(agentService.scheduler)
-                .subscribe()
+            // All agents are crashed, so init shutdown sequence
+            if (agentsLatestHeartBeatsMap.keys().toList() == crashedAgentsList.toList()) {
+                initiateShutdownSequence(crashedAgentsList.first(), isCalledAfterCrashed = true)
+            }
         } else {
             logger.warn("Crashed agents $crashedAgentsList are not stopped after stop command")
         }
@@ -175,6 +171,7 @@ class HeartbeatController(private val agentService: AgentService,
      *
      * @param agentId an ID of the agent from the execution, that will be checked.
      */
+    @Suppress("TOO_LONG_FUNCTION")
     private fun initiateShutdownSequence(agentId: String, isCalledAfterCrashed: Boolean) {
         agentService.getAgentsAwaitingStop(agentId).flatMap { (_, finishedAgentIds) ->
             if (finishedAgentIds.isNotEmpty()) {
@@ -189,25 +186,25 @@ class HeartbeatController(private val agentService: AgentService,
         }
             .flatMap { (executionId, finishedAgentIds) ->
                 if (finishedAgentIds.isNotEmpty()) {
-                    logger.debug("Agents ids=$finishedAgentIds have completed execution, will make an attempt to terminate them")
-                    val areAgentsStopped = dockerService.stopAgents(finishedAgentIds)
-                    if (areAgentsStopped) {
-                        finishedAgentIds.forEach {
-                            agentsLatestHeartBeatsMap.remove(it)
-                            crashedAgentsList.remove(it)
-                        }
-                        logger.info("Agents have been stopped, will mark execution id=$executionId and agents $finishedAgentIds as FINISHED")
-                        if (!isCalledAfterCrashed) {
+                    finishedAgentIds.forEach {
+                        agentsLatestHeartBeatsMap.remove(it)
+                        crashedAgentsList.remove(it)
+                    }
+                    if (!isCalledAfterCrashed) {
+                        logger.debug("Agents ids=$finishedAgentIds have completed execution, will make an attempt to terminate them")
+                        val areAgentsStopped = dockerService.stopAgents(finishedAgentIds)
+                        if (areAgentsStopped) {
+                            logger.info("Agents have been stopped, will mark execution id=$executionId and agents $finishedAgentIds as FINISHED")
                             agentService
                                 .markAgentsAndExecutionAsFinished(executionId, finishedAgentIds)
                         } else {
-                            // fixme: crashed == finished?
-                            agentService
-                                .markAgentsAndTestExecutionsCrashedAndExecutionAsFinished(executionId, crashedAgentsList)
+                            logger.warn("Agents $finishedAgentIds are not stopped after stop command")
+                            Mono.empty()
                         }
                     } else {
-                        logger.warn("Agents $finishedAgentIds are not stopped after stop command")
-                        Mono.empty()
+                        // In this case agents are already stopped, just update execution status
+                        agentService
+                            .markExecutionAsFailed(executionId)
                     }
                 } else {
                     logger.debug("Agents other than $agentId are still running, so won't try to stop them")

@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional
 import org.springframework.transaction.support.TransactionTemplate
 
 import java.nio.file.Paths
+import java.time.LocalDateTime
 import java.util.concurrent.ConcurrentHashMap
 
 import kotlin.io.path.pathString
@@ -275,6 +276,9 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
             testExecutionList.map { testExecution ->
                 testExecutionRepository.save(testExecution.apply {
                     this.status = TestResultStatus.INTERNAL_ERROR
+                    // In case of execution without errors all information about test execution we take from
+                    // json report, however in case when agent is crashed, it's unavailable, so fill at least end time
+                    this.endTime = LocalDateTime.now()
                 })
             }.also {
                 if (it.isNotEmpty()) {
