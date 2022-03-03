@@ -87,7 +87,6 @@ spring-cloud-starter-gateway = { module = "org.springframework.cloud:spring-clou
 spring-boot-starter-oauth2-client = { module = "org.springframework.boot:spring-boot-starter-oauth2-client", version.ref = "spring-boot" }
 jackson-module-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "jackson" }
 
-springdoc-openapi-ui = { module = "org.springdoc:springdoc-openapi-ui", version.ref = "springdoc" }
 springdoc-openapi-webflux-ui = { module = "org.springdoc:springdoc-openapi-webflux-ui", version.ref = "springdoc" }
 springdoc-openapi-security = { module = "org.springdoc:springdoc-openapi-security", version.ref = "springdoc" }
 springdoc-openapi-kotlin = { module = "org.springdoc:springdoc-openapi-kotlin", version.ref = "springdoc" }
