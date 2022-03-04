@@ -27,6 +27,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.mockito.kotlin.any
+import org.mockito.kotlin.atLeast
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
@@ -50,7 +51,6 @@ import java.util.concurrent.TimeUnit
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import java.util.*
 
 @WebFluxTest
 @Import(Beans::class, AgentService::class)
@@ -167,6 +167,7 @@ class HeartbeatControllerTest {
         testHeartbeat(
             agentStatusDtos = agentStatusDtos,
             heartbeats = listOf(Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100))),
+            heartBeatInterval = 0,
             testBatch = TestBatch(emptyList(), emptyMap()),
             testSuite = null,
             mockAgentStatuses = true,
@@ -232,6 +233,7 @@ class HeartbeatControllerTest {
                 Heartbeat("test-1", AgentState.BUSY, ExecutionProgress(0)),
                 Heartbeat("test-1", AgentState.BUSY, ExecutionProgress(0)),
             ),
+            heartBeatInterval = 1_000,
             testBatch = TestBatch(
                 listOf(
                     TestDto("/path/to/test-1", "WarnPlugin", 1, "hash1", listOf("tag")),
@@ -245,10 +247,40 @@ class HeartbeatControllerTest {
             },
             mockAgentStatuses = false,
         ) {
-            verify(dockerService, times(1)).stopAgents(any())
+            // FixMe: we actually need to check the size of crashed agents list somehow
+            verify(dockerService, atLeast(1)).stopAgents(any())
         }
     }
 
+    @Test
+    fun `should shutdown all agents, since all of them don't sent heartbeats for some time`() {
+        testHeartbeat(
+            agentStatusDtos = listOf(
+                AgentStatusDto(LocalDateTime.now(), AgentState.STARTING, "test-1"),
+                AgentStatusDto(LocalDateTime.now(), AgentState.BUSY, "test-2"),
+            ),
+            heartbeats = listOf(
+                Heartbeat("test-1", AgentState.STARTING, ExecutionProgress(0)),
+                Heartbeat("test-2", AgentState.BUSY, ExecutionProgress(0)),
+            ),
+            heartBeatInterval = 1_500,
+            testBatch = TestBatch(
+                listOf(
+                    TestDto("/path/to/test-1", "WarnPlugin", 1, "hash1", listOf("tag")),
+                    TestDto("/path/to/test-2", "WarnPlugin", 1, "hash2", listOf("tag")),
+                    TestDto("/path/to/test-3", "WarnPlugin", 1, "hash3", listOf("tag")),
+                ),
+                mapOf(1L to "")
+            ),
+            testSuite = TestSuite(TestSuiteType.PROJECT, "", null, null, LocalDateTime.now(), ".", ".").apply {
+                id = 0
+            },
+            mockAgentStatuses = false,
+        ) {
+            // FixMe: we actually need to check the size of crashed agents list somehow
+            verify(dockerService, atLeast(2)).stopAgents(any())
+        }
+    }
 
     @Test
     fun `should shutdown agents even if there are some already FINISHED`() {
@@ -261,6 +293,7 @@ class HeartbeatControllerTest {
         testHeartbeat(
             agentStatusDtos = agentStatusDtos,
             heartbeats = listOf(Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100))),
+            heartBeatInterval = 0,
             testBatch = TestBatch(emptyList(), emptyMap()),
             testSuite = null,
             mockAgentStatuses = true,
@@ -296,6 +329,7 @@ class HeartbeatControllerTest {
     private fun testHeartbeat(
         agentStatusDtos: List<AgentStatusDto>,
         heartbeats: List<Heartbeat>,
+        heartBeatInterval: Long = 0,
         testBatch: TestBatch,
         testSuite: TestSuite?,
         mockAgentStatuses: Boolean = false,
@@ -351,7 +385,7 @@ class HeartbeatControllerTest {
                 .body(BodyInserters.fromValue(heartbeat))
                 .exchange()
                 .expectStatus().isOk
-            Thread.sleep(3_000)
+            Thread.sleep(heartBeatInterval)
         }
 
         // wait for background tasks

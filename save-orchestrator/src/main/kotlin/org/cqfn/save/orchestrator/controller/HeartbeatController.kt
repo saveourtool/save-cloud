@@ -65,7 +65,7 @@ class HeartbeatController(private val agentService: AgentService,
     fun acceptHeartbeat(@RequestBody heartbeat: Heartbeat): Mono<String> {
         if (isHeartbeatInProgress.compareAndSet(false, true)) {
             logger.info("\n\n\n===============================[START_ ${heartbeat.agentId}]===================================\n\n")
-            HeartBeatInspector(this).start()
+            HeartBeatInspector(this, this.configProperties.heartBeatInspectorInterval).start()
         }
         logger.info("Got heartbeat state: ${heartbeat.state.name} from ${heartbeat.agentId}")
         updateAgentHeartbeatTimeStamps(heartbeat.agentId, heartbeat.state)
@@ -102,7 +102,7 @@ class HeartbeatController(private val agentService: AgentService,
     private fun handleVacantAgent(agentId: String): Mono<HeartbeatResponse> = agentService.getNewTestsIds(agentId)
         .doOnSuccess {
             if (it is WaitResponse) {
-                initiateShutdownSequence(agentId, isAllAgentsCrashed = false)
+                initiateShutdownSequence(agentId, areAllAgentsCrashed = false)
             }
         }
 
@@ -146,7 +146,7 @@ class HeartbeatController(private val agentService: AgentService,
             agentService.markAgentsAndTestExecutionsCrashed(crashedAgentsList)
             // All agents are crashed, so init shutdown sequence
             if (agentsLatestHeartBeatsMap.keys().toList() == crashedAgentsList.toList()) {
-                initiateShutdownSequence(crashedAgentsList.first(), isAllAgentsCrashed = true)
+                initiateShutdownSequence(crashedAgentsList.first(), areAllAgentsCrashed = true)
             }
         } else {
             logger.warn("Crashed agents $crashedAgentsList are not stopped after stop command")
@@ -174,7 +174,7 @@ class HeartbeatController(private val agentService: AgentService,
      * @param agentId an ID of the agent from the execution, that will be checked.
      */
     @Suppress("TOO_LONG_FUNCTION")
-    private fun initiateShutdownSequence(agentId: String, isAllAgentsCrashed: Boolean) {
+    private fun initiateShutdownSequence(agentId: String, areAllAgentsCrashed: Boolean) {
         agentService.getAgentsAwaitingStop(agentId).flatMap { (_, finishedAgentIds) ->
             if (finishedAgentIds.isNotEmpty()) {
                 // need to retry after some time, because for other agents BUSY state might have not been written completely
@@ -192,7 +192,7 @@ class HeartbeatController(private val agentService: AgentService,
                         agentsLatestHeartBeatsMap.remove(it)
                         crashedAgentsList.remove(it)
                     }
-                    if (!isAllAgentsCrashed) {
+                    if (!areAllAgentsCrashed) {
                         logger.debug("Agents ids=$finishedAgentIds have completed execution, will make an attempt to terminate them")
                         val areAgentsStopped = dockerService.stopAgents(finishedAgentIds)
                         if (areAgentsStopped) {
@@ -223,16 +223,12 @@ class HeartbeatController(private val agentService: AgentService,
  *
  * @property heartbeatController
  */
-class HeartBeatInspector(private val heartbeatController: HeartbeatController) : Thread() {
+class HeartBeatInspector(private val heartbeatController: HeartbeatController, private val heartBeatInspectorInterval: Long) : Thread() {
     override fun run() {
         while (!interrupted()) {
             heartbeatController.determineCrashedAgents()
             heartbeatController.processCrashedAgents()
-            heartbeatController.saveFromInterruptionSleep(SLEEP_INTERVAL)
+            heartbeatController.saveFromInterruptionSleep(heartBeatInspectorInterval)
         }
-    }
-
-    companion object {
-        private const val SLEEP_INTERVAL = 10000L
     }
 }
