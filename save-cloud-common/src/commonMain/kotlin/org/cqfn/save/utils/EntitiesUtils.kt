@@ -1,4 +1,9 @@
-@file:Suppress("MISSING_KDOC_TOP_LEVEL", "FILE_NAME_MATCH_CLASS", "MatchingDeclarationName")
+@file:Suppress(
+    "MISSING_KDOC_TOP_LEVEL",
+    "FILE_NAME_MATCH_CLASS",
+    "MatchingDeclarationName",
+    "HEADER_MISSING_IN_NON_SINGLE_CLASS_FILE"
+)
 
 package org.cqfn.save.utils
 
@@ -10,3 +15,5 @@ expect enum class EnumType {
     STRING,
     ;
 }
+
+expect class LocalDateTime

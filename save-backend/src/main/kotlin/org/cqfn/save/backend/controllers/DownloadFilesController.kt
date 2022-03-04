@@ -5,6 +5,7 @@ import org.cqfn.save.backend.ByteArrayResponse
 import org.cqfn.save.backend.repository.AgentRepository
 import org.cqfn.save.backend.repository.TestDataFilesystemRepository
 import org.cqfn.save.backend.repository.TimestampBasedFileSystemRepository
+import org.cqfn.save.backend.service.OrganizationService
 import org.cqfn.save.domain.FileInfo
 import org.cqfn.save.domain.TestResultDebugInfo
 import org.cqfn.save.domain.TestResultLocation
@@ -26,10 +27,7 @@ import reactor.core.publisher.Mono
 
 import java.io.FileNotFoundException
 
-import kotlin.io.path.fileSize
-import kotlin.io.path.name
-import kotlin.io.path.notExists
-import kotlin.io.path.readText
+import kotlin.io.path.*
 
 /**
  * A Spring controller for file downloading
@@ -39,6 +37,7 @@ class DownloadFilesController(
     private val additionalToolsFileSystemRepository: TimestampBasedFileSystemRepository,
     private val testDataFilesystemRepository: TestDataFilesystemRepository,
     private val agentRepository: AgentRepository,
+    private val organizationService: OrganizationService,
 ) {
     private val logger = LoggerFactory.getLogger(DownloadFilesController::class.java)
 
@@ -88,6 +87,29 @@ class DownloadFilesController(
                     if (fileInfo.sizeBytes > 0) HttpStatus.OK else HttpStatus.INTERNAL_SERVER_ERROR
                 )
                     .body(fileInfo)
+            }
+                .onErrorReturn(
+                    FileAlreadyExistsException::class.java,
+                    ResponseEntity.status(HttpStatus.CONFLICT).build()
+                )
+
+    /**
+     * @param file image to be uploaded
+     * @param owner owner name
+     * @return [Mono] with response
+     */
+    @Suppress("UnsafeCallOnNullableType")
+    @PostMapping(value = ["/api/image/upload"], consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
+    fun uploadImage(@RequestPart("file") file: Mono<FilePart>, @RequestParam owner: String) =
+            additionalToolsFileSystemRepository.saveImage(file, owner).map { imageInfo ->
+                ResponseEntity.status(
+                    imageInfo.path?.let {
+                        organizationService.saveAvatar(owner, it)
+                        HttpStatus.OK
+                    }
+                        ?: HttpStatus.INTERNAL_SERVER_ERROR
+                )
+                    .body(imageInfo)
             }
                 .onErrorReturn(
                     FileAlreadyExistsException::class.java,

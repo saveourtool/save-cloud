@@ -3,15 +3,10 @@ package org.cqfn.save.preprocessor.controllers
 import org.cqfn.save.core.config.TestConfig
 import org.cqfn.save.domain.FileInfo
 import org.cqfn.save.domain.Sdk
-import org.cqfn.save.entities.Execution
-import org.cqfn.save.entities.ExecutionRequest
-import org.cqfn.save.entities.ExecutionRequestForStandardSuites
-import org.cqfn.save.entities.GitDto
-import org.cqfn.save.entities.Project
-import org.cqfn.save.entities.ProjectStatus
-import org.cqfn.save.entities.TestSuite
+import org.cqfn.save.entities.*
 import org.cqfn.save.execution.ExecutionType
 import org.cqfn.save.preprocessor.config.ConfigProperties
+import org.cqfn.save.preprocessor.config.LocalDateTimeConfig
 import org.cqfn.save.preprocessor.service.TestDiscoveringService
 import org.cqfn.save.preprocessor.utils.RepositoryVolume
 import org.cqfn.save.preprocessor.utils.toHash
@@ -40,6 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
 import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.context.annotation.Import
 import org.springframework.core.io.FileSystemResource
 import org.springframework.http.MediaType
 import org.springframework.http.client.MultipartBodyBuilder
@@ -59,6 +55,7 @@ import kotlin.io.path.fileSize
 import kotlin.io.path.isExecutable
 
 @WebFluxTest(controllers = [DownloadProjectController::class])
+@Import(LocalDateTimeConfig::class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @AutoConfigureWebTestClient(timeout = "60000")
 @Suppress("TOO_LONG_FUNCTION", "LongMethod")
@@ -88,7 +85,10 @@ class DownloadProjectTest(
 
     @Test
     fun testBadRequest() {
-        val project = Project("owner", "someName", "wrongGit", "descr", ProjectStatus.CREATED, userId = 2, adminIds = null)
+        val organization: Organization = Organization("Huawei", 1, null).apply {
+            id = 1
+        }
+        val project = Project("owner", "someName", "wrongGit", ProjectStatus.CREATED, userId = 2, organization = organization)
         val wrongRepo = GitDto("wrongGit")
         val execution = Execution.stub(project).apply {
             id = 97L

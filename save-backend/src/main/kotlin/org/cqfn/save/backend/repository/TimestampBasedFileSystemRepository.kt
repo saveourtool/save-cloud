@@ -2,18 +2,21 @@ package org.cqfn.save.backend.repository
 
 import org.cqfn.save.backend.configs.ConfigProperties
 import org.cqfn.save.domain.FileInfo
+import org.cqfn.save.domain.ImageInfo
 
 import org.slf4j.LoggerFactory
 import org.springframework.core.io.FileSystemResource
 import org.springframework.http.codec.multipart.FilePart
 import org.springframework.stereotype.Repository
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+
 import java.nio.file.FileSystemException
 import java.nio.file.Files
-
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.StandardOpenOption.APPEND
+import java.util.*
 import java.util.stream.Collectors
 
 import kotlin.io.path.copyTo
@@ -21,6 +24,7 @@ import kotlin.io.path.createDirectories
 import kotlin.io.path.createDirectory
 import kotlin.io.path.createFile
 import kotlin.io.path.deleteExisting
+import kotlin.io.path.deleteIfExists
 import kotlin.io.path.div
 import kotlin.io.path.exists
 import kotlin.io.path.fileSize
@@ -38,6 +42,11 @@ import kotlin.io.path.outputStream
 class TimestampBasedFileSystemRepository(configProperties: ConfigProperties) {
     private val logger = LoggerFactory.getLogger(TimestampBasedFileSystemRepository::class.java)
     private val rootDir = (Paths.get(configProperties.fileStorage.location) / "storage").apply {
+        if (!exists()) {
+            createDirectories()
+        }
+    }
+    private val rootDirImage = (Paths.get(configProperties.fileStorage.location) / "images" / "avatars").apply {
         if (!exists()) {
             createDirectories()
         }
@@ -85,23 +94,60 @@ class TimestampBasedFileSystemRepository(configProperties: ConfigProperties) {
             .resolve(uploadedMillis.toString())
             .createDirectories()
             .resolve(part.filename()).run {
-                if (notExists()) {
-                    logger.info("Saving a new file from parts into $this")
-                    createFile()
-                }
-                part.content().map { db ->
-                    outputStream(APPEND).use { os ->
-                        db.asInputStream().use {
-                            it.copyTo(os)
-                        }
-                    }
-                }
+                createFile(this, part)
                     .collect(Collectors.summingLong { it })
                     .map {
                         logger.info("Saved $it bytes into $this")
                         FileInfo(name, uploadedMillis, it)
                     }
             }
+    }
+
+    /**
+     * @param owner owner name
+     * @param part file part
+     * @return Mono with number of bytes saved
+     * @throws FileAlreadyExistsException if file with this name already exists
+     */
+    fun saveImage(part: Mono<FilePart>, owner: String): Mono<ImageInfo> = part.flatMap { part ->
+        val uploadedDir = rootDirImage.resolve(owner)
+
+        uploadedDir.apply {
+            if (exists()) {
+                listDirectoryEntries().forEach { it.deleteIfExists() }
+            }
+        }.deleteIfExists()
+
+        uploadedDir
+            .createDirectories()
+            .resolve(part.filename()).run {
+                createFile(this, part)
+                    .collect(Collectors.summingLong { it })
+                    .map {
+                        logger.info("Saved $it bytes into $this")
+                        val relativePath = ("/$owner/$name")
+                        ImageInfo(relativePath)
+                    }
+            }
+    }
+
+    /**
+     * @param path path to file
+     * @param part file part
+     * @return Flux<Long>
+     */
+    fun createFile(path: Path, part: FilePart): Flux<Long> {
+        if (path.notExists()) {
+            logger.info("Saving a new file from parts into $path")
+            path.createFile()
+        }
+        return part.content().map { db ->
+            path.outputStream(APPEND).use { os ->
+                db.asInputStream().use {
+                    it.copyTo(os)
+                }
+            }
+        }
     }
 
     /**

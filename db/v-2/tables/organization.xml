@@ -31,4 +31,14 @@
     </rollback>
   </changeSet>
 
+  <changeSet id="organization-2" author="frolov" context="dev or prod">
+    <addUniqueConstraint tableName="organization" columnNames="name" constraintName="uq_organization_name"/>
+  </changeSet>
+
+  <changeSet id="organization-3" author="frolov" context="dev or prod">
+    <addColumn tableName="organization">
+      <column name="avatar" type="varchar(250)"/>
+    </addColumn>
+  </changeSet>
+
 </databaseChangeLog>

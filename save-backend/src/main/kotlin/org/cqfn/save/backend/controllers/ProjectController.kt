@@ -1,8 +1,10 @@
 package org.cqfn.save.backend.controllers
 
+import org.cqfn.save.backend.StringResponse
 import org.cqfn.save.backend.security.Permission
 import org.cqfn.save.backend.security.ProjectPermissionEvaluator
 import org.cqfn.save.backend.service.GitService
+import org.cqfn.save.backend.service.OrganizationService
 import org.cqfn.save.backend.service.ProjectService
 import org.cqfn.save.backend.utils.AuthenticationDetails
 import org.cqfn.save.domain.ProjectSaveStatus
@@ -24,6 +26,7 @@ import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.cast
 import reactor.kotlin.core.publisher.switchIfEmpty
 
 /**
@@ -33,6 +36,7 @@ import reactor.kotlin.core.publisher.switchIfEmpty
 @RequestMapping("/api/projects")
 class ProjectController(private val projectService: ProjectService,
                         private val gitService: GitService,
+                        private val organizationService: OrganizationService,
                         private val projectPermissionEvaluator: ProjectPermissionEvaluator,
 ) {
     /**
@@ -41,7 +45,7 @@ class ProjectController(private val projectService: ProjectService,
      * @return a list of projects
      */
     @GetMapping("/all")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
     fun getProjects() = projectService.getProjects()
 
     /**
@@ -69,56 +73,81 @@ class ProjectController(private val projectService: ProjectService,
      * 200 - if user can access the project
      * 403 - if project is public, but user can't access it
      * 404 - if project is not found or private and user can't access it
-     * FixMe: requires 'write' permission, because now we rely on this endpoint to load `ProjectView`
+     * FixMe: requires 'write' permission, because now we rely on this endpoint to load `ProjectView`.
+     *  And if the user isn't allowed to see `ProjectView`, we'll create another view in the future.
      *
      * @param name name of project
-     * @param owner owner of project
      * @param authentication
-     * @return project by name and owner
+     * @param organizationId
+     * @return project by name and organization
      * @throws ResponseStatusException
      */
-    @GetMapping("/get")
+    @GetMapping("/get/organization-id")
     @PreAuthorize("hasRole('VIEWER')")
-    @Suppress("UnsafeCallOnNullableType")
-    fun getProjectByNameAndOwner(@RequestParam name: String,
-                                 @RequestParam owner: String,
-                                 authentication: Authentication,
-    ): Mono<Project> = Mono.fromCallable {
-        projectService.findByNameAndOwner(name, owner)
+    fun getProjectByNameAndOrganizationId(@RequestParam name: String,
+                                          @RequestParam organizationId: Long,
+                                          authentication: Authentication,
+    ): Mono<Project> {
+        val project = Mono.fromCallable {
+            val organization = organizationService.getOrganizationById(organizationId)
+            projectService.findByNameAndOrganization(name, organization)
+        }
+        return with(projectPermissionEvaluator) {
+            project.filterByPermission(authentication, Permission.WRITE, HttpStatus.FORBIDDEN)
+        }
     }
-        .map {
-            // if value is null, then Mono is empty and this lambda won't be called
-            it!! to projectPermissionEvaluator.hasPermission(authentication, it, Permission.WRITE)
+
+    /**
+     * @param name
+     * @param organizationName
+     * @param authentication
+     * @return project by name and organization name
+     */
+    @GetMapping("/get/organization-name")
+    @PreAuthorize("hasRole('VIEWER')")
+    fun getProjectByNameAndOrganizationName(@RequestParam name: String,
+                                            @RequestParam organizationName: String,
+                                            authentication: Authentication,
+    ): Mono<Project> {
+        val project = Mono.fromCallable {
+            projectService.findByNameAndOrganizationName(name, organizationName)
         }
-        .filter { (project, hasWriteAccess) -> project.public || hasWriteAccess }
-        .map { (project, hasWriteAccess) ->
-            if (hasWriteAccess) {
-                project
-            } else {
-                // project is public, but current user lacks permissions
-                throw ResponseStatusException(HttpStatus.FORBIDDEN)
-            }
+        return with(projectPermissionEvaluator) {
+            project.filterByPermission(authentication, Permission.WRITE, HttpStatus.FORBIDDEN)
         }
-        .switchIfEmpty {
-            // if project either is not found or shouldn't be visible for current user
-            Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
-        }
+    }
+
+    /**
+     * @param organizationName
+     * @param authentication
+     * @return project by name and organization name
+     */
+    @GetMapping("/get/projects-by-organization")
+    @PreAuthorize("hasRole('VIEWER')")
+    fun getProjectsByOrganizationName(@RequestParam organizationName: String,
+                                      authentication: Authentication,
+    ) = projectService.findByOrganizationName(organizationName)
+        .filter { projectPermissionEvaluator.hasPermission(authentication, it, Permission.READ) }
 
     /**
      * @param project
+     * @param authentication
      * @return gitDto
      */
     @PostMapping("/git")
-    @PreAuthorize("@projectPermissionEvaluator.hasPermission(authentication, #project, T(org.cqfn.save.backend.security.Permission).WRITE)")
     @Suppress("UnsafeCallOnNullableType")
-    fun getRepositoryDtoByProject(@RequestBody project: Project): Mono<GitDto> =
-            Mono.fromCallable {
-                gitService.getRepositoryDtoByProject(project)
-            }
-                .mapNotNull { it!! }
-                .switchIfEmpty {
-                    Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
-                }
+    fun getRepositoryDtoByProject(@RequestBody project: Project, authentication: Authentication): Mono<GitDto> = Mono.fromCallable {
+        with(project) {
+            projectService.findWithPermissionByNameAndOrganization(authentication, name, organization, Permission.WRITE)
+        }
+    }
+        .mapNotNull {
+            gitService.getRepositoryDtoByProject(project)
+        }
+        .cast<GitDto>()
+        .switchIfEmpty {
+            Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
+        }
 
     /**
      * @param newProjectDto newProjectDto
@@ -147,14 +176,25 @@ class ProjectController(private val projectService: ProjectService,
 
     /**
      * @param project
+     * @param authentication
      * @return response
      */
     @PostMapping("/update")
-    @PreAuthorize("@projectPermissionEvaluator.hasPermission(authentication, project, T(org.cqfn.save.backend.security.Permission).WRITE)")
-    fun updateProject(@RequestBody project: Project): ResponseEntity<String> {
-        val (_, projectStatus) = projectService.saveProject(project)
-        return ResponseEntity.ok(projectStatus.message)
-    }
+    fun updateProject(@RequestBody project: Project, authentication: Authentication): Mono<StringResponse> = projectService.findWithPermissionByNameAndOrganization(
+        authentication, project.name, project.organization, Permission.WRITE
+    )
+        .map { projectFromDb ->
+            // fixme: instead of manually updating fields, a special ProjectUpdateDto could be introduced
+            projectFromDb.apply {
+                name = project.name
+                description = project.description
+                url = project.url
+            }
+        }
+        .map { updatedProject ->
+            val (_, projectStatus) = projectService.saveProject(updatedProject)
+            ResponseEntity.ok(projectStatus.message)
+        }
 
     companion object {
         @JvmStatic
