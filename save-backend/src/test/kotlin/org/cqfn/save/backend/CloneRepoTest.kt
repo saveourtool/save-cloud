@@ -10,6 +10,7 @@ import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.GitDto
 import org.cqfn.save.entities.Project
 import org.cqfn.save.execution.ExecutionType
+import org.cqfn.save.testutils.checkQueues
 import org.cqfn.save.testutils.createMockWebServer
 import org.cqfn.save.testutils.enqueue
 
@@ -118,6 +119,7 @@ class CloneRepoTest {
 
         @AfterAll
         fun tearDown() {
+            mockServerPreprocessor.checkQueues()
             mockServerPreprocessor.shutdown()
         }
 

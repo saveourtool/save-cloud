@@ -9,6 +9,7 @@ import org.cqfn.save.backend.utils.MySqlExtension
 import org.cqfn.save.entities.TestSuite
 import org.cqfn.save.testsuite.TestSuiteDto
 import org.cqfn.save.testsuite.TestSuiteType
+import org.cqfn.save.testutils.checkQueues
 import org.cqfn.save.testutils.createMockWebServer
 
 import okhttp3.mockwebserver.MockWebServer
@@ -215,6 +216,7 @@ class TestSuitesControllerTest {
 
         @AfterAll
         fun tearDown() {
+            mockServerPreprocessor.checkQueues()
             mockServerPreprocessor.shutdown()
         }
 

@@ -50,7 +50,6 @@ import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
 
 import java.io.File
-import java.nio.charset.Charset
 import java.time.Duration
 import java.time.LocalDateTime
 import java.util.concurrent.CompletableFuture
@@ -356,7 +355,7 @@ class DownloadProjectTest(
 
         // /deleteTestSuite
         mockServerBackend.enqueue(
-            "/deleteTestSuite",
+            "/markObsoleteTestSuites",
             MockResponse()
                 .setResponseCode(200)
         )
@@ -564,26 +563,10 @@ class DownloadProjectTest(
         assertions.forEach { Assertions.assertNotNull(it) }
     }
 
-    /**
-    @AfterEach
-    fun removeTestDir() {
-        listOf(mockServerBackend, mockServerOrchestrator).forEach { server ->
-            server.peekAllResponses().forEach { (path, mockResponse) ->
-                // when `QueueDispatcher.failFast` is true, default value is an empty response with code 404
-                val hasDefaultEnqueuedResponse =
-                        mockResponse.status == "HTTP/1.1 404 Client Error" && mockResponse.getBody() == null
-                require(hasDefaultEnqueuedResponse) {
-                    "There is an enqueued response in the MockServer with path $path after a test has completed. Enqueued body: " +
-                            "${
-                                mockResponse.getBody()?.readString(Charset.defaultCharset())
-                            }, status: ${mockResponse.status}"
-                }
-            }
-        }
-    }
-    */
     @AfterEach
     fun removeBinDir() {
+        mockServerBackend.checkQueues()
+        mockServerOrchestrator.checkQueues()
         File(configProperties.repository).deleteRecursively()
         File(binFolder).deleteRecursively()
     }
@@ -599,7 +582,9 @@ class DownloadProjectTest(
 
         @AfterAll
         fun tearDown() {
+            mockServerBackend.checkQueues()
             mockServerBackend.shutdown()
+            mockServerOrchestrator.checkQueues()
             mockServerOrchestrator.shutdown()
         }
 

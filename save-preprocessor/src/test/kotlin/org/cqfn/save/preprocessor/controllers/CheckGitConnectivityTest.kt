@@ -4,6 +4,7 @@ package org.cqfn.save.preprocessor.controllers
 
 import org.cqfn.save.preprocessor.service.TestDiscoveringService
 import org.cqfn.save.preprocessor.utils.RepositoryVolume
+import org.cqfn.save.testutils.checkQueues
 import org.cqfn.save.testutils.createMockWebServer
 
 import okhttp3.mockwebserver.MockWebServer
@@ -84,7 +85,9 @@ class CheckGitConnectivityTest(
 
         @AfterAll
         fun tearDown() {
+            mockServerBackend.checkQueues()
             mockServerBackend.shutdown()
+            mockServerOrchestrator.checkQueues()
             mockServerOrchestrator.shutdown()
         }
 

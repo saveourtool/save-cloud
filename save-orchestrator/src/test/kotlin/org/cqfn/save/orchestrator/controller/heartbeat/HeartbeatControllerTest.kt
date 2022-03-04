@@ -13,8 +13,10 @@ import org.cqfn.save.orchestrator.service.DockerService
 import org.cqfn.save.test.TestBatch
 import org.cqfn.save.test.TestDto
 import org.cqfn.save.testsuite.TestSuiteType
+import org.cqfn.save.testutils.checkQueues
 import org.cqfn.save.testutils.createMockWebServer
 import org.cqfn.save.testutils.enqueue
+import org.cqfn.save.testutils.setDefaultResponseForPath
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import okhttp3.mockwebserver.MockResponse
@@ -44,7 +46,6 @@ import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.web.reactive.function.BodyInserters
 import reactor.core.publisher.Mono
 
-import java.nio.charset.Charset
 import java.time.Duration
 import java.time.LocalDateTime
 import java.util.concurrent.CompletableFuture
@@ -52,7 +53,6 @@ import java.util.concurrent.TimeUnit
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.cqfn.save.testutils.setDefaultResponseForPath
 
 @WebFluxTest
 @Import(Beans::class, AgentService::class)
@@ -71,11 +71,7 @@ class HeartbeatControllerTest {
 
     @AfterEach
     fun tearDown() {
-        mockServer.dispatcher.peek().let { mockResponse ->
-            assertTrue(mockResponse.getBody().let { it == null || it.size == 0L }) {
-                "There is an enqueued response in the MockServer after a test has completed. Enqueued body: ${mockResponse.getBody()?.readString(Charset.defaultCharset())}"
-            }
-        }
+        mockServer.checkQueues()
     }
 
     @Test

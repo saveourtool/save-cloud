@@ -12,6 +12,7 @@ import org.cqfn.save.execution.ExecutionInitializationDto
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionType
 import org.cqfn.save.execution.ExecutionUpdateDto
+import org.cqfn.save.testutils.checkQueues
 import org.cqfn.save.testutils.createMockWebServer
 import org.cqfn.save.testutils.enqueue
 
@@ -210,14 +211,13 @@ class ExecutionControllerTest {
                 .setHeader("Content-Type", "application/json")
                 .setBody("Clone pending")
         )
-        println(mockServerPreprocessor.dispatcher.peek())
         val assertions = CompletableFuture.supplyAsync {
             listOf(
                 mockServerPreprocessor.takeRequest(60, TimeUnit.SECONDS),
             )
         }
 
-        val status = webClient.post()
+        webClient.post()
             .uri("/api/rerunExecution?id=2")
             .exchange()
             .expectStatus()
@@ -233,6 +233,7 @@ class ExecutionControllerTest {
 
         @AfterAll
         fun tearDown() {
+            mockServerPreprocessor.checkQueues()
             mockServerPreprocessor.shutdown()
         }
 

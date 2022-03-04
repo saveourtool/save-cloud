@@ -9,6 +9,7 @@ import org.cqfn.save.orchestrator.config.ConfigProperties
 import org.cqfn.save.orchestrator.controller.AgentsController
 import org.cqfn.save.orchestrator.service.AgentService
 import org.cqfn.save.orchestrator.service.DockerService
+import org.cqfn.save.testutils.checkQueues
 import org.cqfn.save.testutils.createMockWebServer
 import org.cqfn.save.testutils.enqueue
 
@@ -37,7 +38,6 @@ import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.web.reactive.function.BodyInserters
 
 import java.io.File
-import java.time.LocalDateTime
 
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.createTempDirectory
@@ -210,6 +210,7 @@ class AgentsControllerTest {
 
         @AfterAll
         fun tearDown() {
+            mockServer.checkQueues()
             mockServer.shutdown()
         }
 
