@@ -23,7 +23,7 @@ class LoggingQueueDispatcher(private val logger: Logger) : Dispatcher() {
 
     private fun getMethodPath(fullPath: String?) = fullPath?.let { Regex("/[\\w]*").find(it)?.value } ?: ""
 
-    @Suppress("UnsafeCallOnNullableType")
+    @Suppress("UnsafeCallOnNullableType", "AVOID_NULL_CHECKS")
     override fun dispatch(request: RecordedRequest): MockResponse {
         val path = getMethodPath(request.path)
         val result = if (defaultResponses[path] != null) {
