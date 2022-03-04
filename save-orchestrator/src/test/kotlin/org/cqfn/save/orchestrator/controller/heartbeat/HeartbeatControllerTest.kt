@@ -219,20 +219,16 @@ class HeartbeatControllerTest {
 
     @Test
     fun `should shutdown agent, which don't sent heartbeat for some time`() {
-        val firstAgentStartTime = LocalDateTime.now()
-        val secondAgentStartTime = LocalDateTime.now()
-
-        val heartbeatTimeOfFirstAgent = firstAgentStartTime.plusSeconds(5)
-        val heartbeatTimeOfSecondAgent = firstAgentStartTime.plusSeconds(20)
-
         testHeartbeat(
             agentStatusDtos = listOf(
-                AgentStatusDto(firstAgentStartTime, AgentState.STARTING, "test-1"),
-                AgentStatusDto(secondAgentStartTime, AgentState.STARTING, "test-2"),
+                AgentStatusDto(LocalDateTime.now(), AgentState.STARTING, "test-1"),
+                AgentStatusDto(LocalDateTime.now(), AgentState.BUSY, "test-2"),
             ),
             heartbeats = listOf(
                 Heartbeat("test-1", AgentState.STARTING, ExecutionProgress(0)),
-                //Heartbeat("test-2", AgentState.STARTING, ExecutionProgress(0)),
+                Heartbeat("test-2", AgentState.BUSY, ExecutionProgress(0)),
+                Heartbeat("test-1", AgentState.BUSY, ExecutionProgress(0)),
+                Heartbeat("test-1", AgentState.BUSY, ExecutionProgress(0)),
                 Heartbeat("test-1", AgentState.BUSY, ExecutionProgress(0)),
                 Heartbeat("test-1", AgentState.BUSY, ExecutionProgress(0)),
             ),
@@ -249,7 +245,7 @@ class HeartbeatControllerTest {
             },
             mockAgentStatuses = false,
         ) {
-            verify(dockerService, times(0)).stopAgents(any())
+            verify(dockerService, times(1)).stopAgents(any())
         }
     }
 
@@ -355,7 +351,7 @@ class HeartbeatControllerTest {
                 .body(BodyInserters.fromValue(heartbeat))
                 .exchange()
                 .expectStatus().isOk
-            Thread.sleep(5_000)
+            Thread.sleep(3_000)
         }
 
         // wait for background tasks
