@@ -83,7 +83,7 @@ external interface UploaderProps : PropsWithChildren {
     /**
      * Flag to handle uploading a file
      */
-    var isUploading: Boolean
+    var isUploading: Boolean?
 }
 
 /**
@@ -172,7 +172,7 @@ fun fileUploader(
                 }
 
                 div("progress") {
-                    attrs.hidden = !props.isUploading
+                    attrs.hidden = !(props.isUploading ?: false)
                     div("progress-bar progress-bar-striped progress-bar-animated") {
                         attrs["style"] = jso<CSSProperties> {
                             width = if (props.suiteByteSize != 0L) {

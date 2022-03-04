@@ -1,4 +1,4 @@
-package org.cqfn.save.backend.controllers
+package org.cqfn.save.backend.controllers.internal
 
 import org.cqfn.save.backend.service.TestExecutionService
 import org.cqfn.save.backend.service.TestService

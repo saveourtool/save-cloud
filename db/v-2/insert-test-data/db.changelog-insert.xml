@@ -10,6 +10,7 @@
     <include file="test-suite-insert.xml" relativeToChangelogFile="true"/>
     <include file="project-insert.xml" relativeToChangelogFile="true"/>
     <include file="execution-insert.xml" relativeToChangelogFile="true"/>
+    <include file="lnk-user-project-insert.xml" relativeToChangelogFile="true"/>
 
     <changeSet id="02-petertrr" author="petertrr">
         <tagDatabase tag="v2.0-insert"/>

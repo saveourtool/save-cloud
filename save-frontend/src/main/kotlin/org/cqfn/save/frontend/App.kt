@@ -11,9 +11,7 @@ import org.cqfn.save.frontend.components.topBar
 import org.cqfn.save.frontend.components.views.*
 import org.cqfn.save.frontend.externals.fontawesome.*
 import org.cqfn.save.frontend.externals.modal.ReactModal
-import org.cqfn.save.frontend.utils.ComponentWithScope
-import org.cqfn.save.frontend.utils.get
-import org.cqfn.save.frontend.utils.withRouter
+import org.cqfn.save.frontend.utils.*
 import org.cqfn.save.info.UserInfo
 
 import org.w3c.dom.HTMLElement
@@ -34,6 +32,12 @@ import kotlinx.html.id
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 
+private val scrollToTopButton = scrollToTopButton()
+
+private val topBar = topBar()
+
+private val testExecutionDetailsView = testExecutionDetailsView()
+
 /**
  * Top-level state of the whole App
  */
@@ -50,6 +54,26 @@ external interface AppState : State {
 @JsExport
 @OptIn(ExperimentalJsExport::class)
 class App : ComponentWithScope<PropsWithChildren, AppState>() {
+    private val projectView: FC<Props> = withRouter { _, params ->
+        child(ProjectView::class) {
+            attrs.name = params["name"]!!
+            attrs.owner = params["owner"]!!
+        }
+    }
+    private val historyView: FC<Props> = withRouter { _, params ->
+        child(HistoryView::class) {
+            attrs.name = params["name"]!!
+            attrs.organizationName = params["owner"]!!
+        }
+    }
+    private val executionView: FC<Props> = withRouter { location, params ->
+        child(ExecutionView::class) {
+            attrs.executionId = params["executionId"]!!
+            attrs.status = URLSearchParams(location.search).get("status")?.let(
+                TestResultStatus::valueOf
+            )
+        }
+    }
     init {
         state.userInfo = null
     }
@@ -78,7 +102,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
         HashRouter {
             div("d-flex flex-column") {
                 attrs.id = "content-wrapper"
-                child(topBar()) {
+                child(topBar) {
                     attrs {
                         userInfo = state.userInfo
                     }
@@ -126,14 +150,22 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
 
                         Route {
                             attrs {
-                                path = "/:owner/:name"
+                                path = "/:owner"
                                 element = buildElement {
                                     child(withRouter { _, params ->
-                                        child(ProjectView::class) {
-                                            attrs.name = params["name"]!!
-                                            attrs.owner = params["owner"]!!
+                                        child(OrganizationView::class) {
+                                            attrs.organizationName = params["owner"]!!
                                         }
                                     })
+                                }
+                            }
+                        }
+
+                        Route {
+                            attrs {
+                                path = "/:owner/:name"
+                                element = buildElement {
+                                    child(projectView)
                                 }
                             }
                         }
@@ -142,12 +174,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                             attrs {
                                 path = "/:owner/:name/history"
                                 element = buildElement {
-                                    child(withRouter { _, params ->
-                                        child(HistoryView::class) {
-                                            attrs.name = params["name"]!!
-                                            attrs.owner = params["owner"]!!
-                                        }
-                                    })
+                                    child(historyView)
                                 }
                             }
                         }
@@ -156,14 +183,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                             attrs {
                                 path = "/:owner/:name/history/execution/:executionId"
                                 element = buildElement {
-                                    child(withRouter { location, params ->
-                                        child(ExecutionView::class) {
-                                            attrs.executionId = params["executionId"]!!
-                                            attrs.status = URLSearchParams(location.search).get("status")?.let(
-                                                TestResultStatus::valueOf
-                                            )
-                                        }
-                                    })
+                                    child(executionView)
                                 }
                             }
                         }
@@ -173,7 +193,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                 // Since testFilePath can represent the nested path, we catch it as *
                                 path = "/:owner/:name/history/execution/:executionId/details/:testSuiteName/:pluginName/*"
                                 element = buildElement {
-                                    child(testExecutionDetailsView()) {}
+                                    child(testExecutionDetailsView) {}
                                 }
                             }
                         }
@@ -191,7 +211,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                 child(Footer::class) {}
             }
         }
-        child(scrollToTopButton()) {}
+        child(scrollToTopButton) {}
     }
 }
 
