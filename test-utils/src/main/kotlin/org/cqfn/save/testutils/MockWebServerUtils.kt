@@ -19,18 +19,19 @@ private typealias ResponsesMap = ConcurrentMap<String, BlockingQueue<MockRespons
 class LoggingQueueDispatcher(private val logger: Logger) : Dispatcher() {
     private val responses: ResponsesMap = ConcurrentHashMap()
     private val defaultResponses: ConcurrentMap<String, MockResponse> = ConcurrentHashMap()
-    private var failFastResponse: MockResponse? = MockResponse().setResponseCode(HttpURLConnection.HTTP_NOT_FOUND)
+    private var failFastResponse: MockResponse = MockResponse().setResponseCode(HttpURLConnection.HTTP_NOT_FOUND)
 
     private fun getMethodPath(fullPath: String?) = fullPath?.let { Regex("/[\\w]*").find(it)?.value } ?: ""
 
+    @Suppress("UnsafeCallOnNullableType")
     override fun dispatch(request: RecordedRequest): MockResponse {
         val path = getMethodPath(request.path)
         val result = if (defaultResponses[path] != null) {
             logger.info("Default response [${defaultResponses[path]}] exists for path [$path].")
             defaultResponses[path]!!
-        } else if (failFastResponse != null && responses[path]?.peek() == null) {
+        } else if (responses[path]?.peek() == null) {
             logger.info("No response is present in queue with path [$path].")
-            return failFastResponse!!
+            return failFastResponse
         } else {
             responses[path]!!.take()
         }
@@ -58,7 +59,6 @@ class LoggingQueueDispatcher(private val logger: Logger) : Dispatcher() {
         .filter { it.isNotEmpty() }
         .firstNotNullOfOrNull { it.peek() }
         ?: failFastResponse
-        ?: super.peek()
 
     /**
      * @param fullPath to method that should cause `response`
@@ -67,13 +67,13 @@ class LoggingQueueDispatcher(private val logger: Logger) : Dispatcher() {
     fun enqueueResponse(fullPath: String, response: MockResponse) {
         val path = getMethodPath(fullPath)
         responses[path]?.let {
-            responses[path]!!.add(response)
-            logger.info("Added [$response] into queue with path [$path]")
+            it.add(response)
+            logger.info("Added [$response] into queue with path [$path]. " +
+                    "Now there are ${it.count()} responses.")
         }
             ?: run {
                 responses[path] = LinkedBlockingQueue<MockResponse>().apply { add(response) }
-                logger.info("Added LinkedBlockingQueue for a new path [$path] and put there [$response]. " +
-                        "Now there are ${responses[path]!!.count()} responses.")
+                logger.info("Added LinkedBlockingQueue for a new path [$path] and put there [$response].")
             }
     }
 
