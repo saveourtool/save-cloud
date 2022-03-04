@@ -44,6 +44,12 @@ fun Project.configureSpringBoot(withSpringDataJpa: Boolean = false) {
         add("implementation", libs.slf4j.api)
         add("implementation", libs.logback.core)
         add("implementation", libs.reactor.kotlin.extensions)
+
+        add("runtimeOnly", libs.springdoc.openapi.webflux.ui)
+        add("runtimeOnly", libs.springdoc.openapi.security)
+        add("runtimeOnly", libs.springdoc.openapi.kotlin)
+        add("implementation", libs.swagger.annotations)
+
         add("testImplementation", libs.spring.boot.starter.test)
         add("testImplementation", libs.mockito.kotlin)
         add("testImplementation", libs.okhttp)

@@ -13,6 +13,7 @@ import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
 
 import react.FC
 import react.Props
+import react.StateSetter
 import react.dom.html.InputType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
@@ -48,10 +49,15 @@ external interface ProjectInfoProps : Props {
  * @param turnEditMode
  * @param onProjectSave
  */
-@Suppress("TOO_LONG_FUNCTION", "KDOC_WITHOUT_RETURN_TAG", "LongMethod")
+@Suppress(
+    "TOO_LONG_FUNCTION",
+    "KDOC_WITHOUT_RETURN_TAG",
+    "LongMethod",
+    "TYPE_ALIAS"
+)
 fun projectInfo(
     turnEditMode: (isOff: Boolean) -> Unit,
-    onProjectSave: (draftProject: Project?) -> Unit,
+    onProjectSave: (draftProject: Project?, setDraftProject: StateSetter<Project?>) -> Unit,
 ) = FC<ProjectInfoProps> { props ->
     val projectRef = useRef(props.project)
     val (draftProject, setDraftProject) = useState(props.project)
@@ -115,7 +121,7 @@ fun projectInfo(
                 id = "Save new project info"
                 hidden = true
                 onClick = {
-                    onProjectSave(draftProject)
+                    onProjectSave(draftProject, setDraftProject)
                     turnEditMode(true)
                 }
             }
