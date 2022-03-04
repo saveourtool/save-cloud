@@ -246,6 +246,13 @@ class HeartbeatControllerTest {
                 id = 0
             },
             mockAgentStatuses = false,
+            {
+                // additional setup for marking stuff as FINISHED
+                // /updateExecutionByDto
+                mockServer.enqueue(
+                    MockResponse().setResponseCode(200)
+                )
+            }
         ) {
             // FixMe: we actually need to check the size of crashed agents list somehow
             verify(dockerService, atLeast(1)).stopAgents(any())
@@ -254,16 +261,17 @@ class HeartbeatControllerTest {
 
     @Test
     fun `should shutdown all agents, since all of them don't sent heartbeats for some time`() {
+        val agentStatusDtos = listOf(
+            AgentStatusDto(LocalDateTime.now(), AgentState.STARTING, "test-1"),
+            AgentStatusDto(LocalDateTime.now(), AgentState.BUSY, "test-2"),
+        )
         testHeartbeat(
-            agentStatusDtos = listOf(
-                AgentStatusDto(LocalDateTime.now(), AgentState.STARTING, "test-1"),
-                AgentStatusDto(LocalDateTime.now(), AgentState.BUSY, "test-2"),
-            ),
+            agentStatusDtos = agentStatusDtos,
             heartbeats = listOf(
                 Heartbeat("test-1", AgentState.STARTING, ExecutionProgress(0)),
                 Heartbeat("test-2", AgentState.BUSY, ExecutionProgress(0)),
             ),
-            heartBeatInterval = 1_500,
+            heartBeatInterval = 3000,
             testBatch = TestBatch(
                 listOf(
                     TestDto("/path/to/test-1", "WarnPlugin", 1, "hash1", listOf("tag")),
@@ -275,7 +283,24 @@ class HeartbeatControllerTest {
             testSuite = TestSuite(TestSuiteType.PROJECT, "", null, null, LocalDateTime.now(), ".", ".").apply {
                 id = 0
             },
-            mockAgentStatuses = false,
+            mockAgentStatuses = true,
+            {
+                // /getAgentsStatusesForSameExecution after shutdownIntervalMillis
+                mockServer.enqueue(
+                    MockResponse()
+                        .setBody(
+                            objectMapper.writeValueAsString(
+                                AgentStatusesForExecution(0, agentStatusDtos)
+                            )
+                        )
+                        .addHeader("Content-Type", "application/json")
+                )
+                // additional setup for marking stuff as ERROR
+                // /updateExecutionByDto
+                mockServer.enqueue(
+                    MockResponse().setResponseCode(200)
+                )
+            }
         ) {
             // FixMe: we actually need to check the size of crashed agents list somehow
             verify(dockerService, atLeast(2)).stopAgents(any())
