@@ -4,7 +4,7 @@
 
 package org.cqfn.save.frontend.utils
 
-import kotlinext.js.Object
+import kotlinx.js.Object
 import react.dom.RDOMBuilder
 
 import kotlinx.html.Tag

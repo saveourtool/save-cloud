@@ -16,6 +16,8 @@ import react.dom.*
 import react.table.columns
 
 import kotlinx.html.ButtonType
+import org.cqfn.save.frontend.components.errorStatusContext
+import org.cqfn.save.frontend.utils.withModalResponseHandler
 
 /**
  * A view with collection of projects
@@ -60,15 +62,20 @@ class CollectionView : AbstractView<PropsWithChildren, State>(false) {
         useServerPaging = false,
         usePageSelection = false,
     ) { _, _ ->
-        get(
+        val response = get(
             url = "$apiUrl/projects/not-deleted",
             headers = Headers().also {
                 it.set("Accept", "application/json")
             },
+            responseHandler = ::withModalResponseHandler,
         )
-            .unsafeMap {
+        if (response.ok) {
+            response.unsafeMap {
                 it.decodeFromJsonString<Array<Project>>()
             }
+        } else {
+            emptyArray()
+        }
     }
     @Suppress(
         "EMPTY_BLOCK_STRUCTURE_ERROR",
@@ -85,5 +92,11 @@ class CollectionView : AbstractView<PropsWithChildren, State>(false) {
             }
         }
         child(projectsTable) { }
+    }
+
+    companion object : RStatics<PropsWithChildren, State, CollectionView, Context<StateSetter<Int?>>>(CollectionView::class) {
+        init {
+            contextType = errorStatusContext
+        }
     }
 }

@@ -16,6 +16,10 @@ import kotlinx.browser.window
 import kotlinx.coroutines.await
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
+import react.Component
+import react.RComponent
+import react.StateSetter
+import kotlin.coroutines.coroutineContext
 
 val apiUrl = "${window.location.origin}/api"
 
@@ -46,7 +50,9 @@ suspend inline fun <reified T> Response.decodeFromJsonString() = Json.decodeFrom
  * @param headers request headers
  * @return [Response] instance
  */
-suspend fun get(url: String, headers: Headers) = request(url, "GET", headers)
+suspend fun get(url: String, headers: Headers,
+                responseHandler: (Response) -> Unit = ::redirectResponseHandler,
+) = request(url, "GET", headers, responseHandler = responseHandler)
 
 /**
  * Perform POST request.
@@ -56,7 +62,9 @@ suspend fun get(url: String, headers: Headers) = request(url, "GET", headers)
  * @param body request body
  * @return [Response] instance
  */
-suspend fun post(url: String, headers: Headers, body: dynamic) = request(url, "POST", headers, body)
+suspend fun post(url: String, headers: Headers, body: dynamic,
+                 responseHandler: (Response) -> Unit = ::redirectResponseHandler,) =
+    request(url, "POST", headers, body, responseHandler = responseHandler)
 
 /**
  * Perform an HTTP request using Fetch API. Suspending function that returns a [Response] - a JS promise with result.
@@ -73,6 +81,7 @@ suspend fun request(url: String,
                     headers: Headers,
                     body: dynamic = undefined,
                     credentials: RequestCredentials? = undefined,
+                    responseHandler: (Response) -> Unit = ::redirectResponseHandler,
 ): Response = window.fetch(
     input = url,
     RequestInit(
@@ -82,31 +91,55 @@ suspend fun request(url: String,
         credentials = credentials,
     )
 )
-    .await().also {
-        if (it.status == 401.toShort()) {
-            // if 401 - change current URL to the main page (with login screen)
-            // note: we may have other uses for 401 in the future
-            window.location.href = "${window.location.origin}/#"
-        }
+    .await().also(responseHandler)
+
+internal fun redirectResponseHandler(response: Response) {
+    if (response.status == 401.toShort()) {
+        // if 401 - change current URL to the main page (with login screen)
+        // note: we may have other uses for 401 in the future
+        window.location.href = "${window.location.origin}/#"
     }
+}
+
+internal fun Component<*, *>.withModalResponseHandler(
+    response: Response
+) {
+    if (!response.ok) {
+        val setErrorCode: StateSetter<Int?> = this.asDynamic().context
+        setErrorCode(response.status.toInt())
+    }
+}
+
+/**
+ * Can be used to explicitly specify, that response will be handled is a custom way
+ */
+internal fun noopResponseHandler(response: Response) = Unit
 
 /**
  * @param name
  * @param organizationName
  * @return project
  */
-suspend fun getProject(name: String, organizationName: String) =
-        get("$apiUrl/projects/get/organization-name?name=$name&organizationName=$organizationName", Headers().apply {
-            set("Accept", "application/json")
-        })
-            .decodeFromJsonString<Project>()
+suspend fun Component<*, *>.getProject(name: String, organizationName: String) = get(
+    "$apiUrl/projects/get/organization-name?name=$name&organizationName=$organizationName",
+    Headers().apply {
+        set("Accept", "application/json")
+    },
+    responseHandler = ::withModalResponseHandler,
+)
+    .runCatching {
+        decodeFromJsonString<Project>()
+    }
 
 /**
  * @param name organization name
  * @return organization
  */
-suspend fun getOrganization(name: String) =
-        get("$apiUrl/organization/get/organization-name?name=$name", Headers().apply {
+suspend fun Component<*, *>.getOrganization(name: String) =     get(
+    "$apiUrl/organization/get/organization-name?name=$name",
+    Headers().apply {
             set("Accept", "application/json")
-        })
+        },
+            responseHandler = ::withModalResponseHandler,
+        )
             .decodeFromJsonString<Organization>()
