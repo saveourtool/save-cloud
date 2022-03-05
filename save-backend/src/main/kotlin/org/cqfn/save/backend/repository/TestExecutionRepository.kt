@@ -107,7 +107,7 @@ interface TestExecutionRepository : BaseEntityRepository<TestExecution>, JpaSpec
      * @return list of TestExecution's
      */
     @Suppress("TYPE_ALIAS")
-    fun findByExecutionIdAndAgentId(executionId: Long, agentId: Long): Optional<List<TestExecution>>
+    fun findByExecutionIdAndAgentId(executionId: Long, agentId: Long): List<TestExecution>
 
     /**
      * Delete a TestExecution matched by a set of fields

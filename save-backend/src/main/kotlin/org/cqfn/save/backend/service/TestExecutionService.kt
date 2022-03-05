@@ -268,10 +268,11 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
                 executionId,
                 agentId
             )
-                .orElseThrow {
-                    log.error("Can't find `test_execution`s for executionId=$executionId and agentId=$agentId")
-                    NoSuchElementException()
-                }
+            if (testExecutionList.isEmpty()) {
+                // Crashed agent could be not assigned with tests, so just warn and return
+                log.warn("Can't find `test_execution`s for executionId=$executionId and agentId=$agentId")
+                return@forEach
+            }
 
             testExecutionList.map { testExecution ->
                 testExecutionRepository.save(testExecution.apply {

@@ -263,7 +263,7 @@ class AgentService {
     private fun markTestExecutionsOfCrashedAgentsAsFailed(crashedAgentIds: Collection<String>): Mono<BodilessResponseEntity> {
         log.debug("Attempt to mark test executions of crashed agents=$crashedAgentIds as failed with internal error")
         return webClientBackend.post()
-            .uri("/testExecution/markTestExecutionsOfCrashedAgentsAsFailed")
+            .uri("/testExecution/setStatusByAgentIds?status=${AgentState.CRASHED.name}")
             .bodyValue(crashedAgentIds)
             .retrieve()
             .toBodilessEntity()

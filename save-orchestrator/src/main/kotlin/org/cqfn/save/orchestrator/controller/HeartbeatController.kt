@@ -90,7 +90,11 @@ class HeartbeatController(private val agentService: AgentService,
                         }
                     }
                     AgentState.BUSY -> Mono.just(ContinueResponse)
-                    AgentState.BACKEND_FAILURE, AgentState.BACKEND_UNREACHABLE, AgentState.CLI_FAILED, AgentState.STOPPED_BY_ORCH, AgentState.CRASHED -> Mono.just(WaitResponse)
+                    AgentState.BACKEND_FAILURE, AgentState.BACKEND_UNREACHABLE, AgentState.CLI_FAILED, AgentState.STOPPED_BY_ORCH -> Mono.just(WaitResponse)
+                    AgentState.CRASHED -> {
+                        logger.warn("Agent sent CRASHED status, but should be offline in that case!")
+                        Mono.just(WaitResponse)
+                    }
                 }
             )
             .map {
@@ -125,7 +129,6 @@ class HeartbeatController(private val agentService: AgentService,
                 logger.debug("Adding $currentAgentId to list crashed agents")
                 crashedAgentsList.add(currentAgentId)
             }
-            logger.info("agent $currentAgentId: ${stateToLatestHeartBeatPair.first} ${stateToLatestHeartBeatPair.second} DURATION $duration")
         }
     }
 
