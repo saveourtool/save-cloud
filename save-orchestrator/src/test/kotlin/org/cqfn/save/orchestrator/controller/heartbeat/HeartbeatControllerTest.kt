@@ -246,17 +246,6 @@ class HeartbeatControllerTest {
                 id = 0
             },
             mockAgentStatuses = false,
-            {
-                // additional setup for marking stuff as FINISHED
-                // /testExecution/markTestExecutionsOfCrashedAgentsAsFailed
-                mockServer.enqueue(
-                    MockResponse().setResponseCode(200)
-                )
-                // /updateExecutionByDto
-                mockServer.enqueue(
-                    MockResponse().setResponseCode(200)
-                )
-            }
         ) {
             // FixMe: we actually need to check the size of crashed agents list somehow
             verify(dockerService, atLeast(1)).stopAgents(any())
@@ -288,27 +277,6 @@ class HeartbeatControllerTest {
                 id = 0
             },
             mockAgentStatuses = false,
-            {
-                // /getAgentsStatusesForSameExecution after shutdownIntervalMillis
-//                mockServer.enqueue(
-//                    MockResponse()
-//                        .setBody(
-//                            objectMapper.writeValueAsString(
-//                                AgentStatusesForExecution(0, agentStatusDtos)
-//                            )
-//                        )
-//                        .addHeader("Content-Type", "application/json")
-//                )
-                // additional setup for marking stuff as ERROR
-                // /testExecution/markTestExecutionsOfCrashedAgentsAsFailed
-//                mockServer.enqueue(
-//                    MockResponse().setResponseCode(200)
-//                )
-//                // /updateExecutionByDto
-//                mockServer.enqueue(
-//                    MockResponse().setResponseCode(200)
-//                )
-            }
         ) {
             // FixMe: we actually need to check the size of crashed agents list somehow
             verify(dockerService, atLeast(2)).stopAgents(any())
@@ -406,16 +374,10 @@ class HeartbeatControllerTest {
                 if (mockAgentStatuses) {
                     mockServer.takeRequest(60, TimeUnit.SECONDS)
                 }
-                if (heartbeats.size > 1) {
-                    //mockServer.takeRequest(60, TimeUnit.SECONDS)
-                    //mockServer.takeRequest(60, TimeUnit.SECONDS)
-                    //mockServer.takeRequest(60, TimeUnit.SECONDS)
-                }
             }
         }
 
         heartbeats.forEach { heartbeat ->
-            println("\nPOSTING HEARTBEAT")
             webClient.post()
                 .uri("/heartbeat")
                 .contentType(MediaType.APPLICATION_JSON)

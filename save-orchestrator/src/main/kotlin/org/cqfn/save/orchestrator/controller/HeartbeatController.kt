@@ -64,7 +64,6 @@ class HeartbeatController(private val agentService: AgentService,
     @OptIn(ExperimentalSerializationApi::class)
     fun acceptHeartbeat(@RequestBody heartbeat: Heartbeat): Mono<String> {
         if (isHeartbeatInProgress.compareAndSet(false, true)) {
-            logger.info("\n\n\n===============================[START_ ${heartbeat.agentId}]===================================\n\n")
             HeartBeatInspector(this, this.configProperties.heartBeatInspectorInterval).start()
         }
         logger.info("Got heartbeat state: ${heartbeat.state.name} from ${heartbeat.agentId}")
@@ -107,14 +106,13 @@ class HeartbeatController(private val agentService: AgentService,
         }
 
     /**
+     * Collect information about latest heartbeats from agents, in aim to determine crashed one later
+     *
      * @param agentId
      * @param state
      */
     fun updateAgentHeartbeatTimeStamps(agentId: String, state: AgentState) {
         agentsLatestHeartBeatsMap[agentId] = state.name to LocalDateTime.now()
-        // if (AgentState.BUSY.name in agentsLatestHeartBeatsMap.map { it.value.first } && crashedAgentsList.isEmpty()) {
-        // crashedAgentsList.add(agentsLatestHeartBeatsMap.filter { it.value.first != AgentState.BUSY.name }.keys.first())
-        // }
     }
 
     /**
@@ -132,14 +130,13 @@ class HeartbeatController(private val agentService: AgentService,
     }
 
     /**
-     * Stop crashed agent and mark corresponding test execution as failed with internal error
+     * Stop crashed agents and mark corresponding test executions as failed with internal error
      */
     fun processCrashedAgents() {
         if (crashedAgentsList.isEmpty()) {
             return
         }
-        logger.info("\n\n\n\nSTART PROCESS CRASHED AGENTS")
-        logger.debug("Starting stop crashed agents $crashedAgentsList")
+        logger.debug("Stopping crashed agents: $crashedAgentsList")
 
         val areAgentsStopped = dockerService.stopAgents(crashedAgentsList)
         if (areAgentsStopped) {
