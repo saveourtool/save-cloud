@@ -16,8 +16,15 @@ import react.useEffect
 import react.useMemo
 import react.useState
 
+/**
+ * Context to store data about current request error.
+ */
 val errorStatusContext: Context<StateSetter<Int?>> = createContext()
 
+/**
+ * Component that displays generic warning about unsuccessful request based on info in [errorStatusContext].
+ * Also renders its `children`.
+ */
 val errorModalHandler: FC<PropsWithChildren> = FC { props ->
     val (errorCode, setErrorCode) = useState<Int?>(null)
     val (modalState, setModalState) = useState(ErrorModalState(
@@ -26,17 +33,13 @@ val errorModalHandler: FC<PropsWithChildren> = FC { props ->
         errorLabel = "",
     ))
 
-    useEffect(arrayOf<dynamic>(errorCode)) {
+    useEffect(errorCode) {
         val newModalState = ErrorModalState(
             isErrorModalOpen = errorCode != null,
             errorMessage = "$errorCode",
             errorLabel = errorCode.toString(),
         )
-        if (newModalState != modalState) {
-            setModalState(
-                newModalState
-            )
-        }
+        setModalState(newModalState)
     }
 
     modal {
