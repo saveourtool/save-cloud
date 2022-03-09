@@ -1,6 +1,9 @@
+@file:Suppress("FILE_NAME_MATCH_CLASS")
+
 package org.cqfn.save.frontend.components
 
 import org.cqfn.save.frontend.externals.modal.modal
+import react.Context
 import react.FC
 import react.PropsWithChildren
 import react.StateSetter
@@ -13,15 +16,9 @@ import react.useEffect
 import react.useMemo
 import react.useState
 
-data class ErrorModalState(
-    val isErrorModalOpen: Boolean?,
-    val errorMessage: String,
-    val errorLabel: String,
-)
+val errorStatusContext: Context<StateSetter<Int?>> = createContext()
 
-val errorStatusContext = createContext<StateSetter<Int?>>()
-
-val errorModalHandler = FC<PropsWithChildren> { props ->
+val errorModalHandler: FC<PropsWithChildren> = FC { props ->
     val (errorCode, setErrorCode) = useState<Int?>(null)
     val (modalState, setModalState) = useState(ErrorModalState(
         isErrorModalOpen = false,
@@ -75,3 +72,14 @@ val errorModalHandler = FC<PropsWithChildren> { props ->
         +props.children
     }
 }
+
+/**
+ * @property isErrorModalOpen
+ * @property errorMessage
+ * @property errorLabel
+ */
+data class ErrorModalState(
+    val isErrorModalOpen: Boolean?,
+    val errorMessage: String,
+    val errorLabel: String,
+)

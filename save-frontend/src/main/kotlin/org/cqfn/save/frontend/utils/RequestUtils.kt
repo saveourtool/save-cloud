@@ -68,11 +68,11 @@ suspend fun Component<*, *>.post(url: String, headers: Headers, body: dynamic,
  * @return [Response] instance
  */
 private suspend fun request(url: String,
-                    method: String,
-                    headers: Headers,
-                    body: dynamic = undefined,
-                    credentials: RequestCredentials? = undefined,
-                    responseHandler: (Response) -> Unit = ::redirectResponseHandler,
+                            method: String,
+                            headers: Headers,
+                            body: dynamic = undefined,
+                            credentials: RequestCredentials? = undefined,
+                            responseHandler: (Response) -> Unit = ::redirectResponseHandler,
 ): Response = window.fetch(
     input = url,
     RequestInit(

@@ -13,6 +13,7 @@ import org.cqfn.save.frontend.components.basic.inputTextFormOptional
 import org.cqfn.save.frontend.components.basic.inputTextFormRequired
 import org.cqfn.save.frontend.utils.apiUrl
 import org.cqfn.save.frontend.utils.get
+import org.cqfn.save.frontend.utils.noopResponseHandler
 import org.cqfn.save.frontend.utils.post
 import org.cqfn.save.frontend.utils.runErrorModal
 
@@ -36,7 +37,6 @@ import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.cqfn.save.frontend.utils.noopResponseHandler
 
 /**
  * [RState] of project creation view component
@@ -137,7 +137,7 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
             }
             val responseFromCreationProject =
                     get("$apiUrl/check-git-connectivity-adaptor$urlArguments", headers,
-                        responseHandler = ::noopResponseHandler,)
+                        responseHandler = ::noopResponseHandler)
 
             if (responseFromCreationProject.ok) {
                 if (responseFromCreationProject.text().await().toBoolean()) {

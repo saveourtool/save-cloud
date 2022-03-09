@@ -4,10 +4,10 @@
 
 package org.cqfn.save.frontend.utils
 
-import kotlinx.js.Object
 import react.dom.RDOMBuilder
 
 import kotlinx.html.Tag
+import kotlinx.js.Object
 
 /**
  * Shortcut for

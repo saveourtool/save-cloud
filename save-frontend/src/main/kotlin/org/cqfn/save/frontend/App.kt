@@ -7,6 +7,7 @@ package org.cqfn.save.frontend
 import org.cqfn.save.domain.TestResultStatus
 import org.cqfn.save.frontend.components.Footer
 import org.cqfn.save.frontend.components.basic.scrollToTopButton
+import org.cqfn.save.frontend.components.errorModalHandler
 import org.cqfn.save.frontend.components.topBar
 import org.cqfn.save.frontend.components.views.*
 import org.cqfn.save.frontend.externals.fontawesome.*
@@ -23,12 +24,12 @@ import react.PropsWithChildren
 import react.RBuilder
 import react.State
 import react.buildElement
-import react.setState
 import react.dom.div
 import react.dom.render
 import react.router.Route
 import react.router.Routes
 import react.router.dom.HashRouter
+import react.setState
 
 import kotlinx.browser.document
 import kotlinx.browser.window
@@ -37,7 +38,6 @@ import kotlinx.coroutines.launch
 import kotlinx.html.id
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
-import org.cqfn.save.frontend.components.errorModalHandler
 
 private val scrollToTopButton = scrollToTopButton()
 
@@ -89,7 +89,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
         scope.launch {
             val headers = Headers().also { it.set("Accept", "application/json") }
             val userInfoNew: UserInfo? = get("${window.location.origin}/sec/user", headers,
-                responseHandler = ::noopResponseHandler,).run {
+                responseHandler = ::noopResponseHandler).run {
                 val responseText = text().await()
                 if (!ok || responseText == "null") null else Json.decodeFromString(responseText)
             }
@@ -201,7 +201,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                 attrs {
                                     // Since testFilePath can represent the nested path, we catch it as *
                                     path =
-                                        "/:owner/:name/history/execution/:executionId/details/:testSuiteName/:pluginName/*"
+                                            "/:owner/:name/history/execution/:executionId/details/:testSuiteName/:pluginName/*"
                                     element = buildElement {
                                         child(testExecutionDetailsView) {}
                                     }

@@ -13,6 +13,7 @@ import org.cqfn.save.frontend.externals.fontawesome.faSignInAlt
 import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
 import org.cqfn.save.frontend.utils.decodeFromJsonString
 import org.cqfn.save.frontend.utils.get
+import org.cqfn.save.frontend.utils.noopResponseHandler
 import org.cqfn.save.info.OauthProviderInfo
 import org.cqfn.save.info.UserInfo
 
@@ -40,7 +41,6 @@ import kotlinx.browser.window
 import kotlinx.coroutines.launch
 import kotlinx.html.ButtonType
 import kotlinx.js.jso
-import org.cqfn.save.frontend.utils.noopResponseHandler
 
 /**
  * [RState] of project creation view component
@@ -87,7 +87,7 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
         super.componentDidMount()
         scope.launch {
             val oauthProviderInfoList: List<OauthProviderInfo>? = get("${window.location.origin}/sec/oauth-providers", Headers(),
-                responseHandler = ::noopResponseHandler,).run {
+                responseHandler = ::noopResponseHandler).run {
                 if (ok) decodeFromJsonString() else null
             }
             oauthProviderInfoList?.let {
