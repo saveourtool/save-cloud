@@ -1,6 +1,8 @@
 package org.cqfn.save.backend.controllers
 
+import org.cqfn.save.agent.LatestExecutionStatisticDto
 import org.cqfn.save.agent.TestExecutionDto
+import org.cqfn.save.backend.security.Permission
 import org.cqfn.save.backend.service.TestExecutionService
 import org.cqfn.save.domain.TestResultLocation
 import org.cqfn.save.domain.TestResultStatus
@@ -9,6 +11,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.dao.DataAccessException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.core.Authentication
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -17,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
+import reactor.core.publisher.Mono
 
 /**
  * Controller to work with test execution
@@ -48,6 +52,30 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
         return testExecutionService.getTestExecutions(executionId, page, size, status, testSuite)
             .map { it.toDto() }
     }
+
+    /**
+     * @param executionId an ID of Execution to group TestExecutions
+     * @param status of test
+     * @param authentication
+     * @return a list of [TestExecutionDto]s
+     */
+    @GetMapping("/api/testLatestExecutions")
+    @Suppress("TYPE_ALIAS")
+    fun getTestExecutionsByStatus(
+        @RequestParam executionId: Long,
+        @RequestParam status: TestResultStatus,
+        authentication: Authentication,
+    ): Mono<List<LatestExecutionStatisticDto>> =
+            justOrNotFound(executionService.findExecution(executionId)).filterWhen {
+                projectPermissionEvaluator.checkPermissions(authentication, it, Permission.READ)
+            }.map {
+                val testList = testExecutionService.getTestExecutions(executionId)
+                testList.map { it.test.testSuite.name }.distinct()
+                    .map { suiteName ->
+                        val testListByTestSuiteName = testList.filter { it.test.testSuite.name == suiteName }
+                        LatestExecutionStatisticDto(suiteName, testListByTestSuiteName.count(), testListByTestSuiteName.count { it.status == status })
+                    }
+            }
 
     /**
      * @param agentContainerId id of agent's container

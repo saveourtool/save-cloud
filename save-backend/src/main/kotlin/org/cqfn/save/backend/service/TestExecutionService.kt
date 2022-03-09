@@ -70,6 +70,13 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
         .findByAgentContainerIdAndStatus(agentContainerId, status)
 
     /**
+     * @param executionId
+     * @return a list of test executions
+     */
+    internal fun getTestExecutions(executionId: Long) =
+            testExecutionRepository.findByExecutionId(executionId)
+
+    /**
      * Finds TestExecution by test location
      *
      * @param executionId under this executionId test has been executed
