@@ -15,6 +15,9 @@ import org.cqfn.save.orchestrator.service.AgentService
 import org.cqfn.save.orchestrator.service.DockerService
 
 import org.slf4j.LoggerFactory
+import org.springframework.context.annotation.PropertySource
+import org.springframework.scheduling.annotation.Scheduled
+import org.springframework.stereotype.Component
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
@@ -28,13 +31,9 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
-import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.PropertySource
-import org.springframework.scheduling.annotation.Scheduled
-import org.springframework.stereotype.Component
 
 private val agentsLatestHeartBeatsMap: AgentStatesWithTimeStamps = ConcurrentHashMap()
-private val crashedAgentsList: ConcurrentLinkedQueue<String> = ConcurrentLinkedQueue()
+internal val crashedAgentsList: ConcurrentLinkedQueue<String> = ConcurrentLinkedQueue()
 
 @Suppress("NonBooleanPropertyPrefixedWithIs")
 private val isHeartbeatInProgress = AtomicBoolean(false)
@@ -67,9 +66,6 @@ class HeartbeatController(private val agentService: AgentService,
     @PostMapping("/heartbeat")
     @OptIn(ExperimentalSerializationApi::class)
     fun acceptHeartbeat(@RequestBody heartbeat: Heartbeat): Mono<String> {
-        //if (isHeartbeatInProgress.compareAndSet(false, true)) {
-            //HeartBeatInspector(this, this.configProperties.heartBeatInspectorInterval).start()
-        //}
         logger.info("Got heartbeat state: ${heartbeat.state.name} from ${heartbeat.agentId}")
         updateAgentHeartbeatTimeStamps(heartbeat.agentId, heartbeat.state)
 
@@ -120,9 +116,6 @@ class HeartbeatController(private val agentService: AgentService,
      * @param state
      */
     fun updateAgentHeartbeatTimeStamps(agentId: String, state: AgentState) {
-         if (AgentState.BUSY.name in agentsLatestHeartBeatsMap.map { it.value.first } && crashedAgentsList.isEmpty()) {
-         crashedAgentsList.add(agentsLatestHeartBeatsMap.filter { it.value.first != AgentState.BUSY.name }.keys.first())
-         }
         agentsLatestHeartBeatsMap[agentId] = state.name to LocalDateTime.now()
     }
 
@@ -157,19 +150,6 @@ class HeartbeatController(private val agentService: AgentService,
             }
         } else {
             logger.warn("Crashed agents $crashedAgentsList are not stopped after stop command")
-        }
-    }
-
-    /**
-     * Sleep with caught InterruptedException
-     *
-     * @param millis
-     */
-    fun saveFromInterruptionSleep(millis: Long) {
-        try {
-            Thread.sleep(millis)
-        } catch (ex: InterruptedException) {
-            logger.warn("Exception while sleeping for $millis ms: ${ex.message}")
         }
     }
 
@@ -234,7 +214,7 @@ class HeartbeatController(private val agentService: AgentService,
 @PropertySource("classpath:application.properties")
 class HeartBeatInspector(private val heartbeatController: HeartbeatController) {
     @Scheduled(cron = "*/\${orchestrator.heartBeatInspectorInterval} * * * * ?")
-    fun run() {
+    private fun run() {
         heartbeatController.determineCrashedAgents()
         heartbeatController.processCrashedAgents()
     }

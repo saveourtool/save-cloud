@@ -8,6 +8,8 @@ import org.cqfn.save.entities.AgentStatusDto
 import org.cqfn.save.entities.AgentStatusesForExecution
 import org.cqfn.save.entities.TestSuite
 import org.cqfn.save.orchestrator.config.Beans
+import org.cqfn.save.orchestrator.controller.HeartBeatInspector
+import org.cqfn.save.orchestrator.controller.crashedAgentsList
 import org.cqfn.save.orchestrator.service.AgentService
 import org.cqfn.save.orchestrator.service.DockerService
 import org.cqfn.save.test.TestBatch
@@ -27,7 +29,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.mockito.kotlin.any
-import org.mockito.kotlin.atLeast
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
@@ -36,6 +37,7 @@ import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
+import org.springframework.scheduling.annotation.EnableScheduling
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
@@ -53,9 +55,10 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 @WebFluxTest
-@Import(Beans::class, AgentService::class)
+@Import(Beans::class, AgentService::class, HeartBeatInspector::class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+@EnableScheduling
 class HeartbeatControllerTest {
     @Autowired lateinit var webClient: WebTestClient
     @Autowired private lateinit var agentService: AgentService
@@ -227,6 +230,7 @@ class HeartbeatControllerTest {
             ),
             heartbeats = listOf(
                 Heartbeat("test-1", AgentState.STARTING, ExecutionProgress(0)),
+                Heartbeat("test-1", AgentState.BUSY, ExecutionProgress(0)),
                 Heartbeat("test-2", AgentState.BUSY, ExecutionProgress(0)),
                 Heartbeat("test-1", AgentState.BUSY, ExecutionProgress(0)),
                 Heartbeat("test-1", AgentState.BUSY, ExecutionProgress(0)),
@@ -247,8 +251,7 @@ class HeartbeatControllerTest {
             },
             mockAgentStatuses = false,
         ) {
-            // FixMe: we actually need to check the size of crashed agents list somehow
-            verify(dockerService, atLeast(1)).stopAgents(any())
+            assertTrue(crashedAgentsList.toList() == listOf("test-2"))
         }
     }
 
@@ -278,8 +281,7 @@ class HeartbeatControllerTest {
             },
             mockAgentStatuses = false,
         ) {
-            // FixMe: we actually need to check the size of crashed agents list somehow
-            verify(dockerService, atLeast(2)).stopAgents(any())
+            assertTrue(crashedAgentsList.toList() == listOf("test-1", "test-2"))
         }
     }
 
