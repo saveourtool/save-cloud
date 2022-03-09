@@ -153,7 +153,7 @@ class DownloadProjectTest(
 
         // /updateExecution
         mockServerBackend.enqueue(
-            "/updateExecution",
+            "/updateExecution$",
             MockResponse()
                 .setResponseCode(200)
         )
@@ -256,7 +256,7 @@ class DownloadProjectTest(
 
         // /updateExecution
         mockServerBackend.enqueue(
-            "/updateExecution",
+            "/updateExecution$",
             MockResponse()
                 .setResponseCode(200)
         )
@@ -422,7 +422,7 @@ class DownloadProjectTest(
 
         // /updateExecution
         mockServerBackend.enqueue(
-            "/updateExecution",
+            "/updateExecution$",
             MockResponse()
                 .setResponseCode(200)
         )
@@ -524,7 +524,7 @@ class DownloadProjectTest(
 
         // /updateExecution
         mockServerBackend.enqueue(
-            "/updateExecution",
+            "/updateExecution$",
             MockResponse()
                 .setResponseCode(200)
         )

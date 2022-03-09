@@ -19,34 +19,45 @@ class LoggingQueueDispatcher : Dispatcher() {
     private val defaultResponses: ConcurrentMap<String, MockResponse> = ConcurrentHashMap()
     private var failFastResponse: MockResponse = MockResponse().setResponseCode(HttpURLConnection.HTTP_NOT_FOUND)
 
-    private fun getMethodPath(fullPath: String?) = fullPath?.let { Regex("^/[^?]*[^/?]").find(it)?.value } ?: ""
+    private fun getProperRegexKey(path: String?, setOfRegexes: Set<String>) = path?.let {
+        setOfRegexes
+            .filter { regex -> Regex(regex).containsMatchIn(it) }
+            .also {
+                if (it.size > 1) {
+                    logger.warn("For path $path found more than one key from ResponsesMap: [$it]. Taking ${it.first()}")
+                }
+            }
+            .firstOrNull()
+            ?.also { logger.debug("Path [$path] is matched with [$it]") }
+    }
 
     @Suppress("UnsafeCallOnNullableType", "AVOID_NULL_CHECKS")
     override fun dispatch(request: RecordedRequest): MockResponse {
-        val path = getMethodPath(request.path)
-        val result = if (defaultResponses[path] != null) {
-            logger.debug("Default response [${defaultResponses[path]}] exists for path [$path].")
-            defaultResponses[path]!!
-        } else if (responses[path]?.peek() == null) {
-            logger.info("No response is present in queue with path [$path].")
+        val regexKeyForDefaultResponses = getProperRegexKey(request.path, defaultResponses.keys.toSet())
+        val regexKeyForEnqueuedResponses = getProperRegexKey(request.path, responses.keys.toSet())
+        val result = if (regexKeyForDefaultResponses != null) {
+            logger.debug("Default response [${defaultResponses[regexKeyForDefaultResponses]}] exists for path [$request.path].")
+            defaultResponses[regexKeyForDefaultResponses]!!
+        } else if (regexKeyForEnqueuedResponses == null) {
+            logger.info("No response is present in queue with path [${request.path}] that matches.")
             return failFastResponse
         } else {
-            responses[path]!!.take()
+            responses[regexKeyForEnqueuedResponses]!!.take()
         }
 
         if (result == deadLetter) {
-            responses[path]!!.add(deadLetter)
+            responses[regexKeyForEnqueuedResponses]!!.add(deadLetter)
         }
 
         return result.also { logger.info("Response [$result] was taken for request [$request].") }
     }
 
     /**
-     * @param path
+     * @param regexKey
      * @param defaultMockResponse
      */
-    fun setDefaultResponseForPath(path: String, defaultMockResponse: MockResponse) {
-        defaultResponses[path] = defaultMockResponse
+    fun setDefaultResponseForPath(regexKey: String, defaultMockResponse: MockResponse) {
+        defaultResponses[regexKey] = defaultMockResponse
     }
 
     override fun shutdown() {
@@ -59,19 +70,18 @@ class LoggingQueueDispatcher : Dispatcher() {
         ?: failFastResponse
 
     /**
-     * @param fullPath to method that should cause `response`
-     * @param response that will be added to queue that matches `fullPath`
+     * @param regexKey that matches with path to method that should cause [response]
+     * @param response that will be added to queue that matches [regexKey]
      */
-    fun enqueueResponse(fullPath: String, response: MockResponse) {
-        val path = getMethodPath(fullPath)
-        responses[path]?.let {
+    fun enqueueResponse(regexKey: String, response: MockResponse) {
+        responses[regexKey]?.let {
             it.add(response)
-            logger.info("Added [$response] into queue with path [$path]. " +
-                    "Now there are ${it.count()} responses.")
+            logger.info("Added [$response] into queue with path [$regexKey]. ")
+            logger.debug("Now there are ${it.count()} responses.")
         }
             ?: run {
-                responses[path] = LinkedBlockingQueue<MockResponse>().apply { add(response) }
-                logger.info("Added LinkedBlockingQueue for a new path [$path] and put there [$response].")
+                responses[regexKey] = LinkedBlockingQueue<MockResponse>().apply { add(response) }
+                logger.info("Added LinkedBlockingQueue for a new path [$regexKey] and put there [$response].")
             }
     }
 
@@ -82,7 +92,7 @@ class LoggingQueueDispatcher : Dispatcher() {
         responses.keys.forEach { checkQueue(it) }
     }
 
-    private fun checkQueue(path: String) = responses[getMethodPath(path)]?.peek()?.let { mockResponse ->
+    private fun checkQueue(regexKey: String) = responses[regexKey]?.peek()?.let { mockResponse ->
         val errorMessage = "There is an enqueued response in the MockServer after a test has completed." +
                 "Enqueued body: ${mockResponse.getBody()?.readString(Charset.defaultCharset())}"
         assertTrue(errorMessage, mockResponse.getBody().let { it == null || it.size == 0L })
@@ -97,13 +107,13 @@ class LoggingQueueDispatcher : Dispatcher() {
 }
 
 /**
- * @param path path to store enqueued response
+ * @param regexKey that determines which queue is to store enqueued [response]
  * @param response response to enqueue
  * @throws IllegalStateException
  */
-fun MockWebServer.enqueue(path: String, response: MockResponse) {
+fun MockWebServer.enqueue(regexKey: String, response: MockResponse) {
     if (dispatcher is LoggingQueueDispatcher) {
-        (dispatcher as LoggingQueueDispatcher).enqueueResponse(path, response.clone())
+        (dispatcher as LoggingQueueDispatcher).enqueueResponse(regexKey, response.clone())
     } else {
         throw IllegalStateException("dispatcher type should be LoggingQueueDispatcher")
     }
@@ -119,11 +129,11 @@ fun MockWebServer.checkQueues() {
 /**
  * Sets default MockResponse for certain path
  *
- * @param path
+ * @param regexKey
  * @param response
  */
-fun MockWebServer.setDefaultResponseForPath(path: String, response: MockResponse) =
-        (dispatcher as LoggingQueueDispatcher).setDefaultResponseForPath(path, response)
+fun MockWebServer.setDefaultResponseForPath(regexKey: String, response: MockResponse) =
+        (dispatcher as LoggingQueueDispatcher).setDefaultResponseForPath(regexKey, response)
 
 /**
  * Creates MockWebServer with LoggingQueueDispatcher

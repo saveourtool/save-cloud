@@ -103,7 +103,7 @@ class HeartbeatControllerTest {
 
         // /testSuite/{id}
         mockServer.enqueue(
-            "/testSuite",
+            "/testSuite/(\\d)+",
             MockResponse()
                 .setResponseCode(200)
                 .setHeader("Content-Type", "application/json")
@@ -282,7 +282,7 @@ class HeartbeatControllerTest {
         // /testSuite/{id}
         testSuite?.let {
             mockServer.enqueue(
-                "/testSuite",
+                "/testSuite/(\\d)+",
                 MockResponse()
                     .setResponseCode(200)
                     .setHeader("Content-Type", "application/json")
