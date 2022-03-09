@@ -14,13 +14,13 @@ jobs:
 
     steps:
       - name: checkout save-cloud
-        uses: actions/checkout@v2.4.0
+        uses: actions/checkout@v3
         with:
           path: save-cloud
           fetch-depth: 0
           submodules: true
       - name: checkout save-core
-        uses: actions/checkout@v2.4.0
+        uses: actions/checkout@v3
         with:
           repository: analysis-dev/save
           path: save
@@ -72,7 +72,7 @@ jobs:
             saveCliVersion=${{ env.SAVE_CLI_VERSION }}
       - name: Upload gradle reports
         if: ${{ always() }}
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: gradle-reports
           path: '**/build/reports/'

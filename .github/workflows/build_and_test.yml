@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
-      - uses: actions/checkout@v2.4.0
+      - uses: actions/checkout@v3
         with:
           # required for correct codecov upload
           fetch-depth: 0
@@ -62,13 +62,13 @@ jobs:
 
       - name: Upload gradle reports
         if: ${{ always() }}
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: gradle-reports
           path: '**/build/reports/'
           retention-days: 1
       - name: Upload frontend distribution
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: save-frontend
           path: 'save-frontend/build/libs/save-frontend-*-distribution.jar'
