@@ -1,15 +1,18 @@
 package org.cqfn.save.agent
 
 import kotlinx.serialization.Serializable
+import org.cqfn.save.domain.TestResultStatus
 
 /**
  * @property testSuiteName
  * @property countTest
- * @property countPassedTest
+ * @property countWithStatusTest
+ * @property status
  */
 @Serializable
 data class LatestExecutionStatisticDto(
     val testSuiteName: String,
     val countTest: Int,
-    val countPassedTest: Int,
+    val countWithStatusTest: Int,
+    val status: TestResultStatus,
 )

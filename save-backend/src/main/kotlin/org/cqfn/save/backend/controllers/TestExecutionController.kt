@@ -89,7 +89,7 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
                 testList.map { it.test.testSuite.name }.distinct()
                     .map { suiteName ->
                         val testListByTestSuiteName = testList.filter { it.test.testSuite.name == suiteName }
-                        LatestExecutionStatisticDto(suiteName, testListByTestSuiteName.count(), testListByTestSuiteName.count { it.status == status })
+                        LatestExecutionStatisticDto(suiteName, testListByTestSuiteName.count(), testListByTestSuiteName.count { it.status == status }, status)
                     }
             }
 

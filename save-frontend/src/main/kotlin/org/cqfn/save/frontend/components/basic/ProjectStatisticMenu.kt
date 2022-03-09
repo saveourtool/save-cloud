@@ -81,7 +81,7 @@ fun projectStatisticMenu() =
                                     }
                                 }
                             }
-                            column(id = "rate", header = "Passed test", { countPassedTest }) {
+                            column(id = "rate", header = "Passed test", { countWithStatusTest }) {
                                 buildElement {
                                     td {
                                         +"${it.value}"
