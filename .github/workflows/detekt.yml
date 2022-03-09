@@ -39,5 +39,5 @@ jobs:
           uses: actions/upload-artifact@v3
           with:
             name: sarif-reports
-            path: '*/build/reports/detekt/*.sarif'
+            path: '**/build/reports/detekt/'
             retention-days: 1
