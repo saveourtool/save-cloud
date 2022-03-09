@@ -19,7 +19,7 @@ class LoggingQueueDispatcher : Dispatcher() {
     private val defaultResponses: ConcurrentMap<String, MockResponse> = ConcurrentHashMap()
     private var failFastResponse: MockResponse = MockResponse().setResponseCode(HttpURLConnection.HTTP_NOT_FOUND)
 
-    private fun getMethodPath(fullPath: String?) = fullPath?.let { Regex("^/[^?]*[^/]").find(it)?.value } ?: ""
+    private fun getMethodPath(fullPath: String?) = fullPath?.let { Regex("^/[^?]*[^/?]").find(it)?.value } ?: ""
 
     @Suppress("UnsafeCallOnNullableType", "AVOID_NULL_CHECKS")
     override fun dispatch(request: RecordedRequest): MockResponse {
