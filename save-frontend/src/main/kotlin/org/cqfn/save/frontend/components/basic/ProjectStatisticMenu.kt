@@ -31,7 +31,7 @@ external interface ProjectStatisticMenuProps : Props {
 /**
  * @return ReactElement
  */
-@Suppress("TOO_LONG_FUNCTION", "MAGIC_NUMBER")
+@Suppress("TOO_LONG_FUNCTION", "LongMethod", "MAGIC_NUMBER")
 fun projectStatisticMenu() =
         fc<ProjectStatisticMenuProps> { props ->
 
