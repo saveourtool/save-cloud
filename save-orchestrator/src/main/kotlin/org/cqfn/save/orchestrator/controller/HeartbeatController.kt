@@ -232,15 +232,9 @@ class HeartbeatController(private val agentService: AgentService,
  */
 @Component
 @PropertySource("classpath:application.properties")
-class HeartBeatInspector(
-    private val heartbeatController: HeartbeatController,
-    val configProperties: ConfigProperties,
-) {
-    //@Scheduled(cron = "*/10 * * * * ?")
-    //@Scheduled(cron = "*/#{@'orchestrator-org.cqfn.save.orchestrator.config.ConfigProperties'.heartBeatInspectorInterval/1000} * * * * ?")
+class HeartBeatInspector(private val heartbeatController: HeartbeatController) {
     @Scheduled(cron = "*/\${orchestrator.heartBeatInspectorInterval} * * * * ?")
     fun run() {
-        println("\n\n\n============BEEEEEP=================== ${LocalDateTime.now()}")
         heartbeatController.determineCrashedAgents()
         heartbeatController.processCrashedAgents()
     }
