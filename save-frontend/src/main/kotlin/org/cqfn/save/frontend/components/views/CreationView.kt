@@ -11,6 +11,7 @@ import org.cqfn.save.entities.*
 import org.cqfn.save.frontend.components.basic.InputTypes
 import org.cqfn.save.frontend.components.basic.inputTextFormOptional
 import org.cqfn.save.frontend.components.basic.inputTextFormRequired
+import org.cqfn.save.frontend.components.errorStatusContext
 import org.cqfn.save.frontend.utils.apiUrl
 import org.cqfn.save.frontend.utils.get
 import org.cqfn.save.frontend.utils.noopResponseHandler
@@ -21,9 +22,12 @@ import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.HTMLTextAreaElement
 import org.w3c.dom.events.Event
 import org.w3c.fetch.Headers
+import react.Context
 import react.Props
 import react.RBuilder
+import react.RStatics
 import react.State
+import react.StateSetter
 import react.dom.*
 import react.setState
 
@@ -376,4 +380,10 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
             div("$blockName mt-2") {
                 +text
             }
+
+    companion object : RStatics<Props, ProjectSaveViewState, CreationView, Context<StateSetter<Int?>>>(CreationView::class) {
+        init {
+            contextType = errorStatusContext
+        }
+    }
 }

@@ -7,6 +7,7 @@
 package org.cqfn.save.frontend.components.views
 
 import org.cqfn.save.entities.benchmarks.BenchmarkCategoryEnum
+import org.cqfn.save.frontend.components.errorStatusContext
 import org.cqfn.save.frontend.externals.fontawesome.*
 import org.cqfn.save.frontend.utils.*
 import org.cqfn.save.utils.AwesomeBenchmarks
@@ -322,6 +323,12 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
             setState {
                 benchmarks = response
             }
+        }
+    }
+
+    companion object : RStatics<PropsWithChildren, AwesomeBenchmarksState, AwesomeBenchmarksView, Context<StateSetter<Int?>>>(AwesomeBenchmarksView::class) {
+        init {
+            contextType = errorStatusContext
         }
     }
 }

@@ -6,6 +6,7 @@ package org.cqfn.save.frontend.components.views
 
 import org.cqfn.save.frontend.components.basic.InputTypes
 import org.cqfn.save.frontend.components.basic.inputTextFormRequired
+import org.cqfn.save.frontend.components.errorStatusContext
 import org.cqfn.save.frontend.externals.fontawesome.faCopyright
 import org.cqfn.save.frontend.externals.fontawesome.faExternalLinkAlt
 import org.cqfn.save.frontend.externals.fontawesome.faGithub
@@ -22,9 +23,12 @@ import csstype.FontSize
 import csstype.FontWeight
 import org.w3c.fetch.Headers
 import react.CSSProperties
+import react.Context
 import react.PropsWithChildren
 import react.RBuilder
+import react.RStatics
 import react.State
+import react.StateSetter
 import react.dom.a
 import react.dom.button
 import react.dom.div
@@ -254,6 +258,12 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                 }
                 fontAwesomeIcon(icon = icon)
             }
+        }
+    }
+
+    companion object : RStatics<WelcomeProps, IndexViewState, WelcomeView, Context<StateSetter<Int?>>>(WelcomeView::class) {
+        init {
+            contextType = errorStatusContext
         }
     }
 }

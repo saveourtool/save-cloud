@@ -25,11 +25,10 @@ private val defaultModalStyle = Styles(
 
 /**
  * @param handler builder for modal component
- * @return a `ReactElement`
  */
 fun RBuilder.modal(
     handler: RHandler<ModalProps>
-) = child(ReactModal::class) {
+): Unit = child(ReactModal::class) {
     attrs {
         style = defaultModalStyle
         shouldCloseOnOverlayClick = true
@@ -39,11 +38,10 @@ fun RBuilder.modal(
 
 /**
  * @param block
- * @return
  */
 fun ChildrenBuilder.modal(
     block: @ReactDsl ChildrenBuilder.(ModalProps) -> Unit,
-) = ReactModal::class.react.unsafeCast<IntrinsicType<ModalProps>>().invoke {
+): Unit = ReactModal::class.react.unsafeCast<IntrinsicType<ModalProps>>().invoke {
     style = defaultModalStyle
     shouldCloseOnOverlayClick = true
     block.invoke(this, this)
