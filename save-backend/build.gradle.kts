@@ -37,6 +37,7 @@ dependencies {
     implementation(libs.spring.security.core)
     implementation(libs.hibernate.micrometer)
     testImplementation(libs.spring.security.test)
+    testImplementation(projects.testUtils)
 }
 
 configureJacoco()
