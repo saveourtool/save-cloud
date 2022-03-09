@@ -26,7 +26,6 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.boot.test.context.SpringBootTest
@@ -244,7 +243,6 @@ class ExecutionControllerTest {
     }
 
     companion object {
-        private val logger = LoggerFactory.getLogger(ExecutionControllerTest::class.java)
         @JvmStatic lateinit var mockServerPreprocessor: MockWebServer
 
         @AfterAll
@@ -256,7 +254,7 @@ class ExecutionControllerTest {
         @DynamicPropertySource
         @JvmStatic
         fun properties(registry: DynamicPropertyRegistry) {
-            mockServerPreprocessor = createMockWebServer(logger)
+            mockServerPreprocessor = createMockWebServer()
             mockServerPreprocessor.start()
             registry.add("backend.preprocessorUrl") { "http://localhost:${mockServerPreprocessor.port}" }
         }

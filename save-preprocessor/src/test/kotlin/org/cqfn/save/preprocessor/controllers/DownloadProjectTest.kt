@@ -591,9 +591,9 @@ class DownloadProjectTest(
         @DynamicPropertySource
         @JvmStatic
         fun properties(registry: DynamicPropertyRegistry) {
-            mockServerBackend = createMockWebServer(logger)
+            mockServerBackend = createMockWebServer()
             mockServerBackend.start()
-            mockServerOrchestrator = createMockWebServer(logger)
+            mockServerOrchestrator = createMockWebServer()
             mockServerOrchestrator.start()
             registry.add("save.backend") { "http://localhost:${mockServerBackend.port}" }
             registry.add("save.orchestrator") { "http://localhost:${mockServerOrchestrator.port}" }

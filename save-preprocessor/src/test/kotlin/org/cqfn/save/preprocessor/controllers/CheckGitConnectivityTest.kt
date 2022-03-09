@@ -16,7 +16,6 @@ import org.junit.jupiter.api.TestInstance
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
@@ -75,8 +74,6 @@ class CheckGitConnectivityTest(
     }
 
     companion object {
-        private val logger = LoggerFactory.getLogger(CheckGitConnectivityTest::class.java)
-
         @JvmStatic
         lateinit var mockServerBackend: MockWebServer
 
@@ -94,9 +91,9 @@ class CheckGitConnectivityTest(
         @DynamicPropertySource
         @JvmStatic
         fun properties(registry: DynamicPropertyRegistry) {
-            mockServerBackend = createMockWebServer(logger)
+            mockServerBackend = createMockWebServer()
             mockServerBackend.start()
-            mockServerOrchestrator = createMockWebServer(logger)
+            mockServerOrchestrator = createMockWebServer()
             mockServerOrchestrator.start()
             registry.add("save.backend") { "http://localhost:${mockServerBackend.port}" }
             registry.add("save.orchestrator") { "http://localhost:${mockServerOrchestrator.port}" }

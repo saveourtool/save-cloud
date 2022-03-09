@@ -4,7 +4,7 @@ package org.cqfn.save.testutils
 
 import okhttp3.mockwebserver.*
 import org.junit.Assert.assertTrue
-import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.net.HttpURLConnection
 import java.nio.charset.Charset
 import java.util.concurrent.*
@@ -13,21 +13,19 @@ private typealias ResponsesMap = ConcurrentMap<String, BlockingQueue<MockRespons
 
 /**
  * Queue dispatcher with additional logging
- *
- * @param logger
  */
-class LoggingQueueDispatcher(private val logger: Logger) : Dispatcher() {
+class LoggingQueueDispatcher : Dispatcher() {
     private val responses: ResponsesMap = ConcurrentHashMap()
     private val defaultResponses: ConcurrentMap<String, MockResponse> = ConcurrentHashMap()
     private var failFastResponse: MockResponse = MockResponse().setResponseCode(HttpURLConnection.HTTP_NOT_FOUND)
 
-    private fun getMethodPath(fullPath: String?) = fullPath?.let { Regex("/[\\w]*").find(it)?.value } ?: ""
+    private fun getMethodPath(fullPath: String?) = fullPath?.let { Regex("^/[^?]*[^/]").find(it)?.value } ?: ""
 
     @Suppress("UnsafeCallOnNullableType", "AVOID_NULL_CHECKS")
     override fun dispatch(request: RecordedRequest): MockResponse {
         val path = getMethodPath(request.path)
         val result = if (defaultResponses[path] != null) {
-            logger.info("Default response [${defaultResponses[path]}] exists for path [$path].")
+            logger.debug("Default response [${defaultResponses[path]}] exists for path [$path].")
             defaultResponses[path]!!
         } else if (responses[path]?.peek() == null) {
             logger.info("No response is present in queue with path [$path].")
@@ -91,6 +89,7 @@ class LoggingQueueDispatcher(private val logger: Logger) : Dispatcher() {
     }
 
     companion object {
+        private val logger = LoggerFactory.getLogger(LoggingQueueDispatcher::class.java)
         private val deadLetter = MockResponse().apply {
             this.status = "HTTP/1.1 ${HttpURLConnection.HTTP_UNAVAILABLE} shutting down"
         }
@@ -100,13 +99,13 @@ class LoggingQueueDispatcher(private val logger: Logger) : Dispatcher() {
 /**
  * @param path path to store enqueued response
  * @param response response to enqueue
- * @throws ClassCastException
+ * @throws IllegalStateException
  */
 fun MockWebServer.enqueue(path: String, response: MockResponse) {
     if (dispatcher is LoggingQueueDispatcher) {
         (dispatcher as LoggingQueueDispatcher).enqueueResponse(path, response.clone())
     } else {
-        throw ClassCastException("dispatcher type should be LoggingQueueDispatcher")
+        throw IllegalStateException("dispatcher type should be LoggingQueueDispatcher")
     }
 }
 
@@ -129,9 +128,8 @@ fun MockWebServer.setDefaultResponseForPath(path: String, response: MockResponse
 /**
  * Creates MockWebServer with LoggingQueueDispatcher
  *
- * @param logger logger with which additional debug info is passed
  * @return MockWebServer used for testing
  */
-fun createMockWebServer(logger: Logger) = MockWebServer().apply {
-    dispatcher = LoggingQueueDispatcher(logger)
+fun createMockWebServer() = MockWebServer().apply {
+    dispatcher = LoggingQueueDispatcher()
 }

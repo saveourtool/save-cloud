@@ -33,7 +33,6 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
 import org.springframework.boot.test.mock.mockito.MockBean
@@ -332,8 +331,6 @@ class HeartbeatControllerTest {
     }
 
     companion object {
-        private val logger = LoggerFactory.getLogger(HeartbeatControllerTest::class.java)
-
         @JvmStatic
         private lateinit var mockServer: MockWebServer
 
@@ -346,7 +343,7 @@ class HeartbeatControllerTest {
         @JvmStatic
         fun properties(registry: DynamicPropertyRegistry) {
             // todo: should be initialized in @BeforeAll, but it gets called after @DynamicPropertySource
-            mockServer = createMockWebServer(logger)
+            mockServer = createMockWebServer()
             mockServer.setDefaultResponseForPath("/testExecution", MockResponse().setResponseCode(200))
             mockServer.setDefaultResponseForPath("/updateAgentStatusesWithDto", MockResponse().setResponseCode(200))
             mockServer.start()

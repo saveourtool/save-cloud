@@ -23,7 +23,6 @@ import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import org.quartz.Scheduler
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.boot.test.context.SpringBootTest
@@ -214,7 +213,6 @@ class TestSuitesControllerTest {
     }
 
     companion object {
-        private val logger = LoggerFactory.getLogger(TestSuitesControllerTest::class.java)
         @JvmStatic lateinit var mockServerPreprocessor: MockWebServer
 
         @AfterAll
@@ -226,7 +224,7 @@ class TestSuitesControllerTest {
         @DynamicPropertySource
         @JvmStatic
         fun properties(registry: DynamicPropertyRegistry) {
-            mockServerPreprocessor = createMockWebServer(logger)
+            mockServerPreprocessor = createMockWebServer()
             mockServerPreprocessor.start()
             registry.add("backend.preprocessorUrl") { "http://localhost:${mockServerPreprocessor.port}" }
         }

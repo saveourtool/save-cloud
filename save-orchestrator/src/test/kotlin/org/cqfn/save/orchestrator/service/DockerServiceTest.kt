@@ -104,7 +104,7 @@ class DockerServiceTest {
         private val logger = LoggerFactory.getLogger(DockerServiceTest::class.java)
 
         @JvmStatic
-        private val mockServer = createMockWebServer(logger)
+        private val mockServer = createMockWebServer()
 
         @OptIn(ExperimentalPathApi::class)
         @JvmStatic

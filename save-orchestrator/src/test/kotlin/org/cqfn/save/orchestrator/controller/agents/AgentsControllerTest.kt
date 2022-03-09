@@ -25,7 +25,6 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
 import org.springframework.boot.test.mock.mockito.MockBean
@@ -198,8 +197,6 @@ class AgentsControllerTest {
     }
 
     companion object {
-        private val logger = LoggerFactory.getLogger(AgentsControllerTest::class.java)
-
         @OptIn(ExperimentalPathApi::class)
         private val volume: String by lazy {
             createTempDirectory("executionLogs").toAbsolutePath().toString()
@@ -218,7 +215,7 @@ class AgentsControllerTest {
         @JvmStatic
         fun properties(registry: DynamicPropertyRegistry) {
             // todo: should be initialized in @BeforeAll, but it gets called after @DynamicPropertySource
-            mockServer = createMockWebServer(logger)
+            mockServer = createMockWebServer()
             mockServer.start()
             registry.add("orchestrator.backendUrl") { "http://localhost:${mockServer.port}" }
             registry.add("orchestrator.executionLogs") { volume }

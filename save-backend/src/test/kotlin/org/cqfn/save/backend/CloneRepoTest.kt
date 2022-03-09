@@ -23,7 +23,6 @@ import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.boot.test.context.SpringBootTest
@@ -129,7 +128,6 @@ class CloneRepoTest {
     }
 
     companion object {
-        private val logger = LoggerFactory.getLogger(CloneRepoTest::class.java)
         @JvmStatic lateinit var mockServerPreprocessor: MockWebServer
 
         @AfterAll
@@ -141,7 +139,7 @@ class CloneRepoTest {
         @DynamicPropertySource
         @JvmStatic
         fun properties(registry: DynamicPropertyRegistry) {
-            mockServerPreprocessor = createMockWebServer(logger)
+            mockServerPreprocessor = createMockWebServer()
             mockServerPreprocessor.start()
             registry.add("backend.preprocessorUrl") { "http://localhost:${mockServerPreprocessor.port}" }
         }

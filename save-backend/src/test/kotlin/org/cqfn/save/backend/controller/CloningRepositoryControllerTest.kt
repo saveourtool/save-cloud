@@ -29,7 +29,6 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.whenever
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
@@ -179,7 +178,6 @@ class CloningRepositoryControllerTest {
     }
 
     companion object {
-        private val logger = LoggerFactory.getLogger(CloningRepositoryControllerTest::class.java)
         @JvmStatic lateinit var mockServerPreprocessor: MockWebServer
 
         @AfterAll
@@ -191,7 +189,7 @@ class CloningRepositoryControllerTest {
         @DynamicPropertySource
         @JvmStatic
         fun properties(registry: DynamicPropertyRegistry) {
-            mockServerPreprocessor = createMockWebServer(logger)
+            mockServerPreprocessor = createMockWebServer()
             mockServerPreprocessor.start()
             registry.add("backend.preprocessorUrl") { "http://localhost:${mockServerPreprocessor.port}" }
         }
