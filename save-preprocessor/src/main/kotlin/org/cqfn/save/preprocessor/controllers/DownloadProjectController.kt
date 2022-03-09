@@ -26,19 +26,20 @@ import org.cqfn.save.testsuite.TestSuiteDto
 import org.cqfn.save.testsuite.TestSuiteType
 import org.cqfn.save.utils.moveFileWithAttributes
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import okio.FileSystem
-import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.api.errors.GitAPIException
 import org.eclipse.jgit.api.errors.InvalidRemoteException
-import org.eclipse.jgit.api.errors.RefNotFoundException
 import org.eclipse.jgit.api.errors.TransportException
 import org.slf4j.LoggerFactory
+import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
 import org.springframework.core.io.ClassPathResource
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ReactiveHttpOutputMessage
 import org.springframework.http.ResponseEntity
 import org.springframework.http.client.MultipartBodyBuilder
+import org.springframework.http.codec.json.Jackson2JsonEncoder
 import org.springframework.http.codec.multipart.FilePart
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -81,10 +82,18 @@ typealias Status = Mono<ResponseEntity<HttpStatus>>
 class DownloadProjectController(
     private val configProperties: ConfigProperties,
     private val testDiscoveringService: TestDiscoveringService,
+    objectMapper: ObjectMapper,
+    kotlinSerializationWebClientCustomizer: WebClientCustomizer,
 ) {
     private val log = LoggerFactory.getLogger(DownloadProjectController::class.java)
-    private val webClientBackend = WebClient.create(configProperties.backend)
-    private val webClientOrchestrator = WebClient.create(configProperties.orchestrator)
+    private val webClientBackend = WebClient.builder().baseUrl(configProperties.backend)
+        .apply(kotlinSerializationWebClientCustomizer::customize)
+        .build()
+    private val webClientOrchestrator = WebClient.builder().baseUrl(configProperties.orchestrator).codecs {
+        it.defaultCodecs().multipartCodecs().encoder(Jackson2JsonEncoder(objectMapper))
+    }
+        .apply(kotlinSerializationWebClientCustomizer::customize)
+        .build()
     private val scheduler = Schedulers.boundedElastic()
 
     /**
@@ -227,16 +236,14 @@ class DownloadProjectController(
             Flux.fromIterable(readStandardTestSuitesFile(configProperties.reposFileName)).flatMap { testSuiteRepoInfo ->
                 val testSuiteUrl = testSuiteRepoInfo.gitUrl
                 log.info("Starting clone repository url=$testSuiteUrl for standard test suites")
-                val tmpDir = generateDirectory(listOf(testSuiteUrl), configProperties.repository)
+                val tmpDir = generateDirectory(listOf(testSuiteUrl), configProperties.repository, deleteExisting = false)
                 Mono.fromCallable {
                     if (user != null && token != null) {
-                        cloneFromGit(GitDto(url = testSuiteUrl, username = user, password = token), tmpDir)
+                        pullOrCloneProjectWithSpecificBranch(GitDto(url = testSuiteUrl, username = user, password = token), tmpDir, testSuiteRepoInfo.gitBranchOrCommit)
                     } else {
-                        cloneFromGit(GitDto(testSuiteUrl), tmpDir)
+                        pullOrCloneProjectWithSpecificBranch(GitDto(testSuiteUrl), tmpDir, testSuiteRepoInfo.gitBranchOrCommit)
                     }
-                        ?.use { git ->
-                            switchBranch(git, testSuiteUrl, branchOrCommit = testSuiteRepoInfo.gitBranchOrCommit)
-                        }
+                        ?.use { /* noop here, just need to close Git object */ }
                 }
                     .flatMapMany { Flux.fromIterable(testSuiteRepoInfo.testSuitePaths) }
                     .flatMap { testRootPath ->
@@ -297,13 +304,9 @@ class DownloadProjectController(
     )
     private fun downLoadRepository(executionRequest: ExecutionRequest): Mono<Pair<String, String>> {
         val gitDto = executionRequest.gitDto
-        val tmpDir = generateDirectory(listOf(gitDto.url), configProperties.repository)
+        val tmpDir = generateDirectory(listOf(gitDto.url), configProperties.repository, deleteExisting = false)
         return Mono.fromCallable {
-            cloneFromGit(gitDto, tmpDir)?.use { git ->
-                val branchOrCommit = gitDto.branch ?: gitDto.hash
-                if (branchOrCommit != null && branchOrCommit.isNotBlank()) {
-                    switchBranch(git, gitDto.url, branchOrCommit)
-                }
+            pullOrCloneProjectWithSpecificBranch(gitDto, tmpDir, branchOrCommit = gitDto.branch ?: gitDto.hash)?.use { git ->
                 val version = git.log().call().first()
                     .name
                 log.info("Cloned repository ${gitDto.url}, head is at $version")
@@ -324,21 +327,12 @@ class DownloadProjectController(
             }
     }
 
-    // Notice: branches should contain explicit `origin/` prefix
-    private fun switchBranch(git: Git, repoUrl: String, branchOrCommit: String) {
-        log.debug("For $repoUrl switching to the $branchOrCommit")
-        try {
-            git.checkout().setName(branchOrCommit).call()
-        } catch (ex: RefNotFoundException) {
-            log.warn("Provided branch/commit $branchOrCommit wasn't found, will use default branch")
-        }
-    }
-
     @Suppress("TOO_LONG_FUNCTION")
     private fun saveBinaryFile(
         executionRequestForStandardSuites: ExecutionRequestForStandardSuites,
         files: List<File>,
     ): Mono<StatusResponse> {
+        // Move files into local storage
         val tmpDir = generateDirectory(calculateTmpNameForFiles(files), configProperties.repository)
         files.forEach {
             log.debug("Move $it into $tmpDir")
@@ -616,11 +610,11 @@ class DownloadProjectController(
         testSuiteDtos: List<TestSuiteDto>?
     ): Status {
         val bodyBuilder = MultipartBodyBuilder().apply {
-            part("execution", execution)
+            part("execution", execution, MediaType.APPLICATION_JSON)
         }
 
         testSuiteDtos?.let {
-            bodyBuilder.part("testSuiteDtos", testSuiteDtos)
+            bodyBuilder.part("testSuiteDtos", testSuiteDtos, MediaType.APPLICATION_JSON)
         }
 
         return webClientOrchestrator

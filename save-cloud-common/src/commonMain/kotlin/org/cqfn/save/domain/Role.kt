@@ -5,9 +5,19 @@ package org.cqfn.save.domain
  */
 enum class Role {
     /**
-     * Superuser, that has access to everything
+     * admin in organization
      */
     ADMIN,
+
+    /**
+     * User that has created this project
+     */
+    OWNER,
+
+    /**
+     * Superuser, that has access to everything
+     */
+    SUPER_ADMIN,
 
     /**
      * Has readonly access to public projects.

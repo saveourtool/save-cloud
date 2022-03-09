@@ -2,9 +2,12 @@ package org.cqfn.save.backend
 
 import org.cqfn.save.backend.controllers.ProjectController
 import org.cqfn.save.backend.repository.ExecutionRepository
+import org.cqfn.save.backend.repository.OrganizationRepository
 import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.scheduling.StandardSuitesUpdateScheduler
+import org.cqfn.save.backend.utils.AuthenticationDetails
 import org.cqfn.save.backend.utils.MySqlExtension
+import org.cqfn.save.backend.utils.mutateMockedUser
 import org.cqfn.save.domain.Jdk
 import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.GitDto
@@ -48,9 +51,16 @@ class CloneRepoTest {
     @Autowired
     private lateinit var executionRepository: ExecutionRepository
 
+    @Autowired
+    private lateinit var organizationRepository: OrganizationRepository
+
     @Test
-    @WithMockUser(username = "John Doe")
+    @WithMockUser(username = "admin")
     fun checkSaveProject() {
+        mutateMockedUser {
+            details = AuthenticationDetails(id = 1)
+        }
+
         val sdk = Jdk("8")
         mockServerPreprocessor.enqueue(
             MockResponse()
@@ -75,7 +85,7 @@ class CloneRepoTest {
         Assertions.assertTrue(
             executionRepository.findAll().any {
                 it.project.name == project.name &&
-                        it.project.owner == project.owner &&
+                        it.project.organization == project.organization &&
                         it.type == ExecutionType.GIT &&
                         it.sdk == sdk.toString()
             }
@@ -83,10 +93,15 @@ class CloneRepoTest {
     }
 
     @Test
-    @WithMockUser(username = "John Doe")
+    @WithMockUser(username = "admin")
     fun checkNonExistingProject() {
+        mutateMockedUser {
+            details = AuthenticationDetails(id = 1)
+        }
+
         val sdk = Jdk("11")
-        val project = Project.stub(null)
+        val organization = organizationRepository.getOrganizationById(1)
+        val project = Project.stub(null, organization)
         val gitRepo = GitDto("1")
         val executionRequest = ExecutionRequest(project, gitRepo, executionId = null, sdk = sdk, testRootPath = ".")
         val executionsClones = listOf(executionRequest, executionRequest, executionRequest)

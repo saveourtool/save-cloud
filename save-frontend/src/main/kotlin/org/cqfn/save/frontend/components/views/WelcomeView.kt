@@ -37,9 +37,9 @@ import react.dom.span
 import react.setState
 
 import kotlinx.browser.window
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.html.ButtonType
+import kotlinx.js.jso
 
 /**
  * [RState] of project creation view component
@@ -84,7 +84,7 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
 
     override fun componentDidMount() {
         super.componentDidMount()
-        GlobalScope.launch {
+        scope.launch {
             val oauthProviderInfoList: List<OauthProviderInfo>? = get("${window.location.origin}/sec/oauth-providers", Headers()).run {
                 if (ok) decodeFromJsonString() else null
             }
@@ -179,8 +179,10 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                     }
                 }
 
-                p("mt-4 text-sm text-center") {
-                    +"Don't have an account?"
+                div("mt-4 text-sm text-center") {
+                    p("mb-0") {
+                        +"Don't have an account?"
+                    }
 
                     p("text-sm text-center") {
                         a(classes = "text-info text-gradient font-weight-bold ml-2 mr-2") {
@@ -225,7 +227,7 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
 
     private fun RBuilder.h1Bold(str: String) = h1 {
         +str
-        attrs["style"] = kotlinext.js.jso<CSSProperties> {
+        attrs["style"] = jso<CSSProperties> {
             fontWeight = "bold".unsafeCast<FontWeight>()
             display = Display.inline
             fontSize = "4.5rem".unsafeCast<FontSize>()
@@ -234,7 +236,7 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
 
     private fun RBuilder.h1Normal(str: String) = h1 {
         +str
-        attrs["style"] = kotlinext.js.jso<CSSProperties> {
+        attrs["style"] = jso<CSSProperties> {
             display = Display.inline
         }
     }
@@ -245,7 +247,7 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                 href = provider.authorizationLink,
                 classes = "btn btn-link px-3 text-white text-lg text-center"
             ) {
-                attrs["style"] = kotlinext.js.jso<CSSProperties> {
+                attrs["style"] = jso<CSSProperties> {
                     fontSize = "3.2rem".unsafeCast<FontSize>()
                 }
                 fontAwesomeIcon(icon = icon)

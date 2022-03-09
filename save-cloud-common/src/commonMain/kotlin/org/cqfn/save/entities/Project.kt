@@ -5,19 +5,17 @@ import org.cqfn.save.utils.EnumType
 import kotlinx.serialization.Serializable
 
 /**
- * @property owner
  * @property name
  * @property url
  * @property description description of the project, may be absent
  * @property status status of project
  * @property public
  * @property userId the user that has created this project. No automatic mapping, because Hibernate is not available in common code.
- * @property adminIds comma-separated list of IDs of users that are admins of this project
+ * @property organization
  */
 @Entity
 @Serializable
 data class Project(
-    var owner: String,
     var name: String,
     var url: String?,
     var description: String?,
@@ -25,7 +23,20 @@ data class Project(
     var status: ProjectStatus,
     var public: Boolean = true,
     var userId: Long? = null,
-    var adminIds: String? = null,
+
+    @ManyToOne
+    @JoinColumn(
+        name = "organization_id",
+        table = "",
+        foreignKey = ForeignKey(),
+        referencedColumnName = "",
+        unique = false,
+        nullable = true,
+        insertable = true,
+        updatable = true,
+        columnDefinition = "",
+    )
+    var organization: Organization,
 ) {
     /**
      * id of project
@@ -34,28 +45,26 @@ data class Project(
     @GeneratedValue
     var id: Long? = null
 
-    /**
-     * @return [adminIds] as a list of numbers
-     */
-    fun adminIdList() = adminIds?.split(",")?.map { it.toLong() } ?: emptyList()
-
     companion object {
         /**
          * Create a stub for testing. Since all fields are mutable, only required ones can be set after calling this method.
          *
          * @param id id of created project
+         * @param organization
          * @return a project
          */
-        fun stub(id: Long?) = Project(
+        fun stub(id: Long?,
+                 organization: Organization = Organization("stub", null, null, null)
+        ) = Project(
             name = "stub",
-            owner = "stub",
             url = null,
             description = null,
             status = ProjectStatus.CREATED,
             userId = -1,
-            adminIds = null,
+            organization = Organization("stub", null, null, null),
         ).apply {
             this.id = id
+            this.organization = organization
         }
     }
 }

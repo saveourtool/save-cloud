@@ -6,42 +6,46 @@ okio = "3.0.0"
 serialization = "1.3.2"
 kotlinx-datetime = "0.3.2"
 kotlinx-coroutines = "1.6.0"
-kotlin-wrappers = "0.0.1-pre.290-kotlin-1.6.10"
-spring-boot = "2.6.2"
-spring-security = "5.6.1"
-spring-cloud = "3.1.0"
+kotlin-wrappers = "0.0.1-pre.309-kotlin-1.6.10"
+spring-boot = "2.6.4"
+spring-security = "5.6.2"
+spring-cloud = "3.1.1"
 junit = "5.8.2"
 kotlinpoet = "1.10.2"
-diktat = "1.0.1"
+diktat = "1.0.3"
 detekt = "1.19.0"
-liquibase-core = "4.7.0"
-docker-java = "3.2.12"
+liquibase-core = "4.8.0"
+docker-java = "3.2.13"
 jgit = "6.0.0.202111291000-r"
 reactor = "1.1.5"
 jackson = "2.13.1"
 mockito-kotlin = "4.0.0"
-slf4j = "1.7.33"
+slf4j = "1.7.36"
 logback = "1.2.10"
-micrometer = "1.8.2"
+micrometer = "1.8.3"
 jpa = "1.0.2"
-hibernate = "5.6.3.Final"
-mySql = "8.0.27"
-testcontainers = "1.16.2"
+hibernate = "5.6.5.Final"
+mySql = "8.0.28"
+testcontainers = "1.16.3"
 okhttp3 = "4.9.3"
-reckon = "0.13.1"
+reckon = "0.16.1"
 commons-compress = "1.21"
-picocli = "4.6.2"
+picocli = "4.6.3"
 zip4j = "2.9.1"
-ktoml = "0.2.9"
+ktoml = "0.2.11"
+springdoc = "1.6.6"
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-js = { id = "org.jetbrains.kotlin.js", version.ref = "kotlin" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlin-plugin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 kotlin-plugin-jpa = { id = "org.jetbrains.kotlin.plugin.jpa", version.ref = "kotlin" }
+kotlin-plugin-allopen = { id = "org.jetbrains.kotlin.plugin.allopen", version.ref = "kotlin" }
 diktat = { id = "org.cqfn.diktat.diktat-gradle-plugin", version.ref = "diktat" }
 liquibase-gradle = { id = "org.liquibase.gradle", version = "2.1.1" }
 talaiot-base = { id = "com.cdsap.talaiot.plugin.base", version = "1.4.2" }
+download = { id = "de.undercouch.download", version = "5.0.1" }
 
 [libraries]
 save-common = { module = "org.cqfn.save:save-common", version.ref = "save-core" }
@@ -83,6 +87,11 @@ spring-cloud-starter-gateway = { module = "org.springframework.cloud:spring-clou
 spring-boot-starter-oauth2-client = { module = "org.springframework.boot:spring-boot-starter-oauth2-client", version.ref = "spring-boot" }
 jackson-module-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "jackson" }
 
+springdoc-openapi-webflux-ui = { module = "org.springdoc:springdoc-openapi-webflux-ui", version.ref = "springdoc" }
+springdoc-openapi-security = { module = "org.springdoc:springdoc-openapi-security", version.ref = "springdoc" }
+springdoc-openapi-kotlin = { module = "org.springdoc:springdoc-openapi-kotlin", version.ref = "springdoc" }
+swagger-annotations = { module = "io.swagger.core.v3:swagger-annotations", version = "2.1.12" }
+
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 ktor-client-curl = { module = "io.ktor:ktor-client-curl", version.ref = "ktor" }
 ktor-client-serialization = { module = "io.ktor:ktor-client-serialization", version.ref = "ktor" }
@@ -91,6 +100,7 @@ ktor-client-mock = { module = "io.ktor:ktor-client-mock", version.ref = "ktor" }
 # database
 hibernate-jpa21-api = { module = "org.hibernate.javax.persistence:hibernate-jpa-2.1-api", version.ref = "jpa" }
 hibernate-core = { module = "org.hibernate:hibernate-core", version.ref = "hibernate" }
+hibernate-micrometer = { module = "org.hibernate:hibernate-micrometer", version.ref = "hibernate" }
 liquibase-core = { module = "org.liquibase:liquibase-core", version.ref = "liquibase-core" }
 mysql-connector-java = { module = "mysql:mysql-connector-java", version.ref = "mySql" }
 

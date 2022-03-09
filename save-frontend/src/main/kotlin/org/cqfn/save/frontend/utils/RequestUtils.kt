@@ -4,6 +4,7 @@
 
 package org.cqfn.save.frontend.utils
 
+import org.cqfn.save.entities.Organization
 import org.cqfn.save.entities.Project
 
 import org.w3c.fetch.Headers
@@ -91,11 +92,21 @@ suspend fun request(url: String,
 
 /**
  * @param name
- * @param owner
+ * @param organizationName
  * @return project
  */
-suspend fun getProject(name: String, owner: String) =
-        get("$apiUrl/projects/get?name=$name&owner=$owner", Headers().apply {
+suspend fun getProject(name: String, organizationName: String) =
+        get("$apiUrl/projects/get/organization-name?name=$name&organizationName=$organizationName", Headers().apply {
             set("Accept", "application/json")
         })
             .decodeFromJsonString<Project>()
+
+/**
+ * @param name organization name
+ * @return organization
+ */
+suspend fun getOrganization(name: String) =
+        get("$apiUrl/organization/get/organization-name?name=$name", Headers().apply {
+            set("Accept", "application/json")
+        })
+            .decodeFromJsonString<Organization>()

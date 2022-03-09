@@ -54,23 +54,43 @@ inline fun <reified T> decodeFromPropertiesFile(file: File): T {
  *
  * @param seeds a list of strings for directory name creation
  * @param repository name of the repository used for the creation of tmp dir
+ * @param deleteExisting whether to delete existing directory
+ * @return a [File] representing the created temporary directory
+ */
+internal fun generateDirectory(seeds: List<String>, repository: String, deleteExisting: Boolean = true): File {
+    val tmpDir = getTmpDirName(seeds, repository)
+    log.info("For $seeds: starting generate directory $tmpDir")
+    if (tmpDir.exists() && deleteExisting) {
+        deleteDirectory(tmpDir)
+    } else if (tmpDir.exists() && !deleteExisting) {
+        log.info("Directory $tmpDir already exists and delete strategy wasn't provided, won't perform any actions")
+        return tmpDir
+    }
+    return generateDirectory(tmpDir)
+}
+
+/**
+ * @param tmpDir directory which need to be deleted
+ */
+internal fun deleteDirectory(tmpDir: File) {
+    try {
+        if (FileSystemUtils.deleteRecursively(tmpDir.toPath())) {
+            log.debug("Dir $tmpDir was deleted")
+        }
+    } catch (e: IOException) {
+        log.error("Couldn't properly delete $tmpDir", e)
+    }
+}
+
+/**
+ * @param tmpDir directory which need to be created
  * @return a [File] representing the created temporary directory
  */
 @Suppress("TooGenericExceptionCaught")
-internal fun generateDirectory(seeds: List<String>, repository: String): File {
-    val tmpDir = getTmpDirName(seeds, repository)
-    if (tmpDir.exists()) {
-        try {
-            if (FileSystemUtils.deleteRecursively(tmpDir.toPath())) {
-                log.info("For $seeds: dir $tmpDir was deleted")
-            }
-        } catch (e: IOException) {
-            log.error("Couldn't properly delete $tmpDir", e)
-        }
-    }
+internal fun generateDirectory(tmpDir: File): File {
     try {
         tmpDir.toPath().createDirectories()
-        log.info("For $seeds: dir $tmpDir was created")
+        log.debug("Dir $tmpDir was created")
     } catch (e: Exception) {
         log.error("Couldn't create directories for $tmpDir", e)
     }

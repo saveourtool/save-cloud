@@ -9,7 +9,6 @@ package org.cqfn.save.frontend.components.tables
 import org.cqfn.save.frontend.components.modal.errorModal
 import org.cqfn.save.frontend.utils.spread
 
-import kotlinext.js.jso
 import react.PropsWithChildren
 import react.RBuilder
 import react.dom.RDOMBuilder
@@ -37,11 +36,15 @@ import react.useMemo
 import react.useState
 
 import kotlin.js.json
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.html.THEAD
+import kotlinx.js.jso
 
 /**
  * [RProps] of a data table
@@ -101,6 +104,7 @@ fun <D : Any> tableComponent(
     val (pageIndex, setPageIndex) = useState(0)
     val (isModalOpen, setIsModalOpen) = useState(false)
     val (dataAccessException, setDataAccessException) = useState<Exception?>(null)
+    val scope = CoroutineScope(Dispatchers.Default)
 
     val tableInstance: TableInstance<D> = useTable(options = jso {
         this.columns = useMemo { columns }
@@ -118,11 +122,9 @@ fun <D : Any> tableComponent(
 
     useEffect(arrayOf<dynamic>(tableInstance.state.pageSize, pageCount)) {
         if (useServerPaging) {
-            val pageCountDeferred = GlobalScope.async {
-                getPageCount!!.invoke(tableInstance.state.pageSize)
-            }
-            pageCountDeferred.invokeOnCompletion {
-                setPageCount(pageCountDeferred.getCompleted())
+            scope.launch {
+                val newPageCount = getPageCount!!.invoke(tableInstance.state.pageSize)
+                setPageCount(newPageCount)
             }
         }
     }
@@ -135,12 +137,20 @@ fun <D : Any> tableComponent(
         emptyArray()
     }
     useEffect(*dependencies) {
-        GlobalScope.launch {
+        scope.launch {
             try {
                 setData(getData(tableInstance.state.pageIndex, tableInstance.state.pageSize))
+            } catch (e: CancellationException) {
+                // this means, that view is re-rendering while network request was still in progress
+                // no need to display an error message in this case
             } catch (e: Exception) {
                 setIsModalOpen(true)
                 setDataAccessException(e)
+            }
+        }
+        cleanup {
+            if (scope.isActive) {
+                scope.cancel()
             }
         }
     }

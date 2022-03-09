@@ -7,10 +7,7 @@
 
 package org.cqfn.save.frontend.components.views
 
-import org.cqfn.save.entities.GitDto
-import org.cqfn.save.entities.NewProjectDto
-import org.cqfn.save.entities.Project
-import org.cqfn.save.entities.ProjectStatus
+import org.cqfn.save.entities.*
 import org.cqfn.save.frontend.components.basic.InputTypes
 import org.cqfn.save.frontend.components.basic.inputTextFormOptional
 import org.cqfn.save.frontend.components.basic.inputTextFormRequired
@@ -30,9 +27,10 @@ import react.dom.*
 import react.setState
 
 import kotlinx.browser.window
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.Month
 import kotlinx.html.ButtonType
 import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
@@ -132,7 +130,7 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
         val urlArguments =
                 "?user=${fieldsMap[InputTypes.GIT_USER]}&token=${fieldsMap[InputTypes.GIT_TOKEN]}&url=${fieldsMap[InputTypes.GIT_URL]}"
 
-        GlobalScope.launch {
+        scope.launch {
             setState {
                 gitConnectionCheckingStatus = GitConnectionStatusEnum.VALIDATING
             }
@@ -157,20 +155,22 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
         }
     }
 
-    @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
+    @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION", "MAGIC_NUMBER")
     private fun saveProject() {
         if (!isValidInput()) {
             return
         }
+        // fixme: Need to change input to select for Owner and get the correct organization.
+        val organizationName = fieldsMap[InputTypes.OWNER]!!.trim()
+        val date = LocalDateTime(1970, Month.JANUARY, 1, 0, 0, 1)
         val newProjectRequest = NewProjectDto(
             Project(
-                fieldsMap[InputTypes.OWNER]!!.trim(),
                 fieldsMap[InputTypes.PROJECT_NAME]!!.trim(),
                 fieldsMap[InputTypes.PROJECT_URL]?.trim(),
                 fieldsMap[InputTypes.DESCRIPTION]?.trim(),
                 ProjectStatus.CREATED,
                 userId = -1,
-                adminIds = null,
+                organization = Organization("stub", null, date)
             ),
             GitDto(
                 fieldsMap[InputTypes.GIT_URL]?.trim() ?: "",
@@ -183,14 +183,14 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
             it.set("Accept", "application/json")
             it.set("Content-Type", "application/json")
         }
-        GlobalScope.launch {
+        scope.launch {
             val responseFromCreationProject =
                     post("$apiUrl/projects/save", headers, Json.encodeToString(newProjectRequest))
 
             if (responseFromCreationProject.ok == true) {
                 window.location.href =
                         "${window.location.origin}#/" +
-                                "${newProjectRequest.project.owner.replace(" ", "%20")}/" +
+                                "${organizationName.replace(" ", "%20")}/" +
                                 newProjectRequest.project.name.replace(" ", "%20")
             } else {
                 responseFromCreationProject.text().then {
@@ -225,14 +225,14 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
         }
 
         val gitUser = fieldsMap[InputTypes.GIT_USER]
-        if (gitUser.isNullOrBlank() || gitUser.trim().matches(".*\\s.*")) {
+        if (gitUser.isNullOrBlank() || Regex(".*\\s.*").matches(gitUser.trim())) {
             setState { isValidGitUser = false }
         } else {
             setState { isValidGitUser = true }
         }
 
         val gitToken = fieldsMap[InputTypes.GIT_TOKEN]
-        if (gitToken.isNullOrBlank() || gitToken.trim().matches(".*\\s.*")) {
+        if (gitToken.isNullOrBlank() || Regex(".*\\s.*").matches(gitToken.trim())) {
             setState { isValidGitToken = false }
         } else {
             setState { isValidGitToken = true }
@@ -269,7 +269,7 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
                                 }
                                 form(classes = "needs-validation") {
                                     div("row g-3") {
-                                        inputTextFormRequired(InputTypes.OWNER, state.isValidOwner!!, "col-md-6 pl-0 pl-2 pr-2", "Owner name") {
+                                        inputTextFormRequired(InputTypes.OWNER, state.isValidOwner!!, "col-md-6 pl-0 pl-2 pr-2", "Organization") {
                                             changeFields(InputTypes.OWNER, it)
                                         }
                                         inputTextFormRequired(InputTypes.PROJECT_NAME, state.isValidProjectName!!, "col-md-6 pl-2 pr-2", "Tested tool name") {

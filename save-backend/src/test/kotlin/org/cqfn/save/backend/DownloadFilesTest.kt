@@ -6,6 +6,7 @@ import org.cqfn.save.backend.configs.WebConfig
 import org.cqfn.save.backend.controllers.DownloadFilesController
 import org.cqfn.save.backend.repository.*
 import org.cqfn.save.backend.scheduling.StandardSuitesUpdateScheduler
+import org.cqfn.save.backend.service.OrganizationService
 import org.cqfn.save.core.result.DebugInfo
 import org.cqfn.save.core.result.Pass
 import org.cqfn.save.domain.FileInfo
@@ -30,6 +31,7 @@ import org.springframework.core.io.FileSystemResource
 import org.springframework.http.HttpMethod
 import org.springframework.http.MediaType
 import org.springframework.http.client.MultipartBodyBuilder
+import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.web.reactive.server.WebTestClient
@@ -46,6 +48,7 @@ import kotlin.io.path.createTempFile
 import kotlin.io.path.name
 import kotlin.io.path.writeLines
 
+@ActiveProfiles("test")
 @WebFluxTest(controllers = [DownloadFilesController::class])
 @Import(
     WebConfig::class,
@@ -58,6 +61,8 @@ import kotlin.io.path.writeLines
 @MockBeans(
     MockBean(AgentStatusRepository::class),
     MockBean(ExecutionRepository::class),
+    MockBean(OrganizationService::class),
+    MockBean(OrganizationRepository::class),
     MockBean(ProjectRepository::class),
     MockBean(TestExecutionRepository::class),
     MockBean(TestRepository::class),
@@ -65,7 +70,8 @@ import kotlin.io.path.writeLines
     MockBean(GitRepository::class),
     MockBean(StandardSuitesUpdateScheduler::class),
     MockBean(UserRepository::class),
-    MockBean(AwesomeBenchmarksRepository::class)
+    MockBean(AwesomeBenchmarksRepository::class),
+    MockBean(LnkUserProjectRepository::class),
 )
 class DownloadFilesTest {
     @Autowired
