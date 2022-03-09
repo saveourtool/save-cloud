@@ -19,7 +19,7 @@ import org.springframework.boot.context.properties.ConstructorBinding
  * @property aptExtraFlags additional flags that will be passed to `apt-get` when building image for tests
  * @property adjustResourceOwner whether Linux user that will be set as owner of resources copied into docker build directory
  * @property agentsHeartBeatTimeoutMillis interval in milliseconds, after which agent should be marked as crashed, if there weren't received heartbeats from him
- * @property heartBeatInspectorInterval interval in milliseconds, with the frequency of which heartbeat inspector will look for crashed agents
+ * @property heartBeatInspectorInterval interval in seconds, with the frequency of which heartbeat inspector will look for crashed agents
  */
 @ConstructorBinding
 @ConfigurationProperties(prefix = "orchestrator")
