@@ -5,7 +5,6 @@ import org.cqfn.save.agent.TestExecutionDto
 import org.cqfn.save.backend.security.Permission
 import org.cqfn.save.backend.security.ProjectPermissionEvaluator
 import org.cqfn.save.backend.service.ExecutionService
-import org.cqfn.save.backend.security.Permission
 import org.cqfn.save.backend.service.TestExecutionService
 import org.cqfn.save.backend.utils.justOrNotFound
 import org.cqfn.save.domain.TestResultLocation
