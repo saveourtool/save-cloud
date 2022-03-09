@@ -28,6 +28,8 @@ import org.springframework.security.web.server.authentication.logout.HttpStatusR
 import org.springframework.security.web.server.authorization.AuthorizationContext
 import org.springframework.security.web.server.util.matcher.AndServerWebExchangeMatcher
 import org.springframework.security.web.server.util.matcher.NegatedServerWebExchangeMatcher
+import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatcher
+import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatcher.MatchResult
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers
 
 @EnableWebFluxSecurity
@@ -114,7 +116,17 @@ class WebSecurityConfig(
         http: ServerHttpSecurity
     ): SecurityWebFilterChain = http.run {
         authorizeExchange()
-            .pathMatchers("/actuator/**")
+            .matchers(
+                AndServerWebExchangeMatcher(
+                    ServerWebExchangeMatchers.pathMatchers("/actuator/**"),
+                    ServerWebExchangeMatcher { request ->
+                        val isKnownActuatorConsumer = configurationProperties.isKnownActuatorConsumer(
+                            request.request.remoteAddress?.address
+                        )
+                        if (isKnownActuatorConsumer) MatchResult.match() else MatchResult.notMatch()
+                    }
+                )
+            )
             .authenticated()
     }
         .and().httpBasic().run {
