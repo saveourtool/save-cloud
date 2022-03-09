@@ -19,7 +19,7 @@ class LoggingQueueDispatcher : Dispatcher() {
     private val defaultResponses: ConcurrentMap<String, MockResponse> = ConcurrentHashMap()
     private var failFastResponse: MockResponse = MockResponse().setResponseCode(HttpURLConnection.HTTP_NOT_FOUND)
 
-    private fun getProperRegexKey(path: String?, setOfRegexes: Set<String>) = path?.let {
+    private fun getProperRegexKey(path: String?, setOfRegexes: Iterable<String>) = path?.let {
         setOfRegexes
             .filter { regex -> Regex(regex).containsMatchIn(it) }
             .also {
@@ -33,8 +33,8 @@ class LoggingQueueDispatcher : Dispatcher() {
 
     @Suppress("UnsafeCallOnNullableType", "AVOID_NULL_CHECKS")
     override fun dispatch(request: RecordedRequest): MockResponse {
-        val regexKeyForDefaultResponses = getProperRegexKey(request.path, defaultResponses.keys.toSet())
-        val regexKeyForEnqueuedResponses = getProperRegexKey(request.path, responses.keys.toSet())
+        val regexKeyForDefaultResponses = getProperRegexKey(request.path, defaultResponses.keys)
+        val regexKeyForEnqueuedResponses = getProperRegexKey(request.path, responses.keys)
         val result = if (regexKeyForDefaultResponses != null) {
             logger.debug("Default response [${defaultResponses[regexKeyForDefaultResponses]}] exists for path [$request.path].")
             defaultResponses[regexKeyForDefaultResponses]!!
