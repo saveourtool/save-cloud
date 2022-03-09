@@ -40,11 +40,10 @@ class WebSecurityConfig(
     fun securityWebFilterChain(
         http: ServerHttpSecurity
     ): SecurityWebFilterChain = http.run {
-        // `CollectionView` is a public page
-        // all `/internal/**` requests should be sent only from internal network
-        // they are not proxied from gateway
+        // All `/internal/**` and `/actuator/**` requests should be sent only from internal network,
+        // they are not proxied from gateway.
         authorizeExchange()
-            .pathMatchers("/", "/api/projects/not-deleted", "/api/awesome-benchmarks", "/internal/**", "/actuator/**")
+            .pathMatchers("/", "/internal/**", "/actuator/**", *publicEndpoints.toTypedArray())
             .permitAll()
             // resources for frontend
             .pathMatchers("/*.html", "/*.js*", "/img/**")
@@ -89,6 +88,22 @@ class WebSecurityConfig(
     @PostConstruct
     fun postConstruct() {
         defaultMethodSecurityExpressionHandler.setRoleHierarchy(roleHierarchy())
+    }
+
+    companion object {
+        /**
+         * These endpoints will have `permitAll` enabled on them. We can't selectively put `@PreAuthorize("permitAll")` in the code,
+         * because it won't allow us to configure authenticated access to all other endpoints by default.
+         * Or we can use custom AccessDecisionManager later.
+         */
+        internal val publicEndpoints = listOf(
+            // `CollectionView` is a public page
+            "/api/projects/not-deleted",
+            "/api/awesome-benchmarks",
+            "/api/check-git-connectivity-adaptor",
+            "/api/organization/get/organization-name",
+            "/api/allStandardTestSuites",
+        )
     }
 }
 

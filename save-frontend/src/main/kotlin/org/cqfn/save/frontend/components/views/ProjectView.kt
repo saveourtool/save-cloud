@@ -260,9 +260,24 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     )
     private val projectInfo = projectInfo(
         turnEditMode = ::turnEditMode,
-        onProjectSave = { draftProject ->
+        onProjectSave = { draftProject, setDraftProject ->
             if (draftProject != state.project) {
-                updateProject(draftProject!!)
+                scope.launch {
+                    val response = updateProject(draftProject!!)
+                    if (response.ok) {
+                        setState {
+                            project = draftProject
+                        }
+                    } else {
+                        setState {
+                            errorLabel = "Failed to save project info"
+                            errorMessage = "Failed to save project info: ${response.status} ${response.statusText}"
+                            isErrorOpen = true
+                        }
+                        // rollback form content
+                        setDraftProject(state.project)
+                    }
+                }
             }
         },
     )
@@ -743,17 +758,12 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     }
 
     @Suppress("COMMENTED_OUT_CODE")
-    private fun updateProject(draftProject: Project) {
+    private suspend fun updateProject(draftProject: Project): Response {
         val headers = Headers().also {
             it.set("Accept", "application/json")
             it.set("Content-Type", "application/json")
         }
-        scope.launch {
-            post("$apiUrl/projects/update", headers, Json.encodeToString(draftProject))
-            setState {
-                project = draftProject
-            }
-        }
+        return post("$apiUrl/projects/update", headers, Json.encodeToString(draftProject))
     }
 
     private fun deleteProjectBuilder() {

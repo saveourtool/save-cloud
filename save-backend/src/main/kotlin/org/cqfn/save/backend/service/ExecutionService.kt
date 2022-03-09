@@ -1,17 +1,14 @@
 package org.cqfn.save.backend.service
 
 import org.cqfn.save.backend.repository.ExecutionRepository
-import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.repository.UserRepository
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.Organization
-import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.execution.ExecutionInitializationDto
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionUpdateDto
 
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -29,16 +26,13 @@ class ExecutionService(private val executionRepository: ExecutionRepository,
 ) {
     private val log = LoggerFactory.getLogger(ExecutionService::class.java)
 
-    @Autowired
-    private lateinit var projectRepository: ProjectRepository
-
     /**
      * Find execution by id
      *
      * @param id id of execution
      * @return execution if it has been found
      */
-    fun findExecution(id: Long) = executionRepository.findById(id)
+    fun findExecution(id: Long): Optional<Execution> = executionRepository.findById(id)
 
     /**
      * @param execution
@@ -88,20 +82,6 @@ class ExecutionService(private val executionRepository: ExecutionRepository,
     }
 
     /**
-     * @param executionId id of execution
-     * @return execution dto based on id
-     */
-    fun getExecutionDto(executionId: Long): ExecutionDto? {
-        var executionDto: ExecutionDto? = null
-        executionRepository.findById(executionId).ifPresentOrElse({
-            executionDto = it.toDto()
-        }) {
-            log.error("Can't find execution by id = $executionId")
-        }
-        return executionDto
-    }
-
-    /**
      * @param name name of project
      * @param organization organization of project
      * @return list of execution dtos
@@ -113,11 +93,11 @@ class ExecutionService(private val executionRepository: ExecutionRepository,
      * Get latest (by start time an) execution by project name and organization
      *
      * @param name name of project
-     * @param organization organization of project
+     * @param organizationId id of organization of project
      * @return execution or null if it was not found
      */
-    fun getLatestExecutionByProjectNameAndProjectOrganization(name: String, organization: Organization): Optional<Execution> =
-            executionRepository.findTopByProjectNameAndProjectOrganizationOrderByStartTimeDesc(name, organization)
+    fun getLatestExecutionByProjectNameAndProjectOrganizationId(name: String, organizationId: Long): Optional<Execution> =
+            executionRepository.findTopByProjectNameAndProjectOrganizationIdOrderByStartTimeDesc(name, organizationId)
 
     /**
      * @param executionInitializationDto execution dto to update
