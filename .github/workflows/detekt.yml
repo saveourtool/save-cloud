@@ -35,9 +35,8 @@ jobs:
         with:
           sarif_file: build/detekt-sarif-reports
       - name: Upload SARIF artifacts
-          if: ${{ always() }}
-          uses: actions/upload-artifact@v3
-          with:
-            name: sarif-reports
-            path: '**/build/reports/detekt/'
-            retention-days: 1
+        uses: actions/upload-artifact@v3
+        with:
+          name: sarif-reports
+          path: "**/build/detekt-sarif-reports/"
+          retention-days: 1
