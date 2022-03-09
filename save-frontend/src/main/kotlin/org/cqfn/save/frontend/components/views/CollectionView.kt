@@ -17,7 +17,6 @@ import react.table.columns
 
 import kotlinx.html.ButtonType
 import org.cqfn.save.frontend.components.errorStatusContext
-import org.cqfn.save.frontend.utils.withModalResponseHandler
 
 /**
  * A view with collection of projects
@@ -67,7 +66,6 @@ class CollectionView : AbstractView<PropsWithChildren, State>(false) {
             headers = Headers().also {
                 it.set("Accept", "application/json")
             },
-            responseHandler = ::withModalResponseHandler,
         )
         if (response.ok) {
             response.unsafeMap {

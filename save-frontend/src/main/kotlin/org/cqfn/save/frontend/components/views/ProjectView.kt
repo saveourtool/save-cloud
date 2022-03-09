@@ -67,6 +67,11 @@ import kotlinx.html.js.onClickFunction
 import kotlinx.html.role
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.cqfn.save.frontend.components.errorStatusContext
+import org.cqfn.save.frontend.utils.noopResponseHandler
+import react.Context
+import react.RStatics
+import react.StateSetter
 
 /**
  * `Props` retrieved from router
@@ -411,7 +416,13 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         super.componentDidMount()
 
         scope.launch {
-            val project = getProject(props.name, props.owner)
+            val result = getProject(props.name, props.owner)
+            val project = if (result.isFailure) {
+                setState { isLoading = false }
+                return@launch
+            } else {
+                result.getOrThrow()
+            }
             setState {
                 this.project = project
             }
@@ -423,7 +434,8 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             }
             gitDto = post("$apiUrl/projects/git", headers, jsonProject)
                 .decodeFromJsonString<GitDto>()
-            standardTestSuites = get("$apiUrl/allStandardTestSuites", headers)
+            standardTestSuites = get("$apiUrl/allStandardTestSuites", headers,
+                responseHandler = ::noopResponseHandler,)
                 .decodeFromJsonString()
 
             val availableFiles = getFilesList()
@@ -797,7 +809,10 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             it.decodeFromJsonString<List<FileInfo>>()
         }
 
-    companion object {
+    companion object : RStatics<ProjectExecutionRouteProps, ProjectViewState, ProjectView, Context<StateSetter<Int?>>>(ProjectView::class) {
+        init {
+            contextType = errorStatusContext
+        }
         const val TEST_ROOT_DIR_HINT = """
             The path you are providing should be relative to the root directory of your repository.
             This directory should contain <a href = "https://github.com/analysis-dev/save#how-to-configure"> save.properties </a>

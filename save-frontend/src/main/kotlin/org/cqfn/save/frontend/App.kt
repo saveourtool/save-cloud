@@ -17,7 +17,13 @@ import org.cqfn.save.info.UserInfo
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.url.URLSearchParams
 import org.w3c.fetch.Headers
-import react.*
+import react.FC
+import react.Props
+import react.PropsWithChildren
+import react.RBuilder
+import react.State
+import react.buildElement
+import react.setState
 import react.dom.div
 import react.dom.render
 import react.router.Route
@@ -82,7 +88,8 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
     private fun getUser() {
         scope.launch {
             val headers = Headers().also { it.set("Accept", "application/json") }
-            val userInfoNew: UserInfo? = get("${window.location.origin}/sec/user", headers).run {
+            val userInfoNew: UserInfo? = get("${window.location.origin}/sec/user", headers,
+                responseHandler = ::noopResponseHandler,).run {
                 val responseText = text().await()
                 if (!ok || responseText == "null") null else Json.decodeFromString(responseText)
             }

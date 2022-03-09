@@ -17,9 +17,7 @@ import kotlinx.coroutines.await
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import react.Component
-import react.RComponent
 import react.StateSetter
-import kotlin.coroutines.coroutineContext
 
 val apiUrl = "${window.location.origin}/api"
 
@@ -43,27 +41,20 @@ suspend fun <T> Response.unsafeMap(map: suspend (Response) -> T) = if (this.ok) 
  */
 suspend inline fun <reified T> Response.decodeFromJsonString() = Json.decodeFromString<T>(text().await())
 
-/**
- * Perform GET request.
- *
- * @param url request URL
- * @param headers request headers
- * @return [Response] instance
- */
 suspend fun get(url: String, headers: Headers,
                 responseHandler: (Response) -> Unit = ::redirectResponseHandler,
 ) = request(url, "GET", headers, responseHandler = responseHandler)
 
-/**
- * Perform POST request.
- *
- * @param url request URL
- * @param headers request headers
- * @param body request body
- * @return [Response] instance
- */
+suspend fun Component<*, *>.get(url: String, headers: Headers,
+                      responseHandler: (Response) -> Unit = this::classComponentResponseHandler,
+) = request(url, "GET", headers, responseHandler = responseHandler)
+
 suspend fun post(url: String, headers: Headers, body: dynamic,
                  responseHandler: (Response) -> Unit = ::redirectResponseHandler,) =
+    request(url, "POST", headers, body, responseHandler = responseHandler)
+
+suspend fun Component<*, *>.post(url: String, headers: Headers, body: dynamic,
+                     responseHandler: (Response) -> Unit = this::classComponentResponseHandler,) =
     request(url, "POST", headers, body, responseHandler = responseHandler)
 
 /**
@@ -76,7 +67,7 @@ suspend fun post(url: String, headers: Headers, body: dynamic,
  * @param credentials [RequestCredentials] for fetch API
  * @return [Response] instance
  */
-suspend fun request(url: String,
+private suspend fun request(url: String,
                     method: String,
                     headers: Headers,
                     body: dynamic = undefined,
@@ -91,7 +82,19 @@ suspend fun request(url: String,
         credentials = credentials,
     )
 )
-    .await().also(responseHandler)
+    .await().also { response ->
+        if (responseHandler != undefined) responseHandler(response)
+    }
+
+/*suspend fun useRequest(method: String, path: String, body: dynamic): Response {
+    val setErrorCode = useContext(errorStatusContext)
+
+    val response = Any().request(path, method, Headers(), body)
+    if (!response.ok) {
+        setErrorCode(response.status.toInt())
+    }
+    return response
+}*/
 
 internal fun redirectResponseHandler(response: Response) {
     if (response.status == 401.toShort()) {
@@ -101,7 +104,7 @@ internal fun redirectResponseHandler(response: Response) {
     }
 }
 
-internal fun Component<*, *>.withModalResponseHandler(
+private fun Component<*, *>.withModalResponseHandler(
     response: Response
 ) {
     if (!response.ok) {
@@ -114,6 +117,20 @@ internal fun Component<*, *>.withModalResponseHandler(
  * Can be used to explicitly specify, that response will be handled is a custom way
  */
 internal fun noopResponseHandler(response: Response) = Unit
+
+internal fun Component<*, *>.classComponentResponseHandler(
+    response: Response
+) {
+    if (this.asDynamic().context is Function<*>) {
+        // dirty hack to determine whether this component contains `setErrorCode` in its context.
+        // If we add another context with a function, this logic will break.
+        console.log("Branch for component class ${this::class} with context=${this.asDynamic().context}")
+        this.unsafeCast<Component<*, *>>().withModalResponseHandler(response)
+    } else {
+        console.log("Default branch for this=${this::class}")
+        redirectResponseHandler(response)
+    }
+}
 
 /**
  * @param name

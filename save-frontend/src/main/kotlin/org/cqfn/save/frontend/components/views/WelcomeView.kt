@@ -40,6 +40,7 @@ import kotlinx.browser.window
 import kotlinx.coroutines.launch
 import kotlinx.html.ButtonType
 import kotlinx.js.jso
+import org.cqfn.save.frontend.utils.noopResponseHandler
 
 /**
  * [RState] of project creation view component
@@ -85,7 +86,8 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
     override fun componentDidMount() {
         super.componentDidMount()
         scope.launch {
-            val oauthProviderInfoList: List<OauthProviderInfo>? = get("${window.location.origin}/sec/oauth-providers", Headers()).run {
+            val oauthProviderInfoList: List<OauthProviderInfo>? = get("${window.location.origin}/sec/oauth-providers", Headers(),
+                responseHandler = ::noopResponseHandler,).run {
                 if (ok) decodeFromJsonString() else null
             }
             oauthProviderInfoList?.let {
