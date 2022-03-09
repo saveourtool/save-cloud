@@ -14,13 +14,13 @@ jobs:
 
     steps:
       - name: checkout save-cloud
-        uses: actions/checkout@v3.0.0
+        uses: actions/checkout@v3
         with:
           path: save-cloud
           fetch-depth: 0
           submodules: true
       - name: checkout save-core
-        uses: actions/checkout@v3.0.0
+        uses: actions/checkout@v3
         with:
           repository: analysis-dev/save
           path: save
