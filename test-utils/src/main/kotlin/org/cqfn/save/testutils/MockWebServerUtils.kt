@@ -31,7 +31,7 @@ class LoggingQueueDispatcher : Dispatcher() {
             ?.also { logger.debug("Path [$path] is matched with [$it]") }
     }
 
-    @Suppress("UnsafeCallOnNullableType", "AVOID_NULL_CHECKS")
+    @Suppress("AVOID_NULL_CHECKS")
     override fun dispatch(request: RecordedRequest): MockResponse {
         val regexKeyForDefaultResponses = getProperRegexKey(request.path, defaultResponses.keys)
         val regexKeyForEnqueuedResponses = getProperRegexKey(request.path, responses.keys)
