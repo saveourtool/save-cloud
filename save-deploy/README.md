@@ -89,6 +89,7 @@ manually placed in `save-orchestrator/build/resources/main` before build, and it
 ## Secrets
 * Liquibase is reading secrets from the secrets file located on the server in the `home` directory.
 * PostProcessor is reading secrets for database connection from the docker secrets and fills the spring datasource. (DockerSecretsDatabaseProcessor class)
+* api-gateway is a single external-facing component, hence its security is stricter. Actuator endpoints are protected with basic HTTP security and can only be accessed from allowed hosts (i.e. from inside the cluster). To access this data from prometheus it should have access to these credentials from docker secrets. Configuration file [prometheus.yml](./prometheus.yml) is configured to use username `prometheus` and password from standard path for docker swarm secrets.
 
 # Server configuration
 ## Nginx
