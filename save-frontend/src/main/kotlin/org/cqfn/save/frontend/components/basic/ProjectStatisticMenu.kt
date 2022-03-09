@@ -92,9 +92,9 @@ fun projectStatisticMenu() =
                         initialPageSize = 10,
                         useServerPaging = false,
                         usePageSelection = false,
-                    ) { _, _ ->
+                    ) { page, size ->
                         get(
-                            url = "$apiUrl/testLatestExecutions?executionId=${props.executionId}&status=${TestResultStatus.PASSED}",
+                            url = "$apiUrl/testLatestExecutions?executionId=${props.executionId}&status=${TestResultStatus.PASSED}&page=$page&size=$size",
                             headers = Headers().also {
                                 it.set("Accept", "application/json")
                             },

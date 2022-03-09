@@ -68,6 +68,8 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
     /**
      * @param executionId an ID of Execution to group TestExecutions
      * @param status of test
+     * @param page a zero-based index of page of data
+     * @param size size of page
      * @param authentication
      * @return a list of [TestExecutionDto]s
      */
@@ -76,6 +78,8 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
     fun getTestExecutionsByStatus(
         @RequestParam executionId: Long,
         @RequestParam status: TestResultStatus,
+        @RequestParam page: Int,
+        @RequestParam size: Int,
         authentication: Authentication,
     ): Mono<List<LatestExecutionStatisticDto>> =
             justOrNotFound(executionService.findExecution(executionId)).filterWhen {
