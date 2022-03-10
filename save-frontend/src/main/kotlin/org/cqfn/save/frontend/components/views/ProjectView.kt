@@ -9,8 +9,8 @@ package org.cqfn.save.frontend.components.views
 import org.cqfn.save.agent.LatestExecutionStatisticDto
 import org.cqfn.save.domain.FileInfo
 import org.cqfn.save.domain.Sdk
-import org.cqfn.save.domain.getSdkVersions
 import org.cqfn.save.domain.TestResultStatus
+import org.cqfn.save.domain.getSdkVersions
 import org.cqfn.save.domain.toSdk
 import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.ExecutionRequestForStandardSuites
