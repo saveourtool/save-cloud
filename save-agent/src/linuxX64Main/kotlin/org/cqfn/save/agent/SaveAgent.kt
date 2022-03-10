@@ -2,6 +2,28 @@
 
 package org.cqfn.save.agent
 
+import generated.SAVE_CLOUD_VERSION
+import io.ktor.client.*
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.newSingleThreadContext
+import kotlinx.datetime.Clock
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.modules.SerializersModule
+import kotlinx.serialization.modules.polymorphic
+import kotlinx.serialization.modules.subclass
+import okio.FileSystem
+import okio.Path.Companion.toPath
 import org.cqfn.save.agent.utils.logDebugCustom
 import org.cqfn.save.agent.utils.logErrorCustom
 import org.cqfn.save.agent.utils.logInfoCustom
@@ -17,32 +39,8 @@ import org.cqfn.save.reporter.Report
 import org.cqfn.save.utils.adjustLocation
 import org.cqfn.save.utils.toTestResultDebugInfo
 import org.cqfn.save.utils.toTestResultStatus
-
-import generated.SAVE_CLOUD_VERSION
-import io.ktor.client.HttpClient
-import io.ktor.client.request.accept
-import io.ktor.client.request.post
-import io.ktor.client.request.url
-import io.ktor.client.statement.HttpResponse
-import io.ktor.http.ContentType
-import io.ktor.http.contentType
-import okio.FileSystem
-import okio.Path.Companion.toPath
-
 import kotlin.native.concurrent.AtomicLong
 import kotlin.native.concurrent.AtomicReference
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.newSingleThreadContext
-import kotlinx.datetime.Clock
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.modules.SerializersModule
-import kotlinx.serialization.modules.polymorphic
-import kotlinx.serialization.modules.subclass
 
 /**
  * A main class for SAVE Agent
@@ -260,7 +258,7 @@ class SaveAgent(internal val config: AgentConfiguration,
         return httpClient.post("${config.orchestratorUrl}/heartbeat") {
             contentType(ContentType.Application.Json)
             accept(ContentType.Application.Json)
-            body = Heartbeat(config.id, state.value, executionProgress)
+            body = Heartbeat(config.id, state.value, executionProgress, Clock.System.now().toLocalDateTime(TimeZone.UTC))
         }
     }
 

@@ -66,7 +66,7 @@ class HeartbeatController(private val agentService: AgentService,
     @PostMapping("/heartbeat")
     @OptIn(ExperimentalSerializationApi::class)
     fun acceptHeartbeat(@RequestBody heartbeat: Heartbeat): Mono<String> {
-        logger.info("Got heartbeat state: ${heartbeat.state.name} from ${heartbeat.agentId}")
+        logger.info("\n\n\nGot heartbeat state: ${heartbeat.state.name} from ${heartbeat.agentId} ${heartbeat.currentTime}")
         updateAgentHeartbeatTimeStamps(heartbeat.agentId, heartbeat.state)
 
         // store new state into DB

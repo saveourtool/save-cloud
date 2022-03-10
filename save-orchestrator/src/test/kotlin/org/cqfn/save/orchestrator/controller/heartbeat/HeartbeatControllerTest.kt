@@ -239,7 +239,7 @@ class HeartbeatControllerTest {
                 Heartbeat("test-1", AgentState.BUSY, ExecutionProgress(0)),
                 Heartbeat("test-1", AgentState.BUSY, ExecutionProgress(0)),
             ),
-            heartBeatInterval = 1_000,
+            heartBeatInterval = 1_500,
             testBatch = TestBatch(
                 listOf(
                     TestDto("/path/to/test-1", "WarnPlugin", 1, "hash1", listOf("tag")),

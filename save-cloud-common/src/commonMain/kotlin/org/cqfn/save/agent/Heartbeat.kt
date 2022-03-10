@@ -4,9 +4,11 @@
 
 package org.cqfn.save.agent
 
+import kotlinx.serialization.Contextual
 import org.cqfn.save.test.TestDto
 
 import kotlinx.serialization.Serializable
+import org.cqfn.save.utils.LocalDateTime
 
 /**
  * Progress of tests execution
@@ -27,11 +29,16 @@ data class ExecutionProgress(val percentCompletion: Int) {
  * @property agentId unique ID of the agent which sent the heartbeat
  * @property state current state of the Agent
  * @property executionProgress current progress of tests execution with this Agent
+ * @property currentTime current time
  */
 @Serializable
-data class Heartbeat(val agentId: String,
-                     val state: AgentState,
-                     val executionProgress: ExecutionProgress)
+data class Heartbeat(
+    val agentId: String,
+    val state: AgentState,
+    val executionProgress: ExecutionProgress,
+    @Contextual
+    val currentTime: LocalDateTime,
+)
 
 /**
  * A response from Orchestrator to Agent
