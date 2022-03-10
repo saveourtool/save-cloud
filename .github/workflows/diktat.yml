@@ -41,3 +41,10 @@ jobs:
         if: ${{ always() }}
         with:
           sarif_file: build/diktat-sarif-reports
+      - name: Upload SARIF artifacts
+        uses: actions/upload-artifact@v3
+        if: ${{ always() }}
+        with:
+          name: sarif-reports
+          path: "**/build/diktat-sarif-reports/"
+          retention-days: 1
