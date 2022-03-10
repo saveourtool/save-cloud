@@ -123,9 +123,11 @@ class HeartbeatController(private val agentService: AgentService,
      * Consider agent as crashed, if it didn't send heartbeats for some time
      */
     fun determineCrashedAgents() {
-        agentsLatestHeartBeatsMap.forEach { (currentAgentId, stateToLatestHeartBeatPair) ->
+        agentsLatestHeartBeatsMap.filter { (currentAgentId, _) ->
+            currentAgentId !in crashedAgentsList
+        }.forEach { (currentAgentId, stateToLatestHeartBeatPair) ->
             val duration = Duration.between(stateToLatestHeartBeatPair.second, LocalDateTime.now()).toMillis()
-            if (duration >= configProperties.agentsHeartBeatTimeoutMillis && currentAgentId !in crashedAgentsList) {
+            if (duration >= configProperties.agentsHeartBeatTimeoutMillis) {
                 logger.debug("Adding $currentAgentId to list crashed agents")
                 crashedAgentsList.add(currentAgentId)
             }
