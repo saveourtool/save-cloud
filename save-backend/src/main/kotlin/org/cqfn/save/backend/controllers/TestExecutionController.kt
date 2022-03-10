@@ -1,7 +1,7 @@
 package org.cqfn.save.backend.controllers
 
-import org.cqfn.save.agent.LatestExecutionStatisticDto
 import org.cqfn.save.agent.AgentState
+import org.cqfn.save.agent.LatestExecutionStatisticDto
 import org.cqfn.save.agent.TestExecutionDto
 import org.cqfn.save.backend.security.Permission
 import org.cqfn.save.backend.security.ProjectPermissionEvaluator
