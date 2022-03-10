@@ -28,6 +28,11 @@ enum class AgentState {
     CLI_FAILED,
 
     /**
+     * Agent has been crashed
+     */
+    CRASHED,
+
+    /**
      * Agent has finished execution
      */
     FINISHED,
@@ -43,7 +48,7 @@ enum class AgentState {
     STARTING,
 
     /**
-     * Agent has been stopped by save-orchestartor, because there is no more work left
+     * Agent has been stopped by save-orchestrator, because there is no more work left
      */
     STOPPED_BY_ORCH,
     ;

@@ -6,6 +6,7 @@ import org.cqfn.save.buildutils.readSaveCliVersion
 import de.undercouch.gradle.tasks.download.Download
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.springframework.boot.gradle.tasks.bundling.BootJar
+import org.springframework.boot.gradle.tasks.run.BootRun
 
 plugins {
     kotlin("jvm")
@@ -40,6 +41,7 @@ val downloadSaveCliTaskProvider: TaskProvider<Download> = tasks.register<Downloa
 // and gradle complains about missing dependency
 tasks.named("jar") { dependsOn(downloadSaveCliTaskProvider) }
 tasks.named<BootJar>("bootJar") { dependsOn(downloadSaveCliTaskProvider) }
+tasks.named<BootRun>("bootRun") { dependsOn(downloadSaveCliTaskProvider) }
 tasks.named("bootJarMainClassName") { dependsOn(downloadSaveCliTaskProvider) }
 tasks.named<KotlinCompile>("compileTestKotlin") { dependsOn(downloadSaveCliTaskProvider) }
 tasks.named("test") { dependsOn(downloadSaveCliTaskProvider) }
@@ -51,6 +53,7 @@ tasks.withType<Test> {
 
 dependencies {
     api(projects.saveCloudCommon)
+    testImplementation(projects.testUtils)
     runtimeOnly(project(":save-agent", "distribution"))
     implementation(libs.dockerJava.core)
     implementation(libs.dockerJava.transport.httpclient5)
