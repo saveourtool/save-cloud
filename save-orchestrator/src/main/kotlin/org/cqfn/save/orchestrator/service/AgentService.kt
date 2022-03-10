@@ -148,6 +148,35 @@ class AgentService {
                 )
 
     /**
+     * Marks agents and corresponding tests as crashed
+     *
+     * @param crashedAgentIds the list of agents, which weren't sent heartbeats for a some time and are considered as crashed
+     */
+    fun markAgentsAndTestExecutionsCrashed(crashedAgentIds: Collection<String>) {
+        updateAgentStatusesWithDto(
+            crashedAgentIds.map { agentId ->
+                AgentStatusDto(LocalDateTime.now(), AgentState.CRASHED, agentId)
+            }
+        )
+            .doOnSuccess {
+                log.info("Agents $crashedAgentIds has been crashed with internal error")
+            }
+            .then(
+                markTestExecutionsOfCrashedAgentsAsFailed(crashedAgentIds)
+            )
+            .subscribeOn(scheduler)
+            .subscribe()
+    }
+
+    /**
+     * Mark execution as failed
+     *
+     * @param executionId execution that should be updated
+     * @return a bodiless response entity
+     */
+    fun markExecutionAsFailed(executionId: Long): Mono<BodilessResponseEntity> = updateExecution(executionId, ExecutionStatus.ERROR)
+
+    /**
      * Marks the execution to specified state
      *
      * @param executionId execution that should be updated
@@ -216,17 +245,26 @@ class AgentService {
             ))
         )
             .doOnSuccess {
-                log.debug("Agent $agentContainerId has been set as executor for tests ${newJobResponse.tests} and its status has been set to BUSY")
+                log.trace("Agent $agentContainerId has been set as executor for tests ${newJobResponse.tests} and its status has been set to BUSY")
             }
             .subscribeOn(scheduler)
             .subscribe()
     }
 
     private fun updateTestExecutionsWithAgent(agentId: String, testDtos: List<TestDto>): Mono<BodilessResponseEntity> {
-        log.debug("Attempt to update test executions for tests=$testDtos for agent $agentId")
+        log.trace("Attempt to update test executions for tests=$testDtos for agent $agentId")
         return webClientBackend.post()
             .uri("/testExecution/assignAgent?agentContainerId=$agentId")
             .bodyValue(testDtos)
+            .retrieve()
+            .toBodilessEntity()
+    }
+
+    private fun markTestExecutionsOfCrashedAgentsAsFailed(crashedAgentIds: Collection<String>): Mono<BodilessResponseEntity> {
+        log.debug("Attempt to mark test executions of crashed agents=$crashedAgentIds as failed with internal error")
+        return webClientBackend.post()
+            .uri("/testExecution/setStatusByAgentIds?status=${AgentState.CRASHED.name}")
+            .bodyValue(crashedAgentIds)
             .retrieve()
             .toBodilessEntity()
     }
@@ -238,7 +276,7 @@ class AgentService {
                     NewJobResponse(tests, cliArgs)
                 }
             } else {
-                log.info("Next test batch for agentId=$agentId is empty, setting it to wait")
+                log.debug("Next test batch for agentId=$agentId is empty, setting it to wait")
                 Mono.just(WaitResponse)
             }
 
@@ -291,7 +329,7 @@ class AgentService {
     }
 
     private fun Collection<AgentStatusDto>.areIdleOrFinished() = all {
-        it.state == AgentState.IDLE || it.state == AgentState.FINISHED || it.state == AgentState.STOPPED_BY_ORCH
+        it.state == AgentState.IDLE || it.state == AgentState.FINISHED || it.state == AgentState.STOPPED_BY_ORCH || it.state == AgentState.CRASHED
     }
 
     companion object {

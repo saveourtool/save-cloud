@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional
 import org.springframework.transaction.support.TransactionTemplate
 
 import java.nio.file.Paths
+import java.time.LocalDateTime
 import java.util.concurrent.ConcurrentHashMap
 
 import kotlin.io.path.pathString
@@ -254,6 +255,44 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
             testExecutionRepository.save(testExecution.apply {
                 this.agent = agent
             })
+        }
+    }
+
+    /**
+     * @param crashedAgents the list of agents, which weren't sent heartbeats for a some time and are considered as crashed
+     */
+    @Transactional
+    @Suppress("UnsafeCallOnNullableType")
+    fun markTestExecutionsOfCrashedAgentsAsFailed(crashedAgents: Collection<String>) {
+        crashedAgents.forEach { agentContainerId ->
+            val agent = requireNotNull(agentRepository.findByContainerId(agentContainerId)) {
+                "Agent with containerId=[$agentContainerId] was not found in the DB"
+            }
+            val agentId = agent.id!!
+            val executionId = agent.execution.id!!
+
+            val testExecutionList = testExecutionRepository.findByExecutionIdAndAgentId(
+                executionId,
+                agentId
+            )
+            if (testExecutionList.isEmpty()) {
+                // Crashed agent could be not assigned with tests, so just warn and return
+                log.warn("Can't find `test_execution`s for executionId=$executionId and agentId=$agentId")
+                return@forEach
+            }
+
+            testExecutionList.map { testExecution ->
+                testExecutionRepository.save(testExecution.apply {
+                    this.status = TestResultStatus.INTERNAL_ERROR
+                    // In case of execution without errors all information about test execution we take from
+                    // json report, however in case when agent is crashed, it's unavailable, so fill at least end time
+                    this.endTime = LocalDateTime.now()
+                })
+            }.also {
+                if (it.isNotEmpty()) {
+                    log.info("Test executions with ids ${it.map { it.id }} were failed with internal error")
+                }
+            }
         }
     }
 
