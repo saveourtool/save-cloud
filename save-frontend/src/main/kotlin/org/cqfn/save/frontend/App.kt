@@ -203,7 +203,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                     path =
                                             "/:owner/:name/history/execution/:executionId/details/:testSuiteName/:pluginName/*"
                                     element = buildElement {
-                                        child(testExecutionDetailsView) {}
+                                        testExecutionDetailsView()
                                     }
                                 }
                             }

@@ -7,77 +7,91 @@ package org.cqfn.save.frontend.components.modal
 import org.cqfn.save.frontend.externals.modal.ModalProps
 import org.cqfn.save.frontend.externals.modal.modal
 import org.cqfn.save.frontend.utils.post
+import org.cqfn.save.frontend.utils.useRequest
 
 import org.w3c.fetch.Headers
-import react.RBuilder
-import react.RHandler
-import react.dom.attrs
-import react.dom.button
-import react.dom.div
-import react.dom.h5
-import react.dom.span
+import react.Props
 
 import kotlinx.browser.window
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
-import kotlinx.html.ButtonType
-import kotlinx.html.js.onClickFunction
-import kotlinx.html.role
+import org.cqfn.save.frontend.utils.spread
+import react.FC
+import react.dom.aria.AriaRole
+import react.dom.aria.ariaLabel
+import react.dom.html.ReactHTML.button
+import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.h5
+import react.dom.html.ReactHTML.span
 
 /**
- * @param handler a [RHandler] for [ModalProps]
  * @param closeCallback a callback to call to close the modal
- * @param coroutineScope a scope on which suspendable network requests can be done
  * @return a Component
  */
 @Suppress("TOO_LONG_FUNCTION")
-fun RBuilder.logoutModal(
-    coroutineScope: CoroutineScope,
-    handler: RHandler<ModalProps>,
+//@JsName("logoutModal")
+fun logoutModal(
     closeCallback: () -> Unit
-) = modal {
-    handler(this)
-    div("modal-dialog") {
-        attrs.role = "document"
-        div("modal-content") {
-            div("modal-header") {
-                h5("modal-title") {
-                    +"Ready to Leave?"
-                }
-                button(type = ButtonType.button, classes = "close") {
-                    attrs {
-                        set("data-dismiss", "modal")
-                        set("aria-label", "Close")
-                    }
-                    span {
-                        attrs["aria-hidden"] = "true"
-                        attrs.onClickFunction = { closeCallback() }
-                        +js("String.fromCharCode(215)").unsafeCast<String>()
-                    }
-                }
-            }
+) = FC<ModalProps> { props ->
+    val doLogoutRequest = useRequest(emptyArray()) {
+        val replyToLogout = post("${window.location.origin}/logout", Headers(), "ping")
+        if (replyToLogout.ok) {
+            // logout went good, need either to reload page or to setUserInfo(null) and use redirection like `window.location.href = window.location.origin`
+            window.location.href = "${window.location.origin}/#"
+            window.location.reload()
         }
-        div("modal-body") {
-            +"Select \"Logout\" below if you are ready to end your current session."
+    }
+
+    modal {
+        spread(props) { key, value ->
+            this.asDynamic()[key] = value
         }
-        div("modal-footer") {
-            button(type = ButtonType.button, classes = "btn btn-secondary") {
-                attrs["data-dismiss"] = "modal"
-                attrs.onClickFunction = { closeCallback() }
-                +"Cancel"
-            }
-            button(type = ButtonType.button, classes = "btn btn-primary") {
-                attrs.onClickFunction = {
-                    coroutineScope.launch {
-                        val replyToLogout = post("${window.location.origin}/logout", Headers(), "ping")
-                        if (replyToLogout.ok) {
-                            // logout went good, need either to reload page or to setUserInfo(null) and use redirection like `window.location.href = window.location.origin`
-                            window.location.href = "${window.location.origin}/#"
-                            window.location.reload()
+        div {
+            className = "modal-dialog"
+            role = AriaRole.document
+            div {
+                className = "modal-content"
+                div {
+                    className = "modal-header"
+                    h5 {
+                        className  ="modal-title"
+                        +"Ready to Leave?"
+                    }
+                    button {
+                        className = "close"
+                        type = react.dom.html.ButtonType.button
+                        asDynamic()["data-dismiss"] = "modal"
+                        ariaLabel = "Close"
+                        span {
+                            asDynamic()["aria-hidden"] = "true"
+                            onClick = { closeCallback() }
+                            +js("String.fromCharCode(215)").unsafeCast<String>()
                         }
                     }
                 }
-                +"Logout"
+            }
+            div {
+                className = "modal-body"
+                +"Select \"Logout\" below if you are ready to end your current session."
+            }
+            div {
+                className = "modal-footer"
+                button {
+                    className = "btn btn-secondary"
+                    type = react.dom.html.ButtonType.button
+                    asDynamic()["data-dismiss"] = "modal"
+                    onClick = { closeCallback() }
+                    +"Cancel"
+                }
+                FC<Props> {
+                button {
+                    className = "btn btn-primary"
+                    type = react.dom.html.ButtonType.button
+                    onClick = {
+                        doLogoutRequest()
+//                        closeCallback()
+                    }
+                    +"Logout"
+                }
+                }()
             }
         }
     }

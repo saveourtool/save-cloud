@@ -12,6 +12,15 @@ import org.w3c.fetch.Headers
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.cqfn.save.frontend.utils.WithRequestStatusContext
+import org.w3c.fetch.Response
+import react.Component
+
+suspend fun Component<*, *>.getDebugInfoFor(testExecutionDto: TestExecutionDto) =
+    getDebugInfoFor(this::post, testExecutionDto)
+
+suspend fun WithRequestStatusContext.getDebugInfoFor(testExecutionDto: TestExecutionDto) =
+    getDebugInfoFor(this::post, testExecutionDto)
 
 /**
  * Fetch debug info for test execution
@@ -19,7 +28,7 @@ import kotlinx.serialization.json.Json
  * @param testExecutionDto
  * @return Response
  */
-suspend fun getDebugInfoFor(testExecutionDto: TestExecutionDto) = post(
+suspend fun getDebugInfoFor(post: suspend (String, Headers, dynamic) -> Response, testExecutionDto: TestExecutionDto) = post(
     "$apiUrl/files/get-debug-info",
     Headers().apply {
         set("Content-Type", "application/json")
