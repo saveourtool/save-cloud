@@ -248,15 +248,15 @@ class HeartbeatControllerTest {
                 AgentStatusDto(LocalDateTime.now(), AgentState.BUSY, "test-2"),
             ),
             heartbeats = listOf(
-                Heartbeat("test-1", AgentState.STARTING, ExecutionProgress(0), stubTime),
-                Heartbeat("test-1", AgentState.BUSY, ExecutionProgress(0), stubTime),
-                Heartbeat("test-2", AgentState.BUSY, ExecutionProgress(0), stubTime),
-                Heartbeat("test-1", AgentState.BUSY, ExecutionProgress(0), stubTime),
-                Heartbeat("test-1", AgentState.BUSY, ExecutionProgress(0), stubTime),
-                Heartbeat("test-1", AgentState.BUSY, ExecutionProgress(0), stubTime),
-                Heartbeat("test-1", AgentState.BUSY, ExecutionProgress(0), stubTime),
+                Heartbeat("test-1", AgentState.STARTING, ExecutionProgress(0), LocalDateTime.now()),
+                Heartbeat("test-1", AgentState.BUSY, ExecutionProgress(0), LocalDateTime.now().plusSeconds(1)),
+                Heartbeat("test-2", AgentState.BUSY, ExecutionProgress(0), LocalDateTime.now().plusSeconds(2)),
+                // 3 absent heartbeats from test-2
+                Heartbeat("test-1", AgentState.BUSY, ExecutionProgress(0), LocalDateTime.now().plusSeconds(3)),
+                Heartbeat("test-1", AgentState.BUSY, ExecutionProgress(0), LocalDateTime.now().plusSeconds(4)),
+                Heartbeat("test-1", AgentState.BUSY, ExecutionProgress(0), LocalDateTime.now().plusSeconds(6)),
             ),
-            heartBeatInterval = 1_500,
+            heartBeatInterval = 1_000,
             testBatch = TestBatch(
                 listOf(
                     TestDto("/path/to/test-1", "WarnPlugin", 1, "hash1", listOf("tag")),
