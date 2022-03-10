@@ -66,8 +66,8 @@ class HeartbeatController(private val agentService: AgentService,
     @PostMapping("/heartbeat")
     @OptIn(ExperimentalSerializationApi::class)
     fun acceptHeartbeat(@RequestBody heartbeat: Heartbeat): Mono<String> {
-        logger.info("\n\n\nGot heartbeat state: ${heartbeat.state.name} from ${heartbeat.agentId} ${heartbeat.currentTime}")
-        updateAgentHeartbeatTimeStamps(heartbeat.agentId, heartbeat.state)
+        logger.info("\n\n\nGot heartbeat state: ${heartbeat.state.name} from ${heartbeat.agentId} ${heartbeat.timestamp}")
+        updateAgentHeartbeatTimeStamps(heartbeat)
 
         // store new state into DB
         return agentService.updateAgentStatusesWithDto(
@@ -110,13 +110,13 @@ class HeartbeatController(private val agentService: AgentService,
         }
 
     /**
-     * Collect information about latest heartbeats from agents, in aim to determine crashed one later
+     * Collect information about the latest heartbeats from agents, in aim to determine crashed one later
      *
      * @param agentId
      * @param state
      */
-    fun updateAgentHeartbeatTimeStamps(agentId: String, state: AgentState) {
-        agentsLatestHeartBeatsMap[agentId] = state.name to LocalDateTime.now()
+    fun updateAgentHeartbeatTimeStamps(heartbeat: Heartbeat) {
+        agentsLatestHeartBeatsMap[heartbeat.agentId] = heartbeat.state.name to heartbeat.timestamp
     }
 
     /**
