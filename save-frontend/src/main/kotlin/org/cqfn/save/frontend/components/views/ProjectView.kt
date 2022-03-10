@@ -6,9 +6,11 @@
 
 package org.cqfn.save.frontend.components.views
 
+import org.cqfn.save.agent.LatestExecutionStatisticDto
 import org.cqfn.save.domain.FileInfo
 import org.cqfn.save.domain.Sdk
 import org.cqfn.save.domain.getSdkVersions
+import org.cqfn.save.domain.TestResultStatus
 import org.cqfn.save.domain.toSdk
 import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.ExecutionRequestForStandardSuites
@@ -222,6 +224,11 @@ external interface ProjectViewState : State {
      * latest execution id for this project
      */
     var latestExecutionId: Long?
+
+    /**
+     * Flag to handle error
+     */
+    var latestExecutionStatisticDtos: List<LatestExecutionStatisticDto>
 }
 
 /**
@@ -452,6 +459,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             }
 
             selectLatestExecution()
+            getTestLatestExecutions()
         }
     }
 
@@ -662,6 +670,24 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         } else if (state.selectedMenu == ProjectMenuBar.STATISTIC) {
             child(projectStatisticMenu) {
                 attrs.executionId = state.latestExecutionId
+                attrs.latestExecutionStatisticDtos = state.latestExecutionStatisticDtos
+            }
+        }
+    }
+
+    private fun getTestLatestExecutions() {
+        scope.launch {
+            val testLatestExecutions = get(
+                url = "$apiUrl/testLatestExecutions?executionId=${state.latestExecutionId}&status=${TestResultStatus.PASSED}",
+                headers = Headers().also {
+                    it.set("Accept", "application/json")
+                },
+            )
+                .unsafeMap {
+                    it.decodeFromJsonString<List<LatestExecutionStatisticDto>>()
+                }
+            setState {
+                latestExecutionStatisticDtos = testLatestExecutions
             }
         }
     }

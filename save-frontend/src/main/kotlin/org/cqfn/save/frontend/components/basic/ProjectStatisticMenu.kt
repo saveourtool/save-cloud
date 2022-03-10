@@ -7,6 +7,7 @@ import org.cqfn.save.domain.TestResultStatus
 import org.cqfn.save.frontend.components.tables.tableComponent
 import org.cqfn.save.frontend.externals.chart.DataPieChart
 import org.cqfn.save.frontend.externals.chart.pieChart
+import org.cqfn.save.frontend.externals.chart.randomColor
 import org.cqfn.save.frontend.utils.apiUrl
 import org.cqfn.save.frontend.utils.decodeFromJsonString
 import org.cqfn.save.frontend.utils.get
@@ -26,6 +27,11 @@ external interface ProjectStatisticMenuProps : Props {
      * Id of execution
      */
     var executionId: Long?
+
+    /**
+     * list of tests
+     */
+    var latestExecutionStatisticDtos: List<LatestExecutionStatisticDto>?
 }
 
 /**
@@ -43,14 +49,13 @@ fun projectStatisticMenu() =
                     }
 
                     div("col-xl col-md-6 mb-4") {
-                        val data = arrayOf(
-                            DataPieChart("One", 10, "#E38627"),
-                            DataPieChart("Two", 15, "#C13C37"),
-                            DataPieChart("Three", 20, "#6A2135"),
-                        )
+                        val data: MutableList<DataPieChart> = mutableListOf()
+                        props.latestExecutionStatisticDtos?.map {
+                            data.add(DataPieChart(it.testSuiteName, it.countTest, randomColor()))
+                        }
 
                         pieChart(
-                            data
+                            data.toTypedArray()
                         ) {
                             attrs.animate = true
                             attrs.segmentsShift = 2
