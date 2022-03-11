@@ -45,7 +45,7 @@ fun projectStatisticMenu() =
                 // ===================== LEFT COLUMN =======================================================================
                 div("col-2 mr-3") {
                     div("text-xs text-center font-weight-bold text-primary text-uppercase mb-3") {
-                        +"Chart pie"
+                        +"Test suites"
                     }
 
                     div("col-xl col-md-6 mb-4") {
