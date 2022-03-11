@@ -44,7 +44,7 @@ fun logoutModal(
         }
         div {
             className = "modal-dialog"
-            role = AriaRole.document
+            asDynamic()["role"] = "document"
             div {
                 className = "modal-content"
                 div {
@@ -91,4 +91,6 @@ fun logoutModal(
             }
         }
     }
+}.also {
+    it.displayName = "logoutModal"
 }
