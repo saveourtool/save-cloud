@@ -57,8 +57,6 @@ import java.util.concurrent.TimeUnit
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.cqfn.save.orchestrator.config.LocalDateTimeConfig
-import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
-import org.springframework.http.codec.json.Jackson2JsonEncoder
 import org.springframework.http.codec.json.KotlinSerializationJsonEncoder
 import org.springframework.http.codec.json.KotlinSerializationJsonDecoder
 
@@ -75,8 +73,6 @@ class HeartbeatControllerTest {
     @Autowired private lateinit var kotlinSerializationJsonEncoder: KotlinSerializationJsonEncoder
     @Autowired private lateinit var kotlinSerializationJsonDecoder: KotlinSerializationJsonDecoder
 
-    private val stubTime = LocalDateTime.now()
-
     @BeforeEach
     fun webClientSetUp() {
         webClient = webClient
@@ -85,7 +81,7 @@ class HeartbeatControllerTest {
             it.defaultCodecs().kotlinSerializationJsonEncoder(kotlinSerializationJsonEncoder)
             it.defaultCodecs().kotlinSerializationJsonDecoder(kotlinSerializationJsonDecoder)
         }
-        .responseTimeout(Duration.ofSeconds(200))
+        .responseTimeout(Duration.ofSeconds(2))
         .build()
     }
 
@@ -96,7 +92,7 @@ class HeartbeatControllerTest {
 
     @Test
     fun checkAcceptingHeartbeat() {
-        val heartBeatBusy = Heartbeat("test", AgentState.BUSY, ExecutionProgress(0), stubTime)
+        val heartBeatBusy = Heartbeat("test", AgentState.BUSY, ExecutionProgress(0), LocalDateTime.now())
 
         webClient.post()
             .uri("/heartbeat")
@@ -143,7 +139,7 @@ class HeartbeatControllerTest {
                 AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "test-1"),
                 AgentStatusDto(LocalDateTime.now(), AgentState.BUSY, "test-2"),
             ),
-            heartbeats = listOf(Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100), stubTime)),
+            heartbeats = listOf(Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100), LocalDateTime.now())),
             testBatch = TestBatch(emptyList(), emptyMap()),
             testSuite = null,
             mockAgentStatuses = true,
@@ -159,7 +155,7 @@ class HeartbeatControllerTest {
                 AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "test-1"),
                 AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "test-2"),
             ),
-            heartbeats = listOf(Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100), stubTime)),
+            heartbeats = listOf(Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100), LocalDateTime.now())),
             testBatch = TestBatch(
                 listOf(
                     TestDto("/path/to/test-1", "WarnPlugin", 1, "hash1", listOf("tag")),
@@ -186,7 +182,7 @@ class HeartbeatControllerTest {
         )
         testHeartbeat(
             agentStatusDtos = agentStatusDtos,
-            heartbeats = listOf(Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100), stubTime)),
+            heartbeats = listOf(Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100), LocalDateTime.now())),
             heartBeatInterval = 0,
             testBatch = TestBatch(emptyList(), emptyMap()),
             testSuite = null,
@@ -222,7 +218,7 @@ class HeartbeatControllerTest {
                 AgentStatusDto(LocalDateTime.now(), AgentState.STARTING, "test-1"),
                 AgentStatusDto(LocalDateTime.now(), AgentState.STARTING, "test-2"),
             ),
-            heartbeats = listOf(Heartbeat("test-1", AgentState.STARTING, ExecutionProgress(0), stubTime)),
+            heartbeats = listOf(Heartbeat("test-1", AgentState.STARTING, ExecutionProgress(0), LocalDateTime.now())),
             testBatch = TestBatch(
                 listOf(
                     TestDto("/path/to/test-1", "WarnPlugin", 1, "hash1", listOf("tag")),
@@ -242,19 +238,20 @@ class HeartbeatControllerTest {
 
     @Test
     fun `should shutdown agent, which don't sent heartbeat for some time`() {
+        val currTime = LocalDateTime.now()
         testHeartbeat(
             agentStatusDtos = listOf(
                 AgentStatusDto(LocalDateTime.now(), AgentState.STARTING, "test-1"),
                 AgentStatusDto(LocalDateTime.now(), AgentState.BUSY, "test-2"),
             ),
             heartbeats = listOf(
-                Heartbeat("test-1", AgentState.STARTING, ExecutionProgress(0), LocalDateTime.now()),
-                Heartbeat("test-1", AgentState.BUSY, ExecutionProgress(0), LocalDateTime.now().plusSeconds(1)),
-                Heartbeat("test-2", AgentState.BUSY, ExecutionProgress(0), LocalDateTime.now().plusSeconds(2)),
+                Heartbeat("test-1", AgentState.STARTING, ExecutionProgress(0), currTime),
+                Heartbeat("test-1", AgentState.BUSY, ExecutionProgress(0), currTime.plusSeconds(1)),
+                Heartbeat("test-2", AgentState.BUSY, ExecutionProgress(0), currTime.plusSeconds(2)),
                 // 3 absent heartbeats from test-2
-                Heartbeat("test-1", AgentState.BUSY, ExecutionProgress(0), LocalDateTime.now().plusSeconds(3)),
-                Heartbeat("test-1", AgentState.BUSY, ExecutionProgress(0), LocalDateTime.now().plusSeconds(4)),
-                Heartbeat("test-1", AgentState.BUSY, ExecutionProgress(0), LocalDateTime.now().plusSeconds(6)),
+                Heartbeat("test-1", AgentState.BUSY, ExecutionProgress(0), currTime.plusSeconds(3)),
+                Heartbeat("test-1", AgentState.BUSY, ExecutionProgress(0), currTime.plusSeconds(4)),
+                Heartbeat("test-1", AgentState.BUSY, ExecutionProgress(0), currTime.plusSeconds(6)),
             ),
             heartBeatInterval = 1_000,
             testBatch = TestBatch(
@@ -283,6 +280,7 @@ class HeartbeatControllerTest {
         testHeartbeat(
             agentStatusDtos = agentStatusDtos,
             heartbeats = listOf(
+                // heartbeats were send long time ago
                 Heartbeat("test-1", AgentState.STARTING, ExecutionProgress(0), LocalDateTime.now().minusMinutes(1)),
                 Heartbeat("test-2", AgentState.BUSY, ExecutionProgress(0), LocalDateTime.now().minusMinutes(1)),
             ),
@@ -314,7 +312,7 @@ class HeartbeatControllerTest {
         )
         testHeartbeat(
             agentStatusDtos = agentStatusDtos,
-            heartbeats = listOf(Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100), stubTime)),
+            heartbeats = listOf(Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100), LocalDateTime.now())),
             heartBeatInterval = 0,
             testBatch = TestBatch(emptyList(), emptyMap()),
             testSuite = null,

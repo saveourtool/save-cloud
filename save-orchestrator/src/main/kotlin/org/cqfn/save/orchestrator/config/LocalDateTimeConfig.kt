@@ -52,15 +52,4 @@ class LocalDateTimeConfig {
                     configurer.defaultCodecs().kotlinSerializationJsonDecoder(decoder)
                 }
             }
-
-    @Bean
-    fun kotlinSerializationWebClientCustomizer(
-        kotlinSerializationJsonEncoder: KotlinSerializationJsonEncoder,
-        kotlinSerializationJsonDecoder: KotlinSerializationJsonDecoder,
-    ) = WebClientCustomizer { builder ->
-        builder.codecs {
-            it.defaultCodecs().kotlinSerializationJsonEncoder(kotlinSerializationJsonEncoder)
-            it.defaultCodecs().kotlinSerializationJsonDecoder(kotlinSerializationJsonDecoder)
-        }
-    }
 }
