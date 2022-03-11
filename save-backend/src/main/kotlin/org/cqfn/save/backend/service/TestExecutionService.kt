@@ -77,7 +77,7 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
      * @return a list of test executions
      */
     internal fun getTestExecutions(executionId: Long, page: Int?, pageSize: Int?) =
-            testExecutionRepository.findByExecutionId(executionId, PageRequest.of(page ?: 1, pageSize ?: 0))
+            testExecutionRepository.findByExecutionId(executionId, PageRequest.of(page ?: 1, pageSize ?: 1))
 
     /**
      * Finds TestExecution by test location
