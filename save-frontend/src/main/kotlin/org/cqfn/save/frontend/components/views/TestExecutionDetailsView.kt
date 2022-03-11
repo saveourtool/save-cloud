@@ -29,12 +29,11 @@ import react.dom.td
 import react.dom.tr
 import react.fc
 import react.router.useParams
+import react.useEffect
 import react.useState
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import react.FC
-import react.useEffect
 
 @Suppress("TOO_LONG_FUNCTION", "EMPTY_BLOCK_STRUCTURE_ERROR")
 private fun RBuilder.resultsTable(testResultDebugInfo: TestResultDebugInfo) = table("table table-bordered") {

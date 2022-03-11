@@ -5,7 +5,6 @@
 package org.cqfn.save.frontend.externals.modal
 
 import react.ChildrenBuilder
-import react.IntrinsicType
 import react.RBuilder
 import react.RHandler
 import react.ReactDsl
@@ -41,7 +40,7 @@ fun RBuilder.modal(
  */
 fun ChildrenBuilder.modal(
     block: @ReactDsl ChildrenBuilder.(ModalProps) -> Unit,
-): Unit = ReactModal::class.react.unsafeCast<IntrinsicType<ModalProps>>().invoke {
+): Unit = ReactModal::class.react.invoke {
     style = defaultModalStyle
     shouldCloseOnOverlayClick = true
     block.invoke(this, this)

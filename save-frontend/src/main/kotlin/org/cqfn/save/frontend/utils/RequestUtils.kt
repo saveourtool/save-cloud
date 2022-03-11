@@ -16,6 +16,7 @@ import react.Component
 import react.StateSetter
 import react.useContext
 import react.useEffect
+import react.useState
 
 import kotlinx.browser.window
 import kotlinx.coroutines.CoroutineScope
@@ -26,9 +27,15 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
-import react.useState
 
 val apiUrl = "${window.location.origin}/api"
+
+fun interface WithRequestStatusContext {
+    /**
+     * @param code
+     */
+    fun setErrorCode(code: Int)
+}
 
 /**
  * Perform a mapping operation on a [Response] if it's status is OK or throw an exception otherwise.
@@ -104,6 +111,20 @@ suspend fun Component<*, *>.getOrganization(name: String) = get(
     .decodeFromJsonString<Organization>()
 
 /**
+ * @param url
+ * @param headers
+ * @param body
+ * @param responseHandler
+ * @return
+ */
+suspend fun WithRequestStatusContext.post(
+    url: String,
+    headers: Headers,
+    body: dynamic,
+    responseHandler: (Response) -> Unit = this::withModalResponseHandler,
+) = request(url, "POST", headers, body, responseHandler = responseHandler)
+
+/**
  * @param response
  */
 internal fun Component<*, *>.classComponentResponseHandler(
@@ -129,10 +150,6 @@ private fun Component<*, *>.withModalResponseHandler(
     }
 }
 
-fun interface WithRequestStatusContext {
-    fun setErrorCode(code: Int)
-}
-
 private fun WithRequestStatusContext.withModalResponseHandler(
     response: Response
 ) {
@@ -142,13 +159,11 @@ private fun WithRequestStatusContext.withModalResponseHandler(
     }
 }
 
-suspend fun WithRequestStatusContext.post(
-    url: String,
-    headers: Headers,
-    body: dynamic,
-    responseHandler: (Response) -> Unit = this::withModalResponseHandler,
-) = request(url, "POST", headers, body, responseHandler = responseHandler)
-
+/**
+ * @param dependencies
+ * @param request
+ * @return
+ */
 fun <R> useRequest(dependencies: Array<dynamic>,
                    request: suspend WithRequestStatusContext.(checkStatus: (Response) -> Unit) -> R,
 ): () -> Unit {
@@ -161,7 +176,9 @@ fun <R> useRequest(dependencies: Array<dynamic>,
 
     useEffect(isSending, *dependencies) {
         console.log("useEffect with isSending=$isSending")
-        if (!isSending) return@useEffect
+        if (!isSending) {
+            return@useEffect
+        }
         scope.launch {
             val checkStatus: (Response) -> Unit = { response ->
                 if (!response.ok) {
@@ -178,7 +195,11 @@ fun <R> useRequest(dependencies: Array<dynamic>,
         }
     }
 
-    return { if (!isSending) setIsSending(true) }
+    return {
+        if (!isSending) {
+            setIsSending(true)
+        }
+    }
 }
 
 /**

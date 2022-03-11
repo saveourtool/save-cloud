@@ -7,13 +7,10 @@ package org.cqfn.save.frontend.components.modal
 import org.cqfn.save.frontend.externals.modal.ModalProps
 import org.cqfn.save.frontend.externals.modal.modal
 import org.cqfn.save.frontend.utils.post
+import org.cqfn.save.frontend.utils.spread
 import org.cqfn.save.frontend.utils.useRequest
 
 import org.w3c.fetch.Headers
-import react.Props
-
-import kotlinx.browser.window
-import org.cqfn.save.frontend.utils.spread
 import react.FC
 import react.dom.aria.AriaRole
 import react.dom.aria.ariaLabel
@@ -22,12 +19,13 @@ import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h5
 import react.dom.html.ReactHTML.span
 
+import kotlinx.browser.window
+
 /**
  * @param closeCallback a callback to call to close the modal
  * @return a Component
  */
 @Suppress("TOO_LONG_FUNCTION")
-//@JsName("logoutModal")
 fun logoutModal(
     closeCallback: () -> Unit
 ) = FC<ModalProps> { props ->
@@ -52,7 +50,7 @@ fun logoutModal(
                 div {
                     className = "modal-header"
                     h5 {
-                        className  ="modal-title"
+                        className = "modal-title"
                         +"Ready to Leave?"
                     }
                     button {
@@ -81,17 +79,15 @@ fun logoutModal(
                     onClick = { closeCallback() }
                     +"Cancel"
                 }
-                FC<Props> {
                 button {
                     className = "btn btn-primary"
                     type = react.dom.html.ButtonType.button
                     onClick = {
                         doLogoutRequest()
-//                        closeCallback()
+                        // closeCallback()  // todo: logout modal still overlaps error status modal
                     }
                     +"Logout"
                 }
-                }()
             }
         }
     }

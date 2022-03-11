@@ -36,7 +36,7 @@ val errorModalHandler: FC<PropsWithChildren> = FC { props ->
     useEffect(errorCode) {
         val newModalState = ErrorModalState(
             isErrorModalOpen = errorCode != null,
-            errorMessage = "$errorCode",
+            errorMessage = errorCode.toString(),
             errorLabel = errorCode.toString(),
         )
         setModalState(newModalState)
