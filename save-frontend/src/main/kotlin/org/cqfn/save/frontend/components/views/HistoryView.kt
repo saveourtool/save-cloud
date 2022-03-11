@@ -348,7 +348,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
      */
     private data class ResultColorAndIcon(val resColor: String, val resIcon: dynamic)
 
-    companion object : RStatics<HistoryProps, HistoryViewState, HistoryView, Context<StateSetter<Int?>>>(HistoryView::class) {
+    companion object : RStatics<HistoryProps, HistoryViewState, HistoryView, Context<StateSetter<Response?>>>(HistoryView::class) {
         init {
             contextType = errorStatusContext
         }

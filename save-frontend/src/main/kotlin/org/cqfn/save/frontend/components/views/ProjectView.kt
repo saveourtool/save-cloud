@@ -809,7 +809,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             it.decodeFromJsonString<List<FileInfo>>()
         }
 
-    companion object : RStatics<ProjectExecutionRouteProps, ProjectViewState, ProjectView, Context<StateSetter<Int?>>>(ProjectView::class) {
+    companion object : RStatics<ProjectExecutionRouteProps, ProjectViewState, ProjectView, Context<StateSetter<Response?>>>(ProjectView::class) {
         const val TEST_ROOT_DIR_HINT = """
             The path you are providing should be relative to the root directory of your repository.
             This directory should contain <a href = "https://github.com/analysis-dev/save#how-to-configure"> save.properties </a>

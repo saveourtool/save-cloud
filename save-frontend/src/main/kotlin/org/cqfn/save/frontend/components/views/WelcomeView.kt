@@ -22,6 +22,7 @@ import csstype.Display
 import csstype.FontSize
 import csstype.FontWeight
 import org.w3c.fetch.Headers
+import org.w3c.fetch.Response
 import react.CSSProperties
 import react.Context
 import react.PropsWithChildren
@@ -261,7 +262,7 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
         }
     }
 
-    companion object : RStatics<WelcomeProps, IndexViewState, WelcomeView, Context<StateSetter<Int?>>>(WelcomeView::class) {
+    companion object : RStatics<WelcomeProps, IndexViewState, WelcomeView, Context<StateSetter<Response?>>>(WelcomeView::class) {
         init {
             contextType = errorStatusContext
         }

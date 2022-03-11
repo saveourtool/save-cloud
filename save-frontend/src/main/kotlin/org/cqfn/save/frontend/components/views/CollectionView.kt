@@ -12,6 +12,7 @@ import org.cqfn.save.frontend.utils.get
 import org.cqfn.save.frontend.utils.unsafeMap
 
 import org.w3c.fetch.Headers
+import org.w3c.fetch.Response
 import react.*
 import react.dom.*
 import react.table.columns
@@ -92,7 +93,7 @@ class CollectionView : AbstractView<PropsWithChildren, State>(false) {
         child(projectsTable) { }
     }
 
-    companion object : RStatics<PropsWithChildren, State, CollectionView, Context<StateSetter<Int?>>>(CollectionView::class) {
+    companion object : RStatics<PropsWithChildren, State, CollectionView, Context<StateSetter<Response?>>>(CollectionView::class) {
         init {
             contextType = errorStatusContext
         }

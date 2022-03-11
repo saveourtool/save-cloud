@@ -16,6 +16,7 @@ import csstype.Height
 import csstype.Width
 import csstype.rem
 import org.w3c.fetch.Headers
+import org.w3c.fetch.Response
 import react.*
 import react.dom.*
 
@@ -326,7 +327,7 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
         }
     }
 
-    companion object : RStatics<PropsWithChildren, AwesomeBenchmarksState, AwesomeBenchmarksView, Context<StateSetter<Int?>>>(AwesomeBenchmarksView::class) {
+    companion object : RStatics<PropsWithChildren, AwesomeBenchmarksState, AwesomeBenchmarksView, Context<StateSetter<Response?>>>(AwesomeBenchmarksView::class) {
         init {
             contextType = errorStatusContext
         }

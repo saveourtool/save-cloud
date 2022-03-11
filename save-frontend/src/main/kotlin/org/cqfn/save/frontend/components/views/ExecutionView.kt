@@ -31,6 +31,7 @@ import org.cqfn.save.frontend.utils.unsafeMap
 import csstype.Background
 import csstype.TextDecoration
 import org.w3c.fetch.Headers
+import org.w3c.fetch.Response
 import react.*
 import react.dom.*
 import react.table.columns
@@ -436,7 +437,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
         }
     }
 
-    companion object : RStatics<ExecutionProps, ExecutionState, ExecutionView, Context<StateSetter<Int?>>>(ExecutionView::class) {
+    companion object : RStatics<ExecutionProps, ExecutionState, ExecutionView, Context<StateSetter<Response?>>>(ExecutionView::class) {
         init {
             contextType = errorStatusContext
         }

@@ -20,6 +20,7 @@ import csstype.Top
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.asList
 import org.w3c.fetch.Headers
+import org.w3c.fetch.Response
 import org.w3c.xhr.FormData
 import react.*
 import react.dom.*
@@ -224,7 +225,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             it.decodeFromJsonString<ImageInfo>()
         }
 
-    companion object : RStatics<OrganizationProps, OrganizationViewState, OrganizationView, Context<StateSetter<Int?>>>(OrganizationView::class) {
+    companion object : RStatics<OrganizationProps, OrganizationViewState, OrganizationView, Context<StateSetter<Response?>>>(OrganizationView::class) {
         init {
             contextType = errorStatusContext
         }

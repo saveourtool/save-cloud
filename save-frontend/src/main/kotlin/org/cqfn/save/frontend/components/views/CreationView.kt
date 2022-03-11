@@ -22,6 +22,7 @@ import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.HTMLTextAreaElement
 import org.w3c.dom.events.Event
 import org.w3c.fetch.Headers
+import org.w3c.fetch.Response
 import react.Context
 import react.Props
 import react.RBuilder
@@ -381,7 +382,7 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
                 +text
             }
 
-    companion object : RStatics<Props, ProjectSaveViewState, CreationView, Context<StateSetter<Int?>>>(CreationView::class) {
+    companion object : RStatics<Props, ProjectSaveViewState, CreationView, Context<StateSetter<Response?>>>(CreationView::class) {
         init {
             contextType = errorStatusContext
         }

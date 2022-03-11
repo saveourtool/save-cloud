@@ -30,9 +30,9 @@ val apiUrl = "${window.location.origin}/api"
 
 fun interface WithRequestStatusContext {
     /**
-     * @param code
+     * @param response
      */
-    fun setErrorCode(code: Int)
+    fun setResponse(response: Response)
 }
 
 /**
@@ -79,6 +79,11 @@ suspend fun Component<*, *>.post(url: String,
                                  responseHandler: (Response) -> Unit = this::classComponentResponseHandler,
 ) = request(url, "POST", headers, body, responseHandler = responseHandler)
 
+suspend fun WithRequestStatusContext.get(url: String,
+                                         headers: Headers,
+                                         responseHandler: (Response) -> Unit = this::withModalResponseHandler,
+) = request(url, "GET", headers, responseHandler = responseHandler)
+
 /**
  * @param url
  * @param headers
@@ -100,7 +105,7 @@ internal fun Component<*, *>.classComponentResponseHandler(
     response: Response
 ) {
     if (this.asDynamic().context is Function<*>) {
-        // dirty hack to determine whether this component contains `setErrorCode` in its context.
+        // dirty hack to determine whether this component contains `setResponse` in its context.
         // If we add another context with a function, this logic will break.
         console.log("Branch for component class ${this::class} with context=${this.asDynamic().context}")
         this.unsafeCast<Component<*, *>>().withModalResponseHandler(response)
@@ -112,15 +117,15 @@ internal fun Component<*, *>.classComponentResponseHandler(
 
 private fun Component<*, *>.withModalResponseHandler(response: Response) {
     if (!response.ok) {
-        val setErrorCode: StateSetter<Int?> = this.asDynamic().context
-        setErrorCode(response.status.toInt())
+        val setResponse: StateSetter<Response?> = this.asDynamic().context
+        setResponse(response)
     }
 }
 
 private fun WithRequestStatusContext.withModalResponseHandler(response: Response) {
     if (!response.ok) {
-        console.log("setErrorCode with code ${response.status}")
-        setErrorCode(response.status.toInt())
+        console.log("setResponse with code ${response.status}")
+        setResponse(response)
     }
 }
 
@@ -134,9 +139,9 @@ fun <R> useRequest(dependencies: Array<dynamic>,
 ): () -> Unit {
     val scope = CoroutineScope(Dispatchers.Default)
     val (isSending, setIsSending) = useState(false)
-    val setErrorCode = useContext(errorStatusContext)
+    val setResponse = useContext(errorStatusContext)
     val context = WithRequestStatusContext {
-        setErrorCode(it)
+        setResponse(it)
     }
 
     useEffect(isSending, *dependencies) {
@@ -147,7 +152,7 @@ fun <R> useRequest(dependencies: Array<dynamic>,
         scope.launch {
             val checkStatus: (Response) -> Unit = { response ->
                 if (!response.ok) {
-                    setErrorCode(response.status.toInt())
+                    setResponse(response)
                 }
             }
             request(context, checkStatus)

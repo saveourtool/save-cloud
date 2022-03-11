@@ -3,6 +3,7 @@
 package org.cqfn.save.frontend.components
 
 import org.cqfn.save.frontend.externals.modal.modal
+import org.w3c.fetch.Response
 import react.Context
 import react.FC
 import react.PropsWithChildren
@@ -19,25 +20,25 @@ import react.useState
 /**
  * Context to store data about current request error.
  */
-val errorStatusContext: Context<StateSetter<Int?>> = createContext()
+val errorStatusContext: Context<StateSetter<Response?>> = createContext()
 
 /**
  * Component that displays generic warning about unsuccessful request based on info in [errorStatusContext].
  * Also renders its `children`.
  */
 val errorModalHandler: FC<PropsWithChildren> = FC { props ->
-    val (errorCode, setErrorCode) = useState<Int?>(null)
+    val (response, setResponse) = useState<Response?>(null)
     val (modalState, setModalState) = useState(ErrorModalState(
         isErrorModalOpen = false,
         errorMessage = "",
         errorLabel = "",
     ))
 
-    useEffect(errorCode) {
+    useEffect(response) {
         val newModalState = ErrorModalState(
-            isErrorModalOpen = errorCode != null,
-            errorMessage = errorCode.toString(),
-            errorLabel = errorCode.toString(),
+            isErrorModalOpen = response != null,
+            errorMessage = "${response?.status} ${response?.statusText}",
+            errorLabel = response?.status.toString(),
         )
         setModalState(newModalState)
     }
@@ -58,7 +59,7 @@ val errorModalHandler: FC<PropsWithChildren> = FC { props ->
                 className = "btn btn-primary"
                 type = ButtonType.button
                 onClick = {
-                    setErrorCode(null)
+                    setResponse(null)
                     setModalState(modalState.copy(isErrorModalOpen = false))
                 }
                 +"Close"
@@ -67,8 +68,8 @@ val errorModalHandler: FC<PropsWithChildren> = FC { props ->
     }
 
     val contextPayload = useMemo(
-        arrayOf(setErrorCode)
-    ) { setErrorCode }
+        arrayOf(setResponse)
+    ) { setResponse }
 
     errorStatusContext.Provider {
         value = contextPayload
