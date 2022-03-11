@@ -107,7 +107,7 @@ class DockerService(private val configProperties: ConfigProperties) {
      * @return true if agents have been stopped, false if another thread is already stopping them
      */
     @Suppress("TOO_MANY_LINES_IN_LAMBDA")
-    fun stopAgents(agentIds: List<String>) =
+    fun stopAgents(agentIds: Collection<String>) =
             if (isAgentStoppingInProgress.compareAndSet(false, true)) {
                 try {
                     val containerList = containerManager.dockerClient.listContainersCmd().withShowAll(true).exec()
