@@ -1,8 +1,8 @@
 package org.cqfn.save.backend.controllers
 
 import org.cqfn.save.agent.AgentState
-import org.cqfn.save.agent.LatestExecutionStatisticDto
 import org.cqfn.save.agent.TestExecutionDto
+import org.cqfn.save.agent.TestSuiteExecutionStatisticDto
 import org.cqfn.save.backend.security.Permission
 import org.cqfn.save.backend.security.ProjectPermissionEvaluator
 import org.cqfn.save.backend.service.ExecutionService
@@ -11,6 +11,7 @@ import org.cqfn.save.backend.utils.justOrNotFound
 import org.cqfn.save.domain.TestResultLocation
 import org.cqfn.save.domain.TestResultStatus
 import org.cqfn.save.test.TestDto
+
 import org.slf4j.LoggerFactory
 import org.springframework.dao.DataAccessException
 import org.springframework.http.HttpStatus
@@ -82,12 +83,12 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
         @RequestParam(required = false) page: Int?,
         @RequestParam(required = false) size: Int?,
         authentication: Authentication,
-    ): Mono<List<LatestExecutionStatisticDto>> =
+    ): Mono<List<TestSuiteExecutionStatisticDto>> =
             justOrNotFound(executionService.findExecution(executionId)).filterWhen {
                 projectPermissionEvaluator.checkPermissions(authentication, it, Permission.READ)
             }.map {
-                testExecutionService.getTestExecutions(executionId).groupBy { it.test.testSuite.name }.map {
-                    LatestExecutionStatisticDto(it.key, it.value.count(), it.value.count { testExec -> testExec.status == status }, status)
+                testExecutionService.getTestExecutions(executionId, page, size).groupBy { it.test.testSuite.name }.map {
+                    TestSuiteExecutionStatisticDto(it.key, it.value.count(), it.value.count { testExec -> testExec.status == status }, status)
                 }
             }
 

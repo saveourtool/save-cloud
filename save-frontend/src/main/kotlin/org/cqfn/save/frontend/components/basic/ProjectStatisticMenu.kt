@@ -2,7 +2,7 @@
 
 package org.cqfn.save.frontend.components.basic
 
-import org.cqfn.save.agent.LatestExecutionStatisticDto
+import org.cqfn.save.agent.TestSuiteExecutionStatisticDto
 import org.cqfn.save.domain.TestResultStatus
 import org.cqfn.save.frontend.components.tables.tableComponent
 import org.cqfn.save.frontend.externals.chart.DataPieChart
@@ -31,7 +31,7 @@ external interface ProjectStatisticMenuProps : Props {
     /**
      * list of tests
      */
-    var latestExecutionStatisticDtos: List<LatestExecutionStatisticDto>?
+    var latestExecutionStatisticDtos: List<TestSuiteExecutionStatisticDto>?
 }
 
 /**
@@ -49,10 +49,9 @@ fun projectStatisticMenu() =
                     }
 
                     div("col-xl col-md-6 mb-4") {
-                        val data: MutableList<DataPieChart> = mutableListOf()
-                        props.latestExecutionStatisticDtos?.map {
-                            data.add(DataPieChart(it.testSuiteName, it.countTest, randomColor()))
-                        }
+                        val data = props.latestExecutionStatisticDtos?.map {
+                            DataPieChart(it.testSuiteName, it.countTest, randomColor())
+                        } ?: emptyList()
 
                         pieChart(
                             data.toTypedArray()
@@ -71,7 +70,7 @@ fun projectStatisticMenu() =
                     }
 
                     child(tableComponent(
-                        columns = columns<LatestExecutionStatisticDto> {
+                        columns = columns<TestSuiteExecutionStatisticDto> {
                             column(id = "name", header = "Test suite", { testSuiteName }) {
                                 buildElement {
                                     td {
@@ -105,7 +104,7 @@ fun projectStatisticMenu() =
                             },
                         )
                             .unsafeMap {
-                                it.decodeFromJsonString<Array<LatestExecutionStatisticDto>>()
+                                it.decodeFromJsonString<Array<TestSuiteExecutionStatisticDto>>()
                             }
                     }) { }
                 }

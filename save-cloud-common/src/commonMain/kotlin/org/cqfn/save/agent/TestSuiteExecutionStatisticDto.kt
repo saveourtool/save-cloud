@@ -11,7 +11,7 @@ import kotlinx.serialization.Serializable
  * @property status
  */
 @Serializable
-data class LatestExecutionStatisticDto(
+data class TestSuiteExecutionStatisticDto(
     val testSuiteName: String,
     val countTest: Int,
     val countWithStatusTest: Int,

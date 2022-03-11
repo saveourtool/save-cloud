@@ -6,7 +6,7 @@
 
 package org.cqfn.save.frontend.components.views
 
-import org.cqfn.save.agent.LatestExecutionStatisticDto
+import org.cqfn.save.agent.TestSuiteExecutionStatisticDto
 import org.cqfn.save.domain.FileInfo
 import org.cqfn.save.domain.Sdk
 import org.cqfn.save.domain.TestResultStatus
@@ -228,7 +228,7 @@ external interface ProjectViewState : State {
     /**
      * Flag to handle error
      */
-    var latestExecutionStatisticDtos: List<LatestExecutionStatisticDto>
+    var latestExecutionStatisticDtos: List<TestSuiteExecutionStatisticDto>
 }
 
 /**
@@ -684,7 +684,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 },
             )
                 .unsafeMap {
-                    it.decodeFromJsonString<List<LatestExecutionStatisticDto>>()
+                    it.decodeFromJsonString<List<TestSuiteExecutionStatisticDto>>()
                 }
             setState {
                 latestExecutionStatisticDtos = testLatestExecutions

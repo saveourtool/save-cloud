@@ -25,9 +25,10 @@ interface TestExecutionRepository : BaseEntityRepository<TestExecution>, JpaSpec
 
     /**
      * @param executionId
+     * @param pageable
      * @return list of test executions
      */
-    fun findByExecutionId(executionId: Long): List<TestExecution>
+    fun findByExecutionId(executionId: Long, pageable: Pageable): List<TestExecution>
 
     /**
      * Returns a page of [TestExecution]s with [executionId]
