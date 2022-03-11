@@ -4,8 +4,6 @@
 
 package org.cqfn.save.frontend.utils
 
-import org.cqfn.save.entities.Organization
-import org.cqfn.save.entities.Project
 import org.cqfn.save.frontend.components.errorStatusContext
 
 import org.w3c.fetch.Headers
@@ -63,7 +61,8 @@ suspend inline fun <reified T> Response.decodeFromJsonString() = Json.decodeFrom
  * @param responseHandler
  * @return
  */
-suspend fun Component<*, *>.get(url: String, headers: Headers,
+suspend fun Component<*, *>.get(url: String,
+                                headers: Headers,
                                 responseHandler: (Response) -> Unit = this::classComponentResponseHandler,
 ) = request(url, "GET", headers, responseHandler = responseHandler)
 
@@ -74,41 +73,11 @@ suspend fun Component<*, *>.get(url: String, headers: Headers,
  * @param responseHandler
  * @return
  */
-suspend fun Component<*, *>.post(
-    url: String,
-    headers: Headers,
-    body: dynamic,
-    responseHandler: (Response) -> Unit = this::classComponentResponseHandler,
+suspend fun Component<*, *>.post(url: String,
+                                 headers: Headers,
+                                 body: dynamic,
+                                 responseHandler: (Response) -> Unit = this::classComponentResponseHandler,
 ) = request(url, "POST", headers, body, responseHandler = responseHandler)
-
-/**
- * @param name
- * @param organizationName
- * @return project
- */
-suspend fun Component<*, *>.getProject(name: String, organizationName: String) = get(
-    "$apiUrl/projects/get/organization-name?name=$name&organizationName=$organizationName",
-    Headers().apply {
-        set("Accept", "application/json")
-    },
-    responseHandler = ::withModalResponseHandler,
-)
-    .runCatching {
-        decodeFromJsonString<Project>()
-    }
-
-/**
- * @param name organization name
- * @return organization
- */
-suspend fun Component<*, *>.getOrganization(name: String) = get(
-    "$apiUrl/organization/get/organization-name?name=$name",
-    Headers().apply {
-        set("Accept", "application/json")
-    },
-    responseHandler = ::withModalResponseHandler,
-)
-    .decodeFromJsonString<Organization>()
 
 /**
  * @param url
@@ -141,18 +110,14 @@ internal fun Component<*, *>.classComponentResponseHandler(
     }
 }
 
-private fun Component<*, *>.withModalResponseHandler(
-    response: Response
-) {
+private fun Component<*, *>.withModalResponseHandler(response: Response) {
     if (!response.ok) {
         val setErrorCode: StateSetter<Int?> = this.asDynamic().context
         setErrorCode(response.status.toInt())
     }
 }
 
-private fun WithRequestStatusContext.withModalResponseHandler(
-    response: Response
-) {
+private fun WithRequestStatusContext.withModalResponseHandler(response: Response) {
     if (!response.ok) {
         console.log("setErrorCode with code ${response.status}")
         setErrorCode(response.status.toInt())

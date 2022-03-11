@@ -10,6 +10,7 @@ import org.cqfn.save.entities.Project
 import org.cqfn.save.frontend.components.basic.privacySpan
 import org.cqfn.save.frontend.components.errorStatusContext
 import org.cqfn.save.frontend.components.tables.tableComponent
+import org.cqfn.save.frontend.http.getOrganization
 import org.cqfn.save.frontend.utils.*
 
 import csstype.Left

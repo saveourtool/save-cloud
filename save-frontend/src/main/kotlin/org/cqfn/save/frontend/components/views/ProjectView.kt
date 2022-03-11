@@ -30,11 +30,11 @@ import org.cqfn.save.frontend.externals.fontawesome.faEdit
 import org.cqfn.save.frontend.externals.fontawesome.faHistory
 import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
 import org.cqfn.save.frontend.externals.modal.modal
+import org.cqfn.save.frontend.http.getProject
 import org.cqfn.save.frontend.utils.apiUrl
 import org.cqfn.save.frontend.utils.appendJson
 import org.cqfn.save.frontend.utils.decodeFromJsonString
 import org.cqfn.save.frontend.utils.get
-import org.cqfn.save.frontend.utils.getProject
 import org.cqfn.save.frontend.utils.noopResponseHandler
 import org.cqfn.save.frontend.utils.post
 import org.cqfn.save.frontend.utils.runConfirmWindowModal

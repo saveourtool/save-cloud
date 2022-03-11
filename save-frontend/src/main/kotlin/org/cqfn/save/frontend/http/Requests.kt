@@ -5,8 +5,12 @@
 package org.cqfn.save.frontend.http
 
 import org.cqfn.save.agent.TestExecutionDto
+import org.cqfn.save.entities.Organization
+import org.cqfn.save.entities.Project
 import org.cqfn.save.frontend.utils.WithRequestStatusContext
 import org.cqfn.save.frontend.utils.apiUrl
+import org.cqfn.save.frontend.utils.decodeFromJsonString
+import org.cqfn.save.frontend.utils.get
 import org.cqfn.save.frontend.utils.post
 
 import org.w3c.fetch.Headers
@@ -29,13 +33,40 @@ suspend fun WithRequestStatusContext.getDebugInfoFor(testExecutionDto: TestExecu
         getDebugInfoFor(this::post, testExecutionDto)
 
 /**
+ * @param name
+ * @param organizationName
+ * @return project
+ */
+suspend fun Component<*, *>.getProject(name: String, organizationName: String) = get(
+    "$apiUrl/projects/get/organization-name?name=$name&organizationName=$organizationName",
+    Headers().apply {
+        set("Accept", "application/json")
+    },
+)
+    .runCatching {
+        decodeFromJsonString<Project>()
+    }
+
+/**
+ * @param name organization name
+ * @return organization
+ */
+suspend fun Component<*, *>.getOrganization(name: String) = get(
+    "$apiUrl/organization/get/organization-name?name=$name",
+    Headers().apply {
+        set("Accept", "application/json")
+    },
+)
+    .decodeFromJsonString<Organization>()
+
+/**
  * Fetch debug info for test execution
  *
  * @param testExecutionDto
  * @param post
  * @return Response
  */
-suspend fun getDebugInfoFor(post: suspend (String, Headers, dynamic) -> Response, testExecutionDto: TestExecutionDto) = post(
+private suspend fun getDebugInfoFor(post: suspend (String, Headers, dynamic) -> Response, testExecutionDto: TestExecutionDto) = post(
     "$apiUrl/files/get-debug-info",
     Headers().apply {
         set("Content-Type", "application/json")
