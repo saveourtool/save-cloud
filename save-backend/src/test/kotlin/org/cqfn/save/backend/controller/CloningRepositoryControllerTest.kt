@@ -4,10 +4,12 @@ import org.cqfn.save.backend.configs.ConfigProperties
 import org.cqfn.save.backend.configs.WebConfig
 import org.cqfn.save.backend.configs.WebSecurityConfig
 import org.cqfn.save.backend.controllers.CloneRepositoryController
+import org.cqfn.save.backend.controllers.OrganizationController
 import org.cqfn.save.backend.repository.*
 import org.cqfn.save.backend.scheduling.StandardSuitesUpdateScheduler
 import org.cqfn.save.backend.security.ProjectPermissionEvaluator
 import org.cqfn.save.backend.service.ExecutionService
+import org.cqfn.save.backend.service.OrganizationService
 import org.cqfn.save.backend.service.ProjectService
 import org.cqfn.save.backend.service.UserDetailsService
 import org.cqfn.save.backend.utils.ConvertingAuthenticationManager
@@ -75,6 +77,8 @@ import kotlin.io.path.createFile
     MockBean(UserRepository::class),
     MockBean(AwesomeBenchmarksRepository::class),
     MockBean(OrganizationRepository::class),
+    MockBean(OrganizationController::class),
+    MockBean(OrganizationService::class),
     MockBean(LnkUserProjectRepository::class),
     MockBean(ProjectPermissionEvaluator::class),
 )
