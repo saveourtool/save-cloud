@@ -298,7 +298,7 @@ class HeartbeatControllerTest {
             },
             mockAgentStatuses = false,
         ) {
-            assertTrue(crashedAgentsList.toList() == listOf("test-1", "test-2"))
+            assertTrue(crashedAgentsList.toList().sorted() == listOf("test-1", "test-2"))
         }
     }
 
