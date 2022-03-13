@@ -22,9 +22,8 @@ class OrganizationService(private val organizationRepository: OrganizationReposi
      */
     @Suppress("UnsafeCallOnNullableType")
     fun saveOrganization(organization: Organization): Pair<Long, OrganizationSaveStatus> {
-        val exampleMatcher = ExampleMatcher.matchingAll()
+        val exampleMatcher = ExampleMatcher.matchingAny()
             .withMatcher("name", ExampleMatcher.GenericPropertyMatchers.exact())
-            .withMatcher("ownerId", ExampleMatcher.GenericPropertyMatchers.exact())
         val (organizationId, organizationSaveStatus) = organizationRepository.findOne(Example.of(organization, exampleMatcher)).map {
             Pair(it.id, OrganizationSaveStatus.EXIST)
         }.orElseGet {

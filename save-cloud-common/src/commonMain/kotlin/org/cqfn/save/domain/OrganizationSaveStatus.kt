@@ -7,7 +7,6 @@ import kotlinx.serialization.Serializable
  * @property message
  */
 @Serializable
-@Suppress("CUSTOM_GETTERS_SETTERS")
 enum class OrganizationSaveStatus(val message: String) {
     /**
      * Organization exists
