@@ -4,11 +4,11 @@
 
 package org.cqfn.save.agent
 
-import kotlinx.serialization.Contextual
 import org.cqfn.save.test.TestDto
-
-import kotlinx.serialization.Serializable
 import org.cqfn.save.utils.LocalDateTime
+
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.Serializable
 
 /**
  * Progress of tests execution

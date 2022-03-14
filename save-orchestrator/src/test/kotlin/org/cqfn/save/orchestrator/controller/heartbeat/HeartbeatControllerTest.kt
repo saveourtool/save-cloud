@@ -8,6 +8,7 @@ import org.cqfn.save.entities.AgentStatusDto
 import org.cqfn.save.entities.AgentStatusesForExecution
 import org.cqfn.save.entities.TestSuite
 import org.cqfn.save.orchestrator.config.Beans
+import org.cqfn.save.orchestrator.config.LocalDateTimeConfig
 import org.cqfn.save.orchestrator.controller.HeartBeatInspector
 import org.cqfn.save.orchestrator.controller.crashedAgentsList
 import org.cqfn.save.orchestrator.service.AgentService
@@ -21,7 +22,6 @@ import org.cqfn.save.testutils.enqueue
 import org.cqfn.save.testutils.setDefaultResponseForPath
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import kotlinx.serialization.Contextual
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import okhttp3.mockwebserver.RecordedRequest
@@ -41,6 +41,8 @@ import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
+import org.springframework.http.codec.json.KotlinSerializationJsonDecoder
+import org.springframework.http.codec.json.KotlinSerializationJsonEncoder
 import org.springframework.scheduling.annotation.EnableScheduling
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.DynamicPropertyRegistry
@@ -56,12 +58,14 @@ import java.util.concurrent.TimeUnit
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.cqfn.save.orchestrator.config.LocalDateTimeConfig
-import org.springframework.http.codec.json.KotlinSerializationJsonEncoder
-import org.springframework.http.codec.json.KotlinSerializationJsonDecoder
 
 @WebFluxTest
-@Import(Beans::class, AgentService::class, HeartBeatInspector::class, LocalDateTimeConfig::class)
+@Import(
+    Beans::class,
+    AgentService::class,
+    HeartBeatInspector::class,
+    LocalDateTimeConfig::class
+)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @EnableScheduling
@@ -76,13 +80,13 @@ class HeartbeatControllerTest {
     @BeforeEach
     fun webClientSetUp() {
         webClient = webClient
-        .mutate()
-        .codecs {
-            it.defaultCodecs().kotlinSerializationJsonEncoder(kotlinSerializationJsonEncoder)
-            it.defaultCodecs().kotlinSerializationJsonDecoder(kotlinSerializationJsonDecoder)
-        }
-        .responseTimeout(Duration.ofSeconds(2))
-        .build()
+            .mutate()
+            .codecs {
+                it.defaultCodecs().kotlinSerializationJsonEncoder(kotlinSerializationJsonEncoder)
+                it.defaultCodecs().kotlinSerializationJsonDecoder(kotlinSerializationJsonDecoder)
+            }
+            .responseTimeout(Duration.ofSeconds(2))
+            .build()
     }
 
     @AfterEach

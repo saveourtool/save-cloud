@@ -265,6 +265,7 @@ class AgentService {
      *
      * @param agentsList the list of agents, for which, according the [status] corresponding test executions should be marked as failed
      * @param status
+     * @return a bodiless response entity
      */
     fun markTestExecutionsAsFailed(agentsList: Collection<String>, status: AgentState): Mono<BodilessResponseEntity> {
         log.debug("Attempt to mark test executions of agents=$agentsList as failed with internal error")

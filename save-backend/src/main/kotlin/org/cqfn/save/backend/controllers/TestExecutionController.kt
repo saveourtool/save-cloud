@@ -142,7 +142,7 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
         @RequestParam("status") status: String,
         @RequestBody agentIds: Collection<String>
     ) {
-        when(status) {
+        when (status) {
             AgentState.CRASHED.name -> testExecutionService.markTestExecutionsOfAgentsAsFailed(agentIds)
             AgentState.FINISHED.name -> testExecutionService.markTestExecutionsOfAgentsAsFailed(agentIds) {
                 it.status == TestResultStatus.READY_FOR_TESTING
@@ -151,7 +151,6 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
                 HttpStatus.BAD_REQUEST,
                 "For now only CRASHED and FINISHED statuses are supported"
             )
-        }
         }
     }
 

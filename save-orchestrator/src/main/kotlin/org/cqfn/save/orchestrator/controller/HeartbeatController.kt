@@ -115,8 +115,7 @@ class HeartbeatController(private val agentService: AgentService,
     /**
      * Collect information about the latest heartbeats from agents, in aim to determine crashed one later
      *
-     * @param agentId
-     * @param state
+     * @param heartbeat
      */
     fun updateAgentHeartbeatTimeStamps(heartbeat: Heartbeat) {
         agentsLatestHeartBeatsMap[heartbeat.agentId] = heartbeat.state.name to heartbeat.timestamp

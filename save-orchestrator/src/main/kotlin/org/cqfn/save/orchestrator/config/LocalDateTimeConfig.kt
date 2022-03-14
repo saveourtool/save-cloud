@@ -22,7 +22,6 @@ import java.time.LocalDateTime
 
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
-import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
 
 internal val json = Json {
     serializersModule = SerializersModule {
