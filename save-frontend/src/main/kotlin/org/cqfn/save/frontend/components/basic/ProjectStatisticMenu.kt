@@ -46,20 +46,20 @@ external interface ProjectStatisticMenuProps : Props {
 }
 
 /**
- * @param onOpenMenuStatistic
+ * @param openMenuStatisticFlag
  * @return ReactElement
  */
 @Suppress("TOO_LONG_FUNCTION", "LongMethod", "MAGIC_NUMBER")
 fun projectStatisticMenu(
-    onOpenMenuStatistic: (isOpen: Boolean) -> Unit,
+    openMenuStatisticFlag: (isOpen: Boolean) -> Unit,
 ) =
         fc<ProjectStatisticMenuProps> { props ->
 
             val (latestExecutionStatisticDtos, setLatestExecutionStatisticDtos) = useState(props.latestExecutionStatisticDtos)
             val scope = CoroutineScope(Dispatchers.Default)
 
-            if (props.isOpen == true) {
-                useEffect(listOf<dynamic>(props.executionId, props.latestExecutionStatisticDtos)) {
+            useEffect(props.executionId, props.latestExecutionStatisticDtos, props.isOpen) {
+                if (!(props.isOpen == true)) {
                     scope.launch {
                         val testLatestExecutions = get(
                             url = "$apiUrl/testLatestExecutions?executionId=${props.executionId}&status=${TestResultStatus.PASSED}",
@@ -72,10 +72,8 @@ fun projectStatisticMenu(
                             }
                         setLatestExecutionStatisticDtos(testLatestExecutions)
                     }
-                    onOpenMenuStatistic(false)
-                }
-            } else {
-                useEffect(listOf<dynamic>()) {
+                    openMenuStatisticFlag(true)
+                } else {
                     cleanup {
                         if (scope.isActive) {
                             scope.cancel()

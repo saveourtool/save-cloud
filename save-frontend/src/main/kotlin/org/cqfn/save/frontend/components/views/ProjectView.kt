@@ -311,7 +311,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         },
     )
     private val projectStatisticMenu = projectStatisticMenu(
-        onOpenMenuStatistic = ::onOpenMenuStatistic,
+        openMenuStatisticFlag = ::openMenuStatisticFlag,
     )
     private val projectInfoCard = cardComponent(isBordered = true, hasBg = true) {
         child(projectInfo) {
@@ -429,7 +429,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         state.isUploading = false
         state.isEditDisabled = true
         state.selectedMenu = ProjectMenuBar.RUN
-        state.isOpenMenuStatistic = true
+        state.isOpenMenuStatistic = false
     }
 
     override fun componentDidMount() {
@@ -458,7 +458,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 isLoading = false
             }
 
-            selectLatestExecution()
+            fetchLatestExecutionId()
         }
     }
 
@@ -588,7 +588,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                                     }
                                 }
                                 if (projectMenu != ProjectMenuBar.STATISTIC) {
-                                    onOpenMenuStatistic(true)
+                                    openMenuStatisticFlag(false)
                                 }
                             }
                             +projectMenu.name
@@ -708,7 +708,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 }
             }
 
-    private fun onOpenMenuStatistic(isOpen: Boolean) {
+    private fun openMenuStatisticFlag(isOpen: Boolean) {
         setState {
             isOpenMenuStatistic = isOpen
         }
@@ -834,7 +834,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         }
     }
 
-    private suspend fun selectLatestExecution() {
+    private suspend fun fetchLatestExecutionId() {
         val headers = Headers().apply { set("Accept", "application/json") }
         val response = get(
             "$apiUrl/latestExecution?name=${state.project.name}&organizationId=${state.project.organization.id}",
@@ -844,7 +844,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             setState {
                 errorLabel = "Failed to fetch latest execution"
                 errorMessage =
-                        "Failed to fetch latest execution: [${response.status}] ${response.statusText}"
+                        "Failed to fetch latest execution: [${response.status}] ${response.statusText}, please refresh the page and try again"
                 latestExecutionId = null
             }
         } else {
@@ -861,10 +861,8 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         latestExecutionId?.let {
             window.location.href = "${window.location}/history/execution/$latestExecutionId"
         }
-            ?: run {
-                setState {
-                    isErrorOpen = true
-                }
+            ?: setState {
+                isErrorOpen = true
             }
     }
 
