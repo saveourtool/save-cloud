@@ -162,7 +162,7 @@ class AgentService {
                 log.info("Agents $crashedAgentIds has been crashed with internal error")
             }
             .then(
-                markTestExecutionsOfCrashedAgentsAsFailed(crashedAgentIds)
+                markTestExecutionsAsFailed(crashedAgentIds, AgentState.CRASHED)
             )
             .subscribeOn(scheduler)
             .subscribe()
@@ -260,11 +260,17 @@ class AgentService {
             .toBodilessEntity()
     }
 
-    private fun markTestExecutionsOfCrashedAgentsAsFailed(crashedAgentIds: Collection<String>): Mono<BodilessResponseEntity> {
-        log.debug("Attempt to mark test executions of crashed agents=$crashedAgentIds as failed with internal error")
+    /**
+     * Mark agent's test executions as failed
+     *
+     * @param agentsList the list of agents, for which, according the [status] corresponding test executions should be marked as failed
+     * @param status
+     */
+    fun markTestExecutionsAsFailed(agentsList: Collection<String>, status: AgentState): Mono<BodilessResponseEntity> {
+        log.debug("Attempt to mark test executions of agents=$agentsList as failed with internal error")
         return webClientBackend.post()
-            .uri("/testExecution/setStatusByAgentIds?status=${AgentState.CRASHED.name}")
-            .bodyValue(crashedAgentIds)
+            .uri("/testExecution/setStatusByAgentIds?status=${status.name}")
+            .bodyValue(agentsList)
             .retrieve()
             .toBodilessEntity()
     }

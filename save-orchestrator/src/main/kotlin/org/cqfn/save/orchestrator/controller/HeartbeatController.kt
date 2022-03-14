@@ -85,7 +85,10 @@ class HeartbeatController(private val agentService: AgentService,
                         if (isSavingSuccessful) {
                             handleVacantAgent(heartbeat.agentId)
                         } else {
-                            // todo: if failure is repeated multiple times, re-assign missing tests once more
+                            // Agent finished its work, however only part of results were received, other should be marked as failed
+                            agentService.markTestExecutionsAsFailed(listOf(heartbeat.agentId), AgentState.FINISHED)
+                                .subscribeOn(agentService.scheduler)
+                                .subscribe()
                             Mono.just(WaitResponse)
                         }
                     }
@@ -127,7 +130,6 @@ class HeartbeatController(private val agentService: AgentService,
             currentAgentId !in crashedAgentsList
         }.forEach { (currentAgentId, stateToLatestHeartBeatPair) ->
             val duration = Duration.between(stateToLatestHeartBeatPair.second, LocalDateTime.now()).toMillis()
-            println("\n\nDURATION for ${currentAgentId}: ${duration} ${LocalDateTime.now()} - ${stateToLatestHeartBeatPair.second}")
             if (duration >= configProperties.agentsHeartBeatTimeoutMillis) {
                 logger.debug("Adding $currentAgentId to list crashed agents")
                 crashedAgentsList.add(currentAgentId)
