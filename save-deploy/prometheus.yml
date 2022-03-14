@@ -13,6 +13,29 @@ scrape_configs:
     dockerswarm_sd_configs:
       - host: unix:///var/run/docker.sock
         role: tasks
+    relabel_configs:
+      # Only keep containers that should be running.
+      - source_labels: [__meta_dockerswarm_task_desired_state]
+        regex: running
+        action: keep
+      # Only keep containers that have a `prometheus-job` label.
+      - source_labels: [__meta_dockerswarm_service_label_prometheus_job]
+        regex: .+
+        action: keep
+      # Use the prometheus-job Swarm label as Prometheus job label.
+      - source_labels: [__meta_dockerswarm_service_label_prometheus_job]
+        target_label: job
+      # Adding docker_node label to the targets
+      - source_labels: [ __meta_dockerswarm_node_hostname ]
+        target_label: docker_node
+  - job_name: 'dockerswarm-api_gateway'
+    metrics_path: '/actuator/prometheus'
+    dockerswarm_sd_configs:
+      - host: unix:///var/run/docker.sock
+        role: tasks
+        filters:
+        - name: name
+          values: ['save_gateway']
     basic_auth:
       username: prometheus
       password_file: /run/secrets/prometheus_scrape_pwd
