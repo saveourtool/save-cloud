@@ -118,7 +118,7 @@ class WebSecurityConfig(
         authorizeExchange()
             .matchers(
                 AndServerWebExchangeMatcher(
-                    ServerWebExchangeMatchers.pathMatchers("/actuator/**"),
+                    ServerWebExchangeMatchers.pathMatchers("/actuator", "/actuator/**"),
                     ServerWebExchangeMatcher { request ->
                         val isKnownActuatorConsumer = configurationProperties.isKnownActuatorConsumer(
                             request.request.remoteAddress?.address

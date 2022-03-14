@@ -2,6 +2,7 @@ package org.cqfn.save.gateway.config
 
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding
+import org.springframework.security.web.util.matcher.IpAddressMatcher
 import java.net.InetAddress
 
 /**
@@ -22,12 +23,11 @@ data class ConfigurationProperties(
      * [ipAddress] matches one from that list. False otherwise
      */
     fun isKnownActuatorConsumer(ipAddress: InetAddress?): Boolean {
-        knownActuatorConsumers ?: run {
-            return true
-        }
-        return ipAddress in knownActuatorConsumers.split(',').map {
-            InetAddress.getByName(it)
-        }
+        knownActuatorConsumers ?: return true
+
+        return knownActuatorConsumers.split(',').map {
+            IpAddressMatcher(it)
+        }.any { it.matches(ipAddress?.address?.decodeToString()) }
     }
 
     /**
