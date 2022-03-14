@@ -87,7 +87,7 @@ class HeartbeatControllerTest {
                 it.defaultCodecs().kotlinSerializationJsonEncoder(kotlinSerializationJsonEncoder)
                 it.defaultCodecs().kotlinSerializationJsonDecoder(kotlinSerializationJsonDecoder)
             }
-            .responseTimeout(Duration.ofSeconds(2000))
+            .responseTimeout(Duration.ofSeconds(2))
             .build()
     }
 
@@ -281,12 +281,11 @@ class HeartbeatControllerTest {
     fun `should shutdown all agents, since all of them don't sent heartbeats for some time`() {
         val agentStatusDtos = listOf(
             AgentStatusDto(LocalDateTime.now(), AgentState.STARTING, "test-1"),
-            AgentStatusDto(LocalDateTime.now(), AgentState.BUSY, "test-2"),
         )
         testHeartbeat(
             agentStatusDtos = agentStatusDtos,
             heartbeats = listOf(
-                // heartbeats were send long time ago
+                // heartbeats were sent long time ago
                 Heartbeat("test-1", AgentState.STARTING, ExecutionProgress(0), LocalDateTime.now().minusMinutes(1)),
                 Heartbeat("test-2", AgentState.BUSY, ExecutionProgress(0), LocalDateTime.now().minusMinutes(1)),
             ),
@@ -386,13 +385,15 @@ class HeartbeatControllerTest {
         testHeartbeat(
             agentStatusDtos = agentStatusDtos,
             heartbeats = listOf(
-                Heartbeat("test-1", AgentState.FINISHED, ExecutionProgress(100), LocalDateTime.now().plusDays(1))
+                Heartbeat("test-1", AgentState.FINISHED, ExecutionProgress(100), LocalDateTime.now())
             ),
             heartBeatInterval = 0,
             testBatch = null,
             testSuite = null,
             mockAgentStatuses = false,
-        ) {}
+        ) {
+            // not interested in any checks for heartbeats
+        }
         val assertions = CompletableFuture.supplyAsync {
             listOf(
                 mockServer.takeRequest(60, TimeUnit.SECONDS),

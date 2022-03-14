@@ -66,7 +66,7 @@ class HeartbeatController(private val agentService: AgentService,
     @PostMapping("/heartbeat")
     @OptIn(ExperimentalSerializationApi::class)
     fun acceptHeartbeat(@RequestBody heartbeat: Heartbeat): Mono<String> {
-        logger.info("Got heartbeat state: ${heartbeat.state.name} from ${heartbeat.agentId} ${heartbeat.timestamp}")
+        logger.info("Got heartbeat state: ${heartbeat.state.name} from ${heartbeat.agentId}")
         updateAgentHeartbeatTimeStamps(heartbeat)
 
         // store new state into DB
@@ -129,7 +129,6 @@ class HeartbeatController(private val agentService: AgentService,
             currentAgentId !in crashedAgentsList
         }.forEach { (currentAgentId, stateToLatestHeartBeatPair) ->
             val duration = Duration.between(stateToLatestHeartBeatPair.second, LocalDateTime.now()).toMillis()
-            // println("\n\nDURATION for ${currentAgentId}: ${duration} ${LocalDateTime.now()} - ${stateToLatestHeartBeatPair.second}")
             if (duration >= configProperties.agentsHeartBeatTimeoutMillis) {
                 logger.debug("Adding $currentAgentId to list crashed agents")
                 crashedAgentsList.add(currentAgentId)
