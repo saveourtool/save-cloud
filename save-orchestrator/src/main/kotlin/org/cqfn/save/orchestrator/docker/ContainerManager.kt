@@ -1,11 +1,13 @@
 package org.cqfn.save.orchestrator.docker
 
+import org.cqfn.save.domain.Sdk
 import org.cqfn.save.orchestrator.config.DockerSettings
 import org.cqfn.save.orchestrator.copyRecursivelyWithAttributes
 import org.cqfn.save.orchestrator.getHostIp
 
 import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.api.command.BuildImageResultCallback
+import com.github.dockerjava.api.model.BuildResponseItem
 import com.github.dockerjava.api.model.HostConfig
 import com.github.dockerjava.api.model.LogConfig
 import com.github.dockerjava.core.DefaultDockerClientConfig
@@ -13,6 +15,8 @@ import com.github.dockerjava.core.DockerClientConfig
 import com.github.dockerjava.core.DockerClientImpl
 import com.github.dockerjava.httpclient5.ApacheDockerHttpClient
 import com.github.dockerjava.transport.DockerHttpClient
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.Timer
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream
 import org.slf4j.LoggerFactory
@@ -32,7 +36,9 @@ import kotlin.io.path.createTempFile
  *
  * @property settings setting of docker daemon
  */
-class ContainerManager(private val settings: DockerSettings) {
+class ContainerManager(private val settings: DockerSettings,
+                       private val meterRegistry: MeterRegistry,
+) {
     private val dockerClientConfig: DockerClientConfig = DefaultDockerClientConfig
         .createDefaultConfigBuilder()
         .withDockerHost(settings.host)
@@ -127,7 +133,7 @@ class ContainerManager(private val settings: DockerSettings) {
      * @throws DockerException
      */
     @OptIn(ExperimentalPathApi::class)
-    internal fun buildImageWithResources(baseImage: String = "ubuntu:latest",
+    internal fun buildImageWithResources(baseImage: String = Sdk.Default.toString(),
                                          imageName: String,
                                          baseDir: File,
                                          resourcesPath: String,
@@ -148,13 +154,24 @@ class ContainerManager(private val settings: DockerSettings) {
         val hostIp = getHostIp("host.docker.internal")
         log.debug("Resolved host IP as $hostIp, will add it to the container")
         val buildImageResultCallback: BuildImageResultCallback = try {
-            dockerClient.buildImageCmd(dockerFile)
+            val buildCmd = dockerClient.buildImageCmd(dockerFile)
                 .withBaseDirectory(tmpDir)
                 .withTags(setOf(imageName))
                 .withExtraHosts(hostIp?.let {
                     setOf("host.docker.internal:$hostIp")
                 } ?: emptySet())
-                .start()
+            val sample = Timer.start(meterRegistry)
+            buildCmd.exec(object : BuildImageResultCallback() {
+                override fun onNext(item: BuildResponseItem?) {
+                    super.onNext(item)
+                    sample.stop(
+                        meterRegistry.timer(
+                            "docker-build",
+                            "baseImage", baseImage,
+                        )
+                    )
+                }
+            })
         } finally {
             dockerFile.delete()
             tmpDir.deleteRecursively()
@@ -189,10 +206,5 @@ class ContainerManager(private val settings: DockerSettings) {
 
     companion object {
         private val log = LoggerFactory.getLogger(ContainerManager::class.java)
-
-        // fixme: choose proper base image for tests
-        private const val BASE_IMAGE = "ubuntu"
-        private const val BASE_IMAGE_TAG = "latest"
-        private const val DOCKER_REPO = "docker.io/library/$BASE_IMAGE"
     }
 }

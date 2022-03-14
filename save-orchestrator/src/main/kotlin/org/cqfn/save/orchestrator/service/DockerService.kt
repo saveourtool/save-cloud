@@ -16,6 +16,7 @@ import org.cqfn.save.utils.moveFileWithAttributes
 
 import com.github.dockerjava.api.exception.DockerException
 import generated.SAVE_CORE_VERSION
+import io.micrometer.core.instrument.MeterRegistry
 import net.lingala.zip4j.ZipFile
 import net.lingala.zip4j.exception.ZipException
 import org.apache.commons.io.FileUtils
@@ -44,11 +45,13 @@ import kotlin.io.path.createTempDirectory
  */
 @Service
 @OptIn(ExperimentalPathApi::class)
-class DockerService(private val configProperties: ConfigProperties) {
+class DockerService(private val configProperties: ConfigProperties,
+                    meterRegistry: MeterRegistry,
+) {
     /**
      * [ContainerManager] that is used to access docker daemon API
      */
-    internal val containerManager = ContainerManager(configProperties.docker)
+    internal val containerManager = ContainerManager(configProperties.docker, meterRegistry)
     private val executionDir = "/run/save-execution"
 
     @Suppress("NonBooleanPropertyPrefixedWithIs")
