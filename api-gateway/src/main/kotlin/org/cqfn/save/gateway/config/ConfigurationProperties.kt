@@ -27,7 +27,7 @@ data class ConfigurationProperties(
 
         return knownActuatorConsumers.split(',').map {
             IpAddressMatcher(it)
-        }.any { it.matches(ipAddress?.address?.decodeToString()) }
+        }.any { it.matches(ipAddress?.hostAddress) }
     }
 
     /**
