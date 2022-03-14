@@ -118,10 +118,8 @@ internal fun Component<*, *>.classComponentResponseHandler(
     if (this.asDynamic().context is Function<*>) {
         // dirty hack to determine whether this component contains `setResponse` in its context.
         // If we add another context with a function, this logic will break.
-        console.log("Branch for component class ${this::class} with context=${this.asDynamic().context}")
         this.unsafeCast<Component<*, *>>().withModalResponseHandler(response)
     } else {
-        console.log("Default branch for this=${this::class}")
         redirectResponseHandler(response)
     }
 }
@@ -136,7 +134,6 @@ private fun Component<*, *>.withModalResponseHandler(response: Response) {
 @Suppress("EXTENSION_FUNCTION_WITH_CLASS")
 private fun WithRequestStatusContext.withModalResponseHandler(response: Response) {
     if (!response.ok) {
-        console.log("setResponse with code ${response.status}")
         setResponse(response)
     }
 }
@@ -159,7 +156,6 @@ fun <R> useRequest(dependencies: Array<dynamic> = emptyArray(),
     }
 
     useEffect(isSending, *dependencies) {
-        console.log("useEffect with isSending=$isSending")
         if (!isSending) {
             return@useEffect
         }
