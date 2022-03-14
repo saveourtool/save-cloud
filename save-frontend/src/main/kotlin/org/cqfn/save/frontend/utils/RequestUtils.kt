@@ -148,7 +148,7 @@ private fun WithRequestStatusContext.withModalResponseHandler(response: Response
  * @param request
  * @return a function to trigger request execution
  */
-fun <R> useRequest(dependencies: Array<dynamic>,
+fun <R> useRequest(dependencies: Array<dynamic> = emptyArray(),
                    request: suspend WithRequestStatusContext.() -> R,
 ): () -> Unit {
     val scope = CoroutineScope(Dispatchers.Default)

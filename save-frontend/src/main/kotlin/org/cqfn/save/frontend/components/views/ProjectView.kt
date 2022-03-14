@@ -434,8 +434,11 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             }
             gitDto = post("$apiUrl/projects/git", headers, jsonProject)
                 .decodeFromJsonString<GitDto>()
-            standardTestSuites = get("$apiUrl/allStandardTestSuites", headers,
-                responseHandler = ::noopResponseHandler)
+            standardTestSuites = get(
+                "$apiUrl/allStandardTestSuites",
+                headers,
+                responseHandler = ::noopResponseHandler,
+            )
                 .decodeFromJsonString()
 
             val availableFiles = getFilesList()

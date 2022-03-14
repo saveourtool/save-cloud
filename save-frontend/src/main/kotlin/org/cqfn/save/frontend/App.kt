@@ -87,9 +87,11 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
 
     private fun getUser() {
         scope.launch {
-            val headers = Headers().also { it.set("Accept", "application/json") }
-            val userInfoNew: UserInfo? = get("${window.location.origin}/sec/user", headers,
-                responseHandler = ::noopResponseHandler).run {
+            val userInfoNew: UserInfo? = get(
+                "${window.location.origin}/sec/user",
+                Headers().also { it.set("Accept", "application/json") },
+                responseHandler = ::noopResponseHandler
+            ).run {
                 val responseText = text().await()
                 if (!ok || responseText == "null") null else Json.decodeFromString(responseText)
             }

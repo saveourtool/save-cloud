@@ -28,12 +28,15 @@ import kotlinx.browser.window
 fun logoutModal(
     closeCallback: () -> Unit
 ) = FC<ModalProps> { props ->
-    val doLogoutRequest = useRequest(emptyArray()) {
+    val doLogoutRequest = useRequest {
         val replyToLogout = post("${window.location.origin}/logout", Headers(), "ping")
         if (replyToLogout.ok) {
             // logout went good, need either to reload page or to setUserInfo(null) and use redirection like `window.location.href = window.location.origin`
             window.location.href = "${window.location.origin}/#"
             window.location.reload()
+        } else {
+            // close this modal to allow user to see modal with error description
+            closeCallback()
         }
     }
 
@@ -83,7 +86,6 @@ fun logoutModal(
                     type = react.dom.html.ButtonType.button
                     onClick = {
                         doLogoutRequest()
-                        // closeCallback()  // todo: logout modal still overlaps error status modal
                     }
                     +"Logout"
                 }
