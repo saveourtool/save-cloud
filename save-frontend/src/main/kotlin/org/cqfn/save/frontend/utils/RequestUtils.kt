@@ -115,17 +115,18 @@ suspend fun WithRequestStatusContext.post(
 internal fun Component<*, *>.classComponentResponseHandler(
     response: Response
 ) {
-    if (this.asDynamic().context is Function<*>) {
-        // dirty hack to determine whether this component contains `setResponse` in its context.
-        // If we add another context with a function, this logic will break.
-        this.unsafeCast<Component<*, *>>().withModalResponseHandler(response)
-    } else {
+    val isUnauthorized = response.status == 401.toShort()
+    // dirty hack to determine whether this component contains `setResponse` in its context.
+    // If we add another context with a function, this logic will break.
+    val hasResponseContext = this.asDynamic().context is Function<*>
+    if (isUnauthorized || !hasResponseContext) {
         redirectResponseHandler(response)
+    } else {
+        this.unsafeCast<Component<*, *>>().withModalResponseHandler(response)
     }
 }
 
-private fun Component<*, *>.withModalResponseHandler(response: Response) {
-    if (!response.ok) {
+private fun Component<*, *>.withModalResponseHandler(response: Response) {if (!response.ok) {
         val setResponse: StateSetter<Response?> = this.asDynamic().context
         setResponse(response)
     }
@@ -133,7 +134,10 @@ private fun Component<*, *>.withModalResponseHandler(response: Response) {
 
 @Suppress("EXTENSION_FUNCTION_WITH_CLASS")
 private fun WithRequestStatusContext.withModalResponseHandler(response: Response) {
-    if (!response.ok) {
+    val isUnauthorized = response.status == 401.toShort()
+    if (isUnauthorized) {
+        redirectResponseHandler(response)
+    } else if (!response.ok) {
         setResponse(response)
     }
 }
