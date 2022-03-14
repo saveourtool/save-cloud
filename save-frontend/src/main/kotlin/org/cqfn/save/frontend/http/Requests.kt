@@ -24,13 +24,13 @@ import kotlinx.serialization.json.Json
  * @param testExecutionDto
  */
 suspend fun Component<*, *>.getDebugInfoFor(testExecutionDto: TestExecutionDto) =
-        getDebugInfoFor(this::post, testExecutionDto)
+        getDebugInfoFor(testExecutionDto, this::post)
 
 /**
  * @param testExecutionDto
  */
 suspend fun WithRequestStatusContext.getDebugInfoFor(testExecutionDto: TestExecutionDto) =
-        getDebugInfoFor(this::post, testExecutionDto)
+        getDebugInfoFor(testExecutionDto, this::post)
 
 /**
  * @param name
@@ -66,7 +66,10 @@ suspend fun Component<*, *>.getOrganization(name: String) = get(
  * @param post
  * @return Response
  */
-private suspend fun getDebugInfoFor(post: suspend (String, Headers, dynamic) -> Response, testExecutionDto: TestExecutionDto) = post(
+@Suppress("TYPE_ALIAS")
+private suspend fun getDebugInfoFor(testExecutionDto: TestExecutionDto,
+                                    post: suspend (String, Headers, dynamic) -> Response,
+) = post(
     "$apiUrl/files/get-debug-info",
     Headers().apply {
         set("Content-Type", "application/json")

@@ -2,6 +2,8 @@
  * Kotlin/JS utilities for Fetch API
  */
 
+@file:Suppress("FILE_NAME_MATCH_CLASS")
+
 package org.cqfn.save.frontend.utils
 
 import org.cqfn.save.frontend.components.errorStatusContext
@@ -28,6 +30,9 @@ import kotlinx.serialization.json.Json
 
 val apiUrl = "${window.location.origin}/api"
 
+/**
+ * Interface for objects that have access to [errorStatusContext]
+ */
 fun interface WithRequestStatusContext {
     /**
      * @param response
@@ -56,41 +61,45 @@ suspend fun <T> Response.unsafeMap(map: suspend (Response) -> T) = if (this.ok) 
 suspend inline fun <reified T> Response.decodeFromJsonString() = Json.decodeFromString<T>(text().await())
 
 /**
- * @param url
- * @param headers
- * @param responseHandler
- * @return
+ * Perform GET request from a class component. See [request] for parameter description.
+ *
+ * @return [Response]
  */
+@Suppress("KDOC_WITHOUT_PARAM_TAG")
 suspend fun Component<*, *>.get(url: String,
                                 headers: Headers,
                                 responseHandler: (Response) -> Unit = this::classComponentResponseHandler,
 ) = request(url, "GET", headers, responseHandler = responseHandler)
 
 /**
- * @param url
- * @param headers
- * @param body
- * @param responseHandler
- * @return
+ * Perform POST request from a class component. See [request] for parameter description.
+ *
+ * @return [Response]
  */
+@Suppress("KDOC_WITHOUT_PARAM_TAG")
 suspend fun Component<*, *>.post(url: String,
                                  headers: Headers,
                                  body: dynamic,
                                  responseHandler: (Response) -> Unit = this::classComponentResponseHandler,
 ) = request(url, "POST", headers, body, responseHandler = responseHandler)
 
+/**
+ * Perform GET request from a functional component
+ *
+ * @return [Response]
+ */
+@Suppress("EXTENSION_FUNCTION_WITH_CLASS", "KDOC_WITHOUT_PARAM_TAG")
 suspend fun WithRequestStatusContext.get(url: String,
                                          headers: Headers,
                                          responseHandler: (Response) -> Unit = this::withModalResponseHandler,
 ) = request(url, "GET", headers, responseHandler = responseHandler)
 
 /**
- * @param url
- * @param headers
- * @param body
- * @param responseHandler
- * @return
+ * Perform POST request from a functional component
+ *
+ * @return [Response]
  */
+@Suppress("EXTENSION_FUNCTION_WITH_CLASS", "KDOC_WITHOUT_PARAM_TAG")
 suspend fun WithRequestStatusContext.post(
     url: String,
     headers: Headers,
@@ -99,6 +108,8 @@ suspend fun WithRequestStatusContext.post(
 ) = request(url, "POST", headers, body, responseHandler = responseHandler)
 
 /**
+ * If this component has context, set [response] in this context. Otherwise, fallback to redirect.
+ *
  * @param response
  */
 internal fun Component<*, *>.classComponentResponseHandler(
@@ -122,6 +133,7 @@ private fun Component<*, *>.withModalResponseHandler(response: Response) {
     }
 }
 
+@Suppress("EXTENSION_FUNCTION_WITH_CLASS")
 private fun WithRequestStatusContext.withModalResponseHandler(response: Response) {
     if (!response.ok) {
         console.log("setResponse with code ${response.status}")
@@ -130,12 +142,14 @@ private fun WithRequestStatusContext.withModalResponseHandler(response: Response
 }
 
 /**
+ * Hook to perform requests in functional components.
+ *
  * @param dependencies
  * @param request
- * @return
+ * @return a function to trigger request execution
  */
 fun <R> useRequest(dependencies: Array<dynamic>,
-                   request: suspend WithRequestStatusContext.(checkStatus: (Response) -> Unit) -> R,
+                   request: suspend WithRequestStatusContext.() -> R,
 ): () -> Unit {
     val scope = CoroutineScope(Dispatchers.Default)
     val (isSending, setIsSending) = useState(false)
@@ -150,12 +164,7 @@ fun <R> useRequest(dependencies: Array<dynamic>,
             return@useEffect
         }
         scope.launch {
-            val checkStatus: (Response) -> Unit = { response ->
-                if (!response.ok) {
-                    setResponse(response)
-                }
-            }
-            request(context, checkStatus)
+            request(context)
             setIsSending(false)
         }
         cleanup {
@@ -187,7 +196,7 @@ internal fun redirectResponseHandler(response: Response) {
  * Can be used to explicitly specify, that response will be handled is a custom way
  *
  * @param response
- * @return
+ * @return Unit
  */
 internal fun noopResponseHandler(response: Response) = Unit
 
@@ -201,6 +210,7 @@ internal fun noopResponseHandler(response: Response) = Unit
  * @param credentials [RequestCredentials] for fetch API
  * @return [Response] instance
  */
+@Suppress("TOO_MANY_PARAMETERS", "LongParameterList")
 private suspend fun request(url: String,
                             method: String,
                             headers: Headers,

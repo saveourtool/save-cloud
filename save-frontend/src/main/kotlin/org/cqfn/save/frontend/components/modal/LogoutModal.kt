@@ -12,7 +12,6 @@ import org.cqfn.save.frontend.utils.useRequest
 
 import org.w3c.fetch.Headers
 import react.FC
-import react.dom.aria.AriaRole
 import react.dom.aria.ariaLabel
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
@@ -25,7 +24,7 @@ import kotlinx.browser.window
  * @param closeCallback a callback to call to close the modal
  * @return a Component
  */
-@Suppress("TOO_LONG_FUNCTION")
+@Suppress("TOO_LONG_FUNCTION", "LongMethod")
 fun logoutModal(
     closeCallback: () -> Unit
 ) = FC<ModalProps> { props ->
@@ -91,6 +90,4 @@ fun logoutModal(
             }
         }
     }
-}.also {
-    it.displayName = "logoutModal"
 }

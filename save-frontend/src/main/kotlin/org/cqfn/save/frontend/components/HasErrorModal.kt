@@ -20,12 +20,14 @@ import react.useState
 /**
  * Context to store data about current request error.
  */
+@Suppress("TYPE_ALIAS")
 val errorStatusContext: Context<StateSetter<Response?>> = createContext()
 
 /**
  * Component that displays generic warning about unsuccessful request based on info in [errorStatusContext].
  * Also renders its `children`.
  */
+@Suppress("TOO_MANY_LINES_IN_LAMBDA")
 val errorModalHandler: FC<PropsWithChildren> = FC { props ->
     val (response, setResponse) = useState<Response?>(null)
     val (modalState, setModalState) = useState(ErrorModalState(
