@@ -63,7 +63,7 @@ class DockerServiceTest {
 
         // start container and query backend
         mockServer.enqueue(
-            "/initializeAgents",
+            "/updateExecutionByDto",
             MockResponse()
                 .setResponseCode(200)
         )
