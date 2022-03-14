@@ -27,6 +27,7 @@ import kotlinx.coroutines.launch
 import kotlinx.html.InputType
 import kotlinx.html.hidden
 import kotlinx.html.js.onChangeFunction
+import kotlinx.js.jso
 
 /**
  * `Props` retrieved from router
@@ -122,7 +123,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 }
 
                 div("position-relative") {
-                    attrs["style"] = kotlinext.js.jso<CSSProperties> {
+                    attrs["style"] = jso<CSSProperties> {
                         position = "relative".unsafeCast<Position>()
                         textAlign = "center".unsafeCast<TextAlign>()
                     }
@@ -132,7 +133,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                         attrs.width = "200"
                     }
                     div("position-absolute") {
-                        attrs["style"] = kotlinext.js.jso<CSSProperties> {
+                        attrs["style"] = jso<CSSProperties> {
                             top = "40%".unsafeCast<Top>()
                             left = "40%".unsafeCast<Left>()
                         }
