@@ -120,7 +120,11 @@ class AgentService {
         .uri("/testExecutions/agent/$agentId/${TestResultStatus.READY_FOR_TESTING}")
         .retrieve()
         .bodyToMono<List<TestExecutionDto>>()
-        .map { it.isEmpty() }
+        .map {
+            println("=================${it} ${it.isEmpty()}")
+            it.isEmpty()
+        }
+        .also { println("finished") }
 
     /**
      * If an error occurs, should try to resend tests

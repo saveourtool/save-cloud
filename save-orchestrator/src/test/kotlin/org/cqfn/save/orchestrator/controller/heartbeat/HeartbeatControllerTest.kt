@@ -58,6 +58,8 @@ import java.util.concurrent.TimeUnit
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.cqfn.save.agent.TestExecutionDto
+import org.cqfn.save.domain.TestResultStatus
 
 @WebFluxTest
 @Import(
@@ -85,7 +87,7 @@ class HeartbeatControllerTest {
                 it.defaultCodecs().kotlinSerializationJsonEncoder(kotlinSerializationJsonEncoder)
                 it.defaultCodecs().kotlinSerializationJsonDecoder(kotlinSerializationJsonDecoder)
             }
-            .responseTimeout(Duration.ofSeconds(2))
+            .responseTimeout(Duration.ofSeconds(2000))
             .build()
     }
 
@@ -339,6 +341,67 @@ class HeartbeatControllerTest {
         }
     }
 
+
+    @Test
+    fun `should shutdown agents even if there are some already FINISHED 2`() {
+        //whenever(dockerService.stopAgents(any())).thenReturn(true)
+        //whenever(agentService.checkSavedData(any())).thenReturn(Mono.just(true))
+        val agentStatusDtos = listOf(
+            AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "test-1"),
+            AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "test-2"),
+        )
+
+        //val testExecutions: List<TestExecutionDto> = emptyList()
+        val testExecutions: List<TestExecutionDto> = listOf(
+            TestExecutionDto(
+                "testPath63",
+                "WarnPlugin",
+                "test",
+                TestResultStatus.READY_FOR_TESTING,
+                0,
+                0,
+                missingWarnings = 3,
+                matchedWarnings = 2,
+            )
+        )
+
+        mockServer.enqueue(
+            "/testExecutions/agent/test-1/${TestResultStatus.READY_FOR_TESTING}",
+            MockResponse()
+                .setBody(
+                    objectMapper.writeValueAsString(
+                        testExecutions
+                    )
+                )
+                .addHeader("Content-Type", "application/json")
+        )
+
+        mockServer.enqueue(
+            "/testExecution/setStatusByAgentIds/.*",
+            MockResponse()
+                .setResponseCode(200)
+        )
+
+
+        testHeartbeat(
+            agentStatusDtos = agentStatusDtos,
+            heartbeats = listOf(
+                Heartbeat("test-1", AgentState.FINISHED, ExecutionProgress(100), LocalDateTime.now().plusDays(1))
+            ),
+            heartBeatInterval = 0,
+            testBatch = null,
+            testSuite = null,
+            mockAgentStatuses = false,
+        ) {}
+        val assertions = CompletableFuture.supplyAsync {
+            listOf(
+                mockServer.takeRequest(60, TimeUnit.SECONDS),
+                //mockServer.takeRequest(60, TimeUnit.SECONDS),
+            )
+        }
+        assertions.orTimeout(60, TimeUnit.SECONDS).join().forEach { Assertions.assertNotNull(it) }
+    }
+
     /**
      * Test logic triggered by a heartbeat.
      *
@@ -355,19 +418,21 @@ class HeartbeatControllerTest {
         agentStatusDtos: List<AgentStatusDto>,
         heartbeats: List<Heartbeat>,
         heartBeatInterval: Long = 0,
-        testBatch: TestBatch,
+        testBatch: TestBatch?,
         testSuite: TestSuite?,
         mockAgentStatuses: Boolean = false,
         additionalSetup: () -> Unit = {},
         verification: () -> Unit,
     ) {
         // /getTestBatches
-        mockServer.enqueue(
-            "/getTestBatches",
-            MockResponse()
-                .setBody(Json.encodeToString(testBatch))
-                .addHeader("Content-Type", "application/json")
-        )
+        testBatch?.let {
+            mockServer.enqueue(
+                "/getTestBatches",
+                MockResponse()
+                    .setBody(Json.encodeToString(testBatch))
+                    .addHeader("Content-Type", "application/json")
+            )
+        }
 
         // /testSuite/{id}
         testSuite?.let {
@@ -437,7 +502,7 @@ class HeartbeatControllerTest {
         fun properties(registry: DynamicPropertyRegistry) {
             // todo: should be initialized in @BeforeAll, but it gets called after @DynamicPropertySource
             mockServer = createMockWebServer()
-            mockServer.setDefaultResponseForPath("/testExecution", MockResponse().setResponseCode(200))
+            mockServer.setDefaultResponseForPath("/testExecution/.*", MockResponse().setResponseCode(200))
             mockServer.setDefaultResponseForPath("/updateAgentStatusesWithDto", MockResponse().setResponseCode(200))
             mockServer.start()
             registry.add("orchestrator.backendUrl") { "http://localhost:${mockServer.port}" }
