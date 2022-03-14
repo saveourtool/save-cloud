@@ -14,6 +14,9 @@ import org.cqfn.save.execution.ExecutionInitializationDto
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionType
 import org.cqfn.save.execution.ExecutionUpdateDto
+import org.cqfn.save.testutils.checkQueues
+import org.cqfn.save.testutils.createMockWebServer
+import org.cqfn.save.testutils.enqueue
 
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
@@ -217,6 +220,7 @@ class ExecutionControllerTest {
         }
 
         mockServerPreprocessor.enqueue(
+            "/rerunExecution",
             MockResponse().setResponseCode(202)
                 .setHeader("Accept", "application/json")
                 .setHeader("Content-Type", "application/json")
@@ -243,13 +247,14 @@ class ExecutionControllerTest {
 
         @AfterAll
         fun tearDown() {
+            mockServerPreprocessor.checkQueues()
             mockServerPreprocessor.shutdown()
         }
 
         @DynamicPropertySource
         @JvmStatic
         fun properties(registry: DynamicPropertyRegistry) {
-            mockServerPreprocessor = MockWebServer()
+            mockServerPreprocessor = createMockWebServer()
             mockServerPreprocessor.start()
             registry.add("backend.preprocessorUrl") { "http://localhost:${mockServerPreprocessor.port}" }
         }

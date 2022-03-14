@@ -1,5 +1,6 @@
 package org.cqfn.save.backend.controllers
 
+import org.cqfn.save.agent.AgentState
 import org.cqfn.save.agent.TestExecutionDto
 import org.cqfn.save.backend.security.Permission
 import org.cqfn.save.backend.security.ProjectPermissionEvaluator
@@ -129,6 +130,26 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
     @PostMapping(value = ["/internal/testExecution/assignAgent"])
     fun assignAgentByTest(@RequestParam agentContainerId: String, @RequestBody testDtos: List<TestDto>) {
         testExecutionService.assignAgentByTest(agentContainerId, testDtos)
+    }
+
+    /**
+     * @param status
+     * @param agentIds the list of agents, for which, according the [status] test executions should be updated
+     * @throws ResponseStatusException
+     */
+    @PostMapping(value = ["/internal/testExecution/setStatusByAgentIds"])
+    fun setStatusByAgentIds(
+        @RequestParam("status") status: String,
+        @RequestBody agentIds: Collection<String>
+    ) {
+        if (status == AgentState.CRASHED.name) {
+            testExecutionService.markTestExecutionsOfCrashedAgentsAsFailed(agentIds)
+        } else {
+            throw ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "For now only CRASHED status supported"
+            )
+        }
     }
 
     /**

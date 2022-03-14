@@ -14,6 +14,9 @@ import org.cqfn.save.backend.utils.ConvertingAuthenticationManager
 import org.cqfn.save.domain.Jdk
 import org.cqfn.save.domain.toFileInfo
 import org.cqfn.save.entities.*
+import org.cqfn.save.testutils.checkQueues
+import org.cqfn.save.testutils.createMockWebServer
+import org.cqfn.save.testutils.enqueue
 
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
@@ -112,6 +115,7 @@ class CloningRepositoryControllerTest {
     @WithMockUser(username = "John Doe")
     fun checkNewJobResponse() {
         mockServerPreprocessor.enqueue(
+            "/upload",
             MockResponse()
                 .setResponseCode(202)
                 .setBody("Clone pending")
@@ -155,6 +159,7 @@ class CloningRepositoryControllerTest {
         bodyBuilder.part("file", binFile.toFileInfo())
 
         mockServerPreprocessor.enqueue(
+            "/uploadBin",
             MockResponse()
                 .setResponseCode(202)
                 .setBody("Clone pending")
@@ -177,13 +182,14 @@ class CloningRepositoryControllerTest {
 
         @AfterAll
         fun tearDown() {
+            mockServerPreprocessor.checkQueues()
             mockServerPreprocessor.shutdown()
         }
 
         @DynamicPropertySource
         @JvmStatic
         fun properties(registry: DynamicPropertyRegistry) {
-            mockServerPreprocessor = MockWebServer()
+            mockServerPreprocessor = createMockWebServer()
             mockServerPreprocessor.start()
             registry.add("backend.preprocessorUrl") { "http://localhost:${mockServerPreprocessor.port}" }
         }

@@ -5,11 +5,12 @@ import org.cqfn.save.entities.Project
 import org.cqfn.save.orchestrator.config.Beans
 import org.cqfn.save.orchestrator.config.ConfigProperties
 import org.cqfn.save.orchestrator.controller.AgentsController
+import org.cqfn.save.testutils.createMockWebServer
+import org.cqfn.save.testutils.enqueue
 
 import com.github.dockerjava.api.async.ResultCallback
 import com.github.dockerjava.api.model.Frame
 import okhttp3.mockwebserver.MockResponse
-import okhttp3.mockwebserver.MockWebServer
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -58,10 +59,11 @@ class DockerServiceTest {
             id = 42L
         }
         testContainerId = dockerService.buildAndCreateContainers(testExecution, null).single()
-        println("Created container $testContainerId")
+        logger.debug("Created container $testContainerId")
 
         // start container and query backend
         mockServer.enqueue(
+            "/initializeAgents",
             MockResponse()
                 .setResponseCode(200)
         )
@@ -102,7 +104,7 @@ class DockerServiceTest {
         private val logger = LoggerFactory.getLogger(DockerServiceTest::class.java)
 
         @JvmStatic
-        private val mockServer = MockWebServer()
+        private val mockServer = createMockWebServer()
 
         @OptIn(ExperimentalPathApi::class)
         @JvmStatic
