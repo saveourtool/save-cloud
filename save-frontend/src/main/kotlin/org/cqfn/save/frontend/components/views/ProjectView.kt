@@ -6,10 +6,8 @@
 
 package org.cqfn.save.frontend.components.views
 
-import org.cqfn.save.agent.TestSuiteExecutionStatisticDto
 import org.cqfn.save.domain.FileInfo
 import org.cqfn.save.domain.Sdk
-import org.cqfn.save.domain.TestResultStatus
 import org.cqfn.save.domain.getSdkVersions
 import org.cqfn.save.domain.toSdk
 import org.cqfn.save.entities.ExecutionRequest
@@ -74,8 +72,6 @@ import kotlinx.html.js.onClickFunction
 import kotlinx.html.role
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-
-private val projectStatisticMenu = projectStatisticMenu()
 
 /**
  * `Props` retrieved from router
@@ -226,9 +222,9 @@ external interface ProjectViewState : State {
     var latestExecutionId: Long?
 
     /**
-     * Flag to handle error
+     * Flag to open menu statistic
      */
-    var latestExecutionStatisticDtos: List<TestSuiteExecutionStatisticDto>
+    var isOpenMenuStatistic: Boolean?
 }
 
 /**
@@ -313,6 +309,9 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 }
             }
         },
+    )
+    private val projectStatisticMenu = projectStatisticMenu(
+        onOpenMenuStatistic = ::onOpenMenuStatistic,
     )
     private val projectInfoCard = cardComponent(isBordered = true, hasBg = true) {
         child(projectInfo) {
@@ -430,6 +429,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         state.isUploading = false
         state.isEditDisabled = true
         state.selectedMenu = ProjectMenuBar.RUN
+        state.isOpenMenuStatistic = true
     }
 
     override fun componentDidMount() {
@@ -459,7 +459,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             }
 
             selectLatestExecution()
-            getTestLatestExecutions()
         }
     }
 
@@ -583,8 +582,13 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                         val classVal = if ((i == 0 && state.selectedMenu == null) || state.selectedMenu == projectMenu) " active font-weight-bold" else ""
                         p("nav-link $classVal text-gray-800") {
                             attrs.onClickFunction = {
-                                setState {
-                                    selectedMenu = projectMenu
+                                if (state.selectedMenu != projectMenu) {
+                                    setState {
+                                        selectedMenu = projectMenu
+                                    }
+                                }
+                                if (projectMenu != ProjectMenuBar.STATISTIC) {
+                                    onOpenMenuStatistic(true)
                                 }
                             }
                             +projectMenu.name
@@ -670,24 +674,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         } else if (state.selectedMenu == ProjectMenuBar.STATISTIC) {
             child(projectStatisticMenu) {
                 attrs.executionId = state.latestExecutionId
-                attrs.latestExecutionStatisticDtos = state.latestExecutionStatisticDtos
-            }
-        }
-    }
-
-    private fun getTestLatestExecutions() {
-        scope.launch {
-            val testLatestExecutions = get(
-                url = "$apiUrl/testLatestExecutions?executionId=${state.latestExecutionId}&status=${TestResultStatus.PASSED}",
-                headers = Headers().also {
-                    it.set("Accept", "application/json")
-                },
-            )
-                .unsafeMap {
-                    it.decodeFromJsonString<List<TestSuiteExecutionStatisticDto>>()
-                }
-            setState {
-                latestExecutionStatisticDtos = testLatestExecutions
+                attrs.isOpen = state.isOpenMenuStatistic
             }
         }
     }
@@ -720,6 +707,12 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                     isUploading = false
                 }
             }
+
+    private fun onOpenMenuStatistic(isOpen: Boolean) {
+        setState {
+            isOpenMenuStatistic = isOpen
+        }
+    }
 
     private fun turnEditMode(isOff: Boolean) {
         setState {

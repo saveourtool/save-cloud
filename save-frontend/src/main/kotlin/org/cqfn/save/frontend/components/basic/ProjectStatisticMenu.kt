@@ -19,6 +19,12 @@ import react.dom.div
 import react.dom.td
 import react.table.columns
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+
 /**
  * ProjectStatisticMenu component props
  */
@@ -32,24 +38,61 @@ external interface ProjectStatisticMenuProps : Props {
      * list of tests
      */
     var latestExecutionStatisticDtos: List<TestSuiteExecutionStatisticDto>?
+
+    /**
+     * Flag to open Menu
+     */
+    var isOpen: Boolean?
 }
 
 /**
+ * @param onOpenMenuStatistic
  * @return ReactElement
  */
 @Suppress("TOO_LONG_FUNCTION", "LongMethod", "MAGIC_NUMBER")
-fun projectStatisticMenu() =
+fun projectStatisticMenu(
+    onOpenMenuStatistic: (isOpen: Boolean) -> Unit,
+) =
         fc<ProjectStatisticMenuProps> { props ->
+
+            val (latestExecutionStatisticDtos, setLatestExecutionStatisticDtos) = useState(props.latestExecutionStatisticDtos)
+            val scope = CoroutineScope(Dispatchers.Default)
+
+            if (props.isOpen == true) {
+                useEffect(listOf<dynamic>(props.executionId, props.latestExecutionStatisticDtos)) {
+                    scope.launch {
+                        val testLatestExecutions = get(
+                            url = "$apiUrl/testLatestExecutions?executionId=${props.executionId}&status=${TestResultStatus.PASSED}",
+                            headers = Headers().also {
+                                it.set("Accept", "application/json")
+                            },
+                        )
+                            .unsafeMap {
+                                it.decodeFromJsonString<List<TestSuiteExecutionStatisticDto>>()
+                            }
+                        setLatestExecutionStatisticDtos(testLatestExecutions)
+                    }
+                    onOpenMenuStatistic(false)
+                }
+            } else {
+                useEffect(listOf<dynamic>()) {
+                    cleanup {
+                        if (scope.isActive) {
+                            scope.cancel()
+                        }
+                    }
+                }
+            }
 
             div("row justify-content-center") {
                 // ===================== LEFT COLUMN =======================================================================
                 div("col-2 mr-3") {
                     div("text-xs text-center font-weight-bold text-primary text-uppercase mb-3") {
-                        +"Test suites"
+                        +"Total number of tests by test suite"
                     }
 
                     div("col-xl col-md-6 mb-4") {
-                        val data = props.latestExecutionStatisticDtos?.map {
+                        val data = latestExecutionStatisticDtos?.map {
                             DataPieChart(it.testSuiteName, it.countTest, randomColor())
                         } ?: emptyList()
 
