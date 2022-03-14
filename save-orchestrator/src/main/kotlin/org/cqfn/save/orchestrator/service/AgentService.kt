@@ -121,7 +121,7 @@ class AgentService {
         .retrieve()
         .bodyToMono<List<TestExecutionDto>>()
         .map {
-            println("=================${it} ${it.isEmpty()}")
+            println("=================$it ${it.isEmpty()}")
             it.isEmpty()
         }
         .also { println("finished") }

@@ -4,6 +4,8 @@ import org.cqfn.save.agent.AgentState
 import org.cqfn.save.agent.ExecutionProgress
 import org.cqfn.save.agent.Heartbeat
 import org.cqfn.save.agent.NewJobResponse
+import org.cqfn.save.agent.TestExecutionDto
+import org.cqfn.save.domain.TestResultStatus
 import org.cqfn.save.entities.AgentStatusDto
 import org.cqfn.save.entities.AgentStatusesForExecution
 import org.cqfn.save.entities.TestSuite
@@ -58,8 +60,6 @@ import java.util.concurrent.TimeUnit
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.cqfn.save.agent.TestExecutionDto
-import org.cqfn.save.domain.TestResultStatus
 
 @WebFluxTest
 @Import(
@@ -341,17 +341,16 @@ class HeartbeatControllerTest {
         }
     }
 
-
+    @Suppress("TOO_LONG_FUNCTION")
     @Test
-    fun `should shutdown agents even if there are some already FINISHED 2`() {
-        //whenever(dockerService.stopAgents(any())).thenReturn(true)
-        //whenever(agentService.checkSavedData(any())).thenReturn(Mono.just(true))
+    fun `should mark test executions as failed if agent returned only part of results`() {
         val agentStatusDtos = listOf(
             AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "test-1"),
             AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "test-2"),
         )
 
-        //val testExecutions: List<TestExecutionDto> = emptyList()
+        // if some test execution still have state `READY_FOR_TESTING`, but Agent.state == `FINISHED`
+        // that's mean, that part of results is lost
         val testExecutions: List<TestExecutionDto> = listOf(
             TestExecutionDto(
                 "testPath63",
@@ -365,6 +364,7 @@ class HeartbeatControllerTest {
             )
         )
 
+        // agentService.checkSavedData
         mockServer.enqueue(
             "/testExecutions/agent/test-1/${TestResultStatus.READY_FOR_TESTING}",
             MockResponse()
@@ -376,12 +376,12 @@ class HeartbeatControllerTest {
                 .addHeader("Content-Type", "application/json")
         )
 
+        // agentService.markTestExecutionsAsFailed
         mockServer.enqueue(
             "/testExecution/setStatusByAgentIds/.*",
             MockResponse()
                 .setResponseCode(200)
         )
-
 
         testHeartbeat(
             agentStatusDtos = agentStatusDtos,
@@ -396,7 +396,7 @@ class HeartbeatControllerTest {
         val assertions = CompletableFuture.supplyAsync {
             listOf(
                 mockServer.takeRequest(60, TimeUnit.SECONDS),
-                //mockServer.takeRequest(60, TimeUnit.SECONDS),
+                mockServer.takeRequest(60, TimeUnit.SECONDS),
             )
         }
         assertions.orTimeout(60, TimeUnit.SECONDS).join().forEach { Assertions.assertNotNull(it) }
@@ -462,7 +462,9 @@ class HeartbeatControllerTest {
         val assertions = CompletableFuture.supplyAsync {
             buildList<RecordedRequest?> {
                 mockServer.takeRequest(60, TimeUnit.SECONDS)
-                mockServer.takeRequest(60, TimeUnit.SECONDS)
+                testBatch?.let {
+                    mockServer.takeRequest(60, TimeUnit.SECONDS)
+                }
                 if (mockAgentStatuses) {
                     mockServer.takeRequest(60, TimeUnit.SECONDS)
                 }
