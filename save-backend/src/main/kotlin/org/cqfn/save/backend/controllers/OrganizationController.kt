@@ -23,14 +23,14 @@ internal class OrganizationController(private val organizationService: Organizat
      */
     @GetMapping("/get/organization-name")
     fun getOrganizationByName(@RequestParam name: String): Organization =
-            organizationService.findByName(name)
+            organizationService.findByName(name) ?: throw NoSuchElementException("Organization with name [$name] was not found.")
 
     /**
      * @param owner owner name
      * @return a image
      */
     @GetMapping("/avatar")
-    fun avatar(@RequestParam owner: String): ImageInfo? = organizationService.findByName(owner).avatar.let { ImageInfo(it) }
+    fun avatar(@RequestParam owner: String): ImageInfo? = organizationService.findByName(owner)?.avatar.let { ImageInfo(it) }
 
     /**
      * @param newOrganization newOrganization
@@ -40,7 +40,7 @@ internal class OrganizationController(private val organizationService: Organizat
     @PostMapping("/save")
     fun saveOrganization(@RequestBody newOrganization: Organization, authentication: Authentication): ResponseEntity<String> {
         val ownerId = (authentication.details as AuthenticationDetails).id
-        val (organizationId, organizationStatus) = organizationService.saveOrganization(
+        val (organizationId, organizationStatus) = organizationService.getOrSaveOrganization(
             newOrganization.apply {
                 this.ownerId = ownerId
                 this.dateCreated = LocalDateTime.now()
