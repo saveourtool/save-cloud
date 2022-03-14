@@ -36,6 +36,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.newSingleThreadContext
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.TimeZone.Companion.currentSystemDefault
 import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
@@ -259,7 +260,7 @@ class SaveAgent(internal val config: AgentConfiguration,
         return httpClient.post("${config.orchestratorUrl}/heartbeat") {
             contentType(ContentType.Application.Json)
             accept(ContentType.Application.Json)
-            body = Heartbeat(config.id, state.value, executionProgress, Clock.System.now().toLocalDateTime(TimeZone.UTC))
+            body = Heartbeat(config.id, state.value, executionProgress, Clock.System.now().toLocalDateTime(currentSystemDefault()))
         }
     }
 

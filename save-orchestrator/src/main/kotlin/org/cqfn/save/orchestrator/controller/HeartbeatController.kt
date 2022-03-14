@@ -129,6 +129,7 @@ class HeartbeatController(private val agentService: AgentService,
             currentAgentId !in crashedAgentsList
         }.forEach { (currentAgentId, stateToLatestHeartBeatPair) ->
             val duration = Duration.between(stateToLatestHeartBeatPair.second, LocalDateTime.now()).toMillis()
+            logger.info("\n\nDuration for ${currentAgentId}: $duration ${LocalDateTime.now()} - ${stateToLatestHeartBeatPair.second}")
             if (duration >= configProperties.agentsHeartBeatTimeoutMillis) {
                 logger.debug("Adding $currentAgentId to list crashed agents")
                 crashedAgentsList.add(currentAgentId)
@@ -148,7 +149,7 @@ class HeartbeatController(private val agentService: AgentService,
         val areAgentsStopped = dockerService.stopAgents(crashedAgentsList)
         if (areAgentsStopped) {
             agentService.markAgentsAndTestExecutionsCrashed(crashedAgentsList)
-            // All agents are crashed, so init shutdown sequence
+            logger.warn("All agents are crashed, initialize shutdown sequence")
             if (agentsLatestHeartBeatsMap.keys().toList() == crashedAgentsList.toList()) {
                 initiateShutdownSequence(crashedAgentsList.first(), areAllAgentsCrashed = true)
             }
@@ -179,6 +180,7 @@ class HeartbeatController(private val agentService: AgentService,
         }
             .flatMap { (executionId, finishedAgentIds) ->
                 if (finishedAgentIds.isNotEmpty()) {
+                    // println("\n\nFINISHED ${finishedAgentIds}\n crashedAgentsList ${crashedAgentsList.toList()}")
                     finishedAgentIds.forEach {
                         agentsLatestHeartBeatsMap.remove(it)
                         crashedAgentsList.remove(it)
