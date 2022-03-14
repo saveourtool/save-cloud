@@ -11,6 +11,7 @@ import org.cqfn.save.frontend.externals.fontawesome.faCheck
 import org.cqfn.save.frontend.externals.fontawesome.faTimesCircle
 import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
 
+import csstype.ClassName
 import react.FC
 import react.Props
 import react.StateSetter
@@ -79,21 +80,21 @@ fun projectInfo(
     )
     form {
         div {
-            className = "row g-3 ml-3 mr-3 pb-2 pt-2  border-bottom"
+            className = ClassName("row g-3 ml-3 mr-3 pb-2 pt-2  border-bottom")
             idToValue.forEach { (fieldId, text) ->
                 div {
-                    className = "col-md-6 pl-0 pr-0"
+                    className = ClassName("col-md-6 pl-0 pr-0")
                     label {
-                        className = "control-label col-auto justify-content-between pl-0"
+                        className = ClassName("control-label col-auto justify-content-between pl-0")
                         +projectInformationHeaders[fieldId]!!
                     }
                 }
                 div {
-                    className = "col-md-6 pl-0"
+                    className = ClassName("col-md-6 pl-0")
                     div {
-                        className = "controls col-auto pl-0"
+                        className = ClassName("controls col-auto pl-0")
                         input {
-                            className = "form-control-plaintext pt-0 pb-0"
+                            className = ClassName("form-control-plaintext pt-0 pb-0")
                             type = InputType.text
                             this.id = fieldId
                             value = text ?: ""
@@ -114,9 +115,9 @@ fun projectInfo(
         }
 
         div {
-            className = "ml-3 mt-2 align-items-right float-right"
+            className = ClassName("ml-3 mt-2 align-items-right float-right")
             button {
-                className = "btn"
+                className = ClassName("btn")
                 fontAwesomeIcon(icon = faCheck)
                 id = "Save new project info"
                 hidden = true
@@ -127,7 +128,7 @@ fun projectInfo(
             }
 
             button {
-                className = "btn"
+                className = ClassName("btn")
                 fontAwesomeIcon(icon = faTimesCircle)
                 id = "Cancel"
                 hidden = true

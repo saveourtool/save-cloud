@@ -100,6 +100,8 @@ services:
         max_replicas_per_node: 1
         constraints:
           - "node.role==manager"
+    secrets:
+      - prometheus_scrape_pwd
   grafana:
     image: grafana/grafana:8.4.3
     ports:
@@ -139,4 +141,6 @@ secrets:
   db_username:
     external: true
   db_url:
+    external: true
+  prometheus_scrape_pwd:
     external: true
