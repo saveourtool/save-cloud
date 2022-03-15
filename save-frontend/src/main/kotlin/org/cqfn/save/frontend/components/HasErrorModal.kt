@@ -2,8 +2,9 @@
 
 package org.cqfn.save.frontend.components
 
-import csstype.ClassName
 import org.cqfn.save.frontend.externals.modal.modal
+
+import csstype.ClassName
 import org.w3c.fetch.Response
 import react.Context
 import react.FC
