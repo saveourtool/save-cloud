@@ -166,7 +166,7 @@ class ContainerManager(private val settings: DockerSettings,
                     super.onNext(item)
                     sample.stop(
                         meterRegistry.timer(
-                            "docker-build",
+                            "save.orchestrator.docker.build",
                             "baseImage", baseImage,
                         )
                     )
