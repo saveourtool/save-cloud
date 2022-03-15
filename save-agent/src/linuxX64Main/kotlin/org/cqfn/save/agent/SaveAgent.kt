@@ -19,13 +19,10 @@ import org.cqfn.save.utils.toTestResultDebugInfo
 import org.cqfn.save.utils.toTestResultStatus
 
 import generated.SAVE_CLOUD_VERSION
-import io.ktor.client.HttpClient
-import io.ktor.client.request.accept
-import io.ktor.client.request.post
-import io.ktor.client.request.url
-import io.ktor.client.statement.HttpResponse
-import io.ktor.http.ContentType
-import io.ktor.http.contentType
+import io.ktor.client.*
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
 import okio.FileSystem
 import okio.Path.Companion.toPath
 
@@ -260,7 +257,7 @@ class SaveAgent(internal val config: AgentConfiguration,
         return httpClient.post("${config.orchestratorUrl}/heartbeat") {
             contentType(ContentType.Application.Json)
             accept(ContentType.Application.Json)
-            body = Heartbeat(config.id, state.value, executionProgress)
+            body = Heartbeat(config.id, state.value, executionProgress, Clock.System.now())
         }
     }
 
