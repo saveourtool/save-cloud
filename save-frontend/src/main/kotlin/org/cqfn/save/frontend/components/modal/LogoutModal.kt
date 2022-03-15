@@ -10,6 +10,7 @@ import org.cqfn.save.frontend.utils.post
 import org.cqfn.save.frontend.utils.spread
 import org.cqfn.save.frontend.utils.useRequest
 
+import csstype.ClassName
 import org.w3c.fetch.Headers
 import react.FC
 import react.dom.aria.ariaLabel
@@ -45,18 +46,18 @@ fun logoutModal(
             this.asDynamic()[key] = value
         }
         div {
-            className = "modal-dialog"
+            className = ClassName("modal-dialog")
             asDynamic()["role"] = "document"
             div {
-                className = "modal-content"
+                className = ClassName("modal-content")
                 div {
-                    className = "modal-header"
+                    className = ClassName("modal-header")
                     h5 {
-                        className = "modal-title"
+                        className = ClassName("modal-title")
                         +"Ready to Leave?"
                     }
                     button {
-                        className = "close"
+                        className = ClassName("close")
                         type = react.dom.html.ButtonType.button
                         asDynamic()["data-dismiss"] = "modal"
                         ariaLabel = "Close"
@@ -69,20 +70,20 @@ fun logoutModal(
                 }
             }
             div {
-                className = "modal-body"
+                className = ClassName("modal-body")
                 +"Select \"Logout\" below if you are ready to end your current session."
             }
             div {
-                className = "modal-footer"
+                className = ClassName("modal-footer")
                 button {
-                    className = "btn btn-secondary"
+                    className = ClassName("btn btn-secondary")
                     type = react.dom.html.ButtonType.button
                     asDynamic()["data-dismiss"] = "modal"
                     onClick = { closeCallback() }
                     +"Cancel"
                 }
                 button {
-                    className = "btn btn-primary"
+                    className = ClassName("btn btn-primary")
                     type = react.dom.html.ButtonType.button
                     onClick = {
                         doLogoutRequest()

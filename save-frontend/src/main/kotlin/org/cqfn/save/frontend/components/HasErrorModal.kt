@@ -2,6 +2,7 @@
 
 package org.cqfn.save.frontend.components
 
+import csstype.ClassName
 import org.cqfn.save.frontend.externals.modal.modal
 import org.w3c.fetch.Response
 import react.Context
@@ -49,16 +50,16 @@ val errorModalHandler: FC<PropsWithChildren> = FC { props ->
         it.isOpen = modalState.isErrorModalOpen
         it.contentLabel = modalState.errorLabel
         div {
-            className = "row align-items-center justify-content-center"
+            className = ClassName("row align-items-center justify-content-center")
             h2 {
-                className = "h6 text-gray-800"
+                className = ClassName("h6 text-gray-800")
                 +modalState.errorMessage
             }
         }
         div {
-            className = "d-sm-flex align-items-center justify-content-center mt-4"
+            className = ClassName("d-sm-flex align-items-center justify-content-center mt-4")
             button {
-                className = "btn btn-primary"
+                className = ClassName("btn btn-primary")
                 type = ButtonType.button
                 onClick = {
                     setResponse(null)
