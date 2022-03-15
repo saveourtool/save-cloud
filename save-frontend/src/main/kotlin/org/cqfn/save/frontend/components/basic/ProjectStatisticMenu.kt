@@ -59,7 +59,7 @@ fun projectStatisticMenu(
             val scope = CoroutineScope(Dispatchers.Default)
 
             useEffect(props.executionId, props.latestExecutionStatisticDtos, props.isOpen) {
-                if (!(props.isOpen == true)) {
+                if (props.isOpen != true) {
                     scope.launch {
                         val testLatestExecutions = get(
                             url = "$apiUrl/testLatestExecutions?executionId=${props.executionId}&status=${TestResultStatus.PASSED}",
