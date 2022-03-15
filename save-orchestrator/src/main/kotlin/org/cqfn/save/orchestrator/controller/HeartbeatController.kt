@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
 
+import java.time.Clock
 import java.time.Duration
 import java.time.LocalDateTime
 import java.util.concurrent.ConcurrentHashMap
@@ -128,8 +129,10 @@ class HeartbeatController(private val agentService: AgentService,
         agentsLatestHeartBeatsMap.filter { (currentAgentId, _) ->
             currentAgentId !in crashedAgentsList
         }.forEach { (currentAgentId, stateToLatestHeartBeatPair) ->
-            val duration = Duration.between(stateToLatestHeartBeatPair.second, LocalDateTime.now()).toMillis()
-            logger.info("\n\nDuration for ${currentAgentId}: $duration ${LocalDateTime.now()} - ${stateToLatestHeartBeatPair.second}")
+            // since agents are deployed in containers, they could have different default time zone, rather than the system OS
+            // so, explicitly set the common time zone
+            val duration = Duration.between(stateToLatestHeartBeatPair.second, LocalDateTime.now(Clock.systemUTC())).toMillis()
+            logger.debug("Latest heartbeat from $currentAgentId was sent: $duration ms ago")
             if (duration >= configProperties.agentsHeartBeatTimeoutMillis) {
                 logger.debug("Adding $currentAgentId to list crashed agents")
                 crashedAgentsList.add(currentAgentId)
@@ -180,7 +183,6 @@ class HeartbeatController(private val agentService: AgentService,
         }
             .flatMap { (executionId, finishedAgentIds) ->
                 if (finishedAgentIds.isNotEmpty()) {
-                    // println("\n\nFINISHED ${finishedAgentIds}\n crashedAgentsList ${crashedAgentsList.toList()}")
                     finishedAgentIds.forEach {
                         agentsLatestHeartBeatsMap.remove(it)
                         crashedAgentsList.remove(it)
