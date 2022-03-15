@@ -112,6 +112,7 @@ suspend fun WithRequestStatusContext.post(
  *
  * @param response
  */
+@Suppress("MAGIC_NUMBER")
 internal fun Component<*, *>.classComponentResponseHandler(
     response: Response
 ) {
@@ -126,13 +127,14 @@ internal fun Component<*, *>.classComponentResponseHandler(
     }
 }
 
-private fun Component<*, *>.withModalResponseHandler(response: Response) {if (!response.ok) {
+private fun Component<*, *>.withModalResponseHandler(response: Response) {
+    if (!response.ok) {
         val setResponse: StateSetter<Response?> = this.asDynamic().context
         setResponse(response)
     }
 }
 
-@Suppress("EXTENSION_FUNCTION_WITH_CLASS")
+@Suppress("EXTENSION_FUNCTION_WITH_CLASS", "MAGIC_NUMBER")
 private fun WithRequestStatusContext.withModalResponseHandler(response: Response) {
     val isUnauthorized = response.status == 401.toShort()
     if (isUnauthorized) {
