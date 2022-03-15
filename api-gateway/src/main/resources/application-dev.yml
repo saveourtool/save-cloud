@@ -1,0 +1,2 @@
+gateway:
+  basicCredentials: "user {noop}123"
