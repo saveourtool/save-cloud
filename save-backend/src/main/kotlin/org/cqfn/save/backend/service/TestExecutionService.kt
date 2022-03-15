@@ -71,6 +71,18 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
         .findByAgentContainerIdAndStatus(agentContainerId, status)
 
     /**
+     * @param executionId
+     * @param page
+     * @param pageSize
+     * @return a list of test executions
+     */
+    internal fun getTestExecutions(executionId: Long, page: Int?, pageSize: Int?): List<TestExecution> = if (page == null || pageSize == null) {
+        testExecutionRepository.findByExecutionId(executionId)
+    } else {
+        testExecutionRepository.findByExecutionId(executionId, PageRequest.of(page, pageSize))
+    }
+
+    /**
      * Finds TestExecution by test location
      *
      * @param executionId under this executionId test has been executed
