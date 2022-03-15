@@ -43,8 +43,6 @@ import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
-import org.springframework.http.codec.json.KotlinSerializationJsonDecoder
-import org.springframework.http.codec.json.KotlinSerializationJsonEncoder
 import org.springframework.scheduling.annotation.EnableScheduling
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.DynamicPropertyRegistry
@@ -79,17 +77,11 @@ class HeartbeatControllerTest {
     @Autowired private lateinit var agentService: AgentService
     @MockBean private lateinit var dockerService: DockerService
     @Autowired private lateinit var objectMapper: ObjectMapper
-    @Autowired private lateinit var kotlinSerializationJsonEncoder: KotlinSerializationJsonEncoder
-    @Autowired private lateinit var kotlinSerializationJsonDecoder: KotlinSerializationJsonDecoder
 
     @BeforeEach
     fun webClientSetUp() {
         webClient = webClient
             .mutate()
-            .codecs {
-                it.defaultCodecs().kotlinSerializationJsonEncoder(kotlinSerializationJsonEncoder)
-                it.defaultCodecs().kotlinSerializationJsonDecoder(kotlinSerializationJsonDecoder)
-            }
             .responseTimeout(Duration.ofSeconds(2))
             .build()
     }

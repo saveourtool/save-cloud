@@ -7,7 +7,6 @@ package org.cqfn.save.agent
 import org.cqfn.save.test.TestDto
 
 import kotlinx.datetime.Instant
-import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 
 /**
@@ -36,7 +35,6 @@ data class Heartbeat(
     val agentId: String,
     val state: AgentState,
     val executionProgress: ExecutionProgress,
-    @Contextual
     val timestamp: Instant,
 )
 
