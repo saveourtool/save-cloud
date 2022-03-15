@@ -14,4 +14,6 @@ interface LnkUserProjectRepository : BaseEntityRepository<LnkUserProject> {
      * @return lnkUserProject by project
      */
     fun findByProject(project: Project): List<LnkUserProject>
+
+    fun findByUserIdAndProject(userId: Long, project: Project): List<LnkUserProject>
 }
