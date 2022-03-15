@@ -27,18 +27,16 @@ import java.time.Duration
 import java.time.LocalDateTime
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
-import java.util.concurrent.atomic.AtomicBoolean
 
+import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 
 private val agentsLatestHeartBeatsMap: AgentStatesWithTimeStamps = ConcurrentHashMap()
 internal val crashedAgentsList: ConcurrentLinkedQueue<String> = ConcurrentLinkedQueue()
 
-@Suppress("NonBooleanPropertyPrefixedWithIs")
-private val isHeartbeatInProgress = AtomicBoolean(false)
-
-typealias AgentStatesWithTimeStamps = ConcurrentHashMap<String, Pair<String, LocalDateTime>>
+typealias AgentStatesWithTimeStamps = ConcurrentHashMap<String, Pair<String, Instant>>
 
 /**
  * Controller for heartbeat
@@ -67,7 +65,7 @@ class HeartbeatController(private val agentService: AgentService,
     @OptIn(ExperimentalSerializationApi::class)
     fun acceptHeartbeat(@RequestBody heartbeat: Heartbeat): Mono<String> {
         logger.info("Got heartbeat state: ${heartbeat.state.name} from ${heartbeat.agentId}")
-        updateAgentHeartbeatTimeStamps(heartbeat.agentId, heartbeat.state)
+        updateAgentHeartbeatTimeStamps(heartbeat)
 
         // store new state into DB
         return agentService.updateAgentStatusesWithDto(
@@ -85,7 +83,10 @@ class HeartbeatController(private val agentService: AgentService,
                         if (isSavingSuccessful) {
                             handleVacantAgent(heartbeat.agentId)
                         } else {
-                            // todo: if failure is repeated multiple times, re-assign missing tests once more
+                            // Agent finished its work, however only part of results were received, other should be marked as failed
+                            agentService.markTestExecutionsAsFailed(listOf(heartbeat.agentId), AgentState.FINISHED)
+                                .subscribeOn(agentService.scheduler)
+                                .subscribe()
                             Mono.just(WaitResponse)
                         }
                     }
@@ -110,13 +111,12 @@ class HeartbeatController(private val agentService: AgentService,
         }
 
     /**
-     * Collect information about latest heartbeats from agents, in aim to determine crashed one later
+     * Collect information about the latest heartbeats from agents, in aim to determine crashed one later
      *
-     * @param agentId
-     * @param state
+     * @param heartbeat
      */
-    fun updateAgentHeartbeatTimeStamps(agentId: String, state: AgentState) {
-        agentsLatestHeartBeatsMap[agentId] = state.name to LocalDateTime.now()
+    fun updateAgentHeartbeatTimeStamps(heartbeat: Heartbeat) {
+        agentsLatestHeartBeatsMap[heartbeat.agentId] = heartbeat.state.name to heartbeat.timestamp
     }
 
     /**
@@ -126,7 +126,8 @@ class HeartbeatController(private val agentService: AgentService,
         agentsLatestHeartBeatsMap.filter { (currentAgentId, _) ->
             currentAgentId !in crashedAgentsList
         }.forEach { (currentAgentId, stateToLatestHeartBeatPair) ->
-            val duration = Duration.between(stateToLatestHeartBeatPair.second, LocalDateTime.now()).toMillis()
+            val duration = (Clock.System.now() - stateToLatestHeartBeatPair.second).inWholeMilliseconds
+            logger.debug("Latest heartbeat from $currentAgentId was sent: $duration ms ago")
             if (duration >= configProperties.agentsHeartBeatTimeoutMillis) {
                 logger.debug("Adding $currentAgentId to list crashed agents")
                 crashedAgentsList.add(currentAgentId)
@@ -146,7 +147,7 @@ class HeartbeatController(private val agentService: AgentService,
         val areAgentsStopped = dockerService.stopAgents(crashedAgentsList)
         if (areAgentsStopped) {
             agentService.markAgentsAndTestExecutionsCrashed(crashedAgentsList)
-            // All agents are crashed, so init shutdown sequence
+            logger.warn("All agents are crashed, initialize shutdown sequence")
             if (agentsLatestHeartBeatsMap.keys().toList() == crashedAgentsList.toList()) {
                 initiateShutdownSequence(crashedAgentsList.first(), areAllAgentsCrashed = true)
             }

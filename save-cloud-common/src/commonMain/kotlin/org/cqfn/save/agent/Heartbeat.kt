@@ -6,6 +6,7 @@ package org.cqfn.save.agent
 
 import org.cqfn.save.test.TestDto
 
+import kotlinx.datetime.Instant
 import kotlinx.serialization.Serializable
 
 /**
@@ -27,11 +28,15 @@ data class ExecutionProgress(val percentCompletion: Int) {
  * @property agentId unique ID of the agent which sent the heartbeat
  * @property state current state of the Agent
  * @property executionProgress current progress of tests execution with this Agent
+ * @property timestamp the time of heartbeat posting
  */
 @Serializable
-data class Heartbeat(val agentId: String,
-                     val state: AgentState,
-                     val executionProgress: ExecutionProgress)
+data class Heartbeat(
+    val agentId: String,
+    val state: AgentState,
+    val executionProgress: ExecutionProgress,
+    val timestamp: Instant,
+)
 
 /**
  * A response from Orchestrator to Agent

@@ -32,13 +32,13 @@ import java.time.Duration
 @AutoConfigureWebTestClient(timeout = "60000")
 @Suppress("TOO_LONG_FUNCTION", "LongMethod")
 class CheckGitConnectivityTest(
-    @Autowired private val webClient: WebTestClient,
+    @Autowired private var webClient: WebTestClient,
 ) : RepositoryVolume {
     @MockBean private lateinit var testDiscoveringService: TestDiscoveringService
 
     @BeforeEach
     fun webClientSetUp() {
-        webClient.mutate().responseTimeout(Duration.ofSeconds(5)).build()
+        webClient = webClient.mutate().responseTimeout(Duration.ofSeconds(5)).build()
         whenever(testDiscoveringService.getRootTestConfig(any())).thenReturn(mock())
     }
 
