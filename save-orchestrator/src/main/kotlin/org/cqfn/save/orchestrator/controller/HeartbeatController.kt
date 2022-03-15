@@ -23,23 +23,20 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
 
-import java.time.Clock
 import java.time.Duration
 import java.time.LocalDateTime
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
-import java.util.concurrent.atomic.AtomicBoolean
 
+import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 
 private val agentsLatestHeartBeatsMap: AgentStatesWithTimeStamps = ConcurrentHashMap()
 internal val crashedAgentsList: ConcurrentLinkedQueue<String> = ConcurrentLinkedQueue()
 
-@Suppress("NonBooleanPropertyPrefixedWithIs")
-private val isHeartbeatInProgress = AtomicBoolean(false)
-
-typealias AgentStatesWithTimeStamps = ConcurrentHashMap<String, Pair<String, LocalDateTime>>
+typealias AgentStatesWithTimeStamps = ConcurrentHashMap<String, Pair<String, Instant>>
 
 /**
  * Controller for heartbeat
@@ -129,9 +126,7 @@ class HeartbeatController(private val agentService: AgentService,
         agentsLatestHeartBeatsMap.filter { (currentAgentId, _) ->
             currentAgentId !in crashedAgentsList
         }.forEach { (currentAgentId, stateToLatestHeartBeatPair) ->
-            // since agents are deployed in containers, they could have different default time zone, rather than the system OS
-            // so, explicitly set the common time zone
-            val duration = Duration.between(stateToLatestHeartBeatPair.second, LocalDateTime.now(Clock.systemUTC())).toMillis()
+            val duration = (Clock.System.now() - stateToLatestHeartBeatPair.second).inWholeMilliseconds
             logger.debug("Latest heartbeat from $currentAgentId was sent: $duration ms ago")
             if (duration >= configProperties.agentsHeartBeatTimeoutMillis) {
                 logger.debug("Adding $currentAgentId to list crashed agents")

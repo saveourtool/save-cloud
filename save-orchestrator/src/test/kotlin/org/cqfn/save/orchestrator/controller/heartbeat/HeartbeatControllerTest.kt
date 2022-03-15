@@ -59,6 +59,8 @@ import java.time.LocalDateTime
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
 
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -99,7 +101,7 @@ class HeartbeatControllerTest {
 
     @Test
     fun checkAcceptingHeartbeat() {
-        val heartBeatBusy = Heartbeat("test", AgentState.BUSY, ExecutionProgress(0), LocalDateTime.now(Clock.systemUTC()))
+        val heartBeatBusy = Heartbeat("test", AgentState.BUSY, ExecutionProgress(0), kotlinx.datetime.Clock.System.now())
 
         webClient.post()
             .uri("/heartbeat")
@@ -146,7 +148,7 @@ class HeartbeatControllerTest {
                 AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "test-1"),
                 AgentStatusDto(LocalDateTime.now(), AgentState.BUSY, "test-2"),
             ),
-            heartbeats = listOf(Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100), LocalDateTime.now(Clock.systemUTC()))),
+            heartbeats = listOf(Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100), kotlinx.datetime.Clock.System.now())),
             testBatch = TestBatch(emptyList(), emptyMap()),
             testSuite = null,
             mockAgentStatuses = true,
@@ -162,7 +164,7 @@ class HeartbeatControllerTest {
                 AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "test-1"),
                 AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "test-2"),
             ),
-            heartbeats = listOf(Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100), LocalDateTime.now(Clock.systemUTC()))),
+            heartbeats = listOf(Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100), kotlinx.datetime.Clock.System.now())),
             testBatch = TestBatch(
                 listOf(
                     TestDto("/path/to/test-1", "WarnPlugin", 1, "hash1", listOf("tag")),
@@ -189,7 +191,7 @@ class HeartbeatControllerTest {
         )
         testHeartbeat(
             agentStatusDtos = agentStatusDtos,
-            heartbeats = listOf(Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100), LocalDateTime.now(Clock.systemUTC()))),
+            heartbeats = listOf(Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100), kotlinx.datetime.Clock.System.now())),
             heartBeatInterval = 0,
             testBatch = TestBatch(emptyList(), emptyMap()),
             testSuite = null,
@@ -225,7 +227,7 @@ class HeartbeatControllerTest {
                 AgentStatusDto(LocalDateTime.now(), AgentState.STARTING, "test-1"),
                 AgentStatusDto(LocalDateTime.now(), AgentState.STARTING, "test-2"),
             ),
-            heartbeats = listOf(Heartbeat("test-1", AgentState.STARTING, ExecutionProgress(0), LocalDateTime.now(Clock.systemUTC()))),
+            heartbeats = listOf(Heartbeat("test-1", AgentState.STARTING, ExecutionProgress(0), kotlinx.datetime.Clock.System.now())),
             testBatch = TestBatch(
                 listOf(
                     TestDto("/path/to/test-1", "WarnPlugin", 1, "hash1", listOf("tag")),
@@ -245,7 +247,7 @@ class HeartbeatControllerTest {
 
     @Test
     fun `should shutdown agent, which don't sent heartbeat for some time`() {
-        val currTime = LocalDateTime.now(Clock.systemUTC())
+        val currTime = kotlinx.datetime.Clock.System.now()
         testHeartbeat(
             agentStatusDtos = listOf(
                 AgentStatusDto(LocalDateTime.now(), AgentState.STARTING, "test-1"),
@@ -253,12 +255,12 @@ class HeartbeatControllerTest {
             ),
             heartbeats = listOf(
                 Heartbeat("test-1", AgentState.STARTING, ExecutionProgress(0), currTime),
-                Heartbeat("test-1", AgentState.BUSY, ExecutionProgress(0), currTime.plusSeconds(1)),
-                Heartbeat("test-2", AgentState.BUSY, ExecutionProgress(0), currTime.plusSeconds(2)),
+                Heartbeat("test-1", AgentState.BUSY, ExecutionProgress(0), currTime.plus(1.seconds)),
+                Heartbeat("test-2", AgentState.BUSY, ExecutionProgress(0), currTime.plus(2.seconds)),
                 // 3 absent heartbeats from test-2
-                Heartbeat("test-1", AgentState.BUSY, ExecutionProgress(0), currTime.plusSeconds(3)),
-                Heartbeat("test-1", AgentState.BUSY, ExecutionProgress(0), currTime.plusSeconds(4)),
-                Heartbeat("test-1", AgentState.BUSY, ExecutionProgress(0), currTime.plusSeconds(6)),
+                Heartbeat("test-1", AgentState.BUSY, ExecutionProgress(0), currTime.plus(3.seconds)),
+                Heartbeat("test-1", AgentState.BUSY, ExecutionProgress(0), currTime.plus(4.seconds)),
+                Heartbeat("test-1", AgentState.BUSY, ExecutionProgress(0), currTime.plus(6.seconds)),
             ),
             heartBeatInterval = 1_000,
             testBatch = TestBatch(
@@ -287,8 +289,8 @@ class HeartbeatControllerTest {
             agentStatusDtos = agentStatusDtos,
             heartbeats = listOf(
                 // heartbeats were sent long time ago
-                Heartbeat("test-1", AgentState.STARTING, ExecutionProgress(0), LocalDateTime.now(Clock.systemUTC()).minusMinutes(1)),
-                Heartbeat("test-2", AgentState.BUSY, ExecutionProgress(0), LocalDateTime.now(Clock.systemUTC()).minusMinutes(1)),
+                Heartbeat("test-1", AgentState.STARTING, ExecutionProgress(0), kotlinx.datetime.Clock.System.now().minus(1.minutes)),
+                Heartbeat("test-2", AgentState.BUSY, ExecutionProgress(0), kotlinx.datetime.Clock.System.now().minus(1.minutes)),
             ),
             heartBeatInterval = 0,
             testBatch = TestBatch(
@@ -318,7 +320,7 @@ class HeartbeatControllerTest {
         )
         testHeartbeat(
             agentStatusDtos = agentStatusDtos,
-            heartbeats = listOf(Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100), LocalDateTime.now(Clock.systemUTC()))),
+            heartbeats = listOf(Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100), kotlinx.datetime.Clock.System.now())),
             heartBeatInterval = 0,
             testBatch = TestBatch(emptyList(), emptyMap()),
             testSuite = null,
@@ -386,7 +388,7 @@ class HeartbeatControllerTest {
         testHeartbeat(
             agentStatusDtos = agentStatusDtos,
             heartbeats = listOf(
-                Heartbeat("test-1", AgentState.FINISHED, ExecutionProgress(100), LocalDateTime.now(Clock.systemUTC()))
+                Heartbeat("test-1", AgentState.FINISHED, ExecutionProgress(100), kotlinx.datetime.Clock.System.now())
             ),
             heartBeatInterval = 0,
             testBatch = null,
