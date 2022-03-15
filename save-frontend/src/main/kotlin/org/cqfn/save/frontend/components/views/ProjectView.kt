@@ -22,6 +22,7 @@ import org.cqfn.save.frontend.components.basic.cardComponent
 import org.cqfn.save.frontend.components.basic.fileUploader
 import org.cqfn.save.frontend.components.basic.privacySpan
 import org.cqfn.save.frontend.components.basic.projectInfo
+import org.cqfn.save.frontend.components.basic.projectStatisticMenu
 import org.cqfn.save.frontend.components.basic.sdkSelection
 import org.cqfn.save.frontend.components.basic.testResourcesSelection
 import org.cqfn.save.frontend.components.errorStatusContext
@@ -31,6 +32,7 @@ import org.cqfn.save.frontend.externals.fontawesome.faHistory
 import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
 import org.cqfn.save.frontend.externals.modal.modal
 import org.cqfn.save.frontend.http.getProject
+import org.cqfn.save.frontend.utils.ProjectMenuBar
 import org.cqfn.save.frontend.utils.apiUrl
 import org.cqfn.save.frontend.utils.appendJson
 import org.cqfn.save.frontend.utils.decodeFromJsonString
@@ -58,6 +60,9 @@ import react.dom.a
 import react.dom.button
 import react.dom.div
 import react.dom.h1
+import react.dom.li
+import react.dom.nav
+import react.dom.p
 import react.dom.span
 import react.setState
 
@@ -210,6 +215,21 @@ external interface ProjectViewState : State {
      * Whether editing of project info is disabled
      */
     var isEditDisabled: Boolean?
+
+    /**
+     * project selected menu
+     */
+    var selectedMenu: ProjectMenuBar?
+
+    /**
+     * latest execution id for this project
+     */
+    var latestExecutionId: Long?
+
+    /**
+     * Flag to open menu statistic
+     */
+    var isOpenMenuStatistic: Boolean?
 }
 
 /**
@@ -295,6 +315,9 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             }
         },
     )
+    private val projectStatisticMenu = projectStatisticMenu(
+        openMenuStatisticFlag = ::openMenuStatisticFlag,
+    )
     private val projectInfoCard = cardComponent(isBordered = true, hasBg = true) {
         child(projectInfo) {
             attrs {
@@ -310,7 +333,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 +"Latest Execution"
                 attrs.onClickFunction = {
                     scope.launch {
-                        switchToLatestExecution()
+                        switchToLatestExecution(state.latestExecutionId)
                     }
                 }
             }
@@ -410,6 +433,8 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         state.bytesReceived = state.availableFiles.sumOf { it.sizeBytes }
         state.isUploading = false
         state.isEditDisabled = true
+        state.selectedMenu = ProjectMenuBar.RUN
+        state.isOpenMenuStatistic = false
     }
 
     override fun componentDidMount() {
@@ -447,6 +472,8 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 this.availableFiles.addAll(availableFiles)
                 isLoading = false
             }
+
+            fetchLatestExecutionId()
         }
     }
 
@@ -563,76 +590,106 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             privacySpan(state.project)
         }
 
-        div("row justify-content-center") {
-            // ===================== LEFT COLUMN =======================================================================
-            div("col-2 mr-3") {
-                div("text-xs text-center font-weight-bold text-primary text-uppercase mb-3") {
-                    +"Testing types"
-                }
-
-                child(typeSelection)
-            }
-            // ===================== MIDDLE COLUMN =====================================================================
-            div("col-4") {
-                div("text-xs text-center font-weight-bold text-primary text-uppercase mb-3") {
-                    +"Test configuration"
-                }
-
-                // ======== file selector =========
-                child(fileUploader) {
-                    attrs.isSubmitButtonPressed = state.isSubmitButtonPressed
-                    attrs.files = state.files
-                    attrs.availableFiles = state.availableFiles
-                    attrs.confirmationType = state.confirmationType
-                    attrs.suiteByteSize = state.suiteByteSize
-                    attrs.bytesReceived = state.bytesReceived
-                    attrs.isUploading = state.isUploading
-                }
-
-                // ======== sdk selection =========
-                child(sdkSelection) {
-                    attrs.selectedSdk = state.selectedSdk
-                    attrs.selectedSdkVersion = state.selectedSdkVersion
-                }
-
-                // ======== test resources selection =========
-                child(testResourcesSelection) {
-                    attrs.testingType = state.testingType
-                    attrs.isSubmitButtonPressed = state.isSubmitButtonPressed
-                    attrs.gitDto = gitDto
-                    // properties for CUSTOM_TESTS mode
-                    attrs.testRootPath = state.testRootPath
-                    attrs.gitUrlFromInputField = state.gitUrlFromInputField
-                    attrs.gitBranchOrCommitFromInputField = state.gitBranchOrCommitFromInputField
-                    // properties for STANDARD_BENCHMARKS mode
-                    attrs.selectedStandardSuites = selectedStandardSuites
-                    attrs.standardTestSuites = standardTestSuites
-                    attrs.selectedLanguageForStandardTests = state.selectedLanguageForStandardTests
-                    attrs.execCmd = state.execCmd
-                    attrs.batchSizeForAnalyzer = state.batchSizeForAnalyzer
-                }
-
-                div("d-sm-flex align-items-center justify-content-center") {
-                    button(type = ButtonType.button, classes = "btn btn-primary") {
-                        attrs.onClickFunction = { submitWithValidation() }
-                        +"Test the tool now"
-                    }
-                }
-            }
-            // ===================== RIGHT COLUMN ======================================================================
-            div("col-3 ml-2") {
-                div("text-xs text-center font-weight-bold text-primary text-uppercase mb-3") {
-                    +"Information"
-                    button(classes = "btn btn-link text-xs text-muted text-left p-1 ml-2") {
-                        +"Edit  "
-                        fontAwesomeIcon(icon = faEdit)
-                        attrs.onClickFunction = {
-                            turnEditMode(isOff = false)
+        div("row align-items-center justify-content-center") {
+            nav("nav nav-tabs mb-4") {
+                ProjectMenuBar.values().forEachIndexed { i, projectMenu ->
+                    li("nav-item") {
+                        val classVal = if ((i == 0 && state.selectedMenu == null) || state.selectedMenu == projectMenu) " active font-weight-bold" else ""
+                        p("nav-link $classVal text-gray-800") {
+                            attrs.onClickFunction = {
+                                if (state.selectedMenu != projectMenu) {
+                                    setState {
+                                        selectedMenu = projectMenu
+                                    }
+                                }
+                                if (projectMenu != ProjectMenuBar.STATISTIC) {
+                                    openMenuStatisticFlag(false)
+                                }
+                            }
+                            +projectMenu.name
                         }
                     }
                 }
+            }
+        }
 
-                child(projectInfoCard)
+        if (state.selectedMenu == ProjectMenuBar.RUN) {
+            div("row justify-content-center") {
+                // ===================== LEFT COLUMN =======================================================================
+                div("col-2 mr-3") {
+                    div("text-xs text-center font-weight-bold text-primary text-uppercase mb-3") {
+                        +"Testing types"
+                    }
+
+                    child(typeSelection)
+                }
+                // ===================== MIDDLE COLUMN =====================================================================
+                div("col-4") {
+                    div("text-xs text-center font-weight-bold text-primary text-uppercase mb-3") {
+                        +"Test configuration"
+                    }
+
+                    // ======== file selector =========
+                    child(fileUploader) {
+                        attrs.isSubmitButtonPressed = state.isSubmitButtonPressed
+                        attrs.files = state.files
+                        attrs.availableFiles = state.availableFiles
+                        attrs.confirmationType = state.confirmationType
+                        attrs.suiteByteSize = state.suiteByteSize
+                        attrs.bytesReceived = state.bytesReceived
+                        attrs.isUploading = state.isUploading
+                    }
+
+                    // ======== sdk selection =========
+                    child(sdkSelection) {
+                        attrs.selectedSdk = state.selectedSdk
+                        attrs.selectedSdkVersion = state.selectedSdkVersion
+                    }
+
+                    // ======== test resources selection =========
+                    child(testResourcesSelection) {
+                        attrs.testingType = state.testingType
+                        attrs.isSubmitButtonPressed = state.isSubmitButtonPressed
+                        attrs.gitDto = gitDto
+                        // properties for CUSTOM_TESTS mode
+                        attrs.testRootPath = state.testRootPath
+                        attrs.gitUrlFromInputField = state.gitUrlFromInputField
+                        attrs.gitBranchOrCommitFromInputField = state.gitBranchOrCommitFromInputField
+                        // properties for STANDARD_BENCHMARKS mode
+                        attrs.selectedStandardSuites = selectedStandardSuites
+                        attrs.standardTestSuites = standardTestSuites
+                        attrs.selectedLanguageForStandardTests = state.selectedLanguageForStandardTests
+                        attrs.execCmd = state.execCmd
+                        attrs.batchSizeForAnalyzer = state.batchSizeForAnalyzer
+                    }
+
+                    div("d-sm-flex align-items-center justify-content-center") {
+                        button(type = ButtonType.button, classes = "btn btn-primary") {
+                            attrs.onClickFunction = { submitWithValidation() }
+                            +"Test the tool now"
+                        }
+                    }
+                }
+                // ===================== RIGHT COLUMN ======================================================================
+                div("col-3 ml-2") {
+                    div("text-xs text-center font-weight-bold text-primary text-uppercase mb-3") {
+                        +"Information"
+                        button(classes = "btn btn-link text-xs text-muted text-left p-1 ml-2") {
+                            +"Edit  "
+                            fontAwesomeIcon(icon = faEdit)
+                            attrs.onClickFunction = {
+                                turnEditMode(isOff = false)
+                            }
+                        }
+                    }
+
+                    child(projectInfoCard)
+                }
+            }
+        } else if (state.selectedMenu == ProjectMenuBar.STATISTIC) {
+            child(projectStatisticMenu) {
+                attrs.executionId = state.latestExecutionId
+                attrs.isOpen = state.isOpenMenuStatistic
             }
         }
     }
@@ -665,6 +722,12 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                     isUploading = false
                 }
             }
+
+    private fun openMenuStatisticFlag(isOpen: Boolean) {
+        setState {
+            isOpenMenuStatistic = isOpen
+        }
+    }
 
     private fun turnEditMode(isOff: Boolean) {
         setState {
@@ -786,7 +849,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         }
     }
 
-    private suspend fun switchToLatestExecution() {
+    private suspend fun fetchLatestExecutionId() {
         val headers = Headers().apply { set("Accept", "application/json") }
         val response = get(
             "$apiUrl/latestExecution?name=${state.project.name}&organizationId=${state.project.organization.id}",
@@ -796,15 +859,26 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             setState {
                 errorLabel = "Failed to fetch latest execution"
                 errorMessage =
-                        "Failed to fetch latest execution: [${response.status}] ${response.statusText}"
-                isErrorOpen = true
+                        "Failed to fetch latest execution: [${response.status}] ${response.statusText}, please refresh the page and try again"
+                latestExecutionId = null
             }
         } else {
-            val latestExecutionId = response
+            val latestExecutionIdNew = response
                 .decodeFromJsonString<ExecutionDto>()
                 .id
+            setState {
+                latestExecutionId = latestExecutionIdNew
+            }
+        }
+    }
+
+    private fun switchToLatestExecution(latestExecutionId: Long?) {
+        latestExecutionId?.let {
             window.location.href = "${window.location}/history/execution/$latestExecutionId"
         }
+            ?: setState {
+                isErrorOpen = true
+            }
     }
 
     private suspend fun getFilesList() = get("$apiUrl/files/list", Headers())
