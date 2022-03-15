@@ -3,6 +3,7 @@ package org.cqfn.save.orchestrator.docker
 import org.cqfn.save.orchestrator.config.ConfigProperties
 
 import com.github.dockerjava.api.command.PullImageResultCallback
+import io.micrometer.core.instrument.composite.CompositeMeterRegistry
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
@@ -32,7 +33,7 @@ class ContainerManagerTest {
 
     @BeforeEach
     fun setUp() {
-        containerManager = ContainerManager(configProperties.docker)
+        containerManager = ContainerManager(configProperties.docker, CompositeMeterRegistry())
         containerManager.dockerClient.pullImageCmd("ubuntu")
             .withTag("latest")
             .exec(PullImageResultCallback())
