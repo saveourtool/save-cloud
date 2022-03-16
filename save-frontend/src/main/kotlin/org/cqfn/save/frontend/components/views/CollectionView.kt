@@ -84,9 +84,16 @@ class CollectionView : AbstractView<PropsWithChildren, State>(false) {
     )
     override fun RBuilder.render() {
         div {
-            button(type = ButtonType.button, classes = "btn btn-primary mb-2") {
-                a(classes = "text-light", href = "#/creation/") {
-                    +"Add new tested tool"
+            div(classes = "btn-group btn-group-toggle") {
+                button(type = ButtonType.button, classes = "btn btn-primary mb-2") {
+                    a(classes = "text-light", href = "#/creation/") {
+                        +"Add new tested tool"
+                    }
+                }
+                button(type = ButtonType.button, classes = "btn btn-primary mb-2") {
+                    a(classes = "text-light", href = "#/createOrganization/") {
+                        +"Add new organization"
+                    }
                 }
             }
         }
