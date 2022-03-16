@@ -92,7 +92,7 @@ external interface ProjectExecutionRouteProps : PropsWithChildren {
  */
 external interface ProjectViewState : State {
     /**
-     * Currenty loaded for display Project
+     * Currently loaded for display Project
      */
     var project: Project
 
