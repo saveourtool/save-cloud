@@ -14,6 +14,7 @@ import org.cqfn.save.frontend.components.basic.executionStatistics
 import org.cqfn.save.frontend.components.basic.executionTestsNotFound
 import org.cqfn.save.frontend.components.basic.testExecutionFiltersRow
 import org.cqfn.save.frontend.components.basic.testStatusComponent
+import org.cqfn.save.frontend.components.errorStatusContext
 import org.cqfn.save.frontend.components.tables.tableComponent
 import org.cqfn.save.frontend.externals.fontawesome.faRedo
 import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
@@ -30,6 +31,7 @@ import org.cqfn.save.frontend.utils.unsafeMap
 import csstype.Background
 import csstype.TextDecoration
 import org.w3c.fetch.Headers
+import org.w3c.fetch.Response
 import react.*
 import react.dom.*
 import react.table.columns
@@ -432,6 +434,12 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
         child(executionTestsNotFound) {
             attrs.executionDto = state.executionDto
             attrs.countTests = state.countTests
+        }
+    }
+
+    companion object : RStatics<ExecutionProps, ExecutionState, ExecutionView, Context<StateSetter<Response?>>>(ExecutionView::class) {
+        init {
+            contextType = errorStatusContext
         }
     }
 }
