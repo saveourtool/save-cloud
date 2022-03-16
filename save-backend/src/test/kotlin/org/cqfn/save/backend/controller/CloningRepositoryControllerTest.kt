@@ -119,7 +119,7 @@ class CloningRepositoryControllerTest {
     @WithMockUser(username = "John Doe")
     fun checkNewJobResponse() {
         mockServerPreprocessor.enqueue(
-            "/upload",
+            "/upload$",
             MockResponse()
                 .setResponseCode(202)
                 .setBody("Clone pending")
@@ -163,7 +163,7 @@ class CloningRepositoryControllerTest {
         bodyBuilder.part("file", binFile.toFileInfo())
 
         mockServerPreprocessor.enqueue(
-            "/uploadBin",
+            "/uploadBin$",
             MockResponse()
                 .setResponseCode(202)
                 .setBody("Clone pending")

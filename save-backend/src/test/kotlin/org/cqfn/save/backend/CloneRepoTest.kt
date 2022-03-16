@@ -66,7 +66,7 @@ class CloneRepoTest {
 
         val sdk = Jdk("8")
         mockServerPreprocessor.enqueue(
-            "/upload",
+            "/upload$",
             MockResponse()
                 .setResponseCode(202)
                 .setBody("Clone pending")

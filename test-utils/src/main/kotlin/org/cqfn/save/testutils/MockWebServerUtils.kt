@@ -93,8 +93,9 @@ class LoggingQueueDispatcher : Dispatcher() {
     }
 
     private fun checkQueue(regexKey: String) = responses[regexKey]?.peek()?.let { mockResponse ->
-        val errorMessage = "There is an enqueued response in the MockServer after a test has completed." +
-                "Enqueued body: ${mockResponse.getBody()?.readString(Charset.defaultCharset())}"
+        val errorMessage = "There is an enqueued response in the MockServer after a test has completed. " +
+                "Enqueued body: ${mockResponse.getBody()?.readString(Charset.defaultCharset())}. " +
+                "Path: $regexKey."
         assertTrue(errorMessage, mockResponse.getBody().let { it == null || it.size == 0L })
     }
 

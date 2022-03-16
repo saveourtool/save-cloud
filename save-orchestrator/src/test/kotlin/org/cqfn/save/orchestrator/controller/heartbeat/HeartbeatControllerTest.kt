@@ -108,7 +108,7 @@ class HeartbeatControllerTest {
         val list = listOf(TestDto("qwe", "WarnPlugin", 0, "hash", listOf("tag")))
         // /getTestBatches
         mockServer.enqueue(
-            "/getTestBatches",
+            "/getTestBatches.*$",
             MockResponse()
                 .setBody(Json.encodeToString(TestBatch(list, mapOf(0L to ""))))
                 .addHeader("Content-Type", "application/json")
@@ -120,7 +120,7 @@ class HeartbeatControllerTest {
 
         // /testSuite/{id}
         mockServer.enqueue(
-            "/testSuite/(\\d)+",
+            "/testSuite/(\\d)+$",
             MockResponse()
                 .setResponseCode(200)
                 .setHeader("Content-Type", "application/json")
@@ -190,7 +190,7 @@ class HeartbeatControllerTest {
             {
                 // /getAgentsStatusesForSameExecution after shutdownIntervalMillis
                 mockServer.enqueue(
-                    "/getAgentsStatusesForSameExecution",
+                    "/getAgentsStatusesForSameExecution.*$",
                     MockResponse()
                         .setBody(
                             objectMapper.writeValueAsString(
@@ -202,7 +202,7 @@ class HeartbeatControllerTest {
                 // additional setup for marking stuff as FINISHED
                 // /updateExecutionByDto
                 mockServer.enqueue(
-                    "/updateExecutionByDto",
+                    "/updateExecutionByDto.*$",
                     MockResponse().setResponseCode(200)
                 )
             }
@@ -319,7 +319,7 @@ class HeartbeatControllerTest {
             {
                 // /getAgentsStatusesForSameExecution after shutdownIntervalMillis
                 mockServer.enqueue(
-                    "/getAgentsStatusesForSameExecution",
+                    "/getAgentsStatusesForSameExecution.*$",
                     MockResponse()
                         .setBody(
                             objectMapper.writeValueAsString(
@@ -371,7 +371,7 @@ class HeartbeatControllerTest {
 
         // agentService.markTestExecutionsAsFailed
         mockServer.enqueue(
-            "/testExecution/setStatusByAgentIds/.*",
+            "/testExecution/setStatusByAgentIds/.*$",
             MockResponse()
                 .setResponseCode(200)
         )
@@ -422,7 +422,7 @@ class HeartbeatControllerTest {
         // /getTestBatches
         testBatch?.let {
             mockServer.enqueue(
-                "/getTestBatches.*",
+                "/getTestBatches.*$",
                 MockResponse()
                     .setBody(Json.encodeToString(testBatch))
                     .addHeader("Content-Type", "application/json")
@@ -432,7 +432,7 @@ class HeartbeatControllerTest {
         // /testSuite/{id}
         testSuite?.let {
             mockServer.enqueue(
-                "/testSuite/(\\d)+",
+                "/testSuite/(\\d)+$",
                 MockResponse()
                     .setResponseCode(200)
                     .setHeader("Content-Type", "application/json")
@@ -443,7 +443,7 @@ class HeartbeatControllerTest {
         if (mockAgentStatuses) {
             // /getAgentsStatusesForSameExecution
             mockServer.enqueue(
-                "/getAgentsStatusesForSameExecution.*",
+                "/getAgentsStatusesForSameExecution.*$",
                 MockResponse()
                     .setBody(
                         objectMapper.writeValueAsString(
@@ -499,8 +499,8 @@ class HeartbeatControllerTest {
         fun properties(registry: DynamicPropertyRegistry) {
             // todo: should be initialized in @BeforeAll, but it gets called after @DynamicPropertySource
             mockServer = createMockWebServer()
-            mockServer.setDefaultResponseForPath("/testExecution/.*", MockResponse().setResponseCode(200))
-            mockServer.setDefaultResponseForPath("/updateAgentStatusesWithDto.*", MockResponse().setResponseCode(200))
+            mockServer.setDefaultResponseForPath("/testExecution/.*$", MockResponse().setResponseCode(200))
+            mockServer.setDefaultResponseForPath("/updateAgentStatusesWithDto.*$", MockResponse().setResponseCode(200))
             mockServer.start()
             registry.add("orchestrator.backendUrl") { "http://localhost:${mockServer.port}" }
         }

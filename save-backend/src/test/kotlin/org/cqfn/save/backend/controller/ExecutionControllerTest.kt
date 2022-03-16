@@ -220,7 +220,7 @@ class ExecutionControllerTest {
         }
 
         mockServerPreprocessor.enqueue(
-            "/rerunExecution",
+            "/rerunExecution.*$",
             MockResponse().setResponseCode(202)
                 .setHeader("Accept", "application/json")
                 .setHeader("Content-Type", "application/json")

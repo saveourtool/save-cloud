@@ -96,7 +96,7 @@ class DownloadProjectTest(
         val request = ExecutionRequest(project, wrongRepo, sdk = Sdk.Default, executionId = execution.id, testRootPath = ".")
         // /updateExecutionByDto
         mockServerBackend.enqueue(
-            "/updateExecutionByDto",
+            "/updateExecutionByDto$",
             MockResponse().setResponseCode(200)
         )
 
@@ -130,7 +130,7 @@ class DownloadProjectTest(
         val request = ExecutionRequest(project, validRepo, "examples/kotlin-diktat/", Sdk.Default, execution.id)
         // /createExecution
         mockServerBackend.enqueue(
-            "/updateNewExecution",
+            "/updateNewExecution$",
             MockResponse()
                 .setResponseCode(200)
                 .setHeader("Content-Type", "application/json")
@@ -138,7 +138,7 @@ class DownloadProjectTest(
         )
         // /saveTestSuites
         mockServerBackend.enqueue(
-            "/saveTestSuites",
+            "/saveTestSuites$",
             MockResponse()
                 .setResponseCode(200)
                 .setHeader("Content-Type", "application/json")
@@ -159,13 +159,13 @@ class DownloadProjectTest(
         )
         // /initializeTests?executionId=$executionId
         mockServerBackend.enqueue(
-            "/initializeTests",
+            "/initializeTests\\?executionId=(\\d)+$",
             MockResponse()
                 .setResponseCode(200)
         )
         // /initializeAgents
         mockServerOrchestrator.enqueue(
-            "/initializeAgents",
+            "/initializeAgents$",
             MockResponse()
                 .setResponseCode(200)
         )
@@ -225,7 +225,7 @@ class DownloadProjectTest(
 
         // /updateNewExecution
         mockServerBackend.enqueue(
-            "/updateNewExecution",
+            "/updateNewExecution$",
             MockResponse()
                 .setResponseCode(200)
                 .setHeader("Content-Type", "application/json")
@@ -234,7 +234,7 @@ class DownloadProjectTest(
 
         // /standardTestSuitesWithName
         mockServerBackend.enqueue(
-            "/standardTestSuitesWithName",
+            "/standardTestSuitesWithName\\?name=.*$",
             MockResponse()
                 .setResponseCode(200)
                 .setHeader("Content-Type", "application/json")
@@ -249,7 +249,7 @@ class DownloadProjectTest(
 
         // /saveTestExecutionsForStandardByTestSuiteId
         mockServerBackend.enqueue(
-            "/saveTestExecutionsForStandardByTestSuiteId",
+            "/saveTestExecutionsForStandardByTestSuiteId\\?testSuiteId=(\\d)+$",
             MockResponse()
                 .setResponseCode(200)
         )
@@ -263,7 +263,7 @@ class DownloadProjectTest(
 
         // /initializeAgents
         mockServerOrchestrator.enqueue(
-            "/initializeAgents",
+            "/initializeAgents$",
             MockResponse()
                 .setResponseCode(200)
         )
@@ -319,7 +319,7 @@ class DownloadProjectTest(
             )
 
             mockServerBackend.enqueue(
-                "/saveTestSuites",
+                "/saveTestSuites$",
                 MockResponse()
                     .setResponseCode(200)
                     .setHeader("Content-Type", "application/json")
@@ -334,7 +334,7 @@ class DownloadProjectTest(
         }
         repeat(requestSize) {
             mockServerBackend.enqueue(
-                "/initializeTests",
+                "/initializeTests$",
                 MockResponse()
                     .setResponseCode(200)
             )
@@ -342,7 +342,7 @@ class DownloadProjectTest(
 
         // /allStandardTestSuites
         mockServerBackend.enqueue(
-            "/allStandardTestSuites",
+            "/allStandardTestSuites$",
             MockResponse()
                 .setResponseCode(200)
                 .setHeader("Content-Type", "application/json")
@@ -355,7 +355,7 @@ class DownloadProjectTest(
 
         // /deleteTestSuite
         mockServerBackend.enqueue(
-            "/markObsoleteTestSuites",
+            "/markObsoleteTestSuites$",
             MockResponse()
                 .setResponseCode(200)
         )
@@ -388,18 +388,18 @@ class DownloadProjectTest(
 
         // /updateExecutionByDto
         mockServerBackend.enqueue(
-            "/updateExecutionByDto",
+            "/updateExecutionByDto$",
             MockResponse().setResponseCode(200)
         )
         // /cleanup
         mockServerOrchestrator.enqueue(
-            "/cleanup",
+            "/cleanup\\?executionId=(\\d)+$",
             MockResponse()
                 .setResponseCode(200)
         )
         // /execution
         mockServerBackend.enqueue(
-            "/execution",
+            "/execution\\?id=(\\d)+$",
             MockResponse()
                 .setResponseCode(200)
                 .setHeader("Content-Type", "application/json")
@@ -407,7 +407,7 @@ class DownloadProjectTest(
         )
         // /saveTestSuites
         mockServerBackend.enqueue(
-            "/saveTestSuites",
+            "/saveTestSuites$",
             MockResponse()
                 .setResponseCode(200)
                 .setHeader("Content-Type", "application/json")
@@ -428,13 +428,13 @@ class DownloadProjectTest(
         )
         // /initializeTests?executionId=$executionId
         mockServerBackend.enqueue(
-            "/initializeTests",
+            "/initializeTests\\?executionId=(\\d)+$",
             MockResponse()
                 .setResponseCode(200)
         )
         // /initializeAgents
         mockServerOrchestrator.enqueue(
-            "/initializeAgents",
+            "/initializeAgents$",
             MockResponse()
                 .setResponseCode(200)
         )
@@ -481,14 +481,14 @@ class DownloadProjectTest(
         }
 
         // /updateExecutionByDto
-        mockServerBackend.enqueue("/updateExecutionByDto", MockResponse().setResponseCode(200))
+        mockServerBackend.enqueue("/updateExecutionByDto$", MockResponse().setResponseCode(200))
 
         // /cleanup
-        mockServerOrchestrator.enqueue("/cleanup", MockResponse().setResponseCode(200))
+        mockServerOrchestrator.enqueue("/cleanup\\?executionId=(\\d)+$", MockResponse().setResponseCode(200))
 
         // /execution
         mockServerBackend.enqueue(
-            "/execution",
+            "/execution\\?id=(\\d)+$",
             MockResponse()
                 .setResponseCode(200)
                 .setHeader("Content-Type", "application/json")
@@ -497,7 +497,7 @@ class DownloadProjectTest(
 
         // /testSuite/{id}
         mockServerBackend.enqueue(
-            "/testSuite",
+            "/testSuite/(\\d)+$",
             MockResponse()
                 .setResponseCode(200)
                 .setHeader("Content-Type", "application/json")
@@ -506,7 +506,7 @@ class DownloadProjectTest(
 
         // /standardTestSuitesWithName
         mockServerBackend.enqueue(
-            "/standardTestSuitesWithName",
+            "/standardTestSuitesWithName\\?name=.*$",
             MockResponse()
                 .setResponseCode(200)
                 .setHeader("Content-Type", "application/json")
@@ -517,7 +517,7 @@ class DownloadProjectTest(
 
         // /saveTestExecutionsForStandardByTestSuiteId
         mockServerBackend.enqueue(
-            "/saveTestExecutionsForStandardByTestSuiteId",
+            "/saveTestExecutionsForStandardByTestSuiteId\\?testSuiteId=(\\d)+$",
             MockResponse()
                 .setResponseCode(200)
         )
@@ -531,7 +531,7 @@ class DownloadProjectTest(
 
         // /initializeAgents
         mockServerOrchestrator.enqueue(
-            "/initializeAgents",
+            "/initializeAgents$",
             MockResponse()
                 .setResponseCode(200)
         )
