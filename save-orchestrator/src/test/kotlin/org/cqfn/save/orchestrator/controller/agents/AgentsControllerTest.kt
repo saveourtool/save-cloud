@@ -170,7 +170,7 @@ class AgentsControllerTest {
     @Test
     fun `should cleanup execution artifacts`() {
         mockServer.enqueue(
-            "/getAgentsIdsForExecution",
+            "/getAgentsIdsForExecution.*",
             MockResponse().setResponseCode(200)
                 .setHeader("Content-Type", "application/json")
                 .setBody(Json.encodeToString(listOf("container-1", "container-2", "container-3")))

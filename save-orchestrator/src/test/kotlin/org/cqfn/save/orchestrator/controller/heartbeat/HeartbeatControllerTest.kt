@@ -422,7 +422,7 @@ class HeartbeatControllerTest {
         // /getTestBatches
         testBatch?.let {
             mockServer.enqueue(
-                "/getTestBatches",
+                "/getTestBatches.*",
                 MockResponse()
                     .setBody(Json.encodeToString(testBatch))
                     .addHeader("Content-Type", "application/json")
@@ -443,7 +443,7 @@ class HeartbeatControllerTest {
         if (mockAgentStatuses) {
             // /getAgentsStatusesForSameExecution
             mockServer.enqueue(
-                "/getAgentsStatusesForSameExecution",
+                "/getAgentsStatusesForSameExecution.*",
                 MockResponse()
                     .setBody(
                         objectMapper.writeValueAsString(
@@ -500,7 +500,7 @@ class HeartbeatControllerTest {
             // todo: should be initialized in @BeforeAll, but it gets called after @DynamicPropertySource
             mockServer = createMockWebServer()
             mockServer.setDefaultResponseForPath("/testExecution/.*", MockResponse().setResponseCode(200))
-            mockServer.setDefaultResponseForPath("/updateAgentStatusesWithDto", MockResponse().setResponseCode(200))
+            mockServer.setDefaultResponseForPath("/updateAgentStatusesWithDto.*", MockResponse().setResponseCode(200))
             mockServer.start()
             registry.add("orchestrator.backendUrl") { "http://localhost:${mockServer.port}" }
         }
