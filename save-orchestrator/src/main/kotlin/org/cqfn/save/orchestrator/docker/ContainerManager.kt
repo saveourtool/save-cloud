@@ -53,6 +53,11 @@ class ContainerManager(private val settings: DockerSettings,
      */
     internal val dockerClient: DockerClient = DockerClientImpl.getInstance(dockerClientConfig, dockerHttpClient)
 
+    private fun buildCmdTimer(baseImage: String) = meterRegistry.timer(
+        "save.orchestrator.docker.build",
+        "baseImage", baseImage,
+    )
+
     /**
      * Creates a docker container
      *
@@ -164,12 +169,7 @@ class ContainerManager(private val settings: DockerSettings,
             buildCmd.exec(object : BuildImageResultCallback() {
                 override fun onNext(item: BuildResponseItem?) {
                     super.onNext(item)
-                    sample.stop(
-                        meterRegistry.timer(
-                            "save.orchestrator.docker.build",
-                            "baseImage", baseImage,
-                        )
-                    )
+                    sample.stop(buildCmdTimer(baseImage))
                 }
             })
         } finally {
