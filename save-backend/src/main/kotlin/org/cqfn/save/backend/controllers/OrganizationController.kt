@@ -48,7 +48,7 @@ internal class OrganizationController(private val organizationService: Organizat
         )
 
         if (organizationStatus == OrganizationSaveStatus.EXIST) {
-            logger.warn("Organization with id = $organizationId already exists")
+            logger.info("Attempt to save an organization with id = $organizationI, but it already exists")
             return ResponseEntity.badRequest().body(organizationStatus.message)
         }
         logger.info("Save new organization id = $organizationId")
