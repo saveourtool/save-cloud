@@ -68,13 +68,65 @@ class ProjectPermissionEvaluatorTest {
         )
     }
 
+    @Test
+    fun `permissions for project owners`() {
+        mockProject.userId = 99
+        userShouldHavePermissions(
+            "super_admin", Role.SUPER_ADMIN, listOf(Role.OWNER), *Permission.values(), userId = 99
+        )
+        userShouldHavePermissions(
+            "admin", Role.ADMIN, listOf(Role.OWNER), *Permission.values(), userId = 99
+        )
+        userShouldHavePermissions(
+            "owner", Role.OWNER, listOf(Role.OWNER), *Permission.values(), userId = 99
+        )
+        userShouldHavePermissions(
+            "viewer", Role.VIEWER, listOf(Role.OWNER), *Permission.values(), userId = 99
+        )
+    }
+
+    @Test
+    fun `permissions for project viewers`() {
+        userShouldHavePermissions(
+            "super_admin", Role.SUPER_ADMIN, listOf(Role.VIEWER), *Permission.values(), userId = 99
+        )
+        userShouldHavePermissions(
+            "admin", Role.ADMIN, listOf(Role.VIEWER), Permission.READ, userId = 99
+        )
+        userShouldHavePermissions(
+            "owner", Role.OWNER, listOf(Role.VIEWER), Permission.READ, userId = 99
+        )
+        userShouldHavePermissions(
+            "viewer", Role.VIEWER, listOf(Role.VIEWER), Permission.READ, userId = 99
+        )
+    }
+
+    @Test
+    fun `permissions for organization owners`() {
+        mockProject.organization.ownerId = 99
+        userShouldHavePermissions(
+            "super_admin", Role.SUPER_ADMIN, emptyList(), *Permission.values(), userId = 99
+        )
+        userShouldHavePermissions(
+            "admin", Role.ADMIN, emptyList(), *Permission.values(), userId = 99
+        )
+        userShouldHavePermissions(
+            "owner", Role.OWNER, emptyList(), *Permission.values(), userId = 99
+        )
+        userShouldHavePermissions(
+            "viewer", Role.VIEWER, emptyList(), *Permission.values(), userId = 99
+        )
+    }
+
+
     private fun userShouldHavePermissions(
         username: String,
         role: Role,
         projectRoles: List<Role>,
         vararg permissions: Permission,
+        userId: Long = 1
     ) {
-        val authentication = mockAuth(username, role.asSpringSecurityRole())
+        val authentication = mockAuth(username, role.asSpringSecurityRole(), id = userId)
         whenever(lnkUserProjectRepository.findByUserIdAndProject(any(), any())).thenAnswer { invocation ->
             projectRoles.map { role ->
                 LnkUserProject(
