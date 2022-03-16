@@ -20,7 +20,7 @@ class LoggingQueueDispatcher : Dispatcher() {
     private var failFastResponse: MockResponse = MockResponse().setResponseCode(HttpURLConnection.HTTP_NOT_FOUND)
 
     private fun getProperRegexKey(path: String?, setOfRegexes: Iterable<String>) = path?.let {
-        val suitableRegexes = setOfRegexes.filter { regex -> Regex(regex).containsMatchIn(it) }
+        val suitableRegexes = setOfRegexes.filter { regex -> Regex(regex).matches(it) }
         suitableRegexes.let {
             if (it.size > 1) {
                 logger.warn("For path $path found more than one key from ResponsesMap: $it. Taking ${it.first()}")
