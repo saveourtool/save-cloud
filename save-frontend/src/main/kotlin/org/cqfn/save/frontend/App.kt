@@ -150,23 +150,23 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                 }
                             }
 
-                        Route {
-                            attrs {
-                                path = "/createOrganization"
-                                element = buildElement {
-                                    child(CreateOrganizationView::class) {}
+                            Route {
+                                attrs {
+                                    path = "/createOrganization"
+                                    element = buildElement {
+                                        child(CreateOrganizationView::class) {}
+                                    }
                                 }
                             }
-                        }
 
-                        Route {
-                            attrs {
-                                path = "/projects"
-                                element = buildElement {
-                                    child(CollectionView::class) {}
+                            Route {
+                                attrs {
+                                    path = "/projects"
+                                    element = buildElement {
+                                        child(CollectionView::class) {}
+                                    }
                                 }
                             }
-                        }
 
                             Route {
                                 attrs {
