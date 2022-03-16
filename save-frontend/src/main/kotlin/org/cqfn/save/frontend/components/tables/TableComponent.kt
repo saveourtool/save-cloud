@@ -6,7 +6,9 @@
 
 package org.cqfn.save.frontend.components.tables
 
+import org.cqfn.save.frontend.components.errorStatusContext
 import org.cqfn.save.frontend.components.modal.errorModal
+import org.cqfn.save.frontend.utils.WithRequestStatusContext
 import org.cqfn.save.frontend.utils.spread
 
 import react.PropsWithChildren
@@ -31,6 +33,7 @@ import react.table.TableRowProps
 import react.table.usePagination
 import react.table.useSortBy
 import react.table.useTable
+import react.useContext
 import react.useEffect
 import react.useMemo
 import react.useState
@@ -93,7 +96,7 @@ fun <D : Any> tableComponent(
     getPageCount: (suspend (pageSize: Int) -> Int)? = null,
     renderExpandedRow: (RBuilder.(table: TableInstance<D>, row: Row<D>) -> Unit)? = undefined,
     commonHeader: RDOMBuilder<THEAD>.(table: TableInstance<D>) -> Unit = {},
-    getData: suspend (pageIndex: Int, pageSize: Int) -> Array<out D>,
+    getData: suspend WithRequestStatusContext.(pageIndex: Int, pageSize: Int) -> Array<out D>,
 ) = fc<TableProps> { props ->
     require(useServerPaging xor (getPageCount == null)) {
         "Either use client-side paging or provide a function to get page count"
@@ -136,10 +139,14 @@ fun <D : Any> tableComponent(
         // when all data is already available, we don't need to repeat `getData` calls
         emptyArray()
     }
+    val setResponse = useContext(errorStatusContext)
+    val context = WithRequestStatusContext {
+        setResponse(it)
+    }
     useEffect(*dependencies) {
         scope.launch {
             try {
-                setData(getData(tableInstance.state.pageIndex, tableInstance.state.pageSize))
+                setData(context.getData(tableInstance.state.pageIndex, tableInstance.state.pageSize))
             } catch (e: CancellationException) {
                 // this means, that view is re-rendering while network request was still in progress
                 // no need to display an error message in this case

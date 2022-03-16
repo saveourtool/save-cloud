@@ -157,7 +157,7 @@ class ProjectController(private val projectService: ProjectService,
     @PostMapping("/save")
     fun saveProject(@RequestBody newProjectDto: NewProjectDto, authentication: Authentication): ResponseEntity<String> {
         val userId = (authentication.details as AuthenticationDetails).id
-        val (projectId, projectStatus) = projectService.saveProject(
+        val (projectId, projectStatus) = projectService.getOrSaveProject(
             newProjectDto.project.apply {
                 this.userId = userId
             }
@@ -192,7 +192,7 @@ class ProjectController(private val projectService: ProjectService,
             }
         }
         .map { updatedProject ->
-            val (_, projectStatus) = projectService.saveProject(updatedProject)
+            val (_, projectStatus) = projectService.getOrSaveProject(updatedProject)
             ResponseEntity.ok(projectStatus.message)
         }
 

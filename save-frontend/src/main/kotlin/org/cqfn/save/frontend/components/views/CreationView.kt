@@ -11,8 +11,10 @@ import org.cqfn.save.entities.*
 import org.cqfn.save.frontend.components.basic.InputTypes
 import org.cqfn.save.frontend.components.basic.inputTextFormOptional
 import org.cqfn.save.frontend.components.basic.inputTextFormRequired
+import org.cqfn.save.frontend.components.errorStatusContext
 import org.cqfn.save.frontend.utils.apiUrl
 import org.cqfn.save.frontend.utils.get
+import org.cqfn.save.frontend.utils.noopResponseHandler
 import org.cqfn.save.frontend.utils.post
 import org.cqfn.save.frontend.utils.runErrorModal
 
@@ -20,9 +22,13 @@ import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.HTMLTextAreaElement
 import org.w3c.dom.events.Event
 import org.w3c.fetch.Headers
+import org.w3c.fetch.Response
+import react.Context
 import react.Props
 import react.RBuilder
+import react.RStatics
 import react.State
+import react.StateSetter
 import react.dom.*
 import react.setState
 
@@ -135,7 +141,8 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
                 gitConnectionCheckingStatus = GitConnectionStatusEnum.VALIDATING
             }
             val responseFromCreationProject =
-                    get("$apiUrl/check-git-connectivity-adaptor$urlArguments", headers)
+                    get("$apiUrl/check-git-connectivity-adaptor$urlArguments", headers,
+                        responseHandler = ::noopResponseHandler)
 
             if (responseFromCreationProject.ok) {
                 if (responseFromCreationProject.text().await().toBoolean()) {
@@ -374,4 +381,10 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
             div("$blockName mt-2") {
                 +text
             }
+
+    companion object : RStatics<Props, ProjectSaveViewState, CreationView, Context<StateSetter<Response?>>>(CreationView::class) {
+        init {
+            contextType = errorStatusContext
+        }
+    }
 }

@@ -16,7 +16,7 @@ JpaSpecificationExecutor<Organization> {
      * @param name
      * @return organization by name
      */
-    fun findByName(name: String): Organization
+    fun findByName(name: String): Organization?
 
     /**
      * @param id
