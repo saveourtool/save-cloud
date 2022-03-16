@@ -7,6 +7,7 @@ package org.cqfn.save.frontend.components.views
 import org.cqfn.save.domain.TestResultStatus
 import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.execution.ExecutionStatus
+import org.cqfn.save.frontend.components.errorStatusContext
 import org.cqfn.save.frontend.components.tables.tableComponent
 import org.cqfn.save.frontend.externals.fontawesome.faCheck
 import org.cqfn.save.frontend.externals.fontawesome.faExclamationTriangle
@@ -19,9 +20,12 @@ import org.cqfn.save.frontend.utils.*
 import csstype.Background
 import org.w3c.fetch.Headers
 import org.w3c.fetch.Response
+import react.Context
 import react.PropsWithChildren
 import react.RBuilder
+import react.RStatics
 import react.State
+import react.StateSetter
 import react.buildElement
 import react.dom.a
 import react.dom.button
@@ -343,4 +347,10 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
      * @property resIcon
      */
     private data class ResultColorAndIcon(val resColor: String, val resIcon: dynamic)
+
+    companion object : RStatics<HistoryProps, HistoryViewState, HistoryView, Context<StateSetter<Response?>>>(HistoryView::class) {
+        init {
+            contextType = errorStatusContext
+        }
+    }
 }

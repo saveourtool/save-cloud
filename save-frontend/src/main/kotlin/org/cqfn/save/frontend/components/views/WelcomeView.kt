@@ -6,6 +6,7 @@ package org.cqfn.save.frontend.components.views
 
 import org.cqfn.save.frontend.components.basic.InputTypes
 import org.cqfn.save.frontend.components.basic.inputTextFormRequired
+import org.cqfn.save.frontend.components.errorStatusContext
 import org.cqfn.save.frontend.externals.fontawesome.faCopyright
 import org.cqfn.save.frontend.externals.fontawesome.faExternalLinkAlt
 import org.cqfn.save.frontend.externals.fontawesome.faGithub
@@ -13,6 +14,7 @@ import org.cqfn.save.frontend.externals.fontawesome.faSignInAlt
 import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
 import org.cqfn.save.frontend.utils.decodeFromJsonString
 import org.cqfn.save.frontend.utils.get
+import org.cqfn.save.frontend.utils.noopResponseHandler
 import org.cqfn.save.info.OauthProviderInfo
 import org.cqfn.save.info.UserInfo
 
@@ -20,10 +22,14 @@ import csstype.Display
 import csstype.FontSize
 import csstype.FontWeight
 import org.w3c.fetch.Headers
+import org.w3c.fetch.Response
 import react.CSSProperties
+import react.Context
 import react.PropsWithChildren
 import react.RBuilder
+import react.RStatics
 import react.State
+import react.StateSetter
 import react.dom.a
 import react.dom.button
 import react.dom.div
@@ -85,7 +91,8 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
     override fun componentDidMount() {
         super.componentDidMount()
         scope.launch {
-            val oauthProviderInfoList: List<OauthProviderInfo>? = get("${window.location.origin}/sec/oauth-providers", Headers()).run {
+            val oauthProviderInfoList: List<OauthProviderInfo>? = get("${window.location.origin}/sec/oauth-providers", Headers(),
+                responseHandler = ::noopResponseHandler).run {
                 if (ok) decodeFromJsonString() else null
             }
             oauthProviderInfoList?.let {
@@ -252,6 +259,12 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                 }
                 fontAwesomeIcon(icon = icon)
             }
+        }
+    }
+
+    companion object : RStatics<WelcomeProps, IndexViewState, WelcomeView, Context<StateSetter<Response?>>>(WelcomeView::class) {
+        init {
+            contextType = errorStatusContext
         }
     }
 }

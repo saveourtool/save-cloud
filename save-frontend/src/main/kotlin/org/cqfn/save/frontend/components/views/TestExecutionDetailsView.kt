@@ -14,6 +14,7 @@ import org.cqfn.save.frontend.utils.decodeFromJsonString
 import org.cqfn.save.frontend.utils.multilineText
 import org.cqfn.save.frontend.utils.multilineTextWithIndices
 import org.cqfn.save.frontend.utils.post
+import org.cqfn.save.frontend.utils.useRequest
 
 import org.w3c.fetch.Headers
 import react.Props
@@ -28,14 +29,8 @@ import react.dom.td
 import react.dom.tr
 import react.fc
 import react.router.useParams
-import react.useEffect
 import react.useState
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -119,36 +114,28 @@ fun testExecutionDetailsView() = fc<Props> {
     val (status, setStatus) = useState("Loading...")
     val (testResultDebugInfo, setTestResultDebugInfo) = useState<TestResultDebugInfo?>(null)
 
-    val scope = CoroutineScope(Dispatchers.Default)
     // fixme: after https://github.com/analysis-dev/save-cloud/issues/364 can be passed via history state to avoid requests
-    useEffect(listOf<dynamic>(executionId, testResultLocation)) {
-        scope.launch {
-            val testExecutionDtoResponse = post(
-                "$apiUrl/testExecutions?executionId=$executionId",
-                Headers().apply {
-                    set("Content-Type", "application/json")
-                },
-                Json.encodeToString(testResultLocation)
-            )
-            if (testExecutionDtoResponse.ok) {
-                val testResultDebugInfoResponse = getDebugInfoFor(testExecutionDtoResponse.decodeFromJsonString())
-                if (testResultDebugInfoResponse.ok) {
-                    setTestResultDebugInfo(
-                        testResultDebugInfoResponse.decodeFromJsonString<TestResultDebugInfo>()
-                    )
-                } else {
-                    setStatus("Additional test info is not available (code ${testResultDebugInfoResponse.status})")
-                }
+    useRequest(arrayOf(status, testResultDebugInfo, executionId, testResultLocation), isDeferred = false) {
+        val testExecutionDtoResponse = post(
+            "$apiUrl/testExecutions?executionId=$executionId",
+            Headers().apply {
+                set("Content-Type", "application/json")
+            },
+            Json.encodeToString(testResultLocation)
+        )
+        if (testExecutionDtoResponse.ok) {
+            val testResultDebugInfoResponse = getDebugInfoFor(testExecutionDtoResponse.decodeFromJsonString())
+            if (testResultDebugInfoResponse.ok) {
+                setTestResultDebugInfo(
+                    testResultDebugInfoResponse.decodeFromJsonString<TestResultDebugInfo>()
+                )
             } else {
-                setStatus("Additional test info is not available (code ${testExecutionDtoResponse.status})")
+                setStatus("Additional test info is not available (code ${testResultDebugInfoResponse.status})")
             }
+        } else {
+            setStatus("Additional test info is not available (code ${testExecutionDtoResponse.status})")
         }
-        cleanup {
-            if (scope.isActive) {
-                scope.cancel()
-            }
-        }
-    }
+    }()
 
     testResultDebugInfo?.let {
         resultsTable(testResultDebugInfo)
