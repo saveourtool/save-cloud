@@ -46,7 +46,7 @@ class OrganizationService(private val organizationRepository: OrganizationReposi
     fun saveAvatar(name: String, relativePath: String) {
         val organization = organizationRepository.findByName(name)?.apply {
             avatar = relativePath
-        }
-        organization?.let { organizationRepository.save(it) }
+        } ?: throw NoSuchElementException("Organization with name [$name] was not found.")
+        organization.let { organizationRepository.save(it) }
     }
 }

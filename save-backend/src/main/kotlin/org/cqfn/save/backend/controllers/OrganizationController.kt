@@ -30,7 +30,7 @@ internal class OrganizationController(private val organizationService: Organizat
      * @return a image
      */
     @GetMapping("/avatar")
-    fun avatar(@RequestParam owner: String): ImageInfo? = organizationService.findByName(owner)?.avatar.let { ImageInfo(it) }
+    fun avatar(@RequestParam owner: String): ImageInfo = organizationService.findByName(owner)?.avatar.let { ImageInfo(it) }
 
     /**
      * @param newOrganization newOrganization
@@ -48,7 +48,7 @@ internal class OrganizationController(private val organizationService: Organizat
         )
 
         if (organizationStatus == OrganizationSaveStatus.EXIST) {
-            logger.info("Attempt to save an organization with id = $organizationI, but it already exists")
+            logger.info("Attempt to save an organization with id = $organizationId, but it already exists.")
             return ResponseEntity.badRequest().body(organizationStatus.message)
         }
         logger.info("Save new organization id = $organizationId")
