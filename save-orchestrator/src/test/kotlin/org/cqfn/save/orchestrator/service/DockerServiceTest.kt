@@ -10,6 +10,7 @@ import org.cqfn.save.testutils.enqueue
 
 import com.github.dockerjava.api.async.ResultCallback
 import com.github.dockerjava.api.model.Frame
+import io.micrometer.core.instrument.MeterRegistry
 import okhttp3.mockwebserver.MockResponse
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
@@ -41,7 +42,8 @@ import kotlin.io.path.pathString
 @DisabledOnOs(OS.WINDOWS, disabledReason = "Docker daemon behaves differently on Windows, and our target platform is Linux")
 @WebFluxTest(controllers = [AgentsController::class])  // to autowire everything for DockerService
 @MockBeans(
-    MockBean(AgentService::class)
+    MockBean(AgentService::class),
+    MockBean(MeterRegistry::class),
 )
 @Import(Beans::class, DockerService::class)
 class DockerServiceTest {
