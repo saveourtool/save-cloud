@@ -106,7 +106,7 @@ class CloningRepositoryControllerTest {
 
     @BeforeEach
     fun webClientSetUp() {
-        webTestClient.mutate().responseTimeout(Duration.ofSeconds(2)).build()
+        webTestClient = webTestClient.mutate().responseTimeout(Duration.ofSeconds(2)).build()
 
         whenever(projectService.findByNameAndOrganizationName("huaweiName", "Huawei"))
             .thenReturn(testProject)

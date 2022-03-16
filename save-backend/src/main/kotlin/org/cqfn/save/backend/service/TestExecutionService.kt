@@ -71,6 +71,18 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
         .findByAgentContainerIdAndStatus(agentContainerId, status)
 
     /**
+     * @param executionId
+     * @param page
+     * @param pageSize
+     * @return a list of test executions
+     */
+    internal fun getTestExecutions(executionId: Long, page: Int?, pageSize: Int?): List<TestExecution> = if (page == null || pageSize == null) {
+        testExecutionRepository.findByExecutionId(executionId)
+    } else {
+        testExecutionRepository.findByExecutionId(executionId, PageRequest.of(page, pageSize))
+    }
+
+    /**
      * Finds TestExecution by test location
      *
      * @param executionId under this executionId test has been executed
@@ -252,12 +264,13 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
     }
 
     /**
-     * @param crashedAgents the list of agents, which weren't sent heartbeats for a some time and are considered as crashed
+     * @param agentsList the list of agents, for which corresponding test executions should be marked as failed
+     * @param condition
      */
     @Transactional
     @Suppress("UnsafeCallOnNullableType")
-    fun markTestExecutionsOfCrashedAgentsAsFailed(crashedAgents: Collection<String>) {
-        crashedAgents.forEach { agentContainerId ->
+    fun markTestExecutionsOfAgentsAsFailed(agentsList: Collection<String>, condition: (TestExecution) -> Boolean = { true }) {
+        agentsList.forEach { agentContainerId ->
             val agent = requireNotNull(agentRepository.findByContainerId(agentContainerId)) {
                 "Agent with containerId=[$agentContainerId] was not found in the DB"
             }
@@ -267,7 +280,8 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
             val testExecutionList = testExecutionRepository.findByExecutionIdAndAgentId(
                 executionId,
                 agentId
-            )
+            ).filter(condition)
+
             if (testExecutionList.isEmpty()) {
                 // Crashed agent could be not assigned with tests, so just warn and return
                 log.warn("Can't find `test_execution`s for executionId=$executionId and agentId=$agentId")

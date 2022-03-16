@@ -2,6 +2,7 @@ package org.cqfn.save.backend.controllers
 
 import org.cqfn.save.agent.AgentState
 import org.cqfn.save.agent.TestExecutionDto
+import org.cqfn.save.agent.TestSuiteExecutionStatisticDto
 import org.cqfn.save.backend.security.Permission
 import org.cqfn.save.backend.security.ProjectPermissionEvaluator
 import org.cqfn.save.backend.service.ExecutionService
@@ -10,6 +11,7 @@ import org.cqfn.save.backend.utils.justOrNotFound
 import org.cqfn.save.domain.TestResultLocation
 import org.cqfn.save.domain.TestResultStatus
 import org.cqfn.save.test.TestDto
+
 import org.slf4j.LoggerFactory
 import org.springframework.dao.DataAccessException
 import org.springframework.http.HttpStatus
@@ -64,6 +66,31 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
             testExecutionService.getTestExecutions(executionId, page, size, status, testSuite)
                 .map { it.toDto() }
         }
+
+    /**
+     * @param executionId an ID of Execution to group TestExecutions
+     * @param status of test
+     * @param page a zero-based index of page of data
+     * @param size size of page
+     * @param authentication
+     * @return a list of [TestExecutionDto]s
+     */
+    @GetMapping("/api/testLatestExecutions")
+    @Suppress("TYPE_ALIAS")
+    fun getTestExecutionsByStatus(
+        @RequestParam executionId: Long,
+        @RequestParam status: TestResultStatus,
+        @RequestParam(required = false) page: Int?,
+        @RequestParam(required = false) size: Int?,
+        authentication: Authentication,
+    ): Mono<List<TestSuiteExecutionStatisticDto>> =
+            justOrNotFound(executionService.findExecution(executionId)).filterWhen {
+                projectPermissionEvaluator.checkPermissions(authentication, it, Permission.READ)
+            }.map {
+                testExecutionService.getTestExecutions(executionId, page, size).groupBy { it.test.testSuite.name }.map {
+                    TestSuiteExecutionStatisticDto(it.key, it.value.count(), it.value.count { testExec -> testExec.status == status }, status)
+                }
+            }
 
     /**
      * @param agentContainerId id of agent's container
@@ -142,12 +169,14 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
         @RequestParam("status") status: String,
         @RequestBody agentIds: Collection<String>
     ) {
-        if (status == AgentState.CRASHED.name) {
-            testExecutionService.markTestExecutionsOfCrashedAgentsAsFailed(agentIds)
-        } else {
-            throw ResponseStatusException(
+        when (status) {
+            AgentState.CRASHED.name -> testExecutionService.markTestExecutionsOfAgentsAsFailed(agentIds)
+            AgentState.FINISHED.name -> testExecutionService.markTestExecutionsOfAgentsAsFailed(agentIds) {
+                it.status == TestResultStatus.READY_FOR_TESTING
+            }
+            else -> throw ResponseStatusException(
                 HttpStatus.BAD_REQUEST,
-                "For now only CRASHED status supported"
+                "For now only CRASHED and FINISHED statuses are supported"
             )
         }
     }
