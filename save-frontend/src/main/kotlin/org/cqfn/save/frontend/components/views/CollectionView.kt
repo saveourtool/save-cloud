@@ -4,6 +4,7 @@ package org.cqfn.save.frontend.components.views
 
 import org.cqfn.save.entities.Project
 import org.cqfn.save.frontend.components.basic.privacySpan
+import org.cqfn.save.frontend.components.errorStatusContext
 import org.cqfn.save.frontend.components.tables.tableComponent
 import org.cqfn.save.frontend.utils.apiUrl
 import org.cqfn.save.frontend.utils.decodeFromJsonString
@@ -11,6 +12,7 @@ import org.cqfn.save.frontend.utils.get
 import org.cqfn.save.frontend.utils.unsafeMap
 
 import org.w3c.fetch.Headers
+import org.w3c.fetch.Response
 import react.*
 import react.dom.*
 import react.table.columns
@@ -60,15 +62,19 @@ class CollectionView : AbstractView<PropsWithChildren, State>(false) {
         useServerPaging = false,
         usePageSelection = false,
     ) { _, _ ->
-        get(
+        val response = get(
             url = "$apiUrl/projects/not-deleted",
             headers = Headers().also {
                 it.set("Accept", "application/json")
             },
         )
-            .unsafeMap {
+        if (response.ok) {
+            response.unsafeMap {
                 it.decodeFromJsonString<Array<Project>>()
             }
+        } else {
+            emptyArray()
+        }
     }
     @Suppress(
         "EMPTY_BLOCK_STRUCTURE_ERROR",
@@ -92,5 +98,11 @@ class CollectionView : AbstractView<PropsWithChildren, State>(false) {
             }
         }
         child(projectsTable) { }
+    }
+
+    companion object : RStatics<PropsWithChildren, State, CollectionView, Context<StateSetter<Response?>>>(CollectionView::class) {
+        init {
+            contextType = errorStatusContext
+        }
     }
 }

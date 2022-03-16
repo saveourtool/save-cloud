@@ -200,7 +200,9 @@ fun topBar() = fc<TopBarProps> { props ->
             }
         }
     }
-    logoutModal(scope, { attrs.isOpen = isLogoutModalOpen }) {
+    logoutModal {
         setIsLogoutModalOpen(false)
+    }() {
+        attrs.isOpen = isLogoutModalOpen
     }
 }

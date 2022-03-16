@@ -25,17 +25,19 @@ import org.cqfn.save.frontend.components.basic.projectInfo
 import org.cqfn.save.frontend.components.basic.projectStatisticMenu
 import org.cqfn.save.frontend.components.basic.sdkSelection
 import org.cqfn.save.frontend.components.basic.testResourcesSelection
+import org.cqfn.save.frontend.components.errorStatusContext
 import org.cqfn.save.frontend.externals.fontawesome.faCalendarAlt
 import org.cqfn.save.frontend.externals.fontawesome.faEdit
 import org.cqfn.save.frontend.externals.fontawesome.faHistory
 import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
 import org.cqfn.save.frontend.externals.modal.modal
+import org.cqfn.save.frontend.http.getProject
 import org.cqfn.save.frontend.utils.ProjectMenuBar
 import org.cqfn.save.frontend.utils.apiUrl
 import org.cqfn.save.frontend.utils.appendJson
 import org.cqfn.save.frontend.utils.decodeFromJsonString
 import org.cqfn.save.frontend.utils.get
-import org.cqfn.save.frontend.utils.getProject
+import org.cqfn.save.frontend.utils.noopResponseHandler
 import org.cqfn.save.frontend.utils.post
 import org.cqfn.save.frontend.utils.runConfirmWindowModal
 import org.cqfn.save.frontend.utils.runErrorModal
@@ -48,9 +50,12 @@ import org.w3c.dom.asList
 import org.w3c.fetch.Headers
 import org.w3c.fetch.Response
 import org.w3c.xhr.FormData
+import react.Context
 import react.PropsWithChildren
 import react.RBuilder
+import react.RStatics
 import react.State
+import react.StateSetter
 import react.dom.a
 import react.dom.button
 import react.dom.div
@@ -436,7 +441,13 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         super.componentDidMount()
 
         scope.launch {
-            val project = getProject(props.name, props.owner)
+            val result = getProject(props.name, props.owner)
+            val project = if (result.isFailure) {
+                setState { isLoading = false }
+                return@launch
+            } else {
+                result.getOrThrow()
+            }
             setState {
                 this.project = project
             }
@@ -448,7 +459,11 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             }
             gitDto = post("$apiUrl/projects/git", headers, jsonProject)
                 .decodeFromJsonString<GitDto>()
-            standardTestSuites = get("$apiUrl/allStandardTestSuites", headers)
+            standardTestSuites = get(
+                "$apiUrl/allStandardTestSuites",
+                headers,
+                responseHandler = ::noopResponseHandler,
+            )
                 .decodeFromJsonString()
 
             val availableFiles = getFilesList()
@@ -871,7 +886,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             it.decodeFromJsonString<List<FileInfo>>()
         }
 
-    companion object {
+    companion object : RStatics<ProjectExecutionRouteProps, ProjectViewState, ProjectView, Context<StateSetter<Response?>>>(ProjectView::class) {
         const val TEST_ROOT_DIR_HINT = """
             The path you are providing should be relative to the root directory of your repository.
             This directory should contain <a href = "https://github.com/analysis-dev/save#how-to-configure"> save.properties </a>
@@ -884,5 +899,8 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             Please note, that the tested tool and it's resources will be copied to this directory before the run.
             """
         const val TEST_SUITE_ROW = 4
+        init {
+            contextType = errorStatusContext
+        }
     }
 }
