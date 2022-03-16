@@ -42,6 +42,7 @@ class OrganizationService(private val organizationRepository: OrganizationReposi
     /**
      * @param name
      * @param relativePath
+     * @throws NoSuchElementException
      */
     fun saveAvatar(name: String, relativePath: String) {
         val organization = organizationRepository.findByName(name)?.apply {
