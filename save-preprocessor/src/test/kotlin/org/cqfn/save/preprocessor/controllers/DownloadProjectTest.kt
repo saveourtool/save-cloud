@@ -60,7 +60,7 @@ import kotlin.io.path.isExecutable
 @AutoConfigureWebTestClient(timeout = "60000")
 @Suppress("TOO_LONG_FUNCTION", "LongMethod")
 class DownloadProjectTest(
-    @Autowired private val webClient: WebTestClient,
+    @Autowired private var webClient: WebTestClient,
     @Autowired private val configProperties: ConfigProperties,
     @Autowired private val objectMapper: ObjectMapper
 ) : RepositoryVolume {
@@ -71,7 +71,7 @@ class DownloadProjectTest(
 
     @BeforeEach
     fun webClientSetUp() {
-        webClient.mutate().responseTimeout(Duration.ofSeconds(2)).build()
+        webClient = webClient.mutate().responseTimeout(Duration.ofSeconds(2)).build()
         whenever(testDiscoveringService.getRootTestConfig(any())).thenReturn(mock())
         whenever(testDiscoveringService.getAllTests(any(), any())).thenReturn(
             sequenceOf(TestDto("foo", "fooPlugin", 15, "86", emptyList()))
