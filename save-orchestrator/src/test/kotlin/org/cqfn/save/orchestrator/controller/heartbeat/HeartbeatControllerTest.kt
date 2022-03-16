@@ -51,7 +51,6 @@ import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.web.reactive.function.BodyInserters
 import reactor.core.publisher.Mono
 
-import java.time.Clock
 import java.time.Duration
 import java.time.LocalDateTime
 import java.util.concurrent.CompletableFuture
@@ -402,7 +401,7 @@ class HeartbeatControllerTest {
      * Test logic triggered by a heartbeat.
      *
      * @param agentStatusDtos agent statuses that are returned from backend (mocked response)
-     * @param heartbeat a [Heartbeat] that is received by orchestrator
+     * @param heartbeats a [Heartbeat] that is received by orchestrator
      * @param testBatch a batch of tests returned from backend (mocked response)
      * @param mockAgentStatuses whether a mocked response for `/getAgentsStatusesForSameExecution` should be added to queue
      * @param additionalSetup is executed before the request is performed
