@@ -166,6 +166,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                     child(CollectionView::class) {}
                                 }
                             }
+                        }
 
                             Route {
                                 attrs {
