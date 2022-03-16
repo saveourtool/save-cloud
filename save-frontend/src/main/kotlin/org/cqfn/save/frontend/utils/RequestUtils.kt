@@ -148,10 +148,13 @@ private fun WithRequestStatusContext.withModalResponseHandler(response: Response
  * Hook to perform requests in functional components.
  *
  * @param dependencies
+ * @param isDeferred whether this request should be performed right after component is mounted (`isDeferred == false`)
+ * or called later by some other mechanism (e.g. a button click).
  * @param request
- * @return a function to trigger request execution
+ * @return a function to trigger request execution. If `isDeferred == false`, this function should be called right after the hook is called.
  */
 fun <R> useRequest(dependencies: Array<dynamic> = emptyArray(),
+                   isDeferred: Boolean = true,
                    request: suspend WithRequestStatusContext.() -> R,
 ): () -> Unit {
     val scope = CoroutineScope(Dispatchers.Default)
@@ -176,10 +179,16 @@ fun <R> useRequest(dependencies: Array<dynamic> = emptyArray(),
         }
     }
 
-    return {
+    val initiateSending: () -> Unit = {
         if (!isSending) {
             setIsSending(true)
         }
+    }
+    @Suppress("BRACES_BLOCK_STRUCTURE_ERROR")
+    return if (!isDeferred) { {
+        useEffect(*dependencies) { initiateSending() }
+    } } else {
+        return initiateSending
     }
 }
 

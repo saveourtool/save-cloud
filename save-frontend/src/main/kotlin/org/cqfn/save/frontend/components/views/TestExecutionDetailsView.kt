@@ -29,7 +29,6 @@ import react.dom.td
 import react.dom.tr
 import react.fc
 import react.router.useParams
-import react.useEffect
 import react.useState
 
 import kotlinx.serialization.encodeToString
@@ -116,7 +115,7 @@ fun testExecutionDetailsView() = fc<Props> {
     val (testResultDebugInfo, setTestResultDebugInfo) = useState<TestResultDebugInfo?>(null)
 
     // fixme: after https://github.com/analysis-dev/save-cloud/issues/364 can be passed via history state to avoid requests
-    val doRequest = useRequest(arrayOf(status, testResultDebugInfo, executionId, testResultLocation)) {
+    useRequest(arrayOf(status, testResultDebugInfo, executionId, testResultLocation), isDeferred = false) {
         val testExecutionDtoResponse = post(
             "$apiUrl/testExecutions?executionId=$executionId",
             Headers().apply {
@@ -136,10 +135,7 @@ fun testExecutionDetailsView() = fc<Props> {
         } else {
             setStatus("Additional test info is not available (code ${testExecutionDtoResponse.status})")
         }
-    }
-    useEffect(status, testResultDebugInfo) {
-        doRequest()
-    }
+    }()
 
     testResultDebugInfo?.let {
         resultsTable(testResultDebugInfo)

@@ -50,7 +50,7 @@ fun projectStatisticMenu(
 ) = fc<ProjectStatisticMenuProps> { props ->
     val (latestExecutionStatisticDtos, setLatestExecutionStatisticDtos) = useState(props.latestExecutionStatisticDtos)
 
-    val doRequest = useRequest(arrayOf(props.executionId, props.latestExecutionStatisticDtos, props.isOpen)) {
+    useRequest(arrayOf(props.executionId, props.latestExecutionStatisticDtos, props.isOpen), isDeferred = false) {
         if (props.isOpen != true) {
             val testLatestExecutions = get(
                 url = "$apiUrl/testLatestExecutions?executionId=${props.executionId}&status=${TestResultStatus.PASSED}",
@@ -64,10 +64,7 @@ fun projectStatisticMenu(
             setLatestExecutionStatisticDtos(testLatestExecutions)
             openMenuStatisticFlag(true)
         }
-    }
-    useEffect(props.executionId, props.latestExecutionStatisticDtos, props.isOpen) {
-        doRequest()
-    }
+    }()
 
     div("row justify-content-center") {
         // ===================== LEFT COLUMN =======================================================================
