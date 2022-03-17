@@ -18,10 +18,7 @@ import org.cqfn.save.orchestrator.service.DockerService
 import org.cqfn.save.test.TestBatch
 import org.cqfn.save.test.TestDto
 import org.cqfn.save.testsuite.TestSuiteType
-import org.cqfn.save.testutils.checkQueues
-import org.cqfn.save.testutils.createMockWebServer
-import org.cqfn.save.testutils.enqueue
-import org.cqfn.save.testutils.setDefaultResponseForPath
+import org.cqfn.save.testutils.*
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import okhttp3.mockwebserver.MockResponse
@@ -85,11 +82,6 @@ class HeartbeatControllerTest {
             .build()
     }
 
-    @AfterEach
-    fun tearDown() {
-        mockServer.checkQueues()
-    }
-
     @Test
     fun checkAcceptingHeartbeat() {
         val heartBeatBusy = Heartbeat("test", AgentState.BUSY, ExecutionProgress(0), kotlinx.datetime.Clock.System.now())
@@ -108,7 +100,7 @@ class HeartbeatControllerTest {
         val list = listOf(TestDto("qwe", "WarnPlugin", 0, "hash", listOf("tag")))
         // /getTestBatches
         mockServer.enqueue(
-            "/getTestBatches\\?agentId=.*$",
+            "/getTestBatches\\?agentId=.*",
             MockResponse()
                 .setBody(Json.encodeToString(TestBatch(list, mapOf(0L to ""))))
                 .addHeader("Content-Type", "application/json")
@@ -120,7 +112,7 @@ class HeartbeatControllerTest {
 
         // /testSuite/{id}
         mockServer.enqueue(
-            "/testSuite/(\\d)+$",
+            "/testSuite/(\\d)+",
             MockResponse()
                 .setResponseCode(200)
                 .setHeader("Content-Type", "application/json")
@@ -190,7 +182,7 @@ class HeartbeatControllerTest {
             {
                 // /getAgentsStatusesForSameExecution after shutdownIntervalMillis
                 mockServer.enqueue(
-                    "/getAgentsStatusesForSameExecution.*$",
+                    "/getAgentsStatusesForSameExecution.*",
                     MockResponse()
                         .setBody(
                             objectMapper.writeValueAsString(
@@ -202,7 +194,7 @@ class HeartbeatControllerTest {
                 // additional setup for marking stuff as FINISHED
                 // /updateExecutionByDto
                 mockServer.enqueue(
-                    "/updateExecutionByDto.*$",
+                    "/updateExecutionByDto.*",
                     MockResponse().setResponseCode(200)
                 )
             }
@@ -319,7 +311,7 @@ class HeartbeatControllerTest {
             {
                 // /getAgentsStatusesForSameExecution after shutdownIntervalMillis
                 mockServer.enqueue(
-                    "/getAgentsStatusesForSameExecution.*$",
+                    "/getAgentsStatusesForSameExecution.*",
                     MockResponse()
                         .setBody(
                             objectMapper.writeValueAsString(
@@ -371,7 +363,7 @@ class HeartbeatControllerTest {
 
         // agentService.markTestExecutionsAsFailed
         mockServer.enqueue(
-            "/testExecution/setStatusByAgentIds/.*$",
+            "/testExecution/setStatusByAgentIds/.*",
             MockResponse()
                 .setResponseCode(200)
         )
@@ -422,7 +414,7 @@ class HeartbeatControllerTest {
         // /getTestBatches
         testBatch?.let {
             mockServer.enqueue(
-                "/getTestBatches\\?agentId=.*$",
+                "/getTestBatches\\?agentId=.*",
                 MockResponse()
                     .setBody(Json.encodeToString(testBatch))
                     .addHeader("Content-Type", "application/json")
@@ -432,7 +424,7 @@ class HeartbeatControllerTest {
         // /testSuite/{id}
         testSuite?.let {
             mockServer.enqueue(
-                "/testSuite/(\\d)+$",
+                "/testSuite/(\\d)+",
                 MockResponse()
                     .setResponseCode(200)
                     .setHeader("Content-Type", "application/json")
@@ -443,7 +435,7 @@ class HeartbeatControllerTest {
         if (mockAgentStatuses) {
             // /getAgentsStatusesForSameExecution
             mockServer.enqueue(
-                "/getAgentsStatusesForSameExecution.*$",
+                "/getAgentsStatusesForSameExecution.*",
                 MockResponse()
                     .setBody(
                         objectMapper.writeValueAsString(
@@ -489,6 +481,12 @@ class HeartbeatControllerTest {
         @JvmStatic
         private lateinit var mockServer: MockWebServer
 
+        @AfterEach
+        fun cleanup() {
+            mockServer.checkQueues()
+            mockServer.cleanup()
+        }
+
         @AfterAll
         fun tearDown() {
             mockServer.shutdown()
@@ -499,8 +497,8 @@ class HeartbeatControllerTest {
         fun properties(registry: DynamicPropertyRegistry) {
             // todo: should be initialized in @BeforeAll, but it gets called after @DynamicPropertySource
             mockServer = createMockWebServer()
-            mockServer.setDefaultResponseForPath("/testExecution/.*$", MockResponse().setResponseCode(200))
-            mockServer.setDefaultResponseForPath("/updateAgentStatusesWithDto$", MockResponse().setResponseCode(200))
+            mockServer.setDefaultResponseForPath("/testExecution/.*", MockResponse().setResponseCode(200))
+            mockServer.setDefaultResponseForPath("/updateAgentStatusesWithDto", MockResponse().setResponseCode(200))
             mockServer.start()
             registry.add("orchestrator.backendUrl") { "http://localhost:${mockServer.port}" }
         }

@@ -15,8 +15,15 @@ private typealias ResponsesMap = ConcurrentMap<String, BlockingQueue<MockRespons
  * Queue dispatcher with additional logging
  */
 class LoggingQueueDispatcher : Dispatcher() {
-    private val responses: ResponsesMap = ConcurrentHashMap()
-    private val defaultResponses: ConcurrentMap<String, MockResponse> = ConcurrentHashMap()
+    /**
+     * Map that matches path that is set with regex to queue of MockResponses
+     */
+    internal val responses: ResponsesMap = ConcurrentHashMap()
+
+    /**
+     * Map that matches path that is set with regex to default MockResponse
+     */
+    internal val defaultResponses: ConcurrentMap<String, MockResponse> = ConcurrentHashMap()
     private var failFastResponse: MockResponse = MockResponse().setResponseCode(HttpURLConnection.HTTP_NOT_FOUND)
 
     private fun getProperRegexKey(path: String?, setOfRegexes: Iterable<String>) = path?.let {
@@ -99,6 +106,13 @@ class LoggingQueueDispatcher : Dispatcher() {
         assertTrue(errorMessage, mockResponse.getBody().let { it == null || it.size == 0L })
     }
 
+    /**
+     * Cleans responses queues
+     */
+    fun cleanup() {
+        responses.clear()
+    }
+
     companion object {
         private val logger = LoggerFactory.getLogger(LoggingQueueDispatcher::class.java)
         private val deadLetter = MockResponse().apply {
@@ -118,6 +132,13 @@ fun MockWebServer.enqueue(regexKey: String, response: MockResponse) {
     } else {
         throw IllegalStateException("dispatcher type should be LoggingQueueDispatcher")
     }
+}
+
+/**
+ * Cleans `responses` map
+ */
+fun MockWebServer.cleanup() {
+    (dispatcher as LoggingQueueDispatcher).cleanup()
 }
 
 /**
