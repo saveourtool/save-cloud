@@ -86,6 +86,22 @@ class ProjectPermissionEvaluatorTest {
     }
 
     @Test
+    fun `permissions for project admins`() {
+        userShouldHavePermissions(
+            "super_admin", Role.SUPER_ADMIN, listOf(Role.ADMIN), *Permission.values(), userId = 99
+        )
+        userShouldHavePermissions(
+            "admin", Role.ADMIN, listOf(Role.ADMIN), Permission.READ, Permission.WRITE, userId = 99
+        )
+        userShouldHavePermissions(
+            "owner", Role.OWNER, listOf(Role.ADMIN), Permission.READ, Permission.WRITE, userId = 99
+        )
+        userShouldHavePermissions(
+            "viewer", Role.VIEWER, listOf(Role.ADMIN), Permission.READ, Permission.WRITE, userId = 99
+        )
+    }
+
+    @Test
     fun `permissions for project viewers`() {
         userShouldHavePermissions(
             "super_admin", Role.SUPER_ADMIN, listOf(Role.VIEWER), *Permission.values(), userId = 99
