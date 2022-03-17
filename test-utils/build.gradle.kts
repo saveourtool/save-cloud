@@ -19,5 +19,6 @@ dependencies {
     implementation(libs.okhttp.mockwebserver)
     implementation(libs.okhttp)
     implementation(libs.slf4j.api)
-    testImplementation(libs.junit.jupyter.api)
+    testImplementation(libs.junit.jupiter.api)
+    testImplementation(libs.junit.jupiter.engine)
 }
