@@ -4,12 +4,12 @@ plugins {
     kotlin("multiplatform")
 }
 
-tasks.withType<KotlinCompile> {
-    kotlinOptions {
-        jvmTarget = Versions.jdk
-        freeCompilerArgs = freeCompilerArgs + "-Xopt-in=kotlin.RequiresOptIn"
-    }
-}
+//tasks.withType<KotlinCompile> {
+//    kotlinOptions {
+//        jvmTarget = Versions.jdk
+//        freeCompilerArgs = freeCompilerArgs + "-Xopt-in=kotlin.RequiresOptIn"
+//    }
+//}
 
 kotlin {
     sourceSets {
