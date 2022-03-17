@@ -5,6 +5,7 @@ import org.cqfn.save.entities.Project
 import org.cqfn.save.orchestrator.config.Beans
 import org.cqfn.save.orchestrator.config.ConfigProperties
 import org.cqfn.save.orchestrator.controller.AgentsController
+import org.cqfn.save.orchestrator.testutils.TestConfiguration
 import org.cqfn.save.testutils.checkQueues
 import org.cqfn.save.testutils.cleanup
 import org.cqfn.save.testutils.createMockWebServer
@@ -44,9 +45,9 @@ import kotlin.io.path.pathString
 @DisabledOnOs(OS.WINDOWS, disabledReason = "Docker daemon behaves differently on Windows, and our target platform is Linux")
 @WebFluxTest(controllers = [AgentsController::class])  // to autowire everything for DockerService
 @MockBeans(
-    MockBean(AgentService::class)
+    MockBean(AgentService::class),
 )
-@Import(Beans::class, DockerService::class)
+@Import(Beans::class, DockerService::class, TestConfiguration::class)
 class DockerServiceTest {
     @Autowired private lateinit var dockerService: DockerService
     private lateinit var testImageId: String
