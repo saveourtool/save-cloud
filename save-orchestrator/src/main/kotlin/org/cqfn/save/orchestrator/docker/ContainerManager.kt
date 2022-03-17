@@ -164,8 +164,8 @@ class ContainerManager(private val settings: DockerSettings,
                 } ?: emptySet())
             buildCmd.execTimed(meterRegistry, "save.orchestrator.docker.build", "baseImage", baseImage) { record ->
                 object : BuildImageResultCallback() {
-                    override fun onNext(item: BuildResponseItem?) {
-                        super.onNext(item)
+                    override fun onComplete() {
+                        super.onComplete()
                         record()
                     }
                 }

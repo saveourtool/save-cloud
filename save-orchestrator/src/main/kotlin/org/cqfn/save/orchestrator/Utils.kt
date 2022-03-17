@@ -11,7 +11,7 @@ import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Timer
 import java.util.function.Supplier
 
-internal val dockerMetricPrefix = "save.orchestrator.docker"
+internal const val dockerMetricPrefix = "save.orchestrator.docker"
 
 /**
  * Execute this async docker command while recording its execution duration.
