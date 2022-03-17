@@ -3,6 +3,8 @@ package org.cqfn.save.orchestrator.docker
 import org.cqfn.save.domain.Sdk
 import org.cqfn.save.orchestrator.config.DockerSettings
 import org.cqfn.save.orchestrator.copyRecursivelyWithAttributes
+import org.cqfn.save.orchestrator.dockerMetricPrefix
+import org.cqfn.save.orchestrator.execTimed
 import org.cqfn.save.orchestrator.getHostIp
 
 import com.github.dockerjava.api.DockerClient
@@ -16,7 +18,6 @@ import com.github.dockerjava.core.DockerClientImpl
 import com.github.dockerjava.httpclient5.ApacheDockerHttpClient
 import com.github.dockerjava.transport.DockerHttpClient
 import io.micrometer.core.instrument.MeterRegistry
-import io.micrometer.core.instrument.Timer
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream
 import org.slf4j.LoggerFactory
@@ -53,11 +54,6 @@ class ContainerManager(private val settings: DockerSettings,
      */
     internal val dockerClient: DockerClient = DockerClientImpl.getInstance(dockerClientConfig, dockerHttpClient)
 
-    private fun buildCmdTimer(baseImage: String) = meterRegistry.timer(
-        "save.orchestrator.docker.build",
-        "baseImage", baseImage,
-    )
-
     /**
      * Creates a docker container
      *
@@ -74,7 +70,7 @@ class ContainerManager(private val settings: DockerSettings,
                                           runCmd: String,
                                           containerName: String,
     ): String {
-        val baseImage = dockerClient.listImagesCmd().exec().find {
+        val baseImage = dockerClient.listImagesCmd().execTimed(meterRegistry, "$dockerMetricPrefix.image.list").find {
             // fixme: sometimes createImageCmd returns short id without prefix, sometimes full and with prefix.
             it.id.replaceFirst("sha256:", "").startsWith(baseImageId.replaceFirst("sha256:", ""))
         }
@@ -103,7 +99,7 @@ class ContainerManager(private val settings: DockerSettings,
                     }
                 )
             )
-            .exec()
+            .execTimed(meterRegistry, "$dockerMetricPrefix.container.create")
 
         return createContainerCmdResponse.id
     }
@@ -122,7 +118,7 @@ class ContainerManager(private val settings: DockerSettings,
             dockerClient.copyArchiveToContainerCmd(containerId)
                 .withTarInputStream(out.toByteArray().inputStream())
                 .withRemotePath(remotePath)
-                .exec()
+                .execTimed(meterRegistry, "$dockerMetricPrefix.container.copy.archive")
         }
     }
 
@@ -138,6 +134,7 @@ class ContainerManager(private val settings: DockerSettings,
      * @throws DockerException
      */
     @OptIn(ExperimentalPathApi::class)
+    @Suppress("TOO_LONG_FUNCTION", "LongMethod")
     internal fun buildImageWithResources(baseImage: String = Sdk.Default.toString(),
                                          imageName: String,
                                          baseDir: File,
@@ -165,13 +162,14 @@ class ContainerManager(private val settings: DockerSettings,
                 .withExtraHosts(hostIp?.let {
                     setOf("host.docker.internal:$hostIp")
                 } ?: emptySet())
-            val sample = Timer.start(meterRegistry)
-            buildCmd.exec(object : BuildImageResultCallback() {
-                override fun onNext(item: BuildResponseItem?) {
-                    super.onNext(item)
-                    sample.stop(buildCmdTimer(baseImage))
+            buildCmd.execTimed(meterRegistry, "save.orchestrator.docker.build", "baseImage", baseImage) { record ->
+                object : BuildImageResultCallback() {
+                    override fun onNext(item: BuildResponseItem?) {
+                        super.onNext(item)
+                        record()
+                    }
                 }
-            })
+            }
         } finally {
             dockerFile.delete()
             tmpDir.deleteRecursively()
