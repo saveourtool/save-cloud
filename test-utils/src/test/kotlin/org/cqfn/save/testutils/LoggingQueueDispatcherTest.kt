@@ -24,13 +24,15 @@ class LoggingQueueDispatcherTest {
     @Test
     @Suppress("UnsafeCallOnNullableType", "UseEmptyCounterpart")
     fun checkDispatch() {
-        dispatcher.enqueueResponse("/(\\w)+(\\d)+", MockResponse().setResponseCode(200))
+        val pathRegex = "/(\\w)+(\\d)+"
+        val pathString = "/example321"
+        dispatcher.enqueueResponse(pathRegex, MockResponse().setResponseCode(200))
         val request = RecordedRequest(
-            "GET /example321 ",
+            "GET $pathString ",
             MockResponse().headers,
             emptyList(),
             0,
-            Buffer().write("GET /example321 ".toByteArray()),
+            Buffer().write("GET $pathString ".toByteArray()),
             0,
             Socket(),
             null
@@ -38,8 +40,8 @@ class LoggingQueueDispatcherTest {
         val response = dispatcher.dispatch(request)
         assertTrue(response.status == "HTTP/1.1 200 OK")
 
-        assertNotNull(dispatcher.responses["/(\\w)+(\\d)+"])
-        assertTrue(dispatcher.responses["/(\\w)+(\\d)+"]!!.peek() == null)
+        assertNotNull(dispatcher.responses[pathRegex])
+        assertTrue(dispatcher.responses[pathRegex]!!.peek() == null)
     }
 
     @Test
@@ -60,24 +62,27 @@ class LoggingQueueDispatcherTest {
     @Test
     @Suppress("UnsafeCallOnNullableType", "UseEmptyCounterpart")
     fun checkDefaultQueue() {
-        dispatcher.setDefaultResponseForPath("/users([/])?", MockResponse().setResponseCode(403))
-        dispatcher.enqueueResponse("/users/sanyavertolet", MockResponse().setResponseCode(200))
+        val defaultPathRegex = "/users([/])?"
+        val defaultPathString = "/users/"
+        val vertoletPathString = "/users/sanyavertolet"
+        dispatcher.setDefaultResponseForPath(defaultPathRegex, MockResponse().setResponseCode(403))
+        dispatcher.enqueueResponse(vertoletPathString, MockResponse().setResponseCode(200))
         val permittedRequest = RecordedRequest(
-            "GET /users/sanyavertolet ",
+            "GET $vertoletPathString ",
             MockResponse().headers,
             emptyList(),
             0,
-            Buffer().write("GET /example321 ".toByteArray()),
+            Buffer().write("GET $vertoletPathString ".toByteArray()),
             0,
             Socket(),
             null
         )
         val forbiddenRequest = RecordedRequest(
-            "GET /users/ ",
+            "GET $defaultPathString ",
             MockResponse().headers,
             emptyList(),
             0L,
-            Buffer().write("GET /users ".toByteArray()),
+            Buffer().write("GET $defaultPathString ".toByteArray()),
             0,
             Socket(),
             null
