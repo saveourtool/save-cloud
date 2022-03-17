@@ -34,7 +34,7 @@ class ProjectService(private val projectRepository: ProjectRepository,
      * @return project's id, should never return null
      */
     @Suppress("UnsafeCallOnNullableType")
-    fun saveProject(project: Project): Pair<Long, ProjectSaveStatus> {
+    fun getOrSaveProject(project: Project): Pair<Long, ProjectSaveStatus> {
         val exampleMatcher = ExampleMatcher.matchingAll()
             .withMatcher("name", ExampleMatcher.GenericPropertyMatchers.exact())
             .withMatcher("owner", ExampleMatcher.GenericPropertyMatchers.exact())
