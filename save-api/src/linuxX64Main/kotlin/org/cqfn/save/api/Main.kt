@@ -1,6 +1,10 @@
 package org.cqfn.save.api
 
-suspend fun main() {
+import kotlinx.coroutines.runBlocking
+
+fun main() {
     val automaticTestInitializator = AutomaticTestInitializator()
-    automaticTestInitializator.start()
+    runBlocking {
+        automaticTestInitializator.start()
+    }
 }

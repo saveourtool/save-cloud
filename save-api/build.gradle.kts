@@ -1,17 +1,16 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 plugins {
     kotlin("multiplatform")
 }
 
-//tasks.withType<KotlinCompile> {
-//    kotlinOptions {
-//        jvmTarget = Versions.jdk
-//        freeCompilerArgs = freeCompilerArgs + "-Xopt-in=kotlin.RequiresOptIn"
-//    }
-//}
-
 kotlin {
+    // Create a target for the host platform.
+    val hostTarget = linuxX64 {
+        binaries.executable {
+            entryPoint = "org.cqfn.save.api.main"
+            baseName = "save-api"
+        }
+    }
+
     sourceSets {
         all {
             languageSettings.optIn("kotlin.RequiresOptIn")
