@@ -11,7 +11,6 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.any
 import org.mockito.kotlin.whenever
@@ -19,7 +18,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.context.annotation.Import
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
-import org.springframework.security.core.Authentication
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.test.context.junit.jupiter.SpringExtension
 
@@ -133,7 +131,6 @@ class ProjectPermissionEvaluatorTest {
             "viewer", Role.VIEWER, emptyList(), *Permission.values(), userId = 99
         )
     }
-
 
     private fun userShouldHavePermissions(
         username: String,

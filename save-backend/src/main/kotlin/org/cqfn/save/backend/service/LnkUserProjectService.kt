@@ -19,6 +19,11 @@ class LnkUserProjectService(private val lnkUserProjectRepository: LnkUserProject
         .filter { it.role == role }
         .map { it.user }
 
+    /**
+     * @param userId
+     * @param project
+     * @return role for user in [project] by user ID
+     */
     fun findRoleByUserIdAndProject(userId: Long, project: Project) = lnkUserProjectRepository.findByUserIdAndProject(userId, project)
         .map { it.role }
         .ifEmpty { listOf(Role.VIEWER) }
