@@ -3,7 +3,7 @@ package org.cqfn.save.backend.controllers
 import org.cqfn.save.backend.StringResponse
 import org.cqfn.save.backend.configs.ConfigProperties
 import org.cqfn.save.backend.repository.TimestampBasedFileSystemRepository
-import org.cqfn.save.backend.security.Permission
+import org.cqfn.save.permission.Permission
 import org.cqfn.save.backend.service.ExecutionService
 import org.cqfn.save.backend.service.ProjectService
 import org.cqfn.save.backend.utils.username

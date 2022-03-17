@@ -1,7 +1,7 @@
 package org.cqfn.save.backend.controllers
 
 import org.cqfn.save.backend.configs.ConfigProperties
-import org.cqfn.save.backend.security.Permission
+import org.cqfn.save.permission.Permission
 import org.cqfn.save.backend.security.ProjectPermissionEvaluator
 import org.cqfn.save.backend.service.AgentService
 import org.cqfn.save.backend.service.AgentStatusService

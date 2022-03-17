@@ -1,7 +1,7 @@
 package org.cqfn.save.backend.service
 
 import org.cqfn.save.backend.repository.ProjectRepository
-import org.cqfn.save.backend.security.Permission
+import org.cqfn.save.permission.Permission
 import org.cqfn.save.backend.security.ProjectPermissionEvaluator
 import org.cqfn.save.domain.ProjectSaveStatus
 import org.cqfn.save.entities.Organization
