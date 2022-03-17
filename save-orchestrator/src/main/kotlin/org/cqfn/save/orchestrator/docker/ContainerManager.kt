@@ -3,13 +3,12 @@ package org.cqfn.save.orchestrator.docker
 import org.cqfn.save.domain.Sdk
 import org.cqfn.save.orchestrator.config.DockerSettings
 import org.cqfn.save.orchestrator.copyRecursivelyWithAttributes
-import org.cqfn.save.orchestrator.dockerMetricPrefix
+import org.cqfn.save.orchestrator.DOCKER_METRIC_PREFIX
 import org.cqfn.save.orchestrator.execTimed
 import org.cqfn.save.orchestrator.getHostIp
 
 import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.api.command.BuildImageResultCallback
-import com.github.dockerjava.api.model.BuildResponseItem
 import com.github.dockerjava.api.model.HostConfig
 import com.github.dockerjava.api.model.LogConfig
 import com.github.dockerjava.core.DefaultDockerClientConfig
@@ -70,7 +69,7 @@ class ContainerManager(private val settings: DockerSettings,
                                           runCmd: String,
                                           containerName: String,
     ): String {
-        val baseImage = dockerClient.listImagesCmd().execTimed(meterRegistry, "$dockerMetricPrefix.image.list")!!.find {
+        val baseImage = dockerClient.listImagesCmd().execTimed(meterRegistry, "$DOCKER_METRIC_PREFIX.image.list")!!.find {
             // fixme: sometimes createImageCmd returns short id without prefix, sometimes full and with prefix.
             it.id.replaceFirst("sha256:", "").startsWith(baseImageId.replaceFirst("sha256:", ""))
         }
@@ -99,7 +98,7 @@ class ContainerManager(private val settings: DockerSettings,
                     }
                 )
             )
-            .execTimed(meterRegistry, "$dockerMetricPrefix.container.create")
+            .execTimed(meterRegistry, "$DOCKER_METRIC_PREFIX.container.create")
 
         return createContainerCmdResponse!!.id
     }
@@ -118,7 +117,7 @@ class ContainerManager(private val settings: DockerSettings,
             dockerClient.copyArchiveToContainerCmd(containerId)
                 .withTarInputStream(out.toByteArray().inputStream())
                 .withRemotePath(remotePath)
-                .execTimed(meterRegistry, "$dockerMetricPrefix.container.copy.archive")
+                .execTimed(meterRegistry, "$DOCKER_METRIC_PREFIX.container.copy.archive")
         }
     }
 
