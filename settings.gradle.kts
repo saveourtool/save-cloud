@@ -19,6 +19,7 @@ include("save-cloud-common")
 include("save-agent")
 include("save-preprocessor")
 include("test-utils")
+include("save-api")
 includeBuild("sarif4k")
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
