@@ -70,7 +70,7 @@ class ContainerManager(private val settings: DockerSettings,
                                           runCmd: String,
                                           containerName: String,
     ): String {
-        val baseImage = dockerClient.listImagesCmd().execTimed(meterRegistry, "$dockerMetricPrefix.image.list").find {
+        val baseImage = dockerClient.listImagesCmd().execTimed(meterRegistry, "$dockerMetricPrefix.image.list")!!.find {
             // fixme: sometimes createImageCmd returns short id without prefix, sometimes full and with prefix.
             it.id.replaceFirst("sha256:", "").startsWith(baseImageId.replaceFirst("sha256:", ""))
         }
@@ -101,7 +101,7 @@ class ContainerManager(private val settings: DockerSettings,
             )
             .execTimed(meterRegistry, "$dockerMetricPrefix.container.create")
 
-        return createContainerCmdResponse.id
+        return createContainerCmdResponse!!.id
     }
 
     /**

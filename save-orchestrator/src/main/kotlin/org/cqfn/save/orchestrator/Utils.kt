@@ -47,11 +47,11 @@ inline fun <reified CMD_T : SyncDockerCmd<RES_T>, RES_T> CMD_T.execTimed(
     meterRegistry: MeterRegistry,
     name: String,
     vararg tags: String,
-): RES_T {
+): RES_T? {
     val timer = meterRegistry.timer(name, "cmd", "${CMD_T::class.simpleName}", *tags)
     return timer.record(Supplier {
         exec()
-    })!!
+    })
 }
 
 /**
