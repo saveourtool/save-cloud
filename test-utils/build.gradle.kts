@@ -1,11 +1,8 @@
-import org.cqfn.save.buildutils.configureSpringBoot
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("jvm")
 }
-
-configureSpringBoot(false)
 
 tasks.withType<KotlinCompile> {
     kotlinOptions {
