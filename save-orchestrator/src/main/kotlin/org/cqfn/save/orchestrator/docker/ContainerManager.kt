@@ -1,9 +1,9 @@
 package org.cqfn.save.orchestrator.docker
 
 import org.cqfn.save.domain.Sdk
+import org.cqfn.save.orchestrator.DOCKER_METRIC_PREFIX
 import org.cqfn.save.orchestrator.config.DockerSettings
 import org.cqfn.save.orchestrator.copyRecursivelyWithAttributes
-import org.cqfn.save.orchestrator.DOCKER_METRIC_PREFIX
 import org.cqfn.save.orchestrator.execTimed
 import org.cqfn.save.orchestrator.getHostIp
 
@@ -64,6 +64,7 @@ class ContainerManager(private val settings: DockerSettings,
      * @throws DockerException if docker daemon has returned an error
      * @throws RuntimeException if an exception not specific to docker has occurred
      */
+    @Suppress("UnsafeCallOnNullableType")
     internal fun createContainerFromImage(baseImageId: String,
                                           workingDir: String,
                                           runCmd: String,
