@@ -1,5 +1,6 @@
 plugins {
     kotlin("multiplatform")
+    //alias(libs.plugins.kotlin.plugin.serialization)
 }
 
 kotlin {
@@ -18,6 +19,8 @@ kotlin {
         }
         val linuxX64Main by getting {
             dependencies {
+                implementation(projects.saveCloudCommon)
+//                implementation(file("$rootDir/save-cloud-common/build/libs/save-cloud-common-linuxX64-$version.jar"))
                 implementation(libs.slf4j.api)
                 implementation(libs.ktor.client.core)
                 implementation(libs.ktor.client.curl)
