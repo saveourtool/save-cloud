@@ -1,7 +1,7 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm")
+    kotlin("multiplatform")
 }
 
 tasks.withType<KotlinCompile> {
@@ -11,10 +11,19 @@ tasks.withType<KotlinCompile> {
     }
 }
 
-dependencies {
-    //implementation(libs.okhttp)
-    implementation(libs.slf4j.api)
-    implementation(libs.ktor.client.core)
-    implementation(libs.ktor.client.curl)
-    implementation(libs.ktor.client.serialization)
+kotlin {
+    sourceSets {
+        all {
+            languageSettings.optIn("kotlin.RequiresOptIn")
+            languageSettings.optIn("kotlinx.serialization.ExperimentalSerializationApi")
+        }
+        val linuxX64Main by getting {
+            dependencies {
+                implementation(libs.slf4j.api)
+                implementation(libs.ktor.client.core)
+                implementation(libs.ktor.client.curl)
+                implementation(libs.ktor.client.serialization)
+            }
+        }
+    }
 }
