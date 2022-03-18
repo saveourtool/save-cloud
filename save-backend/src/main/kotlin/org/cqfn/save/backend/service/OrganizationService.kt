@@ -1,6 +1,7 @@
 package org.cqfn.save.backend.service
 
 import org.cqfn.save.backend.repository.OrganizationRepository
+import org.cqfn.save.backend.repository.UserRepository
 import org.cqfn.save.domain.OrganizationSaveStatus
 import org.cqfn.save.entities.Organization
 import org.springframework.stereotype.Service
@@ -11,7 +12,9 @@ import org.springframework.stereotype.Service
  * @property organizationRepository
  */
 @Service
-class OrganizationService(private val organizationRepository: OrganizationRepository) {
+class OrganizationService(private val organizationRepository: OrganizationRepository,
+                          private val userRepository: UserRepository,
+) {
     /**
      * Store [organization] in the database
      *
@@ -49,5 +52,10 @@ class OrganizationService(private val organizationRepository: OrganizationReposi
             avatar = relativePath
         } ?: throw NoSuchElementException("Organization with name [$name] was not found.")
         organization.let { organizationRepository.save(it) }
+    }
+
+    fun isOwner(organizationName: String, userId: Long): Boolean {
+         val organization = organizationRepository.findByName(organizationName)
+        return organization?.ownerId == userId
     }
 }
