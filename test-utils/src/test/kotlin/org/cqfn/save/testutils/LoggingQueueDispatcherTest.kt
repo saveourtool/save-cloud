@@ -23,10 +23,10 @@ class LoggingQueueDispatcherTest {
 
     @Test
     @Suppress("UnsafeCallOnNullableType", "UseEmptyCounterpart")
-    fun checkDispatch() {
+    fun `enqueued responses should be matched with requests`() {
         val pathRegex = "/(\\w)+(\\d)+"
-        val pathString = "/example321"
         dispatcher.enqueueResponse(pathRegex, MockResponse().setResponseCode(200))
+        val pathString = "/example321"
         val request = RecordedRequest(
             "GET $pathString ",
             MockResponse().headers,
@@ -45,7 +45,7 @@ class LoggingQueueDispatcherTest {
     }
 
     @Test
-    fun checkEnqueueResponse() {
+    fun `should enqueue responses`() {
         dispatcher.enqueueResponse("/path1", MockResponse().setResponseCode(200))
         dispatcher.enqueueResponse("/path2", MockResponse().setResponseCode(200))
         dispatcher.enqueueResponse("/(\\w)+(\\d)+", MockResponse().setResponseCode(200))
@@ -61,12 +61,12 @@ class LoggingQueueDispatcherTest {
 
     @Test
     @Suppress("UnsafeCallOnNullableType", "UseEmptyCounterpart")
-    fun checkDefaultQueue() {
+    fun `priority of enqueued responses should be higher that defaults one`() {
         val defaultPathRegex = "/users([/])?"
-        val defaultPathString = "/users/"
-        val vertoletPathString = "/users/sanyavertolet"
         dispatcher.setDefaultResponseForPath(defaultPathRegex, MockResponse().setResponseCode(403))
+        val vertoletPathString = "/users/sanyavertolet"
         dispatcher.enqueueResponse(vertoletPathString, MockResponse().setResponseCode(200))
+        val defaultPathString = "/users/"
         val permittedRequest = RecordedRequest(
             "GET $vertoletPathString ",
             MockResponse().headers,

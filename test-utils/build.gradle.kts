@@ -11,6 +11,12 @@ tasks.withType<KotlinCompile> {
     }
 }
 
+kotlin {
+    jvmToolchain {
+        (this as JavaToolchainSpec).languageVersion.set(JavaLanguageVersion.of(Versions.jdk))
+    }
+}
+
 tasks.withType<Test> {
     useJUnitPlatform()
 }
