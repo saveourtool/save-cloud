@@ -52,7 +52,7 @@ class AutomaticTestInitializator {
                 "stub",
                 "stub",
                 "stub",
-                42
+                1
             ),
             Pass(
                "ok",

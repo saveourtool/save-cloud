@@ -11,6 +11,22 @@ tasks.withType<KotlinCompile> {
     }
 }
 
+kotlin {
+
+//    configure {
+//        binaries {
+//            executable {
+//                entryPoint = "org.cqfn.save.api.main"
+//                baseName = "save-api"
+//            }
+//        }
+//    }
+
+
+    jvmToolchain {
+        (this as JavaToolchainSpec).languageVersion.set(JavaLanguageVersion.of(Versions.jdk))
+    }
+}
 
 dependencies {
     implementation(projects.saveCloudCommon)
