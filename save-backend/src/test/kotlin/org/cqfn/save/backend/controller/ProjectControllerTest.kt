@@ -145,6 +145,7 @@ class ProjectControllerTest {
         val project = Project("I", "Name", "uurl", ProjectStatus.CREATED, userId = 2, organization = organization)
         val newProject = NewProjectDto(
             project,
+            "Huawei",
             gitDto,
         )
 

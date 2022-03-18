@@ -24,4 +24,10 @@ JpaSpecificationExecutor<Organization> {
      */
     // The getById method from JpaRepository can lead to LazyInitializationException
     fun getOrganizationById(id: Long): Organization
+
+    /**
+     * @param ownerId
+     * @return list of organization by owner id
+     */
+    fun findByOwnerId(ownerId: Long): List<Organization>
 }

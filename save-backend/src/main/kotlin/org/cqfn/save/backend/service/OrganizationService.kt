@@ -50,4 +50,10 @@ class OrganizationService(private val organizationRepository: OrganizationReposi
         } ?: throw NoSuchElementException("Organization with name [$name] was not found.")
         organization.let { organizationRepository.save(it) }
     }
+
+    /**
+     * @param ownerId
+     * @return list of organization by owner id
+     */
+    fun findByOwnerId(ownerId: Long) = organizationRepository.findByOwnerId(ownerId)
 }
