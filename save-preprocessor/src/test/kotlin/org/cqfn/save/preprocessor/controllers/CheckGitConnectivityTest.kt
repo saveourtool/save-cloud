@@ -5,14 +5,11 @@ package org.cqfn.save.preprocessor.controllers
 import org.cqfn.save.preprocessor.service.TestDiscoveringService
 import org.cqfn.save.preprocessor.utils.RepositoryVolume
 import org.cqfn.save.testutils.checkQueues
+import org.cqfn.save.testutils.cleanup
 import org.cqfn.save.testutils.createMockWebServer
 
 import okhttp3.mockwebserver.MockWebServer
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.*
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
@@ -79,6 +76,14 @@ class CheckGitConnectivityTest(
 
         @JvmStatic
         lateinit var mockServerOrchestrator: MockWebServer
+
+        @AfterEach
+        fun cleanup() {
+            mockServerBackend.checkQueues()
+            mockServerBackend.cleanup()
+            mockServerOrchestrator.checkQueues()
+            mockServerOrchestrator.cleanup()
+        }
 
         @AfterAll
         fun tearDown() {

@@ -10,6 +10,7 @@ import org.cqfn.save.orchestrator.controller.AgentsController
 import org.cqfn.save.orchestrator.service.AgentService
 import org.cqfn.save.orchestrator.service.DockerService
 import org.cqfn.save.testutils.checkQueues
+import org.cqfn.save.testutils.cleanup
 import org.cqfn.save.testutils.createMockWebServer
 import org.cqfn.save.testutils.enqueue
 
@@ -71,7 +72,7 @@ class AgentsControllerTest {
         whenever(dockerService.buildAndCreateContainers(any(), any())).thenReturn(listOf("test-agent-id-1", "test-agent-id-2"))
         // /addAgents
         mockServer.enqueue(
-            "/addAgents",
+            "/addAgents.*",
             MockResponse()
                 .setResponseCode(200)
                 .addHeader("Content-Type", "application/json")
@@ -170,7 +171,7 @@ class AgentsControllerTest {
     @Test
     fun `should cleanup execution artifacts`() {
         mockServer.enqueue(
-            "/getAgentsIdsForExecution",
+            "/getAgentsIdsForExecution.*",
             MockResponse().setResponseCode(200)
                 .setHeader("Content-Type", "application/json")
                 .setBody(Json.encodeToString(listOf("container-1", "container-2", "container-3")))
@@ -205,9 +206,14 @@ class AgentsControllerTest {
         @JvmStatic
         private lateinit var mockServer: MockWebServer
 
+        @AfterEach
+        fun cleanup() {
+            mockServer.checkQueues()
+            mockServer.cleanup()
+        }
+
         @AfterAll
         fun tearDown() {
-            mockServer.checkQueues()
             mockServer.shutdown()
         }
 
