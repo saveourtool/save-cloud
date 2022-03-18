@@ -66,7 +66,6 @@ class LoggingQueueDispatcherTest {
         dispatcher.setDefaultResponseForPath(defaultPathRegex, MockResponse().setResponseCode(403))
         val vertoletPathString = "/users/sanyavertolet"
         dispatcher.enqueueResponse(vertoletPathString, MockResponse().setResponseCode(200))
-        val defaultPathString = "/users/"
         val permittedRequest = RecordedRequest(
             "GET $vertoletPathString ",
             MockResponse().headers,
@@ -77,6 +76,10 @@ class LoggingQueueDispatcherTest {
             Socket(),
             null
         )
+        val okResponse = dispatcher.dispatch(permittedRequest)
+        assertTrue(okResponse.status == "HTTP/1.1 200 OK")
+
+        val defaultPathString = "/users/"
         val forbiddenRequest = RecordedRequest(
             "GET $defaultPathString ",
             MockResponse().headers,
@@ -87,10 +90,8 @@ class LoggingQueueDispatcherTest {
             Socket(),
             null
         )
-        val okResponse = dispatcher.dispatch(permittedRequest)
-        val failResponse = dispatcher.dispatch(forbiddenRequest)
 
-        assertTrue(okResponse.status == "HTTP/1.1 200 OK")
+        val failResponse = dispatcher.dispatch(forbiddenRequest)
         assertTrue(failResponse.status == "HTTP/1.1 403 Client Error")
     }
 }
