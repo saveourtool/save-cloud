@@ -15,12 +15,14 @@ import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionType
 import org.cqfn.save.execution.ExecutionUpdateDto
 import org.cqfn.save.testutils.checkQueues
+import org.cqfn.save.testutils.cleanup
 import org.cqfn.save.testutils.createMockWebServer
 import org.cqfn.save.testutils.enqueue
 
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -220,7 +222,7 @@ class ExecutionControllerTest {
         }
 
         mockServerPreprocessor.enqueue(
-            "/rerunExecution",
+            "/rerunExecution.*",
             MockResponse().setResponseCode(202)
                 .setHeader("Accept", "application/json")
                 .setHeader("Content-Type", "application/json")
@@ -245,9 +247,14 @@ class ExecutionControllerTest {
     companion object {
         @JvmStatic lateinit var mockServerPreprocessor: MockWebServer
 
+        @AfterEach
+        fun cleanup() {
+            mockServerPreprocessor.checkQueues()
+            mockServerPreprocessor.cleanup()
+        }
+
         @AfterAll
         fun tearDown() {
-            mockServerPreprocessor.checkQueues()
             mockServerPreprocessor.shutdown()
         }
 

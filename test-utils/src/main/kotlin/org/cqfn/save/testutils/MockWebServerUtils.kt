@@ -15,40 +15,47 @@ private typealias ResponsesMap = ConcurrentMap<String, BlockingQueue<MockRespons
  * Queue dispatcher with additional logging
  */
 class LoggingQueueDispatcher : Dispatcher() {
-    private val responses: ResponsesMap = ConcurrentHashMap()
-    private val defaultResponses: ConcurrentMap<String, MockResponse> = ConcurrentHashMap()
+    /**
+     * Map that matches path that is set with regex to queue of MockResponses
+     */
+    internal val responses: ResponsesMap = ConcurrentHashMap()
+
+    /**
+     * Map that matches path that is set with regex to default MockResponse
+     */
+    internal val defaultResponses: ConcurrentMap<String, MockResponse> = ConcurrentHashMap()
     private var failFastResponse: MockResponse = MockResponse().setResponseCode(HttpURLConnection.HTTP_NOT_FOUND)
 
     private fun getProperRegexKey(path: String?, setOfRegexes: Iterable<String>) = path?.let {
-        setOfRegexes
-            .filter { regex -> Regex(regex).containsMatchIn(it) }
-            .also {
-                if (it.size > 1) {
-                    logger.warn("For path $path found more than one key from ResponsesMap: [$it]. Taking ${it.first()}")
-                }
+        val suitableRegexes = setOfRegexes.filter { regex -> Regex(regex).matches(it) }
+        suitableRegexes.let {
+            if (it.size > 1) {
+                logger.warn("For path $path found more than one key from ResponsesMap: $it. Taking ${it.first()}")
             }
-            .firstOrNull()
-            ?.also { logger.debug("Path [$path] is matched with [$it]") }
+        }
+        suitableRegexes.firstOrNull()?.also { logger.debug("Path [$path] is matched with [$it]") }
     }
 
     @Suppress("UnsafeCallOnNullableType", "AVOID_NULL_CHECKS")
     override fun dispatch(request: RecordedRequest): MockResponse {
         val regexKeyForDefaultResponses = getProperRegexKey(request.path, defaultResponses.keys)
         val regexKeyForEnqueuedResponses = getProperRegexKey(request.path, responses.keys)
-        val result = if (regexKeyForDefaultResponses != null) {
+        val result = if (regexKeyForEnqueuedResponses != null) {
+            if (regexKeyForDefaultResponses != null) {
+                logger.debug("Default response for path $regexKeyForDefaultResponses that matches ${request.path} is ignored due to enqueued one ($regexKeyForEnqueuedResponses)")
+            }
+            responses[regexKeyForEnqueuedResponses]!!.take()
+        } else if (regexKeyForDefaultResponses != null) {
             logger.debug("Default response [${defaultResponses[regexKeyForDefaultResponses]}] exists for path [$request.path].")
             defaultResponses[regexKeyForDefaultResponses]!!
-        } else if (regexKeyForEnqueuedResponses == null) {
-            logger.info("No response is present in queue with path [${request.path}] that matches.")
-            return failFastResponse
         } else {
-            responses[regexKeyForEnqueuedResponses]!!.take()
+            logger.info("No response is present in queue with path [${request.path}].")
+            return failFastResponse
         }
 
         if (result == deadLetter) {
             responses[regexKeyForEnqueuedResponses]!!.add(deadLetter)
         }
-
         return result.also { logger.info("Response [$result] was taken for request [$request].") }
     }
 
@@ -93,9 +100,17 @@ class LoggingQueueDispatcher : Dispatcher() {
     }
 
     private fun checkQueue(regexKey: String) = responses[regexKey]?.peek()?.let { mockResponse ->
-        val errorMessage = "There is an enqueued response in the MockServer after a test has completed." +
-                "Enqueued body: ${mockResponse.getBody()?.readString(Charset.defaultCharset())}"
+        val errorMessage = "There is an enqueued response in the MockServer after a test has completed. " +
+                "Enqueued body: ${mockResponse.getBody()?.readString(Charset.defaultCharset())}. " +
+                "Path: $regexKey."
         assertTrue(errorMessage, mockResponse.getBody().let { it == null || it.size == 0L })
+    }
+
+    /**
+     * Cleans responses queues
+     */
+    fun cleanup() {
+        responses.clear()
     }
 
     companion object {
@@ -117,6 +132,13 @@ fun MockWebServer.enqueue(regexKey: String, response: MockResponse) {
     } else {
         throw IllegalStateException("dispatcher type should be LoggingQueueDispatcher")
     }
+}
+
+/**
+ * Cleans `responses` map
+ */
+fun MockWebServer.cleanup() {
+    (dispatcher as LoggingQueueDispatcher).cleanup()
 }
 
 /**
