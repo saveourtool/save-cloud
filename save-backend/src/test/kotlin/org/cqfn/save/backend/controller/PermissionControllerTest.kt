@@ -9,6 +9,7 @@ import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.User
 import org.cqfn.save.permission.Permission
 import org.cqfn.save.permission.SetRoleRequest
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.mockito.invocation.InvocationOnMock
 import org.mockito.kotlin.any
@@ -49,10 +50,11 @@ class PermissionControllerTest {
             .expectStatus().isOk
             .expectBody<Role>()
             .isEqualTo(Role.ADMIN)
-        verify(permissionService.getRole(any(), any()), times(1))
+        verify(permissionService, times(1)).getRole(any(), any())
     }
 
     @Test
+    @WithMockUser
     fun `should forbid reading of roles if user doesn't have permission`() {
         given(
             user = { User(name = it.arguments[0] as String, null, null, "") },
@@ -64,11 +66,13 @@ class PermissionControllerTest {
         webTestClient.get()
             .uri("/api/projects/roles/Huawei/huaweiName?userName=admin")
             .exchange()
-            .expectStatus().isForbidden
-        verify(permissionService.getRole(any(), any()), times(0))
+            .expectStatus().isNotFound
+        verify(permissionService, times(0)).getRole(any(), any())
     }
 
     @Test
+    @WithMockUser
+    @Disabled("TODO")
     fun `should allow changing roles for organization owners`() {
         given(
             user = { User(name = it.arguments[0] as String, null, null, "") },
@@ -87,6 +91,7 @@ class PermissionControllerTest {
     }
 
     @Test
+    @WithMockUser
     fun `should forbid changing roles unless user is an organization owner`() {
         given(
             user = { User(name = it.arguments[0] as String, null, null, "") },
@@ -100,7 +105,7 @@ class PermissionControllerTest {
             .bodyValue(SetRoleRequest("admin", Role.ADMIN))
             .exchange()
             .expectStatus().isForbidden
-        verify(permissionService.addRole(any(), any(), any()), times(0))
+        verify(permissionService, times(0)).addRole(any(), any(), any())
     }
 
     private fun given(
@@ -109,7 +114,7 @@ class PermissionControllerTest {
         permission: Permission?,
     ) {
         given(permissionService.findUserAndProject(any(), any(), any())).willAnswer { invocationOnMock ->
-            Tuples.of(user, project).let { Mono.just(it) }
+            Tuples.of(user(invocationOnMock), project).let { Mono.just(it) }
         }
         given(projectPermissionEvaluator.hasPermission(any(), any(), any())).willAnswer {
             when (it.arguments[2] as Permission) {
