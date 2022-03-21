@@ -26,6 +26,16 @@ internal class OrganizationController(private val organizationService: Organizat
             organizationService.findByName(name) ?: throw NoSuchElementException("Organization with name [$name] was not found.")
 
     /**
+     * @param authentication an [Authentication] representing an authenticated request
+     * @return list of organization by owner id
+     */
+    @GetMapping("/get/list")
+    fun getOrganizationsByOwnerId(authentication: Authentication): List<Organization> {
+        val ownerId = (authentication.details as AuthenticationDetails).id
+        return organizationService.findByOwnerId(ownerId)
+    }
+
+    /**
      * @param owner owner name
      * @return a image
      */
