@@ -60,12 +60,12 @@ class AutomaticTestInitializator {
                     // and only then send the authentication header
                     // therefore, adding sendWithoutRequest is required
                     sendWithoutRequest { request ->
-                        //request.url.host == "localhost"
-                        true
+                        request.url.host == "localhost"
                     }
                     credentials {
                         BasicAuthCredentials(username = "admin", password = "")
                     }
+                    headersOf("X-Authorization-Source", "basic")
                 }
             }
         }
@@ -76,13 +76,16 @@ class AutomaticTestInitializator {
         val response = httpClient.get<HttpResponse> {
             url("${BACKEND_URL}/api/allStandardTestSuites")
             //header("Authorization", "Basic ${Base64.getEncoder().encodeToString("admin:".toByteArray())}")
-            headers[HttpHeaders.Authorization] = "Basic ${Base64.getEncoder().encodeToString("admin:".toByteArray())}"
+            //header("X-Authorization-Source", "basic")
+            //headers[HttpHeaders.Authorization] = "Basic ${Base64.getEncoder().encodeToString("admin:".toByteArray())}"
             contentType(ContentType.Application.Json)
         }
 
         val result = Json.decodeFromString<List<TestSuiteDto>>(response.toString())
 
-        log.info("Status: ${response.status}\nContent: ${response.content}\nResult: ${result}")
+        log.info("==========================\nStatus: ${response.status}")
+        log.info("Content: ${response.content}")
+        log.info("Result: ${result}")
 
         log.info("-------------------Start execution---------------------")
 
