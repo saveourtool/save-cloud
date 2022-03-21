@@ -29,7 +29,7 @@ internal class OrganizationController(private val organizationService: Organizat
      * @param authentication an [Authentication] representing an authenticated request
      * @return list of organization by owner id
      */
-    @GetMapping("/get/organizations-owner")
+    @GetMapping("/get/list")
     fun getOrganizationsByOwnerId(authentication: Authentication): List<Organization> {
         val ownerId = (authentication.details as AuthenticationDetails).id
         return organizationService.findByOwnerId(ownerId)

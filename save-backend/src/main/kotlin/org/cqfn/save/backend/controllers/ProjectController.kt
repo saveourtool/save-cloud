@@ -158,9 +158,9 @@ class ProjectController(private val projectService: ProjectService,
     @Suppress("UnsafeCallOnNullableType")
     fun saveProject(@RequestBody newProjectDto: NewProjectDto, authentication: Authentication): ResponseEntity<String> {
         val userId = (authentication.details as AuthenticationDetails).id
-        val organizationNew = organizationService.findByName(newProjectDto.organizationName)
+        val organization = organizationService.findByName(newProjectDto.organizationName)
         val newProject = newProjectDto.project.apply {
-            organization = organizationNew!!
+            this.organization = organization!!
         }
         val (projectId, projectStatus) = projectService.getOrSaveProject(
             newProject.apply {

@@ -17,7 +17,7 @@ import kotlinx.html.js.onChangeFunction
  * @property str
  */
 @Suppress("WRONG_DECLARATIONS_ORDER")
-internal enum class InputTypes(val str: String) {
+enum class InputTypes(val str: String) {
     // ==== new project view
     DESCRIPTION("project description"),
     GIT_BRANCH("git branch"),

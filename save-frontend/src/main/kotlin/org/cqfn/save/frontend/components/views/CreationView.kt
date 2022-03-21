@@ -8,6 +8,7 @@
 package org.cqfn.save.frontend.components.views
 
 import org.cqfn.save.entities.*
+import org.cqfn.save.frontend.components.basic.*
 import org.cqfn.save.frontend.components.basic.InputTypes
 import org.cqfn.save.frontend.components.basic.inputTextFormOptional
 import org.cqfn.save.frontend.components.basic.inputTextFormRequired
@@ -83,16 +84,6 @@ external interface ProjectSaveViewState : State {
      * Validation of input fields
      */
     var gitConnectionCheckingStatus: GitConnectionStatusEnum?
-
-    /**
-     * Organizations of user
-     */
-    var organizationsUser: List<Organization>?
-
-    /**
-     * Organizations of user
-     */
-    var initialValueOrganization: String?
 }
 
 /**
@@ -116,6 +107,9 @@ enum class GitConnectionStatusEnum {
 @OptIn(ExperimentalJsExport::class)
 class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
     private val fieldsMap: MutableMap<InputTypes, String> = mutableMapOf()
+    private val selectFormRequired = selectFormRequired(
+        onChangeFun = ::changeFields,
+    )
 
     init {
         state.isErrorWithProjectSave = false
@@ -129,27 +123,6 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
         state.isValidGitToken = true
     }
 
-    override fun componentDidMount() {
-        super.componentDidMount()
-
-        scope.launch {
-            val organizations =
-                    get(
-                        url = "$apiUrl/organization/get/organizations-owner",
-                        headers = Headers().also {
-                            it.set("Accept", "application/json")
-                        },
-                    )
-                        .unsafeMap {
-                            it.decodeFromJsonString<List<Organization>>()
-                        }
-
-            setState {
-                organizationsUser = organizations
-            }
-        }
-    }
-
     private fun changeFields(
         fieldName: InputTypes,
         target: Event,
@@ -161,14 +134,7 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
         } else {
             (target.target as HTMLSelectElement).value
         }
-        if (isProject) fieldsMap[fieldName] = tg else fieldsMap[fieldName] = tg
-    }
-
-    private fun changeOrganizationName(target: Event) {
-        val organization = (target.target as HTMLSelectElement).value
-        setState {
-            initialValueOrganization = organization
-        }
+        fieldsMap[fieldName] = tg
     }
 
     @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
@@ -331,16 +297,11 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
                                 }
                                 form(classes = "needs-validation") {
                                     div("row g-3") {
-                                        val organization = state.organizationsUser?.map { it.name } ?: emptyList()
-                                        selectFormRequired(
-                                            InputTypes.ORGANIZATION_NAME,
-                                            state.isValidOrganization!!,
-                                            "col-md-6 pl-0 pl-2 pr-2",
-                                            "Organization", organization,
-                                            state.initialValueOrganization
-                                        ) {
-                                            changeFields(InputTypes.ORGANIZATION_NAME, it, isHtmlInputElement = false)
-                                            changeOrganizationName(it)
+                                        child(selectFormRequired) {
+                                            attrs.form = InputTypes.ORGANIZATION_NAME
+                                            attrs.validInput = state.isValidOrganization!!
+                                            attrs.classes = "col-md-6 pl-0 pl-2 pr-2"
+                                            attrs.text = "Organization"
                                         }
                                         inputTextFormRequired(InputTypes.PROJECT_NAME, state.isValidProjectName!!, "col-md-6 pl-2 pr-2", "Tested tool name") {
                                             changeFields(InputTypes.PROJECT_NAME, it)
