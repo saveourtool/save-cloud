@@ -67,7 +67,7 @@ class OrganizationService(private val organizationRepository: OrganizationReposi
     }
 
     private fun isOwner(organizationName: String, userId: Long): Boolean {
-         val organization = organizationRepository.findByName(organizationName)
+        val organization = organizationRepository.findByName(organizationName)
         return organization?.ownerId == userId
     }
 }

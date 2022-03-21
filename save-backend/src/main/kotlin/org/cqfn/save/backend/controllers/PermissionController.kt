@@ -1,11 +1,5 @@
 package org.cqfn.save.backend.controllers
 
-import io.swagger.v3.oas.annotations.Operation
-import io.swagger.v3.oas.annotations.Parameter
-import io.swagger.v3.oas.annotations.enums.ParameterIn
-import io.swagger.v3.oas.annotations.responses.ApiResponse
-import io.swagger.v3.oas.annotations.tags.Tag
-import io.swagger.v3.oas.annotations.tags.Tags
 import org.cqfn.save.backend.configs.ApiSwaggerSupport
 import org.cqfn.save.backend.security.ProjectPermissionEvaluator
 import org.cqfn.save.backend.service.OrganizationService
@@ -15,6 +9,13 @@ import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.User
 import org.cqfn.save.permission.Permission
 import org.cqfn.save.permission.SetRoleRequest
+
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
+import io.swagger.v3.oas.annotations.enums.ParameterIn
+import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.tags.Tag
+import io.swagger.v3.oas.annotations.tags.Tags
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PreAuthorize
@@ -36,7 +37,7 @@ import reactor.kotlin.core.util.function.component2
 @Tags(Tag(name = "api"), Tag(name = "permissions"))
 @RestController
 @RequestMapping("/api/projects/roles")
-@Suppress("MISSING_KDOC_ON_FUNCTION")
+@Suppress("MISSING_KDOC_ON_FUNCTION", "MISSING_KDOC_TOP_LEVEL", "MISSING_KDOC_CLASS_ELEMENTS")
 class PermissionController(
     private val permissionService: PermissionService,
     private val organizationService: OrganizationService,

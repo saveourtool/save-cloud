@@ -4,10 +4,11 @@ import org.cqfn.save.backend.repository.LnkUserProjectRepository
 import org.cqfn.save.backend.service.LnkUserProjectService
 import org.cqfn.save.backend.utils.AuthenticationDetails
 import org.cqfn.save.domain.Role
-import org.cqfn.save.permission.Permission
 import org.cqfn.save.entities.LnkUserProject
 import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.User
+import org.cqfn.save.permission.Permission
+
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test

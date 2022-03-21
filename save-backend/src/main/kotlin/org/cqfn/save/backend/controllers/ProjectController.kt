@@ -1,7 +1,6 @@
 package org.cqfn.save.backend.controllers
 
 import org.cqfn.save.backend.StringResponse
-import org.cqfn.save.permission.Permission
 import org.cqfn.save.backend.security.ProjectPermissionEvaluator
 import org.cqfn.save.backend.service.GitService
 import org.cqfn.save.backend.service.OrganizationService
@@ -11,8 +10,9 @@ import org.cqfn.save.domain.ProjectSaveStatus
 import org.cqfn.save.entities.GitDto
 import org.cqfn.save.entities.NewProjectDto
 import org.cqfn.save.entities.Project
-import org.slf4j.LoggerFactory
+import org.cqfn.save.permission.Permission
 
+import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize

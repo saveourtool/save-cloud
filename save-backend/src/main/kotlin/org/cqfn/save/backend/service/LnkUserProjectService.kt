@@ -32,6 +32,10 @@ class LnkUserProjectService(private val lnkUserProjectRepository: LnkUserProject
         .singleOrNull()
         ?: throw IllegalStateException("Multiple roles are set for userId=$userId and project=$project")
 
+    /**
+     * Set role of [user] on a project [project] to [role]
+     */
+    @Suppress("KDOC_WITHOUT_PARAM_TAG")
     fun addRole(user: User, project: Project, role: Role) {
         lnkUserProjectRepository.save(
             LnkUserProject(

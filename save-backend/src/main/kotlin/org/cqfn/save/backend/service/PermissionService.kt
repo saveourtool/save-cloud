@@ -2,7 +2,6 @@ package org.cqfn.save.backend.service
 
 import org.cqfn.save.backend.repository.UserRepository
 import org.cqfn.save.domain.Role
-import org.cqfn.save.permission.Permission
 import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.User
 import org.cqfn.save.permission.SetRoleRequest
@@ -30,14 +29,14 @@ class PermissionService(
     }
 
     fun addRole(organizationName: String, projectName: String, setRoleRequest: SetRoleRequest): Mono<Unit> =
-        findUserAndProject(setRoleRequest.userName, organizationName, projectName)
-            .map { (user: User, project: Project) ->
-                lnkUserProjectService.addRole(user, project, setRoleRequest.role)
-            }
+            findUserAndProject(setRoleRequest.userName, organizationName, projectName)
+                .map { (user: User, project: Project) ->
+                    lnkUserProjectService.addRole(user, project, setRoleRequest.role)
+                }
 
     internal fun findUserAndProject(userName: String,
-                                   organizationName: String,
-                                   projectName: String
+                                    organizationName: String,
+                                    projectName: String
     ): Mono<Tuple2<User, Project>> = Mono.zip(
         Mono.justOrEmpty(userRepository.findByName(userName)),
         Mono.justOrEmpty(

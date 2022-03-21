@@ -3,7 +3,6 @@ package org.cqfn.save.backend.controllers
 import org.cqfn.save.backend.StringResponse
 import org.cqfn.save.backend.configs.ConfigProperties
 import org.cqfn.save.backend.repository.TimestampBasedFileSystemRepository
-import org.cqfn.save.permission.Permission
 import org.cqfn.save.backend.service.ExecutionService
 import org.cqfn.save.backend.service.ProjectService
 import org.cqfn.save.backend.utils.username
@@ -16,6 +15,7 @@ import org.cqfn.save.entities.ExecutionRequestForStandardSuites
 import org.cqfn.save.entities.Project
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionType
+import org.cqfn.save.permission.Permission
 
 import org.slf4j.LoggerFactory
 import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
@@ -33,6 +33,7 @@ import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.toEntity
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+
 import java.lang.StringBuilder
 
 /**
