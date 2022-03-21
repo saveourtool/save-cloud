@@ -37,11 +37,6 @@ external interface SelectFormRequiredProps : Props {
      * select name
      */
     var text: String?
-
-    /**
-     * elements of `select`
-     */
-    var elements: List<String>?
 }
 
 /**
@@ -58,7 +53,7 @@ fun selectFormRequired(
     onChangeFun: (form: InputTypes, organization: Event, isProject: Boolean) -> Unit
 ) = fc<SelectFormRequiredProps> { props ->
 
-    val (elements, setElements) = useState(props.elements)
+    val (elements, setElements) = useState(listOf<String>())
 
     useRequest(arrayOf(), isDeferred = false) {
         val organizations =
@@ -96,7 +91,7 @@ fun selectFormRequired(
                     attrs["class"] = "form-control is-invalid"
                 }
 
-                val newElements = elements?.toMutableList() ?: mutableListOf()
+                val newElements = elements.toMutableList()
                 newElements.add(0, "")
                 newElements.forEach { element ->
                     option {
