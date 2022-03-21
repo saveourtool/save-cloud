@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.tags.Tags
 import org.cqfn.save.backend.configs.ApiSwaggerSupport
 import org.cqfn.save.backend.security.ProjectPermissionEvaluator
+import org.cqfn.save.backend.service.OrganizationService
 import org.cqfn.save.backend.service.PermissionService
 import org.cqfn.save.domain.Role
 import org.cqfn.save.entities.Project
@@ -38,6 +39,7 @@ import reactor.kotlin.core.util.function.component2
 @Suppress("MISSING_KDOC_ON_FUNCTION")
 class PermissionController(
     private val permissionService: PermissionService,
+    private val organizationService: OrganizationService,
     private val projectPermissionEvaluator: ProjectPermissionEvaluator,
 ) {
     @GetMapping("/{organizationName}/{projectName}")
