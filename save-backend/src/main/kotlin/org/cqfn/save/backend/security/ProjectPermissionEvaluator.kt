@@ -35,16 +35,18 @@ class ProjectPermissionEvaluator {
             Permission.DELETE -> false
         }
 
-        if (authentication.hasRole(Role.SUPER_ADMIN)) {
+        val userId = (authentication.details as AuthenticationDetails).id
+        val isOrganizationOwner = project.organization.ownerId == userId
+        val projectRole by lazy { lnkUserProjectService.findRoleByUserIdAndProject(userId, project) }
+
+        if (isOrganizationOwner || authentication.hasRole(Role.SUPER_ADMIN)) {
             return true
         }
 
-        val userId = (authentication.details as AuthenticationDetails).id
         return when (permission) {
-            Permission.READ -> project.public || hasWriteAccess(userId, project)
-            Permission.WRITE -> hasWriteAccess(userId, project)
-            // fixme: check role to ensure its `OWNER`
-            Permission.DELETE -> project.userId == userId
+            Permission.READ -> project.public || hasWriteAccess(userId, project, projectRole)
+            Permission.WRITE -> hasWriteAccess(userId, project, projectRole)
+            Permission.DELETE -> project.userId == userId || projectRole == Role.OWNER
         }
     }
 
@@ -80,12 +82,10 @@ class ProjectPermissionEvaluator {
 
     private fun Authentication.hasRole(role: Role): Boolean = authorities.any { it.authority == role.asSpringSecurityRole() }
 
-    private fun hasWriteAccess(userId: Long?, project: Project): Boolean = if (userId != null && project.userId == userId) {
-        true
-    } else {
-        val adminIds = lnkUserProjectService.getAllUsersByProjectAndRole(project, Role.ADMIN).map { it.id }
-        val ownerIds = lnkUserProjectService.getAllUsersByProjectAndRole(project, Role.OWNER).map { it.id }
-        userId != null && (userId in adminIds || userId in ownerIds)
+    private fun hasWriteAccess(userId: Long?, project: Project, projectRole: Role): Boolean = when {
+        userId == null -> false
+        project.userId == userId -> true
+        else -> projectRole == Role.ADMIN || projectRole == Role.OWNER
     }
 
     /**

@@ -1,7 +1,10 @@
 package org.cqfn.save.orchestrator.docker
 
+import org.cqfn.save.domain.Sdk
+import org.cqfn.save.orchestrator.DOCKER_METRIC_PREFIX
 import org.cqfn.save.orchestrator.config.DockerSettings
 import org.cqfn.save.orchestrator.copyRecursivelyWithAttributes
+import org.cqfn.save.orchestrator.execTimed
 import org.cqfn.save.orchestrator.getHostIp
 
 import com.github.dockerjava.api.DockerClient
@@ -13,6 +16,7 @@ import com.github.dockerjava.core.DockerClientConfig
 import com.github.dockerjava.core.DockerClientImpl
 import com.github.dockerjava.httpclient5.ApacheDockerHttpClient
 import com.github.dockerjava.transport.DockerHttpClient
+import io.micrometer.core.instrument.MeterRegistry
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream
 import org.slf4j.LoggerFactory
@@ -32,7 +36,9 @@ import kotlin.io.path.createTempFile
  *
  * @property settings setting of docker daemon
  */
-class ContainerManager(private val settings: DockerSettings) {
+class ContainerManager(private val settings: DockerSettings,
+                       private val meterRegistry: MeterRegistry,
+) {
     private val dockerClientConfig: DockerClientConfig = DefaultDockerClientConfig
         .createDefaultConfigBuilder()
         .withDockerHost(settings.host)
@@ -58,12 +64,13 @@ class ContainerManager(private val settings: DockerSettings) {
      * @throws DockerException if docker daemon has returned an error
      * @throws RuntimeException if an exception not specific to docker has occurred
      */
+    @Suppress("UnsafeCallOnNullableType")
     internal fun createContainerFromImage(baseImageId: String,
                                           workingDir: String,
                                           runCmd: String,
                                           containerName: String,
     ): String {
-        val baseImage = dockerClient.listImagesCmd().exec().find {
+        val baseImage = dockerClient.listImagesCmd().execTimed(meterRegistry, "$DOCKER_METRIC_PREFIX.image.list")!!.find {
             // fixme: sometimes createImageCmd returns short id without prefix, sometimes full and with prefix.
             it.id.replaceFirst("sha256:", "").startsWith(baseImageId.replaceFirst("sha256:", ""))
         }
@@ -92,9 +99,9 @@ class ContainerManager(private val settings: DockerSettings) {
                     }
                 )
             )
-            .exec()
+            .execTimed(meterRegistry, "$DOCKER_METRIC_PREFIX.container.create")
 
-        return createContainerCmdResponse.id
+        return createContainerCmdResponse!!.id
     }
 
     /**
@@ -111,7 +118,7 @@ class ContainerManager(private val settings: DockerSettings) {
             dockerClient.copyArchiveToContainerCmd(containerId)
                 .withTarInputStream(out.toByteArray().inputStream())
                 .withRemotePath(remotePath)
-                .exec()
+                .execTimed(meterRegistry, "$DOCKER_METRIC_PREFIX.container.copy.archive")
         }
     }
 
@@ -127,7 +134,8 @@ class ContainerManager(private val settings: DockerSettings) {
      * @throws DockerException
      */
     @OptIn(ExperimentalPathApi::class)
-    internal fun buildImageWithResources(baseImage: String = "ubuntu:latest",
+    @Suppress("TOO_LONG_FUNCTION", "LongMethod")
+    internal fun buildImageWithResources(baseImage: String = Sdk.Default.toString(),
                                          imageName: String,
                                          baseDir: File,
                                          resourcesPath: String,
@@ -148,13 +156,20 @@ class ContainerManager(private val settings: DockerSettings) {
         val hostIp = getHostIp("host.docker.internal")
         log.debug("Resolved host IP as $hostIp, will add it to the container")
         val buildImageResultCallback: BuildImageResultCallback = try {
-            dockerClient.buildImageCmd(dockerFile)
+            val buildCmd = dockerClient.buildImageCmd(dockerFile)
                 .withBaseDirectory(tmpDir)
                 .withTags(setOf(imageName))
                 .withExtraHosts(hostIp?.let {
                     setOf("host.docker.internal:$hostIp")
                 } ?: emptySet())
-                .start()
+            buildCmd.execTimed(meterRegistry, "save.orchestrator.docker.build", "baseImage", baseImage) { record ->
+                object : BuildImageResultCallback() {
+                    override fun onComplete() {
+                        super.onComplete()
+                        record()
+                    }
+                }
+            }
         } finally {
             dockerFile.delete()
             tmpDir.deleteRecursively()
@@ -189,10 +204,5 @@ class ContainerManager(private val settings: DockerSettings) {
 
     companion object {
         private val log = LoggerFactory.getLogger(ContainerManager::class.java)
-
-        // fixme: choose proper base image for tests
-        private const val BASE_IMAGE = "ubuntu"
-        private const val BASE_IMAGE_TAG = "latest"
-        private const val DOCKER_REPO = "docker.io/library/$BASE_IMAGE"
     }
 }

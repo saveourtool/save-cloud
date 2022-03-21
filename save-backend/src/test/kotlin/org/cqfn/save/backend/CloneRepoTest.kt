@@ -14,12 +14,14 @@ import org.cqfn.save.entities.GitDto
 import org.cqfn.save.entities.Project
 import org.cqfn.save.execution.ExecutionType
 import org.cqfn.save.testutils.checkQueues
+import org.cqfn.save.testutils.cleanup
 import org.cqfn.save.testutils.createMockWebServer
 import org.cqfn.save.testutils.enqueue
 
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -130,9 +132,14 @@ class CloneRepoTest {
     companion object {
         @JvmStatic lateinit var mockServerPreprocessor: MockWebServer
 
+        @AfterEach
+        fun cleanup() {
+            mockServerPreprocessor.checkQueues()
+            mockServerPreprocessor.cleanup()
+        }
+
         @AfterAll
         fun tearDown() {
-            mockServerPreprocessor.checkQueues()
             mockServerPreprocessor.shutdown()
         }
 

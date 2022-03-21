@@ -8,21 +8,25 @@
 package org.cqfn.save.frontend.components.views
 
 import org.cqfn.save.entities.*
+import org.cqfn.save.frontend.components.basic.*
 import org.cqfn.save.frontend.components.basic.InputTypes
 import org.cqfn.save.frontend.components.basic.inputTextFormOptional
 import org.cqfn.save.frontend.components.basic.inputTextFormRequired
-import org.cqfn.save.frontend.utils.apiUrl
-import org.cqfn.save.frontend.utils.get
-import org.cqfn.save.frontend.utils.post
-import org.cqfn.save.frontend.utils.runErrorModal
+import org.cqfn.save.frontend.components.basic.selectFormRequired
+import org.cqfn.save.frontend.components.errorStatusContext
+import org.cqfn.save.frontend.utils.*
+import org.cqfn.save.frontend.utils.noopResponseHandler
 
-import org.w3c.dom.HTMLInputElement
-import org.w3c.dom.HTMLTextAreaElement
+import org.w3c.dom.*
 import org.w3c.dom.events.Event
 import org.w3c.fetch.Headers
+import org.w3c.fetch.Response
+import react.Context
 import react.Props
 import react.RBuilder
+import react.RStatics
 import react.State
+import react.StateSetter
 import react.dom.*
 import react.setState
 
@@ -54,7 +58,7 @@ external interface ProjectSaveViewState : State {
     /**
      * Validation of input fields
      */
-    var isValidOwner: Boolean?
+    var isValidOrganization: Boolean?
 
     /**
      * Validation of input fields
@@ -103,22 +107,34 @@ enum class GitConnectionStatusEnum {
 @OptIn(ExperimentalJsExport::class)
 class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
     private val fieldsMap: MutableMap<InputTypes, String> = mutableMapOf()
+    private val selectFormRequired = selectFormRequired(
+        onChangeFun = ::changeFields,
+    )
 
     init {
         state.isErrorWithProjectSave = false
         state.errorMessage = ""
         state.gitConnectionCheckingStatus = GitConnectionStatusEnum.NOT_CHECKED
 
-        state.isValidOwner = true
+        state.isValidOrganization = true
         state.isValidProjectName = true
         state.isValidGitUrl = true
         state.isValidGitUser = true
         state.isValidGitToken = true
     }
 
-    private fun changeFields(fieldName: InputTypes, target: Event, isProject: Boolean = true) {
-        val tg = target.target as HTMLInputElement
-        if (isProject) fieldsMap[fieldName] = tg.value else fieldsMap[fieldName] = tg.value
+    private fun changeFields(
+        fieldName: InputTypes,
+        target: Event,
+        isProject: Boolean = true,
+    ) {
+        val tg = target.target
+        val value = when (tg) {
+            is HTMLInputElement -> tg.value
+            is HTMLSelectElement -> tg.value
+            else -> ""
+        }
+        fieldsMap[fieldName] = value
     }
 
     @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
@@ -135,7 +151,8 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
                 gitConnectionCheckingStatus = GitConnectionStatusEnum.VALIDATING
             }
             val responseFromCreationProject =
-                    get("$apiUrl/check-git-connectivity-adaptor$urlArguments", headers)
+                    get("$apiUrl/check-git-connectivity-adaptor$urlArguments", headers,
+                        responseHandler = ::noopResponseHandler)
 
             if (responseFromCreationProject.ok) {
                 if (responseFromCreationProject.text().await().toBoolean()) {
@@ -160,8 +177,7 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
         if (!isValidInput()) {
             return
         }
-        // fixme: Need to change input to select for Owner and get the correct organization.
-        val organizationName = fieldsMap[InputTypes.OWNER]!!.trim()
+        val organizationName = fieldsMap[InputTypes.ORGANIZATION_NAME]!!.trim()
         val date = LocalDateTime(1970, Month.JANUARY, 1, 0, 0, 1)
         val newProjectRequest = NewProjectDto(
             Project(
@@ -172,6 +188,7 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
                 userId = -1,
                 organization = Organization("stub", null, date)
             ),
+            fieldsMap[InputTypes.ORGANIZATION_NAME]!!.trim(),
             GitDto(
                 fieldsMap[InputTypes.GIT_URL]?.trim() ?: "",
                 fieldsMap[InputTypes.GIT_USER]?.trim(),
@@ -210,11 +227,11 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
     @Suppress("TOO_LONG_FUNCTION", "SAY_NO_TO_VAR")
     private fun isValidInput(): Boolean {
         var valid = true
-        if (fieldsMap[InputTypes.OWNER].isNullOrBlank()) {
-            setState { isValidOwner = false }
+        if (fieldsMap[InputTypes.ORGANIZATION_NAME].isNullOrBlank()) {
+            setState { isValidOrganization = false }
             valid = false
         } else {
-            setState { isValidOwner = true }
+            setState { isValidOrganization = true }
         }
 
         if (fieldsMap[InputTypes.PROJECT_NAME].isNullOrBlank()) {
@@ -247,7 +264,11 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
         return valid
     }
 
-    @Suppress("TOO_LONG_FUNCTION", "EMPTY_BLOCK_STRUCTURE_ERROR", "LongMethod")
+    @Suppress(
+        "TOO_LONG_FUNCTION",
+        "EMPTY_BLOCK_STRUCTURE_ERROR",
+        "LongMethod",
+    )
     override fun RBuilder.render() {
         runErrorModal(
             state.isErrorWithProjectSave,
@@ -267,10 +288,20 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
                                 h1("h4 text-gray-900 mb-4") {
                                     +"Create new test project"
                                 }
+                                div {
+                                    button(type = ButtonType.button, classes = "btn btn-primary mb-2") {
+                                        a(classes = "text-light", href = "#/createOrganization/") {
+                                            +"Add new organization"
+                                        }
+                                    }
+                                }
                                 form(classes = "needs-validation") {
                                     div("row g-3") {
-                                        inputTextFormRequired(InputTypes.OWNER, state.isValidOwner!!, "col-md-6 pl-0 pl-2 pr-2", "Organization") {
-                                            changeFields(InputTypes.OWNER, it)
+                                        child(selectFormRequired) {
+                                            attrs.form = InputTypes.ORGANIZATION_NAME
+                                            attrs.validInput = state.isValidOrganization!!
+                                            attrs.classes = "col-md-6 pl-0 pl-2 pr-2"
+                                            attrs.text = "Organization"
                                         }
                                         inputTextFormRequired(InputTypes.PROJECT_NAME, state.isValidProjectName!!, "col-md-6 pl-2 pr-2", "Tested tool name") {
                                             changeFields(InputTypes.PROJECT_NAME, it)
@@ -374,4 +405,10 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
             div("$blockName mt-2") {
                 +text
             }
+
+    companion object : RStatics<Props, ProjectSaveViewState, CreationView, Context<StateSetter<Response?>>>(CreationView::class) {
+        init {
+            contextType = errorStatusContext
+        }
+    }
 }

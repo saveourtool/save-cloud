@@ -128,10 +128,11 @@ class ExecutionController(private val executionService: ExecutionService,
      * @param authentication
      * @param organizationName
      * @return list of execution dtos
+     * @throws NoSuchElementException
      */
     @GetMapping("/api/executionDtoList")
     fun getExecutionByProject(@RequestParam name: String, @RequestParam organizationName: String, authentication: Authentication): Mono<List<ExecutionDto>> {
-        val organization = organizationService.findByName(organizationName)
+        val organization = organizationService.findByName(organizationName) ?: throw NoSuchElementException("Organization with name [$organizationName] was not found.")
         return projectService.findWithPermissionByNameAndOrganization(authentication, name, organization, Permission.READ).map {
             executionService.getExecutionDtoByNameAndOrganization(name, organization).reversed()
         }
@@ -162,6 +163,7 @@ class ExecutionController(private val executionService: ExecutionService,
      * @param organizationName organization of project
      * @param authentication
      * @return ResponseEntity
+     * @throws NoSuchElementException
      */
     @PostMapping("/api/execution/deleteAll")
     @Suppress("UnsafeCallOnNullableType")
@@ -170,7 +172,7 @@ class ExecutionController(private val executionService: ExecutionService,
         @RequestParam organizationName: String,
         authentication: Authentication,
     ): Mono<ResponseEntity<*>> {
-        val organization = organizationService.findByName(organizationName)
+        val organization = organizationService.findByName(organizationName) ?: throw NoSuchElementException("No such organization was found")
         return projectService.findWithPermissionByNameAndOrganization(
             authentication,
             name,

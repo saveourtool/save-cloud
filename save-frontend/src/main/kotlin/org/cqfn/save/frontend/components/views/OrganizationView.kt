@@ -8,7 +8,9 @@ import org.cqfn.save.domain.ImageInfo
 import org.cqfn.save.entities.Organization
 import org.cqfn.save.entities.Project
 import org.cqfn.save.frontend.components.basic.privacySpan
+import org.cqfn.save.frontend.components.errorStatusContext
 import org.cqfn.save.frontend.components.tables.tableComponent
+import org.cqfn.save.frontend.http.getOrganization
 import org.cqfn.save.frontend.utils.*
 
 import csstype.Left
@@ -18,6 +20,7 @@ import csstype.Top
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.asList
 import org.w3c.fetch.Headers
+import org.w3c.fetch.Response
 import org.w3c.xhr.FormData
 import react.*
 import react.dom.*
@@ -217,8 +220,15 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 }
             }
 
-    private suspend fun getAvatar() = get("$apiUrl/organization/avatar?owner=${props.organizationName}", Headers())
+    private suspend fun getAvatar() = get("$apiUrl/organization/avatar?owner=${props.organizationName}", Headers(),
+        responseHandler = ::noopResponseHandler)
         .unsafeMap {
             it.decodeFromJsonString<ImageInfo>()
         }
+
+    companion object : RStatics<OrganizationProps, OrganizationViewState, OrganizationView, Context<StateSetter<Response?>>>(OrganizationView::class) {
+        init {
+            contextType = errorStatusContext
+        }
+    }
 }

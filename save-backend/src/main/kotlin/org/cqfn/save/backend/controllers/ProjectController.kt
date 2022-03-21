@@ -155,10 +155,15 @@ class ProjectController(private val projectService: ProjectService,
      * @return response
      */
     @PostMapping("/save")
+    @Suppress("UnsafeCallOnNullableType")
     fun saveProject(@RequestBody newProjectDto: NewProjectDto, authentication: Authentication): ResponseEntity<String> {
         val userId = (authentication.details as AuthenticationDetails).id
-        val (projectId, projectStatus) = projectService.saveProject(
-            newProjectDto.project.apply {
+        val organization = organizationService.findByName(newProjectDto.organizationName)
+        val newProject = newProjectDto.project.apply {
+            this.organization = organization!!
+        }
+        val (projectId, projectStatus) = projectService.getOrSaveProject(
+            newProject.apply {
                 this.userId = userId
             }
         )
@@ -192,7 +197,7 @@ class ProjectController(private val projectService: ProjectService,
             }
         }
         .map { updatedProject ->
-            val (_, projectStatus) = projectService.saveProject(updatedProject)
+            val (_, projectStatus) = projectService.getOrSaveProject(updatedProject)
             ResponseEntity.ok(projectStatus.message)
         }
 

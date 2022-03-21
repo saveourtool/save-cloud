@@ -4,6 +4,7 @@ import org.cqfn.save.backend.configs.ConfigProperties
 import org.cqfn.save.backend.configs.NoopWebSecurityConfig
 import org.cqfn.save.backend.configs.WebConfig
 import org.cqfn.save.backend.controllers.DownloadFilesController
+import org.cqfn.save.backend.controllers.OrganizationController
 import org.cqfn.save.backend.repository.*
 import org.cqfn.save.backend.scheduling.StandardSuitesUpdateScheduler
 import org.cqfn.save.backend.service.OrganizationService
@@ -63,6 +64,7 @@ import kotlin.io.path.writeLines
     MockBean(ExecutionRepository::class),
     MockBean(OrganizationService::class),
     MockBean(OrganizationRepository::class),
+    MockBean(OrganizationController::class),
     MockBean(ProjectRepository::class),
     MockBean(TestExecutionRepository::class),
     MockBean(TestRepository::class),

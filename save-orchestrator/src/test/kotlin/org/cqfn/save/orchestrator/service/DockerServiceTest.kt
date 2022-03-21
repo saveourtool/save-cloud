@@ -5,12 +5,16 @@ import org.cqfn.save.entities.Project
 import org.cqfn.save.orchestrator.config.Beans
 import org.cqfn.save.orchestrator.config.ConfigProperties
 import org.cqfn.save.orchestrator.controller.AgentsController
+import org.cqfn.save.orchestrator.testutils.TestConfiguration
+import org.cqfn.save.testutils.checkQueues
+import org.cqfn.save.testutils.cleanup
 import org.cqfn.save.testutils.createMockWebServer
 import org.cqfn.save.testutils.enqueue
 
 import com.github.dockerjava.api.async.ResultCallback
 import com.github.dockerjava.api.model.Frame
 import okhttp3.mockwebserver.MockResponse
+import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -41,9 +45,9 @@ import kotlin.io.path.pathString
 @DisabledOnOs(OS.WINDOWS, disabledReason = "Docker daemon behaves differently on Windows, and our target platform is Linux")
 @WebFluxTest(controllers = [AgentsController::class])  // to autowire everything for DockerService
 @MockBeans(
-    MockBean(AgentService::class)
+    MockBean(AgentService::class),
 )
-@Import(Beans::class, DockerService::class)
+@Import(Beans::class, DockerService::class, TestConfiguration::class)
 class DockerServiceTest {
     @Autowired private lateinit var dockerService: DockerService
     private lateinit var testImageId: String
@@ -105,6 +109,17 @@ class DockerServiceTest {
 
         @JvmStatic
         private val mockServer = createMockWebServer()
+
+        @AfterEach
+        fun cleanup() {
+            mockServer.checkQueues()
+            mockServer.cleanup()
+        }
+
+        @AfterAll
+        fun teardown() {
+            mockServer.shutdown()
+        }
 
         @OptIn(ExperimentalPathApi::class)
         @JvmStatic
