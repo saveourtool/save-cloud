@@ -6,8 +6,11 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.util.*
 import io.ktor.client.engine.apache.*
+import io.ktor.client.features.auth.*
+import io.ktor.client.features.auth.providers.*
 import io.ktor.client.features.json.*
 import io.ktor.client.features.json.serializer.*
+import io.ktor.client.features.logging.*
 import io.ktor.client.request.*
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
@@ -16,6 +19,7 @@ import org.cqfn.save.core.result.DebugInfo
 import org.cqfn.save.core.result.Pass
 import org.cqfn.save.domain.TestResultDebugInfo
 import org.cqfn.save.domain.TestResultLocation
+import java.util.*
 
 // TODO move into properties file
 private const val BACKEND_URL = "http://localhost:5000/internal"
@@ -34,8 +38,26 @@ class AutomaticTestInitializator {
     @OptIn(InternalAPI::class)
     suspend fun start() {
         val httpClient = HttpClient(Apache) {
+            install(Logging) {
+                logger = Logger.DEFAULT
+                level = LogLevel.ALL
+            }
             install(JsonFeature) {
                 serializer = KotlinxSerializer(json)
+            }
+            install(Auth) {
+                basic {
+                    sendWithoutRequest { request ->
+                        request.url.host == "localhost"
+                    }
+                    //sendWithoutRequest = true
+                    credentials {
+                        // no need `:` after username
+                        BasicAuthCredentials(username = "admin", password = "")
+                        //BasicAuthCredentials(username = "YWRtaW46", password = "")
+                    }
+                    //realm = "Access to the '/' path"
+                }
             }
         }
 
@@ -61,6 +83,7 @@ class AutomaticTestInitializator {
         )
         httpClient.post<HttpResponse> {
             url("${BACKEND_URL}/internal/files/debug-info?agentId=test-agent-id")
+            //header("Authorization", "Basic ${Base64.getEncoder().encodeToString("admin:".toByteArray())}")
             contentType(ContentType.Application.Json)
             body = testResultDebugInfo
         }
