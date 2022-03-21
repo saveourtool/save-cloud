@@ -1,6 +1,8 @@
 package org.cqfn.save.backend.configs
 
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeType
+import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.security.SecurityScheme
 
@@ -11,4 +13,7 @@ import io.swagger.v3.oas.annotations.security.SecurityScheme
 @Retention(AnnotationRetention.RUNTIME)
 @SecurityScheme(name = "basic", type = SecuritySchemeType.HTTP, scheme = "basic")
 @SecurityRequirement(name = "basic")
+@ApiResponses(
+    ApiResponse(responseCode = "401", description = "Unauthorized", content = [])
+)
 annotation class ApiSwaggerSupport

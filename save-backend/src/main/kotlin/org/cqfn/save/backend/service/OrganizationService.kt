@@ -54,7 +54,13 @@ class OrganizationService(private val organizationRepository: OrganizationReposi
         organization.let { organizationRepository.save(it) }
     }
 
-    fun isOwner(organizationName: String, userId: Long): Boolean {
+    fun canChangeRoles(organizationName: String, userId: Long): Boolean {
+        // In case we widen number of users that can manage roles in an organization, there is a separate method.
+        // Simply delegating now.
+        return isOwner(organizationName, userId)
+    }
+
+    private fun isOwner(organizationName: String, userId: Long): Boolean {
          val organization = organizationRepository.findByName(organizationName)
         return organization?.ownerId == userId
     }

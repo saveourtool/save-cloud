@@ -29,12 +29,11 @@ class PermissionService(
         return lnkUserProjectService.findRoleByUserIdAndProject(user.id!!, project)
     }
 
-    fun addRole(setRoleRequest: SetRoleRequest)  = with(setRoleRequest) {
-        findUserAndProject(userName, organizationName, projectName)
-    }
-        .map { (user: User, project: Project) ->
-            lnkUserProjectService.addRole(user, project, setRoleRequest.role)
-        }
+    fun addRole(organizationName: String, projectName: String, setRoleRequest: SetRoleRequest): Mono<Unit> =
+        findUserAndProject(setRoleRequest.userName, organizationName, projectName)
+            .map { (user: User, project: Project) ->
+                lnkUserProjectService.addRole(user, project, setRoleRequest.role)
+            }
 
     internal fun findUserAndProject(userName: String,
                                    organizationName: String,

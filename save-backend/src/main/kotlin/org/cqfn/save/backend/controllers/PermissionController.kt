@@ -65,7 +65,7 @@ class PermissionController(
             Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
         }
 
-    @PostMapping("/set")
+    @PostMapping("/{organizationName}/{projectName}")
     @Operation(
         description = "Set role for a user on a particular project",
         parameters = [
@@ -75,11 +75,12 @@ class PermissionController(
     @ApiResponse(responseCode = "200", description = "Permission added")
     @ApiResponse(responseCode = "403", description = "User doesn't have permissions to manage this organization members")
     @ApiResponse(responseCode = "404", description = "Requested user or project doesn't exist")
-    @PreAuthorize("@organizationService.isOwner(#setRoleRequest.organizationName, #authentication.details.id)")
-    fun setRole(
-        @RequestBody setRoleRequest: SetRoleRequest,
-        authentication: Authentication,
-    ) = permissionService.addRole(setRoleRequest)
+    @PreAuthorize("@organizationService.canChangeRoles(#organizationName, #authentication.details.id)")
+    fun setRole(@PathVariable organizationName: String,
+                @PathVariable projectName: String,
+                @RequestBody setRoleRequest: SetRoleRequest,
+                authentication: Authentication,
+    ) = permissionService.addRole(organizationName, projectName, setRoleRequest)
         .switchIfEmpty {
             logger.info("Attempt to perform role update $setRoleRequest, but user or organization was not found")
             Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
