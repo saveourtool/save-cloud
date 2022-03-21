@@ -127,14 +127,14 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
         fieldName: InputTypes,
         target: Event,
         isProject: Boolean = true,
-        isHtmlInputElement: Boolean = true
     ) {
-        val tg = if (isHtmlInputElement) {
-            (target.target as HTMLInputElement).value
-        } else {
-            (target.target as HTMLSelectElement).value
+        val tg = target.target
+        val value = when (tg) {
+            is HTMLInputElement -> tg.value
+            is HTMLSelectElement -> tg.value
+            else -> ""
         }
-        fieldsMap[fieldName] = tg
+        fieldsMap[fieldName] = value
     }
 
     @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")

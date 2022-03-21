@@ -42,11 +42,6 @@ external interface SelectFormRequiredProps : Props {
      * elements of `select`
      */
     var elements: List<String>?
-
-    /**
-     * initial value of `select`
-     */
-    var initialValue: String?
 }
 
 /**
@@ -60,11 +55,10 @@ external interface SelectFormRequiredProps : Props {
     "TYPE_ALIAS",
 )
 fun selectFormRequired(
-    onChangeFun: (form: InputTypes, organization: Event, isProject: Boolean, isHtmlInputElement: Boolean) -> Unit
+    onChangeFun: (form: InputTypes, organization: Event, isProject: Boolean) -> Unit
 ) = fc<SelectFormRequiredProps> { props ->
 
     val (elements, setElements) = useState(props.elements)
-    val (initialValue, setInitialValue) = useState(props.initialValue)
 
     useRequest(arrayOf(), isDeferred = false) {
         val organizations =
@@ -106,16 +100,12 @@ fun selectFormRequired(
                 newElements.add(0, "")
                 newElements.forEach { element ->
                     option {
-                        if (element == initialValue) {
-                            attrs.selected = true
-                            setInitialValue(element)
-                        }
                         +element
                     }
                 }
 
                 attrs.onChangeFunction = {
-                    onChangeFun(props.form!!, it, true, false)
+                    onChangeFun(props.form!!, it, true)
                 }
             }
 
