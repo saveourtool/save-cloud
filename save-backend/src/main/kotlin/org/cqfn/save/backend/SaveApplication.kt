@@ -2,14 +2,9 @@ package org.cqfn.save.backend
 
 import org.cqfn.save.backend.configs.ConfigProperties
 import org.springframework.boot.SpringApplication
-import org.springframework.boot.actuate.autoconfigure.metrics.orm.jpa.HibernateMetricsAutoConfiguration
-import org.springframework.boot.autoconfigure.ImportAutoConfiguration
 import org.springframework.boot.autoconfigure.SpringBootApplication
-import org.springframework.boot.autoconfigure.domain.EntityScan
 import org.springframework.boot.context.properties.EnableConfigurationProperties
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories
 import org.springframework.http.ResponseEntity
-import org.springframework.web.reactive.config.EnableWebFlux
 
 typealias ByteArrayResponse = ResponseEntity<ByteArray>
 typealias StringResponse = ResponseEntity<String>
@@ -19,11 +14,7 @@ typealias EmptyResponse = ResponseEntity<Void>
  * An entrypoint for spring for save-backend
  */
 @SpringBootApplication
-@EnableWebFlux
-@EnableJpaRepositories(basePackages = ["org.cqfn.save.backend.repository"])
-@EntityScan("org.cqfn.save.entities")
 @EnableConfigurationProperties(ConfigProperties::class)
-@ImportAutoConfiguration(HibernateMetricsAutoConfiguration::class)
 class SaveApplication
 
 fun main(args: Array<String>) {
