@@ -15,23 +15,17 @@ import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.mock.mockito.MockBean
-import org.springframework.boot.test.mock.mockito.MockBeans
 import org.springframework.context.annotation.Import
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import java.util.Optional
 
 @ExtendWith(SpringExtension::class)
 @Import(PermissionService::class)
-@MockBeans(
-    MockBean(ProjectService::class),
-    MockBean(UserRepository::class),
-    MockBean(LnkUserProjectService::class),
-)
 class PermissionServiceTest {
     @Autowired private lateinit var permissionService: PermissionService
-    @Autowired private lateinit var userRepository: UserRepository
-    @Autowired private lateinit var projectService: ProjectService
-    @Autowired private lateinit var lnkUserProjectService: LnkUserProjectService
+    @MockBean private lateinit var userRepository: UserRepository
+    @MockBean private lateinit var projectService: ProjectService
+    @MockBean private lateinit var lnkUserProjectService: LnkUserProjectService
 
     @Test
     fun `should return a role`() {

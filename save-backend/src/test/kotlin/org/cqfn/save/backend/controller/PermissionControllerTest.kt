@@ -18,7 +18,6 @@ import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.User
 import org.cqfn.save.permission.Permission
 import org.cqfn.save.permission.SetRoleRequest
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.invocation.InvocationOnMock
 import org.mockito.kotlin.any
@@ -35,7 +34,6 @@ import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import reactor.core.publisher.Mono
 import reactor.util.function.Tuples
-import java.time.Duration
 import java.util.Optional
 
 @WebFluxTest(controllers = [PermissionController::class])
@@ -53,13 +51,6 @@ class PermissionControllerTest {
     @MockBean private lateinit var projectPermissionEvaluator: ProjectPermissionEvaluator
     @MockBean private lateinit var userRepository: UserRepository
     @MockBean private lateinit var projectService: ProjectService
-
-    @BeforeEach
-    fun setUp() {
-        webTestClient = webTestClient.mutate()
-            .responseTimeout(Duration.ofDays(1))
-            .build()
-    }
 
     @Test
     @WithMockUser
@@ -88,7 +79,6 @@ class PermissionControllerTest {
             project = Project.stub(id = 99),
             permission = null,
         )
-        given(permissionService.getRole(any(), any())).willReturn(Role.ADMIN)
 
         webTestClient.get()
             .uri("/api/projects/roles/Huawei/huaweiName?userName=admin")

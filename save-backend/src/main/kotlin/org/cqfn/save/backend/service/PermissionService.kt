@@ -36,7 +36,7 @@ class PermissionService(
      * @return role of [user] in [project], may throw exception if data is not consistent
      */
     @Suppress("UnsafeCallOnNullableType")
-    fun getRole(user: User, project: Project): Role = lnkUserProjectService.findRoleByUserIdAndProject(user.id!!, project)
+    internal fun getRole(user: User, project: Project): Role = lnkUserProjectService.findRoleByUserIdAndProject(user.id!!, project)
 
     /**
      * @param organizationName
