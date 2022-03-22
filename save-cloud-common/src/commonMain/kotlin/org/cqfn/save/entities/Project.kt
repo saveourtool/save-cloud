@@ -23,6 +23,7 @@ data class Project(
     var status: ProjectStatus,
     var public: Boolean = true,
     var userId: Long? = null,
+    var email: String? = null,
 
     @ManyToOne
     @JoinColumn(
