@@ -36,7 +36,7 @@ class LnkUserProjectService(private val lnkUserProjectRepository: LnkUserProject
      * Set role of [user] on a project [project] to [role]
      */
     @Suppress("KDOC_WITHOUT_PARAM_TAG")
-    fun addRole(user: User, project: Project, role: Role) {
+    fun setRole(user: User, project: Project, role: Role) {
         lnkUserProjectRepository.save(
             LnkUserProject(
                 project, user, role

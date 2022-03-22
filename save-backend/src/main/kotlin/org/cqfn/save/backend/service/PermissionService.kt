@@ -22,31 +22,22 @@ class PermissionService(
     private val lnkUserProjectService: LnkUserProjectService,
 ) {
     /**
-     * @param userName
-     * @param projectName
-     * @param organizationName
-     */
-    fun getRole(userName: String, projectName: String, organizationName: String): Mono<Role> = findUserAndProject(userName, organizationName, projectName).map { (user, project) ->
-        getRole(user, project)
-    }
-
-    /**
      * @param user
      * @param project
      * @return role of [user] in [project], may throw exception if data is not consistent
      */
     @Suppress("UnsafeCallOnNullableType")
-    internal fun getRole(user: User, project: Project): Role = lnkUserProjectService.findRoleByUserIdAndProject(user.id!!, project)
+    fun getRole(user: User, project: Project): Role = lnkUserProjectService.findRoleByUserIdAndProject(user.id!!, project)
 
     /**
      * @param organizationName
      * @param projectName
      * @param setRoleRequest
      */
-    fun addRole(organizationName: String, projectName: String, setRoleRequest: SetRoleRequest): Mono<Unit> =
+    fun setRole(organizationName: String, projectName: String, setRoleRequest: SetRoleRequest): Mono<Unit> =
             findUserAndProject(setRoleRequest.userName, organizationName, projectName)
                 .map { (user: User, project: Project) ->
-                    lnkUserProjectService.addRole(user, project, setRoleRequest.role)
+                    lnkUserProjectService.setRole(user, project, setRoleRequest.role)
                 }
 
     /**

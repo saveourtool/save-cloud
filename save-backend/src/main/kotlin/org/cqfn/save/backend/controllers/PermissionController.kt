@@ -54,15 +54,19 @@ class PermissionController(
             Parameter(`in` = ParameterIn.HEADER, name = "X-Authorization-Source", required = true),
         ]
     )
-    @ApiResponse(responseCode = "200", description = "Permission added")
-    @ApiResponse(responseCode = "404", description = "Requested user or project doesn't exist or the project is hidden from the current user")
+    @ApiResponse(responseCode = "200", description = "Successfully fetched user's role")
+    @ApiResponse(
+        responseCode = "404", description = "Requested user or project doesn't exist or the user doesn't have enough permissions " +
+                "(i.e. project is hidden from the current user)"
+    )
     fun getRole(@PathVariable organizationName: String,
                 @PathVariable projectName: String,
                 @RequestParam userName: String,
                 authentication: Authentication,
     ): Mono<Role> = permissionService.findUserAndProject(userName, organizationName, projectName)
         .filter { (_, project) ->
-            // roles are available for all VIEWERs of public project and for any member of private project
+            // To be able to see roles, the user should be at least `VIEWER` for public projects
+            // or should have read access (i.e. be a member of) for a private project.
             projectPermissionEvaluator.hasPermission(authentication, project, Permission.READ)
         }
         .map { (user: User, project: Project) ->
@@ -102,7 +106,7 @@ class PermissionController(
             organizationService.canChangeRoles(organizationName, (authentication.details as AuthenticationDetails).id)
         }
         .flatMap {
-            permissionService.addRole(organizationName, projectName, setRoleRequest)
+            permissionService.setRole(organizationName, projectName, setRoleRequest)
         }
         .switchIfEmpty {
             logger.info("Attempt to perform role update $setRoleRequest with insufficient permissions")

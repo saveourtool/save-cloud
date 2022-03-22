@@ -17,6 +17,9 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.context.annotation.Import
 import org.springframework.test.context.junit.jupiter.SpringExtension
+import reactor.core.publisher.Mono
+import reactor.kotlin.core.util.function.component1
+import reactor.kotlin.core.util.function.component2
 import java.util.Optional
 
 @ExtendWith(SpringExtension::class)
@@ -68,10 +71,15 @@ class PermissionServiceTest {
             Project.stub(id = 99)
         }
 
-        val result = permissionService.addRole("Example Org", "Example", SetRoleRequest("user", Role.ADMIN))
+        val result = permissionService.setRole("Example Org", "Example", SetRoleRequest("user", Role.ADMIN))
             .blockOptional()
 
         Assertions.assertTrue(result.isPresent)
-        verify(lnkUserProjectService, times(1)).addRole(any(), any(), any())
+        verify(lnkUserProjectService, times(1)).setRole(any(), any(), any())
     }
+
+    private fun PermissionService.getRole(userName: String, projectName: String, organizationName: String): Mono<Role> =
+             findUserAndProject(userName, organizationName, projectName).map { (user, project) ->
+                getRole(user, project)
+            }
 }

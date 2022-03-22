@@ -102,14 +102,14 @@ class PermissionControllerTest {
             permission = Permission.WRITE,
         )
         given(organizationRepository.findByName(any())).willReturn(Organization("Example Org", ownerId = 99, null, null))
-        given(permissionService.addRole(any(), any(), any())).willReturn(Mono.just(Unit))
+        given(permissionService.setRole(any(), any(), any())).willReturn(Mono.just(Unit))
 
         webTestClient.post()
             .uri("/api/projects/roles/Huawei/huaweiName")
             .bodyValue(SetRoleRequest("admin", Role.ADMIN))
             .exchange()
             .expectStatus().isOk
-        verify(permissionService, times(1)).addRole(any(), any(), any())
+        verify(permissionService, times(1)).setRole(any(), any(), any())
     }
 
     @Test
@@ -130,7 +130,7 @@ class PermissionControllerTest {
             .bodyValue(SetRoleRequest("admin", Role.ADMIN))
             .exchange()
             .expectStatus().isForbidden
-        verify(permissionService, times(0)).addRole(any(), any(), any())
+        verify(permissionService, times(0)).setRole(any(), any(), any())
     }
 
     @Test
@@ -151,7 +151,7 @@ class PermissionControllerTest {
             .bodyValue(SetRoleRequest("admin", Role.ADMIN))
             .exchange()
             .expectStatus().isNotFound
-        verify(permissionService, times(0)).addRole(any(), any(), any())
+        verify(permissionService, times(0)).setRole(any(), any(), any())
     }
 
     @Suppress("LAMBDA_IS_NOT_LAST_PARAMETER")
