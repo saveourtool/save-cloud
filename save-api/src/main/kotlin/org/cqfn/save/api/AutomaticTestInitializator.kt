@@ -9,26 +9,35 @@ import org.cqfn.save.utils.LocalDateTimeSerializer
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.apache.*
-import io.ktor.client.features.*
 import io.ktor.client.features.auth.*
 import io.ktor.client.features.auth.providers.*
 import io.ktor.client.features.json.*
 import io.ktor.client.features.json.serializer.*
 import io.ktor.client.features.logging.*
 import io.ktor.client.request.*
-import io.ktor.client.request.forms.*
-import io.ktor.client.statement.*
-import io.ktor.http.*
-import io.ktor.util.*
+import io.ktor.client.request.forms.MultiPartFormDataContent
+import io.ktor.client.request.forms.formData
+import io.ktor.client.statement.HttpResponse
+import io.ktor.http.contentType
+import io.ktor.http.ContentType
+import io.ktor.util.InternalAPI
+import kotlinx.serialization.Contextual
 import org.slf4j.LoggerFactory
 
 import java.io.IOException
 import java.time.LocalDateTime
-import java.util.*
+import java.util.Properties
 
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
+import org.cqfn.save.domain.Jdk
+import org.cqfn.save.domain.Sdk
+import org.cqfn.save.entities.ExecutionRequest
+import org.cqfn.save.entities.GitDto
+import org.cqfn.save.entities.Organization
+import org.cqfn.save.entities.Project
+import org.cqfn.save.entities.ProjectStatus
 
 internal val json = Json {
     serializersModule = SerializersModule {
@@ -83,24 +92,79 @@ class AutomaticTestInitializator {
         log.info("Result: $result")
 
         log.info("-------------------Start execution---------------------")
+        submitExecution(configuration)
+    }
+
+    @OptIn(InternalAPI::class)
+    suspend fun submitExecution(configuration: ConfigProperties) {
+        val userId = 42L
+        val organizationId = 43L
+
+        val organization = Organization(
+            name = "test-organization",
+            ownerId = userId,
+            dateCreated = LocalDateTime.now(),
+            avatar = "",
+        ).apply {
+            id = organizationId
+        }
+
+        val gitUrl = "https://github.com/analysis-dev/save-cli"
+        val projectId = 44L
+
+        val project = Project(
+            name = "Test-project",
+            url = gitUrl,
+            description = "description",
+            status = ProjectStatus.CREATED,
+            public = true,
+            userId = userId,
+            organization = organization,
+        ).apply {
+            id = projectId
+        }
+
+
+        val userName = "user"
+        val branch = "origin/feature/testing_for_cloud"
+
+        val gitDto = GitDto(
+            url = gitUrl,
+            username = userName,
+            password = null,
+            branch = branch,
+            hash = null
+        )
+
+        val testRootPath = "examples/kotlin-diktat"
+        val executionId = 45L
+
+        val executionRequest = ExecutionRequest(
+            project = project,
+            gitDto = gitDto,
+            testRootPath = testRootPath,
+            sdk = Jdk("11"),
+            executionId = executionId,
+        )
 
         httpClient.post<HttpResponse> {
             url("${configuration.backendUrl}/api/submitExecutionRequest")
             header("X-Authorization-Source", "basic")
             body = MultiPartFormDataContent(formData {
-                append("first_name", "John")
-                append("last_name", "Doe")
-                // append("document", file.readBytes(), Headers.build {
-                // append(HttpHeaders.ContentDisposition, "filename=${file.name}")
-                // })
+                append("executionRequest", executionRequest)
+                // TODO provide logic for files
+                // append("file", "")
             })
         }
+
     }
+
 
     private fun readConfiguration(configFileName: String = "config.properties"): ConfigProperties? {
         try {
             val properties = Properties()
-            val input = AutomaticTestInitializator::class.java.classLoader.getResourceAsStream(configFileName)
+            val classLoader = AutomaticTestInitializator::class.java.classLoader
+            val input = classLoader.getResourceAsStream(configFileName)
             if (input == null) {
                 log.error("Unable to find configuration file: $configFileName")
                 return null
@@ -120,40 +184,12 @@ class AutomaticTestInitializator {
      * @property backendUrl
      * @property preprocessorUrl
      */
-    private data class ConfigProperties(
+    data class ConfigProperties(
         val backendUrl: String,
         val preprocessorUrl: String,
     )
 }
 
-
-//
-//        log.info("-------------------Start post debug info---------------------")
-//
-//        val testResultDebugInfo  = TestResultDebugInfo(
-//            TestResultLocation(
-//                "stub",
-//                "stub",
-//                "stub",
-//                "stub",
-//            ),
-//            DebugInfo(
-//                "stub",
-//                "stub",
-//                "stub",
-//                1
-//            ),
-//            Pass(
-//               "ok",
-//               "ok",
-//            )
-//        )
-//        httpClient.post<HttpResponse> {
-//            url("${BACKEND_URL}/internal/files/debug-info?agentId=test-agent-id")
-//            contentType(ContentType.Application.Json)
-//            body = testResultDebugInfo
-//        }
-//
 //
 //        val testExecutionDto = TestExecutionDto(
 //            filePath = "stub",
