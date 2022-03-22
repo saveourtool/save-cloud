@@ -146,6 +146,27 @@ class PermissionControllerTest {
         verify(permissionService, times(0)).addRole(any(), any(), any())
     }
 
+    @Test
+    @WithMockUser
+    fun `should return 404 when changing roles on hidden project`() {
+        mutateMockedUser {
+            details = AuthenticationDetails(id = 99)
+        }
+        given(
+            user = { User(name = it.arguments[0] as String, null, null, "") },
+            project = Project.stub(id = 99).apply { public = false },
+            permission = null,
+        )
+        given(organizationRepository.findByName(any())).willReturn(Organization("Example Org", ownerId = 42, null, null))
+
+        webTestClient.post()
+            .uri("/api/projects/roles/Huawei/huaweiName")
+            .bodyValue(SetRoleRequest("admin", Role.ADMIN))
+            .exchange()
+            .expectStatus().isNotFound
+        verify(permissionService, times(0)).addRole(any(), any(), any())
+    }
+
     @Suppress("LAMBDA_IS_NOT_LAST_PARAMETER")
     private fun given(
         user: (InvocationOnMock) -> User,
@@ -157,7 +178,8 @@ class PermissionControllerTest {
         }
         given(projectService.findByNameAndOrganizationName(any(), any())).willReturn(project)
         given(projectPermissionEvaluator.hasPermission(any(), any(), any())).willAnswer {
-            when (it.arguments[2] as Permission) {
+            when (it.arguments[2] as Permission?) {
+                null -> false
                 Permission.READ -> permission != null
                 Permission.WRITE -> permission == Permission.WRITE || permission == Permission.DELETE
                 Permission.DELETE -> permission == Permission.DELETE
