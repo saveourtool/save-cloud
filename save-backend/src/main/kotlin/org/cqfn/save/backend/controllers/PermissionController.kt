@@ -16,6 +16,7 @@ import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.tags.Tags
+import org.cqfn.save.backend.utils.AuthenticationDetails
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PreAuthorize
@@ -78,12 +79,16 @@ class PermissionController(
     @ApiResponse(responseCode = "200", description = "Permission added")
     @ApiResponse(responseCode = "403", description = "User doesn't have permissions to manage this organization members")
     @ApiResponse(responseCode = "404", description = "Requested user or project doesn't exist")
-    @PreAuthorize("@organizationService.canChangeRoles(#organizationName, #authentication.details.id)")
     fun setRole(@PathVariable organizationName: String,
                 @PathVariable projectName: String,
                 @RequestBody setRoleRequest: SetRoleRequest,
                 authentication: Authentication,
-    ) = permissionService.addRole(organizationName, projectName, setRoleRequest)
+    ) = Mono.just(Unit).filter {
+        // fixme: could be `@PreAuthorize`, but organizationService cannot be found smh
+        organizationService.canChangeRoles(organizationName, (authentication.details as AuthenticationDetails).id)
+    }.then(
+        permissionService.addRole(organizationName, projectName, setRoleRequest)
+    )
         .switchIfEmpty {
             logger.info("Attempt to perform role update $setRoleRequest, but user or organization was not found")
             Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))

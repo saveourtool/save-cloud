@@ -1,14 +1,24 @@
 package org.cqfn.save.backend.controller
 
+import org.cqfn.save.backend.configs.WebSecurityConfig
 import org.cqfn.save.backend.controllers.PermissionController
+import org.cqfn.save.backend.repository.OrganizationRepository
+import org.cqfn.save.backend.repository.UserRepository
 import org.cqfn.save.backend.security.ProjectPermissionEvaluator
 import org.cqfn.save.backend.service.OrganizationService
 import org.cqfn.save.backend.service.PermissionService
+import org.cqfn.save.backend.service.UserDetailsService
+import org.cqfn.save.backend.utils.AuthenticationDetails
+import org.cqfn.save.backend.utils.ConvertingAuthenticationManager
+import org.cqfn.save.backend.utils.IdentitySourceAwareUserDetails
+import org.cqfn.save.backend.utils.mutateMockedUser
 import org.cqfn.save.domain.Role
+import org.cqfn.save.entities.Organization
 import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.User
 import org.cqfn.save.permission.Permission
 import org.cqfn.save.permission.SetRoleRequest
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.mockito.invocation.InvocationOnMock
@@ -20,19 +30,37 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
 import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.context.annotation.Import
+import org.springframework.http.MediaType
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import reactor.core.publisher.Mono
 import reactor.util.function.Tuples
+import java.time.Duration
+import java.util.Optional
 
 @WebFluxTest(controllers = [PermissionController::class])
+@Import(
+    WebSecurityConfig::class,
+    OrganizationService::class,
+    ConvertingAuthenticationManager::class,
+    UserDetailsService::class,
+)
 @AutoConfigureWebTestClient
 class PermissionControllerTest {
     @Autowired private lateinit var webTestClient: WebTestClient
     @MockBean private lateinit var permissionService: PermissionService
-    @MockBean private lateinit var organizationService: OrganizationService
+    @MockBean private lateinit var organizationRepository: OrganizationRepository
     @MockBean private lateinit var projectPermissionEvaluator: ProjectPermissionEvaluator
+    @MockBean private lateinit var userRepository: UserRepository
+
+    @BeforeEach
+    fun setUp() {
+        webTestClient = webTestClient.mutate()
+            .responseTimeout(Duration.ofDays(1))
+            .build()
+    }
 
     @Test
     @WithMockUser
@@ -72,22 +100,27 @@ class PermissionControllerTest {
 
     @Test
     @WithMockUser
-    @Disabled("TODO")
     fun `should allow changing roles for organization owners`() {
+        mutateMockedUser {
+            details = AuthenticationDetails(id = 99)
+        }
+        given(userRepository.findByName(any())).willReturn(Optional.of(
+            User("user", null, null, "").apply { id = 99 }
+        ))
         given(
             user = { User(name = it.arguments[0] as String, null, null, "") },
             project = Project.stub(id = 99),
             permission = Permission.WRITE,
         )
-        given(organizationService.canChangeRoles(any(), any())).willReturn(true)
+        given(organizationRepository.findByName(any())).willReturn(Organization("Example Org", ownerId = 99, null, null))
         given(permissionService.addRole(any(), any(), any())).willReturn(Mono.just(Unit))
 
         webTestClient.post()
-            .uri("/api/projects/roles/Huawei/huaweiName?userName=admin")
+            .uri("/api/projects/roles/Huawei/huaweiName")
             .bodyValue(SetRoleRequest("admin", Role.ADMIN))
             .exchange()
             .expectStatus().isOk
-        verify(permissionService.addRole(any(), any(), any()), times(1))
+        verify(permissionService, times(1)).addRole(any(), any(), any())
     }
 
     @Test
@@ -98,16 +131,17 @@ class PermissionControllerTest {
             project = Project.stub(id = 99),
             permission = Permission.WRITE,
         )
-        given(organizationService.canChangeRoles(any(), any())).willReturn(false)
+        given(organizationRepository.findByName(any())).willReturn(Organization("Example Org", ownerId = 42, null, null))
 
         webTestClient.post()
-            .uri("/api/projects/roles/Huawei/huaweiName?userName=admin")
+            .uri("/api/projects/roles/Huawei/huaweiName")
             .bodyValue(SetRoleRequest("admin", Role.ADMIN))
             .exchange()
             .expectStatus().isForbidden
         verify(permissionService, times(0)).addRole(any(), any(), any())
     }
 
+    @Suppress("LAMBDA_IS_NOT_LAST_PARAMETER")
     private fun given(
         user: (InvocationOnMock) -> User,
         project: Project,

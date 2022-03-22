@@ -1,7 +1,6 @@
 package org.cqfn.save.backend.service
 
 import org.cqfn.save.backend.repository.OrganizationRepository
-import org.cqfn.save.backend.repository.UserRepository
 import org.cqfn.save.domain.OrganizationSaveStatus
 import org.cqfn.save.entities.Organization
 import org.springframework.stereotype.Service
@@ -12,8 +11,8 @@ import org.springframework.stereotype.Service
  * @property organizationRepository
  */
 @Service
-class OrganizationService(private val organizationRepository: OrganizationRepository,
-                          private val userRepository: UserRepository,
+class OrganizationService(
+    private val organizationRepository: OrganizationRepository,
 ) {
     /**
      * Store [organization] in the database
@@ -60,9 +59,15 @@ class OrganizationService(private val organizationRepository: OrganizationReposi
      */
     fun findByOwnerId(ownerId: Long) = organizationRepository.findByOwnerId(ownerId)
 
+    /**
+     * In case we widen number of users that can manage roles in an organization, there is a separate method.
+     * Simply delegating now.
+     *
+     * @param organizationName
+     * @param userId
+     * @return whether the user can change roles in organization
+     */
     fun canChangeRoles(organizationName: String, userId: Long): Boolean {
-        // In case we widen number of users that can manage roles in an organization, there is a separate method.
-        // Simply delegating now.
         return isOwner(organizationName, userId)
     }
 
