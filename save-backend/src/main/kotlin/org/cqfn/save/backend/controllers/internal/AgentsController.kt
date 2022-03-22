@@ -1,4 +1,4 @@
-package org.cqfn.save.backend.controllers
+package org.cqfn.save.backend.controllers.internal
 
 import org.cqfn.save.agent.AgentVersion
 import org.cqfn.save.backend.repository.AgentRepository

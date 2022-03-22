@@ -21,12 +21,10 @@ import org.springframework.boot.test.mock.mockito.MockBeans
 import org.springframework.http.MediaType
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.security.test.context.support.WithUserDetails
-import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
 
-@ActiveProfiles("secure")
 @SpringBootTest(classes = [SaveApplication::class])
 @AutoConfigureWebTestClient
 @ExtendWith(MySqlExtension::class)
@@ -147,6 +145,7 @@ class ProjectControllerTest {
         val project = Project("I", "Name", "uurl", ProjectStatus.CREATED, userId = 2, organization = organization)
         val newProject = NewProjectDto(
             project,
+            "Huawei",
             gitDto,
         )
 
@@ -164,6 +163,26 @@ class ProjectControllerTest {
         }
 
         Assertions.assertNotNull(gitRepository.findAll().find { it.url == gitDto.url })
+    }
+
+    @Test
+    @WithMockUser
+    fun `should forbid updating a project for a viewer`() {
+        val project = Project.stub(99).apply {
+            userId = 1
+            organization = organizationRepository.findById(1).get()
+        }
+        projectRepository.save(project)
+        mutateMockedUser {
+            details = AuthenticationDetails(id = 3)
+        }
+
+        webClient.post()
+            .uri("/api/projects/update")
+            .bodyValue(project)
+            .exchange()
+            .expectStatus()
+            .isForbidden
     }
 
     private fun getProjectAndAssert(name: String,

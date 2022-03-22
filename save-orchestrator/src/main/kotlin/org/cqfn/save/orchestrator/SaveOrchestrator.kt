@@ -5,6 +5,7 @@ import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.http.ResponseEntity
+import org.springframework.scheduling.annotation.EnableScheduling
 
 internal typealias BodilessResponseEntity = ResponseEntity<Void>
 internal typealias TextResponse = ResponseEntity<String>
@@ -14,6 +15,7 @@ internal typealias TextResponse = ResponseEntity<String>
  */
 @SpringBootApplication
 @EnableConfigurationProperties(ConfigProperties::class)
+@EnableScheduling
 open class SaveOrchestrator
 
 fun main(args: Array<String>) {

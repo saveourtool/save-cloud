@@ -24,6 +24,19 @@ interface TestExecutionRepository : BaseEntityRepository<TestExecution>, JpaSpec
     fun findByStatusAndExecutionId(status: TestResultStatus, id: Long, pageable: Pageable): List<TestExecution>
 
     /**
+     * @param executionId
+     * @param pageable
+     * @return list of test executions
+     */
+    fun findByExecutionId(executionId: Long, pageable: Pageable): List<TestExecution>
+
+    /**
+     * @param executionId
+     * @return list of test executions
+     */
+    fun findByExecutionId(executionId: Long): List<TestExecution>
+
+    /**
      * Returns a page of [TestExecution]s with [executionId]
      *
      * @param executionId an ID of Execution to group TestExecutions
@@ -100,6 +113,14 @@ interface TestExecutionRepository : BaseEntityRepository<TestExecution>, JpaSpec
      * @return list of TestExecution's
      */
     fun findByExecutionIdAndTestId(executionId: Long, testId: Long): List<TestExecution>
+
+    /**
+     * @param executionId
+     * @param agentId
+     * @return list of TestExecution's
+     */
+    @Suppress("TYPE_ALIAS")
+    fun findByExecutionIdAndAgentId(executionId: Long, agentId: Long): List<TestExecution>
 
     /**
      * Delete a TestExecution matched by a set of fields

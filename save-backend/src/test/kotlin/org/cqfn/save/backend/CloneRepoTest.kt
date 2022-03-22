@@ -5,16 +5,23 @@ import org.cqfn.save.backend.repository.ExecutionRepository
 import org.cqfn.save.backend.repository.OrganizationRepository
 import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.scheduling.StandardSuitesUpdateScheduler
+import org.cqfn.save.backend.utils.AuthenticationDetails
 import org.cqfn.save.backend.utils.MySqlExtension
+import org.cqfn.save.backend.utils.mutateMockedUser
 import org.cqfn.save.domain.Jdk
 import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.GitDto
 import org.cqfn.save.entities.Project
 import org.cqfn.save.execution.ExecutionType
+import org.cqfn.save.testutils.checkQueues
+import org.cqfn.save.testutils.cleanup
+import org.cqfn.save.testutils.createMockWebServer
+import org.cqfn.save.testutils.enqueue
 
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -53,10 +60,15 @@ class CloneRepoTest {
     private lateinit var organizationRepository: OrganizationRepository
 
     @Test
-    @WithMockUser(username = "John Doe")
+    @WithMockUser(username = "admin")
     fun checkSaveProject() {
+        mutateMockedUser {
+            details = AuthenticationDetails(id = 1)
+        }
+
         val sdk = Jdk("8")
         mockServerPreprocessor.enqueue(
+            "/upload",
             MockResponse()
                 .setResponseCode(202)
                 .setBody("Clone pending")
@@ -87,8 +99,12 @@ class CloneRepoTest {
     }
 
     @Test
-    @WithMockUser(username = "John Doe")
+    @WithMockUser(username = "admin")
     fun checkNonExistingProject() {
+        mutateMockedUser {
+            details = AuthenticationDetails(id = 1)
+        }
+
         val sdk = Jdk("11")
         val organization = organizationRepository.getOrganizationById(1)
         val project = Project.stub(null, organization)
@@ -116,6 +132,12 @@ class CloneRepoTest {
     companion object {
         @JvmStatic lateinit var mockServerPreprocessor: MockWebServer
 
+        @AfterEach
+        fun cleanup() {
+            mockServerPreprocessor.checkQueues()
+            mockServerPreprocessor.cleanup()
+        }
+
         @AfterAll
         fun tearDown() {
             mockServerPreprocessor.shutdown()
@@ -124,7 +146,7 @@ class CloneRepoTest {
         @DynamicPropertySource
         @JvmStatic
         fun properties(registry: DynamicPropertyRegistry) {
-            mockServerPreprocessor = MockWebServer()
+            mockServerPreprocessor = createMockWebServer()
             mockServerPreprocessor.start()
             registry.add("backend.preprocessorUrl") { "http://localhost:${mockServerPreprocessor.port}" }
         }

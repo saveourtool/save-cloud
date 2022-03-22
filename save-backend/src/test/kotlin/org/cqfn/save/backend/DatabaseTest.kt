@@ -1,27 +1,24 @@
 package org.cqfn.save.backend
 
 import org.cqfn.save.agent.AgentState
-import org.cqfn.save.backend.controllers.ProjectController
+import org.cqfn.save.backend.configs.ApplicationConfiguration
 import org.cqfn.save.backend.repository.AgentStatusRepository
 import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.repository.TestExecutionRepository
-import org.cqfn.save.backend.scheduling.StandardSuitesUpdateScheduler
 import org.cqfn.save.backend.utils.MySqlExtension
 import org.cqfn.save.domain.TestResultStatus
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.mock.mockito.MockBean
-import org.springframework.boot.test.mock.mockito.MockBeans
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
+import org.springframework.context.annotation.Import
 
-@SpringBootTest(classes = [SaveApplication::class])
+@Import(ApplicationConfiguration::class)
+@DataJpaTest
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @ExtendWith(MySqlExtension::class)
-@MockBeans(
-    MockBean(StandardSuitesUpdateScheduler::class),
-    MockBean(ProjectController::class),
-)
 class DatabaseTest {
     @Autowired
     private lateinit var projectRepository: ProjectRepository
