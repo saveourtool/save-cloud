@@ -19,13 +19,10 @@ import org.cqfn.save.utils.toTestResultDebugInfo
 import org.cqfn.save.utils.toTestResultStatus
 
 import generated.SAVE_CLOUD_VERSION
-import io.ktor.client.HttpClient
-import io.ktor.client.request.accept
-import io.ktor.client.request.post
-import io.ktor.client.request.url
-import io.ktor.client.statement.HttpResponse
-import io.ktor.http.ContentType
-import io.ktor.http.contentType
+import io.ktor.client.*
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
 import okio.FileSystem
 import okio.Path.Companion.toPath
 
@@ -36,7 +33,6 @@ import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.newFixedThreadPoolContext
@@ -64,8 +60,8 @@ class SaveAgent(internal val config: AgentConfiguration,
     // Kotlin throws `kotlin.native.concurrent.InvalidMutabilityException: mutation attempt of frozen kotlinx.datetime.Instant...`
     private val executionStartSeconds = AtomicLong()
     private var saveProcessJob: AtomicReference<Job?> = AtomicReference(null)
-    private val saveProcessCtx = newFixedThreadPoolContext(2, "save-process")
-    private val logsSendingCtx = newSingleThreadContext("logs-sending")
+    private val backgroundContext = newSingleThreadContext("background")
+    private val saveProcessContext = newSingleThreadContext("save-process")
     private val reportFormat = Json {
         serializersModule = SerializersModule {
             polymorphic(Plugin.TestFiles::class) {
@@ -76,25 +72,22 @@ class SaveAgent(internal val config: AgentConfiguration,
     }
 
     /**
-     * @return Unit
+     * Starts save-agent and required jobs in the background and then immediately returns
+     *
+     * @param coroutineScope a [CoroutineScope] to launch other jobs
+     * @return a descriptor of the main coroutine job
      */
-    suspend fun start() = coroutineScope {
+    fun start(coroutineScope: CoroutineScope): Job {
         logInfoCustom("Starting agent")
-//        startHeartbeats()
-        val heartbeatsJob = launch(Dispatchers.Default) { startHeartbeats() }
-        heartbeatsJob.join()
-        saveProcessCtx.close()
-        logsSendingCtx.close()
+        coroutineScope.launch(backgroundContext) {
+            sendDataToBackend { saveAdditionalData() }
+        }
+        return coroutineScope.launch { startHeartbeats(this) }
     }
 
     @Suppress("WHEN_WITHOUT_ELSE")  // when with sealed class
-    private suspend fun startHeartbeats() = coroutineScope {
+    private suspend fun startHeartbeats(coroutineScope: CoroutineScope) {
         logInfoCustom("Scheduling heartbeats")
-//        launch(newSingleThreadContext("background")) {
-//            logInfoCustom("Currently in context of type ${coroutineContext::class}: ${coroutineContext}")
-//            sendDataToBackend(this) { saveAdditionalData() }
-//        }
-        maybeStartSaveProcess(this, "")
         while (true) {
             val response = runCatching {
                 // TODO: get execution progress here. However, with current implementation JSON report won't be valid until all tests are finished.
@@ -105,7 +98,9 @@ class SaveAgent(internal val config: AgentConfiguration,
                 when (val heartbeatResponse = response.getOrThrow().also {
                     logDebugCustom("Got heartbeat response $it")
                 }) {
-                    is NewJobResponse -> maybeStartSaveProcess(this, heartbeatResponse.cliArgs)
+                    is NewJobResponse -> coroutineScope.launch {
+                        maybeStartSaveProcess(heartbeatResponse.cliArgs)
+                    }
                     is WaitResponse -> state.value = AgentState.IDLE
                     is ContinueResponse -> Unit  // do nothing
                 }
@@ -119,11 +114,11 @@ class SaveAgent(internal val config: AgentConfiguration,
         }
     }
 
-    private suspend fun maybeStartSaveProcess(coroutineScope: CoroutineScope, cliArgs: String) {
+    private fun CoroutineScope.maybeStartSaveProcess(cliArgs: String) {
         if (saveProcessJob.value?.isCompleted == false) {
             coroutineScope.logErrorCustom("Shouldn't start new process when there is the previous running")
         } else {
-            saveProcessJob.value = coroutineScope.launch(saveProcessCtx, start = CoroutineStart.LAZY) {
+            saveProcessJob.value = launch(saveProcessContext) {
                 runCatching {
                     // new job received from Orchestrator, spawning SAVE CLI process
                     startSaveProcess(cliArgs)
@@ -145,7 +140,7 @@ class SaveAgent(internal val config: AgentConfiguration,
      * @param cliArgs arguments for SAVE process
      * @return Unit
      */
-    internal suspend fun startSaveProcess(cliArgs: String) = coroutineScope {
+    internal fun CoroutineScope.startSaveProcess(cliArgs: String) {
         // blocking execution of OS process
         state.value = AgentState.BUSY
         executionStartSeconds.value = Clock.System.now().epochSeconds
@@ -158,7 +153,7 @@ class SaveAgent(internal val config: AgentConfiguration,
         val executionResult = ExecutionResult(0, emptyList(), emptyList())
         logInfoCustom("SAVE has completed execution with status ${executionResult.code}")
         val executionLogs = ExecutionLogs(config.id, readFile(config.logFilePath))
-        val logsSendingJob = launchLogSendingJob(executionLogs)
+        launchLogSendingJob(executionLogs)
         logDebugCustom("SAVE has completed execution, execution logs:")
         executionLogs.cliLogs.forEach {
             logDebugCustom("[SAVE] $it")
@@ -199,7 +194,6 @@ class SaveAgent(internal val config: AgentConfiguration,
                 pluginExecution.testResults.map { tr ->
                     val debugInfo = tr.toTestResultDebugInfo(report.testSuite, pluginExecution.plugin)
                     launch {
-                        // todo: launch on a dedicated thread (https://github.com/analysis-dev/save-cloud/issues/315)
                         logDebugCustom("Posting debug info for test ${debugInfo.testResultLocation}")
                         sendDataToBackend(this) {
                             sendReport(debugInfo)
@@ -237,7 +231,7 @@ class SaveAgent(internal val config: AgentConfiguration,
             }
     }
 
-    private suspend fun handleSuccessfulExit() = coroutineScope {
+    private fun CoroutineScope.handleSuccessfulExit() {
         val jsonReport = "save.out.json"
         val testExecutionDtos = runCatching {
             readExecutionResults(jsonReport)
@@ -247,8 +241,10 @@ class SaveAgent(internal val config: AgentConfiguration,
                     "\n${testExecutionDtos.exceptionOrNull()?.stackTraceToString()}"
             )
         } else {
-            sendDataToBackend(this) {
-                postExecutionData(testExecutionDtos.getOrThrow())
+            launch {
+                sendDataToBackend {
+                    postExecutionData(testExecutionDtos.getOrThrow())
+                }
             }
         }
     }
@@ -278,7 +274,7 @@ class SaveAgent(internal val config: AgentConfiguration,
         return httpClient.post("${config.orchestratorUrl}/heartbeat") {
             contentType(ContentType.Application.Json)
             accept(ContentType.Application.Json)
-            body = Heartbeat(config.id, state.value, executionProgress)
+            body = Heartbeat(config.id, state.value, executionProgress, Clock.System.now())
         }
     }
 

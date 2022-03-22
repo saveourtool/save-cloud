@@ -6,6 +6,7 @@ package org.cqfn.save.frontend.components.views
 
 import org.cqfn.save.frontend.components.basic.InputTypes
 import org.cqfn.save.frontend.components.basic.inputTextFormRequired
+import org.cqfn.save.frontend.components.errorStatusContext
 import org.cqfn.save.frontend.externals.fontawesome.faCopyright
 import org.cqfn.save.frontend.externals.fontawesome.faExternalLinkAlt
 import org.cqfn.save.frontend.externals.fontawesome.faGithub
@@ -13,6 +14,7 @@ import org.cqfn.save.frontend.externals.fontawesome.faSignInAlt
 import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
 import org.cqfn.save.frontend.utils.decodeFromJsonString
 import org.cqfn.save.frontend.utils.get
+import org.cqfn.save.frontend.utils.noopResponseHandler
 import org.cqfn.save.info.OauthProviderInfo
 import org.cqfn.save.info.UserInfo
 
@@ -20,10 +22,14 @@ import csstype.Display
 import csstype.FontSize
 import csstype.FontWeight
 import org.w3c.fetch.Headers
+import org.w3c.fetch.Response
 import react.CSSProperties
+import react.Context
 import react.PropsWithChildren
 import react.RBuilder
+import react.RStatics
 import react.State
+import react.StateSetter
 import react.dom.a
 import react.dom.button
 import react.dom.div
@@ -37,9 +43,9 @@ import react.dom.span
 import react.setState
 
 import kotlinx.browser.window
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.html.ButtonType
+import kotlinx.js.jso
 
 /**
  * [RState] of project creation view component
@@ -84,8 +90,9 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
 
     override fun componentDidMount() {
         super.componentDidMount()
-        GlobalScope.launch {
-            val oauthProviderInfoList: List<OauthProviderInfo>? = get("${window.location.origin}/sec/oauth-providers", Headers()).run {
+        scope.launch {
+            val oauthProviderInfoList: List<OauthProviderInfo>? = get("${window.location.origin}/sec/oauth-providers", Headers(),
+                responseHandler = ::noopResponseHandler).run {
                 if (ok) decodeFromJsonString() else null
             }
             oauthProviderInfoList?.let {
@@ -179,8 +186,10 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                     }
                 }
 
-                p("mt-4 text-sm text-center") {
-                    +"Don't have an account?"
+                div("mt-4 text-sm text-center") {
+                    p("mb-0") {
+                        +"Don't have an account?"
+                    }
 
                     p("text-sm text-center") {
                         a(classes = "text-info text-gradient font-weight-bold ml-2 mr-2") {
@@ -225,7 +234,7 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
 
     private fun RBuilder.h1Bold(str: String) = h1 {
         +str
-        attrs["style"] = kotlinext.js.jso<CSSProperties> {
+        attrs["style"] = jso<CSSProperties> {
             fontWeight = "bold".unsafeCast<FontWeight>()
             display = Display.inline
             fontSize = "4.5rem".unsafeCast<FontSize>()
@@ -234,7 +243,7 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
 
     private fun RBuilder.h1Normal(str: String) = h1 {
         +str
-        attrs["style"] = kotlinext.js.jso<CSSProperties> {
+        attrs["style"] = jso<CSSProperties> {
             display = Display.inline
         }
     }
@@ -245,11 +254,17 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                 href = provider.authorizationLink,
                 classes = "btn btn-link px-3 text-white text-lg text-center"
             ) {
-                attrs["style"] = kotlinext.js.jso<CSSProperties> {
+                attrs["style"] = jso<CSSProperties> {
                     fontSize = "3.2rem".unsafeCast<FontSize>()
                 }
                 fontAwesomeIcon(icon = icon)
             }
+        }
+    }
+
+    companion object : RStatics<WelcomeProps, IndexViewState, WelcomeView, Context<StateSetter<Response?>>>(WelcomeView::class) {
+        init {
+            contextType = errorStatusContext
         }
     }
 }

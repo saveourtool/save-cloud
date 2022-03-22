@@ -16,7 +16,8 @@ import kotlinx.html.js.onChangeFunction
 /**
  * @property str
  */
-internal enum class InputTypes(val str: String) {
+@Suppress("WRONG_DECLARATIONS_ORDER")
+enum class InputTypes(val str: String) {
     // ==== new project view
     DESCRIPTION("project description"),
     GIT_BRANCH("git branch"),
@@ -26,10 +27,12 @@ internal enum class InputTypes(val str: String) {
 
     // ==== signIn view
     LOGIN("login"),
-    OWNER("owner name"),
     PASSWORD("password"),
     PROJECT_NAME("project name"),
     PROJECT_URL("project Url"),
+
+    // ==== create organization view
+    ORGANIZATION_NAME("organization name"),
     ;
 }
 

@@ -10,6 +10,7 @@ configureSpringBoot()
 
 dependencies {
     implementation(projects.saveCloudCommon)
+    testImplementation(projects.testUtils)
     implementation(libs.save.common.jvm)
     implementation(libs.save.core.jvm)
     implementation(libs.save.plugins.warn.jvm)
@@ -19,6 +20,7 @@ dependencies {
     implementation(libs.kotlinx.serialization.properties)
     implementation(libs.ktoml.file)
     implementation(libs.ktoml.core)
+    implementation(libs.kotlinx.serialization.json)
 }
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {

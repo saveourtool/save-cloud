@@ -31,4 +31,12 @@
     </rollback>
   </changeSet>
 
+  <changeSet id="lnk-user-project-2" author="frolov" context="dev or prod">
+    <renameTable newTableName="lnk_user_project" oldTableName="lnk-user-project" />
+  </changeSet>
+
+  <changeSet id="lnk-user-project-3" author="frolov" context="dev or prod">
+    <renameColumn columnDataType="varchar(250)" newColumnName="role" oldColumnName="user_role" tableName="lnk_user_project"/>
+  </changeSet>
+
 </databaseChangeLog>

@@ -5,17 +5,24 @@ import org.cqfn.save.backend.controllers.ProjectController
 import org.cqfn.save.backend.repository.ExecutionRepository
 import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.scheduling.StandardSuitesUpdateScheduler
+import org.cqfn.save.backend.utils.AuthenticationDetails
 import org.cqfn.save.backend.utils.MySqlExtension
+import org.cqfn.save.backend.utils.mutateMockedUser
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.execution.ExecutionInitializationDto
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionType
 import org.cqfn.save.execution.ExecutionUpdateDto
+import org.cqfn.save.testutils.checkQueues
+import org.cqfn.save.testutils.cleanup
+import org.cqfn.save.testutils.createMockWebServer
+import org.cqfn.save.testutils.enqueue
 
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -130,7 +137,12 @@ class ExecutionControllerTest {
     }
 
     @Test
+    @WithMockUser
     fun checkExecutionDto() {
+        mutateMockedUser {
+            details = AuthenticationDetails(id = 99)
+        }
+
         webClient.get()
             .uri("/api/executionDto?executionId=1")
             .exchange()
@@ -144,11 +156,16 @@ class ExecutionControllerTest {
     }
 
     @Test
+    @WithMockUser
     fun checkExecutionDtoByProject() {
+        mutateMockedUser {
+            details = AuthenticationDetails(id = 99)
+        }
+
         val project = projectRepository.findById(1).get()
         val executionCounts = executionRepository.findAll().count { it.project.id == project.id }
         webClient.get()
-            .uri("/api/executionDtoList?name=${project.name}&owner=${project.owner}")
+            .uri("/api/executionDtoList?name=${project.name}&organizationName=${project.organization.name}")
             .exchange()
             .expectStatus()
             .isOk
@@ -200,7 +217,12 @@ class ExecutionControllerTest {
     @Test
     @WithMockUser(username = "John Doe")
     fun `should send request to preprocessor to rerun execution`() {
+        mutateMockedUser {
+            details = AuthenticationDetails(id = 2)
+        }
+
         mockServerPreprocessor.enqueue(
+            "/rerunExecution.*",
             MockResponse().setResponseCode(202)
                 .setHeader("Accept", "application/json")
                 .setHeader("Content-Type", "application/json")
@@ -225,6 +247,12 @@ class ExecutionControllerTest {
     companion object {
         @JvmStatic lateinit var mockServerPreprocessor: MockWebServer
 
+        @AfterEach
+        fun cleanup() {
+            mockServerPreprocessor.checkQueues()
+            mockServerPreprocessor.cleanup()
+        }
+
         @AfterAll
         fun tearDown() {
             mockServerPreprocessor.shutdown()
@@ -233,7 +261,7 @@ class ExecutionControllerTest {
         @DynamicPropertySource
         @JvmStatic
         fun properties(registry: DynamicPropertyRegistry) {
-            mockServerPreprocessor = MockWebServer()
+            mockServerPreprocessor = createMockWebServer()
             mockServerPreprocessor.start()
             registry.add("backend.preprocessorUrl") { "http://localhost:${mockServerPreprocessor.port}" }
         }

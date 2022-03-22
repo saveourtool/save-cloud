@@ -2,15 +2,13 @@ package org.cqfn.save.backend.controller
 
 import org.cqfn.save.backend.SaveApplication
 import org.cqfn.save.backend.repository.GitRepository
+import org.cqfn.save.backend.repository.OrganizationRepository
 import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.scheduling.StandardSuitesUpdateScheduler
 import org.cqfn.save.backend.utils.AuthenticationDetails
 import org.cqfn.save.backend.utils.MySqlExtension
 import org.cqfn.save.backend.utils.mutateMockedUser
-import org.cqfn.save.entities.GitDto
-import org.cqfn.save.entities.NewProjectDto
-import org.cqfn.save.entities.Project
-import org.cqfn.save.entities.ProjectStatus
+import org.cqfn.save.entities.*
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -23,12 +21,10 @@ import org.springframework.boot.test.mock.mockito.MockBeans
 import org.springframework.http.MediaType
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.security.test.context.support.WithUserDetails
-import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
 
-@ActiveProfiles("secure")
 @SpringBootTest(classes = [SaveApplication::class])
 @AutoConfigureWebTestClient
 @ExtendWith(MySqlExtension::class)
@@ -39,6 +35,9 @@ import org.springframework.web.reactive.function.BodyInserters
 class ProjectControllerTest {
     @Autowired
     private lateinit var projectRepository: ProjectRepository
+
+    @Autowired
+    private lateinit var organizationRepository: OrganizationRepository
 
     @Autowired
     private lateinit var gitRepository: GitRepository
@@ -142,9 +141,11 @@ class ProjectControllerTest {
 
         val gitDto = GitDto("qweqwe")
         // `project` references an existing user from test data
-        val project = Project("I", "Name", "uurl", "nullsss", ProjectStatus.CREATED, userId = 2, adminIds = null)
+        val organization: Organization = organizationRepository.getOrganizationById(1)
+        val project = Project("I", "Name", "uurl", ProjectStatus.CREATED, userId = 2, organization = organization)
         val newProject = NewProjectDto(
             project,
+            "Huawei",
             gitDto,
         )
 
@@ -164,12 +165,32 @@ class ProjectControllerTest {
         Assertions.assertNotNull(gitRepository.findAll().find { it.url == gitDto.url })
     }
 
+    @Test
+    @WithMockUser
+    fun `should forbid updating a project for a viewer`() {
+        val project = Project.stub(99).apply {
+            userId = 1
+            organization = organizationRepository.findById(1).get()
+        }
+        projectRepository.save(project)
+        mutateMockedUser {
+            details = AuthenticationDetails(id = 3)
+        }
+
+        webClient.post()
+            .uri("/api/projects/update")
+            .bodyValue(project)
+            .exchange()
+            .expectStatus()
+            .isForbidden
+    }
+
     private fun getProjectAndAssert(name: String,
-                                    owner: String,
+                                    organizationName: String,
                                     assertion: WebTestClient.ResponseSpec.() -> Unit
     ) = webClient
         .get()
-        .uri("/api/projects/get?name=$name&owner=$owner")
+        .uri("/api/projects/get/organization-name?name=$name&organizationName=$organizationName")
         .accept(MediaType.APPLICATION_JSON)
         .exchange()
         .let { assertion(it) }
@@ -189,7 +210,7 @@ class ProjectControllerTest {
         val project = newProject.project
         webClient
             .get()
-            .uri("/api/projects/get?name=${project.name}&owner=${project.owner}")
+            .uri("/api/projects/get/organization-id?name=${project.name}&organizationId=${project.organization.id}")
             .accept(MediaType.APPLICATION_JSON)
             .exchange()
             .let { getAssertion(it) }

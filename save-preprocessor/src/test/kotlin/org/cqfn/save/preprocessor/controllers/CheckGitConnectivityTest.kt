@@ -4,18 +4,15 @@ package org.cqfn.save.preprocessor.controllers
 
 import org.cqfn.save.preprocessor.service.TestDiscoveringService
 import org.cqfn.save.preprocessor.utils.RepositoryVolume
+import org.cqfn.save.testutils.checkQueues
+import org.cqfn.save.testutils.cleanup
+import org.cqfn.save.testutils.createMockWebServer
 
 import okhttp3.mockwebserver.MockWebServer
-import okhttp3.mockwebserver.QueueDispatcher
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.*
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
@@ -32,13 +29,13 @@ import java.time.Duration
 @AutoConfigureWebTestClient(timeout = "60000")
 @Suppress("TOO_LONG_FUNCTION", "LongMethod")
 class CheckGitConnectivityTest(
-    @Autowired private val webClient: WebTestClient,
+    @Autowired private var webClient: WebTestClient,
 ) : RepositoryVolume {
     @MockBean private lateinit var testDiscoveringService: TestDiscoveringService
 
     @BeforeEach
     fun webClientSetUp() {
-        webClient.mutate().responseTimeout(Duration.ofSeconds(5)).build()
+        webClient = webClient.mutate().responseTimeout(Duration.ofSeconds(5)).build()
         whenever(testDiscoveringService.getRootTestConfig(any())).thenReturn(mock())
     }
 
@@ -74,28 +71,34 @@ class CheckGitConnectivityTest(
     }
 
     companion object {
-        private val logger = LoggerFactory.getLogger(CheckGitConnectivityTest::class.java)
-
         @JvmStatic
         lateinit var mockServerBackend: MockWebServer
 
         @JvmStatic
         lateinit var mockServerOrchestrator: MockWebServer
 
+        @AfterEach
+        fun cleanup() {
+            mockServerBackend.checkQueues()
+            mockServerBackend.cleanup()
+            mockServerOrchestrator.checkQueues()
+            mockServerOrchestrator.cleanup()
+        }
+
         @AfterAll
         fun tearDown() {
+            mockServerBackend.checkQueues()
             mockServerBackend.shutdown()
+            mockServerOrchestrator.checkQueues()
             mockServerOrchestrator.shutdown()
         }
 
         @DynamicPropertySource
         @JvmStatic
         fun properties(registry: DynamicPropertyRegistry) {
-            mockServerBackend = MockWebServer()
-            (mockServerBackend.dispatcher as QueueDispatcher).setFailFast(true)
+            mockServerBackend = createMockWebServer()
             mockServerBackend.start()
-            mockServerOrchestrator = MockWebServer()
-            (mockServerOrchestrator.dispatcher as QueueDispatcher).setFailFast(true)
+            mockServerOrchestrator = createMockWebServer()
             mockServerOrchestrator.start()
             registry.add("save.backend") { "http://localhost:${mockServerBackend.port}" }
             registry.add("save.orchestrator") { "http://localhost:${mockServerOrchestrator.port}" }
