@@ -3,13 +3,13 @@ package org.cqfn.save.backend.controllers
 import org.cqfn.save.agent.AgentState
 import org.cqfn.save.agent.TestExecutionDto
 import org.cqfn.save.agent.TestSuiteExecutionStatisticDto
-import org.cqfn.save.backend.security.Permission
 import org.cqfn.save.backend.security.ProjectPermissionEvaluator
 import org.cqfn.save.backend.service.ExecutionService
 import org.cqfn.save.backend.service.TestExecutionService
 import org.cqfn.save.backend.utils.justOrNotFound
 import org.cqfn.save.domain.TestResultLocation
 import org.cqfn.save.domain.TestResultStatus
+import org.cqfn.save.permission.Permission
 import org.cqfn.save.test.TestDto
 
 import org.slf4j.LoggerFactory

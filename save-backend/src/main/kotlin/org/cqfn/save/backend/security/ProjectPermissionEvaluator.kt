@@ -5,6 +5,7 @@ import org.cqfn.save.backend.utils.AuthenticationDetails
 import org.cqfn.save.domain.Role
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.Project
+import org.cqfn.save.permission.Permission
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.Authentication
