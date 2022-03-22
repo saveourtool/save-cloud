@@ -18,14 +18,13 @@ jobs:
         with:
           java-version: 11
           distribution: zulu
-      - uses: burrunan/gradle-cache-action@v1
+      - uses: gradle/gradle-build-action@v2
         with:
           gradle-version: wrapper
           arguments: |
             diktatCheck
-          properties: |
-            diktat.githubActions=true
-            detekt.multiplatform.disabled=true
+            -Pdiktat.githubActions=true
+            -Pdetekt.multiplatform.disabled=true
       - name: Copy SARIF reports into a single directory
         if: ${{ always() }}
         # `find` cmd is a workaround for https://github.com/analysis-dev/diktat/issues/1213
