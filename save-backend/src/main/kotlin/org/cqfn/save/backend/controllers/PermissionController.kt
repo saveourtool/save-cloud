@@ -16,6 +16,7 @@ import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.tags.Tags
+import org.cqfn.save.backend.service.ProjectService
 import org.cqfn.save.backend.utils.AuthenticationDetails
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -33,6 +34,7 @@ import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
+import java.util.Optional
 
 @ApiSwaggerSupport
 @Tags(Tag(name = "api"), Tag(name = "permissions"))
@@ -40,6 +42,7 @@ import reactor.kotlin.core.util.function.component2
 @RequestMapping("/api/projects/roles")
 @Suppress("MISSING_KDOC_ON_FUNCTION", "MISSING_KDOC_TOP_LEVEL", "MISSING_KDOC_CLASS_ELEMENTS")
 class PermissionController(
+    private val projectService: ProjectService,
     private val permissionService: PermissionService,
     private val organizationService: OrganizationService,
     private val projectPermissionEvaluator: ProjectPermissionEvaluator,
@@ -83,15 +86,27 @@ class PermissionController(
                 @PathVariable projectName: String,
                 @RequestBody setRoleRequest: SetRoleRequest,
                 authentication: Authentication,
-    ) = Mono.just(Unit).filter {
-        // fixme: could be `@PreAuthorize`, but organizationService cannot be found smh
-        organizationService.canChangeRoles(organizationName, (authentication.details as AuthenticationDetails).id)
-    }.then(
-        permissionService.addRole(organizationName, projectName, setRoleRequest)
-    )
+    ) = Mono.justOrEmpty(
+        projectService.findByNameAndOrganizationName(projectName, organizationName)
+            .let { Optional.ofNullable(it) }
+    ).filter { project: Project ->
+        // if project is hidden from the user, who attempts permission update,
+        // then we should return 404
+        projectPermissionEvaluator.hasPermission(authentication, project, Permission.READ)
+    }
         .switchIfEmpty {
-            logger.info("Attempt to perform role update $setRoleRequest, but user or organization was not found")
             Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
+        }
+        .filter {
+            // fixme: could be `@PreAuthorize`, but organizationService cannot be found smh
+            organizationService.canChangeRoles(organizationName, (authentication.details as AuthenticationDetails).id)
+        }
+        .flatMap {
+            permissionService.addRole(organizationName, projectName, setRoleRequest)
+        }
+        .switchIfEmpty {
+            logger.info("Attempt to perform role update $setRoleRequest with insufficient permissions")
+            Mono.error(ResponseStatusException(HttpStatus.FORBIDDEN))
         }
 
     companion object {

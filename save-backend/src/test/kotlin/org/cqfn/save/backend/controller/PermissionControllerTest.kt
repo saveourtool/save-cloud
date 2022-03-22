@@ -7,6 +7,7 @@ import org.cqfn.save.backend.repository.UserRepository
 import org.cqfn.save.backend.security.ProjectPermissionEvaluator
 import org.cqfn.save.backend.service.OrganizationService
 import org.cqfn.save.backend.service.PermissionService
+import org.cqfn.save.backend.service.ProjectService
 import org.cqfn.save.backend.service.UserDetailsService
 import org.cqfn.save.backend.utils.AuthenticationDetails
 import org.cqfn.save.backend.utils.ConvertingAuthenticationManager
@@ -54,6 +55,7 @@ class PermissionControllerTest {
     @MockBean private lateinit var organizationRepository: OrganizationRepository
     @MockBean private lateinit var projectPermissionEvaluator: ProjectPermissionEvaluator
     @MockBean private lateinit var userRepository: UserRepository
+    @MockBean private lateinit var projectService: ProjectService
 
     @BeforeEach
     fun setUp() {
@@ -126,6 +128,9 @@ class PermissionControllerTest {
     @Test
     @WithMockUser
     fun `should forbid changing roles unless user is an organization owner`() {
+        mutateMockedUser {
+            details = AuthenticationDetails(id = 99)
+        }
         given(
             user = { User(name = it.arguments[0] as String, null, null, "") },
             project = Project.stub(id = 99),
@@ -150,6 +155,7 @@ class PermissionControllerTest {
         given(permissionService.findUserAndProject(any(), any(), any())).willAnswer { invocationOnMock ->
             Tuples.of(user(invocationOnMock), project).let { Mono.just(it) }
         }
+        given(projectService.findByNameAndOrganizationName(any(), any())).willReturn(project)
         given(projectPermissionEvaluator.hasPermission(any(), any(), any())).willAnswer {
             when (it.arguments[2] as Permission) {
                 Permission.READ -> permission != null
