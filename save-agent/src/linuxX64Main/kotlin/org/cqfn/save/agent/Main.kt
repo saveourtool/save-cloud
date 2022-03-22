@@ -12,9 +12,9 @@ import org.cqfn.save.core.logging.logType
 
 import generated.SAVE_CLOUD_VERSION
 import io.ktor.client.HttpClient
-import io.ktor.client.features.HttpTimeout
-import io.ktor.client.features.json.JsonFeature
-import io.ktor.client.features.json.serializer.KotlinxSerializer
+import io.ktor.client.plugins.HttpTimeout
+import io.ktor.client.plugins.json.JsonPlugin
+import io.ktor.client.plugins.json.serializer.KotlinxSerializer
 import platform.posix.SIGTERM
 import platform.posix.exit
 import platform.posix.signal
@@ -55,7 +55,7 @@ fun main() {
     })
 
     val httpClient = HttpClient {
-        install(JsonFeature) {
+        install(JsonPlugin) {
             serializer = KotlinxSerializer(json)
         }
         install(HttpTimeout) {
