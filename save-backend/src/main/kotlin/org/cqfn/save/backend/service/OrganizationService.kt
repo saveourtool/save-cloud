@@ -67,9 +67,7 @@ class OrganizationService(
      * @param userId
      * @return whether the user can change roles in organization
      */
-    fun canChangeRoles(organizationName: String, userId: Long): Boolean {
-        return isOwner(organizationName, userId)
-    }
+    fun canChangeRoles(organizationName: String, userId: Long): Boolean = isOwner(organizationName, userId)
 
     private fun isOwner(organizationName: String, userId: Long): Boolean {
         val organization = organizationRepository.findByName(organizationName)
