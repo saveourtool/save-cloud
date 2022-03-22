@@ -6,27 +6,23 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.util.*
 import io.ktor.client.engine.apache.*
+import io.ktor.client.features.*
 import io.ktor.client.features.auth.*
 import io.ktor.client.features.auth.providers.*
 import io.ktor.client.features.json.*
 import io.ktor.client.features.json.serializer.*
 import io.ktor.client.features.logging.*
 import io.ktor.client.request.*
+import io.ktor.http.HttpHeaders.TransferEncoding
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
-import org.cqfn.save.agent.TestExecutionDto
 import org.cqfn.save.core.result.DebugInfo
 import org.cqfn.save.core.result.Pass
 import org.cqfn.save.domain.TestResultDebugInfo
-import org.cqfn.save.domain.TestResultLocation
-import org.cqfn.save.domain.TestResultStatus
 import org.cqfn.save.testsuite.TestSuiteDto
 import org.slf4j.LoggerFactory
-import java.time.LocalDateTime
-import java.time.ZoneOffset
-import java.util.*
 
 // TODO move into properties file
 private const val BACKEND_URL = "http://localhost:5000"
@@ -65,8 +61,10 @@ class AutomaticTestInitializator {
                     credentials {
                         BasicAuthCredentials(username = "admin", password = "")
                     }
-                    headersOf("X-Authorization-Source", "basic")
                 }
+//                install(XAuthorizationSource) {
+//                    xAuthorizationSource = "basic"
+//                }
             }
         }
 
@@ -75,15 +73,13 @@ class AutomaticTestInitializator {
 
         val response = httpClient.get<HttpResponse> {
             url("${BACKEND_URL}/api/allStandardTestSuites")
-            //header("Authorization", "Basic ${Base64.getEncoder().encodeToString("admin:".toByteArray())}")
-            //header("X-Authorization-Source", "basic")
-            //headers[HttpHeaders.Authorization] = "Basic ${Base64.getEncoder().encodeToString("admin:".toByteArray())}"
+            header("X-Authorization-Source", "basic")
             contentType(ContentType.Application.Json)
         }
 
         val result = Json.decodeFromString<List<TestSuiteDto>>(response.toString())
 
-        log.info("==========================\nStatus: ${response.status}")
+        log.info("\n\n\n==========================\nStatus: ${response.status}")
         log.info("Content: ${response.content}")
         log.info("Result: ${result}")
 
@@ -101,6 +97,23 @@ class AutomaticTestInitializator {
     }
 }
 
+//class XAuthorizationSource(val xAuthorizationSource: String) {
+//    class Config(var xAuthorizationSource: String = "X-Authorization-Source")
+//
+//    companion object Feature : HttpClientFeature<Config, XAuthorizationSource> {
+//        override val key: AttributeKey<XAuthorizationSource> = AttributeKey("X-Authorization-Source")
+//
+//        override fun prepare(
+//            block: Config.() -> Unit
+//        ): XAuthorizationSource = XAuthorizationSource(Config().apply(block).xAuthorizationSource)
+//
+//        override fun install(feature: XAuthorizationSource, scope: HttpClient) {
+//            scope.requestPipeline.intercept(HttpRequestPipeline.State) {
+//                context.header("X-Authorization-Source", feature.xAuthorizationSource)
+//            }
+//        }
+//    }
+//}
 
 
 //
