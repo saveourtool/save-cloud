@@ -8,7 +8,8 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.condition.DisabledIfSystemProperty
+import org.junit.jupiter.api.condition.DisabledOnOs
+import org.junit.jupiter.api.condition.OS
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -23,7 +24,7 @@ import kotlin.io.path.createTempFile
 @ExtendWith(SpringExtension::class)
 @EnableConfigurationProperties(ConfigProperties::class)
 @TestPropertySource("classpath:application.properties")
-@DisabledIfSystemProperty(named = "os.name", matches = "Windows.*", disabledReason = "Docker daemon behaves differently on Windows, and our target platform is Linux")
+@DisabledOnOs(OS.WINDOWS, disabledReason = "`getHostIp` method uses `getent`, which is unavailable on Windows")
 class ContainerManagerTest {
     @Autowired private lateinit var configProperties: ConfigProperties
     private lateinit var containerManager: ContainerManager
