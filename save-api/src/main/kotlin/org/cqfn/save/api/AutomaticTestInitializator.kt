@@ -35,7 +35,6 @@ import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.GitDto
 import org.cqfn.save.entities.Organization
 import org.cqfn.save.entities.Project
-import org.cqfn.save.entities.ProjectStatus
 
 internal val json = Json {
     serializersModule = SerializersModule {
@@ -71,78 +70,39 @@ class AutomaticTestInitializator {
 
     @OptIn(InternalAPI::class)
     suspend fun start() {
-        val webClientProperties = readWebClientProperties()
+        val webClientProperties = readPropertiesFile(obj = ConfigurationType.WEB_CLIENT)
         requireNotNull(webClientProperties) {
             "Configuration couldn't be empty!"
         }
 
-        submitExecution(webClientProperties)
-    }
-
-    suspend fun getStandardTestSuites(webClientProperties: WebClientProperties) {
-        log.info("\n\n-------------------Get all standard test suites---------------------")
-
-        val response = httpClient.get<HttpResponse> {
-            url("${webClientProperties.backendUrl}/api/allStandardTestSuites")
-            header("X-Authorization-Source", "basic")
-            contentType(ContentType.Application.Json)
-        }
-        log.info("\n\n\n==========================\nStatus: ${response.status}\n")
-
-        val result = response.receive<List<TestSuiteDto>>()
-        log.info("Result: $result")
+        submitExecution(webClientProperties as WebClientProperties)
     }
 
     @OptIn(InternalAPI::class)
     suspend fun submitExecution(webClientProperties: WebClientProperties) {
         log.info("\n\n-------------------Start execution---------------------")
         val organizationName = "Huawei"
-
-        val organization = getOrganizationByName(webClientProperties, organizationName)
-        val organizationId = organization.id
-        val userId = organization.ownerId
-
-        println("ORG ${organizationId} owner ${userId}")
-
-        return
-
-//        val organization = Organization(
-//            name = organizationName,
-//            ownerId = userId,
-//            dateCreated = LocalDateTime.parse("2021-01-01T00:00:00"),
-//            avatar = null,
-//        ).apply {
-//            id = organizationId
-//        }
+        val projectName = "save"
 
         val gitUrl = "https://github.com/analysis-dev/save-cli"
-        val projectId = 5L
-
-        val project = Project(
-            name = "save",
-            url = gitUrl,
-            description = "description",
-            status = ProjectStatus.CREATED,
-            public = true,
-            userId = userId,
-            organization = organization,
-        ).apply {
-            id = projectId
-        }
-
-
-        val userName = "admin"
+        val gitUserName = "admin"
+        val gitPassword = null
         val branch = "origin/feature/testing_for_cloud"
-
-        val gitDto = GitDto(
-            url = gitUrl,
-            username = userName,
-            password = null,
-            branch = branch,
-            hash = null
-        )
+        val commitHash = null
 
         val testRootPath = "examples/kotlin-diktat"
+
+        val organization = getOrganizationByName(webClientProperties, organizationName)
+        val organizationId = organization.id!!
+        val project = getProjectByNameAndOrganizationId(webClientProperties, projectName, organizationId)
+        val gitDto = GitDto(
+            url = gitUrl,
+            username = gitUserName,
+            password = gitPassword,
+            branch = branch,
+            hash = commitHash
+        )
+
         val executionId = 4L
 
         val executionRequest = ExecutionRequest(
@@ -157,25 +117,23 @@ class AutomaticTestInitializator {
             url("${webClientProperties.backendUrl}/api/submitExecutionRequest")
             header("X-Authorization-Source", "basic")
             body = MultiPartFormDataContent(formData {
-                //contentType(ContentType.Application.Json)
-                //append("Jonh", "Doe")
-
                 append("executionRequest", json.encodeToString(executionRequest),
                     headers = Headers.build {
                         append(HttpHeaders.ContentType, ContentType.Application.Json)
                     }
                 )
-
-
                 // TODO provide logic for files
                 // append("file", "")
             })
         }
+    }
 
+    suspend fun submitExecutionStandardMode() {
+        TODO("Not yet implemented")
     }
 
 
-    suspend fun getOrganizationByName(webClientProperties: WebClientProperties, name: String): Organization {
+    private suspend fun getOrganizationByName(webClientProperties: WebClientProperties, name: String): Organization {
         return httpClient.get<HttpResponse> {
             url("${webClientProperties.backendUrl}/api/organization/get/organization-name?name=${name}")
             header("X-Authorization-Source", "basic")
@@ -183,7 +141,23 @@ class AutomaticTestInitializator {
         }.receive()
     }
 
-    private fun readWebClientProperties(configFileName: String = "web-client.properties"): WebClientProperties? {
+    private suspend fun getProjectByNameAndOrganizationId(webClientProperties: WebClientProperties, projectName: String, organizationId: Long): Project {
+        return httpClient.get<HttpResponse> {
+            url("${webClientProperties.backendUrl}/api/projects/get/organization-id?name=${projectName}&organizationId=${organizationId}")
+            header("X-Authorization-Source", "basic")
+            contentType(ContentType.Application.Json)
+        }.receive()
+    }
+
+    private suspend fun getStandardTestSuites(webClientProperties: WebClientProperties): List<TestSuiteDto> {
+        return httpClient.get<HttpResponse> {
+            url("${webClientProperties.backendUrl}/api/allStandardTestSuites")
+            header("X-Authorization-Source", "basic")
+            contentType(ContentType.Application.Json)
+        }.receive()
+    }
+
+    private fun readPropertiesFile(configFileName: String = "web-client.properties", obj: ConfigurationType): Configuration? {
         try {
             val properties = Properties()
             val classLoader = AutomaticTestInitializator::class.java.classLoader
@@ -193,15 +167,44 @@ class AutomaticTestInitializator {
                 return null
             }
             properties.load(input)
-            return WebClientProperties(
-                properties.getProperty("backendUrl"),
-                properties.getProperty("preprocessorUrl"),
-            )
+            when(obj) {
+                ConfigurationType.WEB_CLIENT -> return WebClientProperties(
+                    properties.getProperty("backendUrl"),
+                    properties.getProperty("preprocessorUrl"),
+                )
+                ConfigurationType.EVALUATED_TOOL -> return EvaluatedToolProperties(
+                    properties.getProperty("organizationName"),
+                    properties.getProperty("projectName"),
+                    properties.getProperty("gitUrl"),
+                    properties.getProperty("gitUserName"),
+                    properties.getProperty("gitPassword"),
+                    properties.getProperty("branch"),
+                    properties.getProperty("commitHash"),
+                    properties.getProperty("testRootPath"),
+                )
+                else -> {
+                    // fixme:
+                    log.error("Unsupported type for configuration")
+                    return null
+                }
+            }
+
         } catch (ex: IOException) {
             ex.printStackTrace()
             return null
         }
     }
+
+    enum class ConfigurationType {
+        WEB_CLIENT,
+        EVALUATED_TOOL,
+        ;
+    }
+
+
+    open class Configuration
+
+
 
     /**
      * @property backendUrl
@@ -210,7 +213,18 @@ class AutomaticTestInitializator {
     data class WebClientProperties(
         val backendUrl: String,
         val preprocessorUrl: String,
-    )
+    ): Configuration()
+
+    data class EvaluatedToolProperties(
+        val organizationName: String,
+        val projectName: String,
+        val gitUrl: String,
+        val gitUserName: String,
+        val gitPassword: String? = null,
+        val branch: String? = null,
+        val commitHash: String?,
+        val testRootPath: String,
+    ): Configuration()
 }
 
 //
