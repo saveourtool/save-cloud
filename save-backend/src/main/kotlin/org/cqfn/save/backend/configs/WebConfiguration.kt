@@ -32,7 +32,8 @@ class WebConfiguration(
     }
 
     /**
-     * @param indexPage requested resource
+     * @param indexPage resource for index.html
+     * @param errorPage resource for error.html
      * @return router bean
      */
     @Bean
