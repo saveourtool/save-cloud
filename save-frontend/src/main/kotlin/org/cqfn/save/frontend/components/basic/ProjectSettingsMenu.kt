@@ -2,6 +2,7 @@
 
 package org.cqfn.save.frontend.components.basic
 
+import kotlinx.browser.document
 import kotlinx.html.ButtonType
 import kotlinx.html.InputType
 import kotlinx.html.js.onChangeFunction
@@ -19,6 +20,7 @@ import org.cqfn.save.frontend.utils.decodeFromJsonString
 import org.cqfn.save.frontend.utils.get
 import org.cqfn.save.frontend.utils.unsafeMap
 import org.cqfn.save.frontend.utils.useRequest
+import org.w3c.dom.HTMLFormElement
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.events.Event
 
@@ -45,11 +47,6 @@ external interface ProjectSettingsMenuProps : Props {
      * Number of containers available for this project
      */
     var numberOfContainers: Int?
-
-    /**
-     * Email that is connected to the project
-     */
-    var emailFromInput: String?
 
     /**
      * Flag to open Menu
@@ -89,130 +86,130 @@ fun projectSettingsMenu(
 //        }
 //    }()
 
+    var emailFromInput: String? = props.project.email
+    var isPublic: Boolean = props.project.public
+    var numberOfContainers: String = "1"
+
     div("row justify-content-center mb-2") {
         // ===================== LEFT COLUMN =======================================================================
-        div("col-3") {
+        div("col-4") {
             div("text-xs text-center font-weight-bold text-primary text-uppercase mb-3") {
                 +"Users"
             }
+            child(cardComponent(isBordered = false, hasBg = true) {
 
-//            div("col-xl col-md-6 mb-4") {
-//                +"TEST"
-//            }
+            })
         }
         // ===================== CENTER COLUMN =======================================================================
-        div("col-6 mb-2") {
+        div("col-4 mb-2") {
             div("text-xs text-center font-weight-bold text-primary text-uppercase mb-3") {
                 +"Main settings"
             }
             child(cardComponent(isBordered = false, hasBg = true) {
-                div("row d-flex align-items-center mt-2 ml-2 mr-2") {
-                    div("text-left col-3") {
+                div("row mt-2 ml-2 mr-2") {
+                    div("col-5 text-left align-self-center") {
                         +"Project email:"
                     }
-                    div("input-group-prepend col-9") {
+                    div("col-7 input-group-prepend") {
                         input(type = InputType.text) {
                             attrs["class"] = "form-control"
                             attrs {
-                                props.emailFromInput?.let {
-                                    defaultValue = it
-                                } ?: props.project?.email?.let {
+                                props.project.email?.let {
                                     defaultValue = it
                                 }
-                                placeholder = "johndoe@example.com"
+                                placeholder = "email@example.com"
                                 onChangeFunction = {
-                                    props.emailFromInput = (it.target as HTMLInputElement).value
+                                    emailFromInput = (it.target as HTMLInputElement).value
+                                    defaultValue = (it.target as HTMLInputElement).value
                                 }
                             }
                         }
                     }
                 }
-                div("row d-flex align-items-center mt-2 mr-2 ml-2") {
-                    div("text-left col-3") {
+                div("row mt-2 ml-2 mr-2") {
+                    div("col-5 text-left align-self-center") {
                         +"Project visibility:"
                     }
-                    div ("row d-flex justify-content-between col-9") {
-                        div("form-check form-switch mt-2 col-3") {
+                    form ("col-7 form-group row d-flex justify-content-around") {
+                        div ("form-check-inline") {
                             input(classes = "form-check-input") {
+                                attrs.defaultChecked = isPublic
                                 attrs["name"] = "projectVisibility"
                                 attrs["type"] = "radio"
                                 attrs["id"] = "isProjectPublicSwitch"
+                                attrs["value"] = "public"
                             }
                             label("form-check-label") {
                                 attrs["htmlFor"] = "isProjectPublicSwitch"
                                 +"Public"
                             }
                         }
-                        div("form-check form-switch mt-2 col-3") {
+                        div("form-check-inline") {
                             input(classes = "form-check-input") {
+                                attrs.defaultChecked = !isPublic
                                 attrs["name"] = "projectVisibility"
                                 attrs["type"] = "radio"
                                 attrs["id"] = "isProjectPrivateSwitch"
+                                attrs["value"] = "private"
                             }
                             label("form-check-label") {
                                 attrs["htmlFor"] = "isProjectPrivateSwitch"
                                 +"Private"
                             }
+                        }
+                        attrs.onChangeFunction = {
+                            isPublic = (it.target as HTMLInputElement).value == "public"
                         }
                     }
                 }
                 div("row d-flex align-items-center mt-2 mr-2 ml-2") {
-                    div("text-left col-3") {
+                    div("col-5 text-left") {
                         +"Number of containers:"
                     }
-                    div ("row d-flex justify-content-between col-9") {
-                        div("form-check form-switch mt-2 col-3") {
-                            input(classes = "form-check-input") {
-                                attrs["name"] = "projectVisibility"
-                                attrs["type"] = "radio"
-                                attrs["id"] = "isProjectPublicSwitch"
-                            }
-                            label("form-check-label") {
-                                attrs["htmlFor"] = "isProjectPublicSwitch"
-                                +"Public"
-                            }
-                        }
-                        div("form-check form-switch mt-2 col-3") {
-                            input(classes = "form-check-input") {
-                                attrs["name"] = "projectVisibility"
-                                attrs["type"] = "radio"
-                                attrs["id"] = "isProjectPrivateSwitch"
-                            }
-                            label("form-check-label") {
-                                attrs["htmlFor"] = "isProjectPrivateSwitch"
-                                +"Private"
-                            }
+                    div ("col-7 row") {
+                        div("form-switch") {
+                            selection(
+                                "numberOfContainers",
+                                numberOfContainers,
+                                listOf("1", "2", "3", "4"),
+                                {
+                                    numberOfContainers = it.value
+                                    println(numberOfContainers)
+                                },
+                                showLabel = false,
+                            )
                         }
                     }
                 }
 
+
+                hr("") {}
+                div("row d-flex justify-content-center") {
+                    div("col-3 d-sm-flex align-items-center justify-content-center") {
+                        button(type = ButtonType.button, classes = "btn btn-sm btn-primary") {
+                            attrs.onClickFunction = {
+                                val project = props.project.copy()
+                                if (emailFromInput != props.project.email) {
+                                    project.email = emailFromInput
+                                }
+                                if (isPublic != props.project.public) {
+                                    project.public = isPublic
+                                }
+                                updateProjectSettings(project)
+                            }
+                            +"Save changes"
+                        }
+                    }
+                    div("col-3 d-sm-flex align-items-center justify-content-center") {
+                        button(type = ButtonType.button, classes = "btn btn-sm btn-danger") {
+                            attrs.onClickFunction = {
+                                deleteProjectCallback()
+                            }
+                            +"Delete project"
+                        }
+                    }
+                }
             })
-        }
-
-
-        // ===================== RIGHT COLUMN =======================================================================
-        div("col-2") {
-            div("text-xs text-center font-weight-bold text-primary text-uppercase mb-3") {
-                +"Vital"
-            }
-            div("row d-flex justify-content-center") {
-                div("ml-3 d-sm-flex align-items-center justify-content-center mt-2") {
-                    button(type = ButtonType.button, classes = "btn btn-sm btn-primary") {
-                        attrs.onClickFunction = {
-                            updateProjectSettings(props.project)
-                        }
-                        +"Save changes"
-                    }
-                }
-                div("ml-3 d-sm-flex align-items-center justify-content-center mt-2") {
-                    button(type = ButtonType.button, classes = "btn btn-sm btn-danger") {
-                        attrs.onClickFunction = {
-                            deleteProjectCallback()
-                        }
-                        +"Delete project"
-                    }
-                }
-            }
         }
     }
 }

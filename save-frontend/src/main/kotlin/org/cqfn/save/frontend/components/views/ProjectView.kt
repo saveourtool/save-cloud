@@ -237,10 +237,7 @@ external interface ProjectViewState : State {
      */
     var isOpenMenuSettings: Boolean?
 
-    /**
-     *
-     */
-    var emailFromInputField: String?
+
 }
 
 /**
@@ -329,8 +326,19 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     private val projectSettingsMenu = projectSettingsMenu(
         deleteProjectCallback = ::deleteProject,
         updateProjectSettings = {
-            setState {
-                project = it
+            scope.launch {
+                val response = updateProject(it)
+                if (response.ok) {
+                    setState {
+                        project = it
+                    }
+                } else {
+                    setState {
+                        errorLabel = "Failed to save project info"
+                        errorMessage = "Failed to save project info: ${response.status} ${response.statusText}"
+                        isErrorOpen = true
+                    }
+                }
             }
         },
     )

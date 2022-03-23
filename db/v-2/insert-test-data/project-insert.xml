@@ -9,6 +9,7 @@
         <update dbms="mysql" tableName="project">
             <column name="user_id" value="1" />
             <column name="organization_id" value="1" />
+            <column name="email" value="email@domain.com"/>
         </update>
       
         <insert dbms="mysql" tableName="project">
@@ -19,6 +20,7 @@
             <column name="public" valueBoolean="false" />
             <column name="user_id" value="2" />
             <column name="organization_id" value="2" />
+            <column name="email" value="test@example.com"/>
         </insert>
         <insert dbms="mysql" tableName="project">
             <column name="id" value="4" />
@@ -29,6 +31,7 @@
             <column name="public" valueBoolean="true" />
             <column name="user_id" value="2" />
             <column name="organization_id" value="2" />
+            <column name="email" value="another_test@example.com"/>
         </insert>
     </changeSet>
 </databaseChangeLog>

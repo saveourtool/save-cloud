@@ -189,6 +189,8 @@ class ProjectController(private val projectService: ProjectService,
                 name = project.name
                 description = project.description
                 url = project.url
+                email = project.email
+                public = project.public
             }
         }
         .map { updatedProject ->

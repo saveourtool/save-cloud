@@ -43,4 +43,11 @@
         <dropColumn columnName="owner" tableName="project"/>
     </changeSet>
 
+    <changeSet id="project-add-email" author="sanyavertolet" context="dev or prod">
+        <addColumn tableName="project">
+            <column name = "email" type="varchar(256)">
+            </column>
+        </addColumn>
+    </changeSet>
+
 </databaseChangeLog>
