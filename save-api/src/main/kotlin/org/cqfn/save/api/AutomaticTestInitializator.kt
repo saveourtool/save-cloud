@@ -18,10 +18,9 @@ import io.ktor.client.request.*
 import io.ktor.client.request.forms.MultiPartFormDataContent
 import io.ktor.client.request.forms.formData
 import io.ktor.client.statement.HttpResponse
-import io.ktor.http.contentType
-import io.ktor.http.ContentType
+import io.ktor.http.*
 import io.ktor.util.InternalAPI
-import kotlinx.serialization.Contextual
+import kotlinx.serialization.encodeToString
 import org.slf4j.LoggerFactory
 
 import java.io.IOException
@@ -32,7 +31,6 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import org.cqfn.save.domain.Jdk
-import org.cqfn.save.domain.Sdk
 import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.GitDto
 import org.cqfn.save.entities.Organization
@@ -73,47 +71,55 @@ class AutomaticTestInitializator {
 
     @OptIn(InternalAPI::class)
     suspend fun start() {
-        val configuration = readConfiguration()
-        requireNotNull(configuration) {
+        val webClientProperties = readWebClientProperties()
+        requireNotNull(webClientProperties) {
             "Configuration couldn't be empty!"
         }
 
+        submitExecution(webClientProperties)
+    }
+
+    suspend fun getStandardTestSuites(webClientProperties: WebClientProperties) {
         log.info("\n\n-------------------Get all standard test suites---------------------")
 
         val response = httpClient.get<HttpResponse> {
-            url("${configuration.backendUrl}/api/allStandardTestSuites")
+            url("${webClientProperties.backendUrl}/api/allStandardTestSuites")
             header("X-Authorization-Source", "basic")
             contentType(ContentType.Application.Json)
         }
-
         log.info("\n\n\n==========================\nStatus: ${response.status}\n")
 
         val result = response.receive<List<TestSuiteDto>>()
         log.info("Result: $result")
-
-        log.info("-------------------Start execution---------------------")
-        submitExecution(configuration)
     }
 
     @OptIn(InternalAPI::class)
-    suspend fun submitExecution(configuration: ConfigProperties) {
-        val userId = 42L
-        val organizationId = 43L
+    suspend fun submitExecution(webClientProperties: WebClientProperties) {
+        log.info("\n\n-------------------Start execution---------------------")
+        val organizationName = "Huawei"
 
-        val organization = Organization(
-            name = "test-organization",
-            ownerId = userId,
-            dateCreated = LocalDateTime.now(),
-            avatar = "",
-        ).apply {
-            id = organizationId
-        }
+        val organization = getOrganizationByName(webClientProperties, organizationName)
+        val organizationId = organization.id
+        val userId = organization.ownerId
+
+        println("ORG ${organizationId} owner ${userId}")
+
+        return
+
+//        val organization = Organization(
+//            name = organizationName,
+//            ownerId = userId,
+//            dateCreated = LocalDateTime.parse("2021-01-01T00:00:00"),
+//            avatar = null,
+//        ).apply {
+//            id = organizationId
+//        }
 
         val gitUrl = "https://github.com/analysis-dev/save-cli"
-        val projectId = 44L
+        val projectId = 5L
 
         val project = Project(
-            name = "Test-project",
+            name = "save",
             url = gitUrl,
             description = "description",
             status = ProjectStatus.CREATED,
@@ -125,7 +131,7 @@ class AutomaticTestInitializator {
         }
 
 
-        val userName = "user"
+        val userName = "admin"
         val branch = "origin/feature/testing_for_cloud"
 
         val gitDto = GitDto(
@@ -137,7 +143,7 @@ class AutomaticTestInitializator {
         )
 
         val testRootPath = "examples/kotlin-diktat"
-        val executionId = 45L
+        val executionId = 4L
 
         val executionRequest = ExecutionRequest(
             project = project,
@@ -148,10 +154,19 @@ class AutomaticTestInitializator {
         )
 
         httpClient.post<HttpResponse> {
-            url("${configuration.backendUrl}/api/submitExecutionRequest")
+            url("${webClientProperties.backendUrl}/api/submitExecutionRequest")
             header("X-Authorization-Source", "basic")
             body = MultiPartFormDataContent(formData {
-                append("executionRequest", executionRequest)
+                //contentType(ContentType.Application.Json)
+                //append("Jonh", "Doe")
+
+                append("executionRequest", json.encodeToString(executionRequest),
+                    headers = Headers.build {
+                        append(HttpHeaders.ContentType, ContentType.Application.Json)
+                    }
+                )
+
+
                 // TODO provide logic for files
                 // append("file", "")
             })
@@ -160,7 +175,15 @@ class AutomaticTestInitializator {
     }
 
 
-    private fun readConfiguration(configFileName: String = "config.properties"): ConfigProperties? {
+    suspend fun getOrganizationByName(webClientProperties: WebClientProperties, name: String): Organization {
+        return httpClient.get<HttpResponse> {
+            url("${webClientProperties.backendUrl}/api/organization/get/organization-name?name=${name}")
+            header("X-Authorization-Source", "basic")
+            contentType(ContentType.Application.Json)
+        }.receive()
+    }
+
+    private fun readWebClientProperties(configFileName: String = "web-client.properties"): WebClientProperties? {
         try {
             val properties = Properties()
             val classLoader = AutomaticTestInitializator::class.java.classLoader
@@ -170,7 +193,7 @@ class AutomaticTestInitializator {
                 return null
             }
             properties.load(input)
-            return ConfigProperties(
+            return WebClientProperties(
                 properties.getProperty("backendUrl"),
                 properties.getProperty("preprocessorUrl"),
             )
@@ -184,7 +207,7 @@ class AutomaticTestInitializator {
      * @property backendUrl
      * @property preprocessorUrl
      */
-    data class ConfigProperties(
+    data class WebClientProperties(
         val backendUrl: String,
         val preprocessorUrl: String,
     )
