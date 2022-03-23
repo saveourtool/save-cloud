@@ -5,6 +5,7 @@ package org.cqfn.save.frontend.components.basic
 import kotlinx.browser.document
 import kotlinx.html.ButtonType
 import kotlinx.html.InputType
+import kotlinx.html.id
 import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
 import org.cqfn.save.agent.TestSuiteExecutionStatisticDto
@@ -20,8 +21,10 @@ import org.cqfn.save.frontend.utils.decodeFromJsonString
 import org.cqfn.save.frontend.utils.get
 import org.cqfn.save.frontend.utils.unsafeMap
 import org.cqfn.save.frontend.utils.useRequest
+import org.cqfn.save.permission.SetRoleRequest
 import org.w3c.dom.HTMLFormElement
 import org.w3c.dom.HTMLInputElement
+import org.w3c.dom.HTMLSelectElement
 import org.w3c.dom.events.Event
 
 import org.w3c.fetch.Headers
@@ -36,12 +39,7 @@ external interface ProjectSettingsMenuProps : Props {
     /**
      * List of users connected to the project
      */
-//    var users: List<UserInfo>?
-
-    /**
-     * Flag that indicates if project is public
-     */
-    var isPublic: Boolean?
+    var users: List<SetRoleRequest>?
 
     /**
      * Number of containers available for this project
@@ -67,6 +65,7 @@ external interface ProjectSettingsMenuProps : Props {
 fun projectSettingsMenu(
     deleteProjectCallback: () -> Unit,
     updateProjectSettings: (Project) -> Unit,
+    updateNumberOfContainers: (Int) -> Unit,
 ) = fc<ProjectSettingsMenuProps> { props ->
 //    val (latestExecutionStatisticDtos, setLatestExecutionStatisticDtos) = useState(props.latestExecutionStatisticDtos)
 
@@ -88,7 +87,7 @@ fun projectSettingsMenu(
 
     var emailFromInput: String? = props.project.email
     var isPublic: Boolean = props.project.public
-    var numberOfContainers: String = "1"
+    var numberOfContainers: String = props.numberOfContainers?.toString() ?: "1"
 
     div("row justify-content-center mb-2") {
         // ===================== LEFT COLUMN =======================================================================
@@ -168,16 +167,22 @@ fun projectSettingsMenu(
                     }
                     div ("col-7 row") {
                         div("form-switch") {
-                            selection(
-                                "numberOfContainers",
-                                numberOfContainers,
-                                listOf("1", "2", "3", "4"),
-                                {
-                                    numberOfContainers = it.value
-                                    println(numberOfContainers)
-                                },
-                                showLabel = false,
-                            )
+                            select("custom-select") {
+//                                attrs.value = numberOfContainers
+                                attrs.onChangeFunction = {
+                                    val target = it.target as HTMLSelectElement
+                                    numberOfContainers = target.value
+                                    attrs.value = numberOfContainers
+                                }
+                                attrs.id = "numberOfContainers"
+                                for (i in 1..8) {
+                                    option {
+                                        attrs.value = i.toString()
+                                        attrs.selected = i.toString() == numberOfContainers
+                                        +i.toString()
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -196,6 +201,9 @@ fun projectSettingsMenu(
                                     project.public = isPublic
                                 }
                                 updateProjectSettings(project)
+                                if (numberOfContainers.toInt() != props.numberOfContainers) {
+                                    updateNumberOfContainers(numberOfContainers.toInt())
+                                }
                             }
                             +"Save changes"
                         }

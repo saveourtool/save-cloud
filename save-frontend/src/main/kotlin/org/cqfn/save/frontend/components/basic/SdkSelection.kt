@@ -34,19 +34,16 @@ external interface SdkProps : PropsWithChildren {
     var selectedSdkVersion: String
 }
 
-fun <T : Tag> RDOMBuilder<T>.selection(
+private fun <T : Tag> RDOMBuilder<T>.selection(
     labelValue: String,
     value: String,
     options: List<String>,
     onChange: (HTMLSelectElement) -> Unit,
-    showLabel: Boolean = true,
 ) = div("input-group mb-3") {
-    if (showLabel) {
-        div("input-group-prepend") {
-            label("input-group-text") {
-                attrs["for"] = "inputGroupSelect01"
-                +labelValue
-            }
+    div("input-group-prepend") {
+        label("input-group-text") {
+            attrs["for"] = "inputGroupSelect01"
+            +labelValue
         }
     }
     select("custom-select") {

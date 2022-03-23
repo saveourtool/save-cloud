@@ -22,6 +22,14 @@ class LnkUserProjectService(private val lnkUserProjectRepository: LnkUserProject
         .map { it.user }
 
     /**
+     * @param project
+     * @param role user role in project
+     * @return all users with role in project
+     */
+    fun getAllUserNamesAndRolesByProject(project: Project) = lnkUserProjectRepository.findByProject(project)
+        .map { it.user.name to it.role }
+
+    /**
      * @param userId
      * @param project
      * @return role for user in [project] by user ID
