@@ -1,4 +1,4 @@
-package org.cqfn.save.backend.security
+package org.cqfn.save.permission
 
 /**
  * Permissions that operations may require on certain objects

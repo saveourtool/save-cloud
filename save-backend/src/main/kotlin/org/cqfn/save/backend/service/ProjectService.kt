@@ -1,12 +1,13 @@
 package org.cqfn.save.backend.service
 
 import org.cqfn.save.backend.repository.ProjectRepository
-import org.cqfn.save.backend.security.Permission
 import org.cqfn.save.backend.security.ProjectPermissionEvaluator
 import org.cqfn.save.domain.ProjectSaveStatus
 import org.cqfn.save.entities.Organization
 import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.ProjectStatus
+import org.cqfn.save.permission.Permission
+
 import org.springframework.data.domain.Example
 import org.springframework.data.domain.ExampleMatcher
 import org.springframework.http.HttpStatus

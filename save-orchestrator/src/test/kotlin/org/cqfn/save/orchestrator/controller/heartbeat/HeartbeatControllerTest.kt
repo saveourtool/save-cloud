@@ -18,10 +18,7 @@ import org.cqfn.save.orchestrator.service.DockerService
 import org.cqfn.save.test.TestBatch
 import org.cqfn.save.test.TestDto
 import org.cqfn.save.testsuite.TestSuiteType
-import org.cqfn.save.testutils.checkQueues
-import org.cqfn.save.testutils.createMockWebServer
-import org.cqfn.save.testutils.enqueue
-import org.cqfn.save.testutils.setDefaultResponseForPath
+import org.cqfn.save.testutils.*
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import okhttp3.mockwebserver.MockResponse
@@ -51,7 +48,6 @@ import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.web.reactive.function.BodyInserters
 import reactor.core.publisher.Mono
 
-import java.time.Clock
 import java.time.Duration
 import java.time.LocalDateTime
 import java.util.concurrent.CompletableFuture
@@ -86,14 +82,9 @@ class HeartbeatControllerTest {
             .build()
     }
 
-    @AfterEach
-    fun tearDown() {
-        mockServer.checkQueues()
-    }
-
     @Test
     fun checkAcceptingHeartbeat() {
-        val heartBeatBusy = Heartbeat("test", AgentState.BUSY, ExecutionProgress(0), kotlinx.datetime.Clock.System.now())
+        val heartBeatBusy = Heartbeat("test", AgentState.BUSY, ExecutionProgress(0), kotlinx.datetime.Clock.System.now().plus(30.seconds))
 
         webClient.post()
             .uri("/heartbeat")
@@ -109,7 +100,7 @@ class HeartbeatControllerTest {
         val list = listOf(TestDto("qwe", "WarnPlugin", 0, "hash", listOf("tag")))
         // /getTestBatches
         mockServer.enqueue(
-            "/getTestBatches",
+            "/getTestBatches\\?agentId=.*",
             MockResponse()
                 .setBody(Json.encodeToString(TestBatch(list, mapOf(0L to ""))))
                 .addHeader("Content-Type", "application/json")
@@ -140,7 +131,7 @@ class HeartbeatControllerTest {
                 AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "test-1"),
                 AgentStatusDto(LocalDateTime.now(), AgentState.BUSY, "test-2"),
             ),
-            heartbeats = listOf(Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100), kotlinx.datetime.Clock.System.now())),
+            heartbeats = listOf(Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100), kotlinx.datetime.Clock.System.now().plus(30.seconds))),
             testBatch = TestBatch(emptyList(), emptyMap()),
             testSuite = null,
             mockAgentStatuses = true,
@@ -156,7 +147,7 @@ class HeartbeatControllerTest {
                 AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "test-1"),
                 AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "test-2"),
             ),
-            heartbeats = listOf(Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100), kotlinx.datetime.Clock.System.now())),
+            heartbeats = listOf(Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100), kotlinx.datetime.Clock.System.now().plus(30.seconds))),
             testBatch = TestBatch(
                 listOf(
                     TestDto("/path/to/test-1", "WarnPlugin", 1, "hash1", listOf("tag")),
@@ -191,7 +182,7 @@ class HeartbeatControllerTest {
             {
                 // /getAgentsStatusesForSameExecution after shutdownIntervalMillis
                 mockServer.enqueue(
-                    "/getAgentsStatusesForSameExecution",
+                    "/getAgentsStatusesForSameExecution.*",
                     MockResponse()
                         .setBody(
                             objectMapper.writeValueAsString(
@@ -203,7 +194,7 @@ class HeartbeatControllerTest {
                 // additional setup for marking stuff as FINISHED
                 // /updateExecutionByDto
                 mockServer.enqueue(
-                    "/updateExecutionByDto",
+                    "/updateExecutionByDto.*",
                     MockResponse().setResponseCode(200)
                 )
             }
@@ -219,7 +210,7 @@ class HeartbeatControllerTest {
                 AgentStatusDto(LocalDateTime.now(), AgentState.STARTING, "test-1"),
                 AgentStatusDto(LocalDateTime.now(), AgentState.STARTING, "test-2"),
             ),
-            heartbeats = listOf(Heartbeat("test-1", AgentState.STARTING, ExecutionProgress(0), kotlinx.datetime.Clock.System.now())),
+            heartbeats = listOf(Heartbeat("test-1", AgentState.STARTING, ExecutionProgress(0), kotlinx.datetime.Clock.System.now().plus(30.seconds))),
             testBatch = TestBatch(
                 listOf(
                     TestDto("/path/to/test-1", "WarnPlugin", 1, "hash1", listOf("tag")),
@@ -252,7 +243,7 @@ class HeartbeatControllerTest {
                 // 3 absent heartbeats from test-2
                 Heartbeat("test-1", AgentState.BUSY, ExecutionProgress(0), currTime.plus(3.seconds)),
                 Heartbeat("test-1", AgentState.BUSY, ExecutionProgress(0), currTime.plus(4.seconds)),
-                Heartbeat("test-1", AgentState.BUSY, ExecutionProgress(0), currTime.plus(6.seconds)),
+                Heartbeat("test-1", AgentState.BUSY, ExecutionProgress(0), currTime.plus(10.seconds)),
             ),
             heartBeatInterval = 1_000,
             testBatch = TestBatch(
@@ -312,7 +303,7 @@ class HeartbeatControllerTest {
         )
         testHeartbeat(
             agentStatusDtos = agentStatusDtos,
-            heartbeats = listOf(Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100), kotlinx.datetime.Clock.System.now())),
+            heartbeats = listOf(Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100), kotlinx.datetime.Clock.System.now().plus(30.seconds))),
             heartBeatInterval = 0,
             testBatch = TestBatch(emptyList(), emptyMap()),
             testSuite = null,
@@ -320,7 +311,7 @@ class HeartbeatControllerTest {
             {
                 // /getAgentsStatusesForSameExecution after shutdownIntervalMillis
                 mockServer.enqueue(
-                    "/getAgentsStatusesForSameExecution",
+                    "/getAgentsStatusesForSameExecution.*",
                     MockResponse()
                         .setBody(
                             objectMapper.writeValueAsString(
@@ -380,7 +371,7 @@ class HeartbeatControllerTest {
         testHeartbeat(
             agentStatusDtos = agentStatusDtos,
             heartbeats = listOf(
-                Heartbeat("test-1", AgentState.FINISHED, ExecutionProgress(100), kotlinx.datetime.Clock.System.now())
+                Heartbeat("test-1", AgentState.FINISHED, ExecutionProgress(100), kotlinx.datetime.Clock.System.now().plus(30.seconds))
             ),
             heartBeatInterval = 0,
             testBatch = null,
@@ -402,7 +393,7 @@ class HeartbeatControllerTest {
      * Test logic triggered by a heartbeat.
      *
      * @param agentStatusDtos agent statuses that are returned from backend (mocked response)
-     * @param heartbeat a [Heartbeat] that is received by orchestrator
+     * @param heartbeats a [Heartbeat] that is received by orchestrator
      * @param testBatch a batch of tests returned from backend (mocked response)
      * @param mockAgentStatuses whether a mocked response for `/getAgentsStatusesForSameExecution` should be added to queue
      * @param additionalSetup is executed before the request is performed
@@ -423,7 +414,7 @@ class HeartbeatControllerTest {
         // /getTestBatches
         testBatch?.let {
             mockServer.enqueue(
-                "/getTestBatches",
+                "/getTestBatches\\?agentId=.*",
                 MockResponse()
                     .setBody(Json.encodeToString(testBatch))
                     .addHeader("Content-Type", "application/json")
@@ -444,7 +435,7 @@ class HeartbeatControllerTest {
         if (mockAgentStatuses) {
             // /getAgentsStatusesForSameExecution
             mockServer.enqueue(
-                "/getAgentsStatusesForSameExecution",
+                "/getAgentsStatusesForSameExecution.*",
                 MockResponse()
                     .setBody(
                         objectMapper.writeValueAsString(
@@ -489,6 +480,12 @@ class HeartbeatControllerTest {
     companion object {
         @JvmStatic
         private lateinit var mockServer: MockWebServer
+
+        @AfterEach
+        fun cleanup() {
+            mockServer.checkQueues()
+            mockServer.cleanup()
+        }
 
         @AfterAll
         fun tearDown() {

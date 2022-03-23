@@ -10,10 +10,12 @@ import org.cqfn.save.entities.TestSuite
 import org.cqfn.save.testsuite.TestSuiteDto
 import org.cqfn.save.testsuite.TestSuiteType
 import org.cqfn.save.testutils.checkQueues
+import org.cqfn.save.testutils.cleanup
 import org.cqfn.save.testutils.createMockWebServer
 
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -215,9 +217,14 @@ class TestSuitesControllerTest {
     companion object {
         @JvmStatic lateinit var mockServerPreprocessor: MockWebServer
 
+        @AfterEach
+        fun cleanup() {
+            mockServerPreprocessor.checkQueues()
+            mockServerPreprocessor.cleanup()
+        }
+
         @AfterAll
         fun tearDown() {
-            mockServerPreprocessor.checkQueues()
             mockServerPreprocessor.shutdown()
         }
 
