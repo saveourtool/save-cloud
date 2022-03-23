@@ -65,10 +65,11 @@ In the file `/home/saveu/configs/gateway/application.properties` the following p
 * `spring.security.oauth2.client.registration.<provider name>.client-secret`
   
 ## Local deployment
+Usually not the whole stack is required for development. Application logic is performed by save-backend, save-orchestrator and save-preprocessor, so most time you'll need those three.
 * Ensure that docker daemon is running and docker-compose is installed.
   * If running on Windows, docker daemon should have HTTP port enabled. Then, `win` profile should be enabled for orchestrator.
 * To make things easier, add line `save.profile=dev` to `gradle.properties`. This will make project version `SNAPSHOT` instead of timetamp-based suffix and allow caching of gradle tasks.
-* Run `./gradlew deployLocal -Psave.profile=dev` to start the database and microservices.
+* Run `./gradlew deployLocal -Psave.profile=dev` to start the database and the three microservices (backend, preprocessor and orchestrator).
 
 #### Note:
 If a snapshot version of save-cli is required (i.e., the one which is not available on GitHub releases), then it can be
