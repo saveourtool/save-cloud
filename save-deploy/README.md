@@ -66,6 +66,7 @@ In the file `/home/saveu/configs/gateway/application.properties` the following p
   
 ## Local deployment
 * Ensure that docker daemon is running and docker-compose is installed.
+  * If running on Windows, docker daemon should have HTTP port enabled. Then, `win` profile should be enabled for orchestrator.
 * To make things easier, add line `save.profile=dev` to `gradle.properties`. This will make project version `SNAPSHOT` instead of timetamp-based suffix and allow caching of gradle tasks.
 * Run `./gradlew deployLocal -Psave.profile=dev` to start the database and microservices.
 
