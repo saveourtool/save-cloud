@@ -1,8 +1,10 @@
 package org.cqfn.save.api
 
-import org.cqfn.save.core.result.DebugInfo
-import org.cqfn.save.core.result.Pass
-import org.cqfn.save.domain.TestResultDebugInfo
+import org.cqfn.save.domain.Jdk
+import org.cqfn.save.entities.ExecutionRequest
+import org.cqfn.save.entities.GitDto
+import org.cqfn.save.entities.Organization
+import org.cqfn.save.entities.Project
 import org.cqfn.save.testsuite.TestSuiteDto
 import org.cqfn.save.utils.LocalDateTimeSerializer
 
@@ -20,28 +22,19 @@ import io.ktor.client.request.forms.formData
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.*
 import io.ktor.util.InternalAPI
-import kotlinx.serialization.encodeToString
 import org.slf4j.LoggerFactory
 
 import java.io.IOException
+import java.lang.IllegalArgumentException
 import java.time.LocalDateTime
 import java.util.Properties
 
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
-import kotlinx.serialization.modules.polymorphic
-import org.cqfn.save.domain.Jdk
-import org.cqfn.save.entities.ExecutionRequest
-import org.cqfn.save.entities.GitDto
-import org.cqfn.save.entities.Organization
-import org.cqfn.save.entities.Project
-import java.lang.IllegalArgumentException
 
 internal val json = Json {
     serializersModule = SerializersModule {
-        polymorphic(TestResultDebugInfo::class)
-        polymorphic(DebugInfo::class)
-        polymorphic(Pass::class)
         contextual(LocalDateTime::class, LocalDateTimeSerializer)
     }
 }
@@ -51,7 +44,7 @@ class AutomaticTestInitializator {
     private val httpClient = HttpClient(Apache) {
         install(Logging) {
             logger = Logger.DEFAULT
-            level = LogLevel.ALL
+            level = LogLevel.INFO
         }
         install(JsonFeature) {
             serializer = KotlinxSerializer(json)
@@ -68,10 +61,12 @@ class AutomaticTestInitializator {
             }
         }
     }
-
     private val webClientPropertiesFileName = "web-client.properties"
     private val evaluatedToolPropertiesFileName = "evaluated-tool.properties"
 
+    /**
+     * @throws IllegalArgumentException
+     */
     @OptIn(InternalAPI::class)
     suspend fun start() {
         val webClientProperties = readPropertiesFile(webClientPropertiesFileName, PropertiesConfigurationType.WEB_CLIENT)
@@ -87,9 +82,13 @@ class AutomaticTestInitializator {
         submitExecution(webClientProperties as WebClientProperties, evaluatedToolProperties as EvaluatedToolProperties)
     }
 
+    /**
+     * @param webClientProperties
+     * @param evaluatedToolProperties
+     */
     @OptIn(InternalAPI::class)
     suspend fun submitExecution(webClientProperties: WebClientProperties, evaluatedToolProperties: EvaluatedToolProperties) {
-        log.info("\n\n-------------------Start execution---------------------")
+        log.info("Starting submit execution")
 
         val organization = getOrganizationByName(webClientProperties, evaluatedToolProperties.organizationName)
         val organizationId = organization.id!!
@@ -103,7 +102,8 @@ class AutomaticTestInitializator {
             hash = evaluatedToolProperties.commitHash
         )
 
-        val executionId = 4L
+        // Actually it's just a stub, executionId will be calculated at the server side
+        val executionId = 1L
 
         val executionRequest = ExecutionRequest(
             project = project,
@@ -132,29 +132,30 @@ class AutomaticTestInitializator {
         TODO("Not yet implemented")
     }
 
+    private suspend fun getOrganizationByName(
+        webClientProperties: WebClientProperties,
+        name: String
+    ): Organization = makeGetRequestWithAuthAndJsonContentType(
+        "${webClientProperties.backendUrl}/api/organization/get/organization-name?name=$name"
+    ).receive()
 
-    private suspend fun getOrganizationByName(webClientProperties: WebClientProperties, name: String): Organization {
-        return httpClient.get<HttpResponse> {
-            url("${webClientProperties.backendUrl}/api/organization/get/organization-name?name=${name}")
-            header("X-Authorization-Source", "basic")
-            contentType(ContentType.Application.Json)
-        }.receive()
-    }
+    private suspend fun getProjectByNameAndOrganizationId(
+        webClientProperties: WebClientProperties,
+        projectName: String, organizationId: Long
+    ): Project = makeGetRequestWithAuthAndJsonContentType(
+        "${webClientProperties.backendUrl}/api/projects/get/organization-id?name=$projectName&organizationId=$organizationId"
+    ).receive()
 
-    private suspend fun getProjectByNameAndOrganizationId(webClientProperties: WebClientProperties, projectName: String, organizationId: Long): Project {
-        return httpClient.get<HttpResponse> {
-            url("${webClientProperties.backendUrl}/api/projects/get/organization-id?name=${projectName}&organizationId=${organizationId}")
-            header("X-Authorization-Source", "basic")
-            contentType(ContentType.Application.Json)
-        }.receive()
-    }
+    private suspend fun getStandardTestSuites(
+        webClientProperties: WebClientProperties
+    ): List<TestSuiteDto> = makeGetRequestWithAuthAndJsonContentType(
+        "${webClientProperties.backendUrl}/api/allStandardTestSuites"
+    ).receive()
 
-    private suspend fun getStandardTestSuites(webClientProperties: WebClientProperties): List<TestSuiteDto> {
-        return httpClient.get<HttpResponse> {
-            url("${webClientProperties.backendUrl}/api/allStandardTestSuites")
-            header("X-Authorization-Source", "basic")
-            contentType(ContentType.Application.Json)
-        }.receive()
+    private suspend fun makeGetRequestWithAuthAndJsonContentType(url: String): HttpResponse = httpClient.get {
+        url(url)
+        header("X-Authorization-Source", "basic")
+        contentType(ContentType.Application.Json)
     }
 
     private fun readPropertiesFile(configFileName: String, type: PropertiesConfigurationType): PropertiesConfiguration? {
@@ -188,7 +189,6 @@ class AutomaticTestInitializator {
                     return null
                 }
             }
-
         } catch (ex: IOException) {
             ex.printStackTrace()
             return null
@@ -196,11 +196,10 @@ class AutomaticTestInitializator {
     }
 
     enum class PropertiesConfigurationType {
-        WEB_CLIENT,
         EVALUATED_TOOL,
+        WEB_CLIENT,
         ;
     }
-
 
     sealed class PropertiesConfiguration
 
@@ -211,8 +210,18 @@ class AutomaticTestInitializator {
     data class WebClientProperties(
         val backendUrl: String,
         val preprocessorUrl: String,
-    ): PropertiesConfiguration()
+    ) : PropertiesConfiguration()
 
+    /**
+     * @property organizationName
+     * @property projectName
+     * @property gitUrl
+     * @property gitUserName
+     * @property gitPassword
+     * @property branch
+     * @property commitHash
+     * @property testRootPath
+     */
     data class EvaluatedToolProperties(
         val organizationName: String,
         val projectName: String,
@@ -222,19 +231,5 @@ class AutomaticTestInitializator {
         val branch: String? = null,
         val commitHash: String?,
         val testRootPath: String,
-    ): PropertiesConfiguration()
+    ) : PropertiesConfiguration()
 }
-
-//
-//        val testExecutionDto = TestExecutionDto(
-//            filePath = "stub",
-//            pluginName = "stub",
-//            agentContainerId = "stub",
-//            status = TestResultStatus.PASSED,
-//            startTimeSeconds = LocalDateTime.parse("2021-01-01 00:03:07.000").toEpochSecond(ZoneOffset.UTC),
-//            endTimeSeconds = LocalDateTime.parse("2021-01-01 00:03:44.000").toEpochSecond(ZoneOffset.UTC),
-//            testSuiteName= null,
-//            tags= emptyList(),
-//            missingWarnings = 0,
-//            matchedWarnings = 0,
-//        )
