@@ -14,5 +14,4 @@ interface LnkUserOrganizationRepository : BaseEntityRepository<LnkUserOrganizati
      * @return lnkUserOrganization by organization
      */
     fun findByOrganization(organization: Organization): List<LnkUserOrganization>
-
 }
