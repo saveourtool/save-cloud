@@ -84,7 +84,7 @@ class WebSecurityConfig(
                 }
             }
             // resources for frontend
-            .pathMatchers("/*.html", "/*.js*", "/*.css", "/img/**")
+            .pathMatchers("/*.html", "/*.js*", "/*.css", "/img/**", "favicon.ico")
             .permitAll()
     }
         .run {
