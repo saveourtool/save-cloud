@@ -35,6 +35,7 @@ import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.GitDto
 import org.cqfn.save.entities.Organization
 import org.cqfn.save.entities.Project
+import java.lang.IllegalArgumentException
 
 internal val json = Json {
     serializersModule = SerializersModule {
@@ -68,39 +69,38 @@ class AutomaticTestInitializator {
         }
     }
 
+    private val webClientPropertiesFileName = "web-client.properties"
+    private val evaluatedToolPropertiesFileName = "evaluated-tool.properties"
+
     @OptIn(InternalAPI::class)
     suspend fun start() {
-        val webClientProperties = readPropertiesFile(obj = ConfigurationType.WEB_CLIENT)
-        requireNotNull(webClientProperties) {
-            "Configuration couldn't be empty!"
+        val webClientProperties = readPropertiesFile(webClientPropertiesFileName, PropertiesConfigurationType.WEB_CLIENT)
+        val evaluatedToolProperties = readPropertiesFile(evaluatedToolPropertiesFileName, PropertiesConfigurationType.EVALUATED_TOOL)
+
+        if (webClientProperties == null || evaluatedToolProperties == null) {
+            throw IllegalArgumentException(
+                "Configuration for web client and for evaluate tool couldn't be empty!" +
+                        " Please make sure, that you have proper $webClientPropertiesFileName and $evaluatedToolPropertiesFileName files."
+            )
         }
 
-        submitExecution(webClientProperties as WebClientProperties)
+        submitExecution(webClientProperties as WebClientProperties, evaluatedToolProperties as EvaluatedToolProperties)
     }
 
     @OptIn(InternalAPI::class)
-    suspend fun submitExecution(webClientProperties: WebClientProperties) {
+    suspend fun submitExecution(webClientProperties: WebClientProperties, evaluatedToolProperties: EvaluatedToolProperties) {
         log.info("\n\n-------------------Start execution---------------------")
-        val organizationName = "Huawei"
-        val projectName = "save"
 
-        val gitUrl = "https://github.com/analysis-dev/save-cli"
-        val gitUserName = "admin"
-        val gitPassword = null
-        val branch = "origin/feature/testing_for_cloud"
-        val commitHash = null
-
-        val testRootPath = "examples/kotlin-diktat"
-
-        val organization = getOrganizationByName(webClientProperties, organizationName)
+        val organization = getOrganizationByName(webClientProperties, evaluatedToolProperties.organizationName)
         val organizationId = organization.id!!
-        val project = getProjectByNameAndOrganizationId(webClientProperties, projectName, organizationId)
+        val project = getProjectByNameAndOrganizationId(webClientProperties, evaluatedToolProperties.projectName, organizationId)
+
         val gitDto = GitDto(
-            url = gitUrl,
-            username = gitUserName,
-            password = gitPassword,
-            branch = branch,
-            hash = commitHash
+            url = evaluatedToolProperties.gitUrl,
+            username = evaluatedToolProperties.gitUserName,
+            password = evaluatedToolProperties.gitPassword,
+            branch = evaluatedToolProperties.branch,
+            hash = evaluatedToolProperties.commitHash
         )
 
         val executionId = 4L
@@ -108,7 +108,7 @@ class AutomaticTestInitializator {
         val executionRequest = ExecutionRequest(
             project = project,
             gitDto = gitDto,
-            testRootPath = testRootPath,
+            testRootPath = evaluatedToolProperties.testRootPath,
             sdk = Jdk("11"),
             executionId = executionId,
         )
@@ -157,7 +157,7 @@ class AutomaticTestInitializator {
         }.receive()
     }
 
-    private fun readPropertiesFile(configFileName: String = "web-client.properties", obj: ConfigurationType): Configuration? {
+    private fun readPropertiesFile(configFileName: String, type: PropertiesConfigurationType): PropertiesConfiguration? {
         try {
             val properties = Properties()
             val classLoader = AutomaticTestInitializator::class.java.classLoader
@@ -167,12 +167,12 @@ class AutomaticTestInitializator {
                 return null
             }
             properties.load(input)
-            when(obj) {
-                ConfigurationType.WEB_CLIENT -> return WebClientProperties(
+            when (type) {
+                PropertiesConfigurationType.WEB_CLIENT -> return WebClientProperties(
                     properties.getProperty("backendUrl"),
                     properties.getProperty("preprocessorUrl"),
                 )
-                ConfigurationType.EVALUATED_TOOL -> return EvaluatedToolProperties(
+                PropertiesConfigurationType.EVALUATED_TOOL -> return EvaluatedToolProperties(
                     properties.getProperty("organizationName"),
                     properties.getProperty("projectName"),
                     properties.getProperty("gitUrl"),
@@ -195,16 +195,14 @@ class AutomaticTestInitializator {
         }
     }
 
-    enum class ConfigurationType {
+    enum class PropertiesConfigurationType {
         WEB_CLIENT,
         EVALUATED_TOOL,
         ;
     }
 
 
-    open class Configuration
-
-
+    sealed class PropertiesConfiguration
 
     /**
      * @property backendUrl
@@ -213,7 +211,7 @@ class AutomaticTestInitializator {
     data class WebClientProperties(
         val backendUrl: String,
         val preprocessorUrl: String,
-    ): Configuration()
+    ): PropertiesConfiguration()
 
     data class EvaluatedToolProperties(
         val organizationName: String,
@@ -224,7 +222,7 @@ class AutomaticTestInitializator {
         val branch: String? = null,
         val commitHash: String?,
         val testRootPath: String,
-    ): Configuration()
+    ): PropertiesConfiguration()
 }
 
 //
