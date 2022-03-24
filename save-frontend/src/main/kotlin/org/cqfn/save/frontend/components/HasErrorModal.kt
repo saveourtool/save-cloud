@@ -5,6 +5,7 @@ package org.cqfn.save.frontend.components
 import org.cqfn.save.frontend.externals.modal.modal
 
 import csstype.ClassName
+import kotlinx.browser.window
 import org.w3c.fetch.Response
 import react.Context
 import react.FC
@@ -39,11 +40,20 @@ val errorModalHandler: FC<PropsWithChildren> = FC { props ->
     ))
 
     useEffect(response) {
-        val newModalState = ErrorModalState(
-            isErrorModalOpen = response != null,
-            errorMessage = "${response?.status} ${response?.statusText}",
-            errorLabel = response?.status.toString(),
-        )
+        val newModalState = if (response?.status == 401.toShort()) {
+            ErrorModalState(
+                isErrorModalOpen = true,
+                errorMessage = "You are not logged in",
+                errorLabel = "Unauthenticated",
+                confirmationText = "Proceed to login page",
+            )
+        } else {
+            ErrorModalState(
+                isErrorModalOpen = response != null,
+                errorMessage = "${response?.status} ${response?.statusText}",
+                errorLabel = response?.status.toString(),
+            )
+        }
         setModalState(newModalState)
     }
 
@@ -63,10 +73,14 @@ val errorModalHandler: FC<PropsWithChildren> = FC { props ->
                 className = ClassName("btn btn-primary")
                 type = ButtonType.button
                 onClick = {
+                    if (response?.status == 401.toShort()) {
+                        // if 401 - change current URL to the main page (with login screen)
+                        window.location.href = "${window.location.origin}/#"
+                    }
                     setResponse(null)
                     setModalState(modalState.copy(isErrorModalOpen = false))
                 }
-                +"Close"
+                +modalState.confirmationText
             }
         }
     }
@@ -90,4 +104,5 @@ data class ErrorModalState(
     val isErrorModalOpen: Boolean?,
     val errorMessage: String,
     val errorLabel: String,
+    val confirmationText: String = "Close",
 )
