@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+  <changeSet id="lnk-user-organization-1" author="frolov" context="dev or prod">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <tableExists tableName="lnk_user_organization"/>
+      </not>
+    </preConditions>
+    <createTable tableName="lnk_user_organization">
+      <column name="id" type="bigint" autoIncrement="true">
+        <constraints primaryKey="true" nullable="false"/>
+      </column>
+      <column name="organization_id" type="bigint">
+        <constraints foreignKeyName="fk_lnk_user_organization_organization" references="organization(id)" nullable="false"/>
+      </column>
+      <column name="user_id" type="bigint">
+        <constraints foreignKeyName="fk_lnk_user_organization_user" references="user(id)" nullable="false"/>
+      </column>
+    </createTable>
+
+    <rollback>
+      <dropTable
+        cascadeConstraints="true"
+        tableName="lnk-user-project" />
+    </rollback>
+  </changeSet>
+
+</databaseChangeLog>
