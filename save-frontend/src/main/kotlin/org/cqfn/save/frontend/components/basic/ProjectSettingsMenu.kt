@@ -2,35 +2,19 @@
 
 package org.cqfn.save.frontend.components.basic
 
-import kotlinx.browser.document
+import org.cqfn.save.entities.Project
+import org.cqfn.save.permission.SetRoleRequest
+
+import org.w3c.dom.HTMLInputElement
+import org.w3c.dom.HTMLSelectElement
+import react.*
+import react.dom.*
+
 import kotlinx.html.ButtonType
 import kotlinx.html.InputType
 import kotlinx.html.id
 import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
-import org.cqfn.save.agent.TestSuiteExecutionStatisticDto
-import org.cqfn.save.domain.TestResultStatus
-import org.cqfn.save.entities.Project
-import org.cqfn.save.entities.ProjectStatus
-import org.cqfn.save.frontend.components.tables.tableComponent
-import org.cqfn.save.frontend.externals.chart.DataPieChart
-import org.cqfn.save.frontend.externals.chart.pieChart
-import org.cqfn.save.frontend.externals.chart.randomColor
-import org.cqfn.save.frontend.utils.apiUrl
-import org.cqfn.save.frontend.utils.decodeFromJsonString
-import org.cqfn.save.frontend.utils.get
-import org.cqfn.save.frontend.utils.unsafeMap
-import org.cqfn.save.frontend.utils.useRequest
-import org.cqfn.save.permission.SetRoleRequest
-import org.w3c.dom.HTMLFormElement
-import org.w3c.dom.HTMLInputElement
-import org.w3c.dom.HTMLSelectElement
-import org.w3c.dom.events.Event
-
-import org.w3c.fetch.Headers
-import react.*
-import react.dom.*
-import react.table.columns
 
 /**
  * ProjectSettingsMenu component props
@@ -58,7 +42,9 @@ external interface ProjectSettingsMenuProps : Props {
 }
 
 /**
- * @param openMenuSettingsFlag
+ * @param deleteProjectCallback
+ * @param updateProjectSettings
+ * @param updateNumberOfContainers
  * @return ReactElement
  */
 @Suppress("TOO_LONG_FUNCTION", "LongMethod", "MAGIC_NUMBER")
@@ -67,24 +53,6 @@ fun projectSettingsMenu(
     updateProjectSettings: (Project) -> Unit,
     updateNumberOfContainers: (Int) -> Unit,
 ) = fc<ProjectSettingsMenuProps> { props ->
-//    val (latestExecutionStatisticDtos, setLatestExecutionStatisticDtos) = useState(props.latestExecutionStatisticDtos)
-
-//    useRequest(arrayOf(props.executionId, props.latestExecutionStatisticDtos, props.isOpen), isDeferred = false) {
-//        if (props.isOpen != true) {
-//            val testLatestExecutions = get(
-//                url = "$apiUrl/testLatestExecutions?executionId=${props.executionId}&status=${TestResultStatus.PASSED}",
-//                headers = Headers().also {
-//                    it.set("Accept", "application/json")
-//                },
-//            )
-//                .unsafeMap {
-//                    it.decodeFromJsonString<List<TestSuiteExecutionStatisticDto>>()
-//                }
-//            setLatestExecutionStatisticDtos(testLatestExecutions)
-//            openMenuStatisticFlag(true)
-//        }
-//    }()
-
     var emailFromInput: String? = props.project.email
     var isPublic: Boolean = props.project.public
     var numberOfContainers: String = props.numberOfContainers?.toString() ?: "1"
@@ -97,7 +65,7 @@ fun projectSettingsMenu(
             }
             child(cardComponent(isBordered = false, hasBg = true) {
 
-            })
+                })
         }
         // ===================== CENTER COLUMN =======================================================================
         div("col-4 mb-2") {
@@ -110,7 +78,7 @@ fun projectSettingsMenu(
                         +"Project email:"
                     }
                     div("col-7 input-group-prepend") {
-                        input(type = InputType.text) {
+                        input(type = InputType.email) {
                             attrs["class"] = "form-control"
                             attrs {
                                 props.project.email?.let {
@@ -129,8 +97,8 @@ fun projectSettingsMenu(
                     div("col-5 text-left align-self-center") {
                         +"Project visibility:"
                     }
-                    form ("col-7 form-group row d-flex justify-content-around") {
-                        div ("form-check-inline") {
+                    form("col-7 form-group row d-flex justify-content-around") {
+                        div("form-check-inline") {
                             input(classes = "form-check-input") {
                                 attrs.defaultChecked = isPublic
                                 attrs["name"] = "projectVisibility"
@@ -165,10 +133,11 @@ fun projectSettingsMenu(
                     div("col-5 text-left") {
                         +"Number of containers:"
                     }
-                    div ("col-7 row") {
+                    div("col-7 row") {
                         div("form-switch") {
                             select("custom-select") {
-//                                attrs.value = numberOfContainers
+                                // fixme: later we will need to change amount of containers
+                                attrs.disabled = true
                                 attrs.onChangeFunction = {
                                     val target = it.target as HTMLSelectElement
                                     numberOfContainers = target.value
@@ -186,7 +155,6 @@ fun projectSettingsMenu(
                         }
                     }
                 }
-
 
                 hr("") {}
                 div("row d-flex justify-content-center") {

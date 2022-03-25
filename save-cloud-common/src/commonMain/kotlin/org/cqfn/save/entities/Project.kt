@@ -12,6 +12,7 @@ import kotlinx.serialization.Serializable
  * @property public
  * @property userId the user that has created this project. No automatic mapping, because Hibernate is not available in common code.
  * @property organization
+ * @property email
  */
 @Entity
 @Serializable

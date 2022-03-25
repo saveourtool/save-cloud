@@ -237,7 +237,9 @@ external interface ProjectViewState : State {
      */
     var isOpenMenuSettings: Boolean?
 
-
+    /**
+     * Number of containers dedicated for project
+     */
     var numberOfContainers: Int
 }
 
@@ -324,6 +326,8 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             }
         },
     )
+
+    @Suppress("TOO_MANY_LINES_IN_LAMBDA")
     private val projectSettingsMenu = projectSettingsMenu(
         deleteProjectCallback = ::deleteProject,
         updateProjectSettings = {

@@ -23,7 +23,6 @@ class LnkUserProjectService(private val lnkUserProjectRepository: LnkUserProject
 
     /**
      * @param project
-     * @param role user role in project
      * @return all users with role in project
      */
     fun getAllUserNamesAndRolesByProject(project: Project) = lnkUserProjectRepository.findByProject(project)
