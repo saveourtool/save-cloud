@@ -9,7 +9,7 @@
 
         <loadData tableName="lnk_user_organization" encoding="UTF-8" separator=";" quotchar="&quot;" file="db/v-2/insert-test-data/sqlRequests/lnk-user-organization.csv">
             <column header="id" name="id" type="NUMERIC" />
-            <column header="organization_id" name="owner_id" type="NUMERIC" />
+            <column header="organization_id" name="organization_id" type="NUMERIC" />
             <column header="user_id" name="user_id" type="NUMERIC" />
         </loadData>
 
