@@ -46,7 +46,7 @@ class WebSecurityConfig(
             .pathMatchers("/", "/internal/**", "/actuator/**", *publicEndpoints.toTypedArray())
             .permitAll()
             // resources for frontend
-            .pathMatchers("/*.html", "/*.js*", "/img/**")
+            .pathMatchers("/*.html", "/*.js*", "/*.css", "/img/**", "favicon.ico")
             .permitAll()
     }
         .and().run {
@@ -97,6 +97,7 @@ class WebSecurityConfig(
          * Or we can use custom AccessDecisionManager later.
          */
         internal val publicEndpoints = listOf(
+            "/error",
             // `CollectionView` is a public page
             "/api/projects/not-deleted",
             "/api/awesome-benchmarks",
