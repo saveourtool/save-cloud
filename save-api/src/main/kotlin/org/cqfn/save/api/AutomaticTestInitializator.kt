@@ -32,6 +32,7 @@ import java.util.Properties
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
+import okio.Path.Companion.toPath
 import org.cqfn.save.domain.FileInfo
 import java.io.File
 
@@ -81,11 +82,11 @@ class AutomaticTestInitializator {
             )
         }
 
-        evaluatedToolProperties.additionalFiles?.let {
+        val additionalFileInfoList = evaluatedToolProperties.additionalFiles?.let {
             processAdditionalFiles(webClientProperties, it)
         }
 
-        submitExecution(webClientProperties, evaluatedToolProperties)
+        submitExecution(webClientProperties, evaluatedToolProperties, additionalFileInfoList)
     }
 
     /**
@@ -93,8 +94,13 @@ class AutomaticTestInitializator {
      * @param evaluatedToolProperties
      */
     @OptIn(InternalAPI::class)
-    suspend fun submitExecution(webClientProperties: WebClientProperties, evaluatedToolProperties: EvaluatedToolProperties) {
-        log.info("Starting submit execution")
+    suspend fun submitExecution(webClientProperties: WebClientProperties, evaluatedToolProperties: EvaluatedToolProperties, additionalFiles: List<FileInfo>?) {
+        val msg = additionalFiles?.let {
+            "with additional files: ${additionalFiles.map { it.name }}"
+        } ?: {
+            "without additional files"
+        }
+        log.info("Starting submit execution $msg")
 
         val organization = getOrganizationByName(webClientProperties, evaluatedToolProperties.organizationName)
         val organizationId = organization.id!!
@@ -128,8 +134,11 @@ class AutomaticTestInitializator {
                         append(HttpHeaders.ContentType, ContentType.Application.Json)
                     }
                 )
-                // TODO provide logic for files
-                // append("file", "")
+                additionalFiles?.let {
+                    append("file", json.encodeToString(additionalFiles), Headers.build {
+                        append(HttpHeaders.ContentType, ContentType.Application.Json)
+                    })
+                }
             })
         }
     }
@@ -138,39 +147,37 @@ class AutomaticTestInitializator {
         TODO("Not yet implemented")
     }
 
-    private suspend fun processAdditionalFiles(webClientProperties: WebClientProperties, files: String) {
-        val additionalFiles = files.split(";")
-
-        additionalFiles.forEach {
-            require(File(it).exists()) {
-                "Couldn't find additional file $it"
+    private suspend fun processAdditionalFiles(webClientProperties: WebClientProperties, files: String): List<FileInfo>? {
+        val userAdditionalFiles = files.split(";")
+        userAdditionalFiles.forEach {
+            if (!File(it).exists()) {
+                log.error("Couldn't find additional file $it in user file system!")
+                return null
             }
         }
 
+        val availableFilesInCloudStorage = getAvaliableFilesList(webClientProperties)
 
-        val availableFiles = listOf<FileInfo>()//getAvaliableFilesList(webClientProperties)
+        val resultFileInfoList: MutableList<FileInfo> = mutableListOf()
 
-        availableFiles.forEach {
-            println("----${it}")
-        }
-
-        val resultFiles: MutableList<String> = mutableListOf()
-
-        additionalFiles.forEach { additionalFileName ->
-            val fileFromStorage = availableFiles.firstOrNull { it.name == additionalFileName }
+        // Try to take files from storage, or upload them if they are absent
+        userAdditionalFiles.forEach { file ->
+            val fileFromStorage = availableFilesInCloudStorage.firstOrNull { it.name == file.toPath().name }
             fileFromStorage?.let {
-                resultFiles.add(
-                    // fixme what with separators
-                    "${webClientProperties.fileStorage}/${fileFromStorage.uploadedMillis}/${fileFromStorage.name}"
-                )
-            } ?: {
-                // upload files
+                val filePathInStorage = "${webClientProperties.fileStorage}/${fileFromStorage.uploadedMillis}/${fileFromStorage.name}"
+                log.info("Take existing file $filePathInStorage from storage")
+                if (!File(filePathInStorage).exists()) {
+                    log.error("Couldn't find additional file $filePathInStorage in cloud storage!")
+                    return null
+                }
+                resultFileInfoList.add(fileFromStorage)
+            } ?: run {
+                log.info("Upload file $file to storage")
+                val uploadedFile: FileInfo = uploadAdditionalFile(webClientProperties, file)
+                resultFileInfoList.add(uploadedFile)
             }
         }
-
-        println("==========RESULT:  ${resultFiles}")
-
-
+        return resultFileInfoList
     }
 
 
@@ -193,6 +200,23 @@ class AutomaticTestInitializator {
     ): List<FileInfo> = getRequestWithAuthAndJsonContentType(
         "${webClientProperties.backendUrl}/api/files/list"
     ).receive()
+
+    private suspend fun uploadAdditionalFile(
+        webClientProperties: WebClientProperties,
+        file: String,
+    ): FileInfo = httpClient.post {
+        url("${webClientProperties.backendUrl}/api/files/upload")
+        header("X-Authorization-Source", "basic")
+        body = MultiPartFormDataContent(formData {
+            append(
+                key = "file",
+                value = File(file).readBytes(),
+                headers = Headers.build {
+                    append(HttpHeaders.ContentDisposition, "filename=${file.toPath().name}")
+                }
+            )
+        })
+    }
 
     private suspend fun getStandardTestSuites(
         webClientProperties: WebClientProperties
