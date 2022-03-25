@@ -32,6 +32,8 @@ import java.util.Properties
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
+import org.cqfn.save.domain.FileInfo
+import java.io.File
 
 internal val json = Json {
     serializersModule = SerializersModule {
@@ -69,17 +71,21 @@ class AutomaticTestInitializator {
      */
     @OptIn(InternalAPI::class)
     suspend fun start() {
-        val webClientProperties = readPropertiesFile(webClientPropertiesFileName, PropertiesConfigurationType.WEB_CLIENT)
-        val evaluatedToolProperties = readPropertiesFile(evaluatedToolPropertiesFileName, PropertiesConfigurationType.EVALUATED_TOOL)
+        val webClientProperties = readPropertiesFile(webClientPropertiesFileName, PropertiesConfigurationType.WEB_CLIENT) as WebClientProperties?
+        val evaluatedToolProperties = readPropertiesFile(evaluatedToolPropertiesFileName, PropertiesConfigurationType.EVALUATED_TOOL) as EvaluatedToolProperties?
 
         if (webClientProperties == null || evaluatedToolProperties == null) {
             throw IllegalArgumentException(
                 "Configuration for web client and for evaluate tool couldn't be empty!" +
-                        " Please make sure, that you have proper $webClientPropertiesFileName and $evaluatedToolPropertiesFileName files."
+                        " Please make sure, that you have proper configuration in files: $webClientPropertiesFileName, $evaluatedToolPropertiesFileName"
             )
         }
 
-        submitExecution(webClientProperties as WebClientProperties, evaluatedToolProperties as EvaluatedToolProperties)
+        evaluatedToolProperties.additionalFiles?.let {
+            processAdditionalFiles(webClientProperties, it)
+        }
+
+        submitExecution(webClientProperties, evaluatedToolProperties)
     }
 
     /**
@@ -132,27 +138,69 @@ class AutomaticTestInitializator {
         TODO("Not yet implemented")
     }
 
+    private suspend fun processAdditionalFiles(webClientProperties: WebClientProperties, files: String) {
+        val additionalFiles = files.split(";")
+
+        additionalFiles.forEach {
+            require(File(it).exists()) {
+                "Couldn't find additional file $it"
+            }
+        }
+
+
+        val availableFiles = listOf<FileInfo>()//getAvaliableFilesList(webClientProperties)
+
+        availableFiles.forEach {
+            println("----${it}")
+        }
+
+        val resultFiles: MutableList<String> = mutableListOf()
+
+        additionalFiles.forEach { additionalFileName ->
+            val fileFromStorage = availableFiles.firstOrNull { it.name == additionalFileName }
+            fileFromStorage?.let {
+                resultFiles.add(
+                    // fixme what with separators
+                    "${webClientProperties.fileStorage}/${fileFromStorage.uploadedMillis}/${fileFromStorage.name}"
+                )
+            } ?: {
+                // upload files
+            }
+        }
+
+        println("==========RESULT:  ${resultFiles}")
+
+
+    }
+
+
     private suspend fun getOrganizationByName(
         webClientProperties: WebClientProperties,
         name: String
-    ): Organization = makeGetRequestWithAuthAndJsonContentType(
+    ): Organization = getRequestWithAuthAndJsonContentType(
         "${webClientProperties.backendUrl}/api/organization/get/organization-name?name=$name"
     ).receive()
 
     private suspend fun getProjectByNameAndOrganizationId(
         webClientProperties: WebClientProperties,
         projectName: String, organizationId: Long
-    ): Project = makeGetRequestWithAuthAndJsonContentType(
+    ): Project = getRequestWithAuthAndJsonContentType(
         "${webClientProperties.backendUrl}/api/projects/get/organization-id?name=$projectName&organizationId=$organizationId"
+    ).receive()
+
+    private suspend fun getAvaliableFilesList(
+        webClientProperties: WebClientProperties
+    ): List<FileInfo> = getRequestWithAuthAndJsonContentType(
+        "${webClientProperties.backendUrl}/api/files/list"
     ).receive()
 
     private suspend fun getStandardTestSuites(
         webClientProperties: WebClientProperties
-    ): List<TestSuiteDto> = makeGetRequestWithAuthAndJsonContentType(
+    ): List<TestSuiteDto> = getRequestWithAuthAndJsonContentType(
         "${webClientProperties.backendUrl}/api/allStandardTestSuites"
     ).receive()
 
-    private suspend fun makeGetRequestWithAuthAndJsonContentType(url: String): HttpResponse = httpClient.get {
+    private suspend fun getRequestWithAuthAndJsonContentType(url: String): HttpResponse = httpClient.get {
         url(url)
         header("X-Authorization-Source", "basic")
         contentType(ContentType.Application.Json)
@@ -172,6 +220,7 @@ class AutomaticTestInitializator {
                 PropertiesConfigurationType.WEB_CLIENT -> return WebClientProperties(
                     properties.getProperty("backendUrl"),
                     properties.getProperty("preprocessorUrl"),
+                    properties.getProperty("fileStorage"),
                 )
                 PropertiesConfigurationType.EVALUATED_TOOL -> return EvaluatedToolProperties(
                     properties.getProperty("organizationName"),
@@ -182,10 +231,10 @@ class AutomaticTestInitializator {
                     properties.getProperty("branch"),
                     properties.getProperty("commitHash"),
                     properties.getProperty("testRootPath"),
+                    properties.getProperty("additionalFiles"),
                 )
                 else -> {
-                    // fixme:
-                    log.error("Unsupported type for configuration")
+                    log.error("Type $type for properties configuration doesn't supported!")
                     return null
                 }
             }
@@ -210,6 +259,7 @@ class AutomaticTestInitializator {
     data class WebClientProperties(
         val backendUrl: String,
         val preprocessorUrl: String,
+        val fileStorage: String,
     ) : PropertiesConfiguration()
 
     /**
@@ -226,10 +276,11 @@ class AutomaticTestInitializator {
         val organizationName: String,
         val projectName: String,
         val gitUrl: String,
-        val gitUserName: String,
+        val gitUserName: String? = null,
         val gitPassword: String? = null,
         val branch: String? = null,
         val commitHash: String?,
         val testRootPath: String,
+        val additionalFiles: String? = null,
     ) : PropertiesConfiguration()
 }
