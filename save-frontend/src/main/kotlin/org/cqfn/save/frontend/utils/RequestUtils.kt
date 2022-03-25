@@ -119,9 +119,7 @@ internal fun Component<*, *>.classComponentResponseHandler(
     // dirty hack to determine whether this component contains `setResponse` in its context.
     // If we add another context with a function, this logic will break.
     val hasResponseContext = this.asDynamic().context is Function<*>
-    if (!hasResponseContext) {
-        noopResponseHandler(response)
-    } else {
+    if (hasResponseContext) {
         this.unsafeCast<Component<*, *>>().withModalResponseHandler(response)
     }
 }
