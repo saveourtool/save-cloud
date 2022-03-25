@@ -50,12 +50,7 @@ class WebSecurityConfig(
         http: ServerHttpSecurity
     ): SecurityWebFilterChain = http.securityMatcher(
         // access to actuator is managed separately
-        AndServerWebExchangeMatcher(
-            ServerWebExchangeMatchers.pathMatchers("/**"),
-            NegatedServerWebExchangeMatcher(
-                ServerWebExchangeMatchers.pathMatchers("/actuator", "/actuator/**")
-            )
-        )
+        matchAllExcludingActuator()
     ).authorizeExchange { authorizeExchangeSpec ->
         // this is default data that is required by FE to operate properly
         authorizeExchangeSpec.pathMatchers(
@@ -154,6 +149,13 @@ class WebSecurityConfig(
             }
         }
         .and().build()
+
+    private fun matchAllExcludingActuator() = AndServerWebExchangeMatcher(
+        ServerWebExchangeMatchers.pathMatchers("/**"),
+        NegatedServerWebExchangeMatcher(
+            ServerWebExchangeMatchers.pathMatchers("/actuator", "/actuator/**")
+        )
+    )
 }
 
 /**
