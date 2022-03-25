@@ -5,7 +5,6 @@ package org.cqfn.save.frontend.components
 import org.cqfn.save.frontend.externals.modal.modal
 
 import csstype.ClassName
-import kotlinx.browser.window
 import org.w3c.fetch.Response
 import react.Context
 import react.FC
@@ -20,6 +19,8 @@ import react.useEffect
 import react.useMemo
 import react.useState
 
+import kotlinx.browser.window
+
 /**
  * Context to store data about current request error.
  */
@@ -30,7 +31,7 @@ val errorStatusContext: Context<StateSetter<Response?>> = createContext()
  * Component that displays generic warning about unsuccessful request based on info in [errorStatusContext].
  * Also renders its `children`.
  */
-@Suppress("TOO_MANY_LINES_IN_LAMBDA")
+@Suppress("TOO_MANY_LINES_IN_LAMBDA", "MAGIC_NUMBER")
 val errorModalHandler: FC<PropsWithChildren> = FC { props ->
     val (response, setResponse) = useState<Response?>(null)
     val (modalState, setModalState) = useState(ErrorModalState(
@@ -99,6 +100,7 @@ val errorModalHandler: FC<PropsWithChildren> = FC { props ->
  * @property isErrorModalOpen
  * @property errorMessage
  * @property errorLabel
+ * @property confirmationText text that will be displayed on modal dismiss button
  */
 data class ErrorModalState(
     val isErrorModalOpen: Boolean?,
