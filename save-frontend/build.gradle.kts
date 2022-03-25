@@ -56,6 +56,7 @@ kotlin {
             compileOnly(devNpm("postcss", "^8.2.13"))
             compileOnly(devNpm("autoprefixer", ">9"))
             compileOnly(devNpm("webpack-bundle-analyzer", "*"))
+            compileOnly(devNpm("mini-css-extract-plugin", "^2.6.0"))
 
             // web-specific dependencies
             implementation(npm("@fortawesome/fontawesome-svg-core", "^1.2.36"))
@@ -79,8 +80,10 @@ kotlin {
 
 // workaround for continuous work of WebPack: (https://github.com/webpack/webpack-cli/issues/2990)
 rootProject.plugins.withType(NodeJsRootPlugin::class.java) {
-    rootProject.the<NodeJsRootExtension>().versions.webpackCli
-        .version = "4.9.0"
+    rootProject.the<NodeJsRootExtension>().versions.apply {
+        webpackCli.version = "4.9.0"
+        karma.version = "^6.3.14"
+    }
 }
 // store yarn.lock in the root directory
 rootProject.extensions.configure<org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension> {

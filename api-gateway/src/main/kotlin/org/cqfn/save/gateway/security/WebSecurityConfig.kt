@@ -23,6 +23,7 @@ import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.server.SecurityWebFilterChain
 import org.springframework.security.web.server.authentication.DelegatingServerAuthenticationSuccessHandler
 import org.springframework.security.web.server.authentication.HttpStatusServerEntryPoint
+import org.springframework.security.web.server.authentication.RedirectServerAuthenticationFailureHandler
 import org.springframework.security.web.server.authentication.RedirectServerAuthenticationSuccessHandler
 import org.springframework.security.web.server.authentication.logout.HttpStatusReturningServerLogoutSuccessHandler
 import org.springframework.security.web.server.authorization.AuthorizationContext
@@ -49,15 +50,15 @@ class WebSecurityConfig(
         http: ServerHttpSecurity
     ): SecurityWebFilterChain = http.securityMatcher(
         // access to actuator is managed separately
-        AndServerWebExchangeMatcher(
-            ServerWebExchangeMatchers.pathMatchers("/**"),
-            NegatedServerWebExchangeMatcher(
-                ServerWebExchangeMatchers.pathMatchers("/actuator", "/actuator/**")
-            )
-        )
+        matchAllExcludingActuator()
     ).authorizeExchange { authorizeExchangeSpec ->
         // this is default data that is required by FE to operate properly
-        authorizeExchangeSpec.pathMatchers("/", "/login", "/logout", "/sec/oauth-providers", "/sec/user")
+        authorizeExchangeSpec.pathMatchers(
+            "/",
+            "/login", "/logout",
+            "/sec/oauth-providers", "/sec/user",
+            "/error",
+        )
             .permitAll()
             // all requests to backend are permitted on gateway, if user agent is authenticated in gateway or doesn't have
             // any authentication data at all.
@@ -79,7 +80,7 @@ class WebSecurityConfig(
                 }
             }
             // resources for frontend
-            .pathMatchers("/*.html", "/*.js*", "/img/**")
+            .pathMatchers("/*.html", "/*.js*", "/*.css", "/img/**", "favicon.ico")
             .permitAll()
     }
         .run {
@@ -93,6 +94,7 @@ class WebSecurityConfig(
         }
         .exceptionHandling {
             it.authenticationEntryPoint(
+                // return 401 for unauthorized requests instead of redirect to login
                 HttpStatusServerEntryPoint(HttpStatus.UNAUTHORIZED)
             )
         }
@@ -102,6 +104,9 @@ class WebSecurityConfig(
                     StoringServerAuthenticationSuccessHandler(configurationProperties),
                     RedirectServerAuthenticationSuccessHandler("/#/projects"),
                 )
+            )
+            it.authenticationFailureHandler(
+                RedirectServerAuthenticationFailureHandler("/error")
             )
         }
         .logout {
@@ -144,6 +149,13 @@ class WebSecurityConfig(
             }
         }
         .and().build()
+
+    private fun matchAllExcludingActuator() = AndServerWebExchangeMatcher(
+        ServerWebExchangeMatchers.pathMatchers("/**"),
+        NegatedServerWebExchangeMatcher(
+            ServerWebExchangeMatchers.pathMatchers("/actuator", "/actuator/**")
+        )
+    )
 }
 
 /**
