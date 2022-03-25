@@ -57,7 +57,12 @@ class WebSecurityConfig(
         )
     ).authorizeExchange { authorizeExchangeSpec ->
         // this is default data that is required by FE to operate properly
-        authorizeExchangeSpec.pathMatchers("/", "/login", "/logout", "/sec/oauth-providers", "/sec/user")
+        authorizeExchangeSpec.pathMatchers(
+            "/",
+            "/login", "/logout",
+            "/sec/oauth-providers", "/sec/user",
+            "/error",
+        )
             .permitAll()
             // all requests to backend are permitted on gateway, if user agent is authenticated in gateway or doesn't have
             // any authentication data at all.
@@ -79,7 +84,7 @@ class WebSecurityConfig(
                 }
             }
             // resources for frontend
-            .pathMatchers("/*.html", "/*.js*", "/img/**")
+            .pathMatchers("/*.html", "/*.js*", "/*.css", "/img/**", "favicon.ico")
             .permitAll()
     }
         .run {

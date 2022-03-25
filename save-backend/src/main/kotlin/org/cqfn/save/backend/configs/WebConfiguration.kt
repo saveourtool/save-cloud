@@ -32,13 +32,21 @@ class WebConfiguration(
     }
 
     /**
-     * @param html requested resource
+     * @param indexPage resource for index.html
+     * @param errorPage resource for error.html
      * @return router bean
      */
     @Bean
-    fun indexRouter(@Value("classpath:/static/index.html") html: Resource) = router {
+    fun indexRouter(
+        @Value("classpath:/static/index.html") indexPage: Resource,
+        @Value("classpath:/static/error.html") errorPage: Resource,
+    ) = router {
         GET("/") {
-            ok().header("Content-Type", "text/html; charset=utf8").bodyValue(html)
+            ok().header("Content-Type", "text/html; charset=utf8").bodyValue(indexPage)
+        }
+
+        GET("/error") {
+            ok().header("Content-Type", "text/html; charset=utf8").bodyValue(errorPage)
         }
     }
 }
