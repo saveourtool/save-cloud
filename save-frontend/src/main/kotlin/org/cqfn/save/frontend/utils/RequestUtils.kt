@@ -7,6 +7,7 @@
 package org.cqfn.save.frontend.utils
 
 import org.cqfn.save.frontend.components.errorStatusContext
+import org.cqfn.save.frontend.http.HttpStatusException
 
 import org.w3c.fetch.Headers
 import org.w3c.fetch.RequestCredentials
@@ -50,7 +51,7 @@ fun interface WithRequestStatusContext {
 suspend fun <T> Response.unsafeMap(map: suspend (Response) -> T) = if (this.ok) {
     map(this)
 } else {
-    error("$status $statusText")
+    throw HttpStatusException(status, statusText)
 }
 
 /**

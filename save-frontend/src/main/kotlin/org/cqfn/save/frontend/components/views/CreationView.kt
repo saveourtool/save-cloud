@@ -391,8 +391,6 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
                                                     }
                                                 }
                                                 attrs.onChangeFunction = {
-                                                    println("checked = ${(it.target as HTMLInputElement).checked}")
-                                                    println("value = ${(it.target as HTMLInputElement).value}")
                                                     setState {
                                                         isPublic = (it.target as HTMLInputElement).value.toBoolean()
                                                     }
