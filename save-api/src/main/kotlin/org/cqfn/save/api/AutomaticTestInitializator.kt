@@ -1,21 +1,19 @@
 package org.cqfn.save.api
 
+import org.cqfn.save.domain.FileInfo
 import org.cqfn.save.domain.Jdk
 import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.GitDto
 import org.cqfn.save.utils.LocalDateTimeSerializer
 
-
+import okio.Path.Companion.toPath
 import org.slf4j.LoggerFactory
 
-import java.lang.IllegalArgumentException
+import java.io.File
 import java.time.LocalDateTime
 
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
-import okio.Path.Companion.toPath
-import org.cqfn.save.domain.FileInfo
-import java.io.File
 
 internal val json = Json {
     serializersModule = SerializersModule {
@@ -102,7 +100,7 @@ class AutomaticTestInitializator(
             }
         }
 
-        val availableFilesInCloudStorage = requestUtils.getAvaliableFilesList()
+        val availableFilesInCloudStorage = requestUtils.getAvailableFilesList()
 
         val resultFileInfoList: MutableList<FileInfo> = mutableListOf()
 
@@ -110,7 +108,7 @@ class AutomaticTestInitializator(
         userProvidedAdditionalFiles.forEach { file ->
             val fileFromStorage = availableFilesInCloudStorage.firstOrNull { it.name == file.toPath().name }
             fileFromStorage?.let {
-                val filePathInStorage = "${fileStorage}/${fileFromStorage.uploadedMillis}/${fileFromStorage.name}"
+                val filePathInStorage = "$fileStorage/${fileFromStorage.uploadedMillis}/${fileFromStorage.name}"
                 log.info("Take existing file $filePathInStorage from storage")
                 if (!File(filePathInStorage).exists()) {
                     log.error("Couldn't find additional file $filePathInStorage in cloud storage!")

@@ -1,5 +1,11 @@
 package org.cqfn.save.api
 
+import org.cqfn.save.domain.FileInfo
+import org.cqfn.save.entities.ExecutionRequest
+import org.cqfn.save.entities.Organization
+import org.cqfn.save.entities.Project
+import org.cqfn.save.testsuite.TestSuiteDto
+
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.apache.*
@@ -13,20 +19,19 @@ import io.ktor.client.request.forms.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.util.*
-import kotlinx.serialization.encodeToString
 import okio.Path.Companion.toPath
-import org.cqfn.save.domain.FileInfo
-import org.cqfn.save.entities.ExecutionRequest
-import org.cqfn.save.entities.Organization
-import org.cqfn.save.entities.Project
-import org.cqfn.save.testsuite.TestSuiteDto
+
 import java.io.File
 
+import kotlinx.serialization.encodeToString
 
+/**
+ * @property webClientProperties
+ */
 class RequestUtils(
-    val webClientProperties: WebClientProperties,
+    private val webClientProperties: WebClientProperties,
 ) {
-    val httpClient = HttpClient(Apache) {
+    private val httpClient = HttpClient(Apache) {
         install(Logging) {
             logger = Logger.DEFAULT
             level = LogLevel.INFO
@@ -47,23 +52,39 @@ class RequestUtils(
         }
     }
 
+    /**
+     * @param name
+     * @return organization instance
+     */
     suspend fun getOrganizationByName(
         name: String
     ): Organization = getRequestWithAuthAndJsonContentType(
         "${webClientProperties.backendUrl}/api/organization/get/organization-name?name=$name"
     ).receive()
 
+    /**
+     * @param projectName
+     * @param organizationId
+     * @return Project instance
+     */
     suspend fun getProjectByNameAndOrganizationId(
         projectName: String, organizationId: Long
     ): Project = getRequestWithAuthAndJsonContentType(
         "${webClientProperties.backendUrl}/api/projects/get/organization-id?name=$projectName&organizationId=$organizationId"
     ).receive()
 
-    suspend fun getAvaliableFilesList(
+    /**
+     * @return list of available files from storage
+     */
+    suspend fun getAvailableFilesList(
     ): List<FileInfo> = getRequestWithAuthAndJsonContentType(
         "${webClientProperties.backendUrl}/api/files/list"
     ).receive()
 
+    /**
+     * @param file
+     * @return FileInfo instance
+     */
     @OptIn(InternalAPI::class)
     suspend fun uploadAdditionalFile(
         file: String,
@@ -81,11 +102,18 @@ class RequestUtils(
         })
     }
 
+    /**
+     * @return
+     */
     suspend fun getStandardTestSuites(
     ): List<TestSuiteDto> = getRequestWithAuthAndJsonContentType(
         "${webClientProperties.backendUrl}/api/allStandardTestSuites"
     ).receive()
 
+    /**
+     * @param executionRequest
+     * @param additionalFiles
+     */
     @OptIn(InternalAPI::class)
     suspend fun submitExecution(executionRequest: ExecutionRequest, additionalFiles: List<FileInfo>?) {
         httpClient.post<HttpResponse> {
@@ -106,10 +134,9 @@ class RequestUtils(
         }
     }
 
-    suspend fun getRequestWithAuthAndJsonContentType(url: String): HttpResponse = httpClient.get {
+    private suspend fun getRequestWithAuthAndJsonContentType(url: String): HttpResponse = httpClient.get {
         url(url)
         header("X-Authorization-Source", "basic")
         contentType(ContentType.Application.Json)
     }
-
 }

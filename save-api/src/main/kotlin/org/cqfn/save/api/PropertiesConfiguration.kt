@@ -17,6 +17,7 @@ sealed class PropertiesConfiguration
 /**
  * @property backendUrl
  * @property preprocessorUrl
+ * @property fileStorage
  */
 data class WebClientProperties(
     val backendUrl: String,
@@ -33,6 +34,7 @@ data class WebClientProperties(
  * @property branch
  * @property commitHash
  * @property testRootPath
+ * @property additionalFiles
  */
 data class EvaluatedToolProperties(
     val organizationName: String,
@@ -46,13 +48,17 @@ data class EvaluatedToolProperties(
     val additionalFiles: String? = null,
 ) : PropertiesConfiguration()
 
-
+/**
+ * @param configFileName
+ * @param type
+ * @return corresponding configuration
+ */
 fun readPropertiesFile(configFileName: String, type: PropertiesConfigurationType): PropertiesConfiguration? {
     try {
         val properties = Properties()
         val classLoader = AutomaticTestInitializator::class.java.classLoader
         val input = classLoader.getResourceAsStream(configFileName)
-        if (input == null) {
+        input ?: run {
             log.error("Unable to find configuration file: $configFileName")
             return null
         }
