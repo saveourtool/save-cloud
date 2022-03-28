@@ -7,6 +7,7 @@ import org.cqfn.save.domain.OrganizationSaveStatus
 import org.cqfn.save.entities.Organization
 import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
 import java.time.LocalDateTime
@@ -18,29 +19,33 @@ import java.time.LocalDateTime
 @RequestMapping("/api/organization")
 internal class OrganizationController(private val organizationService: OrganizationService) {
     /**
-     * @param name
+     * @param organizationName
      * @return Organization
      */
-    @GetMapping("/get/organization-name")
-    fun getOrganizationByName(@RequestParam name: String): Organization =
-            organizationService.findByName(name) ?: throw NoSuchElementException("Organization with name [$name] was not found.")
+    @GetMapping("/{organizationName}")
+    @PreAuthorize("permitAll()")
+    fun getOrganizationByName(@PathVariable organizationName: String): Organization =
+            organizationService.findByName(organizationName) ?: throw NoSuchElementException("Organization with name [$organizationName] was not found.")
 
     /**
      * @param authentication an [Authentication] representing an authenticated request
      * @return list of organization by owner id
      */
     @GetMapping("/get/list")
-    fun getOrganizationsByOwnerId(authentication: Authentication): List<Organization> {
+    @PreAuthorize("permitAll()")
+    fun getOrganizationsByOwnerId(authentication: Authentication?): List<Organization> {
+        authentication ?: return emptyList()
         val ownerId = (authentication.details as AuthenticationDetails).id
         return organizationService.findByOwnerId(ownerId)
     }
 
     /**
-     * @param owner owner name
-     * @return a image
+     * @param organizationName organization name
+     * @return [ImageInfo] about organization's avatar
      */
-    @GetMapping("/avatar")
-    fun avatar(@RequestParam owner: String): ImageInfo = organizationService.findByName(owner)?.avatar.let { ImageInfo(it) }
+    @GetMapping("/{organizationName}/avatar")
+    @PreAuthorize("permitAll()")
+    fun avatar(@PathVariable organizationName: String): ImageInfo = organizationService.findByName(organizationName)?.avatar.let { ImageInfo(it) }
 
     /**
      * @param newOrganization newOrganization
@@ -48,6 +53,7 @@ internal class OrganizationController(private val organizationService: Organizat
      * @return response
      */
     @PostMapping("/save")
+    @PreAuthorize("isAuthenticated()")
     fun saveOrganization(@RequestBody newOrganization: Organization, authentication: Authentication): ResponseEntity<String> {
         val ownerId = (authentication.details as AuthenticationDetails).id
         val (organizationId, organizationStatus) = organizationService.getOrSaveOrganization(

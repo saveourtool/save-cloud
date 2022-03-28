@@ -52,7 +52,7 @@ suspend fun Component<*, *>.getProject(name: String, organizationName: String) =
  * @return organization
  */
 suspend fun Component<*, *>.getOrganization(name: String) = get(
-    "$apiUrl/organization/get/organization-name?name=$name",
+    "$apiUrl/organization/$name",
     Headers().apply {
         set("Accept", "application/json")
     },

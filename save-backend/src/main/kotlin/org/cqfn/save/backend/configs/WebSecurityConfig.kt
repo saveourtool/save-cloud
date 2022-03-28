@@ -102,8 +102,8 @@ class WebSecurityConfig(
             "/api/projects/not-deleted",
             "/api/awesome-benchmarks",
             "/api/check-git-connectivity-adaptor",
-            "/api/organization/get/organization-name",
             "/api/allStandardTestSuites",
+            "/api/organization/**",
         )
     }
 }
