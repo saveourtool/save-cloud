@@ -24,8 +24,7 @@ import java.io.File
 
 
 class RequestUtils(
-    val webClientProperties: AutomaticTestInitializator.WebClientProperties,
-    val evaluatedToolProperties: AutomaticTestInitializator.EvaluatedToolProperties
+    val webClientProperties: WebClientProperties,
 ) {
     val httpClient = HttpClient(Apache) {
         install(Logging) {
