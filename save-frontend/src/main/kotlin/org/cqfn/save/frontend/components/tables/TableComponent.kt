@@ -81,6 +81,7 @@ external interface TableProps : Props {
     "TOO_LONG_FUNCTION",
     "TOO_MANY_PARAMETERS",
     "TYPE_ALIAS",
+    "ComplexMethod",
     "ForbiddenComment",
     "LongMethod",
     "LongParameterList",
