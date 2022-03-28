@@ -103,7 +103,9 @@ class WebSecurityConfig(
             "/api/awesome-benchmarks",
             "/api/check-git-connectivity-adaptor",
             "/api/allStandardTestSuites",
+            // `OrganizationView` is a public page
             "/api/organization/**",
+            "/api/projects/get/projects-by-organization",
         )
     }
 }

@@ -1,5 +1,6 @@
 package org.cqfn.save.backend.controllers
 
+import org.cqfn.save.backend.StringResponse
 import org.cqfn.save.backend.service.OrganizationService
 import org.cqfn.save.backend.utils.AuthenticationDetails
 import org.cqfn.save.domain.ImageInfo
@@ -10,6 +11,9 @@ import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
+import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.switchIfEmpty
 import java.time.LocalDateTime
 
 /**
@@ -24,8 +28,11 @@ internal class OrganizationController(private val organizationService: Organizat
      */
     @GetMapping("/{organizationName}")
     @PreAuthorize("permitAll()")
-    fun getOrganizationByName(@PathVariable organizationName: String): Organization =
-            organizationService.findByName(organizationName) ?: throw NoSuchElementException("Organization with name [$organizationName] was not found.")
+    fun getOrganizationByName(@PathVariable organizationName: String) = Mono.fromCallable {
+        organizationService.findByName(organizationName)
+    }.switchIfEmpty {
+        Mono.error(NoSuchElementException("Organization with name [$organizationName] was not found."))
+    }
 
     /**
      * @param authentication an [Authentication] representing an authenticated request
@@ -33,10 +40,10 @@ internal class OrganizationController(private val organizationService: Organizat
      */
     @GetMapping("/get/list")
     @PreAuthorize("permitAll()")
-    fun getOrganizationsByOwnerId(authentication: Authentication?): List<Organization> {
-        authentication ?: return emptyList()
+    fun getOrganizationsByOwnerId(authentication: Authentication?): Flux<Organization> {
+        authentication ?: return Flux.empty()
         val ownerId = (authentication.details as AuthenticationDetails).id
-        return organizationService.findByOwnerId(ownerId)
+        return Flux.fromIterable(organizationService.findByOwnerId(ownerId))
     }
 
     /**
@@ -45,7 +52,9 @@ internal class OrganizationController(private val organizationService: Organizat
      */
     @GetMapping("/{organizationName}/avatar")
     @PreAuthorize("permitAll()")
-    fun avatar(@PathVariable organizationName: String): ImageInfo = organizationService.findByName(organizationName)?.avatar.let { ImageInfo(it) }
+    fun avatar(@PathVariable organizationName: String): Mono<ImageInfo> = Mono.fromCallable {
+        organizationService.findByName(organizationName)?.avatar.let { ImageInfo(it) }
+    }
 
     /**
      * @param newOrganization newOrganization
@@ -54,7 +63,7 @@ internal class OrganizationController(private val organizationService: Organizat
      */
     @PostMapping("/save")
     @PreAuthorize("isAuthenticated()")
-    fun saveOrganization(@RequestBody newOrganization: Organization, authentication: Authentication): ResponseEntity<String> {
+    fun saveOrganization(@RequestBody newOrganization: Organization, authentication: Authentication): Mono<StringResponse> {
         val ownerId = (authentication.details as AuthenticationDetails).id
         val (organizationId, organizationStatus) = organizationService.getOrSaveOrganization(
             newOrganization.apply {
@@ -63,12 +72,14 @@ internal class OrganizationController(private val organizationService: Organizat
             }
         )
 
-        if (organizationStatus == OrganizationSaveStatus.EXIST) {
+        val response = if (organizationStatus == OrganizationSaveStatus.EXIST) {
             logger.info("Attempt to save an organization with id = $organizationId, but it already exists.")
-            return ResponseEntity.badRequest().body(organizationStatus.message)
+            ResponseEntity.badRequest().body(organizationStatus.message)
+        } else {
+            logger.info("Save new organization id = $organizationId")
+            ResponseEntity.ok(organizationStatus.message)
         }
-        logger.info("Save new organization id = $organizationId")
-        return ResponseEntity.ok(organizationStatus.message)
+        return Mono.just(response)
     }
 
     companion object {
