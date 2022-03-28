@@ -14,6 +14,8 @@ import org.cqfn.save.frontend.components.basic.inputTextFormOptional
 import org.cqfn.save.frontend.components.basic.inputTextFormRequired
 import org.cqfn.save.frontend.components.basic.selectFormRequired
 import org.cqfn.save.frontend.components.errorStatusContext
+import org.cqfn.save.frontend.externals.fontawesome.faQuestionCircle
+import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
 import org.cqfn.save.frontend.utils.*
 import org.cqfn.save.frontend.utils.noopResponseHandler
 
@@ -360,6 +362,13 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
                                         }
 
                                         div("col-md-12 mt-3 mb-3 pl-2 pr-0 row") {
+                                            label("text-xs") {
+                                                fontAwesomeIcon(icon = faQuestionCircle)
+                                                attrs["data-toggle"] = "tooltip"
+                                                attrs["data-placement"] = "top"
+                                                attrs["title"] = "Private projects are visible for user, organization admins and selected users, " +
+                                                        "while public ones are visible for everyone."
+                                            }
                                             div("col-5 text-left align-self-center") {
                                                 +"Project visibility:"
                                             }
