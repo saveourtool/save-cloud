@@ -42,30 +42,11 @@ internal val json = Json {
     }
 }
 
-class AutomaticTestInitializator {
+class AutomaticTestInitializator(
+    private val webClientPropertiesFileName: String,
+    private val evaluatedToolPropertiesFileName: String
+) {
     private val log = LoggerFactory.getLogger(AutomaticTestInitializator::class.java)
-    private val httpClient = HttpClient(Apache) {
-        install(Logging) {
-            logger = Logger.DEFAULT
-            level = LogLevel.INFO
-        }
-        install(JsonFeature) {
-            serializer = KotlinxSerializer(json)
-        }
-        install(Auth) {
-            basic {
-                // by default, ktor will wait for the server to respond with 401,
-                // and only then send the authentication header
-                // therefore, adding sendWithoutRequest is required
-                sendWithoutRequest { true }
-                credentials {
-                    BasicAuthCredentials(username = "admin", password = "")
-                }
-            }
-        }
-    }
-    private val webClientPropertiesFileName = "web-client.properties"
-    private val evaluatedToolPropertiesFileName = "evaluated-tool.properties"
 
     /**
      * @throws IllegalArgumentException
@@ -82,15 +63,17 @@ class AutomaticTestInitializator {
             )
         }
 
+        val requestUtils = RequestUtils(webClientProperties, evaluatedToolProperties)
+
         val additionalFileInfoList = evaluatedToolProperties.additionalFiles?.let {
-            processAdditionalFiles(webClientProperties, it)
+            processAdditionalFiles(requestUtils, webClientProperties.fileStorage, it)
         }
 
         if (evaluatedToolProperties.additionalFiles != null && additionalFileInfoList == null) {
             return
         }
 
-        submitExecution(webClientProperties, evaluatedToolProperties, additionalFileInfoList)
+        submitExecution(requestUtils, evaluatedToolProperties, additionalFileInfoList)
     }
 
     /**
@@ -98,7 +81,7 @@ class AutomaticTestInitializator {
      * @param evaluatedToolProperties
      */
     @OptIn(InternalAPI::class)
-    suspend fun submitExecution(webClientProperties: WebClientProperties, evaluatedToolProperties: EvaluatedToolProperties, additionalFiles: List<FileInfo>?) {
+    suspend fun submitExecution(requestUtils: RequestUtils, evaluatedToolProperties: EvaluatedToolProperties, additionalFiles: List<FileInfo>?) {
         val msg = additionalFiles?.let {
             "with additional files: ${additionalFiles.map { it.name }}"
         } ?: {
@@ -106,9 +89,9 @@ class AutomaticTestInitializator {
         }
         log.info("Starting submit execution $msg")
 
-        val organization = getOrganizationByName(webClientProperties, evaluatedToolProperties.organizationName)
+        val organization = requestUtils.getOrganizationByName(evaluatedToolProperties.organizationName)
         val organizationId = organization.id!!
-        val project = getProjectByNameAndOrganizationId(webClientProperties, evaluatedToolProperties.projectName, organizationId)
+        val project = requestUtils.getProjectByNameAndOrganizationId(evaluatedToolProperties.projectName, organizationId)
 
         val gitDto = GitDto(
             url = evaluatedToolProperties.gitUrl,
@@ -129,29 +112,14 @@ class AutomaticTestInitializator {
             executionId = executionId,
         )
 
-        httpClient.post<HttpResponse> {
-            url("${webClientProperties.backendUrl}/api/submitExecutionRequest")
-            header("X-Authorization-Source", "basic")
-            body = MultiPartFormDataContent(formData {
-                append("executionRequest", json.encodeToString(executionRequest),
-                    headers = Headers.build {
-                        append(HttpHeaders.ContentType, ContentType.Application.Json)
-                    }
-                )
-                additionalFiles?.forEach {
-                    append("file", json.encodeToString(it), Headers.build {
-                        append(HttpHeaders.ContentType, ContentType.Application.Json)
-                    })
-                }
-            })
-        }
+        requestUtils.submitExecution(executionRequest, additionalFiles)
     }
 
     suspend fun submitExecutionStandardMode() {
         TODO("Not yet implemented")
     }
 
-    private suspend fun processAdditionalFiles(webClientProperties: WebClientProperties, files: String): List<FileInfo>? {
+    private suspend fun processAdditionalFiles(requestUtils: RequestUtils, fileStorage: String, files: String): List<FileInfo>? {
         val userAdditionalFiles = files.split(";")
         userAdditionalFiles.forEach {
             if (!File(it).exists()) {
@@ -160,7 +128,7 @@ class AutomaticTestInitializator {
             }
         }
 
-        val availableFilesInCloudStorage = getAvaliableFilesList(webClientProperties)
+        val availableFilesInCloudStorage = requestUtils.getAvaliableFilesList()
 
         val resultFileInfoList: MutableList<FileInfo> = mutableListOf()
 
@@ -168,7 +136,7 @@ class AutomaticTestInitializator {
         userAdditionalFiles.forEach { file ->
             val fileFromStorage = availableFilesInCloudStorage.firstOrNull { it.name == file.toPath().name }
             fileFromStorage?.let {
-                val filePathInStorage = "${webClientProperties.fileStorage}/${fileFromStorage.uploadedMillis}/${fileFromStorage.name}"
+                val filePathInStorage = "${fileStorage}/${fileFromStorage.uploadedMillis}/${fileFromStorage.name}"
                 log.info("Take existing file $filePathInStorage from storage")
                 if (!File(filePathInStorage).exists()) {
                     log.error("Couldn't find additional file $filePathInStorage in cloud storage!")
@@ -177,63 +145,13 @@ class AutomaticTestInitializator {
                 resultFileInfoList.add(fileFromStorage)
             } ?: run {
                 log.info("Upload file $file to storage")
-                val uploadedFile: FileInfo = uploadAdditionalFile(webClientProperties, file)
+                val uploadedFile: FileInfo = requestUtils.uploadAdditionalFile(file)
                 resultFileInfoList.add(uploadedFile)
             }
         }
         return resultFileInfoList
     }
 
-
-    private suspend fun getOrganizationByName(
-        webClientProperties: WebClientProperties,
-        name: String
-    ): Organization = getRequestWithAuthAndJsonContentType(
-        "${webClientProperties.backendUrl}/api/organization/get/organization-name?name=$name"
-    ).receive()
-
-    private suspend fun getProjectByNameAndOrganizationId(
-        webClientProperties: WebClientProperties,
-        projectName: String, organizationId: Long
-    ): Project = getRequestWithAuthAndJsonContentType(
-        "${webClientProperties.backendUrl}/api/projects/get/organization-id?name=$projectName&organizationId=$organizationId"
-    ).receive()
-
-    private suspend fun getAvaliableFilesList(
-        webClientProperties: WebClientProperties
-    ): List<FileInfo> = getRequestWithAuthAndJsonContentType(
-        "${webClientProperties.backendUrl}/api/files/list"
-    ).receive()
-
-    @OptIn(InternalAPI::class)
-    private suspend fun uploadAdditionalFile(
-        webClientProperties: WebClientProperties,
-        file: String,
-    ): FileInfo = httpClient.post {
-        url("${webClientProperties.backendUrl}/api/files/upload")
-        header("X-Authorization-Source", "basic")
-        body = MultiPartFormDataContent(formData {
-            append(
-                key = "file",
-                value = File(file).readBytes(),
-                headers = Headers.build {
-                    append(HttpHeaders.ContentDisposition, "filename=${file.toPath().name}")
-                }
-            )
-        })
-    }
-
-    private suspend fun getStandardTestSuites(
-        webClientProperties: WebClientProperties
-    ): List<TestSuiteDto> = getRequestWithAuthAndJsonContentType(
-        "${webClientProperties.backendUrl}/api/allStandardTestSuites"
-    ).receive()
-
-    private suspend fun getRequestWithAuthAndJsonContentType(url: String): HttpResponse = httpClient.get {
-        url(url)
-        header("X-Authorization-Source", "basic")
-        contentType(ContentType.Application.Json)
-    }
 
     private fun readPropertiesFile(configFileName: String, type: PropertiesConfigurationType): PropertiesConfiguration? {
         try {
