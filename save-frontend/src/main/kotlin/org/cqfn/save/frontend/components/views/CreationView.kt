@@ -84,6 +84,11 @@ external interface ProjectSaveViewState : State {
      * Validation of input fields
      */
     var gitConnectionCheckingStatus: GitConnectionStatusEnum?
+
+    /**
+     * Flag to public project
+     */
+    var isPublic: Boolean?
 }
 
 /**
@@ -121,6 +126,7 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
         state.isValidGitUrl = true
         state.isValidGitUser = true
         state.isValidGitToken = true
+        state.isPublic = true
     }
 
     private fun changeFields(
@@ -185,6 +191,7 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
                 fieldsMap[InputTypes.PROJECT_URL]?.trim(),
                 fieldsMap[InputTypes.DESCRIPTION]?.trim(),
                 ProjectStatus.CREATED,
+                public = state.isPublic!!,
                 userId = -1,
                 organization = Organization("stub", null, date)
             ),
@@ -352,15 +359,44 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
                                             changeFields(InputTypes.GIT_TOKEN, it, false)
                                         }
 
-                                        div("form-check form-switch mt-2") {
-                                            input(classes = "form-check-input") {
-                                                attrs["type"] = "checkbox"
-                                                attrs["id"] = "isPublicSwitch"
-                                                attrs["checked"] = "true"
+                                        div("col-md-12 mt-3 mb-3 pl-2 pr-0 row") {
+                                            div("col-5 text-left align-self-center") {
+                                                +"Project visibility:"
                                             }
-                                            label("form-check-label") {
-                                                attrs["htmlFor"] = "isPublicSwitch"
-                                                +"Public project"
+                                            form("col-7 form-group row d-flex justify-content-around") {
+                                                div("form-check-inline") {
+                                                    input(classes = "form-check-input") {
+                                                        attrs.defaultChecked = state.isPublic!!
+                                                        attrs["name"] = "projectVisibility"
+                                                        attrs["type"] = "radio"
+                                                        attrs["id"] = "isProjectPublicSwitch"
+                                                        attrs["value"] = "true"
+                                                    }
+                                                    label("form-check-label") {
+                                                        attrs["htmlFor"] = "isProjectPublicSwitch"
+                                                        +"Public"
+                                                    }
+                                                }
+                                                div("form-check-inline") {
+                                                    input(classes = "form-check-input") {
+                                                        attrs.defaultChecked = !state.isPublic!!
+                                                        attrs["name"] = "projectVisibility"
+                                                        attrs["type"] = "radio"
+                                                        attrs["id"] = "isProjectPrivateSwitch"
+                                                        attrs["value"] = "false"
+                                                    }
+                                                    label("form-check-label") {
+                                                        attrs["htmlFor"] = "isProjectPrivateSwitch"
+                                                        +"Private"
+                                                    }
+                                                }
+                                                attrs.onChangeFunction = {
+                                                    println("checked = ${(it.target as HTMLInputElement).checked}")
+                                                    println("value = ${(it.target as HTMLInputElement).value}")
+                                                    setState {
+                                                        isPublic = (it.target as HTMLInputElement).value.toBoolean()
+                                                    }
+                                                }
                                             }
                                         }
                                     }
