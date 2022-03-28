@@ -24,6 +24,17 @@ import okio.Path.Companion.toPath
 import java.io.File
 
 import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.modules.SerializersModule
+import org.cqfn.save.execution.ExecutionDto
+import org.cqfn.save.utils.LocalDateTimeSerializer
+import java.time.LocalDateTime
+
+private val json = Json {
+    serializersModule = SerializersModule {
+        contextual(LocalDateTime::class, LocalDateTimeSerializer)
+    }
+}
 
 /**
  * @property webClientProperties
@@ -46,6 +57,7 @@ class RequestUtils(
                 // therefore, adding sendWithoutRequest is required
                 sendWithoutRequest { true }
                 credentials {
+                    // TODO pass via configuration
                     BasicAuthCredentials(username = "admin", password = "")
                 }
             }
@@ -133,6 +145,19 @@ class RequestUtils(
             })
         }
     }
+
+    suspend fun getLatestExecution(
+        projectName: String,
+        organizationId: Long
+    ): ExecutionDto = getRequestWithAuthAndJsonContentType(
+        "${webClientProperties.backendUrl}/api/latestExecution?name=${projectName}&organizationId=${organizationId}"
+    ).receive()
+
+    suspend fun getExecutionById(
+        executionId: Long
+    ): ExecutionDto = getRequestWithAuthAndJsonContentType(
+        "${webClientProperties.backendUrl}/api/executionDto?executionId=${executionId}"
+    ).receive()
 
     private suspend fun getRequestWithAuthAndJsonContentType(url: String): HttpResponse = httpClient.get {
         url(url)

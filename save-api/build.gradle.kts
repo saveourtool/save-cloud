@@ -25,7 +25,8 @@ kotlin {
 dependencies {
     implementation(projects.saveCloudCommon)
     implementation(libs.save.common.jvm)
-    implementation(libs.slf4j.simple)
+    implementation(libs.log4j)
+    implementation(libs.log4j.slf4j.impl)
     implementation(libs.ktor.client.apache)
     implementation(libs.ktor.client.auth)
     implementation(libs.ktor.client.core)

@@ -4,7 +4,6 @@ import org.cqfn.save.domain.FileInfo
 import org.cqfn.save.domain.Jdk
 import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.GitDto
-import org.cqfn.save.utils.LocalDateTimeSerializer
 
 import okio.Path.Companion.toPath
 import org.slf4j.LoggerFactory
@@ -12,14 +11,8 @@ import org.slf4j.LoggerFactory
 import java.io.File
 import java.time.LocalDateTime
 
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.modules.SerializersModule
-
-internal val json = Json {
-    serializersModule = SerializersModule {
-        contextual(LocalDateTime::class, LocalDateTimeSerializer)
-    }
-}
+import org.cqfn.save.entities.Organization
+import org.cqfn.save.execution.ExecutionStatus
 
 class AutomaticTestInitializator(
     private val webClientProperties: WebClientProperties,
@@ -49,12 +42,38 @@ class AutomaticTestInitializator(
      * @param additionalFiles
      */
     suspend fun submitExecution(requestUtils: RequestUtils, additionalFiles: List<FileInfo>?) {
-        val executionRequest = buildExecutionRequest(requestUtils, additionalFiles)
-
+        val (organization, executionRequest) = buildExecutionRequest(requestUtils, additionalFiles)
         requestUtils.submitExecution(executionRequest, additionalFiles)
+
+        // TODO sleep
+
+        // we suppose, that in this short time (after submission), there weren't any new executions, so we can take the latest one
+        val executionId = requestUtils.getLatestExecution(executionRequest.project.name, organization.id!!).id
+
+        var execution = requestUtils.getExecutionById(executionId)
+
+        val timeout = 5L
+        val sleepInterval = 10_000L
+        val initialTime = LocalDateTime.now()
+
+        while (execution.status == ExecutionStatus.PENDING || execution.status == ExecutionStatus.RUNNING) {
+            val currTime = LocalDateTime.now()
+            if (currTime.minusMinutes(timeout) >= initialTime) {
+                log.error("Couldn't get execution result, timeout $timeout minutes is reached!")
+                return
+            }
+            log.debug("Waiting for execution results for execution with id=${executionId}, current state: ${execution.status}")
+            execution = requestUtils.getExecutionById(executionId)
+            Thread.sleep(sleepInterval)
+        }
+        println("=======================-----------------================")
+        println("ID ${execution.id} Status ${execution.status}")
     }
 
-    private suspend fun buildExecutionRequest(requestUtils: RequestUtils, additionalFiles: List<FileInfo>?): ExecutionRequest {
+    private suspend fun buildExecutionRequest(
+        requestUtils: RequestUtils,
+        additionalFiles: List<FileInfo>?
+    ): Pair<Organization, ExecutionRequest> {
         val msg = additionalFiles?.let {
             "with additional files: ${additionalFiles.map { it.name }}"
         } ?: {
@@ -74,17 +93,16 @@ class AutomaticTestInitializator(
             hash = evaluatedToolProperties.commitHash
         )
 
-        // Actually it's just a stub, executionId will be calculated at the server side
-        val executionId = 1L
+        // executionId will be calculated at the server side
+        val executionId = null
 
-        val executionRequest = ExecutionRequest(
+        return organization to ExecutionRequest(
             project = project,
             gitDto = gitDto,
             testRootPath = evaluatedToolProperties.testRootPath,
             sdk = Jdk("11"),
             executionId = executionId,
         )
-        return executionRequest
     }
 
     suspend fun submitExecutionStandardMode() {
@@ -109,14 +127,14 @@ class AutomaticTestInitializator(
             val fileFromStorage = availableFilesInCloudStorage.firstOrNull { it.name == file.toPath().name }
             fileFromStorage?.let {
                 val filePathInStorage = "$fileStorage/${fileFromStorage.uploadedMillis}/${fileFromStorage.name}"
-                log.info("Take existing file $filePathInStorage from storage")
+                log.debug("Take existing file $filePathInStorage from storage")
                 if (!File(filePathInStorage).exists()) {
                     log.error("Couldn't find additional file $filePathInStorage in cloud storage!")
                     return null
                 }
                 resultFileInfoList.add(fileFromStorage)
             } ?: run {
-                log.info("Upload file $file to storage")
+                log.debug("Upload file $file to storage")
                 val uploadedFile: FileInfo = requestUtils.uploadAdditionalFile(file)
                 resultFileInfoList.add(uploadedFile)
             }
