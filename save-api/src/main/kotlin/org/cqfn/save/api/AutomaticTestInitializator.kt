@@ -86,6 +86,10 @@ class AutomaticTestInitializator {
             processAdditionalFiles(webClientProperties, it)
         }
 
+        if (evaluatedToolProperties.additionalFiles != null && additionalFileInfoList == null) {
+            return
+        }
+
         submitExecution(webClientProperties, evaluatedToolProperties, additionalFileInfoList)
     }
 
@@ -134,8 +138,8 @@ class AutomaticTestInitializator {
                         append(HttpHeaders.ContentType, ContentType.Application.Json)
                     }
                 )
-                additionalFiles?.let {
-                    append("file", json.encodeToString(additionalFiles), Headers.build {
+                additionalFiles?.forEach {
+                    append("file", json.encodeToString(it), Headers.build {
                         append(HttpHeaders.ContentType, ContentType.Application.Json)
                     })
                 }
@@ -151,7 +155,7 @@ class AutomaticTestInitializator {
         val userAdditionalFiles = files.split(";")
         userAdditionalFiles.forEach {
             if (!File(it).exists()) {
-                log.error("Couldn't find additional file $it in user file system!")
+                log.error("Couldn't find requested additional file $it in user file system!")
                 return null
             }
         }
@@ -201,6 +205,7 @@ class AutomaticTestInitializator {
         "${webClientProperties.backendUrl}/api/files/list"
     ).receive()
 
+    @OptIn(InternalAPI::class)
     private suspend fun uploadAdditionalFile(
         webClientProperties: WebClientProperties,
         file: String,
