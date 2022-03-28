@@ -102,8 +102,10 @@ class WebSecurityConfig(
             "/api/projects/not-deleted",
             "/api/awesome-benchmarks",
             "/api/check-git-connectivity-adaptor",
-            "/api/organization/get/organization-name",
             "/api/allStandardTestSuites",
+            // `OrganizationView` is a public page
+            "/api/organization/**",
+            "/api/projects/get/projects-by-organization",
         )
     }
 }
