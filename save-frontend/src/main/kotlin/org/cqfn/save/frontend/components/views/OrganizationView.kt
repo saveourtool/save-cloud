@@ -220,7 +220,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 }
             }
 
-    private suspend fun getAvatar() = get("$apiUrl/organization/avatar?owner=${props.organizationName}", Headers(),
+    private suspend fun getAvatar() = get("$apiUrl/organization/${props.organizationName}/avatar", Headers(),
         responseHandler = ::noopResponseHandler)
         .unsafeMap {
             it.decodeFromJsonString<ImageInfo>()
