@@ -45,7 +45,7 @@ class RequestUtils(
     private val httpClient = HttpClient(Apache) {
         install(Logging) {
             logger = Logger.DEFAULT
-            level = LogLevel.INFO
+            level = LogLevel.NONE
         }
         install(JsonFeature) {
             serializer = KotlinxSerializer(json)
@@ -57,7 +57,7 @@ class RequestUtils(
                 // therefore, adding sendWithoutRequest is required
                 sendWithoutRequest { true }
                 credentials {
-                    // TODO pass via configuration
+                    // TODO: pass via configuration
                     BasicAuthCredentials(username = "admin", password = "")
                 }
             }
