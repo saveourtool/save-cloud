@@ -236,11 +236,6 @@ external interface ProjectViewState : State {
      * Flag to open menu settings
      */
     var isOpenMenuSettings: Boolean?
-
-    /**
-     * Number of containers dedicated for project
-     */
-    var numberOfContainers: Int
 }
 
 /**
@@ -346,7 +341,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 }
             }
         },
-        updateNumberOfContainers = { setState { numberOfContainers = it } },
     )
     private val projectStatisticMenu = projectStatisticMenu(
         openMenuStatisticFlag = ::openMenuStatisticFlag,
@@ -461,7 +455,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         state.selectedMenu = ProjectMenuBar.RUN
         state.isOpenMenuStatistic = false
         state.isOpenMenuSettings = false
-        state.numberOfContainers = 1
     }
 
     override fun componentDidMount() {
@@ -725,7 +718,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             child(projectSettingsMenu) {
                 attrs.isOpen = state.isOpenMenuSettings
                 attrs.project = state.project
-                attrs.numberOfContainers = state.numberOfContainers
             }
         }
     }

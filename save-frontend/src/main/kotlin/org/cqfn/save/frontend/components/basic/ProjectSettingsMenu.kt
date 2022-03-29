@@ -20,11 +20,6 @@ import kotlinx.html.js.onClickFunction
  */
 external interface ProjectSettingsMenuProps : Props {
     /**
-     * Number of containers available for this project
-     */
-    var numberOfContainers: Int?
-
-    /**
      * Flag to open Menu
      */
     var isOpen: Boolean?
@@ -38,18 +33,16 @@ external interface ProjectSettingsMenuProps : Props {
 /**
  * @param deleteProjectCallback
  * @param updateProjectSettings
- * @param updateNumberOfContainers
  * @return ReactElement
  */
 @Suppress("TOO_LONG_FUNCTION", "LongMethod", "MAGIC_NUMBER")
 fun projectSettingsMenu(
     deleteProjectCallback: () -> Unit,
     updateProjectSettings: (Project) -> Unit,
-    updateNumberOfContainers: (Int) -> Unit,
 ) = fc<ProjectSettingsMenuProps> { props ->
     var emailFromInput: String? = props.project.email
     var isPublic: Boolean = props.project.public
-    var numberOfContainers: String = props.numberOfContainers?.toString() ?: "1"
+    var numberOfContainers: String = props.project.numberOfContainers.toString()
 
     div("row justify-content-center mb-2") {
         // ===================== LEFT COLUMN =======================================================================
@@ -158,10 +151,8 @@ fun projectSettingsMenu(
                                 updateProjectSettings(props.project.copy(
                                     email = emailFromInput,
                                     public = isPublic,
+                                    numberOfContainers = numberOfContainers.toInt()
                                 ))
-                                if (numberOfContainers.toInt() != props.numberOfContainers) {
-                                    updateNumberOfContainers(numberOfContainers.toInt())
-                                }
                             }
                             +"Save changes"
                         }

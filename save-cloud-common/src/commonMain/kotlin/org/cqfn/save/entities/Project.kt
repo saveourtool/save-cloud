@@ -25,6 +25,7 @@ data class Project(
     var public: Boolean = true,
     var userId: Long? = null,
     var email: String? = null,
+    var numberOfContainers: Int = 3,
 
     @ManyToOne
     @JoinColumn(

@@ -10,6 +10,7 @@
             <column name="user_id" value="1" />
             <column name="organization_id" value="1" />
             <column name="email" value="email@domain.com"/>
+            <column name="number_of_containers" value="3"/>
         </update>
       
         <insert dbms="mysql" tableName="project">
@@ -21,6 +22,7 @@
             <column name="user_id" value="2" />
             <column name="organization_id" value="2" />
             <column name="email" value="test@example.com"/>
+            <column name="number_of_containers" value="5"/>
         </insert>
         <insert dbms="mysql" tableName="project">
             <column name="id" value="4" />
@@ -32,6 +34,7 @@
             <column name="user_id" value="2" />
             <column name="organization_id" value="2" />
             <column name="email" value="another_test@example.com"/>
+            <column name="number_of_containers" value="1"/>
         </insert>
     </changeSet>
 </databaseChangeLog>

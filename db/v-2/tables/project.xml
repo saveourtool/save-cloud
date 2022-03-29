@@ -50,4 +50,11 @@
         </addColumn>
     </changeSet>
 
+    <changeSet id="project-add-number-of-containers" author="sanyavertolet" context="dev or prod">
+        <addColumn tableName="project">
+            <column name = "number_of_containers" type="int">
+            </column>
+        </addColumn>
+    </changeSet>
+
 </databaseChangeLog>
