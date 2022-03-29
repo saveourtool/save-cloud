@@ -3,7 +3,6 @@
 package org.cqfn.save.frontend.components.basic
 
 import org.cqfn.save.entities.Project
-import org.cqfn.save.permission.SetRoleRequest
 
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.HTMLSelectElement
@@ -156,7 +155,7 @@ fun projectSettingsMenu(
                     div("col-3 d-sm-flex align-items-center justify-content-center") {
                         button(type = ButtonType.button, classes = "btn btn-sm btn-primary") {
                             attrs.onClickFunction = {
-                                updateProjectSettings(project.copy(
+                                updateProjectSettings(props.project.copy(
                                     email = emailFromInput,
                                     public = isPublic,
                                 ))
