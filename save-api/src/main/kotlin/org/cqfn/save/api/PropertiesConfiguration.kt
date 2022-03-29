@@ -12,6 +12,9 @@ enum class PropertiesConfigurationType {
     ;
 }
 
+/**
+ * Base class for configuration
+ */
 sealed class PropertiesConfiguration
 
 /**

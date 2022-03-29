@@ -3,21 +3,20 @@ package org.cqfn.save.api
 import org.cqfn.save.domain.FileInfo
 import org.cqfn.save.domain.Jdk
 import org.cqfn.save.entities.ExecutionRequest
-import org.cqfn.save.entities.GitDto
-
-import okio.Path.Companion.toPath
 import org.cqfn.save.entities.ExecutionRequestBase
 import org.cqfn.save.entities.ExecutionRequestForStandardSuites
-import org.slf4j.LoggerFactory
-
-import java.io.File
-import java.time.LocalDateTime
-
+import org.cqfn.save.entities.GitDto
 import org.cqfn.save.entities.Organization
 import org.cqfn.save.entities.Project
 import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionType
+
+import okio.Path.Companion.toPath
+import org.slf4j.LoggerFactory
+
+import java.io.File
+import java.time.LocalDateTime
 
 class AutomaticTestInitializator(
     private val webClientProperties: WebClientProperties,
@@ -26,6 +25,7 @@ class AutomaticTestInitializator(
     private val log = LoggerFactory.getLogger(AutomaticTestInitializator::class.java)
 
     /**
+     * @param executionType
      * @throws IllegalArgumentException
      */
     suspend fun start(executionType: ExecutionType) {
@@ -107,6 +107,7 @@ class AutomaticTestInitializator(
         userProvidedTestSuites: List<String>
     ): Pair<Organization, ExecutionRequestForStandardSuites> {
         val (organization, project) = getOrganizationAndProject(requestUtils)
+
         return organization to ExecutionRequestForStandardSuites(
             project = project,
             testsSuites = userProvidedTestSuites,
@@ -119,7 +120,7 @@ class AutomaticTestInitializator(
     private suspend fun processTestSuites(requestUtils: RequestUtils): List<String>? {
         val userProvidedTestSuites = evaluatedToolProperties.testSuites.split(";")
         if (userProvidedTestSuites.isEmpty()) {
-            log.error("Set of standard test suites couldn't be empty!")
+            log.error("Set of test suites couldn't be empty in standard mode!")
             return null
         }
 
@@ -127,7 +128,7 @@ class AutomaticTestInitializator(
 
         userProvidedTestSuites.forEach {
             if (it !in existingTestSuites) {
-                log.error("Incorrect standard test suite $it, available are ${existingTestSuites}")
+                log.error("Incorrect standard test suite $it, available are $existingTestSuites")
                 return null
             }
         }
@@ -140,12 +141,11 @@ class AutomaticTestInitializator(
         return organization to project
     }
 
-
     private suspend fun getExecutionResults(requestUtils: RequestUtils, executionRequest: ExecutionRequestBase, organization: Organization): ExecutionDto? {
-        // execution should be processed in db, so wait little time
+        // Execution should be processed in db after submission, so wait little time
         Thread.sleep(1_000)
 
-        // we suppose, that in this short time (after submission), there weren't any new executions, so we can take the latest one
+        // We suppose, that in this short time (after submission), there weren't any new executions, so we can take the latest one
         val executionId = requestUtils.getLatestExecution(executionRequest.project.name, organization.id!!).id
 
         var executionDto = requestUtils.getExecutionById(executionId)
@@ -157,7 +157,7 @@ class AutomaticTestInitializator(
                 log.error("Couldn't get execution result, timeout ${TIMEOUT_FOR_EXECUTION_RESULTS}min is reached!")
                 return null
             }
-            log.debug("Waiting for results of execution with id=${executionId}, current state: ${executionDto.status}")
+            log.info("Waiting for results of execution with id=$executionId, current state: ${executionDto.status}")
             executionDto = requestUtils.getExecutionById(executionId)
             Thread.sleep(SLEEP_INTERVAL_FOR_EXECUTION_RESULTS)
         }
@@ -198,7 +198,7 @@ class AutomaticTestInitializator(
     }
 
     companion object {
-        const val TIMEOUT_FOR_EXECUTION_RESULTS = 5L
         const val SLEEP_INTERVAL_FOR_EXECUTION_RESULTS = 10_000L
+        const val TIMEOUT_FOR_EXECUTION_RESULTS = 5L
     }
 }

@@ -1,9 +1,10 @@
 package org.cqfn.save.api
 
+import org.cqfn.save.execution.ExecutionType
+
 import java.lang.IllegalArgumentException
 
 import kotlinx.coroutines.runBlocking
-import org.cqfn.save.execution.ExecutionType
 
 fun main() {
     val webClientPropertiesFileName = "web-client.properties"

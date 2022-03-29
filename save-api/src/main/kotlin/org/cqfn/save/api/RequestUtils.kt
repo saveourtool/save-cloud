@@ -2,9 +2,14 @@ package org.cqfn.save.api
 
 import org.cqfn.save.domain.FileInfo
 import org.cqfn.save.entities.ExecutionRequest
+import org.cqfn.save.entities.ExecutionRequestBase
+import org.cqfn.save.entities.ExecutionRequestForStandardSuites
 import org.cqfn.save.entities.Organization
 import org.cqfn.save.entities.Project
+import org.cqfn.save.execution.ExecutionDto
+import org.cqfn.save.execution.ExecutionType
 import org.cqfn.save.testsuite.TestSuiteDto
+import org.cqfn.save.utils.LocalDateTimeSerializer
 
 import io.ktor.client.*
 import io.ktor.client.call.*
@@ -22,16 +27,11 @@ import io.ktor.util.*
 import okio.Path.Companion.toPath
 
 import java.io.File
+import java.time.LocalDateTime
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
-import org.cqfn.save.entities.ExecutionRequestBase
-import org.cqfn.save.entities.ExecutionRequestForStandardSuites
-import org.cqfn.save.execution.ExecutionDto
-import org.cqfn.save.execution.ExecutionType
-import org.cqfn.save.utils.LocalDateTimeSerializer
-import java.time.LocalDateTime
 
 private val json = Json {
     serializersModule = SerializersModule {
@@ -40,7 +40,7 @@ private val json = Json {
 }
 
 /**
- * @property webClientProperties
+ * @property webClientProperties http client configuration
  */
 class RequestUtils(
     private val webClientProperties: WebClientProperties,
@@ -69,7 +69,7 @@ class RequestUtils(
 
     /**
      * @param name
-     * @return organization instance
+     * @return Organization instance
      */
     suspend fun getOrganizationByName(
         name: String
@@ -98,7 +98,7 @@ class RequestUtils(
 
     /**
      * @param file
-     * @return FileInfo instance
+     * @return FileInfo of uploaded file
      */
     @OptIn(InternalAPI::class)
     suspend fun uploadAdditionalFile(
@@ -118,7 +118,7 @@ class RequestUtils(
     }
 
     /**
-     * @return
+     * @return list of existing standard test suites
      */
     suspend fun getStandardTestSuites(
     ): List<TestSuiteDto> = getRequestWithAuthAndJsonContentType(
@@ -126,8 +126,9 @@ class RequestUtils(
     ).receive()
 
     /**
-     * @param executionRequest
-     * @param additionalFiles
+     * @param executionType type of requested execution git/standard
+     * @param executionRequest execution request
+     * @param additionalFiles list of additional files for execution
      */
     @OptIn(InternalAPI::class)
     suspend fun submitExecution(executionType: ExecutionType, executionRequest: ExecutionRequestBase, additionalFiles: List<FileInfo>?) {
@@ -137,42 +138,59 @@ class RequestUtils(
             "/api/executionRequestStandardTests"
         }
         httpClient.post<HttpResponse> {
-            url("${webClientProperties.backendUrl}${endpoint}")
+            url("${webClientProperties.backendUrl}$endpoint")
             header("X-Authorization-Source", "basic")
             val formDataHeaders = Headers.build {
                 append(HttpHeaders.ContentType, ContentType.Application.Json)
             }
             body = MultiPartFormDataContent(formData {
                 if (executionType == ExecutionType.GIT) {
-                    append("executionRequest", json.encodeToString(executionRequest as ExecutionRequest),
+                    append(
+                        "executionRequest",
+                        json.encodeToString(executionRequest as ExecutionRequest),
                         formDataHeaders
                     )
                 } else {
-                    append("execution", json.encodeToString(executionRequest as ExecutionRequestForStandardSuites),
+                    append(
+                        "execution",
+                        json.encodeToString(executionRequest as ExecutionRequestForStandardSuites),
                         formDataHeaders
                     )
                 }
 
                 additionalFiles?.forEach {
-                    append("file", json.encodeToString(it), Headers.build {
-                        append(HttpHeaders.ContentType, ContentType.Application.Json)
-                    })
+                    append(
+                        "file",
+                        json.encodeToString(it),
+                        Headers.build {
+                            append(HttpHeaders.ContentType, ContentType.Application.Json)
+                        }
+                    )
                 }
             })
         }
     }
 
+    /**
+     * @param projectName
+     * @param organizationId
+     * @return ExecutionDto
+     */
     suspend fun getLatestExecution(
         projectName: String,
         organizationId: Long
     ): ExecutionDto = getRequestWithAuthAndJsonContentType(
-        "${webClientProperties.backendUrl}/api/latestExecution?name=${projectName}&organizationId=${organizationId}"
+        "${webClientProperties.backendUrl}/api/latestExecution?name=$projectName&organizationId=$organizationId"
     ).receive()
 
+    /**
+     * @param executionId
+     * @return ExecutionDto
+     */
     suspend fun getExecutionById(
         executionId: Long
     ): ExecutionDto = getRequestWithAuthAndJsonContentType(
-        "${webClientProperties.backendUrl}/api/executionDto?executionId=${executionId}"
+        "${webClientProperties.backendUrl}/api/executionDto?executionId=$executionId"
     ).receive()
 
     private suspend fun getRequestWithAuthAndJsonContentType(url: String): HttpResponse = httpClient.get {
