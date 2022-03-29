@@ -5,6 +5,13 @@ on:
   push:
     branches:
       - 'master'
+      
+concurrency:
+  # https://docs.github.com/en/actions/using-jobs/using-concurrency
+  # The latest queued workflow is preferred; the ones already in progress get cancelled
+  # Workflows on master branch shouldn't be cancelled, that's why they are identified by commit SHA
+  group: ${{ github.ref == 'refs/heads/master' && format('{0}-{1}', github.workflow, github.sha) || format('{0}-{1}', github.workflow, github.ref) }}
+  cancel-in-progress: true
 
 jobs:
   build_and_test_with_code_coverage:
@@ -16,6 +23,7 @@ jobs:
         with:
           # required for correct codecov upload
           fetch-depth: 0
+          # required, since we have submodules (sarif4k)
           submodules: true
       - name: Set up JDK 11
         uses: actions/setup-java@v3
@@ -46,19 +54,15 @@ jobs:
           sudo mv runsc containerd-shim-runsc-v1 /usr/local/bin
           sudo /usr/local/bin/runsc install
           sudo systemctl reload docker
-      - uses: burrunan/gradle-cache-action@v1
+      - uses: gradle/gradle-build-action@v2
         with:
           gradle-version: wrapper
-          # additional files to calculate key for dependency cache
-          gradle-dependencies-cache-key: |
-            gradle/libs.versions.toml
           arguments: |
             build
             -x detekt
             -x :save-agent:linkDebugExecutableLinuxX64
-          properties: |
-            org.gradle.caching=true
-            detekt.multiplatform.disabled=true
+            -Porg.gradle.caching=true
+            -Pdetekt.multiplatform.disabled=true
 
       - name: Upload gradle reports
         if: ${{ always() }}
