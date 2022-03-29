@@ -5,6 +5,7 @@ import org.cqfn.save.domain.Role
 import org.cqfn.save.entities.LnkUserProject
 import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.User
+import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
 
 /**
@@ -26,6 +27,7 @@ class LnkUserProjectService(private val lnkUserProjectRepository: LnkUserProject
      * @param project
      * @return role for user in [project] by user ID
      */
+    @Cacheable("role")
     fun findRoleByUserIdAndProject(userId: Long, project: Project) = lnkUserProjectRepository.findByUserIdAndProject(userId, project)
         .map { it.role }
         .ifEmpty { listOf(Role.VIEWER) }

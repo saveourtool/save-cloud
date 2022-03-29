@@ -4,6 +4,7 @@ import org.cqfn.save.backend.configs.ConfigProperties
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.context.properties.EnableConfigurationProperties
+import org.springframework.cache.annotation.EnableCaching
 import org.springframework.http.ResponseEntity
 
 typealias ByteArrayResponse = ResponseEntity<ByteArray>
@@ -14,6 +15,7 @@ typealias EmptyResponse = ResponseEntity<Void>
  * An entrypoint for spring for save-backend
  */
 @SpringBootApplication
+@EnableCaching
 @EnableConfigurationProperties(ConfigProperties::class)
 class SaveApplication
 
