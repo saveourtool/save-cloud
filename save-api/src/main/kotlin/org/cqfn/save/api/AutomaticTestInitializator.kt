@@ -6,14 +6,18 @@ import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.GitDto
 
 import okio.Path.Companion.toPath
+import org.cqfn.save.entities.ExecutionRequestBase
+import org.cqfn.save.entities.ExecutionRequestForStandardSuites
 import org.slf4j.LoggerFactory
 
 import java.io.File
 import java.time.LocalDateTime
 
 import org.cqfn.save.entities.Organization
+import org.cqfn.save.entities.Project
 import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.execution.ExecutionStatus
+import org.cqfn.save.execution.ExecutionType
 
 class AutomaticTestInitializator(
     private val webClientProperties: WebClientProperties,
@@ -24,7 +28,7 @@ class AutomaticTestInitializator(
     /**
      * @throws IllegalArgumentException
      */
-    suspend fun start() {
+    suspend fun start(executionType: ExecutionType) {
         val requestUtils = RequestUtils(webClientProperties)
 
         val additionalFileInfoList = evaluatedToolProperties.additionalFiles?.let {
@@ -35,12 +39,21 @@ class AutomaticTestInitializator(
             return
         }
 
-        val (organization, executionRequest) = submitExecution(requestUtils, additionalFileInfoList)
+        val msg = additionalFileInfoList?.let {
+            "with additional files: ${additionalFileInfoList.map { it.name }}"
+        } ?: {
+            "without additional files"
+        }
+        log.info("Starting submit execution $msg, type: $executionType")
+
+        val result = submitExecution(executionType, requestUtils, additionalFileInfoList) ?: return
+
+        val (organization, executionRequest) = result
         val executionDto = getExecutionResults(requestUtils, executionRequest, organization)
         val resultMsg = executionDto?.let {
             "Execution is finished with status: ${executionDto.status}. " +
                     "Passed tests: ${executionDto.passedTests}, failed tests: ${executionDto.failedTests}, skipped: ${executionDto.skippedTests}"
-        } ?: "Some errors occured during execution"
+        } ?: "Some errors occurred during execution"
 
         log.info(resultMsg)
     }
@@ -49,26 +62,25 @@ class AutomaticTestInitializator(
      * @param requestUtils
      * @param additionalFiles
      */
-    suspend fun submitExecution(requestUtils: RequestUtils, additionalFiles: List<FileInfo>?): Pair<Organization, ExecutionRequest> {
-        val (organization, executionRequest) = buildExecutionRequest(requestUtils, additionalFiles)
-        requestUtils.submitExecution(executionRequest, additionalFiles)
+    private suspend fun submitExecution(
+        executionType: ExecutionType,
+        requestUtils: RequestUtils,
+        additionalFiles: List<FileInfo>?
+    ): Pair<Organization, ExecutionRequestBase>? {
+        val (organization, executionRequest) = if (executionType == ExecutionType.GIT) {
+            buildExecutionRequest(requestUtils)
+        } else {
+            val userProvidedTestSuites = processTestSuites(requestUtils) ?: return null
+            buildExecutionRequestForStandardSuites(requestUtils, userProvidedTestSuites)
+        }
+        requestUtils.submitExecution(executionType, executionRequest, additionalFiles)
         return organization to executionRequest
     }
 
     private suspend fun buildExecutionRequest(
         requestUtils: RequestUtils,
-        additionalFiles: List<FileInfo>?
     ): Pair<Organization, ExecutionRequest> {
-        val msg = additionalFiles?.let {
-            "with additional files: ${additionalFiles.map { it.name }}"
-        } ?: {
-            "without additional files"
-        }
-        log.info("Starting submit execution $msg")
-
-        val organization = requestUtils.getOrganizationByName(evaluatedToolProperties.organizationName)
-        val organizationId = organization.id!!
-        val project = requestUtils.getProjectByNameAndOrganizationId(evaluatedToolProperties.projectName, organizationId)
+        val (organization, project) = getOrganizationAndProject(requestUtils)
 
         val gitDto = GitDto(
             url = evaluatedToolProperties.gitUrl,
@@ -90,7 +102,46 @@ class AutomaticTestInitializator(
         )
     }
 
-    private suspend fun getExecutionResults(requestUtils: RequestUtils, executionRequest: ExecutionRequest, organization: Organization): ExecutionDto? {
+    private suspend fun buildExecutionRequestForStandardSuites(
+        requestUtils: RequestUtils,
+        userProvidedTestSuites: List<String>
+    ): Pair<Organization, ExecutionRequestForStandardSuites> {
+        val (organization, project) = getOrganizationAndProject(requestUtils)
+        return organization to ExecutionRequestForStandardSuites(
+            project = project,
+            testsSuites = userProvidedTestSuites,
+            sdk = Jdk("11"),
+            execCmd = evaluatedToolProperties.execCmd,
+            batchSizeForAnalyzer = evaluatedToolProperties.batchSize
+        )
+    }
+
+    private suspend fun processTestSuites(requestUtils: RequestUtils): List<String>? {
+        val userProvidedTestSuites = evaluatedToolProperties.testSuites.split(";")
+        if (userProvidedTestSuites.isEmpty()) {
+            log.error("Set of standard test suites couldn't be empty!")
+            return null
+        }
+
+        val existingTestSuites = requestUtils.getStandardTestSuites().map { it.name }
+
+        userProvidedTestSuites.forEach {
+            if (it !in existingTestSuites) {
+                log.error("Incorrect standard test suite $it, available are ${existingTestSuites}")
+                return null
+            }
+        }
+        return userProvidedTestSuites
+    }
+
+    private suspend fun getOrganizationAndProject(requestUtils: RequestUtils): Pair<Organization, Project> {
+        val organization = requestUtils.getOrganizationByName(evaluatedToolProperties.organizationName)
+        val project = requestUtils.getProjectByNameAndOrganizationId(evaluatedToolProperties.projectName, organization.id!!)
+        return organization to project
+    }
+
+
+    private suspend fun getExecutionResults(requestUtils: RequestUtils, executionRequest: ExecutionRequestBase, organization: Organization): ExecutionDto? {
         // execution should be processed in db, so wait little time
         Thread.sleep(1_000)
 
@@ -111,10 +162,6 @@ class AutomaticTestInitializator(
             Thread.sleep(SLEEP_INTERVAL_FOR_EXECUTION_RESULTS)
         }
         return executionDto
-    }
-
-    suspend fun submitExecutionStandardMode() {
-        TODO("Not yet implemented")
     }
 
     private suspend fun processAdditionalFiles(requestUtils: RequestUtils, fileStorage: String, files: String): List<FileInfo>? {

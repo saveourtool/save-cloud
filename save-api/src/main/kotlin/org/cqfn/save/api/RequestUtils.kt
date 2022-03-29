@@ -26,7 +26,10 @@ import java.io.File
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
+import org.cqfn.save.entities.ExecutionRequestBase
+import org.cqfn.save.entities.ExecutionRequestForStandardSuites
 import org.cqfn.save.execution.ExecutionDto
+import org.cqfn.save.execution.ExecutionType
 import org.cqfn.save.utils.LocalDateTimeSerializer
 import java.time.LocalDateTime
 
@@ -127,9 +130,16 @@ class RequestUtils(
      * @param additionalFiles
      */
     @OptIn(InternalAPI::class)
-    suspend fun submitExecution(executionRequest: ExecutionRequest, additionalFiles: List<FileInfo>?) {
+    suspend fun submitExecution(executionType: ExecutionType, executionRequest: ExecutionRequestBase, additionalFiles: List<FileInfo>?) {
+        val endpoint = if (executionType == ExecutionType.GIT) {
+            executionRequest as ExecutionRequest
+            "/api/submitExecutionRequest"
+        } else {
+            executionRequest as ExecutionRequestForStandardSuites
+            "/api/executionRequestStandardTests"
+        }
         httpClient.post<HttpResponse> {
-            url("${webClientProperties.backendUrl}/api/submitExecutionRequest")
+            url("${webClientProperties.backendUrl}${endpoint}")
             header("X-Authorization-Source", "basic")
             body = MultiPartFormDataContent(formData {
                 append("executionRequest", json.encodeToString(executionRequest),

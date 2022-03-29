@@ -3,9 +3,9 @@ package org.cqfn.save.api
 import java.lang.IllegalArgumentException
 
 import kotlinx.coroutines.runBlocking
+import org.cqfn.save.execution.ExecutionType
 
 fun main() {
-    // TODO: Should be used as CLI argument for application
     val webClientPropertiesFileName = "web-client.properties"
     val evaluatedToolPropertiesFileName = "evaluated-tool.properties"
 
@@ -22,6 +22,6 @@ fun main() {
     val automaticTestInitializator = AutomaticTestInitializator(webClientProperties, evaluatedToolProperties)
 
     runBlocking {
-        automaticTestInitializator.start()
+        automaticTestInitializator.start(ExecutionType.STANDARD)
     }
 }

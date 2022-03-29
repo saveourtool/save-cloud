@@ -35,7 +35,11 @@ data class WebClientProperties(
  * @property commitHash
  * @property testRootPath
  * @property additionalFiles
+ * @property testSuites
+ * @property execCmd
+ * @property batchSize
  */
+// TODO: configure sdk
 data class EvaluatedToolProperties(
     val organizationName: String,
     val projectName: String,
@@ -46,6 +50,9 @@ data class EvaluatedToolProperties(
     val commitHash: String?,
     val testRootPath: String,
     val additionalFiles: String? = null,
+    val testSuites: String,
+    val execCmd: String? = null,
+    val batchSize: String? = null,
 ) : PropertiesConfiguration()
 
 /**
@@ -79,6 +86,9 @@ fun readPropertiesFile(configFileName: String, type: PropertiesConfigurationType
                 properties.getProperty("commitHash"),
                 properties.getProperty("testRootPath"),
                 properties.getProperty("additionalFiles"),
+                properties.getProperty("testSuites"),
+                properties.getProperty("execCmd"),
+                properties.getProperty("batchSize"),
             )
             else -> {
                 log.error("Type $type for properties configuration doesn't supported!")
