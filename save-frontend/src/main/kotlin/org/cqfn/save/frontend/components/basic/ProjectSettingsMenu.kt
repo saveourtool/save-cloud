@@ -21,11 +21,6 @@ import kotlinx.html.js.onClickFunction
  */
 external interface ProjectSettingsMenuProps : Props {
     /**
-     * List of users connected to the project
-     */
-    var users: List<SetRoleRequest>?
-
-    /**
      * Number of containers available for this project
      */
     var numberOfContainers: Int?
