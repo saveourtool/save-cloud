@@ -1,5 +1,6 @@
 package org.cqfn.save.entities
 
+import org.cqfn.save.domain.Role
 import javax.persistence.Entity
 
 /**
@@ -14,4 +15,10 @@ class User(
     var password: String?,
     var role: String?,
     var source: String,
-) : BaseEntity()
+) : BaseEntity() {
+    fun toDto(projects: Map<String, Role?> = emptyMap()) = UserDto(
+        name = name,
+        source = source,
+        projects = projects,
+    )
+}

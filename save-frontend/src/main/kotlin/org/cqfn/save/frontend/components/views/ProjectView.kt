@@ -324,6 +324,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
 
     @Suppress("TOO_MANY_LINES_IN_LAMBDA")
     private val projectSettingsMenu = projectSettingsMenu(
+        openMenuSettingsFlag = { setState { isOpenMenuSettings = it } },
         deleteProjectCallback = ::deleteProject,
         updateProjectSettings = {
             scope.launch {
@@ -341,6 +342,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 }
             }
         },
+        updatePermissions = {  }
     )
     private val projectStatisticMenu = projectStatisticMenu(
         openMenuStatisticFlag = ::openMenuStatisticFlag,
@@ -718,6 +720,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             child(projectSettingsMenu) {
                 attrs.isOpen = state.isOpenMenuSettings
                 attrs.project = state.project
+                attrs.users = emptyList()
             }
         }
     }

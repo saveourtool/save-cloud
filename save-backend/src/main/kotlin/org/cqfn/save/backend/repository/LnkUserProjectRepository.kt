@@ -2,6 +2,7 @@ package org.cqfn.save.backend.repository
 
 import org.cqfn.save.entities.LnkUserProject
 import org.cqfn.save.entities.Project
+import org.cqfn.save.entities.User
 import org.springframework.stereotype.Repository
 
 /**

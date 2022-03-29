@@ -6,6 +6,7 @@ import org.cqfn.save.entities.LnkUserProject
 import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.User
 import org.springframework.stereotype.Service
+import reactor.core.publisher.Flux
 
 /**
  * Service of lnkUserProjects
@@ -14,8 +15,7 @@ import org.springframework.stereotype.Service
 class LnkUserProjectService(private val lnkUserProjectRepository: LnkUserProjectRepository) {
     /**
      * @param project
-     * @param role user role in project
-     * @return all users with role in project
+     * @return all users with their roles in project
      */
     fun getAllUsersByProjectAndRole(project: Project, role: Role) = lnkUserProjectRepository.findByProject(project)
         .filter { it.role == role }
@@ -25,8 +25,8 @@ class LnkUserProjectService(private val lnkUserProjectRepository: LnkUserProject
      * @param project
      * @return all users with role in project
      */
-    fun getAllUserNamesAndRolesByProject(project: Project) = lnkUserProjectRepository.findByProject(project)
-        .map { it.user.name to it.role }
+    fun getAllUsersAndRolesByProject(project: Project) =
+        lnkUserProjectRepository.findByProject(project).associate { it.user to it.role }
 
     /**
      * @param userId

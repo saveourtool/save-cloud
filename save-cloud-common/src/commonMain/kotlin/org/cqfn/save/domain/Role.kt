@@ -29,4 +29,8 @@ enum class Role {
      * @return this role with default prefix for spring-security
      */
     fun asSpringSecurityRole() = "ROLE_$name"
+
+    /**
+     *
+     */
 }
