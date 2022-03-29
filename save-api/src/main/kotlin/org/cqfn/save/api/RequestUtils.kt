@@ -132,21 +132,27 @@ class RequestUtils(
     @OptIn(InternalAPI::class)
     suspend fun submitExecution(executionType: ExecutionType, executionRequest: ExecutionRequestBase, additionalFiles: List<FileInfo>?) {
         val endpoint = if (executionType == ExecutionType.GIT) {
-            executionRequest as ExecutionRequest
             "/api/submitExecutionRequest"
         } else {
-            executionRequest as ExecutionRequestForStandardSuites
             "/api/executionRequestStandardTests"
         }
         httpClient.post<HttpResponse> {
             url("${webClientProperties.backendUrl}${endpoint}")
             header("X-Authorization-Source", "basic")
+            val formDataHeaders = Headers.build {
+                append(HttpHeaders.ContentType, ContentType.Application.Json)
+            }
             body = MultiPartFormDataContent(formData {
-                append("executionRequest", json.encodeToString(executionRequest),
-                    headers = Headers.build {
-                        append(HttpHeaders.ContentType, ContentType.Application.Json)
-                    }
-                )
+                if (executionType == ExecutionType.GIT) {
+                    append("executionRequest", json.encodeToString(executionRequest as ExecutionRequest),
+                        formDataHeaders
+                    )
+                } else {
+                    append("execution", json.encodeToString(executionRequest as ExecutionRequestForStandardSuites),
+                        formDataHeaders
+                    )
+                }
+
                 additionalFiles?.forEach {
                     append("file", json.encodeToString(it), Headers.build {
                         append(HttpHeaders.ContentType, ContentType.Application.Json)
