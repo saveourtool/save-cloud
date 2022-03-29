@@ -161,14 +161,10 @@ fun projectSettingsMenu(
                     div("col-3 d-sm-flex align-items-center justify-content-center") {
                         button(type = ButtonType.button, classes = "btn btn-sm btn-primary") {
                             attrs.onClickFunction = {
-                                val project = props.project.copy()
-                                if (emailFromInput != props.project.email) {
-                                    project.email = emailFromInput
-                                }
-                                if (isPublic != props.project.public) {
-                                    project.public = isPublic
-                                }
-                                updateProjectSettings(project)
+                                updateProjectSettings(project.copy(
+                                    email = emailFromInput,
+                                    public = isPublic,
+                                ))
                                 if (numberOfContainers.toInt() != props.numberOfContainers) {
                                     updateNumberOfContainers(numberOfContainers.toInt())
                                 }
