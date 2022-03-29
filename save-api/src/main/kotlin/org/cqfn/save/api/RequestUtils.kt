@@ -132,6 +132,7 @@ class RequestUtils(
      * @param additionalFiles list of additional files for execution
      */
     @OptIn(InternalAPI::class)
+    @Suppress("TOO_LONG_FUNCTION")
     suspend fun submitExecution(executionType: ExecutionType, executionRequest: ExecutionRequestBase, additionalFiles: List<FileInfo>?) {
         val endpoint = if (executionType == ExecutionType.GIT) {
             "/api/submitExecutionRequest"

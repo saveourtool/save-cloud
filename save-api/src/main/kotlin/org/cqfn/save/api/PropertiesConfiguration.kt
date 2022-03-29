@@ -1,3 +1,7 @@
+/**
+ * Logic for configuration for http client and evaluated tool
+ */
+
 package org.cqfn.save.api
 
 import org.slf4j.LoggerFactory
@@ -6,6 +10,9 @@ import java.util.*
 
 private val log = LoggerFactory.getLogger(PropertiesConfiguration::class.java)
 
+/**
+ * Available types of configurations
+ */
 enum class PropertiesConfigurationType {
     EVALUATED_TOOL,
     WEB_CLIENT,
@@ -63,6 +70,7 @@ data class EvaluatedToolProperties(
  * @param type
  * @return corresponding configuration
  */
+@Suppress("TOO_LONG_FUNCTION")
 fun readPropertiesFile(configFileName: String, type: PropertiesConfigurationType): PropertiesConfiguration? {
     try {
         val properties = Properties()

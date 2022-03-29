@@ -1,12 +1,12 @@
+@file:Suppress("HEADER_MISSING_IN_NON_SINGLE_CLASS_FILE")
+
 package org.cqfn.save.api
 
 import java.lang.IllegalArgumentException
 
 import kotlinx.coroutines.runBlocking
-import org.slf4j.LoggerFactory
 
-private val log = LoggerFactory.getLogger(object {}.javaClass.enclosingClass::class.java)
-
+@Suppress("LOCAL_VARIABLE_EARLY_DECLARATION")
 fun main(args: Array<String>) {
     val cliArgs = parseArguments(args) ?: return
 
