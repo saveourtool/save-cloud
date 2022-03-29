@@ -46,9 +46,8 @@ class AutomaticTestInitializator(
         }
         log.info("Starting submit execution $msg, type: $executionType")
 
-        val result = submitExecution(executionType, requestUtils, additionalFileInfoList) ?: return
+        val (organization, executionRequest) = submitExecution(executionType, requestUtils, additionalFileInfoList) ?: return
 
-        val (organization, executionRequest) = result
         val executionDto = getExecutionResults(requestUtils, executionRequest, organization)
         val resultMsg = executionDto?.let {
             "Execution is finished with status: ${executionDto.status}. " +
@@ -183,10 +182,10 @@ class AutomaticTestInitializator(
             fileFromStorage?.let {
                 val filePathInStorage = "$fileStorage/${fileFromStorage.uploadedMillis}/${fileFromStorage.name}"
                 if (!File(filePathInStorage).exists()) {
-                    log.error("Couldn't find additional file $file in cloud storage!")
+                    log.error("Couldn't find additional file ${file.toPath().name} in cloud storage!")
                     return null
                 }
-                log.debug("Take existing file $file from storage")
+                log.debug("Take existing file ${file.toPath().name} from storage")
                 resultFileInfoList.add(fileFromStorage)
             } ?: run {
                 log.debug("Upload file $file to storage")
