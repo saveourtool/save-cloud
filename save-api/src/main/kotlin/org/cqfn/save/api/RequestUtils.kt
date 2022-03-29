@@ -40,9 +40,11 @@ private val json = Json {
 }
 
 /**
+ * @property authorization authorization settings
  * @property webClientProperties http client configuration
  */
 class RequestUtils(
+    private val authorization: Authorization,
     private val webClientProperties: WebClientProperties,
 ) {
     private val httpClient = HttpClient(Apache) {
@@ -60,8 +62,7 @@ class RequestUtils(
                 // therefore, adding sendWithoutRequest is required
                 sendWithoutRequest { true }
                 credentials {
-                    // TODO: pass via configuration
-                    BasicAuthCredentials(username = "admin", password = "")
+                    BasicAuthCredentials(username = authorization.userName, password = authorization.password ?: "")
                 }
             }
         }

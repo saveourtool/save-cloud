@@ -25,11 +25,12 @@ class AutomaticTestInitializator(
     private val log = LoggerFactory.getLogger(AutomaticTestInitializator::class.java)
 
     /**
-     * @param executionType
+     * @param args
      * @throws IllegalArgumentException
      */
-    suspend fun start(executionType: ExecutionType) {
-        val requestUtils = RequestUtils(webClientProperties)
+    suspend fun start(args: CliArguments) {
+        val executionType = args.mode
+        val requestUtils = RequestUtils(args.authorization, webClientProperties)
 
         val additionalFileInfoList = evaluatedToolProperties.additionalFiles?.let {
             processAdditionalFiles(requestUtils, webClientProperties.fileStorage, it)
@@ -48,7 +49,7 @@ class AutomaticTestInitializator(
 
         val (organization, executionRequest) = submitExecution(executionType, requestUtils, additionalFileInfoList) ?: return
 
-        val executionDto = getExecutionResults(requestUtils, executionRequest, organization)
+        val executionDto = getExecutionResults(requestUtils, executionRequest, organization.id!!)
         val resultMsg = executionDto?.let {
             "Execution is finished with status: ${executionDto.status}. " +
                     "Passed tests: ${executionDto.passedTests}, failed tests: ${executionDto.failedTests}, skipped: ${executionDto.skippedTests}"
@@ -140,12 +141,12 @@ class AutomaticTestInitializator(
         return organization to project
     }
 
-    private suspend fun getExecutionResults(requestUtils: RequestUtils, executionRequest: ExecutionRequestBase, organization: Organization): ExecutionDto? {
+    private suspend fun getExecutionResults(requestUtils: RequestUtils, executionRequest: ExecutionRequestBase, organizationId: Long): ExecutionDto? {
         // Execution should be processed in db after submission, so wait little time
         Thread.sleep(1_000)
 
         // We suppose, that in this short time (after submission), there weren't any new executions, so we can take the latest one
-        val executionId = requestUtils.getLatestExecution(executionRequest.project.name, organization.id!!).id
+        val executionId = requestUtils.getLatestExecution(executionRequest.project.name, organizationId).id
 
         var executionDto = requestUtils.getExecutionById(executionId)
         val initialTime = LocalDateTime.now()

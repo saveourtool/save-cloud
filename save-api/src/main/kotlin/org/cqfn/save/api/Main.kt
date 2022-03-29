@@ -1,9 +1,5 @@
 package org.cqfn.save.api
 
-import kotlinx.cli.ArgParser
-import kotlinx.cli.ArgType
-import org.cqfn.save.execution.ExecutionType
-
 import java.lang.IllegalArgumentException
 
 import kotlinx.coroutines.runBlocking
@@ -12,7 +8,7 @@ import org.slf4j.LoggerFactory
 private val log = LoggerFactory.getLogger(object {}.javaClass.enclosingClass::class.java)
 
 fun main(args: Array<String>) {
-    val mode = parseArguments(args) ?: return
+    val cliArgs = parseArguments(args) ?: return
 
     val webClientPropertiesFileName = "web-client.properties"
     val evaluatedToolPropertiesFileName = "evaluated-tool.properties"
@@ -30,22 +26,6 @@ fun main(args: Array<String>) {
     val automaticTestInitializator = AutomaticTestInitializator(webClientProperties, evaluatedToolProperties)
 
     runBlocking {
-        automaticTestInitializator.start(mode)
+        automaticTestInitializator.start(cliArgs)
     }
-}
-
-private fun parseArguments(args: Array<String>): ExecutionType? {
-    if (args.isEmpty()) {
-        log.error("Argument list couldn't be empty!")
-        return null
-    }
-    val parser = ArgParser("")
-    val mode by parser.option(
-        ArgType.Choice<ExecutionType>(),
-        fullName = "mode",
-        shortName = "m",
-        description = "Mode of execution GIT/STANDARD"
-    )
-    parser.parse(args)
-    return mode
 }
