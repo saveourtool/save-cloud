@@ -4,12 +4,9 @@ import org.cqfn.save.backend.configs.ConfigProperties
 import org.cqfn.save.backend.configs.WebConfig
 import org.cqfn.save.backend.configs.WebSecurityConfig
 import org.cqfn.save.backend.controllers.CloneRepositoryController
-import org.cqfn.save.backend.controllers.OrganizationController
 import org.cqfn.save.backend.repository.*
-import org.cqfn.save.backend.scheduling.StandardSuitesUpdateScheduler
 import org.cqfn.save.backend.security.ProjectPermissionEvaluator
 import org.cqfn.save.backend.service.ExecutionService
-import org.cqfn.save.backend.service.OrganizationService
 import org.cqfn.save.backend.service.ProjectService
 import org.cqfn.save.backend.service.UserDetailsService
 import org.cqfn.save.backend.utils.ConvertingAuthenticationManager
@@ -66,23 +63,9 @@ import kotlin.io.path.createFile
 @EnableConfigurationProperties(ConfigProperties::class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @MockBeans(
-    MockBean(AgentStatusRepository::class),
-    MockBean(AgentRepository::class),
-    MockBean(ExecutionRepository::class),
     MockBean(ExecutionService::class),
-    MockBean(TestExecutionRepository::class),
-    MockBean(TestRepository::class),
-    MockBean(TestSuiteRepository::class),
-    MockBean(ProjectRepository::class),
-    MockBean(GitRepository::class),
-    MockBean(StandardSuitesUpdateScheduler::class),
-    MockBean(UserRepository::class),
-    MockBean(AwesomeBenchmarksRepository::class),
-    MockBean(OrganizationRepository::class),
-    MockBean(OrganizationController::class),
-    MockBean(OrganizationService::class),
-    MockBean(LnkUserProjectRepository::class),
     MockBean(ProjectPermissionEvaluator::class),
+    MockBean(UserRepository::class),
 )
 @Suppress("TOO_LONG_FUNCTION")
 class CloningRepositoryControllerTest {

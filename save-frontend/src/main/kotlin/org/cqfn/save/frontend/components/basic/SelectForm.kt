@@ -104,7 +104,11 @@ fun selectFormRequired(
                 }
             }
 
-            if (props.validInput == false) {
+            if (elements.isEmpty()) {
+                div("invalid-feedback d-block") {
+                    +"You don't have access to any organizations"
+                }
+            } else if (props.validInput == false) {
                 div("invalid-feedback d-block") {
                     +"Please input a valid ${props.form?.str}"
                 }

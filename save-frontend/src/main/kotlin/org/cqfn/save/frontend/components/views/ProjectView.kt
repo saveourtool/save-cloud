@@ -22,6 +22,7 @@ import org.cqfn.save.frontend.components.basic.cardComponent
 import org.cqfn.save.frontend.components.basic.fileUploader
 import org.cqfn.save.frontend.components.basic.privacySpan
 import org.cqfn.save.frontend.components.basic.projectInfo
+import org.cqfn.save.frontend.components.basic.projectSettingsMenu
 import org.cqfn.save.frontend.components.basic.projectStatisticMenu
 import org.cqfn.save.frontend.components.basic.sdkSelection
 import org.cqfn.save.frontend.components.basic.testResourcesSelection
@@ -230,6 +231,11 @@ external interface ProjectViewState : State {
      * Flag to open menu statistic
      */
     var isOpenMenuStatistic: Boolean?
+
+    /**
+     * Flag to open menu settings
+     */
+    var isOpenMenuSettings: Boolean?
 }
 
 /**
@@ -315,6 +321,27 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             }
         },
     )
+
+    @Suppress("TOO_MANY_LINES_IN_LAMBDA")
+    private val projectSettingsMenu = projectSettingsMenu(
+        deleteProjectCallback = ::deleteProject,
+        updateProjectSettings = {
+            scope.launch {
+                val response = updateProject(it)
+                if (response.ok) {
+                    setState {
+                        project = it
+                    }
+                } else {
+                    setState {
+                        errorLabel = "Failed to save project info"
+                        errorMessage = "Failed to save project info: ${response.status} ${response.statusText}"
+                        isErrorOpen = true
+                    }
+                }
+            }
+        },
+    )
     private val projectStatisticMenu = projectStatisticMenu(
         openMenuStatisticFlag = ::openMenuStatisticFlag,
     )
@@ -345,14 +372,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 classes = "btn btn-link text-left"
             ) {
                 +"Execution History"
-            }
-        }
-        div("ml-3 d-sm-flex align-items-left justify-content-between mt-2") {
-            button(type = ButtonType.button, classes = "btn btn-sm btn-danger") {
-                attrs.onClickFunction = {
-                    deleteProject()
-                }
-                +"Delete project"
             }
         }
     }
@@ -435,6 +454,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         state.isEditDisabled = true
         state.selectedMenu = ProjectMenuBar.RUN
         state.isOpenMenuStatistic = false
+        state.isOpenMenuSettings = false
     }
 
     override fun componentDidMount() {
@@ -605,6 +625,9 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                                 if (projectMenu != ProjectMenuBar.STATISTIC) {
                                     openMenuStatisticFlag(false)
                                 }
+                                if (projectMenu != ProjectMenuBar.SETTINGS) {
+                                    openMenuSettingsFlag(false)
+                                }
                             }
                             +projectMenu.name
                         }
@@ -691,6 +714,11 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 attrs.executionId = state.latestExecutionId
                 attrs.isOpen = state.isOpenMenuStatistic
             }
+        } else if (state.selectedMenu == ProjectMenuBar.SETTINGS) {
+            child(projectSettingsMenu) {
+                attrs.isOpen = state.isOpenMenuSettings
+                attrs.project = state.project
+            }
         }
     }
 
@@ -726,6 +754,12 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     private fun openMenuStatisticFlag(isOpen: Boolean) {
         setState {
             isOpenMenuStatistic = isOpen
+        }
+    }
+
+    private fun openMenuSettingsFlag(isOpen: Boolean) {
+        setState {
+            isOpenMenuSettings = isOpen
         }
     }
 
