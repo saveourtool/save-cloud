@@ -35,6 +35,7 @@ picocli = "4.6.3"
 zip4j = "2.9.1"
 ktoml = "0.2.11"
 springdoc = "1.6.6"
+kotlinx-cli = "0.3.4"
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
@@ -135,3 +136,4 @@ reckon-gradle-plugin = { module = "org.ajoberstar.reckon:reckon-gradle", version
 commons-compress = { module = "org.apache.commons:commons-compress", version.ref = "commons-compress" }
 picocli = { module = "info.picocli:picocli", version.ref = "picocli" }
 zip4j = { module = "net.lingala.zip4j:zip4j", version.ref = "zip4j" }
+kotlinx-cli = { module = "org.jetbrains.kotlinx:kotlinx-cli", version.ref = "kotlinx-cli" }

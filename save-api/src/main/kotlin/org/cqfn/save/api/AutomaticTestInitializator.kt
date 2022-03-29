@@ -182,11 +182,11 @@ class AutomaticTestInitializator(
             val fileFromStorage = availableFilesInCloudStorage.firstOrNull { it.name == file.toPath().name }
             fileFromStorage?.let {
                 val filePathInStorage = "$fileStorage/${fileFromStorage.uploadedMillis}/${fileFromStorage.name}"
-                log.debug("Take existing file $filePathInStorage from storage")
                 if (!File(filePathInStorage).exists()) {
-                    log.error("Couldn't find additional file $filePathInStorage in cloud storage!")
+                    log.error("Couldn't find additional file $file in cloud storage!")
                     return null
                 }
+                log.debug("Take existing file $file from storage")
                 resultFileInfoList.add(fileFromStorage)
             } ?: run {
                 log.debug("Upload file $file to storage")
