@@ -12,35 +12,37 @@ import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionType
 
+import io.ktor.client.*
 import okio.Path.Companion.toPath
 import org.slf4j.LoggerFactory
 
 import java.io.File
 import java.time.LocalDateTime
 
+import kotlinx.coroutines.delay
+
 /**
  * Class, that provides logic for execution submission and result receiving
  */
 class AutomaticTestInitializator(
     private val webClientProperties: WebClientProperties,
-    private val evaluatedToolProperties: EvaluatedToolProperties
+    private val evaluatedToolProperties: EvaluatedToolProperties,
+    private val executionType: ExecutionType,
+    authorization: Authorization,
 ) {
     private val log = LoggerFactory.getLogger(AutomaticTestInitializator::class.java)
+    private var httpClient: HttpClient = initializeHttpClient(authorization, webClientProperties)
 
     /**
      * Submit execution with provided mode and configuration and receive results
      *
-     * @param args
      * @throws IllegalArgumentException
      */
     @Suppress("UnsafeCallOnNullableType")
-    suspend fun start(args: CliArguments) {
-        val executionType = args.mode
-        val requestUtils = RequestUtils(args.authorization, webClientProperties)
-
+    suspend fun start() {
         // Calculate FileInfo of additional files, if they are provided
         val additionalFileInfoList = evaluatedToolProperties.additionalFiles?.let {
-            processAdditionalFiles(requestUtils, webClientProperties.fileStorage, it)
+            processAdditionalFiles(webClientProperties.fileStorage, it)
         }
 
         if (evaluatedToolProperties.additionalFiles != null && additionalFileInfoList == null) {
@@ -54,11 +56,11 @@ class AutomaticTestInitializator(
         }
         log.info("Starting submit execution $msg, type: $executionType")
 
-        val (organization, executionRequest) = submitExecution(executionType, requestUtils, additionalFileInfoList) ?: return
+        val (organization, executionRequest) = submitExecution(executionType, additionalFileInfoList) ?: return
 
         // Sending requests, which checks current state, until results will be received
         // TODO: in which form do we actually need results?
-        val resultExecutionDto = getExecutionResults(requestUtils, executionRequest, organization.id!!)
+        val resultExecutionDto = getExecutionResults(executionRequest, organization.id!!)
         val resultMsg = resultExecutionDto?.let {
             "Execution is finished with status: ${resultExecutionDto.status}. " +
                     "Passed tests: ${resultExecutionDto.passedTests}, failed tests: ${resultExecutionDto.failedTests}, skipped: ${resultExecutionDto.skippedTests}"
@@ -71,34 +73,29 @@ class AutomaticTestInitializator(
      * Submit execution according [executionType]
      *
      * @param executionType
-     * @param requestUtils
      * @param additionalFiles
      * @return pair of organization and submitted execution request
      */
     private suspend fun submitExecution(
         executionType: ExecutionType,
-        requestUtils: RequestUtils,
         additionalFiles: List<FileInfo>?
     ): Pair<Organization, ExecutionRequestBase>? {
         val (organization, executionRequest) = if (executionType == ExecutionType.GIT) {
-            buildExecutionRequest(requestUtils)
+            buildExecutionRequest()
         } else {
-            val userProvidedTestSuites = verifyTestSuites(requestUtils) ?: return null
-            buildExecutionRequestForStandardSuites(requestUtils, userProvidedTestSuites)
+            val userProvidedTestSuites = verifyTestSuites() ?: return null
+            buildExecutionRequestForStandardSuites(userProvidedTestSuites)
         }
-        requestUtils.submitExecution(executionType, executionRequest, additionalFiles)
+        httpClient.submitExecution(executionType, executionRequest, additionalFiles)
         return organization to executionRequest
     }
 
     /**
      * Build execution request for git mode according provided configuration
      *
-     * @param requestUtils
      */
-    private suspend fun buildExecutionRequest(
-        requestUtils: RequestUtils,
-    ): Pair<Organization, ExecutionRequest> {
-        val (organization, project) = getOrganizationAndProject(requestUtils)
+    private suspend fun buildExecutionRequest(): Pair<Organization, ExecutionRequest> {
+        val (organization, project) = getOrganizationAndProject()
 
         val gitDto = GitDto(
             url = evaluatedToolProperties.gitUrl,
@@ -123,14 +120,12 @@ class AutomaticTestInitializator(
     /**
      * Build execution request for standard mode according provided configuration
      *
-     * @param requestUtils
      * @param userProvidedTestSuites test suites, specified by user in config file
      */
     private suspend fun buildExecutionRequestForStandardSuites(
-        requestUtils: RequestUtils,
         userProvidedTestSuites: List<String>
     ): Pair<Organization, ExecutionRequestForStandardSuites> {
-        val (organization, project) = getOrganizationAndProject(requestUtils)
+        val (organization, project) = getOrganizationAndProject()
 
         return organization to ExecutionRequestForStandardSuites(
             project = project,
@@ -144,17 +139,16 @@ class AutomaticTestInitializator(
     /**
      * Verify for correctness test suites, specified by user, return them or nothing if they are incorrect
      *
-     * @param requestUtils
      * @return list of test suites or nothing
      */
-    private suspend fun verifyTestSuites(requestUtils: RequestUtils): List<String>? {
+    private suspend fun verifyTestSuites(): List<String>? {
         val userProvidedTestSuites = evaluatedToolProperties.testSuites.split(";")
         if (userProvidedTestSuites.isEmpty()) {
             log.error("Set of test suites couldn't be empty in standard mode!")
             return null
         }
 
-        val existingTestSuites = requestUtils.getStandardTestSuites().map { it.name }
+        val existingTestSuites = httpClient.getStandardTestSuites().map { it.name }
 
         userProvidedTestSuites.forEach {
             if (it !in existingTestSuites) {
@@ -168,12 +162,11 @@ class AutomaticTestInitializator(
     /**
      * Return pair of organization and project according information from config file
      *
-     * @param requestUtils
      */
     @Suppress("UnsafeCallOnNullableType")
-    private suspend fun getOrganizationAndProject(requestUtils: RequestUtils): Pair<Organization, Project> {
-        val organization = requestUtils.getOrganizationByName(evaluatedToolProperties.organizationName)
-        val project = requestUtils.getProjectByNameAndOrganizationId(evaluatedToolProperties.projectName, organization.id!!)
+    private suspend fun getOrganizationAndProject(): Pair<Organization, Project> {
+        val organization = httpClient.getOrganizationByName(evaluatedToolProperties.organizationName)
+        val project = httpClient.getProjectByNameAndOrganizationId(evaluatedToolProperties.projectName, organization.id!!)
         return organization to project
     }
 
@@ -181,23 +174,21 @@ class AutomaticTestInitializator(
      * Get results for current [executionRequest] and [organizationId]:
      * sending requests, which checks current state of execution, until it will be finished, or timeout will be reached
      *
-     * @param requestUtils
      * @param executionRequest
      * @param organizationId
      */
     @Suppress("MagicNumber")
     private suspend fun getExecutionResults(
-        requestUtils: RequestUtils,
         executionRequest: ExecutionRequestBase,
         organizationId: Long
     ): ExecutionDto? {
         // Execution should be processed in db after submission, so wait little time
-        Thread.sleep(1_000)
+        delay(1_000)
 
         // We suppose, that in this short time (after submission), there weren't any new executions, so we can take the latest one
-        val executionId = requestUtils.getLatestExecution(executionRequest.project.name, organizationId).id
+        val executionId = httpClient.getLatestExecution(executionRequest.project.name, organizationId).id
 
-        var executionDto = requestUtils.getExecutionById(executionId)
+        var executionDto = httpClient.getExecutionById(executionId)
         val initialTime = LocalDateTime.now()
 
         while (executionDto.status == ExecutionStatus.PENDING || executionDto.status == ExecutionStatus.RUNNING) {
@@ -207,8 +198,8 @@ class AutomaticTestInitializator(
                 return null
             }
             log.info("Waiting for results of execution with id=$executionId, current state: ${executionDto.status}")
-            executionDto = requestUtils.getExecutionById(executionId)
-            Thread.sleep(SLEEP_INTERVAL_FOR_EXECUTION_RESULTS)
+            executionDto = httpClient.getExecutionById(executionId)
+            delay(SLEEP_INTERVAL_FOR_EXECUTION_RESULTS)
         }
         return executionDto
     }
@@ -217,12 +208,10 @@ class AutomaticTestInitializator(
      * Calculate list of FileInfo for additional files, take files from storage,
      * if they are exist or upload them into it
      *
-     * @param requestUtils
      * @param fileStorage
      * @param files
      */
     private suspend fun processAdditionalFiles(
-        requestUtils: RequestUtils,
         fileStorage: String,
         files: String
     ): List<FileInfo>? {
@@ -234,7 +223,7 @@ class AutomaticTestInitializator(
             }
         }
 
-        val availableFilesInCloudStorage = requestUtils.getAvailableFilesList()
+        val availableFilesInCloudStorage = httpClient.getAvailableFilesList()
 
         val resultFileInfoList: MutableList<FileInfo> = mutableListOf()
 
@@ -251,7 +240,7 @@ class AutomaticTestInitializator(
                 resultFileInfoList.add(fileFromStorage)
             } ?: run {
                 log.debug("Upload file $file to storage")
-                val uploadedFile: FileInfo = requestUtils.uploadAdditionalFile(file)
+                val uploadedFile: FileInfo = httpClient.uploadAdditionalFile(file)
                 resultFileInfoList.add(uploadedFile)
             }
         }

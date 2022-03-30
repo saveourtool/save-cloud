@@ -23,9 +23,14 @@ fun main(args: Array<String>) {
         )
     }
 
-    val automaticTestInitializator = AutomaticTestInitializator(webClientProperties, evaluatedToolProperties)
+    val automaticTestInitializator = AutomaticTestInitializator(
+        webClientProperties,
+        evaluatedToolProperties,
+        cliArgs.mode,
+        cliArgs.authorization
+    )
 
     runBlocking {
-        automaticTestInitializator.start(cliArgs)
+        automaticTestInitializator.start()
     }
 }

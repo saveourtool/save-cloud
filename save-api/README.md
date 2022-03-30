@@ -2,7 +2,7 @@
 
 ### General information
 
-Current module provides the basic API for execution submission process.
+Current module provides the basic example of using API for execution submission process.
 
 According specified information from config files, it will automatically build and submit\
 execution requests and received results, like it could be done manually at [saveourtool.com](http://saveourtool.com/)
