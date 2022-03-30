@@ -1,6 +1,8 @@
 package org.cqfn.save.api
 
 /**
+ * Authorization data
+ *
  * @property userName
  * @property password
  */

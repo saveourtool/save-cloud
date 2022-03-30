@@ -66,6 +66,8 @@ data class EvaluatedToolProperties(
 ) : PropertiesConfiguration()
 
 /**
+ * Read config file [configFileName] and return [PropertiesConfiguration] instance
+ *
  * @param configFileName
  * @param type
  * @return corresponding configuration

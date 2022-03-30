@@ -16,7 +16,7 @@ import kotlinx.cli.ArgType
 private val log = LoggerFactory.getLogger(object {}.javaClass.enclosingClass::class.java)
 
 /**
- * @property authorization
+ * @property authorization authorization data
  * @property mode mode of execution: git/standard
  */
 data class CliArguments(

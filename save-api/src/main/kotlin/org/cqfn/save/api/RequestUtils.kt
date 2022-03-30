@@ -40,6 +40,8 @@ private val json = Json {
 }
 
 /**
+ * Class, which wraps http client and provide api for execution submission process
+ *
  * @property authorization authorization settings
  * @property webClientProperties http client configuration
  */
@@ -127,6 +129,8 @@ class RequestUtils(
     ).receive()
 
     /**
+     * Submit execution, according [executionType] with list of [additionalFiles]
+     *
      * @param executionType type of requested execution git/standard
      * @param executionRequest execution request
      * @param additionalFiles list of additional files for execution
@@ -159,7 +163,6 @@ class RequestUtils(
                         formDataHeaders
                     )
                 }
-
                 additionalFiles?.forEach {
                     append(
                         "file",

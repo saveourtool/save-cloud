@@ -28,6 +28,8 @@ class AutomaticTestInitializator(
     private val log = LoggerFactory.getLogger(AutomaticTestInitializator::class.java)
 
     /**
+     * Submit execution with provided mode and configuration and receive results
+     *
      * @param args
      * @throws IllegalArgumentException
      */
@@ -35,6 +37,7 @@ class AutomaticTestInitializator(
         val executionType = args.mode
         val requestUtils = RequestUtils(args.authorization, webClientProperties)
 
+        // Calculate FileInfo of additional files, if they are provided
         val additionalFileInfoList = evaluatedToolProperties.additionalFiles?.let {
             processAdditionalFiles(requestUtils, webClientProperties.fileStorage, it)
         }
@@ -52,18 +55,23 @@ class AutomaticTestInitializator(
 
         val (organization, executionRequest) = submitExecution(executionType, requestUtils, additionalFileInfoList) ?: return
 
-        val executionDto = getExecutionResults(requestUtils, executionRequest, organization.id!!)
-        val resultMsg = executionDto?.let {
-            "Execution is finished with status: ${executionDto.status}. " +
-                    "Passed tests: ${executionDto.passedTests}, failed tests: ${executionDto.failedTests}, skipped: ${executionDto.skippedTests}"
+        // Sending requests, which checks current state, until results will be received
+        val resultExecutionDto = getExecutionResults(requestUtils, executionRequest, organization.id!!)
+        val resultMsg = resultExecutionDto?.let {
+            "Execution is finished with status: ${resultExecutionDto.status}. " +
+                    "Passed tests: ${resultExecutionDto.passedTests}, failed tests: ${resultExecutionDto.failedTests}, skipped: ${resultExecutionDto.skippedTests}"
         } ?: "Some errors occurred during execution"
 
         log.info(resultMsg)
     }
 
     /**
+     * Submit execution according [executionType]
+     *
+     * @param executionType
      * @param requestUtils
      * @param additionalFiles
+     * @return pair of organization and submitted execution request
      */
     private suspend fun submitExecution(
         executionType: ExecutionType,
@@ -73,13 +81,18 @@ class AutomaticTestInitializator(
         val (organization, executionRequest) = if (executionType == ExecutionType.GIT) {
             buildExecutionRequest(requestUtils)
         } else {
-            val userProvidedTestSuites = processTestSuites(requestUtils) ?: return null
+            val userProvidedTestSuites = verifyTestSuites(requestUtils) ?: return null
             buildExecutionRequestForStandardSuites(requestUtils, userProvidedTestSuites)
         }
         requestUtils.submitExecution(executionType, executionRequest, additionalFiles)
         return organization to executionRequest
     }
 
+    /**
+     * Build execution request for git mode according provided configuration
+     *
+     * @param requestUtils
+     */
     private suspend fun buildExecutionRequest(
         requestUtils: RequestUtils,
     ): Pair<Organization, ExecutionRequest> {
@@ -105,6 +118,12 @@ class AutomaticTestInitializator(
         )
     }
 
+    /**
+     * Build execution request for standard mode according provided configuration
+     *
+     * @param requestUtils
+     * @param userProvidedTestSuites test suites, specified by user in config file
+     */
     private suspend fun buildExecutionRequestForStandardSuites(
         requestUtils: RequestUtils,
         userProvidedTestSuites: List<String>
@@ -120,7 +139,13 @@ class AutomaticTestInitializator(
         )
     }
 
-    private suspend fun processTestSuites(requestUtils: RequestUtils): List<String>? {
+    /**
+     * Verify for correctness test suites, specified by user, return them or nothing if they are incorrect
+     *
+     * @param requestUtils
+     * @return list of test suites or nothing
+     */
+    private suspend fun verifyTestSuites(requestUtils: RequestUtils): List<String>? {
         val userProvidedTestSuites = evaluatedToolProperties.testSuites.split(";")
         if (userProvidedTestSuites.isEmpty()) {
             log.error("Set of test suites couldn't be empty in standard mode!")
@@ -138,13 +163,30 @@ class AutomaticTestInitializator(
         return userProvidedTestSuites
     }
 
+    /**
+     * Return pair of organization and project according information from config file
+     *
+     * @param requestUtils
+     */
     private suspend fun getOrganizationAndProject(requestUtils: RequestUtils): Pair<Organization, Project> {
         val organization = requestUtils.getOrganizationByName(evaluatedToolProperties.organizationName)
         val project = requestUtils.getProjectByNameAndOrganizationId(evaluatedToolProperties.projectName, organization.id!!)
         return organization to project
     }
 
-    private suspend fun getExecutionResults(requestUtils: RequestUtils, executionRequest: ExecutionRequestBase, organizationId: Long): ExecutionDto? {
+    /**
+     * Get results for current [executionRequest] and [organizationId]:
+     * sending requests, which checks current state of execution, until it will be finished, or timeout will be reached
+     *
+     * @param requestUtils
+     * @param executionRequest
+     * @param organizationId
+     */
+    private suspend fun getExecutionResults(
+        requestUtils: RequestUtils,
+        executionRequest: ExecutionRequestBase,
+        organizationId: Long
+    ): ExecutionDto? {
         // Execution should be processed in db after submission, so wait little time
         Thread.sleep(1_000)
 
@@ -167,7 +209,19 @@ class AutomaticTestInitializator(
         return executionDto
     }
 
-    private suspend fun processAdditionalFiles(requestUtils: RequestUtils, fileStorage: String, files: String): List<FileInfo>? {
+    /**
+     * Calculate list of FileInfo for additional files, take files from storage,
+     * if they are exist or upload them into it
+     *
+     * @param requestUtils
+     * @param fileStorage
+     * @param files
+     */
+    private suspend fun processAdditionalFiles(
+        requestUtils: RequestUtils,
+        fileStorage: String,
+        files: String
+    ): List<FileInfo>? {
         val userProvidedAdditionalFiles = files.split(";")
         userProvidedAdditionalFiles.forEach {
             if (!File(it).exists()) {
