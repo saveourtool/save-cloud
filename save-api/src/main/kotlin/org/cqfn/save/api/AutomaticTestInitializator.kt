@@ -56,6 +56,7 @@ class AutomaticTestInitializator(
         val (organization, executionRequest) = submitExecution(executionType, requestUtils, additionalFileInfoList) ?: return
 
         // Sending requests, which checks current state, until results will be received
+        // TODO: in which form do we actually need results?
         val resultExecutionDto = getExecutionResults(requestUtils, executionRequest, organization.id!!)
         val resultMsg = resultExecutionDto?.let {
             "Execution is finished with status: ${resultExecutionDto.status}. " +

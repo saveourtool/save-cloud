@@ -77,7 +77,7 @@ class RequestUtils(
     suspend fun getOrganizationByName(
         name: String
     ): Organization = getRequestWithAuthAndJsonContentType(
-        "${webClientProperties.backendUrl}/api/organization/get/organization-name?name=$name"
+        "${webClientProperties.backendUrl}/api/organization/$name"
     ).receive()
 
     /**
