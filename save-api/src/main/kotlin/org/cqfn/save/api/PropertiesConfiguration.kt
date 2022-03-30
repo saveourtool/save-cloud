@@ -5,8 +5,14 @@
 package org.cqfn.save.api
 
 import org.slf4j.LoggerFactory
+
+import java.io.File
 import java.io.IOException
-import java.util.*
+
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.properties.Properties
+import kotlinx.serialization.properties.decodeFromStringMap
 
 private val log = LoggerFactory.getLogger(PropertiesConfiguration::class.java)
 
@@ -22,6 +28,7 @@ enum class PropertiesConfigurationType {
 /**
  * Base class for configuration
  */
+@Serializable
 sealed class PropertiesConfiguration
 
 /**
@@ -29,6 +36,7 @@ sealed class PropertiesConfiguration
  * @property preprocessorUrl
  * @property fileStorage
  */
+@Serializable
 data class WebClientProperties(
     val backendUrl: String,
     val preprocessorUrl: String,
@@ -50,6 +58,7 @@ data class WebClientProperties(
  * @property batchSize
  */
 // TODO: configure sdk
+@Serializable
 data class EvaluatedToolProperties(
     val organizationName: String,
     val projectName: String,
@@ -57,7 +66,7 @@ data class EvaluatedToolProperties(
     val gitUserName: String? = null,
     val gitPassword: String? = null,
     val branch: String? = null,
-    val commitHash: String?,
+    val commitHash: String? = null,
     val testRootPath: String,
     val additionalFiles: String? = null,
     val testSuites: String,
@@ -72,36 +81,23 @@ data class EvaluatedToolProperties(
  * @param type
  * @return corresponding configuration
  */
+@OptIn(ExperimentalSerializationApi::class)
 @Suppress("TOO_LONG_FUNCTION")
 fun readPropertiesFile(configFileName: String, type: PropertiesConfigurationType): PropertiesConfiguration? {
     try {
-        val properties = Properties()
         val classLoader = AutomaticTestInitializator::class.java.classLoader
-        val input = classLoader.getResourceAsStream(configFileName)
+        val input = classLoader.getResource(configFileName)?.file
         input ?: run {
             log.error("Unable to find configuration file: $configFileName")
             return null
         }
-        properties.load(input)
         when (type) {
-            PropertiesConfigurationType.WEB_CLIENT -> return WebClientProperties(
-                properties.getProperty("backendUrl"),
-                properties.getProperty("preprocessorUrl"),
-                properties.getProperty("fileStorage"),
+            PropertiesConfigurationType.WEB_CLIENT -> return Properties.decodeFromStringMap<WebClientProperties>(
+                readProperties(input)
             )
-            PropertiesConfigurationType.EVALUATED_TOOL -> return EvaluatedToolProperties(
-                properties.getProperty("organizationName"),
-                properties.getProperty("projectName"),
-                properties.getProperty("gitUrl"),
-                properties.getProperty("gitUserName"),
-                properties.getProperty("gitPassword"),
-                properties.getProperty("branch"),
-                properties.getProperty("commitHash"),
-                properties.getProperty("testRootPath"),
-                properties.getProperty("additionalFiles"),
-                properties.getProperty("testSuites"),
-                properties.getProperty("execCmd"),
-                properties.getProperty("batchSize"),
+
+            PropertiesConfigurationType.EVALUATED_TOOL -> return Properties.decodeFromStringMap<EvaluatedToolProperties>(
+                readProperties(input)
             )
             else -> {
                 log.error("Type $type for properties configuration doesn't supported!")
@@ -113,3 +109,18 @@ fun readPropertiesFile(configFileName: String, type: PropertiesConfigurationType
         return null
     }
 }
+
+/**
+ * Read properties file as a map
+ *
+ * @param filePath a file to read
+ * @return map of properties with values
+ */
+private fun readProperties(filePath: String): Map<String, String> = File(filePath).readLines()
+    .filter { it.contains("=") }
+    .associate { line ->
+        line.split("=").map { it.trim() }.let {
+            require(it.size == 2)
+            it.first() to it.last()
+        }
+    }

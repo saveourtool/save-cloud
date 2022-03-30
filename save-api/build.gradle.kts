@@ -3,6 +3,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     application
     kotlin("jvm")
+    alias(libs.plugins.kotlin.plugin.serialization)
 }
 
 application {
