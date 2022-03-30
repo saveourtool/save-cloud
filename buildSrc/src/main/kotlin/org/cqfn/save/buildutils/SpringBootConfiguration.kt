@@ -39,6 +39,7 @@ fun Project.configureSpringBoot(withSpringDataJpa: Boolean = false) {
     dependencies {
         add("implementation", libs.spring.boot.starter.webflux)
         add("implementation", libs.spring.boot.starter.actuator)
+        add("implementation", libs.spring.boot.starter.cache)
         add("implementation", libs.micrometer.registry.prometheus)  // expose prometheus metrics in actuator
         add("implementation", libs.jackson.module.kotlin)
         add("implementation", libs.slf4j.api)
