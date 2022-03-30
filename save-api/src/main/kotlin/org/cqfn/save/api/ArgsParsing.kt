@@ -28,6 +28,7 @@ data class CliArguments(
  * @param args
  * @return parsed command line arguments
  */
+@Suppress("UnsafeCallOnNullableType")
 fun parseArguments(args: Array<String>): CliArguments? {
     if (args.isEmpty()) {
         log.error("Argument list couldn't be empty!")

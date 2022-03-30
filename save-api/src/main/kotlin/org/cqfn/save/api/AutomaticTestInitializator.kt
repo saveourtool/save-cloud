@@ -33,6 +33,7 @@ class AutomaticTestInitializator(
      * @param args
      * @throws IllegalArgumentException
      */
+    @Suppress("UnsafeCallOnNullableType")
     suspend fun start(args: CliArguments) {
         val executionType = args.mode
         val requestUtils = RequestUtils(args.authorization, webClientProperties)
@@ -169,6 +170,7 @@ class AutomaticTestInitializator(
      *
      * @param requestUtils
      */
+    @Suppress("UnsafeCallOnNullableType")
     private suspend fun getOrganizationAndProject(requestUtils: RequestUtils): Pair<Organization, Project> {
         val organization = requestUtils.getOrganizationByName(evaluatedToolProperties.organizationName)
         val project = requestUtils.getProjectByNameAndOrganizationId(evaluatedToolProperties.projectName, organization.id!!)
@@ -183,6 +185,7 @@ class AutomaticTestInitializator(
      * @param executionRequest
      * @param organizationId
      */
+    @Suppress("MagicNumber")
     private suspend fun getExecutionResults(
         requestUtils: RequestUtils,
         executionRequest: ExecutionRequestBase,
