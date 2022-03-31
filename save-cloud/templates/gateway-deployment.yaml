@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    io.kompose.service: gateway
+    prometheus-job: api-gateway
+  name: gateway
+spec:
+  selector:
+    matchLabels:
+      io.kompose.service: gateway
+  template:
+    metadata:
+      labels:
+        io.kompose.service: gateway
+    spec:
+      containers:
+        - env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: {{ .Values.profile }}
+          image: '{{ .Values.imageRegistry }}/api-gateway:{{ .Values.dockerTag }}'
+          name: gateway
+          ports:
+            - containerPort: 5300
+      restartPolicy: Always

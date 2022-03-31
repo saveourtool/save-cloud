@@ -1,5 +1,6 @@
 imageRegistry: ghcr.io/analysis-dev
-dockerTag: 0.2.0-alpha.0.blah
+# todo: version from git tag
+dockerTag: 0.2.0-alpha.0.250-6d8ca62
 
 env: staging
 profile: dev
@@ -14,3 +15,10 @@ grafana:
     port: 9100
   persistence:
     enabled: true
+  rbac:
+    create: false
+
+rbac:
+  create: false
+  createRole: false
+  createClusterRole: false

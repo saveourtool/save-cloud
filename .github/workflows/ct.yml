@@ -13,4 +13,6 @@ jobs:
       # https://github.com/helm/chart-testing#local-repo
       - run: |
           docker run -it --network host --workdir=/data --volume ~/.kube/config:/root/.kube/config:ro --volume $(pwd):/data \
-          quay.io/helmpack/chart-testing:v3.5.0 ct install --chart-dirs save-cloud --charts .
+          quay.io/helmpack/chart-testing:v3.5.1 sh -c \
+          "helm repo add grafana https://grafana.github.io/helm-charts && ct lint-and-install --chart-dirs /data/save-cloud --charts save-cloud"
+#      - uses: helm/chart-testing-action@v2
