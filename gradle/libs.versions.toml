@@ -21,6 +21,7 @@ jackson = "2.13.2"
 mockito-kotlin = "4.0.0"
 slf4j = "1.7.36"
 logback = "1.2.11"
+log4j = "2.17.2"
 micrometer = "1.8.4"
 jpa = "1.0.2"
 hibernate = "5.6.7.Final"
@@ -33,6 +34,7 @@ picocli = "4.6.3"
 zip4j = "2.9.1"
 ktoml = "0.2.11"
 springdoc = "1.6.6"
+kotlinx-cli = "0.3.4"
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
@@ -91,8 +93,11 @@ springdoc-openapi-security = { module = "org.springdoc:springdoc-openapi-securit
 springdoc-openapi-kotlin = { module = "org.springdoc:springdoc-openapi-kotlin", version.ref = "springdoc" }
 swagger-annotations = { module = "io.swagger.core.v3:swagger-annotations", version = "2.1.13" }
 
+ktor-client-apache = { module = "io.ktor:ktor-client-apache", version.ref = "ktor" }
+ktor-client-auth = { module = "io.ktor:ktor-client-auth", version.ref = "ktor" }
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 ktor-client-curl = { module = "io.ktor:ktor-client-curl", version.ref = "ktor" }
+ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor" }
 ktor-client-serialization = { module = "io.ktor:ktor-client-serialization", version.ref = "ktor" }
 ktor-client-mock = { module = "io.ktor:ktor-client-mock", version.ref = "ktor" }
 
@@ -114,6 +119,8 @@ mockito-kotlin = { module = "org.mockito.kotlin:mockito-kotlin", version.ref = "
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 reactor-kotlin-extensions = { module = "io.projectreactor.kotlin:reactor-kotlin-extensions", version.ref = "reactor" }
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
+log4j = { module = "org.apache.logging.log4j:log4j-core", version.ref = "log4j" }
+log4j-slf4j-impl = { module = "org.apache.logging.log4j:log4j-slf4j-impl", version.ref = "log4j" }
 logback-core = { module = "ch.qos.logback:logback-core", version.ref = "logback" }
 junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit" }
 junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit" }
@@ -127,3 +134,4 @@ reckon-gradle-plugin = { module = "org.ajoberstar.reckon:reckon-gradle", version
 commons-compress = { module = "org.apache.commons:commons-compress", version.ref = "commons-compress" }
 picocli = { module = "info.picocli:picocli", version.ref = "picocli" }
 zip4j = { module = "net.lingala.zip4j:zip4j", version.ref = "zip4j" }
+kotlinx-cli = { module = "org.jetbrains.kotlinx:kotlinx-cli", version.ref = "kotlinx-cli" }
