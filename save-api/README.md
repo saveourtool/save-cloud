@@ -5,9 +5,9 @@
 Current module provides the basic example of using API for execution submission process.
 
 According specified information from config files, it will automatically build and submit\
-execution requests and received results, like it could be done manually at [saveourtool.com](http://saveourtool.com/)
+execution requests and received results, like it could be done manually at [saveourtool.com](https://saveourtool.com/)
 
-For proper usage you should be registered at [saveourtool.com](http://saveourtool.com/)
+For proper usage you should be registered at [saveourtool.com](https://saveourtool.com/)
 and create at least one project in your organization.
 
 ### Configuration
@@ -25,7 +25,7 @@ marked as required/optional:
 * **General:** in this section you need to provide general information about
   your organization and project, which should be tested. Data should be the same
   with one, that were
-  specified, when you registered it at [saveourtool.com](http://saveourtool.com/)
+  specified, when you registered it at [saveourtool.com](https://saveourtool.com/)
 * **Git:** current section should contain corresponding information about your tool,
   if you would like to test it in the `GIT` mode
 * **Standard:** this section should contain configuration for `STANDARD` mode
