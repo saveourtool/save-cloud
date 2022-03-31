@@ -16,9 +16,13 @@ class User(
     var role: String?,
     var source: String,
 ) : BaseEntity() {
+    /**
+     * @param projects
+     * @return [UserDto] object
+     */
     fun toDto(projects: Map<String, Role?> = emptyMap()) = UserDto(
         name = name,
         source = source,
-        projects = projects,
+        projects = projects.toMutableMap(),
     )
 }

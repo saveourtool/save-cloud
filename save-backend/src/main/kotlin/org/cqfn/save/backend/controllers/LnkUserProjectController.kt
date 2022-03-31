@@ -8,9 +8,6 @@ package org.cqfn.save.backend.controllers
 
 import org.cqfn.save.backend.service.LnkUserProjectService
 import org.cqfn.save.backend.service.ProjectService
-import org.cqfn.save.domain.Role
-import org.cqfn.save.entities.Project
-import org.cqfn.save.entities.User
 import org.cqfn.save.entities.UserDto
 
 import org.slf4j.LoggerFactory
@@ -27,6 +24,12 @@ class LnkUserProjectController(
 ) {
     private val logger = LoggerFactory.getLogger(LnkUserProjectController::class.java)
 
+    /**
+     * @param projectName
+     * @param organizationName
+     * @return list of users with their roles, connected to the project
+     * @throws NoSuchElementException
+     */
     @GetMapping("/projects/get-by-project")
     fun getAllUsersByProjectNameAndOrganizationName(@RequestParam projectName: String, @RequestParam organizationName: String): List<UserDto> {
         val project = projectService.findByNameAndOrganizationName(projectName, organizationName)

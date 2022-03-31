@@ -1,7 +1,8 @@
 package org.cqfn.save.entities
 
-import kotlinx.serialization.Serializable
 import org.cqfn.save.domain.Role
+
+import kotlinx.serialization.Serializable
 
 /**
  * @property name
@@ -13,5 +14,5 @@ import org.cqfn.save.domain.Role
 data class UserDto(
     val name: String?,
     var source: String,
-    var projects: Map<String, Role?>,
+    var projects: MutableMap<String, Role?>,
 )

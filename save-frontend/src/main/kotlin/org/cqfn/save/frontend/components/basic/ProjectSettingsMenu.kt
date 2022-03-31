@@ -2,35 +2,26 @@
 
 package org.cqfn.save.frontend.components.basic
 
-import kotlinx.coroutines.await
-import kotlinx.html.ButtonType
-import kotlinx.html.InputType
-import kotlinx.html.id
-import kotlinx.html.js.onChangeFunction
-import kotlinx.html.js.onClickFunction
-import org.cqfn.save.agent.TestSuiteExecutionStatisticDto
-import org.cqfn.save.domain.TestResultStatus
+import org.cqfn.save.domain.Role
 import org.cqfn.save.entities.Project
-
 import org.cqfn.save.entities.UserDto
-import org.cqfn.save.frontend.components.tables.tableComponent
 import org.cqfn.save.frontend.utils.apiUrl
 import org.cqfn.save.frontend.utils.decodeFromJsonString
 import org.cqfn.save.frontend.utils.get
 import org.cqfn.save.frontend.utils.unsafeMap
 import org.cqfn.save.frontend.utils.useRequest
-import org.cqfn.save.permission.SetRoleRequest
-import org.w3c.dom.HTMLFormElement
+
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.HTMLSelectElement
+import org.w3c.fetch.Headers
 import react.*
 import react.dom.*
 
+import kotlinx.html.ButtonType
+import kotlinx.html.InputType
 import kotlinx.html.id
-import org.cqfn.save.domain.Role
-import org.w3c.fetch.Headers
-import org.w3c.fetch.Response
-import react.table.columns
+import kotlinx.html.js.onChangeFunction
+import kotlinx.html.js.onClickFunction
 
 /**
  * ProjectSettingsMenu component props
@@ -50,11 +41,29 @@ external interface ProjectSettingsMenuProps : Props {
      * Current project settings
      */
     var project: Project
+
+    /**
+     * Role of user that opened this window
+     */
+    var selfRole: Role
+}
+
+/**
+ * Builds [Role] object out of [String]
+ */
+private fun String.toRole() = when (this) {
+    Role.VIEWER.string -> Role.VIEWER
+    Role.SUPER_ADMIN.string -> Role.SUPER_ADMIN
+    Role.OWNER.string -> Role.OWNER
+    Role.ADMIN.string -> Role.ADMIN
+    else -> throw IllegalStateException("Unknown role is passed: ${this@toRole}")
 }
 
 /**
  * @param deleteProjectCallback
  * @param updateProjectSettings
+ * @param openMenuSettingsFlag
+ * @param updatePermissions
  * @return ReactElement
  */
 @Suppress("TOO_LONG_FUNCTION", "LongMethod", "MAGIC_NUMBER")
@@ -67,11 +76,12 @@ fun projectSettingsMenu(
     var emailFromInput: String? = props.project.email
     var isPublic: Boolean = props.project.public
     var numberOfContainers: String = props.project.numberOfContainers.toString()
+    @Suppress("LOCAL_VARIABLE_EARLY_DECLARATION")
     var permissionsChanged: MutableMap<String, Role> = mutableMapOf()
 
     val (users, setUsers) = useState(props.users)
 
-    useRequest(dependencies = arrayOf(users), isDeferred = false) {
+    useRequest(isDeferred = false) {
         if (props.isOpen != true) {
             val usersFromDb = get(
                 url = "$apiUrl/links/projects/get-by-project?projectName=${props.project.name}&organizationName=${props.project.organization.name}",
@@ -82,12 +92,12 @@ fun projectSettingsMenu(
                 .unsafeMap {
                     it.decodeFromJsonString<List<UserDto>>()
                 }
-                .also { println(it) }
             setUsers(usersFromDb)
             openMenuSettingsFlag(true)
         }
-    } ()
+    }()
 
+    val projectPath = props.project.let { "${it.organization.name}/${it.name}" }
     div("row justify-content-center mb-2") {
         // ===================== LEFT COLUMN =======================================================================
         div("col-4 mb-2") {
@@ -97,25 +107,24 @@ fun projectSettingsMenu(
             child(cardComponent(isBordered = false, hasBg = true) {
                 for (user in users) {
                     val userName = user.name ?: "Unknown"
-                    var userRole = user.projects[props.project.let { "${it.organization.name}/${it.name}" }] ?: Role.VIEWER
+                    val userRole = user.projects[projectPath] ?: Role.VIEWER
                     div("row mt-2 ml-2 mr-2") {
                         div("col-6 text-left align-self-center") {
                             +(user.name ?: "Unknown")
                         }
                         div("col-6 text-left align-self-center") {
                             select("custom-select") {
-//                                attrs.disabled = true
                                 attrs.onChangeFunction = {
                                     val target = it.target as HTMLSelectElement
                                     permissionsChanged[userName] = target.value.toRole()
                                     attrs.value = target.value
                                 }
-                                attrs.id = "numberOfContainers"
+                                attrs.id = "role${users.indexOf(user)}"
                                 for (role in Role.values()) {
                                     option {
-                                        attrs.value = role.toString()
+                                        attrs.value = role.string
                                         attrs.selected = role == userRole
-                                        +role.toString()
+                                        +role.string
                                     }
                                 }
                             }
@@ -134,7 +143,7 @@ fun projectSettingsMenu(
                     div("col-5 text-left align-self-center") {
                         +"Project email:"
                     }
-                    div("col-7 input-group") {
+                    div("col-7 input-group pl-0") {
                         input(type = InputType.email) {
                             attrs["class"] = "form-control"
                             attrs {
@@ -225,6 +234,10 @@ fun projectSettingsMenu(
                                 ))
                                 if (permissionsChanged.isNotEmpty()) {
                                     updatePermissions(permissionsChanged)
+                                    permissionsChanged.forEach { (name, role) ->
+                                        users.find { it.name == name }?.projects?.put(projectPath, role)
+                                    }
+                                    permissionsChanged = mutableMapOf()
                                 }
                             }
                             +"Save changes"
@@ -241,15 +254,5 @@ fun projectSettingsMenu(
                 }
             })
         }
-    }
-}
-
-private fun String.toRole() = when(this) {
-    "VIEWER" -> Role.VIEWER
-    "SUPER_ADMIN" -> Role.SUPER_ADMIN
-    "OWNER" -> Role.OWNER
-    "ADMIN" -> Role.ADMIN
-    else -> {
-        throw IllegalStateException("Unknown role is passed: ${this@toRole}")
     }
 }

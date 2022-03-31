@@ -2,7 +2,6 @@ package org.cqfn.save.backend.repository
 
 import org.cqfn.save.entities.LnkUserProject
 import org.cqfn.save.entities.Project
-import org.cqfn.save.entities.User
 import org.springframework.stereotype.Repository
 
 /**
@@ -21,5 +20,5 @@ interface LnkUserProjectRepository : BaseEntityRepository<LnkUserProject> {
      * @param project
      * @return lnkUserProject by user ID and project
      */
-    fun findByUserIdAndProject(userId: Long, project: Project): List<LnkUserProject>
+    fun findByUserIdAndProject(userId: Long, project: Project): LnkUserProject?
 }

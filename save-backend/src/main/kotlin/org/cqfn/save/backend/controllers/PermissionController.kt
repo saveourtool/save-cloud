@@ -61,9 +61,12 @@ class PermissionController(
     )
     fun getRole(@PathVariable organizationName: String,
                 @PathVariable projectName: String,
-                @RequestParam userName: String,
+                @RequestParam(required = false) userName: String?,
                 authentication: Authentication,
-    ): Mono<Role> = permissionService.findUserAndProject(userName, organizationName, projectName)
+    ): Mono<Role> = permissionService.findUserAndProject(
+        userName ?: authentication.name, organizationName,
+        projectName,
+    )
         .filter { (_, project) ->
             // To be able to see roles, the user should be at least `VIEWER` for public projects
             // or should have read access (i.e. be a member of) for a private project.
