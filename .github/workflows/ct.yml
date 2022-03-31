@@ -1,0 +1,16 @@
+name: Test Helm charts
+
+on:
+  pull_request:
+    branches:
+      - 'master'
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      # https://github.com/helm/chart-testing#local-repo
+      - run: |
+          docker run -it --network host --workdir=/data --volume ~/.kube/config:/root/.kube/config:ro --volume $(pwd):/data \
+          quay.io/helmpack/chart-testing:v3.5.0 ct install --chart-dirs save-cloud --charts .

@@ -1,0 +1,16 @@
+imageRegistry: ghcr.io/analysis-dev
+dockerTag: 0.2.0-alpha.0.blah
+
+env: staging
+profile: dev
+backend:
+  # todo: Kubernetes secrets
+  password: 123
+
+grafana:
+  image:
+    tag: 8.4.4
+  service:
+    port: 9100
+  persistence:
+    enabled: true

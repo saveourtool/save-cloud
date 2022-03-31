@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: save-cloud
+  namespace: save-cloud
+spec:
+  ports:
+    - name: http
+      port: 5300
+      targetPort: http
+  selector:
+    io.kompose.service: gateway
