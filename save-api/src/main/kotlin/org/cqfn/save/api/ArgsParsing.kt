@@ -44,11 +44,11 @@ fun parseArguments(args: Array<String>): CliArguments? {
     )
 
     // FixMe: any opportunity to hide process of password entering, via some additional window which doesn't show user input?
-    val password by parser.option(
+    val token by parser.option(
         ArgType.String,
-        fullName = "password",
-        shortName = "p",
-        description = "Password"
+        fullName = "token",
+        shortName = "t",
+        description = "OAuth token for SAVE-cloud system"
     )
 
     val mode by parser.option(
@@ -59,7 +59,7 @@ fun parseArguments(args: Array<String>): CliArguments? {
     )
     parser.parse(args)
     return CliArguments(
-        Authorization(userName!!, password),
+        Authorization(userName!!, token),
         mode!!
     )
 }

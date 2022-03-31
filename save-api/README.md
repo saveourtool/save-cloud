@@ -41,7 +41,7 @@ Current API required few cli arguments for execution:
 ```
   -m execution mode: git or standard
   -u username in SAVE-cloud system
-  -p password in SAVE-cloud system
+  -t OAuth token for SAVE-cloud system
 ```
 
 Example:

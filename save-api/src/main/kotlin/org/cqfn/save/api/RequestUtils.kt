@@ -206,7 +206,7 @@ fun initializeHttpClient(
                 // therefore, adding sendWithoutRequest is required
                 sendWithoutRequest { true }
                 credentials {
-                    BasicAuthCredentials(username = authorization.userName, password = authorization.password ?: "")
+                    BasicAuthCredentials(username = authorization.userName, password = authorization.token ?: "")
                 }
             }
         }
