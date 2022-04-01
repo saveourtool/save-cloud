@@ -14,15 +14,6 @@ import org.springframework.stereotype.Service
 class LnkUserProjectService(private val lnkUserProjectRepository: LnkUserProjectRepository) {
     /**
      * @param project
-     * @param role
-     * @return all users with their roles in project
-     */
-    fun getAllUsersByProjectAndRole(project: Project, role: Role) = lnkUserProjectRepository.findByProject(project)
-        .filter { it.role == role }
-        .map { it.user }
-
-    /**
-     * @param project
      * @return all users with role in project
      */
     fun getAllUsersAndRolesByProject(project: Project) =
@@ -36,13 +27,18 @@ class LnkUserProjectService(private val lnkUserProjectRepository: LnkUserProject
     fun findRoleByUserIdAndProject(userId: Long, project: Project) = lnkUserProjectRepository
         .findByUserIdAndProject(userId, project)
         ?.role
-        ?: throw IllegalStateException("Multiple roles are set for userId=$userId and project=$project")
+        ?: Role.NONE
 
     /**
      * Set role of [user] on a project [project] to [role]
+     *
+     * @throws IllegalStateException if [role] is [Role.NONE]
      */
     @Suppress("KDOC_WITHOUT_PARAM_TAG")
     fun setRole(user: User, project: Project, role: Role) {
+        if (role == Role.NONE) {
+            throw IllegalStateException("Role NONE should not be present in database!")
+        }
         val lnkUserProject = lnkUserProjectRepository.findByUserIdAndProject(user.id!!, project)?.apply { this.role = role }
             ?: LnkUserProject(project, user, role)
         lnkUserProjectRepository.save(lnkUserProject)

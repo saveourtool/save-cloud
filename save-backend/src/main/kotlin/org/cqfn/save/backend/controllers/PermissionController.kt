@@ -63,8 +63,10 @@ class PermissionController(
                 @PathVariable projectName: String,
                 @RequestParam(required = false) userName: String?,
                 authentication: Authentication,
-    ): Mono<Role> = permissionService.findUserAndProject(
-        userName ?: authentication.name, organizationName,
+    ): Mono<Role?> = permissionService.findUserAndProject(
+        // fixme: userName should be like that: ${user.source}:${user.name}
+        userName ?: authentication.name.split(":")[1],
+        organizationName,
         projectName,
     )
         .filter { (_, project) ->
@@ -74,6 +76,9 @@ class PermissionController(
         }
         .map { (user: User, project: Project) ->
             permissionService.getRole(user, project)
+                .also {
+                    logger.trace("User ${user.source}:${user.name} has role $it")
+                }
         }
         .switchIfEmpty {
             Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))

@@ -8,6 +8,7 @@ package org.cqfn.save.backend.controllers
 
 import org.cqfn.save.backend.service.LnkUserProjectService
 import org.cqfn.save.backend.service.ProjectService
+import org.cqfn.save.domain.Role
 import org.cqfn.save.entities.UserDto
 
 import org.slf4j.LoggerFactory
@@ -34,9 +35,11 @@ class LnkUserProjectController(
     fun getAllUsersByProjectNameAndOrganizationName(@RequestParam projectName: String, @RequestParam organizationName: String): List<UserDto> {
         val project = projectService.findByNameAndOrganizationName(projectName, organizationName)
             ?: throw NoSuchElementException("There is no $projectName project in $organizationName organization")
-        return lnkUserProjectService.getAllUsersAndRolesByProject(project).map { (user, role) ->
-            user.toDto(mapOf(project.organization.name + "/" + project.name to role))
-        }
+        return lnkUserProjectService.getAllUsersAndRolesByProject(project)
+            .filter { (_, role) -> role != Role.NONE }
+            .map { (user, role) ->
+                user.toDto(mapOf(project.organization.name + "/" + project.name to role))
+            }
             .also { logger.debug("Got ${it.size} users: $it") }
     }
 }

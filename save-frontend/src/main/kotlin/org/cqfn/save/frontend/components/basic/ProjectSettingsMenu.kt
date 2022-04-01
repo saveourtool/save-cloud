@@ -10,6 +10,7 @@ import org.cqfn.save.frontend.utils.decodeFromJsonString
 import org.cqfn.save.frontend.utils.get
 import org.cqfn.save.frontend.utils.unsafeMap
 import org.cqfn.save.frontend.utils.useRequest
+import org.cqfn.save.info.UserInfo
 
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.HTMLSelectElement
@@ -46,17 +47,20 @@ external interface ProjectSettingsMenuProps : Props {
      * Role of user that opened this window
      */
     var selfRole: Role
+
+    /**
+     * Information about current user
+     */
+    var currentUserInfo: UserInfo
 }
 
-/**
- * Builds [Role] object out of [String]
- */
 private fun String.toRole() = when (this) {
-    Role.VIEWER.string -> Role.VIEWER
-    Role.SUPER_ADMIN.string -> Role.SUPER_ADMIN
-    Role.OWNER.string -> Role.OWNER
-    Role.ADMIN.string -> Role.ADMIN
-    else -> throw IllegalStateException("Unknown role is passed: ${this@toRole}")
+    Role.VIEWER.toString(), Role.VIEWER.string -> Role.VIEWER
+    Role.SUPER_ADMIN.toString(), Role.SUPER_ADMIN.string -> Role.SUPER_ADMIN
+    Role.OWNER.toString(), Role.OWNER.string -> Role.OWNER
+    Role.ADMIN.toString(), Role.ADMIN.string -> Role.ADMIN
+    Role.NONE.toString(), Role.NONE.string -> Role.NONE
+    else -> throw IllegalStateException("Unknown role is passed: $this")
 }
 
 /**
@@ -81,23 +85,16 @@ fun projectSettingsMenu(
 
     val (users, setUsers) = useState(props.users)
 
-    useRequest(isDeferred = false) {
-        if (props.isOpen != true) {
-            val usersFromDb = get(
-                url = "$apiUrl/links/projects/get-by-project?projectName=${props.project.name}&organizationName=${props.project.organization.name}",
-                headers = Headers().also {
-                    it.set("Accept", "application/json")
-                },
-            )
-                .unsafeMap {
-                    it.decodeFromJsonString<List<UserDto>>()
-                }
-            setUsers(usersFromDb)
-            openMenuSettingsFlag(true)
-        }
-    }()
+    getUsers(props, setUsers, openMenuSettingsFlag)
 
     val projectPath = props.project.let { "${it.organization.name}/${it.name}" }
+
+    val (selfRole, setSelfRole) = useState(props.selfRole)
+
+    getSelfRole(projectPath, setSelfRole)
+
+    println("Self role: ${selfRole.string}")
+
     div("row justify-content-center mb-2") {
         // ===================== LEFT COLUMN =======================================================================
         div("col-4 mb-2") {
@@ -106,11 +103,11 @@ fun projectSettingsMenu(
             }
             child(cardComponent(isBordered = false, hasBg = true) {
                 for (user in users) {
-                    val userName = user.name ?: "Unknown"
+                    val userName = user.source + ":" + (user.name ?: "Unknown")
                     val userRole = user.projects[projectPath] ?: Role.VIEWER
                     div("row mt-2 ml-2 mr-2") {
                         div("col-6 text-left align-self-center") {
-                            +(user.name ?: "Unknown")
+                            +userName
                         }
                         div("col-6 text-left align-self-center") {
                             select("custom-select") {
@@ -121,12 +118,17 @@ fun projectSettingsMenu(
                                 }
                                 attrs.id = "role${users.indexOf(user)}"
                                 for (role in Role.values()) {
-                                    option {
-                                        attrs.value = role.string
-                                        attrs.selected = role == userRole
-                                        +role.string
+                                    if (role != Role.NONE) {
+                                        option {
+                                            attrs.value = role.toString()
+                                            attrs.selected = role == userRole
+                                            +role.toString()
+                                            attrs.disabled =
+                                                role.priority >= (selfRole.priority)
+                                        }
                                     }
                                 }
+                                attrs.disabled = (permissionsChanged[userName] ?: user.projects[projectPath]!!).priority >= selfRole.priority
                             }
                         }
                     }
@@ -227,18 +229,16 @@ fun projectSettingsMenu(
                     div("col-3 d-sm-flex align-items-center justify-content-center") {
                         button(type = ButtonType.button, classes = "btn btn-sm btn-primary") {
                             attrs.onClickFunction = {
+                                if (permissionsChanged.isNotEmpty()) {
+                                    updatePermissions(permissionsChanged)
+                                    getUsers(props, setUsers, openMenuSettingsFlag)
+                                    permissionsChanged = mutableMapOf()
+                                }
                                 updateProjectSettings(props.project.copy(
                                     email = emailFromInput,
                                     public = isPublic,
                                     numberOfContainers = numberOfContainers.toInt()
                                 ))
-                                if (permissionsChanged.isNotEmpty()) {
-                                    updatePermissions(permissionsChanged)
-                                    permissionsChanged.forEach { (name, role) ->
-                                        users.find { it.name == name }?.projects?.put(projectPath, role)
-                                    }
-                                    permissionsChanged = mutableMapOf()
-                                }
                             }
                             +"Save changes"
                         }
@@ -255,4 +255,42 @@ fun projectSettingsMenu(
             })
         }
     }
+}
+@Suppress("TYPE_ALIAS")
+private fun getUsers(
+    props: ProjectSettingsMenuProps,
+    setUsers: StateSetter<List<UserDto>>,
+    openMenuSettingsFlag: (isOpen: Boolean) -> Unit,
+) {
+    useRequest(isDeferred = false) {
+        if (props.isOpen != true) {
+            val usersFromDb = get(
+                url = "$apiUrl/links/projects/get-by-project?projectName=${props.project.name}&organizationName=${props.project.organization.name}",
+                headers = Headers().also {
+                    it.set("Accept", "application/json")
+                },
+            )
+                .unsafeMap {
+                    it.decodeFromJsonString<List<UserDto>>()
+                }
+            setUsers(usersFromDb)
+            openMenuSettingsFlag(true)
+        }
+    }()
+}
+
+private fun getSelfRole(projectPath: String, setSelfRole: StateSetter<Role>) {
+    useRequest(isDeferred = false) {
+        val role = get(
+            "$apiUrl/projects/roles/$projectPath",
+            headers = Headers().also {
+                it.set("Accept", "application/json")
+            },
+        )
+            .unsafeMap {
+                it.decodeFromJsonString<String>()
+            }
+            .toRole()
+        setSelfRole(role)
+    }()
 }

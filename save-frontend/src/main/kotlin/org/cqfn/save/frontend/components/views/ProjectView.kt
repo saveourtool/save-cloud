@@ -40,6 +40,7 @@ import org.cqfn.save.frontend.utils.post
 import org.cqfn.save.frontend.utils.runConfirmWindowModal
 import org.cqfn.save.frontend.utils.runErrorModal
 import org.cqfn.save.frontend.utils.unsafeMap
+import org.cqfn.save.info.UserInfo
 import org.cqfn.save.permission.SetRoleRequest
 import org.cqfn.save.testsuite.TestSuiteDto
 
@@ -84,6 +85,7 @@ import kotlinx.serialization.json.Json
 external interface ProjectExecutionRouteProps : PropsWithChildren {
     var owner: String
     var name: String
+    var currentUserInfo: UserInfo?
 }
 
 /**
@@ -156,7 +158,7 @@ external interface ProjectViewState : State {
     var testingType: TestingType
 
     /**
-     * Sumbit button was pressed
+     * Submit button was pressed
      */
     var isSubmitButtonPressed: Boolean?
 
@@ -343,7 +345,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         updatePermissions = {
             scope.launch {
                 for ((userName, role) in it) {
-                    val setRoleRequest = SetRoleRequest(userName, role)
+                    val setRoleRequest = SetRoleRequest(userName.split(":")[1], role)
                     val jsonRoleRequest = Json.encodeToString(setRoleRequest)
                     val headers = Headers().apply {
                         set("Accept", "application/json")
@@ -739,6 +741,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 attrs.project = state.project
                 attrs.users = emptyList()
                 attrs.selfRole = Role.VIEWER
+                attrs.currentUserInfo = props.currentUserInfo ?: UserInfo("Unknown")
             }
         }
     }
@@ -831,7 +834,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
 
     /**
      * In some cases scripts and binaries can be uploaded to a git repository, so users won't be providing or uploading
-     * binaries. For this case we should open a window, so user will need to click a check box, so he will confirm that
+     * binaries. For this case we should open a window, so user will need to click a checkbox, so he will confirm that
      * he understand what he is doing.
      */
     private fun submitWithValidation() {

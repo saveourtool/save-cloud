@@ -5,12 +5,17 @@ package org.cqfn.save.domain
  * @property string
  * @property priority
  */
-@Suppress("MAGIC_NUMBER")
+@Suppress("MAGIC_NUMBER", "MagicNumber")
 enum class Role(val string: String, val priority: Int) {
     /**
      * admin in organization
      */
     ADMIN("Admin", 2),
+
+    /**
+     * Has no role (synonym to null)
+     */
+    NONE("None", 0),
 
     /**
      * User that has created this project
@@ -36,7 +41,4 @@ enum class Role(val string: String, val priority: Int) {
     /**
      * Minimal possible priority
      */
-    companion object {
-        const val MINIMAL_PRIORITY = 0
-    }
 }
