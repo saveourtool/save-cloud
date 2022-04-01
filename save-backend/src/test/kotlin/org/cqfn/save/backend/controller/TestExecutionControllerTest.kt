@@ -2,10 +2,13 @@ package org.cqfn.save.backend.controller
 
 import org.cqfn.save.agent.TestExecutionDto
 import org.cqfn.save.backend.SaveApplication
+import org.cqfn.save.backend.controllers.ProjectController
 import org.cqfn.save.backend.repository.AgentRepository
 import org.cqfn.save.backend.repository.TestExecutionRepository
 import org.cqfn.save.backend.scheduling.StandardSuitesUpdateScheduler
+import org.cqfn.save.backend.utils.AuthenticationDetails
 import org.cqfn.save.backend.utils.MySqlExtension
+import org.cqfn.save.backend.utils.mutateMockedUser
 import org.cqfn.save.backend.utils.secondsToLocalDateTime
 import org.cqfn.save.domain.TestResultStatus
 
@@ -21,6 +24,7 @@ import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.boot.test.mock.mockito.MockBeans
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
+import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.transaction.PlatformTransactionManager
@@ -32,6 +36,7 @@ import org.springframework.web.reactive.function.BodyInserters
 @ExtendWith(MySqlExtension::class)
 @MockBeans(
     MockBean(StandardSuitesUpdateScheduler::class),
+    MockBean(ProjectController::class),
 )
 class TestExecutionControllerTest {
     @Autowired
@@ -53,7 +58,12 @@ class TestExecutionControllerTest {
     }
 
     @Test
+    @WithMockUser
     fun `should count TestExecutions for a particular Execution`() {
+        mutateMockedUser {
+            details = AuthenticationDetails(id = 99)
+        }
+
         webClient.get()
             .uri("/api/testExecution/count?executionId=1")
             .exchange()
@@ -62,7 +72,12 @@ class TestExecutionControllerTest {
     }
 
     @Test
+    @WithMockUser
     fun `should return a page of TestExecutions for a particular Execution`() {
+        mutateMockedUser {
+            details = AuthenticationDetails(id = 99)
+        }
+
         webClient.get()
             .uri("/api/testExecutions?executionId=1&page=0&size=20")
             .exchange()
@@ -78,6 +93,7 @@ class TestExecutionControllerTest {
      * that check data read.
      */
     @Test
+    @WithMockUser
     @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
     fun `should save TestExecutionDto into the DB`() {
         val testExecutionDtoFirst = TestExecutionDto(
@@ -121,6 +137,7 @@ class TestExecutionControllerTest {
     }
 
     @Test
+    @WithMockUser
     @Suppress("UnsafeCallOnNullableType")
     fun `should not save data if provided fields are invalid`() {
         val testExecutionDto = TestExecutionDto(

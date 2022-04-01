@@ -14,6 +14,7 @@ import org.cqfn.save.frontend.components.basic.executionStatistics
 import org.cqfn.save.frontend.components.basic.executionTestsNotFound
 import org.cqfn.save.frontend.components.basic.testExecutionFiltersRow
 import org.cqfn.save.frontend.components.basic.testStatusComponent
+import org.cqfn.save.frontend.components.errorStatusContext
 import org.cqfn.save.frontend.components.tables.tableComponent
 import org.cqfn.save.frontend.externals.fontawesome.faRedo
 import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
@@ -29,8 +30,8 @@ import org.cqfn.save.frontend.utils.unsafeMap
 
 import csstype.Background
 import csstype.TextDecoration
-import kotlinext.js.jsObject
 import org.w3c.fetch.Headers
+import org.w3c.fetch.Response
 import react.*
 import react.dom.*
 import react.table.columns
@@ -39,11 +40,11 @@ import react.table.usePagination
 import react.table.useSortBy
 
 import kotlinx.browser.window
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
 import kotlinx.html.js.onClickFunction
+import kotlinx.js.jso
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 
@@ -93,6 +94,248 @@ external interface ExecutionState : State {
 @JsExport
 @OptIn(ExperimentalJsExport::class)
 class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
+    private val executionStatistics = executionStatistics("mr-auto")
+    private val executionTestsNotFound = executionTestsNotFound()
+    private val testExecutionFiltersRow = testExecutionFiltersRow(
+        initialValueStatus = state.status?.name ?: ANY,
+        initialValueTestSuite = state.testSuite ?: "",
+        onChangeStatus = { value ->
+            if (value == "ANY") {
+                setState {
+                    status = null
+                }
+            } else {
+                setState {
+                    status = TestResultStatus.valueOf(value)
+                }
+            }
+        },
+        onChangeTestSuite = { testSuiteValue ->
+            if (testSuiteValue == "") {
+                setState {
+                    testSuite = null
+                }
+            } else {
+                setState {
+                    testSuite = testSuiteValue
+                }
+            }
+        }
+    )
+
+    @Suppress("MAGIC_NUMBER")
+    private val testExecutionsTable = tableComponent(
+        columns = columns<TestExecutionDto> {
+            column(id = "index", header = "#") {
+                buildElement {
+                    td {
+                        +"${it.row.index + 1 + it.state.pageIndex * it.state.pageSize}"
+                    }
+                }
+            }
+            column(id = "startTime", header = "Start time", { startTimeSeconds }) {
+                buildElement {
+                    td {
+                        +"${
+                            it.value?.let { Instant.fromEpochSeconds(it, 0) }
+                            ?: "Running"
+                        }"
+                    }
+                }
+            }
+            column(id = "endTime", header = "End time", { endTimeSeconds }) {
+                buildElement {
+                    td {
+                        +"${
+                            it.value?.let { Instant.fromEpochSeconds(it, 0) }
+                            ?: "Running"
+                        }"
+                    }
+                }
+            }
+            column(id = "status", header = "Status", { status.name }) {
+                buildElement {
+                    td {
+                        +it.value
+                    }
+                }
+            }
+            column(id = "missing", header = "Missing", { missingWarnings }) {
+                buildElement {
+                    td {
+                        +"${it.value ?: ""}"
+                    }
+                }
+            }
+            column(id = "matched", header = "Matched", { matchedWarnings }) {
+                buildElement {
+                    td {
+                        +"${it.value ?: ""}"
+                    }
+                }
+            }
+            column(id = "path", header = "Test file path") { cellProps ->
+                buildElement {
+                    td {
+                        spread(cellProps.row.getToggleRowExpandedProps())
+
+                        attrs["style"] = jso<CSSProperties> {
+                            textDecoration = "underline grey".unsafeCast<TextDecoration>()
+                        }
+
+                        val testName = cellProps.value.filePath
+                        val shortTestName = if (testName.length > 35) {
+                            testName.take(15) + " ... " + testName.takeLast(15)
+                        } else {
+                            testName
+                        }
+
+                        +shortTestName
+
+                        attrs.onClickFunction = {
+                            scope.launch {
+                                val te = cellProps.value
+                                val trdi = getDebugInfoFor(te)
+                                if (trdi.ok) {
+                                    cellProps.row.original.asDynamic().debugInfo = trdi.decodeFromJsonString<TestResultDebugInfo>()
+                                }
+                                cellProps.row.toggleRowExpanded()
+                            }
+                        }
+                    }
+                }
+            }
+            column(id = "plugin", header = "Plugin type", { pluginName }) {
+                buildElement {
+                    td {
+                        +it.value
+                    }
+                }
+            }
+            column(id = "suiteName", header = "Test suite", { testSuiteName }) {
+                buildElement {
+                    td {
+                        +"${it.value}"
+                    }
+                }
+            }
+            column(id = "tags", header = "Tags") {
+                buildElement {
+                    td {
+                        +"${it.value.tags}"
+                    }
+                }
+            }
+            column(id = "agentId", header = "Agent ID") {
+                buildElement {
+                    td {
+                        +"${it.value.agentContainerId}".takeLast(12)
+                    }
+                }
+            }
+        },
+        useServerPaging = true,
+        usePageSelection = true,
+        plugins = arrayOf(
+            useFilters,
+            useSortBy,
+            useExpanded,
+            usePagination,
+        ),
+        renderExpandedRow = { tableInstance, row ->
+            // todo: placeholder before, render data once it's available
+            val trdi = row.original.asDynamic().debugInfo as TestResultDebugInfo?
+            trdi?.let {
+                child(testStatusComponent(trdi, tableInstance)) {
+                    // attrs.key = trdi.testResultLocation.toString()
+                }
+            }
+                ?: run {
+                    tr {
+                        td {
+                            attrs.colSpan = "${tableInstance.columns.size}"
+                            +"Debug info not available yet for this test execution"
+                        }
+                    }
+                }
+        },
+        additionalOptions = {
+            this.asDynamic().manualFilters = true
+        },
+        commonHeader = { tableInstance ->
+            tr {
+                th {
+                    attrs.colSpan = "${tableInstance.columns.size}"
+                    child(testExecutionFiltersRow)
+                }
+            }
+        },
+        getPageCount = { pageSize ->
+            val status = state.status?.let {
+                "&status=${state.status}"
+            }
+                ?: run {
+                    ""
+                }
+            val testSuite = state.testSuite?.let {
+                "&testSuite=${state.testSuite}"
+            }
+                ?: run {
+                    ""
+                }
+            val count: Int = get(
+                url = "$apiUrl/testExecution/count?executionId=${props.executionId}$status$testSuite",
+                headers = Headers().also {
+                    it.set("Accept", "application/json")
+                },
+            )
+                .json()
+                .await()
+                .unsafeCast<Int>()
+            count / pageSize + 1
+        },
+        getRowProps = { row ->
+            val color = when (row.original.status) {
+                TestResultStatus.FAILED -> Colors.RED
+                TestResultStatus.IGNORED -> Colors.GOLD
+                TestResultStatus.READY_FOR_TESTING, TestResultStatus.RUNNING -> Colors.GREY
+                TestResultStatus.INTERNAL_ERROR, TestResultStatus.TEST_ERROR -> Colors.DARK_RED
+                TestResultStatus.PASSED -> Colors.GREEN
+            }
+            jso {
+                style = jso {
+                    background = color.value.unsafeCast<Background>()
+                }
+            }
+        }
+    ) { page, size ->
+        val status = state.status?.let {
+            "&status=${state.status}"
+        }
+            ?: run {
+                ""
+            }
+        val testSuite = state.testSuite?.let {
+            "&testSuite=${state.testSuite}"
+        }
+            ?: run {
+                ""
+            }
+        get(
+            url = "$apiUrl/testExecutions?executionId=${props.executionId}&page=$page&size=$size$status$testSuite",
+            headers = Headers().apply {
+                set("Accept", "application/json")
+            },
+        )
+            .unsafeMap {
+                Json.decodeFromString<Array<TestExecutionDto>>(
+                    it.text().await()
+                )
+            }
+            .apply {
+                asDynamic().debugInfo = null
+            }
+    }
     init {
         state.executionDto = null
         state.status = null
@@ -102,7 +345,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
     override fun componentDidMount() {
         super.componentDidMount()
 
-        GlobalScope.launch {
+        scope.launch {
             val headers = Headers().also { it.set("Accept", "application/json") }
             val executionDtoFromBackend: ExecutionDto =
                     get("$apiUrl/executionDto?executionId=${props.executionId}", headers)
@@ -152,7 +395,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                     }
                 }
 
-                child(executionStatistics("mr-auto")) {
+                child(executionStatistics) {
                     attrs.executionDto = state.executionDto
                     attrs.countTests = state.countTests
                 }
@@ -166,7 +409,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                                     fontAwesomeIcon(icon = faRedo, classes = "ml-2")
                                     @Suppress("TOO_MANY_LINES_IN_LAMBDA")
                                     attrs.onClickFunction = {
-                                        GlobalScope.launch {
+                                        scope.launch {
                                             post(
                                                 "$apiUrl/rerunExecution?id=${props.executionId}",
                                                 Headers(),
@@ -187,222 +430,16 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
         }
 
         // fixme: table is rendered twice because of state change when `executionDto` is fetched
-        child(tableComponent(
-            columns = columns<TestExecutionDto> {
-                column(id = "index", header = "#") {
-                    buildElement {
-                        td {
-                            +"${it.row.index + 1 + it.state.pageIndex * it.state.pageSize}"
-                        }
-                    }
-                }
-                column(id = "startTime", header = "Start time", { startTimeSeconds }) {
-                    buildElement {
-                        td {
-                            +"${
-                                it.value?.let { Instant.fromEpochSeconds(it, 0) }
-                                ?: "Running"
-                            }"
-                        }
-                    }
-                }
-                column(id = "endTime", header = "End time", { endTimeSeconds }) {
-                    buildElement {
-                        td {
-                            +"${
-                                it.value?.let { Instant.fromEpochSeconds(it, 0) }
-                                ?: "Running"
-                            }"
-                        }
-                    }
-                }
-                column(id = "status", header = "Status", { status.name }) {
-                    buildElement {
-                        td {
-                            +it.value
-                        }
-                    }
-                }
-                column(id = "missing", header = "Missing", { missingWarnings }) {
-                    buildElement {
-                        td {
-                            +"${it.value ?: ""}"
-                        }
-                    }
-                }
-                column(id = "matched", header = "Matched", { matchedWarnings }) {
-                    buildElement {
-                        td {
-                            +"${it.value ?: ""}"
-                        }
-                    }
-                }
-                column(id = "path", header = "Test file path") { cellProps ->
-                    buildElement {
-                        td {
-                            spread(cellProps.row.getToggleRowExpandedProps())
-
-                            attrs["style"] = kotlinext.js.jsObject<CSSProperties> {
-                                textDecoration = "underline grey".unsafeCast<TextDecoration>()
-                            }
-
-                            val testName = cellProps.value.filePath
-                            val shortTestName = if (testName.length > 35) {
-                                testName.take(15) + " ... " + testName.takeLast(15)
-                            } else {
-                                testName
-                            }
-
-                            +shortTestName
-
-                            attrs.onClickFunction = {
-                                GlobalScope.launch {
-                                    val te = cellProps.value
-                                    val trdi = getDebugInfoFor(te)
-                                    if (trdi.ok) {
-                                        cellProps.row.original.asDynamic().debugInfo = trdi.decodeFromJsonString<TestResultDebugInfo>()
-                                    }
-                                    cellProps.row.toggleRowExpanded()
-                                }
-                            }
-                        }
-                    }
-                }
-                column(id = "plugin", header = "Plugin type", { pluginName }) {
-                    buildElement {
-                        td {
-                            +it.value
-                        }
-                    }
-                }
-                column(id = "suiteName", header = "Test suite", { testSuiteName }) {
-                    buildElement {
-                        td {
-                            +"${it.value}"
-                        }
-                    }
-                }
-                column(id = "tags", header = "Tags") {
-                    buildElement {
-                        td {
-                            +"${it.value.tags}"
-                        }
-                    }
-                }
-                column(id = "agentId", header = "Agent ID") {
-                    buildElement {
-                        td {
-                            +"${it.value.agentContainerId}".takeLast(12)
-                        }
-                    }
-                }
-            },
-            useServerPaging = true,
-            usePageSelection = true,
-            plugins = arrayOf(
-                useFilters,
-                useSortBy,
-                useExpanded,
-                usePagination,
-            ),
-            renderExpandedRow = { tableInstance, row ->
-                // todo: placeholder before, render data once it's available
-                val trdi = row.original.asDynamic().debugInfo as TestResultDebugInfo?
-                if (trdi != null) {
-                    child(testStatusComponent(trdi, tableInstance))
-                } else {
-                    tr {
-                        td {
-                            attrs.colSpan = "${tableInstance.columns.size}"
-                            +"Debug info not available yet for this test execution"
-                        }
-                    }
-                }
-            },
-            additionalOptions = {
-                this.asDynamic().manualFilters = true
-            },
-            commonHeader = { tableInstance ->
-                tr {
-                    th {
-                        attrs.colSpan = "${tableInstance.columns.size}"
-                        child(testExecutionFiltersRow(
-                            initialValueStatus = state.status?.name ?: ANY,
-                            initialValueTestSuite = state.testSuite ?: "",
-                            onChangeStatus = { value ->
-                                if (value == "ANY") {
-                                    setState {
-                                        status = null
-                                    }
-                                } else {
-                                    setState {
-                                        status = TestResultStatus.valueOf(value)
-                                    }
-                                }
-                            },
-                            onChangeTestSuite = { testSuiteValue ->
-                                if (testSuiteValue == "") {
-                                    setState {
-                                        testSuite = null
-                                    }
-                                } else {
-                                    setState {
-                                        testSuite = testSuiteValue
-                                    }
-                                }
-                            }
-                        ))
-                    }
-                }
-            },
-            getPageCount = { pageSize ->
-                val status = if (state.status != null) "&status=${state.status}" else ""
-                val testSuite = if (state.testSuite != null) "&testSuite=${state.testSuite}" else ""
-                val count: Int = get(
-                    url = "$apiUrl/testExecution/count?executionId=${props.executionId}$status$testSuite",
-                    headers = Headers().also {
-                        it.set("Accept", "application/json")
-                    },
-                )
-                    .json()
-                    .await()
-                    .unsafeCast<Int>()
-                count / pageSize + 1
-            },
-            getRowProps = { row ->
-                val color = when (row.original.status) {
-                    TestResultStatus.FAILED -> Colors.RED
-                    TestResultStatus.IGNORED -> Colors.GOLD
-                    TestResultStatus.READY_FOR_TESTING, TestResultStatus.RUNNING -> Colors.GREY
-                    TestResultStatus.INTERNAL_ERROR, TestResultStatus.TEST_ERROR -> Colors.DARK_RED
-                    TestResultStatus.PASSED -> Colors.GREEN
-                }
-                jsObject {
-                    style = jsObject {
-                        background = color.value.unsafeCast<Background>()
-                    }
-                }
-            }
-        ) { page, size ->
-            val status = if (state.status != null) "&status=${state.status}" else ""
-            val testSuite = if (state.testSuite != null) "&testSuite=${state.testSuite}" else ""
-            get(
-                url = "$apiUrl/testExecutions?executionId=${props.executionId}&page=$page&size=$size$status$testSuite",
-                headers = Headers().apply {
-                    set("Accept", "application/json")
-                },
-            )
-                .unsafeMap {
-                    Json.decodeFromString<Array<TestExecutionDto>>(
-                        it.text().await()
-                    )
-                }
-                .apply {
-                    asDynamic().debugInfo = null
-                }
-        }) { }
-        child(executionTestsNotFound(state.countTests)) {
+        child(testExecutionsTable)
+        child(executionTestsNotFound) {
             attrs.executionDto = state.executionDto
+            attrs.countTests = state.countTests
+        }
+    }
+
+    companion object : RStatics<ExecutionProps, ExecutionState, ExecutionView, Context<StateSetter<Response?>>>(ExecutionView::class) {
+        init {
+            contextType = errorStatusContext
         }
     }
 }

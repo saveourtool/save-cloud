@@ -1,4 +1,5 @@
-import org.cqfn.save.buildutils.getSaveCliVersion
+import org.cqfn.save.buildutils.pathToSaveCliVersion
+import org.cqfn.save.buildutils.readSaveCliVersion
 
 plugins {
     kotlin("multiplatform")
@@ -87,12 +88,13 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinTest> {
 val generateVersionFileTaskProvider = tasks.register("generateVersionFile") {
     val versionsFile = File("$buildDir/generated/src/generated/Versions.kt")
 
-    val saveCliVersion = getSaveCliVersion()
-    inputs.property("Version of save-cli", saveCliVersion)
+    dependsOn(rootProject.tasks.named("getSaveCliVersion"))
+    inputs.file(pathToSaveCliVersion)
     inputs.property("project version", version.toString())
     outputs.file(versionsFile)
 
     doFirst {
+        val saveCliVersion = readSaveCliVersion()
         versionsFile.parentFile.mkdirs()
         versionsFile.writeText(
             """

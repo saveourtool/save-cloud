@@ -1,36 +1,34 @@
 package org.cqfn.save.backend.controller
 
 import org.cqfn.save.backend.configs.ConfigProperties
-import org.cqfn.save.backend.configs.NoopWebSecurityConfig
+import org.cqfn.save.backend.configs.WebConfig
+import org.cqfn.save.backend.configs.WebSecurityConfig
 import org.cqfn.save.backend.controllers.CloneRepositoryController
-import org.cqfn.save.backend.repository.AgentRepository
-import org.cqfn.save.backend.repository.AgentStatusRepository
-import org.cqfn.save.backend.repository.ExecutionRepository
-import org.cqfn.save.backend.repository.GitRepository
-import org.cqfn.save.backend.repository.ProjectRepository
-import org.cqfn.save.backend.repository.TestExecutionRepository
-import org.cqfn.save.backend.repository.TestRepository
-import org.cqfn.save.backend.repository.TestSuiteRepository
-import org.cqfn.save.backend.repository.TimestampBasedFileSystemRepository
-import org.cqfn.save.backend.repository.UserRepository
-import org.cqfn.save.backend.scheduling.StandardSuitesUpdateScheduler
+import org.cqfn.save.backend.repository.*
+import org.cqfn.save.backend.security.ProjectPermissionEvaluator
 import org.cqfn.save.backend.service.ExecutionService
 import org.cqfn.save.backend.service.ProjectService
+import org.cqfn.save.backend.service.UserDetailsService
+import org.cqfn.save.backend.utils.ConvertingAuthenticationManager
 import org.cqfn.save.domain.Jdk
 import org.cqfn.save.domain.toFileInfo
-import org.cqfn.save.entities.ExecutionRequest
-import org.cqfn.save.entities.ExecutionRequestForStandardSuites
-import org.cqfn.save.entities.GitDto
-import org.cqfn.save.entities.Project
-import org.cqfn.save.entities.ProjectStatus
+import org.cqfn.save.entities.*
+import org.cqfn.save.testutils.checkQueues
+import org.cqfn.save.testutils.cleanup
+import org.cqfn.save.testutils.createMockWebServer
+import org.cqfn.save.testutils.enqueue
 
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.io.TempDir
+import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -47,6 +45,7 @@ import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
+import reactor.core.publisher.Mono
 
 import java.nio.file.Path
 import java.time.Duration
@@ -54,32 +53,30 @@ import java.time.Duration
 import kotlin.io.path.createFile
 
 @WebFluxTest(controllers = [CloneRepositoryController::class])
-@Import(NoopWebSecurityConfig::class, TimestampBasedFileSystemRepository::class)
+@Import(
+    WebSecurityConfig::class,
+    WebConfig::class,
+    TimestampBasedFileSystemRepository::class,
+    ConvertingAuthenticationManager::class,
+    UserDetailsService::class,
+)
 @EnableConfigurationProperties(ConfigProperties::class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @MockBeans(
-    MockBean(AgentStatusRepository::class),
-    MockBean(AgentRepository::class),
-    MockBean(ExecutionRepository::class),
     MockBean(ExecutionService::class),
-    MockBean(TestExecutionRepository::class),
-    MockBean(TestRepository::class),
-    MockBean(TestSuiteRepository::class),
-    MockBean(ProjectRepository::class),
-    MockBean(GitRepository::class),
-    MockBean(StandardSuitesUpdateScheduler::class),
+    MockBean(ProjectPermissionEvaluator::class),
     MockBean(UserRepository::class),
 )
 @Suppress("TOO_LONG_FUNCTION")
 class CloningRepositoryControllerTest {
-    private val testProject = Project(
-        owner = "Huawei",
+    private val organization = Organization("Huawei", 1, null).apply { id = 1 }
+    private var testProject: Project = Project(
+        organization = organization,
         name = "huaweiName",
         url = "huawei.com",
         description = "test description",
         status = ProjectStatus.CREATED,
         userId = 1,
-        adminIds = null,
     ).apply {
         id = 1
     }
@@ -94,16 +91,20 @@ class CloningRepositoryControllerTest {
 
     @BeforeEach
     fun webClientSetUp() {
-        webTestClient.mutate().responseTimeout(Duration.ofSeconds(2)).build()
+        webTestClient = webTestClient.mutate().responseTimeout(Duration.ofSeconds(2)).build()
 
-        whenever(projectService.findByNameAndOwner("huaweiName", "Huawei"))
+        whenever(projectService.findByNameAndOrganizationName("huaweiName", "Huawei"))
             .thenReturn(testProject)
+
+        whenever(projectService.findWithPermissionByNameAndOrganization(any(), eq(testProject.name), any(), any(), anyOrNull(), any()))
+            .thenAnswer { Mono.just(testProject) }
     }
 
     @Test
     @WithMockUser(username = "John Doe")
     fun checkNewJobResponse() {
         mockServerPreprocessor.enqueue(
+            "/upload",
             MockResponse()
                 .setResponseCode(202)
                 .setBody("Clone pending")
@@ -140,13 +141,14 @@ class CloningRepositoryControllerTest {
         fileSystemRepository.saveFile(property)
 
         val sdk = Jdk("8")
-        val request = ExecutionRequestForStandardSuites(testProject, emptyList(), sdk)
+        val request = ExecutionRequestForStandardSuites(testProject, emptyList(), sdk, null, null)
         val bodyBuilder = MultipartBodyBuilder()
         bodyBuilder.part("execution", request)
         bodyBuilder.part("file", property.toFileInfo())
         bodyBuilder.part("file", binFile.toFileInfo())
 
         mockServerPreprocessor.enqueue(
+            "/uploadBin",
             MockResponse()
                 .setResponseCode(202)
                 .setBody("Clone pending")
@@ -167,6 +169,12 @@ class CloningRepositoryControllerTest {
     companion object {
         @JvmStatic lateinit var mockServerPreprocessor: MockWebServer
 
+        @AfterEach
+        fun cleanup() {
+            mockServerPreprocessor.checkQueues()
+            mockServerPreprocessor.cleanup()
+        }
+
         @AfterAll
         fun tearDown() {
             mockServerPreprocessor.shutdown()
@@ -175,7 +183,7 @@ class CloningRepositoryControllerTest {
         @DynamicPropertySource
         @JvmStatic
         fun properties(registry: DynamicPropertyRegistry) {
-            mockServerPreprocessor = MockWebServer()
+            mockServerPreprocessor = createMockWebServer()
             mockServerPreprocessor.start()
             registry.add("backend.preprocessorUrl") { "http://localhost:${mockServerPreprocessor.port}" }
         }

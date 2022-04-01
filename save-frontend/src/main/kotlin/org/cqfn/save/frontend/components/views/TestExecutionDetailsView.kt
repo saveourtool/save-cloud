@@ -14,6 +14,7 @@ import org.cqfn.save.frontend.utils.decodeFromJsonString
 import org.cqfn.save.frontend.utils.multilineText
 import org.cqfn.save.frontend.utils.multilineTextWithIndices
 import org.cqfn.save.frontend.utils.post
+import org.cqfn.save.frontend.utils.useRequest
 
 import org.w3c.fetch.Headers
 import react.Props
@@ -28,11 +29,8 @@ import react.dom.td
 import react.dom.tr
 import react.fc
 import react.router.useParams
-import react.useEffect
 import react.useState
 
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -104,40 +102,40 @@ private fun RBuilder.fallback(status: String) = div {
 fun testExecutionDetailsView() = fc<Props> {
     val params = useParams()
     val executionId = params["executionId"]!!.toLong()
+
+    val testFilePath = params["*"]!!
     val testResultLocation = TestResultLocation(
         params["testSuiteName"]!!,
         params["pluginName"]!!,
-        params["testFilePath"]!!.substringBeforeLast("/", ""),
-        params["testFilePath"]!!.substringAfterLast("/"),
+        testFilePath.substringBeforeLast("/", ""),
+        testFilePath.substringAfterLast("/"),
     )
 
     val (status, setStatus) = useState("Loading...")
     val (testResultDebugInfo, setTestResultDebugInfo) = useState<TestResultDebugInfo?>(null)
 
     // fixme: after https://github.com/analysis-dev/save-cloud/issues/364 can be passed via history state to avoid requests
-    useEffect(listOf<dynamic>(executionId, testResultLocation)) {
-        GlobalScope.launch {
-            val testExecutionDtoResponse = post(
-                "$apiUrl/testExecutions?executionId=$executionId",
-                Headers().apply {
-                    set("Content-Type", "application/json")
-                },
-                Json.encodeToString(testResultLocation)
-            )
-            if (testExecutionDtoResponse.ok) {
-                val testResultDebugInfoResponse = getDebugInfoFor(testExecutionDtoResponse.decodeFromJsonString())
-                if (testResultDebugInfoResponse.ok) {
-                    setTestResultDebugInfo(
-                        testResultDebugInfoResponse.decodeFromJsonString<TestResultDebugInfo>()
-                    )
-                } else {
-                    setStatus("Additional test info is not available (code ${testResultDebugInfoResponse.status})")
-                }
+    useRequest(arrayOf(status, testResultDebugInfo, executionId, testResultLocation), isDeferred = false) {
+        val testExecutionDtoResponse = post(
+            "$apiUrl/testExecutions?executionId=$executionId",
+            Headers().apply {
+                set("Content-Type", "application/json")
+            },
+            Json.encodeToString(testResultLocation)
+        )
+        if (testExecutionDtoResponse.ok) {
+            val testResultDebugInfoResponse = getDebugInfoFor(testExecutionDtoResponse.decodeFromJsonString())
+            if (testResultDebugInfoResponse.ok) {
+                setTestResultDebugInfo(
+                    testResultDebugInfoResponse.decodeFromJsonString<TestResultDebugInfo>()
+                )
             } else {
-                setStatus("Additional test info is not available (code ${testExecutionDtoResponse.status})")
+                setStatus("Additional test info is not available (code ${testResultDebugInfoResponse.status})")
             }
+        } else {
+            setStatus("Additional test info is not available (code ${testExecutionDtoResponse.status})")
         }
-    }
+    }()
 
     testResultDebugInfo?.let {
         resultsTable(testResultDebugInfo)

@@ -74,7 +74,7 @@ class SaveAgentTest {
     @Test
     fun `should change state to FINISHED after SAVE CLI returns`() = runBlocking {
         assertEquals(AgentState.STARTING, saveAgentForTest.state.value)
-        runBlocking { saveAgentForTest.startSaveProcess("") }
+        runBlocking { saveAgentForTest.run { startSaveProcess("") } }
         assertEquals(AgentState.FINISHED, saveAgentForTest.state.value)
     }
 }

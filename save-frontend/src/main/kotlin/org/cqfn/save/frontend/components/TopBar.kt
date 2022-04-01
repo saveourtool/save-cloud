@@ -10,18 +10,25 @@ import org.cqfn.save.frontend.components.modal.logoutModal
 import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
 import org.cqfn.save.info.UserInfo
 
+import csstype.Width
+import csstype.rem
 import react.*
 import react.dom.*
 import react.fc
 import react.router.useLocation
 import react.useState
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.isActive
 import kotlinx.html.BUTTON
 import kotlinx.html.ButtonType
 import kotlinx.html.classes
 import kotlinx.html.id
 import kotlinx.html.js.onClickFunction
 import kotlinx.html.role
+import kotlinx.js.jso
 
 /**
  * [RProps] of the top bor component
@@ -52,6 +59,14 @@ private fun RBuilder.dropdownEntry(faIcon: String, text: String, handler: RDOMBu
 fun topBar() = fc<TopBarProps> { props ->
     val (isLogoutModalOpen, setIsLogoutModalOpen) = useState(false)
     val location = useLocation()
+    val scope = CoroutineScope(Dispatchers.Default)
+    useEffect(listOf<dynamic>()) {
+        cleanup {
+            if (scope.isActive) {
+                scope.cancel()
+            }
+        }
+    }
 
     nav("navbar navbar-expand navbar-dark bg-dark topbar mb-3 static-top shadow mr-1 ml-1 rounded") {
         attrs.id = "navigation-top-bar"
@@ -85,9 +100,7 @@ fun topBar() = fc<TopBarProps> { props ->
                                     }
                                 } else {
                                     // small hack to redirect from history/execution to history
-                                    // AND small temp workaround to replace owner URL with "project"
-                                    // should be removed when we will finish with OWNER pages
-                                    val resultingLink = if (index == 0) currentLink.replace(pathPart, "projects") else currentLink.removeSuffix("/execution")
+                                    val resultingLink = currentLink.removeSuffix("/execution")
                                     a(resultingLink) {
                                         attrs.classes = setOf("text-light")
                                         +pathPart
@@ -103,25 +116,45 @@ fun topBar() = fc<TopBarProps> { props ->
         ul("navbar-nav mx-auto") {
             li("nav-item") {
                 a(classes = "nav-link d-flex align-items-center me-2 active") {
-                    attrs["aria-current"] = "Unified SAVE Format"
+                    attrs["style"] = jso<CSSProperties> {
+                        width = 12.rem
+                    }.unsafeCast<Width>()
+                    attrs.href = "#/awesome-benchmarks"
+                    +"Awesome Benchmarks"
+                }
+            }
+            li("nav-item") {
+                a(classes = "nav-link d-flex align-items-center me-2 active") {
+                    attrs["style"] = jso<CSSProperties> {
+                        width = 8.rem
+                    }.unsafeCast<Width>()
                     attrs.href = "https://github.com/analysis-dev/save"
-                    +"Spec"
+                    +"SAVE format"
                 }
             }
             li("nav-item") {
                 a(classes = "nav-link me-2") {
+                    attrs["style"] = jso<CSSProperties> {
+                        width = 9.rem
+                    }.unsafeCast<Width>()
                     attrs.href = "https://github.com/analysis-dev/save-cloud"
-                    +"GitHub"
+                    +"SAVE on GitHub"
                 }
             }
             li("nav-item") {
                 a(classes = "nav-link me-2") {
+                    attrs["style"] = jso<CSSProperties> {
+                        width = 8.rem
+                    }.unsafeCast<Width>()
                     attrs.href = "#/projects"
                     +"Leaderboard"
                 }
             }
             li("nav-item") {
                 a(classes = "nav-link me-2") {
+                    attrs["style"] = jso<CSSProperties> {
+                        width = 6.rem
+                    }.unsafeCast<Width>()
                     attrs.href = "https://github.com/analysis-dev/save-cloud"
                     i("fa fa-user opacity-6 text-dark me-1") {
                         attrs["aria-hidden"] = "true"
@@ -167,7 +200,9 @@ fun topBar() = fc<TopBarProps> { props ->
             }
         }
     }
-    logoutModal({ attrs.isOpen = isLogoutModalOpen }) {
+    logoutModal {
         setIsLogoutModalOpen(false)
+    }() {
+        attrs.isOpen = isLogoutModalOpen
     }
 }

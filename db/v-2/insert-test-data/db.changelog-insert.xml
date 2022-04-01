@@ -6,9 +6,12 @@
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
 
     <include file="user-insert.xml" relativeToChangelogFile="true"/>
+    <include file="organization-insert.xml" relativeToChangelogFile="true"/>
     <include file="test-suite-insert.xml" relativeToChangelogFile="true"/>
     <include file="project-insert.xml" relativeToChangelogFile="true"/>
     <include file="execution-insert.xml" relativeToChangelogFile="true"/>
+    <include file="lnk-user-project-insert.xml" relativeToChangelogFile="true"/>
+    <include file="lnk-user-organization-insert.xml" relativeToChangelogFile="true"/>
 
     <changeSet id="02-petertrr" author="petertrr">
         <tagDatabase tag="v2.0-insert"/>

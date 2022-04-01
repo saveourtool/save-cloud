@@ -3,9 +3,11 @@ package org.cqfn.save.backend.controller
 import org.cqfn.save.agent.AgentState
 import org.cqfn.save.agent.AgentVersion
 import org.cqfn.save.backend.SaveApplication
+import org.cqfn.save.backend.controllers.ProjectController
 import org.cqfn.save.backend.repository.AgentRepository
 import org.cqfn.save.backend.repository.AgentStatusRepository
 import org.cqfn.save.backend.scheduling.StandardSuitesUpdateScheduler
+import org.cqfn.save.backend.security.ProjectPermissionEvaluator
 import org.cqfn.save.backend.utils.MySqlExtension
 import org.cqfn.save.entities.AgentStatus
 import org.cqfn.save.entities.AgentStatusDto
@@ -36,6 +38,8 @@ import javax.persistence.EntityManager
 @ExtendWith(MySqlExtension::class)
 @MockBeans(
     MockBean(StandardSuitesUpdateScheduler::class),
+    MockBean(ProjectController::class),
+    MockBean(ProjectPermissionEvaluator::class),
 )
 class AgentsControllerTest {
     @Autowired

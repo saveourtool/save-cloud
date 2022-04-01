@@ -2,13 +2,13 @@ package org.cqfn.save.backend.controller
 
 import org.cqfn.save.backend.SaveApplication
 import org.cqfn.save.backend.repository.GitRepository
+import org.cqfn.save.backend.repository.OrganizationRepository
 import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.scheduling.StandardSuitesUpdateScheduler
+import org.cqfn.save.backend.utils.AuthenticationDetails
 import org.cqfn.save.backend.utils.MySqlExtension
-import org.cqfn.save.entities.GitDto
-import org.cqfn.save.entities.NewProjectDto
-import org.cqfn.save.entities.Project
-import org.cqfn.save.entities.ProjectStatus
+import org.cqfn.save.backend.utils.mutateMockedUser
+import org.cqfn.save.entities.*
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -18,9 +18,9 @@ import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWeb
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.boot.test.mock.mockito.MockBeans
-import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.MediaType
 import org.springframework.security.test.context.support.WithMockUser
+import org.springframework.security.test.context.support.WithUserDetails
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
@@ -31,9 +31,13 @@ import org.springframework.web.reactive.function.BodyInserters
 @MockBeans(
     MockBean(StandardSuitesUpdateScheduler::class),
 )
+@Suppress("UnsafeCallOnNullableType")
 class ProjectControllerTest {
     @Autowired
     private lateinit var projectRepository: ProjectRepository
+
+    @Autowired
+    private lateinit var organizationRepository: OrganizationRepository
 
     @Autowired
     private lateinit var gitRepository: GitRepository
@@ -42,66 +46,106 @@ class ProjectControllerTest {
     lateinit var webClient: WebTestClient
 
     @Test
-    fun `should return all projects`() {
+    @WithMockUser
+    fun `should return all public projects`() {
+        mutateMockedUser {
+            details = AuthenticationDetails(id = 99)
+        }
+
         webClient
             .get()
-            .uri("/api/projects")
+            .uri("/api/projects/not-deleted")
             .accept(MediaType.APPLICATION_JSON)
             .exchange()
             .expectStatus()
             .isOk
-            .expectBody(ParameterizedTypeReference.forType<List<Project>>(List::class.java))
-            .value<Nothing> {
-                Assertions.assertTrue(it.isNotEmpty())
+            .expectBody<List<Project>>()
+            .consumeWith { exchangeResult ->
+                val projects = exchangeResult.responseBody!!
+                Assertions.assertTrue(projects.isNotEmpty())
+                projects.forEach { Assertions.assertTrue(it.public) }
             }
     }
 
     @Test
-    @Suppress("UnsafeCallOnNullableType")
+    @WithUserDetails(value = "admin")
     fun `should return project based on name and owner`() {
-        webClient
-            .get()
-            .uri("/api/getProject?name=huaweiName&owner=Huawei")
-            .accept(MediaType.APPLICATION_JSON)
-            .exchange()
-            .expectStatus()
-            .isOk
-            .expectBody<Project>()
-            .consumeWith {
-                requireNotNull(it.responseBody)
-                Assertions.assertEquals(it.responseBody!!.url, "huawei.com")
-            }
-    }
+        mutateMockedUser {
+            details = AuthenticationDetails(id = 1)
+        }
 
-    @Test
-    @Suppress("UnsafeCallOnNullableType", "TOO_MANY_LINES_IN_LAMBDA")
-    fun `check git from project`() {
-        projectRepository.findById(1).ifPresent {
-            webClient
-                .post()
-                .uri("/api/getGit")
-                .body(BodyInserters.fromValue(it))
-                .accept(MediaType.APPLICATION_JSON)
-                .exchange()
-                .expectStatus()
+        getProjectAndAssert("huaweiName", "Huawei") {
+            expectStatus()
                 .isOk
-                .expectBody<GitDto>()
+                .expectBody<Project>()
                 .consumeWith {
                     requireNotNull(it.responseBody)
-                    Assertions.assertEquals(it.responseBody!!.url, "github")
+                    Assertions.assertEquals(it.responseBody!!.url, "huawei.com")
                 }
         }
     }
 
     @Test
-    @WithMockUser(username = "John Doe")
-    @Suppress("UnsafeCallOnNullableType")
+    @WithMockUser(username = "Mr. Bruh", roles = ["VIEWER"])
+    fun `should return 403 if user doesn't have write access`() {
+        mutateMockedUser {
+            details = AuthenticationDetails(id = 99)
+        }
+
+        getProjectAndAssert("huaweiName", "Huawei") {
+            expectStatus().isForbidden
+        }
+    }
+
+    @Test
+    @WithMockUser(username = "Mr. Bruh", roles = ["VIEWER"])
+    fun `should return 404 if user doesn't have access to a private project`() {
+        mutateMockedUser {
+            details = AuthenticationDetails(id = 99)
+        }
+
+        getProjectAndAssert("The Project", "Example.com") {
+            expectStatus().isNotFound
+        }
+    }
+
+    @Test
+    @WithMockUser(username = "Tester", roles = ["VIEWER"])
+    fun `check git from project`() {
+        mutateMockedUser {
+            details = AuthenticationDetails(id = 1)
+        }
+
+        val project = projectRepository.findById(1).get()
+        webClient
+            .post()
+            .uri("/api/projects/git")
+            .body(BodyInserters.fromValue(project))
+            .accept(MediaType.APPLICATION_JSON)
+            .exchange()
+            .expectStatus()
+            .isOk
+            .expectBody<GitDto>()
+            .consumeWith {
+                requireNotNull(it.responseBody)
+                Assertions.assertEquals("github", it.responseBody!!.url)
+            }
+    }
+
+    @Test
+    @WithMockUser(username = "John Doe", roles = ["VIEWER"])
     fun `check save new project`() {
+        mutateMockedUser {
+            details = AuthenticationDetails(id = 2)
+        }
+
         val gitDto = GitDto("qweqwe")
         // `project` references an existing user from test data
-        val project = Project("I", "Name", "uurl", "nullsss", ProjectStatus.CREATED, userId = 2, adminIds = null)
+        val organization: Organization = organizationRepository.getOrganizationById(1)
+        val project = Project("I", "Name", "uurl", ProjectStatus.CREATED, userId = 2, organization = organization)
         val newProject = NewProjectDto(
             project,
+            "Huawei",
             gitDto,
         )
 
@@ -121,13 +165,43 @@ class ProjectControllerTest {
         Assertions.assertNotNull(gitRepository.findAll().find { it.url == gitDto.url })
     }
 
+    @Test
+    @WithMockUser
+    fun `should forbid updating a project for a viewer`() {
+        val project = Project.stub(99).apply {
+            userId = 1
+            organization = organizationRepository.findById(1).get()
+        }
+        projectRepository.save(project)
+        mutateMockedUser {
+            details = AuthenticationDetails(id = 3)
+        }
+
+        webClient.post()
+            .uri("/api/projects/update")
+            .bodyValue(project)
+            .exchange()
+            .expectStatus()
+            .isForbidden
+    }
+
+    private fun getProjectAndAssert(name: String,
+                                    organizationName: String,
+                                    assertion: WebTestClient.ResponseSpec.() -> Unit
+    ) = webClient
+        .get()
+        .uri("/api/projects/get/organization-name?name=$name&organizationName=$organizationName")
+        .accept(MediaType.APPLICATION_JSON)
+        .exchange()
+        .let { assertion(it) }
+
     private fun saveProjectAndAssert(newProject: NewProjectDto,
                                      saveAssertion: WebTestClient.ResponseSpec.() -> Unit,
                                      getAssertion: WebTestClient.ResponseSpec.() -> Unit,
     ) {
         webClient
             .post()
-            .uri("/api/saveProject")
+            .uri("/api/projects/save")
             .body(BodyInserters.fromValue(newProject))
             .accept(MediaType.APPLICATION_JSON)
             .exchange()
@@ -136,7 +210,7 @@ class ProjectControllerTest {
         val project = newProject.project
         webClient
             .get()
-            .uri("/api/getProject?name=${project.name}&owner=${project.owner}")
+            .uri("/api/projects/get/organization-id?name=${project.name}&organizationId=${project.organization.id}")
             .accept(MediaType.APPLICATION_JSON)
             .exchange()
             .let { getAssertion(it) }

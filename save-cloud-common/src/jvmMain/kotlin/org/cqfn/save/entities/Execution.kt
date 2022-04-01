@@ -1,5 +1,6 @@
 package org.cqfn.save.entities
 
+import org.cqfn.save.domain.Sdk
 import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionType
@@ -8,6 +9,7 @@ import java.time.ZoneOffset
 import javax.persistence.Entity
 import javax.persistence.EnumType
 import javax.persistence.Enumerated
+import javax.persistence.FetchType
 import javax.persistence.JoinColumn
 import javax.persistence.ManyToOne
 
@@ -28,12 +30,14 @@ import javax.persistence.ManyToOne
  * @property sdk
  * @property additionalFiles
  * @property user user that has started this execution
+ * @property execCmd
+ * @property batchSizeForAnalyzer
  */
 @Suppress("USE_DATA_CLASS", "LongParameterList")
 @Entity
 class Execution(
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "project_id")
     var project: Project,
 
@@ -71,6 +75,10 @@ class Execution(
     @JoinColumn(name = "user_id")
     var user: User?,
 
+    var execCmd: String?,
+
+    var batchSizeForAnalyzer: String?,
+
 ) : BaseEntity() {
     /**
      * @return Execution dto
@@ -89,4 +97,33 @@ class Execution(
         skippedTests,
         additionalFiles?.split(";")?.filter { it.isNotBlank() },
     )
+
+    companion object {
+        /**
+         * Create a stub for testing. Since all fields are mutable, only required ones can be set after calling this method.
+         *
+         * @param project project instance
+         * @return a execution
+         */
+        fun stub(project: Project) = Execution(
+            project = project,
+            startTime = LocalDateTime.now(),
+            endTime = null,
+            status = ExecutionStatus.RUNNING,
+            testSuiteIds = null,
+            resourcesRootPath = null,
+            batchSize = 20,
+            type = ExecutionType.GIT,
+            version = null,
+            0,
+            0,
+            0,
+            0,
+            sdk = Sdk.Default.toString(),
+            additionalFiles = null,
+            user = null,
+            execCmd = null,
+            batchSizeForAnalyzer = null,
+        )
+    }
 }

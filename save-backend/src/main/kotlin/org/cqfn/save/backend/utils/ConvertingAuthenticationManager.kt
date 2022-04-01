@@ -21,7 +21,7 @@ class ConvertingAuthenticationManager : ReactiveAuthenticationManager {
     private lateinit var userDetailsService: UserDetailsService
 
     override fun authenticate(authentication: Authentication): Mono<Authentication> = if (authentication is UsernamePasswordAuthenticationToken) {
-        val identitySource = (authentication.details as Map<*, *>)["identitySource"] as String?
+        val identitySource = (authentication.details as AuthenticationDetails).identitySource
         if (identitySource == null || !authentication.name.startsWith("$identitySource:")) {
             throw BadCredentialsException(authentication.name)
         }
@@ -36,13 +36,24 @@ class ConvertingAuthenticationManager : ReactiveAuthenticationManager {
                 BadCredentialsException(name)
             }
             .map {
-                UsernamePasswordAuthenticationToken(
-                    "$identitySource:${it.username}",
-                    authentication.credentials,
-                    it.authorities
-                )
+                it.toAuthenticationWithDetails(authentication)
             }
     } else {
         Mono.error { BadCredentialsException("Unsupported authentication type ${authentication::class}") }
     }
+
+    /**
+     * Fixme: since identitySource is in `AuthenticationDetails`, it can be removed from principal
+     */
+    private fun IdentitySourceAwareUserDetails.toAuthenticationWithDetails(authentication: Authentication) =
+            UsernamePasswordAuthenticationToken(
+                "$identitySource:$username",
+                authentication.credentials,
+                authorities
+            ).apply {
+                details = AuthenticationDetails(
+                    id = id,
+                    identitySource = identitySource,
+                )
+            }
 }

@@ -1,20 +1,21 @@
 package org.cqfn.save.orchestrator.controller.agents
 
 import org.cqfn.save.agent.ExecutionLogs
-import org.cqfn.save.domain.Sdk
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.Project
 import org.cqfn.save.execution.ExecutionStatus
-import org.cqfn.save.execution.ExecutionType
 import org.cqfn.save.orchestrator.config.Beans
 import org.cqfn.save.orchestrator.config.ConfigProperties
 import org.cqfn.save.orchestrator.controller.AgentsController
 import org.cqfn.save.orchestrator.service.AgentService
 import org.cqfn.save.orchestrator.service.DockerService
+import org.cqfn.save.testutils.checkQueues
+import org.cqfn.save.testutils.cleanup
+import org.cqfn.save.testutils.createMockWebServer
+import org.cqfn.save.testutils.enqueue
 
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
-import okhttp3.mockwebserver.QueueDispatcher
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
@@ -37,8 +38,6 @@ import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.web.reactive.function.BodyInserters
 
 import java.io.File
-import java.nio.charset.Charset
-import java.time.LocalDateTime
 
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.createTempDirectory
@@ -49,8 +48,6 @@ import kotlinx.serialization.json.Json
 @Import(AgentService::class, Beans::class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class AgentsControllerTest {
-    private val stubTime = LocalDateTime.now()
-
     @Autowired
     lateinit var webClient: WebTestClient
 
@@ -60,14 +57,6 @@ class AgentsControllerTest {
 
     @AfterEach
     fun tearDown() {
-        mockServer.dispatcher.peek().let { mockResponse ->
-            // when `QueueDispatcher.failFast` is true, default value is an empty response with code 404
-            val hasDefaultEnqueuedResponse = mockResponse.status == "HTTP/1.1 404 Client Error" && mockResponse.getBody() == null
-            Assertions.assertTrue(hasDefaultEnqueuedResponse) {
-                "There is an enqueued response in the MockServer after a test has completed. Enqueued body: ${mockResponse.getBody()?.readString(Charset.defaultCharset())}, " +
-                        "status: ${mockResponse.status}"
-            }
-        }
         val pathToLogs = configProperties.executionLogs
         File(pathToLogs).deleteRecursively()
     }
@@ -75,19 +64,22 @@ class AgentsControllerTest {
     @Test
     fun `should build image, query backend and start containers`() {
         val project = Project.stub(null)
-        val execution = Execution(project, stubTime, stubTime, ExecutionStatus.PENDING, "stub",
-            "stub", 20, ExecutionType.GIT, "0.0.1", 0, 0, 0, 0, Sdk.Default.toString(), null, null).apply {
+        val execution = Execution.stub(project).apply {
+            status = ExecutionStatus.PENDING
+            testSuiteIds = "1"
             id = 42L
         }
         whenever(dockerService.buildAndCreateContainers(any(), any())).thenReturn(listOf("test-agent-id-1", "test-agent-id-2"))
         // /addAgents
-        mockServer.enqueue(MockResponse()
-            .setResponseCode(200)
-            .addHeader("Content-Type", "application/json")
-            .setBody(Json.encodeToString(listOf<Long>(1, 2)))
+        mockServer.enqueue(
+            "/addAgents.*",
+            MockResponse()
+                .setResponseCode(200)
+                .addHeader("Content-Type", "application/json")
+                .setBody(Json.encodeToString(listOf<Long>(1, 2)))
         )
         // /updateAgentStatuses
-        mockServer.enqueue(MockResponse().setResponseCode(200))
+        mockServer.enqueue("/updateAgentStatuses", MockResponse().setResponseCode(200))
         // /updateExecutionByDto is not mocked, because it's performed by DockerService, and it's mocked in these tests
 
         val bodyBuilder = MultipartBodyBuilder().apply {
@@ -109,8 +101,7 @@ class AgentsControllerTest {
     @Test
     fun checkPostResponseIsNotOk() {
         val project = Project.stub(null)
-        val execution = Execution(project, stubTime, stubTime, ExecutionStatus.RUNNING, "stub",
-            "stub", 20, ExecutionType.GIT, "0.0.1", 0, 0, 0, 0, Sdk.Default.toString(), null, null)
+        val execution = Execution.stub(project)
         val bodyBuilder = MultipartBodyBuilder().apply {
             part("execution", execution)
         }.build()
@@ -180,6 +171,7 @@ class AgentsControllerTest {
     @Test
     fun `should cleanup execution artifacts`() {
         mockServer.enqueue(
+            "/getAgentsIdsForExecution.*",
             MockResponse().setResponseCode(200)
                 .setHeader("Content-Type", "application/json")
                 .setBody(Json.encodeToString(listOf("container-1", "container-2", "container-3")))
@@ -214,6 +206,12 @@ class AgentsControllerTest {
         @JvmStatic
         private lateinit var mockServer: MockWebServer
 
+        @AfterEach
+        fun cleanup() {
+            mockServer.checkQueues()
+            mockServer.cleanup()
+        }
+
         @AfterAll
         fun tearDown() {
             mockServer.shutdown()
@@ -223,8 +221,7 @@ class AgentsControllerTest {
         @JvmStatic
         fun properties(registry: DynamicPropertyRegistry) {
             // todo: should be initialized in @BeforeAll, but it gets called after @DynamicPropertySource
-            mockServer = MockWebServer()
-            (mockServer.dispatcher as QueueDispatcher).setFailFast(true)
+            mockServer = createMockWebServer()
             mockServer.start()
             registry.add("orchestrator.backendUrl") { "http://localhost:${mockServer.port}" }
             registry.add("orchestrator.executionLogs") { volume }

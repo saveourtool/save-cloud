@@ -5,7 +5,7 @@ import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.http.ResponseEntity
-import org.springframework.web.reactive.config.EnableWebFlux
+import org.springframework.scheduling.annotation.EnableScheduling
 
 internal typealias BodilessResponseEntity = ResponseEntity<Void>
 internal typealias TextResponse = ResponseEntity<String>
@@ -14,8 +14,8 @@ internal typealias TextResponse = ResponseEntity<String>
  * An entrypoint for spring boot for save-orchestrator
  */
 @SpringBootApplication
-@EnableWebFlux
 @EnableConfigurationProperties(ConfigProperties::class)
+@EnableScheduling
 open class SaveOrchestrator
 
 fun main(args: Array<String>) {

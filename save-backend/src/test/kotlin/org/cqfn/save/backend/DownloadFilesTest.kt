@@ -4,18 +4,8 @@ import org.cqfn.save.backend.configs.ConfigProperties
 import org.cqfn.save.backend.configs.NoopWebSecurityConfig
 import org.cqfn.save.backend.configs.WebConfig
 import org.cqfn.save.backend.controllers.DownloadFilesController
-import org.cqfn.save.backend.repository.AgentRepository
-import org.cqfn.save.backend.repository.AgentStatusRepository
-import org.cqfn.save.backend.repository.ExecutionRepository
-import org.cqfn.save.backend.repository.GitRepository
-import org.cqfn.save.backend.repository.ProjectRepository
-import org.cqfn.save.backend.repository.TestDataFilesystemRepository
-import org.cqfn.save.backend.repository.TestExecutionRepository
-import org.cqfn.save.backend.repository.TestRepository
-import org.cqfn.save.backend.repository.TestSuiteRepository
-import org.cqfn.save.backend.repository.TimestampBasedFileSystemRepository
-import org.cqfn.save.backend.repository.UserRepository
-import org.cqfn.save.backend.scheduling.StandardSuitesUpdateScheduler
+import org.cqfn.save.backend.repository.*
+import org.cqfn.save.backend.service.OrganizationService
 import org.cqfn.save.core.result.DebugInfo
 import org.cqfn.save.core.result.Pass
 import org.cqfn.save.domain.FileInfo
@@ -40,6 +30,7 @@ import org.springframework.core.io.FileSystemResource
 import org.springframework.http.HttpMethod
 import org.springframework.http.MediaType
 import org.springframework.http.client.MultipartBodyBuilder
+import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.web.reactive.server.WebTestClient
@@ -56,6 +47,7 @@ import kotlin.io.path.createTempFile
 import kotlin.io.path.name
 import kotlin.io.path.writeLines
 
+@ActiveProfiles("test")
 @WebFluxTest(controllers = [DownloadFilesController::class])
 @Import(
     WebConfig::class,
@@ -66,15 +58,7 @@ import kotlin.io.path.writeLines
 @AutoConfigureWebTestClient
 @EnableConfigurationProperties(ConfigProperties::class)
 @MockBeans(
-    MockBean(AgentStatusRepository::class),
-    MockBean(ExecutionRepository::class),
-    MockBean(ProjectRepository::class),
-    MockBean(TestExecutionRepository::class),
-    MockBean(TestRepository::class),
-    MockBean(TestSuiteRepository::class),
-    MockBean(GitRepository::class),
-    MockBean(StandardSuitesUpdateScheduler::class),
-    MockBean(UserRepository::class),
+    MockBean(OrganizationService::class),
 )
 class DownloadFilesTest {
     @Autowired

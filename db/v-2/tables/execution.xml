@@ -12,4 +12,15 @@
             </column>
         </addColumn>
     </changeSet>
+
+    <changeSet id="add-execCmd-and-batchSizeForAnalyzer-columns" author="kgevorkyan" context="dev or prod">
+        <addColumn tableName="execution">
+            <column name="exec_cmd" type="text" defaultValue="NULL"/>
+        </addColumn>
+
+        <addColumn tableName="execution">
+            <column name="batch_size_for_analyzer" type="varchar(255)" defaultValue="NULL"/>
+        </addColumn>
+    </changeSet>
+
 </databaseChangeLog>

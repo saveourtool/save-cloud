@@ -5,8 +5,8 @@ plugins {
     kotlin("js")
 }
 
-rootProject.plugins.withType<org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin> {
-    rootProject.the<org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension>().nodeVersion = "16.13.1"
+rootProject.plugins.withType<NodeJsRootPlugin> {
+    rootProject.the<NodeJsRootExtension>().nodeVersion = "16.13.1"
 }
 
 dependencies {
@@ -51,11 +51,12 @@ kotlin {
             compileOnly(devNpm("css-loader", "*"))
             compileOnly(devNpm("url-loader", "*"))
             compileOnly(devNpm("file-loader", "*"))
-            // these dependenceies are bound to postcss 7.x instead of 8.x, because bootstrap 4.x guide uses them
-            compileOnly(devNpm("postcss-loader", "3.*"))
-            compileOnly(devNpm("postcss", "7.*"))
-            compileOnly(devNpm("autoprefixer", "9.*"))
+            // https://getbootstrap.com/docs/4.0/getting-started/webpack/#importing-precompiled-sass
+            compileOnly(devNpm("postcss-loader", "^6.2.1"))
+            compileOnly(devNpm("postcss", "^8.2.13"))
+            compileOnly(devNpm("autoprefixer", ">9"))
             compileOnly(devNpm("webpack-bundle-analyzer", "*"))
+            compileOnly(devNpm("mini-css-extract-plugin", "^2.6.0"))
 
             // web-specific dependencies
             implementation(npm("@fortawesome/fontawesome-svg-core", "^1.2.36"))
@@ -72,14 +73,17 @@ kotlin {
             implementation(npm("react-modal", "^3.0.0"))
             implementation(npm("os-browserify", "^0.3.0"))
             implementation(npm("path-browserify", "^1.0.1"))
+            implementation(npm("react-minimal-pie-chart", "^8.2.0"))
         }
     }
 }
 
 // workaround for continuous work of WebPack: (https://github.com/webpack/webpack-cli/issues/2990)
 rootProject.plugins.withType(NodeJsRootPlugin::class.java) {
-    rootProject.the<NodeJsRootExtension>().versions.webpackCli
-        .version = "4.9.0"
+    rootProject.the<NodeJsRootExtension>().versions.apply {
+        webpackCli.version = "4.9.0"
+        karma.version = "^6.3.14"
+    }
 }
 // store yarn.lock in the root directory
 rootProject.extensions.configure<org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension> {
@@ -108,9 +112,12 @@ val generateVersionFileTaskProvider = tasks.register("generateVersionFile") {
 kotlin.sourceSets.getByName("main") {
     kotlin.srcDir("$buildDir/generated/src")
 }
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.Kotlin2JsCompile>().forEach {
-    it.dependsOn(generateVersionFileTaskProvider)
-    it.inputs.file("$buildDir/generated/src/generated/Versions.kt")
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.Kotlin2JsCompile> {
+    dependsOn(generateVersionFileTaskProvider)
+    inputs.file("$buildDir/generated/src/generated/Versions.kt")
+}
+tasks.named<org.gradle.jvm.tasks.Jar>("kotlinSourcesJar") {
+    dependsOn(generateVersionFileTaskProvider)
 }
 
 tasks.withType<org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack>().forEach { kotlinWebpack ->

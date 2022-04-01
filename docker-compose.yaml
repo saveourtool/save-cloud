@@ -17,10 +17,10 @@ x-logging:
 
 services:
   orchestrator:
-    image: ghcr.io/analysis-dev/save-orchestrator:{{project.version}}
+    image: ghcr.io/analysis-dev/save-orchestrator:${TAG}
     user: root  # to access host's docker socket
     environment:
-      - "SPRING_PROFILES_ACTIVE={{profile}}"
+      - "SPRING_PROFILES_ACTIVE=${PROFILE}"
     ports:
       - "5100:5100"
     volumes:
@@ -35,9 +35,9 @@ services:
         - "prometheus-job=save-orchestrator"
     logging: *loki-logging-jvm
   backend:
-    image: ghcr.io/analysis-dev/save-backend:{{project.version}}
+    image: ghcr.io/analysis-dev/save-backend:${TAG}
     environment:
-      - "SPRING_PROFILES_ACTIVE={{profile}},secure"
+      - "SPRING_PROFILES_ACTIVE=${PROFILE},secure"
       - "MYSQL_USER=/run/secrets/db_username"
       - "MYSQL_PASSWORD_FILE=/run/secrets/db_password"
     secrets:
@@ -54,9 +54,9 @@ services:
         - "prometheus-job=save-backend"
     logging: *loki-logging-jvm
   preprocessor:
-    image: ghcr.io/analysis-dev/save-preprocessor:{{project.version}}
+    image: ghcr.io/analysis-dev/save-preprocessor:${TAG}
     environment:
-      - "SPRING_PROFILES_ACTIVE={{profile}}"
+      - "SPRING_PROFILES_ACTIVE=${PROFILE}"
     volumes:
       - save:/home/cnb/
       - save-fs-storage:/home/cnb/files
@@ -72,9 +72,9 @@ services:
         max_attempts: 3
     logging: *loki-logging-jvm
   gateway:
-    image: ghcr.io/analysis-dev/api-gateway:{{project.version}}
+    image: ghcr.io/analysis-dev/api-gateway:${TAG}
     environment:
-      - "SPRING_PROFILES_ACTIVE={{profile}}"
+      - "SPRING_PROFILES_ACTIVE=${PROFILE}"
     ports:
       - "5300:5300"
     volumes:
@@ -84,7 +84,7 @@ services:
         - "prometheus-job=api-gateway"
     logging: *loki-logging-jvm
   prometheus:
-    image: prom/prometheus
+    image: prom/prometheus:v2.34.0
     user: root  # to access host's docker socket for service discovery, see https://groups.google.com/g/prometheus-users/c/EuEW0qRzXvg/m/0aqKh_ZABQAJ
     ports:
       - "9090:9090"
@@ -100,8 +100,10 @@ services:
         max_replicas_per_node: 1
         constraints:
           - "node.role==manager"
+    secrets:
+      - prometheus_scrape_pwd
   grafana:
-    image: grafana/grafana
+    image: grafana/grafana:8.4.4
     ports:
       - "9100:3000"
     volumes:
@@ -113,12 +115,13 @@ services:
         constraints:
           - "node.role==manager"
   loki:
-    image: grafana/loki:main-517ba7c
+    image: grafana/loki:2.4.2
     ports:
       - "9110:3100"
-    command: -config.file=/etc/loki/local-config.yaml
+    command: -config.file=/etc/loki/loki.yaml
     volumes:
       - "loki-storage:/loki"
+      - "~/configs/loki.yaml:/etc/loki/loki.yaml"
     deploy:
       placement:
         max_replicas_per_node: 1
@@ -138,4 +141,6 @@ secrets:
   db_username:
     external: true
   db_url:
+    external: true
+  prometheus_scrape_pwd:
     external: true

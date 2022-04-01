@@ -22,5 +22,6 @@
     </changeSet>
     <include file="v-2/tables/db.changelog-tables.xml" relativeToChangelogFile="true"/>
     <include file="v-2/insert-test-data/db.changelog-insert.xml" relativeToChangelogFile="true"/>
+    <include file="v-2/tables/awesome-benchmarks.xml" relativeToChangelogFile="true"/>
 
 </databaseChangeLog>

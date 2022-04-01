@@ -8,6 +8,33 @@
     <changeSet id="project-insert" author="petertrr" context="dev">
         <update dbms="mysql" tableName="project">
             <column name="user_id" value="1" />
+            <column name="organization_id" value="1" />
+            <column name="email" value="email@domain.com"/>
+            <column name="number_of_containers" value="3"/>
         </update>
+      
+        <insert dbms="mysql" tableName="project">
+            <column name="id" value="3" />
+            <column name="name" value="The Project" />
+            <column name="url" value="example.com" />
+            <column name="description" value="This is an example project" />
+            <column name="public" valueBoolean="false" />
+            <column name="user_id" value="2" />
+            <column name="organization_id" value="2" />
+            <column name="email" value="test@example.com"/>
+            <column name="number_of_containers" value="5"/>
+        </insert>
+        <insert dbms="mysql" tableName="project">
+            <column name="id" value="4" />
+            <column name="name" value="The Project #2" />
+            <column name="url" value="example.com" />
+            <column name="description" value="This is a second example project" />
+            <column name="status" value="DELETED" />
+            <column name="public" valueBoolean="true" />
+            <column name="user_id" value="2" />
+            <column name="organization_id" value="2" />
+            <column name="email" value="another_test@example.com"/>
+            <column name="number_of_containers" value="1"/>
+        </insert>
     </changeSet>
 </databaseChangeLog>

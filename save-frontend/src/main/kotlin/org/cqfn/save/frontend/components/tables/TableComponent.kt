@@ -6,11 +6,13 @@
 
 package org.cqfn.save.frontend.components.tables
 
+import org.cqfn.save.frontend.components.errorStatusContext
 import org.cqfn.save.frontend.components.modal.errorModal
+import org.cqfn.save.frontend.http.HttpStatusException
+import org.cqfn.save.frontend.utils.WithRequestStatusContext
 import org.cqfn.save.frontend.utils.spread
 
-import kotlinext.js.jsObject
-import react.PropsWithChildren
+import react.Props
 import react.RBuilder
 import react.dom.RDOMBuilder
 import react.dom.div
@@ -32,21 +34,26 @@ import react.table.TableRowProps
 import react.table.usePagination
 import react.table.useSortBy
 import react.table.useTable
+import react.useContext
 import react.useEffect
 import react.useMemo
 import react.useState
 
 import kotlin.js.json
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.html.THEAD
+import kotlinx.js.jso
 
 /**
- * [RProps] of a data table
+ * [Props] of a data table
  */
-external interface TableProps : PropsWithChildren {
+external interface TableProps : Props {
     /**
      * Table header
      */
@@ -74,6 +81,7 @@ external interface TableProps : PropsWithChildren {
     "TOO_LONG_FUNCTION",
     "TOO_MANY_PARAMETERS",
     "TYPE_ALIAS",
+    "ComplexMethod",
     "ForbiddenComment",
     "LongMethod",
     "LongParameterList",
@@ -86,11 +94,11 @@ fun <D : Any> tableComponent(
     usePageSelection: Boolean = false,
     plugins: Array<PluginHook<D>> = arrayOf(useSortBy, usePagination),
     additionalOptions: TableOptions<D>.() -> Unit = {},
-    getRowProps: ((Row<D>) -> TableRowProps) = { jsObject() },
+    getRowProps: ((Row<D>) -> TableRowProps) = { jso() },
     getPageCount: (suspend (pageSize: Int) -> Int)? = null,
     renderExpandedRow: (RBuilder.(table: TableInstance<D>, row: Row<D>) -> Unit)? = undefined,
     commonHeader: RDOMBuilder<THEAD>.(table: TableInstance<D>) -> Unit = {},
-    getData: suspend (pageIndex: Int, pageSize: Int) -> Array<out D>,
+    getData: suspend WithRequestStatusContext.(pageIndex: Int, pageSize: Int) -> Array<out D>,
 ) = fc<TableProps> { props ->
     require(useServerPaging xor (getPageCount == null)) {
         "Either use client-side paging or provide a function to get page count"
@@ -101,15 +109,16 @@ fun <D : Any> tableComponent(
     val (pageIndex, setPageIndex) = useState(0)
     val (isModalOpen, setIsModalOpen) = useState(false)
     val (dataAccessException, setDataAccessException) = useState<Exception?>(null)
+    val scope = CoroutineScope(Dispatchers.Default)
 
-    val tableInstance: TableInstance<D> = useTable(options = jsObject {
+    val tableInstance: TableInstance<D> = useTable(options = jso {
         this.columns = useMemo { columns }
         this.data = data
         this.manualPagination = useServerPaging
         if (useServerPaging) {
             this.pageCount = pageCount
         }
-        this.initialState = jsObject {
+        this.initialState = jso {
             this.pageSize = initialPageSize
             this.pageIndex = pageIndex
         }
@@ -118,11 +127,9 @@ fun <D : Any> tableComponent(
 
     useEffect(arrayOf<dynamic>(tableInstance.state.pageSize, pageCount)) {
         if (useServerPaging) {
-            val pageCountDeferred = GlobalScope.async {
-                getPageCount!!.invoke(tableInstance.state.pageSize)
-            }
-            pageCountDeferred.invokeOnCompletion {
-                setPageCount(pageCountDeferred.getCompleted())
+            scope.launch {
+                val newPageCount = getPageCount!!.invoke(tableInstance.state.pageSize)
+                setPageCount(newPageCount)
             }
         }
     }
@@ -134,13 +141,29 @@ fun <D : Any> tableComponent(
         // when all data is already available, we don't need to repeat `getData` calls
         emptyArray()
     }
+    val setResponse = useContext(errorStatusContext)
+    val context = WithRequestStatusContext {
+        setResponse(it)
+    }
     useEffect(*dependencies) {
-        GlobalScope.launch {
+        scope.launch {
             try {
-                setData(getData(tableInstance.state.pageIndex, tableInstance.state.pageSize))
+                setData(context.getData(tableInstance.state.pageIndex, tableInstance.state.pageSize))
+            } catch (e: CancellationException) {
+                // this means, that view is re-rendering while network request was still in progress
+                // no need to display an error message in this case
+            } catch (e: HttpStatusException) {
+                // this is a normal situation which should be handled by responseHandler in `getData` itself.
+                // no need to display an error message in this case
             } catch (e: Exception) {
+                // other exceptions are not handled by `responseHandler` and should be displayed separately
                 setIsModalOpen(true)
                 setDataAccessException(e)
+            }
+        }
+        cleanup {
+            if (scope.isActive) {
+                scope.cancel()
             }
         }
     }
@@ -164,7 +187,7 @@ fun <D : Any> tableComponent(
                                 spread(headerGroup.getHeaderGroupProps())
                                 headerGroup.headers.map { column ->
                                     val columnProps = column.getHeaderProps(column.getSortByToggleProps())
-                                    val className = if (column.canSort) columnProps.className else ""
+                                    val className = if (column.canSort) columnProps.className.unsafeCast<String?>() else ""
                                     th(classes = className) {
                                         +column.render("Header")
                                         // fixme: find a way to set `canSort`; now it's always true

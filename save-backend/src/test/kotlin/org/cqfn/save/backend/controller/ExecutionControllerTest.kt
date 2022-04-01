@@ -1,21 +1,28 @@
 package org.cqfn.save.backend.controller
 
 import org.cqfn.save.backend.SaveApplication
+import org.cqfn.save.backend.controllers.ProjectController
 import org.cqfn.save.backend.repository.ExecutionRepository
 import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.scheduling.StandardSuitesUpdateScheduler
+import org.cqfn.save.backend.utils.AuthenticationDetails
 import org.cqfn.save.backend.utils.MySqlExtension
-import org.cqfn.save.domain.Sdk
+import org.cqfn.save.backend.utils.mutateMockedUser
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.execution.ExecutionInitializationDto
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionType
 import org.cqfn.save.execution.ExecutionUpdateDto
+import org.cqfn.save.testutils.checkQueues
+import org.cqfn.save.testutils.cleanup
+import org.cqfn.save.testutils.createMockWebServer
+import org.cqfn.save.testutils.enqueue
 
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -44,6 +51,7 @@ import java.util.concurrent.TimeUnit
 @ExtendWith(MySqlExtension::class)
 @MockBeans(
     MockBean(StandardSuitesUpdateScheduler::class),
+    MockBean(ProjectController::class),
 )
 class ExecutionControllerTest {
     private val testLocalDateTime = LocalDateTime.of(2020, Month.APRIL, 10, 16, 30, 20)
@@ -61,24 +69,10 @@ class ExecutionControllerTest {
     @WithMockUser("John Doe")
     fun testDataSave() {
         val project = projectRepository.findById(1).get()
-        val execution = Execution(
-            project,
-            testLocalDateTime,
-            testLocalDateTime,
-            ExecutionStatus.RUNNING,
-            "0,1,2",
-            "stub",
-            20,
-            ExecutionType.GIT,
-            "0.0.1",
-            0,
-            0,
-            0,
-            0,
-            Sdk.Default.toString(),
-            null,
-            null,
-        )
+        val execution = Execution.stub(project).apply {
+            startTime = testLocalDateTime
+            endTime = testLocalDateTime
+        }
         webClient.post()
             .uri("/internal/createExecution")
             .contentType(MediaType.APPLICATION_JSON)
@@ -97,24 +91,7 @@ class ExecutionControllerTest {
     @Suppress("TOO_LONG_FUNCTION")
     fun testUpdateExecution() {
         val project = projectRepository.findById(1).get()
-        val execution = Execution(
-            project,
-            testLocalDateTime,
-            testLocalDateTime,
-            ExecutionStatus.RUNNING,
-            "0,1,2",
-            "stub",
-            20,
-            ExecutionType.GIT,
-            "0.0.1",
-            0,
-            0,
-            0,
-            0,
-            Sdk.Default.toString(),
-            null,
-            null,
-        )
+        val execution = Execution.stub(project)
 
         webClient.post()
             .uri("/internal/createExecution")
@@ -160,7 +137,12 @@ class ExecutionControllerTest {
     }
 
     @Test
+    @WithMockUser
     fun checkExecutionDto() {
+        mutateMockedUser {
+            details = AuthenticationDetails(id = 99)
+        }
+
         webClient.get()
             .uri("/api/executionDto?executionId=1")
             .exchange()
@@ -174,11 +156,16 @@ class ExecutionControllerTest {
     }
 
     @Test
+    @WithMockUser
     fun checkExecutionDtoByProject() {
+        mutateMockedUser {
+            details = AuthenticationDetails(id = 99)
+        }
+
         val project = projectRepository.findById(1).get()
         val executionCounts = executionRepository.findAll().count { it.project.id == project.id }
         webClient.get()
-            .uri("/api/executionDtoList?name=${project.name}&owner=${project.owner}")
+            .uri("/api/executionDtoList?name=${project.name}&organizationName=${project.organization.name}")
             .exchange()
             .expectStatus()
             .isOk
@@ -193,24 +180,7 @@ class ExecutionControllerTest {
     @WithMockUser("John Doe")
     @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
     fun checkUpdateNewExecution() {
-        val execution = Execution(
-            projectRepository.findAll().first(),
-            LocalDateTime.now(),
-            null,
-            ExecutionStatus.PENDING,
-            null,
-            null,
-            20,
-            ExecutionType.GIT,
-            null,
-            0,
-            0,
-            0,
-            0,
-            Sdk.Default.toString(),
-            null,
-            null,
-        )
+        val execution = Execution.stub(projectRepository.findAll().first())
         webClient.post()
             .uri("/internal/createExecution")
             .contentType(MediaType.APPLICATION_JSON)
@@ -219,7 +189,7 @@ class ExecutionControllerTest {
             .expectStatus()
             .isOk
 
-        val executionUpdate = ExecutionInitializationDto(execution.project, "1, 2, 3", "testPath", "executionVersion")
+        val executionUpdate = ExecutionInitializationDto(execution.project, "1, 2, 3", "testPath", "executionVersion", null, null)
         webClient.post()
             .uri("/internal/updateNewExecution")
             .contentType(MediaType.APPLICATION_JSON)
@@ -247,7 +217,12 @@ class ExecutionControllerTest {
     @Test
     @WithMockUser(username = "John Doe")
     fun `should send request to preprocessor to rerun execution`() {
+        mutateMockedUser {
+            details = AuthenticationDetails(id = 2)
+        }
+
         mockServerPreprocessor.enqueue(
+            "/rerunExecution.*",
             MockResponse().setResponseCode(202)
                 .setHeader("Accept", "application/json")
                 .setHeader("Content-Type", "application/json")
@@ -272,6 +247,12 @@ class ExecutionControllerTest {
     companion object {
         @JvmStatic lateinit var mockServerPreprocessor: MockWebServer
 
+        @AfterEach
+        fun cleanup() {
+            mockServerPreprocessor.checkQueues()
+            mockServerPreprocessor.cleanup()
+        }
+
         @AfterAll
         fun tearDown() {
             mockServerPreprocessor.shutdown()
@@ -280,7 +261,7 @@ class ExecutionControllerTest {
         @DynamicPropertySource
         @JvmStatic
         fun properties(registry: DynamicPropertyRegistry) {
-            mockServerPreprocessor = MockWebServer()
+            mockServerPreprocessor = createMockWebServer()
             mockServerPreprocessor.start()
             registry.add("backend.preprocessorUrl") { "http://localhost:${mockServerPreprocessor.port}" }
         }

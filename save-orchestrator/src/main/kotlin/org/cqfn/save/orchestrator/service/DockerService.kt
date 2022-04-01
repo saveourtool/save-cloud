@@ -7,6 +7,7 @@ import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionUpdateDto
 import org.cqfn.save.orchestrator.config.ConfigProperties
 import org.cqfn.save.orchestrator.copyRecursivelyWithAttributes
+import org.cqfn.save.orchestrator.createSyntheticTomlConfig
 import org.cqfn.save.orchestrator.docker.ContainerManager
 import org.cqfn.save.testsuite.TestSuiteDto
 import org.cqfn.save.utils.PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE
@@ -15,6 +16,7 @@ import org.cqfn.save.utils.moveFileWithAttributes
 
 import com.github.dockerjava.api.exception.DockerException
 import generated.SAVE_CORE_VERSION
+import io.micrometer.core.instrument.MeterRegistry
 import net.lingala.zip4j.ZipFile
 import net.lingala.zip4j.exception.ZipException
 import org.apache.commons.io.FileUtils
@@ -43,11 +45,13 @@ import kotlin.io.path.createTempDirectory
  */
 @Service
 @OptIn(ExperimentalPathApi::class)
-class DockerService(private val configProperties: ConfigProperties) {
+class DockerService(private val configProperties: ConfigProperties,
+                    meterRegistry: MeterRegistry,
+) {
     /**
      * [ContainerManager] that is used to access docker daemon API
      */
-    internal val containerManager = ContainerManager(configProperties.docker)
+    internal val containerManager = ContainerManager(configProperties.docker, meterRegistry)
     private val executionDir = "/run/save-execution"
 
     @Suppress("NonBooleanPropertyPrefixedWithIs")
@@ -65,7 +69,10 @@ class DockerService(private val configProperties: ConfigProperties) {
      * @return list of IDs of created containers
      * @throws DockerException if interaction with docker daemon is not successful
      */
-    fun buildAndCreateContainers(execution: Execution, testSuiteDtos: List<TestSuiteDto>?): List<String> {
+    fun buildAndCreateContainers(
+        execution: Execution,
+        testSuiteDtos: List<TestSuiteDto>?,
+    ): List<String> {
         log.info("Building base image for execution.id=${execution.id}")
         val (imageId, runCmd, saveCliExecFlags) = buildBaseImageForExecution(execution, testSuiteDtos)
         log.info("Built base image for execution.id=${execution.id}")
@@ -103,7 +110,7 @@ class DockerService(private val configProperties: ConfigProperties) {
      * @return true if agents have been stopped, false if another thread is already stopping them
      */
     @Suppress("TOO_MANY_LINES_IN_LAMBDA")
-    fun stopAgents(agentIds: List<String>) =
+    fun stopAgents(agentIds: Collection<String>) =
             if (isAgentStoppingInProgress.compareAndSet(false, true)) {
                 try {
                     val containerList = containerManager.dockerClient.listContainersCmd().withShowAll(true).exec()
@@ -169,7 +176,10 @@ class DockerService(private val configProperties: ConfigProperties) {
         "UnsafeCallOnNullableType",
         "LongMethod",
     )
-    private fun buildBaseImageForExecution(execution: Execution, testSuiteDtos: List<TestSuiteDto>?): Triple<String, String, String> {
+    private fun buildBaseImageForExecution(
+        execution: Execution,
+        testSuiteDtos: List<TestSuiteDto>?
+    ): Triple<String, String, String> {
         val resourcesPath = File(
             configProperties.testResources.basePath,
             execution.resourcesRootPath!!,
@@ -201,7 +211,9 @@ class DockerService(private val configProperties: ConfigProperties) {
 
         val saveCliExecFlags = if (isStandardMode) {
             // create stub toml config in aim to execute all test suites directories from `testSuitesDir`
-            testSuitesDir.resolve("save.toml").apply { createNewFile() }.writeText("[general]")
+            val configData = createSyntheticTomlConfig(execution.execCmd, execution.batchSizeForAnalyzer)
+
+            testSuitesDir.resolve("save.toml").apply { createNewFile() }.writeText(configData)
             " $STANDARD_TEST_SUITE_DIR --include-suites \"${testSuitesForDocker.joinToString(",") { it.name }}\""
         } else {
             ""

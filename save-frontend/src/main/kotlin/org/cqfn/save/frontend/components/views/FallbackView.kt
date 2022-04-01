@@ -1,12 +1,13 @@
 package org.cqfn.save.frontend.components.views
 
-import kotlinext.js.jsObject
 import react.PropsWithChildren
 import react.RBuilder
 import react.State
 import react.dom.div
 import react.dom.p
 import react.router.dom.Link
+
+import kotlinx.js.jso
 
 /**
  * A [RComponent] representing fallback page with 404 error
@@ -24,7 +25,7 @@ class FallbackView : AbstractView<PropsWithChildren, State>(false) {
             p("lead text-gray-800 mb-5") {
                 +"Page not found"
             }
-            child(type = Link, props = jsObject()) {
+            child(type = Link, props = jso()) {
                 attrs.to = "/"
                 +"← Back to the main page"
             }

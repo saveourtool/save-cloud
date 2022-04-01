@@ -15,8 +15,10 @@ import org.cqfn.save.entities.ExecutionRequestForStandardSuites
 import org.cqfn.save.entities.Project
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionType
+import org.cqfn.save.permission.Permission
 
 import org.slf4j.LoggerFactory
+import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -31,8 +33,8 @@ import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.toEntity
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+
 import java.lang.StringBuilder
-import java.time.LocalDateTime
 
 /**
  * Controller to save project
@@ -47,9 +49,13 @@ class CloneRepositoryController(
     private val executionService: ExecutionService,
     private val additionalToolsFileSystemRepository: TimestampBasedFileSystemRepository,
     private val configProperties: ConfigProperties,
+    jackson2WebClientCustomizer: WebClientCustomizer,
 ) {
     private val log = LoggerFactory.getLogger(CloneRepositoryController::class.java)
-    private val preprocessorWebClient = WebClient.create(configProperties.preprocessorUrl)
+    private val preprocessorWebClient = WebClient.builder()
+        .apply(jackson2WebClientCustomizer::customize)
+        .baseUrl(configProperties.preprocessorUrl)
+        .build()
 
     /**
      * Endpoint to save project
@@ -64,14 +70,21 @@ class CloneRepositoryController(
         @RequestPart(required = true) executionRequest: ExecutionRequest,
         @RequestPart("file", required = false) files: Flux<FileInfo>,
         authentication: Authentication,
-    ): Mono<StringResponse> = sendToPreprocessor(
-        executionRequest,
-        ExecutionType.GIT,
-        authentication.username(),
-        files
-    ) { newExecutionId ->
-        part("executionRequest", executionRequest.copy(executionId = newExecutionId))
+    ): Mono<StringResponse> = with(executionRequest.project) {
+        // Project cannot be taken from executionRequest directly for permission evaluation:
+        // it can be fudged by user, who submits it. We should get project from DB based on name/owner combination.
+        projectService.findWithPermissionByNameAndOrganization(authentication, name, organization, Permission.WRITE)
     }
+        .flatMap {
+            sendToPreprocessor(
+                executionRequest,
+                ExecutionType.GIT,
+                authentication.username(),
+                files
+            ) { newExecutionId ->
+                part("executionRequest", executionRequest.copy(executionId = newExecutionId), MediaType.APPLICATION_JSON)
+            }
+        }
 
     /**
      * Endpoint to save project as binary file
@@ -86,14 +99,19 @@ class CloneRepositoryController(
         @RequestPart("execution", required = true) executionRequestForStandardSuites: ExecutionRequestForStandardSuites,
         @RequestPart("file", required = true) files: Flux<FileInfo>,
         authentication: Authentication,
-    ): Mono<StringResponse> = sendToPreprocessor(
-        executionRequestForStandardSuites,
-        ExecutionType.STANDARD,
-        authentication.username(),
-        files
-    ) {
-        part("executionRequestForStandardSuites", executionRequestForStandardSuites)
+    ): Mono<StringResponse> = with(executionRequestForStandardSuites.project) {
+        projectService.findWithPermissionByNameAndOrganization(authentication, name, organization, Permission.WRITE)
     }
+        .flatMap {
+            sendToPreprocessor(
+                executionRequestForStandardSuites,
+                ExecutionType.STANDARD,
+                authentication.username(),
+                files
+            ) {
+                part("executionRequestForStandardSuites", executionRequestForStandardSuites, MediaType.APPLICATION_JSON)
+            }
+        }
 
     @Suppress("UnsafeCallOnNullableType")
     private fun sendToPreprocessor(
@@ -104,7 +122,7 @@ class CloneRepositoryController(
         configure: MultipartBodyBuilder.(newExecutionId: Long) -> Unit
     ): Mono<StringResponse> {
         val project = with(executionRequest.project) {
-            projectService.findByNameAndOwner(name, owner)
+            projectService.findByNameAndOrganizationName(name, organization.name)
         }
         return project?.let {
             val newExecution = saveExecution(project, username, executionType, configProperties.initialBatchSize, executionRequest.sdk)
@@ -131,24 +149,11 @@ class CloneRepositoryController(
         batchSize: Int,
         sdk: Sdk,
     ): Execution {
-        val execution = Execution(
-            project,
-            LocalDateTime.now(),
-            null,
-            ExecutionStatus.PENDING,
-            null,
-            null,
-            batchSize,
-            type,
-            null,
-            0,
-            0,
-            0,
-            0,
-            sdk.toString(),
-            null,
-            null
-        ).apply {
+        val execution = Execution.stub(project).apply {
+            status = ExecutionStatus.PENDING
+            this.batchSize = batchSize
+            this.sdk = sdk.toString()
+            this.type = type
             id = executionService.saveExecution(this, username)
         }
         log.info("Creating a new execution id=${execution.id} for project id=${project.id}")

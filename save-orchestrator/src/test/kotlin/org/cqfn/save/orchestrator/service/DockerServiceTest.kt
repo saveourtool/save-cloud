@@ -1,18 +1,20 @@
 package org.cqfn.save.orchestrator.service
 
-import org.cqfn.save.domain.Sdk
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.Project
-import org.cqfn.save.execution.ExecutionStatus
-import org.cqfn.save.execution.ExecutionType
 import org.cqfn.save.orchestrator.config.Beans
 import org.cqfn.save.orchestrator.config.ConfigProperties
 import org.cqfn.save.orchestrator.controller.AgentsController
+import org.cqfn.save.orchestrator.testutils.TestConfiguration
+import org.cqfn.save.testutils.checkQueues
+import org.cqfn.save.testutils.cleanup
+import org.cqfn.save.testutils.createMockWebServer
+import org.cqfn.save.testutils.enqueue
 
 import com.github.dockerjava.api.async.ResultCallback
 import com.github.dockerjava.api.model.Frame
 import okhttp3.mockwebserver.MockResponse
-import okhttp3.mockwebserver.MockWebServer
+import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -31,8 +33,6 @@ import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.context.TestPropertySource
 import org.springframework.test.context.junit.jupiter.SpringExtension
 
-import java.time.LocalDateTime
-
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.Path
 import kotlin.io.path.createDirectory
@@ -45,9 +45,9 @@ import kotlin.io.path.pathString
 @DisabledOnOs(OS.WINDOWS, disabledReason = "Docker daemon behaves differently on Windows, and our target platform is Linux")
 @WebFluxTest(controllers = [AgentsController::class])  // to autowire everything for DockerService
 @MockBeans(
-    MockBean(AgentService::class)
+    MockBean(AgentService::class),
 )
-@Import(Beans::class, DockerService::class)
+@Import(Beans::class, DockerService::class, TestConfiguration::class)
 class DockerServiceTest {
     @Autowired private lateinit var dockerService: DockerService
     private lateinit var testImageId: String
@@ -58,15 +58,16 @@ class DockerServiceTest {
     fun `should create a container with save agent and test resources and start it`() {
         // build base image
         val project = Project.stub(null)
-        val testExecution = Execution(project, LocalDateTime.now(), LocalDateTime.now(), ExecutionStatus.PENDING, "1",
-            "foo", 20, ExecutionType.GIT, "0.0.1", 0, 0, 0, 0, Sdk.Default.toString(), null, null).apply {
+        val testExecution = Execution.stub(project).apply {
+            resourcesRootPath = "foo"
             id = 42L
         }
         testContainerId = dockerService.buildAndCreateContainers(testExecution, null).single()
-        println("Created container $testContainerId")
+        logger.debug("Created container $testContainerId")
 
         // start container and query backend
         mockServer.enqueue(
+            "/updateExecutionByDto",
             MockResponse()
                 .setResponseCode(200)
         )
@@ -107,7 +108,18 @@ class DockerServiceTest {
         private val logger = LoggerFactory.getLogger(DockerServiceTest::class.java)
 
         @JvmStatic
-        private val mockServer = MockWebServer()
+        private val mockServer = createMockWebServer()
+
+        @AfterEach
+        fun cleanup() {
+            mockServer.checkQueues()
+            mockServer.cleanup()
+        }
+
+        @AfterAll
+        fun teardown() {
+            mockServer.shutdown()
+        }
 
         @OptIn(ExperimentalPathApi::class)
         @JvmStatic

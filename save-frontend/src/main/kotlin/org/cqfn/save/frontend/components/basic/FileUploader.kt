@@ -39,6 +39,7 @@ import kotlinx.html.hidden
 import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
 import kotlinx.html.js.onDoubleClickFunction
+import kotlinx.js.jso
 
 /**
  * Props for file uploader
@@ -82,7 +83,7 @@ external interface UploaderProps : PropsWithChildren {
     /**
      * Flag to handle uploading a file
      */
-    var isUploading: Boolean
+    var isUploading: Boolean?
 }
 
 /**
@@ -171,9 +172,9 @@ fun fileUploader(
                 }
 
                 div("progress") {
-                    attrs.hidden = !props.isUploading
+                    attrs.hidden = !(props.isUploading ?: false)
                     div("progress-bar progress-bar-striped progress-bar-animated") {
-                        attrs["style"] = kotlinext.js.jsObject<CSSProperties> {
+                        attrs["style"] = jso<CSSProperties> {
                             width = if (props.suiteByteSize != 0L) {
                                 "${ (100 * props.bytesReceived / props.suiteByteSize) }%"
                             } else {

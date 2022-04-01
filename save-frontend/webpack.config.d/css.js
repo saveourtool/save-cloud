@@ -1,19 +1,20 @@
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+
 config.module.rules.push(
     {
         test: /\.scss$/,
         use: [
-            'style-loader', // creates style nodes from JS strings
+            MiniCssExtractPlugin.loader,  // creates CSS files from css-loader's output
             'css-loader', // translates CSS into CommonJS
             {
                 loader: 'postcss-loader', // Run postcss actions
                 options: {
-                    // postcss plugins, can be exported to postcss.config.js
-                    plugins: function () {
-                        return [
-                            require('autoprefixer')
-                        ];
-                    }
-                }
+                    postcssOptions: {
+                        plugins: [
+                            "autoprefixer",
+                        ],
+                    },
+                },
             },
             'sass-loader', // compiles Sass to CSS, using Node Sass by default
         ]
@@ -33,3 +34,7 @@ config.module.rules.push(
         }
     }
 );
+
+config.plugins.push(
+    new MiniCssExtractPlugin()
+)

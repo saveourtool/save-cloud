@@ -6,9 +6,16 @@ package org.cqfn.save.backend.configs
 
 import org.cqfn.save.backend.utils.ConvertingAuthenticationManager
 import org.cqfn.save.backend.utils.CustomAuthenticationBasicConverter
+import org.cqfn.save.domain.Role
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
+import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler
+import org.springframework.security.access.hierarchicalroles.RoleHierarchy
+import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl
+import org.springframework.security.access.hierarchicalroles.RoleHierarchyUtils
+import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity
 import org.springframework.security.config.web.server.SecurityWebFiltersOrder
 import org.springframework.security.config.web.server.ServerHttpSecurity
@@ -17,25 +24,29 @@ import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.server.SecurityWebFilterChain
 import org.springframework.security.web.server.authentication.AuthenticationWebFilter
 import org.springframework.security.web.server.authentication.HttpStatusServerEntryPoint
+import javax.annotation.PostConstruct
 
 @EnableWebFluxSecurity
+@EnableReactiveMethodSecurity
 @Profile("secure")
 @Suppress("MISSING_KDOC_TOP_LEVEL", "MISSING_KDOC_CLASS_ELEMENTS", "MISSING_KDOC_ON_FUNCTION")
 class WebSecurityConfig(
     private val authenticationManager: ConvertingAuthenticationManager,
 ) {
+    @Autowired
+    private lateinit var defaultMethodSecurityExpressionHandler: DefaultMethodSecurityExpressionHandler
+
     @Bean
     fun securityWebFilterChain(
         http: ServerHttpSecurity
     ): SecurityWebFilterChain = http.run {
-        // `CollectionView` is a public page
-        // all `/internal/**` requests should be sent only from internal network
-        // they are not proxied from gateway
+        // All `/internal/**` and `/actuator/**` requests should be sent only from internal network,
+        // they are not proxied from gateway.
         authorizeExchange()
-            .pathMatchers("/", "/api/projects/not-deleted", "/internal/**")
+            .pathMatchers("/", "/internal/**", "/actuator/**", *publicEndpoints.toTypedArray())
             .permitAll()
             // resources for frontend
-            .pathMatchers("/*.html", "/*.js*", "img/**")
+            .pathMatchers("/*.html", "/*.js*", "/*.css", "/img/**", "favicon.ico")
             .permitAll()
     }
         .and().run {
@@ -61,6 +72,42 @@ class WebSecurityConfig(
         .logout().disable()
         .formLogin().disable()
         .build()
+
+    fun roleHierarchy(): RoleHierarchy = mapOf(
+        Role.SUPER_ADMIN to listOf(Role.ADMIN, Role.OWNER, Role.VIEWER),
+        Role.ADMIN to listOf(Role.OWNER, Role.VIEWER),
+        Role.OWNER to listOf(Role.VIEWER),
+    )
+        .mapKeys { it.key.asSpringSecurityRole() }
+        .mapValues { it.value.map { it.asSpringSecurityRole() } }
+        .let(RoleHierarchyUtils::roleHierarchyFromMap)
+        .let {
+            RoleHierarchyImpl().apply { setHierarchy(it) }
+        }
+
+    @PostConstruct
+    fun postConstruct() {
+        defaultMethodSecurityExpressionHandler.setRoleHierarchy(roleHierarchy())
+    }
+
+    companion object {
+        /**
+         * These endpoints will have `permitAll` enabled on them. We can't selectively put `@PreAuthorize("permitAll")` in the code,
+         * because it won't allow us to configure authenticated access to all other endpoints by default.
+         * Or we can use custom AccessDecisionManager later.
+         */
+        internal val publicEndpoints = listOf(
+            "/error",
+            // `CollectionView` is a public page
+            "/api/projects/not-deleted",
+            "/api/awesome-benchmarks",
+            "/api/check-git-connectivity-adaptor",
+            "/api/allStandardTestSuites",
+            // `OrganizationView` is a public page
+            "/api/organization/**",
+            "/api/projects/get/projects-by-organization",
+        )
+    }
 }
 
 @EnableWebFluxSecurity
