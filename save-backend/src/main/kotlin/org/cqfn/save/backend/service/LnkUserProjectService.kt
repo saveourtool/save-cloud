@@ -34,12 +34,13 @@ class LnkUserProjectService(private val lnkUserProjectRepository: LnkUserProject
      *
      * @throws IllegalStateException if [role] is [Role.NONE]
      */
-    @Suppress("KDOC_WITHOUT_PARAM_TAG")
+    @Suppress("KDOC_WITHOUT_PARAM_TAG", "UnsafeCallOnNullableType")
     fun setRole(user: User, project: Project, role: Role) {
         if (role == Role.NONE) {
             throw IllegalStateException("Role NONE should not be present in database!")
         }
-        val lnkUserProject = lnkUserProjectRepository.findByUserIdAndProject(user.id!!, project)?.apply { this.role = role }
+        val lnkUserProject = lnkUserProjectRepository.findByUserIdAndProject(user.id!!, project)
+            ?.apply { this.role = role }
             ?: LnkUserProject(project, user, role)
         lnkUserProjectRepository.save(lnkUserProject)
     }

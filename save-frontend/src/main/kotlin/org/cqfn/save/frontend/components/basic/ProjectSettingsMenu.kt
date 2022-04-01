@@ -124,8 +124,7 @@ fun projectSettingsMenu(
                                             attrs.value = role.toString()
                                             attrs.selected = role == userRole
                                             +role.toString()
-                                            attrs.disabled =
-                                                role.priority >= (selfRole.priority)
+                                            attrs.disabled = role.priority >= (selfRole.priority)
                                         }
                                     }
                                 }

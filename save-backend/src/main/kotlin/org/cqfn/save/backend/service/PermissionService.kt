@@ -28,7 +28,6 @@ class PermissionService(
      */
     @Suppress("UnsafeCallOnNullableType")
     fun getRole(user: User, project: Project): Role = lnkUserProjectService.findRoleByUserIdAndProject(user.id!!, project)
-        .also { println("Role(${user.name}) is ${it.string}") }
 
     /**
      * @param organizationName

@@ -154,25 +154,6 @@ class PermissionControllerTest {
         verify(permissionService, times(0)).setRole(any(), any(), any())
     }
 
-    @Test
-    @WithMockUser
-    fun `should allow reading self role`() {
-        given(
-            user = { User(name = it.arguments[0] as String, null, null, "") },
-            project = Project.stub(id = 99),
-            permission = Permission.READ,
-        )
-        given(permissionService.getRole(any(), any())).willReturn(Role.ADMIN)
-
-        webTestClient.get()
-            .uri("/api/projects/roles/Huawei/huaweiName")
-            .exchange()
-            .expectStatus().isOk
-            .expectBody<Role>()
-            .isEqualTo(Role.ADMIN)
-        verify(permissionService, times(1)).getRole(any(), any())
-    }
-
     @Suppress("LAMBDA_IS_NOT_LAST_PARAMETER")
     private fun given(
         user: (InvocationOnMock) -> User,
