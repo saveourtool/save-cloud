@@ -34,6 +34,7 @@ external interface ProjectSettingsMenuProps : Props {
     var users: List<UserDto>
 
     /**
+
      * Flag to open Menu
      */
     var isOpen: Boolean?
