@@ -112,12 +112,12 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                 div("row") {
                     // Marketing information
                     div("col-lg-4 ml-auto mt-3 mb-5 mr-5 ml-0 text-white") {
-                        marketingTitle("Static")
+                        marketingTitle("Software")
                         marketingTitle("Analysis")
                         marketingTitle("Verification &")
                         marketingTitle("Evaluation")
                         h3("mt-4") {
-                            +"Advanced eco-system for continuous integration, evaluation and benchmarking of static analyzers."
+                            +"Advanced eco-system for continuous integration, evaluation and benchmarking of software tools."
                         }
                     }
 
