@@ -74,7 +74,7 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                             }
                                         }
                                         p("card-text mb-auto") { +"Checkout updates and new benchmarks." }
-                                        a(href = "https://github.com/analysis-dev/awesome-benchmarks/pulls?q=is%3Apr+is%3Aclosed") {
+                                        a(href = "https://github.com/analysis-dev/awesome-benchmarks/pulls") {
                                             +"Check the GitHub"
                                         }
                                     }
@@ -176,7 +176,6 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                                     div("navbar-landing mt-2") {
                                                         // FixMe: links should be limited with the length of the div
                                                         benchmark.tags.split(",").map { " #$it " }.forEach {
-                                                            // FixMe: support proper logic here
                                                             a("/#/awesome-benchmarks") {
                                                                 +it
                                                             }
