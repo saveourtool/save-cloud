@@ -2,16 +2,12 @@
  * A view related to the sign-in view
  */
 
+@file:Suppress("FILE_WILDCARD_IMPORTS", "WildcardImport")
+
 package org.cqfn.save.frontend.components.views
 
-import org.cqfn.save.frontend.components.basic.InputTypes
-import org.cqfn.save.frontend.components.basic.inputTextFormRequired
 import org.cqfn.save.frontend.components.errorStatusContext
-import org.cqfn.save.frontend.externals.fontawesome.faCopyright
-import org.cqfn.save.frontend.externals.fontawesome.faExternalLinkAlt
-import org.cqfn.save.frontend.externals.fontawesome.faGithub
-import org.cqfn.save.frontend.externals.fontawesome.faSignInAlt
-import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
+import org.cqfn.save.frontend.externals.fontawesome.*
 import org.cqfn.save.frontend.utils.decodeFromJsonString
 import org.cqfn.save.frontend.utils.get
 import org.cqfn.save.frontend.utils.noopResponseHandler
@@ -31,7 +27,6 @@ import react.RStatics
 import react.State
 import react.StateSetter
 import react.dom.a
-import react.dom.button
 import react.dom.div
 import react.dom.form
 import react.dom.h1
@@ -44,7 +39,6 @@ import react.setState
 
 import kotlinx.browser.window
 import kotlinx.coroutines.launch
-import kotlinx.html.ButtonType
 import kotlinx.js.jso
 
 /**
@@ -159,55 +153,42 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
 
         div("card-body") {
             form(classes = "needs-validation") {
-                inputTextFormRequired(
-                    InputTypes.LOGIN,
-                    state.isValidLogin!!,
-                    "col-lg ml-0 mr-0 pr-0 pl-0",
-                    "Login"
-                ) {
-                    // changeFields()
-                }
-
-                inputTextFormRequired(
-                    InputTypes.PASSWORD,
-                    state.isValidPassword!!,
-                    "col-lg ml-0 mr-0 pr-0 pl-0",
-                    "Password"
-                ) {
-                    // changeFields()
-                }
-
-                div("row text-center") {
-                    button(
-                        type = ButtonType.button,
-                        classes = "btn btn-info w-100 my-4 mb-2 ml-2 mr-2"
-                    ) {
-                        +"Sign in"
-                    }
-                }
-
                 div("mt-4 text-sm text-center") {
                     p("mb-0") {
                         +"Don't have an account?"
                     }
 
                     p("text-sm text-center") {
-                        a(classes = "text-info text-gradient font-weight-bold ml-2 mr-2") {
-                            attrs.href = "#/projects"
-                            +"Continue"
+                        h4 {
+                            a(classes = "text-info text-gradient font-weight-bold ml-2 mr-2") {
+                                attrs.href = "#/projects"
+                                +"Continue "
+                                fontAwesomeIcon(icon = faSignInAlt)
+                            }
                         }
-                        +"without registration"
+                        +"with limited functionality"
                     }
                 }
             }
         }
     }
 
+    @Suppress("TOO_LONG_FUNCTION")
     private fun RBuilder.welcomeUserView() {
         div("card-header p-0 position-relative mt-n4 mx-3 z-index-2 rounded") {
             div("bg-info shadow-primary border-radius-lg py-3 pe-1 rounded") {
                 h4("text-white font-weight-bolder text-center mt-2 mb-0") {
+                    div("row") {
+                        div("col text-center px-1") {
+                            fontAwesomeIcon(icon = faHome)
+                        }
+                    }
                     +"Welcome ${props.userInfo?.userName}!"
+                }
+            }
+            div("row") {
+                div("col text-center px-1") {
+                    fontAwesomeIcon(icon = faHome)
                 }
             }
         }
@@ -219,6 +200,22 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                     h4 {
                         +"List of Projects"
                         fontAwesomeIcon(icon = faExternalLinkAlt, "ml-2")
+                    }
+                }
+
+                a(classes = "text-info text-gradient font-weight-bold ml-2 mr-2") {
+                    attrs.href = "/#/awesome-benchmarks"
+                    h4 {
+                        +"Benchmarks Archive"
+                        fontAwesomeIcon(icon = faFolderOpen, "ml-2")
+                    }
+                }
+
+                a(classes = "text-info text-gradient font-weight-bold ml-2 mr-2") {
+                    attrs.href = "/#"
+                    h4 {
+                        +"User Settings"
+                        fontAwesomeIcon(icon = faUser, "ml-2")
                     }
                 }
             }
