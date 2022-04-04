@@ -5,6 +5,9 @@ dockerTag: 0.2.0-alpha.0.250-6d8ca62
 env: staging
 profile: dev
 backend:
+  containerPort: 5000
+gateway:
+  containerPort: 5300
 storage:
   size: 10Gi
 

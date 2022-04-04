@@ -21,7 +21,7 @@ spec:
           image: '{{ .Values.imageRegistry }}/save-backend:{{ .Values.dockerTag }}'
           name: backend
           ports:
-            - containerPort: 5000
+            - containerPort: {{ .Values.backend.containerPort }}
           volumeMounts:
             - name: config-volume
               mountPath: /home/cnb/config
@@ -31,19 +31,7 @@ spec:
               # https://github.com/kubernetes/kubernetes/issues/65835#issuecomment-411399356
               # should un-hardcode path to secrets from env postprocessor
               mountPath: /home/cnb/secrets
-          livenessProbe:
-            httpGet:
-              path: /actuator/health/liveness
-              port: 5000
-          readinessProbe:
-            httpGet:
-              path: /actuator/health/readiness
-              port: 5000
-          lifecycle:
-            preStop:
-              exec:
-                # wait till spring finishes gracefully with `server.shutdown=graceful`
-                command: ["sh", "-c", "'sleep 10'"]
+          {{- include "deployment.props" .Values.backend | nindent 10 }}
       volumes:
       - name: config-volume
         configMap:
