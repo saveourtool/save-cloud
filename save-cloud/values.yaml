@@ -7,6 +7,8 @@ profile: dev
 backend:
   # todo: Kubernetes secrets
   password: 123
+storage:
+  size: 10Gi
 
 grafana:
   image:

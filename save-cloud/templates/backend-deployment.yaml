@@ -25,6 +25,8 @@ spec:
           volumeMounts:
             - name: config-volume
               mountPath: /home/cnb/config
+            - name: fs-storage
+              mountPath: /home/cnb/files
           livenessProbe:
             httpGet:
               path: /actuator/health/liveness
@@ -42,4 +44,7 @@ spec:
         - name: config-volume
           configMap:
             name: backend-config
+        - name: fs-storage
+          persistentVolumeClaim:
+            claimName: save-fs-storage
       restartPolicy: Always
