@@ -109,11 +109,25 @@ class WebSecurityConfig(
                 RedirectServerAuthenticationFailureHandler("/error")
             )
         }
+        .httpBasic {
+            val user = configurationProperties.basicCredentials?.split(' ')?.run {
+                User(first(), last(), emptyList())
+            }
+            if (user != null) {
+                it.authenticationManager(
+                    UserDetailsRepositoryReactiveAuthenticationManager(
+                        MapReactiveUserDetailsService(user)
+                    )
+                )
+            }
+
+        }
         .logout {
             // fixme: when frontend can handle logout without reloading, use `RedirectServerLogoutSuccessHandler` here
             it.logoutSuccessHandler(HttpStatusReturningServerLogoutSuccessHandler(HttpStatus.OK))
         }
         .build()
+
     @Bean
     @Order(2)
     @Suppress("AVOID_NULL_CHECKS")

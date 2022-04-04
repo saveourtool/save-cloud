@@ -12,13 +12,21 @@ import java.security.Principal
 /**
  * @return username extracted from this [Principal]
  */
-fun Principal.userName(): String = (this as? OAuth2AuthenticationToken)
-    ?.principal
-    ?.name
-    ?: this.name
+fun Principal.userName(): String  {
+    return when (this) {
+        is OAuth2AuthenticationToken -> (this as? OAuth2AuthenticationToken)
+            ?.principal
+            ?.name
+            ?: this.name
+//        is UsernamePasswordAuthenticationToken -> (this as? UsernamePasswordAuthenticationToken)
+//            ?.name
+//            ?: this.name
+        else -> this.name
+    }
+}
 
 /**
- * @return stirng representation of source of this [Authentication]
+ * @return string representation of source of this [Authentication]
  */
 fun Authentication.toIdentitySource(): String = when (this) {
     is OAuth2AuthenticationToken -> authorizedClientRegistrationId
