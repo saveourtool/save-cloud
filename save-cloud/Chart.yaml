@@ -1,7 +1,8 @@
 apiVersion: v1
 name: save-cloud
 description: Helm chart for SAVE Cloud service
-version: 0.2.0-alpha.0.blah
+# todo: separate versioning of charts or aligned with project version?
+version: 0.1.0
 sources:
   - https://github.com/analysis-dev/save-cloud
   - https://github.com/analysis-dev/save-cli
