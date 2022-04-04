@@ -22,4 +22,27 @@ spec:
           name: gateway
           ports:
             - containerPort: 5300
+          volumeMounts:
+            - name: config-volume
+              mountPath: /home/cnb/config
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 5300
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 5300
+          lifecycle:
+            preStop:
+              exec:
+                # wait till spring finishes gracefully with `server.shutdown=graceful`
+                command: ["sh", "-c", "'sleep 10'"]
+      volumes:
+        - name: config-volume
+          configMap:
+            name: gateway-config
+            items:
+              - key: application.properties
+                path: application.properties
       restartPolicy: Always
