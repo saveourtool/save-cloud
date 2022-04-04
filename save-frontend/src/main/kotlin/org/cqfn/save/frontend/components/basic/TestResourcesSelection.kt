@@ -72,11 +72,13 @@ private fun RBuilder.setAdditionalPropertiesForStandardMode(
     }
 
     input(type = inputType, name = "itemText") {
-        attrs.defaultValue = "1"
+        // workaround to have a default value for Batch field
+        if (labelText.isNotEmpty()) {
+            attrs.defaultValue = "1"
+        }
         key = "itemText"
         attrs["min"] = 1
         attrs["class"] = "form-control"
-        // workaround to have a dafault value for Batch field
         if (tooltipText.isNotBlank()) {
             attrs["data-toggle"] = "tooltip"
             attrs["data-placement"] = "right"
