@@ -18,7 +18,7 @@ ServerAuthenticationConverter {
         val name = (it as UsernamePasswordAuthenticationToken).principal as String
         val source = exchange.request.headers["X-Authorization-Source"]?.firstOrNull()
         UsernamePasswordAuthenticationToken(
-            "$source:$name",
+            "$source:$name", // TODO password
             it.credentials as String
         ).apply {
             details = AuthenticationDetails(

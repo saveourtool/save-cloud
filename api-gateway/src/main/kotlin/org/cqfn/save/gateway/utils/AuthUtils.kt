@@ -18,9 +18,6 @@ fun Principal.userName(): String  {
             ?.principal
             ?.name
             ?: this.name
-//        is UsernamePasswordAuthenticationToken -> (this as? UsernamePasswordAuthenticationToken)
-//            ?.name
-//            ?: this.name
         else -> this.name
     }
 }

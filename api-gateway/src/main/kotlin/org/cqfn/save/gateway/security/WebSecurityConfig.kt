@@ -4,22 +4,27 @@
 
 package org.cqfn.save.gateway.security
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.cqfn.save.gateway.config.ConfigurationProperties
 import org.cqfn.save.gateway.utils.StoringServerAuthenticationSuccessHandler
-
 import org.springframework.context.annotation.Bean
 import org.springframework.core.annotation.Order
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.security.authentication.UserDetailsRepositoryReactiveAuthenticationManager
 import org.springframework.security.authorization.AuthenticatedReactiveAuthorizationManager
 import org.springframework.security.authorization.AuthorizationDecision
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity
 import org.springframework.security.config.web.server.ServerHttpSecurity
 import org.springframework.security.core.userdetails.MapReactiveUserDetailsService
+import org.springframework.security.core.userdetails.ReactiveUserDetailsService
 import org.springframework.security.core.userdetails.User
+import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.crypto.factory.PasswordEncoderFactories
 import org.springframework.security.crypto.password.PasswordEncoder
+import org.springframework.security.jackson2.CoreJackson2Module
+import org.springframework.security.oauth2.client.jackson2.OAuth2ClientJackson2Module
 import org.springframework.security.web.server.SecurityWebFilterChain
 import org.springframework.security.web.server.authentication.DelegatingServerAuthenticationSuccessHandler
 import org.springframework.security.web.server.authentication.HttpStatusServerEntryPoint
@@ -32,6 +37,10 @@ import org.springframework.security.web.server.util.matcher.NegatedServerWebExch
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatcher
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatcher.MatchResult
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers
+import org.springframework.web.reactive.function.client.WebClient
+import org.springframework.web.reactive.function.client.bodyToMono
+import org.springframework.web.server.ResponseStatusException
+import reactor.core.publisher.Mono
 
 @EnableWebFluxSecurity
 @Suppress(
@@ -44,6 +53,12 @@ import org.springframework.security.web.server.util.matcher.ServerWebExchangeMat
 class WebSecurityConfig(
     private val configurationProperties: ConfigurationProperties,
 ) {
+    private val objectMapper = ObjectMapper()
+        .findAndRegisterModules()
+        .registerModule(CoreJackson2Module())
+        .registerModule(OAuth2ClientJackson2Module())
+    private val webClient = WebClient.create(configurationProperties.backend.url)
+
     @Bean
     @Order(1)
     fun securityWebFilterChain(
@@ -110,16 +125,24 @@ class WebSecurityConfig(
             )
         }
         .httpBasic {
-            val user = configurationProperties.basicCredentials?.split(' ')?.run {
-                User(first(), last(), emptyList())
-            }
-            if (user != null) {
                 it.authenticationManager(
                     UserDetailsRepositoryReactiveAuthenticationManager(
-                        MapReactiveUserDetailsService(user)
+                        object : ReactiveUserDetailsService {
+                            override fun findByUsername(username: String): Mono<UserDetails> {
+                                return webClient.post()
+                                    .uri("/internal/users/new")
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .bodyValue(objectMapper.writeValueAsString(username))
+                                    .retrieve()
+                                    .onStatus({ it.is4xxClientError }) {
+                                        Mono.error(ResponseStatusException(it.statusCode()))
+                                    }
+                                    .bodyToMono()
+                            }
+                        }
                     )
                 )
-            }
+
 
         }
         .logout {

@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import java.util.*
 
 /**
  * Controller that handles operation with users
@@ -31,6 +32,18 @@ class UsersController(
         }) {
             logger.info("Saving user $userName to the DB")
             userRepository.save(user)
+        }
+    }
+
+    /**
+     * Find user by name
+     *
+     * @param username
+     */
+    @PostMapping("/{username}")
+    fun findByUsername(@RequestBody username: String): User? {
+        return userRepository.findByName(username).orElseThrow {
+            IllegalArgumentException("User $username is not present in the DB")
         }
     }
 }
