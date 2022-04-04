@@ -27,6 +27,10 @@ spec:
               mountPath: /home/cnb/config
             - name: fs-storage
               mountPath: /home/cnb/files
+            - name: database-secret
+              # https://github.com/kubernetes/kubernetes/issues/65835#issuecomment-411399356
+              # should un-hardcode path to secrets from env postprocessor
+              mountPath: /home/cnb/secrets
           livenessProbe:
             httpGet:
               path: /actuator/health/liveness
@@ -41,10 +45,13 @@ spec:
                 # wait till spring finishes gracefully with `server.shutdown=graceful`
                 command: ["sh", "-c", "'sleep 10'"]
       volumes:
-        - name: config-volume
-          configMap:
-            name: backend-config
-        - name: fs-storage
-          persistentVolumeClaim:
-            claimName: save-fs-storage
+      - name: config-volume
+        configMap:
+          name: backend-config
+      - name: fs-storage
+        persistentVolumeClaim:
+          claimName: save-fs-storage
+      - name: database-secret
+        secret:
+          secretName: db-secrets
       restartPolicy: Always
