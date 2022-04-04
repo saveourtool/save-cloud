@@ -63,7 +63,7 @@ private fun RBuilder.setAdditionalPropertiesForStandardMode(
     inputType: InputType,
     onChangeFunc: (Event) -> Unit
 ) = div("input-group mb-3") {
-    if (labelText != "") {
+    if (labelText.isNotEmpty()) {
         div("input-group-prepend") {
             label("input-group-text") {
                 +labelText
@@ -72,13 +72,11 @@ private fun RBuilder.setAdditionalPropertiesForStandardMode(
     }
 
     input(type = inputType, name = "itemText") {
+        attrs.defaultValue = "1"
         key = "itemText"
         attrs["min"] = 1
         attrs["class"] = "form-control"
         // workaround to have a dafault value for Batch field
-        if (labelText != "") {
-            attrs["value"] = 1
-        }
         if (tooltipText.isNotBlank()) {
             attrs["data-toggle"] = "tooltip"
             attrs["data-placement"] = "right"
