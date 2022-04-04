@@ -63,6 +63,7 @@ jobs:
             -x :save-agent:linkDebugExecutableLinuxX64
             -Porg.gradle.caching=true
             -Pdetekt.multiplatform.disabled=true
+            --scan
 
       - name: Upload gradle reports
         if: ${{ always() }}
