@@ -59,10 +59,21 @@ private fun RBuilder.setAdditionalPropertiesForStandardMode(
     value: String,
     placeholder: String,
     tooltipText: String,
+    labelText: String,
+    inputType: InputType,
     onChangeFunc: (Event) -> Unit
-) = div("input-group-prepend") {
-    input(type = InputType.text, name = "itemText") {
+) = div("input-group mb-3") {
+    if (labelText != "") {
+        div("input-group-prepend") {
+            label("input-group-text") {
+                +labelText
+            }
+        }
+    }
+
+    input(type = inputType, name = "itemText") {
         key = "itemText"
+        attrs["min"] = 1
         attrs["class"] = "form-control"
         if (tooltipText.isNotBlank()) {
             attrs["data-toggle"] = "tooltip"
@@ -232,16 +243,32 @@ fun testResourcesSelection(
             div {
                 attrs.classes = cardStyleByTestingType(props, TestingType.STANDARD_BENCHMARKS)
                 div("card-body") {
-                    child(suitesTable(
-                        props.standardTestSuites,
-                        props.selectedLanguageForStandardTests,
-                        setSelectedLanguageForStandardTests
-                    )) {}
+                    child(
+                        suitesTable(
+                            props.standardTestSuites,
+                            props.selectedLanguageForStandardTests,
+                            setSelectedLanguageForStandardTests
+                        )
+                    ) {}
 
-                    setAdditionalPropertiesForStandardMode(props.execCmd, "Execution command:", "", setExecCmd)
+                    setAdditionalPropertiesForStandardMode(
+                        props.execCmd,
+                        "Execution command",
+                        "Execution command that will be used to run the tool and tests",
+                        "",
+                        InputType.text,
+                        setExecCmd
+                    )
                     val toolTipTextForBatchSize = "Batch size controls how many files will be processed at the same time." +
                             " To know more about batch size, please visit: https://github.com/analysis-dev/save."
-                    setAdditionalPropertiesForStandardMode(props.batchSizeForAnalyzer, "Batch size (default: 1)", toolTipTextForBatchSize, setBatchSize)
+                    setAdditionalPropertiesForStandardMode(
+                        props.batchSizeForAnalyzer,
+                        "",
+                        toolTipTextForBatchSize,
+                        "Batch size (default: 1):",
+                        InputType.number,
+                        setBatchSize
+                    )
 
                     child(checkBoxGrid(props.standardTestSuites, props.selectedLanguageForStandardTests)) {
                         attrs.selectedStandardSuites = props.selectedStandardSuites
