@@ -358,6 +358,10 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                             errorMessage = "Failed to save project info: ${response.status} ${response.statusText}"
                             isErrorOpen = true
                         }
+                    } else {
+                        setState {
+                            isOpenMenuSettings = false
+                        }
                     }
                 }
             }

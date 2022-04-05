@@ -85,13 +85,41 @@ fun projectSettingsMenu(
 
     val (users, setUsers) = useState(props.users)
 
-    getUsers(props, setUsers, openMenuSettingsFlag)
+    val getUsers = useRequest {
+        if (props.isOpen != true) {
+            val usersFromDb = get(
+                url = "$apiUrl/projects/${props.project.organization.name}/${props.project.name}/users",
+                headers = Headers().also {
+                    it.set("Accept", "application/json")
+                },
+            )
+                .unsafeMap {
+                    it.decodeFromJsonString<List<UserInfo>>()
+                }
+            setUsers(usersFromDb)
+            openMenuSettingsFlag(true)
+        }
+    }
+
+    getUsers()
 
     val projectPath = props.project.let { "${it.organization.name}/${it.name}" }
 
     val (selfRole, setSelfRole) = useState(props.selfRole)
 
-    getSelfRole(projectPath, setSelfRole)
+    useRequest(isDeferred = false) {
+        val role = get(
+            "$apiUrl/projects/roles/$projectPath",
+            headers = Headers().also {
+                it.set("Accept", "application/json")
+            },
+        )
+            .unsafeMap {
+                it.decodeFromJsonString<String>()
+            }
+            .toRole()
+        setSelfRole(role)
+    }()
 
     div("row justify-content-center mb-2") {
         // ===================== LEFT COLUMN =======================================================================
@@ -228,7 +256,7 @@ fun projectSettingsMenu(
                             attrs.onClickFunction = {
                                 if (permissionsChanged.isNotEmpty()) {
                                     updatePermissions(permissionsChanged)
-                                    getUsers(props, setUsers, openMenuSettingsFlag)
+                                    getUsers()
                                     permissionsChanged = mutableMapOf()
                                 }
                                 updateProjectSettings(props.project.copy(
@@ -252,42 +280,4 @@ fun projectSettingsMenu(
             })
         }
     }
-}
-@Suppress("TYPE_ALIAS")
-private fun getUsers(
-    props: ProjectSettingsMenuProps,
-    setUsers: StateSetter<List<UserInfo>>,
-    openMenuSettingsFlag: (isOpen: Boolean) -> Unit,
-) {
-    useRequest(isDeferred = false) {
-        if (props.isOpen != true) {
-            val usersFromDb = get(
-                url = "$apiUrl/projects/${props.project.organization.name}/${props.project.name}/users",
-                headers = Headers().also {
-                    it.set("Accept", "application/json")
-                },
-            )
-                .unsafeMap {
-                    it.decodeFromJsonString<List<UserInfo>>()
-                }
-            setUsers(usersFromDb)
-            openMenuSettingsFlag(true)
-        }
-    }()
-}
-
-private fun getSelfRole(projectPath: String, setSelfRole: StateSetter<Role>) {
-    useRequest(isDeferred = false) {
-        val role = get(
-            "$apiUrl/projects/roles/$projectPath",
-            headers = Headers().also {
-                it.set("Accept", "application/json")
-            },
-        )
-            .unsafeMap {
-                it.decodeFromJsonString<String>()
-            }
-            .toRole()
-        setSelfRole(role)
-    }()
 }
