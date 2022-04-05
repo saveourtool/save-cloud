@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    io.kompose.service: preprocessor
+    prometheus-job: save-preprocessor
+  name: preprocessor
+spec:
+  selector:
+    matchLabels:
+      io.kompose.service: preprocessor
+  template:
+    metadata:
+      labels:
+        io.kompose.service: preprocessor
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: preprocessor
+          {{- include "spring-boot.common" (merge (dict "service" .Values.preprocessor) .) | nindent 10 }}
+          volumeMounts:
+            - name: repos-storage
+              mountPath: /home/cnb
+          {{- include "spring-boot.management" .Values.preprocessor | nindent 10 }}
+      volumes:
+        - {{- include "spring-boot.config-volume" (dict "service" .Values.preprocessor) | indent 10 }}
+        - name: repos-storage
+          persistentVolumeClaim:
+            claimName: repos-storage

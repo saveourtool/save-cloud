@@ -8,12 +8,18 @@ backend:
   name: backend
   imageName: save-backend
   containerPort: 5000
+preprocessor:
+  name: preprocessor
+  imageName: save-preprocessor
+  containerPort: 5100
 gateway:
   name: gateway
   imageName: api-backend
   containerPort: 5300
 storage:
   size: 10Gi
+reposStorage:
+  size: 2Gi
 
 grafana:
   image:
