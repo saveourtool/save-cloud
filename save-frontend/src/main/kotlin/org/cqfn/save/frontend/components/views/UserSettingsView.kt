@@ -5,6 +5,9 @@
 package org.cqfn.save.frontend.components.views
 
 import org.cqfn.save.domain.ImageInfo
+import org.cqfn.save.frontend.components.basic.InputTypes
+import org.cqfn.save.frontend.components.basic.cardComponent
+import org.cqfn.save.frontend.http.getUser
 import org.cqfn.save.frontend.utils.*
 import org.cqfn.save.info.UserInfo
 
@@ -12,15 +15,20 @@ import csstype.Position
 import csstype.TextAlign
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.asList
+import org.w3c.dom.events.Event
 import org.w3c.fetch.Headers
 import org.w3c.xhr.FormData
 import react.*
 import react.dom.*
 
 import kotlinx.coroutines.launch
+import kotlinx.html.ButtonType
 import kotlinx.html.InputType
 import kotlinx.html.hidden
 import kotlinx.html.js.onChangeFunction
+import kotlinx.html.js.onClickFunction
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 /**
  * `Props` retrieved from router
@@ -30,7 +38,7 @@ external interface UserSettingsProps : PropsWithChildren {
     /**
      * Currently logged in user or null
      */
-    var userInfo: UserInfo?
+    var userName: String?
 }
 
 /**
@@ -47,20 +55,38 @@ external interface UserSettingsViewState : State {
      * Image to owner avatar
      */
     var image: ImageInfo?
+
+    /**
+     * Currently logged in user or null
+     */
+    var userInfo: UserInfo?
 }
 
 @Suppress("MISSING_KDOC_TOP_LEVEL")
 class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsViewState>(false) {
+    private val fieldsMap: MutableMap<InputTypes, String> = mutableMapOf()
+
     init {
         state.isUploading = false
+    }
+
+    private fun changeFields(
+        fieldName: InputTypes,
+        target: Event,
+    ) {
+        val tg = target.target as HTMLInputElement
+        val value = tg.value
+        fieldsMap[fieldName] = value
     }
 
     override fun componentDidMount() {
         super.componentDidMount()
         scope.launch {
             val avatar = getAvatar()
+            val user = props.userName?.let { getUser(it) }
             setState {
                 image = avatar
+                userInfo = user
             }
         }
     }
@@ -69,7 +95,7 @@ class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsViewState>(
     override fun RBuilder.render() {
         div("d-sm-flex align-items-center justify-content-center mb-4") {
             h1("h3 mb-0 text-gray-800") {
-                +"${props.userInfo?.userName}"
+                +"${props.userName}"
             }
         }
 
@@ -115,7 +141,58 @@ class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsViewState>(
                 div("text-xs text-center font-weight-bold text-primary text-uppercase mb-3") {
                     +"Profile info"
                 }
+
+                child(cardComponent(isBordered = false, hasBg = true) {
+                    div("row mt-2 ml-2 mr-2") {
+                        div("col-5 text-left align-self-center") {
+                            +"User email:"
+                        }
+                        div("col-7 input-group pl-0") {
+                            input(type = InputType.email) {
+                                attrs["class"] = "form-control"
+                                attrs {
+                                    state.userInfo?.email?.let {
+                                        defaultValue = it
+                                    }
+                                    placeholder = "email@example.com"
+                                    onChangeFunction = {
+                                        changeFields(InputTypes.USER_EMAIL, it)
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    hr("") {}
+                    div("row d-flex justify-content-center") {
+                        div("col-3 d-sm-flex align-items-center justify-content-center") {
+                            button(type = ButtonType.button, classes = "btn btn-sm btn-primary") {
+                                attrs.onClickFunction = {
+                                    updateUser()
+                                }
+                                attrs.disabled = fieldsMap.isEmpty()
+                                +"Save changes"
+                            }
+                        }
+                    }
+                })
             }
+        }
+    }
+
+    private fun updateUser() {
+        val newUserInfo = UserInfo(
+            state.userInfo!!.userName,
+            fieldsMap[InputTypes.USER_EMAIL]?.trim(),
+            state.userInfo!!.avatar,
+        )
+
+        val headers = Headers().also {
+            it.set("Accept", "application/json")
+            it.set("Content-Type", "application/json")
+        }
+        scope.launch {
+            post("$apiUrl/users/save", headers, Json.encodeToString(newUserInfo))
         }
     }
 
@@ -126,7 +203,7 @@ class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsViewState>(
                 }
                 element.files!!.asList().single().let { file ->
                     val response: ImageInfo? = post(
-                        "$apiUrl/image/upload?owner=${props.userInfo?.userName}&isOrganization=false",
+                        "$apiUrl/image/upload?owner=${props.userName}&isOrganization=false",
                         Headers(),
                         FormData().apply {
                             append("file", file)
@@ -142,7 +219,7 @@ class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsViewState>(
                 }
             }
 
-    private suspend fun getAvatar() = get("$apiUrl/users/${props.userInfo?.userName}/avatar", Headers(),
+    private suspend fun getAvatar() = get("$apiUrl/users/${props.userName}/avatar", Headers(),
         responseHandler = ::noopResponseHandler)
         .unsafeMap {
             it.decodeFromJsonString<ImageInfo>()

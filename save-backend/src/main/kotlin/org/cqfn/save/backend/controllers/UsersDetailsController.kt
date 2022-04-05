@@ -2,11 +2,9 @@ package org.cqfn.save.backend.controllers
 
 import org.cqfn.save.backend.repository.UserRepository
 import org.cqfn.save.domain.ImageInfo
+import org.cqfn.save.info.UserInfo
 import org.springframework.security.access.prepost.PreAuthorize
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Mono
 
 /**
@@ -19,12 +17,33 @@ class UsersDetailsController(
 ) {
     /**
      * @param userName username
-     * @return [ImageInfo] about organization's avatar
+     * @return [ImageInfo] about user's avatar
      */
     @GetMapping("/{userName}/avatar")
     @PreAuthorize("permitAll()")
     fun avatar(@PathVariable userName: String): Mono<ImageInfo> = Mono.fromCallable {
         userRepository.findByName(userName).get().avatar
             .let { ImageInfo(it) }
+    }
+
+    /**
+     * @param userName username
+     * @return [UserInfo] info about user's
+     */
+    @GetMapping("/{userName}")
+    @PreAuthorize("permitAll()")
+    fun findByName(@PathVariable userName: String): Mono<UserInfo> = Mono.fromCallable {
+        userRepository.findByName(userName).get().toUserInfo()
+    }
+
+    /**
+     * @param newUserInfo
+     */
+    @PostMapping("/save")
+    fun saveUser(@RequestBody newUserInfo: UserInfo) {
+        val user = userRepository.findByName(newUserInfo.userName).get()
+        userRepository.save(user.apply {
+            email = newUserInfo.email
+        })
     }
 }

@@ -39,9 +39,13 @@
         <addUniqueConstraint tableName="user" columnNames="name,source"/>
     </changeSet>
 
-    <changeSet id="user-avatar" author="frolov" context="dev or prod">
+    <changeSet id="user-add-column-1" author="frolov" context="dev or prod">
         <addColumn tableName="user">
             <column name="avatar" type="varchar(250)"/>
+        </addColumn>
+
+        <addColumn tableName="user">
+            <column name="email" type="varchar(250)"/>
         </addColumn>
     </changeSet>
 

@@ -7,9 +7,11 @@ import kotlinx.serialization.Serializable
  *
  * @property userName name/login of the user
  * @property avatar avatar of user
+ * @property email
  */
 @Serializable
 data class UserInfo(
     val userName: String,
+    val email: String? = null,
     val avatar: String? = null,
 )
