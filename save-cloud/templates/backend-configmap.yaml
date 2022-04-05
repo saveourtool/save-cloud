@@ -4,5 +4,7 @@ metadata:
   name: {{ .Values.backend.name }}-config
 data:
   application.properties: |
+    #backend.preprocessorUrl=http://preprocessor.save-cloud.svc.minikube.local:5200
+    backend.preprocessorUrl=http://save-preprocessor.save-cloud:5200
     server.shutdown=graceful
     management.endpoints.web.exposure.include=*
