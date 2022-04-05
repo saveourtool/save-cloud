@@ -1,4 +1,5 @@
-{{- define "deployment.props" -}}
+{{/* Common configuration of Kubernetes related things in spring-boot */}}
+{{- define "spring-boot.management" -}}
 livenessProbe:
   httpGet:
     path: /actuator/health/liveness
@@ -12,4 +13,17 @@ lifecycle:
     exec:
       # wait till spring finishes gracefully with `server.shutdown=graceful`
       command: ["sh", "-c", "'sleep 10'"]
+{{- end }}
+
+{{/* Common configuration of deployment for spring-boot microservice */}}
+{{- define "spring-boot.common" -}}
+image: '{{ .Values.imageRegistry }}/{{ .service.imageName }}:{{ .Values.dockerTag }}'
+env:
+  - name: SPRING_PROFILES_ACTIVE
+    value: {{ .Values.profile }}
+ports:
+  - containerPort:  {{ .service.containerPort }}
+volumeMounts:
+  - name: config-volume
+    mountPath: /home/cnb/config
 {{- end }}

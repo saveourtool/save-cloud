@@ -14,24 +14,18 @@ spec:
       labels:
         io.kompose.service: backend
     spec:
+      restartPolicy: Always
       containers:
-        - env:
-            - name: SPRING_PROFILES_ACTIVE
-              value: {{ .Values.profile }}
-          image: '{{ .Values.imageRegistry }}/save-backend:{{ .Values.dockerTag }}'
-          name: backend
-          ports:
-            - containerPort: {{ .Values.backend.containerPort }}
+        - name: backend
+          {{- include "spring-boot.common" (merge (dict "service" .Values.backend) .) | nindent 10 }}
           volumeMounts:
-            - name: config-volume
-              mountPath: /home/cnb/config
             - name: fs-storage
               mountPath: /home/cnb/files
             - name: database-secret
               # https://github.com/kubernetes/kubernetes/issues/65835#issuecomment-411399356
               # should un-hardcode path to secrets from env postprocessor
               mountPath: /home/cnb/secrets
-          {{- include "deployment.props" .Values.backend | nindent 10 }}
+          {{- include "spring-boot.management" .Values.backend | nindent 10 }}
       volumes:
       - name: config-volume
         configMap:
@@ -42,4 +36,3 @@ spec:
       - name: database-secret
         secret:
           secretName: db-secrets
-      restartPolicy: Always

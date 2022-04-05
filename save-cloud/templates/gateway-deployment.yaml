@@ -14,18 +14,11 @@ spec:
       labels:
         io.kompose.service: gateway
     spec:
+      restartPolicy: Always
       containers:
-        - env:
-            - name: SPRING_PROFILES_ACTIVE
-              value: {{ .Values.profile }}
-          image: '{{ .Values.imageRegistry }}/api-gateway:{{ .Values.dockerTag }}'
-          name: gateway
-          ports:
-            - containerPort:  {{ .Values.gateway.containerPort }}
-          volumeMounts:
-            - name: config-volume
-              mountPath: /home/cnb/config
-          {{- include "deployment.props" .Values.gateway | nindent 10 }}
+        - name: gateway
+          {{- include "spring-boot.common" (merge (dict "service" .Values.gateway) .) | nindent 10 }}
+          {{- include "spring-boot.management" .Values.gateway | nindent 10 }}
       volumes:
         - name: config-volume
           configMap:
@@ -33,4 +26,3 @@ spec:
             items:
               - key: application.properties
                 path: application.properties
-      restartPolicy: Always
