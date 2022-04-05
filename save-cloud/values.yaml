@@ -5,9 +5,11 @@ dockerTag: 0.2.0-alpha.0.250-6d8ca62
 env: staging
 profile: dev
 backend:
+  name: backend
   imageName: save-backend
   containerPort: 5000
 gateway:
+  name: gateway
   imageName: api-backend
   containerPort: 5300
 storage:

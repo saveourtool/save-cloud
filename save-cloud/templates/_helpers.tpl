@@ -27,3 +27,12 @@ volumeMounts:
   - name: config-volume
     mountPath: /home/cnb/config
 {{- end }}
+
+{{- define "spring-boot.config-volume" -}}
+name: config-volume
+configMap:
+  name: {{ .service.name }}-config
+  items:
+    - key: application.properties
+      path: application.properties
+{{- end}}

@@ -20,9 +20,4 @@ spec:
           {{- include "spring-boot.common" (merge (dict "service" .Values.gateway) .) | nindent 10 }}
           {{- include "spring-boot.management" .Values.gateway | nindent 10 }}
       volumes:
-        - name: config-volume
-          configMap:
-            name: gateway-config
-            items:
-              - key: application.properties
-                path: application.properties
+        - {{- include "spring-boot.config-volume" (dict "service" .Values.gateway) | indent 10 }}

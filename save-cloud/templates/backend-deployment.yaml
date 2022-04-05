@@ -27,12 +27,10 @@ spec:
               mountPath: /home/cnb/secrets
           {{- include "spring-boot.management" .Values.backend | nindent 10 }}
       volumes:
-      - name: config-volume
-        configMap:
-          name: backend-config
-      - name: fs-storage
-        persistentVolumeClaim:
-          claimName: save-fs-storage
-      - name: database-secret
-        secret:
-          secretName: db-secrets
+        - {{- include "spring-boot.config-volume" (dict "service" .Values.backend) | indent 10 }}
+        - name: fs-storage
+          persistentVolumeClaim:
+            claimName: save-fs-storage
+        - name: database-secret
+          secret:
+            secretName: db-secrets
