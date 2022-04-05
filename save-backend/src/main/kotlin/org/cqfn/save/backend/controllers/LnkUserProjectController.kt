@@ -30,8 +30,9 @@ class LnkUserProjectController(
     private val logger = LoggerFactory.getLogger(LnkUserProjectController::class.java)
 
     /**
-     * @param projectName
      * @param organizationName
+     * @param projectName
+     * @param authentication
      * @return list of users with their roles, connected to the project
      * @throws NoSuchElementException
      */
