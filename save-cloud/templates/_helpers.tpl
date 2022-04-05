@@ -1,5 +1,19 @@
+{{- define "common.labels" -}}
+io.kompose.service: {{ .service.name }}
+version: {{ .Values.dockerTag }}
+env: {{ .Values.env }}
+prometheus-job: {{ .service.imageName }}
+{{- end }}
+
 {{/* Common configuration of Kubernetes related things in spring-boot */}}
 {{- define "spring-boot.management" -}}
+startupProbe:
+  # give spring-boot enough time to start
+  httpGet:
+    path: /actuator/health/liveness
+    port: {{ .containerPort }}
+  failureThreshold: 10
+  periodSeconds: 10
 livenessProbe:
   httpGet:
     path: /actuator/health/liveness
@@ -12,7 +26,7 @@ lifecycle:
   preStop:
     exec:
       # wait till spring finishes gracefully with `server.shutdown=graceful`
-      command: ["sh", "-c", "'sleep 10'"]
+      command: ["sh", "-c", "sleep 10"]
 {{- end }}
 
 {{/* Common configuration of deployment for spring-boot microservice */}}
@@ -23,9 +37,11 @@ env:
     value: {{ .Values.profile }}
 ports:
   - containerPort:  {{ .service.containerPort }}
-volumeMounts:
-  - name: config-volume
-    mountPath: /home/cnb/config
+{{- end }}
+
+{{- define "spring-boot.config-volume-mount" -}}
+name: config-volume
+mountPath: /home/cnb/config
 {{- end }}
 
 {{- define "spring-boot.config-volume" -}}

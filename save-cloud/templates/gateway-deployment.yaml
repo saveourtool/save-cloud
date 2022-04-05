@@ -1,10 +1,9 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  labels:
-    io.kompose.service: gateway
-    prometheus-job: api-gateway
   name: gateway
+  labels:
+    {{- include "common.labels" (merge (dict "service" .Values.gateway) .) | nindent 4 }}
 spec:
   selector:
     matchLabels:
@@ -19,5 +18,7 @@ spec:
         - name: gateway
           {{- include "spring-boot.common" (merge (dict "service" .Values.gateway) .) | nindent 10 }}
           {{- include "spring-boot.management" .Values.gateway | nindent 10 }}
+          volumeMounts:
+            - {{ include "spring-boot.config-volume-mount" . | indent 14 | trim }}
       volumes:
-        - {{- include "spring-boot.config-volume" (dict "service" .Values.gateway) | indent 10 }}
+        - {{ include "spring-boot.config-volume" (dict "service" .Values.gateway) | indent 10 | trim }}

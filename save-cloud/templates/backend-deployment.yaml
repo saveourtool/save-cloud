@@ -1,10 +1,9 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  labels:
-    io.kompose.service: backend
-    prometheus-job: save-backend
   name: backend
+  labels:
+    {{- include "common.labels" (merge (dict "service" .Values.backend) .) | nindent 4 }}
 spec:
   selector:
     matchLabels:
@@ -19,6 +18,7 @@ spec:
         - name: backend
           {{- include "spring-boot.common" (merge (dict "service" .Values.backend) .) | nindent 10 }}
           volumeMounts:
+            - {{ include "spring-boot.config-volume-mount" . | indent 14 | trim }}
             - name: fs-storage
               mountPath: /home/cnb/files
             - name: database-secret
@@ -27,7 +27,7 @@ spec:
               mountPath: /home/cnb/secrets
           {{- include "spring-boot.management" .Values.backend | nindent 10 }}
       volumes:
-        - {{- include "spring-boot.config-volume" (dict "service" .Values.backend) | indent 10 }}
+        - {{ include "spring-boot.config-volume" (dict "service" .Values.backend) | indent 10 | trim }}
         - name: fs-storage
           persistentVolumeClaim:
             claimName: save-fs-storage

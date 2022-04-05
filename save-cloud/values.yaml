@@ -11,10 +11,10 @@ backend:
 preprocessor:
   name: preprocessor
   imageName: save-preprocessor
-  containerPort: 5100
+  containerPort: 5200
 gateway:
   name: gateway
-  imageName: api-backend
+  imageName: api-gateway
   containerPort: 5300
 storage:
   size: 10Gi
