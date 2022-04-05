@@ -10,7 +10,7 @@ import org.cqfn.save.backend.security.ProjectPermissionEvaluator
 import org.cqfn.save.backend.service.LnkUserProjectService
 import org.cqfn.save.backend.service.ProjectService
 import org.cqfn.save.domain.Role
-import org.cqfn.save.entities.UserDto
+import org.cqfn.save.info.UserInfo
 import org.cqfn.save.permission.Permission
 
 import org.slf4j.LoggerFactory
@@ -41,14 +41,14 @@ class LnkUserProjectController(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
         authentication: Authentication,
-    ): List<UserDto> {
+    ): List<UserInfo> {
         val project = projectService.findByNameAndOrganizationName(projectName, organizationName)
             ?: throw NoSuchElementException("There is no $projectName project in $organizationName organization")
         val usersWithRoles = if (projectPermissionEvaluator.hasPermission(authentication, project, Permission.READ)) {
             lnkUserProjectService.getAllUsersAndRolesByProject(project)
                 .filter { (_, role) -> role != Role.NONE }
                 .map { (user, role) ->
-                    user.toDto(mapOf(project.organization.name + "/" + project.name to role))
+                    user.toUserInfo(mapOf(project.organization.name + "/" + project.name to role))
                 }
                 .also { logger.trace("Found ${it.size} users for project: $it") }
         } else {

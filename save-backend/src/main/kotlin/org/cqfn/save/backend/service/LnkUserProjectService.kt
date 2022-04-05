@@ -17,7 +17,7 @@ class LnkUserProjectService(private val lnkUserProjectRepository: LnkUserProject
      * @return all users with role in project
      */
     fun getAllUsersAndRolesByProject(project: Project) =
-            lnkUserProjectRepository.findByProject(project).associate { it.user to it.role }
+            lnkUserProjectRepository.findByProject(project).associate { it.user to (it.role ?: Role.NONE) }
 
     /**
      * @param userId

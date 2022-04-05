@@ -6,6 +6,7 @@ import org.cqfn.save.backend.service.OrganizationService
 import org.cqfn.save.backend.service.PermissionService
 import org.cqfn.save.backend.service.ProjectService
 import org.cqfn.save.backend.utils.AuthenticationDetails
+import org.cqfn.save.backend.utils.toUser
 import org.cqfn.save.domain.Role
 import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.User
@@ -65,7 +66,7 @@ class PermissionController(
                 authentication: Authentication,
     ): Mono<Role?> = permissionService.findUserAndProject(
         // fixme: userName should be like that: ${user.source}:${user.name}
-        userName ?: authentication.name.split(":")[1],
+        userName ?: authentication.toUser().name!!,
         organizationName,
         projectName,
     )

@@ -4,7 +4,6 @@ package org.cqfn.save.frontend.components.basic
 
 import org.cqfn.save.domain.Role
 import org.cqfn.save.entities.Project
-import org.cqfn.save.entities.UserDto
 import org.cqfn.save.frontend.utils.apiUrl
 import org.cqfn.save.frontend.utils.decodeFromJsonString
 import org.cqfn.save.frontend.utils.get
@@ -31,7 +30,7 @@ external interface ProjectSettingsMenuProps : Props {
     /**
      * List of users connected to the project
      */
-    var users: List<UserDto>
+    var users: List<UserInfo>
 
     /**
 
@@ -56,11 +55,11 @@ external interface ProjectSettingsMenuProps : Props {
 }
 
 private fun String.toRole() = when (this) {
-    Role.VIEWER.toString(), Role.VIEWER.string -> Role.VIEWER
-    Role.SUPER_ADMIN.toString(), Role.SUPER_ADMIN.string -> Role.SUPER_ADMIN
-    Role.OWNER.toString(), Role.OWNER.string -> Role.OWNER
-    Role.ADMIN.toString(), Role.ADMIN.string -> Role.ADMIN
-    Role.NONE.toString(), Role.NONE.string -> Role.NONE
+    Role.VIEWER.toString(), Role.VIEWER.toPrint -> Role.VIEWER
+    Role.SUPER_ADMIN.toString(), Role.SUPER_ADMIN.toPrint -> Role.SUPER_ADMIN
+    Role.OWNER.toString(), Role.OWNER.toPrint -> Role.OWNER
+    Role.ADMIN.toString(), Role.ADMIN.toPrint -> Role.ADMIN
+    Role.NONE.toString(), Role.NONE.toPrint -> Role.NONE
     else -> throw IllegalStateException("Unknown role is passed: $this")
 }
 
@@ -102,7 +101,7 @@ fun projectSettingsMenu(
             }
             child(cardComponent(isBordered = false, hasBg = true) {
                 for (user in users) {
-                    val userName = user.source + ":" + (user.name ?: "Unknown")
+                    val userName = user.source + ":" + (user.name)
                     val userRole = user.projects[projectPath] ?: Role.VIEWER
                     div("row mt-2 ml-2 mr-2") {
                         div("col-6 text-left align-self-center") {
@@ -119,7 +118,7 @@ fun projectSettingsMenu(
                                 for (role in Role.values()) {
                                     if (role != Role.NONE) {
                                         option {
-                                            attrs.value = role.toString()
+                                            attrs.value = role.toPrint
                                             attrs.selected = role == userRole
                                             +role.toString()
                                             attrs.disabled = role.priority >= (selfRole.priority)
@@ -257,7 +256,7 @@ fun projectSettingsMenu(
 @Suppress("TYPE_ALIAS")
 private fun getUsers(
     props: ProjectSettingsMenuProps,
-    setUsers: StateSetter<List<UserDto>>,
+    setUsers: StateSetter<List<UserInfo>>,
     openMenuSettingsFlag: (isOpen: Boolean) -> Unit,
 ) {
     useRequest(isDeferred = false) {
@@ -269,7 +268,7 @@ private fun getUsers(
                 },
             )
                 .unsafeMap {
-                    it.decodeFromJsonString<List<UserDto>>()
+                    it.decodeFromJsonString<List<UserInfo>>()
                 }
             setUsers(usersFromDb)
             openMenuSettingsFlag(true)
