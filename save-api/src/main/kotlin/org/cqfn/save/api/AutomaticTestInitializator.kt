@@ -86,6 +86,7 @@ class AutomaticTestInitializator(
             val userProvidedTestSuites = verifyTestSuites() ?: return null
             buildExecutionRequestForStandardSuites(userProvidedTestSuites)
         }
+        return null
         httpClient.submitExecution(executionType, executionRequest, additionalFiles)
         return organization to executionRequest
     }

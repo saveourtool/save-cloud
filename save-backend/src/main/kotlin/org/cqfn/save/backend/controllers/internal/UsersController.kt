@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import java.util.*
 
 /**
  * Controller that handles operation with users
@@ -43,8 +42,10 @@ class UsersController(
      */
     @PostMapping("/{username}")
     fun findByUsername(@PathVariable username: String): User? {
-        return userRepository.findByName(username).orElseThrow {
+        val user = userRepository.findByName(username).orElseThrow {
             IllegalArgumentException("User $username is not present in the DB")
         }
+        println("\n\n\nUSER ${user.name} ${user.password} ${user.role}")
+        return user
     }
 }

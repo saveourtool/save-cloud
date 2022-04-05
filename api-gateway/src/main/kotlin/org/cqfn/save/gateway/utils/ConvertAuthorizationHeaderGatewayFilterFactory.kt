@@ -21,6 +21,7 @@ class ConvertAuthorizationHeaderGatewayFilterFactory : AbstractGatewayFilterFact
             .map { (name, source) ->
                 exchange.mutate().request {
                     it.headers { headers: HttpHeaders ->
+                        println("\n\n\nSET HEADERS ")
                         headers.set(HttpHeaders.AUTHORIZATION, "Basic ${
                             Base64.getEncoder().encodeToString("$name:".toByteArray())
                         }")
