@@ -170,7 +170,6 @@ class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsViewState>(
                                 attrs.onClickFunction = {
                                     updateUser()
                                 }
-                                attrs.disabled = fieldsMap.isEmpty()
                                 +"Save changes"
                             }
                         }
