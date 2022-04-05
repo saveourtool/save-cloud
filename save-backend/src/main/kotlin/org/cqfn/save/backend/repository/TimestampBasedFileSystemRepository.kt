@@ -126,7 +126,7 @@ class TimestampBasedFileSystemRepository(configProperties: ConfigProperties) {
                     .collect(Collectors.summingLong { it })
                     .map {
                         logger.info("Saved $it bytes into $this")
-                        val relativePath = if (isOrganization) ("/$imageName/$name") else ("users/$imageName/$name")
+                        val relativePath = if (isOrganization) ("/$imageName/$name") else ("/users/$imageName/$name")
                         ImageInfo(relativePath)
                     }
             }
