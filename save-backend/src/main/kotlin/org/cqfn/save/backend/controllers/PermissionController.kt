@@ -41,7 +41,7 @@ import java.util.Optional
 @Tags(Tag(name = "api"), Tag(name = "permissions"))
 @RestController
 @RequestMapping("/api/projects/roles")
-@Suppress("MISSING_KDOC_ON_FUNCTION", "MISSING_KDOC_TOP_LEVEL", "MISSING_KDOC_CLASS_ELEMENTS", "UnsafeCallOnNullableType ")
+@Suppress("MISSING_KDOC_ON_FUNCTION", "MISSING_KDOC_TOP_LEVEL", "MISSING_KDOC_CLASS_ELEMENTS")
 class PermissionController(
     private val projectService: ProjectService,
     private val permissionService: PermissionService,
@@ -60,6 +60,7 @@ class PermissionController(
         responseCode = "404", description = "Requested user or project doesn't exist or the user doesn't have enough permissions " +
                 "(i.e. project is hidden from the current user)"
     )
+    @Suppress("UnsafeCallOnNullableType")
     fun getRole(@PathVariable organizationName: String,
                 @PathVariable projectName: String,
                 @RequestParam(required = false) userName: String?,
