@@ -23,6 +23,6 @@ class User(
     fun toDto(projects: Map<String, Role?> = emptyMap()) = UserDto(
         name = name,
         source = source,
-        projects = projects.toMutableMap(),
+        projects = projects,
     )
 }

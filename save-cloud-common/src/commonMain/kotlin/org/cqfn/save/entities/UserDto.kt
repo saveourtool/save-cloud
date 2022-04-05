@@ -13,6 +13,6 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class UserDto(
     val name: String?,
-    var source: String,
-    var projects: MutableMap<String, Role?>,
+    val source: String,
+    val projects: Map<String, Role?>,
 )

@@ -49,7 +49,7 @@ class PermissionController(
 ) {
     @GetMapping("/{organizationName}/{projectName}")
     @Operation(
-        description = "Get role for a user on a particular project",
+        description = "Get role for a user on a particular project. Returns self role if no userName is set.",
         parameters = [
             Parameter(`in` = ParameterIn.HEADER, name = "X-Authorization-Source", required = true),
         ]

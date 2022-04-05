@@ -94,8 +94,6 @@ fun projectSettingsMenu(
 
     getSelfRole(projectPath, setSelfRole)
 
-    println("Self role: ${selfRole.string}")
-
     div("row justify-content-center mb-2") {
         // ===================== LEFT COLUMN =======================================================================
         div("col-4 mb-2") {
@@ -265,7 +263,7 @@ private fun getUsers(
     useRequest(isDeferred = false) {
         if (props.isOpen != true) {
             val usersFromDb = get(
-                url = "$apiUrl/links/projects/get-by-project?projectName=${props.project.name}&organizationName=${props.project.organization.name}",
+                url = "$apiUrl/projects/${props.project.organization.name}/${props.project.name}/users",
                 headers = Headers().also {
                     it.set("Accept", "application/json")
                 },
