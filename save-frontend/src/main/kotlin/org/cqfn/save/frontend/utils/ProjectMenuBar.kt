@@ -6,7 +6,7 @@ package org.cqfn.save.frontend.utils
 @Suppress("WRONG_DECLARATIONS_ORDER")
 enum class ProjectMenuBar {
     RUN,
-    STATISTIC,
+    STATISTICS,
     SETTINGS,
     ;
 }

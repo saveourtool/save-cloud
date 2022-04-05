@@ -643,7 +643,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                                         selectedMenu = projectMenu
                                     }
                                 }
-                                if (projectMenu != ProjectMenuBar.STATISTIC) {
+                                if (projectMenu != ProjectMenuBar.STATISTICS) {
                                     openMenuStatisticFlag(false)
                                 }
                                 if (projectMenu != ProjectMenuBar.SETTINGS) {
@@ -658,7 +658,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         }
 
         if (state.selectedMenu == ProjectMenuBar.RUN) {
-            div("row justify-content-center") {
+            div("row justify-content-center ml-5") {
                 // ===================== LEFT COLUMN =======================================================================
                 div("col-2 mr-3") {
                     div("text-xs text-center font-weight-bold text-primary text-uppercase mb-3") {
@@ -730,7 +730,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                     child(projectInfoCard)
                 }
             }
-        } else if (state.selectedMenu == ProjectMenuBar.STATISTIC) {
+        } else if (state.selectedMenu == ProjectMenuBar.STATISTICS) {
             child(projectStatisticMenu) {
                 attrs.executionId = state.latestExecutionId
                 attrs.isOpen = state.isOpenMenuStatistic
