@@ -38,4 +38,11 @@
     <changeSet id="user-unique-name" author="petertrr" context="dev or prod">
         <addUniqueConstraint tableName="user" columnNames="name,source"/>
     </changeSet>
+
+    <changeSet id="user-avatar" author="frolov" context="dev or prod">
+        <addColumn tableName="user">
+            <column name="avatar" type="varchar(250)"/>
+        </addColumn>
+    </changeSet>
+
 </databaseChangeLog>

@@ -6,6 +6,7 @@ import org.cqfn.save.backend.repository.AgentRepository
 import org.cqfn.save.backend.repository.TestDataFilesystemRepository
 import org.cqfn.save.backend.repository.TimestampBasedFileSystemRepository
 import org.cqfn.save.backend.service.OrganizationService
+import org.cqfn.save.backend.service.UserDetailsService
 import org.cqfn.save.domain.FileInfo
 import org.cqfn.save.domain.TestResultDebugInfo
 import org.cqfn.save.domain.TestResultLocation
@@ -38,6 +39,7 @@ class DownloadFilesController(
     private val testDataFilesystemRepository: TestDataFilesystemRepository,
     private val agentRepository: AgentRepository,
     private val organizationService: OrganizationService,
+    private val userDetailsService: UserDetailsService,
 ) {
     private val logger = LoggerFactory.getLogger(DownloadFilesController::class.java)
 
@@ -96,16 +98,26 @@ class DownloadFilesController(
     /**
      * @param file image to be uploaded
      * @param owner owner name
+     * @param isOrganization flag of organization
      * @return [Mono] with response
      */
     @Suppress("UnsafeCallOnNullableType")
     @PostMapping(value = ["/api/image/upload"], consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
-    fun uploadImage(@RequestPart("file") file: Mono<FilePart>, @RequestParam owner: String) =
-            additionalToolsFileSystemRepository.saveImage(file, owner).map { imageInfo ->
+    fun uploadImage(
+        @RequestPart("file") file: Mono<FilePart>,
+        @RequestParam owner: String,
+        @RequestParam(required = false) isOrganization: Boolean = true
+    ) =
+            additionalToolsFileSystemRepository.saveImage(file, owner, isOrganization).map { imageInfo ->
                 ResponseEntity.status(
                     imageInfo.path?.let {
-                        organizationService.saveAvatar(owner, it)
-                        HttpStatus.OK
+                        if (isOrganization) {
+                            organizationService.saveAvatar(owner, it)
+                            HttpStatus.OK
+                        } else {
+                            userDetailsService.saveAvatar(owner, it)
+                            HttpStatus.OK
+                        }
                     }
                         ?: HttpStatus.INTERNAL_SERVER_ERROR
                 )

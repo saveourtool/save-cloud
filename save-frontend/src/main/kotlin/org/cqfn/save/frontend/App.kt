@@ -143,6 +143,17 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
 
                             Route {
                                 attrs {
+                                    path = "/:user/Settings"
+                                    element = buildElement {
+                                        child(UserSettingsView::class) {
+                                            attrs.userInfo = state.userInfo
+                                        }
+                                    }
+                                }
+                            }
+
+                            Route {
+                                attrs {
                                     path = "/creation"
                                     element = buildElement {
                                         child(CreationView::class) {}

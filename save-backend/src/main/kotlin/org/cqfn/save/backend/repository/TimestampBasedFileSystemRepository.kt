@@ -104,13 +104,14 @@ class TimestampBasedFileSystemRepository(configProperties: ConfigProperties) {
     }
 
     /**
-     * @param owner owner name
+     * @param imageName user or organization name
      * @param part file part
+     * @param isOrganization flag of organization
      * @return Mono with number of bytes saved
      * @throws FileAlreadyExistsException if file with this name already exists
      */
-    fun saveImage(part: Mono<FilePart>, owner: String): Mono<ImageInfo> = part.flatMap { part ->
-        val uploadedDir = rootDirImage.resolve(owner)
+    fun saveImage(part: Mono<FilePart>, imageName: String, isOrganization: Boolean = true): Mono<ImageInfo> = part.flatMap { part ->
+        val uploadedDir = if (isOrganization) rootDirImage.resolve(imageName) else rootDirImage.resolve("users").resolve(imageName)
 
         uploadedDir.apply {
             if (exists()) {
@@ -125,7 +126,7 @@ class TimestampBasedFileSystemRepository(configProperties: ConfigProperties) {
                     .collect(Collectors.summingLong { it })
                     .map {
                         logger.info("Saved $it bytes into $this")
-                        val relativePath = ("/$owner/$name")
+                        val relativePath = if (isOrganization) ("/$imageName/$name") else ("users/$imageName/$name")
                         ImageInfo(relativePath)
                     }
             }
