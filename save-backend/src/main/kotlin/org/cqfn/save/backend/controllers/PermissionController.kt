@@ -41,7 +41,7 @@ import java.util.Optional
 @Tags(Tag(name = "api"), Tag(name = "permissions"))
 @RestController
 @RequestMapping("/api/projects/roles")
-@Suppress("MISSING_KDOC_ON_FUNCTION", "MISSING_KDOC_TOP_LEVEL", "MISSING_KDOC_CLASS_ELEMENTS")
+@Suppress("MISSING_KDOC_ON_FUNCTION", "MISSING_KDOC_TOP_LEVEL", "MISSING_KDOC_CLASS_ELEMENTS", "UnsafeCallOnNullableType ")
 class PermissionController(
     private val projectService: ProjectService,
     private val permissionService: PermissionService,
