@@ -55,11 +55,11 @@ external interface ProjectSettingsMenuProps : Props {
 }
 
 private fun String.toRole() = when (this) {
-    Role.VIEWER.toString(), Role.VIEWER.toPrint -> Role.VIEWER
-    Role.SUPER_ADMIN.toString(), Role.SUPER_ADMIN.toPrint -> Role.SUPER_ADMIN
-    Role.OWNER.toString(), Role.OWNER.toPrint -> Role.OWNER
-    Role.ADMIN.toString(), Role.ADMIN.toPrint -> Role.ADMIN
-    Role.NONE.toString(), Role.NONE.toPrint -> Role.NONE
+    Role.VIEWER.toString(), Role.VIEWER.formattedName -> Role.VIEWER
+    Role.SUPER_ADMIN.toString(), Role.SUPER_ADMIN.formattedName -> Role.SUPER_ADMIN
+    Role.OWNER.toString(), Role.OWNER.formattedName -> Role.OWNER
+    Role.ADMIN.toString(), Role.ADMIN.formattedName -> Role.ADMIN
+    Role.NONE.toString(), Role.NONE.formattedName -> Role.NONE
     else -> throw IllegalStateException("Unknown role is passed: $this")
 }
 
@@ -118,7 +118,7 @@ fun projectSettingsMenu(
                                 for (role in Role.values()) {
                                     if (role != Role.NONE) {
                                         option {
-                                            attrs.value = role.toPrint
+                                            attrs.value = role.formattedName
                                             attrs.selected = role == userRole
                                             +role.toString()
                                             attrs.disabled = role.priority >= (selfRole.priority)

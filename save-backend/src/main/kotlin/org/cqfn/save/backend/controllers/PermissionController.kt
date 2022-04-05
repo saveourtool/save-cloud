@@ -63,10 +63,10 @@ class PermissionController(
     @Suppress("UnsafeCallOnNullableType")
     fun getRole(@PathVariable organizationName: String,
                 @PathVariable projectName: String,
+                // fixme: userName should be like that: ${user.source}:${user.name}
                 @RequestParam(required = false) userName: String?,
                 authentication: Authentication,
     ): Mono<Role?> = permissionService.findUserAndProject(
-        // fixme: userName should be like that: ${user.source}:${user.name}
         userName ?: authentication.toUser().name!!,
         organizationName,
         projectName,

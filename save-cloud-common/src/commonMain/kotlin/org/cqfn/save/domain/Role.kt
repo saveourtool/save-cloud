@@ -2,11 +2,11 @@ package org.cqfn.save.domain
 
 /**
  * User roles
- * @property toPrint string representation of the [Role] that should be printed
+ * @property formattedName string representation of the [Role] that should be printed
  * @property priority
  */
 @Suppress("MAGIC_NUMBER", "MagicNumber")
-enum class Role(val toPrint: String, val priority: Int) {
+enum class Role(val formattedName: String, val priority: Int) {
     /**
      * admin in organization
      */

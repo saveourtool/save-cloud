@@ -17,11 +17,11 @@ import org.slf4j.LoggerFactory
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
 
-@RestController
-@RequestMapping("/api")
 /**
  * Controller for processing links between users and their roles
  */
+@RestController
+@RequestMapping("/api")
 class LnkUserProjectController(
     private val lnkUserProjectService: LnkUserProjectService,
     private val projectService: ProjectService,

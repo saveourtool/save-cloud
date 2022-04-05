@@ -335,8 +335,8 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                     }
                 } else {
                     setState {
-                        errorLabel = "Failed to save project info"
-                        errorMessage = "Failed to save project info: ${response.status} ${response.statusText}"
+                        errorLabel = "Failed to save project settings"
+                        errorMessage = "Failed to save project settings: ${response.status} ${response.statusText}"
                         isErrorOpen = true
                     }
                 }
@@ -361,7 +361,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                     }
                 }
             }
-        }
+        },
     )
     private val projectStatisticMenu = projectStatisticMenu(
         openMenuStatisticFlag = ::openMenuStatisticFlag,
