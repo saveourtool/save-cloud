@@ -42,7 +42,6 @@ private fun <T : Tag> RDOMBuilder<T>.selection(
 ) = div("input-group mb-3") {
     div("input-group-prepend") {
         label("input-group-text") {
-            attrs["for"] = "inputGroupSelect01"
             +labelValue
         }
     }

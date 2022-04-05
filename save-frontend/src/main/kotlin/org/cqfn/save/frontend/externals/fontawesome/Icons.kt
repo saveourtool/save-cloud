@@ -36,3 +36,4 @@ external val faPlus: dynamic
 external val faArrowRight: dynamic
 external val faLightbulb: dynamic
 external val faCog: dynamic
+external val faHome: dynamic
