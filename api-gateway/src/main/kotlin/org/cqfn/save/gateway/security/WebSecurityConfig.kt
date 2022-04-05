@@ -53,10 +53,6 @@ import reactor.core.publisher.Mono
 class WebSecurityConfig(
     private val configurationProperties: ConfigurationProperties,
 ) {
-    private val objectMapper = ObjectMapper()
-        .findAndRegisterModules()
-        .registerModule(CoreJackson2Module())
-        .registerModule(OAuth2ClientJackson2Module())
     private val webClient = WebClient.create(configurationProperties.backend.url)
 
     @Bean
@@ -124,15 +120,14 @@ class WebSecurityConfig(
                 RedirectServerAuthenticationFailureHandler("/error")
             )
         }
-        .httpBasic {
-                it.authenticationManager(
+        .httpBasic { httpBasicSpec ->
+            httpBasicSpec.authenticationManager(
                     UserDetailsRepositoryReactiveAuthenticationManager(
                         object : ReactiveUserDetailsService {
                             override fun findByUsername(username: String): Mono<UserDetails> {
                                 return webClient.post()
-                                    .uri("/internal/users/new")
+                                    .uri("/internal/users/${username}")
                                     .contentType(MediaType.APPLICATION_JSON)
-                                    .bodyValue(objectMapper.writeValueAsString(username))
                                     .retrieve()
                                     .onStatus({ it.is4xxClientError }) {
                                         Mono.error(ResponseStatusException(it.statusCode()))
