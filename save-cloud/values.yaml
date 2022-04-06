@@ -25,6 +25,9 @@ storage:
   size: 10Gi
 reposStorage:
   size: 2Gi
+mysql:
+  # this is resolved IP of host.minikube.internal
+  ip: 192.168.65.2
 
 grafana:
   image:
@@ -35,8 +38,3 @@ grafana:
     enabled: true
   rbac:
     create: false
-
-rbac:
-  create: false
-  createRole: false
-  createClusterRole: false
