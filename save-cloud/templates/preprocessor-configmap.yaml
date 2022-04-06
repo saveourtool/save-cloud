@@ -4,5 +4,7 @@ metadata:
   name: {{ .Values.preprocessor.name }}-config
 data:
   application.properties: |
+    save.backend=http://save-backend.save-cloud:5000/internal
+    save.orchestrator=http://save-orchestrator.save-cloud:5100
     server.shutdown=graceful
     management.endpoints.web.exposure.include=*

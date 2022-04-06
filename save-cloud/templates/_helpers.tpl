@@ -36,7 +36,8 @@ env:
   - name: SPRING_PROFILES_ACTIVE
     value: {{ .Values.profile }}
 ports:
-  - containerPort:  {{ .service.containerPort }}
+  - name: http
+    containerPort:  {{ .service.containerPort }}
 {{- end }}
 
 {{- define "spring-boot.config-volume-mount" -}}
