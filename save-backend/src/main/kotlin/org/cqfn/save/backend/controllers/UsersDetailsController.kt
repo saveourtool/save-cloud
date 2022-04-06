@@ -41,7 +41,7 @@ class UsersDetailsController(
      */
     @PostMapping("/save")
     fun saveUser(@RequestBody newUserInfo: UserInfo) {
-        val user = userRepository.findByName(newUserInfo.userName).get()
+        val user = userRepository.findByName(newUserInfo.name).get()
         userRepository.save(user.apply {
             email = newUserInfo.email
         })

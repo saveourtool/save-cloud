@@ -147,7 +147,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                     path = "/:user/Settings"
                                     element = buildElement {
                                         child(UserSettingsView::class) {
-                                            attrs.userName = state.userInfo?.userName
+                                            attrs.userName = state.userInfo?.name
                                         }
                                     }
                                 }

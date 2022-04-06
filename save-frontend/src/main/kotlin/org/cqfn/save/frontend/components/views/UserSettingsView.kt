@@ -181,9 +181,11 @@ class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsViewState>(
 
     private fun updateUser() {
         val newUserInfo = UserInfo(
-            state.userInfo!!.userName,
-            fieldsMap[InputTypes.USER_EMAIL]?.trim(),
-            state.userInfo?.avatar,
+            name = state.userInfo!!.name,
+            source = state.userInfo?.source,
+            projects = state.userInfo?.projects ?: emptyMap(),
+            email = fieldsMap[InputTypes.USER_EMAIL]?.trim(),
+            avatar = state.userInfo?.avatar,
         )
 
         val headers = Headers().also {

@@ -194,7 +194,7 @@ fun topBar() = fc<TopBarProps> { props ->
                     attrs["aria-labelledby"] = "userDropdown"
                     dropdownEntry(faCog, "Settings") {
                         attrs.onClickFunction = {
-                            userSettings(props.userInfo?.userName ?: "Unknown")
+                            userSettings(props.userInfo?.name ?: "Unknown")
                         }
                     }
                     dropdownEntry(faSignOutAlt, "Log out") {
