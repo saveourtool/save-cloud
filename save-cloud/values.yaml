@@ -3,11 +3,16 @@ imageRegistry: ghcr.io/analysis-dev
 dockerTag: 0.2.0-alpha.0.250-6d8ca62
 
 env: staging
-profile: dev
+# todo: set profiles per service
+profile: dev,secure
 backend:
   name: backend
   imageName: save-backend
   containerPort: 5000
+orchestrator:
+  name: orchestrator
+  imageName: save-orchestrator
+  containerPort: 5100
 preprocessor:
   name: preprocessor
   imageName: save-preprocessor

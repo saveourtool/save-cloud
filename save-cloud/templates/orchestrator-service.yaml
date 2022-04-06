@@ -1,0 +1,1 @@
+{{ include "service.common" (dict "service" .Values.orchestrator) }}
