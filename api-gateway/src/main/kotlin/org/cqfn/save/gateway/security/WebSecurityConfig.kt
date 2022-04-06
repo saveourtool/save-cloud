@@ -109,17 +109,17 @@ class WebSecurityConfig(
                 HttpStatusServerEntryPoint(HttpStatus.UNAUTHORIZED)
             )
         }
-        .oauth2Login {
-            it.authenticationSuccessHandler(
-                DelegatingServerAuthenticationSuccessHandler(
-                    StoringServerAuthenticationSuccessHandler(configurationProperties),
-                    RedirectServerAuthenticationSuccessHandler("/#/projects"),
-                )
-            )
-            it.authenticationFailureHandler(
-                RedirectServerAuthenticationFailureHandler("/error")
-            )
-        }
+//        .oauth2Login {
+//            it.authenticationSuccessHandler(
+//                DelegatingServerAuthenticationSuccessHandler(
+//                    StoringServerAuthenticationSuccessHandler(configurationProperties),
+//                    RedirectServerAuthenticationSuccessHandler("/#/projects"),
+//                )
+//            )
+//            it.authenticationFailureHandler(
+//                RedirectServerAuthenticationFailureHandler("/error")
+//            )
+//        }
         .httpBasic { httpBasicSpec ->
             httpBasicSpec.authenticationManager(
                     UserDetailsRepositoryReactiveAuthenticationManager(
