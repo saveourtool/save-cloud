@@ -1,5 +1,7 @@
 package org.cqfn.save.entities
 
+import org.cqfn.save.domain.Role
+import org.cqfn.save.info.UserInfo
 import org.cqfn.save.info.UserInfo
 import javax.persistence.Entity
 
@@ -21,10 +23,13 @@ class User(
     var avatar: String? = null,
 ) : BaseEntity() {
     /**
+     * @param projects roles in projects
      * @return [UserInfo] object
      */
-    fun toUserInfo() = UserInfo(
-        userName = name ?: "Unknown",
+    fun toUserInfo(projects: Map<String, Role> = emptyMap()) = UserInfo(
+        name = name ?: "Undefined",
+        source = source,
+        projects = projects,
         email = email,
         avatar = avatar,
     )
