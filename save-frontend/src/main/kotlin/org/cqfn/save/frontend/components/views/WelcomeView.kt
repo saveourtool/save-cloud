@@ -183,7 +183,7 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                             fontAwesomeIcon(icon = faHome)
                         }
                     }
-                    +"Welcome ${props.userInfo?.userName}!"
+                    +"Welcome ${props.userInfo?.name}!"
                 }
             }
             div("row") {

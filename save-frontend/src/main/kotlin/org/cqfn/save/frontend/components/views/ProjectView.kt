@@ -6,10 +6,7 @@
 
 package org.cqfn.save.frontend.components.views
 
-import org.cqfn.save.domain.FileInfo
-import org.cqfn.save.domain.Sdk
-import org.cqfn.save.domain.getSdkVersions
-import org.cqfn.save.domain.toSdk
+import org.cqfn.save.domain.*
 import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.ExecutionRequestForStandardSuites
 import org.cqfn.save.entities.GitDto
@@ -43,6 +40,8 @@ import org.cqfn.save.frontend.utils.post
 import org.cqfn.save.frontend.utils.runConfirmWindowModal
 import org.cqfn.save.frontend.utils.runErrorModal
 import org.cqfn.save.frontend.utils.unsafeMap
+import org.cqfn.save.info.UserInfo
+import org.cqfn.save.permission.SetRoleRequest
 import org.cqfn.save.testsuite.TestSuiteDto
 
 import org.w3c.dom.HTMLButtonElement
@@ -86,6 +85,7 @@ import kotlinx.serialization.json.Json
 external interface ProjectExecutionRouteProps : PropsWithChildren {
     var owner: String
     var name: String
+    var currentUserInfo: UserInfo?
 }
 
 /**
@@ -158,7 +158,7 @@ external interface ProjectViewState : State {
     var testingType: TestingType
 
     /**
-     * Sumbit button was pressed
+     * Submit button was pressed
      */
     var isSubmitButtonPressed: Boolean?
 
@@ -324,6 +324,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
 
     @Suppress("TOO_MANY_LINES_IN_LAMBDA")
     private val projectSettingsMenu = projectSettingsMenu(
+        openMenuSettingsFlag = { setState { isOpenMenuSettings = it } },
         deleteProjectCallback = ::deleteProject,
         updateProjectSettings = {
             scope.launch {
@@ -334,9 +335,33 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                     }
                 } else {
                     setState {
-                        errorLabel = "Failed to save project info"
-                        errorMessage = "Failed to save project info: ${response.status} ${response.statusText}"
+                        errorLabel = "Failed to save project settings"
+                        errorMessage = "Failed to save project settings: ${response.status} ${response.statusText}"
                         isErrorOpen = true
+                    }
+                }
+            }
+        },
+        updatePermissions = {
+            scope.launch {
+                for ((userName, role) in it) {
+                    val setRoleRequest = SetRoleRequest(userName.split(":")[1], role)
+                    val jsonRoleRequest = Json.encodeToString(setRoleRequest)
+                    val headers = Headers().apply {
+                        set("Accept", "application/json")
+                        set("Content-Type", "application/json")
+                    }
+                    val response = post("/api/projects/roles/${state.project.organization.name}/${state.project.name}", headers, jsonRoleRequest)
+                    if (!response.ok) {
+                        setState {
+                            errorLabel = "Failed to save project info"
+                            errorMessage = "Failed to save project info: ${response.status} ${response.statusText}"
+                            isErrorOpen = true
+                        }
+                    } else {
+                        setState {
+                            isOpenMenuSettings = false
+                        }
                     }
                 }
             }
@@ -718,6 +743,9 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             child(projectSettingsMenu) {
                 attrs.isOpen = state.isOpenMenuSettings
                 attrs.project = state.project
+                attrs.users = emptyList()
+                attrs.selfRole = Role.VIEWER
+                attrs.currentUserInfo = props.currentUserInfo ?: UserInfo("Unknown")
             }
         }
     }
@@ -810,7 +838,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
 
     /**
      * In some cases scripts and binaries can be uploaded to a git repository, so users won't be providing or uploading
-     * binaries. For this case we should open a window, so user will need to click a check box, so he will confirm that
+     * binaries. For this case we should open a window, so user will need to click a checkbox, so he will confirm that
      * he understand what he is doing.
      */
     private fun submitWithValidation() {
