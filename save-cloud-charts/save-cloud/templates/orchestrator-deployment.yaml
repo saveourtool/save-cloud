@@ -21,10 +21,14 @@ spec:
             - {{ include "spring-boot.config-volume-mount" . | indent 14 | trim }}
             - name: repos-storage
               mountPath: /home/cnb
-            # todo: /home/cnb/executionLogs
+            - name: execution-logs-storage
+              mountPath: /home/cnb/executionLogs/
           {{- include "spring-boot.management" .Values.orchestrator | nindent 10 }}
       volumes:
         - {{ include "spring-boot.config-volume" (dict "service" .Values.orchestrator) | indent 10 | trim }}
         - name: repos-storage
           persistentVolumeClaim:
             claimName: repos-storage
+        - name: execution-logs-storage
+          persistentVolumeClaim:
+            claimName: execution-logs-storage
