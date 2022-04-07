@@ -6,6 +6,7 @@ import org.cqfn.save.backend.service.OrganizationService
 import org.cqfn.save.backend.service.PermissionService
 import org.cqfn.save.backend.service.ProjectService
 import org.cqfn.save.backend.utils.AuthenticationDetails
+import org.cqfn.save.backend.utils.toUser
 import org.cqfn.save.domain.Role
 import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.User
@@ -49,7 +50,7 @@ class PermissionController(
 ) {
     @GetMapping("/{organizationName}/{projectName}")
     @Operation(
-        description = "Get role for a user on a particular project",
+        description = "Get role for a user on a particular project. Returns self role if no userName is set.",
         parameters = [
             Parameter(`in` = ParameterIn.HEADER, name = "X-Authorization-Source", required = true),
         ]
@@ -59,11 +60,17 @@ class PermissionController(
         responseCode = "404", description = "Requested user or project doesn't exist or the user doesn't have enough permissions " +
                 "(i.e. project is hidden from the current user)"
     )
+    @Suppress("UnsafeCallOnNullableType")
     fun getRole(@PathVariable organizationName: String,
                 @PathVariable projectName: String,
-                @RequestParam userName: String,
+                // fixme: userName should be like that: ${user.source}:${user.name}
+                @RequestParam(required = false) userName: String?,
                 authentication: Authentication,
-    ): Mono<Role> = permissionService.findUserAndProject(userName, organizationName, projectName)
+    ): Mono<Role?> = permissionService.findUserAndProject(
+        userName ?: authentication.toUser().name!!,
+        organizationName,
+        projectName,
+    )
         .filter { (_, project) ->
             // To be able to see roles, the user should be at least `VIEWER` for public projects
             // or should have read access (i.e. be a member of) for a private project.
@@ -71,6 +78,9 @@ class PermissionController(
         }
         .map { (user: User, project: Project) ->
             permissionService.getRole(user, project)
+                .also {
+                    logger.trace("User ${user.source}:${user.name} has role $it")
+                }
         }
         .switchIfEmpty {
             Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))

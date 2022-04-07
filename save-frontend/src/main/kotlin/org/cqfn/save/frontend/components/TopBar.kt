@@ -178,7 +178,7 @@ fun topBar() = fc<TopBarProps> { props ->
                     }
 
                     span("mr-2 d-none d-lg-inline text-gray-600") {
-                        +(props.userInfo?.userName ?: "")
+                        +(props.userInfo?.name ?: "")
                     }
 
                     fontAwesomeIcon {

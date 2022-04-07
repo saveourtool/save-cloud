@@ -410,14 +410,15 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                                     @Suppress("TOO_MANY_LINES_IN_LAMBDA")
                                     attrs.onClickFunction = {
                                         scope.launch {
-                                            post(
+                                            val response = post(
                                                 "$apiUrl/rerunExecution?id=${props.executionId}",
                                                 Headers(),
                                                 undefined
                                             )
-                                        }.invokeOnCompletion {
-                                            window.alert("Rerun request successfully submitted")
-                                            window.location.reload()
+                                            if (response.ok) {
+                                                window.alert("Rerun request successfully submitted")
+                                                window.location.reload()
+                                            }
                                         }
                                         it.preventDefault()
                                     }
