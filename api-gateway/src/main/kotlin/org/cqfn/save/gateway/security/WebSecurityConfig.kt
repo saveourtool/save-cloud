@@ -5,6 +5,7 @@
 package org.cqfn.save.gateway.security
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import kotlinx.serialization.Serializable
 import org.cqfn.save.gateway.config.ConfigurationProperties
 import org.cqfn.save.gateway.utils.StoringServerAuthenticationSuccessHandler
 import org.springframework.context.annotation.Bean
@@ -17,6 +18,7 @@ import org.springframework.security.authorization.AuthenticatedReactiveAuthoriza
 import org.springframework.security.authorization.AuthorizationDecision
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity
 import org.springframework.security.config.web.server.ServerHttpSecurity
+import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.userdetails.MapReactiveUserDetailsService
 import org.springframework.security.core.userdetails.ReactiveUserDetailsService
 import org.springframework.security.core.userdetails.User
@@ -125,14 +127,17 @@ class WebSecurityConfig(
                     UserDetailsRepositoryReactiveAuthenticationManager(
                         object : ReactiveUserDetailsService {
                             override fun findByUsername(username: String): Mono<UserDetails> {
-                                return webClient.post()
+                                val userDetails = webClient.get()
                                     .uri("/internal/users/${username}")
-                                    .contentType(MediaType.APPLICATION_JSON)
                                     .retrieve()
                                     .onStatus({ it.is4xxClientError }) {
                                         Mono.error(ResponseStatusException(it.statusCode()))
                                     }
-                                    .bodyToMono()
+                                    .bodyToMono<UserDetails>()
+//                                    .map {
+//                                        it as UserDetails
+//                                    }
+                                    return userDetails
                             }
                         }
                     )
@@ -195,3 +200,19 @@ class WebSecurityConfig(
  */
 @Bean
 fun passwordEncoder(): PasswordEncoder = PasswordEncoderFactories.createDelegatingPasswordEncoder()
+
+//@Serializable
+//class IdentitySourceAwareUserDetails(
+//    username: String,
+//    password: String?,
+//    authorities: String?,
+//    val identitySource: String,
+//    val id: Long,
+//) : User(
+//    username,
+//    password,
+//    authorities?.split(',')
+//        ?.filter { it.isNotBlank() }
+//        ?.map { SimpleGrantedAuthority(it) }
+//        ?: emptyList()
+//)
