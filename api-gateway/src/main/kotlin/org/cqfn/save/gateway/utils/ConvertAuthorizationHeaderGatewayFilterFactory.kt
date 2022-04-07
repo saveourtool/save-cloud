@@ -30,6 +30,7 @@ class ConvertAuthorizationHeaderGatewayFilterFactory : AbstractGatewayFilterFact
                 }
                     .build()
             }
+            // TODO: add new branch without creation of new header and return as is
             .defaultIfEmpty(exchange)
             .flatMap { chain.filter(it) }
     }

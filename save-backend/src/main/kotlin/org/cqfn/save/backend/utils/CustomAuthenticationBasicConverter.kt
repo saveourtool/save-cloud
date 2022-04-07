@@ -17,9 +17,11 @@ ServerAuthenticationConverter {
     override fun convert(exchange: ServerWebExchange): Mono<Authentication> = apply(exchange).map {
         val name = (it as UsernamePasswordAuthenticationToken).principal as String
         val source = exchange.request.headers["X-Authorization-Source"]?.firstOrNull()
+        // TODO: check for existence of header - if exist, than it was OAuth, and all is ok
+        // TODO: if not, then identify and provide a password
         println("\n\n\nPRINCIPAL ${"$source:$name"} CREDENTIALS ${it.credentials as String}")
-        UsernamePasswordAuthenticationToken(
-            "$source:$name", // TODO password
+            UsernamePasswordAuthenticationToken(
+            "$source:$name",
             it.credentials as String
         ).apply {
             details = AuthenticationDetails(
