@@ -1,7 +1,7 @@
 package org.cqfn.save.backend.service
 
 import org.cqfn.save.backend.repository.UserRepository
-import org.cqfn.save.backend.utils.IdentitySourceAwareUserDetails
+import org.cqfn.save.utils.IdentitySourceAwareUserDetails
 import org.springframework.security.core.userdetails.ReactiveUserDetailsService
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.core.userdetails.UsernameNotFoundException
