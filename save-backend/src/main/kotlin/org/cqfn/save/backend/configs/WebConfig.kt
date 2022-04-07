@@ -15,6 +15,7 @@ import org.cqfn.save.core.result.Fail
 import org.cqfn.save.core.result.Ignored
 import org.cqfn.save.core.result.Pass
 import org.cqfn.save.core.result.TestStatus
+import org.cqfn.save.utils.IdentitySourceAwareUserDetails
 import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer
 import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
 import org.springframework.context.annotation.Bean
@@ -31,9 +32,10 @@ class WebConfig {
     @Bean
     fun jackson2ObjectMapperBuilderCustomizer() = Jackson2ObjectMapperBuilderCustomizer { jacksonObjectMapperBuilder: Jackson2ObjectMapperBuilder ->
         jacksonObjectMapperBuilder
-            //.modules(CoreJackson2Module())
-            .modulesToInstall(CoreJackson2Module())
+            .modules(CoreJackson2Module())
+            //.modulesToInstall(CoreJackson2Module())
             .mixIn(TestStatus::class.java, TestStatusMixin::class.java)
+            .mixIn(IdentitySourceAwareUserDetails::class.java, IdentitySourceAwareUserDetailsMixin::class.java)
             //.mixIn(User::class.java, UserMixin::class.java)
     }
 
@@ -69,3 +71,14 @@ class WebConfig {
     JsonSubTypes.Type(value = Crash::class),
 )
 internal class TestStatusMixin
+
+
+//@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "type")
+@JsonSubTypes(
+    JsonSubTypes.Type(value = String::class),
+    JsonSubTypes.Type(value = String::class),
+    JsonSubTypes.Type(value = String::class),
+    JsonSubTypes.Type(value = String::class),
+    JsonSubTypes.Type(value = Long::class),
+)
+internal class IdentitySourceAwareUserDetailsMixin
