@@ -12,7 +12,7 @@ jobs:
       - uses: actions/checkout@v2
       # https://github.com/helm/chart-testing#local-repo
       - run: |
-          docker run -it --network host --workdir=/data --volume ~/.kube/config:/root/.kube/config:ro --volume $(pwd):/data \
+          docker run --network host --workdir=/data --volume ~/.kube/config:/root/.kube/config:ro --volume $(pwd)/save-cloud-charts:/data \
           quay.io/helmpack/chart-testing:v3.5.1 sh -c \
-          "helm repo add grafana https://grafana.github.io/helm-charts && ct lint-and-install --chart-dirs /data/save-cloud --charts save-cloud"
+          "helm repo add grafana https://grafana.github.io/helm-charts && ct lint-and-install --validate-maintainers=false --chart-dirs /data/save-cloud --charts save-cloud"
 #      - uses: helm/chart-testing-action@v2
