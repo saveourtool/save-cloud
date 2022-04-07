@@ -11,7 +11,8 @@ class WebConfig {
     @Bean
     fun jackson2ObjectMapperBuilderCustomizer() = Jackson2ObjectMapperBuilderCustomizer { jacksonObjectMapperBuilder: Jackson2ObjectMapperBuilder ->
         jacksonObjectMapperBuilder
-            .modules(CoreJackson2Module())
+            //.modules(CoreJackson2Module())
+            .modulesToInstall(CoreJackson2Module())
         //.mixIn(TestStatus::class.java, TestStatusMixin::class.java)
         //.mixIn(User::class.java, UserMixin::class.java)
     }

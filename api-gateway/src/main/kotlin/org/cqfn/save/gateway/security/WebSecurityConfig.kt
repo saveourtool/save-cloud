@@ -13,6 +13,7 @@ import org.springframework.core.annotation.Order
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
+import org.springframework.http.codec.json.Jackson2JsonDecoder
 import org.springframework.security.authentication.UserDetailsRepositoryReactiveAuthenticationManager
 import org.springframework.security.authorization.AuthenticatedReactiveAuthorizationManager
 import org.springframework.security.authorization.AuthorizationDecision
@@ -54,8 +55,14 @@ import reactor.core.publisher.Mono
 )
 class WebSecurityConfig(
     private val configurationProperties: ConfigurationProperties,
+    private val objectMapper: ObjectMapper
 ) {
-    private val webClient = WebClient.create(configurationProperties.backend.url)
+    private val webClient = WebClient.create(configurationProperties.backend.url).mutate()
+        .codecs {
+            it.defaultCodecs().jackson2JsonDecoder(
+                Jackson2JsonDecoder(objectMapper)
+            )
+        }.build()
 
     @Bean
     @Order(1)
@@ -201,18 +208,3 @@ class WebSecurityConfig(
 @Bean
 fun passwordEncoder(): PasswordEncoder = PasswordEncoderFactories.createDelegatingPasswordEncoder()
 
-//@Serializable
-//class IdentitySourceAwareUserDetails(
-//    username: String,
-//    password: String?,
-//    authorities: String?,
-//    val identitySource: String,
-//    val id: Long,
-//) : User(
-//    username,
-//    password,
-//    authorities?.split(',')
-//        ?.filter { it.isNotBlank() }
-//        ?.map { SimpleGrantedAuthority(it) }
-//        ?: emptyList()
-//)
