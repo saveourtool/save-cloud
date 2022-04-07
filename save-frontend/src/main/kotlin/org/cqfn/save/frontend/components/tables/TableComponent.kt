@@ -170,7 +170,7 @@ fun <D : Any> tableComponent(
 
     div("card shadow mb-4") {
         div("card-header py-3") {
-            h6("m-0 font-weight-bold text-primary") {
+            h6("m-0 font-weight-bold text-primary text-center") {
                 +props.tableHeader
             }
         }
