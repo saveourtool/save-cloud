@@ -1,6 +1,5 @@
 imageRegistry: ghcr.io/analysis-dev
-# todo: version from git tag
-dockerTag: 0.2.0-alpha.0.250-6d8ca62
+dockerTag: latest  # this should be set explicitly during chart installation
 
 env: staging
 # todo: set profiles per service
@@ -31,10 +30,13 @@ mysql:
 
 grafana:
   image:
-    tag: 8.4.4
+    tag: 8.4.5
   service:
     port: 9100
   persistence:
     enabled: true
   rbac:
     create: false
+
+loki:
+  tag: 2.4.2
