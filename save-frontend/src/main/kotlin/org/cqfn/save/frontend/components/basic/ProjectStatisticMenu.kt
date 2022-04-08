@@ -143,7 +143,9 @@ fun projectStatisticMenu(
             }
 
             if (props.executionId != null) {
-                executionDetailsTable()
+                executionDetailsTable {
+                    attrs.executionId = props.executionId
+                }
             } else {
                 div("card shadow mb-4") {
                     div("card-header py-3") {
