@@ -142,7 +142,7 @@ fun projectStatisticMenu(
                 +"Latest execution"
             }
 
-            if (props.executionId != null) {
+            if (props.isOpen != true && props.executionId != null && latestExecutionStatisticDtos?.isNotEmpty() == true) {
                 executionDetailsTable {
                     attrs.executionId = props.executionId
                 }
