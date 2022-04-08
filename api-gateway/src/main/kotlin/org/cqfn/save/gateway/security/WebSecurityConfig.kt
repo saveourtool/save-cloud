@@ -154,8 +154,9 @@ class WebSecurityConfig(
                                         Mono.error(ResponseStatusException(it.statusCode()))
                                     }
                                     .toEntity<String>()
-
-                                return objectMapper.readValue(user, UserDetails::class.java)
+                                return user.map {
+                                   (objectMapper.readValue(it.body, UserDetails::class.java))
+                                }
                             }
                         }
                     )
