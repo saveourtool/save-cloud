@@ -7,13 +7,17 @@ package org.cqfn.save.gateway.security
 import com.fasterxml.jackson.databind.ObjectMapper
 import kotlinx.serialization.Serializable
 import org.cqfn.save.gateway.config.ConfigurationProperties
+import org.cqfn.save.gateway.config.IdentitySourceAwareUserDetailsMixin
+//import org.cqfn.save.gateway.config.IdentitySourceAwareUserDetailsMixin
 import org.cqfn.save.gateway.utils.StoringServerAuthenticationSuccessHandler
+import org.cqfn.save.utils.IdentitySourceAwareUserDetails
 import org.springframework.context.annotation.Bean
 import org.springframework.core.annotation.Order
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.codec.json.Jackson2JsonDecoder
+import org.springframework.http.codec.json.Jackson2JsonEncoder
 import org.springframework.security.authentication.UserDetailsRepositoryReactiveAuthenticationManager
 import org.springframework.security.authorization.AuthenticatedReactiveAuthorizationManager
 import org.springframework.security.authorization.AuthorizationDecision
@@ -42,6 +46,7 @@ import org.springframework.security.web.server.util.matcher.ServerWebExchangeMat
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
+import org.springframework.web.reactive.function.client.toEntity
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
 
@@ -55,12 +60,20 @@ import reactor.core.publisher.Mono
 )
 class WebSecurityConfig(
     private val configurationProperties: ConfigurationProperties,
-    private val objectMapper: ObjectMapper
 ) {
-    private val webClient = WebClient.create(configurationProperties.backend.url).mutate()
+    private val objectMapper = ObjectMapper()
+        .findAndRegisterModules()
+        .registerModule(CoreJackson2Module())
+        .addMixIn(IdentitySourceAwareUserDetails::class.java, IdentitySourceAwareUserDetailsMixin::class.java)
+
+    private val webClient = WebClient.create(configurationProperties.backend.url)
+        .mutate()
         .codecs {
             it.defaultCodecs().jackson2JsonDecoder(
                 Jackson2JsonDecoder(objectMapper)
+            )
+            it.defaultCodecs().jackson2JsonEncoder(
+                Jackson2JsonEncoder(objectMapper)
             )
         }.build()
 
@@ -134,17 +147,15 @@ class WebSecurityConfig(
                     UserDetailsRepositoryReactiveAuthenticationManager(
                         object : ReactiveUserDetailsService {
                             override fun findByUsername(username: String): Mono<UserDetails> {
-                                val userDetails = webClient.get()
+                                val user = webClient.get()
                                     .uri("/internal/users/${username}")
                                     .retrieve()
                                     .onStatus({ it.is4xxClientError }) {
                                         Mono.error(ResponseStatusException(it.statusCode()))
                                     }
-                                    .bodyToMono<UserDetails>()
-//                                    .map {
-//                                        it as UserDetails
-//                                    }
-                                    return userDetails
+                                    .toEntity<String>()
+
+                                return objectMapper.readValue(user, UserDetails::class.java)
                             }
                         }
                     )

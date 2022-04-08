@@ -23,6 +23,7 @@ class UserDetailsService(
         .filter { it.isPresent }
         .map { it.get() }
         .map<UserDetails> { user ->
+            println("\n\nGetting the user ${user.name} ${user.password} ${user.role} ${user.source}")
             IdentitySourceAwareUserDetails(
                 username = user.name!!,
                 password = user.password ?: "",

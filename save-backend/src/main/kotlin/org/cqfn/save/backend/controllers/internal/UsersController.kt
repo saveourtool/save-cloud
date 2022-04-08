@@ -1,10 +1,17 @@
 package org.cqfn.save.backend.controllers.internal
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import org.cqfn.save.backend.configs.IdentitySourceAwareUserDetailsMixin
 import org.cqfn.save.backend.repository.UserRepository
 import org.cqfn.save.backend.service.UserDetailsService
 import org.cqfn.save.entities.User
+import org.cqfn.save.utils.IdentitySourceAwareUserDetails
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.annotation.Bean
+import org.springframework.http.ResponseEntity
 import org.springframework.security.core.userdetails.UserDetails
+import org.springframework.security.jackson2.CoreJackson2Module
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -23,6 +30,11 @@ class UsersController(
     private val userService: UserDetailsService,
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
+
+    private val objectMapper = ObjectMapper()
+        .findAndRegisterModules()
+        .registerModule(CoreJackson2Module())
+        .addMixIn(IdentitySourceAwareUserDetails::class.java, IdentitySourceAwareUserDetailsMixin::class.java)
 
     /**
      * Stores [user] in the DB
@@ -46,7 +58,11 @@ class UsersController(
      * @param username
      */
     @GetMapping("/{username}")
-    fun findByUsername(@PathVariable username: String): Mono<UserDetails> {
-        return userService.findByUsername(username)//.map { it as IdentitySourceAwareUserDetails }
+    fun findByUsername(@PathVariable username: String): ResponseEntity<String> {
+        println("\n\nfindByUsername")
+        val user = userService.findByUsername(username)
+        //return Mono.just(ResponseEntity.ok().body(objectMapper.writeValueAsString(user)))
+        return (ResponseEntity.ok().body(objectMapper.writeValueAsString(user)))
+
     }
 }
