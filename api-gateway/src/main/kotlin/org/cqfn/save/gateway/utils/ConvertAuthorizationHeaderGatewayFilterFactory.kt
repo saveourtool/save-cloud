@@ -8,6 +8,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken
 import org.springframework.stereotype.Component
 import org.springframework.web.server.ServerWebExchange
+import reactor.core.publisher.Mono
 import java.security.Principal
 import java.util.Base64
 
@@ -17,16 +18,30 @@ import java.util.Base64
 @Component
 class ConvertAuthorizationHeaderGatewayFilterFactory : AbstractGatewayFilterFactory<Any>() {
     override fun apply(config: Any?): GatewayFilter = GatewayFilter { exchange: ServerWebExchange, chain: GatewayFilterChain ->
-        exchange.getPrincipal<Principal>()
-            .map {
-                println("\n\n\nit is OAuth2AuthenticationToken ${it is OAuth2AuthenticationToken}")
-                println("it is UsernamePasswordAuthenticationToken ${it is UsernamePasswordAuthenticationToken}")
-                it.userName() to (it as? OAuth2AuthenticationToken)?.authorizedClientRegistrationId
+        println("\n====================ConvertAuthorizationHeaderGatewayFilterFactory apply")
+        exchange.getPrincipal<Principal>().map { principal ->
+                val credentials = when (principal) {
+                    is OAuth2AuthenticationToken -> {
+                        println("\nit is OAuth2AuthenticationToken")
+                        principal.userName() to (principal as? OAuth2AuthenticationToken)?.authorizedClientRegistrationId
+                    }
+                    is UsernamePasswordAuthenticationToken -> {
+                        println("\nit is UsernamePasswordAuthenticationToken")
+                        println("authorizedClientRegistrationId ${(principal as? OAuth2AuthenticationToken)?.authorizedClientRegistrationId}")
+                        println("credentials ${principal.credentials}")
+                        principal.userName() to principal.credentials.toString()
+                    }
+                    else -> {
+                        //TODO: any exception?
+                        principal.userName() to null
+                    }
+                }
+                credentials
             }
             .map { (name, source) ->
-                exchange.mutate().request {
-                    it.headers { headers: HttpHeaders ->
-                        println("\n\n\nSET HEADERS ${name}")
+                exchange.mutate().request { request ->
+                    request.headers { headers: HttpHeaders ->
+                        println("\n\n\nSET HEADERS $name $source")
                         headers.set(HttpHeaders.AUTHORIZATION, "Basic ${
                             Base64.getEncoder().encodeToString("$name:".toByteArray())
                         }")
@@ -35,7 +50,7 @@ class ConvertAuthorizationHeaderGatewayFilterFactory : AbstractGatewayFilterFact
                 }
                     .build()
             }
-            // TODO: add new branch without creation of new header and return as is
+
             .defaultIfEmpty(exchange)
             .flatMap { chain.filter(it) }
     }

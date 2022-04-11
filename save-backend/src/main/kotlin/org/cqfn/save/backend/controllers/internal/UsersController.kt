@@ -56,11 +56,9 @@ class UsersController(
      */
     @GetMapping("/{username}")
     fun findByUsername(@PathVariable username: String): Mono<ResponseEntity<String>> {
-        println("\n\nfindByUsername")
+        println("\nfindByUsername")
         return userService.findByUsername(username).map {
-            (ResponseEntity.ok().body(objectMapper.writeValueAsString(it).also {
-                println("User: ${it}")
-            }))
+            ResponseEntity.ok().body(objectMapper.writeValueAsString(it))
         }
     }
 }

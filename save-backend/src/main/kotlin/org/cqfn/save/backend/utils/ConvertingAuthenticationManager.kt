@@ -22,6 +22,7 @@ class ConvertingAuthenticationManager : ReactiveAuthenticationManager {
     private lateinit var userDetailsService: UserDetailsService
 
     override fun authenticate(authentication: Authentication): Mono<Authentication> = if (authentication is UsernamePasswordAuthenticationToken) {
+        println("\n\n-----------------Backend, authenticate: ${authentication.name} ${authentication.isAuthenticated}")
         // TODO: check for password, if it was basic
         val identitySource = (authentication.details as AuthenticationDetails).identitySource
         if (identitySource == null || !authentication.name.startsWith("$identitySource:")) {
@@ -41,6 +42,7 @@ class ConvertingAuthenticationManager : ReactiveAuthenticationManager {
                 it.toAuthenticationWithDetails(authentication)
             }
     } else {
+        println("\n\nUnsupported authentication type ${authentication::class}")
         Mono.error { BadCredentialsException("Unsupported authentication type ${authentication::class}") }
     }
 

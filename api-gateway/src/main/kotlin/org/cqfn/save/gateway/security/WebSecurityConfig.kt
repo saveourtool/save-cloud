@@ -103,12 +103,14 @@ class WebSecurityConfig(
                     authentication, authorizationContext
                 ).map {
                     if (!it.isGranted) {
+                        println("UNAUTHORIZED!")
                         // if request is not authorized by configured authorization manager, then we allow only requests w/o Authorization header
                         // then backend will return 401, if endpoint is protected for anonymous access
                         AuthorizationDecision(
                             authorizationContext.exchange.request.headers[HttpHeaders.AUTHORIZATION].isNullOrEmpty()
                         )
                     } else {
+                        println("AUTHORIZED!")
                         it
                     }
                 }
@@ -155,7 +157,9 @@ class WebSecurityConfig(
                                         Mono.error(ResponseStatusException(it.statusCode()))
                                     }
                                     .toEntity<String>()
+
                                 return user.map {
+                                    println("\nReturn user: ${it.body}")
                                    (objectMapper.readValue(it.body, UserDetails::class.java))
                                 }
                             }
