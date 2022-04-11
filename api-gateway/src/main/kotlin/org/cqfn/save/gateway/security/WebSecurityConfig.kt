@@ -16,6 +16,7 @@ import org.springframework.core.annotation.Order
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
+import org.springframework.http.ResponseEntity
 import org.springframework.http.codec.json.Jackson2JsonDecoder
 import org.springframework.http.codec.json.Jackson2JsonEncoder
 import org.springframework.security.authentication.UserDetailsRepositoryReactiveAuthenticationManager
@@ -59,7 +60,7 @@ import reactor.core.publisher.Mono
     "TOO_MANY_LINES_IN_LAMBDA",
 )
 class WebSecurityConfig(
-    private val configurationProperties: ConfigurationProperties,
+    private val configurationProperties: ConfigurationProperties
 ) {
     private val objectMapper = ObjectMapper()
         .findAndRegisterModules()

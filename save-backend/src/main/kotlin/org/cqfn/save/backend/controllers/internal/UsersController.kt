@@ -7,10 +7,7 @@ import org.cqfn.save.backend.service.UserDetailsService
 import org.cqfn.save.entities.User
 import org.cqfn.save.utils.IdentitySourceAwareUserDetails
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.context.annotation.Bean
 import org.springframework.http.ResponseEntity
-import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.jackson2.CoreJackson2Module
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -58,11 +55,12 @@ class UsersController(
      * @param username
      */
     @GetMapping("/{username}")
-    fun findByUsername(@PathVariable username: String): ResponseEntity<String> {
+    fun findByUsername(@PathVariable username: String): Mono<ResponseEntity<String>> {
         println("\n\nfindByUsername")
-        val user = userService.findByUsername(username)
-        //return Mono.just(ResponseEntity.ok().body(objectMapper.writeValueAsString(user)))
-        return (ResponseEntity.ok().body(objectMapper.writeValueAsString(user)))
-
+        return userService.findByUsername(username).map {
+            (ResponseEntity.ok().body(objectMapper.writeValueAsString(it).also {
+                println("User: ${it}")
+            }))
+        }
     }
 }

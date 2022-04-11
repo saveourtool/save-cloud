@@ -194,7 +194,7 @@ fun initializeHttpClient(
     return HttpClient(Apache) {
         install(Logging) {
             logger = Logger.DEFAULT
-            level = LogLevel.NONE
+            level = LogLevel.INFO
         }
         install(JsonFeature) {
             serializer = KotlinxSerializer(json)
