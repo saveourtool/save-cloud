@@ -780,13 +780,13 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 }
             }
 
-    private fun openMenuStatisticFlag(isOpen: Boolean) {
+    public fun openMenuStatisticFlag(isOpen: Boolean) {
         setState {
             isOpenMenuStatistic = isOpen
         }
     }
 
-    private fun openMenuSettingsFlag(isOpen: Boolean) {
+    public fun openMenuSettingsFlag(isOpen: Boolean) {
         setState {
             isOpenMenuSettings = isOpen
         }

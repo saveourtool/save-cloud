@@ -112,7 +112,6 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                             background = "#e1e9ed".unsafeCast<Background>()
                         }
                         div("mb-0 font-weight-bold text-gray-800") {
-
                             form {
                                 div("row g-3 ml-3 mr-3 pb-2 pt-2  border-bottom") {
                                     div("col-md-4 pl-0 pr-0") {

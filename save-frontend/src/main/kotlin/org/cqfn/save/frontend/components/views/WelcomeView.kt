@@ -179,43 +179,38 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
             div("bg-info shadow-primary border-radius-lg py-3 pe-1 rounded") {
                 h4("text-white font-weight-bolder text-center mt-2 mb-0") {
                     div("row") {
-                        div("col text-center px-1") {
+                        div("col text-center px-1 mb-3") {
                             fontAwesomeIcon(icon = faHome)
                         }
                     }
                     +"Welcome ${props.userInfo?.name}!"
                 }
             }
-            div("row") {
-                div("col text-center px-1") {
-                    fontAwesomeIcon(icon = faHome)
-                }
-            }
         }
 
         div("card-body") {
-            p("mt-4 text-sm text-center") {
+            p("mt-4 text-sm") {
                 a(classes = "text-info text-gradient font-weight-bold ml-2 mr-2") {
                     attrs.href = "#/projects"
                     h4 {
+                        fontAwesomeIcon(icon = faExternalLinkAlt, "ml-2 mr-2")
                         +"List of Projects"
-                        fontAwesomeIcon(icon = faExternalLinkAlt, "ml-2")
                     }
                 }
 
                 a(classes = "text-info text-gradient font-weight-bold ml-2 mr-2") {
                     attrs.href = "/#/awesome-benchmarks"
                     h4 {
+                        fontAwesomeIcon(icon = faFolderOpen, "ml-2 mr-2")
                         +"Benchmarks Archive"
-                        fontAwesomeIcon(icon = faFolderOpen, "ml-2")
                     }
                 }
 
                 a(classes = "text-info text-gradient font-weight-bold ml-2 mr-2") {
                     attrs.href = "/#"
                     h4 {
+                        fontAwesomeIcon(icon = faUser, "ml-2 mr-2")
                         +"User Settings"
-                        fontAwesomeIcon(icon = faUser, "ml-2")
                     }
                 }
             }
