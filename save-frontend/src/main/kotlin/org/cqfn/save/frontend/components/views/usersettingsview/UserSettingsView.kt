@@ -108,7 +108,11 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
             div("col-2 mr-3") {
                 div("card card-body mt-0 pt-0 pr-0 pl-0 border-secondary") {
                     div("col mr-2 pr-0 pl-0") {
+                        attrs["style"] = kotlinx.js.jso<CSSProperties> {
+                            background = "#e1e9ed".unsafeCast<Background>()
+                        }
                         div("mb-0 font-weight-bold text-gray-800") {
+
                             form {
                                 div("row g-3 ml-3 mr-3 pb-2 pt-2  border-bottom") {
                                     div("col-md-4 pl-0 pr-0") {
@@ -141,7 +145,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                                             alignItems = "center".unsafeCast<AlignItems>()
                                         }
                                         h1("h5 mb-0 text-gray-800") {
-                                            +"Cheshiriks"
+                                            +"${props.userName}"
                                         }
                                     }
                                 }
