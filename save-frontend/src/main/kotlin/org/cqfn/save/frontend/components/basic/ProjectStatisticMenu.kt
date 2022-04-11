@@ -142,8 +142,10 @@ fun projectStatisticMenu(
                 +"Latest execution"
             }
 
-            if (props.executionId != null) {
-                executionDetailsTable()
+            if (props.executionId != null && latestExecutionStatisticDtos?.isNotEmpty() == true) {
+                executionDetailsTable {
+                    attrs.executionId = props.executionId
+                }
             } else {
                 div("card shadow mb-4") {
                     div("card-header py-3") {
