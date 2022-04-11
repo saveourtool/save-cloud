@@ -214,5 +214,5 @@ fun topBar() = fc<TopBarProps> { props ->
 }
 
 private fun userSettings(userName: String) {
-    window.location.href = "#/$userName/Settings"
+    window.location.href = "#/User/$userName/Settings/Email"
 }
