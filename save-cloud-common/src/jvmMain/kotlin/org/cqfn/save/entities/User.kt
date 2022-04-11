@@ -9,6 +9,8 @@ import javax.persistence.Entity
  * @property password *in plain text*
  * @property role role of this user
  * @property source where the user identity is coming from, e.g. "github"
+ * @property email email of user
+ * @property avatar avatar of user
  */
 @Entity
 class User(
@@ -16,6 +18,8 @@ class User(
     var password: String?,
     var role: String?,
     var source: String,
+    var email: String? = null,
+    var avatar: String? = null,
 ) : BaseEntity() {
     /**
      * @param projects roles in projects
@@ -25,5 +29,7 @@ class User(
         name = name ?: "Undefined",
         source = source,
         projects = projects,
+        email = email,
+        avatar = avatar,
     )
 }

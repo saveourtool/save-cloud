@@ -10,6 +10,8 @@ import org.cqfn.save.frontend.components.basic.scrollToTopButton
 import org.cqfn.save.frontend.components.errorModalHandler
 import org.cqfn.save.frontend.components.topBar
 import org.cqfn.save.frontend.components.views.*
+import org.cqfn.save.frontend.components.views.usersettingsview.UserSettingsEmailMenuView
+import org.cqfn.save.frontend.components.views.usersettingsview.UserSettingsTokenMenuView
 import org.cqfn.save.frontend.externals.fontawesome.*
 import org.cqfn.save.frontend.externals.modal.ReactModal
 import org.cqfn.save.frontend.utils.*
@@ -138,6 +140,28 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                     path = "/awesome-benchmarks"
                                     element = buildElement {
                                         child(AwesomeBenchmarksView::class) {}
+                                    }
+                                }
+                            }
+
+                            Route {
+                                attrs {
+                                    path = "/User/:user/Settings/Email"
+                                    element = buildElement {
+                                        child(UserSettingsEmailMenuView::class) {
+                                            attrs.userName = state.userInfo?.name
+                                        }
+                                    }
+                                }
+                            }
+
+                            Route {
+                                attrs {
+                                    path = "/User/:user/Settings/Token"
+                                    element = buildElement {
+                                        child(UserSettingsTokenMenuView::class) {
+                                            attrs.userName = state.userInfo?.name
+                                        }
                                     }
                                 }
                             }

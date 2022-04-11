@@ -7,6 +7,8 @@
 package org.cqfn.save.frontend.components
 
 import org.cqfn.save.frontend.components.modal.logoutModal
+import org.cqfn.save.frontend.externals.fontawesome.faCog
+import org.cqfn.save.frontend.externals.fontawesome.faSignOutAlt
 import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
 import org.cqfn.save.info.UserInfo
 
@@ -18,6 +20,7 @@ import react.fc
 import react.router.useLocation
 import react.useState
 
+import kotlinx.browser.window
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -40,7 +43,7 @@ external interface TopBarProps : PropsWithChildren {
     var userInfo: UserInfo?
 }
 
-private fun RBuilder.dropdownEntry(faIcon: String, text: String, handler: RDOMBuilder<BUTTON>.() -> Unit = { }) =
+private fun RBuilder.dropdownEntry(faIcon: dynamic, text: String, handler: RDOMBuilder<BUTTON>.() -> Unit = { }) =
         button(type = ButtonType.button, classes = "btn btn-no-outline dropdown-item rounded-0 shadow-none") {
             fontAwesomeIcon {
                 attrs.icon = faIcon
@@ -189,9 +192,12 @@ fun topBar() = fc<TopBarProps> { props ->
                 // Dropdown - User Information
                 div("dropdown-menu dropdown-menu-right shadow animated--grow-in") {
                     attrs["aria-labelledby"] = "userDropdown"
-                    // FixMe: temporary disable Profile DropDown, will need to link it with the user in the future
-                    // dropdownEntry("cogs", "Profile")
-                    dropdownEntry("sign-out-alt", "Log out") {
+                    dropdownEntry(faCog, "Settings") {
+                        attrs.onClickFunction = {
+                            userSettings(props.userInfo?.name ?: "Unknown")
+                        }
+                    }
+                    dropdownEntry(faSignOutAlt, "Log out") {
                         attrs.onClickFunction = {
                             setIsLogoutModalOpen(true)
                         }
@@ -205,4 +211,8 @@ fun topBar() = fc<TopBarProps> { props ->
     }() {
         attrs.isOpen = isLogoutModalOpen
     }
+}
+
+private fun userSettings(userName: String) {
+    window.location.href = "#/User/$userName/Settings/Email"
 }
