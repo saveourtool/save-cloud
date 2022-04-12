@@ -46,14 +46,49 @@ class LnkUserProjectController(
             ?: throw NoSuchElementException("There is no $projectName project in $organizationName organization")
         val usersWithRoles = if (projectPermissionEvaluator.hasPermission(authentication, project, Permission.READ)) {
             lnkUserProjectService.getAllUsersAndRolesByProject(project)
-                .filter { (_, role) -> role != Role.NONE }
+                .filter { (_, role) ->
+                    role != Role.NONE
+                }
                 .map { (user, role) ->
                     user.toUserInfo(mapOf(project.organization.name + "/" + project.name to role))
                 }
-                .also { logger.trace("Found ${it.size} users for project: $it") }
+                .also {
+                    logger.trace("Found ${it.size} users for project: $it")
+                }
         } else {
             emptyList()
         }
         return usersWithRoles
+    }
+
+    /**
+     * @param organizationName
+     * @param projectName
+     * @param authentication
+     * @return list of users, not connected to the project
+     * @throws NoSuchElementException
+     */
+    @GetMapping("/users/not-from/{organizationName}/{projectName}")
+    fun getAllUsersNotFromProject(
+        @PathVariable organizationName: String,
+        @PathVariable projectName: String,
+        authentication: Authentication,
+    ): List<UserInfo> {
+        val project = projectService.findByNameAndOrganizationName(projectName, organizationName)
+            ?: throw NoSuchElementException("There is no $projectName project in $organizationName organization")
+        val allUsers = lnkUserProjectService.getAllUsers()
+            .map {
+                it.toUserInfo()
+            }
+        val projectUsers = lnkUserProjectService.getAllUsersByProject(project)
+            .map {
+                it.toUserInfo()
+            }
+        return allUsers.filterNot {
+            projectUsers.contains(it)
+        }
+            .map {
+                UserInfo(it.name, it.source)
+            }
     }
 }

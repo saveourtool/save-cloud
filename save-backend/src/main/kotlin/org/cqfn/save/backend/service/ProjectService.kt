@@ -1,8 +1,10 @@
 package org.cqfn.save.backend.service
 
+import org.cqfn.save.backend.repository.LnkUserProjectRepository
 import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.security.ProjectPermissionEvaluator
 import org.cqfn.save.domain.ProjectSaveStatus
+import org.cqfn.save.domain.Role
 import org.cqfn.save.entities.Organization
 import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.ProjectStatus
@@ -27,6 +29,7 @@ import reactor.kotlin.core.publisher.switchIfEmpty
 @Service
 class ProjectService(private val projectRepository: ProjectRepository,
                      private val projectPermissionEvaluator: ProjectPermissionEvaluator,
+                     private val lnkUserProjectRepository: LnkUserProjectRepository,
 ) {
     /**
      * Store [project] in the database
@@ -106,5 +109,17 @@ class ProjectService(private val projectRepository: ProjectRepository,
                 Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND, messageIfNotFound))
             }
             .filterByPermission(authentication, permission, statusIfForbidden)
+    }
+
+    /**
+     * @param project
+     * @param userId
+     * @return true if user can change roles in project and false otherwise
+     */
+    fun canChangeRoles(project: Project, userId: Long): Boolean = isProjectAdminOrHigher(project, userId)
+
+    private fun isProjectAdminOrHigher(project: Project, userId: Long): Boolean {
+        val userRole = lnkUserProjectRepository.findByUserIdAndProject(userId, project)?.role ?: Role.NONE
+        return userRole.priority >= Role.ADMIN.priority
     }
 }
