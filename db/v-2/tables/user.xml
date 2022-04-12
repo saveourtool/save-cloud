@@ -46,7 +46,7 @@
             <column name="company" type="varchar(250)"/>
             <column name="location" type="varchar(250)"/>
             <column name="linkedin" type="varchar(250)"/>
-            <column name="gitHub" type="varchar(250)"/>
+            <column name="git_hub" type="varchar(250)"/>
             <column name="twitter" type="varchar(250)"/>
         </addColumn>
     </changeSet>
