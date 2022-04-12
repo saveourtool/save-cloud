@@ -6,6 +6,7 @@ import org.cqfn.save.backend.repository.UserRepository
 import org.cqfn.save.backend.service.UserDetailsService
 import org.cqfn.save.entities.User
 import org.cqfn.save.utils.IdentitySourceAwareUserDetails
+import org.cqfn.save.utils.extractUserNameAndSource
 import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
 import org.springframework.security.jackson2.CoreJackson2Module
@@ -50,14 +51,15 @@ class UsersController(
     }
 
     /**
-     * Find user by name
+     * Find user by name and source
      *
-     * @param username
+     * @param userInformation
      */
-    @GetMapping("/{username}")
-    fun findByUsername(@PathVariable username: String): Mono<ResponseEntity<String>> {
-        println("\nfindByUsername")
-        return userService.findByUsername(username).map {
+    @GetMapping("/{userInformation}")
+    fun findByUsername(@PathVariable userInformation: String): Mono<ResponseEntity<String>> {
+        println("\nfindByUsername: $userInformation")
+        val (name, source) = extractUserNameAndSource(userInformation)
+        return userService.findByUsernameAndSource(name, source).map {
             ResponseEntity.ok().body(objectMapper.writeValueAsString(it))
         }
     }

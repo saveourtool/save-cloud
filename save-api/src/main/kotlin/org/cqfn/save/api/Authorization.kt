@@ -3,10 +3,10 @@ package org.cqfn.save.api
 /**
  * Authorization data
  *
- * @property userName
+ * @property userInformation user source and name, separated by `:`
  * @property token
  */
 data class Authorization(
-    val userName: String,
+    val userInformation: String,
     val token: String? = null
 )

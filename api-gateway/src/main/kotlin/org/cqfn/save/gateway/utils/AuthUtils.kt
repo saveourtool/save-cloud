@@ -27,6 +27,6 @@ fun Principal.userName(): String  {
  */
 fun Authentication.toIdentitySource(): String = when (this) {
     is OAuth2AuthenticationToken -> authorizedClientRegistrationId
-    is UsernamePasswordAuthenticationToken -> "basic"
+    is UsernamePasswordAuthenticationToken -> "${userName()}-basic"
     else -> this.javaClass.simpleName
 }

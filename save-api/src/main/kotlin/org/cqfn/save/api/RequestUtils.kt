@@ -36,6 +36,7 @@ import java.time.LocalDateTime
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
+import org.cqfn.save.utils.extractUserNameAndSource
 
 private val json = Json {
     serializersModule = SerializersModule {
@@ -45,6 +46,11 @@ private val json = Json {
 
 private object Backend {
     lateinit var url: String
+}
+
+private object UserInformation {
+    lateinit var username: String
+    lateinit var source: String
 }
 
 /**
@@ -177,7 +183,7 @@ suspend fun HttpClient.getExecutionById(
 
 private suspend fun HttpClient.getRequestWithAuthAndJsonContentType(url: String): HttpResponse = this.get {
     url(url)
-    header("X-Authorization-Source", "basic")
+    header("X-Authorization-Source", "${UserInformation.source}-basic")
     contentType(ContentType.Application.Json)
 }
 
@@ -191,6 +197,10 @@ fun initializeHttpClient(
     webClientProperties: WebClientProperties,
 ): HttpClient {
     Backend.url = webClientProperties.backendUrl
+    val (name, source) = extractUserNameAndSource(authorization.userInformation)
+    UserInformation.username = name
+    UserInformation.source = source
+
     return HttpClient(Apache) {
         install(Logging) {
             logger = Logger.DEFAULT
@@ -206,7 +216,7 @@ fun initializeHttpClient(
                 // therefore, adding sendWithoutRequest is required
                 sendWithoutRequest { true }
                 credentials {
-                    BasicAuthCredentials(username = authorization.userName, password = authorization.token ?: "")
+                    BasicAuthCredentials(username = authorization.userInformation, password = authorization.token ?: "")
                 }
             }
         }

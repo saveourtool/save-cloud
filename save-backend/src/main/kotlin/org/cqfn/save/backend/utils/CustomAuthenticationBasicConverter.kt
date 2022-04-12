@@ -22,8 +22,6 @@ ServerAuthenticationConverter {
         return apply(exchange).map {
             val name = (it as UsernamePasswordAuthenticationToken).principal as String
             val source = exchange.request.headers["X-Authorization-Source"]?.firstOrNull()
-            // TODO: check for existence of header - if exist, than it was OAuth, and all is ok
-            // TODO: if not, then identify and provide a password
             println("\n\n\nPRINCIPAL ${"$source:$name"} CREDENTIALS ${it.credentials as String}")
             UsernamePasswordAuthenticationToken(
                 "$source:$name",

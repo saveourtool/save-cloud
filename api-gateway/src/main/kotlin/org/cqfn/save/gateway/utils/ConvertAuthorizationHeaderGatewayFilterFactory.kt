@@ -1,5 +1,6 @@
 package org.cqfn.save.gateway.utils
 
+import org.cqfn.save.utils.extractUserNameAndSource
 import org.springframework.cloud.gateway.filter.GatewayFilter
 import org.springframework.cloud.gateway.filter.GatewayFilterChain
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory
@@ -27,9 +28,8 @@ class ConvertAuthorizationHeaderGatewayFilterFactory : AbstractGatewayFilterFact
                     }
                     is UsernamePasswordAuthenticationToken -> {
                         println("\nit is UsernamePasswordAuthenticationToken")
-                        println("authorizedClientRegistrationId ${(principal as? OAuth2AuthenticationToken)?.authorizedClientRegistrationId}")
-                        println("credentials ${principal.credentials}")
-                        principal.userName() to principal.credentials.toString()
+                        val (name, source) = extractUserNameAndSource(principal.userName())
+                        name to "${source}-basic"
                     }
                     else -> {
                         //TODO: any exception?
