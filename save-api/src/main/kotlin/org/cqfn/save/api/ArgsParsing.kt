@@ -36,7 +36,7 @@ fun parseArguments(args: Array<String>): CliArguments? {
     }
     val parser = ArgParser("")
 
-    val userName by parser.option(
+    val userInformation by parser.option(
         ArgType.String,
         fullName = "user",
         shortName = "u",
@@ -59,7 +59,7 @@ fun parseArguments(args: Array<String>): CliArguments? {
     )
     parser.parse(args)
     return CliArguments(
-        Authorization(userName!!, token),
+        Authorization(userInformation!!, token),
         mode!!
     )
 }

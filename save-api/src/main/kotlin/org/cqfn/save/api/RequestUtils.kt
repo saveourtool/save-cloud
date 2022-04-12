@@ -91,7 +91,7 @@ suspend fun HttpClient.uploadAdditionalFile(
     file: String,
 ): FileInfo = this.post {
     url("${Backend.url}/api/files/upload")
-    header("X-Authorization-Source", "basic")
+    header("X-Authorization-Source", "${UserInformation.source}-basic")
     body = MultiPartFormDataContent(formData {
         append(
             key = "file",
@@ -128,7 +128,7 @@ suspend fun HttpClient.submitExecution(executionType: ExecutionType, executionRe
     }
     this.post<HttpResponse> {
         url("${Backend.url}$endpoint")
-        header("X-Authorization-Source", "basic")
+        header("X-Authorization-Source", "${UserInformation.source}-basic")
         val formDataHeaders = Headers.build {
             append(HttpHeaders.ContentType, ContentType.Application.Json)
         }
@@ -216,6 +216,7 @@ fun initializeHttpClient(
                 // therefore, adding sendWithoutRequest is required
                 sendWithoutRequest { true }
                 credentials {
+                    println("\n\n\nAUTH: ${authorization.userInformation} ${authorization.token}")
                     BasicAuthCredentials(username = authorization.userInformation, password = authorization.token ?: "")
                 }
             }

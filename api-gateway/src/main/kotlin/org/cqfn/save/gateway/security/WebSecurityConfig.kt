@@ -103,14 +103,12 @@ class WebSecurityConfig(
                     authentication, authorizationContext
                 ).map {
                     if (!it.isGranted) {
-                        println("UNAUTHORIZED!")
                         // if request is not authorized by configured authorization manager, then we allow only requests w/o Authorization header
                         // then backend will return 401, if endpoint is protected for anonymous access
                         AuthorizationDecision(
                             authorizationContext.exchange.request.headers[HttpHeaders.AUTHORIZATION].isNullOrEmpty()
                         )
                     } else {
-                        println("AUTHORIZED!")
                         it
                     }
                 }
@@ -150,6 +148,7 @@ class WebSecurityConfig(
                     UserDetailsRepositoryReactiveAuthenticationManager(
                         object : ReactiveUserDetailsService {
                             override fun findByUsername(username: String): Mono<UserDetails> {
+                                println("\n\nStart find user findByUsername")
                                 val user = webClient.get()
                                     .uri("/internal/users/${username}")
                                     .retrieve()

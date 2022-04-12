@@ -3,7 +3,7 @@ package org.cqfn.save.api
 /**
  * Authorization data
  *
- * @property userInformation user source and name, separated by `:`
+ * @property userInformation user source and name, separated by `@`
  * @property token
  */
 data class Authorization(
