@@ -36,6 +36,11 @@ enum class InputTypes(val str: String) {
 
     // ==== user setting view
     USER_EMAIL("user email"),
+    COMPANY("company"),
+    LOCATION("location"),
+    GIT_HUB("git hub"),
+    LINKEDIN("linkedin"),
+    TWITTER("twitter"),
     ;
 }
 

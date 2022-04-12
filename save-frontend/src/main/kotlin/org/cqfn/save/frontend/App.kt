@@ -11,6 +11,7 @@ import org.cqfn.save.frontend.components.errorModalHandler
 import org.cqfn.save.frontend.components.topBar
 import org.cqfn.save.frontend.components.views.*
 import org.cqfn.save.frontend.components.views.usersettingsview.UserSettingsEmailMenuView
+import org.cqfn.save.frontend.components.views.usersettingsview.UserSettingsProfileMenuView
 import org.cqfn.save.frontend.components.views.usersettingsview.UserSettingsTokenMenuView
 import org.cqfn.save.frontend.externals.fontawesome.*
 import org.cqfn.save.frontend.externals.modal.ReactModal
@@ -146,7 +147,18 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
 
                             Route {
                                 attrs {
-                                    path = "/User/:user/Settings/Email"
+                                    path = "/:user/Settings/Profile"
+                                    element = buildElement {
+                                        child(UserSettingsProfileMenuView::class) {
+                                            attrs.userName = state.userInfo?.name
+                                        }
+                                    }
+                                }
+                            }
+
+                            Route {
+                                attrs {
+                                    path = "/:user/Settings/Email"
                                     element = buildElement {
                                         child(UserSettingsEmailMenuView::class) {
                                             attrs.userName = state.userInfo?.name
@@ -157,7 +169,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
 
                             Route {
                                 attrs {
-                                    path = "/User/:user/Settings/Token"
+                                    path = "/:user/Settings/Token"
                                     element = buildElement {
                                         child(UserSettingsTokenMenuView::class) {
                                             attrs.userName = state.userInfo?.name

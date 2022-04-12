@@ -44,6 +44,11 @@ class UsersDetailsController(
         val user = userRepository.findByName(newUserInfo.name).get()
         userRepository.save(user.apply {
             email = newUserInfo.email
+            company = newUserInfo.company
+            company = newUserInfo.location
+            company = newUserInfo.gitHub
+            company = newUserInfo.linkedin
+            company = newUserInfo.twitter
         })
     }
 }

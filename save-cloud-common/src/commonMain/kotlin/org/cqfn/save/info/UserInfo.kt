@@ -13,6 +13,11 @@ import kotlinx.serialization.Serializable
  * @property source where the user identity is coming from, e.g. "github"
  * @property avatar avatar of user
  * @property email
+ * @property company
+ * @property location
+ * @property linkedin
+ * @property gitHub
+ * @property twitter
  */
 @Serializable
 data class UserInfo(
@@ -21,4 +26,9 @@ data class UserInfo(
     val projects: Map<String, Role> = emptyMap(),
     val email: String? = null,
     val avatar: String? = null,
+    var company: String? = null,
+    var location: String? = null,
+    var linkedin: String? = null,
+    var gitHub: String? = null,
+    var twitter: String? = null,
 )

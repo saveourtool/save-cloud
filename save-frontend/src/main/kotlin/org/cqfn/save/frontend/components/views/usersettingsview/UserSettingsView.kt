@@ -61,6 +61,11 @@ external interface UserSettingsViewState : State {
      * Currently logged in user or null
      */
     var userInfo: UserInfo?
+
+    /**
+     * Token for user
+     */
+    var token: String?
 }
 
 @Suppress("MISSING_KDOC_TOP_LEVEL")
@@ -112,7 +117,6 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                             background = "#e1e9ed".unsafeCast<Background>()
                         }
                         div("mb-0 font-weight-bold text-gray-800") {
-
                             form {
                                 div("row g-3 ml-3 mr-3 pb-2 pt-2  border-bottom") {
                                     div("col-md-4 pl-0 pr-0") {
@@ -163,7 +167,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                                         }
                                         div("menu") {
                                             div("mt-2") {
-                                                a(classes = "item") {
+                                                a(classes = "item", href = "#/${props.userName}/Settings/Profile") {
                                                     fontAwesomeIcon {
                                                         attrs.icon = faUser
                                                         attrs.className = "fas fa-sm fa-fw mr-2 text-gray-600"
@@ -172,7 +176,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                                                 }
                                             }
                                             div("mt-2") {
-                                                a(classes = "item active", href = "#/User/${props.userName}/Settings/Email") {
+                                                a(classes = "item", href = "#/${props.userName}/Settings/Email") {
                                                     fontAwesomeIcon {
                                                         attrs.icon = faEnvelope
                                                         attrs.className = "fas fa-sm fa-fw mr-2 text-gray-600"
@@ -190,7 +194,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                                         }
                                         div("menu") {
                                             div("mt-2") {
-                                                a(classes = "item", href = "#/User/${props.userName}/Settings/Token") {
+                                                a(classes = "item", href = "#/${props.userName}/Settings/Token") {
                                                     fontAwesomeIcon {
                                                         attrs.icon = faKey
                                                         attrs.className = "fas fa-sm fa-fw mr-2 text-gray-600"
@@ -221,6 +225,11 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
             source = state.userInfo?.source,
             projects = state.userInfo?.projects ?: emptyMap(),
             email = fieldsMap[InputTypes.USER_EMAIL]?.trim(),
+            company = fieldsMap[InputTypes.COMPANY]?.trim(),
+            location = fieldsMap[InputTypes.LOCATION]?.trim(),
+            linkedin = fieldsMap[InputTypes.LINKEDIN]?.trim(),
+            gitHub = fieldsMap[InputTypes.GIT_HUB]?.trim(),
+            twitter = fieldsMap[InputTypes.TWITTER]?.trim(),
             avatar = state.userInfo?.avatar,
         )
 

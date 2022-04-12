@@ -5,6 +5,7 @@ import org.cqfn.save.frontend.components.basic.cardComponent
 import react.FC
 import react.dom.*
 import react.fc
+import react.setState
 
 import kotlinx.html.ButtonType
 import kotlinx.html.js.onClickFunction
@@ -23,7 +24,20 @@ class UserSettingsTokenMenuView : UserSettingsView() {
                 button(type = ButtonType.button, classes = "btn btn-primary mb-2 mr-2") {
                     +"Generate new token"
                     attrs.onClickFunction = {
-                        println(generateToken())
+                        generateToken()
+                    }
+                }
+            }
+
+            state.token?.let {
+                div("col-md-12 mt-3") {
+                    input {
+                        attrs.value = state.token ?: ""
+                        attrs["required"] = true
+                        attrs["class"] = "form-control"
+                    }
+                    div("invalid-feedback d-block") {
+                        +"This is your unique token. It will be shown to you only once. Please remember it."
                     }
                 }
             }
@@ -31,12 +45,14 @@ class UserSettingsTokenMenuView : UserSettingsView() {
     }
 
     @Suppress("MAGIC_NUMBER")
-    private fun generateToken(): String {
+    private fun generateToken() {
         var token = "ghp_"
-        val charPool = ('a'..'z') + ('A'..'Z') + (0..9)
-        while (token.length <= 36) {
+        val charPool = ('a'..'z') + ('A'..'Z') + ('0'..'9')
+        while (token.length < 40) {
             token += charPool.random()
         }
-        return token
+        setState {
+            this.token = token
+        }
     }
 }
