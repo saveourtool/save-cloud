@@ -46,7 +46,6 @@ external interface ProjectStatisticMenuProps : Props {
  */
 @Suppress("TOO_LONG_FUNCTION", "LongMethod", "MAGIC_NUMBER")
 fun projectStatisticMenu(
-    openMenuStatisticFlag: (isOpen: Boolean) -> Unit,
 ) = fc<ProjectStatisticMenuProps> { props ->
     val (latestExecutionStatisticDtos, setLatestExecutionStatisticDtos) = useState(props.latestExecutionStatisticDtos)
 
@@ -62,7 +61,6 @@ fun projectStatisticMenu(
                     it.decodeFromJsonString<List<TestSuiteExecutionStatisticDto>>()
                 }
             setLatestExecutionStatisticDtos(testLatestExecutions)
-            openMenuStatisticFlag(true)
         }
     }()
 

@@ -226,16 +226,6 @@ external interface ProjectViewState : State {
      * latest execution id for this project
      */
     var latestExecutionId: Long?
-
-    /**
-     * Flag to open menu statistic
-     */
-    var isOpenMenuStatistic: Boolean?
-
-    /**
-     * Flag to open menu settings
-     */
-    var isOpenMenuSettings: Boolean?
 }
 
 /**
@@ -324,7 +314,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
 
     @Suppress("TOO_MANY_LINES_IN_LAMBDA")
     private val projectSettingsMenu = projectSettingsMenu(
-        openMenuSettingsFlag = { setState { isOpenMenuSettings = it } },
         deleteProjectCallback = ::deleteProject,
         updateProjectSettings = {
             scope.launch {
@@ -351,25 +340,24 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                         set("Accept", "application/json")
                         set("Content-Type", "application/json")
                     }
-                    val response = post("/api/projects/roles/${state.project.organization.name}/${state.project.name}", headers, jsonRoleRequest)
+                    val response = post(
+                        "/api/projects/roles/${state.project.organization.name}/${state.project.name}",
+                        headers,
+                        jsonRoleRequest
+                    )
                     if (!response.ok) {
                         setState {
                             errorLabel = "Failed to save project info"
                             errorMessage = "Failed to save project info: ${response.status} ${response.statusText}"
                             isErrorOpen = true
                         }
-                    } else {
-                        setState {
-                            isOpenMenuSettings = false
-                        }
                     }
                 }
             }
         },
     )
-    private val projectStatisticMenu = projectStatisticMenu(
-        openMenuStatisticFlag = ::openMenuStatisticFlag,
-    )
+    private val projectStatisticMenu = projectStatisticMenu()
+
     private val projectInfoCard = cardComponent(isBordered = true, hasBg = true) {
         child(projectInfo) {
             attrs {
@@ -455,7 +443,14 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     private lateinit var responseFromDeleteProject: Response
 
     init {
-        state.project = Project("N/A", "N/A", "N/A", ProjectStatus.CREATED, userId = -1, organization = Organization("stub", null, date))
+        state.project = Project(
+            "N/A",
+            "N/A",
+            "N/A",
+            ProjectStatus.CREATED,
+            userId = -1,
+            organization = Organization("stub", null, date)
+        )
         state.gitUrlFromInputField = ""
         state.gitBranchOrCommitFromInputField = ""
         state.execCmd = ""
@@ -478,8 +473,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         state.isUploading = false
         state.isEditDisabled = true
         state.selectedMenu = ProjectMenuBar.RUN
-        state.isOpenMenuStatistic = false
-        state.isOpenMenuSettings = false
+
     }
 
     override fun componentDidMount() {
@@ -538,7 +532,8 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                     } else {
                         null to branchOrCommit
                     }
-                    val newGitDto = gitDto?.copy(url = urlWithTests, branch = newBranch, hash = newCommit) ?: GitDto(url = urlWithTests, branch = newBranch, hash = newCommit)
+                    val newGitDto = gitDto?.copy(url = urlWithTests, branch = newBranch, hash = newCommit)
+                        ?: GitDto(url = urlWithTests, branch = newBranch, hash = newCommit)
                     submitExecutionRequestWithCustomTests(newGitDto)
                 }
             }
@@ -561,7 +556,13 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         val headers = Headers()
         val formData = FormData()
         val selectedSdk = "${state.selectedSdk}:${state.selectedSdkVersion}".toSdk()
-        val request = ExecutionRequestForStandardSuites(state.project, selectedStandardSuites, selectedSdk, state.execCmd, state.batchSizeForAnalyzer)
+        val request = ExecutionRequestForStandardSuites(
+            state.project,
+            selectedStandardSuites,
+            selectedSdk,
+            state.execCmd,
+            state.batchSizeForAnalyzer
+        )
         formData.appendJson("execution", request)
         state.files.forEach {
             formData.appendJson("file", it)
@@ -639,19 +640,14 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             nav("nav nav-tabs mb-4") {
                 ProjectMenuBar.values().forEachIndexed { i, projectMenu ->
                     li("nav-item") {
-                        val classVal = if ((i == 0 && state.selectedMenu == null) || state.selectedMenu == projectMenu) " active font-weight-bold" else ""
+                        val classVal =
+                            if ((i == 0 && state.selectedMenu == null) || state.selectedMenu == projectMenu) " active font-weight-bold" else ""
                         p("nav-link $classVal text-gray-800") {
                             attrs.onClickFunction = {
                                 if (state.selectedMenu != projectMenu) {
                                     setState {
                                         selectedMenu = projectMenu
                                     }
-                                }
-                                if (projectMenu != ProjectMenuBar.STATISTICS) {
-                                    openMenuStatisticFlag(false)
-                                }
-                                if (projectMenu != ProjectMenuBar.SETTINGS) {
-                                    openMenuSettingsFlag(false)
                                 }
                             }
                             +projectMenu.name
@@ -661,135 +657,132 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             }
         }
 
-        if (state.selectedMenu == ProjectMenuBar.RUN) {
-            div("row justify-content-center ml-5") {
-                // ===================== LEFT COLUMN =======================================================================
-                div("col-2 mr-3") {
-                    div("text-xs text-center font-weight-bold text-primary text-uppercase mb-3") {
-                        +"Testing types"
-                    }
+        when (state.selectedMenu!!) {
+            ProjectMenuBar.RUN -> renderRun()
+            ProjectMenuBar.STATISTICS -> renderStatistics()
+            ProjectMenuBar.SETTINGS -> renderSettings()
+        }
+    }
 
-                    child(typeSelection)
+    private fun RBuilder.renderRun() {
+        div("row justify-content-center ml-5") {
+            // ===================== LEFT COLUMN =======================================================================
+            div("col-2 mr-3") {
+                div("text-xs text-center font-weight-bold text-primary text-uppercase mb-3") {
+                    +"Testing types"
                 }
-                // ===================== MIDDLE COLUMN =====================================================================
-                div("col-4") {
-                    div("text-xs text-center font-weight-bold text-primary text-uppercase mb-3") {
-                        +"Test configuration"
-                    }
 
-                    // ======== file selector =========
-                    child(fileUploader) {
-                        attrs.isSubmitButtonPressed = state.isSubmitButtonPressed
-                        attrs.files = state.files
-                        attrs.availableFiles = state.availableFiles
-                        attrs.confirmationType = state.confirmationType
-                        attrs.suiteByteSize = state.suiteByteSize
-                        attrs.bytesReceived = state.bytesReceived
-                        attrs.isUploading = state.isUploading
-                    }
+                child(typeSelection)
+            }
+            // ===================== MIDDLE COLUMN =====================================================================
+            div("col-4") {
+                div("text-xs text-center font-weight-bold text-primary text-uppercase mb-3") {
+                    +"Test configuration"
+                }
 
-                    // ======== sdk selection =========
-                    child(sdkSelection) {
-                        attrs.selectedSdk = state.selectedSdk
-                        attrs.selectedSdkVersion = state.selectedSdkVersion
-                    }
+                // ======== file selector =========
+                child(fileUploader) {
+                    attrs.isSubmitButtonPressed = state.isSubmitButtonPressed
+                    attrs.files = state.files
+                    attrs.availableFiles = state.availableFiles
+                    attrs.confirmationType = state.confirmationType
+                    attrs.suiteByteSize = state.suiteByteSize
+                    attrs.bytesReceived = state.bytesReceived
+                    attrs.isUploading = state.isUploading
+                }
 
-                    // ======== test resources selection =========
-                    child(testResourcesSelection) {
-                        attrs.testingType = state.testingType
-                        attrs.isSubmitButtonPressed = state.isSubmitButtonPressed
-                        attrs.gitDto = gitDto
-                        // properties for CUSTOM_TESTS mode
-                        attrs.testRootPath = state.testRootPath
-                        attrs.gitUrlFromInputField = state.gitUrlFromInputField
-                        attrs.gitBranchOrCommitFromInputField = state.gitBranchOrCommitFromInputField
-                        // properties for STANDARD_BENCHMARKS mode
-                        attrs.selectedStandardSuites = selectedStandardSuites
-                        attrs.standardTestSuites = standardTestSuites
-                        attrs.selectedLanguageForStandardTests = state.selectedLanguageForStandardTests
-                        attrs.execCmd = state.execCmd
-                        attrs.batchSizeForAnalyzer = state.batchSizeForAnalyzer
-                    }
+                // ======== sdk selection =========
+                child(sdkSelection) {
+                    attrs.selectedSdk = state.selectedSdk
+                    attrs.selectedSdkVersion = state.selectedSdkVersion
+                }
 
-                    div("d-sm-flex align-items-center justify-content-center") {
-                        button(type = ButtonType.button, classes = "btn btn-primary") {
-                            attrs.onClickFunction = { submitWithValidation() }
-                            +"Test the tool now"
+                // ======== test resources selection =========
+                child(testResourcesSelection) {
+                    attrs.testingType = state.testingType
+                    attrs.isSubmitButtonPressed = state.isSubmitButtonPressed
+                    attrs.gitDto = gitDto
+                    // properties for CUSTOM_TESTS mode
+                    attrs.testRootPath = state.testRootPath
+                    attrs.gitUrlFromInputField = state.gitUrlFromInputField
+                    attrs.gitBranchOrCommitFromInputField = state.gitBranchOrCommitFromInputField
+                    // properties for STANDARD_BENCHMARKS mode
+                    attrs.selectedStandardSuites = selectedStandardSuites
+                    attrs.standardTestSuites = standardTestSuites
+                    attrs.selectedLanguageForStandardTests = state.selectedLanguageForStandardTests
+                    attrs.execCmd = state.execCmd
+                    attrs.batchSizeForAnalyzer = state.batchSizeForAnalyzer
+                }
+
+                div("d-sm-flex align-items-center justify-content-center") {
+                    button(type = ButtonType.button, classes = "btn btn-primary") {
+                        attrs.onClickFunction = { submitWithValidation() }
+                        +"Test the tool now"
+                    }
+                }
+            }
+            // ===================== RIGHT COLUMN ======================================================================
+            div("col-3 ml-2") {
+                div("text-xs text-center font-weight-bold text-primary text-uppercase mb-3") {
+                    +"Information"
+                    button(classes = "btn btn-link text-xs text-muted text-left p-1 ml-2") {
+                        +"Edit  "
+                        fontAwesomeIcon(icon = faEdit)
+                        attrs.onClickFunction = {
+                            turnEditMode(isOff = false)
                         }
                     }
                 }
-                // ===================== RIGHT COLUMN ======================================================================
-                div("col-3 ml-2") {
-                    div("text-xs text-center font-weight-bold text-primary text-uppercase mb-3") {
-                        +"Information"
-                        button(classes = "btn btn-link text-xs text-muted text-left p-1 ml-2") {
-                            +"Edit  "
-                            fontAwesomeIcon(icon = faEdit)
-                            attrs.onClickFunction = {
-                                turnEditMode(isOff = false)
-                            }
-                        }
-                    }
 
-                    child(projectInfoCard)
-                }
+                child(projectInfoCard)
             }
-        } else if (state.selectedMenu == ProjectMenuBar.STATISTICS) {
-            child(projectStatisticMenu) {
-                attrs.executionId = state.latestExecutionId
-                attrs.isOpen = state.isOpenMenuStatistic
-            }
-        } else if (state.selectedMenu == ProjectMenuBar.SETTINGS) {
-            child(projectSettingsMenu) {
-                attrs.isOpen = state.isOpenMenuSettings
-                attrs.project = state.project
-                attrs.users = emptyList()
-                attrs.selfRole = Role.VIEWER
-                attrs.currentUserInfo = props.currentUserInfo ?: UserInfo("Unknown")
-            }
+        }
+
+    }
+
+    private fun RBuilder.renderStatistics() {
+        child(projectStatisticMenu) {
+            attrs.executionId = state.latestExecutionId
+        }
+    }
+
+    private fun RBuilder.renderSettings() {
+        child(projectSettingsMenu) {
+            attrs.project = state.project
+            attrs.users = emptyList()
+            attrs.selfRole = Role.VIEWER
+            attrs.currentUserInfo = props.currentUserInfo ?: UserInfo("Unknown")
         }
     }
 
     private fun postFileUpload(element: HTMLInputElement) =
-            scope.launch {
-                setState {
-                    isUploading = true
-                    element.files!!.asList().forEach { file ->
-                        suiteByteSize += file.size.toLong()
-                    }
-                }
-
+        scope.launch {
+            setState {
+                isUploading = true
                 element.files!!.asList().forEach { file ->
-                    val response: FileInfo = post(
-                        "$apiUrl/files/upload",
-                        Headers(),
-                        FormData().apply {
-                            append("file", file)
-                        }
-                    )
-                        .decodeFromJsonString()
-                    setState {
-                        // add only to selected files so that this entry isn't duplicated
-                        files.add(response)
-                        bytesReceived += response.sizeBytes
-                    }
-                }
-                setState {
-                    isUploading = false
+                    suiteByteSize += file.size.toLong()
                 }
             }
 
-    public fun openMenuStatisticFlag(isOpen: Boolean) {
-        setState {
-            isOpenMenuStatistic = isOpen
+            element.files!!.asList().forEach { file ->
+                val response: FileInfo = post(
+                    "$apiUrl/files/upload",
+                    Headers(),
+                    FormData().apply {
+                        append("file", file)
+                    }
+                )
+                    .decodeFromJsonString()
+                setState {
+                    // add only to selected files so that this entry isn't duplicated
+                    files.add(response)
+                    bytesReceived += response.sizeBytes
+                }
+            }
+            setState {
+                isUploading = false
+            }
         }
-    }
-
-    public fun openMenuSettingsFlag(isOpen: Boolean) {
-        setState {
-            isOpenMenuSettings = isOpen
-        }
-    }
 
     private fun turnEditMode(isOff: Boolean) {
         setState {
@@ -818,14 +811,14 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         div(divClass) {
             button(type = ButtonType.button) {
                 attrs.classes =
-                        if (state.testingType == selectedTestingType) {
-                            setOf("btn", "btn-primary")
-                        } else {
-                            setOf(
-                                "btn",
-                                "btn-outline-primary"
-                            )
-                        }
+                    if (state.testingType == selectedTestingType) {
+                        setOf("btn", "btn-primary")
+                    } else {
+                        setOf(
+                            "btn",
+                            "btn-outline-primary"
+                        )
+                    }
                 attrs.onClickFunction = {
                     setState {
                         testingType = selectedTestingType
@@ -850,8 +843,8 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             state.gitUrlFromInputField.isBlank() && state.testingType == TestingType.CUSTOM_TESTS -> setState {
                 isErrorOpen = true
                 errorMessage =
-                        "Git Url with test suites in save format was not provided,but it is required for the testing process." +
-                                " SAVE is not able to run your tests without an information of where to download them from."
+                    "Git Url with test suites in save format was not provided,but it is required for the testing process." +
+                            " SAVE is not able to run your tests without an information of where to download them from."
                 errorLabel = "Git Url"
             }
             // no binaries were provided
@@ -895,7 +888,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         }
         scope.launch {
             responseFromDeleteProject =
-                    post("$apiUrl/projects/update", headers, Json.encodeToString(state.project))
+                post("$apiUrl/projects/update", headers, Json.encodeToString(state.project))
         }.invokeOnCompletion {
             if (responseFromDeleteProject.ok) {
                 window.location.href = "${window.location.origin}/"
@@ -921,7 +914,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             setState {
                 errorLabel = "Failed to fetch latest execution"
                 errorMessage =
-                        "Failed to fetch latest execution: [${response.status}] ${response.statusText}, please refresh the page and try again"
+                    "Failed to fetch latest execution: [${response.status}] ${response.statusText}, please refresh the page and try again"
                 latestExecutionId = null
             }
         } else {
@@ -948,7 +941,8 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             it.decodeFromJsonString<List<FileInfo>>()
         }
 
-    companion object : RStatics<ProjectExecutionRouteProps, ProjectViewState, ProjectView, Context<StateSetter<Response?>>>(ProjectView::class) {
+    companion object :
+        RStatics<ProjectExecutionRouteProps, ProjectViewState, ProjectView, Context<StateSetter<Response?>>>(ProjectView::class) {
         const val TEST_ROOT_DIR_HINT = """
             The path you are providing should be relative to the root directory of your repository.
             This directory should contain <a href = "https://github.com/analysis-dev/save#how-to-configure"> save.properties </a>
@@ -961,6 +955,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             Please note, that the tested tool and it's resources will be copied to this directory before the run.
             """
         const val TEST_SUITE_ROW = 4
+
         init {
             contextType = errorStatusContext
         }
