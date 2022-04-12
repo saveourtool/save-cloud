@@ -55,13 +55,14 @@ class LnkUserProjectService(
      * @param project
      * @return none
      */
+    @Suppress("UnsafeCallOnNullableType")
     fun removeRole(user: User, project: Project) = lnkUserProjectRepository.findByUserIdAndProject(user.id!!, project)
         ?.id
         ?.let {
             lnkUserProjectRepository.deleteById(it)
         }
         ?: run {
-            logger.warn("Cannot delete user ${user.name ?: user.id!!} from project ${project.organization.name}/${project.name}: no such link was found.")
+            logger.warn("Cannot delete user ${user.name ?: user.id} from project ${project.organization.name}/${project.name}: no such link was found.")
         }
 
     /**

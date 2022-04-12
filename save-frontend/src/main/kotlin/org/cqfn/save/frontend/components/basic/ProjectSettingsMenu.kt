@@ -74,7 +74,12 @@ private fun String.toRole() = when (this) {
  * @param updateErrorMessage
  * @return ReactElement
  */
-@Suppress("TOO_LONG_FUNCTION", "LongMethod", "MAGIC_NUMBER", "ComplexMethod")
+@Suppress(
+    "TOO_LONG_FUNCTION",
+    "LongMethod",
+    "MAGIC_NUMBER",
+    "ComplexMethod"
+)
 fun projectSettingsMenu(
     openMenuSettingsFlag: (isOpen: Boolean) -> Unit,
     deleteProjectCallback: () -> Unit,

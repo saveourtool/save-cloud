@@ -1,6 +1,7 @@
 package org.cqfn.save.backend.security
 
 import org.cqfn.save.backend.repository.LnkUserProjectRepository
+import org.cqfn.save.backend.repository.UserRepository
 import org.cqfn.save.backend.service.LnkUserProjectService
 import org.cqfn.save.backend.utils.AuthenticationDetails
 import org.cqfn.save.domain.Role
@@ -28,6 +29,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
 class ProjectPermissionEvaluatorTest {
     @Autowired private lateinit var projectPermissionEvaluator: ProjectPermissionEvaluator
     @MockBean private lateinit var lnkUserProjectRepository: LnkUserProjectRepository
+    @MockBean private lateinit var userRepository: UserRepository
     private lateinit var mockProject: Project
 
     @BeforeEach
