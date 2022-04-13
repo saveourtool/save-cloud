@@ -22,8 +22,8 @@ class ConvertingAuthenticationManager : ReactiveAuthenticationManager {
     private lateinit var userDetailsService: UserDetailsService
 
     override fun authenticate(authentication: Authentication): Mono<Authentication> = if (authentication is UsernamePasswordAuthenticationToken) {
-        println("\n\n-----------------Backend, authenticate: ${authentication.name} ${authentication.isAuthenticated}")
         val identitySource = (authentication.details as AuthenticationDetails).identitySource
+        println("\n\n-----------------Backend, authenticate: ${authentication.name} ${authentication.isAuthenticated} ${identitySource}")
         if (identitySource == null || !authentication.name.startsWith("$identitySource:")) {
             throw BadCredentialsException(authentication.name)
         }

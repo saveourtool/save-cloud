@@ -91,7 +91,7 @@ suspend fun HttpClient.uploadAdditionalFile(
     file: String,
 ): FileInfo = this.post {
     url("${Backend.url}/api/files/upload")
-    header("X-Authorization-Source", "${UserInformation.source}-basic")
+    header("X-Authorization-Source", UserInformation.source)
     body = MultiPartFormDataContent(formData {
         append(
             key = "file",
@@ -128,7 +128,7 @@ suspend fun HttpClient.submitExecution(executionType: ExecutionType, executionRe
     }
     this.post<HttpResponse> {
         url("${Backend.url}$endpoint")
-        header("X-Authorization-Source", "${UserInformation.source}-basic")
+        header("X-Authorization-Source", UserInformation.source)
         val formDataHeaders = Headers.build {
             append(HttpHeaders.ContentType, ContentType.Application.Json)
         }
@@ -183,7 +183,7 @@ suspend fun HttpClient.getExecutionById(
 
 private suspend fun HttpClient.getRequestWithAuthAndJsonContentType(url: String): HttpResponse = this.get {
     url(url)
-    header("X-Authorization-Source", "${UserInformation.source}-basic")
+    header("X-Authorization-Source", UserInformation.source)
     contentType(ContentType.Application.Json)
 }
 

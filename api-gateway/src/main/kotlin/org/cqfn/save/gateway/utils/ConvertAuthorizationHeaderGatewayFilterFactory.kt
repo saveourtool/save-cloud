@@ -23,13 +23,12 @@ class ConvertAuthorizationHeaderGatewayFilterFactory : AbstractGatewayFilterFact
         exchange.getPrincipal<Principal>().map { principal ->
                 val credentials = when (principal) {
                     is OAuth2AuthenticationToken -> {
-                        println("\nit is OAuth2AuthenticationToken")
                         principal.userName() to (principal as? OAuth2AuthenticationToken)?.authorizedClientRegistrationId
                     }
                     is UsernamePasswordAuthenticationToken -> {
-                        println("\nit is UsernamePasswordAuthenticationToken")
-                        val (name, source) = extractUserNameAndSource(principal.userName())
-                        name to "${source}-basic"
+                        //val (name, source) = extractUserNameAndSource(principal.userName())
+                        //name to null//source
+                        principal.userName() to null//source
                     }
                     else -> {
                         //TODO: any exception?
@@ -41,7 +40,7 @@ class ConvertAuthorizationHeaderGatewayFilterFactory : AbstractGatewayFilterFact
             .map { (name, source) ->
                 exchange.mutate().request { request ->
                     request.headers { headers: HttpHeaders ->
-                        println("\n\n\nSET HEADERS $name $source")
+                        println("\n\n\nSET HEADERS $name $source ${headers.get("X-Authorization-Source")}")
                         headers.set(HttpHeaders.AUTHORIZATION, "Basic ${
                             Base64.getEncoder().encodeToString("$name:".toByteArray())
                         }")

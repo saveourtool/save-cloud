@@ -4,6 +4,7 @@
 
 package org.cqfn.save.gateway.utils
 
+import org.cqfn.save.utils.extractUserNameAndSource
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.Authentication
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken
@@ -27,6 +28,6 @@ fun Principal.userName(): String  {
  */
 fun Authentication.toIdentitySource(): String = when (this) {
     is OAuth2AuthenticationToken -> authorizedClientRegistrationId
-    is UsernamePasswordAuthenticationToken -> "${userName()}-basic"
+    is UsernamePasswordAuthenticationToken -> extractUserNameAndSource(userName()).second.also { println("\n\n\n\n=======================Authentication.toIdentitySource ${it}") }
     else -> this.javaClass.simpleName
 }
