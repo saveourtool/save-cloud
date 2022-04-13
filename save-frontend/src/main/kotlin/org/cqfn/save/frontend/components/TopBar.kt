@@ -147,7 +147,7 @@ fun topBar() = fc<TopBarProps> { props ->
                         width = 8.rem
                     }.unsafeCast<Width>()
                     attrs.href = "#/projects"
-                    +"Leaderboard"
+                    +"Projects board"
                 }
             }
             li("nav-item") {
