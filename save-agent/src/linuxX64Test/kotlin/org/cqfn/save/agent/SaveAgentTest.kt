@@ -5,6 +5,7 @@ import org.cqfn.save.agent.utils.readProperties
 import generated.SAVE_CORE_VERSION
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
+import io.ktor.client.engine.mock.MockEngineConfig
 import io.ktor.client.engine.mock.respond
 import io.ktor.client.plugins.json.JsonPlugin
 import io.ktor.client.plugins.kotlinx.serializer.KotlinxSerializer
@@ -23,29 +24,35 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.PolymorphicSerializer
 import kotlinx.serialization.properties.Properties
 import kotlinx.serialization.properties.decodeFromStringMap
+import kotlin.native.concurrent.ThreadLocal
+
+/**
+ * Fixme: after migration to the new Memory Model this can be inlined into HttpClient creation
+ */
+@ThreadLocal
+private val mockEngine = MockEngine(MockEngineConfig().apply {
+    addHandler { request ->
+        when (request.url.encodedPath) {
+            "/heartbeat" -> respond(
+                json.encodeToString(PolymorphicSerializer(HeartbeatResponse::class), ContinueResponse),
+                HttpStatusCode.OK,
+                headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+            )
+            "/executionData" -> respond("", status = HttpStatusCode.OK)
+            "/executionLogs" -> respond("", status = HttpStatusCode.OK)
+            else -> error("Unhandled ${request.url}")
+        }
+    }
+})
 
 class SaveAgentTest {
     @OptIn(ExperimentalSerializationApi::class)
     private val configuration: AgentConfiguration = Properties.decodeFromStringMap<AgentConfiguration>(readProperties("src/linuxX64Main/resources/agent.properties")).let {
         if (Platform.osFamily == OsFamily.WINDOWS) it.copy(cliCommand = "save-$SAVE_CORE_VERSION-linuxX64.bat") else it
     }
-    private val saveAgentForTest = SaveAgent(configuration, httpClient = HttpClient(MockEngine) {
+    private val saveAgentForTest = SaveAgent(configuration, httpClient = HttpClient(engine = mockEngine) {
         install(JsonPlugin) {
             serializer = KotlinxSerializer(json)
-        }
-        engine {
-            addHandler { request ->
-                when (request.url.encodedPath) {
-                    "/heartbeat" -> respond(
-                        json.encodeToString(PolymorphicSerializer(HeartbeatResponse::class), ContinueResponse),
-                        HttpStatusCode.OK,
-                        headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-                    )
-                    "/executionData" -> respond("", status = HttpStatusCode.OK)
-                    "/executionLogs" -> respond("", status = HttpStatusCode.OK)
-                    else -> error("Unhandled ${request.url}")
-                }
-            }
         }
     })
 
