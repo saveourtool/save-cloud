@@ -150,10 +150,12 @@ class ExecutionController(private val executionService: ExecutionService,
      */
     @GetMapping("/api/latestExecution")
     fun getLatestExecutionForProject(@RequestParam name: String, @RequestParam organizationId: Long, authentication: Authentication): Mono<ExecutionDto> =
-            justOrNotFound(
-                executionService.getLatestExecutionByProjectNameAndProjectOrganizationId(name, organizationId),
-                "Execution not found for project (name=$name, organization id=$organizationId)"
+            Mono.justOrEmpty(
+                executionService.getLatestExecutionByProjectNameAndProjectOrganizationId(name, organizationId)
             )
+                .switchIfEmpty {
+                    Mono.error(ResponseStatusException(HttpStatus.NO_CONTENT))
+                }
                 .filterWhen { projectPermissionEvaluator.checkPermissions(authentication, it, Permission.READ) }
                 .map { it.toDto() }
 
