@@ -140,10 +140,10 @@ suspend fun HttpClient.submitExecution(executionType: ExecutionType, executionRe
                     formDataHeaders
                 )
             }
-            additionalFiles?.forEach {
+            additionalFiles?.forEach { fileInfo ->
                 append(
                     "file",
-                    json.encodeToString(it),
+                    json.encodeToString(fileInfo),
                     Headers.build {
                         append(HttpHeaders.ContentType, ContentType.Application.Json)
                     }

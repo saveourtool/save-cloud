@@ -251,25 +251,25 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     private var gitDto: GitDto? = null
     private val date = LocalDateTime(1970, Month.JANUARY, 1, 0, 0, 1)
     private val testResourcesSelection = testResourcesSelection(
-        updateGitUrlFromInputField = {
-            it.preventDefault()
+        updateGitUrlFromInputField = { event ->
+            event.preventDefault()
             setState {
-                gitUrlFromInputField = (it.target as HTMLInputElement).value
+                gitUrlFromInputField = (event.target as HTMLInputElement).value
             }
         },
-        updateGitBranchOrCommitInputField = {
+        updateGitBranchOrCommitInputField = { event ->
             setState {
-                gitBranchOrCommitFromInputField = (it.target as HTMLInputElement).value
+                gitBranchOrCommitFromInputField = (event.target as HTMLInputElement).value
             }
         },
-        updateTestRootPath = {
+        updateTestRootPath = { event ->
             setState {
-                testRootPath = (it.target as HTMLInputElement).value
+                testRootPath = (event.target as HTMLInputElement).value
             }
         },
-        setTestRootPathFromHistory = {
+        setTestRootPathFromHistory = { testRootPath ->
             setState {
-                testRootPath = it
+                this.testRootPath = testRootPath
             }
         },
         setExecCmd = {
@@ -315,12 +315,12 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     @Suppress("TOO_MANY_LINES_IN_LAMBDA")
     private val projectSettingsMenu = projectSettingsMenu(
         deleteProjectCallback = ::deleteProject,
-        updateProjectSettings = {
+        updateProjectSettings = { project ->
             scope.launch {
-                val response = updateProject(it)
+                val response = updateProject(project)
                 if (response.ok) {
                     setState {
-                        project = it
+                        this.project = project
                     }
                 } else {
                     setState {
@@ -331,9 +331,9 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 }
             }
         },
-        updatePermissions = {
+        updatePermissions = { userToRole ->
             scope.launch {
-                for ((userName, role) in it) {
+                for ((userName, role) in userToRole) {
                     val setRoleRequest = SetRoleRequest(userName.split(":")[1], role)
                     val jsonRoleRequest = Json.encodeToString(setRoleRequest)
                     val headers = Headers().apply {
