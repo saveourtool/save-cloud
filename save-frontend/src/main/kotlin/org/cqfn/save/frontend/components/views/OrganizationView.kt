@@ -10,13 +10,11 @@ import org.cqfn.save.entities.Project
 import org.cqfn.save.frontend.components.basic.privacySpan
 import org.cqfn.save.frontend.components.errorStatusContext
 import org.cqfn.save.frontend.components.tables.tableComponent
+import org.cqfn.save.frontend.externals.fontawesome.*
 import org.cqfn.save.frontend.http.getOrganization
 import org.cqfn.save.frontend.utils.*
 
-import csstype.Left
-import csstype.Position
-import csstype.TextAlign
-import csstype.Top
+import csstype.*
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.asList
 import org.w3c.fetch.Headers
@@ -27,9 +25,11 @@ import react.dom.*
 import react.table.columns
 
 import kotlinx.coroutines.launch
+import kotlinx.html.ButtonType
 import kotlinx.html.InputType
 import kotlinx.html.hidden
 import kotlinx.html.js.onChangeFunction
+import kotlinx.html.js.onClickFunction
 import kotlinx.js.jso
 
 /**
@@ -58,6 +58,16 @@ external interface OrganizationViewState : State {
      * Organization
      */
     var organization: Organization?
+
+    /**
+     * project selected menu
+     */
+    var selectedMenu: OrganizationMenuBar?
+
+    /**
+     * List of projects for `this` organization
+     */
+    var projects: Array<Project>?
 }
 
 /**
@@ -67,87 +77,337 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
     init {
         state.isUploading = false
         state.organization = Organization("", null, null, null)
+        state.selectedMenu = OrganizationMenuBar.INFO
+        state.projects = emptyArray()
     }
 
     override fun componentDidMount() {
         super.componentDidMount()
         scope.launch {
             val avatar = getAvatar()
-            val organizationNew = getOrganization(props.organizationName)
+            val organizationLoaded = getOrganization(props.organizationName)
+            val projectsLoaded = getProjectsForOrganization()
             setState {
                 image = avatar
-                organization = organizationNew
+                organization = organizationLoaded
+                projects = projectsLoaded
             }
         }
     }
 
     @Suppress("TOO_LONG_FUNCTION", "LongMethod", "MAGIC_NUMBER")
     override fun RBuilder.render() {
-        div("d-sm-flex align-items-center justify-content-center mb-4") {
-            h1("h3 mb-0 text-gray-800") {
-                +"${state.organization?.name}"
+        when (state.selectedMenu!!) {
+            OrganizationMenuBar.INFO -> renderInfo()
+            OrganizationMenuBar.TOOLS -> renderTools()
+            OrganizationMenuBar.SETTINGS -> renderSettings()
+            else -> {
+                // this is a generated else block
+            }
+        }
+    }
+
+    @Suppress("TOO_LONG_FUNCTION", "LongMethod")
+    private fun RBuilder.renderInfo() {
+        // ================= Row for avatar and name =============
+        div("row") {
+            div("col-3 ml-auto") {
+                attrs["style"] = jso<CSSProperties> {
+                    justifyContent = JustifyContent.center
+                    display = Display.flex
+                    alignItems = AlignItems.center
+                }
+                label {
+                    input(type = InputType.file) {
+                        attrs.hidden = true
+                        attrs {
+                            onChangeFunction = { event ->
+                                val target = event.target as HTMLInputElement
+                                postImageUpload(target)
+                            }
+                        }
+                    }
+                    attrs["aria-label"] = "Change organization's avatar"
+                    img(classes = "avatar avatar-user width-full border color-bg-default rounded-circle") {
+                        attrs.src = state.image?.path?.let {
+                            "/api/avatar$it"
+                        }
+                            ?: run {
+                                "img/company.svg"
+                            }
+                        attrs.height = "100"
+                        attrs.width = "100"
+                    }
+                }
+
+                h1("h3 mb-0 text-gray-800 ml-2") {
+                    +"${state.organization?.name}"
+                }
+            }
+
+            div("col-3 mx-0") {
+                attrs["style"] = jso<CSSProperties> {
+                    justifyContent = JustifyContent.center
+                    display = Display.flex
+                    alignItems = AlignItems.center
+                }
+
+                nav("nav nav-tabs") {
+                    OrganizationMenuBar.values().forEachIndexed { i, projectMenu ->
+                        li("nav-item") {
+                            val classVal =
+                                    if ((i == 0 && state.selectedMenu == null) || state.selectedMenu == projectMenu) " active font-weight-bold" else ""
+                            p("nav-link $classVal text-gray-800") {
+                                attrs.onClickFunction = {
+                                    if (state.selectedMenu != projectMenu) {
+                                        setState {
+                                            selectedMenu = projectMenu
+                                        }
+                                    }
+                                }
+                                +projectMenu.name
+                            }
+                        }
+                    }
+                }
+            }
+
+            div("col-3 mr-auto") {
+                attrs["style"] = jso<CSSProperties> {
+                    justifyContent = JustifyContent.center
+                    display = Display.flex
+                    alignItems = AlignItems.center
+                }
+
+                button(type = ButtonType.button, classes = "btn btn-primary") {
+                    a(classes = "text-light", href = "#/creation/") {
+                        +"+ New Tool"
+                    }
+                }
+            }
+        }
+
+        // ================= Title for TOP projects ===============
+        div("row") {
+            div("col-3 ml-auto") {
+                attrs["style"] = jso<CSSProperties> {
+                    justifyContent = JustifyContent.center
+                    display = Display.flex
+                    alignItems = AlignItems.center
+                }
+                h4 {
+                    +"Top Tools"
+                }
+            }
+
+            div("col-3 mx-auto") {
+                }
+        }
+
+        // ================= Rows for TOP projects ================
+        val topProjects = state.projects?.sortedByDescending { it.contestRating }?.take(TOP_PROJECTS_NUMBER)
+
+        div("row") {
+            attrs["style"] = jso<CSSProperties> {
+                justifyContent = JustifyContent.center
+            }
+            renderTopProject(topProjects?.getOrNull(0))
+            renderTopProject(topProjects?.getOrNull(1))
+        }
+
+        @Suppress("MAGIC_NUMBER")
+        div("row") {
+            attrs["style"] = jso<CSSProperties> {
+                justifyContent = JustifyContent.center
+            }
+            renderTopProject(topProjects?.getOrNull(2))
+            renderTopProject(topProjects?.getOrNull(3))
+        }
+
+        div("row") {
+            attrs["style"] = jso<CSSProperties> {
+                justifyContent = JustifyContent.center
+            }
+            div("col-3 mb-4") {
+                div("card shadow mb-4") {
+                    div("card-header py-3") {
+                        div("row") {
+                            h6("m-0 font-weight-bold text-primary") {
+                                attrs["style"] = jso<CSSProperties> {
+                                    display = Display.flex
+                                    alignItems = AlignItems.center
+                                }
+                                +"Description"
+                            }
+                            button(classes = "btn btn-link text-xs text-muted text-left ml-auto") {
+                                +"Edit  "
+                                fontAwesomeIcon(icon = faEdit)
+                                attrs.onClickFunction = {
+
+                                    }
+                            }
+                        }
+                    }
+                    div("card-body") {
+                        p {
+                            +"""Description"""
+                        }
+                    }
+                }
+            }
+
+            div("col-3") {
+                div("latest-photos") {
+                    div("row") {
+                        div("col-md-4") {
+                            figure {
+                                img(classes = "img-fluid") {
+                                    attrs["src"] = "https://bootdey.com/img/Content/avatar/avatar1.png"
+                                    attrs["alt"] = ""
+                                }
+                            }
+                        }
+                        div("col-md-4") {
+                            figure {
+                                img(classes = "img-fluid") {
+                                    attrs["src"] = "https://bootdey.com/img/Content/avatar/avatar2.png"
+                                    attrs["alt"] = ""
+                                }
+                            }
+                        }
+                        div("col-md-4") {
+                            figure {
+                                img(classes = "img-fluid") {
+                                    attrs["src"] = "https://bootdey.com/img/Content/avatar/avatar3.png"
+                                    attrs["alt"] = ""
+                                }
+                            }
+                        }
+                        div("col-md-4") {
+                            figure {
+                                img(classes = "img-fluid") {
+                                    attrs["src"] = "https://bootdey.com/img/Content/avatar/avatar4.png"
+                                    attrs["alt"] = ""
+                                }
+                            }
+                        }
+                        div("col-md-4") {
+                            figure {
+                                img(classes = "img-fluid") {
+                                    attrs["src"] = "https://bootdey.com/img/Content/avatar/avatar5.png"
+                                    attrs["alt"] = ""
+                                }
+                            }
+                        }
+                        div("col-md-4") {
+                            figure {
+                                img(classes = "img-fluid") {
+                                    attrs["src"] = "https://bootdey.com/img/Content/avatar/avatar6.png"
+                                    attrs["alt"] = ""
+                                }
+                            }
+                        }
+                        div("col-md-4") {
+                            figure("mb-0") {
+                                img(classes = "img-fluid") {
+                                    attrs["src"] = "https://bootdey.com/img/Content/avatar/avatar7.png"
+                                    attrs["alt"] = ""
+                                }
+                            }
+                        }
+                        div("col-md-4") {
+                            figure("mb-0") {
+                                img(classes = "img-fluid") {
+                                    attrs["src"] = "https://bootdey.com/img/Content/avatar/avatar8.png"
+                                    attrs["alt"] = ""
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    @Suppress("TOO_LONG_FUNCTION", "LongMethod")
+    private fun RBuilder.renderTools() {
+        div("row") {
+            div("col-3 ml-auto") {
+                attrs["style"] = jso<CSSProperties> {
+                    justifyContent = JustifyContent.center
+                    display = Display.flex
+                    alignItems = AlignItems.center
+                }
+
+                label {
+                    input(type = InputType.file) {
+                        attrs.hidden = true
+                        attrs {
+                            onChangeFunction = { event ->
+                                val target = event.target as HTMLInputElement
+                                postImageUpload(target)
+                            }
+                        }
+                    }
+                    attrs["aria-label"] = "Change organization's avatar"
+                    img(classes = "avatar avatar-user width-full border color-bg-default rounded-circle") {
+                        attrs.src = state.image?.path?.let {
+                            "/api/avatar$it"
+                        }
+                            ?: run {
+                                "img/company.svg"
+                            }
+                        attrs.height = "100"
+                        attrs.width = "100"
+                    }
+                }
+
+                h1("h3 mb-0 text-gray-800 ml-2") {
+                    +"${state.organization?.name}"
+                }
+            }
+            div("col-3 mx-0") {
+                attrs["style"] = jso<CSSProperties> {
+                    justifyContent = JustifyContent.center
+                    display = Display.flex
+                    alignItems = AlignItems.center
+                }
+
+                nav("nav nav-tabs") {
+                    OrganizationMenuBar.values().forEachIndexed { i, projectMenu ->
+                        li("nav-item") {
+                            val classVal =
+                                    if ((i == 0 && state.selectedMenu == null) || state.selectedMenu == projectMenu) " active font-weight-bold" else ""
+                            p("nav-link $classVal text-gray-800") {
+                                attrs.onClickFunction = {
+                                    if (state.selectedMenu != projectMenu) {
+                                        setState {
+                                            selectedMenu = projectMenu
+                                        }
+                                    }
+                                }
+                                +projectMenu.name
+                            }
+                        }
+                    }
+                }
+            }
+            div("col-3 mr-auto") {
+                attrs["style"] = jso<CSSProperties> {
+                    justifyContent = JustifyContent.center
+                    display = Display.flex
+                    alignItems = AlignItems.center
+                }
+
+                button(type = ButtonType.button, classes = "btn btn-primary") {
+                    a(classes = "text-light", href = "#/creation/") {
+                        +"+ New Tool"
+                    }
+                }
             }
         }
 
         div("row justify-content-center") {
-            // ===================== LEFT COLUMN =======================================================================
-            div("col-2 mr-3") {
-                div("text-xs text-center font-weight-bold text-primary text-uppercase mb-3") {
-                    +"Organization"
-                }
-
-                div {
-                    attrs["style"] = jso<CSSProperties> {
-                        position = "relative".unsafeCast<Position>()
-                        textAlign = "center".unsafeCast<TextAlign>()
-                    }
-                    label {
-                        input(type = InputType.file) {
-                            attrs.hidden = true
-                            attrs {
-                                onChangeFunction = { event ->
-                                    val target = event.target as HTMLInputElement
-                                    postImageUpload(target)
-                                }
-                            }
-                        }
-                        attrs["aria-label"] = "Change avatar owner"
-                        img(classes = "avatar avatar-user width-full border color-bg-default rounded-circle") {
-                            attrs.src = state.image?.path?.let {
-                                "/api/avatar$it"
-                            }
-                                ?: run {
-                                    "img/company.svg"
-                                }
-                            attrs.height = "260"
-                            attrs.width = "260"
-                        }
-                    }
-                }
-
-                div("position-relative") {
-                    attrs["style"] = jso<CSSProperties> {
-                        position = "relative".unsafeCast<Position>()
-                        textAlign = "center".unsafeCast<TextAlign>()
-                    }
-                    img(classes = "width-full color-bg-default") {
-                        attrs.src = "img/green_square.png"
-                        attrs.height = "200"
-                        attrs.width = "200"
-                    }
-                    div("position-absolute") {
-                        attrs["style"] = jso<CSSProperties> {
-                            top = "40%".unsafeCast<Top>()
-                            left = "40%".unsafeCast<Left>()
-                        }
-                        // fixme: It must be replaced with the current value after creating the calculated rating.
-                        h1(" mb-0 text-gray-800") {
-                            +"4.5"
-                        }
-                    }
-                }
-            }
-
             // ===================== RIGHT COLUMN =======================================================================
             div("col-6") {
                 div("text-xs text-center font-weight-bold text-primary text-uppercase mb-3") {
@@ -179,23 +439,33 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                             }
                         }
                     },
-                    initialPageSize = 10,
                     useServerPaging = false,
                     usePageSelection = false,
                 ) { _, _ ->
-                    get(
-                        url = "$apiUrl/projects/get/projects-by-organization?organizationName=${props.organizationName}",
-                        headers = Headers().also {
-                            it.set("Accept", "application/json")
-                        },
-                    )
-                        .unsafeMap {
-                            it.decodeFromJsonString<Array<Project>>()
-                        }
+                    getProjectsFromCache()
                 }) { }
             }
         }
     }
+
+    private fun RBuilder.renderSettings() {
+        // FixMe: will be finished later
+    }
+
+    /**
+     * Small workaround to avoid the request to the backend for the second time and to use it inside the Table view
+     */
+    private fun getProjectsFromCache(): Array<Project> = state.projects ?: emptyArray()
+
+    private suspend fun getProjectsForOrganization(): Array<Project> = get(
+        url = "$apiUrl/projects/get/projects-by-organization?organizationName=${props.organizationName}",
+        headers = Headers().also {
+            it.set("Accept", "application/json")
+        },
+    )
+        .unsafeMap {
+            it.decodeFromJsonString()
+        }
 
     private fun postImageUpload(element: HTMLInputElement) =
             scope.launch {
@@ -220,13 +490,87 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 }
             }
 
-    private suspend fun getAvatar() = get("$apiUrl/organization/${props.organizationName}/avatar", Headers(),
-        responseHandler = ::noopResponseHandler)
-        .unsafeMap {
-            it.decodeFromJsonString<ImageInfo>()
-        }
+    private suspend fun getAvatar() = get(
+        "$apiUrl/organization/${props.organizationName}/avatar", Headers(),
+        responseHandler = ::noopResponseHandler
+    ).unsafeMap {
+        it.decodeFromJsonString<ImageInfo>()
+    }
 
-    companion object : RStatics<OrganizationProps, OrganizationViewState, OrganizationView, Context<StateSetter<Response?>>>(OrganizationView::class) {
+    private fun RBuilder.renderTopProject(topProject: Project?) {
+        topProject ?: return
+
+        div("col-3 mb-4") {
+            div("card border-left-info shadow h-70 py-2") {
+                div("card-body") {
+                    div("row no-gutters align-items-center") {
+                        div("col mr-2") {
+                            renderHeaderOfTopProject(topProject)
+                            renderTopProjectProgressBar(topProject)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun RBuilder.renderTopProjectProgressBar(topProject: Project) {
+        div("row no-gutters align-items-center") {
+            div("col-auto") {
+                div("h5 mb-0 mr-3 font-weight-bold text-gray-800") {
+                    +"${topProject.contestRating}"
+                }
+            }
+            div("col") {
+                div("progress progress-sm mr-2") {
+                    div("progress-bar bg-info") {
+                        attrs["role"] = "progressbar"
+                        attrs["style"] = jso<CSSProperties> {
+                            width = "${topProject.contestRating}%".unsafeCast<Width>()
+                        }
+                        attrs["aria-valuenow"] = "100"
+                        attrs["aria-valuemin"] = "0"
+                        attrs["aria-valuemax"] = "100"
+                    }
+                }
+            }
+        }
+    }
+
+    private fun RBuilder.renderHeaderOfTopProject(topProject: Project) {
+        div("row") {
+            attrs["style"] = jso<CSSProperties> {
+                justifyContent = JustifyContent.center
+                display = Display.flex
+                alignItems = AlignItems.center
+            }
+            div("text-xs font-weight-bold text-info text-uppercase mb-1 ml-2") {
+                attrs["style"] = jso<CSSProperties> {
+                    justifyContent = JustifyContent.center
+                    display = Display.flex
+                    alignItems = AlignItems.center
+                }
+
+                +"Rating"
+            }
+            div("col") {
+                h6 {
+                    attrs["style"] = jso<CSSProperties> {
+                        justifyContent = JustifyContent.center
+                        display = Display.flex
+                        alignItems = AlignItems.center
+                    }
+                    +topProject.name
+                }
+            }
+        }
+    }
+
+    companion object :
+        RStatics<OrganizationProps, OrganizationViewState, OrganizationView, Context<StateSetter<Response?>>>(
+        OrganizationView::class
+    ) {
+        const val TOP_PROJECTS_NUMBER = 4
         init {
             contextType = errorStatusContext
         }
