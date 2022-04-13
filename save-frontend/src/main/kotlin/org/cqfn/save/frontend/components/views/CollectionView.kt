@@ -93,7 +93,6 @@ class CollectionView : AbstractView<CreationViewProps, State>(false) {
         "LongMethod",
     )
     override fun RBuilder.render() {
-        // these buttons will be hidden while local testing so you need to ping localhost:8080/#/creation manually
         div {
             attrs.hidden = (props.currentUserInfo == null)
             button(type = ButtonType.button, classes = "btn btn-primary mb-2 mr-2") {
