@@ -14,6 +14,7 @@ import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.execution.ExecutionType
 import org.cqfn.save.testsuite.TestSuiteDto
 import org.cqfn.save.utils.LocalDateTimeSerializer
+import org.cqfn.save.utils.extractUserNameAndSource
 
 import io.ktor.client.*
 import io.ktor.client.call.*
@@ -36,7 +37,6 @@ import java.time.LocalDateTime
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
-import org.cqfn.save.utils.extractUserNameAndSource
 
 private val json = Json {
     serializersModule = SerializersModule {
@@ -204,7 +204,7 @@ fun initializeHttpClient(
     return HttpClient(Apache) {
         install(Logging) {
             logger = Logger.DEFAULT
-            level = LogLevel.INFO
+            level = LogLevel.NONE
         }
         install(JsonFeature) {
             serializer = KotlinxSerializer(json)
@@ -216,7 +216,6 @@ fun initializeHttpClient(
                 // therefore, adding sendWithoutRequest is required
                 sendWithoutRequest { true }
                 credentials {
-                    println("\n\n\nAUTH: ${authorization.userInformation} ${authorization.token}")
                     BasicAuthCredentials(username = authorization.userInformation, password = authorization.token ?: "")
                 }
             }

@@ -1,6 +1,5 @@
 package org.cqfn.save.gateway.utils
 
-import org.cqfn.save.utils.extractUserNameAndSource
 import org.springframework.cloud.gateway.filter.GatewayFilter
 import org.springframework.cloud.gateway.filter.GatewayFilterChain
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory
@@ -10,7 +9,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken
 import org.springframework.stereotype.Component
 import org.springframework.web.server.ServerWebExchange
-import reactor.core.publisher.Mono
 import java.security.Principal
 import java.util.Base64
 
@@ -21,22 +19,18 @@ import java.util.Base64
 class ConvertAuthorizationHeaderGatewayFilterFactory : AbstractGatewayFilterFactory<Any>() {
     override fun apply(config: Any?): GatewayFilter = GatewayFilter { exchange: ServerWebExchange, chain: GatewayFilterChain ->
         exchange.getPrincipal<Principal>().map { principal ->
-                val credentials = when (principal) {
-                    is OAuth2AuthenticationToken -> {
-                        principal.userName() to (principal as? OAuth2AuthenticationToken)?.authorizedClientRegistrationId
-                    }
-                    is UsernamePasswordAuthenticationToken -> {
-                        // Note: current authentication type we support only for save-api, which already set
-                        // user source into X-Authorization-Source header, however, in general case
-                        // we need to provide it here too, somehow
-                        principal.userName() to null
-                    }
-                    else -> {
-                        throw BadCredentialsException("Unsupported authentication type: ${principal::class}")
-                    }
+            val credentials = when (principal) {
+                is OAuth2AuthenticationToken -> principal.userName() to (principal as? OAuth2AuthenticationToken)?.authorizedClientRegistrationId
+                is UsernamePasswordAuthenticationToken -> {
+                    // Note: current authentication type we support only for save-api, which already set
+                    // user source into X-Authorization-Source header, however, in general case
+                    // we need to provide it here too, somehow
+                    principal.userName() to null
                 }
-                credentials
+                else -> throw BadCredentialsException("Unsupported authentication type: ${principal::class}")
             }
+            credentials
+        }
             .map { (name, source) ->
                 exchange.mutate().request { request ->
                     request.headers { headers: HttpHeaders ->

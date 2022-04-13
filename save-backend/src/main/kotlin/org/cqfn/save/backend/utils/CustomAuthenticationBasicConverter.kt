@@ -15,10 +15,10 @@ import reactor.core.publisher.Mono
 class CustomAuthenticationBasicConverter : org.springframework.security.web.server.ServerHttpBasicAuthenticationConverter(),
 ServerAuthenticationConverter {
     @Suppress("TOO_MANY_LINES_IN_LAMBDA")
-    override fun convert(exchange: ServerWebExchange): Mono<Authentication>  {
+    override fun convert(exchange: ServerWebExchange): Mono<Authentication> {
         val request = exchange.request
         val authorization = request.headers.getFirst(HttpHeaders.AUTHORIZATION)
-        println("\n====================CustomAuthenticationBasicConverter convert: ${authorization}")
+        println("\n====================CustomAuthenticationBasicConverter convert: $authorization")
         return apply(exchange).map {
             val name = (it as UsernamePasswordAuthenticationToken).principal as String
             val source = exchange.request.headers["X-Authorization-Source"]?.firstOrNull()

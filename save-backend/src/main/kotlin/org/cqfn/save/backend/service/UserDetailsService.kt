@@ -26,6 +26,11 @@ class UserDetailsService(
         userRepository.findByName(username)
     }.getIdentitySourceAwareUserDetails(username)
 
+    /**
+     * @param username
+     * @param source
+     * @return IdentitySourceAwareUserDetails retrieved from UserDetails
+     */
     fun findByUsernameAndSource(username: String, source: String) = Mono.fromCallable {
         userRepository.findByNameAndSource(username, source)
     }.getIdentitySourceAwareUserDetails(username, source)
@@ -35,19 +40,19 @@ class UserDetailsService(
             val sourceMsg = source?.let {
                 " and source=$source"
             } ?: ""
-            logger.warn("Couldn't find user with name=${username}$sourceMsg in DB!")
+            logger.warn("Couldn't find user with name=$username$sourceMsg in DB!")
         }
         it.isPresent
     }
         .map { it.get() }
         .map<UserDetails> { user ->
-            user.toIdentitySourceAwareUserDetails(source)
+            user.toIdentitySourceAwareUserDetails()
         }
         .switchIfEmpty {
             Mono.error(UsernameNotFoundException(username))
         }
 
-    private fun User.toIdentitySourceAwareUserDetails(source: String?): IdentitySourceAwareUserDetails {
+    private fun User.toIdentitySourceAwareUserDetails(): IdentitySourceAwareUserDetails {
         println("\n\nGetting the user ${this.name} ${this.password} ${this.role} ${this.source}")
         return IdentitySourceAwareUserDetails(
             username = this.name!!,

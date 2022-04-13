@@ -4,16 +4,16 @@
 
 package org.cqfn.save.gateway.security
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import kotlinx.serialization.Serializable
 import org.cqfn.save.gateway.config.ConfigurationProperties
+import org.cqfn.save.gateway.utils.StoringServerAuthenticationSuccessHandler
 import org.cqfn.save.utils.IdentitySourceAwareUserDetails
 import org.cqfn.save.utils.IdentitySourceAwareUserDetailsMixin
+
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.context.annotation.Bean
 import org.springframework.core.annotation.Order
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
-import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.http.codec.json.Jackson2JsonDecoder
 import org.springframework.http.codec.json.Jackson2JsonEncoder
@@ -22,7 +22,6 @@ import org.springframework.security.authorization.AuthenticatedReactiveAuthoriza
 import org.springframework.security.authorization.AuthorizationDecision
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity
 import org.springframework.security.config.web.server.ServerHttpSecurity
-import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.userdetails.MapReactiveUserDetailsService
 import org.springframework.security.core.userdetails.ReactiveUserDetailsService
 import org.springframework.security.core.userdetails.User
@@ -30,7 +29,6 @@ import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.crypto.factory.PasswordEncoderFactories
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.jackson2.CoreJackson2Module
-import org.springframework.security.oauth2.client.jackson2.OAuth2ClientJackson2Module
 import org.springframework.security.web.server.SecurityWebFilterChain
 import org.springframework.security.web.server.authentication.DelegatingServerAuthenticationSuccessHandler
 import org.springframework.security.web.server.authentication.HttpStatusServerEntryPoint
@@ -44,10 +42,11 @@ import org.springframework.security.web.server.util.matcher.ServerWebExchangeMat
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatcher.MatchResult
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers
 import org.springframework.web.reactive.function.client.WebClient
-import org.springframework.web.reactive.function.client.bodyToMono
 import org.springframework.web.reactive.function.client.toEntity
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
+
+typealias StringResponse = ResponseEntity<String>
 
 @EnableWebFluxSecurity
 @Suppress(
@@ -64,7 +63,6 @@ class WebSecurityConfig(
         .findAndRegisterModules()
         .registerModule(CoreJackson2Module())
         .addMixIn(IdentitySourceAwareUserDetails::class.java, IdentitySourceAwareUserDetailsMixin::class.java)
-
     private val webClient = WebClient.create(configurationProperties.backend.url)
         .mutate()
         .codecs {
@@ -130,41 +128,39 @@ class WebSecurityConfig(
                 HttpStatusServerEntryPoint(HttpStatus.UNAUTHORIZED)
             )
         }
-//        .oauth2Login {
-//            it.authenticationSuccessHandler(
-//                DelegatingServerAuthenticationSuccessHandler(
-//                    StoringServerAuthenticationSuccessHandler(configurationProperties),
-//                    RedirectServerAuthenticationSuccessHandler("/#/projects"),
-//                )
-//            )
-//            it.authenticationFailureHandler(
-//                RedirectServerAuthenticationFailureHandler("/error")
-//            )
-//        }
+        .oauth2Login {
+            it.authenticationSuccessHandler(
+                DelegatingServerAuthenticationSuccessHandler(
+                    StoringServerAuthenticationSuccessHandler(configurationProperties),
+                    RedirectServerAuthenticationSuccessHandler("/#/projects"),
+                )
+            )
+            it.authenticationFailureHandler(
+                RedirectServerAuthenticationFailureHandler("/error")
+            )
+        }
         .httpBasic { httpBasicSpec ->
             httpBasicSpec.authenticationManager(
-                    UserDetailsRepositoryReactiveAuthenticationManager(
-                        object : ReactiveUserDetailsService {
-                            override fun findByUsername(username: String): Mono<UserDetails> {
-                                println("\n\nStart find user findByUsername")
-                                val user = webClient.get()
-                                    .uri("/internal/users/${username}")
-                                    .retrieve()
-                                    .onStatus({ it.is4xxClientError }) {
-                                        Mono.error(ResponseStatusException(it.statusCode()))
-                                    }
-                                    .toEntity<String>()
-
-                                return user.map {
-                                    println("\nReturn user: ${it.body}")
-                                   (objectMapper.readValue(it.body, UserDetails::class.java))
+                UserDetailsRepositoryReactiveAuthenticationManager(
+                    object : ReactiveUserDetailsService {
+                        override fun findByUsername(username: String): Mono<UserDetails> {
+                            println("\n\nStart find user findByUsername")
+                            val user: Mono<StringResponse> = webClient.get()
+                                .uri("/internal/users/$username")
+                                .retrieve()
+                                .onStatus({ it.is4xxClientError }) {
+                                    Mono.error(ResponseStatusException(it.statusCode()))
                                 }
+                                .toEntity()
+
+                            return user.map {
+                                println("\nReturn user: ${it.body}")
+                                (objectMapper.readValue(it.body, UserDetails::class.java))
                             }
                         }
-                    )
+                    }
                 )
-
-
+            )
         }
         .logout {
             // fixme: when frontend can handle logout without reloading, use `RedirectServerLogoutSuccessHandler` here
@@ -221,4 +217,3 @@ class WebSecurityConfig(
  */
 @Bean
 fun passwordEncoder(): PasswordEncoder = PasswordEncoderFactories.createDelegatingPasswordEncoder()
-

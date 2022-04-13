@@ -11,34 +11,34 @@ import java.security.Principal
 /**
  * Controller that returns various public information
  */
-//@RestController
-//@RequestMapping("/sec")
-//class SecurityInfoController(
-//    private val clientRegistrationRepository: InMemoryReactiveClientRegistrationRepository,
-//) {
-//    private val logger = LoggerFactory.getLogger(SecurityInfoController::class.java)
-//
-//    /**
-//     * @return a list of [OauthProviderInfo] for all configured providers
-//     */
-//    @GetMapping("/oauth-providers")
-//    fun listOauthProviders() = clientRegistrationRepository.map {
-//        OauthProviderInfo(
-//            it.registrationId,
-//            // Default authorization link format,
-//            // see https://docs.spring.io/spring-security/reference/reactive/oauth2/login/advanced.html#webflux-oauth2-login-advanced-login-page
-//            "/oauth2/authorization/${it.registrationId}",
-//        )
-//    }
-//
-//    /**
-//     * Endpoint that provides the information about the current logged-in user (powered by spring security and OAUTH)
-//     *
-//     * @param principal
-//     * @return user information
-//     */
-//    @GetMapping("/user")
-//    fun currentUserName(principal: Principal?): UserInfo? = principal?.let {
-//        UserInfo(principal.userName())
-//    }
-//}
+@RestController
+@RequestMapping("/sec")
+class SecurityInfoController(
+    private val clientRegistrationRepository: InMemoryReactiveClientRegistrationRepository,
+) {
+    private val logger = LoggerFactory.getLogger(SecurityInfoController::class.java)
+
+    /**
+     * @return a list of [OauthProviderInfo] for all configured providers
+     */
+    @GetMapping("/oauth-providers")
+    fun listOauthProviders() = clientRegistrationRepository.map {
+        OauthProviderInfo(
+            it.registrationId,
+            // Default authorization link format,
+            // see https://docs.spring.io/spring-security/reference/reactive/oauth2/login/advanced.html#webflux-oauth2-login-advanced-login-page
+            "/oauth2/authorization/${it.registrationId}",
+        )
+    }
+
+    /**
+     * Endpoint that provides the information about the current logged-in user (powered by spring security and OAUTH)
+     *
+     * @param principal
+     * @return user information
+     */
+    @GetMapping("/user")
+    fun currentUserName(principal: Principal?): UserInfo? = principal?.let {
+        UserInfo(principal.userName())
+    }
+}

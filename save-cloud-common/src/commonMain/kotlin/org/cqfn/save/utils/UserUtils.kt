@@ -1,6 +1,13 @@
+/**
+ * Utilities of User entity
+ */
+
 package org.cqfn.save.utils
 
-
+/**
+ * @param userInformation
+ * @return pair of username and source (where the user identity is coming from)
+ */
 fun extractUserNameAndSource(userInformation: String): Pair<String, String> {
     if (!userInformation.contains("@")) {
         return userInformation to "basic"
