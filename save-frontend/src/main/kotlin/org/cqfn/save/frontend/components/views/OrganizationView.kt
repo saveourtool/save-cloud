@@ -107,6 +107,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         }
     }
 
+    @Suppress("TOO_LONG_FUNCTION", "LongMethod")
     private fun RBuilder.renderInfo() {
         // ================= Row for avatar and name =============
         div("row") {
@@ -116,7 +117,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                     display = Display.flex
                     alignItems = AlignItems.center
                 }
-
                 label {
                     input(type = InputType.file) {
                         attrs.hidden = true
@@ -205,7 +205,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         }
 
         // ================= Rows for TOP projects ================
-        val topProjects = state.projects?.sortedByDescending { it.contestRating }?.take(4)
+        val topProjects = state.projects?.sortedByDescending { it.contestRating }?.take(TOP_PROJECTS_NUMBER)
 
         div("row") {
             attrs["style"] = jso<CSSProperties> {
@@ -215,6 +215,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             renderTopProject(topProjects?.getOrNull(1))
         }
 
+        @Suppress("MAGIC_NUMBER")
         div("row") {
             attrs["style"] = jso<CSSProperties> {
                 justifyContent = JustifyContent.center
@@ -328,6 +329,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         }
     }
 
+    @Suppress("TOO_LONG_FUNCTION", "LongMethod")
     private fun RBuilder.renderTools() {
         div("row") {
             div("col-3 ml-auto") {
@@ -364,7 +366,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                     +"${state.organization?.name}"
                 }
             }
-
             div("col-3 mx-0") {
                 attrs["style"] = jso<CSSProperties> {
                     justifyContent = JustifyContent.center
@@ -438,14 +439,8 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                             }
                         }
                     },
-                    initialPageSize = 10,
                     useServerPaging = false,
                     usePageSelection = false,
-                    additionalOptions = {
-                        attrs["style"] = jso<CSSProperties> {
-                            border = Border(0.px, LineStyle.hidden)
-                        }
-                    },
                 ) { _, _ ->
                     getProjectsFromCache()
                 }) { }
@@ -454,6 +449,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
     }
 
     private fun RBuilder.renderSettings() {
+        // FixMe: will be finished later
     }
 
     /**
@@ -497,10 +493,9 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
     private suspend fun getAvatar() = get(
         "$apiUrl/organization/${props.organizationName}/avatar", Headers(),
         responseHandler = ::noopResponseHandler
-    )
-        .unsafeMap {
-            it.decodeFromJsonString<ImageInfo>()
-        }
+    ).unsafeMap {
+        it.decodeFromJsonString<ImageInfo>()
+    }
 
     private fun RBuilder.renderTopProject(topProject: Project?) {
         topProject ?: return
@@ -510,60 +505,62 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 div("card-body") {
                     div("row no-gutters align-items-center") {
                         div("col mr-2") {
-                            div("row") {
-                                attrs["style"] = jso<CSSProperties> {
-                                    justifyContent = JustifyContent.center
-                                    display = Display.flex
-                                    alignItems = AlignItems.center
-                                }
-                                div("text-xs font-weight-bold text-info text-uppercase mb-1 ml-2") {
-                                    attrs["style"] = jso<CSSProperties> {
-                                        justifyContent = JustifyContent.center
-                                        display = Display.flex
-                                        alignItems = AlignItems.center
-                                    }
-
-                                    +"Rating"
-                                }
-                                div("col") {
-                                    attrs["style"] = jso<CSSProperties> {
-                                        justifyContent = JustifyContent.center
-                                        display = Display.flex
-                                        alignItems = AlignItems.center
-                                    }
-
-                                    h6 {
-                                        attrs["style"] = jso<CSSProperties> {
-                                            justifyContent = JustifyContent.center
-                                            display = Display.flex
-                                            alignItems = AlignItems.center
-                                        }
-                                        +topProject.name
-                                    }
-                                }
-                            }
-                            div("row no-gutters align-items-center") {
-                                div("col-auto") {
-                                    div("h5 mb-0 mr-3 font-weight-bold text-gray-800") {
-                                        +"${topProject.contestRating}"
-                                    }
-                                }
-                                div("col") {
-                                    div("progress progress-sm mr-2") {
-                                        div("progress-bar bg-info") {
-                                            attrs["role"] = "progressbar"
-                                            attrs["style"] = jso<CSSProperties> {
-                                                width = "${topProject.contestRating}%".unsafeCast<Width>()
-                                            }
-                                            attrs["aria-valuenow"] = "100"
-                                            attrs["aria-valuemin"] = "0"
-                                            attrs["aria-valuemax"] = "100"
-                                        }
-                                    }
-                                }
-                            }
+                            renderHeaderOfTopProject(topProject)
+                            renderTopProjectProgressBar(topProject)
                         }
                     }
+                }
+            }
+        }
+    }
+
+    private fun RBuilder.renderTopProjectProgressBar(topProject: Project) {
+        div("row no-gutters align-items-center") {
+            div("col-auto") {
+                div("h5 mb-0 mr-3 font-weight-bold text-gray-800") {
+                    +"${topProject.contestRating}"
+                }
+            }
+            div("col") {
+                div("progress progress-sm mr-2") {
+                    div("progress-bar bg-info") {
+                        attrs["role"] = "progressbar"
+                        attrs["style"] = jso<CSSProperties> {
+                            width = "${topProject.contestRating}%".unsafeCast<Width>()
+                        }
+                        attrs["aria-valuenow"] = "100"
+                        attrs["aria-valuemin"] = "0"
+                        attrs["aria-valuemax"] = "100"
+                    }
+                }
+            }
+        }
+    }
+
+    private fun RBuilder.renderHeaderOfTopProject(topProject: Project) {
+        div("row") {
+            attrs["style"] = jso<CSSProperties> {
+                justifyContent = JustifyContent.center
+                display = Display.flex
+                alignItems = AlignItems.center
+            }
+            div("text-xs font-weight-bold text-info text-uppercase mb-1 ml-2") {
+                attrs["style"] = jso<CSSProperties> {
+                    justifyContent = JustifyContent.center
+                    display = Display.flex
+                    alignItems = AlignItems.center
+                }
+
+                +"Rating"
+            }
+            div("col") {
+                h6 {
+                    attrs["style"] = jso<CSSProperties> {
+                        justifyContent = JustifyContent.center
+                        display = Display.flex
+                        alignItems = AlignItems.center
+                    }
+                    +topProject.name
                 }
             }
         }
@@ -573,6 +570,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         RStatics<OrganizationProps, OrganizationViewState, OrganizationView, Context<StateSetter<Response?>>>(
         OrganizationView::class
     ) {
+        const val TOP_PROJECTS_NUMBER = 4
         init {
             contextType = errorStatusContext
         }

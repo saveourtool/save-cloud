@@ -357,7 +357,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         },
     )
     private val projectStatisticMenu = projectStatisticMenu()
-
     private val projectInfoCard = cardComponent(isBordered = true, hasBg = true) {
         child(projectInfo) {
             attrs {
@@ -473,7 +472,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         state.isUploading = false
         state.isEditDisabled = true
         state.selectedMenu = ProjectMenuBar.RUN
-
     }
 
     override fun componentDidMount() {
@@ -641,7 +639,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 ProjectMenuBar.values().forEachIndexed { i, projectMenu ->
                     li("nav-item") {
                         val classVal =
-                            if ((i == 0 && state.selectedMenu == null) || state.selectedMenu == projectMenu) " active font-weight-bold" else ""
+                                if ((i == 0 && state.selectedMenu == null) || state.selectedMenu == projectMenu) " active font-weight-bold" else ""
                         p("nav-link $classVal text-gray-800") {
                             attrs.onClickFunction = {
                                 if (state.selectedMenu != projectMenu) {
@@ -661,9 +659,13 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             ProjectMenuBar.RUN -> renderRun()
             ProjectMenuBar.STATISTICS -> renderStatistics()
             ProjectMenuBar.SETTINGS -> renderSettings()
+            else -> {
+                // this is a generated else block
+            }
         }
     }
 
+    @Suppress("TOO_LONG_FUNCTION", "LongMethod")
     private fun RBuilder.renderRun() {
         div("row justify-content-center ml-5") {
             // ===================== LEFT COLUMN =======================================================================
@@ -737,7 +739,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 child(projectInfoCard)
             }
         }
-
     }
 
     private fun RBuilder.renderStatistics() {
@@ -756,33 +757,33 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     }
 
     private fun postFileUpload(element: HTMLInputElement) =
-        scope.launch {
-            setState {
-                isUploading = true
-                element.files!!.asList().forEach { file ->
-                    suiteByteSize += file.size.toLong()
-                }
-            }
-
-            element.files!!.asList().forEach { file ->
-                val response: FileInfo = post(
-                    "$apiUrl/files/upload",
-                    Headers(),
-                    FormData().apply {
-                        append("file", file)
-                    }
-                )
-                    .decodeFromJsonString()
+            scope.launch {
                 setState {
-                    // add only to selected files so that this entry isn't duplicated
-                    files.add(response)
-                    bytesReceived += response.sizeBytes
+                    isUploading = true
+                    element.files!!.asList().forEach { file ->
+                        suiteByteSize += file.size.toLong()
+                    }
+                }
+
+                element.files!!.asList().forEach { file ->
+                    val response: FileInfo = post(
+                        "$apiUrl/files/upload",
+                        Headers(),
+                        FormData().apply {
+                            append("file", file)
+                        }
+                    )
+                        .decodeFromJsonString()
+                    setState {
+                        // add only to selected files so that this entry isn't duplicated
+                        files.add(response)
+                        bytesReceived += response.sizeBytes
+                    }
+                }
+                setState {
+                    isUploading = false
                 }
             }
-            setState {
-                isUploading = false
-            }
-        }
 
     private fun turnEditMode(isOff: Boolean) {
         setState {
@@ -811,14 +812,14 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         div(divClass) {
             button(type = ButtonType.button) {
                 attrs.classes =
-                    if (state.testingType == selectedTestingType) {
-                        setOf("btn", "btn-primary")
-                    } else {
-                        setOf(
-                            "btn",
-                            "btn-outline-primary"
-                        )
-                    }
+                        if (state.testingType == selectedTestingType) {
+                            setOf("btn", "btn-primary")
+                        } else {
+                            setOf(
+                                "btn",
+                                "btn-outline-primary"
+                            )
+                        }
                 attrs.onClickFunction = {
                     setState {
                         testingType = selectedTestingType
@@ -843,8 +844,8 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             state.gitUrlFromInputField.isBlank() && state.testingType == TestingType.CUSTOM_TESTS -> setState {
                 isErrorOpen = true
                 errorMessage =
-                    "Git Url with test suites in save format was not provided,but it is required for the testing process." +
-                            " SAVE is not able to run your tests without an information of where to download them from."
+                        "Git Url with test suites in save format was not provided,but it is required for the testing process." +
+                                " SAVE is not able to run your tests without an information of where to download them from."
                 errorLabel = "Git Url"
             }
             // no binaries were provided
@@ -888,7 +889,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         }
         scope.launch {
             responseFromDeleteProject =
-                post("$apiUrl/projects/update", headers, Json.encodeToString(state.project))
+                    post("$apiUrl/projects/update", headers, Json.encodeToString(state.project))
         }.invokeOnCompletion {
             if (responseFromDeleteProject.ok) {
                 window.location.href = "${window.location.origin}/"
@@ -914,7 +915,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             setState {
                 errorLabel = "Failed to fetch latest execution"
                 errorMessage =
-                    "Failed to fetch latest execution: [${response.status}] ${response.statusText}, please refresh the page and try again"
+                        "Failed to fetch latest execution: [${response.status}] ${response.statusText}, please refresh the page and try again"
                 latestExecutionId = null
             }
         } else {

@@ -66,7 +66,6 @@ private fun String.toRole() = when (this) {
 /**
  * @param deleteProjectCallback
  * @param updateProjectSettings
- * @param openMenuSettingsFlag
  * @param updatePermissions
  * @return ReactElement
  */

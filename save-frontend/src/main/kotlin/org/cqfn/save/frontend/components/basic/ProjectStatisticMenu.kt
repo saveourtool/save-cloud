@@ -41,12 +41,10 @@ external interface ProjectStatisticMenuProps : Props {
 }
 
 /**
- * @param openMenuStatisticFlag
  * @return ReactElement
  */
 @Suppress("TOO_LONG_FUNCTION", "LongMethod", "MAGIC_NUMBER")
-fun projectStatisticMenu(
-) = fc<ProjectStatisticMenuProps> { props ->
+fun projectStatisticMenu() = fc<ProjectStatisticMenuProps> { props ->
     val (latestExecutionStatisticDtos, setLatestExecutionStatisticDtos) = useState(props.latestExecutionStatisticDtos)
 
     useRequest(arrayOf(props.executionId, props.latestExecutionStatisticDtos, props.isOpen), isDeferred = false) {
