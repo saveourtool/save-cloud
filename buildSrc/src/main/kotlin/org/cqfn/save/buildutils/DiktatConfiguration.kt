@@ -24,46 +24,23 @@ fun Project.configureDiktat() {
         diktatConfigFile = rootProject.file("diktat-analysis.yml")
         githubActions = findProperty("diktat.githubActions")?.toString()?.toBoolean() ?: false
         inputs {
-            include("src/**/*.kt", "**/*.kts")
+            // using `Project#path` here, because it must be unique in gradle's project hierarchy
+            if (path == rootProject.path) {
+                include("$rootDir/buildSrc/src/**/*.kt", "$rootDir/*.kts", "$rootDir/buildSrc/**/*.kts")
+            } else {
+                include("src/**/*.kt", "**/*.kts")
+            }
         }
     }
     fixDiktatTasks()
 }
 
-/**
- * Creates unified tasks to run diktat on all projects
- */
-fun Project.createDiktatTask() {
-    if (this == rootProject) {
-        // apply diktat to buildSrc
-        apply<DiktatGradlePlugin>()
-        configure<DiktatExtension> {
-            diktatConfigFile = rootProject.file("diktat-analysis.yml")
-            githubActions = findProperty("diktat.githubActions")?.toString()?.toBoolean() ?: false
-            inputs {
-                include("$rootDir/buildSrc/src/**/*.kt", "$rootDir/*.kts", "$rootDir/buildSrc/**/*.kts")
-            }
-        }
-        fixDiktatTasks()
-    }
-    tasks.register("diktatCheckAll") {
-        allprojects {
-            this@register.dependsOn(tasks.getByName("diktatCheck"))
-        }
-    }
-    tasks.register("diktatFixAll") {
-        allprojects {
-            this@register.dependsOn(tasks.getByName("diktatFix"))
-        }
-    }
-}
-
 private fun Project.fixDiktatTasks() {
     tasks.withType<DiktatJavaExecTaskBase>().configureEach {
         javaLauncher.set(project.extensions.getByType<JavaToolchainService>().launcherFor {
-            languageVersion.set(JavaLanguageVersion.of(11))
+            languageVersion.set(JavaLanguageVersion.of(Versions.jdk))
         })
-        // https://github.com/analysis-dev/diktat/issues/1213
-        systemProperty("user.home", rootProject.projectDir.toString())
+        // https://github.com/analysis-dev/diktat/issues/1269
+        systemProperty("user.home", rootDir.toString())
     }
 }
