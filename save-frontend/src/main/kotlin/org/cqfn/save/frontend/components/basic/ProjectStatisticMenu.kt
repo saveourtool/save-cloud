@@ -1,5 +1,7 @@
 @file:Suppress("FILE_NAME_MATCH_CLASS", "FILE_WILDCARD_IMPORTS", "LargeClass")
+
 package org.cqfn.save.frontend.components.basic
+
 import org.cqfn.save.agent.TestSuiteExecutionStatisticDto
 import org.cqfn.save.domain.TestResultStatus
 import org.cqfn.save.frontend.components.tables.tableComponent
@@ -68,15 +70,18 @@ external interface ProjectStatisticMenuProps : Props {
      * Id of execution
      */
     var executionId: Long?
+
     /**
      * list of tests
      */
     var latestExecutionStatisticDtos: List<TestSuiteExecutionStatisticDto>?
+
     /**
      * Flag to open Menu
      */
     var isOpen: Boolean?
 }
+
 /**
  * @return ReactElement
  */
