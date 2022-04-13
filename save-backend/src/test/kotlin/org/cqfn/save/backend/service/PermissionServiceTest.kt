@@ -79,7 +79,7 @@ class PermissionServiceTest {
     }
 
     private fun PermissionService.getRole(userName: String, projectName: String, organizationName: String): Mono<Role> =
-             findUserAndProject(userName, organizationName, projectName).map { (user, project) ->
+            findUserAndProject(userName, organizationName, projectName).map { (user, project) ->
                 getRole(user, project)
             }
 }

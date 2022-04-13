@@ -123,10 +123,10 @@ class ProjectController(private val projectService: ProjectService,
      * @return project by name and organization name
      */
     @GetMapping("/get/projects-by-organization")
-    @PreAuthorize("hasRole('VIEWER')")
+    @PreAuthorize("permitAll()")
     fun getProjectsByOrganizationName(@RequestParam organizationName: String,
-                                      authentication: Authentication,
-    ) = projectService.findByOrganizationName(organizationName)
+                                      authentication: Authentication?,
+    ): Flux<Project> = projectService.findByOrganizationName(organizationName)
         .filter { projectPermissionEvaluator.hasPermission(authentication, it, Permission.READ) }
 
     /**
@@ -194,6 +194,8 @@ class ProjectController(private val projectService: ProjectService,
                 name = project.name
                 description = project.description
                 url = project.url
+                email = project.email
+                public = project.public
             }
         }
         .map { updatedProject ->

@@ -12,6 +12,8 @@ import kotlinx.serialization.Serializable
  * @property public
  * @property userId the user that has created this project. No automatic mapping, because Hibernate is not available in common code.
  * @property organization
+ * @property email
+ * @property numberOfContainers
  */
 @Entity
 @Serializable
@@ -23,6 +25,8 @@ data class Project(
     var status: ProjectStatus,
     var public: Boolean = true,
     var userId: Long? = null,
+    var email: String? = null,
+    var numberOfContainers: Int = 3,
 
     @ManyToOne
     @JoinColumn(

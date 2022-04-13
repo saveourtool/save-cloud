@@ -8,10 +8,11 @@ package org.cqfn.save.frontend.components.tables
 
 import org.cqfn.save.frontend.components.errorStatusContext
 import org.cqfn.save.frontend.components.modal.errorModal
+import org.cqfn.save.frontend.http.HttpStatusException
 import org.cqfn.save.frontend.utils.WithRequestStatusContext
 import org.cqfn.save.frontend.utils.spread
 
-import react.PropsWithChildren
+import react.Props
 import react.RBuilder
 import react.dom.RDOMBuilder
 import react.dom.div
@@ -50,9 +51,9 @@ import kotlinx.html.THEAD
 import kotlinx.js.jso
 
 /**
- * [RProps] of a data table
+ * [Props] of a data table
  */
-external interface TableProps : PropsWithChildren {
+external interface TableProps : Props {
     /**
      * Table header
      */
@@ -80,6 +81,7 @@ external interface TableProps : PropsWithChildren {
     "TOO_LONG_FUNCTION",
     "TOO_MANY_PARAMETERS",
     "TYPE_ALIAS",
+    "ComplexMethod",
     "ForbiddenComment",
     "LongMethod",
     "LongParameterList",
@@ -150,7 +152,11 @@ fun <D : Any> tableComponent(
             } catch (e: CancellationException) {
                 // this means, that view is re-rendering while network request was still in progress
                 // no need to display an error message in this case
+            } catch (e: HttpStatusException) {
+                // this is a normal situation which should be handled by responseHandler in `getData` itself.
+                // no need to display an error message in this case
             } catch (e: Exception) {
+                // other exceptions are not handled by `responseHandler` and should be displayed separately
                 setIsModalOpen(true)
                 setDataAccessException(e)
             }
@@ -164,7 +170,7 @@ fun <D : Any> tableComponent(
 
     div("card shadow mb-4") {
         div("card-header py-3") {
-            h6("m-0 font-weight-bold text-primary") {
+            h6("m-0 font-weight-bold text-primary text-center") {
                 +props.tableHeader
             }
         }
