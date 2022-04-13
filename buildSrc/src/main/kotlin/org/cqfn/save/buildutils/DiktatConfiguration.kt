@@ -40,5 +40,6 @@ private fun Project.fixDiktatTasks() {
         javaLauncher.set(project.extensions.getByType<JavaToolchainService>().launcherFor {
             languageVersion.set(JavaLanguageVersion.of(Versions.jdk))
         })
+        systemProperty("user.home", rootDir.toString())
     }
 }
