@@ -53,7 +53,7 @@ class SaveAgent(internal val config: AgentConfiguration,
      */
     val state = AtomicReference(AgentState.STARTING)
 
-    // fixme: can't use atomic reference to Instant here, because when using `Clock.System.now()` as an assined value
+    // fixme (limitation of old MM): can't use atomic reference to Instant here, because when using `Clock.System.now()` as an assigned value
     // Kotlin throws `kotlin.native.concurrent.InvalidMutabilityException: mutation attempt of frozen kotlinx.datetime.Instant...`
     private val executionStartSeconds = AtomicLong()
     private var saveProcessJob: AtomicReference<Job?> = AtomicReference(null)
