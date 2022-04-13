@@ -14,6 +14,7 @@ import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
 import org.cqfn.save.frontend.http.getUser
 import org.cqfn.save.frontend.utils.*
 import org.cqfn.save.info.UserInfo
+import org.cqfn.save.utils.AvatarType
 
 import csstype.*
 import org.w3c.dom.HTMLInputElement
@@ -167,7 +168,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                                         }
                                         div("menu") {
                                             div("mt-2") {
-                                                a(classes = "item", href = "#/${props.userName}/Settings/Profile") {
+                                                a(classes = "item", href = "#/${props.userName}/settings/profile") {
                                                     fontAwesomeIcon {
                                                         attrs.icon = faUser
                                                         attrs.className = "fas fa-sm fa-fw mr-2 text-gray-600"
@@ -176,7 +177,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                                                 }
                                             }
                                             div("mt-2") {
-                                                a(classes = "item", href = "#/${props.userName}/Settings/Email") {
+                                                a(classes = "item", href = "#/${props.userName}/settings/email") {
                                                     fontAwesomeIcon {
                                                         attrs.icon = faEnvelope
                                                         attrs.className = "fas fa-sm fa-fw mr-2 text-gray-600"
@@ -194,7 +195,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                                         }
                                         div("menu") {
                                             div("mt-2") {
-                                                a(classes = "item", href = "#/${props.userName}/Settings/Token") {
+                                                a(classes = "item", href = "#/${props.userName}/settings/token") {
                                                     fontAwesomeIcon {
                                                         attrs.icon = faKey
                                                         attrs.className = "fas fa-sm fa-fw mr-2 text-gray-600"
@@ -249,7 +250,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                 }
                 element.files!!.asList().single().let { file ->
                     val response: ImageInfo? = post(
-                        "$apiUrl/image/upload?owner=${props.userName}&isOrganization=false",
+                        "$apiUrl/image/upload?owner=${props.userName}&type=${AvatarType.USER}",
                         Headers(),
                         FormData().apply {
                             append("file", file)

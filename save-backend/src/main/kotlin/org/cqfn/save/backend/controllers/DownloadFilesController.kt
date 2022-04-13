@@ -11,6 +11,7 @@ import org.cqfn.save.domain.FileInfo
 import org.cqfn.save.domain.TestResultDebugInfo
 import org.cqfn.save.domain.TestResultLocation
 import org.cqfn.save.from
+import org.cqfn.save.utils.AvatarType
 
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -98,7 +99,7 @@ class DownloadFilesController(
     /**
      * @param file image to be uploaded
      * @param owner owner name
-     * @param isOrganization flag of organization
+     * @param type type of avatar
      * @return [Mono] with response
      */
     @Suppress("UnsafeCallOnNullableType")
@@ -106,20 +107,19 @@ class DownloadFilesController(
     fun uploadImage(
         @RequestPart("file") file: Mono<FilePart>,
         @RequestParam owner: String,
-        @RequestParam(required = false) isOrganization: Boolean = true
+        @RequestParam(required = false) type: AvatarType = AvatarType.ORGANIZATION
     ) =
-            additionalToolsFileSystemRepository.saveImage(file, owner, isOrganization).map { imageInfo ->
+            additionalToolsFileSystemRepository.saveImage(file, owner, type).map { imageInfo ->
+                imageInfo.path?.let {
+                    when (type) {
+                        AvatarType.ORGANIZATION -> organizationService.saveAvatar(owner, it)
+                        AvatarType.USER -> userDetailsService.saveAvatar(owner, it)
+                    }
+                }
                 ResponseEntity.status(
                     imageInfo.path?.let {
-                        if (isOrganization) {
-                            organizationService.saveAvatar(owner, it)
-                            HttpStatus.OK
-                        } else {
-                            userDetailsService.saveAvatar(owner, it)
-                            HttpStatus.OK
-                        }
-                    }
-                        ?: HttpStatus.INTERNAL_SERVER_ERROR
+                        HttpStatus.OK
+                    } ?: HttpStatus.INTERNAL_SERVER_ERROR
                 )
                     .body(imageInfo)
             }

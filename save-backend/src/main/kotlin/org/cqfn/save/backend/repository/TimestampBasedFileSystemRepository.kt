@@ -3,6 +3,7 @@ package org.cqfn.save.backend.repository
 import org.cqfn.save.backend.configs.ConfigProperties
 import org.cqfn.save.domain.FileInfo
 import org.cqfn.save.domain.ImageInfo
+import org.cqfn.save.utils.AvatarType
 
 import org.slf4j.LoggerFactory
 import org.springframework.core.io.FileSystemResource
@@ -106,12 +107,15 @@ class TimestampBasedFileSystemRepository(configProperties: ConfigProperties) {
     /**
      * @param imageName user or organization name
      * @param part file part
-     * @param isOrganization flag of organization
+     * @param type type of avatar
      * @return Mono with number of bytes saved
      * @throws FileAlreadyExistsException if file with this name already exists
      */
-    fun saveImage(part: Mono<FilePart>, imageName: String, isOrganization: Boolean = true): Mono<ImageInfo> = part.flatMap { part ->
-        val uploadedDir = if (isOrganization) rootDirImage.resolve(imageName) else rootDirImage.resolve("users").resolve(imageName)
+    fun saveImage(part: Mono<FilePart>, imageName: String, type: AvatarType = AvatarType.ORGANIZATION): Mono<ImageInfo> = part.flatMap { part ->
+        val uploadedDir = when (type) {
+            AvatarType.ORGANIZATION -> rootDirImage.resolve(imageName)
+            AvatarType.USER -> rootDirImage.resolve("users").resolve(imageName)
+        }
 
         uploadedDir.apply {
             if (exists()) {
@@ -126,7 +130,10 @@ class TimestampBasedFileSystemRepository(configProperties: ConfigProperties) {
                     .collect(Collectors.summingLong { it })
                     .map {
                         logger.info("Saved $it bytes into $this")
-                        val relativePath = if (isOrganization) ("/$imageName/$name") else ("/users/$imageName/$name")
+                        val relativePath = when (type) {
+                            AvatarType.ORGANIZATION -> "/$imageName/$name"
+                            AvatarType.USER -> "/users/$imageName/$name"
+                        }
                         ImageInfo(relativePath)
                     }
             }

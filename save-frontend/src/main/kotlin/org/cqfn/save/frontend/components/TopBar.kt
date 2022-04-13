@@ -194,7 +194,7 @@ fun topBar() = fc<TopBarProps> { props ->
                     attrs["aria-labelledby"] = "userDropdown"
                     dropdownEntry(faCog, "Settings") {
                         attrs.onClickFunction = {
-                            userSettings(props.userInfo?.name ?: "Unknown")
+                            window.location.href = "#/${props.userInfo?.name}/settings/email"
                         }
                     }
                     dropdownEntry(faSignOutAlt, "Log out") {
@@ -211,8 +211,4 @@ fun topBar() = fc<TopBarProps> { props ->
     }() {
         attrs.isOpen = isLogoutModalOpen
     }
-}
-
-private fun userSettings(userName: String) {
-    window.location.href = "#/$userName/Settings/Email"
 }

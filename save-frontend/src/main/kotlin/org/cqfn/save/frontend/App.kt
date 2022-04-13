@@ -147,7 +147,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
 
                             Route {
                                 attrs {
-                                    path = "/:user/Settings/Profile"
+                                    path = "/:user/settings/profile"
                                     element = buildElement {
                                         child(UserSettingsProfileMenuView::class) {
                                             attrs.userName = state.userInfo?.name
@@ -158,7 +158,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
 
                             Route {
                                 attrs {
-                                    path = "/:user/Settings/Email"
+                                    path = "/:user/settings/email"
                                     element = buildElement {
                                         child(UserSettingsEmailMenuView::class) {
                                             attrs.userName = state.userInfo?.name
@@ -169,7 +169,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
 
                             Route {
                                 attrs {
-                                    path = "/:user/Settings/Token"
+                                    path = "/:user/settings/token"
                                     element = buildElement {
                                         child(UserSettingsTokenMenuView::class) {
                                             attrs.userName = state.userInfo?.name

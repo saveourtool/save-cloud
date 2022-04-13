@@ -1,6 +1,7 @@
 package org.cqfn.save.backend.controllers
 
 import org.cqfn.save.backend.repository.UserRepository
+import org.cqfn.save.backend.utils.justOrNotFound
 import org.cqfn.save.domain.ImageInfo
 import org.cqfn.save.info.UserInfo
 import org.springframework.security.access.prepost.PreAuthorize
@@ -21,10 +22,8 @@ class UsersDetailsController(
      */
     @GetMapping("/{userName}/avatar")
     @PreAuthorize("permitAll()")
-    fun avatar(@PathVariable userName: String): Mono<ImageInfo> = Mono.fromCallable {
-        userRepository.findByName(userName).get().avatar
-            .let { ImageInfo(it) }
-    }
+    fun avatar(@PathVariable userName: String): Mono<ImageInfo> =
+            justOrNotFound(userRepository.findByName(userName)).map { it.avatar }.map { ImageInfo(it) }
 
     /**
      * @param userName username
@@ -32,9 +31,8 @@ class UsersDetailsController(
      */
     @GetMapping("/{userName}")
     @PreAuthorize("permitAll()")
-    fun findByName(@PathVariable userName: String): Mono<UserInfo> = Mono.fromCallable {
-        userRepository.findByName(userName).get().toUserInfo()
-    }
+    fun findByName(@PathVariable userName: String): Mono<UserInfo> =
+            justOrNotFound(userRepository.findByName(userName)).map { it.toUserInfo() }
 
     /**
      * @param newUserInfo
