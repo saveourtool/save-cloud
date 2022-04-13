@@ -60,7 +60,7 @@ tasks.withType<Test> {
 dependencies {
     api(projects.saveCloudCommon)
     testImplementation(projects.testUtils)
-     runtimeOnly(project(":save-agent", "distribution"))
+    runtimeOnly(project(":save-agent", "distribution"))
     implementation(libs.dockerJava.core)
     implementation(libs.dockerJava.transport.httpclient5)
     implementation(libs.kotlinx.serialization.json.jvm)
