@@ -25,7 +25,7 @@ import kotlinx.html.hidden
  * `Props` retrieved from router
  */
 @Suppress("MISSING_KDOC_CLASS_ELEMENTS")
-external interface CreationViewProps : PropsWithChildren {
+external interface CreationViewProps : Props {
     var currentUserInfo: UserInfo?
 }
 
