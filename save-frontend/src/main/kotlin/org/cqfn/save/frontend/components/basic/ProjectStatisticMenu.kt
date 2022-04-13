@@ -41,14 +41,20 @@ external interface ProjectStatisticMenuProps : Props {
 }
 
 /**
+ * @param openMenuStatisticFlag
  * @return ReactElement
  */
-@Suppress("TOO_LONG_FUNCTION", "LongMethod", "MAGIC_NUMBER")
+@Suppress(
+    "TOO_LONG_FUNCTION",
+    "LongMethod",
+    "MAGIC_NUMBER",
+    "AVOID_NULL_CHECKS"
+)
 fun projectStatisticMenu() = fc<ProjectStatisticMenuProps> { props ->
     val (latestExecutionStatisticDtos, setLatestExecutionStatisticDtos) = useState(props.latestExecutionStatisticDtos)
 
     useRequest(arrayOf(props.executionId, props.latestExecutionStatisticDtos, props.isOpen), isDeferred = false) {
-        if (props.isOpen != true) {
+        if (props.isOpen != true && props.executionId != null) {
             val testLatestExecutions = get(
                 url = "$apiUrl/testLatestExecutions?executionId=${props.executionId}&status=${TestResultStatus.PASSED}",
                 headers = Headers().also {

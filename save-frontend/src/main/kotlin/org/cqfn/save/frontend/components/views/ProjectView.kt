@@ -375,6 +375,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                         switchToLatestExecution(state.latestExecutionId)
                     }
                 }
+                attrs.disabled = state.latestExecutionId == null
             }
         }
         div("ml-3 align-items-left") {
@@ -909,21 +910,26 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         val headers = Headers().apply { set("Accept", "application/json") }
         val response = get(
             "$apiUrl/latestExecution?name=${state.project.name}&organizationId=${state.project.organization.id}",
-            headers
+            headers,
+            responseHandler = ::noopResponseHandler
         )
-        if (!response.ok) {
-            setState {
+        when {
+            !response.ok -> setState {
                 errorLabel = "Failed to fetch latest execution"
                 errorMessage =
                         "Failed to fetch latest execution: [${response.status}] ${response.statusText}, please refresh the page and try again"
                 latestExecutionId = null
             }
-        } else {
-            val latestExecutionIdNew = response
-                .decodeFromJsonString<ExecutionDto>()
-                .id
-            setState {
-                latestExecutionId = latestExecutionIdNew
+            response.status == 204.toShort() -> setState {
+                latestExecutionId = null
+            }
+            else -> {
+                val latestExecutionIdNew = response
+                    .decodeFromJsonString<ExecutionDto>()
+                    .id
+                setState {
+                    latestExecutionId = latestExecutionIdNew
+                }
             }
         }
     }
