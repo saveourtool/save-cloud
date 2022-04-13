@@ -26,7 +26,7 @@ jobs:
         # libcurl is needed for ktor-client-curl, libc-bin for orchestrator
         run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev libc-bin
       - name: Cache konan
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/.konan
           key: ${{ runner.os }}-gradle-konan
@@ -74,6 +74,6 @@ jobs:
           path: 'save-frontend/build/libs/save-frontend-*-distribution.jar'
           retention-days: 1
       - name: Code coverage report
-        uses: codecov/codecov-action@v2
+        uses: codecov/codecov-action@v3
         with:
           fail_ci_if_error: false

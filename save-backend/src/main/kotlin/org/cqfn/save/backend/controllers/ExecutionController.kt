@@ -1,7 +1,6 @@
 package org.cqfn.save.backend.controllers
 
 import org.cqfn.save.backend.configs.ConfigProperties
-import org.cqfn.save.backend.security.Permission
 import org.cqfn.save.backend.security.ProjectPermissionEvaluator
 import org.cqfn.save.backend.service.AgentService
 import org.cqfn.save.backend.service.AgentStatusService
@@ -22,6 +21,7 @@ import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.execution.ExecutionInitializationDto
 import org.cqfn.save.execution.ExecutionType
 import org.cqfn.save.execution.ExecutionUpdateDto
+import org.cqfn.save.permission.Permission
 
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -40,6 +40,7 @@ import reactor.core.publisher.Flux
 import reactor.core.publisher.GroupedFlux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
+
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
@@ -149,10 +150,12 @@ class ExecutionController(private val executionService: ExecutionService,
      */
     @GetMapping("/api/latestExecution")
     fun getLatestExecutionForProject(@RequestParam name: String, @RequestParam organizationId: Long, authentication: Authentication): Mono<ExecutionDto> =
-            justOrNotFound(
-                executionService.getLatestExecutionByProjectNameAndProjectOrganizationId(name, organizationId),
-                "Execution not found for project (name=$name, organization id=$organizationId)"
+            Mono.justOrEmpty(
+                executionService.getLatestExecutionByProjectNameAndProjectOrganizationId(name, organizationId)
             )
+                .switchIfEmpty {
+                    Mono.error(ResponseStatusException(HttpStatus.NO_CONTENT))
+                }
                 .filterWhen { projectPermissionEvaluator.checkPermissions(authentication, it, Permission.READ) }
                 .map { it.toDto() }
 

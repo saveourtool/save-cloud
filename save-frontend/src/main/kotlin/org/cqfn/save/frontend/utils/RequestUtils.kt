@@ -7,6 +7,7 @@
 package org.cqfn.save.frontend.utils
 
 import org.cqfn.save.frontend.components.errorStatusContext
+import org.cqfn.save.frontend.http.HttpStatusException
 
 import org.w3c.fetch.Headers
 import org.w3c.fetch.RequestCredentials
@@ -50,7 +51,7 @@ fun interface WithRequestStatusContext {
 suspend fun <T> Response.unsafeMap(map: suspend (Response) -> T) = if (this.ok) {
     map(this)
 } else {
-    error("$status $statusText")
+    throw HttpStatusException(status, statusText)
 }
 
 /**
@@ -116,13 +117,10 @@ suspend fun WithRequestStatusContext.post(
 internal fun Component<*, *>.classComponentResponseHandler(
     response: Response
 ) {
-    val isUnauthorized = response.status == 401.toShort()
     // dirty hack to determine whether this component contains `setResponse` in its context.
     // If we add another context with a function, this logic will break.
     val hasResponseContext = this.asDynamic().context is Function<*>
-    if (isUnauthorized || !hasResponseContext) {
-        redirectResponseHandler(response)
-    } else {
+    if (hasResponseContext) {
         this.unsafeCast<Component<*, *>>().withModalResponseHandler(response)
     }
 }
@@ -136,10 +134,7 @@ private fun Component<*, *>.withModalResponseHandler(response: Response) {
 
 @Suppress("EXTENSION_FUNCTION_WITH_CLASS", "MAGIC_NUMBER")
 private fun WithRequestStatusContext.withModalResponseHandler(response: Response) {
-    val isUnauthorized = response.status == 401.toShort()
-    if (isUnauthorized) {
-        redirectResponseHandler(response)
-    } else if (!response.ok) {
+    if (!response.ok) {
         setResponse(response)
     }
 }
@@ -193,17 +188,6 @@ fun <R> useRequest(dependencies: Array<dynamic> = emptyArray(),
 }
 
 /**
- * @param response
- */
-internal fun redirectResponseHandler(response: Response) {
-    if (response.status == 401.toShort()) {
-        // if 401 - change current URL to the main page (with login screen)
-        // note: we may have other uses for 401 in the future
-        window.location.href = "${window.location.origin}/#"
-    }
-}
-
-/**
  * Can be used to explicitly specify, that response will be handled is a custom way
  *
  * @param response
@@ -227,7 +211,7 @@ private suspend fun request(url: String,
                             headers: Headers,
                             body: dynamic = undefined,
                             credentials: RequestCredentials? = undefined,
-                            responseHandler: (Response) -> Unit = ::redirectResponseHandler,
+                            responseHandler: (Response) -> Unit = ::noopResponseHandler,
 ): Response = window.fetch(
     input = url,
     RequestInit(

@@ -6,10 +6,7 @@
 
 package org.cqfn.save.frontend.components.views
 
-import org.cqfn.save.domain.FileInfo
-import org.cqfn.save.domain.Sdk
-import org.cqfn.save.domain.getSdkVersions
-import org.cqfn.save.domain.toSdk
+import org.cqfn.save.domain.*
 import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.ExecutionRequestForStandardSuites
 import org.cqfn.save.entities.GitDto
@@ -22,6 +19,7 @@ import org.cqfn.save.frontend.components.basic.cardComponent
 import org.cqfn.save.frontend.components.basic.fileUploader
 import org.cqfn.save.frontend.components.basic.privacySpan
 import org.cqfn.save.frontend.components.basic.projectInfo
+import org.cqfn.save.frontend.components.basic.projectSettingsMenu
 import org.cqfn.save.frontend.components.basic.projectStatisticMenu
 import org.cqfn.save.frontend.components.basic.sdkSelection
 import org.cqfn.save.frontend.components.basic.testResourcesSelection
@@ -42,6 +40,8 @@ import org.cqfn.save.frontend.utils.post
 import org.cqfn.save.frontend.utils.runConfirmWindowModal
 import org.cqfn.save.frontend.utils.runErrorModal
 import org.cqfn.save.frontend.utils.unsafeMap
+import org.cqfn.save.info.UserInfo
+import org.cqfn.save.permission.SetRoleRequest
 import org.cqfn.save.testsuite.TestSuiteDto
 
 import org.w3c.dom.HTMLButtonElement
@@ -85,6 +85,7 @@ import kotlinx.serialization.json.Json
 external interface ProjectExecutionRouteProps : PropsWithChildren {
     var owner: String
     var name: String
+    var currentUserInfo: UserInfo?
 }
 
 /**
@@ -157,7 +158,7 @@ external interface ProjectViewState : State {
     var testingType: TestingType
 
     /**
-     * Sumbit button was pressed
+     * Submit button was pressed
      */
     var isSubmitButtonPressed: Boolean?
 
@@ -230,6 +231,11 @@ external interface ProjectViewState : State {
      * Flag to open menu statistic
      */
     var isOpenMenuStatistic: Boolean?
+
+    /**
+     * Flag to open menu settings
+     */
+    var isOpenMenuSettings: Boolean?
 }
 
 /**
@@ -315,6 +321,52 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             }
         },
     )
+
+    @Suppress("TOO_MANY_LINES_IN_LAMBDA")
+    private val projectSettingsMenu = projectSettingsMenu(
+        openMenuSettingsFlag = { setState { isOpenMenuSettings = it } },
+        deleteProjectCallback = ::deleteProject,
+        updateProjectSettings = {
+            scope.launch {
+                val response = updateProject(it)
+                if (response.ok) {
+                    setState {
+                        project = it
+                    }
+                } else {
+                    setState {
+                        errorLabel = "Failed to save project settings"
+                        errorMessage = "Failed to save project settings: ${response.status} ${response.statusText}"
+                        isErrorOpen = true
+                    }
+                }
+            }
+        },
+        updatePermissions = {
+            scope.launch {
+                for ((userName, role) in it) {
+                    val setRoleRequest = SetRoleRequest(userName.split(":")[1], role)
+                    val jsonRoleRequest = Json.encodeToString(setRoleRequest)
+                    val headers = Headers().apply {
+                        set("Accept", "application/json")
+                        set("Content-Type", "application/json")
+                    }
+                    val response = post("/api/projects/roles/${state.project.organization.name}/${state.project.name}", headers, jsonRoleRequest)
+                    if (!response.ok) {
+                        setState {
+                            errorLabel = "Failed to save project info"
+                            errorMessage = "Failed to save project info: ${response.status} ${response.statusText}"
+                            isErrorOpen = true
+                        }
+                    } else {
+                        setState {
+                            isOpenMenuSettings = false
+                        }
+                    }
+                }
+            }
+        },
+    )
     private val projectStatisticMenu = projectStatisticMenu(
         openMenuStatisticFlag = ::openMenuStatisticFlag,
     )
@@ -336,6 +388,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                         switchToLatestExecution(state.latestExecutionId)
                     }
                 }
+                attrs.disabled = state.latestExecutionId == null
             }
         }
         div("ml-3 align-items-left") {
@@ -345,14 +398,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 classes = "btn btn-link text-left"
             ) {
                 +"Execution History"
-            }
-        }
-        div("ml-3 d-sm-flex align-items-left justify-content-between mt-2") {
-            button(type = ButtonType.button, classes = "btn btn-sm btn-danger") {
-                attrs.onClickFunction = {
-                    deleteProject()
-                }
-                +"Delete project"
             }
         }
     }
@@ -435,6 +480,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         state.isEditDisabled = true
         state.selectedMenu = ProjectMenuBar.RUN
         state.isOpenMenuStatistic = false
+        state.isOpenMenuSettings = false
     }
 
     override fun componentDidMount() {
@@ -602,8 +648,11 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                                         selectedMenu = projectMenu
                                     }
                                 }
-                                if (projectMenu != ProjectMenuBar.STATISTIC) {
+                                if (projectMenu != ProjectMenuBar.STATISTICS) {
                                     openMenuStatisticFlag(false)
+                                }
+                                if (projectMenu != ProjectMenuBar.SETTINGS) {
+                                    openMenuSettingsFlag(false)
                                 }
                             }
                             +projectMenu.name
@@ -614,7 +663,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         }
 
         if (state.selectedMenu == ProjectMenuBar.RUN) {
-            div("row justify-content-center") {
+            div("row justify-content-center ml-5") {
                 // ===================== LEFT COLUMN =======================================================================
                 div("col-2 mr-3") {
                     div("text-xs text-center font-weight-bold text-primary text-uppercase mb-3") {
@@ -686,10 +735,18 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                     child(projectInfoCard)
                 }
             }
-        } else if (state.selectedMenu == ProjectMenuBar.STATISTIC) {
+        } else if (state.selectedMenu == ProjectMenuBar.STATISTICS) {
             child(projectStatisticMenu) {
                 attrs.executionId = state.latestExecutionId
                 attrs.isOpen = state.isOpenMenuStatistic
+            }
+        } else if (state.selectedMenu == ProjectMenuBar.SETTINGS) {
+            child(projectSettingsMenu) {
+                attrs.isOpen = state.isOpenMenuSettings
+                attrs.project = state.project
+                attrs.users = emptyList()
+                attrs.selfRole = Role.VIEWER
+                attrs.currentUserInfo = props.currentUserInfo ?: UserInfo("Unknown")
             }
         }
     }
@@ -726,6 +783,12 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     private fun openMenuStatisticFlag(isOpen: Boolean) {
         setState {
             isOpenMenuStatistic = isOpen
+        }
+    }
+
+    private fun openMenuSettingsFlag(isOpen: Boolean) {
+        setState {
+            isOpenMenuSettings = isOpen
         }
     }
 
@@ -776,7 +839,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
 
     /**
      * In some cases scripts and binaries can be uploaded to a git repository, so users won't be providing or uploading
-     * binaries. For this case we should open a window, so user will need to click a check box, so he will confirm that
+     * binaries. For this case we should open a window, so user will need to click a checkbox, so he will confirm that
      * he understand what he is doing.
      */
     private fun submitWithValidation() {
@@ -853,21 +916,26 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         val headers = Headers().apply { set("Accept", "application/json") }
         val response = get(
             "$apiUrl/latestExecution?name=${state.project.name}&organizationId=${state.project.organization.id}",
-            headers
+            headers,
+            responseHandler = ::noopResponseHandler
         )
-        if (!response.ok) {
-            setState {
+        when {
+            !response.ok -> setState {
                 errorLabel = "Failed to fetch latest execution"
                 errorMessage =
                         "Failed to fetch latest execution: [${response.status}] ${response.statusText}, please refresh the page and try again"
                 latestExecutionId = null
             }
-        } else {
-            val latestExecutionIdNew = response
-                .decodeFromJsonString<ExecutionDto>()
-                .id
-            setState {
-                latestExecutionId = latestExecutionIdNew
+            response.status == 204.toShort() -> setState {
+                latestExecutionId = null
+            }
+            else -> {
+                val latestExecutionIdNew = response
+                    .decodeFromJsonString<ExecutionDto>()
+                    .id
+                setState {
+                    latestExecutionId = latestExecutionIdNew
+                }
             }
         }
     }

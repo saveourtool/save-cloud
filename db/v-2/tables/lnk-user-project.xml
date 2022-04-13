@@ -39,4 +39,8 @@
     <renameColumn columnDataType="varchar(250)" newColumnName="role" oldColumnName="user_role" tableName="lnk_user_project"/>
   </changeSet>
 
+  <changeSet id="lnk-user-project-4" author="sanyavertolet">
+    <addUniqueConstraint tableName="lnk_user_project" columnNames="user_id, project_id" constraintName="user_project_constraint"/>
+  </changeSet>
+
 </databaseChangeLog>

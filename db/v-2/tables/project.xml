@@ -43,4 +43,18 @@
         <dropColumn columnName="owner" tableName="project"/>
     </changeSet>
 
+    <changeSet id="project-add-email" author="sanyavertolet" context="dev or prod">
+        <addColumn tableName="project">
+            <column name = "email" type="varchar(256)">
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="project-add-number-of-containers" author="sanyavertolet" context="dev or prod">
+        <addColumn tableName="project">
+            <column name = "number_of_containers" type="int" defaultValue="3">
+            </column>
+        </addColumn>
+    </changeSet>
+
 </databaseChangeLog>
