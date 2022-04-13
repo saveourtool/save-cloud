@@ -106,14 +106,14 @@ class ExecutionService(private val executionRepository: ExecutionRepository,
     fun updateNewExecution(executionInitializationDto: ExecutionInitializationDto) =
             executionRepository.findTopByProjectOrderByStartTimeDesc(
                 executionInitializationDto.project
-            )?.let {
-                require(it.version == null) { "Execution was already updated" }
-                it.version = executionInitializationDto.version
-                it.testSuiteIds = executionInitializationDto.testSuiteIds
-                it.resourcesRootPath = executionInitializationDto.resourcesRootPath
-                it.execCmd = executionInitializationDto.execCmd
-                it.batchSizeForAnalyzer = executionInitializationDto.batchSizeForAnalyzer
-                executionRepository.save(it)
+            )?.let { execution ->
+                require(execution.version == null) { "Execution was already updated" }
+                execution.version = executionInitializationDto.version
+                execution.testSuiteIds = executionInitializationDto.testSuiteIds
+                execution.resourcesRootPath = executionInitializationDto.resourcesRootPath
+                execution.execCmd = executionInitializationDto.execCmd
+                execution.batchSizeForAnalyzer = executionInitializationDto.batchSizeForAnalyzer
+                executionRepository.save(execution)
             }
 
     /**

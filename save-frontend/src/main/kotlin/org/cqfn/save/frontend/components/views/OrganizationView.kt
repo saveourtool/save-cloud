@@ -97,7 +97,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 }
 
                 div {
-                    attrs["style"] = kotlinx.js.jso<CSSProperties> {
+                    attrs["style"] = jso<CSSProperties> {
                         position = "relative".unsafeCast<Position>()
                         textAlign = "center".unsafeCast<TextAlign>()
                     }
@@ -156,11 +156,11 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
 
                 child(tableComponent(
                     columns = columns<Project> {
-                        column(id = "name", header = "Evaluated Tool", { name }) {
+                        column(id = "name", header = "Evaluated Tool", { name }) { cellProps ->
                             buildElement {
                                 td {
-                                    a(href = "#/${it.row.original.organization.name}/${it.value}") { +it.value }
-                                    privacySpan(it.row.original)
+                                    a(href = "#/${cellProps.row.original.organization.name}/${cellProps.value}") { +cellProps.value }
+                                    privacySpan(cellProps.row.original)
                                 }
                             }
                         }

@@ -206,7 +206,7 @@ internal fun fileIconWithMode(fileInfo: FileInfo, onExecutableChange: (file: Fil
     span("fa-layers mr-3") {
         attrs["data-toggle"] = "tooltip"
         attrs["data-placement"] = "top"
-        attrs["title"] = "Click to mark file " + if (fileInfo.isExecutable) "regular" else "executable"
+        attrs["title"] = "Click to mark file ${if (fileInfo.isExecutable) "regular" else "executable"}"
         // if file was not executable, after click it will be; and vice versa
         attrs.onClickFunction = { _ ->
             // hide previous tooltip, otherwise it gets stuck during re-render

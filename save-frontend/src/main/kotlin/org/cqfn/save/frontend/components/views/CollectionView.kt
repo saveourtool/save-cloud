@@ -28,18 +28,18 @@ class CollectionView : AbstractView<PropsWithChildren, State>(false) {
     @Suppress("MAGIC_NUMBER")
     private val projectsTable = tableComponent(
         columns = columns<Project> {
-            column(id = "organization", header = "Organization", { organization.name }) {
+            column(id = "organization", header = "Organization", { organization.name }) { cellProps ->
                 buildElement {
                     td {
-                        a(href = "#/${it.row.original.organization.name}") { +it.value }
+                        a(href = "#/${cellProps.row.original.organization.name}") { +cellProps.value }
                     }
                 }
             }
-            column(id = "name", header = "Evaluated Tool", { name }) {
+            column(id = "name", header = "Evaluated Tool", { name }) { cellProps ->
                 buildElement {
                     td {
-                        a(href = "#/${it.row.original.organization.name}/${it.value}") { +it.value }
-                        privacySpan(it.row.original)
+                        a(href = "#/${cellProps.row.original.organization.name}/${cellProps.value}") { +cellProps.value }
+                        privacySpan(cellProps.row.original)
                     }
                 }
             }
