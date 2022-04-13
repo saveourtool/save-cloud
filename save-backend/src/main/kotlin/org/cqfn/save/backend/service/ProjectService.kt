@@ -119,7 +119,9 @@ class ProjectService(private val projectRepository: ProjectRepository,
     fun canChangeRoles(project: Project, userId: Long): Boolean = isProjectAdminOrHigher(project, userId)
 
     private fun isProjectAdminOrHigher(project: Project, userId: Long): Boolean {
+        println("In isProjectAdminOrHigher")
         val userRole = lnkUserProjectRepository.findByUserIdAndProject(userId, project)?.role ?: Role.NONE
+        println("role: $userRole")
         return userRole.priority >= Role.ADMIN.priority
     }
 }

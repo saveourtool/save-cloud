@@ -2,6 +2,7 @@ package org.cqfn.save.backend.controller
 
 import org.cqfn.save.backend.configs.WebSecurityConfig
 import org.cqfn.save.backend.controllers.PermissionController
+import org.cqfn.save.backend.repository.LnkUserProjectRepository
 import org.cqfn.save.backend.repository.OrganizationRepository
 import org.cqfn.save.backend.repository.UserRepository
 import org.cqfn.save.backend.security.ProjectPermissionEvaluator
@@ -13,6 +14,7 @@ import org.cqfn.save.backend.utils.AuthenticationDetails
 import org.cqfn.save.backend.utils.ConvertingAuthenticationManager
 import org.cqfn.save.backend.utils.mutateMockedUser
 import org.cqfn.save.domain.Role
+import org.cqfn.save.entities.LnkUserProject
 import org.cqfn.save.entities.Organization
 import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.User
@@ -51,6 +53,7 @@ class PermissionControllerTest {
     @MockBean private lateinit var projectPermissionEvaluator: ProjectPermissionEvaluator
     @MockBean private lateinit var userRepository: UserRepository
     @MockBean private lateinit var projectService: ProjectService
+    @MockBean private lateinit var lnkUserProjectRepository: LnkUserProjectRepository
 
     @Test
     @WithMockUser
@@ -152,6 +155,69 @@ class PermissionControllerTest {
             .exchange()
             .expectStatus().isNotFound
         verify(permissionService, times(0)).setRole(any(), any(), any())
+    }
+
+    @Test
+    @WithMockUser
+    fun `should get 404 when deleting users from project without permission`() {
+        mutateMockedUser {
+            details = AuthenticationDetails(id = 99)
+        }
+        given (
+            user = { User(name = it.arguments[0] as String, null, null, "") },
+            project = Project.stub(id = 99).apply { public = true },
+            permission = null,
+        )
+        webTestClient.delete()
+            .uri("/api/projects/roles/Huawei/huaweiName/user")
+            .exchange()
+            .expectStatus()
+            .isNotFound
+        verify(permissionService, times(0)).removeRole(any(), any(), any())
+    }
+
+    @Test
+    @WithMockUser
+    fun `should permit deleting users from project with write permission`() {
+        mutateMockedUser {
+            details = AuthenticationDetails(id = 99)
+        }
+        val project = Project.stub(id = 99)
+        given (
+            user = { User(name = it.arguments[0] as String, null, null, "") },
+            project = project,
+            permission = Permission.WRITE,
+        )
+
+        given(projectService.canChangeRoles(any(), any())).willReturn(true)
+        given(permissionService.removeRole(any(), any(), any())).willReturn(Mono.just(Unit))
+        webTestClient.delete()
+            .uri("/api/projects/roles/Huawei/huaweiName/user")
+            .exchange()
+            .expectStatus()
+            .isOk
+    }
+
+    @Test
+    @WithMockUser
+    fun `should forbid changing roles unless user is an admin in project`() {
+        mutateMockedUser {
+            details = AuthenticationDetails(id = 99)
+        }
+        given(
+            user = { User(name = it.arguments[0] as String, null, null, "") },
+            project = Project.stub(id = 99),
+            permission = Permission.WRITE,
+        )
+        given(lnkUserProjectRepository.findByUserIdAndProject(any(), any()))
+            .willReturn(LnkUserProject(null, User("user", null, null, ""), Role.ADMIN))
+
+        webTestClient.delete()
+            .uri("/api/projects/roles/Huawei/huaweiName/user")
+            .exchange()
+            .expectStatus()
+            .isOk
+//        verify(permissionService, times(0)).setRole(any(), any(), any())
     }
 
     @Suppress("LAMBDA_IS_NOT_LAST_PARAMETER")

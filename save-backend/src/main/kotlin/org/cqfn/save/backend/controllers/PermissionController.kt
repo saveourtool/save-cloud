@@ -148,9 +148,12 @@ class PermissionController(
         .switchIfEmpty {
             Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
         }
-        .filter {
+        .filter { project ->
             val userId = (authentication.details as AuthenticationDetails).id
-            (organizationService.canChangeRoles(organizationName, userId) || projectService.canChangeRoles(it, userId))
+            val hasOrganizationPermissions = organizationService.canChangeRoles(organizationName, userId)
+            val hasProjectPermissions = projectService.canChangeRoles(project, userId)
+            println("O: $hasOrganizationPermissions, P: $hasProjectPermissions")
+            hasOrganizationPermissions || hasProjectPermissions
         }
         .switchIfEmpty {
             logger.info("Attempt to remove $userName from $organizationName/$projectName with insufficient permissions")
