@@ -57,4 +57,10 @@
         </addColumn>
     </changeSet>
 
+    <changeSet id="project-new-column-contest-rating" author="akuleshov7" context="dev or prod">
+        <addColumn tableName="project">
+            <column name = "contest_rating" type="int" defaultValue="0">
+            </column>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>
