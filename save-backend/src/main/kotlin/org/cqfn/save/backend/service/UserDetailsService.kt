@@ -33,7 +33,7 @@ class UserDetailsService(
     private fun Mono<Optional<User>>.getIdentitySourceAwareUserDetails(username: String, source: String? = null) = this.filter {
         if (!it.isPresent) {
             val sourceMsg = source?.let {
-                " and source=$source "
+                " and source=$source"
             } ?: ""
             logger.warn("Couldn't find user with name=${username}$sourceMsg in DB!")
         }

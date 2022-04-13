@@ -1,4 +1,4 @@
-package org.cqfn.save.gateway.config
+package org.cqfn.save.utils
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
@@ -11,4 +11,4 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
     JsonSubTypes.Type(value = String::class),
     JsonSubTypes.Type(value = Long::class),
 )
-internal class IdentitySourceAwareUserDetailsMixin
+class IdentitySourceAwareUserDetailsMixin

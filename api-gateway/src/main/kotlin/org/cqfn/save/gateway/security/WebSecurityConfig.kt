@@ -7,10 +7,8 @@ package org.cqfn.save.gateway.security
 import com.fasterxml.jackson.databind.ObjectMapper
 import kotlinx.serialization.Serializable
 import org.cqfn.save.gateway.config.ConfigurationProperties
-import org.cqfn.save.gateway.config.IdentitySourceAwareUserDetailsMixin
-//import org.cqfn.save.gateway.config.IdentitySourceAwareUserDetailsMixin
-import org.cqfn.save.gateway.utils.StoringServerAuthenticationSuccessHandler
 import org.cqfn.save.utils.IdentitySourceAwareUserDetails
+import org.cqfn.save.utils.IdentitySourceAwareUserDetailsMixin
 import org.springframework.context.annotation.Bean
 import org.springframework.core.annotation.Order
 import org.springframework.http.HttpHeaders

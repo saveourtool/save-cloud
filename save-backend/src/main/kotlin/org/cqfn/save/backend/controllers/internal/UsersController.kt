@@ -1,11 +1,11 @@
 package org.cqfn.save.backend.controllers.internal
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import org.cqfn.save.backend.configs.IdentitySourceAwareUserDetailsMixin
 import org.cqfn.save.backend.repository.UserRepository
 import org.cqfn.save.backend.service.UserDetailsService
 import org.cqfn.save.entities.User
 import org.cqfn.save.utils.IdentitySourceAwareUserDetails
+import org.cqfn.save.utils.IdentitySourceAwareUserDetailsMixin
 import org.cqfn.save.utils.extractUserNameAndSource
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpHeaders
@@ -62,7 +62,7 @@ class UsersController(
         @PathVariable userInformation: String,
     ): Mono<ResponseEntity<String>> {
         val (name, source) = extractUserNameAndSource(userInformation)
-        println("\nfindByUsername: $name $source")
+        println("\nfindByUsername: ${userInformation} $name $source")
         return userService.findByUsernameAndSource(name, source).map {
             ResponseEntity.ok().body(objectMapper.writeValueAsString(it))
         }

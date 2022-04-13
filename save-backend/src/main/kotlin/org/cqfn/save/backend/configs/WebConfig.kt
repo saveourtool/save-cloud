@@ -65,13 +65,3 @@ class WebConfig {
     JsonSubTypes.Type(value = Crash::class),
 )
 internal class TestStatusMixin
-
-@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "@class")
-@JsonSubTypes(
-    JsonSubTypes.Type(value = String::class),
-    JsonSubTypes.Type(value = String::class),
-    JsonSubTypes.Type(value = String::class),
-    JsonSubTypes.Type(value = String::class),
-    JsonSubTypes.Type(value = Long::class),
-)
-internal class IdentitySourceAwareUserDetailsMixin

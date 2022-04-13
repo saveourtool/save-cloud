@@ -28,6 +28,8 @@ fun Principal.userName(): String  {
  */
 fun Authentication.toIdentitySource(): String = when (this) {
     is OAuth2AuthenticationToken -> authorizedClientRegistrationId
-    is UsernamePasswordAuthenticationToken -> extractUserNameAndSource(userName()).second.also { println("\n\n\n\n=======================Authentication.toIdentitySource ${it}") }
+    // FixMe: for now this method only used for OAuth2 login, if it will be used for
+    // FixMe: basic authorization too, it should provide proper source somehow
+    is UsernamePasswordAuthenticationToken -> "basic"
     else -> this.javaClass.simpleName
 }

@@ -5,6 +5,7 @@ import org.springframework.cloud.gateway.filter.GatewayFilter
 import org.springframework.cloud.gateway.filter.GatewayFilterChain
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory
 import org.springframework.http.HttpHeaders
+import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken
 import org.springframework.stereotype.Component
@@ -19,20 +20,19 @@ import java.util.Base64
 @Component
 class ConvertAuthorizationHeaderGatewayFilterFactory : AbstractGatewayFilterFactory<Any>() {
     override fun apply(config: Any?): GatewayFilter = GatewayFilter { exchange: ServerWebExchange, chain: GatewayFilterChain ->
-        println("\n====================ConvertAuthorizationHeaderGatewayFilterFactory apply")
         exchange.getPrincipal<Principal>().map { principal ->
                 val credentials = when (principal) {
                     is OAuth2AuthenticationToken -> {
                         principal.userName() to (principal as? OAuth2AuthenticationToken)?.authorizedClientRegistrationId
                     }
                     is UsernamePasswordAuthenticationToken -> {
-                        //val (name, source) = extractUserNameAndSource(principal.userName())
-                        //name to null//source
-                        principal.userName() to null//source
+                        // Note: current authentication type we support only for save-api, which already set
+                        // user source into X-Authorization-Source header, however, in general case
+                        // we need to provide it here too, somehow
+                        principal.userName() to null
                     }
                     else -> {
-                        //TODO: any exception?
-                        principal.userName() to null
+                        throw BadCredentialsException("Unsupported authentication type: ${principal::class}")
                     }
                 }
                 credentials
