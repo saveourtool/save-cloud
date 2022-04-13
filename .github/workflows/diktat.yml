@@ -30,7 +30,6 @@ jobs:
       # Upload reports only if code style checks were failed
       - name: Copy SARIF reports into a single directory
         if: ${{ failure() }}
-        # `find` cmd is a workaround for https://github.com/analysis-dev/diktat/issues/1213
         run: |
           mkdir -p build/diktat-sarif-reports
           i=0

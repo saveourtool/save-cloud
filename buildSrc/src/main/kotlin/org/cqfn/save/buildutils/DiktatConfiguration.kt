@@ -24,7 +24,8 @@ fun Project.configureDiktat() {
         diktatConfigFile = rootProject.file("diktat-analysis.yml")
         githubActions = findProperty("diktat.githubActions")?.toString()?.toBoolean() ?: false
         inputs {
-            if (this == rootProject) {
+            // using `Project#path` here, because it must be unique in gradle's project hierarchy
+            if (path == rootProject.path) {
                 include("$rootDir/buildSrc/src/**/*.kt", "$rootDir/*.kts", "$rootDir/buildSrc/**/*.kts")
             } else {
                 include("src/**/*.kt", "**/*.kts")
