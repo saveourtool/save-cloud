@@ -97,9 +97,8 @@ class WebSecurityConfig(
                     if (!it.isGranted) {
                         // if request is not authorized by configured authorization manager, then we allow only requests w/o Authorization header
                         // then backend will return 401, if endpoint is protected for anonymous access
-                        AuthorizationDecision(
-                            authorizationContext.exchange.request.headers[HttpHeaders.AUTHORIZATION].isNullOrEmpty()
-                        )
+                        val hasAuthorizationHeader = authorizationContext.exchange.request.headers[HttpHeaders.AUTHORIZATION].isNullOrEmpty()
+                        AuthorizationDecision(hasAuthorizationHeader)
                     } else {
                         it
                     }

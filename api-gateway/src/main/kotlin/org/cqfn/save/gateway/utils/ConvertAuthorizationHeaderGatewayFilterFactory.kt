@@ -32,8 +32,8 @@ class ConvertAuthorizationHeaderGatewayFilterFactory : AbstractGatewayFilterFact
             credentials
         }
             .map { (name, source) ->
-                exchange.mutate().request { request ->
-                    request.headers { headers: HttpHeaders ->
+                exchange.mutate().request { builder ->
+                    builder.headers { headers: HttpHeaders ->
                         headers.set(HttpHeaders.AUTHORIZATION, "Basic ${
                             Base64.getEncoder().encodeToString("$name:".toByteArray())
                         }")
@@ -42,7 +42,6 @@ class ConvertAuthorizationHeaderGatewayFilterFactory : AbstractGatewayFilterFact
                 }
                     .build()
             }
-
             .defaultIfEmpty(exchange)
             .flatMap { chain.filter(it) }
     }
