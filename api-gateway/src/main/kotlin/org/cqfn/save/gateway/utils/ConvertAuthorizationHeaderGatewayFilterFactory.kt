@@ -34,7 +34,6 @@ class ConvertAuthorizationHeaderGatewayFilterFactory : AbstractGatewayFilterFact
             .map { (name, source) ->
                 exchange.mutate().request { request ->
                     request.headers { headers: HttpHeaders ->
-                        println("\n\n\nSET HEADERS $name $source ${headers.get("X-Authorization-Source")}")
                         headers.set(HttpHeaders.AUTHORIZATION, "Basic ${
                             Base64.getEncoder().encodeToString("$name:".toByteArray())
                         }")

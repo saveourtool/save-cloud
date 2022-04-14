@@ -31,7 +31,7 @@ import javax.annotation.PostConstruct
 @Profile("secure")
 @Suppress("MISSING_KDOC_TOP_LEVEL", "MISSING_KDOC_CLASS_ELEMENTS", "MISSING_KDOC_ON_FUNCTION")
 class WebSecurityConfig(
-    private val authenticationManager: ConvertingAuthenticationManager
+    private val authenticationManager: ConvertingAuthenticationManager,
 ) {
     @Autowired
     private lateinit var defaultMethodSecurityExpressionHandler: DefaultMethodSecurityExpressionHandler

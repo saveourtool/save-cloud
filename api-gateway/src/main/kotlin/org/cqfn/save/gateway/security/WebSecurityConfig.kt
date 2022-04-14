@@ -15,7 +15,6 @@ import org.springframework.core.annotation.Order
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.http.codec.json.Jackson2JsonDecoder
 import org.springframework.http.codec.json.Jackson2JsonEncoder
 import org.springframework.security.authentication.UserDetailsRepositoryReactiveAuthenticationManager
 import org.springframework.security.authorization.AuthenticatedReactiveAuthorizationManager
@@ -63,7 +62,6 @@ class WebSecurityConfig(
         .findAndRegisterModules()
         .registerModule(CoreJackson2Module())
         .addMixIn(IdentitySourceAwareUserDetails::class.java, IdentitySourceAwareUserDetailsMixin::class.java)
-
     private val webClient = WebClient.create(configurationProperties.backend.url)
         .mutate()
         .codecs {
@@ -142,7 +140,6 @@ class WebSecurityConfig(
                 UserDetailsRepositoryReactiveAuthenticationManager(
                     object : ReactiveUserDetailsService {
                         override fun findByUsername(username: String): Mono<UserDetails> {
-                            println("\n\nStart find user findByUsername")
                             val user: Mono<StringResponse> = webClient.get()
                                 .uri("/internal/users/$username")
                                 .retrieve()
@@ -152,8 +149,7 @@ class WebSecurityConfig(
                                 .toEntity()
 
                             return user.map {
-                                println("\nReturn user: ${it.body}")
-                                (objectMapper.readValue(it.body, UserDetails::class.java))
+                                objectMapper.readValue(it.body, UserDetails::class.java)
                             }
                         }
                     }

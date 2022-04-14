@@ -52,14 +52,11 @@ class UserDetailsService(
             Mono.error(UsernameNotFoundException(username))
         }
 
-    private fun User.toIdentitySourceAwareUserDetails(): IdentitySourceAwareUserDetails {
-        println("\n\nGetting the user ${this.name} ${this.password} ${this.role} ${this.source}")
-        return IdentitySourceAwareUserDetails(
-            username = this.name!!,
-            password = this.password ?: "",
-            authorities = this.role,
-            identitySource = this.source,
-            id = this.id!!,
-        )
-    }
+    private fun User.toIdentitySourceAwareUserDetails(): IdentitySourceAwareUserDetails = IdentitySourceAwareUserDetails(
+        username = this.name!!,
+        password = this.password ?: "",
+        authorities = this.role,
+        identitySource = this.source,
+        id = this.id!!,
+    )
 }
