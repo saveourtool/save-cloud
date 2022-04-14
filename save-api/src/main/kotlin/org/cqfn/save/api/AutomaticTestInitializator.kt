@@ -86,7 +86,6 @@ class AutomaticTestInitializator(
             val userProvidedTestSuites = verifyTestSuites() ?: return null
             buildExecutionRequestForStandardSuites(userProvidedTestSuites)
         }
-        return null
         httpClient.submitExecution(executionType, executionRequest, additionalFiles)
         return organization to executionRequest
     }
@@ -241,7 +240,7 @@ class AutomaticTestInitializator(
                 resultFileInfoList.add(fileFromStorage)
             } ?: run {
                 log.debug("Upload file $file to storage")
-                val uploadedFile: FileInfo = httpClient.uploadAdditionalFile(file)
+                val uploadedFile: FileInfo = httpClient.uploadAdditionalFile(file).copy(isExecutable = true)
                 resultFileInfoList.add(uploadedFile)
             }
         }
