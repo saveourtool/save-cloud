@@ -57,18 +57,16 @@ typealias StringResponse = ResponseEntity<String>
     "TOO_MANY_LINES_IN_LAMBDA",
 )
 class WebSecurityConfig(
-    private val configurationProperties: ConfigurationProperties
+    private val configurationProperties: ConfigurationProperties,
 ) {
     private val objectMapper = ObjectMapper()
         .findAndRegisterModules()
         .registerModule(CoreJackson2Module())
         .addMixIn(IdentitySourceAwareUserDetails::class.java, IdentitySourceAwareUserDetailsMixin::class.java)
+
     private val webClient = WebClient.create(configurationProperties.backend.url)
         .mutate()
         .codecs {
-            it.defaultCodecs().jackson2JsonDecoder(
-                Jackson2JsonDecoder(objectMapper)
-            )
             it.defaultCodecs().jackson2JsonEncoder(
                 Jackson2JsonEncoder(objectMapper)
             )

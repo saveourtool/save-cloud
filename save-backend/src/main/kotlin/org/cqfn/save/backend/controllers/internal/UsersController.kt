@@ -55,14 +55,13 @@ class UsersController(
     /**
      * Find user by name and source
      *
-     * @param userInformation
+     * @param userInformation user source and name, separated by `@`
      */
     @GetMapping("/{userInformation}")
     fun findByUsernameAndSource(
         @PathVariable userInformation: String,
     ): Mono<StringResponse> {
         val (name, source) = extractUserNameAndSource(userInformation)
-        println("\nfindByUsername: $userInformation $name $source")
         return userService.findByUsernameAndSource(name, source).map {
             ResponseEntity.ok().body(objectMapper.writeValueAsString(it))
         }

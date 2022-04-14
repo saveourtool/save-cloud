@@ -48,6 +48,10 @@ private object Backend {
     lateinit var url: String
 }
 
+/**
+ * @property username
+ * @property source source (where the user identity is coming from)
+ */
 private object UserInformation {
     lateinit var username: String
     lateinit var source: String

@@ -28,7 +28,7 @@ class UserDetailsService(
 
     /**
      * @param username
-     * @param source
+     * @param source source (where the user identity is coming from)
      * @return IdentitySourceAwareUserDetails retrieved from UserDetails
      */
     fun findByUsernameAndSource(username: String, source: String) = Mono.fromCallable {
