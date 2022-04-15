@@ -58,9 +58,9 @@ val errorModalHandler: FC<PropsWithChildren> = FC { props ->
         setModalState(newModalState)
     }
 
-    modal {
-        it.isOpen = modalState.isErrorModalOpen
-        it.contentLabel = modalState.errorLabel
+    modal { modalProps ->
+        modalProps.isOpen = modalState.isErrorModalOpen
+        modalProps.contentLabel = modalState.errorLabel
         div {
             className = ClassName("row align-items-center justify-content-center")
             h2 {

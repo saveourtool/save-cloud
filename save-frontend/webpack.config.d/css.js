@@ -20,13 +20,6 @@ config.module.rules.push(
         ]
     },
     {
-        // loader for images
-        test: /\.(jpg|png|svg)$/,
-        use: {
-            loader: 'url-loader',
-        }
-    },
-    {
         // loader for fonts
         test: /\.(eot|ttf|woff|woff2)$/,
         use: {
