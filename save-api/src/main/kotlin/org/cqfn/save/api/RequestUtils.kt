@@ -121,16 +121,17 @@ suspend fun HttpClient.getStandardTestSuites(
  * @param executionType type of requested execution git/standard
  * @param executionRequest execution request
  * @param additionalFiles list of additional files for execution
+ * @return HttpResponse
  */
 @OptIn(InternalAPI::class)
 @Suppress("TOO_LONG_FUNCTION")
-suspend fun HttpClient.submitExecution(executionType: ExecutionType, executionRequest: ExecutionRequestBase, additionalFiles: List<FileInfo>?) {
+suspend fun HttpClient.submitExecution(executionType: ExecutionType, executionRequest: ExecutionRequestBase, additionalFiles: List<FileInfo>?): HttpResponse {
     val endpoint = if (executionType == ExecutionType.GIT) {
         "/api/submitExecutionRequest"
     } else {
         "/api/executionRequestStandardTests"
     }
-    this.post {
+    return this.post {
         url("${Backend.url}$endpoint")
         header("X-Authorization-Source", UserInformation.source)
         val formDataHeaders = Headers.build {
