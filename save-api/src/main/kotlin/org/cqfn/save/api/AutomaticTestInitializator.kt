@@ -237,7 +237,7 @@ class AutomaticTestInitializator(
                     return null
                 }
                 log.debug("Take existing file ${file.toPath().name} from storage")
-                resultFileInfoList.add(fileFromStorage)
+                resultFileInfoList.add(fileFromStorage.copy(isExecutable = true))
             } ?: run {
                 log.debug("Upload file $file to storage")
                 val uploadedFile: FileInfo = httpClient.uploadAdditionalFile(file).copy(isExecutable = true)
