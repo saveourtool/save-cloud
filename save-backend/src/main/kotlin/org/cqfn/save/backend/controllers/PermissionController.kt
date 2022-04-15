@@ -115,7 +115,9 @@ class PermissionController(
         .filter {
             // fixme: could be `@PreAuthorize`, but organizationService cannot be found smh
             val userId = (authentication.details as AuthenticationDetails).id
-            (organizationService.canChangeRoles(organizationName, userId) || projectService.canChangeRoles(it, userId))
+            val hasOrganizationPermissions = organizationService.canChangeRoles(organizationName, userId)
+            val hasProjectPermissions = projectService.canChangeRoles(it, userId, setRoleRequest.userName, setRoleRequest.role)
+            hasOrganizationPermissions || hasProjectPermissions
         }
         .flatMap {
             permissionService.setRole(organizationName, projectName, setRoleRequest)
@@ -151,8 +153,7 @@ class PermissionController(
         .filter { project ->
             val userId = (authentication.details as AuthenticationDetails).id
             val hasOrganizationPermissions = organizationService.canChangeRoles(organizationName, userId)
-            val hasProjectPermissions = projectService.canChangeRoles(project, userId)
-            println("O: $hasOrganizationPermissions, P: $hasProjectPermissions")
+            val hasProjectPermissions = projectService.canChangeRoles(project, userId, userName)
             hasOrganizationPermissions || hasProjectPermissions
         }
         .switchIfEmpty {

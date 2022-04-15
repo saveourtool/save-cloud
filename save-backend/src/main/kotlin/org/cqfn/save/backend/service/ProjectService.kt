@@ -2,6 +2,7 @@ package org.cqfn.save.backend.service
 
 import org.cqfn.save.backend.repository.LnkUserProjectRepository
 import org.cqfn.save.backend.repository.ProjectRepository
+import org.cqfn.save.backend.repository.UserRepository
 import org.cqfn.save.backend.security.ProjectPermissionEvaluator
 import org.cqfn.save.domain.ProjectSaveStatus
 import org.cqfn.save.domain.Role
@@ -30,6 +31,7 @@ import reactor.kotlin.core.publisher.switchIfEmpty
 class ProjectService(private val projectRepository: ProjectRepository,
                      private val projectPermissionEvaluator: ProjectPermissionEvaluator,
                      private val lnkUserProjectRepository: LnkUserProjectRepository,
+                     private val userRepository: UserRepository
 ) {
     /**
      * Store [project] in the database
@@ -114,14 +116,26 @@ class ProjectService(private val projectRepository: ProjectRepository,
     /**
      * @param project
      * @param userId
+     * @param otherUserName
+     * @param requestedRole
      * @return true if user can change roles in project and false otherwise
      */
-    fun canChangeRoles(project: Project, userId: Long): Boolean = isProjectAdminOrHigher(project, userId)
-
-    private fun isProjectAdminOrHigher(project: Project, userId: Long): Boolean {
-        println("In isProjectAdminOrHigher")
-        val userRole = lnkUserProjectRepository.findByUserIdAndProject(userId, project)?.role ?: Role.NONE
-        println("role: $userRole")
-        return userRole.priority >= Role.ADMIN.priority
+    fun canChangeRoles(
+        project: Project,
+        userId: Long,
+        otherUserName: String,
+        requestedRole: Role = Role.NONE
+    ): Boolean {
+        val selfRole = lnkUserProjectRepository.findByUserIdAndProject(userId, project)?.role ?: Role.NONE
+        val otherUserId = userRepository.findByName(otherUserName).get().id!!
+        val otherRole = lnkUserProjectRepository.findByUserIdAndProject(otherUserId, project)?.role ?: Role.NONE
+        return isProjectAdminOrHigher(selfRole) && hasAnotherUserLessPermissions(selfRole, otherRole) &&
+                isRequestedPermissionsCanBeSetByUser(selfRole, requestedRole)
     }
+
+    private fun hasAnotherUserLessPermissions(selfRole: Role, otherRole: Role): Boolean = selfRole.priority > otherRole.priority
+
+    private fun isRequestedPermissionsCanBeSetByUser(selfRole: Role, requestedRole: Role): Boolean = selfRole.priority > requestedRole.priority
+
+    private fun isProjectAdminOrHigher(userRole: Role): Boolean = userRole.priority >= Role.ADMIN.priority
 }

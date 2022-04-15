@@ -65,30 +65,32 @@ class LnkUserProjectController(
      * @param organizationName
      * @param projectName
      * @param authentication
+     * @param prefix
      * @return list of users, not connected to the project
      * @throws NoSuchElementException
      */
     @GetMapping("/users/not-from/{organizationName}/{projectName}")
-    fun getAllUsersNotFromProject(
+    fun getAllUsersNotFromProjectWithNamesStartingWith(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
+        @RequestParam prefix: String,
         authentication: Authentication,
     ): List<UserInfo> {
+        if (prefix.isEmpty()) {
+            return emptyList()
+        }
         val project = projectService.findByNameAndOrganizationName(projectName, organizationName)
             ?: throw NoSuchElementException("There is no $projectName project in $organizationName organization")
-        val allUsers = lnkUserProjectService.getAllUsers()
-            .map {
-                it.toUserInfo()
-            }
-        val projectUsers = lnkUserProjectService.getAllUsersByProject(project)
-            .map {
-                it.toUserInfo()
-            }
-        return allUsers.filterNot {
-            projectUsers.contains(it)
-        }
-            .map {
-                UserInfo(it.name, it.source)
-            }
+        val projectUserIds = lnkUserProjectService.getAllUsersByProject(project).map { it.id!! }.toSet()
+        val exactMatchUsers = lnkUserProjectService.getNonProjectUsersByName(prefix, projectUserIds)
+        val prefixUsers = lnkUserProjectService.getNonProjectUsersByNamePrefix(
+            prefix,
+            projectUserIds + exactMatchUsers.map { it.id!! },
+            PAGE_SIZE - exactMatchUsers.size,
+        )
+        return (exactMatchUsers + prefixUsers).map { it.toUserInfo() }
+    }
+    companion object {
+        const val PAGE_SIZE = 5
     }
 }

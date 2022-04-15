@@ -7,6 +7,7 @@ import org.cqfn.save.entities.LnkUserProject
 import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.User
 import org.slf4j.LoggerFactory
+import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
 
 /**
@@ -66,11 +67,25 @@ class LnkUserProjectService(
         }
 
     /**
-     * Get all platform users
+     * Get certain [amount] of platform users with names that start with [prefix]
      *
+     * @param prefix
+     * @param projectUserIds
+     * @param amount
      * @return list of all save-cloud users
      */
-    fun getAllUsers(): List<User> = userRepository.findAll()
+    fun getNonProjectUsersByNamePrefix(prefix: String, projectUserIds: Set<Long>, amount: Int): List<User> = if (amount > 0) {
+        userRepository.findByNameStartingWithAndIdNotIn(prefix, projectUserIds, PageRequest.of(0, amount)).content
+    } else {
+        emptyList()
+    }
+
+    /**
+     * @param name
+     * @param projectUserIds
+     * @return list of [User]s not from project with names that exactly match [name]
+     */
+    fun getNonProjectUsersByName(name: String, projectUserIds: Set<Long>): List<User> = userRepository.findByNameAndIdNotIn(name, projectUserIds)
 
     /**
      * @param project

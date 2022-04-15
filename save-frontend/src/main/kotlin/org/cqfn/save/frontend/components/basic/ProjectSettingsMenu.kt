@@ -6,6 +6,7 @@ import org.cqfn.save.domain.Role
 import org.cqfn.save.entities.Project
 import org.cqfn.save.frontend.externals.fontawesome.faTimesCircle
 import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
+import org.cqfn.save.frontend.externals.lodash.debounce
 import org.cqfn.save.frontend.utils.*
 import org.cqfn.save.info.UserInfo
 import org.cqfn.save.permission.SetRoleRequest
@@ -32,16 +33,6 @@ import kotlinx.serialization.json.Json
  * ProjectSettingsMenu component props
  */
 external interface ProjectSettingsMenuProps : Props {
-    /**
-     * List of users connected to the project
-     */
-    var projectUsers: List<UserInfo>
-
-    /**
-     * Flag to open Menu
-     */
-    var isOpen: Boolean?
-
     /**
      * Current project settings
      */
@@ -70,7 +61,6 @@ private fun String.toRole() = when (this) {
 /**
  * @param deleteProjectCallback
  * @param updateProjectSettings
- * @param openMenuSettingsFlag
  * @param updateErrorMessage
  * @return ReactElement
  */
@@ -98,7 +88,7 @@ fun projectSettingsMenu(
     val projectPath = props.project.let { "${it.organization.name}/${it.name}" }
 
     val (changeProjectUsers, setChangeProjectUsers) = useState(false)
-    val (projectUsers, setProjectUsers) = useState(props.projectUsers)
+    val (projectUsers, setProjectUsers) = useState(emptyList<UserInfo>())
     val getProjectUsers = useRequest(dependencies = arrayOf(changeProjectUsers)) {
         val usersFromDb = get(
             url = "$apiUrl/projects/$projectPath/users",
@@ -112,7 +102,7 @@ fun projectSettingsMenu(
         setProjectUsers(usersFromDb)
     }
 
-    val (permissionsChanged, setPermissionsChanged) = useState(mutableMapOf<String, Role>())
+    val (permissionsChanged, setPermissionsChanged) = useState(mapOf<String, Role>())
     val updatePermissions = useRequest(dependencies = arrayOf(permissionsChanged)) {
         for ((userName, role) in permissionsChanged) {
             val headers = Headers().apply {
@@ -130,23 +120,26 @@ fun projectSettingsMenu(
         }
     }
 
-    val (usersNotFromProject, setUsersNotFromProject) = useState(emptyList<UserInfo>())
-    val getUsersNotFromProject = useRequest(dependencies = arrayOf(changeProjectUsers)) {
-        val headers = Headers().apply {
-            set("Accept", "application/json")
-            set("Content-Type", "application/json")
-        }
-        val users = get(
-            url = "$apiUrl/users/not-from/$projectPath",
-            headers = headers,
-        )
-            .unsafeMap {
-                it.decodeFromJsonString<List<UserInfo>>()
-            }
-        setUsersNotFromProject(users)
-    }
-
     val (userToAdd, setUserToAdd) = useState("")
+    val (usersNotFromProject, setUsersNotFromProject) = useState(emptyList<UserInfo>())
+    val getUsersNotFromProject = debounce(
+        useRequest(dependencies = arrayOf(changeProjectUsers, userToAdd)) {
+            val headers = Headers().apply {
+                set("Accept", "application/json")
+                set("Content-Type", "application/json")
+            }
+            val users = get(
+                url = "$apiUrl/users/not-from/$projectPath?prefix=$userToAdd",
+                headers = headers,
+            )
+                .unsafeMap {
+                    it.decodeFromJsonString<List<UserInfo>>()
+                }
+            setUsersNotFromProject(users)
+        },
+        500,
+    )
+
     val addUserToProject = useRequest {
         val headers = Headers().apply {
             set("Accept", "application/json")
@@ -186,11 +179,11 @@ fun projectSettingsMenu(
             getUsersNotFromProject()
         }
     }
-
-    if (props.isOpen != true) {
+    val (isFirstRender, setIsFirstRender) = useState(true)
+    if (isFirstRender) {
         getProjectUsers()
         getUsersNotFromProject()
-        openMenuSettingsFlag(true)
+        setIsFirstRender(false)
     }
 
     val (selfRole, setSelfRole) = useState(props.selfRole)
@@ -225,6 +218,7 @@ fun projectSettingsMenu(
                             attrs.value = userToAdd
                             attrs.onChangeFunction = {
                                 setUserToAdd((it.target as HTMLInputElement).value)
+                                getUsersNotFromProject()
                             }
                         }
                         datalist {
@@ -250,7 +244,7 @@ fun projectSettingsMenu(
                     }
                 }
                 for (user in projectUsers) {
-                    val userName = user.source + ":" + (user.name)
+                    val userName = user.source + ":" + user.name
                     val userRole = user.projects[projectPath] ?: Role.VIEWER
                     val userIndex = projectUsers.indexOf(user)
                     div("row mt-2 mr-0") {
@@ -271,21 +265,20 @@ fun projectSettingsMenu(
                         }
                         div("col-5 text-left align-self-right") {
                             select("custom-select") {
-                                attrs.onChangeFunction = {
-                                    val target = it.target as HTMLSelectElement
+                                attrs.onChangeFunction = { event ->
+                                    val target = event.target as HTMLSelectElement
                                     setPermissionsChanged { permissionsChanged ->
-                                        permissionsChanged.apply {
-                                            put(userName, target.value.toRole())
-                                        }
+                                        permissionsChanged.toMutableMap()
+                                            .apply {
+                                                put(userName, target.value.toRole())
+                                            }
+                                            .toMap()
                                     }
-                                    attrs.value = target.value
                                 }
                                 attrs.id = "role-$userIndex"
                                 for (role in Role.values()) {
-                                    if (role != Role.NONE && role.priority < selfRole.priority ||
-                                            // needed to correctly display self role
-                                            // doesn't work with dev, but on prod should work
-                                            userName == props.currentUserInfo.name && selfRole == role) {
+                                    if (role != Role.NONE && (role.priority < selfRole.priority ||
+                                            user.name == props.currentUserInfo.name && selfRole == role)) {
                                         option {
                                             attrs.value = role.formattedName
                                             attrs.selected = role == userRole
