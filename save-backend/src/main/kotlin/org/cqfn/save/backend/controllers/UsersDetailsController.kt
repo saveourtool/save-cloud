@@ -5,9 +5,11 @@ import org.cqfn.save.backend.utils.AuthenticationDetails
 import org.cqfn.save.backend.utils.justOrNotFound
 import org.cqfn.save.domain.ImageInfo
 import org.cqfn.save.info.UserInfo
+import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
 
 /**
@@ -54,6 +56,6 @@ class UsersDetailsController(
                 company = newUserInfo.linkedin
                 company = newUserInfo.twitter
             })
-        }
+        } else throw ResponseStatusException(HttpStatus.FORBIDDEN)
     }
 }
