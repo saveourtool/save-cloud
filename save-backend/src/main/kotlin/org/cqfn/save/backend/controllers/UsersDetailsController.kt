@@ -38,6 +38,7 @@ class UsersDetailsController(
      * @param newUserInfo
      */
     @PostMapping("/save")
+    @PreAuthorize("isAuthenticated()")
     fun saveUser(@RequestBody newUserInfo: UserInfo) {
         val user = userRepository.findByName(newUserInfo.name).get()
         userRepository.save(user.apply {

@@ -112,10 +112,7 @@ class TimestampBasedFileSystemRepository(configProperties: ConfigProperties) {
      * @throws FileAlreadyExistsException if file with this name already exists
      */
     fun saveImage(part: Mono<FilePart>, imageName: String, type: AvatarType = AvatarType.ORGANIZATION): Mono<ImageInfo> = part.flatMap { part ->
-        val uploadedDir = when (type) {
-            AvatarType.ORGANIZATION -> rootDirImage.resolve(imageName)
-            AvatarType.USER -> rootDirImage.resolve("users").resolve(imageName)
-        }
+        val uploadedDir = rootDirImage.resolve(getRelativePath(type, imageName))
 
         uploadedDir.apply {
             if (exists()) {
@@ -130,14 +127,17 @@ class TimestampBasedFileSystemRepository(configProperties: ConfigProperties) {
                     .collect(Collectors.summingLong { it })
                     .map {
                         logger.info("Saved $it bytes into $this")
-                        val relativePath = when (type) {
-                            AvatarType.ORGANIZATION -> "/$imageName/$name"
-                            AvatarType.USER -> "/users/$imageName/$name"
-                        }
+                        val relativePath = "/${getRelativePath(type, imageName)}/$name"
                         ImageInfo(relativePath)
                     }
             }
     }
+
+    private fun getRelativePath(type: AvatarType, imageName: String): String =
+            when (type) {
+                AvatarType.ORGANIZATION -> imageName
+                AvatarType.USER -> "users/$imageName"
+            }
 
     /**
      * @param path path to file

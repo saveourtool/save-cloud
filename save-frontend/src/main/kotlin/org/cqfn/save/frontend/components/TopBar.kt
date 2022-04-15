@@ -194,7 +194,7 @@ fun topBar() = fc<TopBarProps> { props ->
                     attrs["aria-labelledby"] = "userDropdown"
                     dropdownEntry(faCog, "Settings") {
                         attrs.onClickFunction = {
-                            window.location.href = "#/${props.userInfo?.name}/settings/email"
+                            window.location.href = "#/${props.userInfo?.name ?: "Unauthenticated"}/settings/email"
                         }
                     }
                     dropdownEntry(faSignOutAlt, "Log out") {
