@@ -1,10 +1,12 @@
 package org.cqfn.save.backend.controllers
 
 import org.cqfn.save.backend.repository.UserRepository
+import org.cqfn.save.backend.utils.AuthenticationDetails
 import org.cqfn.save.backend.utils.justOrNotFound
 import org.cqfn.save.domain.ImageInfo
 import org.cqfn.save.info.UserInfo
 import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Mono
 
@@ -36,18 +38,22 @@ class UsersDetailsController(
 
     /**
      * @param newUserInfo
+     * @param authentication an [Authentication] representing an authenticated request
      */
     @PostMapping("/save")
     @PreAuthorize("isAuthenticated()")
-    fun saveUser(@RequestBody newUserInfo: UserInfo) {
+    fun saveUser(@RequestBody newUserInfo: UserInfo, authentication: Authentication) {
         val user = userRepository.findByName(newUserInfo.name).get()
-        userRepository.save(user.apply {
-            email = newUserInfo.email
-            company = newUserInfo.company
-            company = newUserInfo.location
-            company = newUserInfo.gitHub
-            company = newUserInfo.linkedin
-            company = newUserInfo.twitter
-        })
+        val userId = (authentication.details as AuthenticationDetails).id
+        if (user.id == userId) {
+            userRepository.save(user.apply {
+                email = newUserInfo.email
+                company = newUserInfo.company
+                company = newUserInfo.location
+                company = newUserInfo.gitHub
+                company = newUserInfo.linkedin
+                company = newUserInfo.twitter
+            })
+        }
     }
 }
