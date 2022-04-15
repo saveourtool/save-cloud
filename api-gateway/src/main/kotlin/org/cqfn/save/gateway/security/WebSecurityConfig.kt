@@ -72,6 +72,7 @@ class WebSecurityConfig(
 
     @Bean
     @Order(1)
+    @Suppress("LongMethod")
     fun securityWebFilterChain(
         http: ServerHttpSecurity
     ): SecurityWebFilterChain = http.securityMatcher(

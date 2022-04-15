@@ -13,10 +13,10 @@ fun extractUserNameAndSource(userInformation: String): Pair<String, String> {
     if (!userInformation.contains("@")) {
         return userInformation to "basic"
     }
-    userInformation.split("@").map { it.trim() }.let {
-        require(it.size == 2) {
-            "User information $userInformation should contain source and username, separated by `@` but found after extraction: $it"
+    userInformation.split("@").map { userInfo -> userInfo.trim() }.let { sourceAndUserNameList ->
+        require(sourceAndUserNameList.size == 2) {
+            "User information $userInformation should contain source and username, separated by `@` but found after extraction: $sourceAndUserNameList"
         }
-        return it.last() to it.first()
+        return sourceAndUserNameList.last() to sourceAndUserNameList.first()
     }
 }
