@@ -135,6 +135,7 @@ class WebSecurityConfig(
             )
         }
         .httpBasic { httpBasicSpec ->
+            // Authenticate by comparing received basic credentials with existing one from DB
             httpBasicSpec.authenticationManager(
                 UserDetailsRepositoryReactiveAuthenticationManager(
                     object : ReactiveUserDetailsService {

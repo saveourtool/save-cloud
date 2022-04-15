@@ -9,7 +9,7 @@ package org.cqfn.save.utils
  * @return pair of username and source (where the user identity is coming from)
  */
 fun extractUserNameAndSource(userInformation: String): Pair<String, String> {
-    // for users, which are not linked with any source (convenient in local deployment)
+    // for users, which are not linked with any source (also convenient for local deployment)
     if (!userInformation.contains("@")) {
         return userInformation to "basic"
     }

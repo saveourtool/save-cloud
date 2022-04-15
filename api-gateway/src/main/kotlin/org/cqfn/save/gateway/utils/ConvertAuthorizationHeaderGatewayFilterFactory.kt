@@ -13,7 +13,10 @@ import java.security.Principal
 import java.util.Base64
 
 /**
- * Filter, that inserts username into Authorization header instead of existing value.
+ * Filter, that mutate existing exchange to Basic,
+ * inserts username into Authorization header instead of existing value, not paying attention to the credentials,
+ * since at this moment they are already checked by gateway.
+ * Also insert source data (where the user identity is coming from) into X-Authorization-Source header
  */
 @Component
 class ConvertAuthorizationHeaderGatewayFilterFactory : AbstractGatewayFilterFactory<Any>() {

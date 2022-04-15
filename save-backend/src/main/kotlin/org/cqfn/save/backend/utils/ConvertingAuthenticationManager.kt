@@ -21,6 +21,13 @@ class ConvertingAuthenticationManager : ReactiveAuthenticationManager {
     @Autowired
     private lateinit var userDetailsService: UserDetailsService
 
+    /**
+     * Authenticate user, by checking the received data, which converted into UsernamePasswordAuthenticationToken
+     * by [CustomAuthenticationBasicConverter] with record in DB
+     *
+     * @return augmented mono of UsernamePasswordAuthenticationToken with additional details
+     * @throws BadCredentialsException in case of bad credentials
+     */
     override fun authenticate(authentication: Authentication): Mono<Authentication> = if (authentication is UsernamePasswordAuthenticationToken) {
         val identitySource = (authentication.details as AuthenticationDetails).identitySource
         if (identitySource == null || !authentication.name.startsWith("$identitySource:")) {
