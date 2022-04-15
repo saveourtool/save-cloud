@@ -38,4 +38,17 @@
     <changeSet id="user-unique-name" author="petertrr" context="dev or prod">
         <addUniqueConstraint tableName="user" columnNames="name,source"/>
     </changeSet>
+
+    <changeSet id="user-add-column-1" author="frolov" context="dev or prod">
+        <addColumn tableName="user">
+            <column name="avatar" type="varchar(250)"/>
+            <column name="email" type="varchar(250)"/>
+            <column name="company" type="varchar(250)"/>
+            <column name="location" type="varchar(250)"/>
+            <column name="linkedin" type="varchar(250)"/>
+            <column name="git_hub" type="varchar(250)"/>
+            <column name="twitter" type="varchar(250)"/>
+        </addColumn>
+    </changeSet>
+
 </databaseChangeLog>
