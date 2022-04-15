@@ -20,6 +20,7 @@ gateway:
   name: gateway
   imageName: api-gateway
   containerPort: 5300
+  applicationProperties:
 storage:
   size: 10Gi
 reposStorage:

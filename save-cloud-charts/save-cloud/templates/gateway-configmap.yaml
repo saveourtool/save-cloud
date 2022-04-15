@@ -6,3 +6,6 @@ data:
   application.properties: |
     server.shutdown=graceful
     management.endpoints.web.exposure.include=*
+    {{ if .Values.gateway.applicationProperties }}
+    {{- .Values.gateway.applicationProperties | nindent 4 }}
+    {{ end }}

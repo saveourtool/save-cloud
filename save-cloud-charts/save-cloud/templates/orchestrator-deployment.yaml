@@ -30,5 +30,7 @@ spec:
           persistentVolumeClaim:
             claimName: repos-storage
         - name: execution-logs-storage
-          persistentVolumeClaim:
-            claimName: execution-logs-storage
+          # FixMe: Do we still need logs storage? All logs should be stored in Loki.
+          emptyDir: {}
+          #persistentVolumeClaim:
+          #  claimName: execution-logs-storage

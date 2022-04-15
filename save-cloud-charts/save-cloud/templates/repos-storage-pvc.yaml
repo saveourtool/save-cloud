@@ -3,6 +3,10 @@ kind: PersistentVolumeClaim
 metadata:
   labels:
     io.kompose.service: repos-storage
+  {{- with .Values.reposStorage.annotations  }}
+  annotations:
+{{ toYaml . | indent 4 }}
+  {{- end }}
   name: repos-storage
 spec:
   accessModes:
@@ -10,3 +14,6 @@ spec:
   resources:
     requests:
       storage: {{ .Values.reposStorage.size }}
+  {{- if .Values.reposStorage.storageClassName }}
+  storageClassName: {{ .Values.storage.storageClassName }}
+  {{- end -}}

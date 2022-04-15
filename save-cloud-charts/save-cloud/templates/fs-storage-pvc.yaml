@@ -3,6 +3,10 @@ kind: PersistentVolumeClaim
 metadata:
   labels:
     io.kompose.service: save-fs-storage
+  {{- with .Values.storage.annotations  }}
+  annotations:
+{{ toYaml . | indent 4 }}
+  {{- end }}
   name: save-fs-storage
 spec:
   accessModes:
@@ -10,3 +14,7 @@ spec:
   resources:
     requests:
       storage: {{ .Values.storage.size }}
+#  NB: key `volumeName` is not needed here, otherwise provisioner won't attempt to create a PV automatically
+  {{- if .Values.storage.storageClassName }}
+  storageClassName: {{ .Values.storage.storageClassName }}
+  {{- end -}}
