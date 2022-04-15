@@ -134,65 +134,65 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
                     }
                 }
             }
-            column("status", "Status", { status }) {
+            column("status", "Status", { status }) { cellProps ->
                 buildElement {
                     td {
-                        a(href = getHrefToExecution(it.row.original.id, null)) {
-                            +"${it.value}"
+                        a(href = getHrefToExecution(cellProps.row.original.id, null)) {
+                            +"${cellProps.value}"
                         }
                     }
                 }
             }
-            column("startDate", "Start time", { startTime }) {
+            column("startDate", "Start time", { startTime }) { cellProps ->
                 buildElement {
                     td {
-                        a(href = getHrefToExecution(it.row.original.id, null)) {
-                            +(formattingDate(it.value) ?: "Starting")
+                        a(href = getHrefToExecution(cellProps.row.original.id, null)) {
+                            +(formattingDate(cellProps.value) ?: "Starting")
                         }
                     }
                 }
             }
-            column("endDate", "End time", { endTime }) {
+            column("endDate", "End time", { endTime }) { cellProps ->
                 buildElement {
                     td {
-                        a(href = getHrefToExecution(it.row.original.id, null)) {
-                            +(formattingDate(it.value) ?: "Starting")
+                        a(href = getHrefToExecution(cellProps.row.original.id, null)) {
+                            +(formattingDate(cellProps.value) ?: "Starting")
                         }
                     }
                 }
             }
-            column("running", "Running", { runningTests }) {
+            column("running", "Running", { runningTests }) { cellProps ->
                 buildElement {
                     td {
-                        a(href = getHrefToExecution(it.row.original.id, TestResultStatus.RUNNING)) {
-                            +"${it.value}"
+                        a(href = getHrefToExecution(cellProps.row.original.id, TestResultStatus.RUNNING)) {
+                            +"${cellProps.value}"
                         }
                     }
                 }
             }
-            column("passed", "Passed", { passedTests }) {
+            column("passed", "Passed", { passedTests }) { cellProps ->
                 buildElement {
                     td {
-                        a(href = getHrefToExecution(it.row.original.id, TestResultStatus.PASSED)) {
-                            +"${it.value}"
+                        a(href = getHrefToExecution(cellProps.row.original.id, TestResultStatus.PASSED)) {
+                            +"${cellProps.value}"
                         }
                     }
                 }
             }
-            column("failed", "Failed", { failedTests }) {
+            column("failed", "Failed", { failedTests }) { cellProps ->
                 buildElement {
                     td {
-                        a(href = getHrefToExecution(it.row.original.id, TestResultStatus.FAILED)) {
-                            +"${it.value}"
+                        a(href = getHrefToExecution(cellProps.row.original.id, TestResultStatus.FAILED)) {
+                            +"${cellProps.value}"
                         }
                     }
                 }
             }
-            column("skipped", "Skipped", { skippedTests }) {
+            column("skipped", "Skipped", { skippedTests }) { cellProps ->
                 buildElement {
                     td {
-                        a(href = getHrefToExecution(it.row.original.id, TestResultStatus.IGNORED)) {
-                            +"${it.value}"
+                        a(href = getHrefToExecution(cellProps.row.original.id, TestResultStatus.IGNORED)) {
+                            +"${cellProps.value}"
                         }
                     }
                 }

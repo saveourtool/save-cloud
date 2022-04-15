@@ -149,14 +149,14 @@ class ProjectPermissionEvaluatorTest {
                 projectRole,
             )
         }
-        permissions.forEach {
-            Assertions.assertTrue(projectPermissionEvaluator.hasPermission(authentication, mockProject, it)) {
-                "User by authentication=$authentication is expected to have permission $it on project $mockProject"
+        permissions.forEach { permission ->
+            Assertions.assertTrue(projectPermissionEvaluator.hasPermission(authentication, mockProject, permission)) {
+                "User by authentication=$authentication is expected to have permission $permission on project $mockProject"
             }
         }
-        Permission.values().filterNot { it in permissions }.forEach {
-            Assertions.assertFalse(projectPermissionEvaluator.hasPermission(authentication, mockProject, it)) {
-                "User by authentication=$authentication isn't expected to have permission $it on project $mockProject"
+        Permission.values().filterNot { it in permissions }.forEach { permission ->
+            Assertions.assertFalse(projectPermissionEvaluator.hasPermission(authentication, mockProject, permission)) {
+                "User by authentication=$authentication isn't expected to have permission $permission on project $mockProject"
             }
         }
     }

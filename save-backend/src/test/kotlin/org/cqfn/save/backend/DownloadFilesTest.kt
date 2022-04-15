@@ -6,6 +6,7 @@ import org.cqfn.save.backend.configs.WebConfig
 import org.cqfn.save.backend.controllers.DownloadFilesController
 import org.cqfn.save.backend.repository.*
 import org.cqfn.save.backend.service.OrganizationService
+import org.cqfn.save.backend.service.UserDetailsService
 import org.cqfn.save.core.result.DebugInfo
 import org.cqfn.save.core.result.Pass
 import org.cqfn.save.domain.FileInfo
@@ -59,6 +60,7 @@ import kotlin.io.path.writeLines
 @EnableConfigurationProperties(ConfigProperties::class)
 @MockBeans(
     MockBean(OrganizationService::class),
+    MockBean(UserDetailsService::class),
 )
 class DownloadFilesTest {
     @Autowired

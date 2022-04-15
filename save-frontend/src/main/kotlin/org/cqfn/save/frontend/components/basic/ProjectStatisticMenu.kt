@@ -13,7 +13,6 @@ import org.cqfn.save.frontend.utils.decodeFromJsonString
 import org.cqfn.save.frontend.utils.get
 import org.cqfn.save.frontend.utils.unsafeMap
 import org.cqfn.save.frontend.utils.useRequest
-
 import org.w3c.fetch.Headers
 import react.*
 import react.dom.div
@@ -84,7 +83,6 @@ external interface ProjectStatisticMenuProps : Props {
 }
 
 /**
- * @param openMenuStatisticFlag
  * @return ReactElement
  */
 @Suppress(
@@ -94,7 +92,6 @@ external interface ProjectStatisticMenuProps : Props {
     "AVOID_NULL_CHECKS"
 )
 fun projectStatisticMenu(
-    openMenuStatisticFlag: (isOpen: Boolean) -> Unit,
 ) = fc<ProjectStatisticMenuProps> { props ->
     val (latestExecutionStatisticDtos, setLatestExecutionStatisticDtos) = useState(props.latestExecutionStatisticDtos)
 
@@ -110,7 +107,6 @@ fun projectStatisticMenu(
                     it.decodeFromJsonString<List<TestSuiteExecutionStatisticDto>>()
                 }
             setLatestExecutionStatisticDtos(testLatestExecutions)
-            openMenuStatisticFlag(true)
         }
     }()
 
@@ -120,12 +116,10 @@ fun projectStatisticMenu(
             div("text-xs text-center font-weight-bold text-primary text-uppercase mb-3") {
                 +"Total number of tests by test suite"
             }
-
             div("col-xl col-md-6 mb-4") {
                 val data = latestExecutionStatisticDtos?.map {
                     DataPieChart(it.testSuiteName, it.countTest, randomColor())
                 } ?: emptyList()
-
                 pieChart(
                     data.toTypedArray()
                 ) {
@@ -135,15 +129,16 @@ fun projectStatisticMenu(
                 }
             }
         }
-
         // ===================== RIGHT COLUMN =======================================================================
         div("col-6") {
             div("text-xs text-center font-weight-bold text-primary text-uppercase mb-3") {
                 +"Latest execution"
             }
 
-            if (props.executionId != null) {
-                executionDetailsTable()
+            if (props.executionId != null && latestExecutionStatisticDtos?.isNotEmpty() == true) {
+                executionDetailsTable {
+                    attrs.executionId = props.executionId
+                }
             } else {
                 div("card shadow mb-4") {
                     div("card-header py-3") {

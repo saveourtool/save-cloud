@@ -66,13 +66,11 @@ private fun String.toRole() = when (this) {
 /**
  * @param deleteProjectCallback
  * @param updateProjectSettings
- * @param openMenuSettingsFlag
  * @param updatePermissions
  * @return ReactElement
  */
 @Suppress("TOO_LONG_FUNCTION", "LongMethod", "MAGIC_NUMBER")
 fun projectSettingsMenu(
-    openMenuSettingsFlag: (isOpen: Boolean) -> Unit,
     deleteProjectCallback: () -> Unit,
     updateProjectSettings: (Project) -> Unit,
     updatePermissions: (Map<String, Role>) -> Unit,
@@ -97,7 +95,6 @@ fun projectSettingsMenu(
                     it.decodeFromJsonString<List<UserInfo>>()
                 }
             setUsers(usersFromDb)
-            openMenuSettingsFlag(true)
         }
     }
 

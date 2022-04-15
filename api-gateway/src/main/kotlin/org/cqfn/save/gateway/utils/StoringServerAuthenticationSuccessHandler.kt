@@ -63,4 +63,5 @@ fun Authentication.toUser(): User = User(
     null,
     authorities.joinToString(",") { it.authority },
     toIdentitySource(),
+    null,
 )
