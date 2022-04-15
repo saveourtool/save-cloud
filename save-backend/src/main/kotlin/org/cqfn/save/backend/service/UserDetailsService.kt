@@ -21,7 +21,6 @@ class UserDetailsService(
 ) : ReactiveUserDetailsService {
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    @Suppress("UnsafeCallOnNullableType")
     override fun findByUsername(username: String): Mono<UserDetails> = Mono.fromCallable {
         userRepository.findByName(username)
     }.getIdentitySourceAwareUserDetails(username)
@@ -52,6 +51,7 @@ class UserDetailsService(
             Mono.error(UsernameNotFoundException(username))
         }
 
+    @Suppress("UnsafeCallOnNullableType")
     private fun User.toIdentitySourceAwareUserDetails(): IdentitySourceAwareUserDetails = IdentitySourceAwareUserDetails(
         username = this.name!!,
         password = this.password ?: "",
