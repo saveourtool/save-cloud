@@ -29,6 +29,7 @@ class CheckGitConnectivityController(
      * @param token git password
      * @param url repository url
      * @return true if credentials are valid
+     * @throws ResponseStatusException
      */
     @GetMapping(value = ["/check-git-connectivity-adaptor"])
     fun checkGitConnectivity(
