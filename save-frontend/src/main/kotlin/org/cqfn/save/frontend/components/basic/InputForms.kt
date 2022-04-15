@@ -33,6 +33,14 @@ enum class InputTypes(val str: String) {
 
     // ==== create organization view
     ORGANIZATION_NAME("organization name"),
+
+    // ==== user setting view
+    USER_EMAIL("user email"),
+    COMPANY("company"),
+    LOCATION("location"),
+    GIT_HUB("git hub"),
+    LINKEDIN("linkedin"),
+    TWITTER("twitter"),
     ;
 }
 

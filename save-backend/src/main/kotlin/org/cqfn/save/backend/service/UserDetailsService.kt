@@ -34,6 +34,18 @@ class UserDetailsService(
         userRepository.findByNameAndSource(username, source)
     }.getIdentitySourceAwareUserDetails(username, source)
 
+    /**
+     * @param name
+     * @param relativePath
+     * @throws NoSuchElementException
+     */
+    fun saveAvatar(name: String, relativePath: String) {
+        val user = userRepository.findByName(name).get().apply {
+            avatar = relativePath
+        }
+        user.let { userRepository.save(it) }
+    }
+
     private fun Mono<Optional<User>>.getIdentitySourceAwareUserDetails(username: String, source: String? = null) = this.filter { user ->
         if (!user.isPresent) {
             val sourceMsg = source?.let {
@@ -50,7 +62,6 @@ class UserDetailsService(
         .switchIfEmpty {
             Mono.error(UsernameNotFoundException(username))
         }
-
     @Suppress("UnsafeCallOnNullableType")
     private fun User.toIdentitySourceAwareUserDetails(): IdentitySourceAwareUserDetails = IdentitySourceAwareUserDetails(
         username = this.name!!,
