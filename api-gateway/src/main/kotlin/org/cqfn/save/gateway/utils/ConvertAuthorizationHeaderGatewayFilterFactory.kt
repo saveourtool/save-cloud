@@ -19,8 +19,8 @@ class ConvertAuthorizationHeaderGatewayFilterFactory : AbstractGatewayFilterFact
         exchange.getPrincipal<Principal>()
             .map { it.userName() to (it as? OAuth2AuthenticationToken)?.authorizedClientRegistrationId }
             .map { (name, source) ->
-                exchange.mutate().request {
-                    it.headers { headers: HttpHeaders ->
+                exchange.mutate().request { builder ->
+                    builder.headers { headers: HttpHeaders ->
                         headers.set(HttpHeaders.AUTHORIZATION, "Basic ${
                             Base64.getEncoder().encodeToString("$name:".toByteArray())
                         }")

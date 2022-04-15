@@ -87,8 +87,8 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
             justOrNotFound(executionService.findExecution(executionId)).filterWhen {
                 projectPermissionEvaluator.checkPermissions(authentication, it, Permission.READ)
             }.map {
-                testExecutionService.getTestExecutions(executionId, page, size).groupBy { it.test.testSuite.name }.map {
-                    TestSuiteExecutionStatisticDto(it.key, it.value.count(), it.value.count { testExec -> testExec.status == status }, status)
+                testExecutionService.getTestExecutions(executionId, page, size).groupBy { it.test.testSuite.name }.map { (testSuiteName, testExecutions) ->
+                    TestSuiteExecutionStatisticDto(testSuiteName, testExecutions.count(), testExecutions.count { it.status == status }, status)
                 }
             }
 

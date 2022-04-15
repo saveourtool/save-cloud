@@ -201,12 +201,12 @@ fun fileUploader(
  * @param onExecutableChange a handler that is invoked when icon is clicked
  * @return a functional component
  */
-@Suppress("TYPE_ALIAS", "STRING_CONCATENATION")  // https://github.com/analysis-dev/diKTat/issues/1076
+@Suppress("TYPE_ALIAS")
 internal fun fileIconWithMode(fileInfo: FileInfo, onExecutableChange: (file: FileInfo, checked: Boolean) -> Unit) = fc<Props> {
     span("fa-layers mr-3") {
         attrs["data-toggle"] = "tooltip"
         attrs["data-placement"] = "top"
-        attrs["title"] = "Click to mark file " + if (fileInfo.isExecutable) "regular" else "executable"
+        attrs["title"] = "Click to mark file ${if (fileInfo.isExecutable) "regular" else "executable"}"
         // if file was not executable, after click it will be; and vice versa
         attrs.onClickFunction = { _ ->
             // hide previous tooltip, otherwise it gets stuck during re-render

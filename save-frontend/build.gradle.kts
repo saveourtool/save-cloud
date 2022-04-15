@@ -47,15 +47,14 @@ kotlin {
         sourceSets["main"].dependencies {
             compileOnly(devNpm("sass", "^1.43.0"))
             compileOnly(devNpm("sass-loader", "^12.0.0"))
-            compileOnly(devNpm("style-loader", "*"))
-            compileOnly(devNpm("css-loader", "*"))
-            compileOnly(devNpm("url-loader", "*"))
-            compileOnly(devNpm("file-loader", "*"))
+            compileOnly(devNpm("style-loader", "^3.3.1"))
+            compileOnly(devNpm("css-loader", "^6.5.0"))
+            compileOnly(devNpm("file-loader", "^6.2.0"))
             // https://getbootstrap.com/docs/4.0/getting-started/webpack/#importing-precompiled-sass
             compileOnly(devNpm("postcss-loader", "^6.2.1"))
             compileOnly(devNpm("postcss", "^8.2.13"))
             compileOnly(devNpm("autoprefixer", ">9"))
-            compileOnly(devNpm("webpack-bundle-analyzer", "*"))
+            compileOnly(devNpm("webpack-bundle-analyzer", "^4.5.0"))
             compileOnly(devNpm("mini-css-extract-plugin", "^2.6.0"))
 
             // web-specific dependencies
@@ -74,6 +73,9 @@ kotlin {
             implementation(npm("os-browserify", "^0.3.0"))
             implementation(npm("path-browserify", "^1.0.1"))
             implementation(npm("react-minimal-pie-chart", "^8.2.0"))
+
+            // transitive dependencies with explicit version ranges required for security reasons
+            compileOnly(devNpm("minimist", "^1.2.6"))
         }
     }
 }

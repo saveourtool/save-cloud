@@ -295,9 +295,9 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
                     // json report, however in case when agent is crashed, it's unavailable, so fill at least end time
                     this.endTime = LocalDateTime.now()
                 })
-            }.also {
-                if (it.isNotEmpty()) {
-                    log.info("Test executions with ids ${it.map { it.id }} were failed with internal error")
+            }.also { testExecutions ->
+                if (testExecutions.isNotEmpty()) {
+                    log.info("Test executions with ids ${testExecutions.map { it.id }} were failed with internal error")
                 }
             }
         }

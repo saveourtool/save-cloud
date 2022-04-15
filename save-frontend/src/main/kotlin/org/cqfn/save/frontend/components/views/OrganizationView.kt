@@ -415,12 +415,12 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 }
 
                 child(tableComponent(
-                    columns = columns {
-                        column(id = "name", header = "Evaluated Tool", { name }) {
+                    columns = columns<Project> {
+                        column(id = "name", header = "Evaluated Tool", { name }) { cellProps ->
                             buildElement {
                                 td {
-                                    a(href = "#/${it.row.original.organization.name}/${it.value}") { +it.value }
-                                    privacySpan(it.row.original)
+                                    a(href = "#/${cellProps.row.original.organization.name}/${cellProps.value}") { +cellProps.value }
+                                    privacySpan(cellProps.row.original)
                                 }
                             }
                         }

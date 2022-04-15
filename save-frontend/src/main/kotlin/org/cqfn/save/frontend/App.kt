@@ -200,7 +200,9 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                 attrs {
                                     path = "/projects"
                                     element = buildElement {
-                                        child(CollectionView::class) {}
+                                        child(CollectionView::class) {
+                                            attrs.currentUserInfo = state.userInfo
+                                        }
                                     }
                                 }
                             }
