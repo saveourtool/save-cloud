@@ -33,7 +33,6 @@ fun Authentication.toUser(): User {
  *
  * @return username
  */
-@Suppress("SMART_CAST_NEEDED")  // https://github.com/analysis-dev/diktat/issues/1168
 fun Authentication.username(): String = when (principal) {
     // this should be the most common branch, as requests are authenticated by `ConvertingAuthenticationManager`
     is String -> (principal as String).split(':').last()

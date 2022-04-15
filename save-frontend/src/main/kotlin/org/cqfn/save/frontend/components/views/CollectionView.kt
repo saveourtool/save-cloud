@@ -1,4 +1,4 @@
-@file:Suppress("FILE_WILDCARD_IMPORTS", "WildcardImport")
+@file:Suppress("FILE_WILDCARD_IMPORTS", "WildcardImport", "HEADER_MISSING_IN_NON_SINGLE_CLASS_FILE")
 
 package org.cqfn.save.frontend.components.views
 
@@ -10,6 +10,7 @@ import org.cqfn.save.frontend.utils.apiUrl
 import org.cqfn.save.frontend.utils.decodeFromJsonString
 import org.cqfn.save.frontend.utils.get
 import org.cqfn.save.frontend.utils.unsafeMap
+import org.cqfn.save.info.UserInfo
 
 import org.w3c.fetch.Headers
 import org.w3c.fetch.Response
@@ -18,28 +19,37 @@ import react.dom.*
 import react.table.columns
 
 import kotlinx.html.ButtonType
+import kotlinx.html.hidden
+
+/**
+ * `Props` retrieved from router
+ */
+@Suppress("MISSING_KDOC_CLASS_ELEMENTS")
+external interface CreationViewProps : Props {
+    var currentUserInfo: UserInfo?
+}
 
 /**
  * A view with collection of projects
  */
 @JsExport
 @OptIn(ExperimentalJsExport::class)
-class CollectionView : AbstractView<PropsWithChildren, State>(false) {
+class CollectionView : AbstractView<CreationViewProps, State>(false) {
     @Suppress("MAGIC_NUMBER")
     private val projectsTable = tableComponent(
         columns = columns<Project> {
-            column(id = "organization", header = "Organization", { organization.name }) {
+            column(id = "organization", header = "Organization", { organization.name }) { cellProps ->
                 buildElement {
                     td {
-                        a(href = "#/${it.row.original.organization.name}") { +it.value }
+                        a(href = "#/${cellProps.row.original.organization.name}") { +cellProps.value }
                     }
                 }
             }
-            column(id = "name", header = "Evaluated Tool", { name }) {
+            column(id = "name", header = "Evaluated Tool", { name }) { cellProps ->
                 buildElement {
                     td {
-                        a(href = "#/${it.row.original.organization.name}/${it.value}") { +it.value }
-                        privacySpan(it.row.original)
+                        a(href = "#/${cellProps.row.original.organization.name}/${cellProps.value}") { +cellProps.value }
+                        privacySpan(cellProps.row.original)
                     }
                 }
             }
@@ -84,6 +94,7 @@ class CollectionView : AbstractView<PropsWithChildren, State>(false) {
     )
     override fun RBuilder.render() {
         div {
+            attrs.hidden = (props.currentUserInfo == null)
             button(type = ButtonType.button, classes = "btn btn-primary mb-2 mr-2") {
                 a(classes = "text-light", href = "#/creation/") {
                     +"Add new tested tool"
@@ -98,7 +109,7 @@ class CollectionView : AbstractView<PropsWithChildren, State>(false) {
         child(projectsTable) { }
     }
 
-    companion object : RStatics<PropsWithChildren, State, CollectionView, Context<StateSetter<Response?>>>(CollectionView::class) {
+    companion object : RStatics<CreationViewProps, State, CollectionView, Context<StateSetter<Response?>>>(CollectionView::class) {
         init {
             contextType = errorStatusContext
         }

@@ -81,7 +81,6 @@ private fun String.toRole() = when (this) {
     "ComplexMethod"
 )
 fun projectSettingsMenu(
-    openMenuSettingsFlag: (isOpen: Boolean) -> Unit,
     deleteProjectCallback: () -> Unit,
     updateProjectSettings: (Project) -> Unit,
     updateErrorMessage: (Response) -> Unit,

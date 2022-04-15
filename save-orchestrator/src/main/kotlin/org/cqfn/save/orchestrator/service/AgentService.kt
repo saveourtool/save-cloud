@@ -289,14 +289,15 @@ class AgentService {
 
     @Suppress("TOO_LONG_FUNCTION")
     private fun constructCliCommand(tests: List<TestDto>, suitesToArgs: Map<Long, String>): Mono<String> {
-        var isStandardMode = false
         // first, need to check the current mode, it could be done by looking of type of any test suite for current tests
         return webClientBackend.get()
             .uri("/testSuite/${tests.first().testSuiteId}")
             .retrieve()
             .bodyToMono<TestSuite>()
-            .flatMap { testSuite ->
-                isStandardMode = testSuite.type == TestSuiteType.STANDARD
+            .map { testSuite ->
+                testSuite.type == TestSuiteType.STANDARD
+            }
+            .flatMap { isStandardMode ->
                 if (isStandardMode) {
                     // in standard mode for each test get proper prefix location, since we created extra directories
                     // parent location for each test under one test suite is the same, so we can group them as the following
@@ -305,8 +306,8 @@ class AgentService {
                             .uri("/testSuite/${testGroup.first().testSuiteId}")
                             .retrieve()
                             .bodyToMono<TestSuite>()
-                            .flatMapIterable {
-                                val locationInStandardDir = getLocationInStandardDirForTestSuite(it.toDto())
+                            .flatMapIterable { testSuite ->
+                                val locationInStandardDir = getLocationInStandardDirForTestSuite(testSuite.toDto())
                                 testGroup.map { test ->
                                     val testFilePathInStandardDir =
                                             Paths.get(locationInStandardDir)
@@ -316,15 +317,16 @@ class AgentService {
                             }
                     }
                         .collectList()
+                        .map { isStandardMode to it }
                 } else {
                     Mono.fromCallable {
-                        tests.map {
+                        isStandardMode to tests.map {
                             it.filePath
                         }
                     }
                 }
             }
-            .map { testPaths ->
+            .map { (isStandardMode, testPaths) ->
                 val cliArgs = if (!isStandardMode) {
                     suitesToArgs.values.first()
                 } else {
