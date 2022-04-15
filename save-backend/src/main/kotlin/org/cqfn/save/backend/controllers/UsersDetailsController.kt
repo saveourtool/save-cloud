@@ -41,6 +41,7 @@ class UsersDetailsController(
     /**
      * @param newUserInfo
      * @param authentication an [Authentication] representing an authenticated request
+     * @throws ResponseStatusException
      */
     @PostMapping("/save")
     @PreAuthorize("isAuthenticated()")
@@ -56,6 +57,8 @@ class UsersDetailsController(
                 company = newUserInfo.linkedin
                 company = newUserInfo.twitter
             })
-        } else throw ResponseStatusException(HttpStatus.FORBIDDEN)
+        } else {
+            throw ResponseStatusException(HttpStatus.FORBIDDEN)
+        }
     }
 }
