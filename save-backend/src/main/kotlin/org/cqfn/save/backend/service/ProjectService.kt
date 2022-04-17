@@ -120,6 +120,7 @@ class ProjectService(private val projectRepository: ProjectRepository,
      * @param requestedRole
      * @return true if user can change roles in project and false otherwise
      */
+    @Suppress("UnsafeCallOnNullableType")
     fun canChangeRoles(
         project: Project,
         userId: Long,

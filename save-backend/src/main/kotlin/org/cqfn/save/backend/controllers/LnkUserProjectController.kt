@@ -70,6 +70,7 @@ class LnkUserProjectController(
      * @throws NoSuchElementException
      */
     @GetMapping("/users/not-from/{organizationName}/{projectName}")
+    @Suppress("UnsafeCallOnNullableType")
     fun getAllUsersNotFromProjectWithNamesStartingWith(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
