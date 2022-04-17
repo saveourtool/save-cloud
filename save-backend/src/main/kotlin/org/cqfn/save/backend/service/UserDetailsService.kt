@@ -34,4 +34,16 @@ class UserDetailsService(
         .switchIfEmpty {
             Mono.error(UsernameNotFoundException(username))
         }
+
+    /**
+     * @param name
+     * @param relativePath
+     * @throws NoSuchElementException
+     */
+    fun saveAvatar(name: String, relativePath: String) {
+        val user = userRepository.findByName(name).get().apply {
+            avatar = relativePath
+        }
+        user.let { userRepository.save(it) }
+    }
 }
