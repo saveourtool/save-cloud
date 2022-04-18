@@ -19,10 +19,11 @@ class DockerSecretsDatabaseProcessor : EnvironmentPostProcessor {
     private val log = LoggerFactory.getLogger(DockerSecretsDatabaseProcessor::class.java)
 
     override fun postProcessEnvironment(environment: ConfigurableEnvironment?, application: SpringApplication?) {
-        log.debug("Started DockerSecretsDatabaseProcessor [EnvironmentPostProcessor]")
-        val passwordResource = FileSystemResource("/run/secrets/db_password")
-        val usernameResource = FileSystemResource("/run/secrets/db_username")
-        val jdbcUrlResource = FileSystemResource("/run/secrets/db_url")
+        val secretsBasePath = System.getenv("DB_PASSWORD_FILE") ?: "/run/secrets"
+        log.debug("Started DockerSecretsDatabaseProcessor [EnvironmentPostProcessor] configured to look up secrets in $secretsBasePath")
+        val passwordResource = FileSystemResource("$secretsBasePath/db_password")
+        val usernameResource = FileSystemResource("$secretsBasePath/db_username")
+        val jdbcUrlResource = FileSystemResource("$secretsBasePath/db_url")
 
         if (passwordResource.exists()) {
             log.debug("Acquired password. Beginning to setting properties")
