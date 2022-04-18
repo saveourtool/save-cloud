@@ -18,7 +18,6 @@ jobs:
         with:
           path: save-cloud
           fetch-depth: 0
-          submodules: true
       - name: checkout save-core
         uses: actions/checkout@v3
         with:
