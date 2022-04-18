@@ -6,13 +6,19 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("jvm")
+    id("org.springdoc.openapi-gradle-plugin") version "1.3.4"
 }
+
+openApi {
+    apiDocsUrl.set("https://localhost:5000/v3/api-docs")
+}
+
 
 configureSpringBoot(true)
 
 tasks.withType<KotlinCompile> {
     kotlinOptions {
-        jvmTarget = Versions.jdk
+        jvmTarget = "11" //Versions.jdk
         freeCompilerArgs = freeCompilerArgs + "-Xopt-in=kotlin.RequiresOptIn"
     }
 }
