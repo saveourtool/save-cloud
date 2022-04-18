@@ -140,7 +140,11 @@ class WebSecurityConfig(
             httpBasicSpec.authenticationManager(
                 UserDetailsRepositoryReactiveAuthenticationManager(
                     object : ReactiveUserDetailsService {
+                        // Looking for user in DB by received source and name
                         override fun findByUsername(username: String): Mono<UserDetails> {
+                            require(username.contains("@")) {
+                                "Provided user information should keep the following form: oauth2Source@username"
+                            }
                             val user: Mono<StringResponse> = webClient.get()
                                 .uri("/internal/users/$username")
                                 .retrieve()

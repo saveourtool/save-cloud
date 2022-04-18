@@ -28,7 +28,7 @@ data class CliArguments(
  * @param args
  * @return parsed command line arguments
  */
-@Suppress("UnsafeCallOnNullableType")
+@Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
 fun parseArguments(args: Array<String>): CliArguments? {
     if (args.isEmpty()) {
         log.error("Argument list couldn't be empty!")
@@ -36,11 +36,18 @@ fun parseArguments(args: Array<String>): CliArguments? {
     }
     val parser = ArgParser("")
 
-    val userInformation by parser.option(
+    val username by parser.option(
         ArgType.String,
         fullName = "user",
         shortName = "u",
         description = "User name in SAVE-cloud system"
+    )
+
+    val oauth2Source by parser.option(
+        ArgType.String,
+        fullName = "oauth2Source",
+        shortName = "o",
+        description = "Oauth2 source, where the user identity is coming from"
     )
 
     // FixMe: any opportunity to hide process of password entering, via some additional window which doesn't show user input?
@@ -59,7 +66,7 @@ fun parseArguments(args: Array<String>): CliArguments? {
     )
     parser.parse(args)
     return CliArguments(
-        Authorization(userInformation!!, token),
+        Authorization("$oauth2Source@${username!!}", token),
         mode!!
     )
 }
