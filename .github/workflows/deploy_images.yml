@@ -70,6 +70,8 @@ jobs:
             org.gradle.caching=true
             detekt.multiplatform.disabled=true
             saveCliVersion=${{ env.SAVE_CLI_VERSION }}
+            gprUser=${{ github.actor }}
+            gprKey=${{ secrets.GITHUB_TOKEN }}
       - name: Upload gradle reports
         if: ${{ always() }}
         uses: actions/upload-artifact@v3

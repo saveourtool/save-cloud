@@ -24,6 +24,5 @@ include("test-utils")
 if (isIncludeSaveApi != null) {
     include("save-api")
 }
-includeBuild("sarif4k")
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
