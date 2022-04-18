@@ -452,8 +452,8 @@ class DownloadProjectController(
         getTestSuitesById(execution.testSuiteIds!!).map { Triple(location, execution, it) }
     }
 
-    private fun getTestSuitesById(testSuiteIds: String) = testSuiteIds.split(", ").let {
-        Flux.fromIterable(it).flatMap {
+    private fun getTestSuitesById(testSuiteIds: String) = testSuiteIds.split(", ").let { testSuiteIdList ->
+        Flux.fromIterable(testSuiteIdList).flatMap {
             webClientBackend.get()
                 .uri("/testSuite/$it")
                 .retrieve()
@@ -472,15 +472,15 @@ class DownloadProjectController(
         batchSizeForAnalyzer: String? = null,
     ): Mono<Execution> {
         val executionUpdate = ExecutionInitializationDto(project, testSuiteIds, projectRootRelativePath, executionVersion, execCmd, batchSizeForAnalyzer)
-        return webClientBackend.makeRequest(BodyInserters.fromValue(executionUpdate), "/updateNewExecution") {
-            it.onStatus({ status -> status != HttpStatus.OK }) { clientResponse ->
+        return webClientBackend.makeRequest(BodyInserters.fromValue(executionUpdate), "/updateNewExecution") { spec ->
+            spec.onStatus({ status -> status != HttpStatus.OK }) { clientResponse ->
                 log.error("Error when making update to execution fro project id = ${project.id} ${clientResponse.statusCode()}")
                 throw ResponseStatusException(
                     HttpStatus.INTERNAL_SERVER_ERROR,
                     "Execution not found"
                 )
             }
-            it.bodyToMono()
+            spec.bodyToMono()
         }
     }
 
@@ -703,8 +703,8 @@ fun readStandardTestSuitesFile(name: String) =
             .readText()
             .lines()
             .filter { it.isNotBlank() }
-            .map {
-                val splitRow = it.split("\\s".toRegex())
+            .map { line ->
+                val splitRow = line.split("\\s".toRegex())
                 require(splitRow.size == 3) {
                     "Follow the format for each line: (Gir url) (branch or commit hash) (testRootPath1;testRootPath2;...)"
                 }

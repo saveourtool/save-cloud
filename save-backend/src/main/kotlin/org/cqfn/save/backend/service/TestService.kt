@@ -119,8 +119,8 @@ class TestService(
             pageRequest
         )
         log.debug("Retrieved ${testExecutions.size} tests for page request $pageRequest, test IDs: ${testExecutions.map { it.id!! }}")
-        val newRunningTestExecutions = testExecutions.onEach {
-            testExecutionRepository.save(it.apply {
+        val newRunningTestExecutions = testExecutions.onEach { testExecution ->
+            testExecutionRepository.save(testExecution.apply {
                 status = TestResultStatus.RUNNING
             })
         }.count()

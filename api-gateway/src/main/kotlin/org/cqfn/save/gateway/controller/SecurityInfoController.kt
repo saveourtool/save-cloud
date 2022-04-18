@@ -25,7 +25,8 @@ class SecurityInfoController(
     fun listOauthProviders() = clientRegistrationRepository.map {
         OauthProviderInfo(
             it.registrationId,
-            // Default authorization link format, see https://docs.spring.io/spring-security/reference/reactive/oauth2/login/advanced.html#webflux-oauth2-login-advanced-login-page
+            // Default authorization link format,
+            // see https://docs.spring.io/spring-security/reference/reactive/oauth2/login/advanced.html#webflux-oauth2-login-advanced-login-page
             "/oauth2/authorization/${it.registrationId}",
         )
     }

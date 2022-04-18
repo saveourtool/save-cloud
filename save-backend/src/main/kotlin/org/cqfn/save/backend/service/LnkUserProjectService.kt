@@ -15,19 +15,10 @@ import org.springframework.stereotype.Service
 class LnkUserProjectService(private val lnkUserProjectRepository: LnkUserProjectRepository) {
     /**
      * @param project
-     * @param role user role in project
      * @return all users with role in project
      */
-    fun getAllUsersByProjectAndRole(project: Project, role: Role) = lnkUserProjectRepository.findByProject(project)
-        .filter { it.role == role }
-        .map { it.user }
-
-    /**
-     * @param project
-     * @return all users with role in project
-     */
-    fun getAllUserNamesAndRolesByProject(project: Project) = lnkUserProjectRepository.findByProject(project)
-        .map { it.user.name to it.role }
+    fun getAllUsersAndRolesByProject(project: Project) =
+            lnkUserProjectRepository.findByProject(project).associate { it.user to (it.role ?: Role.NONE) }
 
     /**
      * @param userId
@@ -35,21 +26,24 @@ class LnkUserProjectService(private val lnkUserProjectRepository: LnkUserProject
      * @return role for user in [project] by user ID
      */
     @Cacheable("role")
-    fun findRoleByUserIdAndProject(userId: Long, project: Project) = lnkUserProjectRepository.findByUserIdAndProject(userId, project)
-        .map { it.role }
-        .ifEmpty { listOf(Role.VIEWER) }
-        .singleOrNull()
-        ?: throw IllegalStateException("Multiple roles are set for userId=$userId and project=$project")
+    fun findRoleByUserIdAndProject(userId: Long, project: Project) = lnkUserProjectRepository
+        .findByUserIdAndProject(userId, project)
+        ?.role
+        ?: Role.NONE
 
     /**
      * Set role of [user] on a project [project] to [role]
+     *
+     * @throws IllegalStateException if [role] is [Role.NONE]
      */
-    @Suppress("KDOC_WITHOUT_PARAM_TAG")
+    @Suppress("KDOC_WITHOUT_PARAM_TAG", "UnsafeCallOnNullableType")
     fun setRole(user: User, project: Project, role: Role) {
-        lnkUserProjectRepository.save(
-            LnkUserProject(
-                project, user, role
-            )
-        )
+        if (role == Role.NONE) {
+            throw IllegalStateException("Role NONE should not be present in database!")
+        }
+        val lnkUserProject = lnkUserProjectRepository.findByUserIdAndProject(user.id!!, project)
+            ?.apply { this.role = role }
+            ?: LnkUserProject(project, user, role)
+        lnkUserProjectRepository.save(lnkUserProject)
     }
 }

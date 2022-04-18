@@ -6,8 +6,8 @@ import generated.SAVE_CORE_VERSION
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
-import io.ktor.client.features.json.JsonFeature
-import io.ktor.client.features.json.serializer.KotlinxSerializer
+import io.ktor.client.plugins.json.JsonPlugin
+import io.ktor.client.plugins.kotlinx.serializer.KotlinxSerializer
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
@@ -30,7 +30,7 @@ class SaveAgentTest {
         if (Platform.osFamily == OsFamily.WINDOWS) it.copy(cliCommand = "save-$SAVE_CORE_VERSION-linuxX64.bat") else it
     }
     private val saveAgentForTest = SaveAgent(configuration, httpClient = HttpClient(MockEngine) {
-        install(JsonFeature) {
+        install(JsonPlugin) {
             serializer = KotlinxSerializer(json)
         }
         engine {

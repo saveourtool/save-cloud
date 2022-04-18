@@ -38,16 +38,16 @@ class ProjectPermissionEvaluatorTest {
     @Test
     fun `default permissions for users with only global roles`() {
         userShouldHavePermissions(
-            "super_admin", Role.SUPER_ADMIN, emptyList(), *Permission.values()
+            "super_admin", Role.SUPER_ADMIN, Role.NONE, *Permission.values()
         )
         userShouldHavePermissions(
-            "admin", Role.ADMIN, emptyList(), Permission.READ
+            "admin", Role.ADMIN, Role.NONE, Permission.READ
         )
         userShouldHavePermissions(
-            "owner", Role.OWNER, emptyList(), Permission.READ
+            "owner", Role.OWNER, Role.NONE, Permission.READ
         )
         userShouldHavePermissions(
-            "viewer", Role.VIEWER, emptyList(), Permission.READ
+            "viewer", Role.VIEWER, Role.NONE, Permission.READ
         )
     }
 
@@ -55,16 +55,16 @@ class ProjectPermissionEvaluatorTest {
     fun `default permissions for users with only global roles for private projects`() {
         mockProject.public = false
         userShouldHavePermissions(
-            "super_admin", Role.SUPER_ADMIN, emptyList(), *Permission.values()
+            "super_admin", Role.SUPER_ADMIN, Role.NONE, *Permission.values()
         )
         userShouldHavePermissions(
-            "admin", Role.ADMIN, emptyList()
+            "admin", Role.ADMIN, Role.NONE
         )
         userShouldHavePermissions(
-            "owner", Role.OWNER, emptyList()
+            "owner", Role.OWNER, Role.NONE
         )
         userShouldHavePermissions(
-            "viewer", Role.VIEWER, emptyList()
+            "viewer", Role.VIEWER, Role.NONE
         )
     }
 
@@ -72,48 +72,48 @@ class ProjectPermissionEvaluatorTest {
     fun `permissions for project owners`() {
         mockProject.userId = 99
         userShouldHavePermissions(
-            "super_admin", Role.SUPER_ADMIN, listOf(Role.OWNER), *Permission.values(), userId = 99
+            "super_admin", Role.SUPER_ADMIN, Role.OWNER, *Permission.values(), userId = 99
         )
         userShouldHavePermissions(
-            "admin", Role.ADMIN, listOf(Role.OWNER), *Permission.values(), userId = 99
+            "admin", Role.ADMIN, Role.OWNER, *Permission.values(), userId = 99
         )
         userShouldHavePermissions(
-            "owner", Role.OWNER, listOf(Role.OWNER), *Permission.values(), userId = 99
+            "owner", Role.OWNER, Role.OWNER, *Permission.values(), userId = 99
         )
         userShouldHavePermissions(
-            "viewer", Role.VIEWER, listOf(Role.OWNER), *Permission.values(), userId = 99
+            "viewer", Role.VIEWER, Role.OWNER, *Permission.values(), userId = 99
         )
     }
 
     @Test
     fun `permissions for project admins`() {
         userShouldHavePermissions(
-            "super_admin", Role.SUPER_ADMIN, listOf(Role.ADMIN), *Permission.values(), userId = 99
+            "super_admin", Role.SUPER_ADMIN, Role.ADMIN, *Permission.values(), userId = 99
         )
         userShouldHavePermissions(
-            "admin", Role.ADMIN, listOf(Role.ADMIN), Permission.READ, Permission.WRITE, userId = 99
+            "admin", Role.ADMIN, Role.ADMIN, Permission.READ, Permission.WRITE, userId = 99
         )
         userShouldHavePermissions(
-            "owner", Role.OWNER, listOf(Role.ADMIN), Permission.READ, Permission.WRITE, userId = 99
+            "owner", Role.OWNER, Role.ADMIN, Permission.READ, Permission.WRITE, userId = 99
         )
         userShouldHavePermissions(
-            "viewer", Role.VIEWER, listOf(Role.ADMIN), Permission.READ, Permission.WRITE, userId = 99
+            "viewer", Role.VIEWER, Role.ADMIN, Permission.READ, Permission.WRITE, userId = 99
         )
     }
 
     @Test
     fun `permissions for project viewers`() {
         userShouldHavePermissions(
-            "super_admin", Role.SUPER_ADMIN, listOf(Role.VIEWER), *Permission.values(), userId = 99
+            "super_admin", Role.SUPER_ADMIN, Role.VIEWER, *Permission.values(), userId = 99
         )
         userShouldHavePermissions(
-            "admin", Role.ADMIN, listOf(Role.VIEWER), Permission.READ, userId = 99
+            "admin", Role.ADMIN, Role.VIEWER, Permission.READ, userId = 99
         )
         userShouldHavePermissions(
-            "owner", Role.OWNER, listOf(Role.VIEWER), Permission.READ, userId = 99
+            "owner", Role.OWNER, Role.VIEWER, Permission.READ, userId = 99
         )
         userShouldHavePermissions(
-            "viewer", Role.VIEWER, listOf(Role.VIEWER), Permission.READ, userId = 99
+            "viewer", Role.VIEWER, Role.VIEWER, Permission.READ, userId = 99
         )
     }
 
@@ -121,44 +121,42 @@ class ProjectPermissionEvaluatorTest {
     fun `permissions for organization owners`() {
         mockProject.organization.ownerId = 99
         userShouldHavePermissions(
-            "super_admin", Role.SUPER_ADMIN, emptyList(), *Permission.values(), userId = 99
+            "super_admin", Role.SUPER_ADMIN, Role.NONE, *Permission.values(), userId = 99
         )
         userShouldHavePermissions(
-            "admin", Role.ADMIN, emptyList(), *Permission.values(), userId = 99
+            "admin", Role.ADMIN, Role.NONE, *Permission.values(), userId = 99
         )
         userShouldHavePermissions(
-            "owner", Role.OWNER, emptyList(), *Permission.values(), userId = 99
+            "owner", Role.OWNER, Role.NONE, *Permission.values(), userId = 99
         )
         userShouldHavePermissions(
-            "viewer", Role.VIEWER, emptyList(), *Permission.values(), userId = 99
+            "viewer", Role.VIEWER, Role.NONE, *Permission.values(), userId = 99
         )
     }
 
     private fun userShouldHavePermissions(
         username: String,
         role: Role,
-        projectRoles: List<Role>,
+        projectRole: Role,
         vararg permissions: Permission,
         userId: Long = 1
     ) {
         val authentication = mockAuth(username, role.asSpringSecurityRole(), id = userId)
         whenever(lnkUserProjectRepository.findByUserIdAndProject(any(), any())).thenAnswer { invocation ->
-            projectRoles.map { role ->
-                LnkUserProject(
-                    invocation.arguments[1] as Project,
-                    mockUser((invocation.arguments[0] as Number).toLong()),
-                    role,
-                )
+            LnkUserProject(
+                invocation.arguments[1] as Project,
+                mockUser((invocation.arguments[0] as Number).toLong()),
+                projectRole,
+            )
+        }
+        permissions.forEach { permission ->
+            Assertions.assertTrue(projectPermissionEvaluator.hasPermission(authentication, mockProject, permission)) {
+                "User by authentication=$authentication is expected to have permission $permission on project $mockProject"
             }
         }
-        permissions.forEach {
-            Assertions.assertTrue(projectPermissionEvaluator.hasPermission(authentication, mockProject, it)) {
-                "User by authentication=$authentication is expected to have permission $it on project $mockProject"
-            }
-        }
-        Permission.values().filterNot { it in permissions }.forEach {
-            Assertions.assertFalse(projectPermissionEvaluator.hasPermission(authentication, mockProject, it)) {
-                "User by authentication=$authentication isn't expected to have permission $it on project $mockProject"
+        Permission.values().filterNot { it in permissions }.forEach { permission ->
+            Assertions.assertFalse(projectPermissionEvaluator.hasPermission(authentication, mockProject, permission)) {
+                "User by authentication=$authentication isn't expected to have permission $permission on project $mockProject"
             }
         }
     }

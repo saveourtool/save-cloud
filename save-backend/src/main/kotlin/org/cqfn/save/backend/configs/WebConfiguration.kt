@@ -29,6 +29,7 @@ class WebConfiguration(
     @Bean
     fun staticImageResourceRouter() = router {
         resources("/api/avatar/**", FileSystemResource("${configProperties.fileStorage.location}/images/avatars/"))
+        resources("/api/avatar/users/**", FileSystemResource("${configProperties.fileStorage.location}/images/avatars/users/"))
     }
 
     /**
