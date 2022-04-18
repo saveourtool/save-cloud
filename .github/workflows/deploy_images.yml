@@ -50,6 +50,8 @@ jobs:
             :save-cli:linkReleaseExecutableLinuxX64
           properties: |
             org.gradle.caching=true
+            gprUser=${{ github.actor }}
+            gprKey=${{ secrets.GITHUB_TOKEN }}
       - name: Set environment variable with save-cli version
         run: |
           mkdir -p save-cloud/save-orchestrator/build/resources/main
