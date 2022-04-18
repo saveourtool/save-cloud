@@ -14,6 +14,7 @@ spec:
         io.kompose.service: backend
     spec:
       restartPolicy: Always
+      {{- include "spring-boot.securityContext" | indent 6 }}
       containers:
         - name: backend
           {{- include "spring-boot.common" (merge (dict "service" .Values.backend) .) | nindent 10 }}

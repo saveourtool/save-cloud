@@ -5,6 +5,14 @@ env: {{ .Values.env }}
 prometheus-job: {{ .service.imageName }}
 {{- end }}
 
+{{/* Common Linux user configuration for spring-boot created containers, where user is cnb:cnb */}}
+{{- define "spring-boot.securityContext" -}}
+securityContext:
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+{{- end }}
+
 {{/* Common configuration of Kubernetes related things in spring-boot */}}
 {{- define "spring-boot.management" -}}
 startupProbe:
