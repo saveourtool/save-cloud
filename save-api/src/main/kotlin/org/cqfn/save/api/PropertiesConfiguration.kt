@@ -33,14 +33,10 @@ sealed class PropertiesConfiguration
 
 /**
  * @property backendUrl
- * @property preprocessorUrl
- * @property fileStorage
  */
 @Serializable
 data class WebClientProperties(
     val backendUrl: String,
-    val preprocessorUrl: String,
-    val fileStorage: String,
 ) : PropertiesConfiguration()
 
 /**

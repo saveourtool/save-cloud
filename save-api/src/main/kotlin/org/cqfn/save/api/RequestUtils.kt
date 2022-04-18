@@ -14,6 +14,7 @@ import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.execution.ExecutionType
 import org.cqfn.save.testsuite.TestSuiteDto
 import org.cqfn.save.utils.LocalDateTimeSerializer
+import org.cqfn.save.utils.extractUserNameAndSource
 
 import io.ktor.client.*
 import io.ktor.client.call.*
@@ -45,6 +46,15 @@ private val json = Json {
 
 private object Backend {
     lateinit var url: String
+}
+
+/**
+ * @property username
+ * @property source source (where the user identity is coming from)
+ */
+private object UserInformation {
+    lateinit var username: String
+    lateinit var source: String
 }
 
 /**
@@ -85,7 +95,7 @@ suspend fun HttpClient.uploadAdditionalFile(
     file: String,
 ): FileInfo = this.post {
     url("${Backend.url}/api/files/upload")
-    header("X-Authorization-Source", "basic")
+    header("X-Authorization-Source", UserInformation.source)
     body = MultiPartFormDataContent(formData {
         append(
             key = "file",
@@ -111,18 +121,19 @@ suspend fun HttpClient.getStandardTestSuites(
  * @param executionType type of requested execution git/standard
  * @param executionRequest execution request
  * @param additionalFiles list of additional files for execution
+ * @return HttpResponse
  */
 @OptIn(InternalAPI::class)
 @Suppress("TOO_LONG_FUNCTION")
-suspend fun HttpClient.submitExecution(executionType: ExecutionType, executionRequest: ExecutionRequestBase, additionalFiles: List<FileInfo>?) {
+suspend fun HttpClient.submitExecution(executionType: ExecutionType, executionRequest: ExecutionRequestBase, additionalFiles: List<FileInfo>?): HttpResponse {
     val endpoint = if (executionType == ExecutionType.GIT) {
         "/api/submitExecutionRequest"
     } else {
         "/api/executionRequestStandardTests"
     }
-    this.post {
+    return this.post {
         url("${Backend.url}$endpoint")
-        header("X-Authorization-Source", "basic")
+        header("X-Authorization-Source", UserInformation.source)
         val formDataHeaders = Headers.build {
             append(HttpHeaders.ContentType, ContentType.Application.Json)
         }
@@ -177,7 +188,7 @@ suspend fun HttpClient.getExecutionById(
 
 private suspend fun HttpClient.getRequestWithAuthAndJsonContentType(url: String): HttpResponse = this.get {
     url(url)
-    header("X-Authorization-Source", "basic")
+    header("X-Authorization-Source", UserInformation.source)
     contentType(ContentType.Application.Json)
 }
 
@@ -191,6 +202,10 @@ fun initializeHttpClient(
     webClientProperties: WebClientProperties,
 ): HttpClient {
     Backend.url = webClientProperties.backendUrl
+    val (name, source) = extractUserNameAndSource(authorization.userInformation)
+    UserInformation.username = name
+    UserInformation.source = source
+
     return HttpClient(Apache) {
         install(Logging) {
             logger = Logger.DEFAULT
@@ -206,7 +221,7 @@ fun initializeHttpClient(
                 // therefore, adding sendWithoutRequest is required
                 sendWithoutRequest { true }
                 credentials {
-                    BasicAuthCredentials(username = authorization.userName, password = authorization.token ?: "")
+                    BasicAuthCredentials(username = authorization.userInformation, password = authorization.token ?: "")
                 }
             }
         }
