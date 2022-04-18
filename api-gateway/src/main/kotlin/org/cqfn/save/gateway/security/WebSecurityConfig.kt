@@ -185,22 +185,8 @@ class WebSecurityConfig(
                     }
                 )
             )
-            .authenticated()
+                .permitAll()
     }
-        .and().httpBasic().run {
-            val userFromProps = configurationProperties.basicCredentials?.split(' ')?.run {
-                User(first(), last(), emptyList())
-            }
-            if (userFromProps != null) {
-                authenticationManager(
-                    UserDetailsRepositoryReactiveAuthenticationManager(
-                        MapReactiveUserDetailsService(userFromProps)
-                    )
-                )
-            } else {
-                this
-            }
-        }
         .and().build()
 
     private fun matchAllExcludingActuator() = AndServerWebExchangeMatcher(
