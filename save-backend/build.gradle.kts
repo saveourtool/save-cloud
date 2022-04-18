@@ -10,15 +10,21 @@ plugins {
 }
 
 openApi {
-    apiDocsUrl.set("https://localhost:5000/v3/api-docs")
+    apiDocsUrl.set("http://localhost:5000/internal/v3/api-docs")
+    outputFileName.set("swagger-api-docs.json")
 }
 
+kotlin {
+    jvmToolchain {
+        (this as JavaToolchainSpec).languageVersion.set(JavaLanguageVersion.of(Versions.jdk))
+    }
+}
 
 configureSpringBoot(true)
 
 tasks.withType<KotlinCompile> {
     kotlinOptions {
-        jvmTarget = "11" //Versions.jdk
+        jvmTarget = Versions.jdk
         freeCompilerArgs = freeCompilerArgs + "-Xopt-in=kotlin.RequiresOptIn"
     }
 }
