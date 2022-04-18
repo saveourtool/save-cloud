@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ .service.imageName }}
+  name: {{ .service.name }}
 spec:
   ports:
     - name: http
