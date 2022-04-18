@@ -1,4 +1,4 @@
-package org.cqfn.save.backend.utils
+package org.cqfn.save.utils
 
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.userdetails.User

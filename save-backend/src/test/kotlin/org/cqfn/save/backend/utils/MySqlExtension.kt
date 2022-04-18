@@ -30,6 +30,8 @@ class MySqlExtension : BeforeAllCallback {
 
     companion object {
         private const val MYSQL_PORT = 3306
+        
+        @Suppress("NonBooleanPropertyPrefixedWithIs")
         private val isDatabaseCreated = AtomicBoolean(false)
     }
 }
