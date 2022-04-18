@@ -8,6 +8,18 @@ dependencyResolutionManagement {
                 includeGroup("org.cqfn.save")
             }
         }
+        maven {
+            url = uri("https://maven.pkg.github.com/analysis-dev/sarif4k")
+            val gprUser: String? by settings
+            val gprKey: String? by settings
+            credentials {
+                username = gprUser
+                password = gprKey
+            }
+            content {
+                includeGroup("io.github.detekt.sarif4k")
+            }
+        }
     }
 }
 
