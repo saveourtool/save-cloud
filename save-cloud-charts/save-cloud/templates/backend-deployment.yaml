@@ -22,10 +22,17 @@ spec:
             - {{ include "spring-boot.config-volume-mount" . | indent 14 | trim }}
             - name: fs-storage
               mountPath: /home/cnb/files
+            # https://github.com/kubernetes/kubernetes/issues/65835#issuecomment-411399356
+            # should un-hardcode path to secrets from env postprocessor
             - name: database-secret
-              # https://github.com/kubernetes/kubernetes/issues/65835#issuecomment-411399356
-              # should un-hardcode path to secrets from env postprocessor
-              mountPath: /home/cnb/secrets
+              mountPath: /run/secrets/db_url
+              subPath: db_url
+            - name: database-secret
+              mountPath: /run/secrets/db_username
+              subPath: db_username
+            - name: database-secret
+              mountPath: /run/secrets/db_password
+              subPath: db_password
           {{- include "spring-boot.management" .Values.backend | nindent 10 }}
       volumes:
         - {{ include "spring-boot.config-volume" (dict "service" .Values.backend) | indent 10 | trim }}
