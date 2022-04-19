@@ -31,4 +31,11 @@ interface UserRepository : BaseEntityRepository<User> {
      * @return page of users with names that start with [prefix]
      */
     fun findByNameStartingWithAndIdNotIn(prefix: String, ids: Set<Long>, page: Pageable): Page<User>
+  
+    /**
+     * @param name
+     * @param source
+     * @return user or null if no results have been found
+     */
+    fun findByNameAndSource(name: String, source: String): Optional<User>
 }

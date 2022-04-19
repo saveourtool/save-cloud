@@ -18,7 +18,6 @@ jobs:
         with:
           path: save-cloud
           fetch-depth: 0
-          submodules: true
       - name: checkout save-core
         uses: actions/checkout@v3
         with:
@@ -51,6 +50,8 @@ jobs:
             :save-cli:linkReleaseExecutableLinuxX64
           properties: |
             org.gradle.caching=true
+            gprUser=${{ github.actor }}
+            gprKey=${{ secrets.GITHUB_TOKEN }}
       - name: Set environment variable with save-cli version
         run: |
           mkdir -p save-cloud/save-orchestrator/build/resources/main
@@ -70,6 +71,8 @@ jobs:
             org.gradle.caching=true
             detekt.multiplatform.disabled=true
             saveCliVersion=${{ env.SAVE_CLI_VERSION }}
+            gprUser=${{ github.actor }}
+            gprKey=${{ secrets.GITHUB_TOKEN }}
       - name: Upload gradle reports
         if: ${{ always() }}
         uses: actions/upload-artifact@v3
