@@ -50,6 +50,7 @@ dependencies {
     implementation(libs.hibernate.micrometer)
     implementation(libs.spring.fox.swagger)
     implementation(libs.spring.fox.swagger.ui)
+    //implementation(libs.spring.boot.starter.web)
     testImplementation(libs.spring.security.test)
     testImplementation(projects.testUtils)
 }
