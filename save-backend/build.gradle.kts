@@ -48,6 +48,8 @@ dependencies {
     implementation(libs.spring.boot.starter.security)
     implementation(libs.spring.security.core)
     implementation(libs.hibernate.micrometer)
+    implementation(libs.spring.fox.swagger)
+    implementation(libs.spring.fox.swagger.ui)
     testImplementation(libs.spring.security.test)
     testImplementation(projects.testUtils)
 }

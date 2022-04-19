@@ -8,7 +8,8 @@ import org.cqfn.save.entities.AgentStatus
 import org.cqfn.save.entities.AgentStatusDto
 import org.cqfn.save.entities.AgentStatusesForExecution
 import org.cqfn.save.currentVersion
-import org.cqfn.save.v2
+import org.cqfn.save.v2_0
+import org.cqfn.save.v1_0
 import org.slf4j.LoggerFactory
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.GetMapping
@@ -30,7 +31,7 @@ class AgentsController(private val agentStatusRepository: AgentStatusRepository,
      * @param agents list of [Agent]s to save into the DB
      * @return a list of IDs, assigned to the agents
      */
-    @PostMapping("/${currentVersion}/addAgents")
+    @PostMapping(path = ["/${v1_0}/addAgents", "/${currentVersion}/addAgents"])
     @Suppress("UnsafeCallOnNullableType")  // hibernate should always assign ids
     fun addAgents(@RequestBody agents: List<Agent>): List<Long> {
         log.debug("Saving agents $agents")
@@ -40,7 +41,7 @@ class AgentsController(private val agentStatusRepository: AgentStatusRepository,
     /**
      * @param agentStates list of [AgentStatus]es to update in the DB
      */
-    @PostMapping("/updateAgentStatuses")
+    @PostMapping(path = ["/${v2_0}/updateAgentStatuses", "/${currentVersion}/updateAgentStatuses"])
     fun updateAgentStatuses(@RequestBody agentStates: List<AgentStatus>) {
         agentStatusRepository.saveAll(agentStates)
     }

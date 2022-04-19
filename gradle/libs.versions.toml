@@ -35,6 +35,7 @@ zip4j = "2.10.0"
 ktoml = "0.2.11"
 springdoc = "1.6.7"
 kotlinx-cli = "0.3.4"
+spring-fox-swagger = "2.9.2"
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
@@ -135,3 +136,5 @@ commons-compress = { module = "org.apache.commons:commons-compress", version.ref
 picocli = { module = "info.picocli:picocli", version.ref = "picocli" }
 zip4j = { module = "net.lingala.zip4j:zip4j", version.ref = "zip4j" }
 kotlinx-cli = { module = "org.jetbrains.kotlinx:kotlinx-cli", version.ref = "kotlinx-cli" }
+spring-fox-swagger = { module = "io.springfox:springfox-swagger2", version.ref = "spring-fox-swagger" }
+spring-fox-swagger-ui = { module = "io.springfox:springfox-swagger2-ui", version.ref = "spring-fox-swagger" }
