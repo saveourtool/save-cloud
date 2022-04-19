@@ -74,7 +74,7 @@ class LnkUserProjectService(
      * @param amount
      * @return list of all save-cloud users
      */
-    fun getNonProjectUsersByNamePrefix(prefix: String, projectUserIds: Set<Long>, amount: Int): List<User> = if (amount > 0) {
+    fun getNonProjectUsersByNamePrefix(prefix: String, projectUserIds: Set<Long>, pageSize: Int): List<User> = if (pageSize> 0) {
         userRepository.findByNameStartingWithAndIdNotIn(prefix, projectUserIds, PageRequest.of(0, amount)).content
     } else {
         emptyList()
