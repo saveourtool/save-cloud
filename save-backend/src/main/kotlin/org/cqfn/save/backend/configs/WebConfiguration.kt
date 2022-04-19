@@ -31,14 +31,18 @@ class WebConfiguration(
     fun staticResourceRouter() = router {
         GET("/{*resourcePath}") {
             val resourcePath = it.pathVariable("resourcePath")
-            val resource = ClassPathResource("static/$resourcePath")
+            val resource = if (resourcePath.isNotBlank() && resourcePath != "/") {
+                ClassPathResource("static/$resourcePath")
+            } else {
+                ClassPathResource("static/index.html")
+            }
             val cacheControl: (ServerResponse.BodyBuilder) -> ServerResponse.BodyBuilder = when (resource.file.extension) {
                 "js" -> { b -> b.cacheControl(10.minutes) { cachePublic() } }
                 "css" -> { b -> b.cacheControl(10.minutes) { cachePublic() } }
                 else -> { b -> b.cacheControl(CacheControl.noCache()) }
             }
             ok().run(cacheControl)
-                .bodyValue(resource)
+                .body(BodyInserters.fromResource(resource))
         }
     }
 
