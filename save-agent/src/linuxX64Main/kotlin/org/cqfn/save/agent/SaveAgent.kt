@@ -20,8 +20,8 @@ import org.cqfn.save.utils.toTestResultStatus
 
 import generated.SAVE_CLOUD_VERSION
 import io.ktor.client.*
+import io.ktor.client.call.body
 import io.ktor.client.request.*
-import io.ktor.client.statement.*
 import io.ktor.http.*
 import okio.FileSystem
 import okio.Path.Companion.toPath
@@ -53,7 +53,7 @@ class SaveAgent(internal val config: AgentConfiguration,
      */
     val state = AtomicReference(AgentState.STARTING)
 
-    // fixme: can't use atomic reference to Instant here, because when using `Clock.System.now()` as an assined value
+    // fixme (limitation of old MM): can't use atomic reference to Instant here, because when using `Clock.System.now()` as an assigned value
     // Kotlin throws `kotlin.native.concurrent.InvalidMutabilityException: mutation attempt of frozen kotlinx.datetime.Instant...`
     private val executionStartSeconds = AtomicLong()
     private var saveProcessJob: AtomicReference<Job?> = AtomicReference(null)
@@ -235,16 +235,16 @@ class SaveAgent(internal val config: AgentConfiguration,
     /**
      * @param executionLogs logs of CLI execution progress that will be sent in a message
      */
-    private suspend fun sendLogs(executionLogs: ExecutionLogs) = httpClient.post<HttpResponse> {
+    private suspend fun sendLogs(executionLogs: ExecutionLogs) = httpClient.post {
         url("${config.orchestratorUrl}/executionLogs")
         contentType(ContentType.Application.Json)
-        body = executionLogs
+        setBody(executionLogs)
     }
 
-    private suspend fun sendReport(testResultDebugInfo: TestResultDebugInfo) = httpClient.post<HttpResponse> {
+    private suspend fun sendReport(testResultDebugInfo: TestResultDebugInfo) = httpClient.post {
         url("${config.backend.url}/${config.backend.filesEndpoint}/debug-info?agentId=${config.id}")
         contentType(ContentType.Application.Json)
-        body = testResultDebugInfo
+        setBody(testResultDebugInfo)
     }
 
     /**
@@ -254,24 +254,26 @@ class SaveAgent(internal val config: AgentConfiguration,
     internal suspend fun sendHeartbeat(executionProgress: ExecutionProgress): HeartbeatResponse {
         logDebugCustom("Sending heartbeat to ${config.orchestratorUrl}")
         // if current state is IDLE or FINISHED, should accept new jobs as a response
-        return httpClient.post("${config.orchestratorUrl}/heartbeat") {
+        return httpClient.post {
+            url("${config.orchestratorUrl}/heartbeat")
             contentType(ContentType.Application.Json)
             accept(ContentType.Application.Json)
-            body = Heartbeat(config.id, state.value, executionProgress, Clock.System.now())
+            setBody(Heartbeat(config.id, state.value, executionProgress, Clock.System.now()))
         }
+            .body()
     }
 
-    private suspend fun postExecutionData(testExecutionDtos: List<TestExecutionDto>) = httpClient.post<HttpResponse> {
+    private suspend fun postExecutionData(testExecutionDtos: List<TestExecutionDto>) = httpClient.post {
         logInfoCustom("Posting execution data to backend, ${testExecutionDtos.size} test executions")
         url("${config.backend.url}/${config.backend.executionDataEndpoint}")
         contentType(ContentType.Application.Json)
-        body = testExecutionDtos
+        setBody(testExecutionDtos)
     }
 
-    private suspend fun saveAdditionalData() = httpClient.post<HttpResponse> {
+    private suspend fun saveAdditionalData() = httpClient.post {
         logInfoCustom("Posting additional data to backend")
         url("${config.backend.url}/${config.backend.additionalDataEndpoint}")
         contentType(ContentType.Application.Json)
-        body = AgentVersion(config.id, SAVE_CLOUD_VERSION)
+        setBody(AgentVersion(config.id, SAVE_CLOUD_VERSION))
     }
 }

@@ -14,15 +14,16 @@ import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.execution.ExecutionType
 import org.cqfn.save.testsuite.TestSuiteDto
 import org.cqfn.save.utils.LocalDateTimeSerializer
+import org.cqfn.save.utils.extractUserNameAndSource
 
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.apache.*
-import io.ktor.client.features.auth.*
-import io.ktor.client.features.auth.providers.*
-import io.ktor.client.features.json.*
-import io.ktor.client.features.json.serializer.*
-import io.ktor.client.features.logging.*
+import io.ktor.client.plugins.auth.*
+import io.ktor.client.plugins.auth.providers.*
+import io.ktor.client.plugins.json.*
+import io.ktor.client.plugins.kotlinx.serializer.*
+import io.ktor.client.plugins.logging.*
 import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
 import io.ktor.client.statement.*
@@ -48,6 +49,15 @@ private object Backend {
 }
 
 /**
+ * @property username
+ * @property source source (where the user identity is coming from)
+ */
+private object UserInformation {
+    lateinit var username: String
+    lateinit var source: String
+}
+
+/**
  * @param name
  * @return Organization instance
  */
@@ -55,7 +65,7 @@ suspend fun HttpClient.getOrganizationByName(
     name: String
 ): Organization = getRequestWithAuthAndJsonContentType(
     "${Backend.url}/api/organization/$name"
-).receive()
+).body()
 
 /**
  * @param projectName
@@ -66,7 +76,7 @@ suspend fun HttpClient.getProjectByNameAndOrganizationId(
     projectName: String, organizationId: Long
 ): Project = getRequestWithAuthAndJsonContentType(
     "${Backend.url}/api/projects/get/organization-id?name=$projectName&organizationId=$organizationId"
-).receive()
+).body()
 
 /**
  * @return list of available files from storage
@@ -74,7 +84,7 @@ suspend fun HttpClient.getProjectByNameAndOrganizationId(
 suspend fun HttpClient.getAvailableFilesList(
 ): List<FileInfo> = getRequestWithAuthAndJsonContentType(
     "${Backend.url}/api/files/list"
-).receive()
+).body()
 
 /**
  * @param file
@@ -85,7 +95,7 @@ suspend fun HttpClient.uploadAdditionalFile(
     file: String,
 ): FileInfo = this.post {
     url("${Backend.url}/api/files/upload")
-    header("X-Authorization-Source", "basic")
+    header("X-Authorization-Source", UserInformation.source)
     body = MultiPartFormDataContent(formData {
         append(
             key = "file",
@@ -95,7 +105,7 @@ suspend fun HttpClient.uploadAdditionalFile(
             }
         )
     })
-}
+}.body()
 
 /**
  * @return list of existing standard test suites
@@ -103,7 +113,7 @@ suspend fun HttpClient.uploadAdditionalFile(
 suspend fun HttpClient.getStandardTestSuites(
 ): List<TestSuiteDto> = getRequestWithAuthAndJsonContentType(
     "${Backend.url}/api/allStandardTestSuites"
-).receive()
+).body()
 
 /**
  * Submit execution, according [executionType] with list of [additionalFiles]
@@ -111,22 +121,23 @@ suspend fun HttpClient.getStandardTestSuites(
  * @param executionType type of requested execution git/standard
  * @param executionRequest execution request
  * @param additionalFiles list of additional files for execution
+ * @return HttpResponse
  */
 @OptIn(InternalAPI::class)
 @Suppress("TOO_LONG_FUNCTION")
-suspend fun HttpClient.submitExecution(executionType: ExecutionType, executionRequest: ExecutionRequestBase, additionalFiles: List<FileInfo>?) {
+suspend fun HttpClient.submitExecution(executionType: ExecutionType, executionRequest: ExecutionRequestBase, additionalFiles: List<FileInfo>?): HttpResponse {
     val endpoint = if (executionType == ExecutionType.GIT) {
         "/api/submitExecutionRequest"
     } else {
         "/api/executionRequestStandardTests"
     }
-    this.post<HttpResponse> {
+    return this.post {
         url("${Backend.url}$endpoint")
-        header("X-Authorization-Source", "basic")
+        header("X-Authorization-Source", UserInformation.source)
         val formDataHeaders = Headers.build {
             append(HttpHeaders.ContentType, ContentType.Application.Json)
         }
-        body = MultiPartFormDataContent(formData {
+        setBody(MultiPartFormDataContent(formData {
             if (executionType == ExecutionType.GIT) {
                 append(
                     "executionRequest",
@@ -140,16 +151,16 @@ suspend fun HttpClient.submitExecution(executionType: ExecutionType, executionRe
                     formDataHeaders
                 )
             }
-            additionalFiles?.forEach {
+            additionalFiles?.forEach { fileInfo ->
                 append(
                     "file",
-                    json.encodeToString(it),
+                    json.encodeToString(fileInfo),
                     Headers.build {
                         append(HttpHeaders.ContentType, ContentType.Application.Json)
                     }
                 )
             }
-        })
+        }))
     }
 }
 
@@ -163,7 +174,7 @@ suspend fun HttpClient.getLatestExecution(
     organizationId: Long
 ): ExecutionDto = getRequestWithAuthAndJsonContentType(
     "${Backend.url}/api/latestExecution?name=$projectName&organizationId=$organizationId"
-).receive()
+).body()
 
 /**
  * @param executionId
@@ -173,11 +184,11 @@ suspend fun HttpClient.getExecutionById(
     executionId: Long
 ): ExecutionDto = getRequestWithAuthAndJsonContentType(
     "${Backend.url}/api/executionDto?executionId=$executionId"
-).receive()
+).body()
 
 private suspend fun HttpClient.getRequestWithAuthAndJsonContentType(url: String): HttpResponse = this.get {
     url(url)
-    header("X-Authorization-Source", "basic")
+    header("X-Authorization-Source", UserInformation.source)
     contentType(ContentType.Application.Json)
 }
 
@@ -191,12 +202,16 @@ fun initializeHttpClient(
     webClientProperties: WebClientProperties,
 ): HttpClient {
     Backend.url = webClientProperties.backendUrl
+    val (name, source) = extractUserNameAndSource(authorization.userInformation)
+    UserInformation.username = name
+    UserInformation.source = source
+
     return HttpClient(Apache) {
         install(Logging) {
             logger = Logger.DEFAULT
             level = LogLevel.NONE
         }
-        install(JsonFeature) {
+        install(JsonPlugin) {
             serializer = KotlinxSerializer(json)
         }
         install(Auth) {
@@ -206,7 +221,7 @@ fun initializeHttpClient(
                 // therefore, adding sendWithoutRequest is required
                 sendWithoutRequest { true }
                 credentials {
-                    BasicAuthCredentials(username = authorization.userName, password = authorization.token ?: "")
+                    BasicAuthCredentials(username = authorization.userInformation, password = authorization.token ?: "")
                 }
             }
         }

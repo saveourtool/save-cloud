@@ -109,5 +109,4 @@
 - name: MAGIC_NUMBER
   enabled: true
 - name: COMPLEX_EXPRESSION
-  # https://github.com/analysis-dev/diKTat/issues/1148
-  enabled: false
+  enabled: true

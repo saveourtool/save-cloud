@@ -79,7 +79,7 @@ class WebSecurityConfig(
         Role.OWNER to listOf(Role.VIEWER),
     )
         .mapKeys { it.key.asSpringSecurityRole() }
-        .mapValues { it.value.map { it.asSpringSecurityRole() } }
+        .mapValues { (_, roles) -> roles.map { it.asSpringSecurityRole() } }
         .let(RoleHierarchyUtils::roleHierarchyFromMap)
         .let {
             RoleHierarchyImpl().apply { setHierarchy(it) }

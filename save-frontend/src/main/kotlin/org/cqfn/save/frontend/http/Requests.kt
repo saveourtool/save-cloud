@@ -12,6 +12,7 @@ import org.cqfn.save.frontend.utils.apiUrl
 import org.cqfn.save.frontend.utils.decodeFromJsonString
 import org.cqfn.save.frontend.utils.get
 import org.cqfn.save.frontend.utils.post
+import org.cqfn.save.info.UserInfo
 
 import org.w3c.fetch.Headers
 import org.w3c.fetch.Response
@@ -58,6 +59,18 @@ suspend fun Component<*, *>.getOrganization(name: String) = get(
     },
 )
     .decodeFromJsonString<Organization>()
+
+/**
+ * @param name username
+ * @return info about user's
+ */
+suspend fun Component<*, *>.getUser(name: String) = get(
+    "$apiUrl/users/$name",
+    Headers().apply {
+        set("Accept", "application/json")
+    },
+)
+    .decodeFromJsonString<UserInfo>()
 
 /**
  * Fetch debug info for test execution

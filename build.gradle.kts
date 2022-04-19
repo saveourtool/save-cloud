@@ -2,7 +2,6 @@ import org.cqfn.save.buildutils.configureDetekt
 import org.cqfn.save.buildutils.configureDiktat
 import org.cqfn.save.buildutils.configureVersioning
 import org.cqfn.save.buildutils.createDetektTask
-import org.cqfn.save.buildutils.createDiktatTask
 import org.cqfn.save.buildutils.createStackDeployTask
 import org.cqfn.save.buildutils.getDatabaseCredentials
 import org.cqfn.save.buildutils.installGitHooks
@@ -64,13 +63,12 @@ allprojects {
         resolutionStrategy.cacheChangingModulesFor(10, TimeUnit.MINUTES)
     }
 }
-subprojects {
+allprojects {
     configureDiktat()
 }
 
 createStackDeployTask(profile)
 configureVersioning()
-createDiktatTask()
 createDetektTask()
 installGitHooks()
 registerSaveCliVersionCheckTask()
