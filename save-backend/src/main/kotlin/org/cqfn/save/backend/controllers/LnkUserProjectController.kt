@@ -14,8 +14,10 @@ import org.cqfn.save.info.UserInfo
 import org.cqfn.save.permission.Permission
 
 import org.slf4j.LoggerFactory
+import org.springframework.http.HttpStatus
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.server.ResponseStatusException
 
 /**
  * Controller for processing links between users and their roles
@@ -82,20 +84,19 @@ class LnkUserProjectController(
         }
         val project = projectService.findByNameAndOrganizationName(projectName, organizationName)
             ?: throw NoSuchElementException("There is no $projectName project in $organizationName organization")
-        if (projectPermissionEvaluator.hasPermission(authentication, project, Permission.READ)) {
-            val projectUserIds = lnkUserProjectService.getAllUsersByProject(project).map { it.id!! }.toSet()
-            // first we need to get users with exact match by name
-            val exactMatchUsers = lnkUserProjectService.getNonProjectUsersByName(prefix, projectUserIds)
-            // and then we need to get those whose names start with `prefix`
-            val prefixUsers = lnkUserProjectService.getNonProjectUsersByNamePrefix(
-                prefix,
-                projectUserIds + exactMatchUsers.map { it.id!! },
-                PAGE_SIZE - exactMatchUsers.size,
-            )
-            return (exactMatchUsers + prefixUsers).map { it.toUserInfo() }
-        } else {
-            return emptyList()
+        if (!projectPermissionEvaluator.hasPermission(authentication, project, Permission.READ)) {
+            throw ResponseStatusException(HttpStatus.NOT_FOUND)
         }
+        val projectUserIds = lnkUserProjectService.getAllUsersByProject(project).map { it.id!! }.toSet()
+        // first we need to get users with exact match by name
+        val exactMatchUsers = lnkUserProjectService.getNonProjectUsersByName(prefix, projectUserIds)
+        // and then we need to get those whose names start with `prefix`
+        val prefixUsers = lnkUserProjectService.getNonProjectUsersByNamePrefix(
+            prefix,
+            projectUserIds + exactMatchUsers.map { it.id!! },
+            PAGE_SIZE - exactMatchUsers.size,
+        )
+        return (exactMatchUsers + prefixUsers).map { it.toUserInfo() }
     }
     companion object {
         const val PAGE_SIZE = 5
