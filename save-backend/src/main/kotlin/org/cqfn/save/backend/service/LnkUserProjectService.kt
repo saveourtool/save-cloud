@@ -54,6 +54,7 @@ class LnkUserProjectService(
      * @param user that should be deleted from [project]
      * @param project
      * @return none
+     * @throws NoSuchElementException
      */
     @Suppress("UnsafeCallOnNullableType")
     fun removeRole(user: User, project: Project) = lnkUserProjectRepository.findByUserIdAndProject(user.id!!, project)

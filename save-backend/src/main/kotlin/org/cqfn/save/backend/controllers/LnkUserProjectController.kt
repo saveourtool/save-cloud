@@ -70,6 +70,7 @@ class LnkUserProjectController(
      * @param prefix
      * @return list of users, not connected to the project
      * @throws NoSuchElementException
+     * @throws ResponseStatusException
      */
     @GetMapping("/users/not-from/{organizationName}/{projectName}")
     @Suppress("UnsafeCallOnNullableType")
