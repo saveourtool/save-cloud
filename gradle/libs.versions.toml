@@ -35,7 +35,7 @@ zip4j = "2.10.0"
 ktoml = "0.2.11"
 springdoc = "1.6.7"
 kotlinx-cli = "0.3.4"
-spring-fox-swagger = "3.0.0"
+springfox = "3.0.0"
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
@@ -88,9 +88,9 @@ spring-boot-gradle-plugin = { module = "org.springframework.boot:spring-boot-gra
 spring-cloud-starter-gateway = { module = "org.springframework.cloud:spring-cloud-starter-gateway", version.ref = "spring-cloud" }
 spring-boot-starter-oauth2-client = { module = "org.springframework.boot:spring-boot-starter-oauth2-client", version.ref = "spring-boot" }
 jackson-module-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "jackson" }
-spring-fox-swagger = { module = "io.springfox:springfox-swagger2", version.ref = "spring-fox-swagger" }
-spring-fox-swagger-ui = { module = "io.springfox:springfox-swagger-ui", version.ref = "spring-fox-swagger" }
-spring-boot-starter-web = { module = "org.springframework.boot:spring-boot-starter-web", version.ref = "spring-boot" }
+#spring-fox-swagger = { module = "io.springfox:springfox-swagger2", version.ref = "spring-fox-swagger" }
+springfox-swagger-ui = { module = "io.springfox:springfox-swagger-ui", version.ref = "springfox" }
+springfox-boot-starter = { module = "io.springfox:springfox-boot-starter", version.ref = "springfox" }
 
 springdoc-openapi-webflux-ui = { module = "org.springdoc:springdoc-openapi-webflux-ui", version.ref = "springdoc" }
 springdoc-openapi-security = { module = "org.springdoc:springdoc-openapi-security", version.ref = "springdoc" }

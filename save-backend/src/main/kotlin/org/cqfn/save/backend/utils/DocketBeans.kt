@@ -6,6 +6,7 @@ import org.cqfn.save.v2_0
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import springfox.documentation.builders.ApiInfoBuilder
+import springfox.documentation.builders.PathSelectors.any
 import springfox.documentation.builders.PathSelectors.regex
 import springfox.documentation.builders.RequestHandlerSelectors
 import springfox.documentation.spi.DocumentationType
@@ -18,11 +19,11 @@ class SwaggerConfiguration {
 
     @Bean
     fun swaggerAllApi(): Docket? {
-        return Docket(DocumentationType.SWAGGER_2)
+        return Docket(DocumentationType.OAS_30)
             .groupName("save-backend-api-all")
             .select()
-            .apis(RequestHandlerSelectors.basePackage("org.cqfn.save.backend.controllers"))
-            .paths(regex("\\*"))
+            .apis(RequestHandlerSelectors.basePackage("org.cqfn.save.backend.controllers.*"))
+            .paths(any())
             .build()
             .apiInfo(
                 ApiInfoBuilder()
@@ -35,10 +36,10 @@ class SwaggerConfiguration {
 
     @Bean
     fun swaggerApi10(): Docket? {
-        return Docket(DocumentationType.SWAGGER_2)
+        return Docket(DocumentationType.OAS_30)
             .groupName("backend-api-${v1_0}")
             .select()
-            .apis(RequestHandlerSelectors.basePackage("org.cqfn.save.backend.controllers"))
+            .apis(RequestHandlerSelectors.basePackage("org.cqfn.save.backend.controllers.*"))
             .paths(regex("\\*/${v1_0}\\*"))
             .build()
             .apiInfo(
@@ -52,10 +53,10 @@ class SwaggerConfiguration {
 
     @Bean
     fun swaggerCurrentApi(): Docket? {
-        return Docket(DocumentationType.SWAGGER_2)
+        return Docket(DocumentationType.OAS_30)
             .groupName("save-backend-api-${currentVersion}")
             .select()
-            .apis(RequestHandlerSelectors.basePackage("org.cqfn.save.backend.controllers"))
+            .apis(RequestHandlerSelectors.basePackage("org.cqfn.save.backend.controllers.*"))
             .paths(regex("\\*/${currentVersion}\\*"))
             .build()
             .apiInfo(
@@ -72,7 +73,7 @@ class SwaggerConfiguration {
         return Docket(DocumentationType.SWAGGER_2)
             .groupName("save-backend-api-${v2_0}")
             .select()
-            .apis(RequestHandlerSelectors.basePackage("org.cqfn.save.backend.controllers"))
+            .apis(RequestHandlerSelectors.basePackage("org.cqfn.save.backend.controllers.*"))
             .paths(regex("\\*/${v2_0}\\*"))
             .build()
             .apiInfo(
