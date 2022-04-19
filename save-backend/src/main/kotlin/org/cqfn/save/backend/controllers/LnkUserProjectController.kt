@@ -82,14 +82,20 @@ class LnkUserProjectController(
         }
         val project = projectService.findByNameAndOrganizationName(projectName, organizationName)
             ?: throw NoSuchElementException("There is no $projectName project in $organizationName organization")
-        val projectUserIds = lnkUserProjectService.getAllUsersByProject(project).map { it.id!! }.toSet()
-        val exactMatchUsers = lnkUserProjectService.getNonProjectUsersByName(prefix, projectUserIds)
-        val prefixUsers = lnkUserProjectService.getNonProjectUsersByNamePrefix(
-            prefix,
-            projectUserIds + exactMatchUsers.map { it.id!! },
-            PAGE_SIZE - exactMatchUsers.size,
-        )
-        return (exactMatchUsers + prefixUsers).map { it.toUserInfo() }
+        if (projectPermissionEvaluator.hasPermission(authentication, project, Permission.READ)) {
+            val projectUserIds = lnkUserProjectService.getAllUsersByProject(project).map { it.id!! }.toSet()
+            // first we need to get users with exact match by name
+            val exactMatchUsers = lnkUserProjectService.getNonProjectUsersByName(prefix, projectUserIds)
+            // and then we need to get those whose names start with `prefix`
+            val prefixUsers = lnkUserProjectService.getNonProjectUsersByNamePrefix(
+                prefix,
+                projectUserIds + exactMatchUsers.map { it.id!! },
+                PAGE_SIZE - exactMatchUsers.size,
+            )
+            return (exactMatchUsers + prefixUsers).map { it.toUserInfo() }
+        } else {
+            return emptyList()
+        }
     }
     companion object {
         const val PAGE_SIZE = 5

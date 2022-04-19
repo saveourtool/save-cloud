@@ -6,7 +6,6 @@ import org.cqfn.save.domain.Role
 import org.cqfn.save.entities.LnkUserProject
 import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.User
-import org.slf4j.LoggerFactory
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
 
@@ -63,19 +62,19 @@ class LnkUserProjectService(
             lnkUserProjectRepository.deleteById(it)
         }
         ?: run {
-            logger.warn("Cannot delete user ${user.name ?: user.id} from project ${project.organization.name}/${project.name}: no such link was found.")
+            throw NoSuchElementException("Cannot delete user ${user.name ?: user.id} from project ${project.organization.name}/${project.name}: no such link was found.")
         }
 
     /**
-     * Get certain [amount] of platform users with names that start with [prefix]
+     * Get certain [pageSize] of platform users with names that start with [prefix]
      *
      * @param prefix
      * @param projectUserIds
-     * @param amount
+     * @param pageSize
      * @return list of all save-cloud users
      */
     fun getNonProjectUsersByNamePrefix(prefix: String, projectUserIds: Set<Long>, pageSize: Int): List<User> = if (pageSize> 0) {
-        userRepository.findByNameStartingWithAndIdNotIn(prefix, projectUserIds, PageRequest.of(0, amount)).content
+        userRepository.findByNameStartingWithAndIdNotIn(prefix, projectUserIds, PageRequest.of(0, pageSize)).content
     } else {
         emptyList()
     }
@@ -92,7 +91,4 @@ class LnkUserProjectService(
      * @return list of [User]s that are connected to [project]
      */
     fun getAllUsersByProject(project: Project): List<User> = lnkUserProjectRepository.findByProject(project).map { it.user }
-    companion object {
-        private val logger = LoggerFactory.getLogger(LnkUserProject::class.java)
-    }
 }
