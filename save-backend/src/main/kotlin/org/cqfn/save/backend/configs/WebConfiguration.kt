@@ -33,19 +33,8 @@ class WebConfiguration(
      * @return a router bean
      */
     @Bean
-    @Order(2)
     fun staticResourceRouter() = router {
-        GET("/{*resourcePath}") {
-            val resourcePath = it.pathVariable("resourcePath").runIf({ startsWith("/") }) { println("/"); drop(1) }
-            val resource = ClassPathResource("static/$resourcePath")
-            val cacheControl: (ServerResponse.BodyBuilder) -> ServerResponse.BodyBuilder = when (getFilenameExtension(resource.filename)) {
-                "js" -> { b -> b.cacheControl(10.minutes) { cachePublic() }.lastModified(resource.lastModified().toInstant()) }
-                "css" -> { b -> b.cacheControl(10.minutes) { cachePublic() } }
-                else -> { b -> b.cacheControl(CacheControl.noCache()) }
-            }
-            ok().run(cacheControl)
-                .bodyValue(resource)
-        }
+        resources("/**", ClassPathResource("static/"))
     }
 
     /**
@@ -69,7 +58,6 @@ class WebConfiguration(
      * @return router bean
      */
     @Bean
-    @Order(1)
     fun indexRouter(
         @Value("classpath:/static/index.html") indexPage: Resource,
         @Value("classpath:/static/error.html") errorPage: Resource,
