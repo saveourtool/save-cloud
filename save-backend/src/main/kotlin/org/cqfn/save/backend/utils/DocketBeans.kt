@@ -14,21 +14,27 @@ import org.springframework.context.annotation.Configuration
 class GroupsConfiguration  {
 
     @Bean
-    fun publicApi(): GroupedOpenApi? {
+    fun openApiAll(): GroupedOpenApi? {
         return GroupedOpenApi.builder()
-            .group("user")
-            .pathsToExclude("/api/v2.0/**", "/v2.0/**", "/internal/v2.0/**")
-            .pathsToMatch("/api/v1/**", "/v1.0/**", "/internal/v1.0/**")
+            .group("all")
+            .pathsToMatch("/api/**", "/internal/**")
+            .packagesToScan("org.cqfn.save.backend.controllers")
             .build()
     }
 
     @Bean
-    fun adminApi(): GroupedOpenApi? {
-        return GroupedOpenApi.builder()
-            .group("admin")
-            .pathsToExclude("/api/v1.0/**", "/v1.0/**", "/internal/v1.0/**")
-            .pathsToMatch("/api/v2.0/**", "/v2.0/**",  "/internal/v2.0/**")
-            .build()
+    fun openApiV10(): GroupedOpenApi? {
+        return createGroupedOpenApi(v1_0 + "_")
+    }
+
+    @Bean
+    fun openApiV20(): GroupedOpenApi? {
+        return createGroupedOpenApi(v2_0)
+    }
+
+    @Bean
+    fun openApiCurrentVersion(): GroupedOpenApi? {
+        return createGroupedOpenApi(currentVersion)
     }
 
     @Bean
@@ -37,10 +43,21 @@ class GroupsConfiguration  {
             .components(Components())
             .info(
                 Info()
-                    .title("titleI")
+                    .title("SAVE Backend API")
                     .version("1.0.0")
             )
     }
 
+
+    // http://localhost:81/swagger-ui/index.html?configUrl=/MyApp/v3/api-docs/swagger-config
+
+    private fun createGroupedOpenApi(version: String): GroupedOpenApi? {
+        return GroupedOpenApi.builder()
+            .group(version)
+            .pathsToMatch("/api/${version}/**", "/internal/${version}/**")
+            .pathsToExclude("?!(/api/${version}).+", "?!(/internal/${version}).+")
+            .packagesToScan("org.cqfn.save.backend.controllers")
+            .build()
+    }
 
 }
