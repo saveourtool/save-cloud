@@ -2,13 +2,18 @@ package org.cqfn.save.backend.configs
 
 import org.cqfn.save.backend.utils.secondsToLocalDateTime
 import org.cqfn.save.backend.utils.toInstant
+import org.cqfn.save.core.utils.runIf
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.core.annotation.Order
 import org.springframework.core.io.ClassPathResource
 import org.springframework.core.io.FileSystemResource
 import org.springframework.core.io.Resource
 import org.springframework.http.CacheControl
+import org.springframework.util.StringUtils
+import org.springframework.util.StringUtils.getFilenameExtension
+import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.server.ServerResponse
 import org.springframework.web.reactive.function.server.router
 import java.time.Duration
@@ -28,21 +33,18 @@ class WebConfiguration(
      * @return a router bean
      */
     @Bean
+    @Order(2)
     fun staticResourceRouter() = router {
         GET("/{*resourcePath}") {
-            val resourcePath = it.pathVariable("resourcePath")
-            val resource = if (resourcePath.isNotBlank() && resourcePath != "/") {
-                ClassPathResource("static/$resourcePath")
-            } else {
-                ClassPathResource("static/index.html")
-            }
-            val cacheControl: (ServerResponse.BodyBuilder) -> ServerResponse.BodyBuilder = when (resource.file.extension) {
-                "js" -> { b -> b.cacheControl(10.minutes) { cachePublic() } }
+            val resourcePath = it.pathVariable("resourcePath").runIf({ startsWith("/") }) { println("/"); drop(1) }
+            val resource = ClassPathResource("static/$resourcePath")
+            val cacheControl: (ServerResponse.BodyBuilder) -> ServerResponse.BodyBuilder = when (getFilenameExtension(resource.filename)) {
+                "js" -> { b -> b.cacheControl(10.minutes) { cachePublic() }.lastModified(resource.lastModified().toInstant()) }
                 "css" -> { b -> b.cacheControl(10.minutes) { cachePublic() } }
                 else -> { b -> b.cacheControl(CacheControl.noCache()) }
             }
             ok().run(cacheControl)
-                .body(BodyInserters.fromResource(resource))
+                .bodyValue(resource)
         }
     }
 
@@ -67,6 +69,7 @@ class WebConfiguration(
      * @return router bean
      */
     @Bean
+    @Order(1)
     fun indexRouter(
         @Value("classpath:/static/index.html") indexPage: Resource,
         @Value("classpath:/static/error.html") errorPage: Resource,
