@@ -35,7 +35,6 @@ zip4j = "2.10.0"
 ktoml = "0.2.11"
 springdoc = "1.6.7"
 kotlinx-cli = "0.3.4"
-springfox = "3.0.0"
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
@@ -88,8 +87,11 @@ spring-boot-gradle-plugin = { module = "org.springframework.boot:spring-boot-gra
 spring-cloud-starter-gateway = { module = "org.springframework.cloud:spring-cloud-starter-gateway", version.ref = "spring-cloud" }
 spring-boot-starter-oauth2-client = { module = "org.springframework.boot:spring-boot-starter-oauth2-client", version.ref = "spring-boot" }
 jackson-module-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "jackson" }
-springfox-boot-starter = { module = "io.springfox:springfox-boot-starter", version.ref = "springfox" }
 
+
+springdoc-openapi-ui = { module = "org.springdoc:springdoc-openapi-ui", version.ref = "springdoc" }
+#springdoc-openapi-common = { module = "org.springdoc:springdoc-openapi-common", version.ref = "springdoc" }
+#springdoc-openapi-webflux-core = { module = "org.springdoc:springdoc-openapi-webflux-core", version.ref = "springdoc" }
 springdoc-openapi-webflux-ui = { module = "org.springdoc:springdoc-openapi-webflux-ui", version.ref = "springdoc" }
 springdoc-openapi-security = { module = "org.springdoc:springdoc-openapi-security", version.ref = "springdoc" }
 springdoc-openapi-kotlin = { module = "org.springdoc:springdoc-openapi-kotlin", version.ref = "springdoc" }
