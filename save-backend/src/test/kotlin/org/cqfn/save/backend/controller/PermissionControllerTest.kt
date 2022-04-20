@@ -20,10 +20,7 @@ import org.cqfn.save.permission.Permission
 import org.cqfn.save.permission.SetRoleRequest
 import org.junit.jupiter.api.Test
 import org.mockito.invocation.InvocationOnMock
-import org.mockito.kotlin.any
-import org.mockito.kotlin.given
-import org.mockito.kotlin.times
-import org.mockito.kotlin.verify
+import org.mockito.kotlin.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
@@ -152,6 +149,68 @@ class PermissionControllerTest {
             .exchange()
             .expectStatus().isNotFound
         verify(permissionService, times(0)).setRole(any(), any(), any())
+    }
+
+    @Test
+    @WithMockUser
+    fun `should get 404 when deleting users from project without permission`() {
+        mutateMockedUser {
+            details = AuthenticationDetails(id = 99)
+        }
+        given(
+            user = { User(name = it.arguments[0] as String, null, null, "") },
+            project = Project.stub(id = 99).apply { public = true },
+            permission = null,
+        )
+        webTestClient.delete()
+            .uri("/api/projects/roles/Huawei/huaweiName/user")
+            .exchange()
+            .expectStatus()
+            .isNotFound
+        verify(permissionService, times(0)).removeRole(any(), any(), any())
+    }
+
+    @Test
+    @WithMockUser
+    fun `should permit deleting users from project if user can change roles in project`() {
+        mutateMockedUser {
+            details = AuthenticationDetails(id = 99)
+        }
+        val project = Project.stub(id = 99)
+        given(
+            user = { User(name = it.arguments[0] as String, null, null, "") },
+            project = project,
+            permission = Permission.WRITE,
+        )
+
+        given(projectService.canChangeRoles(any(), any(), any(), any())).willReturn(true)
+        given(permissionService.removeRole(any(), any(), any())).willReturn(Mono.just(Unit))
+        webTestClient.delete()
+            .uri("/api/projects/roles/Huawei/huaweiName/user")
+            .exchange()
+            .expectStatus()
+            .isOk
+    }
+
+    @Test
+    @WithMockUser
+    fun `should forbid removing people from project if user cannot change roles in project`() {
+        mutateMockedUser {
+            details = AuthenticationDetails(id = 99)
+        }
+        given(
+            user = { User(name = it.arguments[0] as String, null, null, "") },
+            project = Project.stub(id = 99),
+            permission = Permission.WRITE,
+        )
+        given(projectService.canChangeRoles(any(), any(), any(), any())).willReturn(false)
+        given(permissionService.removeRole(any(), any(), any())).willReturn(Mono.just(Unit))
+        webTestClient.delete()
+            .uri("/api/projects/roles/Huawei/huaweiName/user")
+            .exchange()
+            .expectStatus()
+            .isForbidden
+        verify(permissionService, times(0)).removeRole(any(), any(), any())
     }
 
     @Suppress("LAMBDA_IS_NOT_LAST_PARAMETER")

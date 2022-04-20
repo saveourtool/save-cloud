@@ -41,7 +41,6 @@ import org.cqfn.save.frontend.utils.runConfirmWindowModal
 import org.cqfn.save.frontend.utils.runErrorModal
 import org.cqfn.save.frontend.utils.unsafeMap
 import org.cqfn.save.info.UserInfo
-import org.cqfn.save.permission.SetRoleRequest
 import org.cqfn.save.testsuite.TestSuiteDto
 
 import org.w3c.dom.HTMLButtonElement
@@ -331,28 +330,11 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 }
             }
         },
-        updatePermissions = { userToRole ->
-            scope.launch {
-                for ((userName, role) in userToRole) {
-                    val setRoleRequest = SetRoleRequest(userName.split(":")[1], role)
-                    val jsonRoleRequest = Json.encodeToString(setRoleRequest)
-                    val headers = Headers().apply {
-                        set("Accept", "application/json")
-                        set("Content-Type", "application/json")
-                    }
-                    val response = post(
-                        "/api/projects/roles/${state.project.organization.name}/${state.project.name}",
-                        headers,
-                        jsonRoleRequest
-                    )
-                    if (!response.ok) {
-                        setState {
-                            errorLabel = "Failed to save project info"
-                            errorMessage = "Failed to save project info: ${response.status} ${response.statusText}"
-                            isErrorOpen = true
-                        }
-                    }
-                }
+        updateErrorMessage = {
+            setState {
+                errorLabel = "Failed to save project info"
+                errorMessage = "Failed to save project info: ${it.status} ${it.statusText}"
+                isErrorOpen = true
             }
         },
     )
@@ -751,7 +733,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     private fun RBuilder.renderSettings() {
         child(projectSettingsMenu) {
             attrs.project = state.project
-            attrs.users = emptyList()
             attrs.selfRole = Role.VIEWER
             attrs.currentUserInfo = props.currentUserInfo ?: UserInfo("Unknown")
         }
