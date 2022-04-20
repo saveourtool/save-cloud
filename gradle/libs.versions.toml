@@ -88,8 +88,6 @@ spring-boot-gradle-plugin = { module = "org.springframework.boot:spring-boot-gra
 spring-cloud-starter-gateway = { module = "org.springframework.cloud:spring-cloud-starter-gateway", version.ref = "spring-cloud" }
 spring-boot-starter-oauth2-client = { module = "org.springframework.boot:spring-boot-starter-oauth2-client", version.ref = "spring-boot" }
 jackson-module-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "jackson" }
-#spring-fox-swagger = { module = "io.springfox:springfox-swagger2", version.ref = "spring-fox-swagger" }
-springfox-swagger-ui = { module = "io.springfox:springfox-swagger-ui", version.ref = "springfox" }
 springfox-boot-starter = { module = "io.springfox:springfox-boot-starter", version.ref = "springfox" }
 
 springdoc-openapi-webflux-ui = { module = "org.springdoc:springdoc-openapi-webflux-ui", version.ref = "springdoc" }

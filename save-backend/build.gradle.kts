@@ -49,8 +49,6 @@ dependencies {
     implementation(libs.spring.security.core)
     implementation(libs.hibernate.micrometer)
     implementation(libs.springfox.boot.starter)
-    implementation(libs.springfox.swagger.ui)
-    //implementation(libs.spring.fox.swagger)
     testImplementation(libs.spring.security.test)
     testImplementation(projects.testUtils)
 }

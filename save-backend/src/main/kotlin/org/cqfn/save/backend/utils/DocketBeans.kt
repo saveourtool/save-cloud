@@ -11,18 +11,16 @@ import springfox.documentation.builders.PathSelectors.regex
 import springfox.documentation.builders.RequestHandlerSelectors
 import springfox.documentation.spi.DocumentationType
 import springfox.documentation.spring.web.plugins.Docket
-import springfox.documentation.swagger2.annotations.EnableSwagger2
 
-@EnableSwagger2
 @Configuration
 class SwaggerConfiguration {
 
     @Bean
     fun swaggerAllApi(): Docket? {
         return Docket(DocumentationType.OAS_30)
-            .groupName("save-backend-api-all")
+            .groupName("backend-api")
             .select()
-            .apis(RequestHandlerSelectors.basePackage("org.cqfn.save.backend.controllers.*"))
+            .apis(RequestHandlerSelectors.any())
             .paths(any())
             .build()
             .apiInfo(
@@ -32,55 +30,37 @@ class SwaggerConfiguration {
                     .description("Documentation backend API")
                     .build()
             )
+            //.select().build()
     }
 
     @Bean
     fun swaggerApi10(): Docket? {
-        return Docket(DocumentationType.OAS_30)
-            .groupName("backend-api-${v1_0}")
-            .select()
-            .apis(RequestHandlerSelectors.basePackage("org.cqfn.save.backend.controllers.*"))
-            .paths(regex("\\*/${v1_0}\\*"))
-            .build()
-            .apiInfo(
-                ApiInfoBuilder()
-                    .version(v1_0)
-                    .title("API")
-                    .description("Documentation backend API ${v1_0}")
-                    .build()
-            )
+        return createDocket(v1_0 + "_")
+        //return createDocket(v1_0)
     }
 
     @Bean
     fun swaggerCurrentApi(): Docket? {
-        return Docket(DocumentationType.OAS_30)
-            .groupName("save-backend-api-${currentVersion}")
-            .select()
-            .apis(RequestHandlerSelectors.basePackage("org.cqfn.save.backend.controllers.*"))
-            .paths(regex("\\*/${currentVersion}\\*"))
-            .build()
-            .apiInfo(
-                ApiInfoBuilder()
-                    .version(currentVersion)
-                    .title("API")
-                    .description("Documentation backend API ${currentVersion}")
-                    .build()
-            )
+        return createDocket(currentVersion)
     }
 
     @Bean
     fun swaggerApi20(): Docket? {
-        return Docket(DocumentationType.SWAGGER_2)
-            .groupName("save-backend-api-${v2_0}")
+        return createDocket(v2_0)
+    }
+
+    private fun createDocket(version: String): Docket? {
+        return Docket(DocumentationType.OAS_30).groupName("backend-api-${version}")
             .select()
-            .apis(RequestHandlerSelectors.basePackage("org.cqfn.save.backend.controllers.*"))
-            .paths(regex("\\*/${v2_0}\\*"))
+            .apis(RequestHandlerSelectors.basePackage("org.cqfn.save.backend.controllers"))
+            .paths(regex("/api/${version}.*"))
+            .paths(regex("/internal/${version}.*"))
             .build()
             .apiInfo(
                 ApiInfoBuilder()
-                    .version(v2_0)
+                    .version(version)
                     .title("API")
-                    .description("Documentation backend API v2.0")
+                    .description("Documentation backend API ${version}")
                     .build()
             )
     }
