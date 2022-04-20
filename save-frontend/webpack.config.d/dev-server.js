@@ -5,7 +5,7 @@ config.devServer = Object.assign(
       proxy: [
         {
           context: ["/api/**"],
-          target: 'http://localhost:5000',
+          target: 'http://localhost:5800',
           logLevel: 'debug',
           onProxyReq: function (proxyReq, req, res) {
             proxyReq.setHeader("Authorization", "Basic YWRtaW46");

@@ -15,7 +15,7 @@ import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
 
-const val MYSQL_STARTUP_DELAY_MILLIS = 10_000L
+const val MYSQL_STARTUP_DELAY_MILLIS = 30_000L
 
 /**
  * @param profile deployment profile, used, for example, to start SQL database in dev profile only
@@ -40,7 +40,9 @@ fun Project.createStackDeployTask(profile: String) {
                         // so we create it here only in dev profile
                         """|$it
                            |  mysql:
-                           |    image: mysql:8.0.20
+                           |    image: mysql
+                           |    platform: linux/x86_64
+                           |    container_name: mysql
                            |    ports:
                            |      - "3306:3306"
                            |    environment:
