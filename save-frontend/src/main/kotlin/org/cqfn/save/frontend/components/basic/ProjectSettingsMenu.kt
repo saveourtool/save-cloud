@@ -4,40 +4,35 @@ package org.cqfn.save.frontend.components.basic
 
 import org.cqfn.save.domain.Role
 import org.cqfn.save.entities.Project
-import org.cqfn.save.frontend.utils.apiUrl
-import org.cqfn.save.frontend.utils.decodeFromJsonString
-import org.cqfn.save.frontend.utils.get
-import org.cqfn.save.frontend.utils.unsafeMap
-import org.cqfn.save.frontend.utils.useRequest
+import org.cqfn.save.frontend.externals.fontawesome.faTimesCircle
+import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
+import org.cqfn.save.frontend.externals.lodash.debounce
+import org.cqfn.save.frontend.utils.*
 import org.cqfn.save.info.UserInfo
+import org.cqfn.save.permission.SetRoleRequest
 
+import csstype.None
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.HTMLSelectElement
 import org.w3c.fetch.Headers
+import org.w3c.fetch.Response
 import react.*
 import react.dom.*
 
 import kotlinx.html.ButtonType
 import kotlinx.html.InputType
+import kotlinx.html.hidden
 import kotlinx.html.id
 import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
+import kotlinx.js.jso
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 /**
  * ProjectSettingsMenu component props
  */
 external interface ProjectSettingsMenuProps : Props {
-    /**
-     * List of users connected to the project
-     */
-    var users: List<UserInfo>
-
-    /**
-
-     * Flag to open Menu
-     */
-    var isOpen: Boolean?
-
     /**
      * Current project settings
      */
@@ -66,41 +61,130 @@ private fun String.toRole() = when (this) {
 /**
  * @param deleteProjectCallback
  * @param updateProjectSettings
- * @param updatePermissions
+ * @param updateErrorMessage
  * @return ReactElement
  */
-@Suppress("TOO_LONG_FUNCTION", "LongMethod", "MAGIC_NUMBER")
+@Suppress(
+    "TOO_LONG_FUNCTION",
+    "LongMethod",
+    "MAGIC_NUMBER",
+    "ComplexMethod"
+)
 fun projectSettingsMenu(
     deleteProjectCallback: () -> Unit,
     updateProjectSettings: (Project) -> Unit,
-    updatePermissions: (Map<String, Role>) -> Unit,
+    updateErrorMessage: (Response) -> Unit,
 ) = fc<ProjectSettingsMenuProps> { props ->
-    var emailFromInput: String? = props.project.email
-    var isPublic: Boolean = props.project.public
-    var numberOfContainers: String = props.project.numberOfContainers.toString()
     @Suppress("LOCAL_VARIABLE_EARLY_DECLARATION")
-    var permissionsChanged: MutableMap<String, Role> = mutableMapOf()
+    val projectRef = useRef(props.project)
+    val (draftProject, setDraftProject) = useState(props.project)
+    useEffect(props.project) {
+        if (projectRef.current !== props.project) {
+            setDraftProject(props.project)
+            projectRef.current = props.project
+        }
+    }
 
-    val (users, setUsers) = useState(props.users)
+    val projectPath = props.project.let { "${it.organization.name}/${it.name}" }
 
-    val getUsers = useRequest {
-        if (props.isOpen != true) {
-            val usersFromDb = get(
-                url = "$apiUrl/projects/${props.project.organization.name}/${props.project.name}/users",
-                headers = Headers().also {
-                    it.set("Accept", "application/json")
-                },
+    val (changeProjectUsers, setChangeProjectUsers) = useState(false)
+    val (projectUsers, setProjectUsers) = useState(emptyList<UserInfo>())
+    val getProjectUsers = useRequest(dependencies = arrayOf(changeProjectUsers)) {
+        val usersFromDb = get(
+            url = "$apiUrl/projects/$projectPath/users",
+            headers = Headers().also {
+                it.set("Accept", "application/json")
+            },
+        )
+            .unsafeMap {
+                it.decodeFromJsonString<List<UserInfo>>()
+            }
+        setProjectUsers(usersFromDb)
+    }
+
+    val (permissionsChanged, setPermissionsChanged) = useState(mapOf<String, Role>())
+    val updatePermissions = useRequest(dependencies = arrayOf(permissionsChanged)) {
+        for ((userName, role) in permissionsChanged) {
+            val headers = Headers().apply {
+                set("Accept", "application/json")
+                set("Content-Type", "application/json")
+            }
+            val response = post(
+                "$apiUrl/projects/roles/$projectPath",
+                headers,
+                Json.encodeToString(SetRoleRequest(userName.split(":")[1], role)),
+            )
+            if (!response.ok) {
+                updateErrorMessage(response)
+            }
+        }
+    }
+
+    val (userToAdd, setUserToAdd) = useState("")
+    val (usersNotFromProject, setUsersNotFromProject) = useState(emptyList<UserInfo>())
+    val getUsersNotFromProject = debounce(
+        useRequest(dependencies = arrayOf(changeProjectUsers, userToAdd)) {
+            val headers = Headers().apply {
+                set("Accept", "application/json")
+                set("Content-Type", "application/json")
+            }
+            val users = get(
+                url = "$apiUrl/users/not-from/$projectPath?prefix=$userToAdd",
+                headers = headers,
             )
                 .unsafeMap {
                     it.decodeFromJsonString<List<UserInfo>>()
                 }
-            setUsers(usersFromDb)
+            setUsersNotFromProject(users)
+        },
+        500,
+    )
+
+    val addUserToProject = useRequest {
+        val headers = Headers().apply {
+            set("Accept", "application/json")
+            set("Content-Type", "application/json")
+        }
+        val response = post(
+            url = "$apiUrl/projects/roles/$projectPath",
+            headers = headers,
+            body = Json.encodeToString(SetRoleRequest(userToAdd, Role.VIEWER)),
+        )
+        if (response.ok) {
+            setUserToAdd("")
+            setChangeProjectUsers { !it }
+            getProjectUsers()
+            getUsersNotFromProject()
+        } else {
+            updateErrorMessage(response)
         }
     }
 
-    getUsers()
-
-    val projectPath = props.project.let { "${it.organization.name}/${it.name}" }
+    val (userToDelete, setUserToDelete) = useState(UserInfo(""))
+    val deleteUser = useRequest(dependencies = arrayOf(userToDelete)) {
+        val headers = Headers().apply {
+            set("Accept", "application/json")
+            set("Content-Type", "application/json")
+        }
+        val response = delete(
+            url = "$apiUrl/projects/roles/$projectPath/${userToDelete.name}",
+            headers = headers,
+            body = Json.encodeToString(userToDelete),
+        )
+        if (!response.ok) {
+            updateErrorMessage(response)
+        } else {
+            setChangeProjectUsers { !it }
+            getProjectUsers()
+            getUsersNotFromProject()
+        }
+    }
+    val (isFirstRender, setIsFirstRender) = useState(true)
+    if (isFirstRender) {
+        getProjectUsers()
+        getUsersNotFromProject()
+        setIsFirstRender(false)
+    }
 
     val (selfRole, setSelfRole) = useState(props.selfRole)
 
@@ -120,49 +204,102 @@ fun projectSettingsMenu(
 
     div("row justify-content-center mb-2") {
         // ===================== LEFT COLUMN =======================================================================
-        div("col-4 mb-2") {
+        div("col-4 mb-2 pl-0 pr-0 mr-2 ml-2") {
             div("text-xs text-center font-weight-bold text-primary text-uppercase mb-3") {
                 +"Users"
             }
-            child(cardComponent(isBordered = false, hasBg = true) {
-                for (user in users) {
-                    val userName = user.source + ":" + (user.name)
+            div("card card-body mt-0 pt-0 pr-0 pl-0") {
+                div("row mt-0 ml-0 mr-0") {
+                    div("input-group") {
+                        input(type = InputType.text, classes = "form-control") {
+                            attrs.id = "input-users-to-add"
+                            attrs.list = "complete-users-to-add"
+                            attrs.placeholder = "username"
+                            attrs.value = userToAdd
+                            attrs.onChangeFunction = {
+                                setUserToAdd((it.target as HTMLInputElement).value)
+                                getUsersNotFromProject()
+                            }
+                        }
+                        datalist {
+                            attrs.id = "complete-users-to-add"
+                            attrs["style"] = jso<CSSProperties> {
+                                appearance = None.none
+                            }
+                            for (user in usersNotFromProject) {
+                                option {
+                                    attrs.value = user.name
+                                    attrs.label = user.source ?: ""
+                                }
+                            }
+                        }
+                        div("input-group-append") {
+                            button(type = ButtonType.button, classes = "btn btn-sm btn-success") {
+                                attrs.onClickFunction = {
+                                    addUserToProject()
+                                }
+                                +"Add user"
+                            }
+                        }
+                    }
+                }
+                for (user in projectUsers) {
+                    val userName = user.source + ":" + user.name
                     val userRole = user.projects[projectPath] ?: Role.VIEWER
-                    div("row mt-2 ml-2 mr-2") {
+                    val userIndex = projectUsers.indexOf(user)
+                    div("row mt-2 mr-0") {
+                        div("col-1") {
+                            button(classes = "btn h-auto w-auto") {
+                                fontAwesomeIcon(icon = faTimesCircle)
+                                attrs.id = "remove-user-$userIndex"
+                                attrs.hidden = selfRole.priority <= user.projects[projectPath]!!.priority
+                                attrs.onClick = {
+                                    val deletedUserIndex = attrs.id.split("-")[2].toInt()
+                                    setUserToDelete(projectUsers[deletedUserIndex])
+                                    deleteUser()
+                                }
+                            }
+                        }
                         div("col-6 text-left align-self-center") {
                             +userName
                         }
-                        div("col-6 text-left align-self-center") {
+                        div("col-5 text-left align-self-right") {
                             select("custom-select") {
-                                attrs.onChangeFunction = {
-                                    val target = it.target as HTMLSelectElement
-                                    permissionsChanged[userName] = target.value.toRole()
-                                    attrs.value = target.value
+                                attrs.onChangeFunction = { event ->
+                                    val target = event.target as HTMLSelectElement
+                                    setPermissionsChanged { permissionsChanged ->
+                                        permissionsChanged.toMutableMap()
+                                            .apply {
+                                                put(userName, target.value.toRole())
+                                            }
+                                            .toMap()
+                                    }
                                 }
-                                attrs.id = "role${users.indexOf(user)}"
+                                attrs.id = "role-$userIndex"
                                 for (role in Role.values()) {
-                                    if (role != Role.NONE) {
+                                    if (role != Role.NONE && (role.priority < selfRole.priority ||
+                                            user.name == props.currentUserInfo.name && selfRole == role)) {
                                         option {
                                             attrs.value = role.formattedName
                                             attrs.selected = role == userRole
                                             +role.toString()
-                                            attrs.disabled = role.priority >= (selfRole.priority)
                                         }
                                     }
                                 }
+
                                 attrs.disabled = (permissionsChanged[userName] ?: user.projects[projectPath]!!).priority >= selfRole.priority
                             }
                         }
                     }
                 }
-            })
+            }
         }
         // ===================== RIGHT COLUMN ======================================================================
-        div("col-4 mb-2") {
+        div("col-4 mb-2 pl-0 pr-0 mr-2 ml-2") {
             div("text-xs text-center font-weight-bold text-primary text-uppercase mb-3") {
                 +"Main settings"
             }
-            child(cardComponent(isBordered = false, hasBg = true) {
+            div("card card-body mt-0 pt-0 pr-0 pl-0") {
                 div("row mt-2 ml-2 mr-2") {
                     div("col-5 text-left align-self-center") {
                         +"Project email:"
@@ -171,13 +308,10 @@ fun projectSettingsMenu(
                         input(type = InputType.email) {
                             attrs["class"] = "form-control"
                             attrs {
-                                props.project.email?.let {
-                                    defaultValue = it
-                                }
+                                value = draftProject.email ?: ""
                                 placeholder = "email@example.com"
-                                onChangeFunction = {
-                                    emailFromInput = (it.target as HTMLInputElement).value
-                                    defaultValue = (it.target as HTMLInputElement).value
+                                onChange = {
+                                    setDraftProject(draftProject.copy(email = (it.target as HTMLInputElement).value))
                                 }
                             }
                         }
@@ -190,7 +324,7 @@ fun projectSettingsMenu(
                     form("col-7 form-group row d-flex justify-content-around") {
                         div("form-check-inline") {
                             input(classes = "form-check-input") {
-                                attrs.defaultChecked = isPublic
+                                attrs.defaultChecked = draftProject.public
                                 attrs["name"] = "projectVisibility"
                                 attrs["type"] = "radio"
                                 attrs["id"] = "isProjectPublicSwitch"
@@ -203,7 +337,7 @@ fun projectSettingsMenu(
                         }
                         div("form-check-inline") {
                             input(classes = "form-check-input") {
-                                attrs.defaultChecked = !isPublic
+                                attrs.defaultChecked = !draftProject.public
                                 attrs["name"] = "projectVisibility"
                                 attrs["type"] = "radio"
                                 attrs["id"] = "isProjectPrivateSwitch"
@@ -215,7 +349,7 @@ fun projectSettingsMenu(
                             }
                         }
                         attrs.onChangeFunction = {
-                            isPublic = (it.target as HTMLInputElement).value == "public"
+                            setDraftProject(draftProject.copy(public = (it.target as HTMLInputElement).value == "public"))
                         }
                     }
                 }
@@ -229,15 +363,13 @@ fun projectSettingsMenu(
                                 // fixme: later we will need to change amount of containers
                                 attrs.disabled = true
                                 attrs.onChangeFunction = {
-                                    val target = it.target as HTMLSelectElement
-                                    numberOfContainers = target.value
-                                    attrs.value = numberOfContainers
+                                    setDraftProject(draftProject.copy(numberOfContainers = (it.target as HTMLSelectElement).value.toInt()))
                                 }
                                 attrs.id = "numberOfContainers"
                                 for (i in 1..8) {
                                     option {
                                         attrs.value = i.toString()
-                                        attrs.selected = i.toString() == numberOfContainers
+                                        attrs.selected = i == draftProject.numberOfContainers
                                         +i.toString()
                                     }
                                 }
@@ -251,16 +383,9 @@ fun projectSettingsMenu(
                     div("col-3 d-sm-flex align-items-center justify-content-center") {
                         button(type = ButtonType.button, classes = "btn btn-sm btn-primary") {
                             attrs.onClickFunction = {
-                                if (permissionsChanged.isNotEmpty()) {
-                                    updatePermissions(permissionsChanged)
-                                    getUsers()
-                                    permissionsChanged = mutableMapOf()
-                                }
-                                updateProjectSettings(props.project.copy(
-                                    email = emailFromInput,
-                                    public = isPublic,
-                                    numberOfContainers = numberOfContainers.toInt()
-                                ))
+                                updateProjectSettings(draftProject)
+                                updatePermissions()
+                                getProjectUsers()
                             }
                             +"Save changes"
                         }
@@ -274,7 +399,7 @@ fun projectSettingsMenu(
                         }
                     }
                 }
-            })
+            }
         }
     }
 }
