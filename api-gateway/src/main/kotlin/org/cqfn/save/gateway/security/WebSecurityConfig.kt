@@ -171,6 +171,7 @@ class WebSecurityConfig(
     fun actuatorSecurityWebFilterChain(
         http: ServerHttpSecurity
     ): SecurityWebFilterChain = http.run {
+        // Allow access to actuator only from a set of addresses or subnets, without any additional checks.
         authorizeExchange()
             .matchers(
                 AndServerWebExchangeMatcher(
