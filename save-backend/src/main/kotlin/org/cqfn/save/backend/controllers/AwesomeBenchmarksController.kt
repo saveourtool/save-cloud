@@ -24,7 +24,7 @@ class AwesomeBenchmarksController(
     /**
      * @param benchmarks
      */
-    @PostMapping(path = ["/internal/${v1}/upload/awesome-benchmarks"])
+    @PostMapping("/internal/upload/awesome-benchmarks")
     fun uploadAwesomeBenchmarks(@RequestBody(required = true) benchmarks: List<BenchmarkEntity>) {
         log.info("Received a request to save awesome-benchmarks to the db")
         awesomeBenchmarksService.saveBenchmarksToDb(benchmarks)

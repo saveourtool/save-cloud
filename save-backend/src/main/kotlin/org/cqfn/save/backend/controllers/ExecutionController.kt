@@ -66,13 +66,13 @@ class ExecutionController(private val executionService: ExecutionService,
      * @param execution
      * @return id of created [Execution]
      */
-    @PostMapping(path = ["/internal/${v1}/createExecution"])
+    @PostMapping("/internal/createExecution")
     fun createExecution(@RequestBody execution: Execution): Long = executionService.saveExecution(execution)
 
     /**
      * @param executionUpdateDto
      */
-    @PostMapping(path = ["/internal/$v1/updateExecutionByDto"])
+    @PostMapping("/internal/updateExecutionByDto")
     fun updateExecution(@RequestBody executionUpdateDto: ExecutionUpdateDto) {
         executionService.updateExecution(executionUpdateDto)
     }
@@ -80,7 +80,7 @@ class ExecutionController(private val executionService: ExecutionService,
     /**
      * @param execution
      */
-    @PostMapping(path = ["/internal/$v1/updateExecution"])
+    @PostMapping("/internal/updateExecution")
     fun updateExecution(@RequestBody execution: Execution) {
         executionService.updateExecution(execution)
     }
@@ -92,7 +92,7 @@ class ExecutionController(private val executionService: ExecutionService,
      * @param authentication
      * @return execution if it has been found
      */
-    @GetMapping(path = ["/api/$v1/execution", "/internal/$v1/execution"])
+    @GetMapping(path = ["/api/$v1/execution", "/internal/execution"])
     @Transactional(readOnly = true)
     @Suppress("UnsafeCallOnNullableType")
     fun getExecution(
@@ -107,7 +107,7 @@ class ExecutionController(private val executionService: ExecutionService,
      * @param executionInitializationDto
      * @return execution
      */
-    @PostMapping(path = ["/internal/$v1/updateNewExecution"])
+    @PostMapping("/internal/updateNewExecution")
     fun updateNewExecution(@RequestBody executionInitializationDto: ExecutionInitializationDto): ResponseEntity<Execution> =
             executionService.updateNewExecution(executionInitializationDto)?.let {
                 ResponseEntity.status(HttpStatus.OK).body(it)
@@ -316,7 +316,7 @@ class ExecutionController(private val executionService: ExecutionService,
      * @param execution
      * @return the list of the testRootPaths for current execution; size of the list could be >1 only in standard mode
      */
-    @PostMapping(path = ["/internal/$v1/findTestRootPathForExecutionByTestSuites"])
+    @PostMapping("/internal/findTestRootPathForExecutionByTestSuites")
     fun findTestRootPathByTestSuites(@RequestBody execution: Execution): List<String> = execution.getTestRootPathByTestSuites()
 
     /**

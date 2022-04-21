@@ -16,7 +16,7 @@ class ApiGroupsConfiguration {
     fun openApiAll(): GroupedOpenApi? {
         return GroupedOpenApi.builder()
             .group("all")
-            .pathsToMatch("/api/**", "/internal/**")
+            .pathsToMatch("/api/**")
             .packagesToScan("org.cqfn.save.backend.controllers")
             .build()
     }
@@ -45,8 +45,8 @@ class ApiGroupsConfiguration {
     private fun createGroupedOpenApi(groupName: String, version: String): GroupedOpenApi? {
         return GroupedOpenApi.builder()
             .group(groupName)
-            .pathsToMatch("/api/${version}/**", "/internal/${version}/**")
-            .pathsToExclude("?!(/api/${version}).+", "?!(/internal/${version}).+")
+            .pathsToMatch("/api/${version}/**")
+            .pathsToExclude("?!(/api/${version}).+")
             .packagesToScan("org.cqfn.save.backend.controllers")
             .build()
     }

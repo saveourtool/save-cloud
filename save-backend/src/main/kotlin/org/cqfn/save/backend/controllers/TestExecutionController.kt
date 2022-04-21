@@ -98,7 +98,7 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
      * @param status status for test executions
      * @return a list of test executions
      */
-    @GetMapping(path = ["/internal/$v1/testExecutions/agent/{agentId}/{status}"])
+    @GetMapping("/internal/testExecutions/agent/{agentId}/{status}")
     fun getTestExecutionsForAgentWithStatus(@PathVariable("agentId") agentContainerId: String,
                                             @PathVariable status: TestResultStatus
     ) = testExecutionService.getTestExecutions(agentContainerId, status)
@@ -155,7 +155,7 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
      * @param agentContainerId id of an agent
      * @param testDtos test that will be executed by [agentContainerId] agent
      */
-    @PostMapping(path = ["/internal/$v1/testExecution/assignAgent"])
+    @PostMapping("/internal/testExecution/assignAgent")
     fun assignAgentByTest(@RequestParam agentContainerId: String, @RequestBody testDtos: List<TestDto>) {
         testExecutionService.assignAgentByTest(agentContainerId, testDtos)
     }
@@ -165,7 +165,7 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
      * @param agentIds the list of agents, for which, according the [status] test executions should be updated
      * @throws ResponseStatusException
      */
-    @PostMapping(path = ["/internal/$v1/testExecution/setStatusByAgentIds"])
+    @PostMapping("/internal/testExecution/setStatusByAgentIds")
     fun setStatusByAgentIds(
         @RequestParam("status") status: String,
         @RequestBody agentIds: Collection<String>
@@ -186,7 +186,7 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
      * @param testExecutionsDto
      * @return response
      */
-    @PostMapping(path = ["/internal/$v1/saveTestResult"])
+    @PostMapping("/internal/saveTestResult")
     fun saveTestResult(@RequestBody testExecutionsDto: List<TestExecutionDto>) = try {
         if (testExecutionService.saveTestResult(testExecutionsDto).isEmpty()) {
             ResponseEntity.status(HttpStatus.OK).body("Saved")

@@ -161,7 +161,7 @@ class DownloadFilesController(
      * @param testResultDebugInfo additional info that should be stored
      * @return [Mono] with response
      */
-    @PostMapping(path = ["/internal/${v1}/files/debug-info"])
+    @PostMapping("/internal/files/debug-info")
     @Suppress("UnsafeCallOnNullableType")
     fun uploadDebugInfo(@RequestParam("agentId") agentContainerId: String,
                         @RequestBody testResultDebugInfo: TestResultDebugInfo,
