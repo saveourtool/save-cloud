@@ -30,12 +30,12 @@ class WebConfiguration(
      */
     @Bean
     fun staticResourceRouter() = router {
-        path("/{resourcePath:.*\\.(?:js|css|html)}") {
-            val resourcePath = it.pathVariable("resourcePath")
+        path("/{resourcePath:.*\\.(?:js|css|html)}") { request ->
+            val resourcePath = request.pathVariable("resourcePath")
             val resource = ClassPathResource("static/$resourcePath")
             val cacheControl: (ServerResponse.BodyBuilder) -> ServerResponse.BodyBuilder = when (getFilenameExtension(resource.filename)) {
-                "js", "css", "html" -> { b -> b.cacheControl(10.minutes) { cachePublic() } }
-                else -> { b -> b.cacheControl(CacheControl.noCache()) }
+                "js", "css", "html" -> { builder -> builder.cacheControl(shortExpirationTime) { cachePublic() } }
+                else -> { builder -> builder.cacheControl(CacheControl.noCache()) }
             }
             ok().run(cacheControl)
                 .lastModified(buildProperties.time)
@@ -72,14 +72,14 @@ class WebConfiguration(
     ) = router {
         GET("/") {
             ok().header("Content-Type", "text/html; charset=utf8")
-                .cacheControl(10.minutes) { cachePublic() }
+                .cacheControl(shortExpirationTime) { cachePublic() }
                 .lastModified(buildProperties.time)
                 .bodyValue(indexPage)
         }
 
         GET("/error") {
             ok().header("Content-Type", "text/html; charset=utf8")
-                .cacheControl(10.minutes) { cachePublic() }
+                .cacheControl(shortExpirationTime) { cachePublic() }
                 .lastModified(buildProperties.time)
                 .bodyValue(errorPage)
         }
@@ -88,13 +88,21 @@ class WebConfiguration(
     private fun RouterFunctionDsl.cacheableFsResource(
         pattern: String,
         basePath: String,
-    ) = GET(pattern) {
-        val resourcePath = it.pathVariable("resourcePath")
+    ) = GET(pattern) { request ->
+        val resourcePath = request.pathVariable("resourcePath")
         val resource = FileSystemResource("$basePath/$resourcePath")
-        ok().cacheControl(150.days) { cachePublic() }
+        ok().cacheControl(longExpirationTime) { cachePublic() }
             .lastModified(resource.lastModified().toInstant())
             .bodyValue(resource)
     }
 
-    private fun ServerResponse.BodyBuilder.cacheControl(duration: kotlin.time.Duration, cacheControlCustomizer: CacheControl.() -> CacheControl = { this }): ServerResponse.BodyBuilder = cacheControl(CacheControl.maxAge(duration.toJavaDuration()).run(cacheControlCustomizer))
+    private fun ServerResponse.BodyBuilder.cacheControl(duration: kotlin.time.Duration,
+                                                        cacheControlCustomizer: CacheControl.() -> CacheControl = { this },
+    ): ServerResponse.BodyBuilder =
+            cacheControl(CacheControl.maxAge(duration.toJavaDuration()).run(cacheControlCustomizer))
+
+    companion object {
+        private val shortExpirationTime = 10.minutes
+        private val longExpirationTime = 150.days
+    }
 }
