@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
 @Configuration
-class GroupsConfiguration  {
+class ApiGroupsConfiguration {
 
     @Bean
     fun openApiAll(): GroupedOpenApi? {
@@ -24,17 +24,17 @@ class GroupsConfiguration  {
 
     @Bean
     fun openApiV10(): GroupedOpenApi? {
-        return createGroupedOpenApi(v1_0 + "_")
+        return createGroupedOpenApi(v1_0, v1_0)
     }
 
     @Bean
     fun openApiV20(): GroupedOpenApi? {
-        return createGroupedOpenApi(v2_0)
+        return createGroupedOpenApi(v2_0, v2_0)
     }
 
     @Bean
     fun openApiCurrentVersion(): GroupedOpenApi? {
-        return createGroupedOpenApi(currentVersion)
+        return createGroupedOpenApi("latest", currentVersion)
     }
 
     @Bean
@@ -44,16 +44,16 @@ class GroupsConfiguration  {
             .info(
                 Info()
                     .title("SAVE Backend API")
-                    .version("1.0.0")
+                    .version(currentVersion)
             )
     }
 
 
     // http://localhost:81/swagger-ui/index.html?configUrl=/MyApp/v3/api-docs/swagger-config
 
-    private fun createGroupedOpenApi(version: String): GroupedOpenApi? {
+    private fun createGroupedOpenApi(groupName: String, version: String): GroupedOpenApi? {
         return GroupedOpenApi.builder()
-            .group(version)
+            .group(groupName)
             .pathsToMatch("/api/${version}/**", "/internal/${version}/**")
             .pathsToExclude("?!(/api/${version}).+", "?!(/internal/${version}).+")
             .packagesToScan("org.cqfn.save.backend.controllers")
