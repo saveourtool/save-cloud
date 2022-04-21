@@ -21,9 +21,7 @@ import org.springframework.security.authorization.AuthenticatedReactiveAuthoriza
 import org.springframework.security.authorization.AuthorizationDecision
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity
 import org.springframework.security.config.web.server.ServerHttpSecurity
-import org.springframework.security.core.userdetails.MapReactiveUserDetailsService
 import org.springframework.security.core.userdetails.ReactiveUserDetailsService
-import org.springframework.security.core.userdetails.User
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.crypto.factory.PasswordEncoderFactories
 import org.springframework.security.crypto.password.PasswordEncoder
@@ -173,6 +171,7 @@ class WebSecurityConfig(
     fun actuatorSecurityWebFilterChain(
         http: ServerHttpSecurity
     ): SecurityWebFilterChain = http.run {
+        // Allow access to actuator only from a set of addresses or subnets, without any additional checks.
         authorizeExchange()
             .matchers(
                 AndServerWebExchangeMatcher(
@@ -185,22 +184,8 @@ class WebSecurityConfig(
                     }
                 )
             )
-            .authenticated()
+            .permitAll()
     }
-        .and().httpBasic().run {
-            val userFromProps = configurationProperties.basicCredentials?.split(' ')?.run {
-                User(first(), last(), emptyList())
-            }
-            if (userFromProps != null) {
-                authenticationManager(
-                    UserDetailsRepositoryReactiveAuthenticationManager(
-                        MapReactiveUserDetailsService(userFromProps)
-                    )
-                )
-            } else {
-                this
-            }
-        }
         .and().build()
 
     private fun matchAllExcludingActuator() = AndServerWebExchangeMatcher(
