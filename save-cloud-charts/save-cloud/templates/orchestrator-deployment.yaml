@@ -14,7 +14,7 @@ spec:
         io.kompose.service: orchestrator
     spec:
       restartPolicy: Always
-      {{- include "spring-boot.securityContext" | indent 6 }}
+      {{- include "spring-boot.securityContext" . | nindent 6 }}
       containers:
         - name: orchestrator
           {{- include "spring-boot.common" (merge (dict "service" .Values.orchestrator) .) | nindent 10 }}

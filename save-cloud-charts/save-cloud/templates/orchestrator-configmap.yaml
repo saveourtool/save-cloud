@@ -4,7 +4,7 @@ metadata:
   name: {{ .Values.orchestrator.name }}-config
 data:
   application.properties: |
-    orchestrator.backendUrl=http://save-backend.save-cloud:5000/internal
+    orchestrator.backendUrl=http://backend:5000/internal
     # todo: actually use ${status.hostIP} # https://github.com/kubernetes/kubernetes/issues/107079#issuecomment-996405755
     orchestrator.docker.host=tcp://host.minikube.internal:2375
     orchestrator.docker.runtime=runc

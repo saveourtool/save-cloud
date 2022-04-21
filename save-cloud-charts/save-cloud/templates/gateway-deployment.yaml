@@ -14,7 +14,7 @@ spec:
         io.kompose.service: gateway
     spec:
       restartPolicy: Always
-      {{- include "spring-boot.securityContext" | indent 6 }}
+      {{- include "spring-boot.securityContext" . | nindent 6 }}
       containers:
         - name: gateway
           {{- include "spring-boot.common" (merge (dict "service" .Values.gateway) .) | nindent 10 }}
