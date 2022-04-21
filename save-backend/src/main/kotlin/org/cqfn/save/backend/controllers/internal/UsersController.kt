@@ -6,7 +6,7 @@ import org.cqfn.save.entities.User
 import org.cqfn.save.utils.IdentitySourceAwareUserDetails
 import org.cqfn.save.utils.IdentitySourceAwareUserDetailsMixin
 import org.cqfn.save.utils.extractUserNameAndSource
-
+import org.cqfn.save.v1
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
@@ -25,7 +25,7 @@ typealias StringResponse = ResponseEntity<String>
  * Controller that handles operation with users
  */
 @RestController
-@RequestMapping("/internal/users")
+@RequestMapping("/internal/${v1}/users")
 class UsersController(
     private val userRepository: UserRepository,
     private val userService: UserDetailsService,

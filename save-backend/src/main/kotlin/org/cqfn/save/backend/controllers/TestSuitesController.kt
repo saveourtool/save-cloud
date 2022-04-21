@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
+import org.cqfn.save.v1
 
 typealias ResponseListTestSuites = ResponseEntity<List<TestSuiteDto>>
 
@@ -35,14 +36,14 @@ class TestSuitesController(
      * @param testSuiteDtos
      * @return mono list of *all* TestSuite
      */
-    @PostMapping("/internal/saveTestSuites")
+    @PostMapping(path = ["/internal/$v1/saveTestSuites"])
     fun saveTestSuite(@RequestBody testSuiteDtos: List<TestSuiteDto>): Mono<List<TestSuite>> =
             Mono.just(testSuitesService.saveTestSuite(testSuiteDtos))
 
     /**
      * @return response with list of test suite dtos
      */
-    @GetMapping(path = ["/api/allStandardTestSuites", "/internal/allStandardTestSuites"])
+    @GetMapping(path = ["/api/$v1/allStandardTestSuites", "/internal/$v1/allStandardTestSuites"])
     fun getAllStandardTestSuites(): ResponseListTestSuites =
             ResponseEntity.status(HttpStatus.OK).body(testSuitesService.getStandardTestSuites())
 
@@ -50,7 +51,7 @@ class TestSuitesController(
      * @param name name of the test suite
      * @return response with list of test suite with specific name
      */
-    @GetMapping("/internal/standardTestSuitesWithName")
+    @GetMapping(path = ["/internal/$v1/standardTestSuitesWithName"])
     fun getAllStandardTestSuitesWithSpecificName(@RequestParam name: String) =
             ResponseEntity.status(HttpStatus.OK).body(testSuitesService.findStandardTestSuitesByName(name))
 
@@ -58,7 +59,7 @@ class TestSuitesController(
      * @param id id of the test suite
      * @return response with test suite with provided id
      */
-    @GetMapping("/internal/testSuite/{id}")
+    @GetMapping(path = ["/internal/$v1/testSuite/{id}"])
     fun getTestSuiteById(@PathVariable id: Long) =
             ResponseEntity.status(HttpStatus.OK).body(testSuitesService.findTestSuiteById(id))
 
@@ -67,7 +68,7 @@ class TestSuitesController(
      *
      * @return response entity
      */
-    @PostMapping(path = ["/api/updateStandardTestSuites", "/internal/updateStandardTestSuites"])
+    @PostMapping(path = ["/api/$v1/updateStandardTestSuites", "/internal/$v1/updateStandardTestSuites"])
     @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
     fun updateStandardTestSuites() = Mono.fromCallable {
         scheduler.triggerJob(
@@ -79,7 +80,7 @@ class TestSuitesController(
      * @param testSuiteDtos suites, which need to be marked as obsolete
      * @return response entity
      */
-    @PostMapping("/internal/markObsoleteTestSuites")
+    @PostMapping(path = ["/internal/$v1/markObsoleteTestSuites"])
     @Transactional
     fun markObsoleteTestSuites(@RequestBody testSuiteDtos: List<TestSuiteDto>) =
             ResponseEntity.status(HttpStatus.OK).body(testSuitesService.markObsoleteTestSuites(testSuiteDtos))
@@ -88,7 +89,7 @@ class TestSuitesController(
      * @param testSuiteDtos suites, which need to be deleted
      * @return response entity
      */
-    @PostMapping("/internal/deleteTestSuite")
+    @PostMapping(path = ["/internal/$v1/deleteTestSuite"])
     @Transactional
     fun deleteTestSuite(@RequestBody testSuiteDtos: List<TestSuiteDto>) =
             ResponseEntity.status(HttpStatus.OK).body(testSuitesService.deleteTestSuiteDto(testSuiteDtos))

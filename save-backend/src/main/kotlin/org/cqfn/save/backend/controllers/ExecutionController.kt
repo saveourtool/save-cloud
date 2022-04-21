@@ -40,7 +40,7 @@ import reactor.core.publisher.Flux
 import reactor.core.publisher.GroupedFlux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
-
+import org.cqfn.save.v1
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
@@ -66,13 +66,13 @@ class ExecutionController(private val executionService: ExecutionService,
      * @param execution
      * @return id of created [Execution]
      */
-    @PostMapping("/internal/createExecution")
+    @PostMapping(path = ["/internal/${v1}/createExecution"])
     fun createExecution(@RequestBody execution: Execution): Long = executionService.saveExecution(execution)
 
     /**
      * @param executionUpdateDto
      */
-    @PostMapping("/internal/updateExecutionByDto")
+    @PostMapping(path = ["/internal/$v1/updateExecutionByDto"])
     fun updateExecution(@RequestBody executionUpdateDto: ExecutionUpdateDto) {
         executionService.updateExecution(executionUpdateDto)
     }
@@ -80,7 +80,7 @@ class ExecutionController(private val executionService: ExecutionService,
     /**
      * @param execution
      */
-    @PostMapping("/internal/updateExecution")
+    @PostMapping(path = ["/internal/$v1/updateExecution"])
     fun updateExecution(@RequestBody execution: Execution) {
         executionService.updateExecution(execution)
     }
@@ -92,7 +92,7 @@ class ExecutionController(private val executionService: ExecutionService,
      * @param authentication
      * @return execution if it has been found
      */
-    @GetMapping(path = ["/api/execution", "/internal/execution"])
+    @GetMapping(path = ["/api/$v1/execution", "/internal/$v1/execution"])
     @Transactional(readOnly = true)
     @Suppress("UnsafeCallOnNullableType")
     fun getExecution(
@@ -107,7 +107,7 @@ class ExecutionController(private val executionService: ExecutionService,
      * @param executionInitializationDto
      * @return execution
      */
-    @PostMapping("/internal/updateNewExecution")
+    @PostMapping(path = ["/internal/$v1/updateNewExecution"])
     fun updateNewExecution(@RequestBody executionInitializationDto: ExecutionInitializationDto): ResponseEntity<Execution> =
             executionService.updateNewExecution(executionInitializationDto)?.let {
                 ResponseEntity.status(HttpStatus.OK).body(it)
@@ -118,7 +118,7 @@ class ExecutionController(private val executionService: ExecutionService,
      * @param authentication
      * @return execution dto
      */
-    @GetMapping("/api/executionDto")
+    @GetMapping(path = ["/api/$v1/executionDto"])
     fun getExecutionDto(@RequestParam executionId: Long, authentication: Authentication): Mono<ExecutionDto> =
             justOrNotFound(executionService.findExecution(executionId))
                 .filterWhen { execution -> projectPermissionEvaluator.checkPermissions(authentication, execution, Permission.READ) }
@@ -131,7 +131,7 @@ class ExecutionController(private val executionService: ExecutionService,
      * @return list of execution dtos
      * @throws NoSuchElementException
      */
-    @GetMapping("/api/executionDtoList")
+    @GetMapping(path = ["/api/$v1/executionDtoList"])
     fun getExecutionByProject(@RequestParam name: String, @RequestParam organizationName: String, authentication: Authentication): Mono<List<ExecutionDto>> {
         val organization = organizationService.findByName(organizationName) ?: throw NoSuchElementException("Organization with name [$organizationName] was not found.")
         return projectService.findWithPermissionByNameAndOrganization(authentication, name, organization, Permission.READ).map {
@@ -148,7 +148,7 @@ class ExecutionController(private val executionService: ExecutionService,
      * @return Execution
      * @throws ResponseStatusException if execution is not found
      */
-    @GetMapping("/api/latestExecution")
+    @GetMapping(path = ["/api/$v1/latestExecution"])
     fun getLatestExecutionForProject(@RequestParam name: String, @RequestParam organizationId: Long, authentication: Authentication): Mono<ExecutionDto> =
             Mono.justOrEmpty(
                 executionService.getLatestExecutionByProjectNameAndProjectOrganizationId(name, organizationId)
@@ -168,7 +168,7 @@ class ExecutionController(private val executionService: ExecutionService,
      * @return ResponseEntity
      * @throws NoSuchElementException
      */
-    @PostMapping("/api/execution/deleteAll")
+    @PostMapping(path = ["/api/$v1/execution/deleteAll"])
     @Suppress("UnsafeCallOnNullableType")
     fun deleteExecutionForProject(
         @RequestParam name: String,
@@ -205,7 +205,7 @@ class ExecutionController(private val executionService: ExecutionService,
      * - status 404 if all executions are missing or the project is hidden from the current user
      * @throws ResponseStatusException
      */
-    @PostMapping("/api/execution/delete")
+    @PostMapping(path = ["/api/$v1/execution/delete"])
     @Suppress("TOO_LONG_FUNCTION", "NonBooleanPropertyPrefixedWithIs")
     fun deleteExecutionsByExecutionIds(@RequestParam executionIds: List<Long>, authentication: Authentication): Mono<ResponseEntity<*>> {
         val isProjectHidden = AtomicBoolean(false)
@@ -260,7 +260,7 @@ class ExecutionController(private val executionService: ExecutionService,
      * @return bodiless response
      * @throws ResponseStatusException
      */
-    @PostMapping("/api/rerunExecution")
+    @PostMapping(path = ["/api/$v1/rerunExecution"])
     @Transactional
     @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
     fun rerunExecution(@RequestParam id: Long, authentication: Authentication): Mono<String> {
@@ -316,7 +316,7 @@ class ExecutionController(private val executionService: ExecutionService,
      * @param execution
      * @return the list of the testRootPaths for current execution; size of the list could be >1 only in standard mode
      */
-    @PostMapping("/internal/findTestRootPathForExecutionByTestSuites")
+    @PostMapping(path = ["/internal/$v1/findTestRootPathForExecutionByTestSuites"])
     fun findTestRootPathByTestSuites(@RequestBody execution: Execution): List<String> = execution.getTestRootPathByTestSuites()
 
     /**

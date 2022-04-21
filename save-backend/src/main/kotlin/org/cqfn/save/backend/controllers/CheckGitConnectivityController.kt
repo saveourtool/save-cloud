@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
+import org.cqfn.save.v1
 
 /**
  * Controller for checking git credentials
@@ -31,7 +32,7 @@ class CheckGitConnectivityController(
      * @return true if credentials are valid
      * @throws ResponseStatusException
      */
-    @GetMapping(value = ["/check-git-connectivity-adaptor"])
+    @GetMapping(path = ["/${v1}/check-git-connectivity-adaptor"])
     fun checkGitConnectivity(
         @RequestParam user: String,
         @RequestParam token: String,

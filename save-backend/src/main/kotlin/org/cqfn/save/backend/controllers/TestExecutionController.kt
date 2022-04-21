@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
+import org.cqfn.save.v1
 
 /**
  * Controller to work with test execution
@@ -49,7 +50,7 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
      * @param authentication
      * @return a list of [TestExecutionDto]s
      */
-    @GetMapping("/api/testExecutions")
+    @GetMapping(path = ["/api/$v1/testExecutions"])
     @Suppress("LongParameterList", "TOO_MANY_PARAMETERS", "TYPE_ALIAS")
     fun getTestExecutions(
         @RequestParam executionId: Long,
@@ -75,7 +76,7 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
      * @param authentication
      * @return a list of [TestExecutionDto]s
      */
-    @GetMapping("/api/testLatestExecutions")
+    @GetMapping(path = ["/api/$v1/testLatestExecutions"])
     @Suppress("TYPE_ALIAS")
     fun getTestExecutionsByStatus(
         @RequestParam executionId: Long,
@@ -97,7 +98,7 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
      * @param status status for test executions
      * @return a list of test executions
      */
-    @GetMapping("/internal/testExecutions/agent/{agentId}/{status}")
+    @GetMapping(path = ["/internal/$v1/testExecutions/agent/{agentId}/{status}"])
     fun getTestExecutionsForAgentWithStatus(@PathVariable("agentId") agentContainerId: String,
                                             @PathVariable status: TestResultStatus
     ) = testExecutionService.getTestExecutions(agentContainerId, status)
@@ -111,7 +112,7 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
      * @param authentication
      * @return TestExecution
      */
-    @PostMapping("/api/testExecutions")
+    @PostMapping(path = ["/api/$v1/testExecutions"])
     fun getTestExecutionByLocation(@RequestParam executionId: Long,
                                    @RequestBody testResultLocation: TestResultLocation,
                                    authentication: Authentication,
@@ -137,7 +138,7 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
      * @param testSuite
      * @param authentication
      */
-    @GetMapping("/api/testExecution/count")
+    @GetMapping(path = ["/api/$v1/testExecution/count"])
     fun getTestExecutionsCount(
         @RequestParam executionId: Long,
         @RequestParam(required = false) status: TestResultStatus?,
@@ -154,7 +155,7 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
      * @param agentContainerId id of an agent
      * @param testDtos test that will be executed by [agentContainerId] agent
      */
-    @PostMapping(value = ["/internal/testExecution/assignAgent"])
+    @PostMapping(path = ["/internal/$v1/testExecution/assignAgent"])
     fun assignAgentByTest(@RequestParam agentContainerId: String, @RequestBody testDtos: List<TestDto>) {
         testExecutionService.assignAgentByTest(agentContainerId, testDtos)
     }
@@ -164,7 +165,7 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
      * @param agentIds the list of agents, for which, according the [status] test executions should be updated
      * @throws ResponseStatusException
      */
-    @PostMapping(value = ["/internal/testExecution/setStatusByAgentIds"])
+    @PostMapping(path = ["/internal/$v1/testExecution/setStatusByAgentIds"])
     fun setStatusByAgentIds(
         @RequestParam("status") status: String,
         @RequestBody agentIds: Collection<String>
@@ -185,7 +186,7 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
      * @param testExecutionsDto
      * @return response
      */
-    @PostMapping(value = ["/internal/saveTestResult"])
+    @PostMapping(path = ["/internal/$v1/saveTestResult"])
     fun saveTestResult(@RequestBody testExecutionsDto: List<TestExecutionDto>) = try {
         if (testExecutionService.saveTestResult(testExecutionsDto).isEmpty()) {
             ResponseEntity.status(HttpStatus.OK).body("Saved")

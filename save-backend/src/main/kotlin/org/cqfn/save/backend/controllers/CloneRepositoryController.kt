@@ -33,7 +33,7 @@ import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.toEntity
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-
+import org.cqfn.save.v1
 import java.lang.StringBuilder
 
 /**
@@ -65,7 +65,7 @@ class CloneRepositoryController(
      * @param authentication [Authentication] representing an authenticated request
      * @return mono string
      */
-    @PostMapping(value = ["/submitExecutionRequest"], consumes = ["multipart/form-data"])
+    @PostMapping(path = ["/${v1}/submitExecutionRequest"], consumes = ["multipart/form-data"])
     fun submitExecutionRequest(
         @RequestPart(required = true) executionRequest: ExecutionRequest,
         @RequestPart("file", required = false) files: Flux<FileInfo>,
@@ -94,7 +94,7 @@ class CloneRepositoryController(
      * @param authentication [Authentication] representing an authenticated request
      * @return mono string
      */
-    @PostMapping(value = ["/executionRequestStandardTests"], consumes = ["multipart/form-data"])
+    @PostMapping(path = ["/${v1}/executionRequestStandardTests"], consumes = ["multipart/form-data"])
     fun executionRequestStandardTests(
         @RequestPart("execution", required = true) executionRequestForStandardSuites: ExecutionRequestForStandardSuites,
         @RequestPart("file", required = true) files: Flux<FileInfo>,

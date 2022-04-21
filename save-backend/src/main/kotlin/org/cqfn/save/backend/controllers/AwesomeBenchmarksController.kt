@@ -8,7 +8,7 @@ package org.cqfn.save.backend.controllers
 
 import org.cqfn.save.backend.service.AwesomeBenchmarksService
 import org.cqfn.save.entities.benchmarks.BenchmarkEntity
-
+import org.cqfn.save.v1
 import org.slf4j.LoggerFactory
 import org.springframework.web.bind.annotation.*
 
@@ -24,7 +24,7 @@ class AwesomeBenchmarksController(
     /**
      * @param benchmarks
      */
-    @PostMapping("/internal/upload/awesome-benchmarks")
+    @PostMapping(path = ["/internal/${v1}/upload/awesome-benchmarks"])
     fun uploadAwesomeBenchmarks(@RequestBody(required = true) benchmarks: List<BenchmarkEntity>) {
         log.info("Received a request to save awesome-benchmarks to the db")
         awesomeBenchmarksService.saveBenchmarksToDb(benchmarks)
@@ -34,7 +34,7 @@ class AwesomeBenchmarksController(
     /**
      * @return all benchmarks from backend to frontend
      */
-    @GetMapping("/api/awesome-benchmarks")
+    @GetMapping("/api/${v1}/awesome-benchmarks")
     fun getAllAwesomeBenchmarks() =
             awesomeBenchmarksService.getAllBenchmarks()
 }

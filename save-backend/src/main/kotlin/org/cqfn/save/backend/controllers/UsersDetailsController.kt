@@ -11,12 +11,13 @@ import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
+import org.cqfn.save.v1
 
 /**
  * Controller that handles operation with users
  */
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping(path = ["/api/$v1/users"])
 class UsersDetailsController(
     private val userRepository: UserRepository,
 ) {

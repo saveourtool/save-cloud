@@ -28,12 +28,13 @@ import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.cast
 import reactor.kotlin.core.publisher.switchIfEmpty
+import org.cqfn.save.v1
 
 /**
  * Controller for working with projects.
  */
 @RestController
-@RequestMapping("/api/projects")
+@RequestMapping(path = ["/api/$v1/projects"])
 class ProjectController(private val projectService: ProjectService,
                         private val gitService: GitService,
                         private val organizationService: OrganizationService,
