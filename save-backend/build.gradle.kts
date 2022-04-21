@@ -10,7 +10,7 @@ plugins {
 }
 
 openApi {
-    apiDocsUrl.set("http://localhost:5000/internal/v3/api-docs")
+    apiDocsUrl.set("http://localhost:5000/internal/v3/api-docs/latest")
     outputFileName.set("swagger-api-docs.json")
 }
 

@@ -7,9 +7,8 @@ import org.cqfn.save.entities.Agent
 import org.cqfn.save.entities.AgentStatus
 import org.cqfn.save.entities.AgentStatusDto
 import org.cqfn.save.entities.AgentStatusesForExecution
-import org.cqfn.save.currentVersion
-import org.cqfn.save.v2_0
-import org.cqfn.save.v1_0
+import org.cqfn.save.latestVersion
+import org.cqfn.save.v1
 import org.slf4j.LoggerFactory
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.GetMapping
@@ -31,7 +30,7 @@ class AgentsController(private val agentStatusRepository: AgentStatusRepository,
      * @param agents list of [Agent]s to save into the DB
      * @return a list of IDs, assigned to the agents
      */
-    @PostMapping(path = ["/${v1_0}/addAgents", "/${currentVersion}/addAgents"])
+    @PostMapping(path = ["/$v1/addAgents"])
     @Suppress("UnsafeCallOnNullableType")  // hibernate should always assign ids
     fun addAgents(@RequestBody agents: List<Agent>): List<Long> {
         log.debug("Saving agents $agents")
@@ -41,7 +40,7 @@ class AgentsController(private val agentStatusRepository: AgentStatusRepository,
     /**
      * @param agentStates list of [AgentStatus]es to update in the DB
      */
-    @PostMapping(path = ["/${v2_0}/updateAgentStatuses", "/${currentVersion}/updateAgentStatuses"])
+    @PostMapping(path = ["/${v1}/updateAgentStatuses"])
     fun updateAgentStatuses(@RequestBody agentStates: List<AgentStatus>) {
         agentStatusRepository.saveAll(agentStates)
     }
@@ -49,7 +48,7 @@ class AgentsController(private val agentStatusRepository: AgentStatusRepository,
     /**
      * @param agentVersion [AgentVersion] to update agent version
      */
-    @PostMapping("/saveAgentVersion")
+    @PostMapping(path = ["/${v1}/saveAgentVersion"])
     fun updateAgentVersion(@RequestBody agentVersion: AgentVersion) {
         agentRepository.findByContainerId(agentVersion.containerId)?.let {
             it.version = agentVersion.version
@@ -60,7 +59,7 @@ class AgentsController(private val agentStatusRepository: AgentStatusRepository,
     /**
      * @param agentStates list of [AgentStatus]es to update in the DB
      */
-    @PostMapping("/updateAgentStatusesWithDto")
+    @PostMapping(path = ["/${v1}/updateAgentStatusesWithDto"])
     @Transactional
     fun updateAgentStatusesWithDto(@RequestBody agentStates: List<AgentStatusDto>) {
         agentStates.forEach { dto ->
@@ -84,7 +83,7 @@ class AgentsController(private val agentStatusRepository: AgentStatusRepository,
      * @return list of agent statuses
      * @throws IllegalStateException if provided [agentId] is invalid.
      */
-    @GetMapping("/getAgentsStatusesForSameExecution")
+    @GetMapping(path = ["/${v1}/getAgentsStatusesForSameExecution"])
     @Transactional
     @Suppress("UnsafeCallOnNullableType")  // id will be available because it's retrieved from DB
     fun findAllAgentStatusesForSameExecution(@RequestParam agentId: String): AgentStatusesForExecution {
@@ -106,7 +105,7 @@ class AgentsController(private val agentStatusRepository: AgentStatusRepository,
      * @param executionId id of execution
      * @return list of container ids
      */
-    @GetMapping("/getAgentsIdsForExecution")
+    @GetMapping(path = ["/${v1}/getAgentsIdsForExecution"])
     fun findAgentIdsForExecution(@RequestParam executionId: Long) = agentRepository.findByExecutionId(executionId)
         .map(Agent::containerId)
 
