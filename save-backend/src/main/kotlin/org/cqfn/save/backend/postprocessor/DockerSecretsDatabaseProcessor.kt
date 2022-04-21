@@ -18,7 +18,7 @@ import java.util.Properties
 class DockerSecretsDatabaseProcessor : EnvironmentPostProcessor {
     private val log = LoggerFactory.getLogger(DockerSecretsDatabaseProcessor::class.java)
 
-    override fun postProcessEnvironment(environment: ConfigurableEnvironment?, application: SpringApplication?) {
+    override fun postProcessEnvironment(environment: ConfigurableEnvironment, application: SpringApplication) {
         val secretsBasePath = System.getenv("DB_PASSWORD_FILE") ?: "/run/secrets"
         log.debug("Started DockerSecretsDatabaseProcessor [EnvironmentPostProcessor] configured to look up secrets in $secretsBasePath")
         val passwordResource = FileSystemResource("$secretsBasePath/db_password")
@@ -27,14 +27,14 @@ class DockerSecretsDatabaseProcessor : EnvironmentPostProcessor {
 
         if (passwordResource.exists()) {
             log.debug("Acquired password. Beginning to setting properties")
-            val dbPassword = StreamUtils.copyToString(passwordResource.inputStream, Charset.defaultCharset())
-            val dbUsername = StreamUtils.copyToString(usernameResource.inputStream, Charset.defaultCharset())
-            val dbUrl = StreamUtils.copyToString(jdbcUrlResource.inputStream, Charset.defaultCharset())
+            val dbPassword = passwordResource.inputStream.use { StreamUtils.copyToString(it, Charset.defaultCharset()) }
+            val dbUsername = usernameResource.inputStream.use { StreamUtils.copyToString(it, Charset.defaultCharset()) }
+            val dbUrl = jdbcUrlResource.inputStream.use { StreamUtils.copyToString(it, Charset.defaultCharset()) }
             val props = Properties()
             props["spring.datasource.password"] = dbPassword
             props["spring.datasource.username"] = dbUsername
             props["spring.datasource.url"] = dbUrl
-            environment?.propertySources?.addLast(PropertiesPropertySource("dbProps", props))
+            environment.propertySources.addLast(PropertiesPropertySource("dbProps", props))
             log.debug("Properties have been set")
         }
     }
