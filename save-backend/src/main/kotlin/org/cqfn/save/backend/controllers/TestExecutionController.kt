@@ -11,6 +11,7 @@ import org.cqfn.save.domain.TestResultLocation
 import org.cqfn.save.domain.TestResultStatus
 import org.cqfn.save.permission.Permission
 import org.cqfn.save.test.TestDto
+import org.cqfn.save.v1
 
 import org.slf4j.LoggerFactory
 import org.springframework.dao.DataAccessException
@@ -26,7 +27,6 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
-import org.cqfn.save.v1
 
 /**
  * Controller to work with test execution

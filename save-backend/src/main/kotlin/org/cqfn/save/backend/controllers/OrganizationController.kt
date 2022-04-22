@@ -6,6 +6,8 @@ import org.cqfn.save.backend.utils.AuthenticationDetails
 import org.cqfn.save.domain.ImageInfo
 import org.cqfn.save.domain.OrganizationSaveStatus
 import org.cqfn.save.entities.Organization
+import org.cqfn.save.v1
+
 import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -14,8 +16,8 @@ import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
+
 import java.time.LocalDateTime
-import org.cqfn.save.v1
 
 /**
  * Controller for working with organizations.

@@ -7,7 +7,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     kotlin("jvm")
     // this plugin will generate generateOpenApiDocs task
-    // running this task, it will writes the OpenAPI spec into a swagger-api-docs.json file in save-backend dir.
+    // running this task, it will writes the OpenAPI spec into a backend-api-docs.json file in save-backend dir.
     id("org.springdoc.openapi-gradle-plugin") version "1.3.4"
 }
 

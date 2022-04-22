@@ -15,6 +15,7 @@ import org.cqfn.save.execution.ExecutionType
 import org.cqfn.save.testsuite.TestSuiteDto
 import org.cqfn.save.utils.LocalDateTimeSerializer
 import org.cqfn.save.utils.extractUserNameAndSource
+import org.cqfn.save.v1
 
 import io.ktor.client.*
 import io.ktor.client.call.*
@@ -37,7 +38,6 @@ import java.time.LocalDateTime
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
-import org.cqfn.save.v1
 
 private val json = Json {
     serializersModule = SerializersModule {

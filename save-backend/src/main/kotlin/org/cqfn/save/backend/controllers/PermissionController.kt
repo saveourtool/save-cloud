@@ -12,6 +12,7 @@ import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.User
 import org.cqfn.save.permission.Permission
 import org.cqfn.save.permission.SetRoleRequest
+import org.cqfn.save.v1
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
@@ -34,7 +35,7 @@ import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
-import org.cqfn.save.v1
+
 import java.util.Optional
 
 @ApiSwaggerSupport

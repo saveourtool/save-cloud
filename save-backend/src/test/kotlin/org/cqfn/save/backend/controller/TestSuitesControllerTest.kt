@@ -12,9 +12,9 @@ import org.cqfn.save.testsuite.TestSuiteType
 import org.cqfn.save.testutils.checkQueues
 import org.cqfn.save.testutils.cleanup
 import org.cqfn.save.testutils.createMockWebServer
+import org.cqfn.save.v1
 
 import okhttp3.mockwebserver.MockWebServer
-import org.cqfn.save.v1
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals

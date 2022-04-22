@@ -22,6 +22,7 @@ import org.cqfn.save.execution.ExecutionInitializationDto
 import org.cqfn.save.execution.ExecutionType
 import org.cqfn.save.execution.ExecutionUpdateDto
 import org.cqfn.save.permission.Permission
+import org.cqfn.save.v1
 
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -40,7 +41,7 @@ import reactor.core.publisher.Flux
 import reactor.core.publisher.GroupedFlux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
-import org.cqfn.save.v1
+
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**

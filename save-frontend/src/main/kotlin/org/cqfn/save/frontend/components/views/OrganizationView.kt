@@ -13,6 +13,7 @@ import org.cqfn.save.frontend.components.tables.tableComponent
 import org.cqfn.save.frontend.externals.fontawesome.*
 import org.cqfn.save.frontend.http.getOrganization
 import org.cqfn.save.frontend.utils.*
+import org.cqfn.save.v1
 
 import csstype.*
 import org.w3c.dom.HTMLInputElement
@@ -31,7 +32,6 @@ import kotlinx.html.hidden
 import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
 import kotlinx.js.jso
-import org.cqfn.save.v1
 
 /**
  * `Props` retrieved from router

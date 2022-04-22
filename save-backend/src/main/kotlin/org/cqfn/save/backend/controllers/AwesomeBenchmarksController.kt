@@ -34,7 +34,7 @@ class AwesomeBenchmarksController(
     /**
      * @return all benchmarks from backend to frontend
      */
-    @GetMapping(path = ["/api/${v1}/awesome-benchmarks"])
+    @GetMapping(path = ["/api/$v1/awesome-benchmarks"])
     fun getAllAwesomeBenchmarks() =
             awesomeBenchmarksService.getAllBenchmarks()
 }

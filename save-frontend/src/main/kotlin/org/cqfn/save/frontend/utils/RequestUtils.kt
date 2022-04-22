@@ -8,6 +8,7 @@ package org.cqfn.save.frontend.utils
 
 import org.cqfn.save.frontend.components.errorStatusContext
 import org.cqfn.save.frontend.http.HttpStatusException
+import org.cqfn.save.v1
 
 import org.w3c.fetch.Headers
 import org.w3c.fetch.RequestCredentials
@@ -28,7 +29,6 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
-import org.cqfn.save.v1
 
 val apiUrl = "${window.location.origin}/api/$v1"
 

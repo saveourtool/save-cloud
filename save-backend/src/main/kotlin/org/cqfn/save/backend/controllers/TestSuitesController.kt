@@ -4,9 +4,10 @@ import org.cqfn.save.backend.scheduling.StandardSuitesUpdateScheduler
 import org.cqfn.save.backend.service.TestSuitesService
 import org.cqfn.save.entities.TestSuite
 import org.cqfn.save.testsuite.TestSuiteDto
+import org.cqfn.save.v1
+
 import org.quartz.JobKey
 import org.quartz.Scheduler
-
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -18,7 +19,6 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
-import org.cqfn.save.v1
 
 typealias ResponseListTestSuites = ResponseEntity<List<TestSuiteDto>>
 

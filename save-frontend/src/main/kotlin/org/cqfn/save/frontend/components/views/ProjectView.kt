@@ -43,6 +43,7 @@ import org.cqfn.save.frontend.utils.unsafeMap
 import org.cqfn.save.info.UserInfo
 import org.cqfn.save.permission.SetRoleRequest
 import org.cqfn.save.testsuite.TestSuiteDto
+import org.cqfn.save.v1
 
 import org.w3c.dom.HTMLButtonElement
 import org.w3c.dom.HTMLInputElement
@@ -77,7 +78,6 @@ import kotlinx.html.js.onClickFunction
 import kotlinx.html.role
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.cqfn.save.v1
 
 /**
  * `Props` retrieved from router

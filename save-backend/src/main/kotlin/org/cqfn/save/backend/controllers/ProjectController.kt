@@ -11,6 +11,7 @@ import org.cqfn.save.entities.GitDto
 import org.cqfn.save.entities.NewProjectDto
 import org.cqfn.save.entities.Project
 import org.cqfn.save.permission.Permission
+import org.cqfn.save.v1
 
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -28,7 +29,6 @@ import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.cast
 import reactor.kotlin.core.publisher.switchIfEmpty
-import org.cqfn.save.v1
 
 /**
  * Controller for working with projects.
