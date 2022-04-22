@@ -17,5 +17,5 @@ tasks.withType<org.liquibase.gradle.LiquibaseTask>().configureEach {
     })
 }
 ```
-2. If you use Spring Idea Plugin on Mac, you should set `Active Profiles` to be `dev, mac, secure` for `SaveApplication`
+2. If you use Spring Idea Plugin (built into IDEA Ultimate) on Mac, you should set `Active Profiles` to be `dev, mac, secure` for `SaveApplication`
 and `mac` for 
