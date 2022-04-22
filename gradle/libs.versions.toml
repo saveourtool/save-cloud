@@ -90,8 +90,6 @@ jackson-module-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-
 
 
 springdoc-openapi-ui = { module = "org.springdoc:springdoc-openapi-ui", version.ref = "springdoc" }
-#springdoc-openapi-common = { module = "org.springdoc:springdoc-openapi-common", version.ref = "springdoc" }
-#springdoc-openapi-webflux-core = { module = "org.springdoc:springdoc-openapi-webflux-core", version.ref = "springdoc" }
 springdoc-openapi-webflux-ui = { module = "org.springdoc:springdoc-openapi-webflux-ui", version.ref = "springdoc" }
 springdoc-openapi-security = { module = "org.springdoc:springdoc-openapi-security", version.ref = "springdoc" }
 springdoc-openapi-kotlin = { module = "org.springdoc:springdoc-openapi-kotlin", version.ref = "springdoc" }

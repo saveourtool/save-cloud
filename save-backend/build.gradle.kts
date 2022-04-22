@@ -6,12 +6,14 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("jvm")
+    // this plugin will generate generateOpenApiDocs task
+    // running this task, it will writes the OpenAPI spec into a swagger-api-docs.json file in save-backend dir.
     id("org.springdoc.openapi-gradle-plugin") version "1.3.4"
 }
 
 openApi {
     apiDocsUrl.set("http://localhost:5000/internal/v3/api-docs/latest")
-    outputFileName.set("swagger-api-docs.json")
+    outputFileName.set("$rootDir/save-backend/backend-api-docs.json")
 }
 
 kotlin {
