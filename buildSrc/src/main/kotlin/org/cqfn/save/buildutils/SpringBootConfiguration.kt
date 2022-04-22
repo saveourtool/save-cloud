@@ -4,16 +4,12 @@
 
 package org.cqfn.save.buildutils
 
+import org.apache.tools.ant.taskdefs.condition.Os
 import org.gradle.accessors.dm.LibrariesForLibs
 import org.gradle.api.Project
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.jvm.toolchain.JavaToolchainSpec
-import org.gradle.kotlin.dsl.apply
-import org.gradle.kotlin.dsl.configure
-import org.gradle.kotlin.dsl.dependencies
-import org.gradle.kotlin.dsl.getByType
-import org.gradle.kotlin.dsl.named
-import org.gradle.kotlin.dsl.the
+import org.gradle.kotlin.dsl.*
 import org.jetbrains.kotlin.allopen.gradle.AllOpenExtension
 import org.jetbrains.kotlin.allopen.gradle.AllOpenGradleSubplugin
 import org.jetbrains.kotlin.allopen.gradle.SpringGradleSubplugin
@@ -21,6 +17,7 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
 import org.springframework.boot.gradle.dsl.SpringBootExtension
 import org.springframework.boot.gradle.plugin.SpringBootPlugin
 import org.springframework.boot.gradle.tasks.bundling.BootBuildImage
+import org.springframework.boot.gradle.tasks.run.BootRun
 
 /**
  * Adds necessary spring boot dependencies for [this] project
@@ -80,6 +77,17 @@ fun Project.configureSpringBoot(withSpringDataJpa: Boolean = false) {
             add("testImplementation", libs.testcontainers)
             add("testImplementation", libs.testcontainers.mysql)
             add("testImplementation", libs.testcontainers.junit.jupiter)
+        }
+    }
+
+    tasks.withType<BootRun>().configureEach {
+        if (Os.isFamily(Os.FAMILY_MAC)) {
+            val profiles = if (this.path.contains("save-backend")) {
+                "secure,dev,mac"
+            } else {
+                "dev,mac"
+            }
+            environment["SPRING_PROFILES_ACTIVE"] = profiles
         }
     }
 
