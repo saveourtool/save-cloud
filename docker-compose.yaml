@@ -48,7 +48,7 @@ services:
       - save-fs-storage:/home/cnb/files
       - /home/saveu/configs/backend:/home/cnb/config
     ports:
-      - "5000:5000"
+      - "5800:5800"
     deploy:
       labels:
         - "prometheus-job=save-backend"
