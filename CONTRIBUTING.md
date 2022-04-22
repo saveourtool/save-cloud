@@ -11,7 +11,7 @@
 1. Use `gradlew.bat startMysqlDb` on Windows and `./gradlew startMysqlDb` on other platforms for setting up database.
 Make sure you have Docker installed and active.
 2. Run backend.
-It can be run either with `./gradlew save-backend:bootRun` or with Intellij Idea Ultimate plugin called `Services`.
+It can be run either with `./gradlew save-backend:bootRun` or with Intellij Idea Ultimate plugin from the menu `Services`.
 3. Run frontend. It can be run with `./gradlew save-frontend:run`.
 You can turn continuous mode on passing `--continuous` flag.
 
