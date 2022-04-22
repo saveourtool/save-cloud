@@ -41,6 +41,10 @@ kotlin {
                 implementation(libs.spring.security.core)
                 implementation(libs.jackson.module.kotlin)
                 implementation(libs.hibernate.jpa21.api)
+                implementation(libs.ehcache)
+                implementation(libs.hibernate.jcache)
+                implementation(libs.spring.boot.starter.cache)
+                implementation(libs.javax.cache)
             }
         }
     }

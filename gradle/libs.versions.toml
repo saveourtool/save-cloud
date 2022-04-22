@@ -35,6 +35,8 @@ zip4j = "2.10.0"
 ktoml = "0.2.11"
 springdoc = "1.6.7"
 kotlinx-cli = "0.3.4"
+ehcache = "3.10.0"
+javax-cache = "1.1.1"
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
@@ -106,6 +108,9 @@ ktor-client-mock = { module = "io.ktor:ktor-client-mock", version.ref = "ktor" }
 hibernate-jpa21-api = { module = "org.hibernate.javax.persistence:hibernate-jpa-2.1-api", version.ref = "jpa" }
 hibernate-core = { module = "org.hibernate:hibernate-core", version.ref = "hibernate" }
 hibernate-micrometer = { module = "org.hibernate:hibernate-micrometer", version.ref = "hibernate" }
+ehcache = { module = "org.ehcache:ehcache", version.ref = "ehcache" }
+hibernate-jcache = { module = "org.hibernate:hibernate-jcache", version.ref = "hibernate" }
+javax-cache = { module = "javax.cache:cache-api", version.ref = "javax-cache" }
 liquibase-core = { module = "org.liquibase:liquibase-core", version.ref = "liquibase-core" }
 mysql-connector-java = { module = "mysql:mysql-connector-java", version.ref = "mySql" }
 
