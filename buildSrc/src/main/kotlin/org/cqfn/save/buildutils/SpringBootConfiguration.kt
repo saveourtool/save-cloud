@@ -82,7 +82,7 @@ fun Project.configureSpringBoot(withSpringDataJpa: Boolean = false) {
 
     tasks.withType<BootRun>().configureEach {
         if (Os.isFamily(Os.FAMILY_MAC)) {
-            environment["SPRING_PROFILES_ACTIVE"] = "${environment["SPRING_PROFILES_ACTIVE"] ?: "dev"},mac"
+            environment["SPRING_PROFILES_ACTIVE"] = "dev,mac"
         }
     }
 
