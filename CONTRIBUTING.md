@@ -1,10 +1,28 @@
 # Contributing
 1. Fork this repository to your own account
-2. Make your changes and verify that tests pass
-3. Commit your work and push to a new branch on your fork
-4. Submit a pull request
-5. Participate in the code review process by responding to feedback
+2. Make your changes and verify that tests pass (with `check` gradle task)
+3. Run `diktat` static analyzer with `diktatFix` gradle task or `diktatCheck` task depending on what you want.
+4. Run `detekt` with `detekt` gradle task
+5. After all tests and analyzers passing commit your work and push to a new branch on your fork
+6. Submit a pull request
+7. Participate in the code review process by responding to feedback
 
+## Launching save-cloud with command line
+1. Use `gradlew.bat startMysqlDb` on Windows and `./gradlew startMysqlDb` on other platforms for setting up database.
+Make sure you have Docker installed and active.
+2. Run backend.
+It can be run either with `./gradlew save-backend:bootRun` or with Intellij Idea Ultimate plugin called `Services`.
+3. Run frontend. It can be run with `./gradlew save-frontend:run`.
+You can turn continuous mode on passing `--continuous` flag.
+
+## Services Intellij Idea Ultimate plugin
+In order to make `Services` Intellij Idea Ultimate plugin work properly, you need to set these active profiles in service's configuration:  
+
+|         |  SaveApplication   | SaveGateway | SaveOrchestrator | SavePreprocessor | 
+|:-------:|:------------------:|:-----------:|:----------------:|:----------------:|
+|   Mac   | `mac, dev, secure` | `mac, dev`  |      `mac`       |      `mac`       |
+| Windows |   `dev, secure`    |    `dev`    |       `-`        |       `-`        |
+|  Linux  |   `dev, secure`    |    `dev`    |       `-`        |       `-`        |
 
 ### Mac M1 contributors
 In order to launch the project locally, you need to do these preparations:

@@ -40,7 +40,7 @@ fun Project.createStackDeployTask(profile: String) {
                         // so we create it here only in dev profile
                         """|$it
                            |  mysql:
-                           |    image: mysql
+                           |    image: mysql:latest
                            |    platform: linux/x86_64
                            |    container_name: mysql
                            |    ports:
