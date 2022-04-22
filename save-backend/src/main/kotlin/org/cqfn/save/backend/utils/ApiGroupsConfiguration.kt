@@ -14,6 +14,7 @@ import org.springframework.context.annotation.Configuration
  * Configuration for OpenAPI, which is responsible for creation of tabs,
  * which are grouping the endpoints by versions
  */
+@Suppress("MISSING_KDOC_CLASS_ELEMENTS", "MISSING_KDOC_ON_FUNCTION")
 @Configuration
 class ApiGroupsConfiguration {
     @Bean
@@ -27,7 +28,7 @@ class ApiGroupsConfiguration {
     fun openApiV1(): GroupedOpenApi? = createGroupedOpenApi(v1, v1)
 
     @Bean
-    fun openApiCurrentVersion(): GroupedOpenApi? = createGroupedOpenApi("latest", latestVersion)
+    fun openApiLatestVersion(): GroupedOpenApi? = createGroupedOpenApi("latest", latestVersion)
 
     @Bean
     fun customOpenApi(): OpenAPI? = OpenAPI()

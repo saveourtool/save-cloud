@@ -1,7 +1,9 @@
-@file:Suppress("VARIABLE_NAME_INCORRECT", "CONSTANT_UPPERCASE")
 /**
  * File, which contain the list of versions of backend API
  */
+
+@file:Suppress("VARIABLE_NAME_INCORRECT", "CONSTANT_UPPERCASE")
+
 package org.cqfn.save
 
 const val v1 = "v1"
