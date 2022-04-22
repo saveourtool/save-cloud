@@ -46,7 +46,7 @@ class WebConfiguration(
     }
 
     /**
-     * @return a router with router for avatars that sets `Cache-Control` header
+     * @return a router with routes for avatars that set `Cache-Control` header
      */
     @Bean
     fun staticImageResourceRouter() = router {
