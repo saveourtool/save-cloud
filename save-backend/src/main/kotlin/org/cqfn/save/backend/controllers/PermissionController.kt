@@ -154,7 +154,7 @@ class PermissionController(
         .switchIfEmpty {
             Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
         }
-        .zipWhen { Mono.justOrEmpty(projectService.findUserByName(userName)) }
+        .zipWith(Mono.justOrEmpty(projectService.findUserByName(userName)))
         .switchIfEmpty {
             Mono.error((ResponseStatusException(HttpStatus.NOT_FOUND)))
         }
