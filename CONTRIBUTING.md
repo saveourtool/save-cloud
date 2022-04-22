@@ -25,8 +25,7 @@ In order to make `Services` Intellij Idea Ultimate plugin work properly, you nee
 |  Linux  |   `dev, secure`    |    `dev`    |       `-`        |       `-`        |
 
 ### Mac M1 contributors
-In order to launch the project locally, you need to do these preparations:
-1. In file `save-cloud/build.gradle.kts` change languageVersion of `org.liquibase.gradle.LiquibaseTask` from 11 to 17
+In file `save-cloud/build.gradle.kts` change languageVersion of `org.liquibase.gradle.LiquibaseTask` from 11 to 17
 so there would be something like this:
 ```
 tasks.withType<org.liquibase.gradle.LiquibaseTask>().configureEach {
@@ -35,5 +34,4 @@ tasks.withType<org.liquibase.gradle.LiquibaseTask>().configureEach {
     })
 }
 ```
-2. If you use Spring Idea Plugin (built into IDEA Ultimate) on Mac, you should set `Active Profiles` to be `dev, mac, secure` for `SaveApplication`
-and `mac` for 
+
