@@ -13,7 +13,7 @@ Make sure you have Docker installed and active.
 2. Run backend.
 It can be run either with `./gradlew save-backend:bootRun` or with Intellij Idea Ultimate plugin from the menu `Services`.
 3. Run frontend. It can be run with `./gradlew save-frontend:run`.
-You can turn continuous mode on passing `--continuous` flag.
+You can enable hot reload by passing `--continuous` flag.
 
 ## Services Intellij Idea Ultimate plugin
 In order to make `Services` Intellij Idea Ultimate plugin work properly, you need to set these active profiles in service's configuration:  
