@@ -28,8 +28,9 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
+import org.cqfn.save.v1
 
-val apiUrl = "${window.location.origin}/api"
+val apiUrl = "${window.location.origin}/api/$v1"
 
 /**
  * Interface for objects that have access to [errorStatusContext]

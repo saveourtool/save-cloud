@@ -37,6 +37,7 @@ import java.time.LocalDateTime
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
+import org.cqfn.save.v1
 
 private val json = Json {
     serializersModule = SerializersModule {
@@ -64,7 +65,7 @@ private object UserInformation {
 suspend fun HttpClient.getOrganizationByName(
     name: String
 ): Organization = getRequestWithAuthAndJsonContentType(
-    "${Backend.url}/api/organization/$name"
+    "${Backend.url}/api/$v1/organization/$name"
 ).body()
 
 /**
@@ -75,7 +76,7 @@ suspend fun HttpClient.getOrganizationByName(
 suspend fun HttpClient.getProjectByNameAndOrganizationId(
     projectName: String, organizationId: Long
 ): Project = getRequestWithAuthAndJsonContentType(
-    "${Backend.url}/api/projects/get/organization-id?name=$projectName&organizationId=$organizationId"
+    "${Backend.url}/api/$v1/projects/get/organization-id?name=$projectName&organizationId=$organizationId"
 ).body()
 
 /**
@@ -83,7 +84,7 @@ suspend fun HttpClient.getProjectByNameAndOrganizationId(
  */
 suspend fun HttpClient.getAvailableFilesList(
 ): List<FileInfo> = getRequestWithAuthAndJsonContentType(
-    "${Backend.url}/api/files/list"
+    "${Backend.url}/api/$v1/files/list"
 ).body()
 
 /**
@@ -94,7 +95,7 @@ suspend fun HttpClient.getAvailableFilesList(
 suspend fun HttpClient.uploadAdditionalFile(
     file: String,
 ): FileInfo = this.post {
-    url("${Backend.url}/api/files/upload")
+    url("${Backend.url}/api/$v1/files/upload")
     header("X-Authorization-Source", UserInformation.source)
     body = MultiPartFormDataContent(formData {
         append(
@@ -112,7 +113,7 @@ suspend fun HttpClient.uploadAdditionalFile(
  */
 suspend fun HttpClient.getStandardTestSuites(
 ): List<TestSuiteDto> = getRequestWithAuthAndJsonContentType(
-    "${Backend.url}/api/allStandardTestSuites"
+    "${Backend.url}/api/$v1/allStandardTestSuites"
 ).body()
 
 /**
@@ -127,9 +128,9 @@ suspend fun HttpClient.getStandardTestSuites(
 @Suppress("TOO_LONG_FUNCTION")
 suspend fun HttpClient.submitExecution(executionType: ExecutionType, executionRequest: ExecutionRequestBase, additionalFiles: List<FileInfo>?): HttpResponse {
     val endpoint = if (executionType == ExecutionType.GIT) {
-        "/api/submitExecutionRequest"
+        "/api/$v1/submitExecutionRequest"
     } else {
-        "/api/executionRequestStandardTests"
+        "/api/$v1/executionRequestStandardTests"
     }
     return this.post {
         url("${Backend.url}$endpoint")
@@ -173,7 +174,7 @@ suspend fun HttpClient.getLatestExecution(
     projectName: String,
     organizationId: Long
 ): ExecutionDto = getRequestWithAuthAndJsonContentType(
-    "${Backend.url}/api/latestExecution?name=$projectName&organizationId=$organizationId"
+    "${Backend.url}/api/$v1/latestExecution?name=$projectName&organizationId=$organizationId"
 ).body()
 
 /**
@@ -183,7 +184,7 @@ suspend fun HttpClient.getLatestExecution(
 suspend fun HttpClient.getExecutionById(
     executionId: Long
 ): ExecutionDto = getRequestWithAuthAndJsonContentType(
-    "${Backend.url}/api/executionDto?executionId=$executionId"
+    "${Backend.url}/api/$v1/executionDto?executionId=$executionId"
 ).body()
 
 private suspend fun HttpClient.getRequestWithAuthAndJsonContentType(url: String): HttpResponse = this.get {

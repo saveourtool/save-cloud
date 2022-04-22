@@ -31,6 +31,7 @@ import kotlinx.html.hidden
 import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
 import kotlinx.js.jso
+import org.cqfn.save.v1
 
 /**
  * `Props` retrieved from router
@@ -130,7 +131,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                     attrs["aria-label"] = "Change organization's avatar"
                     img(classes = "avatar avatar-user width-full border color-bg-default rounded-circle") {
                         attrs.src = state.image?.path?.let {
-                            "/api/avatar$it"
+                            "/api/$v1/avatar$it"
                         }
                             ?: run {
                                 "img/company.svg"
@@ -352,7 +353,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                     attrs["aria-label"] = "Change organization's avatar"
                     img(classes = "avatar avatar-user width-full border color-bg-default rounded-circle") {
                         attrs.src = state.image?.path?.let {
-                            "/api/avatar$it"
+                            "/api/$v1/avatar$it"
                         }
                             ?: run {
                                 "img/company.svg"

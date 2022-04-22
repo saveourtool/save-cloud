@@ -31,6 +31,7 @@ import kotlinx.html.hidden
 import kotlinx.html.js.onChangeFunction
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.cqfn.save.v1
 
 /**
  * `Props` retrieved from router
@@ -134,7 +135,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                                             attrs["aria-label"] = "Change avatar owner"
                                             img(classes = "avatar avatar-user width-full border color-bg-default rounded-circle") {
                                                 attrs.src = state.image?.path?.let {
-                                                    "/api/avatar$it"
+                                                    "/api/$v1/avatar$it"
                                                 }
                                                     ?: run {
                                                         "img/user.svg"

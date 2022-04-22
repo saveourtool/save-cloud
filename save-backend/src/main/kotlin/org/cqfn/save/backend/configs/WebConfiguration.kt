@@ -1,5 +1,6 @@
 package org.cqfn.save.backend.configs
 
+import org.cqfn.save.v1
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -28,8 +29,8 @@ class WebConfiguration(
      */
     @Bean
     fun staticImageResourceRouter() = router {
-        resources("/api/avatar/**", FileSystemResource("${configProperties.fileStorage.location}/images/avatars/"))
-        resources("/api/avatar/users/**", FileSystemResource("${configProperties.fileStorage.location}/images/avatars/users/"))
+        resources("/api/$v1/avatar/**", FileSystemResource("${configProperties.fileStorage.location}/images/avatars/"))
+        resources("/api/$v1/avatar/users/**", FileSystemResource("${configProperties.fileStorage.location}/images/avatars/users/"))
     }
 
     /**

@@ -21,6 +21,7 @@ import org.cqfn.save.testutils.enqueue
 
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
+import org.cqfn.save.v1
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -144,7 +145,7 @@ class ExecutionControllerTest {
         }
 
         webClient.get()
-            .uri("/api/executionDto?executionId=1")
+            .uri("/api/$v1/executionDto?executionId=1")
             .exchange()
             .expectStatus()
             .isOk
@@ -165,7 +166,7 @@ class ExecutionControllerTest {
         val project = projectRepository.findById(1).get()
         val executionCounts = executionRepository.findAll().count { it.project.id == project.id }
         webClient.get()
-            .uri("/api/executionDtoList?name=${project.name}&organizationName=${project.organization.name}")
+            .uri("/api/$v1/executionDtoList?name=${project.name}&organizationName=${project.organization.name}")
             .exchange()
             .expectStatus()
             .isOk
@@ -235,7 +236,7 @@ class ExecutionControllerTest {
         }
 
         webClient.post()
-            .uri("/api/rerunExecution?id=2")
+            .uri("/api/$v1/rerunExecution?id=2")
             .exchange()
             .expectStatus()
             .isOk

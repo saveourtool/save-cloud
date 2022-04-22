@@ -77,6 +77,7 @@ import kotlinx.html.js.onClickFunction
 import kotlinx.html.role
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.cqfn.save.v1
 
 /**
  * `Props` retrieved from router
@@ -341,7 +342,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                         set("Content-Type", "application/json")
                     }
                     val response = post(
-                        "/api/projects/roles/${state.project.organization.name}/${state.project.name}",
+                        "/api/$v1/projects/roles/${state.project.organization.name}/${state.project.name}",
                         headers,
                         jsonRoleRequest
                     )

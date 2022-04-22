@@ -20,6 +20,7 @@ import org.cqfn.save.testutils.enqueue
 
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
+import org.cqfn.save.v1
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
@@ -82,7 +83,7 @@ class CloneRepoTest {
         }
             .build()
         webClient.post()
-            .uri("/api/submitExecutionRequest")
+            .uri("/api/$v1/submitExecutionRequest")
             .contentType(MediaType.MULTIPART_FORM_DATA)
             .body(BodyInserters.fromMultipartData(multipart))
             .exchange()
@@ -120,7 +121,7 @@ class CloneRepoTest {
         }
         multiparts.forEach {
             webClient.post()
-                .uri("/api/submitExecutionRequest")
+                .uri("/api/$v1/submitExecutionRequest")
                 .contentType(MediaType.MULTIPART_FORM_DATA)
                 .body(BodyInserters.fromMultipartData(it))
                 .exchange()

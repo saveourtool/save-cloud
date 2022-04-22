@@ -18,6 +18,7 @@ import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.User
 import org.cqfn.save.permission.Permission
 import org.cqfn.save.permission.SetRoleRequest
+import org.cqfn.save.v1
 import org.junit.jupiter.api.Test
 import org.mockito.invocation.InvocationOnMock
 import org.mockito.kotlin.any
@@ -63,7 +64,7 @@ class PermissionControllerTest {
         given(permissionService.getRole(any(), any())).willReturn(Role.ADMIN)
 
         webTestClient.get()
-            .uri("/api/projects/roles/Huawei/huaweiName?userName=admin")
+            .uri("/api/$v1/projects/roles/Huawei/huaweiName?userName=admin")
             .exchange()
             .expectStatus().isOk
             .expectBody<Role>()
@@ -81,7 +82,7 @@ class PermissionControllerTest {
         )
 
         webTestClient.get()
-            .uri("/api/projects/roles/Huawei/huaweiName?userName=admin")
+            .uri("/api/$v1/projects/roles/Huawei/huaweiName?userName=admin")
             .exchange()
             .expectStatus().isNotFound
         verify(permissionService, times(0)).getRole(any(), any())
@@ -105,7 +106,7 @@ class PermissionControllerTest {
         given(permissionService.setRole(any(), any(), any())).willReturn(Mono.just(Unit))
 
         webTestClient.post()
-            .uri("/api/projects/roles/Huawei/huaweiName")
+            .uri("/api/$v1/projects/roles/Huawei/huaweiName")
             .bodyValue(SetRoleRequest("admin", Role.ADMIN))
             .exchange()
             .expectStatus().isOk
@@ -126,7 +127,7 @@ class PermissionControllerTest {
         given(organizationRepository.findByName(any())).willReturn(Organization("Example Org", ownerId = 42, null, null))
 
         webTestClient.post()
-            .uri("/api/projects/roles/Huawei/huaweiName")
+            .uri("/api/$v1/projects/roles/Huawei/huaweiName")
             .bodyValue(SetRoleRequest("admin", Role.ADMIN))
             .exchange()
             .expectStatus().isForbidden
@@ -147,7 +148,7 @@ class PermissionControllerTest {
         given(organizationRepository.findByName(any())).willReturn(Organization("Example Org", ownerId = 42, null, null))
 
         webTestClient.post()
-            .uri("/api/projects/roles/Huawei/huaweiName")
+            .uri("/api/$v1/projects/roles/Huawei/huaweiName")
             .bodyValue(SetRoleRequest("admin", Role.ADMIN))
             .exchange()
             .expectStatus().isNotFound
