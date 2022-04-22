@@ -112,13 +112,15 @@ class PermissionController(
         .switchIfEmpty {
             Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
         }
-        .filter {
+        .zipWhen { Mono.justOrEmpty(projectService.findUserByName(setRoleRequest.userName)) }
+        .switchIfEmpty {
+            Mono.error((ResponseStatusException(HttpStatus.NOT_FOUND)))
+        }
+        .filter { (project, user) ->
             // fixme: could be `@PreAuthorize`, but organizationService cannot be found smh
             val userId = (authentication.details as AuthenticationDetails).id
             val hasOrganizationPermissions = organizationService.canChangeRoles(organizationName, userId)
-            val hasProjectPermissions =
-                    projectService.canChangeRoles(it, userId, setRoleRequest.userName, setRoleRequest.role)
-                        ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
+            val hasProjectPermissions = projectService.canChangeRoles(project, userId, user, setRoleRequest.role)
             hasOrganizationPermissions || hasProjectPermissions
         }
         .flatMap {
@@ -152,11 +154,14 @@ class PermissionController(
         .switchIfEmpty {
             Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
         }
-        .filter { project ->
+        .zipWhen { Mono.justOrEmpty(projectService.findUserByName(userName)) }
+        .switchIfEmpty {
+            Mono.error((ResponseStatusException(HttpStatus.NOT_FOUND)))
+        }
+        .filter { (project, user) ->
             val userId = (authentication.details as AuthenticationDetails).id
             val hasOrganizationPermissions = organizationService.canChangeRoles(organizationName, userId)
-            val hasProjectPermissions = projectService.canChangeRoles(project, userId, userName)
-                ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
+            val hasProjectPermissions = projectService.canChangeRoles(project, userId, user)
             hasOrganizationPermissions || hasProjectPermissions
         }
         .switchIfEmpty {
