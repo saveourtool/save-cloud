@@ -50,5 +50,4 @@ class ApiGroupsConfiguration {
             .packagesToScan("org.cqfn.save.backend.controllers")
             .build()
     }
-
 }

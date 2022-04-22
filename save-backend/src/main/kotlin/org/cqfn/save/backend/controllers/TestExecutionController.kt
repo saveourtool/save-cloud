@@ -155,7 +155,7 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
      * @param agentContainerId id of an agent
      * @param testDtos test that will be executed by [agentContainerId] agent
      */
-    @PostMapping("/internal/testExecution/assignAgent")
+    @PostMapping(value = ["/internal/testExecution/assignAgent"])
     fun assignAgentByTest(@RequestParam agentContainerId: String, @RequestBody testDtos: List<TestDto>) {
         testExecutionService.assignAgentByTest(agentContainerId, testDtos)
     }
@@ -165,7 +165,7 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
      * @param agentIds the list of agents, for which, according the [status] test executions should be updated
      * @throws ResponseStatusException
      */
-    @PostMapping("/internal/testExecution/setStatusByAgentIds")
+    @PostMapping(value = ["/internal/testExecution/setStatusByAgentIds"])
     fun setStatusByAgentIds(
         @RequestParam("status") status: String,
         @RequestBody agentIds: Collection<String>
@@ -186,7 +186,7 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
      * @param testExecutionsDto
      * @return response
      */
-    @PostMapping("/internal/saveTestResult")
+    @PostMapping(value = ["/internal/saveTestResult"])
     fun saveTestResult(@RequestBody testExecutionsDto: List<TestExecutionDto>) = try {
         if (testExecutionService.saveTestResult(testExecutionsDto).isEmpty()) {
             ResponseEntity.status(HttpStatus.OK).body("Saved")
