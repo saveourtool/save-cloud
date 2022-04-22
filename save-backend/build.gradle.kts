@@ -12,14 +12,8 @@ plugins {
 }
 
 openApi {
-    apiDocsUrl.set("http://localhost:5000/internal/v3/api-docs/latest")
+    apiDocsUrl.set("http://localhost:5800/internal/v3/api-docs/latest")
     outputFileName.set("$rootDir/save-backend/backend-api-docs.json")
-}
-
-kotlin {
-    jvmToolchain {
-        (this as JavaToolchainSpec).languageVersion.set(JavaLanguageVersion.of(Versions.jdk))
-    }
 }
 
 configureSpringBoot(true)
