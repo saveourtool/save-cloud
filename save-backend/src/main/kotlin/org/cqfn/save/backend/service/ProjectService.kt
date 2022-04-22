@@ -136,6 +136,10 @@ class ProjectService(private val projectRepository: ProjectRepository,
                 isRequestedPermissionsCanBeSetByUser(selfRole, requestedRole)
     }
 
+    /**
+     * @param userName
+     * @return optional of user
+     */
     fun findUserByName(userName: String): Optional<User> = userRepository.findByName(userName)
 
     private fun hasAnotherUserLessPermissions(selfRole: Role, otherRole: Role): Boolean = selfRole.priority > otherRole.priority
