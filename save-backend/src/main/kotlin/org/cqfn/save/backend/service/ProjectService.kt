@@ -126,12 +126,11 @@ class ProjectService(private val projectRepository: ProjectRepository,
         userId: Long,
         otherUserName: String,
         requestedRole: Role = Role.NONE
-    ): Boolean {
+    ): Boolean? {
         val selfRole = lnkUserProjectRepository.findByUserIdAndProject(userId, project)?.role ?: Role.NONE
         val otherUserId = userRepository.findByName(otherUserName)
-            .get()
-            .id
-            ?: throw NoSuchElementException("No user with name $otherUserName")
+            .orElse(null)
+            ?.id ?: return null
         val otherRole = lnkUserProjectRepository.findByUserIdAndProject(otherUserId, project)?.role ?: Role.NONE
         return isProjectAdminOrHigher(selfRole) && hasAnotherUserLessPermissions(selfRole, otherRole) &&
                 isRequestedPermissionsCanBeSetByUser(selfRole, requestedRole)
