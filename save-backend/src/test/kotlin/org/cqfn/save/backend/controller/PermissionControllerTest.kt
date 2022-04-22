@@ -164,7 +164,7 @@ class PermissionControllerTest {
             permission = null,
         )
         webTestClient.delete()
-            .uri("/api/projects/roles/Huawei/huaweiName/user")
+            .uri("/api/$v1/projects/roles/Huawei/huaweiName/user")
             .exchange()
             .expectStatus()
             .isNotFound
@@ -187,7 +187,7 @@ class PermissionControllerTest {
         given(projectService.canChangeRoles(any(), any(), any(), any())).willReturn(true)
         given(permissionService.removeRole(any(), any(), any())).willReturn(Mono.just(Unit))
         webTestClient.delete()
-            .uri("/api/projects/roles/Huawei/huaweiName/user")
+            .uri("/api/$v1/projects/roles/Huawei/huaweiName/user")
             .exchange()
             .expectStatus()
             .isOk
@@ -207,7 +207,7 @@ class PermissionControllerTest {
         given(projectService.canChangeRoles(any(), any(), any(), any())).willReturn(false)
         given(permissionService.removeRole(any(), any(), any())).willReturn(Mono.just(Unit))
         webTestClient.delete()
-            .uri("/api/projects/roles/Huawei/huaweiName/user")
+            .uri("/api/$v1/projects/roles/Huawei/huaweiName/user")
             .exchange()
             .expectStatus()
             .isForbidden

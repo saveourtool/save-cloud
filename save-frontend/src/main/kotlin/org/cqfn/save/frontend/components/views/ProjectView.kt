@@ -41,9 +41,7 @@ import org.cqfn.save.frontend.utils.runConfirmWindowModal
 import org.cqfn.save.frontend.utils.runErrorModal
 import org.cqfn.save.frontend.utils.unsafeMap
 import org.cqfn.save.info.UserInfo
-import org.cqfn.save.permission.SetRoleRequest
 import org.cqfn.save.testsuite.TestSuiteDto
-import org.cqfn.save.v1
 
 import org.w3c.dom.HTMLButtonElement
 import org.w3c.dom.HTMLInputElement
