@@ -1,11 +1,14 @@
 package org.cqfn.save.domain
 
+import kotlinx.serialization.Serializable
+
 /**
  * User roles
  * @property formattedName string representation of the [Role] that should be printed
  * @property priority
  */
 @Suppress("MAGIC_NUMBER", "MagicNumber")
+@Serializable
 enum class Role(val formattedName: String, val priority: Int) {
     /**
      * admin in organization

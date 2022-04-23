@@ -5,6 +5,7 @@
 package org.cqfn.save.frontend.components.views
 
 import org.cqfn.save.domain.ImageInfo
+import org.cqfn.save.domain.Role
 import org.cqfn.save.entities.Organization
 import org.cqfn.save.entities.Project
 import org.cqfn.save.frontend.components.basic.privacySpan
@@ -31,6 +32,8 @@ import kotlinx.html.hidden
 import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
 import kotlinx.js.jso
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 /**
  * `Props` retrieved from router
@@ -68,12 +71,24 @@ external interface OrganizationViewState : State {
      * List of projects for `this` organization
      */
     var projects: Array<Project>?
+
+    /**
+     * Whether editing of organization info is disabled
+     */
+    var isEditDisabled: Boolean?
+
+    /**
+     * Role user in organization
+     */
+    var roleInOrganization: Role?
 }
 
 /**
  * A Component for owner view
  */
 class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(false) {
+    private var descriptionTmp: String = ""
+
     init {
         state.isUploading = false
         state.organization = Organization("", null, null, null)
@@ -87,10 +102,12 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             val avatar = getAvatar()
             val organizationLoaded = getOrganization(props.organizationName)
             val projectsLoaded = getProjectsForOrganization()
+            val role = getRoleInOrganization()
             setState {
                 image = avatar
                 organization = organizationLoaded
                 projects = projectsLoaded
+                roleInOrganization = role
             }
         }
     }
@@ -107,7 +124,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         }
     }
 
-    @Suppress("TOO_LONG_FUNCTION", "LongMethod")
+    @Suppress("TOO_LONG_FUNCTION", "LongMethod", "ComplexMethod")
     private fun RBuilder.renderInfo() {
         // ================= Row for avatar and name =============
         div("row") {
@@ -239,18 +256,46 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                                 }
                                 +"Description"
                             }
-                            button(classes = "btn btn-link text-xs text-muted text-left ml-auto") {
-                                +"Edit  "
-                                fontAwesomeIcon(icon = faEdit)
-                                attrs.onClickFunction = {
-
+                            if ((state.roleInOrganization?.priority ?: 0) >= 2) {
+                                button(classes = "btn btn-link text-xs text-muted text-left ml-auto") {
+                                    +"Edit  "
+                                    fontAwesomeIcon(icon = faEdit)
+                                    attrs.onClickFunction = {
+                                        turnEditMode(isOff = false)
                                     }
+                                }
                             }
                         }
                     }
                     div("card-body") {
-                        p {
-                            +"""Description"""
+                        input(type = InputType.text) {
+                            attrs["class"] = "form-control-plaintext pt-0 pb-0"
+                            if (state.isEditDisabled != false) {
+                                attrs.value = state.organization?.description ?: ""
+                            }
+                            attrs.disabled = state.isEditDisabled ?: true
+                            attrs.onChange = { event ->
+                                val tg = event.target as HTMLInputElement
+                                setNewDescription(tg.value)
+                            }
+                        }
+                    }
+                    div("ml-3 mt-2 align-items-right float-right") {
+                        button(type = ButtonType.button, classes = "btn") {
+                            fontAwesomeIcon(icon = faCheck)
+                            attrs.hidden = state.isEditDisabled ?: true
+                            attrs.onClick = {
+                                onOrganizationSave()
+                                turnEditMode(true)
+                            }
+                        }
+
+                        button(type = ButtonType.button, classes = "btn") {
+                            fontAwesomeIcon(icon = faTimesCircle)
+                            attrs.hidden = state.isEditDisabled ?: true
+                            attrs.onClick = {
+                                turnEditMode(true)
+                            }
                         }
                     }
                 }
@@ -448,8 +493,33 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         }
     }
 
+    private fun setNewDescription(value: String) {
+        descriptionTmp = value
+    }
+
+    private fun onOrganizationSave() {
+        setState {
+            organization?.apply {
+                description = descriptionTmp
+            }
+        }
+        val headers = Headers().also {
+            it.set("Accept", "application/json")
+            it.set("Content-Type", "application/json")
+        }
+        scope.launch {
+            post("$apiUrl/organization/update", headers, Json.encodeToString(state.organization))
+        }
+    }
+
     private fun RBuilder.renderSettings() {
         // FixMe: will be finished later
+    }
+
+    private fun turnEditMode(isOff: Boolean) {
+        setState {
+            isEditDisabled = isOff
+        }
     }
 
     /**
@@ -459,6 +529,16 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
 
     private suspend fun getProjectsForOrganization(): Array<Project> = get(
         url = "$apiUrl/projects/get/projects-by-organization?organizationName=${props.organizationName}",
+        headers = Headers().also {
+            it.set("Accept", "application/json")
+        },
+    )
+        .unsafeMap {
+            it.decodeFromJsonString()
+        }
+
+    private suspend fun getRoleInOrganization(): Role = get(
+        url = "$apiUrl/organization/role?organization=${props.organizationName}",
         headers = Headers().also {
             it.set("Accept", "application/json")
         },

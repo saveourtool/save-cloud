@@ -1,10 +1,12 @@
 package org.cqfn.save.backend.controllers
 
 import org.cqfn.save.backend.StringResponse
+import org.cqfn.save.backend.service.LnkUserOrganizationService
 import org.cqfn.save.backend.service.OrganizationService
 import org.cqfn.save.backend.utils.AuthenticationDetails
 import org.cqfn.save.domain.ImageInfo
 import org.cqfn.save.domain.OrganizationSaveStatus
+import org.cqfn.save.domain.Role
 import org.cqfn.save.entities.Organization
 import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
@@ -21,7 +23,10 @@ import java.time.LocalDateTime
  */
 @RestController
 @RequestMapping("/api/organization")
-internal class OrganizationController(private val organizationService: OrganizationService) {
+internal class OrganizationController(
+    private val organizationService: OrganizationService,
+    private val lnkUserOrganizationService: LnkUserOrganizationService,
+) {
     /**
      * @param organizationName
      * @return Organization
@@ -80,6 +85,37 @@ internal class OrganizationController(private val organizationService: Organizat
             ResponseEntity.ok(organizationStatus.message)
         }
         return Mono.just(response)
+    }
+
+    /**
+     * @param organization updateOrganization
+     * @param authentication an [Authentication] representing an authenticated request
+     * @return response
+     */
+    @PostMapping("/update")
+    @PreAuthorize("isAuthenticated()")
+    fun updateOrganization(@RequestBody organization: Organization, authentication: Authentication): Mono<StringResponse> {
+        val userId = (authentication.details as AuthenticationDetails).id
+        val role = lnkUserOrganizationService.findRoleByUserIdAndOrganizationName(userId, organization.name)
+        val response = if (role.priority >= 2) {
+            organizationService.updateOrganization(organization)
+            ResponseEntity.ok("Organization updated")
+        } else {
+            ResponseEntity.badRequest().body("Access denied")
+        }
+        return Mono.just(response)
+    }
+
+    /**
+     * @param organizationName
+     * @param authentication an [Authentication] representing an authenticated request
+     * @return role
+     */
+    @PostMapping("/role")
+    @PreAuthorize("isAuthenticated()")
+    fun getRoleOrganization(@RequestBody organizationName: String, authentication: Authentication): Mono<Role> {
+        val userId = (authentication.details as AuthenticationDetails).id
+        return Mono.fromCallable { lnkUserOrganizationService.findRoleByUserIdAndOrganizationName(userId, organizationName) }
     }
 
     companion object {
