@@ -9,6 +9,7 @@ import org.cqfn.save.domain.Role
 import org.cqfn.save.entities.Organization
 import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.ProjectStatus
+import org.cqfn.save.entities.User
 import org.cqfn.save.permission.Permission
 
 import org.springframework.data.domain.Example
@@ -21,6 +22,7 @@ import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
+import java.util.Optional
 
 /**
  * Service for project
@@ -116,7 +118,7 @@ class ProjectService(private val projectRepository: ProjectRepository,
     /**
      * @param project
      * @param userId
-     * @param otherUserName
+     * @param otherUser
      * @param requestedRole
      * @return true if user can change roles in project and false otherwise
      */
@@ -124,15 +126,21 @@ class ProjectService(private val projectRepository: ProjectRepository,
     fun canChangeRoles(
         project: Project,
         userId: Long,
-        otherUserName: String,
+        otherUser: User,
         requestedRole: Role = Role.NONE
     ): Boolean {
         val selfRole = lnkUserProjectRepository.findByUserIdAndProject(userId, project)?.role ?: Role.NONE
-        val otherUserId = userRepository.findByName(otherUserName).get().id!!
+        val otherUserId = otherUser.id!!
         val otherRole = lnkUserProjectRepository.findByUserIdAndProject(otherUserId, project)?.role ?: Role.NONE
         return isProjectAdminOrHigher(selfRole) && hasAnotherUserLessPermissions(selfRole, otherRole) &&
                 isRequestedPermissionsCanBeSetByUser(selfRole, requestedRole)
     }
+
+    /**
+     * @param userName
+     * @return optional of user
+     */
+    fun findUserByName(userName: String): Optional<User> = userRepository.findByName(userName)
 
     private fun hasAnotherUserLessPermissions(selfRole: Role, otherRole: Role): Boolean = selfRole.priority > otherRole.priority
 

@@ -112,11 +112,15 @@ class PermissionController(
         .switchIfEmpty {
             Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
         }
-        .filter {
+        .zipWith(Mono.justOrEmpty(projectService.findUserByName(setRoleRequest.userName)))
+        .switchIfEmpty {
+            Mono.error((ResponseStatusException(HttpStatus.NOT_FOUND)))
+        }
+        .filter { (project, user) ->
             // fixme: could be `@PreAuthorize`, but organizationService cannot be found smh
             val userId = (authentication.details as AuthenticationDetails).id
             val hasOrganizationPermissions = organizationService.canChangeRoles(organizationName, userId)
-            val hasProjectPermissions = projectService.canChangeRoles(it, userId, setRoleRequest.userName, setRoleRequest.role)
+            val hasProjectPermissions = projectService.canChangeRoles(project, userId, user, setRoleRequest.role)
             hasOrganizationPermissions || hasProjectPermissions
         }
         .flatMap {
@@ -150,10 +154,14 @@ class PermissionController(
         .switchIfEmpty {
             Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
         }
-        .filter { project ->
+        .zipWith(Mono.justOrEmpty(projectService.findUserByName(userName)))
+        .switchIfEmpty {
+            Mono.error((ResponseStatusException(HttpStatus.NOT_FOUND)))
+        }
+        .filter { (project, user) ->
             val userId = (authentication.details as AuthenticationDetails).id
             val hasOrganizationPermissions = organizationService.canChangeRoles(organizationName, userId)
-            val hasProjectPermissions = projectService.canChangeRoles(project, userId, userName)
+            val hasProjectPermissions = projectService.canChangeRoles(project, userId, user)
             hasOrganizationPermissions || hasProjectPermissions
         }
         .switchIfEmpty {
