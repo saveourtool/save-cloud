@@ -42,7 +42,7 @@ lifecycle:
 image: '{{ .Values.imageRegistry }}/{{ .service.imageName }}:{{ .Values.dockerTag }}'
 env:
   - name: SPRING_PROFILES_ACTIVE
-    value: {{ .Values.profile }}
+    value: {{ or .service.profile .Values.profile }}
 ports:
   - name: http
     containerPort:  {{ .service.containerPort }}

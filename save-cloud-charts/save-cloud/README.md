@@ -1,4 +1,8 @@
 # Helm chart for save-cloud
+
+## Prerequisites
+* `kubectl create secret eneric db-secrets --from_literal=db_url=<...> --from_literal=db_username=<...> --from_literal=db_password=<...>`
+
 ## Build and deploy
 ```bash
 $ helm package ./save-cloud

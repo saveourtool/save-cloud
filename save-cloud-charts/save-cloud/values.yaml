@@ -2,10 +2,10 @@ imageRegistry: ghcr.io/analysis-dev
 dockerTag: latest  # this should be set explicitly during chart installation
 
 env: staging
-# todo: set profiles per service
-profile: dev,secure
+profile: dev
 backend:
   name: backend
+  profile: dev,secure
   imageName: save-backend
   containerPort: 5800
 orchestrator:
