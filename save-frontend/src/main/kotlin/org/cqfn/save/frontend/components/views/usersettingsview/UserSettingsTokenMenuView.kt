@@ -1,5 +1,6 @@
 package org.cqfn.save.frontend.components.views.usersettingsview
 
+import kotlinx.coroutines.launch
 import org.cqfn.save.frontend.components.basic.cardComponent
 
 import react.FC
@@ -9,6 +10,7 @@ import react.setState
 
 import kotlinx.html.ButtonType
 import kotlinx.html.js.onClickFunction
+import org.cqfn.save.frontend.http.getUser
 
 @Suppress("MISSING_KDOC_TOP_LEVEL")
 class UserSettingsTokenMenuView : UserSettingsView() {
@@ -44,6 +46,19 @@ class UserSettingsTokenMenuView : UserSettingsView() {
         })
     }
 
+    override fun componentDidMount() {
+        super.componentDidMount()
+        println("222222 UserSettingsTokenMenuView: props.userName=${props.userName}")
+        scope.launch {
+            val user = props.userName?.let { getUser(it) }
+            println("222222222 user null? ${user == null}")
+            setState {
+                userInfo = user
+                println("2222222222 After USERNAME ${userInfo?.name}")
+            }
+        }
+    }
+
     @Suppress("MAGIC_NUMBER")
     private fun generateToken() {
         var token = "ghp_"
@@ -55,6 +70,7 @@ class UserSettingsTokenMenuView : UserSettingsView() {
             this.token = token
         }
         println("\n\n1111111111111111")
+        println("${state.userInfo?.name} ${state.token}")
         updateUser()
         println("\n\n22222222")
     }
