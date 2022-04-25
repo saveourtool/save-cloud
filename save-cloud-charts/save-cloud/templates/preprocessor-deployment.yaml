@@ -28,4 +28,4 @@ spec:
         - name: repos-storage
           # Fixme: should it be shared among nodes? This is temporary data, and each pod of preprocessor can `git clone` on its own.
           hostPath:
-            path: ~/save/repos
+            path: /tmp/save/repos

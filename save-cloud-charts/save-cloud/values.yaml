@@ -21,6 +21,9 @@ gateway:
   imageName: api-gateway
   containerPort: 5300
   applicationProperties:
+  svc:
+    annotations:
+    spec:
 storage:
   size: 10Gi
 reposStorage:

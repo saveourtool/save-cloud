@@ -1,1 +1,22 @@
-{{ include "service.common" (dict "service" .Values.gateway) }}
+# todo: reuse configs with https://helm.sh/docs/topics/library_charts/
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.gateway.name }}
+  {{- if .Values.gateway.svc.annotations }}
+  annotations:
+    {{- range $key, $value := .Values.gateway.svc.annotations }}
+    {{ $key }}: {{ $value }}
+    {{- end }}
+  {{- end }}
+spec:
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+  selector:
+    io.kompose.service: {{ .Values.gateway.name }}
+  {{- range $key, $value := .Values.gateway.svc.spec }}
+  {{ $key }}: {{ $value }}
+  {{- end }}

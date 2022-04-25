@@ -29,7 +29,7 @@ spec:
         - {{ include "spring-boot.config-volume" (dict "service" .Values.orchestrator) | indent 10 | trim }}
         - name: repos-storage
           hostPath:
-            path: ~/save/repos
+            path: /tmp/save/repos
         - name: execution-logs-storage
           # FixMe: Do we still need logs storage? All logs should be stored in Loki.
           emptyDir: {}
