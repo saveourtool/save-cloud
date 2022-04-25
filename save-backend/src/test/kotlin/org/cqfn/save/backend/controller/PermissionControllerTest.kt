@@ -231,5 +231,8 @@ class PermissionControllerTest {
                 Permission.DELETE -> permission == Permission.DELETE
             }
         }
+        given(projectService.findUserByName(any())).willAnswer { invocationOnMock ->
+            Optional.of(user(invocationOnMock))
+        }
     }
 }
