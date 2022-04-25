@@ -18,6 +18,8 @@ spec:
       containers:
         - name: gateway
           {{- include "spring-boot.common" (merge (dict "service" .Values.gateway) .) | nindent 10 }}
+          env:
+            {{- include "spring-boot.common.env" (merge (dict "service" .Values.orchestrator) .) | nindent 12 }}
           {{- include "spring-boot.management" .Values.gateway | nindent 10 }}
           volumeMounts:
             - {{ include "spring-boot.config-volume-mount" . | indent 14 | trim }}

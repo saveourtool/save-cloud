@@ -5,8 +5,7 @@ metadata:
 data:
   application.properties: |
     orchestrator.backendUrl=http://backend:5800/internal
-    # todo: actually use ${status.hostIP} # https://github.com/kubernetes/kubernetes/issues/107079#issuecomment-996405755
-    orchestrator.docker.host=tcp://host.minikube.internal:2375
+    orchestrator.docker.host=tcp://${HOST_IP}:2375
     orchestrator.docker.runtime=runc
     server.shutdown=graceful
     management.endpoints.web.exposure.include=*

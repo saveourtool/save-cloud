@@ -18,12 +18,16 @@ spec:
       containers:
         - name: backend
           {{- include "spring-boot.common" (merge (dict "service" .Values.backend) .) | nindent 10 }}
+          env:
+            {{- include "spring-boot.common.env" (merge (dict "service" .Values.orchestrator) .) | nindent 12 }}
+            - name: DB_PASSWORD_FILE
+              value: {{ .Values.backend.dbPasswordFile }}
           volumeMounts:
             - {{ include "spring-boot.config-volume-mount" . | indent 14 | trim }}
             - name: fs-storage
               mountPath: /home/cnb/files
             - name: database-secret
-              mountPath: {{ .Values.backend.env.DB_PASSWORD_FILE }}
+              mountPath: {{ .Values.backend.dbPasswordFile }}
           {{- include "spring-boot.management" .Values.backend | nindent 10 }}
       volumes:
         - {{ include "spring-boot.config-volume" (dict "service" .Values.backend) | indent 10 | trim }}

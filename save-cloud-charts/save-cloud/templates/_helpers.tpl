@@ -40,20 +40,14 @@ lifecycle:
 {{/* Common configuration of deployment for spring-boot microservice */}}
 {{- define "spring-boot.common" -}}
 image: '{{ .Values.imageRegistry }}/{{ .service.imageName }}:{{ .Values.dockerTag }}'
-env:
-  - name: SPRING_PROFILES_ACTIVE
-    value: {{ or .service.profile .Values.profile }}
-  {{- if .service.JavaOpts }}
-  - name: JAVA_OPTS
-    value: {{ .service.JavaOpts }}
-  {{- end }}
-  {{- range $key, $value := .service.env }}
-  - name: {{ $key }}
-    value: {{ $value }}
-  {{- end }}
 ports:
   - name: http
     containerPort:  {{ .service.containerPort }}
+{{- end }}
+
+{{- define "spring-boot.common.env" -}}
+- name: SPRING_PROFILES_ACTIVE
+  value: {{ or .service.profile .Values.profile }}
 {{- end }}
 
 {{- define "spring-boot.config-volume-mount" -}}
