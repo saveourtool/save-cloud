@@ -18,6 +18,8 @@ spec:
       containers:
         - name: preprocessor
           {{- include "spring-boot.common" (merge (dict "service" .Values.preprocessor) .) | nindent 10 }}
+          env:
+            {{- include "spring-boot.common.env" (merge (dict "service" .Values.orchestrator) .) | nindent 12 }}
           volumeMounts:
             - {{ include "spring-boot.config-volume-mount" . | indent 14 | trim }}
             - name: repos-storage
