@@ -508,7 +508,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             it.set("Content-Type", "application/json")
         }
         scope.launch {
-            post("$apiUrl/organization/update", headers, Json.encodeToString(state.organization))
+            post("$apiUrl/organization/${props.organizationName}/update", headers, Json.encodeToString(state.organization))
         }
     }
 
@@ -538,7 +538,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         }
 
     private suspend fun getRoleInOrganization(): Role = get(
-        url = "$apiUrl/organization/role?organization=${props.organizationName}",
+        url = "$apiUrl/organization/${props.organizationName}/role",
         headers = Headers().also {
             it.set("Accept", "application/json")
         },

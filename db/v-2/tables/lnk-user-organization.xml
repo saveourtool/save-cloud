@@ -30,4 +30,10 @@
     </rollback>
   </changeSet>
 
+  <changeSet id="lnk-user-organization-2" author="frolov" context="dev or prod">
+    <addColumn tableName="lnk_user_organization">
+      <column name="role" type="varchar(250)"/>
+    </addColumn>
+  </changeSet>
+  
 </databaseChangeLog>

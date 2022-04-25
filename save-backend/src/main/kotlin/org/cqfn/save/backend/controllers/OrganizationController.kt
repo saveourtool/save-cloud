@@ -92,9 +92,9 @@ internal class OrganizationController(
      * @param authentication an [Authentication] representing an authenticated request
      * @return response
      */
-    @PostMapping("/update")
+    @PostMapping("/{organizationName}/update")
     @PreAuthorize("isAuthenticated()")
-    fun updateOrganization(@RequestBody organization: Organization, authentication: Authentication): Mono<StringResponse> {
+    fun updateOrganization(@PathVariable organization: Organization, authentication: Authentication): Mono<StringResponse> {
         val userId = (authentication.details as AuthenticationDetails).id
         val role = lnkUserOrganizationService.findRoleByUserIdAndOrganizationName(userId, organization.name)
         val response = if (role.priority >= 2) {
@@ -111,9 +111,9 @@ internal class OrganizationController(
      * @param authentication an [Authentication] representing an authenticated request
      * @return role
      */
-    @PostMapping("/role")
+    @GetMapping("/{organizationName}/role")
     @PreAuthorize("isAuthenticated()")
-    fun getRoleOrganization(@RequestBody organizationName: String, authentication: Authentication): Mono<Role> {
+    fun getRoleOrganization(@PathVariable organizationName: String, authentication: Authentication): Mono<Role> {
         val userId = (authentication.details as AuthenticationDetails).id
         return Mono.fromCallable { lnkUserOrganizationService.findRoleByUserIdAndOrganizationName(userId, organizationName) }
     }
