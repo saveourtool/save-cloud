@@ -14,3 +14,8 @@ import java.time.ZoneOffset
  * @return an instance of LocalDateTime
  */
 fun Long.secondsToLocalDateTime(): LocalDateTime = LocalDateTime.ofInstant(Instant.ofEpochSecond(this), ZoneOffset.UTC)
+
+/**
+ * @return `Instant` representing this number of UNIX seconds
+ */
+fun Long.toInstant(): Instant = Instant.ofEpochSecond(this)
