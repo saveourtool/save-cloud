@@ -94,7 +94,7 @@ internal class OrganizationController(
      */
     @PostMapping("/{organizationName}/update")
     @PreAuthorize("isAuthenticated()")
-    fun updateOrganization(@PathVariable organization: Organization, authentication: Authentication): Mono<StringResponse> {
+    fun updateOrganization(@RequestBody organization: Organization, authentication: Authentication): Mono<StringResponse> {
         val userId = (authentication.details as AuthenticationDetails).id
         val role = lnkUserOrganizationService.findRoleByUserIdAndOrganizationName(userId, organization.name)
         val response = if (role.priority >= 2) {
