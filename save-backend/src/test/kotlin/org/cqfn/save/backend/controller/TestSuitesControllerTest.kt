@@ -12,6 +12,7 @@ import org.cqfn.save.testsuite.TestSuiteType
 import org.cqfn.save.testutils.checkQueues
 import org.cqfn.save.testutils.cleanup
 import org.cqfn.save.testutils.createMockWebServer
+import org.cqfn.save.v1
 
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.jupiter.api.AfterAll
@@ -160,7 +161,7 @@ class TestSuitesControllerTest {
         }
         val allStandardTestSuite = testSuiteRepository.findAll().count { it.type == TestSuiteType.STANDARD }
         webClient.get()
-            .uri("/api/allStandardTestSuites")
+            .uri("/api/$v1/allStandardTestSuites")
             .exchange()
             .expectStatus()
             .isOk
@@ -206,7 +207,7 @@ class TestSuitesControllerTest {
         whenever(scheduler.scheduleJob(any())).thenReturn(Date.from(Instant.now()))
 
         webClient.post()
-            .uri("/api/updateStandardTestSuites")
+            .uri("/api/$v1/updateStandardTestSuites")
             .exchange()
             .expectStatus()
             .isOk

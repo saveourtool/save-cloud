@@ -1,0 +1,2307 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "SAVE Backend API",
+    "version": "v1"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:5000",
+      "description": "Generated server url"
+    }
+  ],
+  "tags": [
+    {
+      "name": "api"
+    },
+    {
+      "name": "permissions"
+    }
+  ],
+  "paths": {
+    "/api/v1/updateStandardTestSuites": {
+      "post": {
+        "tags": [
+          "test-suites-controller"
+        ],
+        "operationId": "updateStandardTestSuites",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unit"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/users/save": {
+      "post": {
+        "tags": [
+          "users-details-controller"
+        ],
+        "operationId": "saveUser",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserInfo"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/testExecutions": {
+      "get": {
+        "tags": [
+          "test-execution-controller"
+        ],
+        "operationId": "getTestExecutions",
+        "parameters": [
+          {
+            "name": "executionId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "FAILED",
+                "IGNORED",
+                "INTERNAL_ERROR",
+                "PASSED",
+                "READY_FOR_TESTING",
+                "RUNNING",
+                "TEST_ERROR"
+              ]
+            }
+          },
+          {
+            "name": "testSuite",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TestExecutionDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "test-execution-controller"
+        ],
+        "operationId": "getTestExecutionByLocation",
+        "parameters": [
+          {
+            "name": "executionId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TestResultLocation"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestExecutionDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/submitExecutionRequest": {
+      "post": {
+        "tags": [
+          "clone-repository-controller"
+        ],
+        "operationId": "submitExecutionRequest",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "required": [
+                  "executionRequest"
+                ],
+                "type": "object",
+                "properties": {
+                  "executionRequest": {
+                    "$ref": "#/components/schemas/ExecutionRequest"
+                  },
+                  "file": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/FileInfo"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/rerunExecution": {
+      "post": {
+        "tags": [
+          "execution-controller"
+        ],
+        "operationId": "rerunExecution",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/update": {
+      "post": {
+        "tags": [
+          "project-controller"
+        ],
+        "operationId": "updateProject",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Project"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/save": {
+      "post": {
+        "tags": [
+          "project-controller"
+        ],
+        "operationId": "saveProject",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewProjectDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/roles/{organizationName}/{projectName}": {
+      "get": {
+        "tags": [
+          "permissions",
+          "api"
+        ],
+        "description": "Get role for a user on a particular project. Returns self role if no userName is set.",
+        "operationId": "getRole",
+        "parameters": [
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true
+          },
+          {
+            "name": "organizationName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "projectName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "userName",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": "Requested user or project doesn\u0027t exist or the user doesn\u0027t have enough permissions (i.e. project is hidden from the current user)",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "ADMIN",
+                    "NONE",
+                    "OWNER",
+                    "SUPER_ADMIN",
+                    "VIEWER"
+                  ]
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Successfully fetched user\u0027s role",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "ADMIN",
+                    "NONE",
+                    "OWNER",
+                    "SUPER_ADMIN",
+                    "VIEWER"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "ADMIN",
+                    "NONE",
+                    "OWNER",
+                    "SUPER_ADMIN",
+                    "VIEWER"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "permissions",
+          "api"
+        ],
+        "description": "Set role for a user on a particular project",
+        "operationId": "setRole",
+        "parameters": [
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true
+          },
+          {
+            "name": "organizationName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "projectName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetRoleRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "404": {
+            "description": "Requested user or project doesn\u0027t exist",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unit"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "User doesn\u0027t have permissions to manage this organization members",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unit"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Permission added",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unit"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unit"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      }
+    },
+    "/api/v1/projects/git": {
+      "post": {
+        "tags": [
+          "project-controller"
+        ],
+        "operationId": "getRepositoryDtoByProject",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Project"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/GitDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/organization/save": {
+      "post": {
+        "tags": [
+          "organization-controller"
+        ],
+        "operationId": "saveOrganization",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Organization"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/image/upload": {
+      "post": {
+        "tags": [
+          "download-files-controller"
+        ],
+        "operationId": "uploadImage",
+        "parameters": [
+          {
+            "name": "owner",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ORGANIZATION",
+                "USER"
+              ]
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "required": [
+                  "file"
+                ],
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImageInfo"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/files/upload": {
+      "post": {
+        "tags": [
+          "download-files-controller"
+        ],
+        "operationId": "upload",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "required": [
+                  "file"
+                ],
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/FileInfo"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/files/get-debug-info": {
+      "post": {
+        "tags": [
+          "download-files-controller"
+        ],
+        "operationId": "getDebugInfo",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TestExecutionDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/executionRequestStandardTests": {
+      "post": {
+        "tags": [
+          "clone-repository-controller"
+        ],
+        "operationId": "executionRequestStandardTests",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "required": [
+                  "execution",
+                  "file"
+                ],
+                "type": "object",
+                "properties": {
+                  "execution": {
+                    "$ref": "#/components/schemas/ExecutionRequestForStandardSuites"
+                  },
+                  "file": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/FileInfo"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/execution/delete": {
+      "post": {
+        "tags": [
+          "execution-controller"
+        ],
+        "operationId": "deleteExecutionsByExecutionIds",
+        "parameters": [
+          {
+            "name": "executionIds",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "format": "int64"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/execution/deleteAll": {
+      "post": {
+        "tags": [
+          "execution-controller"
+        ],
+        "operationId": "deleteExecutionForProject",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "organizationName",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/execution": {
+      "get": {
+        "tags": [
+          "execution-controller"
+        ],
+        "operationId": "getExecution",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Execution"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/allStandardTestSuites": {
+      "get": {
+        "tags": [
+          "test-suites-controller"
+        ],
+        "operationId": "getAllStandardTestSuites",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TestSuiteDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/users/{userName}": {
+      "get": {
+        "tags": [
+          "users-details-controller"
+        ],
+        "operationId": "findByName",
+        "parameters": [
+          {
+            "name": "userName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserInfo"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/users/{userName}/avatar": {
+      "get": {
+        "tags": [
+          "users-details-controller"
+        ],
+        "operationId": "avatar",
+        "parameters": [
+          {
+            "name": "userName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImageInfo"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/testLatestExecutions": {
+      "get": {
+        "tags": [
+          "test-execution-controller"
+        ],
+        "operationId": "getTestExecutionsByStatus",
+        "parameters": [
+          {
+            "name": "executionId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "FAILED",
+                "IGNORED",
+                "INTERNAL_ERROR",
+                "PASSED",
+                "READY_FOR_TESTING",
+                "RUNNING",
+                "TEST_ERROR"
+              ]
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TestSuiteExecutionStatisticDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/testExecution/count": {
+      "get": {
+        "tags": [
+          "test-execution-controller"
+        ],
+        "operationId": "getTestExecutionsCount",
+        "parameters": [
+          {
+            "name": "executionId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "FAILED",
+                "IGNORED",
+                "INTERNAL_ERROR",
+                "PASSED",
+                "READY_FOR_TESTING",
+                "RUNNING",
+                "TEST_ERROR"
+              ]
+            }
+          },
+          {
+            "name": "testSuite",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/": {
+      "get": {
+        "tags": [
+          "project-controller"
+        ],
+        "operationId": "getProjects",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Project"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{organizationName}/{projectName}/users": {
+      "get": {
+        "tags": [
+          "lnk-user-project-controller"
+        ],
+        "operationId": "getAllUsersByProjectNameAndOrganizationName",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "projectName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UserInfo"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/not-deleted": {
+      "get": {
+        "tags": [
+          "project-controller"
+        ],
+        "operationId": "getNotDeletedProjects",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Project"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/get/projects-by-organization": {
+      "get": {
+        "tags": [
+          "project-controller"
+        ],
+        "operationId": "getProjectsByOrganizationName",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Project"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/get/organization-name": {
+      "get": {
+        "tags": [
+          "project-controller"
+        ],
+        "operationId": "getProjectByNameAndOrganizationName",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "organizationName",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Project"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/get/organization-id": {
+      "get": {
+        "tags": [
+          "project-controller"
+        ],
+        "operationId": "getProjectByNameAndOrganizationId",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "organizationId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Project"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/all": {
+      "get": {
+        "tags": [
+          "project-controller"
+        ],
+        "operationId": "getProjects_1",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Project"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/organization/{organizationName}": {
+      "get": {
+        "tags": [
+          "organization-controller"
+        ],
+        "operationId": "getOrganizationByName",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Organization"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/organization/{organizationName}/avatar": {
+      "get": {
+        "tags": [
+          "organization-controller"
+        ],
+        "operationId": "avatar_1",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImageInfo"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/organization/get/list": {
+      "get": {
+        "tags": [
+          "organization-controller"
+        ],
+        "operationId": "getOrganizationsByOwnerId",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Organization"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/latestExecution": {
+      "get": {
+        "tags": [
+          "execution-controller"
+        ],
+        "operationId": "getLatestExecutionForProject",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "organizationId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExecutionDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/files/list": {
+      "get": {
+        "tags": [
+          "download-files-controller"
+        ],
+        "operationId": "list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FileInfo"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/files/download": {
+      "get": {
+        "tags": [
+          "download-files-controller"
+        ],
+        "operationId": "download",
+        "parameters": [
+          {
+            "name": "fileInfo",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/FileInfo"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "byte"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/executionDto": {
+      "get": {
+        "tags": [
+          "execution-controller"
+        ],
+        "operationId": "getExecutionDto",
+        "parameters": [
+          {
+            "name": "executionId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExecutionDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/executionDtoList": {
+      "get": {
+        "tags": [
+          "execution-controller"
+        ],
+        "operationId": "getExecutionByProject",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "organizationName",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ExecutionDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/check-git-connectivity-adaptor": {
+      "get": {
+        "tags": [
+          "check-git-connectivity-controller"
+        ],
+        "operationId": "checkGitConnectivity",
+        "parameters": [
+          {
+            "name": "user",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "token",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "url",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/awesome-benchmarks": {
+      "get": {
+        "tags": [
+          "awesome-benchmarks-controller"
+        ],
+        "operationId": "getAllAwesomeBenchmarks",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AwesomeBenchmarks"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Unit": {
+        "type": "object"
+      },
+      "UserInfo": {
+        "required": [
+          "name",
+          "projects"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "projects": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string",
+              "enum": [
+                "ADMIN",
+                "NONE",
+                "OWNER",
+                "SUPER_ADMIN",
+                "VIEWER"
+              ]
+            }
+          },
+          "email": {
+            "type": "string"
+          },
+          "avatar": {
+            "type": "string"
+          },
+          "company": {
+            "type": "string"
+          },
+          "location": {
+            "type": "string"
+          },
+          "linkedin": {
+            "type": "string"
+          },
+          "gitHub": {
+            "type": "string"
+          },
+          "twitter": {
+            "type": "string"
+          }
+        }
+      },
+      "TestResultLocation": {
+        "required": [
+          "pluginName",
+          "testLocation",
+          "testName",
+          "testSuiteName"
+        ],
+        "type": "object",
+        "properties": {
+          "testSuiteName": {
+            "type": "string"
+          },
+          "pluginName": {
+            "type": "string"
+          },
+          "testLocation": {
+            "type": "string"
+          },
+          "testName": {
+            "type": "string"
+          }
+        }
+      },
+      "TestExecutionDto": {
+        "required": [
+          "filePath",
+          "pluginName",
+          "status",
+          "tags"
+        ],
+        "type": "object",
+        "properties": {
+          "filePath": {
+            "type": "string"
+          },
+          "pluginName": {
+            "type": "string"
+          },
+          "agentContainerId": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "FAILED",
+              "IGNORED",
+              "INTERNAL_ERROR",
+              "PASSED",
+              "READY_FOR_TESTING",
+              "RUNNING",
+              "TEST_ERROR"
+            ]
+          },
+          "startTimeSeconds": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "endTimeSeconds": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "testSuiteName": {
+            "type": "string"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "missingWarnings": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "matchedWarnings": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "ExecutionRequest": {
+        "required": [
+          "gitDto",
+          "project",
+          "sdk",
+          "testRootPath"
+        ],
+        "type": "object",
+        "properties": {
+          "project": {
+            "$ref": "#/components/schemas/Project"
+          },
+          "gitDto": {
+            "$ref": "#/components/schemas/GitDto"
+          },
+          "testRootPath": {
+            "type": "string"
+          },
+          "sdk": {
+            "$ref": "#/components/schemas/Sdk"
+          },
+          "executionId": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "GitDto": {
+        "required": [
+          "url"
+        ],
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "username": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          },
+          "branch": {
+            "type": "string"
+          },
+          "hash": {
+            "type": "string"
+          }
+        }
+      },
+      "Organization": {
+        "required": [
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "ownerId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "dateCreated": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "avatar": {
+            "type": "string"
+          },
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "Project": {
+        "required": [
+          "contestRating",
+          "name",
+          "numberOfContainers",
+          "organization",
+          "public",
+          "status"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "CREATED",
+              "DELETED"
+            ]
+          },
+          "public": {
+            "type": "boolean"
+          },
+          "userId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "email": {
+            "type": "string"
+          },
+          "numberOfContainers": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "organization": {
+            "$ref": "#/components/schemas/Organization"
+          },
+          "contestRating": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "Sdk": {
+        "required": [
+          "name",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          }
+        }
+      },
+      "FileInfo": {
+        "required": [
+          "isExecutable",
+          "name",
+          "sizeBytes",
+          "uploadedMillis"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "uploadedMillis": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "sizeBytes": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "isExecutable": {
+            "type": "boolean"
+          }
+        }
+      },
+      "NewProjectDto": {
+        "required": [
+          "organizationName",
+          "project"
+        ],
+        "type": "object",
+        "properties": {
+          "project": {
+            "$ref": "#/components/schemas/Project"
+          },
+          "organizationName": {
+            "type": "string"
+          },
+          "gitDto": {
+            "$ref": "#/components/schemas/GitDto"
+          }
+        }
+      },
+      "SetRoleRequest": {
+        "required": [
+          "role",
+          "userName"
+        ],
+        "type": "object",
+        "properties": {
+          "userName": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "ADMIN",
+              "NONE",
+              "OWNER",
+              "SUPER_ADMIN",
+              "VIEWER"
+            ]
+          }
+        }
+      },
+      "ImageInfo": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string"
+          }
+        }
+      },
+      "ExecutionRequestForStandardSuites": {
+        "required": [
+          "project",
+          "sdk",
+          "testsSuites"
+        ],
+        "type": "object",
+        "properties": {
+          "project": {
+            "$ref": "#/components/schemas/Project"
+          },
+          "testsSuites": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "sdk": {
+            "$ref": "#/components/schemas/Sdk"
+          },
+          "execCmd": {
+            "type": "string"
+          },
+          "batchSizeForAnalyzer": {
+            "type": "string"
+          }
+        }
+      },
+      "Execution": {
+        "required": [
+          "failedTests",
+          "passedTests",
+          "project",
+          "runningTests",
+          "sdk",
+          "skippedTests",
+          "startTime",
+          "status",
+          "type"
+        ],
+        "type": "object",
+        "properties": {
+          "project": {
+            "$ref": "#/components/schemas/Project"
+          },
+          "startTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ERROR",
+              "FINISHED",
+              "PENDING",
+              "RUNNING"
+            ]
+          },
+          "testSuiteIds": {
+            "type": "string"
+          },
+          "resourcesRootPath": {
+            "type": "string"
+          },
+          "batchSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "GIT",
+              "STANDARD"
+            ]
+          },
+          "version": {
+            "type": "string"
+          },
+          "runningTests": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "passedTests": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "failedTests": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "skippedTests": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "sdk": {
+            "type": "string"
+          },
+          "additionalFiles": {
+            "type": "string"
+          },
+          "user": {
+            "$ref": "#/components/schemas/User"
+          },
+          "execCmd": {
+            "type": "string"
+          },
+          "batchSizeForAnalyzer": {
+            "type": "string"
+          },
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "User": {
+        "required": [
+          "source"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "avatar": {
+            "type": "string"
+          },
+          "company": {
+            "type": "string"
+          },
+          "location": {
+            "type": "string"
+          },
+          "linkedin": {
+            "type": "string"
+          },
+          "gitHub": {
+            "type": "string"
+          },
+          "twitter": {
+            "type": "string"
+          },
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "TestSuiteDto": {
+        "required": [
+          "name",
+          "testRootPath"
+        ],
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "OBSOLETE_STANDARD",
+              "PROJECT",
+              "STANDARD"
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "project": {
+            "$ref": "#/components/schemas/Project"
+          },
+          "testRootPath": {
+            "type": "string"
+          },
+          "testSuiteRepoUrl": {
+            "type": "string"
+          },
+          "language": {
+            "type": "string"
+          }
+        }
+      },
+      "TestSuiteExecutionStatisticDto": {
+        "required": [
+          "countTest",
+          "countWithStatusTest",
+          "status",
+          "testSuiteName"
+        ],
+        "type": "object",
+        "properties": {
+          "testSuiteName": {
+            "type": "string"
+          },
+          "countTest": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "countWithStatusTest": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "FAILED",
+              "IGNORED",
+              "INTERNAL_ERROR",
+              "PASSED",
+              "READY_FOR_TESTING",
+              "RUNNING",
+              "TEST_ERROR"
+            ]
+          }
+        }
+      },
+      "ExecutionDto": {
+        "required": [
+          "failedTests",
+          "id",
+          "passedTests",
+          "runningTests",
+          "skippedTests",
+          "startTime",
+          "status",
+          "type"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ERROR",
+              "FINISHED",
+              "PENDING",
+              "RUNNING"
+            ]
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "GIT",
+              "STANDARD"
+            ]
+          },
+          "version": {
+            "type": "string"
+          },
+          "startTime": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "endTime": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "runningTests": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "passedTests": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "failedTests": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "skippedTests": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "additionalFiles": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "AwesomeBenchmarks": {
+        "required": [
+          "category",
+          "description",
+          "documentation",
+          "homepage",
+          "language",
+          "license",
+          "name",
+          "scenarios_num",
+          "sources",
+          "tags"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "AI",
+              "AUDIT",
+              "CODING_STANDARD",
+              "PERFORMANCE",
+              "STATIC_ANALYSIS"
+            ]
+          },
+          "tags": {
+            "type": "string"
+          },
+          "language": {
+            "type": "string"
+          },
+          "license": {
+            "type": "string"
+          },
+          "scenarios_num": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "description": {
+            "type": "string"
+          },
+          "homepage": {
+            "type": "string"
+          },
+          "sources": {
+            "type": "string"
+          },
+          "documentation": {
+            "type": "string"
+          },
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "basic": {
+        "type": "http",
+        "scheme": "basic"
+      }
+    }
+  }
+}

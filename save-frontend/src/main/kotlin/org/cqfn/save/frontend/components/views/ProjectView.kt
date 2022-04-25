@@ -733,6 +733,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     private fun RBuilder.renderSettings() {
         child(projectSettingsMenu) {
             attrs.project = state.project
+
             attrs.selfRole = Role.VIEWER
             attrs.currentUserInfo = props.currentUserInfo ?: UserInfo("Unknown")
         }
