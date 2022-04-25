@@ -43,6 +43,10 @@ image: '{{ .Values.imageRegistry }}/{{ .service.imageName }}:{{ .Values.dockerTa
 env:
   - name: SPRING_PROFILES_ACTIVE
     value: {{ or .service.profile .Values.profile }}
+  {{- if .service.JavaOpts }}
+  - name: JAVA_OPTS
+    value: {{ .service.JavaOpts }}
+  {{- end }}
 ports:
   - name: http
     containerPort:  {{ .service.containerPort }}
