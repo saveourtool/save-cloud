@@ -92,12 +92,15 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
 
     override fun componentDidMount() {
         super.componentDidMount()
+        println("UserSettingsView: props.userName=${props.userName}")
         scope.launch {
             val avatar = getAvatar()
             val user = props.userName?.let { getUser(it) }
+            println("user null? ${user == null}")
             setState {
                 image = avatar
                 userInfo = user
+                println("After USERNAME ${userInfo?.name}")
             }
         }
     }
@@ -221,6 +224,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
 
     @Suppress("MISSING_KDOC_CLASS_ELEMENTS", "MISSING_KDOC_ON_FUNCTION")
     fun updateUser() {
+        println("\nSTATE ${state.userInfo?.name}")
         val newUserInfo = UserInfo(
             name = state.userInfo!!.name,
             password = state.token,

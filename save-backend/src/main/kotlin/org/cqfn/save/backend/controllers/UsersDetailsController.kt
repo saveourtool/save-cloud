@@ -26,8 +26,11 @@ class UsersDetailsController(
      */
     @GetMapping("/{userName}/avatar")
     @PreAuthorize("permitAll()")
-    fun avatar(@PathVariable userName: String): Mono<ImageInfo> =
-            justOrNotFound(userRepository.findByName(userName)).map { it.avatar }.map { ImageInfo(it) }
+    fun avatar(@PathVariable userName: String): Mono<ImageInfo> {
+        println("Find avatar for ${userName}")
+        return justOrNotFound(userRepository.findByName(userName)).map { it.avatar }.map { ImageInfo(it) }
+    }
+
 
     /**
      * @param userName username
@@ -46,7 +49,9 @@ class UsersDetailsController(
     @PostMapping("/save")
     @PreAuthorize("isAuthenticated()")
     fun saveUser(@RequestBody newUserInfo: UserInfo, authentication: Authentication) {
+        println("\n\n\nSTART UPDATE USER")
         val user = userRepository.findByName(newUserInfo.name).get()
+        println("${user.password}")
         val userId = (authentication.details as AuthenticationDetails).id
         if (user.id == userId) {
             userRepository.save(user.apply {
