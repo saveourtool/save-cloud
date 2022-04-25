@@ -28,10 +28,8 @@ spec:
       volumes:
         - {{ include "spring-boot.config-volume" (dict "service" .Values.orchestrator) | indent 10 | trim }}
         - name: repos-storage
-          persistentVolumeClaim:
-            claimName: repos-storage
+          hostPath:
+            path: ~/save/repos
         - name: execution-logs-storage
           # FixMe: Do we still need logs storage? All logs should be stored in Loki.
           emptyDir: {}
-          #persistentVolumeClaim:
-          #  claimName: execution-logs-storage
