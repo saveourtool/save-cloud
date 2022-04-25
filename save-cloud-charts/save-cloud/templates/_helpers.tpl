@@ -47,6 +47,10 @@ env:
   - name: JAVA_OPTS
     value: {{ .service.JavaOpts }}
   {{- end }}
+  {{- range $key, $value := .service.env }}
+  - name: {{ $key }}
+    value: {{ $value }}
+  {{- end }}
 ports:
   - name: http
     containerPort:  {{ .service.containerPort }}

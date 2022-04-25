@@ -8,6 +8,8 @@ backend:
   profile: dev,secure
   imageName: save-backend
   containerPort: 5800
+  env:
+    DB_PASSWORD_FILE: /home/cnb/secrets/db_secrets
 orchestrator:
   name: orchestrator
   imageName: save-orchestrator
