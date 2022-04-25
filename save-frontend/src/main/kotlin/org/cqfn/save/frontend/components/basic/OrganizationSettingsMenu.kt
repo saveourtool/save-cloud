@@ -28,15 +28,16 @@ import kotlinx.html.js.onClickFunction
 import kotlinx.js.jso
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.cqfn.save.entities.Organization
 
 /**
- * ProjectSettingsMenu component props
+ * OrganizationSettingsMenu component props
  */
-external interface ProjectSettingsMenuProps : Props {
+external interface OrganizationSettingsMenuProps : Props {
     /**
-     * Current project settings
+     * Current organization settings
      */
-    var project: Project
+    var organization: Organization
 
     /**
      * Role of user that opened this window
@@ -70,22 +71,22 @@ private fun String.toRole() = when (this) {
     "MAGIC_NUMBER",
     "ComplexMethod"
 )
-fun projectSettingsMenu(
+fun organizationSettingsMenu(
     deleteProjectCallback: () -> Unit,
     updateProjectSettings: (Project) -> Unit,
     updateErrorMessage: (Response) -> Unit,
-) = fc<ProjectSettingsMenuProps> { props ->
+) = fc<OrganizationSettingsMenuProps> { props ->
     @Suppress("LOCAL_VARIABLE_EARLY_DECLARATION")
-    val projectRef = useRef(props.project)
-    val (draftProject, setDraftProject) = useState(props.project)
-    useEffect(props.project) {
-        if (projectRef.current !== props.project) {
-            setDraftProject(props.project)
-            projectRef.current = props.project
+    val organizationRef = useRef(props.organization)
+    val (draftOrganization, setDraftOrganization) = useState(props.organization)
+    useEffect(props.organization) {
+        if (organizationRef.current !== props.organization) {
+            setDraftProject(props.organization)
+            organizationRef.current = props.organization
         }
     }
 
-    val projectPath = props.project.let { "${it.organization.name}/${it.name}" }
+    val organizationPath = props.organization.name
 
     val (changeProjectUsers, setChangeProjectUsers) = useState(false)
     val (projectUsers, setProjectUsers) = useState(emptyList<UserInfo>())
@@ -120,7 +121,7 @@ fun projectSettingsMenu(
         }
     }
 
-    val (userToAdd, setUserToAdd) = useState(UserInfo(""))
+    val (userToAdd, setUserToAdd) = useState("")
     val (usersNotFromProject, setUsersNotFromProject) = useState(emptyList<UserInfo>())
     val getUsersNotFromProject = debounce(
         useRequest(dependencies = arrayOf(changeProjectUsers, userToAdd)) {
@@ -148,10 +149,10 @@ fun projectSettingsMenu(
         val response = post(
             url = "$apiUrl/projects/roles/$projectPath",
             headers = headers,
-            body = Json.encodeToString(SetRoleRequest(userToAdd.name, Role.VIEWER)),
+            body = Json.encodeToString(SetRoleRequest(userToAdd, Role.VIEWER)),
         )
         if (response.ok) {
-            setUserToAdd(UserInfo(""))
+            setUserToAdd("")
             setChangeProjectUsers { !it }
             getProjectUsers()
             getUsersNotFromProject()
@@ -202,31 +203,95 @@ fun projectSettingsMenu(
         setSelfRole(role)
     }()
 
-    val projectPermissionManagerCard = manageUserRoleCardComponent(
-        {
-            setUserToAdd(it)
-            addUserToProject()
-        },
-        {
-            setUserToDelete(it)
-            deleteUser()
-        },
-        {
-            it.projects
-        },
-    ) {}
-
     div("row justify-content-center mb-2") {
         // ===================== LEFT COLUMN =======================================================================
         div("col-4 mb-2 pl-0 pr-0 mr-2 ml-2") {
             div("text-xs text-center font-weight-bold text-primary text-uppercase mb-3") {
                 +"Users"
             }
-            child(projectPermissionManagerCard) {
-                attrs{
-                    selfUserInfo = props.currentUserInfo
-                    usersFromGroup = projectUsers
-                    usersNotFromGroup = usersNotFromProject
+            div("card card-body mt-0 pt-0 pr-0 pl-0") {
+                div("row mt-0 ml-0 mr-0") {
+                    div("input-group") {
+                        input(type = InputType.text, classes = "form-control") {
+                            attrs.id = "input-users-to-add"
+                            attrs.list = "complete-users-to-add"
+                            attrs.placeholder = "username"
+                            attrs.value = userToAdd
+                            attrs.onChangeFunction = {
+                                setUserToAdd((it.target as HTMLInputElement).value)
+                                getUsersNotFromProject()
+                            }
+                        }
+                        datalist {
+                            attrs.id = "complete-users-to-add"
+                            attrs["style"] = jso<CSSProperties> {
+                                appearance = None.none
+                            }
+                            for (user in usersNotFromProject) {
+                                option {
+                                    attrs.value = user.name
+                                    attrs.label = user.source ?: ""
+                                }
+                            }
+                        }
+                        div("input-group-append") {
+                            button(type = ButtonType.button, classes = "btn btn-sm btn-success") {
+                                attrs.onClickFunction = {
+                                    addUserToProject()
+                                }
+                                +"Add user"
+                            }
+                        }
+                    }
+                }
+                for (user in projectUsers) {
+                    val userName = user.source + ":" + user.name
+                    val userRole = user.projects[projectPath] ?: Role.VIEWER
+                    val userIndex = projectUsers.indexOf(user)
+                    div("row mt-2 mr-0") {
+                        div("col-1") {
+                            button(classes = "btn h-auto w-auto") {
+                                fontAwesomeIcon(icon = faTimesCircle)
+                                attrs.id = "remove-user-$userIndex"
+                                attrs.hidden = selfRole.priority <= user.projects[projectPath]!!.priority
+                                attrs.onClick = {
+                                    val deletedUserIndex = attrs.id.split("-")[2].toInt()
+                                    setUserToDelete(projectUsers[deletedUserIndex])
+                                    deleteUser()
+                                }
+                            }
+                        }
+                        div("col-6 text-left align-self-center") {
+                            +userName
+                        }
+                        div("col-5 text-left align-self-right") {
+                            select("custom-select") {
+                                attrs.onChangeFunction = { event ->
+                                    val target = event.target as HTMLSelectElement
+                                    setPermissionsChanged { permissionsChanged ->
+                                        permissionsChanged.toMutableMap()
+                                            .apply {
+                                                put(userName, target.value.toRole())
+                                            }
+                                            .toMap()
+                                    }
+                                }
+                                attrs.id = "role-$userIndex"
+                                for (role in Role.values()) {
+                                    if (role != Role.NONE && (role.priority < selfRole.priority ||
+                                            user.name == props.currentUserInfo.name && selfRole == role)) {
+                                        option {
+                                            attrs.value = role.formattedName
+                                            attrs.selected = role == userRole
+                                            +role.toString()
+                                        }
+                                    }
+                                }
+
+                                attrs.disabled = (permissionsChanged[userName] ?: user.projects[projectPath]!!).priority >= selfRole.priority
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -244,10 +309,10 @@ fun projectSettingsMenu(
                         input(type = InputType.email) {
                             attrs["class"] = "form-control"
                             attrs {
-                                value = draftProject.email ?: ""
+                                value = draftOrganization.email ?: ""
                                 placeholder = "email@example.com"
                                 onChange = {
-                                    setDraftProject(draftProject.copy(email = (it.target as HTMLInputElement).value))
+                                    setDraftOrganization(draftOrganization.copy(email = (it.target as HTMLInputElement).value))
                                 }
                             }
                         }

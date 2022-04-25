@@ -450,6 +450,9 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
 
     private fun RBuilder.renderSettings() {
         // FixMe: will be finished later
+        child(OrganizationView::class) {
+
+        }
     }
 
     /**

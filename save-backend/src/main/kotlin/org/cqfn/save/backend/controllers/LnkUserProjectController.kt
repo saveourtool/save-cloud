@@ -1,7 +1,8 @@
 /**
- * Controller for processing links between users and their roles:
+ * Controller for processing links between users and their roles in projects:
  * 1) to put new roles of users
  * 2) to get users and their roles by project
+ * 3) to remove users from projects
  */
 
 package org.cqfn.save.backend.controllers
@@ -20,7 +21,7 @@ import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
 
 /**
- * Controller for processing links between users and their roles
+ * Controller for processing links between users and their roles in projects
  */
 @RestController
 @RequestMapping("/api")

@@ -1,49 +1,45 @@
 package org.cqfn.save.backend.service
 
 import org.cqfn.save.backend.repository.LnkUserOrganizationRepository
-import org.cqfn.save.backend.repository.LnkUserProjectRepository
 import org.cqfn.save.domain.Role
-import org.cqfn.save.entities.LnkUserProject
-import org.cqfn.save.entities.Organization
-import org.cqfn.save.entities.Project
-import org.cqfn.save.entities.User
+import org.cqfn.save.entities.*
 import org.springframework.stereotype.Service
 
 /**
- * Service of lnkUserProjects
+ * Service of lnkUserOrganization
  */
 @Service
 class LnkUserOrganizationService(private val lnkUserOrganizationRepository: LnkUserOrganizationRepository) {
     /**
-     * @param project
-     * @return all users with role in project
+     * @param organization
+     * @return all users with role in [organization]
      */
     fun getAllUsersAndRolesByOrganization(organization: Organization) =
             lnkUserOrganizationRepository.findByOrganization(organization).associate { it.user to (it.role ?: Role.NONE) }
 
     /**
      * @param userId
-     * @param project
-     * @return role for user in [project] by user ID
+     * @param organization
+     * @return role for user in [organization] by []
      */
-    fun findRoleByUserIdAndProject(userId: Long, project: Project) = lnkUserProjectRepository
-        .findByUserIdAndProject(userId, project)
+    fun findRoleByUserIdAndOrganization(userId: Long, organization: Organization) = lnkUserOrganizationRepository
+        .findByUserIdAndOrganization(userId, organization)
         ?.role
         ?: Role.NONE
 
     /**
-     * Set role of [user] on a project [project] to [role]
+     * Set [role] of [user] in [organization]
      *
      * @throws IllegalStateException if [role] is [Role.NONE]
      */
     @Suppress("KDOC_WITHOUT_PARAM_TAG", "UnsafeCallOnNullableType")
-    fun setRole(user: User, project: Project, role: Role) {
+    fun setRole(user: User, organization: Organization, role: Role) {
         if (role == Role.NONE) {
             throw IllegalStateException("Role NONE should not be present in database!")
         }
-        val lnkUserProject = lnkUserProjectRepository.findByUserIdAndProject(user.id!!, project)
+        val lnkUserOrganization = lnkUserOrganizationRepository.findByUserIdAndOrganization(user.id!!, organization)
             ?.apply { this.role = role }
-            ?: LnkUserProject(project, user, role)
-        lnkUserProjectRepository.save(lnkUserProject)
+            ?: LnkUserOrganization(organization, user, role)
+        lnkUserOrganizationRepository.save(lnkUserOrganization)
     }
 }

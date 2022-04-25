@@ -3,6 +3,7 @@ package org.cqfn.save.info
 import org.cqfn.save.domain.Role
 
 import kotlinx.serialization.Serializable
+import org.cqfn.save.entities.Organization
 
 /**
  * Represents all data related to the User
@@ -24,6 +25,7 @@ data class UserInfo(
     val name: String,
     val source: String? = null,
     val projects: Map<String, Role> = emptyMap(),
+    val organizations: Map<String, Role> = emptyMap(),
     val email: String? = null,
     val avatar: String? = null,
     var company: String? = null,
