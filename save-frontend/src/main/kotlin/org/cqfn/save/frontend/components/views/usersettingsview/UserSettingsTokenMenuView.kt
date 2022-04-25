@@ -54,5 +54,6 @@ class UserSettingsTokenMenuView : UserSettingsView() {
         setState {
             this.token = token
         }
+        updateUser()
     }
 }

@@ -51,6 +51,8 @@ class UsersDetailsController(
         if (user.id == userId) {
             userRepository.save(user.apply {
                 email = newUserInfo.email
+                // TODO bcrypt
+                password = newUserInfo.password
                 company = newUserInfo.company
                 company = newUserInfo.location
                 company = newUserInfo.gitHub

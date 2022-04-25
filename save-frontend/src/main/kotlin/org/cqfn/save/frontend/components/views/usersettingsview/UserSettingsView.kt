@@ -223,6 +223,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
     fun updateUser() {
         val newUserInfo = UserInfo(
             name = state.userInfo!!.name,
+            password = state.token,
             source = state.userInfo?.source,
             projects = state.userInfo?.projects ?: emptyMap(),
             email = fieldsMap[InputTypes.USER_EMAIL]?.trim(),

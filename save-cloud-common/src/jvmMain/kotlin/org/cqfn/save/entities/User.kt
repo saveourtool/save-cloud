@@ -38,6 +38,7 @@ class User(
      */
     fun toUserInfo(projects: Map<String, Role> = emptyMap()) = UserInfo(
         name = name ?: "Undefined",
+        password = password,
         source = source,
         projects = projects,
         email = email,
