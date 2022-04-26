@@ -1,12 +1,16 @@
 package org.cqfn.save.backend.controllers
 
 import org.cqfn.save.backend.StringResponse
+import org.cqfn.save.backend.service.LnkUserOrganizationService
 import org.cqfn.save.backend.service.OrganizationService
 import org.cqfn.save.backend.utils.AuthenticationDetails
 import org.cqfn.save.domain.ImageInfo
 import org.cqfn.save.domain.OrganizationSaveStatus
+import org.cqfn.save.domain.Role
 import org.cqfn.save.entities.Organization
+import org.cqfn.save.v1
 import org.slf4j.LoggerFactory
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
