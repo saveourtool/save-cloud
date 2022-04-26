@@ -46,6 +46,8 @@ spring:
           uri: http://grafana:9100
           predicates:
             - Path=/grafana/**
+    kubernetes:
+      enabled: false
   security:
     oauth2:
       client:
@@ -62,7 +64,7 @@ spring:
       on-profile: kubernetes
   cloud:
     kubernetes:
+      enabled: true
       secrets:
         enabled: true
-#        name: gateway-oauth-secrets  # can be consumed by name only with `enableApi: true`
-        paths: /home/cnb/secrets  # todo: better to use JAVA_OPTS?
+        paths: ${OAUTH_CONFIG_PATH}
