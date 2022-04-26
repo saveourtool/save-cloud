@@ -48,13 +48,12 @@ class UserSettingsTokenMenuView : UserSettingsView() {
 
     override fun componentDidMount() {
         super.componentDidMount()
-        println("222222 UserSettingsTokenMenuView: props.userName=${props.userName}")
+        println("UserSettingsTokenMenuView: props.userName=${props.userName}")
         scope.launch {
             val user = props.userName?.let { getUser(it) }
-            println("222222222 user null? ${user == null}")
             setState {
                 userInfo = user
-                println("2222222222 After USERNAME ${userInfo?.name}")
+                println("After USERNAME ${userInfo?.name}")
             }
         }
     }
@@ -66,12 +65,17 @@ class UserSettingsTokenMenuView : UserSettingsView() {
         while (token.length < 40) {
             token += charPool.random()
         }
+
         setState {
-            this.token = token
+            state.token = token
+//            println("\n\nupdateUser start")
+//            println("${state.userInfo?.name} ${state.token}")
+//            updateUser()
+//            println("\n\nupdateUser finish")
         }
-        println("\n\n1111111111111111")
+        println("\n\nupdateUser start")
         println("${state.userInfo?.name} ${state.token}")
         updateUser()
-        println("\n\n22222222")
+        println("\n\nupdateUser finish")
     }
 }

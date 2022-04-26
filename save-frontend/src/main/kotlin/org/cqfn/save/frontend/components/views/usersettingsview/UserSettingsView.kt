@@ -92,15 +92,12 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
 
     override fun componentDidMount() {
         super.componentDidMount()
-        println("UserSettingsView: props.userName=${props.userName}")
         scope.launch {
             val avatar = getAvatar()
             val user = props.userName?.let { getUser(it) }
-            println("user null? ${user == null}")
             setState {
                 image = avatar
                 userInfo = user
-                println("After USERNAME ${userInfo?.name}")
             }
         }
     }
@@ -228,15 +225,15 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
         val newUserInfo = UserInfo(
             name = state.userInfo!!.name,
             password = state.token,
-            source = state.userInfo?.source,
-            projects = state.userInfo?.projects ?: emptyMap(),
+            source = state.userInfo!!.source,
+            projects = state.userInfo!!.projects,
             email = fieldsMap[InputTypes.USER_EMAIL]?.trim(),
             company = fieldsMap[InputTypes.COMPANY]?.trim(),
             location = fieldsMap[InputTypes.LOCATION]?.trim(),
             linkedin = fieldsMap[InputTypes.LINKEDIN]?.trim(),
             gitHub = fieldsMap[InputTypes.GIT_HUB]?.trim(),
             twitter = fieldsMap[InputTypes.TWITTER]?.trim(),
-            avatar = state.userInfo?.avatar,
+            avatar = state.userInfo!!.avatar,
         )
 
         val headers = Headers().also {
@@ -244,6 +241,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
             it.set("Content-Type", "application/json")
         }
         scope.launch {
+            println("SENT REQUEST TO UPDATE USER INFO")
             post("$apiUrl/users/save", headers, Json.encodeToString(newUserInfo))
         }
     }
