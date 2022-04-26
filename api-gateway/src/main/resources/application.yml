@@ -54,3 +54,15 @@ spring:
             # value that will work with GitHub API, where GitHub provides username as "login" in the response
             # https://docs.github.com/en/rest/reference/users#get-the-authenticated-user
             user-name-attribute: login
+
+---
+spring:
+  config:
+    activate:
+      on-profile: kubernetes
+  cloud:
+    kubernetes:
+      secrets:
+        enabled: true
+#        name: gateway-oauth-secrets  # can be consumed by name only with `enableApi: true`
+        paths: /home/cnb/secrets  # todo: better to use JAVA_OPTS?
