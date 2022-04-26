@@ -18,6 +18,7 @@ import org.cqfn.save.utils.AvatarType
 import org.cqfn.save.v1
 
 import csstype.*
+import kotlinx.coroutines.await
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.asList
 import org.w3c.dom.events.Event
@@ -32,6 +33,7 @@ import kotlinx.html.hidden
 import kotlinx.html.js.onChangeFunction
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.cqfn.save.domain.Role
 
 /**
  * `Props` retrieved from router
@@ -72,7 +74,7 @@ external interface UserSettingsViewState : State {
 
 @Suppress("MISSING_KDOC_TOP_LEVEL")
 abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsViewState>(false) {
-    private val fieldsMap: MutableMap<InputTypes, String> = mutableMapOf()
+    val fieldsMap: MutableMap<InputTypes, String> = mutableMapOf()
 
     init {
         state.isUploading = false
@@ -222,7 +224,6 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
 
     @Suppress("MISSING_KDOC_CLASS_ELEMENTS", "MISSING_KDOC_ON_FUNCTION")
     fun updateUser() {
-        println("\nSTATE ${state.userInfo?.name}")
         val newUserInfo = UserInfo(
             name = state.userInfo!!.name,
             password = state.token,
@@ -242,7 +243,6 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
             it.set("Content-Type", "application/json")
         }
         scope.launch {
-            println("SENT REQUEST TO UPDATE USER INFO")
             post("$apiUrl/users/save", headers, Json.encodeToString(newUserInfo))
         }
     }
