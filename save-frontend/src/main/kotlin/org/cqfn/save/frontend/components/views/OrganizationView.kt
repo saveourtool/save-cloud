@@ -281,7 +281,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                             fontAwesomeIcon(icon = faCheck)
                             attrs.hidden = state.isEditDisabled ?: true
                             attrs.onClick = {
-                                onOrganizationSave()
+                                state.organization?.let { onOrganizationSave(it) }
                                 turnEditMode(true)
                             }
                         }
@@ -493,9 +493,8 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         descriptionTmp = value
     }
 
-    private fun onOrganizationSave() {
-        val newOrganization = state.organization
-        newOrganization?.apply {
+    private fun onOrganizationSave(newOrganization: Organization) {
+        newOrganization.apply {
             description = descriptionTmp
         }
         val headers = Headers().also {
@@ -503,14 +502,10 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             it.set("Content-Type", "application/json")
         }
         scope.launch {
-            val response = newOrganization?.let {
-                post("$apiUrl/organization/${props.organizationName}/update", headers, Json.encodeToString(newOrganization))
-            }
-            response?.let { resp ->
-                if (resp.ok) {
-                    setState {
-                        organization = newOrganization
-                    }
+            val response = post("$apiUrl/organization/${props.organizationName}/update", headers, Json.encodeToString(newOrganization))
+            if (response.ok) {
+                setState {
+                    organization = newOrganization
                 }
             }
         }
