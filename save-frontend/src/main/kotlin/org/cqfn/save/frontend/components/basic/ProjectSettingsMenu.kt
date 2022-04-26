@@ -129,7 +129,7 @@ fun projectSettingsMenu(
                 set("Content-Type", "application/json")
             }
             val users = get(
-                url = "$apiUrl/users/not-from/$projectPath?prefix=$userToAdd",
+                url = "$apiUrl/users/not-from/$projectPath?prefix=${userToAdd.name}",
                 headers = headers,
             )
                 .unsafeMap {
@@ -182,7 +182,7 @@ fun projectSettingsMenu(
     val (isFirstRender, setIsFirstRender) = useState(true)
     if (isFirstRender) {
         getProjectUsers()
-        getUsersNotFromProject()
+//        getUsersNotFromProject()
         setIsFirstRender(false)
     }
 
@@ -214,7 +214,7 @@ fun projectSettingsMenu(
         {
             it.projects
         },
-    ) {}
+    )
 
     div("row justify-content-center mb-2") {
         // ===================== LEFT COLUMN =======================================================================
@@ -223,11 +223,9 @@ fun projectSettingsMenu(
                 +"Users"
             }
             child(projectPermissionManagerCard) {
-                attrs{
-                    selfUserInfo = props.currentUserInfo
-                    usersFromGroup = projectUsers
-                    usersNotFromGroup = usersNotFromProject
-                }
+                attrs.selfUserInfo = props.currentUserInfo
+                attrs.usersFromGroup = projectUsers
+                attrs.usersNotFromGroup = usersNotFromProject
             }
         }
         // ===================== RIGHT COLUMN ======================================================================

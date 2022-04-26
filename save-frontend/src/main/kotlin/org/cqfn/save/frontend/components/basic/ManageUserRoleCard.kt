@@ -40,18 +40,8 @@ private fun String.toRole() = when (this) {
  * [RProps] for card component
  */
 external interface ManageUserRoleCardProps : PropsWithChildren {
-    /**
-     * font-awesome class to be used as an icon
-     */
-    var faIcon: String
-
-    /**
-     *
-     */
     var selfUserInfo: UserInfo
-
     var usersFromGroup: List<UserInfo>
-
     var usersNotFromGroup: List<UserInfo>
 }
 
@@ -68,12 +58,10 @@ fun manageUserRoleCardComponent(
     addUserToGroup: (userToAdd: UserInfo) -> Unit,
     deleteUser: (userToDelete: UserInfo) -> Unit,
     getUserGroups: (UserInfo) -> Map<String, Role>,
-    contentBuilder: RDOMBuilder<DIV>.() -> Unit,
 ) = fc<ManageUserRoleCardProps> { props ->
     val (userToAdd, setUserToAdd) = useState(UserInfo(""))
     val (userToDelete, setUserToDelete) = useState(UserInfo(""))
 
-    val (usersNotFromGroup, setUsersNotFromGroup) = useState(emptyList<UserInfo>())
     val (permissionsChanged, setPermissionsChanged) = useState(mapOf<String, Role>())
 
     val groupName: String = ""
@@ -96,7 +84,7 @@ fun manageUserRoleCardComponent(
                     attrs["style"] = jso<CSSProperties> {
                         appearance = None.none
                     }
-                    for (user in usersNotFromGroup) {
+                    for (user in props.usersNotFromGroup) {
                         option {
                             attrs.value = user.name
                             attrs.label = user.source ?: ""

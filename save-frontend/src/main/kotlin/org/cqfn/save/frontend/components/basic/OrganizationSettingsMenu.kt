@@ -72,8 +72,8 @@ private fun String.toRole() = when (this) {
     "ComplexMethod"
 )
 fun organizationSettingsMenu(
-    deleteProjectCallback: () -> Unit,
-    updateProjectSettings: (Project) -> Unit,
+    deleteOrganizationCallback: () -> Unit,
+    updateOrganizationSettings: (Organization) -> Unit,
     updateErrorMessage: (Response) -> Unit,
 ) = fc<OrganizationSettingsMenuProps> { props ->
     @Suppress("LOCAL_VARIABLE_EARLY_DECLARATION")
@@ -81,18 +81,18 @@ fun organizationSettingsMenu(
     val (draftOrganization, setDraftOrganization) = useState(props.organization)
     useEffect(props.organization) {
         if (organizationRef.current !== props.organization) {
-            setDraftProject(props.organization)
+            setDraftOrganization(props.organization)
             organizationRef.current = props.organization
         }
     }
 
     val organizationPath = props.organization.name
 
-    val (changeProjectUsers, setChangeProjectUsers) = useState(false)
-    val (projectUsers, setProjectUsers) = useState(emptyList<UserInfo>())
-    val getProjectUsers = useRequest(dependencies = arrayOf(changeProjectUsers)) {
+    val (changeOrganizationUsers, setChangeOrganizationUsers) = useState(false)
+    val (organizationUsers, setOrganizationUsers) = useState(emptyList<UserInfo>())
+    val getOrganizationUsers = useRequest(dependencies = arrayOf(changeOrganizationUsers)) {
         val usersFromDb = get(
-            url = "$apiUrl/projects/$projectPath/users",
+            url = "$apiUrl/organization/$organizationPath/users",
             headers = Headers().also {
                 it.set("Accept", "application/json")
             },
@@ -100,7 +100,7 @@ fun organizationSettingsMenu(
             .unsafeMap {
                 it.decodeFromJsonString<List<UserInfo>>()
             }
-        setProjectUsers(usersFromDb)
+        setOrganizationUsers(usersFromDb)
     }
 
     val (permissionsChanged, setPermissionsChanged) = useState(mapOf<String, Role>())
@@ -111,7 +111,7 @@ fun organizationSettingsMenu(
                 set("Content-Type", "application/json")
             }
             val response = post(
-                "$apiUrl/projects/roles/$projectPath",
+                "$apiUrl/projects/roles/$organizationPath",
                 headers,
                 Json.encodeToString(SetRoleRequest(userName.split(":")[1], role)),
             )
@@ -121,41 +121,41 @@ fun organizationSettingsMenu(
         }
     }
 
-    val (userToAdd, setUserToAdd) = useState("")
-    val (usersNotFromProject, setUsersNotFromProject) = useState(emptyList<UserInfo>())
-    val getUsersNotFromProject = debounce(
-        useRequest(dependencies = arrayOf(changeProjectUsers, userToAdd)) {
+    val (userToAdd, setUserToAdd) = useState(UserInfo(""))
+    val (usersNotFromOrganization, setUsersNotFromOrganization) = useState(emptyList<UserInfo>())
+    val getUsersNotFromOrganization = debounce(
+        useRequest(dependencies = arrayOf(changeOrganizationUsers, userToAdd)) {
             val headers = Headers().apply {
                 set("Accept", "application/json")
                 set("Content-Type", "application/json")
             }
             val users = get(
-                url = "$apiUrl/users/not-from/$projectPath?prefix=$userToAdd",
+                url = "$apiUrl/users/not-from/$organizationPath?prefix=${userToAdd.name}",
                 headers = headers,
             )
                 .unsafeMap {
                     it.decodeFromJsonString<List<UserInfo>>()
                 }
-            setUsersNotFromProject(users)
+            setUsersNotFromOrganization(users)
         },
         500,
     )
 
-    val addUserToProject = useRequest {
+    val addUserToOrganization = useRequest {
         val headers = Headers().apply {
             set("Accept", "application/json")
             set("Content-Type", "application/json")
         }
         val response = post(
-            url = "$apiUrl/projects/roles/$projectPath",
+            url = "$apiUrl/organizations/roles/$organizationPath",
             headers = headers,
-            body = Json.encodeToString(SetRoleRequest(userToAdd, Role.VIEWER)),
+            body = Json.encodeToString(SetRoleRequest(userToAdd.name, Role.VIEWER)),
         )
         if (response.ok) {
-            setUserToAdd("")
-            setChangeProjectUsers { !it }
-            getProjectUsers()
-            getUsersNotFromProject()
+            setUserToAdd(UserInfo(""))
+            setChangeOrganizationUsers { !it }
+            getOrganizationUsers()
+            getUsersNotFromOrganization()
         } else {
             updateErrorMessage(response)
         }
@@ -168,22 +168,21 @@ fun organizationSettingsMenu(
             set("Content-Type", "application/json")
         }
         val response = delete(
-            url = "$apiUrl/projects/roles/$projectPath/${userToDelete.name}",
+            url = "$apiUrl/organizations/roles/$organizationPath/${userToDelete.name}",
             headers = headers,
             body = Json.encodeToString(userToDelete),
         )
         if (!response.ok) {
             updateErrorMessage(response)
         } else {
-            setChangeProjectUsers { !it }
-            getProjectUsers()
-            getUsersNotFromProject()
+            setChangeOrganizationUsers { !it }
+            getOrganizationUsers()
+            getUsersNotFromOrganization()
         }
     }
     val (isFirstRender, setIsFirstRender) = useState(true)
     if (isFirstRender) {
-        getProjectUsers()
-        getUsersNotFromProject()
+        getOrganizationUsers()
         setIsFirstRender(false)
     }
 
@@ -191,7 +190,7 @@ fun organizationSettingsMenu(
 
     useRequest(isDeferred = false) {
         val role = get(
-            "$apiUrl/projects/roles/$projectPath",
+            "$apiUrl/organizations/roles/$organizationPath",
             headers = Headers().also {
                 it.set("Accept", "application/json")
             },
@@ -203,96 +202,30 @@ fun organizationSettingsMenu(
         setSelfRole(role)
     }()
 
+    val organizationPermissionManagerCard = manageUserRoleCardComponent(
+        {
+            setUserToAdd(it)
+            addUserToOrganization()
+        },
+        {
+            setUserToDelete(it)
+            deleteUser()
+        },
+        {
+            it.organizations
+        },
+    )
+
     div("row justify-content-center mb-2") {
         // ===================== LEFT COLUMN =======================================================================
         div("col-4 mb-2 pl-0 pr-0 mr-2 ml-2") {
             div("text-xs text-center font-weight-bold text-primary text-uppercase mb-3") {
                 +"Users"
             }
-            div("card card-body mt-0 pt-0 pr-0 pl-0") {
-                div("row mt-0 ml-0 mr-0") {
-                    div("input-group") {
-                        input(type = InputType.text, classes = "form-control") {
-                            attrs.id = "input-users-to-add"
-                            attrs.list = "complete-users-to-add"
-                            attrs.placeholder = "username"
-                            attrs.value = userToAdd
-                            attrs.onChangeFunction = {
-                                setUserToAdd((it.target as HTMLInputElement).value)
-                                getUsersNotFromProject()
-                            }
-                        }
-                        datalist {
-                            attrs.id = "complete-users-to-add"
-                            attrs["style"] = jso<CSSProperties> {
-                                appearance = None.none
-                            }
-                            for (user in usersNotFromProject) {
-                                option {
-                                    attrs.value = user.name
-                                    attrs.label = user.source ?: ""
-                                }
-                            }
-                        }
-                        div("input-group-append") {
-                            button(type = ButtonType.button, classes = "btn btn-sm btn-success") {
-                                attrs.onClickFunction = {
-                                    addUserToProject()
-                                }
-                                +"Add user"
-                            }
-                        }
-                    }
-                }
-                for (user in projectUsers) {
-                    val userName = user.source + ":" + user.name
-                    val userRole = user.projects[projectPath] ?: Role.VIEWER
-                    val userIndex = projectUsers.indexOf(user)
-                    div("row mt-2 mr-0") {
-                        div("col-1") {
-                            button(classes = "btn h-auto w-auto") {
-                                fontAwesomeIcon(icon = faTimesCircle)
-                                attrs.id = "remove-user-$userIndex"
-                                attrs.hidden = selfRole.priority <= user.projects[projectPath]!!.priority
-                                attrs.onClick = {
-                                    val deletedUserIndex = attrs.id.split("-")[2].toInt()
-                                    setUserToDelete(projectUsers[deletedUserIndex])
-                                    deleteUser()
-                                }
-                            }
-                        }
-                        div("col-6 text-left align-self-center") {
-                            +userName
-                        }
-                        div("col-5 text-left align-self-right") {
-                            select("custom-select") {
-                                attrs.onChangeFunction = { event ->
-                                    val target = event.target as HTMLSelectElement
-                                    setPermissionsChanged { permissionsChanged ->
-                                        permissionsChanged.toMutableMap()
-                                            .apply {
-                                                put(userName, target.value.toRole())
-                                            }
-                                            .toMap()
-                                    }
-                                }
-                                attrs.id = "role-$userIndex"
-                                for (role in Role.values()) {
-                                    if (role != Role.NONE && (role.priority < selfRole.priority ||
-                                            user.name == props.currentUserInfo.name && selfRole == role)) {
-                                        option {
-                                            attrs.value = role.formattedName
-                                            attrs.selected = role == userRole
-                                            +role.toString()
-                                        }
-                                    }
-                                }
-
-                                attrs.disabled = (permissionsChanged[userName] ?: user.projects[projectPath]!!).priority >= selfRole.priority
-                            }
-                        }
-                    }
-                }
+            child(organizationPermissionManagerCard) {
+                attrs.selfUserInfo = props.currentUserInfo
+                attrs.usersFromGroup = organizationUsers
+                attrs.usersNotFromGroup = usersNotFromOrganization
             }
         }
         // ===================== RIGHT COLUMN ======================================================================
@@ -322,61 +255,6 @@ fun organizationSettingsMenu(
                     div("col-5 text-left align-self-center") {
                         +"Project visibility:"
                     }
-                    form("col-7 form-group row d-flex justify-content-around") {
-                        div("form-check-inline") {
-                            input(classes = "form-check-input") {
-                                attrs.defaultChecked = draftProject.public
-                                attrs["name"] = "projectVisibility"
-                                attrs["type"] = "radio"
-                                attrs["id"] = "isProjectPublicSwitch"
-                                attrs["value"] = "public"
-                            }
-                            label("form-check-label") {
-                                attrs["htmlFor"] = "isProjectPublicSwitch"
-                                +"Public"
-                            }
-                        }
-                        div("form-check-inline") {
-                            input(classes = "form-check-input") {
-                                attrs.defaultChecked = !draftProject.public
-                                attrs["name"] = "projectVisibility"
-                                attrs["type"] = "radio"
-                                attrs["id"] = "isProjectPrivateSwitch"
-                                attrs["value"] = "private"
-                            }
-                            label("form-check-label") {
-                                attrs["htmlFor"] = "isProjectPrivateSwitch"
-                                +"Private"
-                            }
-                        }
-                        attrs.onChangeFunction = {
-                            setDraftProject(draftProject.copy(public = (it.target as HTMLInputElement).value == "public"))
-                        }
-                    }
-                }
-                div("row d-flex align-items-center mt-2 mr-2 ml-2") {
-                    div("col-5 text-left") {
-                        +"Number of containers:"
-                    }
-                    div("col-7 row") {
-                        div("form-switch") {
-                            select("custom-select") {
-                                // fixme: later we will need to change amount of containers
-                                attrs.disabled = true
-                                attrs.onChangeFunction = {
-                                    setDraftProject(draftProject.copy(numberOfContainers = (it.target as HTMLSelectElement).value.toInt()))
-                                }
-                                attrs.id = "numberOfContainers"
-                                for (i in 1..8) {
-                                    option {
-                                        attrs.value = i.toString()
-                                        attrs.selected = i == draftProject.numberOfContainers
-                                        +i.toString()
-                                    }
-                                }
-                            }
-                        }
-                    }
                 }
 
                 hr("") {}
@@ -384,9 +262,9 @@ fun organizationSettingsMenu(
                     div("col-3 d-sm-flex align-items-center justify-content-center") {
                         button(type = ButtonType.button, classes = "btn btn-sm btn-primary") {
                             attrs.onClickFunction = {
-                                updateProjectSettings(draftProject)
+                                updateOrganizationSettings(draftOrganization)
                                 updatePermissions()
-                                getProjectUsers()
+                                getOrganizationUsers()
                             }
                             +"Save changes"
                         }
@@ -394,7 +272,7 @@ fun organizationSettingsMenu(
                     div("col-3 d-sm-flex align-items-center justify-content-center") {
                         button(type = ButtonType.button, classes = "btn btn-sm btn-danger") {
                             attrs.onClickFunction = {
-                                deleteProjectCallback()
+                                deleteOrganizationCallback()
                             }
                             +"Delete project"
                         }

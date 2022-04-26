@@ -20,6 +20,7 @@ data class Organization(
     @Contextual
     var dateCreated: LocalDateTime?,
     var avatar: String? = null,
+    var email: String? = null,
 ) {
     /**
      * id of project
