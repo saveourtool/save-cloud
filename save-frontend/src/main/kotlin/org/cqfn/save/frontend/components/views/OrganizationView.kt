@@ -76,11 +76,6 @@ external interface OrganizationViewState : State {
      * Whether editing of organization info is disabled
      */
     var isEditDisabled: Boolean?
-
-    /**
-     * Role user in organization
-     */
-    var roleInOrganization: Role?
 }
 
 /**
@@ -107,7 +102,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 image = avatar
                 organization = organizationLoaded
                 projects = projectsLoaded
-                roleInOrganization = role
+                isEditDisabled = (role.priority >= Role.ADMIN.priority)
             }
         }
     }
@@ -256,7 +251,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                                 }
                                 +"Description"
                             }
-                            if ((state.roleInOrganization?.priority ?: 0) >= 2) {
+                            if (state.isEditDisabled == true) {
                                 button(classes = "btn btn-link text-xs text-muted text-left ml-auto") {
                                     +"Edit  "
                                     fontAwesomeIcon(icon = faEdit)
@@ -498,17 +493,25 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
     }
 
     private fun onOrganizationSave() {
-        setState {
-            organization?.apply {
-                description = descriptionTmp
-            }
+        val newOrganization = state.organization
+        newOrganization?.apply {
+            description = descriptionTmp
         }
         val headers = Headers().also {
             it.set("Accept", "application/json")
             it.set("Content-Type", "application/json")
         }
         scope.launch {
-            post("$apiUrl/organization/${props.organizationName}/update", headers, Json.encodeToString(state.organization))
+            val response = newOrganization?.let {
+                post("$apiUrl/organization/${props.organizationName}/update", headers, Json.encodeToString(newOrganization))
+            }
+            response?.let { resp ->
+                if (resp.ok) {
+                    setState {
+                        organization = newOrganization
+                    }
+                }
+            }
         }
     }
 

@@ -9,6 +9,7 @@ import org.cqfn.save.domain.OrganizationSaveStatus
 import org.cqfn.save.domain.Role
 import org.cqfn.save.entities.Organization
 import org.slf4j.LoggerFactory
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
@@ -97,11 +98,11 @@ internal class OrganizationController(
     fun updateOrganization(@RequestBody organization: Organization, authentication: Authentication): Mono<StringResponse> {
         val userId = (authentication.details as AuthenticationDetails).id
         val role = lnkUserOrganizationService.findRoleByUserIdAndOrganizationName(userId, organization.name)
-        val response = if (role.priority >= 2) {
+        val response = if (role.priority >= Role.ADMIN.priority) {
             organizationService.updateOrganization(organization)
             ResponseEntity.ok("Organization updated")
         } else {
-            ResponseEntity.badRequest().body("Access denied")
+            ResponseEntity.status(HttpStatus.FORBIDDEN).build()
         }
         return Mono.just(response)
     }
