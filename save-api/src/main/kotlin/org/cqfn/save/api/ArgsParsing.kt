@@ -65,8 +65,13 @@ fun parseArguments(args: Array<String>): CliArguments? {
         description = "Mode of execution: git/standard"
     )
     parser.parse(args)
+
+    val authorization = oauth2Source?.let {
+        Authorization("$oauth2Source@${username!!}", token)
+    } ?: Authorization(username!!, token)
+
     return CliArguments(
-        Authorization("$oauth2Source@${username!!}", token),
+        authorization,
         mode!!
     )
 }

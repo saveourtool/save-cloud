@@ -7,14 +7,12 @@ import java.net.InetAddress
 
 /**
  * @property backend properties for connection to save-backend
- * @property basicCredentials space-separated username and password for technical user to access actuator
  * @property knownActuatorConsumers comma-separated list of IPs of clients that are allowed to access spring boot actuator
  */
 @ConstructorBinding
 @ConfigurationProperties(prefix = "gateway")
 data class ConfigurationProperties(
     val backend: Backend,
-    val basicCredentials: String?,
     val knownActuatorConsumers: String?,
 ) {
     /**

@@ -12,6 +12,7 @@ import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.User
 import org.cqfn.save.permission.Permission
 import org.cqfn.save.permission.SetRoleRequest
+import org.cqfn.save.v1
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
@@ -41,7 +42,7 @@ import java.util.Optional
 @ApiSwaggerSupport
 @Tags(Tag(name = "api"), Tag(name = "permissions"))
 @RestController
-@RequestMapping("/api/projects/roles")
+@RequestMapping(path = ["/api/$v1/projects/roles"])
 @Suppress("MISSING_KDOC_ON_FUNCTION", "MISSING_KDOC_TOP_LEVEL", "MISSING_KDOC_CLASS_ELEMENTS")
 class PermissionController(
     private val projectService: ProjectService,
@@ -112,11 +113,15 @@ class PermissionController(
         .switchIfEmpty {
             Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
         }
-        .filter {
+        .zipWith(Mono.justOrEmpty(projectService.findUserByName(setRoleRequest.userName)))
+        .switchIfEmpty {
+            Mono.error((ResponseStatusException(HttpStatus.NOT_FOUND)))
+        }
+        .filter { (project, user) ->
             // fixme: could be `@PreAuthorize`, but organizationService cannot be found smh
             val userId = (authentication.details as AuthenticationDetails).id
             val hasOrganizationPermissions = organizationService.canChangeRoles(organizationName, userId)
-            val hasProjectPermissions = projectService.canChangeRoles(it, userId, setRoleRequest.userName, setRoleRequest.role)
+            val hasProjectPermissions = projectService.canChangeRoles(project, userId, user, setRoleRequest.role)
             hasOrganizationPermissions || hasProjectPermissions
         }
         .flatMap {
@@ -150,10 +155,14 @@ class PermissionController(
         .switchIfEmpty {
             Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
         }
-        .filter { project ->
+        .zipWith(Mono.justOrEmpty(projectService.findUserByName(userName)))
+        .switchIfEmpty {
+            Mono.error((ResponseStatusException(HttpStatus.NOT_FOUND)))
+        }
+        .filter { (project, user) ->
             val userId = (authentication.details as AuthenticationDetails).id
             val hasOrganizationPermissions = organizationService.canChangeRoles(organizationName, userId)
-            val hasProjectPermissions = projectService.canChangeRoles(project, userId, userName)
+            val hasProjectPermissions = projectService.canChangeRoles(project, userId, user)
             hasOrganizationPermissions || hasProjectPermissions
         }
         .switchIfEmpty {

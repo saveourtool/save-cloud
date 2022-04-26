@@ -13,7 +13,7 @@ import org.cqfn.save.backend.service.ProjectService
 import org.cqfn.save.domain.Role
 import org.cqfn.save.info.UserInfo
 import org.cqfn.save.permission.Permission
-
+import org.cqfn.save.v1
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.Authentication
@@ -39,7 +39,7 @@ class LnkUserProjectController(
      * @return list of users with their roles, connected to the project
      * @throws NoSuchElementException
      */
-    @GetMapping("/projects/{organizationName}/{projectName}/users")
+    @GetMapping(path = ["/$v1/projects/{organizationName}/{projectName}/users"])
     fun getAllUsersByProjectNameAndOrganizationName(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,

@@ -9,6 +9,7 @@ import org.cqfn.save.backend.utils.AuthenticationDetails
 import org.cqfn.save.backend.utils.MySqlExtension
 import org.cqfn.save.backend.utils.mutateMockedUser
 import org.cqfn.save.entities.*
+import org.cqfn.save.v1
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -54,7 +55,7 @@ class ProjectControllerTest {
 
         webClient
             .get()
-            .uri("/api/projects/not-deleted")
+            .uri("/api/$v1/projects/not-deleted")
             .accept(MediaType.APPLICATION_JSON)
             .exchange()
             .expectStatus()
@@ -119,7 +120,7 @@ class ProjectControllerTest {
         val project = projectRepository.findById(1).get()
         webClient
             .post()
-            .uri("/api/projects/git")
+            .uri("/api/$v1/projects/git")
             .body(BodyInserters.fromValue(project))
             .accept(MediaType.APPLICATION_JSON)
             .exchange()
@@ -178,7 +179,7 @@ class ProjectControllerTest {
         }
 
         webClient.post()
-            .uri("/api/projects/update")
+            .uri("/api/$v1/projects/update")
             .bodyValue(project)
             .exchange()
             .expectStatus()
@@ -190,7 +191,7 @@ class ProjectControllerTest {
                                     assertion: WebTestClient.ResponseSpec.() -> Unit
     ) = webClient
         .get()
-        .uri("/api/projects/get/organization-name?name=$name&organizationName=$organizationName")
+        .uri("/api/$v1/projects/get/organization-name?name=$name&organizationName=$organizationName")
         .accept(MediaType.APPLICATION_JSON)
         .exchange()
         .let { assertion(it) }
@@ -201,7 +202,7 @@ class ProjectControllerTest {
     ) {
         webClient
             .post()
-            .uri("/api/projects/save")
+            .uri("/api/$v1/projects/save")
             .body(BodyInserters.fromValue(newProject))
             .accept(MediaType.APPLICATION_JSON)
             .exchange()
@@ -210,7 +211,7 @@ class ProjectControllerTest {
         val project = newProject.project
         webClient
             .get()
-            .uri("/api/projects/get/organization-id?name=${project.name}&organizationId=${project.organization.id}")
+            .uri("/api/$v1/projects/get/organization-id?name=${project.name}&organizationId=${project.organization.id}")
             .accept(MediaType.APPLICATION_JSON)
             .exchange()
             .let { getAssertion(it) }

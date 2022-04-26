@@ -4,7 +4,7 @@ server:
     path: /error
 gateway:
   backend:
-    url: http://backend:5000
+    url: http://backend:5800
 management:
   endpoints:
     web:
@@ -17,7 +17,7 @@ spring:
     gateway:
       routes:
         - id: api_route
-          uri: http://backend:5000
+          uri: ${gateway.backend.url}
           predicates:
             - Path=/api/**
           filters:
@@ -25,18 +25,18 @@ spring:
             - RemoveRequestHeader=Cookie
             - ConvertAuthorizationHeader=
         - id: index_route
-          uri: http://backend:5000/index.html
+          uri: ${gateway.backend.url}/index.html
           predicates:
             - Path=/
           filters:
             # If SESSION cookie is passed to downstream, it is then removed, because downstream discards it
             - RemoveRequestHeader=Cookie
         - id: error_route
-          uri: http://backend:5000/error
+          uri: ${gateway.backend.url}/error
           predicates:
             - Path=/error
         - id: resource_route
-          uri: http://backend:5000
+          uri: ${gateway.backend.url}
           predicates:
             - Path=/*.html,/*.js*,/*.css,/img/**
           filters:
