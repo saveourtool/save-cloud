@@ -29,7 +29,7 @@ class UsersDetailsController(
     @GetMapping("/{userName}/avatar")
     @PreAuthorize("permitAll()")
     fun avatar(@PathVariable userName: String): Mono<ImageInfo> =
-            justOrNotFound(userRepository.findByName(userName)).map { it.avatar }.map { ImageInfo(it) }
+            justOrNotFound(userRepository.findByName(userName)).map { ImageInfo(it.avatar) }
 
     /**
      * @param userName username
