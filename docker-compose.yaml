@@ -37,7 +37,7 @@ services:
   backend:
     image: ghcr.io/analysis-dev/save-backend:${TAG}
     environment:
-      - "SPRING_PROFILES_ACTIVE=${PROFILE},secure"
+      - "SPRING_PROFILES_ACTIVE=${PROFILE},secure,docker-secrets"
       - "MYSQL_USER=/run/secrets/db_username"
       - "MYSQL_PASSWORD_FILE=/run/secrets/db_password"
     secrets:

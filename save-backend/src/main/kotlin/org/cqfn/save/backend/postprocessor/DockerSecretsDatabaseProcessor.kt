@@ -14,7 +14,7 @@ import java.util.Properties
 /**
  * Post processor that collects credentials for database from docker secrets
  */
-@Profile("prod")
+@Profile("docker-secrets")
 class DockerSecretsDatabaseProcessor : EnvironmentPostProcessor {
     private val log = LoggerFactory.getLogger(DockerSecretsDatabaseProcessor::class.java)
 
