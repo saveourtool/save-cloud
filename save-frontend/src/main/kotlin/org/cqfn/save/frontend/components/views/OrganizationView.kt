@@ -14,6 +14,7 @@ import org.cqfn.save.frontend.components.tables.tableComponent
 import org.cqfn.save.frontend.externals.fontawesome.*
 import org.cqfn.save.frontend.http.getOrganization
 import org.cqfn.save.frontend.utils.*
+import org.cqfn.save.v1
 
 import csstype.*
 import org.w3c.dom.HTMLInputElement
@@ -142,7 +143,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                     attrs["aria-label"] = "Change organization's avatar"
                     img(classes = "avatar avatar-user width-full border color-bg-default rounded-circle") {
                         attrs.src = state.image?.path?.let {
-                            "/api/avatar$it"
+                            "/api/$v1/avatar$it"
                         }
                             ?: run {
                                 "img/company.svg"
@@ -392,7 +393,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                     attrs["aria-label"] = "Change organization's avatar"
                     img(classes = "avatar avatar-user width-full border color-bg-default rounded-circle") {
                         attrs.src = state.image?.path?.let {
-                            "/api/avatar$it"
+                            "/api/$v1/avatar$it"
                         }
                             ?: run {
                                 "img/company.svg"

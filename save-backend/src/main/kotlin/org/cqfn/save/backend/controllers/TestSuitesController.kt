@@ -4,9 +4,10 @@ import org.cqfn.save.backend.scheduling.StandardSuitesUpdateScheduler
 import org.cqfn.save.backend.service.TestSuitesService
 import org.cqfn.save.entities.TestSuite
 import org.cqfn.save.testsuite.TestSuiteDto
+import org.cqfn.save.v1
+
 import org.quartz.JobKey
 import org.quartz.Scheduler
-
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -42,7 +43,7 @@ class TestSuitesController(
     /**
      * @return response with list of test suite dtos
      */
-    @GetMapping(path = ["/api/allStandardTestSuites", "/internal/allStandardTestSuites"])
+    @GetMapping(path = ["/api/$v1/allStandardTestSuites", "/internal/allStandardTestSuites"])
     fun getAllStandardTestSuites(): ResponseListTestSuites =
             ResponseEntity.status(HttpStatus.OK).body(testSuitesService.getStandardTestSuites())
 
@@ -67,7 +68,7 @@ class TestSuitesController(
      *
      * @return response entity
      */
-    @PostMapping(path = ["/api/updateStandardTestSuites", "/internal/updateStandardTestSuites"])
+    @PostMapping(path = ["/api/$v1/updateStandardTestSuites", "/internal/updateStandardTestSuites"])
     @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
     fun updateStandardTestSuites() = Mono.fromCallable {
         scheduler.triggerJob(

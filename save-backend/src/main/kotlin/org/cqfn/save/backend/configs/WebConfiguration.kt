@@ -1,6 +1,8 @@
 package org.cqfn.save.backend.configs
 
 import org.cqfn.save.backend.utils.toInstant
+import org.cqfn.save.v1
+
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.info.BuildProperties
 import org.springframework.context.annotation.Bean
@@ -13,6 +15,7 @@ import org.springframework.util.StringUtils.getFilenameExtension
 import org.springframework.web.reactive.function.server.RouterFunctionDsl
 import org.springframework.web.reactive.function.server.ServerResponse
 import org.springframework.web.reactive.function.server.router
+
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.toJavaDuration
@@ -51,11 +54,11 @@ class WebConfiguration(
     @Bean
     fun staticImageResourceRouter() = router {
         cacheableFsResource(
-            "/api/avatar/{*resourcePath}",
+            "/api/$v1/avatar/{*resourcePath}",
             "${configProperties.fileStorage.location}/images/avatars",
         )
         cacheableFsResource(
-            "/api/avatar/users/{*resourcePath}",
+            "/api/$v1/avatar/users/{*resourcePath}",
             "${configProperties.fileStorage.location}/images/avatars/users",
         )
     }
