@@ -28,27 +28,6 @@ import org.w3c.fetch.Headers
 class UserSettingsTokenMenuView : UserSettingsView() {
     override fun renderMenu(): FC<UserSettingsProps> = fc { props ->
         child(cardComponent(isBordered = false, hasBg = true) {
-            val headers = Headers().also {
-                it.set("Accept", "application/json")
-                it.set("Content-Type", "application/json")
-            }
-            val newUserInfo = UserInfo(
-                name = "",
-                password ="",
-                source = "",
-                projects = mapOf("" to Role.ADMIN),
-                email = fieldsMap[InputTypes.USER_EMAIL]?.trim(),
-                company = fieldsMap[InputTypes.COMPANY]?.trim(),
-                location = fieldsMap[InputTypes.LOCATION]?.trim(),
-                linkedin = fieldsMap[InputTypes.LINKEDIN]?.trim(),
-                gitHub = fieldsMap[InputTypes.GIT_HUB]?.trim(),
-                twitter = fieldsMap[InputTypes.TWITTER]?.trim(),
-                avatar = "",
-            )
-//            scope.launch {
-//                println("SENT REQUEST TO UPDATE USER INFO11111")
-//            }
-
             div("d-sm-flex align-items-center justify-content-center mb-4") {
                 h1("h3 mb-0 mt-2 text-gray-800") {
                     +"Personal access tokens"
@@ -60,16 +39,6 @@ class UserSettingsTokenMenuView : UserSettingsView() {
                     +"Generate new token"
                     attrs.onClickFunction = {
                         generateToken()
-//                        useRequest {
-//                            println("SENT REQUEST TO UPDATE USER INFO2222")
-//                            post("$apiUrl/users/save", headers, Json.encodeToString(newUserInfo)).text().await()
-//                            //scope.launch {
-//                            //    println("SENT REQUEST TO UPDATE USER INFO2222")
-//                            //    post("$apiUrl/users/save", headers, Json.encodeToString(newUserInfo)).text().await()
-//                            //}
-//                        }
-
-                        println("End updateUser()")
                     }
                 }
             }
@@ -115,14 +84,10 @@ class UserSettingsTokenMenuView : UserSettingsView() {
 
         setState {
             state.token = token
-//            println("\n\nupdateUser start")
-//            println("${state.userInfo?.name} ${state.token}")
-//            updateUser()
-//            println("\n\nupdateUser finish")
         }
         println("\n\n===============================updateUser start")
         println("${state.userInfo?.name} ${state.token}")
         updateUser()
-        //println("\n\nupdateUser finish")
+        println("\n\nupdateUser finish")
     }
 }
