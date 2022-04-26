@@ -243,6 +243,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
             it.set("Content-Type", "application/json")
         }
         scope.launch {
+            println("")
             post("$apiUrl/users/save", headers, Json.encodeToString(newUserInfo))
         }
     }

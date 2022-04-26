@@ -59,15 +59,15 @@ class UserSettingsTokenMenuView : UserSettingsView() {
                 button(type = ButtonType.button, classes = "btn btn-primary mb-2 mr-2") {
                     +"Generate new token"
                     attrs.onClickFunction = {
-                        //generateToken()
-                        useRequest {
-                            println("SENT REQUEST TO UPDATE USER INFO2222")
-                            post("$apiUrl/users/save", headers, Json.encodeToString(newUserInfo)).text().await()
-                            //scope.launch {
-                            //    println("SENT REQUEST TO UPDATE USER INFO2222")
-                            //    post("$apiUrl/users/save", headers, Json.encodeToString(newUserInfo)).text().await()
-                            //}
-                        }
+                        generateToken()
+//                        useRequest {
+//                            println("SENT REQUEST TO UPDATE USER INFO2222")
+//                            post("$apiUrl/users/save", headers, Json.encodeToString(newUserInfo)).text().await()
+//                            //scope.launch {
+//                            //    println("SENT REQUEST TO UPDATE USER INFO2222")
+//                            //    post("$apiUrl/users/save", headers, Json.encodeToString(newUserInfo)).text().await()
+//                            //}
+//                        }
 
                         println("End updateUser()")
                     }
@@ -122,7 +122,7 @@ class UserSettingsTokenMenuView : UserSettingsView() {
         }
         println("\n\n===============================updateUser start")
         println("${state.userInfo?.name} ${state.token}")
-        //updateUser()
+        updateUser()
         //println("\n\nupdateUser finish")
     }
 }
