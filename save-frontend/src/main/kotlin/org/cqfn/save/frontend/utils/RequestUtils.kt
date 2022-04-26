@@ -8,6 +8,7 @@ package org.cqfn.save.frontend.utils
 
 import org.cqfn.save.frontend.components.errorStatusContext
 import org.cqfn.save.frontend.http.HttpStatusException
+import org.cqfn.save.v1
 
 import org.w3c.fetch.Headers
 import org.w3c.fetch.RequestCredentials
@@ -29,7 +30,7 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 
-val apiUrl = "${window.location.origin}/api"
+val apiUrl = "${window.location.origin}/api/$v1"
 
 /**
  * Interface for objects that have access to [errorStatusContext]

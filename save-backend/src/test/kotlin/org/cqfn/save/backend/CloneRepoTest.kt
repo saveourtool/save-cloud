@@ -17,6 +17,7 @@ import org.cqfn.save.testutils.checkQueues
 import org.cqfn.save.testutils.cleanup
 import org.cqfn.save.testutils.createMockWebServer
 import org.cqfn.save.testutils.enqueue
+import org.cqfn.save.v1
 
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
@@ -82,7 +83,7 @@ class CloneRepoTest {
         }
             .build()
         webClient.post()
-            .uri("/api/submitExecutionRequest")
+            .uri("/api/$v1/submitExecutionRequest")
             .contentType(MediaType.MULTIPART_FORM_DATA)
             .body(BodyInserters.fromMultipartData(multipart))
             .exchange()
@@ -120,7 +121,7 @@ class CloneRepoTest {
         }
         multiparts.forEach {
             webClient.post()
-                .uri("/api/submitExecutionRequest")
+                .uri("/api/$v1/submitExecutionRequest")
                 .contentType(MediaType.MULTIPART_FORM_DATA)
                 .body(BodyInserters.fromMultipartData(it))
                 .exchange()

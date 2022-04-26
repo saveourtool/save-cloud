@@ -15,6 +15,7 @@ import org.cqfn.save.frontend.http.getUser
 import org.cqfn.save.frontend.utils.*
 import org.cqfn.save.info.UserInfo
 import org.cqfn.save.utils.AvatarType
+import org.cqfn.save.v1
 
 import csstype.*
 import org.w3c.dom.HTMLInputElement
@@ -134,7 +135,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                                             attrs["aria-label"] = "Change avatar owner"
                                             img(classes = "avatar avatar-user width-full border color-bg-default rounded-circle") {
                                                 attrs.src = state.image?.path?.let {
-                                                    "/api/avatar$it"
+                                                    "/api/$v1/avatar$it"
                                                 }
                                                     ?: run {
                                                         "img/user.svg"

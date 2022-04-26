@@ -11,6 +11,7 @@ import org.cqfn.save.domain.TestResultLocation
 import org.cqfn.save.domain.TestResultStatus
 import org.cqfn.save.permission.Permission
 import org.cqfn.save.test.TestDto
+import org.cqfn.save.v1
 
 import org.slf4j.LoggerFactory
 import org.springframework.dao.DataAccessException
@@ -49,7 +50,7 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
      * @param authentication
      * @return a list of [TestExecutionDto]s
      */
-    @GetMapping("/api/testExecutions")
+    @GetMapping(path = ["/api/$v1/testExecutions"])
     @Suppress("LongParameterList", "TOO_MANY_PARAMETERS", "TYPE_ALIAS")
     fun getTestExecutions(
         @RequestParam executionId: Long,
@@ -75,7 +76,7 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
      * @param authentication
      * @return a list of [TestExecutionDto]s
      */
-    @GetMapping("/api/testLatestExecutions")
+    @GetMapping(path = ["/api/$v1/testLatestExecutions"])
     @Suppress("TYPE_ALIAS")
     fun getTestExecutionsByStatus(
         @RequestParam executionId: Long,
@@ -111,7 +112,7 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
      * @param authentication
      * @return TestExecution
      */
-    @PostMapping("/api/testExecutions")
+    @PostMapping(path = ["/api/$v1/testExecutions"])
     fun getTestExecutionByLocation(@RequestParam executionId: Long,
                                    @RequestBody testResultLocation: TestResultLocation,
                                    authentication: Authentication,
@@ -137,7 +138,7 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
      * @param testSuite
      * @param authentication
      */
-    @GetMapping("/api/testExecution/count")
+    @GetMapping(path = ["/api/$v1/testExecution/count"])
     fun getTestExecutionsCount(
         @RequestParam executionId: Long,
         @RequestParam(required = false) status: TestResultStatus?,

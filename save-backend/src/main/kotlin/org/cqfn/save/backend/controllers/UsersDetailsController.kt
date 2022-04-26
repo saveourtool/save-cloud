@@ -5,6 +5,8 @@ import org.cqfn.save.backend.utils.AuthenticationDetails
 import org.cqfn.save.backend.utils.justOrNotFound
 import org.cqfn.save.domain.ImageInfo
 import org.cqfn.save.info.UserInfo
+import org.cqfn.save.v1
+
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
@@ -16,7 +18,7 @@ import reactor.core.publisher.Mono
  * Controller that handles operation with users
  */
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping(path = ["/api/$v1/users"])
 class UsersDetailsController(
     private val userRepository: UserRepository,
 ) {

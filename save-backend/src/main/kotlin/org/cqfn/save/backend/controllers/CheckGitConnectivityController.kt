@@ -1,6 +1,8 @@
 package org.cqfn.save.backend.controllers
 
 import org.cqfn.save.backend.configs.ConfigProperties
+import org.cqfn.save.v1
+
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -31,7 +33,7 @@ class CheckGitConnectivityController(
      * @return true if credentials are valid
      * @throws ResponseStatusException
      */
-    @GetMapping(value = ["/check-git-connectivity-adaptor"])
+    @GetMapping(path = ["/$v1/check-git-connectivity-adaptor"])
     fun checkGitConnectivity(
         @RequestParam user: String,
         @RequestParam token: String,

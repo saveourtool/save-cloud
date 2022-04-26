@@ -14,6 +14,7 @@ import org.cqfn.save.domain.TestResultDebugInfo
 import org.cqfn.save.domain.TestResultLocation
 import org.cqfn.save.entities.Agent
 import org.cqfn.save.entities.Execution
+import org.cqfn.save.v1
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -85,7 +86,7 @@ class DownloadFilesTest {
         Paths.get(configProperties.fileStorage.location).createDirectories()
         val sampleFileInfo = fileSystemRepository.saveFile(tmpFile)
 
-        webTestClient.method(HttpMethod.GET).uri("/api/files/download")
+        webTestClient.method(HttpMethod.GET).uri("/api/$v1/files/download")
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(sampleFileInfo)
             .accept(MediaType.APPLICATION_OCTET_STREAM)
@@ -95,7 +96,7 @@ class DownloadFilesTest {
                 Assertions.assertArrayEquals("Lorem ipsum${System.lineSeparator()}".toByteArray(), it.responseBody)
             }
 
-        webTestClient.get().uri("/api/files/list")
+        webTestClient.get().uri("/api/$v1/files/list")
             .exchange()
             .expectStatus().isOk
             .expectBodyList<FileInfo>()
@@ -112,7 +113,7 @@ class DownloadFilesTest {
 
     @Test
     fun `should return 404 for non-existent files`() {
-        webTestClient.get().uri("/api/files/download/invalid-name").exchange()
+        webTestClient.get().uri("/api/$v1/files/download/invalid-name").exchange()
             .expectStatus().isNotFound
     }
 
@@ -126,7 +127,7 @@ class DownloadFilesTest {
         }
             .build()
 
-        webTestClient.post().uri("/api/files/upload")
+        webTestClient.post().uri("/api/$v1/files/upload")
             .contentType(MediaType.MULTIPART_FORM_DATA)
             .body(BodyInserters.fromMultipartData(body))
             .exchange()
