@@ -42,6 +42,12 @@ class OrganizationService(
     fun findByName(name: String) = organizationRepository.findByName(name)
 
     /**
+     * @param organization
+     * @return organization
+     */
+    fun updateOrganization(organization: Organization): Organization = organizationRepository.save(organization)
+
+    /**
      * @param name
      * @param relativePath
      * @throws NoSuchElementException
