@@ -10,6 +10,7 @@ kotlin-wrappers = "0.0.1-pre.330-kotlin-1.6.20"
 spring-boot = "2.6.6"
 spring-security = "5.6.2"
 spring-cloud = "3.1.1"
+spring-cloud-kubernetes = "2.1.1"
 junit = "5.8.2"
 diktat = "1.1.0"
 detekt = "1.20.0"
@@ -85,6 +86,7 @@ spring-security-oauth2-client = { module = "org.springframework.security:spring-
 spring-security-test = { module = "org.springframework.security:spring-security-test", version.ref = "spring-security" }
 spring-boot-gradle-plugin = { module = "org.springframework.boot:spring-boot-gradle-plugin", version.ref = "spring-boot" }
 spring-cloud-starter-gateway = { module = "org.springframework.cloud:spring-cloud-starter-gateway", version.ref = "spring-cloud" }
+spring-cloud-starter-kubernetes-client-config = { module = "org.springframework.cloud:spring-cloud-starter-kubernetes-client-config", version.ref = "spring-cloud-kubernetes" }
 spring-boot-starter-oauth2-client = { module = "org.springframework.boot:spring-boot-starter-oauth2-client", version.ref = "spring-boot" }
 jackson-module-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "jackson" }
 
