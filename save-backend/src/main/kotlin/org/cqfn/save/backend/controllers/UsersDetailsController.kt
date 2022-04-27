@@ -13,9 +13,8 @@ import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
-import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
-
+import org.springframework.security.crypto.bcrypt.BCrypt
 /**
  * Controller that handles operation with users
  */
@@ -51,23 +50,27 @@ class UsersDetailsController(
     @PreAuthorize("isAuthenticated()")
     fun saveUser(@RequestBody newUserInfo: UserInfo, authentication: Authentication): Mono<StringResponse> {
         val user = userRepository.findByName(newUserInfo.name).get()
-        println("USER PASSWORD: in DB ${user.password} new password ${newUserInfo.password}")
         val userId = (authentication.details as AuthenticationDetails).id
         val response = if (user.id == userId) {
             userRepository.save(user.apply {
-                email = newUserInfo.email
-                // TODO bcrypt
-                password = newUserInfo.password
-                company = newUserInfo.company
-                location = newUserInfo.location
-                gitHub = newUserInfo.gitHub
-                linkedin = newUserInfo.linkedin
-                twitter = newUserInfo.twitter
+                email = newUserInfo.email.getValueOrNull() ?: email
+                password = "{bcrypt}" + BCrypt.hashpw(newUserInfo.password.getValueOrNull() ?: password, BCrypt.gensalt())
+                company = newUserInfo.company.getValueOrNull() ?: company
+                location = newUserInfo.location.getValueOrNull() ?: location
+                gitHub = newUserInfo.gitHub.getValueOrNull() ?: gitHub
+                linkedin = newUserInfo.linkedin.getValueOrNull() ?: linkedin
+                twitter = newUserInfo.twitter.getValueOrNull() ?: twitter
             })
-            ResponseEntity.ok("User save")
+            ResponseEntity.ok("User saved successfully")
         } else {
             ResponseEntity.status(HttpStatus.FORBIDDEN).build()
         }
         return Mono.just(response)
+    }
+
+    private fun String?.getValueOrNull(): String? {
+        return if (!this.isNullOrBlank()) {
+            this
+        } else null
     }
 }

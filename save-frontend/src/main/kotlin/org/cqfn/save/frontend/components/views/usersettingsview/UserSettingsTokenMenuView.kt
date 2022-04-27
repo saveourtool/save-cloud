@@ -1,5 +1,6 @@
 package org.cqfn.save.frontend.components.views.usersettingsview
 
+import kotlinext.js.assign
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.await
@@ -13,16 +14,6 @@ import react.setState
 
 import kotlinx.html.ButtonType
 import kotlinx.html.js.onClickFunction
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
-import org.cqfn.save.domain.Role
-import org.cqfn.save.frontend.components.basic.InputTypes
-import org.cqfn.save.frontend.http.getUser
-import org.cqfn.save.frontend.utils.apiUrl
-import org.cqfn.save.frontend.utils.post
-import org.cqfn.save.frontend.utils.useRequest
-import org.cqfn.save.info.UserInfo
-import org.w3c.fetch.Headers
 
 @Suppress("MISSING_KDOC_TOP_LEVEL")
 class UserSettingsTokenMenuView : UserSettingsView() {
@@ -39,10 +30,6 @@ class UserSettingsTokenMenuView : UserSettingsView() {
                     +"Generate new token"
                     attrs.onClickFunction = {
                         generateToken()
-//                        println("\n\n===============================updateUser start")
-//                        println("Username ${state.userInfo?.name} token ${state.token}")
-//                        updateUser()
-//                        println("\n\nupdateUser finish")
                     }
                 }
             }
@@ -62,18 +49,6 @@ class UserSettingsTokenMenuView : UserSettingsView() {
         })
     }
 
-//    override fun componentDidMount() {
-//        super.componentDidMount()
-//        println("UserSettingsTokenMenuView: props.userName=${props.userName}")
-//        scope.launch {
-//            val user = props.userName?.let { getUser(it) }
-//            setState {
-//                userInfo = user
-//                println("After USERNAME ${userInfo?.name}")
-//            }
-//        }
-//    }
-
     @Suppress("MAGIC_NUMBER")
     private fun generateToken() {
         var token = "ghp_"
@@ -81,9 +56,12 @@ class UserSettingsTokenMenuView : UserSettingsView() {
         while (token.length < 40) {
             token += charPool.random()
         }
-        println("token: ${token}")
-        setState {
-            state.token = token
+        setState(
+                assign(state) {
+                    this.token = token
+                }
+        ) {
+            updateUser()
         }
     }
 }
