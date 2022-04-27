@@ -153,7 +153,7 @@ class ContainerManager(private val settings: DockerSettings,
                 """.trimMargin()
         val dockerFile = createTempFile(tmpDir.toPath()).toFile()
         dockerFile.writeText(dockerFileAsText)
-        val hostIp = getHostIp("host.docker.internal")
+        val hostIp = getHostIp()
         log.debug("Resolved host IP as $hostIp, will add it to the container")
         val buildImageResultCallback: BuildImageResultCallback = try {
             val buildCmd = dockerClient.buildImageCmd(dockerFile)

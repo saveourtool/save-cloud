@@ -10,22 +10,13 @@ import java.nio.file.Files
 import java.nio.file.StandardCopyOption
 
 /**
- * @param hostname hostname to be resolved via `hosts` file
- * @return IP address of [hostname] if it has been found or null
+ * @return IP address of the docker host
  */
-fun getHostIp(hostname: String): String? {
-    val process = ProcessBuilder(
-        "bash", "-c",
-        "getent hosts $hostname | awk '{print \$1}'"
-    )
-        .start()
-    process.waitFor()
-    return process.inputStream
-        .readAllBytes()
-        .decodeToString()
-        .lines()
-        .firstOrNull()
-        ?.takeIf { it.isNotBlank() }
+fun getHostIp(): String? {
+    System.getenv("HOST_IP")?.let {
+        return it
+    }
+    return resolve("host.docker.internal")
 }
 
 /**
@@ -51,4 +42,23 @@ fun copyRecursivelyWithAttributes(sourceDir: File, targetDir: File) {
             StandardCopyOption.COPY_ATTRIBUTES,
         )
     }
+}
+
+/**
+ * @param hostname hostname to be resolved via `hosts` file
+ * @return IP address of [hostname] if it has been found or null
+ */
+private fun resolve(hostname: String): String? {
+    val process = ProcessBuilder(
+        "bash", "-c",
+        "getent hosts $hostname | awk '{print \$1}'"
+    )
+        .start()
+    process.waitFor()
+    return process.inputStream
+        .readAllBytes()
+        .decodeToString()
+        .lines()
+        .firstOrNull()
+        ?.takeIf { it.isNotBlank() }
 }

@@ -1,5 +1,6 @@
 package org.cqfn.save.backend.controllers
 
+import org.cqfn.save.backend.StringResponse
 import org.cqfn.save.backend.repository.UserRepository
 import org.cqfn.save.backend.utils.AuthenticationDetails
 import org.cqfn.save.backend.utils.justOrNotFound
@@ -8,10 +9,10 @@ import org.cqfn.save.info.UserInfo
 import org.cqfn.save.v1
 
 import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
-import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
 
 /**
@@ -29,7 +30,7 @@ class UsersDetailsController(
     @GetMapping("/{userName}/avatar")
     @PreAuthorize("permitAll()")
     fun avatar(@PathVariable userName: String): Mono<ImageInfo> =
-            justOrNotFound(userRepository.findByName(userName)).map { it.avatar }.map { ImageInfo(it) }
+            justOrNotFound(userRepository.findByName(userName)).map { ImageInfo(it.avatar) }
 
     /**
      * @param userName username
@@ -43,24 +44,26 @@ class UsersDetailsController(
     /**
      * @param newUserInfo
      * @param authentication an [Authentication] representing an authenticated request
-     * @throws ResponseStatusException
+     * @return response
      */
     @PostMapping("/save")
     @PreAuthorize("isAuthenticated()")
-    fun saveUser(@RequestBody newUserInfo: UserInfo, authentication: Authentication) {
+    fun saveUser(@RequestBody newUserInfo: UserInfo, authentication: Authentication): Mono<StringResponse> {
         val user = userRepository.findByName(newUserInfo.name).get()
         val userId = (authentication.details as AuthenticationDetails).id
-        if (user.id == userId) {
+        val response = if (user.id == userId) {
             userRepository.save(user.apply {
                 email = newUserInfo.email
                 company = newUserInfo.company
-                company = newUserInfo.location
-                company = newUserInfo.gitHub
-                company = newUserInfo.linkedin
-                company = newUserInfo.twitter
+                location = newUserInfo.location
+                gitHub = newUserInfo.gitHub
+                linkedin = newUserInfo.linkedin
+                twitter = newUserInfo.twitter
             })
+            ResponseEntity.ok("User save")
         } else {
-            throw ResponseStatusException(HttpStatus.FORBIDDEN)
+            ResponseEntity.status(HttpStatus.FORBIDDEN).build()
         }
+        return Mono.just(response)
     }
 }
