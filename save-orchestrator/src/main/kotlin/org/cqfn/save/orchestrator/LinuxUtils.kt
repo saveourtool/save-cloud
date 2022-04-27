@@ -10,10 +10,20 @@ import java.nio.file.Files
 import java.nio.file.StandardCopyOption
 
 /**
+ * @return IP address of the docker host
+ */
+fun getHostIp(): String? {
+    System.getenv("HOST_IP")?.let {
+        return it
+    }
+    return resolve("host.docker.internal")
+}
+
+/**
  * @param hostname hostname to be resolved via `hosts` file
  * @return IP address of [hostname] if it has been found or null
  */
-fun getHostIp(hostname: String): String? {
+private fun resolve(hostname: String): String? {
     val process = ProcessBuilder(
         "bash", "-c",
         "getent hosts $hostname | awk '{print \$1}'"
