@@ -14,4 +14,11 @@ interface LnkUserOrganizationRepository : BaseEntityRepository<LnkUserOrganizati
      * @return lnkUserOrganization by organization
      */
     fun findByOrganization(organization: Organization): List<LnkUserOrganization>
+
+    /**
+     * @param userId
+     * @param organizationName
+     * @return lnkUserOrganization by user ID and organization
+     */
+    fun findByUserIdAndOrganizationName(userId: Long, organizationName: String): LnkUserOrganization?
 }

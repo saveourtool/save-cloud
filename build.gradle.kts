@@ -2,11 +2,11 @@ import org.cqfn.save.buildutils.configureDetekt
 import org.cqfn.save.buildutils.configureDiktat
 import org.cqfn.save.buildutils.configureVersioning
 import org.cqfn.save.buildutils.createDetektTask
-import org.cqfn.save.buildutils.createDiktatTask
 import org.cqfn.save.buildutils.createStackDeployTask
 import org.cqfn.save.buildutils.getDatabaseCredentials
 import org.cqfn.save.buildutils.installGitHooks
 import org.cqfn.save.buildutils.registerSaveCliVersionCheckTask
+import org.apache.tools.ant.taskdefs.condition.Os
 
 plugins {
     alias(libs.plugins.talaiot.base)
@@ -45,8 +45,9 @@ dependencies {
 
 tasks.withType<org.liquibase.gradle.LiquibaseTask>().configureEach {
     this.javaLauncher.set(project.extensions.getByType<JavaToolchainService>().launcherFor {
-        // liquibase-core 4.7.0 and liquibase-gradle 2.1.1 fails on Java >= 13
-        languageVersion.set(JavaLanguageVersion.of(11))
+        // liquibase-core 4.7.0 and liquibase-gradle 2.1.1 fails on Java >= 13 on Windows; works on Mac
+        val javaVersion = if (Os.isFamily(Os.FAMILY_MAC)) { 17 } else { 11 }
+        languageVersion.set(JavaLanguageVersion.of(javaVersion))
     })
 }
 
@@ -64,13 +65,12 @@ allprojects {
         resolutionStrategy.cacheChangingModulesFor(10, TimeUnit.MINUTES)
     }
 }
-subprojects {
+allprojects {
     configureDiktat()
 }
 
 createStackDeployTask(profile)
 configureVersioning()
-createDiktatTask()
 createDetektTask()
 installGitHooks()
 registerSaveCliVersionCheckTask()

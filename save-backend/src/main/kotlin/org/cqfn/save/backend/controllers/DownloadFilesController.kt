@@ -6,10 +6,13 @@ import org.cqfn.save.backend.repository.AgentRepository
 import org.cqfn.save.backend.repository.TestDataFilesystemRepository
 import org.cqfn.save.backend.repository.TimestampBasedFileSystemRepository
 import org.cqfn.save.backend.service.OrganizationService
+import org.cqfn.save.backend.service.UserDetailsService
 import org.cqfn.save.domain.FileInfo
 import org.cqfn.save.domain.TestResultDebugInfo
 import org.cqfn.save.domain.TestResultLocation
 import org.cqfn.save.from
+import org.cqfn.save.utils.AvatarType
+import org.cqfn.save.v1
 
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -38,13 +41,14 @@ class DownloadFilesController(
     private val testDataFilesystemRepository: TestDataFilesystemRepository,
     private val agentRepository: AgentRepository,
     private val organizationService: OrganizationService,
+    private val userDetailsService: UserDetailsService,
 ) {
     private val logger = LoggerFactory.getLogger(DownloadFilesController::class.java)
 
     /**
      * @return a list of files in [additionalToolsFileSystemRepository]
      */
-    @GetMapping("/api/files/list")
+    @GetMapping(path = ["/api/$v1/files/list"])
     fun list(): List<FileInfo> = additionalToolsFileSystemRepository.getFilesList().map {
         FileInfo(
             it.name,
@@ -58,7 +62,7 @@ class DownloadFilesController(
      * @param fileInfo a FileInfo based on which a file should be located
      * @return [Mono] with file contents
      */
-    @GetMapping(value = ["/api/files/download"], produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
+    @GetMapping(path = ["/api/$v1/files/download"], produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
     fun download(@RequestBody fileInfo: FileInfo): Mono<ByteArrayResponse> = Mono.fromCallable {
         logger.info("Sending file ${fileInfo.name} to a client")
         ResponseEntity.ok().contentType(MediaType.APPLICATION_OCTET_STREAM).body(
@@ -80,7 +84,7 @@ class DownloadFilesController(
      * @param file a file to be uploaded
      * @return [Mono] with response
      */
-    @PostMapping(value = ["/api/files/upload"], consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
+    @PostMapping(path = ["/api/$v1/files/upload"], consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     fun upload(@RequestPart("file") file: Mono<FilePart>) =
             additionalToolsFileSystemRepository.saveFile(file).map { fileInfo ->
                 ResponseEntity.status(
@@ -96,18 +100,27 @@ class DownloadFilesController(
     /**
      * @param file image to be uploaded
      * @param owner owner name
+     * @param type type of avatar
      * @return [Mono] with response
      */
     @Suppress("UnsafeCallOnNullableType")
-    @PostMapping(value = ["/api/image/upload"], consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
-    fun uploadImage(@RequestPart("file") file: Mono<FilePart>, @RequestParam owner: String) =
-            additionalToolsFileSystemRepository.saveImage(file, owner).map { imageInfo ->
+    @PostMapping(path = ["/api/$v1/image/upload"], consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
+    fun uploadImage(
+        @RequestPart("file") file: Mono<FilePart>,
+        @RequestParam owner: String,
+        @RequestParam(required = false) type: AvatarType = AvatarType.ORGANIZATION
+    ) =
+            additionalToolsFileSystemRepository.saveImage(file, owner, type).map { imageInfo ->
+                imageInfo.path?.let {
+                    when (type) {
+                        AvatarType.ORGANIZATION -> organizationService.saveAvatar(owner, it)
+                        AvatarType.USER -> userDetailsService.saveAvatar(owner, it)
+                    }
+                }
                 ResponseEntity.status(
                     imageInfo.path?.let {
-                        organizationService.saveAvatar(owner, it)
                         HttpStatus.OK
-                    }
-                        ?: HttpStatus.INTERNAL_SERVER_ERROR
+                    } ?: HttpStatus.INTERNAL_SERVER_ERROR
                 )
                     .body(imageInfo)
             }
@@ -122,7 +135,7 @@ class DownloadFilesController(
      * @throws ResponseStatusException if request is invalid or result cannot be returned
      */
     @Suppress("ThrowsCount", "UnsafeCallOnNullableType")
-    @PostMapping(value = ["/api/files/get-debug-info"])
+    @PostMapping(path = ["/api/$v1/files/get-debug-info"])
     fun getDebugInfo(
         @RequestBody testExecutionDto: TestExecutionDto,
     ): String {

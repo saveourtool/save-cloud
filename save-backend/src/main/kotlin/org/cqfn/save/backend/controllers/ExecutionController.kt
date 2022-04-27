@@ -22,6 +22,7 @@ import org.cqfn.save.execution.ExecutionInitializationDto
 import org.cqfn.save.execution.ExecutionType
 import org.cqfn.save.execution.ExecutionUpdateDto
 import org.cqfn.save.permission.Permission
+import org.cqfn.save.v1
 
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -92,7 +93,7 @@ class ExecutionController(private val executionService: ExecutionService,
      * @param authentication
      * @return execution if it has been found
      */
-    @GetMapping(path = ["/api/execution", "/internal/execution"])
+    @GetMapping(path = ["/api/$v1/execution", "/internal/execution"])
     @Transactional(readOnly = true)
     @Suppress("UnsafeCallOnNullableType")
     fun getExecution(
@@ -118,7 +119,7 @@ class ExecutionController(private val executionService: ExecutionService,
      * @param authentication
      * @return execution dto
      */
-    @GetMapping("/api/executionDto")
+    @GetMapping(path = ["/api/$v1/executionDto"])
     fun getExecutionDto(@RequestParam executionId: Long, authentication: Authentication): Mono<ExecutionDto> =
             justOrNotFound(executionService.findExecution(executionId))
                 .filterWhen { execution -> projectPermissionEvaluator.checkPermissions(authentication, execution, Permission.READ) }
@@ -131,7 +132,7 @@ class ExecutionController(private val executionService: ExecutionService,
      * @return list of execution dtos
      * @throws NoSuchElementException
      */
-    @GetMapping("/api/executionDtoList")
+    @GetMapping(path = ["/api/$v1/executionDtoList"])
     fun getExecutionByProject(@RequestParam name: String, @RequestParam organizationName: String, authentication: Authentication): Mono<List<ExecutionDto>> {
         val organization = organizationService.findByName(organizationName) ?: throw NoSuchElementException("Organization with name [$organizationName] was not found.")
         return projectService.findWithPermissionByNameAndOrganization(authentication, name, organization, Permission.READ).map {
@@ -148,12 +149,14 @@ class ExecutionController(private val executionService: ExecutionService,
      * @return Execution
      * @throws ResponseStatusException if execution is not found
      */
-    @GetMapping("/api/latestExecution")
+    @GetMapping(path = ["/api/$v1/latestExecution"])
     fun getLatestExecutionForProject(@RequestParam name: String, @RequestParam organizationId: Long, authentication: Authentication): Mono<ExecutionDto> =
-            justOrNotFound(
-                executionService.getLatestExecutionByProjectNameAndProjectOrganizationId(name, organizationId),
-                "Execution not found for project (name=$name, organization id=$organizationId)"
+            Mono.justOrEmpty(
+                executionService.getLatestExecutionByProjectNameAndProjectOrganizationId(name, organizationId)
             )
+                .switchIfEmpty {
+                    Mono.error(ResponseStatusException(HttpStatus.NO_CONTENT))
+                }
                 .filterWhen { projectPermissionEvaluator.checkPermissions(authentication, it, Permission.READ) }
                 .map { it.toDto() }
 
@@ -166,7 +169,7 @@ class ExecutionController(private val executionService: ExecutionService,
      * @return ResponseEntity
      * @throws NoSuchElementException
      */
-    @PostMapping("/api/execution/deleteAll")
+    @PostMapping(path = ["/api/$v1/execution/deleteAll"])
     @Suppress("UnsafeCallOnNullableType")
     fun deleteExecutionForProject(
         @RequestParam name: String,
@@ -203,7 +206,7 @@ class ExecutionController(private val executionService: ExecutionService,
      * - status 404 if all executions are missing or the project is hidden from the current user
      * @throws ResponseStatusException
      */
-    @PostMapping("/api/execution/delete")
+    @PostMapping(path = ["/api/$v1/execution/delete"])
     @Suppress("TOO_LONG_FUNCTION", "NonBooleanPropertyPrefixedWithIs")
     fun deleteExecutionsByExecutionIds(@RequestParam executionIds: List<Long>, authentication: Authentication): Mono<ResponseEntity<*>> {
         val isProjectHidden = AtomicBoolean(false)
@@ -258,7 +261,7 @@ class ExecutionController(private val executionService: ExecutionService,
      * @return bodiless response
      * @throws ResponseStatusException
      */
-    @PostMapping("/api/rerunExecution")
+    @PostMapping(path = ["/api/$v1/rerunExecution"])
     @Transactional
     @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
     fun rerunExecution(@RequestParam id: Long, authentication: Authentication): Mono<String> {

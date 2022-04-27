@@ -48,7 +48,7 @@ services:
       - save-fs-storage:/home/cnb/files
       - /home/saveu/configs/backend:/home/cnb/config
     ports:
-      - "5000:5000"
+      - "5800:5800"
     deploy:
       labels:
         - "prometheus-job=save-backend"
@@ -103,7 +103,7 @@ services:
     secrets:
       - prometheus_scrape_pwd
   grafana:
-    image: grafana/grafana:8.4.4
+    image: grafana/grafana:8.4.6
     ports:
       - "9100:3000"
     volumes:
@@ -115,7 +115,7 @@ services:
         constraints:
           - "node.role==manager"
   loki:
-    image: grafana/loki:2.4.2
+    image: grafana/loki:2.5.0
     ports:
       - "9110:3100"
     command: -config.file=/etc/loki/loki.yaml

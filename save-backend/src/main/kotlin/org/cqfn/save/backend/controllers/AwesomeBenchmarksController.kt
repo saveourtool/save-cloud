@@ -8,7 +8,7 @@ package org.cqfn.save.backend.controllers
 
 import org.cqfn.save.backend.service.AwesomeBenchmarksService
 import org.cqfn.save.entities.benchmarks.BenchmarkEntity
-
+import org.cqfn.save.v1
 import org.slf4j.LoggerFactory
 import org.springframework.web.bind.annotation.*
 
@@ -34,7 +34,7 @@ class AwesomeBenchmarksController(
     /**
      * @return all benchmarks from backend to frontend
      */
-    @GetMapping("/api/awesome-benchmarks")
+    @GetMapping(path = ["/api/$v1/awesome-benchmarks"])
     fun getAllAwesomeBenchmarks() =
             awesomeBenchmarksService.getAllBenchmarks()
 }

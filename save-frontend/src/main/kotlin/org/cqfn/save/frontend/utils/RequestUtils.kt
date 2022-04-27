@@ -8,6 +8,7 @@ package org.cqfn.save.frontend.utils
 
 import org.cqfn.save.frontend.components.errorStatusContext
 import org.cqfn.save.frontend.http.HttpStatusException
+import org.cqfn.save.v1
 
 import org.w3c.fetch.Headers
 import org.w3c.fetch.RequestCredentials
@@ -29,7 +30,7 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 
-val apiUrl = "${window.location.origin}/api"
+val apiUrl = "${window.location.origin}/api/$v1"
 
 /**
  * Interface for objects that have access to [errorStatusContext]
@@ -90,9 +91,10 @@ suspend fun Component<*, *>.post(url: String,
  * @return [Response]
  */
 @Suppress("EXTENSION_FUNCTION_WITH_CLASS", "KDOC_WITHOUT_PARAM_TAG")
-suspend fun WithRequestStatusContext.get(url: String,
-                                         headers: Headers,
-                                         responseHandler: (Response) -> Unit = this::withModalResponseHandler,
+suspend fun WithRequestStatusContext.get(
+    url: String,
+    headers: Headers,
+    responseHandler: (Response) -> Unit = this::withModalResponseHandler,
 ) = request(url, "GET", headers, responseHandler = responseHandler)
 
 /**
@@ -107,6 +109,19 @@ suspend fun WithRequestStatusContext.post(
     body: dynamic,
     responseHandler: (Response) -> Unit = this::withModalResponseHandler,
 ) = request(url, "POST", headers, body, responseHandler = responseHandler)
+
+/**
+ * Perform DELETE request from a functional component
+ *
+ * @return [Response]
+ */
+@Suppress("EXTENSION_FUNCTION_WITH_CLASS", "KDOC_WITHOUT_PARAM_TAG")
+suspend fun WithRequestStatusContext.delete(
+    url: String,
+    headers: Headers,
+    body: dynamic,
+    responseHandler: (Response) -> Unit = this::withModalResponseHandler,
+) = request(url, "DELETE", headers, body, responseHandler = responseHandler)
 
 /**
  * If this component has context, set [response] in this context. Otherwise, fallback to redirect.

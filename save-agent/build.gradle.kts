@@ -13,6 +13,10 @@ kotlin {
             entryPoint = "org.cqfn.save.agent.main"
             baseName = "save-agent"
         }
+        binaries.all {
+            binaryOptions["memoryModel"] = "experimental"
+            freeCompilerArgs = freeCompilerArgs + "-Xruntime-logs=gc=info"
+        }
     }
 
     sourceSets {

@@ -133,21 +133,21 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                     }
                 }
             }
-            column(id = "startTime", header = "Start time", { startTimeSeconds }) {
+            column(id = "startTime", header = "Start time", { startTimeSeconds }) { cellProps ->
                 buildElement {
                     td {
                         +"${
-                            it.value?.let { Instant.fromEpochSeconds(it, 0) }
+                            cellProps.value?.let { Instant.fromEpochSeconds(it, 0) }
                             ?: "Running"
                         }"
                     }
                 }
             }
-            column(id = "endTime", header = "End time", { endTimeSeconds }) {
+            column(id = "endTime", header = "End time", { endTimeSeconds }) { cellProps ->
                 buildElement {
                     td {
                         +"${
-                            it.value?.let { Instant.fromEpochSeconds(it, 0) }
+                            cellProps.value?.let { Instant.fromEpochSeconds(it, 0) }
                             ?: "Running"
                         }"
                     }
@@ -408,18 +408,19 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                                     +"Rerun execution"
                                     fontAwesomeIcon(icon = faRedo, classes = "ml-2")
                                     @Suppress("TOO_MANY_LINES_IN_LAMBDA")
-                                    attrs.onClickFunction = {
+                                    attrs.onClickFunction = { event ->
                                         scope.launch {
-                                            post(
+                                            val response = post(
                                                 "$apiUrl/rerunExecution?id=${props.executionId}",
                                                 Headers(),
                                                 undefined
                                             )
-                                        }.invokeOnCompletion {
-                                            window.alert("Rerun request successfully submitted")
-                                            window.location.reload()
+                                            if (response.ok) {
+                                                window.alert("Rerun request successfully submitted")
+                                                window.location.reload()
+                                            }
                                         }
-                                        it.preventDefault()
+                                        event.preventDefault()
                                     }
                                 }
                             }

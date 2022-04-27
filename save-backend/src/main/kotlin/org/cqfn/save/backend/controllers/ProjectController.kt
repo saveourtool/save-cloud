@@ -11,6 +11,7 @@ import org.cqfn.save.entities.GitDto
 import org.cqfn.save.entities.NewProjectDto
 import org.cqfn.save.entities.Project
 import org.cqfn.save.permission.Permission
+import org.cqfn.save.v1
 
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -33,7 +34,7 @@ import reactor.kotlin.core.publisher.switchIfEmpty
  * Controller for working with projects.
  */
 @RestController
-@RequestMapping("/api/projects")
+@RequestMapping(path = ["/api/$v1/projects"])
 class ProjectController(private val projectService: ProjectService,
                         private val gitService: GitService,
                         private val organizationService: OrganizationService,

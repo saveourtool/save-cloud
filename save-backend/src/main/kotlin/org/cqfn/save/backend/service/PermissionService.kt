@@ -41,6 +41,17 @@ class PermissionService(
                 }
 
     /**
+     * @param organizationName
+     * @param projectName
+     * @param userName
+     */
+    fun removeRole(organizationName: String, projectName: String, userName: String): Mono<Unit> =
+            findUserAndProject(userName, organizationName, projectName)
+                .map { (user: User, project: Project) ->
+                    lnkUserProjectService.removeRole(user, project)
+                }
+
+    /**
      * @param userName
      * @param organizationName
      * @param projectName
