@@ -5,7 +5,7 @@ env: staging
 profile: dev
 backend:
   name: backend
-  profile: dev,secure
+  profile: dev,secure,kubernetes
   imageName: save-backend
   containerPort: 5800
   dbPasswordFile: /home/cnb/secrets/db_secrets
@@ -19,6 +19,7 @@ preprocessor:
   containerPort: 5200
 gateway:
   name: gateway
+  profile: dev,kubernetes
   imageName: api-gateway
   containerPort: 5300
   applicationProperties:
