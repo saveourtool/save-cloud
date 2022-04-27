@@ -46,8 +46,6 @@ spring:
           uri: http://grafana:9100
           predicates:
             - Path=/grafana/**
-    kubernetes:
-      enabled: false
   security:
     oauth2:
       client:
@@ -56,15 +54,3 @@ spring:
             # value that will work with GitHub API, where GitHub provides username as "login" in the response
             # https://docs.github.com/en/rest/reference/users#get-the-authenticated-user
             user-name-attribute: login
-
----
-spring:
-  config:
-    activate:
-      on-profile: kubernetes
-  cloud:
-    kubernetes:
-      enabled: true
-      secrets:
-        enabled: true
-        paths: ${OAUTH_CONFIG_PATH}

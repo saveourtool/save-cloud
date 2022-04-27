@@ -20,25 +20,6 @@ fun getHostIp(): String? {
 }
 
 /**
- * @param hostname hostname to be resolved via `hosts` file
- * @return IP address of [hostname] if it has been found or null
- */
-private fun resolve(hostname: String): String? {
-    val process = ProcessBuilder(
-        "bash", "-c",
-        "getent hosts $hostname | awk '{print \$1}'"
-    )
-        .start()
-    process.waitFor()
-    return process.inputStream
-        .readAllBytes()
-        .decodeToString()
-        .lines()
-        .firstOrNull()
-        ?.takeIf { it.isNotBlank() }
-}
-
-/**
  * Copy [sourceDir] into [targetDir] recursively, while also copying original file attributes
  *
  * @param sourceDir source directory
@@ -61,4 +42,23 @@ fun copyRecursivelyWithAttributes(sourceDir: File, targetDir: File) {
             StandardCopyOption.COPY_ATTRIBUTES,
         )
     }
+}
+
+/**
+ * @param hostname hostname to be resolved via `hosts` file
+ * @return IP address of [hostname] if it has been found or null
+ */
+private fun resolve(hostname: String): String? {
+    val process = ProcessBuilder(
+        "bash", "-c",
+        "getent hosts $hostname | awk '{print \$1}'"
+    )
+        .start()
+    process.waitFor()
+    return process.inputStream
+        .readAllBytes()
+        .decodeToString()
+        .lines()
+        .firstOrNull()
+        ?.takeIf { it.isNotBlank() }
 }
