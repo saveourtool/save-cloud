@@ -192,10 +192,10 @@ fun topBar() = fc<TopBarProps> { props ->
                 // Dropdown - User Information
                 div("dropdown-menu dropdown-menu-right shadow animated--grow-in") {
                     attrs["aria-labelledby"] = "userDropdown"
-                    props.userInfo?.name?.let {
+                    props.userInfo?.name?.let { name ->
                         dropdownEntry(faCog, "Settings") {
                             attrs.onClickFunction = {
-                                window.location.href = "#/$it/settings/email"
+                                window.location.href = "#/$name/settings/email"
                             }
                         }
                     }

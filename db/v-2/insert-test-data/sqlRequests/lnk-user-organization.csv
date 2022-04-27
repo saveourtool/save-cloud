@@ -1,6 +1,6 @@
-id;organization_id;user_id
-1;1;1
-2;1;2
-3;1;3
-4;2;1
-5;2;3
+id;organization_id;user_id;role
+1;1;1;SUPER_ADMIN
+2;1;2;VIEWER
+3;1;3;ADMIN
+4;2;1;SUPER_ADMIN
+5;2;3;ADMIN
