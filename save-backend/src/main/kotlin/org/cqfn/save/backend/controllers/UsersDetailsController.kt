@@ -53,9 +53,11 @@ class UsersDetailsController(
         val user = userRepository.findByName(newUserInfo.name).get()
         val userId = (authentication.details as AuthenticationDetails).id
         val response = if (user.id == userId) {
+            val newPassword = newUserInfo.password.getValueOrNull() ?: user.password
+            val bcryptPassword = newPassword?.let { "{bcrypt}${BCrypt.hashpw(newPassword, BCrypt.gensalt())}" }
             userRepository.save(user.apply {
                 email = newUserInfo.email.getValueOrNull() ?: email
-                password = "{bcrypt}${BCrypt.hashpw(newUserInfo.password.getValueOrNull() ?: password, BCrypt.gensalt())}"
+                password = bcryptPassword
                 company = newUserInfo.company.getValueOrNull() ?: company
                 location = newUserInfo.location.getValueOrNull() ?: location
                 gitHub = newUserInfo.gitHub.getValueOrNull() ?: gitHub
