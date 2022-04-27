@@ -18,7 +18,6 @@ import org.cqfn.save.utils.AvatarType
 import org.cqfn.save.v1
 
 import csstype.*
-import kotlinx.coroutines.await
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.asList
 import org.w3c.dom.events.Event
@@ -33,7 +32,6 @@ import kotlinx.html.hidden
 import kotlinx.html.js.onChangeFunction
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.cqfn.save.domain.Role
 
 /**
  * `Props` retrieved from router
@@ -74,7 +72,7 @@ external interface UserSettingsViewState : State {
 
 @Suppress("MISSING_KDOC_TOP_LEVEL")
 abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsViewState>(false) {
-    val fieldsMap: MutableMap<InputTypes, String> = mutableMapOf()
+    private val fieldsMap: MutableMap<InputTypes, String> = mutableMapOf()
 
     init {
         state.isUploading = false

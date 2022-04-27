@@ -12,9 +12,10 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
+import org.springframework.security.crypto.bcrypt.BCrypt
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Mono
-import org.springframework.security.crypto.bcrypt.BCrypt
+
 /**
  * Controller that handles operation with users
  */
@@ -54,7 +55,7 @@ class UsersDetailsController(
         val response = if (user.id == userId) {
             userRepository.save(user.apply {
                 email = newUserInfo.email.getValueOrNull() ?: email
-                password = "{bcrypt}" + BCrypt.hashpw(newUserInfo.password.getValueOrNull() ?: password, BCrypt.gensalt())
+                password = "{bcrypt}${BCrypt.hashpw(newUserInfo.password.getValueOrNull() ?: password, BCrypt.gensalt())}"
                 company = newUserInfo.company.getValueOrNull() ?: company
                 location = newUserInfo.location.getValueOrNull() ?: location
                 gitHub = newUserInfo.gitHub.getValueOrNull() ?: gitHub
@@ -68,9 +69,9 @@ class UsersDetailsController(
         return Mono.just(response)
     }
 
-    private fun String?.getValueOrNull(): String? {
-        return if (!this.isNullOrBlank()) {
-            this
-        } else null
+    private fun String?.getValueOrNull(): String? = if (!this.isNullOrBlank()) {
+        this
+    } else {
+        null
     }
 }

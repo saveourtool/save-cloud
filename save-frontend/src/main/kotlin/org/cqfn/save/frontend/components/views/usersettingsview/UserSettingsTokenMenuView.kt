@@ -1,12 +1,8 @@
 package org.cqfn.save.frontend.components.views.usersettingsview
 
-import kotlinext.js.assign
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.await
-import kotlinx.coroutines.launch
 import org.cqfn.save.frontend.components.basic.cardComponent
 
+import kotlinext.js.assign
 import react.FC
 import react.dom.*
 import react.fc
@@ -57,9 +53,9 @@ class UserSettingsTokenMenuView : UserSettingsView() {
             token += charPool.random()
         }
         setState(
-                assign(state) {
-                    this.token = token
-                }
+            assign(state) {
+                this.token = token
+            }
         ) {
             updateUser()
         }
