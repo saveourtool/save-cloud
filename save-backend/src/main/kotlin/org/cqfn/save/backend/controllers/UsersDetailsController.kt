@@ -62,7 +62,7 @@ class UsersDetailsController(
                 linkedin = newUserInfo.linkedin.getValueOrNull() ?: linkedin
                 twitter = newUserInfo.twitter.getValueOrNull() ?: twitter
             })
-            ResponseEntity.ok("User saved successfully")
+            ResponseEntity.ok("User information saved successfully")
         } else {
             ResponseEntity.status(HttpStatus.FORBIDDEN).build()
         }
