@@ -51,7 +51,7 @@ class UsersDetailsController(
     @PreAuthorize("isAuthenticated()")
     fun saveUser(@RequestBody newUserInfo: UserInfo, authentication: Authentication): Mono<StringResponse> {
         val user = userRepository.findByName(newUserInfo.name).get()
-        println("USER PASSWORD: ${user.password}")
+        println("USER PASSWORD: in DB ${user.password} new password ${newUserInfo.password}")
         val userId = (authentication.details as AuthenticationDetails).id
         val response = if (user.id == userId) {
             userRepository.save(user.apply {

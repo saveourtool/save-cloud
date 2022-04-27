@@ -39,6 +39,10 @@ class UserSettingsTokenMenuView : UserSettingsView() {
                     +"Generate new token"
                     attrs.onClickFunction = {
                         generateToken()
+//                        println("\n\n===============================updateUser start")
+//                        println("Username ${state.userInfo?.name} token ${state.token}")
+//                        updateUser()
+//                        println("\n\nupdateUser finish")
                     }
                 }
             }
@@ -58,36 +62,28 @@ class UserSettingsTokenMenuView : UserSettingsView() {
         })
     }
 
-    override fun componentDidMount() {
-        super.componentDidMount()
-        println("UserSettingsTokenMenuView: props.userName=${props.userName}")
-        scope.launch {
-            val user = props.userName?.let { getUser(it) }
-            setState {
-                userInfo = user
-                println("After USERNAME ${userInfo?.name}")
-            }
-        }
-    }
+//    override fun componentDidMount() {
+//        super.componentDidMount()
+//        println("UserSettingsTokenMenuView: props.userName=${props.userName}")
+//        scope.launch {
+//            val user = props.userName?.let { getUser(it) }
+//            setState {
+//                userInfo = user
+//                println("After USERNAME ${userInfo?.name}")
+//            }
+//        }
+//    }
 
     @Suppress("MAGIC_NUMBER")
     private fun generateToken() {
-        scope.launch {
-            println("SENT REQUEST TO UPDATE USER INFO111")
-        }
-
         var token = "ghp_"
         val charPool = ('a'..'z') + ('A'..'Z') + ('0'..'9')
         while (token.length < 40) {
             token += charPool.random()
         }
-
+        println("token: ${token}")
         setState {
             state.token = token
         }
-        println("\n\n===============================updateUser start")
-        println("${state.userInfo?.name} ${state.token}")
-        updateUser()
-        println("\n\nupdateUser finish")
     }
 }
