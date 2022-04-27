@@ -10,13 +10,14 @@ import java.nio.file.Files
 import java.nio.file.StandardCopyOption
 
 /**
- * @return IP address of the docker host
+ * @return IP address of the docker host or `host-gateway` as a fallback
  */
-fun getHostIp(): String? {
+fun getHostIp(): String {
     System.getenv("HOST_IP")?.let {
         return it
     }
     return resolve("host.docker.internal")
+        ?: "host-gateway"
 }
 
 /**
