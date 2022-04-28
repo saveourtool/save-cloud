@@ -99,8 +99,18 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
             setState {
                 image = avatar
                 userInfo = user
+                userInfo?.let { updateFieldsMap(it) }
             }
         }
+    }
+
+    private fun updateFieldsMap(userInfo: UserInfo) {
+        userInfo.email?.let { fieldsMap[InputTypes.USER_EMAIL] = it }
+        userInfo.company?.let { fieldsMap[InputTypes.COMPANY] = it }
+        userInfo.location?.let { fieldsMap[InputTypes.LOCATION] = it }
+        userInfo.linkedin?.let { fieldsMap[InputTypes.LINKEDIN] = it }
+        userInfo.gitHub?.let { fieldsMap[InputTypes.GIT_HUB] = it }
+        userInfo.twitter?.let { fieldsMap[InputTypes.TWITTER] = it }
     }
 
     /**
@@ -224,7 +234,6 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
     fun updateUser() {
         val newUserInfo = UserInfo(
             name = state.userInfo!!.name,
-            password = state.token,
             source = state.userInfo!!.source,
             projects = state.userInfo!!.projects,
             email = fieldsMap[InputTypes.USER_EMAIL]?.trim(),

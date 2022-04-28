@@ -19,6 +19,7 @@ import reactor.core.publisher.Mono
 /**
  * Controller that handles operation with users
  */
+// TODO: https://github.com/analysis-dev/save-cloud/issues/656
 @RestController
 @RequestMapping(path = ["/api/$v1/users"])
 class UsersDetailsController(
@@ -53,16 +54,13 @@ class UsersDetailsController(
         val user = userRepository.findByName(newUserInfo.name).get()
         val userId = (authentication.details as AuthenticationDetails).id
         val response = if (user.id == userId) {
-            val newPassword = newUserInfo.password.getValueOrNull() ?: user.password
-            val bcryptPassword = newPassword?.let { "{bcrypt}${BCrypt.hashpw(newPassword, BCrypt.gensalt())}" }
             userRepository.save(user.apply {
-                email = newUserInfo.email.getValueOrNull() ?: email
-                password = bcryptPassword
-                company = newUserInfo.company.getValueOrNull() ?: company
-                location = newUserInfo.location.getValueOrNull() ?: location
-                gitHub = newUserInfo.gitHub.getValueOrNull() ?: gitHub
-                linkedin = newUserInfo.linkedin.getValueOrNull() ?: linkedin
-                twitter = newUserInfo.twitter.getValueOrNull() ?: twitter
+                email = newUserInfo.email
+                company = newUserInfo.company
+                location = newUserInfo.location
+                gitHub = newUserInfo.gitHub
+                linkedin = newUserInfo.linkedin
+                twitter = newUserInfo.twitter
             })
             ResponseEntity.ok("User information saved successfully")
         } else {
@@ -71,9 +69,25 @@ class UsersDetailsController(
         return Mono.just(response)
     }
 
-    private fun String?.getValueOrNull(): String? = if (!this.isNullOrBlank()) {
-        this
-    } else {
-        null
+    /**
+     * @param userName
+     * @param token
+     * @param authentication an [Authentication] representing an authenticated request
+     * @return response
+     */
+    @PostMapping("{userName}/save/token")
+    @PreAuthorize("isAuthenticated()")
+    fun saveUserToken(@PathVariable userName: String, @RequestBody token: String, authentication: Authentication): Mono<StringResponse> {
+        val user = userRepository.findByName(userName).get()
+        val userId = (authentication.details as AuthenticationDetails).id
+        val response = if (user.id == userId) {
+            userRepository.save(user.apply {
+                password = "{bcrypt}${BCrypt.hashpw(token, BCrypt.gensalt())}"
+            })
+            ResponseEntity.ok("User token saved successfully")
+        } else {
+            ResponseEntity.status(HttpStatus.FORBIDDEN).build()
+        }
+        return Mono.just(response)
     }
 }
