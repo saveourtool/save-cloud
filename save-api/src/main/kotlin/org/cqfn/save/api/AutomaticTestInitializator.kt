@@ -1,7 +1,6 @@
 package org.cqfn.save.api
 
 import org.cqfn.save.domain.FileInfo
-import org.cqfn.save.domain.Jdk
 import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.ExecutionRequestBase
 import org.cqfn.save.entities.ExecutionRequestForStandardSuites
@@ -21,8 +20,6 @@ import java.io.File
 import java.time.LocalDateTime
 
 import kotlinx.coroutines.delay
-import org.cqfn.save.domain.Python
-import org.cqfn.save.domain.Sdk
 
 /**
  * Class, that provides logic for execution submission and result receiving
