@@ -21,6 +21,8 @@ import java.io.File
 import java.time.LocalDateTime
 
 import kotlinx.coroutines.delay
+import org.cqfn.save.domain.Python
+import org.cqfn.save.domain.Sdk
 
 /**
  * Class, that provides logic for execution submission and result receiving
@@ -117,7 +119,7 @@ class AutomaticTestInitializator(
             project = project,
             gitDto = gitDto,
             testRootPath = evaluatedToolProperties.testRootPath,
-            sdk = Jdk("11"),
+            sdk = evaluatedToolProperties.sdk.toSdk(),
             executionId = executionId,
         )
     }
@@ -135,7 +137,7 @@ class AutomaticTestInitializator(
         return organization to ExecutionRequestForStandardSuites(
             project = project,
             testsSuites = userProvidedTestSuites,
-            sdk = Jdk("11"),
+            sdk = evaluatedToolProperties.sdk.toSdk(),
             execCmd = evaluatedToolProperties.execCmd,
             batchSizeForAnalyzer = evaluatedToolProperties.batchSize
         )
