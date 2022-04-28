@@ -1,9 +1,7 @@
-# todo: reuse configs with https://helm.sh/docs/topics/library_charts/
-
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ .Values.gateway.name }}
+  {{- include "service.common.metadata" (dict "service" .Values.gateway) | nindent 2 }}
   {{- if .Values.gateway.svc.annotations }}
   annotations:
     {{- range $key, $value := .Values.gateway.svc.annotations }}
@@ -16,7 +14,7 @@ spec:
       port: 80
       targetPort: http
   selector:
-    io.kompose.service: {{ .Values.gateway.name }}
+    {{- include "service.common.selectors" (dict "service" .Values.gateway) | nindent 4 }}
   {{- range $key, $value := .Values.gateway.svc.spec }}
   {{ $key }}: {{ $value }}
   {{- end }}

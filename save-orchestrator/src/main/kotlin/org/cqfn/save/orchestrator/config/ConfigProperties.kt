@@ -34,6 +34,7 @@ data class ConfigProperties(
     val adjustResourceOwner: Boolean = true,
     val agentsHeartBeatTimeoutMillis: Long,
     val heartBeatInspectorInterval: Long,
+    val agentSettings: AgentSettings = AgentSettings(),
 )
 
 /**
@@ -52,4 +53,9 @@ data class DockerSettings(
     val host: String,
     val loggingDriver: String,
     val runtime: String = "runc",
+)
+
+data class AgentSettings(
+    val backendUrl: String? = null,
+    val orchestratorUrl: String? = null,
 )

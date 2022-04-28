@@ -1,1 +1,12 @@
-{{ include "service.common" (dict "service" .Values.backend) }}
+apiVersion: v1
+kind: Service
+metadata:
+{{- include "service.common.metadata" (dict "service" .Values.backend) | nindent 2 }}
+spec:
+  {{ if .Values.backend.clusterIP }}
+  clusterIP: {{ .Values.backend.clusterIP }}
+  {{ end }}
+  ports:
+    {{- include "service.common.ports" (dict "service" .Values.backend) | nindent 4 }}
+  selector:
+    {{- include "service.common.selectors" (dict "service" .Values.backend) | nindent 4 }}
