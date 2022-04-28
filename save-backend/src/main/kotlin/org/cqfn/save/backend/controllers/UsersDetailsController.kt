@@ -7,17 +7,18 @@ import org.cqfn.save.backend.utils.justOrNotFound
 import org.cqfn.save.domain.ImageInfo
 import org.cqfn.save.info.UserInfo
 import org.cqfn.save.v1
-
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Mono
 
 /**
  * Controller that handles operation with users
  */
+// TODO: https://github.com/analysis-dev/save-cloud/issues/656
 @RestController
 @RequestMapping(path = ["/api/$v1/users"])
 class UsersDetailsController(
@@ -60,7 +61,29 @@ class UsersDetailsController(
                 linkedin = newUserInfo.linkedin
                 twitter = newUserInfo.twitter
             })
-            ResponseEntity.ok("User save")
+            ResponseEntity.ok("User information saved successfully")
+        } else {
+            ResponseEntity.status(HttpStatus.FORBIDDEN).build()
+        }
+        return Mono.just(response)
+    }
+
+    /**
+     * @param userName
+     * @param token
+     * @param authentication an [Authentication] representing an authenticated request
+     * @return response
+     */
+    @PostMapping("{userName}/save/token")
+    @PreAuthorize("isAuthenticated()")
+    fun saveUserToken(@PathVariable userName: String, @RequestBody token: String, authentication: Authentication): Mono<StringResponse> {
+        val user = userRepository.findByName(userName).get()
+        val userId = (authentication.details as AuthenticationDetails).id
+        val response = if (user.id == userId) {
+            userRepository.save(user.apply {
+                password = "{bcrypt}${BCryptPasswordEncoder().encode(token)}"
+            })
+            ResponseEntity.ok("User token saved successfully")
         } else {
             ResponseEntity.status(HttpStatus.FORBIDDEN).build()
         }
