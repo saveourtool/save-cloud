@@ -1,7 +1,6 @@
 package org.cqfn.save.api
 
 import org.cqfn.save.domain.FileInfo
-import org.cqfn.save.domain.Jdk
 import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.ExecutionRequestBase
 import org.cqfn.save.entities.ExecutionRequestForStandardSuites
@@ -117,7 +116,7 @@ class AutomaticTestInitializator(
             project = project,
             gitDto = gitDto,
             testRootPath = evaluatedToolProperties.testRootPath,
-            sdk = Jdk("11"),
+            sdk = evaluatedToolProperties.sdk.toSdk(),
             executionId = executionId,
         )
     }
@@ -135,7 +134,7 @@ class AutomaticTestInitializator(
         return organization to ExecutionRequestForStandardSuites(
             project = project,
             testsSuites = userProvidedTestSuites,
-            sdk = Jdk("11"),
+            sdk = evaluatedToolProperties.sdk.toSdk(),
             execCmd = evaluatedToolProperties.execCmd,
             batchSizeForAnalyzer = evaluatedToolProperties.batchSize
         )
