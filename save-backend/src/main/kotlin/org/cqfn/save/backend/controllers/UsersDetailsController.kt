@@ -7,12 +7,11 @@ import org.cqfn.save.backend.utils.justOrNotFound
 import org.cqfn.save.domain.ImageInfo
 import org.cqfn.save.info.UserInfo
 import org.cqfn.save.v1
-
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
-import org.springframework.security.crypto.bcrypt.BCrypt
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Mono
 
@@ -82,7 +81,7 @@ class UsersDetailsController(
         val userId = (authentication.details as AuthenticationDetails).id
         val response = if (user.id == userId) {
             userRepository.save(user.apply {
-                password = "{bcrypt}${BCrypt.hashpw(token, BCrypt.gensalt())}"
+                password = "{bcrypt}${BCryptPasswordEncoder().encode(token)}"
             })
             ResponseEntity.ok("User token saved successfully")
         } else {
