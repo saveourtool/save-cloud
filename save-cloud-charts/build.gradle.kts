@@ -1,13 +1,13 @@
-plugins {
-    // fixme: this is needed only to configure diktat, because we configure it from `allprojects`
-    java
-}
-
 /**
  * These tasks can either be used as a reference to run Helm commands
  * or can be enhanced as needed to actually subsitute them.
  * Either way, kubectl with configured connection to the cluster is required.
  */
+
+plugins {
+    // fixme: this is needed only to configure diktat, because we configure it from `allprojects`
+    java
+}
 
 tasks.register<Exec>("setupChartRepositories") {
     commandLine("helm", "repo")
