@@ -10,7 +10,8 @@ metadata:
   name: save-fs-storage
 spec:
   accessModes:
-    - ReadWriteMany
+    # FixMe: ReadWriteMany if there are many distributed pods; or better - migrate this data to S3.
+    - ReadWriteOnce
   resources:
     requests:
       storage: {{ .Values.storage.size }}

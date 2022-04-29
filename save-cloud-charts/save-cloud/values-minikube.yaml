@@ -1,0 +1,15 @@
+# values specific to deployment into Minikube
+
+profile: dev
+backend:
+  profile: dev,secure,kubernetes
+gateway:
+  profile: dev,kubernetes
+  applicationProperties: |+
+    server.shutdown=graceful
+    management.endpoints.web.exposure.include=*
+    gateway.knownActuatorConsumers=172.0.0.0/8
+mysql:
+  ip: 192.168.65.2
+
+# dependencies
