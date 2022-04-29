@@ -93,23 +93,26 @@ internal class OrganizationController(
     }
 
     /**
-     * @param organizationName
      * @param draftOrganization
      * @param authentication
      * @throws ResponseStatusException
      */
-    @PostMapping("/{organizationName}")
+    @PostMapping("/update")
     fun updateOrganization(
-        @PathVariable organizationName: String,
         @RequestBody draftOrganization: Organization,
         authentication: Authentication,
-    ) {
-        val organization = organizationService.findByName(organizationName)
+    ): ResponseEntity<String> {
+        val organizationFromDb = organizationService.findByName(draftOrganization.name)
             ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
-        if (!organizationPermissionEvaluator.hasPermission(authentication, organization, Permission.WRITE)) {
+        if (!organizationPermissionEvaluator.hasPermission(authentication, organizationFromDb, Permission.WRITE)) {
             throw ResponseStatusException(HttpStatus.FORBIDDEN)
         }
-        // organizationService
+        val updatedOrganization = organizationFromDb.apply {
+            name = draftOrganization.name
+            avatar = draftOrganization.avatar
+        }
+        val (_, status) = organizationService.getOrSaveOrganization(updatedOrganization)
+        return ResponseEntity.ok(status.message)
     }
 
     companion object {
