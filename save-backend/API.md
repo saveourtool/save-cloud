@@ -1,0 +1,1 @@
+curl -X GET http://localhost:5800/api/v1/files/list -H "X-Authorization-Source: basic" -H "Authorization: Basic YWRtaW46IA=="
