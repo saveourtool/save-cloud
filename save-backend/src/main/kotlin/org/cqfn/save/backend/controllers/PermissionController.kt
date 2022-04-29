@@ -105,11 +105,12 @@ class PermissionController(
     ) = Mono.justOrEmpty(
         projectService.findByNameAndOrganizationName(projectName, organizationName)
             .let { Optional.ofNullable(it) }
-    ).filter { project: Project ->
-        // if project is hidden from the user, who attempts permission update,
-        // then we should return 404
-        projectPermissionEvaluator.hasPermission(authentication, project, Permission.READ)
-    }
+    )
+        .filter { project: Project ->
+            // if project is hidden from the user, who attempts permission update,
+            // then we should return 404
+            projectPermissionEvaluator.hasPermission(authentication, project, Permission.READ)
+        }
         .switchIfEmpty {
             Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
         }
@@ -120,7 +121,9 @@ class PermissionController(
         .filter { (project, user) ->
             // fixme: could be `@PreAuthorize`, but organizationService cannot be found smh
             val userId = (authentication.details as AuthenticationDetails).id
-            val hasOrganizationPermissions = organizationService.canChangeRoles(organizationName, userId)
+            val organization = organizationService.findByName(organizationName)
+                ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
+            val hasOrganizationPermissions = organizationService.canChangeRoles(organization, userId, user, setRoleRequest.role)
             val hasProjectPermissions = projectService.canChangeRoles(project, userId, user, setRoleRequest.role)
             hasOrganizationPermissions || hasProjectPermissions
         }
@@ -161,7 +164,9 @@ class PermissionController(
         }
         .filter { (project, user) ->
             val userId = (authentication.details as AuthenticationDetails).id
-            val hasOrganizationPermissions = organizationService.canChangeRoles(organizationName, userId)
+            val organization = organizationService.findByName(organizationName)
+                ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
+            val hasOrganizationPermissions = organizationService.canChangeRoles(organization, userId, user)
             val hasProjectPermissions = projectService.canChangeRoles(project, userId, user)
             hasOrganizationPermissions || hasProjectPermissions
         }

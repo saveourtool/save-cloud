@@ -24,7 +24,7 @@ import org.springframework.web.server.ResponseStatusException
  * Controller for processing links between users and their roles in projects
  */
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/$v1")
 class LnkUserProjectController(
     private val lnkUserProjectService: LnkUserProjectService,
     private val projectService: ProjectService,
@@ -38,15 +38,16 @@ class LnkUserProjectController(
      * @param authentication
      * @return list of users with their roles, connected to the project
      * @throws NoSuchElementException
+     * @throws ResponseStatusException
      */
-    @GetMapping(path = ["/$v1/projects/{organizationName}/{projectName}/users"])
+    @GetMapping(path = ["/projects/{organizationName}/{projectName}/users"])
     fun getAllUsersByProjectNameAndOrganizationName(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
         authentication: Authentication,
     ): List<UserInfo> {
         val project = projectService.findByNameAndOrganizationName(projectName, organizationName)
-            ?: throw NoSuchElementException("There is no $projectName project in $organizationName organization")
+            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
         val usersWithRoles = if (projectPermissionEvaluator.hasPermission(authentication, project, Permission.READ)) {
             lnkUserProjectService.getAllUsersAndRolesByProject(project)
                 .filter { (_, role) ->
@@ -73,7 +74,7 @@ class LnkUserProjectController(
      * @throws NoSuchElementException
      * @throws ResponseStatusException
      */
-    @GetMapping("/users/not-from/{organizationName}/{projectName}")
+    @GetMapping("/projects/{organizationName}/{projectName}/users/not-from")
     @Suppress("UnsafeCallOnNullableType")
     fun getAllUsersNotFromProjectWithNamesStartingWith(
         @PathVariable organizationName: String,
@@ -85,7 +86,7 @@ class LnkUserProjectController(
             return emptyList()
         }
         val project = projectService.findByNameAndOrganizationName(projectName, organizationName)
-            ?: throw NoSuchElementException("There is no $projectName project in $organizationName organization")
+            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
         if (!projectPermissionEvaluator.hasPermission(authentication, project, Permission.READ)) {
             throw ResponseStatusException(HttpStatus.NOT_FOUND)
         }

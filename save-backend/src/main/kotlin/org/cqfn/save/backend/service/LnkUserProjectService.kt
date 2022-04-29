@@ -7,7 +7,9 @@ import org.cqfn.save.entities.LnkUserProject
 import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.User
 import org.springframework.data.domain.PageRequest
+import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
+import org.springframework.web.server.ResponseStatusException
 
 /**
  * Service of lnkUserProjects
@@ -63,7 +65,7 @@ class LnkUserProjectService(
             lnkUserProjectRepository.deleteById(it)
         }
         ?: run {
-            throw NoSuchElementException("Cannot delete user ${user.name ?: user.id} from project ${project.organization.name}/${project.name}: no such link was found.")
+            throw ResponseStatusException(HttpStatus.NOT_FOUND)
         }
 
     /**

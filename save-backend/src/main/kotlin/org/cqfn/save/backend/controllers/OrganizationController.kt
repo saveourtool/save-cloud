@@ -1,18 +1,22 @@
 package org.cqfn.save.backend.controllers
 
 import org.cqfn.save.backend.StringResponse
+import org.cqfn.save.backend.security.OrganizationPermissionEvaluator
 import org.cqfn.save.backend.service.OrganizationService
 import org.cqfn.save.backend.utils.AuthenticationDetails
 import org.cqfn.save.domain.ImageInfo
 import org.cqfn.save.domain.OrganizationSaveStatus
 import org.cqfn.save.entities.Organization
+import org.cqfn.save.permission.Permission
 import org.cqfn.save.v1
 
 import org.slf4j.LoggerFactory
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
@@ -24,7 +28,10 @@ import java.time.LocalDateTime
  */
 @RestController
 @RequestMapping(path = ["/api/$v1/organization"])
-internal class OrganizationController(private val organizationService: OrganizationService) {
+internal class OrganizationController(
+    private val organizationService: OrganizationService,
+    private val organizationPermissionEvaluator: OrganizationPermissionEvaluator,
+) {
     /**
      * @param organizationName
      * @return Organization
@@ -34,7 +41,7 @@ internal class OrganizationController(private val organizationService: Organizat
     fun getOrganizationByName(@PathVariable organizationName: String) = Mono.fromCallable {
         organizationService.findByName(organizationName)
     }.switchIfEmpty {
-        Mono.error(NoSuchElementException("Organization with name [$organizationName] was not found."))
+        Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
     }
 
     /**
@@ -83,6 +90,26 @@ internal class OrganizationController(private val organizationService: Organizat
             ResponseEntity.ok(organizationStatus.message)
         }
         return Mono.just(response)
+    }
+
+    /**
+     * @param organizationName
+     * @param draftOrganization
+     * @param authentication
+     * @throws ResponseStatusException
+     */
+    @PostMapping("/{organizationName}")
+    fun updateOrganization(
+        @PathVariable organizationName: String,
+        @RequestBody draftOrganization: Organization,
+        authentication: Authentication,
+    ) {
+        val organization = organizationService.findByName(organizationName)
+            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
+        if (!organizationPermissionEvaluator.hasPermission(authentication, organization, Permission.WRITE)) {
+            throw ResponseStatusException(HttpStatus.FORBIDDEN)
+        }
+        // organizationService
     }
 
     companion object {

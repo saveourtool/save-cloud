@@ -41,4 +41,10 @@
     </addColumn>
   </changeSet>
 
+  <changeSet id="organization-4" author="sanyavertolet" context="dev or prod">
+    <addColumn tableName="organization">
+      <column name="status" type="varchar(250)" defaultValue="CREATED"/>
+    </addColumn>
+  </changeSet>
+
 </databaseChangeLog>

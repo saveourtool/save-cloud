@@ -34,6 +34,7 @@ class User(
 ) : BaseEntity() {
     /**
      * @param projects roles in projects
+     * @param organizations roles in organizations
      * @return [UserInfo] object
      */
     fun toUserInfo(projects: Map<String, Role> = emptyMap(), organizations: Map<String, Role> = emptyMap()) = UserInfo(

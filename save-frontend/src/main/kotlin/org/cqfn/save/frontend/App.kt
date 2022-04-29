@@ -214,6 +214,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                         child(withRouter { _, params ->
                                             child(OrganizationView::class) {
                                                 attrs.organizationName = params["owner"]!!
+                                                attrs.currentUserInfo = state.userInfo
                                             }
                                         })
                                     }

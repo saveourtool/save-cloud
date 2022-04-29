@@ -2,7 +2,9 @@ package org.cqfn.save.backend.service
 
 import org.cqfn.save.backend.repository.OrganizationRepository
 import org.cqfn.save.domain.OrganizationSaveStatus
+import org.cqfn.save.domain.Role
 import org.cqfn.save.entities.Organization
+import org.cqfn.save.entities.User
 import org.springframework.stereotype.Service
 
 /**
@@ -13,6 +15,7 @@ import org.springframework.stereotype.Service
 @Service
 class OrganizationService(
     private val organizationRepository: OrganizationRepository,
+    private val lnkUserOrganizationService: LnkUserOrganizationService,
 ) {
     /**
      * Store [organization] in the database
@@ -63,14 +66,28 @@ class OrganizationService(
      * In case we widen number of users that can manage roles in an organization, there is a separate method.
      * Simply delegating now.
      *
-     * @param organizationName
-     * @param userId
+     * @param organization in which the role is going to be changed
+     * @param userId id of a user that is going to change role
+     * @param otherUser user whose role is going to be changed
+     * @param requestedRole role that is going to be set
      * @return whether the user can change roles in organization
      */
-    fun canChangeRoles(organizationName: String, userId: Long): Boolean = isOwner(organizationName, userId)
-
-    private fun isOwner(organizationName: String, userId: Long): Boolean {
-        val organization = organizationRepository.findByName(organizationName)
-        return organization?.ownerId == userId
+    @Suppress("UnsafeCallOnNullableType")
+    fun canChangeRoles(
+        organization: Organization,
+        userId: Long,
+        otherUser: User,
+        requestedRole: Role = Role.NONE
+    ): Boolean {
+        val selfRole = lnkUserOrganizationService.findRoleByUserIdAndOrganization(userId, organization)
+        val otherRole = lnkUserOrganizationService.findRoleByUserIdAndOrganization(otherUser.id!!, organization)
+        return isOrganizationAdminOrHigher(selfRole) && hasAnotherUserLessPermissions(selfRole, otherRole) &&
+                isRequestedPermissionsCanBeSetByUser(selfRole, requestedRole)
     }
+
+    private fun hasAnotherUserLessPermissions(selfRole: Role, otherRole: Role): Boolean = selfRole.priority > otherRole.priority
+
+    private fun isRequestedPermissionsCanBeSetByUser(selfRole: Role, requestedRole: Role): Boolean = selfRole.priority > requestedRole.priority
+
+    private fun isOrganizationAdminOrHigher(userRole: Role): Boolean = userRole.priority >= Role.ADMIN.priority
 }

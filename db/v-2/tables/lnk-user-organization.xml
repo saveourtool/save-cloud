@@ -32,9 +32,10 @@
 
   <changeSet id="lnk-user-organization-4" author="sanyavertolet">
     <addColumn tableName="lnk_user_organization">
-      <column name="user_role" type="varchar(250)">
+      <column name="role" type="varchar(250)">
       </column>
     </addColumn>
+    <addUniqueConstraint tableName="lnk_user_organization" columnNames="user_id, organization_id"/>
   </changeSet>
 
 </databaseChangeLog>

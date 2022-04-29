@@ -1,0 +1,13 @@
+id;name;password;role;source;avatar;email;company;location;linkedin;git_hub;twitter
+1;"admin";"{bcrypt}$2a$12$7jB6.fJ/uHZiti94w0.QOu0M/lPzKU1lvX9TLL3uZHFjLGIfz1gHq";"ROLE_SUPER_ADMIN";"basic";"null";"null";"null";"null";"null";"null";"null"
+2;"user";"noop{123}";"ROLE_VIEWER";"basic";"null";"null";"null";"null";"null";"null";"null"
+3;"user1";"noop{123}";"ROLE_VIEWER";"basic";"null";"null";"null";"null";"null";"null";"null"
+4;"user2";"noop{123}";"ROLE_VIEWER";"basic";"null";"null";"null";"null";"null";"null";"null"
+5;"user3";"noop{123}";"ROLE_VIEWER";"basic";"null";"null";"null";"null";"null";"null";"null"
+6;"user4";"noop{123}";"ROLE_VIEWER";"basic";"null";"null";"null";"null";"null";"null";"null"
+7;"user5";"noop{123}";"ROLE_VIEWER";"basic";"null";"null";"null";"null";"null";"null";"null"
+8;"user6";"noop{123}";"ROLE_VIEWER";"basic";"null";"null";"null";"null";"null";"null";"null"
+9;"user7";"noop{123}";"ROLE_VIEWER";"basic";"null";"null";"null";"null";"null";"null";"null"
+10;"user8";"noop{123}";"ROLE_VIEWER";"basic";"null";"null";"null";"null";"null";"null";"null"
+11;"user9";"noop{123}";"ROLE_VIEWER";"basic";"null";"null";"null";"null";"null";"null";"null"
+12;"user10";"noop{123}";"ROLE_VIEWER";"basic";"null";"null";"null";"null";"null";"null";"null"

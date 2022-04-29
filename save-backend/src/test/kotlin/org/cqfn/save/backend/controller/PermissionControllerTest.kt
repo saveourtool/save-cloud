@@ -14,6 +14,7 @@ import org.cqfn.save.backend.utils.ConvertingAuthenticationManager
 import org.cqfn.save.backend.utils.mutateMockedUser
 import org.cqfn.save.domain.Role
 import org.cqfn.save.entities.Organization
+import org.cqfn.save.entities.OrganizationStatus
 import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.User
 import org.cqfn.save.permission.Permission
@@ -99,7 +100,7 @@ class PermissionControllerTest {
             project = Project.stub(id = 99),
             permission = Permission.WRITE,
         )
-        given(organizationRepository.findByName(any())).willReturn(Organization("Example Org", ownerId = 99, null, null))
+        given(organizationRepository.findByName(any())).willReturn(Organization("Example Org", OrganizationStatus.CREATED, ownerId = 99, null, null))
         given(permissionService.setRole(any(), any(), any())).willReturn(Mono.just(Unit))
 
         webTestClient.post()
@@ -121,7 +122,7 @@ class PermissionControllerTest {
             project = Project.stub(id = 99),
             permission = Permission.WRITE,
         )
-        given(organizationRepository.findByName(any())).willReturn(Organization("Example Org", ownerId = 42, null, null))
+        given(organizationRepository.findByName(any())).willReturn(Organization("Example Org", OrganizationStatus.CREATED, ownerId = 42, null, null))
 
         webTestClient.post()
             .uri("/api/$v1/projects/roles/Huawei/huaweiName")
@@ -142,7 +143,7 @@ class PermissionControllerTest {
             project = Project.stub(id = 99).apply { public = false },
             permission = null,
         )
-        given(organizationRepository.findByName(any())).willReturn(Organization("Example Org", ownerId = 42, null, null))
+        given(organizationRepository.findByName(any())).willReturn(Organization("Example Org", OrganizationStatus.CREATED, ownerId = 42, null, null))
 
         webTestClient.post()
             .uri("/api/$v1/projects/roles/Huawei/huaweiName")

@@ -3,7 +3,6 @@ package org.cqfn.save.info
 import org.cqfn.save.domain.Role
 
 import kotlinx.serialization.Serializable
-import org.cqfn.save.entities.Organization
 
 /**
  * Represents all data related to the User
@@ -19,6 +18,7 @@ import org.cqfn.save.entities.Organization
  * @property linkedin
  * @property gitHub
  * @property twitter
+ * @property organizations
  */
 @Serializable
 data class UserInfo(
