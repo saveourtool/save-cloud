@@ -19,7 +19,7 @@ spec:
         - name: backend
           {{- include "spring-boot.common" (merge (dict "service" .Values.backend) .) | nindent 10 }}
           env:
-            {{- include "spring-boot.common.env" (merge (dict "service" .Values.orchestrator) .) | nindent 12 }}
+            {{- include "spring-boot.common.env" (merge (dict "service" .Values.backend) .) | nindent 12 }}
             - name: DB_PASSWORD_FILE
               value: {{ .Values.backend.dbPasswordFile }}
           volumeMounts:
