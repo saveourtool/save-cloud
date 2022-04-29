@@ -106,4 +106,14 @@ class LnkUserOrganizationService(
     } else {
         emptyList()
     }
+
+    /**
+     * @param userId
+     * @param organizationName
+     * @return role for user in organization by user ID and organization name
+     */
+    fun findRoleByUserIdAndOrganizationName(userId: Long, organizationName: String) = lnkUserOrganizationRepository
+        .findByUserIdAndOrganizationName(userId, organizationName)
+        ?.role
+        ?: Role.NONE
 }

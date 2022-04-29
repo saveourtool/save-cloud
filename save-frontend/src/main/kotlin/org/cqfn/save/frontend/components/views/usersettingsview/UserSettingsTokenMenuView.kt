@@ -1,12 +1,17 @@
 package org.cqfn.save.frontend.components.views.usersettingsview
 
 import org.cqfn.save.frontend.components.basic.cardComponent
+import org.cqfn.save.frontend.utils.apiUrl
+import org.cqfn.save.frontend.utils.post
 
+import kotlinext.js.assign
+import org.w3c.fetch.Headers
 import react.FC
 import react.dom.*
 import react.fc
 import react.setState
 
+import kotlinx.coroutines.launch
 import kotlinx.html.ButtonType
 import kotlinx.html.js.onClickFunction
 
@@ -51,8 +56,18 @@ class UserSettingsTokenMenuView : UserSettingsView() {
         while (token.length < 40) {
             token += charPool.random()
         }
-        setState {
-            this.token = token
+        setState(
+            assign(state) {
+                this.token = token
+            }
+        ) {
+            val headers = Headers().also {
+                it.set("Accept", "application/json")
+                it.set("Content-Type", "application/json")
+            }
+            scope.launch {
+                post("$apiUrl/users/${state.userInfo!!.name}/save/token", headers, state.token)
+            }
         }
     }
 }

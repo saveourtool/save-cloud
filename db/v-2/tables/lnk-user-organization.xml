@@ -30,11 +30,13 @@
     </rollback>
   </changeSet>
 
-  <changeSet id="lnk-user-organization-4" author="sanyavertolet">
+  <changeSet id="lnk-user-organization-2" author="frolov" context="dev or prod">
     <addColumn tableName="lnk_user_organization">
-      <column name="role" type="varchar(250)">
-      </column>
+      <column name="role" type="varchar(250)"/>
     </addColumn>
+  </changeSet>
+
+  <changeSet id="lnk-user-organization-3" author="sanyavertolet">
     <addUniqueConstraint tableName="lnk_user_organization" columnNames="user_id, organization_id"/>
   </changeSet>
 

@@ -41,7 +41,13 @@
     </addColumn>
   </changeSet>
 
-  <changeSet id="organization-4" author="sanyavertolet" context="dev or prod">
+  <changeSet id="organization-4" author="frolov" context="dev or prod">
+    <addColumn tableName="organization">
+      <column name="description" type="varchar(250)"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet id="organization-5" author="sanyavertolet" context="dev or prod">
     <addColumn tableName="organization">
       <column name="status" type="varchar(250)" defaultValue="CREATED"/>
     </addColumn>
