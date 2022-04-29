@@ -1,4 +1,8 @@
 # Helm chart for save-cloud
+This chart will install components of save-cloud application: gateway, backend, orchestrator and preprocessor.
+It will also create a Service for an external MySQL database.
+
+api-gateway acts as an entrypoint and svc/gateway is actually a LoadBalancer.
 
 ## Prerequisites
 * `kubectl create secret generic db-secrets --from_literal=db_url=<...> --from_literal=db_username=<...> --from_literal=db_password=<...>`
