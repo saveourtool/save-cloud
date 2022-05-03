@@ -1,5 +1,5 @@
 [versions]
-kotlin = "1.6.20"
+kotlin = "1.6.21"
 save-core = "0.4.0-SNAPSHOT"
 ktor = "2.0.0"
 okio = "3.0.0"
