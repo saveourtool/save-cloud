@@ -14,3 +14,10 @@ $ helm package ./save-cloud
 Successfully packaged chart and saved it to: .../save-cloud-0.1.0.tgz
 $ helm install save-cloud save-cloud-0.1.0.tgz --namespace save-cloud
 ```
+
+## Local deployment
+* Install minikube: https://minikube.sigs.k8s.io/docs/start/
+* Install Helm chart using `values-minikube.yaml`: 
+  ```bash
+  $ helm install save-cloud save-cloud-0.1.0.tgz --namespace save-cloud --values values-minikube.yaml
+  ```
