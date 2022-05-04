@@ -50,12 +50,10 @@ class LnkUserOrganizationController(
         val organization = organizationService.findByName(organizationName)
             ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
         val usersWithRoles = lnkUserOrganizationService.getAllUsersAndRolesByOrganization(organization)
-            .also { logger.debug(it.toString()) }
             .filter { (_, role) -> role != Role.NONE }
             .map { (user, role) ->
                 user.toUserInfo(organizations = mapOf(organization.name to role))
             }
-            .also { logger.debug(it.toString()) }
             .also { logger.trace("Found ${it.size} users for organization: $it") }
         return usersWithRoles
     }

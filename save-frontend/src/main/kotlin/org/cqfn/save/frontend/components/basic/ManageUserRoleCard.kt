@@ -19,12 +19,9 @@ import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.HTMLSelectElement
 import org.w3c.fetch.Headers
 import org.w3c.fetch.Response
-import react.CSSProperties
-import react.PropsWithChildren
+import react.*
 import react.dom.*
 import react.dom.onClick
-import react.fc
-import react.useState
 
 import kotlinx.html.*
 import kotlinx.html.js.onChangeFunction
