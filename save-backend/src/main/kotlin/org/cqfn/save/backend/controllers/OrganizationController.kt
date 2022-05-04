@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
@@ -38,7 +39,7 @@ internal class OrganizationController(
     fun getOrganizationByName(@PathVariable organizationName: String) = Mono.fromCallable {
         organizationService.findByName(organizationName)
     }.switchIfEmpty {
-        Mono.error(NoSuchElementException("Organization with name [$organizationName] was not found."))
+        Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
     }
 
     /**
@@ -106,18 +107,6 @@ internal class OrganizationController(
             ResponseEntity.status(HttpStatus.FORBIDDEN).build()
         }
         return Mono.just(response)
-    }
-
-    /**
-     * @param organizationName
-     * @param authentication an [Authentication] representing an authenticated request
-     * @return role
-     */
-    @GetMapping("/{organizationName}/role")
-    @PreAuthorize("isAuthenticated()")
-    fun getRoleOrganization(@PathVariable organizationName: String, authentication: Authentication): Mono<Role> {
-        val userId = (authentication.details as AuthenticationDetails).id
-        return Mono.fromCallable { lnkUserOrganizationService.findRoleByUserIdAndOrganizationName(userId, organizationName) }
     }
 
     companion object {
