@@ -34,12 +34,14 @@ class User(
 ) : BaseEntity() {
     /**
      * @param projects roles in projects
+     * @param organizations roles in organizations
      * @return [UserInfo] object
      */
-    fun toUserInfo(projects: Map<String, Role> = emptyMap()) = UserInfo(
+    fun toUserInfo(projects: Map<String, Role> = emptyMap(), organizations: Map<String, Role> = emptyMap()) = UserInfo(
         name = name ?: "Undefined",
         source = source,
         projects = projects,
+        organizations = organizations,
         email = email,
         avatar = avatar,
         company = company,

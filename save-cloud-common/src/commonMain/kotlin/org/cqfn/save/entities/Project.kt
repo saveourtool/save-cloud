@@ -61,14 +61,14 @@ data class Project(
          */
         fun stub(
             id: Long?,
-            organization: Organization = Organization("stub", null, null, null)
+            organization: Organization = Organization("stub", OrganizationStatus.CREATED, null, null, null)
         ) = Project(
             name = "stub",
             url = null,
             description = null,
             status = ProjectStatus.CREATED,
             userId = -1,
-            organization = Organization("stub", null, null, null),
+            organization = Organization("stub", OrganizationStatus.CREATED, null, null, null),
         ).apply {
             this.id = id
             this.organization = organization
