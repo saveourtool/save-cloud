@@ -1,29 +1,24 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<ehcache xmlns:xsi="https://www.w3.org/2001/XMLSchema-instance"
-         xsi:noNamespaceSchemaLocation="ehcache.xsd" updateCheck="true"
-         monitoring="autodetect" dynamicConfig="true">
+<config xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+        xmlns:jsr107='http://www.ehcache.org/v3/jsr107'
+        xmlns='http://www.ehcache.org/v3'
+        xsi:schemaLocation="http://www.ehcache.org/v3 https://www.ehcache.org/schema/ehcache-core-3.0.xsd
+                            http://www.ehcache.org/v3/jsr107 https://www.ehcache.org/schema/ehcache-107-ext-3.0.xsd">
+    <service>
+        <jsr107:defaults enable-management="true" enable-statistics="true"/>
+    </service>
 
-    <diskStore path="java.io.tmpdir/ehcache" />
-
-    <defaultCache maxEntriesLocalHeap="10000" eternal="false"
-                  timeToIdleSeconds="120" timeToLiveSeconds="120" diskSpoolBufferSizeMB="30"
-                  maxEntriesLocalDisk="10000000" diskExpiryThreadIntervalSeconds="120"
-                  memoryStoreEvictionPolicy="LRU" statistics="true">
-        <persistence strategy="localTempSwap" />
-    </defaultCache>
-
-    <cache name="employee" maxEntriesLocalHeap="10000" eternal="false"
-           timeToIdleSeconds="5" timeToLiveSeconds="10">
-        <persistence strategy="localTempSwap" />
+    <cache alias="default-query-results-region">
+        <expiry>
+            <tti>300</tti>
+        </expiry>
+        <heap>1024</heap>
     </cache>
 
-    <cache name="org.hibernate.cache.internal.StandardQueryCache"
-           maxEntriesLocalHeap="5" eternal="false" timeToLiveSeconds="120">
-        <persistence strategy="localTempSwap" />
+    <cache alias="default-update-timestamps-region">
+        <expiry>
+            <none/>
+        </expiry>
+        <heap>4096</heap>
     </cache>
 
-    <cache name="org.hibernate.cache.spi.TimestampsCache"
-           maxEntriesLocalHeap="5000" eternal="true">
-        <persistence strategy="localTempSwap" />
-    </cache>
-</ehcache>
+</config>

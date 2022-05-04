@@ -6,6 +6,8 @@ import javax.persistence.Entity
 import javax.persistence.Enumerated
 import javax.persistence.JoinColumn
 import javax.persistence.ManyToOne
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 /**
  * @property project
@@ -13,6 +15,7 @@ import javax.persistence.ManyToOne
  * @property role role of this user
  */
 @Entity
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 class LnkUserProject(
     @ManyToOne
     @JoinColumn(name = "project_id")

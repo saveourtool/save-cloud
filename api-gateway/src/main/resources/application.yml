@@ -54,3 +54,23 @@ spring:
             # value that will work with GitHub API, where GitHub provides username as "login" in the response
             # https://docs.github.com/en/rest/reference/users#get-the-authenticated-user
             user-name-attribute: login
+  jpa:
+    properties:
+      hibernate:
+        javax:
+          cache:
+            provider: org.ehcache.jsr107.EhcacheCachingProvider
+            # this style allows to run tests with gradle
+            uri: ${org.springframework.core.io.ClassPathResource("/ehcache-hibernate.xml").getURI().toString()}
+        cache:
+          use_second_level_cache: true
+          region:
+            factory_class: jcache
+          use_query_cache: true
+      javax:
+        persistence:
+          sharedCache:
+            mode: ENABLE_SELECTIVE
+  cache:
+    jcache:
+      config: classpath:/ehcache-hibernate.xml
