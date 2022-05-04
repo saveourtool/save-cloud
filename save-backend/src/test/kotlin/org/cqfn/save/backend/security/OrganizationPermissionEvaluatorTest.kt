@@ -1,6 +1,7 @@
 package org.cqfn.save.backend.security
 
 import org.cqfn.save.backend.repository.LnkUserOrganizationRepository
+import org.cqfn.save.backend.repository.UserRepository
 import org.cqfn.save.backend.service.LnkUserOrganizationService
 import org.cqfn.save.backend.utils.AuthenticationDetails
 import org.cqfn.save.domain.Role
@@ -26,27 +27,12 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
 class OrganizationPermissionEvaluatorTest {
     @Autowired private lateinit var organizationPermissionEvaluator: OrganizationPermissionEvaluator
     @MockBean private lateinit var lnkUserOrganizationRepository: LnkUserOrganizationRepository
+    @MockBean private lateinit var userRepository: UserRepository
     private lateinit var mockOrganization: Organization
 
     @BeforeEach
     fun setUp() {
         mockOrganization = Organization.stub(99)
-    }
-
-    @Test
-    fun `default permissions for users with only global roles`() {
-        userShouldHavePermissions(
-            "super_admin", Role.SUPER_ADMIN, Role.NONE, *Permission.values()
-        )
-        userShouldHavePermissions(
-            "admin", Role.ADMIN, Role.NONE, Permission.READ
-        )
-        userShouldHavePermissions(
-            "owner", Role.OWNER, Role.NONE, Permission.READ
-        )
-        userShouldHavePermissions(
-            "viewer", Role.VIEWER, Role.NONE, Permission.READ
-        )
     }
 
     @Test
@@ -115,12 +101,12 @@ class OrganizationPermissionEvaluatorTest {
         }
         permissions.forEach { permission ->
             Assertions.assertTrue(organizationPermissionEvaluator.hasPermission(authentication, mockOrganization, permission)) {
-                "User by authentication=$authentication is expected to have permission $permission on project $mockOrganization"
+                "User by authentication=$authentication is expected to have permission $permission on organization $mockOrganization"
             }
         }
         Permission.values().filterNot { it in permissions }.forEach { permission ->
             Assertions.assertFalse(organizationPermissionEvaluator.hasPermission(authentication, mockOrganization, permission)) {
-                "User by authentication=$authentication isn't expected to have permission $permission on project $mockOrganization"
+                "User by authentication=$authentication isn't expected to have permission $permission on organization $mockOrganization"
             }
         }
     }

@@ -5,10 +5,7 @@ import org.cqfn.save.backend.controllers.PermissionController
 import org.cqfn.save.backend.repository.OrganizationRepository
 import org.cqfn.save.backend.repository.UserRepository
 import org.cqfn.save.backend.security.ProjectPermissionEvaluator
-import org.cqfn.save.backend.service.OrganizationService
-import org.cqfn.save.backend.service.PermissionService
-import org.cqfn.save.backend.service.ProjectService
-import org.cqfn.save.backend.service.UserDetailsService
+import org.cqfn.save.backend.service.*
 import org.cqfn.save.backend.utils.AuthenticationDetails
 import org.cqfn.save.backend.utils.ConvertingAuthenticationManager
 import org.cqfn.save.backend.utils.mutateMockedUser
@@ -39,6 +36,8 @@ import java.util.Optional
 @Import(
     WebSecurityConfig::class,
     OrganizationService::class,
+    LnkUserProjectService::class,
+    LnkUserOrganizationService::class,
     ConvertingAuthenticationManager::class,
     UserDetailsService::class,
 )
@@ -50,10 +49,16 @@ class PermissionControllerTest {
     @MockBean private lateinit var projectPermissionEvaluator: ProjectPermissionEvaluator
     @MockBean private lateinit var userRepository: UserRepository
     @MockBean private lateinit var projectService: ProjectService
+    @MockBean private lateinit var lnkUserProjectService: LnkUserProjectService
+    @MockBean private lateinit var lnkUserOrganizationService: LnkUserOrganizationService
+    @MockBean private lateinit var organizationService: OrganizationService
 
     @Test
     @WithMockUser
     fun `should allow reading of roles if user has permission`() {
+        mutateMockedUser {
+            details = AuthenticationDetails(id = 99)
+        }
         given(
             user = { User(name = it.arguments[0] as String, null, null, "") },
             project = Project.stub(id = 99),
@@ -73,6 +78,9 @@ class PermissionControllerTest {
     @Test
     @WithMockUser
     fun `should forbid reading of roles if user doesn't have permission`() {
+        mutateMockedUser {
+            details = AuthenticationDetails(id = 99)
+        }
         given(
             user = { User(name = it.arguments[0] as String, null, null, "") },
             project = Project.stub(id = 99),
@@ -100,6 +108,7 @@ class PermissionControllerTest {
             project = Project.stub(id = 99),
             permission = Permission.WRITE,
         )
+        given(projectService.canChangeRoles(any(), any(), any(), any())).willReturn(true)
         given(organizationRepository.findByName(any())).willReturn(Organization("Example Org", OrganizationStatus.CREATED, ownerId = 99, null, null))
         given(permissionService.setRole(any(), any(), any())).willReturn(Mono.just(Unit))
 
@@ -206,6 +215,7 @@ class PermissionControllerTest {
             permission = Permission.WRITE,
         )
         given(projectService.canChangeRoles(any(), any(), any(), any())).willReturn(false)
+        given(organizationService.canChangeRoles(any(), any(), any(), any())).willReturn(false)
         given(permissionService.removeRole(any(), any(), any())).willReturn(Mono.just(Unit))
         webTestClient.delete()
             .uri("/api/$v1/projects/roles/Huawei/huaweiName/user")
@@ -224,6 +234,7 @@ class PermissionControllerTest {
         given(permissionService.findUserAndProject(any(), any(), any())).willAnswer { invocationOnMock ->
             Tuples.of(user(invocationOnMock), project).let { Mono.just(it) }
         }
+        given(organizationService.findByName(any())).willReturn(project.organization)
         given(projectService.findByNameAndOrganizationName(any(), any())).willReturn(project)
         given(projectPermissionEvaluator.hasPermission(any(), any(), any())).willAnswer {
             when (it.arguments[2] as Permission?) {

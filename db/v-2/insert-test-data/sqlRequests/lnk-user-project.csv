@@ -7,3 +7,4 @@ id;project_id;user_id;role
 6;1;6;"ADMIN"
 7;2;1;"VIEWER"
 8;2;3;"VIEWER"
+9;2;2;"ADMIN"

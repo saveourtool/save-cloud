@@ -144,8 +144,8 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             }
         },
     )
-    private lateinit var responseFromDeleteOrganization: Response
     private var descriptionTmp: String = ""
+    private lateinit var responseFromDeleteOrganization: Response
 
     init {
         state.isUploading = false

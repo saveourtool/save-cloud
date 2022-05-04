@@ -41,8 +41,7 @@ class OrganizationPermissionEvaluator {
 
     private fun Authentication.hasRole(role: Role): Boolean = authorities.any { it.authority == role.asSpringSecurityRole() }
 
-    private fun hasReadAccess(userId: Long?, organizationRole: Role): Boolean =
-            userId?.let { organizationRole.priority >= Role.VIEWER.priority } ?: false
+    private fun hasReadAccess(userId: Long?, organizationRole: Role): Boolean = userId?.let { organizationRole.priority >= Role.VIEWER.priority } ?: false
 
     private fun hasWriteAccess(userId: Long?, organizationRole: Role): Boolean =
             userId?.let { organizationRole.priority >= Role.ADMIN.priority } ?: false
