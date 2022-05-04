@@ -67,7 +67,7 @@ class LnkUserOrganizationController(
      * @return role of user with [userName] in organization with [organizationName]
      * @throws ResponseStatusException
      */
-    @GetMapping("/organizations/roles/{organizationName}")
+    @GetMapping("/organizations/{organizationName}/users/roles")
     @ApiResponse(responseCode = "200", description = "Successfully fetched user's role")
     @ApiResponse(
         responseCode = "404", description = "Requested user or organization doesn't exist."
