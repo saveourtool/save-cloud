@@ -478,7 +478,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         }
 
     private suspend fun getRoleInOrganization(): Role = get(
-        url = "$apiUrl/organization/${props.organizationName}/role",
+        url = "$apiUrl/organizations/${props.organizationName}/users/roles",
         headers = Headers().also {
             it.set("Accept", "application/json")
         },

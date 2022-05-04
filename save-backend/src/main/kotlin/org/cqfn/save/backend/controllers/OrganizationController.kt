@@ -109,18 +109,6 @@ internal class OrganizationController(
         return Mono.just(response)
     }
 
-    /**
-     * @param organizationName
-     * @param authentication an [Authentication] representing an authenticated request
-     * @return role
-     */
-    @GetMapping("/{organizationName}/role")
-    @PreAuthorize("isAuthenticated()")
-    fun getRoleOrganization(@PathVariable organizationName: String, authentication: Authentication): Mono<Role> {
-        val userId = (authentication.details as AuthenticationDetails).id
-        return Mono.fromCallable { lnkUserOrganizationService.findRoleByUserIdAndOrganizationName(userId, organizationName) }
-    }
-
     companion object {
         @JvmStatic
         private val logger = LoggerFactory.getLogger(OrganizationController::class.java)
