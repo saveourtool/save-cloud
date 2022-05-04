@@ -184,7 +184,7 @@ class LnkUserOrganizationController(
         val organization = organizationService.findByName(organizationName)
             ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
         val organizationUserIds = lnkUserOrganizationService.getAllUsersAndRolesByOrganization(organization)
-            .map { (users, _) ->
+            .map { (user, _) ->
                 users.id!!
             }.toSet()
         // first we need to get users with exact match by name
