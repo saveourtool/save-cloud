@@ -26,12 +26,11 @@ class OrganizationPermissionEvaluator {
     fun hasPermission(authentication: Authentication?, organization: Organization, permission: Permission): Boolean {
         authentication ?: return false
         val userId = (authentication.details as AuthenticationDetails).id
-        val organizationRole = lnkUserOrganizationService.findRoleByUserIdAndOrganization(userId, organization)
-
         if (authentication.hasRole(Role.SUPER_ADMIN)) {
             return true
         }
 
+        val organizationRole = lnkUserOrganizationService.findRoleByUserIdAndOrganization(userId, organization)
         return when (permission) {
             Permission.READ -> hasReadAccess(userId, organizationRole)
             Permission.WRITE -> hasWriteAccess(userId, organizationRole)
@@ -41,11 +40,32 @@ class OrganizationPermissionEvaluator {
 
     private fun Authentication.hasRole(role: Role): Boolean = authorities.any { it.authority == role.asSpringSecurityRole() }
 
-    private fun hasReadAccess(userId: Long?, organizationRole: Role): Boolean = userId?.let { organizationRole.priority >= Role.VIEWER.priority } ?: false
+    private fun hasReadAccess(userId: Long?, organizationRole: Role): Boolean =
+            userId?.let { organizationRole.priority >= Role.VIEWER.priority } ?: false
 
     private fun hasWriteAccess(userId: Long?, organizationRole: Role): Boolean =
             userId?.let { organizationRole.priority >= Role.ADMIN.priority } ?: false
 
     private fun hasDeleteAccess(userId: Long?, organizationRole: Role): Boolean =
             userId?.let { organizationRole.priority >= Role.OWNER.priority } ?: false
+
+    /**
+     * @param selfRole
+     * @param otherRole
+     * @return true if user with [selfRole] has more permissions than user with [otherRole], false otherwise.
+     */
+    fun hasAnotherUserLessPermissions(selfRole: Role, otherRole: Role): Boolean = selfRole.priority > otherRole.priority
+
+    /**
+     * @param selfRole
+     * @param requestedRole
+     * @return true if [selfRole] is higher than [requestedRole], false otherwise
+     */
+    fun isRequestedPermissionsCanBeSetByUser(selfRole: Role, requestedRole: Role): Boolean = selfRole.priority > requestedRole.priority
+
+    /**
+     * @param userRole
+     * @return true if [userRole] is [Role.ADMIN] or higher, false otherwise
+     */
+    fun isOrganizationAdminOrHigher(userRole: Role): Boolean = userRole.priority >= Role.ADMIN.priority
 }

@@ -42,7 +42,7 @@ import java.util.Optional
 @ApiSwaggerSupport
 @Tags(Tag(name = "api"), Tag(name = "permissions"))
 @RestController
-@RequestMapping(path = ["/api/$v1/projects/roles"])
+@RequestMapping(path = ["/api/$v1/projects"])
 @Suppress("MISSING_KDOC_ON_FUNCTION", "MISSING_KDOC_TOP_LEVEL", "MISSING_KDOC_CLASS_ELEMENTS")
 class PermissionController(
     private val projectService: ProjectService,
@@ -50,7 +50,7 @@ class PermissionController(
     private val organizationService: OrganizationService,
     private val projectPermissionEvaluator: ProjectPermissionEvaluator,
 ) {
-    @GetMapping("/{organizationName}/{projectName}")
+    @GetMapping("/{organizationName}/{projectName}/users/roles")
     @Operation(
         description = "Get role for a user on a particular project. Returns self role if no userName is set.",
         parameters = [
@@ -88,7 +88,7 @@ class PermissionController(
             Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
         }
 
-    @PostMapping("/{organizationName}/{projectName}")
+    @PostMapping("/{organizationName}/{projectName}/users/roles")
     @Operation(
         description = "Set role for a user on a particular project",
         parameters = [
@@ -135,7 +135,7 @@ class PermissionController(
             Mono.error(ResponseStatusException(HttpStatus.FORBIDDEN))
         }
 
-    @DeleteMapping("/{organizationName}/{projectName}/{userName}")
+    @DeleteMapping("/{organizationName}/{projectName}/users/roles/{userName}")
     @Operation(
         description = "Removes user's role on a particular project",
         parameters = [

@@ -64,7 +64,7 @@ class LnkUserOrganizationControllerTest {
         given(lnkUserOrganizationService.getRole(any(), any())).willReturn(Role.ADMIN)
 
         webTestClient.get()
-            .uri("/api/$v1/organizations/roles/Huawei?userName=admin")
+            .uri("/api/$v1/organizations/Huawei/users/roles?userName=admin")
             .exchange()
             .expectStatus()
             .isOk
@@ -87,7 +87,7 @@ class LnkUserOrganizationControllerTest {
         )
 
         webTestClient.get()
-            .uri("/api/$v1/organizations/roles/Huawei?userName=admin")
+            .uri("/api/$v1/organizations/Huawei/users/roles?userName=admin")
             .exchange()
             .expectStatus()
             .isForbidden
@@ -110,7 +110,7 @@ class LnkUserOrganizationControllerTest {
         )
         given(organizationService.canChangeRoles(any(), any(), any(), any())).willReturn(true)
         webTestClient.post()
-            .uri("/api/$v1/organizations/roles/Huawei")
+            .uri("/api/$v1/organizations/Huawei/users/roles")
             .bodyValue(SetRoleRequest("admin", Role.ADMIN))
             .exchange()
             .expectStatus()
@@ -131,7 +131,7 @@ class LnkUserOrganizationControllerTest {
         )
 
         webTestClient.post()
-            .uri("/api/$v1/organizations/roles/Huawei")
+            .uri("/api/$v1/organizations/Huawei/users/roles")
             .bodyValue(SetRoleRequest("admin", Role.ADMIN))
             .exchange()
             .expectStatus()
@@ -151,7 +151,7 @@ class LnkUserOrganizationControllerTest {
             organizationRole = Role.VIEWER,
         )
         webTestClient.delete()
-            .uri("/api/$v1/organizations/roles/Huawei/user")
+            .uri("/api/$v1/organizations/Huawei/users/roles/user")
             .exchange()
             .expectStatus()
             .isForbidden
@@ -172,7 +172,7 @@ class LnkUserOrganizationControllerTest {
 
         given(organizationService.canChangeRoles(any(), any(), any(), any())).willReturn(true)
         webTestClient.delete()
-            .uri("/api/$v1/organizations/roles/Huawei/user")
+            .uri("/api/$v1/organizations/Huawei/users/roles/user")
             .exchange()
             .expectStatus()
             .isOk
@@ -191,7 +191,7 @@ class LnkUserOrganizationControllerTest {
         )
         given(organizationService.canChangeRoles(any(), any(), any(), any())).willReturn(false)
         webTestClient.delete()
-            .uri("/api/$v1/organizations/roles/Huawei/user")
+            .uri("/api/$v1/organizations/Huawei/users/roles/user")
             .exchange()
             .expectStatus()
             .isForbidden

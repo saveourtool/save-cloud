@@ -1,6 +1,7 @@
 package org.cqfn.save.backend.service
 
 import org.cqfn.save.backend.repository.OrganizationRepository
+import org.cqfn.save.backend.security.OrganizationPermissionEvaluator
 import org.cqfn.save.domain.OrganizationSaveStatus
 import org.cqfn.save.domain.Role
 import org.cqfn.save.entities.Organization
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service
 @Service
 class OrganizationService(
     private val organizationRepository: OrganizationRepository,
+    private val organizationPermissionEvaluator: OrganizationPermissionEvaluator,
     private val lnkUserOrganizationService: LnkUserOrganizationService,
 ) {
     /**
@@ -87,13 +89,8 @@ class OrganizationService(
     ): Boolean {
         val selfRole = lnkUserOrganizationService.findRoleByUserIdAndOrganization(userId, organization)
         val otherRole = lnkUserOrganizationService.findRoleByUserIdAndOrganization(otherUser.id!!, organization)
-        return isOrganizationAdminOrHigher(selfRole) && hasAnotherUserLessPermissions(selfRole, otherRole) &&
-                isRequestedPermissionsCanBeSetByUser(selfRole, requestedRole)
+        return organizationPermissionEvaluator.isOrganizationAdminOrHigher(selfRole) &&
+                organizationPermissionEvaluator.hasAnotherUserLessPermissions(selfRole, otherRole) &&
+                organizationPermissionEvaluator.isRequestedPermissionsCanBeSetByUser(selfRole, requestedRole)
     }
-
-    private fun hasAnotherUserLessPermissions(selfRole: Role, otherRole: Role): Boolean = selfRole.priority > otherRole.priority
-
-    private fun isRequestedPermissionsCanBeSetByUser(selfRole: Role, requestedRole: Role): Boolean = selfRole.priority > requestedRole.priority
-
-    private fun isOrganizationAdminOrHigher(userRole: Role): Boolean = userRole.priority >= Role.ADMIN.priority
 }

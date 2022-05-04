@@ -7,9 +7,7 @@ import org.cqfn.save.entities.LnkUserProject
 import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.User
 import org.springframework.data.domain.PageRequest
-import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
-import org.springframework.web.server.ResponseStatusException
 
 /**
  * Service of lnkUserProjects
@@ -64,9 +62,9 @@ class LnkUserProjectService(
         ?.let {
             lnkUserProjectRepository.deleteById(it)
         }
-        ?: run {
-            throw ResponseStatusException(HttpStatus.NOT_FOUND)
-        }
+        ?: throw NoSuchElementException(
+            "Cannot delete user with name ${user.name} because he is not found in project ${project.organization.name}/${project.name}"
+        )
 
     /**
      * Get certain [pageSize] of platform users with names that start with [prefix]

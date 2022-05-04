@@ -53,14 +53,18 @@ external interface ManageUserRoleCardProps : PropsWithChildren {
     var groupType: String
 }
 
-private fun String.toRole() = when (this) {
-    Role.VIEWER.toString(), Role.VIEWER.formattedName -> Role.VIEWER
-    Role.SUPER_ADMIN.toString(), Role.SUPER_ADMIN.formattedName -> Role.SUPER_ADMIN
-    Role.OWNER.toString(), Role.OWNER.formattedName -> Role.OWNER
-    Role.ADMIN.toString(), Role.ADMIN.formattedName -> Role.ADMIN
-    Role.NONE.toString(), Role.NONE.formattedName -> Role.NONE
-    else -> throw IllegalStateException("Unknown role is passed: $this")
-}
+// private fun String.toRole() = when (this) {
+// Role.VIEWER.toString(), Role.VIEWER.formattedName -> Role.VIEWER
+// Role.SUPER_ADMIN.toString(), Role.SUPER_ADMIN.formattedName -> Role.SUPER_ADMIN
+// Role.OWNER.toString(), Role.OWNER.formattedName -> Role.OWNER
+// Role.ADMIN.toString(), Role.ADMIN.formattedName -> Role.ADMIN
+// Role.NONE.toString(), Role.NONE.formattedName -> Role.NONE
+// else -> throw IllegalStateException("Unknown role is passed: $this")
+// }
+
+private fun String.toRole() = Role.values().find {
+    this == it.formattedName || this == it.toString()
+} ?: throw IllegalStateException("Unknown role is passed: $this")
 
 /**
  * A functional `RComponent` for a card that shows users from the group and their permissions.
@@ -103,7 +107,7 @@ fun manageUserRoleCardComponent(
             set("Content-Type", "application/json")
         }
         val response = post(
-            "$apiUrl/${props.groupType}s/roles/${props.groupPath}",
+            "$apiUrl/${props.groupType}s/${props.groupPath}/users/roles",
             headers,
             Json.encodeToString(roleChange),
         )
@@ -139,7 +143,7 @@ fun manageUserRoleCardComponent(
             set("Content-Type", "application/json")
         }
         val response = post(
-            url = "$apiUrl/${props.groupType}s/roles/${props.groupPath}",
+            url = "$apiUrl/${props.groupType}s/${props.groupPath}/users/roles",
             headers = headers,
             body = Json.encodeToString(SetRoleRequest(userToAdd.name, Role.VIEWER)),
         )
@@ -160,7 +164,7 @@ fun manageUserRoleCardComponent(
             set("Content-Type", "application/json")
         }
         val response = delete(
-            url = "$apiUrl/${props.groupType}s/roles/${props.groupPath}/${userToDelete.name}",
+            url = "$apiUrl/${props.groupType}s/${props.groupPath}/users/roles/${userToDelete.name}",
             headers = headers,
             body = Json.encodeToString(userToDelete),
         )
@@ -176,7 +180,7 @@ fun manageUserRoleCardComponent(
     val (selfRole, setSelfRole) = useState(Role.NONE)
     useRequest(isDeferred = false) {
         val role = get(
-            "$apiUrl/${props.groupType}s/roles/${props.groupPath}",
+            "$apiUrl/${props.groupType}s/${props.groupPath}/users/roles",
             headers = Headers().also {
                 it.set("Accept", "application/json")
             },

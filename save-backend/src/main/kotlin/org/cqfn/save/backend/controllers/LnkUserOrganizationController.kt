@@ -28,7 +28,7 @@ import org.springframework.web.server.ResponseStatusException
  * Controller for processing links between users and their roles in organizations
  */
 @RestController
-@RequestMapping("/api/$v1")
+@RequestMapping("/api/$v1/organizations/")
 class LnkUserOrganizationController(
     private val lnkUserOrganizationService: LnkUserOrganizationService,
     private val organizationService: OrganizationService,
@@ -42,7 +42,7 @@ class LnkUserOrganizationController(
      * @return list of users with their roles, connected to the organization with [organizationName]
      * @throws ResponseStatusException
      */
-    @GetMapping("/organizations/{organizationName}/users")
+    @GetMapping("{organizationName}/users")
     fun getAllUsersByOrganizationName(
         @PathVariable organizationName: String,
         authentication: Authentication,
@@ -67,7 +67,7 @@ class LnkUserOrganizationController(
      * @return role of user with [userName] in organization with [organizationName]
      * @throws ResponseStatusException
      */
-    @GetMapping("/organizations/{organizationName}/users/roles")
+    @GetMapping("/{organizationName}/users/roles")
     @ApiResponse(responseCode = "200", description = "Successfully fetched user's role")
     @ApiResponse(
         responseCode = "404", description = "Requested user or organization doesn't exist."
@@ -105,7 +105,7 @@ class LnkUserOrganizationController(
      * @param authentication
      * @throws ResponseStatusException
      */
-    @PostMapping("/organizations/roles/{organizationName}")
+    @PostMapping("{organizationName}/users/roles")
     @ApiResponse(responseCode = "200", description = "Permission added")
     @ApiResponse(responseCode = "403", description = "User doesn't have permissions to manage this members")
     @ApiResponse(responseCode = "404", description = "Requested user or organization doesn't exist")
@@ -140,7 +140,7 @@ class LnkUserOrganizationController(
      * @param authentication
      * @throws ResponseStatusException
      */
-    @DeleteMapping("/organizations/roles/{organizationName}/{userName}")
+    @DeleteMapping("{organizationName}/users/roles/{userName}")
     @ApiResponse(responseCode = "200", description = "Permission removed")
     @ApiResponse(responseCode = "403", description = "User doesn't have permissions to manage this members")
     @ApiResponse(responseCode = "404", description = "Requested user or organization doesn't exist")
@@ -171,7 +171,7 @@ class LnkUserOrganizationController(
      * @return list of users, not connected to the organization
      * @throws ResponseStatusException
      */
-    @GetMapping("/organizations/{organizationName}/users/not-from")
+    @GetMapping("{organizationName}/users/not-from")
     @Suppress("UnsafeCallOnNullableType")
     fun getAllUsersNotFromOrganizationWithNamesStartingWith(
         @PathVariable organizationName: String,
@@ -185,7 +185,7 @@ class LnkUserOrganizationController(
             ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
         val organizationUserIds = lnkUserOrganizationService.getAllUsersAndRolesByOrganization(organization)
             .map { (user, _) ->
-                users.id!!
+                user.id!!
             }.toSet()
         // first we need to get users with exact match by name
         val exactMatchUsers = lnkUserOrganizationService.getNonOrganizationUsersByName(prefix, organizationUserIds)

@@ -5,9 +5,7 @@ import org.cqfn.save.backend.repository.UserRepository
 import org.cqfn.save.domain.Role
 import org.cqfn.save.entities.*
 import org.springframework.data.domain.PageRequest
-import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
-import org.springframework.web.server.ResponseStatusException
 
 /**
  * Service of lnkUserOrganization
@@ -86,7 +84,9 @@ class LnkUserOrganizationService(
         .findByUserIdAndOrganization(user.id!!, organization)
         ?.id
         ?.let { lnkUserOrganizationRepository.deleteById(it) }
-        ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
+        ?: throw NoSuchElementException(
+            "Cannot delete user with name ${user.name} because he is not found in organization ${organization.name}"
+        )
 
     /**
      * @param name

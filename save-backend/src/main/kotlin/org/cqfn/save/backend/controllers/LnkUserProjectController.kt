@@ -24,7 +24,7 @@ import org.springframework.web.server.ResponseStatusException
  * Controller for processing links between users and their roles in projects
  */
 @RestController
-@RequestMapping("/api/$v1")
+@RequestMapping("/api/$v1/projects/")
 class LnkUserProjectController(
     private val lnkUserProjectService: LnkUserProjectService,
     private val projectService: ProjectService,
@@ -40,7 +40,7 @@ class LnkUserProjectController(
      * @throws NoSuchElementException
      * @throws ResponseStatusException
      */
-    @GetMapping(path = ["/projects/{organizationName}/{projectName}/users"])
+    @GetMapping(path = ["/{organizationName}/{projectName}/users"])
     fun getAllUsersByProjectNameAndOrganizationName(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
@@ -74,7 +74,7 @@ class LnkUserProjectController(
      * @throws NoSuchElementException
      * @throws ResponseStatusException
      */
-    @GetMapping("/projects/{organizationName}/{projectName}/users/not-from")
+    @GetMapping("/{organizationName}/{projectName}/users/not-from")
     @Suppress("UnsafeCallOnNullableType")
     fun getAllUsersNotFromProjectWithNamesStartingWith(
         @PathVariable organizationName: String,
