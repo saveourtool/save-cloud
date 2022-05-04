@@ -269,7 +269,7 @@ class ExecutionController(private val executionService: ExecutionService,
             IllegalArgumentException("Can't rerun execution $id, because it does not exist")
         }
         if (!projectPermissionEvaluator.hasPermission(
-            authentication, execution.project, Permission.READ
+            authentication, execution.project, Permission.WRITE
         )) {
             throw ResponseStatusException(HttpStatus.FORBIDDEN)
         }
