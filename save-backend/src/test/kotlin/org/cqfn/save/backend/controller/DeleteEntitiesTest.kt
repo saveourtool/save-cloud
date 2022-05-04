@@ -13,6 +13,7 @@ import org.cqfn.save.backend.utils.MySqlExtension
 import org.cqfn.save.backend.utils.postJsonAndAssert
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.Organization
+import org.cqfn.save.entities.OrganizationStatus
 import org.cqfn.save.entities.Project
 import org.cqfn.save.v1
 import org.junit.jupiter.api.BeforeEach
@@ -66,7 +67,7 @@ class DeleteEntitiesTest {
             Project.stub(99).apply { id = 1 }
         )
         whenever(organizationRepository.findByName(any())).thenReturn(
-            Organization("stub", null, null, null)
+            Organization("stub", OrganizationStatus.CREATED, null, null, null)
         )
         with(projectPermissionEvaluator) {
             whenever(any<Mono<Project?>>().filterByPermission(any(), any(), any())).thenCallRealMethod()
