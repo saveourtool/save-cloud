@@ -19,7 +19,7 @@ curl -X GET 'http://localhost:5800/api/v1/projects/get/organization-id?name=save
 curl -X POST 'http://localhost:5800/api/v1/submitExecutionRequest' \
 -H 'X-Authorization-Source: basic' \
 -H 'Authorization: Basic YWRtaW46IA==' \
---data ' { \
+-F 'executionRequest={ \
     "project": { \ 
         "name": "save", \
         "url": "https://github.com/analysis-dev/save-cli", \
@@ -53,7 +53,7 @@ curl -X POST 'http://localhost:5800/api/v1/submitExecutionRequest' \
       "version" : "11" \
     }, \
     "executionId" : null \
-}'
+};type=application/json'
 ```
 
 curl -X GET 'http://localhost:5800/api/v1/latestExecution?name=save&organizationId=1' -H 'X-Authorization-Source: basic' -H 'Authorization: Basic YWRtaW46IA=='
