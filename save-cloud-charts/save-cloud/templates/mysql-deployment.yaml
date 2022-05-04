@@ -1,0 +1,50 @@
+{{- if not .Values.mysql.external -}}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: db-secrets
+stringData:
+  # TODO: accidentally PostProcessor and k8s-client-config try to read properties simultaneously...
+  db_url: 'jdbc:mysql://mysql-service:3306/save_cloud'
+  db_username: root
+  db_password: '123'
+  spring.datasource.url: 'jdbc:mysql://mysql-service:3306/save_cloud'
+  spring.datasource.username: root
+  spring.datasource.password: '123'
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql
+  annotations:
+    io.kompose.service: mysql
+spec:
+  selector:
+    matchLabels:
+      io.kompose.service: mysql
+  template:
+    metadata:
+      labels:
+        io.kompose.service: mysql
+    spec:
+      containers:
+        - image: mysql:8.0.28
+          name: mysql
+          ports:
+            - containerPort: 3306
+              name: mysql
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              value: '123'
+            - name: MYSQL_DATABASE
+              value: save_cloud
+          volumeMounts:
+            - name: mysql-persistent-storage
+              mountPath: /var/lib/mysql
+      volumes:
+        - name: mysql-persistent-storage
+          hostPath:
+            path: /home/data/mysql
+{{- end }}

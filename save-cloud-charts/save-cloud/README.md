@@ -6,6 +6,7 @@ api-gateway acts as an entrypoint and svc/gateway is actually a LoadBalancer.
 
 ## Prerequisites
 * `kubectl create secret generic db-secrets --from_literal=db_url=<...> --from_literal=db_username=<...> --from_literal=db_password=<...>`
+  For example, for minikube and dev profile run `kubectl --context=minikube --namespace=save-cloud create secret generic db-secrets --from_literal=db_url=jdbc:mysql://mysql-service:3306/save_cloud --from_literal=db_username=root --from_literal=db_password=123`
 * `kubectl create secret generic oauth-credentials ...` this secret should contain properties recognizable by spring security OAuth
 
 ## Build and deploy
