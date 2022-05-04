@@ -1,0 +1,62 @@
+imageRegistry: ghcr.io/analysis-dev
+dockerTag: latest  # this should be set explicitly during chart installation
+
+env: staging
+# Unless overridden, this will be set as Spring profile of a component.
+profile: dev
+backend:
+  name: backend
+  profile: dev,secure,kubernetes
+  imageName: save-backend
+  containerPort: 5800
+  # Fixed ClusterIP can be assigned to make it easier to query backend from services outside Kubernetes.
+  # Should be chosen depending on cluster's network configuration: https://kubernetes.io/docs/concepts/services-networking/service/#choosing-your-own-ip-address.
+  clusterIP: null
+  dbPasswordFile: /home/cnb/secrets/db_secrets
+orchestrator:
+  name: orchestrator
+  imageName: save-orchestrator
+  containerPort: 5100
+  # Fixed ClusterIP can be assigned to make it easier to query orchestrator from services outside Kubernetes
+  clusterIP: null
+preprocessor:
+  name: preprocessor
+  imageName: save-preprocessor
+  containerPort: 5200
+  # Fixed ClusterIP can be assigned to make it easier to query preprocessor from services outside Kubernetes
+  clusterIP: null
+gateway:
+  name: gateway
+  profile: dev,kubernetes
+  imageName: api-gateway
+  containerPort: 5300
+  # Additional properties for `application.properties` file that will be mounted as an optional property source.
+  applicationProperties:
+  svc:
+    annotations: {}
+    # Any additional options for Service `spec` block
+    spec: {}
+storage:
+  size: 10Gi
+reposStorage:
+  size: 2Gi
+logsStorage:
+  size: 2Gi
+mysql:
+  # IP address of an external MySQL database.
+  # As an example, this is what may be a resolved IP of `host.minikube.internal`.
+  ip: 192.168.65.2
+
+# Values for dependencies
+grafana:
+  image:
+    tag: 8.4.5
+  service:
+    port: 9100
+  persistence:
+    enabled: true
+  rbac:
+    create: false
+
+loki:
+  tag: 2.4.2
