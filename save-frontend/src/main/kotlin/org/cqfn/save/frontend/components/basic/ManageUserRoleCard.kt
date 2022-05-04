@@ -36,7 +36,7 @@ import kotlinx.serialization.json.Json
 /**
  * [RProps] for card component
  */
-external interface ManageUserRoleCardProps : PropsWithChildren {
+external interface ManageUserRoleCardProps : Props {
     /**
      * Information about user who is seeing the view
      */
