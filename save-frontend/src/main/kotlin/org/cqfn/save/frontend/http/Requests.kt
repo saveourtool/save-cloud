@@ -62,7 +62,7 @@ suspend fun Component<*, *>.getOrganization(name: String) = get(
 
 /**
  * @param name username
- * @return info about user's
+ * @return info about user
  */
 suspend fun Component<*, *>.getUser(name: String) = get(
     "$apiUrl/users/$name",

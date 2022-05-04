@@ -37,7 +37,7 @@ services:
   backend:
     image: ghcr.io/analysis-dev/save-backend:${TAG}
     environment:
-      - "SPRING_PROFILES_ACTIVE=${PROFILE},secure"
+      - "SPRING_PROFILES_ACTIVE=${PROFILE},secure,docker-secrets"
       - "MYSQL_USER=/run/secrets/db_username"
       - "MYSQL_PASSWORD_FILE=/run/secrets/db_password"
     secrets:
@@ -84,7 +84,7 @@ services:
         - "prometheus-job=api-gateway"
     logging: *loki-logging-jvm
   prometheus:
-    image: prom/prometheus:v2.34.0
+    image: prom/prometheus:v2.35.0
     user: root  # to access host's docker socket for service discovery, see https://groups.google.com/g/prometheus-users/c/EuEW0qRzXvg/m/0aqKh_ZABQAJ
     ports:
       - "9090:9090"
@@ -103,7 +103,7 @@ services:
     secrets:
       - prometheus_scrape_pwd
   grafana:
-    image: grafana/grafana:8.4.6
+    image: grafana/grafana:8.5.1
     ports:
       - "9100:3000"
     volumes:

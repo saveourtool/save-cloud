@@ -44,6 +44,7 @@ dependencies {
     implementation(libs.spring.boot.starter.security)
     implementation(libs.spring.security.core)
     implementation(libs.hibernate.micrometer)
+    implementation(libs.spring.cloud.starter.kubernetes.client.config)
     testImplementation(libs.spring.security.test)
     testImplementation(projects.testUtils)
 }

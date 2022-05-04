@@ -126,6 +126,7 @@ fun Project.createStackDeployTask(profile: String) {
     // in case you are running it on MAC, first do the following: docker pull --platform linux/x86_64 mysql
     tasks.register<Exec>("startMysqlDb") {
         dependsOn("generateComposeFile")
+        println("Running the follwoing command: [docker-compose --file $buildDir/docker-compose.yaml up -d mysql]")
         commandLine("docker-compose", "--file", "$buildDir/docker-compose.yaml", "up", "-d", "mysql")
         errorOutput = ByteArrayOutputStream()
         doLast {
