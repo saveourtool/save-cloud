@@ -22,6 +22,7 @@ import react.dom.*
 
 import kotlinx.coroutines.launch
 import kotlinx.html.ButtonType
+import kotlinx.html.js.onClickFunction
 import kotlinx.js.jso
 
 /**
@@ -33,6 +34,8 @@ external interface AwesomeBenchmarksState : State {
      * list of benchmarks from DB
      */
     var benchmarks: List<AwesomeBenchmarks>
+
+    var selectedMenuBench : BenchmarkCategoryEnum?
 
     /**
      * list of unique languages from benchmarks
@@ -148,8 +151,18 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                     nav("nav nav-tabs mb-4") {
                                         BenchmarkCategoryEnum.values().forEachIndexed { i, value ->
                                             li("nav-item") {
-                                                val classVal = if (i == 0) " active font-weight-bold" else ""
-                                                p("nav-link $classVal text-gray-800") { +value.name }
+                                                val classVal =
+                                                    if ((i == 0 && state.selectedMenuBench == null) || state.selectedMenuBench == value) " active font-weight-bold" else ""
+                                                p("nav-link $classVal text-gray-800") {
+                                                    attrs.onClickFunction = {
+                                                        if (state.selectedMenuBench != value) {
+                                                            setState {
+                                                                selectedMenuBench = value
+                                                            }
+                                                        }
+                                                    }
+                                                    +value.name
+                                                }
                                             }
                                         }
                                     }
@@ -159,44 +172,49 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                     div("col-lg-8") {
                                         // https://devicon.dev
                                         state.benchmarks.forEachIndexed { i, benchmark ->
-                                            div("media text-muted ${if (i != 0) "pt-3" else ""}") {
-                                                img(classes = "rounded mt-1") {
-                                                    attrs["data-src"] =
+                                            if ( state.selectedMenuBench == benchmark.category){
+                                                div("media text-muted ${if (i != 0) "pt-3" else ""}") {
+                                                    img(classes = "rounded mt-1") {
+                                                        attrs["data-src"] =
                                                             "holder.js/32x32?theme=thumb&amp;bg=007bff&amp;fg=007bff&amp;size=1"
-                                                    attrs["src"] = "img/undraw_code_inspection_bdl7.svg"
-                                                    attrs["data-holder-rendered"] = "true"
-                                                    attrs["style"] = jso<CSSProperties> {
-                                                        width = 4.2.rem
-                                                    }.unsafeCast<Width>()
-                                                }
+                                                        attrs["src"] = "img/undraw_code_inspection_bdl7.svg"
+                                                        attrs["data-holder-rendered"] = "true"
+                                                        attrs["style"] = jso<CSSProperties> {
+                                                            width = 4.2.rem
+                                                        }.unsafeCast<Width>()
+                                                    }
 
-                                                p("media-body pb-3 mb-0 small lh-125 border-bottom border-gray text-left") {
-                                                    strong("d-block text-gray-dark") { +benchmark.name }
-                                                    +benchmark.description
-                                                    div("navbar-landing mt-2") {
-                                                        // FixMe: links should be limited with the length of the div
-                                                        benchmark.tags.split(",").map { " #$it " }.forEach {
-                                                            a("/#/awesome-benchmarks") {
-                                                                +it
+                                                    p("media-body pb-3 mb-0 small lh-125 border-bottom border-gray text-left") {
+                                                        strong("d-block text-gray-dark") { +benchmark.name }
+                                                        +benchmark.description
+                                                        div("navbar-landing mt-2") {
+                                                            // FixMe: links should be limited with the length of the div
+                                                            benchmark.tags.split(",").map { " #$it " }.forEach {
+                                                                a("/#/awesome-benchmarks") {
+                                                                    +it
+                                                                }
                                                             }
                                                         }
-                                                    }
-                                                    div("navbar-landing mt-3") {
-                                                        a(
-                                                            classes = "btn-sm btn-primary mr-2",
-                                                            href = benchmark.documentation
-                                                        ) {
-                                                            +"""Docs"""
-                                                        }
-                                                        a(classes = "btn-sm btn-info mr-2", href = benchmark.sources) {
-                                                            +"""Sources"""
-                                                        }
-                                                        a(
-                                                            classes = "btn-sm btn-success ml-auto",
-                                                            href = benchmark.homepage
-                                                        ) {
-                                                            +"""More """
-                                                            fontAwesomeIcon(icon = faArrowRight)
+                                                        div("navbar-landing mt-3") {
+                                                            a(
+                                                                classes = "btn-sm btn-primary mr-2",
+                                                                href = benchmark.documentation
+                                                            ) {
+                                                                +"""Docs"""
+                                                            }
+                                                            a(
+                                                                classes = "btn-sm btn-info mr-2",
+                                                                href = benchmark.sources
+                                                            ) {
+                                                                +"""Sources"""
+                                                            }
+                                                            a(
+                                                                classes = "btn-sm btn-success ml-auto",
+                                                                href = benchmark.homepage
+                                                            ) {
+                                                                +"""More """
+                                                                fontAwesomeIcon(icon = faArrowRight)
+                                                            }
                                                         }
                                                     }
                                                 }
@@ -208,12 +226,14 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                             val languages = state.benchmarks.map { it.language }
                                             // FixMe: optimize this code (create maps with numbers only once). May be even store this data in DB?
                                             languages.distinct().forEach { language ->
-                                                li("list-group-item d-flex justify-content-between align-items-center") {
-                                                    +language.replace("language independent", "lang independent")
-                                                    span("badge badge-primary badge-pill") {
-                                                        +state.benchmarks.count { it.language == language }.toString()
+                                                    li("list-group-item d-flex justify-content-between align-items-center") {
+                                                        +language.replace("language independent", "lang independent")
+                                                        span("badge badge-primary badge-pill") {
+                                                            +state.benchmarks.count { it.language == language }
+                                                                .toString()
+                                                        }
                                                     }
-                                                }
+
                                             }
                                         }
                                     }
