@@ -1,7 +1,4 @@
-import org.cqfn.save.buildutils.configureJacoco
-import org.cqfn.save.buildutils.configureSpringBoot
-import org.cqfn.save.buildutils.pathToSaveCliVersion
-import org.cqfn.save.buildutils.readSaveCliVersion
+import org.cqfn.save.buildutils.*
 
 import de.undercouch.gradle.tasks.download.Download
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -16,6 +13,7 @@ plugins {
 
 configureSpringBoot()
 configureJacoco()
+configureSpotless()
 
 tasks.withType<KotlinCompile> {
     kotlinOptions {

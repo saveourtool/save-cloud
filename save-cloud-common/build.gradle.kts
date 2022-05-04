@@ -1,3 +1,5 @@
+import org.cqfn.save.buildutils.configureSpotless
+
 plugins {
     kotlin("multiplatform")
     alias(libs.plugins.kotlin.plugin.serialization)
@@ -45,3 +47,5 @@ kotlin {
         }
     }
 }
+
+configureSpotless()

@@ -1,4 +1,5 @@
 import org.cqfn.save.buildutils.configureJacoco
+import org.cqfn.save.buildutils.configureSpotless
 import org.cqfn.save.buildutils.configureSpringBoot
 
 import org.gradle.testing.jacoco.plugins.JacocoTaskExtension
@@ -56,3 +57,4 @@ tasks.withType<Test> {
         excludes = listOf("**/CorsFilter.kt")
     }
 }
+configureSpotless()

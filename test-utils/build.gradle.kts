@@ -1,3 +1,4 @@
+import org.cqfn.save.buildutils.configureSpotless
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -28,3 +29,5 @@ dependencies {
     testImplementation(libs.junit.jupiter.api)
     testImplementation(libs.junit.jupiter.engine)
 }
+
+configureSpotless()

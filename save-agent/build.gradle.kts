@@ -1,3 +1,4 @@
+import org.cqfn.save.buildutils.configureSpotless
 import org.cqfn.save.buildutils.pathToSaveCliVersion
 import org.cqfn.save.buildutils.readSaveCliVersion
 
@@ -87,6 +88,7 @@ kotlin {
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinTest> {
     testLogging.showStandardStreams = true
 }
+configureSpotless()
 
 // todo: this logic is duplicated between agent and frontend, can be moved to a shared plugin in buildSrc
 val generateVersionFileTaskProvider = tasks.register("generateVersionFile") {
