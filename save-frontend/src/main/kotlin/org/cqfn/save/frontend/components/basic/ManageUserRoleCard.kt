@@ -50,15 +50,6 @@ external interface ManageUserRoleCardProps : Props {
     var groupType: String
 }
 
-// private fun String.toRole() = when (this) {
-// Role.VIEWER.toString(), Role.VIEWER.formattedName -> Role.VIEWER
-// Role.SUPER_ADMIN.toString(), Role.SUPER_ADMIN.formattedName -> Role.SUPER_ADMIN
-// Role.OWNER.toString(), Role.OWNER.formattedName -> Role.OWNER
-// Role.ADMIN.toString(), Role.ADMIN.formattedName -> Role.ADMIN
-// Role.NONE.toString(), Role.NONE.formattedName -> Role.NONE
-// else -> throw IllegalStateException("Unknown role is passed: $this")
-// }
-
 private fun String.toRole() = Role.values().find {
     this == it.formattedName || this == it.toString()
 } ?: throw IllegalStateException("Unknown role is passed: $this")
