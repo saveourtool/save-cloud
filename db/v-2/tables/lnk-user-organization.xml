@@ -35,5 +35,9 @@
       <column name="role" type="varchar(250)"/>
     </addColumn>
   </changeSet>
-  
+
+  <changeSet id="lnk-user-organization-3" author="sanyavertolet">
+    <addUniqueConstraint tableName="lnk_user_organization" columnNames="user_id, organization_id"/>
+  </changeSet>
+
 </databaseChangeLog>

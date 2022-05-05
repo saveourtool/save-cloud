@@ -30,10 +30,11 @@ import java.util.Optional
  * @property projectRepository
  */
 @Service
-class ProjectService(private val projectRepository: ProjectRepository,
-                     private val projectPermissionEvaluator: ProjectPermissionEvaluator,
-                     private val lnkUserProjectRepository: LnkUserProjectRepository,
-                     private val userRepository: UserRepository
+class ProjectService(
+    private val projectRepository: ProjectRepository,
+    private val projectPermissionEvaluator: ProjectPermissionEvaluator,
+    private val lnkUserProjectRepository: LnkUserProjectRepository,
+    private val userRepository: UserRepository
 ) {
     /**
      * Store [project] in the database
@@ -132,8 +133,9 @@ class ProjectService(private val projectRepository: ProjectRepository,
         val selfRole = lnkUserProjectRepository.findByUserIdAndProject(userId, project)?.role ?: Role.NONE
         val otherUserId = otherUser.id!!
         val otherRole = lnkUserProjectRepository.findByUserIdAndProject(otherUserId, project)?.role ?: Role.NONE
-        return isProjectAdminOrHigher(selfRole) && hasAnotherUserLessPermissions(selfRole, otherRole) &&
-                isRequestedPermissionsCanBeSetByUser(selfRole, requestedRole)
+        return projectPermissionEvaluator.isProjectAdminOrHigher(selfRole) &&
+                projectPermissionEvaluator.hasAnotherUserLessPermissions(selfRole, otherRole) &&
+                projectPermissionEvaluator.isRequestedPermissionsCanBeSetByUser(selfRole, requestedRole)
     }
 
     /**
@@ -141,10 +143,4 @@ class ProjectService(private val projectRepository: ProjectRepository,
      * @return optional of user
      */
     fun findUserByName(userName: String): Optional<User> = userRepository.findByName(userName)
-
-    private fun hasAnotherUserLessPermissions(selfRole: Role, otherRole: Role): Boolean = selfRole.priority > otherRole.priority
-
-    private fun isRequestedPermissionsCanBeSetByUser(selfRole: Role, requestedRole: Role): Boolean = selfRole.priority > requestedRole.priority
-
-    private fun isProjectAdminOrHigher(userRole: Role): Boolean = userRole.priority >= Role.ADMIN.priority
 }

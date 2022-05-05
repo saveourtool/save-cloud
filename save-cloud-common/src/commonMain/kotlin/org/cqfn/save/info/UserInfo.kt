@@ -17,12 +17,14 @@ import kotlinx.serialization.Serializable
  * @property linkedin
  * @property gitHub
  * @property twitter
+ * @property organizations
  */
 @Serializable
 data class UserInfo(
     val name: String,
     val source: String? = null,
     val projects: Map<String, Role> = emptyMap(),
+    val organizations: Map<String, Role> = emptyMap(),
     val email: String? = null,
     val avatar: String? = null,
     var company: String? = null,

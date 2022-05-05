@@ -100,4 +100,24 @@ class ProjectPermissionEvaluator {
                 .filterByPermission(authentication, permission, HttpStatus.FORBIDDEN)
                 .map { true }
                 .defaultIfEmpty(false)
+
+    /**
+     * @param selfRole
+     * @param otherRole
+     * @return true if [otherRole] has less permissions than [selfRole], false otherwise.
+     */
+    fun hasAnotherUserLessPermissions(selfRole: Role, otherRole: Role): Boolean = selfRole.priority > otherRole.priority
+
+    /**
+     * @param selfRole
+     * @param requestedRole
+     * @return true if [requestedRole] can be set by user with role [selfRole], false otherwise.
+     */
+    fun isRequestedPermissionsCanBeSetByUser(selfRole: Role, requestedRole: Role): Boolean = selfRole.priority > requestedRole.priority
+
+    /**
+     * @param userRole
+     * @return true if [userRole] is [Role.ADMIN] or higher, false otherwise.
+     */
+    fun isProjectAdminOrHigher(userRole: Role): Boolean = userRole.priority >= Role.ADMIN.priority
 }

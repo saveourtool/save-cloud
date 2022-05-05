@@ -9,8 +9,8 @@ import javax.persistence.ManyToOne
 
 /**
  * @property organization
- * @property user in organization
- * @property role
+ * @property user in [organization]
+ * @property role of [user] in [organization]
  */
 @Entity
 class LnkUserOrganization(
