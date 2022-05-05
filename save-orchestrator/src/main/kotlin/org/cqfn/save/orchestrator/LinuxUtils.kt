@@ -12,12 +12,19 @@ import java.nio.file.StandardCopyOption
 /**
  * @return IP address of the docker host or `host-gateway` as a fallback
  */
-fun getHostIp(): String {
-    System.getenv("HOST_IP")?.let {
-        return it
-    }
-    return resolve("host.docker.internal")
-        ?: "host-gateway"
+fun getHostIp(hostname: String): String? {
+    val process = ProcessBuilder(
+        "bash", "-c",
+        "getent hosts $hostname | awk '{print \$1}'"
+    )
+        .start()
+    process.waitFor()
+    return process.inputStream
+        .readAllBytes()
+        .decodeToString()
+        .lines()
+        .firstOrNull()
+        ?.takeIf { it.isNotBlank() }
 }
 
 /**

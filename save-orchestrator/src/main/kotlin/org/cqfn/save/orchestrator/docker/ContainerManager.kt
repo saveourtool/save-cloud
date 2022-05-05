@@ -83,7 +83,8 @@ class ContainerManager(private val settings: DockerSettings,
             .withHostConfig(HostConfig.newHostConfig()
                 .withRuntime(settings.runtime)
                 // processes from inside the container will be able to access host's network using this hostname
-                .withExtraHosts("host.docker.internal:${getHostIp()}")
+                //.withExtraHosts("host.docker.internal:${getHostIp()}")
+                .withExtraHosts("host.docker.internal:host-gateway")
                 .withLogConfig(
                     when (settings.loggingDriver) {
                         "loki" -> LogConfig(
@@ -153,13 +154,17 @@ class ContainerManager(private val settings: DockerSettings,
                 """.trimMargin()
         val dockerFile = createTempFile(tmpDir.toPath()).toFile()
         dockerFile.writeText(dockerFileAsText)
-        val hostIp = getHostIp()
+        //val hostIp = getHostIp()
+        val hostIp = getHostIp("host.docker.internal")
         log.debug("Resolved host IP as $hostIp, will add it to the container")
         val buildImageResultCallback: BuildImageResultCallback = try {
             val buildCmd = dockerClient.buildImageCmd(dockerFile)
                 .withBaseDirectory(tmpDir)
                 .withTags(setOf(imageName))
-                .withExtraHosts(setOf("host.docker.internal:$hostIp"))
+                //.withExtraHosts(setOf("host.docker.internal:$hostIp"))
+                .withExtraHosts(hostIp?.let {
+                    setOf("host.docker.internal:$hostIp")
+                } ?: emptySet())
             buildCmd.execTimed(meterRegistry, "save.orchestrator.docker.build", "baseImage", baseImage) { record ->
                 object : BuildImageResultCallback() {
                     override fun onComplete() {

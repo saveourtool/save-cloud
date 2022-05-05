@@ -144,7 +144,7 @@ class ExecutionController(private val executionService: ExecutionService,
      * Get latest (by start time an) execution by project name and organization
      *
      * @param name project name
-     * @param organizationId
+     * @param organizationName
      * @param authentication
      * @return Execution
      * @throws ResponseStatusException if execution is not found
@@ -152,7 +152,7 @@ class ExecutionController(private val executionService: ExecutionService,
     @GetMapping(path = ["/api/$v1/latestExecution"])
     fun getLatestExecutionForProject(@RequestParam name: String, @RequestParam organizationName: String, authentication: Authentication): Mono<ExecutionDto> =
             Mono.justOrEmpty(
-                executionService.getLatestExecutionByProjectNameAndProjectOrganizationId(name, organizationName)
+                executionService.getLatestExecutionByProjectNameAndProjectOrganizationName(name, organizationName)
             )
                 .switchIfEmpty {
                     Mono.error(ResponseStatusException(HttpStatus.NO_CONTENT))
