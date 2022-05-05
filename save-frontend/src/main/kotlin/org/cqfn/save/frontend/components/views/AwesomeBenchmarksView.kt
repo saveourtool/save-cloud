@@ -35,7 +35,10 @@ external interface AwesomeBenchmarksState : State {
      */
     var benchmarks: List<AwesomeBenchmarks>
 
-    var selectedMenuBench : BenchmarkCategoryEnum?
+    /**
+     * list of buttons from DB
+     */
+    var selectedMenuBench: BenchmarkCategoryEnum?
 
     /**
      * list of unique languages from benchmarks
@@ -152,7 +155,7 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                         BenchmarkCategoryEnum.values().forEachIndexed { i, value ->
                                             li("nav-item") {
                                                 val classVal =
-                                                    if ((i == 0 && state.selectedMenuBench == null) || state.selectedMenuBench == value) " active font-weight-bold" else ""
+                                                        if ((i == 0 && state.selectedMenuBench == null) || state.selectedMenuBench == value) " active font-weight-bold" else ""
                                                 p("nav-link $classVal text-gray-800") {
                                                     attrs.onClickFunction = {
                                                         if (state.selectedMenuBench != value) {
@@ -172,11 +175,11 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                     div("col-lg-8") {
                                         // https://devicon.dev
                                         state.benchmarks.forEachIndexed { i, benchmark ->
-                                            if ( state.selectedMenuBench == benchmark.category){
+                                            if (state.selectedMenuBench == benchmark.category) {
                                                 div("media text-muted ${if (i != 0) "pt-3" else ""}") {
                                                     img(classes = "rounded mt-1") {
                                                         attrs["data-src"] =
-                                                            "holder.js/32x32?theme=thumb&amp;bg=007bff&amp;fg=007bff&amp;size=1"
+                                                                "holder.js/32x32?theme=thumb&amp;bg=007bff&amp;fg=007bff&amp;size=1"
                                                         attrs["src"] = "img/undraw_code_inspection_bdl7.svg"
                                                         attrs["data-holder-rendered"] = "true"
                                                         attrs["style"] = jso<CSSProperties> {
@@ -226,14 +229,13 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                             val languages = state.benchmarks.map { it.language }
                                             // FixMe: optimize this code (create maps with numbers only once). May be even store this data in DB?
                                             languages.distinct().forEach { language ->
-                                                    li("list-group-item d-flex justify-content-between align-items-center") {
-                                                        +language.replace("language independent", "lang independent")
-                                                        span("badge badge-primary badge-pill") {
-                                                            +state.benchmarks.count { it.language == language }
-                                                                .toString()
-                                                        }
+                                                li("list-group-item d-flex justify-content-between align-items-center") {
+                                                    +language.replace("language independent", "lang independent")
+                                                    span("badge badge-primary badge-pill") {
+                                                        +state.benchmarks.count { it.language == language }
+                                                            .toString()
                                                     }
-
+                                                }
                                             }
                                         }
                                     }
