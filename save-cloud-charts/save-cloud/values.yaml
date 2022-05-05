@@ -61,5 +61,36 @@ grafana:
   rbac:
     create: false
 
+prometheus:
+  alertmanager:
+    enabled: false
+  kubeStateMetrics:
+    enabled: false
+  configmapReload:
+    prometheus:
+      enabled: false
+    alertmanager:
+      enabled: false
+  nodeExporter:
+    enabled: false
+  server:
+    image:
+      tag: v2.35.0
+  pushgateway:
+    enabled: false
+  serverFiles:
+    prometheus.yml:
+      scrape_configs:
+      - job_name: 'save-cloud-kubernetes'
+        metrics_path: '/actuator/prometheus'
+        kubernetes_sd_configs:
+          - role: pod
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_io_kompose_service]
+            regex: .+
+            action: keep
+          - source_labels: [__meta_kubernetes_pod_container_name]
+            target_label: job
+
 loki:
   tag: 2.4.2
