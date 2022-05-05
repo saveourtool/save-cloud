@@ -20,10 +20,8 @@ spec:
           {{- include "spring-boot.common" (merge (dict "service" .Values.backend) .) | nindent 10 }}
           env:
             {{- include "spring-boot.common.env" (merge (dict "service" .Values.backend) .) | nindent 12 }}
-            - name: DB_PASSWORD_FILE
-              value: {{ .Values.backend.dbPasswordFile }}
             - name: DATABASE_SECRETS_PATH
-              value: /home/cnb/secrets/db_secrets
+              value: {{ .Values.backend.dbPasswordFile }}
           volumeMounts:
             - {{ include "spring-boot.config-volume-mount" . | indent 14 | trim }}
             - name: fs-storage
