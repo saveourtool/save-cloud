@@ -95,13 +95,6 @@ curl -X POST "${SAVE_CLOUD_URL}/api/v1/files/upload" \
 {"name":"main.c","uploadedMillis":1651662834923,"sizeBytes":172,"isExecutable":false}
 
 
-
-```bash
-curl -X GET "${SAVE_CLOUD_URL}/api/v1/organization/Huawei" \
--H "X-Authorization-Source: ${SAVE_CLOUD_AUTH_SOURCE}" \
--H "Authorization: ${SAVE_CLOUD_AUTH}"
-```
-
 FixMe:
 
 ```bash

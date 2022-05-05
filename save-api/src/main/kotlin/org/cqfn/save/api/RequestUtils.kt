@@ -59,16 +59,6 @@ private object UserInformation {
 }
 
 /**
- * @param name
- * @return Organization instance
- */
-suspend fun HttpClient.getOrganizationByName(
-    name: String
-): Organization = getRequestWithAuthAndJsonContentType(
-    "${Backend.url}/api/$v1/organization/$name"
-).body()
-
-/**
  * @param projectName
  * @param organizationName
  * @return Project instance
