@@ -19,40 +19,40 @@ curl -X GET 'http://localhost:5800/api/v1/projects/get/organization-id?name=save
 curl -X POST 'http://localhost:5800/api/v1/submitExecutionRequest' \
 -H 'X-Authorization-Source: basic' \
 -H 'Authorization: Basic YWRtaW46IA==' \
--F 'executionRequest={ \
-    "project": { \ 
-        "name": "save", \
-        "url": "https://github.com/analysis-dev/save-cli", \
-        "description": "sadasd", \
-        "status": "CREATED" , \
-        "public": true, \
-        "userId": 1, \
-        "email": null, \
-        "numberOfContainers": 3, \
-        "organization": { \
-            "name": "Huawei", \
-            "ownerId": 1, \
-            "dateCreated": "2021-01-01T00:00:00", \
-            "avatar": null, \
-            "description": null, \
-            "id": 1 \
-        }, \
-        "contestRating": 0, \
-        "id":5 \
-    }, \
-    "gitDto": { \
-        "url": "https://github.com/analysis-dev/save-cli", \
-        "username": null, \
-        "password": null, \
-        "branch": "origin/feature/testing_for_cloud", \
-        "hash": null \
-    }, \
-    "testRootPath": "examples/kotlin-diktat", \
-    "sdk": { \
-      "name": "openjdk", \
-      "version" : "11" \
-    }, \
-    "executionId" : null \
+-F 'executionRequest={
+    "project": {
+        "name": "save",
+        "url": "https://github.com/analysis-dev/save-cli",
+        "description": null,
+        "status": "CREATED",
+        "public": true,
+        "userId": 1,
+        "email": null,
+        "numberOfContainers": 3,
+        "organization": {
+            "name": "Huawei",
+            "ownerId": 1,
+            "dateCreated": "2021-01-01T00:00:00",
+            "avatar": null,
+            "description": null,
+            "id": 1
+        },
+        "contestRating": 0,
+        "id":5
+    },
+    "gitDto": {
+        "url": "https://github.com/analysis-dev/save-cli",
+        "username": null,
+        "password": null,
+        "branch": "origin/feature/testing_for_cloud",
+        "hash": null
+    },
+    "testRootPath": "examples/kotlin-diktat",
+    "sdk": {
+      "name": "openjdk",
+      "version" : "11"
+    },
+    "executionId" : null
 };type=application/json'
 ```
 
