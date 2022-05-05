@@ -35,8 +35,6 @@ spec:
           args:
             - clone
             - --single-branch
-#            - --branch
-#            - feature/k8s-init-containers
             - --
             - https://github.com/analysis-dev/save-cloud.git
             - /data
