@@ -29,30 +29,40 @@ spec:
             - name: database-secret
               mountPath: {{ .Values.backend.dbPasswordFile }}
           {{- include "spring-boot.management" .Values.backend | nindent 10 }}
-#      initContainers:
-#        - name: git-cloner
-#          image: alpine/git
-#          args:
-#            - clone
-#            - --single-branch
-#            - --
-#            - https://github.com/analysis-dev/save-cloud.git
-#            - /data
-#          volumeMounts:
-#            - mountPath: /data
-#              name: migrations-data
+      initContainers:
+        - name: git-cloner
+          image: alpine/git
+          args:
+            - clone
+            - --single-branch
+#            - --branch
+#            - feature/k8s-init-containers
+            - --
+            - https://github.com/analysis-dev/save-cloud.git
+            - /data
+          volumeMounts:
+            - mountPath: /data
+              name: migrations-data
+        - name: liquibase-runner
+          image: gradle:7.4.2-jdk11-alpine
+          workingDir: /data
+          args:
+            - ./gradlew
+            - -Psave.profile={{ .Values.profile }}
+            - liquibaseUpdate
+          env:
+            - name: DB_SECRETS_PATH
+              value: {{ .Values.backend.dbPasswordFile }}
+          volumeMounts:
+            - mountPath: /data
+              name: migrations-data
+            - mountPath: {{ .Values.backend.dbPasswordFile }}
+              name: database-secret
 #        - name: liquibase-runner
-#          image: gradle:7.4.2
-#          workingDir: /data
+#          image: liquibase/liquibase
 #          args:
-#            - ./gradlew
-#            - -Psave.profile={{ .Values.profile }}
-#            - liquibaseUpdate
-##        - name: liquibase-runner
-##          image: liquibase/liquibase
-##          args:
-##            - docker-entrypoint.sh
-##            - --url=
+#            - docker-entrypoint.sh
+#            - --url=
       volumes:
         - {{ include "spring-boot.config-volume" (dict "service" .Values.backend) | indent 10 | trim }}
         - name: fs-storage
