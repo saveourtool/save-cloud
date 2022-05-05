@@ -56,11 +56,11 @@ class AutomaticTestInitializator(
         }
         log.info("Starting submit execution $msg, type: $executionType")
 
-        val (organization, executionRequest) = submitExecution(executionType, additionalFileInfoList) ?: return
+        val executionRequest = submitExecution(executionType, additionalFileInfoList) ?: return
 
         // Sending requests, which checks current state, until results will be received
         // TODO: in which form do we actually need results?
-        val resultExecutionDto = getExecutionResults(executionRequest, organization.id!!)
+        val resultExecutionDto = getExecutionResults(executionRequest)
         val resultMsg = resultExecutionDto?.let {
             "Execution with id=${resultExecutionDto.id} is finished with status: ${resultExecutionDto.status}. " +
                     "Passed tests: ${resultExecutionDto.passedTests}, failed tests: ${resultExecutionDto.failedTests}, skipped: ${resultExecutionDto.skippedTests}"
@@ -79,8 +79,8 @@ class AutomaticTestInitializator(
     private suspend fun submitExecution(
         executionType: ExecutionType,
         additionalFiles: List<FileInfo>?
-    ): Pair<Organization, ExecutionRequestBase>? {
-        val (organization, executionRequest) = if (executionType == ExecutionType.GIT) {
+    ): ExecutionRequestBase? {
+        val executionRequest = if (executionType == ExecutionType.GIT) {
             buildExecutionRequest()
         } else {
             val userProvidedTestSuites = verifyTestSuites() ?: return null
@@ -91,15 +91,15 @@ class AutomaticTestInitializator(
             log.error("Can't submit execution=$executionRequest! Response status: ${response.status}")
             return null
         }
-        return organization to executionRequest
+        return executionRequest
     }
 
     /**
      * Build execution request for git mode according provided configuration
      *
      */
-    private suspend fun buildExecutionRequest(): Pair<Organization, ExecutionRequest> {
-        val (organization, project) = getOrganizationAndProject()
+    private suspend fun buildExecutionRequest(): ExecutionRequest {
+        val project = getProject()
 
         val gitDto = GitDto(
             url = evaluatedToolProperties.gitUrl,
@@ -112,7 +112,7 @@ class AutomaticTestInitializator(
         // executionId will be calculated at the server side
         val executionId = null
 
-        return organization to ExecutionRequest(
+        return ExecutionRequest(
             project = project,
             gitDto = gitDto,
             testRootPath = evaluatedToolProperties.testRootPath,
@@ -128,10 +128,10 @@ class AutomaticTestInitializator(
      */
     private suspend fun buildExecutionRequestForStandardSuites(
         userProvidedTestSuites: List<String>
-    ): Pair<Organization, ExecutionRequestForStandardSuites> {
-        val (organization, project) = getOrganizationAndProject()
+    ): ExecutionRequestForStandardSuites {
+        val project = getProject()
 
-        return organization to ExecutionRequestForStandardSuites(
+        return ExecutionRequestForStandardSuites(
             project = project,
             testsSuites = userProvidedTestSuites,
             sdk = evaluatedToolProperties.sdk.toSdk(),
@@ -168,10 +168,11 @@ class AutomaticTestInitializator(
      *
      */
     @Suppress("UnsafeCallOnNullableType")
-    private suspend fun getOrganizationAndProject(): Pair<Organization, Project> {
-        val organization = httpClient.getOrganizationByName(evaluatedToolProperties.organizationName)
-        val project = httpClient.getProjectByNameAndOrganizationId(evaluatedToolProperties.projectName, organization.id!!)
-        return organization to project
+    private suspend fun getProject(): Project {
+        return httpClient.getProjectByNameAndOrganizationName(
+            evaluatedToolProperties.projectName,
+            evaluatedToolProperties.organizationName
+        )
     }
 
     /**
@@ -184,13 +185,12 @@ class AutomaticTestInitializator(
     @Suppress("MagicNumber")
     private suspend fun getExecutionResults(
         executionRequest: ExecutionRequestBase,
-        organizationId: Long
     ): ExecutionDto? {
         // Execution should be processed in db after submission, so wait little time
         delay(1_000)
 
         // We suppose, that in this short time (after submission), there weren't any new executions, so we can take the latest one
-        val executionId = httpClient.getLatestExecution(executionRequest.project.name, organizationId).id
+        val executionId = httpClient.getLatestExecution(executionRequest.project.name, evaluatedToolProperties.organizationName).id
 
         var executionDto = httpClient.getExecutionById(executionId)
         val initialTime = LocalDateTime.now()

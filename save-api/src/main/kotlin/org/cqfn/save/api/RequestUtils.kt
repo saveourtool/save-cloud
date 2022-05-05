@@ -70,13 +70,13 @@ suspend fun HttpClient.getOrganizationByName(
 
 /**
  * @param projectName
- * @param organizationId
+ * @param organizationName
  * @return Project instance
  */
-suspend fun HttpClient.getProjectByNameAndOrganizationId(
-    projectName: String, organizationId: Long
+suspend fun HttpClient.getProjectByNameAndOrganizationName(
+    projectName: String, organizationName: String
 ): Project = getRequestWithAuthAndJsonContentType(
-    "${Backend.url}/api/$v1/projects/get/organization-id?name=$projectName&organizationId=$organizationId"
+    "${Backend.url}/api/$v1/projects/get/organization-name?name=$projectName&organizationName=$organizationName"
 ).body()
 
 /**
@@ -172,9 +172,9 @@ suspend fun HttpClient.submitExecution(executionType: ExecutionType, executionRe
  */
 suspend fun HttpClient.getLatestExecution(
     projectName: String,
-    organizationId: Long
+    organizationName: String
 ): ExecutionDto = getRequestWithAuthAndJsonContentType(
-    "${Backend.url}/api/$v1/latestExecution?name=$projectName&organizationId=$organizationId"
+    "${Backend.url}/api/$v1/latestExecution?name=$projectName&organizationName=$organizationName"
 ).body()
 
 /**

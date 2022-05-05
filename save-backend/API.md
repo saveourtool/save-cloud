@@ -1,18 +1,12 @@
 ## SAVE Cloud Backend API
 
-TODO: extract backend api and password
-
 ```bash
 SAVE_CLOUD_URL=https://saveourtool.com:443
 
 SAVE_CLOUD_AUTH_SOURCE=github
 
-SAVE_CLOUD_AUTH='Basic YWRtaW46IA=='
+SAVE_CLOUD_AUTH='Basic Z2l0aHViQHVzZXJuYW1lOnRva2Vu'
 ```
-
-
-
-curl -X GET https://saveourtool.com:443/api/v1/files/list -H "X-Authorization-Source: github" -H "Authorization: Basic pass"
 
 
 ```bash
@@ -41,7 +35,7 @@ curl -X GET "${SAVE_CLOUD_URL}/api/v1/organization/Huawei" \
 FixMe:
 
 ```bash
-curl -X GET "${SAVE_CLOUD_URL}/api/v1/projects/get/organization-id?name=save&organizationId=1" \
+curl -X GET "${SAVE_CLOUD_URL}/api/v1/projects/get/organization-name?name=save&organizationName=Huawei" \
 -H "X-Authorization-Source: ${SAVE_CLOUD_AUTH_SOURCE}" \
 -H "Authorization: ${SAVE_CLOUD_AUTH}"
 ```
@@ -101,7 +95,7 @@ curl -X POST "${SAVE_CLOUD_URL}/api/v1/submitExecutionRequest" \
 
 FixMe:
 ```bash
-curl -X GET "${SAVE_CLOUD_URL}/api/v1/latestExecution?name=save&organizationId=1" \
+curl -X GET "${SAVE_CLOUD_URL}/api/v1/latestExecution?name=save&organizationName=Huawei" \
 -H "X-Authorization-Source: ${SAVE_CLOUD_AUTH_SOURCE}" \
 -H "Authorization: ${SAVE_CLOUD_AUTH}"
 ```
