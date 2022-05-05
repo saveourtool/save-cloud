@@ -2,20 +2,29 @@
 
 TODO: extract backend api and password
 
+```bash
+SAVE_CLOUD_URL=https://saveourtool.com:443
+
+SAVE_CLOUD_AUTH_SOURCE=github
+
+SAVE_CLOUD_AUTH='Basic YWRtaW46IA=='
+```
+
+
 
 curl -X GET https://saveourtool.com:443/api/v1/files/list -H "X-Authorization-Source: github" -H "Authorization: Basic pass"
 
 
 ```bash
-curl -X GET http://localhost:5800/api/v1/files/list \
--H "X-Authorization-Source: basic" \
--H "Authorization: Basic YWRtaW46IA=="
+curl -X GET "${SAVE_CLOUD_URL}/api/v1/files/list" \
+-H "X-Authorization-Source: ${SAVE_CLOUD_AUTH_SOURCE}" \
+-H "Authorization: ${SAVE_CLOUD_AUTH}"
 ```
 
 ```bash
-curl -X POST "http://localhost:5800/api/v1/files/upload" \
--H "X-Authorization-Source: basic" \
--H "Authorization: Basic YWRtaW46IA==" \
+curl -X POST "${SAVE_CLOUD_URL}/api/v1/files/upload" \
+-H "X-Authorization-Source: ${SAVE_CLOUD_AUTH_SOURCE}" \
+-H "Authorization: ${SAVE_CLOUD_AUTH}" \
 -F "file=@main.c"
 ```
 
@@ -24,23 +33,23 @@ curl -X POST "http://localhost:5800/api/v1/files/upload" \
 
 
 ```bash
-curl -X GET 'http://localhost:5800/api/v1/organization/Huawei' \
--H 'X-Authorization-Source: basic' \
--H 'Authorization: Basic YWRtaW46IA=='
+curl -X GET "${SAVE_CLOUD_URL}/api/v1/organization/Huawei" \
+-H "X-Authorization-Source: ${SAVE_CLOUD_AUTH_SOURCE}" \
+-H "Authorization: ${SAVE_CLOUD_AUTH}"
 ```
 
 FixMe:
 
 ```bash
-curl -X GET 'http://localhost:5800/api/v1/projects/get/organization-id?name=save&organizationId=1' \
--H 'X-Authorization-Source: basic' \
--H 'Authorization: Basic YWRtaW46IA=='
+curl -X GET "${SAVE_CLOUD_URL}/api/v1/projects/get/organization-id?name=save&organizationId=1" \
+-H "X-Authorization-Source: ${SAVE_CLOUD_AUTH_SOURCE}" \
+-H "Authorization: ${SAVE_CLOUD_AUTH}"
 ```
 
 ```bash
-curl -X POST 'http://localhost:5800/api/v1/submitExecutionRequest' \
--H 'X-Authorization-Source: basic' \
--H 'Authorization: Basic YWRtaW46IA==' \
+curl -X POST "${SAVE_CLOUD_URL}/api/v1/submitExecutionRequest" \
+-H "X-Authorization-Source: ${SAVE_CLOUD_AUTH_SOURCE}" \
+-H "Authorization: ${SAVE_CLOUD_AUTH}" \
 -F 'executionRequest={
     "project": {
         "name": "save",
@@ -92,15 +101,15 @@ curl -X POST 'http://localhost:5800/api/v1/submitExecutionRequest' \
 
 FixMe:
 ```bash
-curl -X GET 'http://localhost:5800/api/v1/latestExecution?name=save&organizationId=1' \
--H 'X-Authorization-Source: basic' \
--H 'Authorization: Basic YWRtaW46IA=='
+curl -X GET "${SAVE_CLOUD_URL}/api/v1/latestExecution?name=save&organizationId=1" \
+-H "X-Authorization-Source: ${SAVE_CLOUD_AUTH_SOURCE}" \
+-H "Authorization: ${SAVE_CLOUD_AUTH}"
 ```
 
 FixMe:
 
 ```bash
-curl -X GET 'http://localhost:5800/api/v1/executionDto?executionId=4' \
--H 'X-Authorization-Source: basic' \
--H 'Authorization: Basic YWRtaW46IA=='
+curl -X GET "${SAVE_CLOUD_URL}/api/v1/executionDto?executionId=4" \
+-H "X-Authorization-Source: ${SAVE_CLOUD_AUTH_SOURCE}" \
+-H "Authorization: ${SAVE_CLOUD_AUTH}"
 ```
