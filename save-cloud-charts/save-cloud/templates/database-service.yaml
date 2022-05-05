@@ -34,5 +34,5 @@ spec:
     - port: 3306
   selector:
     io.kompose.service: mysql
-#  clusterIP: None
+  clusterIP: None
 {{- end }}

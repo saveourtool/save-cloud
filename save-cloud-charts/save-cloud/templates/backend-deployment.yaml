@@ -58,11 +58,6 @@ spec:
               name: migrations-data
             - mountPath: {{ .Values.backend.dbPasswordFile }}
               name: database-secret
-#        - name: liquibase-runner
-#          image: liquibase/liquibase
-#          args:
-#            - docker-entrypoint.sh
-#            - --url=
       volumes:
         - {{ include "spring-boot.config-volume" (dict "service" .Values.backend) | indent 10 | trim }}
         - name: fs-storage
