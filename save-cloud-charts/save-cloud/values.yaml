@@ -43,6 +43,9 @@ reposStorage:
 logsStorage:
   size: 2Gi
 mysql:
+  # If true, a Service will be created to enable communication with an external DB by its IP.
+  # If false, a Deployment will be created for a MySQL pod.
+  external: true
   # IP address of an external MySQL database.
   # As an example, this is what may be a resolved IP of `host.minikube.internal`.
   ip: 192.168.65.2
