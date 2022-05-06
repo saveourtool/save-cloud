@@ -8,7 +8,8 @@ In this document will be represented the examples, which use `cURL`
 as instrument for working with SAVE Cloud API.
 
 To make the requests more universal, we will
-use the environment variables for all data, which is required by SAVE Cloud
+store major information, which is required by SAVE Cloud in requests, by
+storing them into variables in **command prompt**.
 
 ### Authorization configuration
 
@@ -20,6 +21,8 @@ Each request, performed to API, require credentials, which could be configured l
    `source` is the same like `SAVE_CLOUD_AUTH_SOURCE`, and `token` is unique token,\
     which could be created in personal settings in SAVE Cloud system.
 
+Just open up a command prompt and enter the following commands:
+
 ```bash
 SAVE_CLOUD_URL=https://saveourtool.com:443
 
@@ -28,10 +31,10 @@ SAVE_CLOUD_AUTH_SOURCE=github
 SAVE_CLOUD_AUTH='Basic Z2l0aHViQHVzZXJuYW1lOnRva2Vu'
 ```
 
-### Configuration of data of evaluated tool
+### Configuration of information about evaluated tool
 
 To specify information about project, that you would like to evaluate,
-it's necessary to fill the fields below. Only the `organizationName`,
+it's necessary to create the fields below in command promt. Only the `organizationName`,
 `projectName` and `gitUrl` are required, if your project is public:
 
 
@@ -42,12 +45,12 @@ organizationName=Huawei
 # Required
 projectName='"save"'
 
+# Required
+gitUrl='"https://github.com/analysis-dev/save-cli"'
+
 # Optional
 sdkName='"openjdk"'
 sdkVersion='"11"'
-
-# Required
-gitUrl='"https://github.com/analysis-dev/save-cli"'
 
 # Optional
 # Git username (generally, should be provided, only if tested project is private)
@@ -58,11 +61,11 @@ gitUserName=null
 gitPassword=null
 ```
 
-**Note**: The `organizationName` here is intentionally doesn't contain quotes, since this value
-will be used in requests url, while other in request body.
+**Note**: The `organizationName` here is intentionally don't contain quotes, since this value
+will be used in requests url, while other in requests bodies.
 
 There is two modes for execution, that could be performed: Git and Standard.\
-Each of them require own information
+Each of them require own configuration.
 
 #### Configuration for Git Mode
 <details>
@@ -120,7 +123,7 @@ curl -X POST "${SAVE_CLOUD_URL}/api/v1/files/upload" \
 -F "file=@your-file-name"
 ```
 
-It will return `json` with metadata about your file, which will be used\
+It will return `json` with metadata about your file, which will be require\
 in the execution request later.
 
 The format will have the following form:
@@ -145,6 +148,9 @@ curl -X GET "${SAVE_CLOUD_URL}/api/v1/files/list" \
 ```
 
 #### Execution submission
+
+For execution request you will need full information about your project, which could be
+saved into variable `project` by following request:
 
 ```bash
 project=$(curl -X GET "${SAVE_CLOUD_URL}/api/v1/projects/get/organization-name?name=save&organizationName=${organizationName}" \
@@ -226,14 +232,12 @@ curl -X POST "${SAVE_CLOUD_URL}/api/v1/executionRequestStandardTests" \
   "isExecutable": false
 };type=application/json'
 ```
-
 </details>
 
-```bash
-curl -X GET "${SAVE_CLOUD_URL}/api/v1/latestExecution?name=save&organizationName=${organizationName}" \
--H "X-Authorization-Source: ${SAVE_CLOUD_AUTH_SOURCE}" \
--H "Authorization: ${SAVE_CLOUD_AUTH}"
-```
+These requests will also return execution id, which could be used for getting the
+execution results or for rerun command.
+
+To get execution results, knowing the execution id, use the following request:
 
 ```bash
 # Taken after submitExecutionRequest request
@@ -243,6 +247,18 @@ curl -X GET "${SAVE_CLOUD_URL}/api/v1/executionDto?executionId=${executionId}" \
 -H "X-Authorization-Source: ${SAVE_CLOUD_AUTH_SOURCE}" \
 -H "Authorization: ${SAVE_CLOUD_AUTH}"
 ```
+
+
+You are also able to get results of latest execution by `/latestExecution` endpoind,
+with the following `get` request: 
+
+```bash
+curl -X GET "${SAVE_CLOUD_URL}/api/v1/latestExecution?name=save&organizationName=${organizationName}" \
+-H "X-Authorization-Source: ${SAVE_CLOUD_AUTH_SOURCE}" \
+-H "Authorization: ${SAVE_CLOUD_AUTH}"
+```
+
+If you would like to rerun some of your executions, you can use `/rerunExecution` endpoint:
 
 ```bash
 curl -X POST "${SAVE_CLOUD_URL}/api/v1/rerunExecution?id=${executionId}" \
