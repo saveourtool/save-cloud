@@ -7,12 +7,7 @@
 package org.cqfn.save.frontend.components.views
 
 import org.cqfn.save.domain.*
-import org.cqfn.save.entities.ExecutionRequest
-import org.cqfn.save.entities.ExecutionRequestForStandardSuites
-import org.cqfn.save.entities.GitDto
-import org.cqfn.save.entities.Organization
-import org.cqfn.save.entities.Project
-import org.cqfn.save.entities.ProjectStatus
+import org.cqfn.save.entities.*
 import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.frontend.components.basic.TestingType
 import org.cqfn.save.frontend.components.basic.cardComponent
@@ -431,7 +426,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             "N/A",
             ProjectStatus.CREATED,
             userId = -1,
-            organization = Organization("stub", null, date)
+            organization = Organization("stub", OrganizationStatus.CREATED, null, date)
         )
         state.gitUrlFromInputField = ""
         state.gitBranchOrCommitFromInputField = ""
@@ -734,7 +729,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     private fun RBuilder.renderSettings() {
         child(projectSettingsMenu) {
             attrs.project = state.project
-
             attrs.selfRole = Role.VIEWER
             attrs.currentUserInfo = props.currentUserInfo ?: UserInfo("Unknown")
         }

@@ -161,6 +161,7 @@ class ProjectController(private val projectService: ProjectService,
     fun updateProject(@RequestBody project: Project, authentication: Authentication): Mono<StringResponse> = projectService.findWithPermissionByNameAndOrganization(
         authentication, project.name, project.organization, Permission.WRITE
     )
+        .filter { projectPermissionEvaluator.hasPermission(authentication, project, Permission.WRITE) }
         .map { projectFromDb ->
             // fixme: instead of manually updating fields, a special ProjectUpdateDto could be introduced
             projectFromDb.apply {

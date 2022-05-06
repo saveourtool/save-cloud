@@ -85,7 +85,7 @@ class DownloadProjectTest(
 
     @Test
     fun testBadRequest() {
-        val organization: Organization = Organization("Huawei", 1, null).apply {
+        val organization: Organization = Organization("Huawei", OrganizationStatus.CREATED, 1, null).apply {
             id = 1
         }
         val project = Project("owner", "someName", "wrongGit", ProjectStatus.CREATED, userId = 2, organization = organization)

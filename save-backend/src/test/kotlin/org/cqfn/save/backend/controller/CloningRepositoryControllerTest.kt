@@ -70,7 +70,7 @@ import kotlin.io.path.createFile
 )
 @Suppress("TOO_LONG_FUNCTION")
 class CloningRepositoryControllerTest {
-    private val organization = Organization("Huawei", 1, null).apply { id = 1 }
+    private val organization = Organization("Huawei", OrganizationStatus.CREATED, 1, null).apply { id = 1 }
     private var testProject: Project = Project(
         organization = organization,
         name = "huaweiName",

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+    <changeSet id="benchmarks-insert" author="akuleshov7" context="dev">
+
+        <loadData tableName="awesome_benchmarks" encoding="UTF-8" separator=";" quotchar="&quot;" file="db/v-2/insert-test-data/sqlRequests/awesome-benchmarks.csv">
+            <column header="id" name="id" type="NUMERIC" />
+            <column header="name" name="name" type="STRING" />
+            <column header="category" name="category" type="STRING" />
+            <column header="tags" name="tags" type="STRING" />
+            <column header="language" name="language" type="STRING" />
+            <column header="license" name="license" type="STRING" />
+            <column header="scenarios_num" name="scenarios_num" type="NUMERIC" />
+            <column header="description" name="description" type="STRING" />
+            <column header="homepage" name="homepage" type="STRING" />
+            <column header="sources" name="sources" type="STRING" />
+            <column header="documentation" name="documentation" type="STRING" />
+        </loadData>
+
+    </changeSet>
+
+</databaseChangeLog>

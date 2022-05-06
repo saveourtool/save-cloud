@@ -22,12 +22,21 @@ data class DatabaseCredentials(
  */
 fun Project.getDatabaseCredentials(profile: String): DatabaseCredentials {
     val props = java.util.Properties()
-    file("save-backend/src/main/resources/application-$profile.properties").apply {
-        props.load(inputStream())
-    }
 
-    if (File("${System.getenv()["HOME"]}/secrets").exists()) {
-        file("${System.getenv()["HOME"]}/secrets").apply { props.load(inputStream()) }
+    val secretsPath = System.getenv("DB_SECRETS_PATH")
+    if (secretsPath != null) {
+        // Branch for environment with explicit file with database credentials, e.g. Kubernetes Secrets
+        val url = file("$secretsPath/spring.datasource.url").readText()
+        val username = file("$secretsPath/spring.datasource.username").readText()
+        val password = file("$secretsPath/spring.datasource.password").readText()
+        return DatabaseCredentials(url, username, password)
+    } else {
+        // Branch for other environments, e.g. local deployment or server deployment
+        file("save-backend/src/main/resources/application-$profile.properties").inputStream().use(props::load)
+
+        if (File("${System.getenv("HOME")}/secrets").exists()) {
+            file("${System.getenv("HOME")}/secrets").inputStream().use(props::load)
+        }
     }
 
     val databaseUrl: String

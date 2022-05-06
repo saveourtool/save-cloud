@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  labels:
+    {{- include "common.labels" (merge (dict "service" .Values.backend) .) | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      io.kompose.service: backend
+  template:
+    metadata:
+      labels:
+        io.kompose.service: backend
+    spec:
+      restartPolicy: Always
+      {{- include "spring-boot.securityContext" . | nindent 6 }}
+      containers:
+        - name: backend
+          {{- include "spring-boot.common" (merge (dict "service" .Values.backend) .) | nindent 10 }}
+          env:
+            {{- include "spring-boot.common.env" (merge (dict "service" .Values.backend) .) | nindent 12 }}
+            - name: DATABASE_SECRETS_PATH
+              value: {{ .Values.backend.dbPasswordFile }}
+          volumeMounts:
+            - {{ include "spring-boot.config-volume-mount" . | indent 14 | trim }}
+            - name: fs-storage
+              mountPath: /home/cnb/files
+            - name: database-secret
+              mountPath: {{ .Values.backend.dbPasswordFile }}
+          {{- include "spring-boot.management" .Values.backend | nindent 10 }}
+      initContainers:
+        - name: git-cloner
+          image: alpine/git
+          args:
+            - clone
+            - --single-branch
+            - --
+            - https://github.com/analysis-dev/save-cloud.git
+            - /data
+          volumeMounts:
+            - mountPath: /data
+              name: migrations-data
+        - name: liquibase-runner
+          image: gradle:7.4.2-jdk11-alpine
+          workingDir: /data
+          args:
+            - ./gradlew
+            - -Psave.profile={{ .Values.profile }}
+            - liquibaseUpdate
+          env:
+            - name: DB_SECRETS_PATH
+              value: {{ .Values.backend.dbPasswordFile }}
+          volumeMounts:
+            - mountPath: /data
+              name: migrations-data
+            - mountPath: {{ .Values.backend.dbPasswordFile }}
+              name: database-secret
+      volumes:
+        - {{ include "spring-boot.config-volume" (dict "service" .Values.backend) | indent 10 | trim }}
+        - name: fs-storage
+          persistentVolumeClaim:
+            claimName: save-fs-storage
+        - name: database-secret
+          secret:
+            secretName: db-secrets
+        - name: migrations-data
+          emptyDir: {}

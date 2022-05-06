@@ -6,14 +6,19 @@ package org.cqfn.save.frontend.components.views
 
 import org.cqfn.save.domain.ImageInfo
 import org.cqfn.save.domain.Role
+import org.cqfn.save.domain.moreOrEqualThan
 import org.cqfn.save.entities.Organization
+import org.cqfn.save.entities.OrganizationStatus
 import org.cqfn.save.entities.Project
+import org.cqfn.save.frontend.components.basic.organizationSettingsMenu
 import org.cqfn.save.frontend.components.basic.privacySpan
 import org.cqfn.save.frontend.components.errorStatusContext
 import org.cqfn.save.frontend.components.tables.tableComponent
 import org.cqfn.save.frontend.externals.fontawesome.*
 import org.cqfn.save.frontend.http.getOrganization
 import org.cqfn.save.frontend.utils.*
+import org.cqfn.save.info.UserInfo
+import org.cqfn.save.utils.AvatarType
 import org.cqfn.save.v1
 
 import csstype.*
@@ -26,6 +31,7 @@ import react.*
 import react.dom.*
 import react.table.columns
 
+import kotlinx.browser.window
 import kotlinx.coroutines.launch
 import kotlinx.html.ButtonType
 import kotlinx.html.InputType
@@ -42,6 +48,7 @@ import kotlinx.serialization.json.Json
 @Suppress("MISSING_KDOC_CLASS_ELEMENTS")
 external interface OrganizationProps : PropsWithChildren {
     var organizationName: String
+    var currentUserInfo: UserInfo?
 }
 
 /**
@@ -74,22 +81,100 @@ external interface OrganizationViewState : State {
     var projects: Array<Project>?
 
     /**
+     * Message of error
+     */
+    var errorMessage: String
+
+    /**
+     * Flag to handle error
+     */
+    var isErrorOpen: Boolean?
+
+    /**
+     * Error label
+     */
+    var errorLabel: String
+
+    /**
+     * Message of warning
+     */
+    var confirmMessage: String
+
+    /**
+     * State for the creation of unified confirmation logic
+     */
+    var confirmationType: ConfirmationType
+
+    /**
+     * Flag to handle confirm Window
+     */
+    var isConfirmWindowOpen: Boolean?
+
+    /**
+     * Label of confirm Window
+     */
+    var confirmLabel: String
+
+    /**
      * Whether editing of organization info is disabled
      */
     var isEditDisabled: Boolean?
+
+    /**
+     * Role of user is viewer
+     */
+    var isRoleViewer: Boolean?
+
+    /**
+     * Users in organization
+     */
+    var usersInOrganization: List<UserInfo>?
 }
 
 /**
  * A Component for owner view
  */
 class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(false) {
+    private val organizationSettingsMenu = organizationSettingsMenu(
+        deleteOrganizationCallback = {
+            if (state.projects?.size != 0) {
+                setState {
+                    isErrorOpen = true
+                    errorLabel = ""
+                    errorMessage = "You cannot delete an organization because there are projects connected to it." +
+                            "Delete all the projects and try again."
+                }
+            } else {
+                deleteOrganization()
+            }
+        },
+        updateErrorMessage = {
+            setState {
+                isErrorOpen = true
+                errorLabel = ""
+                errorMessage = "Failed to save organization info: ${it.status} ${it.statusText}"
+            }
+        },
+    )
     private var descriptionTmp: String = ""
+    private lateinit var responseFromDeleteOrganization: Response
 
     init {
         state.isUploading = false
-        state.organization = Organization("", null, null, null)
+        state.organization = Organization("", OrganizationStatus.CREATED, null, null, null)
         state.selectedMenu = OrganizationMenuBar.INFO
         state.projects = emptyArray()
+    }
+
+    private fun deleteOrganization() {
+        val newOrganization = state.organization?.copy(status = OrganizationStatus.DELETED)
+        setState {
+            organization = newOrganization
+            confirmationType = ConfirmationType.DELETE_CONFIRM
+            isConfirmWindowOpen = true
+            confirmLabel = ""
+            confirmMessage = "Are you sure you want to delete this project?"
+        }
     }
 
     override fun componentDidMount() {
@@ -99,17 +184,38 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             val organizationLoaded = getOrganization(props.organizationName)
             val projectsLoaded = getProjectsForOrganization()
             val role = getRoleInOrganization()
+            val users = getUsers()
             setState {
                 image = avatar
                 organization = organizationLoaded
                 projects = projectsLoaded
-                isEditDisabled = (role.priority >= Role.ADMIN.priority)
+                isEditDisabled = role.moreOrEqualThan(Role.ADMIN)
+                isRoleViewer = !role.moreOrEqualThan(Role.ADMIN)
+                usersInOrganization = users
             }
         }
     }
 
     @Suppress("TOO_LONG_FUNCTION", "LongMethod", "MAGIC_NUMBER")
     override fun RBuilder.render() {
+        runErrorModal(state.isErrorOpen, state.errorLabel, state.errorMessage) {
+            setState { isErrorOpen = false }
+        }
+
+        runConfirmWindowModal(
+            state.isConfirmWindowOpen,
+            state.confirmLabel,
+            state.confirmMessage,
+            { setState { isConfirmWindowOpen = false } }) {
+            when (state.confirmationType) {
+                ConfirmationType.DELETE_CONFIRM -> deleteOrganizationBuilder()
+                else -> throw IllegalStateException("Not implemented yet")
+            }
+            setState { isConfirmWindowOpen = false }
+        }
+
+        renderOrganizationMenuBar()
+
         when (state.selectedMenu!!) {
             OrganizationMenuBar.INFO -> renderInfo()
             OrganizationMenuBar.TOOLS -> renderTools()
@@ -120,86 +226,13 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         }
     }
 
-    @Suppress("TOO_LONG_FUNCTION", "LongMethod", "ComplexMethod")
+    @Suppress(
+        "TOO_LONG_FUNCTION",
+        "LongMethod",
+        "ComplexMethod",
+        "PARAMETER_NAME_IN_OUTER_LAMBDA",
+    )
     private fun RBuilder.renderInfo() {
-        // ================= Row for avatar and name =============
-        div("row") {
-            div("col-3 ml-auto") {
-                attrs["style"] = jso<CSSProperties> {
-                    justifyContent = JustifyContent.center
-                    display = Display.flex
-                    alignItems = AlignItems.center
-                }
-                label {
-                    input(type = InputType.file) {
-                        attrs.hidden = true
-                        attrs {
-                            onChangeFunction = { event ->
-                                val target = event.target as HTMLInputElement
-                                postImageUpload(target)
-                            }
-                        }
-                    }
-                    attrs["aria-label"] = "Change organization's avatar"
-                    img(classes = "avatar avatar-user width-full border color-bg-default rounded-circle") {
-                        attrs.src = state.image?.path?.let {
-                            "/api/$v1/avatar$it"
-                        }
-                            ?: run {
-                                "img/company.svg"
-                            }
-                        attrs.height = "100"
-                        attrs.width = "100"
-                    }
-                }
-
-                h1("h3 mb-0 text-gray-800 ml-2") {
-                    +"${state.organization?.name}"
-                }
-            }
-
-            div("col-3 mx-0") {
-                attrs["style"] = jso<CSSProperties> {
-                    justifyContent = JustifyContent.center
-                    display = Display.flex
-                    alignItems = AlignItems.center
-                }
-
-                nav("nav nav-tabs") {
-                    OrganizationMenuBar.values().forEachIndexed { i, projectMenu ->
-                        li("nav-item") {
-                            val classVal =
-                                    if ((i == 0 && state.selectedMenu == null) || state.selectedMenu == projectMenu) " active font-weight-bold" else ""
-                            p("nav-link $classVal text-gray-800") {
-                                attrs.onClickFunction = {
-                                    if (state.selectedMenu != projectMenu) {
-                                        setState {
-                                            selectedMenu = projectMenu
-                                        }
-                                    }
-                                }
-                                +projectMenu.name
-                            }
-                        }
-                    }
-                }
-            }
-
-            div("col-3 mr-auto") {
-                attrs["style"] = jso<CSSProperties> {
-                    justifyContent = JustifyContent.center
-                    display = Display.flex
-                    alignItems = AlignItems.center
-                }
-
-                button(type = ButtonType.button, classes = "btn btn-primary") {
-                    a(classes = "text-light", href = "#/creation/") {
-                        +"+ New Tool"
-                    }
-                }
-            }
-        }
-
         // ================= Title for TOP projects ===============
         div("row") {
             div("col-3 ml-auto") {
@@ -252,7 +285,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                                 }
                                 +"Description"
                             }
-                            if (state.isEditDisabled == true) {
+                            if (state.isRoleViewer == false && state.isEditDisabled == true) {
                                 button(classes = "btn btn-link text-xs text-muted text-left ml-auto") {
                                     +"Edit  "
                                     fontAwesomeIcon(icon = faEdit)
@@ -269,7 +302,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                             if (state.isEditDisabled != false) {
                                 attrs.value = state.organization?.description ?: ""
                             }
-                            attrs.disabled = state.isEditDisabled ?: true
+                            attrs.disabled = state.isRoleViewer == true || (state.isEditDisabled ?: true)
                             attrs.onChange = { event ->
                                 val tg = event.target as HTMLInputElement
                                 setNewDescription(tg.value)
@@ -279,7 +312,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                     div("ml-3 mt-2 align-items-right float-right") {
                         button(type = ButtonType.button, classes = "btn") {
                             fontAwesomeIcon(icon = faCheck)
-                            attrs.hidden = state.isEditDisabled ?: true
+                            attrs.hidden = state.isRoleViewer == true || (state.isEditDisabled ?: true)
                             attrs.onClick = {
                                 state.organization?.let { onOrganizationSave(it) }
                                 turnEditMode(true)
@@ -288,7 +321,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
 
                         button(type = ButtonType.button, classes = "btn") {
                             fontAwesomeIcon(icon = faTimesCircle)
-                            attrs.hidden = state.isEditDisabled ?: true
+                            attrs.hidden = state.isRoleViewer == true || (state.isEditDisabled ?: true)
                             attrs.onClick = {
                                 turnEditMode(true)
                             }
@@ -300,67 +333,18 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             div("col-3") {
                 div("latest-photos") {
                     div("row") {
-                        div("col-md-4") {
-                            figure {
-                                img(classes = "img-fluid") {
-                                    attrs["src"] = "https://bootdey.com/img/Content/avatar/avatar1.png"
-                                    attrs["alt"] = ""
-                                }
-                            }
-                        }
-                        div("col-md-4") {
-                            figure {
-                                img(classes = "img-fluid") {
-                                    attrs["src"] = "https://bootdey.com/img/Content/avatar/avatar2.png"
-                                    attrs["alt"] = ""
-                                }
-                            }
-                        }
-                        div("col-md-4") {
-                            figure {
-                                img(classes = "img-fluid") {
-                                    attrs["src"] = "https://bootdey.com/img/Content/avatar/avatar3.png"
-                                    attrs["alt"] = ""
-                                }
-                            }
-                        }
-                        div("col-md-4") {
-                            figure {
-                                img(classes = "img-fluid") {
-                                    attrs["src"] = "https://bootdey.com/img/Content/avatar/avatar4.png"
-                                    attrs["alt"] = ""
-                                }
-                            }
-                        }
-                        div("col-md-4") {
-                            figure {
-                                img(classes = "img-fluid") {
-                                    attrs["src"] = "https://bootdey.com/img/Content/avatar/avatar5.png"
-                                    attrs["alt"] = ""
-                                }
-                            }
-                        }
-                        div("col-md-4") {
-                            figure {
-                                img(classes = "img-fluid") {
-                                    attrs["src"] = "https://bootdey.com/img/Content/avatar/avatar6.png"
-                                    attrs["alt"] = ""
-                                }
-                            }
-                        }
-                        div("col-md-4") {
-                            figure("mb-0") {
-                                img(classes = "img-fluid") {
-                                    attrs["src"] = "https://bootdey.com/img/Content/avatar/avatar7.png"
-                                    attrs["alt"] = ""
-                                }
-                            }
-                        }
-                        div("col-md-4") {
-                            figure("mb-0") {
-                                img(classes = "img-fluid") {
-                                    attrs["src"] = "https://bootdey.com/img/Content/avatar/avatar8.png"
-                                    attrs["alt"] = ""
+                        state.usersInOrganization?.forEach {
+                            div("col-md-4") {
+                                figure {
+                                    img(classes = "img-fluid") {
+                                        attrs["src"] = it.avatar?.let { path ->
+                                            "/api/$v1/avatar$path"
+                                        }
+                                            ?: run {
+                                                "img/user.svg"
+                                            }
+                                        attrs["alt"] = ""
+                                    }
                                 }
                             }
                         }
@@ -372,82 +356,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
 
     @Suppress("TOO_LONG_FUNCTION", "LongMethod")
     private fun RBuilder.renderTools() {
-        div("row") {
-            div("col-3 ml-auto") {
-                attrs["style"] = jso<CSSProperties> {
-                    justifyContent = JustifyContent.center
-                    display = Display.flex
-                    alignItems = AlignItems.center
-                }
-
-                label {
-                    input(type = InputType.file) {
-                        attrs.hidden = true
-                        attrs {
-                            onChangeFunction = { event ->
-                                val target = event.target as HTMLInputElement
-                                postImageUpload(target)
-                            }
-                        }
-                    }
-                    attrs["aria-label"] = "Change organization's avatar"
-                    img(classes = "avatar avatar-user width-full border color-bg-default rounded-circle") {
-                        attrs.src = state.image?.path?.let {
-                            "/api/$v1/avatar$it"
-                        }
-                            ?: run {
-                                "img/company.svg"
-                            }
-                        attrs.height = "100"
-                        attrs.width = "100"
-                    }
-                }
-
-                h1("h3 mb-0 text-gray-800 ml-2") {
-                    +"${state.organization?.name}"
-                }
-            }
-            div("col-3 mx-0") {
-                attrs["style"] = jso<CSSProperties> {
-                    justifyContent = JustifyContent.center
-                    display = Display.flex
-                    alignItems = AlignItems.center
-                }
-
-                nav("nav nav-tabs") {
-                    OrganizationMenuBar.values().forEachIndexed { i, projectMenu ->
-                        li("nav-item") {
-                            val classVal =
-                                    if ((i == 0 && state.selectedMenu == null) || state.selectedMenu == projectMenu) " active font-weight-bold" else ""
-                            p("nav-link $classVal text-gray-800") {
-                                attrs.onClickFunction = {
-                                    if (state.selectedMenu != projectMenu) {
-                                        setState {
-                                            selectedMenu = projectMenu
-                                        }
-                                    }
-                                }
-                                +projectMenu.name
-                            }
-                        }
-                    }
-                }
-            }
-            div("col-3 mr-auto") {
-                attrs["style"] = jso<CSSProperties> {
-                    justifyContent = JustifyContent.center
-                    display = Display.flex
-                    alignItems = AlignItems.center
-                }
-
-                button(type = ButtonType.button, classes = "btn btn-primary") {
-                    a(classes = "text-light", href = "#/creation/") {
-                        +"+ New Tool"
-                    }
-                }
-            }
-        }
-
         div("row justify-content-center") {
             // ===================== RIGHT COLUMN =======================================================================
             div("col-6") {
@@ -512,7 +420,11 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
     }
 
     private fun RBuilder.renderSettings() {
-        // FixMe: will be finished later
+        child(organizationSettingsMenu) {
+            attrs.organization = state.organization!!
+            attrs.selfRole = Role.SUPER_ADMIN
+            attrs.currentUserInfo = props.currentUserInfo ?: UserInfo("Undefined")
+        }
     }
 
     private fun turnEditMode(isOff: Boolean) {
@@ -537,13 +449,23 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         }
 
     private suspend fun getRoleInOrganization(): Role = get(
-        url = "$apiUrl/organization/${props.organizationName}/role",
+        url = "$apiUrl/organizations/${props.organizationName}/users/roles",
         headers = Headers().also {
             it.set("Accept", "application/json")
         },
     )
         .unsafeMap {
             it.decodeFromJsonString()
+        }
+
+    private suspend fun getUsers(): List<UserInfo> = get(
+        url = "$apiUrl/organizations/${props.organizationName}/users",
+        headers = Headers().also {
+            it.set("Accept", "application/json")
+        },
+    )
+        .unsafeMap {
+            it.decodeFromJsonString<List<UserInfo>>()
         }
 
     private fun postImageUpload(element: HTMLInputElement) =
@@ -553,7 +475,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 }
                 element.files!!.asList().single().let { file ->
                     val response: ImageInfo? = post(
-                        "$apiUrl/image/upload?owner=${props.organizationName}",
+                        "$apiUrl/image/upload?owner=${props.organizationName}&type=${AvatarType.ORGANIZATION}",
                         Headers(),
                         FormData().apply {
                             append("file", file)
@@ -640,6 +562,109 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                         alignItems = AlignItems.center
                     }
                     +topProject.name
+                }
+            }
+        }
+    }
+
+    @Suppress("LongMethod", "TOO_LONG_FUNCTION")
+    private fun RBuilder.renderOrganizationMenuBar() {
+        div("row") {
+            div("col-3 ml-auto") {
+                attrs["style"] = jso<CSSProperties> {
+                    justifyContent = JustifyContent.center
+                    display = Display.flex
+                    alignItems = AlignItems.center
+                }
+                label {
+                    input(type = InputType.file) {
+                        attrs.hidden = true
+                        attrs {
+                            onChangeFunction = { event ->
+                                val target = event.target as HTMLInputElement
+                                postImageUpload(target)
+                            }
+                        }
+                    }
+                    attrs["aria-label"] = "Change organization's avatar"
+                    img(classes = "avatar avatar-user width-full border color-bg-default rounded-circle") {
+                        attrs.src = state.image?.path?.let {
+                            "/api/$v1/avatar$it"
+                        }
+                            ?: run {
+                                "img/company.svg"
+                            }
+                        attrs.height = "100"
+                        attrs.width = "100"
+                    }
+                }
+
+                h1("h3 mb-0 text-gray-800 ml-2") {
+                    +"${state.organization?.name}"
+                }
+            }
+
+            div("col-3 mx-0") {
+                attrs["style"] = jso<CSSProperties> {
+                    justifyContent = JustifyContent.center
+                    display = Display.flex
+                    alignItems = AlignItems.center
+                }
+
+                nav("nav nav-tabs") {
+                    OrganizationMenuBar.values().forEachIndexed { i, projectMenu ->
+                        li("nav-item") {
+                            val classVal =
+                                    if ((i == 0 && state.selectedMenu == null) || state.selectedMenu == projectMenu) " active font-weight-bold" else ""
+                            p("nav-link $classVal text-gray-800") {
+                                attrs.onClickFunction = {
+                                    if (state.selectedMenu != projectMenu) {
+                                        setState {
+                                            selectedMenu = projectMenu
+                                        }
+                                    }
+                                }
+                                +projectMenu.name
+                            }
+                        }
+                    }
+                }
+            }
+
+            div("col-3 mr-auto") {
+                attrs["style"] = jso<CSSProperties> {
+                    justifyContent = JustifyContent.center
+                    display = Display.flex
+                    alignItems = AlignItems.center
+                }
+
+                button(type = ButtonType.button, classes = "btn btn-primary") {
+                    a(classes = "text-light", href = "#/creation/") {
+                        +"+ New Tool"
+                    }
+                }
+            }
+        }
+    }
+
+    private fun deleteOrganizationBuilder() {
+        val headers = Headers().also {
+            it.set("Accept", "application/json")
+            it.set("Content-Type", "application/json")
+        }
+        scope.launch {
+            responseFromDeleteOrganization =
+                    post("$apiUrl/organizations/update", headers, Json.encodeToString(state.organization))
+        }.invokeOnCompletion {
+            if (responseFromDeleteOrganization.ok) {
+                window.location.href = "${window.location.origin}/"
+            } else {
+                responseFromDeleteOrganization.text().then {
+                    setState {
+                        errorLabel = "Failed to delete project"
+                        errorMessage = it
+                        isErrorOpen = true
+                    }
                 }
             }
         }

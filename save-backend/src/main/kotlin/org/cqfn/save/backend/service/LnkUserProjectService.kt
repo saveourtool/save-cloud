@@ -62,9 +62,9 @@ class LnkUserProjectService(
         ?.let {
             lnkUserProjectRepository.deleteById(it)
         }
-        ?: run {
-            throw NoSuchElementException("Cannot delete user ${user.name ?: user.id} from project ${project.organization.name}/${project.name}: no such link was found.")
-        }
+        ?: throw NoSuchElementException(
+            "Cannot delete user with name ${user.name} because he is not found in project ${project.organization.name}/${project.name}"
+        )
 
     /**
      * Get certain [pageSize] of platform users with names that start with [prefix]
