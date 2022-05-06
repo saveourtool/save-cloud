@@ -6,6 +6,7 @@ package org.cqfn.save.frontend.components.views
 
 import org.cqfn.save.domain.ImageInfo
 import org.cqfn.save.domain.Role
+import org.cqfn.save.domain.moreOrEqualThan
 import org.cqfn.save.entities.Organization
 import org.cqfn.save.entities.OrganizationStatus
 import org.cqfn.save.entities.Project
@@ -188,8 +189,8 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 image = avatar
                 organization = organizationLoaded
                 projects = projectsLoaded
-                isEditDisabled = (role.priority >= Role.ADMIN.priority)
-                isRoleViewer = (role.priority < Role.ADMIN.priority)
+                isEditDisabled = role.moreOrEqualThan(Role.ADMIN)
+                isRoleViewer = !role.moreOrEqualThan(Role.ADMIN)
                 usersInOrganization = users
             }
         }
