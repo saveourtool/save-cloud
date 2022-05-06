@@ -33,6 +33,7 @@ include("save-cloud-common")
 include("save-agent")
 include("save-preprocessor")
 include("test-utils")
+include("save-cloud-charts")
 if (isIncludeSaveApi != null) {
     include("save-api")
 }

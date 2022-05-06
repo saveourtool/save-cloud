@@ -379,13 +379,15 @@ class DockerService(private val configProperties: ConfigProperties,
         )
         val cliCommand = "./$SAVE_CLI_EXECUTABLE_NAME$saveCliExecFlags"
         agentPropertiesFile.writeText(
-            agentPropertiesFile.readLines().joinToString(System.lineSeparator()) {
-                if (it.startsWith("id=")) {
-                    "id=$containerId"
-                } else if (it.startsWith("cliCommand=")) {
-                    "cliCommand=$cliCommand"
-                } else {
-                    it
+            agentPropertiesFile.readLines().joinToString(System.lineSeparator()) { line ->
+                when {
+                    line.startsWith("id=") -> "id=$containerId"
+                    line.startsWith("cliCommand=") -> "cliCommand=$cliCommand"
+                    line.startsWith("backend.url=") && configProperties.agentSettings.backendUrl != null ->
+                        "backend.url=${configProperties.agentSettings.backendUrl}"
+                    line.startsWith("orchestratorUrl=") && configProperties.agentSettings.orchestratorUrl != null ->
+                        "orchestratorUrl=${configProperties.agentSettings.orchestratorUrl}"
+                    else -> line
                 }
             }
         )
