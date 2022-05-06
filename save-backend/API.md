@@ -66,7 +66,7 @@ testRootPath='"examples/kotlin-diktat"'
 ```bash
 # Required
 # Test suite names from standard test suites set, separated by `;`
-testSuites='"Directory: Chapter 1;Directory: Chapter2"'
+testSuites='["Directory: Chapter 1", "Directory: Chapter2"]'
 
 # Optional
 # Execution command for testing
@@ -136,15 +136,52 @@ curl -X POST "${SAVE_CLOUD_URL}/api/v1/submitExecutionRequest" \
 ```
 
 
+
 ```bash
-curl -X GET "${SAVE_CLOUD_URL}/api/v1/latestExecution?name=save&organizationName=Huawei" \
+curl -X POST "${SAVE_CLOUD_URL}/api/v1/executionRequestStandardTests" \
+-H "X-Authorization-Source: ${SAVE_CLOUD_AUTH_SOURCE}" \
+-H "Authorization: ${SAVE_CLOUD_AUTH}" \
+-F "execution={
+    \"project\": ${project},
+    \"testsSuites\": ${testSuites},
+    \"sdk\": {
+      \"name\": ${sdkName},
+      \"version\": ${sdkVersion}
+    },
+    \"executionId\" : null
+};type=application/json" \
+-F 'file={
+  "name": "ktlint",
+  "uploadedMillis": 1637658398621,
+  "sizeBytes": 54167132,
+  "isExecutable": false
+};type=application/json' \
+-F 'file={
+  "name": "diktat-analysis.yml",
+  "uploadedMillis": 1637673340431,
+  "sizeBytes":3207,
+  "isExecutable":false
+};type=application/json' \
+-F 'file={
+  "name": "diktat.jar",
+  "uploadedMillis": 1637658396121,
+  "sizeBytes": 6366668,
+  "isExecutable": false
+};type=application/json'
+```
+
+```bash
+curl -X GET "${SAVE_CLOUD_URL}/api/v1/latestExecution?name=save&organizationName=${organizationName}" \
 -H "X-Authorization-Source: ${SAVE_CLOUD_AUTH_SOURCE}" \
 -H "Authorization: ${SAVE_CLOUD_AUTH}"
 ```
 
 FixMe:
 ```bash
-curl -X GET "${SAVE_CLOUD_URL}/api/v1/executionDto?executionId=4" \
+# Taken after submitExecutionRequest request
+executionId=42
+
+curl -X GET "${SAVE_CLOUD_URL}/api/v1/executionDto?executionId=${executionId}" \
 -H "X-Authorization-Source: ${SAVE_CLOUD_AUTH_SOURCE}" \
 -H "Authorization: ${SAVE_CLOUD_AUTH}"
 ```
