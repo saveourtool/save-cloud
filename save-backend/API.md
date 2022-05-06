@@ -1,6 +1,24 @@
 ## SAVE Cloud Backend API
+### Overview
 
-#### Authorization configuration
+The process of execution submission is very simple, all that you have to do
+is just to provide your credentials and information about your project, which you
+would like to evaluate and do few requests.\
+In this document will be represented the examples, which use `cURL`
+as instrument for working with SAVE Cloud API.
+
+To make the requests more universal, we will
+use the environment variables for all data, which is required by SAVE Cloud
+
+### Authorization configuration
+
+Each request, performed to API, require credentials, which could be configured like below, where
+
+* `SAVE_CLOUD_URL` - SAVE Cloud url and port
+* `SAVE_CLOUD_AUTH_SOURCE` where the identity is coming from, e.g. "github"
+* `SAVE_CLOUD_AUTH` - basic authorization header in format `source@username:token`.\
+   `source` is the same like `SAVE_CLOUD_AUTH_SOURCE`, and `token` is unique token,\
+    which could be created in personal settings in SAVE Cloud system.
 
 ```bash
 SAVE_CLOUD_URL=https://saveourtool.com:443
@@ -10,7 +28,12 @@ SAVE_CLOUD_AUTH_SOURCE=github
 SAVE_CLOUD_AUTH='Basic Z2l0aHViQHVzZXJuYW1lOnRva2Vu'
 ```
 
-#### General information about user and evaluated tool
+### Configuration of data of evaluated tool
+
+To specify information about project, that you would like to evaluate,
+it's necessary to fill the fields below. Only the `organizationName`,
+`projectName` and `gitUrl` are required, if your project is public:
+
 
 ```bash
 # Required
@@ -35,41 +58,45 @@ gitUserName=null
 gitPassword=null
 ```
 
+**Note**: The `organizationName` here is intentionally doesn't contain quotes, since this value
+will be used in requests url, while other in request body.
+
+There is two modes for execution, that could be performed: Git and Standard.\
+Each of them require own information
 
 #### Configuration for Git Mode
 <details>
   <summary>Expand</summary>
 
+Only the `testRootPath`, which represents 
+the relative path to the root directory with tests in your repository is required for execution.
+
 ```bash
+# Required
+testRootPath='"examples/kotlin-diktat"'
 
 # Optional
-# Specify concrete git branch
 branch='"origin/feature/testing_for_cloud"'
 
 # Optional
-# Specify concrete commit
 commitHash=null
-
-# Required
-# Relative path to the root directory with tests in your repository
-testRootPath='"examples/kotlin-diktat"'
 ```
 
 </details>
 
 #### Configuration for Standard Mode
 
+For Standard Mode you need provide at least the list of test suites,
+which should be involved in testing
+
 <details>
   <summary>Expand</summary>
 
-
 ```bash
 # Required
-# Test suite names from standard test suites set, separated by `;`
 testSuites='["Directory: Chapter 1", "Directory: Chapter2"]'
 
 # Optional
-# Execution command for testing
 execCmd=null
 
 # Optional
@@ -79,27 +106,54 @@ batchSize=null
 ```
 </details>
 
+### API for execution
+
+#### Upload additional files into SAVE Cloud storage
+
+If your tests require additional files for execution, they could be uploaded by
+following `post` request:
+
+```bash
+curl -X POST "${SAVE_CLOUD_URL}/api/v1/files/upload" \
+-H "X-Authorization-Source: ${SAVE_CLOUD_AUTH_SOURCE}" \
+-H "Authorization: ${SAVE_CLOUD_AUTH}" \
+-F "file=@your-file-name"
+```
+
+It will return `json` with metadata about your file, which will be used\
+in the execution request later.
+
+The format will have the following form:
+
+```bash
+{
+  "name": "your-file-name",
+  "uploadedMillis": 1651662834923,
+  "sizeBytes":172,
+  "isExecutable":false
+}
+```
+
+If you already uploaded them into the SAVE Cloud storage, you will need\
+to get the corresponding `json`. It could be done by following request,\
+which will return the metadata of all files in SAVE Cloud storage:
+
 ```bash
 curl -X GET "${SAVE_CLOUD_URL}/api/v1/files/list" \
 -H "X-Authorization-Source: ${SAVE_CLOUD_AUTH_SOURCE}" \
 -H "Authorization: ${SAVE_CLOUD_AUTH}"
 ```
 
-```bash
-curl -X POST "${SAVE_CLOUD_URL}/api/v1/files/upload" \
--H "X-Authorization-Source: ${SAVE_CLOUD_AUTH_SOURCE}" \
--H "Authorization: ${SAVE_CLOUD_AUTH}" \
--F "file=@main.c"
-```
-
-{"name":"main.c","uploadedMillis":1651662834923,"sizeBytes":172,"isExecutable":false}
-
+#### Execution submission
 
 ```bash
 project=$(curl -X GET "${SAVE_CLOUD_URL}/api/v1/projects/get/organization-name?name=save&organizationName=${organizationName}" \
 -H "X-Authorization-Source: ${SAVE_CLOUD_AUTH_SOURCE}" \
 -H "Authorization: ${SAVE_CLOUD_AUTH}")
 ```
+
+<details>
+  <summary>Request for execution submission in Git Mode</summary>
 
 ```bash
 curl -X POST "${SAVE_CLOUD_URL}/api/v1/submitExecutionRequest" \
@@ -135,7 +189,10 @@ curl -X POST "${SAVE_CLOUD_URL}/api/v1/submitExecutionRequest" \
 };type=application/json'
 ```
 
+</details>
 
+<details>
+  <summary>Request for execution submission in Standard Mode</summary>
 
 ```bash
 curl -X POST "${SAVE_CLOUD_URL}/api/v1/executionRequestStandardTests" \
@@ -170,18 +227,25 @@ curl -X POST "${SAVE_CLOUD_URL}/api/v1/executionRequestStandardTests" \
 };type=application/json'
 ```
 
+</details>
+
 ```bash
 curl -X GET "${SAVE_CLOUD_URL}/api/v1/latestExecution?name=save&organizationName=${organizationName}" \
 -H "X-Authorization-Source: ${SAVE_CLOUD_AUTH_SOURCE}" \
 -H "Authorization: ${SAVE_CLOUD_AUTH}"
 ```
 
-FixMe:
 ```bash
 # Taken after submitExecutionRequest request
 executionId=42
 
 curl -X GET "${SAVE_CLOUD_URL}/api/v1/executionDto?executionId=${executionId}" \
+-H "X-Authorization-Source: ${SAVE_CLOUD_AUTH_SOURCE}" \
+-H "Authorization: ${SAVE_CLOUD_AUTH}"
+```
+
+```bash
+curl -X POST "${SAVE_CLOUD_URL}/api/v1/rerunExecution?id=${executionId}" \
 -H "X-Authorization-Source: ${SAVE_CLOUD_AUTH_SOURCE}" \
 -H "Authorization: ${SAVE_CLOUD_AUTH}"
 ```
