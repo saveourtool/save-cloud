@@ -7,6 +7,7 @@ import org.cqfn.save.domain.Role
 import org.cqfn.save.entities.Organization
 import org.cqfn.save.entities.User
 import org.cqfn.save.permission.Permission
+import org.cqfn.save.utils.getHighestRole
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Component
@@ -74,7 +75,7 @@ class OrganizationPermissionEvaluator {
         val selfId = (authentication.details as AuthenticationDetails).id
         val selfGlobalRole = userDetailsService.getGlobalRole(authentication)
         val selfOrganizationRole = lnkUserOrganizationService.findRoleByUserIdAndOrganization(selfId, organization)
-        val selfRole = listOf(selfOrganizationRole, selfGlobalRole).maxByOrNull { it.priority }!!
+        val selfRole = getHighestRole(selfOrganizationRole, selfGlobalRole)
         val otherRole = lnkUserOrganizationService.findRoleByUserIdAndOrganization(otherUser.id!!, organization)
         return isOrganizationAdminOrHigher(selfRole) && hasAnotherUserLessPermissions(selfRole, otherRole) &&
                 isRequestedPermissionsCanBeSetByUser(selfRole, requestedRole)

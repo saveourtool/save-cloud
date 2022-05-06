@@ -13,6 +13,7 @@ import org.cqfn.save.frontend.externals.lodash.debounce
 import org.cqfn.save.frontend.utils.*
 import org.cqfn.save.info.UserInfo
 import org.cqfn.save.permission.SetRoleRequest
+import org.cqfn.save.utils.getHighestRole
 
 import csstype.None
 import org.w3c.dom.HTMLInputElement
@@ -177,7 +178,7 @@ fun manageUserRoleCardComponent(
                 it.decodeFromJsonString<String>()
             }
             .toRole()
-        setSelfRole(listOf(role, props.selfUserInfo.globalRole ?: Role.NONE).maxByOrNull { it.priority }!!)
+        setSelfRole(getHighestRole(role, props.selfUserInfo.globalRole))
     }()
 
     val (isFirstRender, setIsFirstRender) = useState(true)

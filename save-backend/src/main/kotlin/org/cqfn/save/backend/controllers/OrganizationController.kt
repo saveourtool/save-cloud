@@ -10,6 +10,7 @@ import org.cqfn.save.domain.ImageInfo
 import org.cqfn.save.domain.OrganizationSaveStatus
 import org.cqfn.save.domain.Role
 import org.cqfn.save.entities.Organization
+import org.cqfn.save.utils.getHighestRole
 import org.cqfn.save.v1
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -111,7 +112,7 @@ internal class OrganizationController(
         val userId = (authentication.details as AuthenticationDetails).id
         val organizationRole = lnkUserOrganizationService.findRoleByUserIdAndOrganizationName(userId, organization.name)
         val globalRole = userDetailsService.getGlobalRole(authentication)
-        val role = listOf(organizationRole, globalRole).maxByOrNull { it.priority }!!
+        val role = getHighestRole(organizationRole, globalRole)
         val response = if (role.priority >= Role.ADMIN.priority) {
             organizationService.updateOrganization(organization)
             ResponseEntity.ok("Organization updated")

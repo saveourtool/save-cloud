@@ -19,6 +19,7 @@ import org.cqfn.save.frontend.http.getOrganization
 import org.cqfn.save.frontend.utils.*
 import org.cqfn.save.info.UserInfo
 import org.cqfn.save.utils.AvatarType
+import org.cqfn.save.utils.getHighestRole
 import org.cqfn.save.v1
 
 import csstype.*
@@ -185,10 +186,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             val avatar = getAvatar()
             val organizationLoaded = getOrganization(props.organizationName)
             val projectsLoaded = getProjectsForOrganization()
-            val role = listOf(
-                getRoleInOrganization(),
-                props.currentUserInfo?.globalRole ?: Role.VIEWER
-            ).maxByOrNull { it.priority }!!
+            val role = getHighestRole(getRoleInOrganization(), props.currentUserInfo?.globalRole)
             val users = getUsers()
             setState {
                 image = avatar
