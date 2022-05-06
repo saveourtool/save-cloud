@@ -123,8 +123,9 @@ class DownloadProjectTest(
         val project = Project.stub(42).apply {
             url = "https://github.com/analysis-dev/save.git"
         }
+        val executionId = 99L
         val execution = Execution.stub(project).apply {
-            id = 99L
+            id = executionId
         }
         val validRepo = GitDto("https://github.com/analysis-dev/save.git")
         val request = ExecutionRequest(project, validRepo, "examples/kotlin-diktat/", Sdk.Default, execution.id)
@@ -190,7 +191,7 @@ class DownloadProjectTest(
             .expectStatus()
             .isAccepted
             .expectBody<String>()
-            .isEqualTo("Clone pending")
+            .isEqualTo("Clone pending, execution id is ${executionId}")
         Thread.sleep(15_000)
         
         val dirName = listOf(validRepo.url).hashCode()
@@ -209,10 +210,11 @@ class DownloadProjectTest(
         val binFile = File(binFilePath)
         val property = File(propertyPath)
         val project = Project.stub(42)
+        val executionId = 98L
         val execution = Execution.stub(project).apply {
             testSuiteIds = "1"
             type = ExecutionType.STANDARD
-            id = 98L
+            id = executionId
         }
         val request = ExecutionRequestForStandardSuites(project, listOf("Chapter1"), Sdk.Default, null, null, null)
         val bodyBuilder = MultipartBodyBuilder()
@@ -286,7 +288,7 @@ class DownloadProjectTest(
             .expectStatus()
             .isAccepted
             .expectBody<String>()
-            .isEqualTo("Clone pending")
+            .isEqualTo("Clone pending, execution id is ${executionId}")
         Thread.sleep(15_000)
 
         val dirName = listOf(property, binFile).map { it.toHash() }.sorted().hashCode()
