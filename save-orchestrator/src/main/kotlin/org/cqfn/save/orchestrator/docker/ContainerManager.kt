@@ -83,7 +83,7 @@ class ContainerManager(private val settings: DockerSettings,
             .withHostConfig(HostConfig.newHostConfig()
                 .withRuntime(settings.runtime)
                 // processes from inside the container will be able to access host's network using this hostname
-                .withExtraHosts("host.docker.internal:host-gateway")
+                .withExtraHosts("host.docker.internal:${getHostIp()}")
                 .withLogConfig(
                     when (settings.loggingDriver) {
                         "loki" -> LogConfig(
