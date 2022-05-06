@@ -21,6 +21,7 @@ config.devServer = Object.assign(
               });
             } else if (req.url.endsWith("/sec/oauth-providers")) {
               return res.send([])
+            } else if (req.url.endsWith("/favicon.ico")) {
             }
           }
         }

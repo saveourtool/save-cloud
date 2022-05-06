@@ -7,8 +7,6 @@
 package org.cqfn.save.frontend.components.basic
 
 import org.cqfn.save.domain.Role
-import org.cqfn.save.frontend.externals.fontawesome.faTimesCircle
-import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
 import org.cqfn.save.frontend.externals.lodash.debounce
 import org.cqfn.save.frontend.utils.*
 import org.cqfn.save.info.UserInfo
@@ -29,6 +27,7 @@ import kotlinx.html.js.onClickFunction
 import kotlinx.js.jso
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.cqfn.save.frontend.externals.fontawesome.*
 
 /**
  * [RProps] for card component
@@ -222,10 +221,21 @@ fun manageUserRoleCardComponent(
             }
         }
         for (user in usersFromGroup) {
-            val userName = user.source + ":" + user.name
+            val userName = user.name
             val userRole = getUserGroups(user)[props.groupPath] ?: Role.VIEWER
             val userIndex = usersFromGroup.indexOf(user)
             div("row mt-2 mr-0") {
+                fontAwesomeIcon(
+                    when (user.source) {
+                        "github" -> faGithub
+                        "codehub" -> faCopyright
+                        else -> faHome
+                    },
+                    classes = "col-1 h-auto w-auto pl-3"
+                )
+                div("col-5 text-left align-self-center") {
+                    +userName
+                }
                 div("col-1") {
                     button(classes = "btn h-auto w-auto") {
                         fontAwesomeIcon(icon = faTimesCircle)
@@ -238,14 +248,11 @@ fun manageUserRoleCardComponent(
                         }
                     }
                 }
-                div("col-6 text-left align-self-center") {
-                    +userName
-                }
                 div("col-5 text-left align-self-right") {
                     select("custom-select") {
                         attrs.onChangeFunction = { event ->
                             val target = event.target as HTMLSelectElement
-                            setRoleChange { SetRoleRequest(userName.split(":")[1], target.value.toRole()) }
+                            setRoleChange { SetRoleRequest(userName, target.value.toRole()) }
                             updatePermissions()
                         }
                         attrs.id = "role-$userIndex"
