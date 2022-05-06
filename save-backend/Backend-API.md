@@ -9,7 +9,7 @@ as instrument for working with SAVE Cloud API.
 
 To make the requests more universal, we will
 store major information, which is required by SAVE Cloud in requests, by
-storing them into variables in **command prompt**.
+into variables in **command prompt**.
 
 ### Authorization configuration
 
@@ -157,6 +157,8 @@ project=$(curl -X GET "${SAVE_CLOUD_URL}/api/v1/projects/get/organization-name?n
 -H "X-Authorization-Source: ${SAVE_CLOUD_AUTH_SOURCE}" \
 -H "Authorization: ${SAVE_CLOUD_AUTH}")
 ```
+Unifying all above, here the examples of how to submit execution, both in
+Git and Standard modes via curl:
 
 <details>
   <summary>Request for execution submission in Git Mode</summary>
