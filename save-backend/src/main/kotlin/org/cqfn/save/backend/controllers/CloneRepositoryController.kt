@@ -109,8 +109,8 @@ class CloneRepositoryController(
                 ExecutionType.STANDARD,
                 authentication.username(),
                 files
-            ) {
-                part("executionRequestForStandardSuites", executionRequestForStandardSuites, MediaType.APPLICATION_JSON)
+            ) { newExecutionId ->
+                part("executionRequestForStandardSuites", executionRequestForStandardSuites.copy(executionId = newExecutionId), MediaType.APPLICATION_JSON)
             }
         }
 

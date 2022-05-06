@@ -14,7 +14,7 @@ SAVE_CLOUD_AUTH='Basic Z2l0aHViQHVzZXJuYW1lOnRva2Vu'
 
 ```bash
 # Required
-organizationName='"Huawei"'
+organizationName=Huawei
 
 # Required
 projectName='"save"'
@@ -95,12 +95,10 @@ curl -X POST "${SAVE_CLOUD_URL}/api/v1/files/upload" \
 {"name":"main.c","uploadedMillis":1651662834923,"sizeBytes":172,"isExecutable":false}
 
 
-FixMe:
-
 ```bash
-curl -X GET "${SAVE_CLOUD_URL}/api/v1/projects/get/organization-name?name=save&organizationName=Huawei" \
+project=$(curl -X GET "${SAVE_CLOUD_URL}/api/v1/projects/get/organization-name?name=save&organizationName=${organizationName}" \
 -H "X-Authorization-Source: ${SAVE_CLOUD_AUTH_SOURCE}" \
--H "Authorization: ${SAVE_CLOUD_AUTH}"
+-H "Authorization: ${SAVE_CLOUD_AUTH}")
 ```
 
 ```bash
@@ -108,26 +106,7 @@ curl -X POST "${SAVE_CLOUD_URL}/api/v1/submitExecutionRequest" \
 -H "X-Authorization-Source: ${SAVE_CLOUD_AUTH_SOURCE}" \
 -H "Authorization: ${SAVE_CLOUD_AUTH}" \
 -F "executionRequest={
-    \"project\": {
-        \"name\": ${projectName},
-        \"url\": ${gitUrl},
-        \"description\": null,
-        \"status\": \"CREATED\" ,
-        \"public\": true,
-        \"userId\": 1,
-        \"email\": null,
-        \"numberOfContainers\": 3,
-        \"organization\": {
-            \"name\": ${organizationName},
-            \"ownerId\": 1,
-            \"dateCreated\": \"2021-01-01T00:00:00\",
-            \"avatar\": null,
-            \"description\": null,
-            \"id\": 1
-        },
-        \"contestRating\": 0,
-        \"id\":5
-    },
+    \"project\": ${project},
     \"gitDto\": {
         \"url\": ${gitUrl},
         \"username\": ${gitUserName},
@@ -155,6 +134,7 @@ curl -X POST "${SAVE_CLOUD_URL}/api/v1/submitExecutionRequest" \
   "isExecutable": false
 };type=application/json'
 ```
+
 
 ```bash
 curl -X GET "${SAVE_CLOUD_URL}/api/v1/latestExecution?name=save&organizationName=Huawei" \

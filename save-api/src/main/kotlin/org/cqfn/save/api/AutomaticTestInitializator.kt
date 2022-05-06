@@ -131,12 +131,16 @@ class AutomaticTestInitializator(
     ): ExecutionRequestForStandardSuites {
         val project = getProject()
 
+        // executionId will be calculated at the server side
+        val executionId = null
+
         return ExecutionRequestForStandardSuites(
             project = project,
             testsSuites = userProvidedTestSuites,
             sdk = evaluatedToolProperties.sdk.toSdk(),
             execCmd = evaluatedToolProperties.execCmd,
-            batchSizeForAnalyzer = evaluatedToolProperties.batchSize
+            batchSizeForAnalyzer = evaluatedToolProperties.batchSize,
+            executionId = executionId,
         )
     }
 

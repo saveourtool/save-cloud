@@ -108,7 +108,7 @@ class DownloadProjectController(
         @RequestPart(required = true) executionRequest: ExecutionRequest,
         @RequestPart("fileInfo", required = false) fileInfos: Flux<FileInfo>,
         @RequestPart("file", required = false) files: Flux<FilePart>,
-    ): Mono<TextResponse> = Mono.just(ResponseEntity("Clone pending", HttpStatus.ACCEPTED))
+    ): Mono<TextResponse> = Mono.just(ResponseEntity("Clone pending, execution id is ${executionRequest.executionId}", HttpStatus.ACCEPTED))
         .doOnSuccess {
             downLoadRepository(executionRequest)
                 .flatMap { (location, version) ->
@@ -154,7 +154,7 @@ class DownloadProjectController(
         @RequestPart executionRequestForStandardSuites: ExecutionRequestForStandardSuites,
         @RequestPart("file", required = true) files: Flux<FilePart>,
         @RequestPart("fileInfo", required = true) fileInfos: Flux<FileInfo>,
-    ) = Mono.just(ResponseEntity("Clone pending", HttpStatus.ACCEPTED))
+    ) = Mono.just(ResponseEntity("Clone pending, execution id is ${executionRequestForStandardSuites.executionId}", HttpStatus.ACCEPTED))
         .doOnSuccess { _ ->
             files.zipWith(fileInfos).download(File(FileSystem.SYSTEM_TEMPORARY_DIRECTORY.toString()))
                 .flatMap { files ->
