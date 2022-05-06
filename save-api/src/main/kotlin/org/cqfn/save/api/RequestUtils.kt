@@ -8,7 +8,6 @@ import org.cqfn.save.domain.FileInfo
 import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.ExecutionRequestBase
 import org.cqfn.save.entities.ExecutionRequestForStandardSuites
-import org.cqfn.save.entities.Organization
 import org.cqfn.save.entities.Project
 import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.execution.ExecutionType
@@ -157,7 +156,7 @@ suspend fun HttpClient.submitExecution(executionType: ExecutionType, executionRe
 
 /**
  * @param projectName
- * @param organizationId
+ * @param organizationName
  * @return ExecutionDto
  */
 suspend fun HttpClient.getLatestExecution(

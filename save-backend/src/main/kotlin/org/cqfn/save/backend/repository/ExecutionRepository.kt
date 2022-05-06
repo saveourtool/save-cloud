@@ -22,9 +22,10 @@ interface ExecutionRepository : BaseEntityRepository<Execution> {
      * Get latest (by start time an) execution by project name and organization
      *
      * @param name name of project
-     * @param organizationId id of organization of project
+     * @param organizationName name of organization of project
      * @return execution or null if it was not found
      */
+    @Suppress("IDENTIFIER_LENGTH")
     fun findTopByProjectNameAndProjectOrganizationNameOrderByStartTimeDesc(name: String, organizationName: String): Optional<Execution>
 
     /**

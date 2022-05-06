@@ -5,7 +5,6 @@ import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.ExecutionRequestBase
 import org.cqfn.save.entities.ExecutionRequestForStandardSuites
 import org.cqfn.save.entities.GitDto
-import org.cqfn.save.entities.Organization
 import org.cqfn.save.entities.Project
 import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.execution.ExecutionStatus
@@ -171,13 +170,10 @@ class AutomaticTestInitializator(
      * Return pair of organization and project according information from config file
      *
      */
-    @Suppress("UnsafeCallOnNullableType")
-    private suspend fun getProject(): Project {
-        return httpClient.getProjectByNameAndOrganizationName(
-            evaluatedToolProperties.projectName,
-            evaluatedToolProperties.organizationName
-        )
-    }
+    private suspend fun getProject(): Project = httpClient.getProjectByNameAndOrganizationName(
+        evaluatedToolProperties.projectName,
+        evaluatedToolProperties.organizationName
+    )
 
     /**
      * Get results for current [executionRequest] and [organizationId]:

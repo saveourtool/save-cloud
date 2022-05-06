@@ -191,7 +191,7 @@ class DownloadProjectTest(
             .expectStatus()
             .isAccepted
             .expectBody<String>()
-            .isEqualTo("Clone pending, execution id is ${executionId}")
+            .isEqualTo("Clone pending, execution id is $executionId")
         Thread.sleep(15_000)
         
         val dirName = listOf(validRepo.url).hashCode()
@@ -288,7 +288,7 @@ class DownloadProjectTest(
             .expectStatus()
             .isAccepted
             .expectBody<String>()
-            .isEqualTo("Clone pending, execution id is ${executionId}")
+            .isEqualTo("Clone pending, execution id is $executionId")
         Thread.sleep(15_000)
 
         val dirName = listOf(property, binFile).map { it.toHash() }.sorted().hashCode()
