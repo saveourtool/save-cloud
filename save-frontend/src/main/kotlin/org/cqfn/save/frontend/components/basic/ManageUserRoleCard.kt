@@ -177,7 +177,7 @@ fun manageUserRoleCardComponent(
                 it.decodeFromJsonString<String>()
             }
             .toRole()
-        setSelfRole(role)
+        setSelfRole(listOf(role, props.selfUserInfo.globalRole ?: Role.NONE).maxByOrNull { it.priority }!!)
     }()
 
     val (isFirstRender, setIsFirstRender) = useState(true)

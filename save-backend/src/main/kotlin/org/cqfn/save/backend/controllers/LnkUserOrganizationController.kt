@@ -122,8 +122,7 @@ class LnkUserOrganizationController(
             .orElseThrow {
                 ResponseStatusException(HttpStatus.NOT_FOUND)
             }
-        val selfId = (authentication.details as AuthenticationDetails).id
-        if (organizationService.canChangeRoles(organization, selfId, user, setRoleRequest.role)) {
+        if (organizationPermissionEvaluator.canChangeRoles(organization, authentication, user, setRoleRequest.role)) {
             lnkUserOrganizationService.setRole(user, organization, setRoleRequest.role)
         } else {
             throw ResponseStatusException(HttpStatus.FORBIDDEN)
@@ -154,8 +153,7 @@ class LnkUserOrganizationController(
         }
         val user = lnkUserOrganizationService.getUserByName(userName)
             .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND) }
-        val selfId = (authentication.details as AuthenticationDetails).id
-        if (organizationService.canChangeRoles(organization, selfId, user)) {
+        if (organizationPermissionEvaluator.canChangeRoles(organization, authentication, user)) {
             lnkUserOrganizationService.removeRole(user, organization)
         } else {
             throw ResponseStatusException(HttpStatus.FORBIDDEN)
