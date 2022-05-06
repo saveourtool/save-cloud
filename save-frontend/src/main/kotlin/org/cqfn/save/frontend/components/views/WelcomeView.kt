@@ -207,7 +207,7 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                 }
 
                 a(classes = "text-info text-gradient font-weight-bold ml-2 mr-2") {
-                    attrs.href = "/#"
+                    attrs.href = "/#/${props.userInfo?.name}/settings/email"
                     h4 {
                         fontAwesomeIcon(icon = faUser, "ml-2 mr-2")
                         +"User Settings"
