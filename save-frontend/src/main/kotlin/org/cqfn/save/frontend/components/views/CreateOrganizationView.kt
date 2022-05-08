@@ -79,7 +79,7 @@ class CreateOrganizationView : AbstractView<Props, OrganizationSaveViewState>(tr
         val organizationName = fieldsMap[InputTypes.ORGANIZATION_NAME]!!.trim()
         val dateCreated = LocalDateTime(1970, Month.JANUARY, 1, 0, 0, 1)
 
-        val newOrganizationRequest = Organization(organizationName, null, dateCreated, null)
+        val newOrganizationRequest = Organization(organizationName, OrganizationStatus.CREATED, null, dateCreated, null)
         val headers = Headers().also {
             it.set("Accept", "application/json")
             it.set("Content-Type", "application/json")

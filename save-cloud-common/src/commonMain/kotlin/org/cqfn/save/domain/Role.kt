@@ -1,11 +1,14 @@
 package org.cqfn.save.domain
 
+import kotlinx.serialization.Serializable
+
 /**
  * User roles
  * @property formattedName string representation of the [Role] that should be printed
  * @property priority
  */
 @Suppress("MAGIC_NUMBER", "MagicNumber")
+@Serializable
 enum class Role(val formattedName: String, val priority: Int) {
     /**
      * admin in organization
@@ -42,3 +45,12 @@ enum class Role(val formattedName: String, val priority: Int) {
      * Minimal possible priority
      */
 }
+
+/**
+ * The method compares the priority between two roles
+ *
+ * @param that role to compare
+ * @return comparison result
+ */
+@Suppress("EXTENSION_FUNCTION_WITH_CLASS")
+fun Role.moreOrEqualThan(that: Role) = this.priority >= that.priority

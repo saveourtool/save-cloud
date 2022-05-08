@@ -195,7 +195,7 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
                 ProjectStatus.CREATED,
                 public = state.isPublic!!,
                 userId = -1,
-                organization = Organization("stub", null, date)
+                organization = Organization("stub", OrganizationStatus.CREATED, null, date)
             ),
             fieldsMap[InputTypes.ORGANIZATION_NAME]!!.trim(),
             GitDto(

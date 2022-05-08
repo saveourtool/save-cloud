@@ -78,8 +78,8 @@ manually placed in `save-orchestrator/build/resources/main` before build, and it
 ## Ports allocation
 | port | description                                |
 |------|--------------------------------------------|
-| 3306 | database (locally)                         |
-| 5000 | save-backend                               |
+| 3306 | database (locally)                         |                     |
+| 5800 | save-backend                               |
 | 5100 | save-orchestrator                          |
 | 5200 | save-test-preprocessor                     |
 | 5300 | api-gateway                                |

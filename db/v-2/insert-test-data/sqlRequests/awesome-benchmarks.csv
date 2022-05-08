@@ -1,0 +1,4 @@
+id;name;category;tags;language;license;scenarios_num;description;homepage;sources;documentation
+1;"C++ bench";STATIC_ANALYSIS;"tag1";"C++";"MIT";100;"Some description";"google.com";"google.com";"google.com"
+2;"Java bench";STATIC_ANALYSIS;"tag1";"JAVA";"MIT";100;"Some description";"google.com";"google.com";"google.com"
+3;"AI bench";AI;"tag1";"Python";"GNU";50;"Some wise words";"google.com";"google.com";"google.com"

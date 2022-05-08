@@ -1,7 +1,6 @@
 package org.cqfn.save.api
 
 import org.cqfn.save.domain.FileInfo
-import org.cqfn.save.domain.Jdk
 import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.ExecutionRequestBase
 import org.cqfn.save.entities.ExecutionRequestForStandardSuites
@@ -13,6 +12,7 @@ import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionType
 
 import io.ktor.client.*
+import io.ktor.http.*
 import okio.Path.Companion.toPath
 import org.slf4j.LoggerFactory
 
@@ -42,7 +42,7 @@ class AutomaticTestInitializator(
     suspend fun start() {
         // Calculate FileInfo of additional files, if they are provided
         val additionalFileInfoList = evaluatedToolProperties.additionalFiles?.let {
-            processAdditionalFiles(webClientProperties.fileStorage, it)
+            processAdditionalFiles(it)
         }
 
         if (evaluatedToolProperties.additionalFiles != null && additionalFileInfoList == null) {
@@ -62,7 +62,7 @@ class AutomaticTestInitializator(
         // TODO: in which form do we actually need results?
         val resultExecutionDto = getExecutionResults(executionRequest, organization.id!!)
         val resultMsg = resultExecutionDto?.let {
-            "Execution is finished with status: ${resultExecutionDto.status}. " +
+            "Execution with id=${resultExecutionDto.id} is finished with status: ${resultExecutionDto.status}. " +
                     "Passed tests: ${resultExecutionDto.passedTests}, failed tests: ${resultExecutionDto.failedTests}, skipped: ${resultExecutionDto.skippedTests}"
         } ?: "Some errors occurred during execution"
 
@@ -86,7 +86,11 @@ class AutomaticTestInitializator(
             val userProvidedTestSuites = verifyTestSuites() ?: return null
             buildExecutionRequestForStandardSuites(userProvidedTestSuites)
         }
-        httpClient.submitExecution(executionType, executionRequest, additionalFiles)
+        val response = httpClient.submitExecution(executionType, executionRequest, additionalFiles)
+        if (response.status != HttpStatusCode.OK && response.status != HttpStatusCode.Accepted) {
+            log.error("Can't submit execution=$executionRequest! Response status: ${response.status}")
+            return null
+        }
         return organization to executionRequest
     }
 
@@ -112,7 +116,7 @@ class AutomaticTestInitializator(
             project = project,
             gitDto = gitDto,
             testRootPath = evaluatedToolProperties.testRootPath,
-            sdk = Jdk("11"),
+            sdk = evaluatedToolProperties.sdk.toSdk(),
             executionId = executionId,
         )
     }
@@ -130,7 +134,7 @@ class AutomaticTestInitializator(
         return organization to ExecutionRequestForStandardSuites(
             project = project,
             testsSuites = userProvidedTestSuites,
-            sdk = Jdk("11"),
+            sdk = evaluatedToolProperties.sdk.toSdk(),
             execCmd = evaluatedToolProperties.execCmd,
             batchSizeForAnalyzer = evaluatedToolProperties.batchSize
         )
@@ -208,11 +212,9 @@ class AutomaticTestInitializator(
      * Calculate list of FileInfo for additional files, take files from storage,
      * if they are exist or upload them into it
      *
-     * @param fileStorage
      * @param files
      */
     private suspend fun processAdditionalFiles(
-        fileStorage: String,
         files: String
     ): List<FileInfo>? {
         val userProvidedAdditionalFiles = files.split(";")
@@ -231,16 +233,11 @@ class AutomaticTestInitializator(
         userProvidedAdditionalFiles.forEach { file ->
             val fileFromStorage = availableFilesInCloudStorage.firstOrNull { it.name == file.toPath().name }
             fileFromStorage?.let {
-                val filePathInStorage = "$fileStorage/${fileFromStorage.uploadedMillis}/${fileFromStorage.name}"
-                if (!File(filePathInStorage).exists()) {
-                    log.error("Couldn't find additional file ${file.toPath().name} in cloud storage!")
-                    return null
-                }
                 log.debug("Take existing file ${file.toPath().name} from storage")
-                resultFileInfoList.add(fileFromStorage)
+                resultFileInfoList.add(fileFromStorage.copy(isExecutable = true))
             } ?: run {
                 log.debug("Upload file $file to storage")
-                val uploadedFile: FileInfo = httpClient.uploadAdditionalFile(file)
+                val uploadedFile: FileInfo = httpClient.uploadAdditionalFile(file).copy(isExecutable = true)
                 resultFileInfoList.add(uploadedFile)
             }
         }

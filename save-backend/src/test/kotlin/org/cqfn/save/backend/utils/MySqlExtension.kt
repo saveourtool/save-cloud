@@ -14,7 +14,7 @@ class MySqlExtension : BeforeAllCallback {
     override fun beforeAll(context: ExtensionContext?) {
         if (!isDatabaseCreated.getAndSet(true)) {
             val dbContainer: JdbcDatabaseContainer<*> = MySQLContainerProvider()
-                .newInstance("8.0.20")
+                .newInstance("8.0.28-oracle")
                 .withExposedPorts(MYSQL_PORT)
                 .withDatabaseName("save_db_test")
                 .waitingFor(Wait.forLogMessage("Container is started (JDBC URL: ", 1))
@@ -30,6 +30,8 @@ class MySqlExtension : BeforeAllCallback {
 
     companion object {
         private const val MYSQL_PORT = 3306
+        
+        @Suppress("NonBooleanPropertyPrefixedWithIs")
         private val isDatabaseCreated = AtomicBoolean(false)
     }
 }

@@ -11,6 +11,7 @@ import org.cqfn.save.backend.utils.MySqlExtension
 import org.cqfn.save.backend.utils.mutateMockedUser
 import org.cqfn.save.backend.utils.secondsToLocalDateTime
 import org.cqfn.save.domain.TestResultStatus
+import org.cqfn.save.v1
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -65,7 +66,7 @@ class TestExecutionControllerTest {
         }
 
         webClient.get()
-            .uri("/api/testExecution/count?executionId=1")
+            .uri("/api/$v1/testExecution/count?executionId=1")
             .exchange()
             .expectBody<Int>()
             .isEqualTo(28)
@@ -79,7 +80,7 @@ class TestExecutionControllerTest {
         }
 
         webClient.get()
-            .uri("/api/testExecutions?executionId=1&page=0&size=20")
+            .uri("/api/$v1/testExecutions?executionId=1&page=0&size=20")
             .exchange()
             .expectBody<List<TestExecutionDto>>()
             .consumeWith {

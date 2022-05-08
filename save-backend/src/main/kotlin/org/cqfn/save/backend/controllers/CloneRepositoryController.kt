@@ -16,6 +16,7 @@ import org.cqfn.save.entities.Project
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionType
 import org.cqfn.save.permission.Permission
+import org.cqfn.save.v1
 
 import org.slf4j.LoggerFactory
 import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
@@ -65,7 +66,7 @@ class CloneRepositoryController(
      * @param authentication [Authentication] representing an authenticated request
      * @return mono string
      */
-    @PostMapping(value = ["/submitExecutionRequest"], consumes = ["multipart/form-data"])
+    @PostMapping(path = ["/$v1/submitExecutionRequest"], consumes = ["multipart/form-data"])
     fun submitExecutionRequest(
         @RequestPart(required = true) executionRequest: ExecutionRequest,
         @RequestPart("file", required = false) files: Flux<FileInfo>,
@@ -94,7 +95,7 @@ class CloneRepositoryController(
      * @param authentication [Authentication] representing an authenticated request
      * @return mono string
      */
-    @PostMapping(value = ["/executionRequestStandardTests"], consumes = ["multipart/form-data"])
+    @PostMapping(path = ["/$v1/executionRequestStandardTests"], consumes = ["multipart/form-data"])
     fun executionRequestStandardTests(
         @RequestPart("execution", required = true) executionRequestForStandardSuites: ExecutionRequestForStandardSuites,
         @RequestPart("file", required = true) files: Flux<FileInfo>,

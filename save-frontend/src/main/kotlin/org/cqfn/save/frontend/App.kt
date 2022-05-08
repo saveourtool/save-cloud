@@ -10,6 +10,9 @@ import org.cqfn.save.frontend.components.basic.scrollToTopButton
 import org.cqfn.save.frontend.components.errorModalHandler
 import org.cqfn.save.frontend.components.topBar
 import org.cqfn.save.frontend.components.views.*
+import org.cqfn.save.frontend.components.views.usersettingsview.UserSettingsEmailMenuView
+import org.cqfn.save.frontend.components.views.usersettingsview.UserSettingsProfileMenuView
+import org.cqfn.save.frontend.components.views.usersettingsview.UserSettingsTokenMenuView
 import org.cqfn.save.frontend.externals.fontawesome.*
 import org.cqfn.save.frontend.externals.modal.ReactModal
 import org.cqfn.save.frontend.utils.*
@@ -144,6 +147,39 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
 
                             Route {
                                 attrs {
+                                    path = "/:user/settings/profile"
+                                    element = buildElement {
+                                        child(UserSettingsProfileMenuView::class) {
+                                            attrs.userName = state.userInfo?.name
+                                        }
+                                    }
+                                }
+                            }
+
+                            Route {
+                                attrs {
+                                    path = "/:user/settings/email"
+                                    element = buildElement {
+                                        child(UserSettingsEmailMenuView::class) {
+                                            attrs.userName = state.userInfo?.name
+                                        }
+                                    }
+                                }
+                            }
+
+                            Route {
+                                attrs {
+                                    path = "/:user/settings/token"
+                                    element = buildElement {
+                                        child(UserSettingsTokenMenuView::class) {
+                                            attrs.userName = state.userInfo?.name
+                                        }
+                                    }
+                                }
+                            }
+
+                            Route {
+                                attrs {
                                     path = "/creation"
                                     element = buildElement {
                                         child(CreationView::class) {}
@@ -164,7 +200,9 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                 attrs {
                                     path = "/projects"
                                     element = buildElement {
-                                        child(CollectionView::class) {}
+                                        child(CollectionView::class) {
+                                            attrs.currentUserInfo = state.userInfo
+                                        }
                                     }
                                 }
                             }
@@ -176,6 +214,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                         child(withRouter { _, params ->
                                             child(OrganizationView::class) {
                                                 attrs.organizationName = params["owner"]!!
+                                                attrs.currentUserInfo = state.userInfo
                                             }
                                         })
                                     }

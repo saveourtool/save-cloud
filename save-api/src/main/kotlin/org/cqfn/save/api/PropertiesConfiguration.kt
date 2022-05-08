@@ -4,6 +4,10 @@
 
 package org.cqfn.save.api
 
+import org.cqfn.save.domain.Jdk
+import org.cqfn.save.domain.Python
+import org.cqfn.save.domain.Sdk
+
 import org.slf4j.LoggerFactory
 
 import java.io.File
@@ -33,19 +37,16 @@ sealed class PropertiesConfiguration
 
 /**
  * @property backendUrl
- * @property preprocessorUrl
- * @property fileStorage
  */
 @Serializable
 data class WebClientProperties(
     val backendUrl: String,
-    val preprocessorUrl: String,
-    val fileStorage: String,
 ) : PropertiesConfiguration()
 
 /**
  * @property organizationName
  * @property projectName
+ * @property sdk
  * @property gitUrl
  * @property gitUserName
  * @property gitPassword
@@ -57,11 +58,11 @@ data class WebClientProperties(
  * @property execCmd
  * @property batchSize
  */
-// TODO: configure sdk
 @Serializable
 data class EvaluatedToolProperties(
     val organizationName: String,
     val projectName: String,
+    val sdk: String? = null,
     val gitUrl: String,
     val gitUserName: String? = null,
     val gitPassword: String? = null,
@@ -73,6 +74,35 @@ data class EvaluatedToolProperties(
     val execCmd: String? = null,
     val batchSize: String? = null,
 ) : PropertiesConfiguration()
+
+/**
+ * @return sdk instance converted from string representation
+ * @throws IllegalArgumentException in case of invalid configuration
+ */
+internal fun String?.toSdk(): Sdk {
+    this ?: run {
+        log.info("Setting SDK to default value: Java 11")
+        return Jdk("11")
+    }
+    val sdk = this.split(" ").map { it.trim() }
+    require(sdk.size == 2) {
+        "SDK should have the environment and version separated by whitespace, e.g.: `Java 11`, but found ${this}."
+    }
+    return if (sdk.first().lowercase() == "java" && sdk.last() in Jdk.versions) {
+        Jdk(sdk.last())
+    } else if (sdk.first().lowercase() == "python" && sdk.last() in Python.versions) {
+        Python(sdk.last())
+    } else {
+        throw IllegalArgumentException(
+            """
+            Provided SDK $sdk have incorrect value!
+            Available list of SDK:
+            Java: ${Jdk.versions.map { "Java $it" }}
+            Python: ${Python.versions.map { "Python $it" }}
+            """.trimMargin()
+        )
+    }
+}
 
 /**
  * Read config file [configFileName] and return [PropertiesConfiguration] instance

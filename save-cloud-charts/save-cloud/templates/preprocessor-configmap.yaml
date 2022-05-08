@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.preprocessor.name }}-config
+data:
+  application.properties: |
+    save.backend=http://backend:5800/internal
+    save.orchestrator=http://orchestrator:5100
+    server.shutdown=graceful
+    management.endpoints.web.exposure.include=*

@@ -13,7 +13,9 @@ import org.cqfn.save.backend.utils.MySqlExtension
 import org.cqfn.save.backend.utils.postJsonAndAssert
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.Organization
+import org.cqfn.save.entities.OrganizationStatus
 import org.cqfn.save.entities.Project
+import org.cqfn.save.v1
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -65,7 +67,7 @@ class DeleteEntitiesTest {
             Project.stub(99).apply { id = 1 }
         )
         whenever(organizationRepository.findByName(any())).thenReturn(
-            Organization("stub", null, null, null)
+            Organization("stub", OrganizationStatus.CREATED, null, null, null)
         )
         with(projectPermissionEvaluator) {
             whenever(any<Mono<Project?>>().filterByPermission(any(), any(), any())).thenCallRealMethod()
@@ -134,14 +136,14 @@ class DeleteEntitiesTest {
 
     private fun deleteExecutionsAndAssert(executionIds: List<Long>, assert: ResponseSpec.() -> Unit) {
         webClient.postJsonAndAssert(
-            uri = "/api/execution/delete?executionIds=${executionIds.joinToString(",")}",
+            uri = "/api/$v1/execution/delete?executionIds=${executionIds.joinToString(",")}",
             assert = assert
         )
     }
 
     private fun deleteAllExecutionsAndAssert(name: String, organizationName: String, assert: ResponseSpec.() -> Unit) {
         webClient.postJsonAndAssert(
-            uri = "/api/execution/deleteAll?name=$name&organizationName=$organizationName",
+            uri = "/api/$v1/execution/deleteAll?name=$name&organizationName=$organizationName",
             assert = assert
         )
     }

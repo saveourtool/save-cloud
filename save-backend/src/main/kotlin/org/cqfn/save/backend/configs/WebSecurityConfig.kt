@@ -7,6 +7,7 @@ package org.cqfn.save.backend.configs
 import org.cqfn.save.backend.utils.ConvertingAuthenticationManager
 import org.cqfn.save.backend.utils.CustomAuthenticationBasicConverter
 import org.cqfn.save.domain.Role
+import org.cqfn.save.v1
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Profile
@@ -79,7 +80,7 @@ class WebSecurityConfig(
         Role.OWNER to listOf(Role.VIEWER),
     )
         .mapKeys { it.key.asSpringSecurityRole() }
-        .mapValues { it.value.map { it.asSpringSecurityRole() } }
+        .mapValues { (_, roles) -> roles.map { it.asSpringSecurityRole() } }
         .let(RoleHierarchyUtils::roleHierarchyFromMap)
         .let {
             RoleHierarchyImpl().apply { setHierarchy(it) }
@@ -99,13 +100,13 @@ class WebSecurityConfig(
         internal val publicEndpoints = listOf(
             "/error",
             // `CollectionView` is a public page
-            "/api/projects/not-deleted",
-            "/api/awesome-benchmarks",
-            "/api/check-git-connectivity-adaptor",
-            "/api/allStandardTestSuites",
+            "/api/$v1/projects/not-deleted",
+            "/api/$v1/awesome-benchmarks",
+            "/api/$v1/check-git-connectivity-adaptor",
+            "/api/$v1/allStandardTestSuites",
             // `OrganizationView` is a public page
-            "/api/organization/**",
-            "/api/projects/get/projects-by-organization",
+            "/api/$v1/organization/**",
+            "/api/$v1/projects/get/projects-by-organization",
         )
     }
 }

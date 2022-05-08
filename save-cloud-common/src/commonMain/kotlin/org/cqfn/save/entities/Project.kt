@@ -14,6 +14,7 @@ import kotlinx.serialization.Serializable
  * @property organization
  * @property email
  * @property numberOfContainers
+ * @property contestRating
  */
 @Entity
 @Serializable
@@ -41,6 +42,7 @@ data class Project(
         columnDefinition = "",
     )
     var organization: Organization,
+    var contestRating: Long = 0,
 ) {
     /**
      * id of project
@@ -57,15 +59,16 @@ data class Project(
          * @param organization
          * @return a project
          */
-        fun stub(id: Long?,
-                 organization: Organization = Organization("stub", null, null, null)
+        fun stub(
+            id: Long?,
+            organization: Organization = Organization("stub", OrganizationStatus.CREATED, null, null, null)
         ) = Project(
             name = "stub",
             url = null,
             description = null,
             status = ProjectStatus.CREATED,
             userId = -1,
-            organization = Organization("stub", null, null, null),
+            organization = Organization("stub", OrganizationStatus.CREATED, null, null, null),
         ).apply {
             this.id = id
             this.organization = organization

@@ -271,8 +271,8 @@ class DockerService(private val configProperties: ConfigProperties,
     private fun changeOwnerRecursively(directory: File, user: String) {
         // orchestrator is executed as root (to access docker socket), but files are in a shared volume
         val lookupService = directory.toPath().fileSystem.userPrincipalLookupService
-        directory.walk().forEach {
-            Files.getFileAttributeView(it.toPath(), PosixFileAttributeView::class.java, LinkOption.NOFOLLOW_LINKS).apply {
+        directory.walk().forEach { file ->
+            Files.getFileAttributeView(file.toPath(), PosixFileAttributeView::class.java, LinkOption.NOFOLLOW_LINKS).apply {
                 setGroup(lookupService.lookupPrincipalByGroupName(user))
                 setOwner(lookupService.lookupPrincipalByName(user))
             }
@@ -287,7 +287,7 @@ class DockerService(private val configProperties: ConfigProperties,
         resourcesPath: File,
     ) {
         // FixMe: for now support only .zip files
-        execution.additionalFiles?.split(";")?.filter { it.endsWith(".zip") }?.forEach {
+        execution.additionalFiles?.split(";")?.filter { it.endsWith(".zip") }?.forEach { fileName ->
             val fileLocation = if (isStandardMode) {
                 testSuitesDir
             } else {
@@ -303,7 +303,7 @@ class DockerService(private val configProperties: ConfigProperties,
                 resourcesPath.resolve(testRootPath)
             }
 
-            val file = fileLocation.resolve(File(it).name)
+            val file = fileLocation.resolve(File(fileName).name)
             val shouldBeExecutable = file.canExecute()
             log.debug("Unzip ${file.absolutePath} into ${fileLocation.absolutePath}")
 
@@ -379,13 +379,15 @@ class DockerService(private val configProperties: ConfigProperties,
         )
         val cliCommand = "./$SAVE_CLI_EXECUTABLE_NAME$saveCliExecFlags"
         agentPropertiesFile.writeText(
-            agentPropertiesFile.readLines().joinToString(System.lineSeparator()) {
-                if (it.startsWith("id=")) {
-                    "id=$containerId"
-                } else if (it.startsWith("cliCommand=")) {
-                    "cliCommand=$cliCommand"
-                } else {
-                    it
+            agentPropertiesFile.readLines().joinToString(System.lineSeparator()) { line ->
+                when {
+                    line.startsWith("id=") -> "id=$containerId"
+                    line.startsWith("cliCommand=") -> "cliCommand=$cliCommand"
+                    line.startsWith("backend.url=") && configProperties.agentSettings.backendUrl != null ->
+                        "backend.url=${configProperties.agentSettings.backendUrl}"
+                    line.startsWith("orchestratorUrl=") && configProperties.agentSettings.orchestratorUrl != null ->
+                        "orchestratorUrl=${configProperties.agentSettings.orchestratorUrl}"
+                    else -> line
                 }
             }
         )

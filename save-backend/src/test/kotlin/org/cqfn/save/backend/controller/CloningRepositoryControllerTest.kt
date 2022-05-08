@@ -17,6 +17,7 @@ import org.cqfn.save.testutils.checkQueues
 import org.cqfn.save.testutils.cleanup
 import org.cqfn.save.testutils.createMockWebServer
 import org.cqfn.save.testutils.enqueue
+import org.cqfn.save.v1
 
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
@@ -69,7 +70,7 @@ import kotlin.io.path.createFile
 )
 @Suppress("TOO_LONG_FUNCTION")
 class CloningRepositoryControllerTest {
-    private val organization = Organization("Huawei", 1, null).apply { id = 1 }
+    private val organization = Organization("Huawei", OrganizationStatus.CREATED, 1, null).apply { id = 1 }
     private var testProject: Project = Project(
         organization = organization,
         name = "huaweiName",
@@ -118,7 +119,7 @@ class CloningRepositoryControllerTest {
         }
             .build()
         webTestClient.post()
-            .uri("/api/submitExecutionRequest")
+            .uri("/api/$v1/submitExecutionRequest")
             .contentType(MediaType.MULTIPART_FORM_DATA)
             .body(BodyInserters.fromMultipartData(multipart))
             .exchange()
@@ -156,7 +157,7 @@ class CloningRepositoryControllerTest {
         )
 
         webTestClient.post()
-            .uri("/api/executionRequestStandardTests")
+            .uri("/api/$v1/executionRequestStandardTests")
             .contentType(MediaType.MULTIPART_FORM_DATA)
             .body(BodyInserters.fromMultipartData(bodyBuilder.build()))
             .exchange()

@@ -3,6 +3,7 @@ package org.cqfn.save.backend.repository
 import org.cqfn.save.backend.configs.ConfigProperties
 import org.cqfn.save.domain.FileInfo
 import org.cqfn.save.domain.ImageInfo
+import org.cqfn.save.utils.AvatarType
 
 import org.slf4j.LoggerFactory
 import org.springframework.core.io.FileSystemResource
@@ -104,13 +105,14 @@ class TimestampBasedFileSystemRepository(configProperties: ConfigProperties) {
     }
 
     /**
-     * @param owner owner name
+     * @param imageName user or organization name
      * @param part file part
+     * @param type type of avatar
      * @return Mono with number of bytes saved
      * @throws FileAlreadyExistsException if file with this name already exists
      */
-    fun saveImage(part: Mono<FilePart>, owner: String): Mono<ImageInfo> = part.flatMap { part ->
-        val uploadedDir = rootDirImage.resolve(owner)
+    fun saveImage(part: Mono<FilePart>, imageName: String, type: AvatarType = AvatarType.ORGANIZATION): Mono<ImageInfo> = part.flatMap { part ->
+        val uploadedDir = rootDirImage.resolve(getRelativePath(type, imageName))
 
         uploadedDir.apply {
             if (exists()) {
@@ -125,11 +127,17 @@ class TimestampBasedFileSystemRepository(configProperties: ConfigProperties) {
                     .collect(Collectors.summingLong { it })
                     .map {
                         logger.info("Saved $it bytes into $this")
-                        val relativePath = ("/$owner/$name")
+                        val relativePath = "/${getRelativePath(type, imageName)}/$name"
                         ImageInfo(relativePath)
                     }
             }
     }
+
+    private fun getRelativePath(type: AvatarType, imageName: String): String =
+            when (type) {
+                AvatarType.ORGANIZATION -> imageName
+                AvatarType.USER -> "users/$imageName"
+            }
 
     /**
      * @param path path to file
