@@ -53,18 +53,22 @@ sdkName='"openjdk"'
 sdkVersion='"11"'
 
 # Optional
-# Git username (generally, should be provided, only if tested project is private)
+# Git username (provide it, if tests and benchmarks that you plan to use are stored in the private repository on git)
 gitUserName=null
 
 # Optional
-# Git password (generally, should be provided, only if tested project is private)
+# Git password. 
+# Provide an access token, if tests and benchmarks that you plan to use are stored in the private repository on git
 gitPassword=null
 ```
 
 **Note**: The `organizationName` here is intentionally don't contain quotes, since this value
 will be used in requests url, while other in requests bodies.
 
-There is two modes for execution, that could be performed: Git and Standard.\
+There is two modes for execution, that could be performed: Git and Standard.
+* Git mode: Type of evaluation for testing your tool with your own benchmarks.
+* Standard mode: Type of evaluation for testing your tool with 'standard' benchmarks, provided by SAVE Cloud system.
+
 Each of them require own configuration.
 
 #### Configuration for Git Mode
@@ -79,9 +83,11 @@ the relative path to the root directory with tests in your repository is require
 testRootPath='"examples/kotlin-diktat"'
 
 # Optional
+# Specify concrete branch in your git repository
 branch='"origin/feature/testing_for_cloud"'
 
 # Optional
+# Specify concrete commit in your git repository, the latest one will be used by default
 commitHash=null
 ```
 
@@ -123,7 +129,7 @@ curl -X POST "${SAVE_CLOUD_URL}/api/v1/files/upload" \
 -F "file=@your-file-name"
 ```
 
-It will return `json` with metadata about your file, which will be require\
+It will return `json` with metadata about your file, which will be required\
 in the execution request later.
 
 The format will have the following form:
@@ -239,6 +245,11 @@ curl -X POST "${SAVE_CLOUD_URL}/api/v1/executionRequestStandardTests" \
 These requests will also return execution id, which could be used for getting the
 execution results or for rerun command.
 
+For example:
+```bash
+Clone pending, execution id is 42
+```
+
 To get execution results, knowing the execution id, use the following request:
 
 ```bash
@@ -259,6 +270,28 @@ curl -X GET "${SAVE_CLOUD_URL}/api/v1/latestExecution?name=save&organizationName
 -H "X-Authorization-Source: ${SAVE_CLOUD_AUTH_SOURCE}" \
 -H "Authorization: ${SAVE_CLOUD_AUTH}"
 ```
+
+The response format will look like:
+
+```bash
+{
+  "id": 42, # execution id
+  "status": "FINISHED", # execution status, i.e. running, finished and so on
+  "type":"GIT", # execution type
+  "version": "264e5feb8f4c6410d70536d6fc4bdf090df62287", # commit hash
+  "startTime": 1651856549, # start time of execution in Unix format
+  "endTime": 1651856797, # end time of execution in Unix format
+  "runningTests":0, # number of running tests at this moment
+  "passedTests":20, # number of passed tests
+  "failedTests":3, # number of failed tests
+  "skippedTests":1, # number of skipped tests, i.e., because of configuration 
+  "additionalFiles": [ # the list of additional files
+    "/file-1",
+    "/file-2",
+    ]
+}
+```
+
 
 If you would like to rerun some of your executions, you can use `/rerunExecution` endpoint:
 
