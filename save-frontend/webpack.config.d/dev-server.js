@@ -4,7 +4,7 @@ config.devServer = Object.assign(
     {
       proxy: [
         {
-          context: ["/api/**"],
+          context: ["/api/**", "**.ico", "**.png"],
           target: 'http://localhost:5800',
           logLevel: 'debug',
           onProxyReq: function (proxyReq, req, res) {
@@ -21,7 +21,6 @@ config.devServer = Object.assign(
               });
             } else if (req.url.endsWith("/sec/oauth-providers")) {
               return res.send([])
-            } else if (req.url.endsWith("/favicon.ico")) {
             }
           }
         }

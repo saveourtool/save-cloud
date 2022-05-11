@@ -79,7 +79,7 @@ fun projectSettingsMenu(
         {
             updateNotificationMessage(
                 "Super admin message",
-                "Keep in mind that you are super admin, so you are able to manage organization regardless of your organization permissions.",
+                "Keep in mind that you are super admin, so you are able to manage projects regardless of your organization permissions.",
             )
             setWasConfirmationModalShown(true)
         }
