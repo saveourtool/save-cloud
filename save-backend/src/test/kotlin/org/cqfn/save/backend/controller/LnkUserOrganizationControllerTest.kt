@@ -108,7 +108,7 @@ class LnkUserOrganizationControllerTest {
             organization = Organization.stub(id = 99),
             organizationRole = Role.OWNER,
         )
-        given(organizationService.canChangeRoles(any(), any(), any(), any())).willReturn(true)
+        given(organizationPermissionEvaluator.canChangeRoles(any(), any(), any(), any())).willReturn(true)
         webTestClient.post()
             .uri("/api/$v1/organizations/Huawei/users/roles")
             .bodyValue(SetRoleRequest("admin", Role.ADMIN))
@@ -170,7 +170,7 @@ class LnkUserOrganizationControllerTest {
             organizationRole = Role.ADMIN,
         )
 
-        given(organizationService.canChangeRoles(any(), any(), any(), any())).willReturn(true)
+        given(organizationPermissionEvaluator.canChangeRoles(any(), any(), any(), any())).willReturn(true)
         webTestClient.delete()
             .uri("/api/$v1/organizations/Huawei/users/roles/user")
             .exchange()
@@ -189,7 +189,7 @@ class LnkUserOrganizationControllerTest {
             organization = Organization.stub(id = 99),
             organizationRole = Role.VIEWER,
         )
-        given(organizationService.canChangeRoles(any(), any(), any(), any())).willReturn(false)
+        given(organizationPermissionEvaluator.canChangeRoles(any(), any(), any(), any())).willReturn(false)
         webTestClient.delete()
             .uri("/api/$v1/organizations/Huawei/users/roles/user")
             .exchange()

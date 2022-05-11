@@ -1,13 +1,16 @@
 package org.cqfn.save.backend.controllers
 
 import org.cqfn.save.backend.StringResponse
+import org.cqfn.save.backend.repository.UserRepository
 import org.cqfn.save.backend.service.LnkUserOrganizationService
 import org.cqfn.save.backend.service.OrganizationService
+import org.cqfn.save.backend.service.UserDetailsService
 import org.cqfn.save.backend.utils.AuthenticationDetails
 import org.cqfn.save.domain.ImageInfo
 import org.cqfn.save.domain.OrganizationSaveStatus
 import org.cqfn.save.domain.Role
 import org.cqfn.save.entities.Organization
+import org.cqfn.save.utils.getHighestRole
 import org.cqfn.save.v1
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -29,6 +32,8 @@ import java.time.LocalDateTime
 internal class OrganizationController(
     private val organizationService: OrganizationService,
     private val lnkUserOrganizationService: LnkUserOrganizationService,
+    private val userDetailsService: UserDetailsService,
+    private val userRepository: UserRepository,
 ) {
     /**
      * @param organizationName
@@ -79,12 +84,17 @@ internal class OrganizationController(
                 this.dateCreated = LocalDateTime.now()
             }
         )
+        if (organizationStatus == OrganizationSaveStatus.NEW) {
+            val owner = userRepository.findById(ownerId).get()
+            val organization = organizationService.getOrganizationById(organizationId)
+            lnkUserOrganizationService.setRole(owner, organization, Role.OWNER)
+        }
 
         val response = if (organizationStatus == OrganizationSaveStatus.EXIST) {
             logger.info("Attempt to save an organization with id = $organizationId, but it already exists.")
             ResponseEntity.badRequest().body(organizationStatus.message)
         } else {
-            logger.info("Save new organization id = $organizationId")
+            logger.info("Save new organization id = $organizationId with ownerId $ownerId")
             ResponseEntity.ok(organizationStatus.message)
         }
         return Mono.just(response)
@@ -97,9 +107,12 @@ internal class OrganizationController(
      */
     @PostMapping("/{organizationName}/update")
     @PreAuthorize("isAuthenticated()")
+    @Suppress("UnsafeCallOnNullableType")
     fun updateOrganization(@RequestBody organization: Organization, authentication: Authentication): Mono<StringResponse> {
         val userId = (authentication.details as AuthenticationDetails).id
-        val role = lnkUserOrganizationService.findRoleByUserIdAndOrganizationName(userId, organization.name)
+        val organizationRole = lnkUserOrganizationService.findRoleByUserIdAndOrganizationName(userId, organization.name)
+        val globalRole = userDetailsService.getGlobalRole(authentication)
+        val role = getHighestRole(organizationRole, globalRole)
         val response = if (role.priority >= Role.ADMIN.priority) {
             organizationService.updateOrganization(organization)
             ResponseEntity.ok("Organization updated")
