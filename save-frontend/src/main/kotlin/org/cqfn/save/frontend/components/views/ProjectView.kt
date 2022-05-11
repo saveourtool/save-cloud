@@ -25,16 +25,8 @@ import org.cqfn.save.frontend.externals.fontawesome.faHistory
 import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
 import org.cqfn.save.frontend.externals.modal.modal
 import org.cqfn.save.frontend.http.getProject
-import org.cqfn.save.frontend.utils.ProjectMenuBar
-import org.cqfn.save.frontend.utils.apiUrl
-import org.cqfn.save.frontend.utils.appendJson
-import org.cqfn.save.frontend.utils.decodeFromJsonString
-import org.cqfn.save.frontend.utils.get
+import org.cqfn.save.frontend.utils.*
 import org.cqfn.save.frontend.utils.noopResponseHandler
-import org.cqfn.save.frontend.utils.post
-import org.cqfn.save.frontend.utils.runConfirmWindowModal
-import org.cqfn.save.frontend.utils.runErrorModal
-import org.cqfn.save.frontend.utils.unsafeMap
 import org.cqfn.save.info.UserInfo
 import org.cqfn.save.testsuite.TestSuiteDto
 
@@ -223,16 +215,6 @@ external interface ProjectViewState : State {
 }
 
 /**
- * enum that stores types of confirmation windows for different situations
- */
-enum class ConfirmationType {
-    DELETE_CONFIRM,
-    NO_BINARY_CONFIRM,
-    NO_CONFIRM,
-    ;
-}
-
-/**
  * A Component for project view
  * Each modal opening call causes re-render of the whole page, that's why we need to use state for all fields
  */
@@ -332,6 +314,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 isErrorOpen = true
             }
         },
+        updateNotificationMessage = ::showNotification
     )
     private val projectStatisticMenu = projectStatisticMenu()
     private val projectInfoCard = cardComponent(isBordered = true, hasBg = true) {
@@ -450,6 +433,15 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         state.isUploading = false
         state.isEditDisabled = true
         state.selectedMenu = ProjectMenuBar.RUN
+    }
+
+    private fun showNotification(notificationLabel: String, notificationMessage: String) {
+        setState {
+            confirmationType = ConfirmationType.NO_CONFIRM
+            isConfirmWindowOpen = true
+            confirmLabel = notificationLabel
+            confirmMessage = notificationMessage
+        }
     }
 
     override fun componentDidMount() {
@@ -598,6 +590,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             when (state.confirmationType) {
                 ConfirmationType.NO_BINARY_CONFIRM, ConfirmationType.NO_CONFIRM -> submitExecutionRequest()
                 ConfirmationType.DELETE_CONFIRM -> deleteProjectBuilder()
+                ConfirmationType.GLOBAL_ROLE_CONFIRM -> { }
                 else -> {
                     // this is a generated else block
                 }
