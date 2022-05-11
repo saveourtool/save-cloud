@@ -211,7 +211,7 @@ class ProjectControllerTest {
         val project = newProject.project
         webClient
             .get()
-            .uri("/api/$v1/projects/get/organization-id?name=${project.name}&organizationId=${project.organization.id}")
+            .uri("/api/$v1/projects/get/organization-name?name=${project.name}&organizationName=${project.organization.name}")
             .accept(MediaType.APPLICATION_JSON)
             .exchange()
             .let { getAssertion(it) }

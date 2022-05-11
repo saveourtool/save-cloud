@@ -9,7 +9,7 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       # https://github.com/helm/chart-testing#local-repo
       - run: |
           docker run --network host --workdir=/data --volume ~/.kube/config:/root/.kube/config:ro --volume $(pwd)/save-cloud-charts:/data \

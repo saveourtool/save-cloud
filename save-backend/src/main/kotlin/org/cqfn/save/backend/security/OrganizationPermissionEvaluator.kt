@@ -1,10 +1,13 @@
 package org.cqfn.save.backend.security
 
 import org.cqfn.save.backend.service.LnkUserOrganizationService
+import org.cqfn.save.backend.service.UserDetailsService
 import org.cqfn.save.backend.utils.AuthenticationDetails
 import org.cqfn.save.domain.Role
 import org.cqfn.save.entities.Organization
+import org.cqfn.save.entities.User
 import org.cqfn.save.permission.Permission
+import org.cqfn.save.utils.getHighestRole
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Component
@@ -16,6 +19,9 @@ import org.springframework.stereotype.Component
 class OrganizationPermissionEvaluator {
     @Autowired
     private lateinit var lnkUserOrganizationService: LnkUserOrganizationService
+
+    @Autowired
+    private lateinit var userDetailsService: UserDetailsService
 
     /**
      * @param authentication [Authentication] describing an authenticated request
@@ -48,6 +54,32 @@ class OrganizationPermissionEvaluator {
 
     private fun hasDeleteAccess(userId: Long?, organizationRole: Role): Boolean =
             userId?.let { organizationRole.priority >= Role.OWNER.priority } ?: false
+
+    /**
+     * In case we widen number of users that can manage roles in an organization, there is a separate method.
+     * Simply delegating now.
+     *
+     * @param organization in which the role is going to be changed
+     * @param authentication auth info of a current user
+     * @param otherUser user whose role is going to be changed
+     * @param requestedRole role that is going to be set
+     * @return whether the user can change roles in organization
+     */
+    @Suppress("UnsafeCallOnNullableType")
+    fun canChangeRoles(
+        organization: Organization,
+        authentication: Authentication,
+        otherUser: User,
+        requestedRole: Role = Role.NONE
+    ): Boolean {
+        val selfId = (authentication.details as AuthenticationDetails).id
+        val selfGlobalRole = userDetailsService.getGlobalRole(authentication)
+        val selfOrganizationRole = lnkUserOrganizationService.findRoleByUserIdAndOrganization(selfId, organization)
+        val selfRole = getHighestRole(selfOrganizationRole, selfGlobalRole)
+        val otherRole = lnkUserOrganizationService.findRoleByUserIdAndOrganization(otherUser.id!!, organization)
+        return isOrganizationAdminOrHigher(selfRole) && hasAnotherUserLessPermissions(selfRole, otherRole) &&
+                isRequestedPermissionsCanBeSetByUser(selfRole, requestedRole)
+    }
 
     /**
      * @param selfRole

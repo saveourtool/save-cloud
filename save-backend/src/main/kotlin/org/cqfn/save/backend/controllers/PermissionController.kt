@@ -1,11 +1,11 @@
 package org.cqfn.save.backend.controllers
 
 import org.cqfn.save.backend.configs.ApiSwaggerSupport
+import org.cqfn.save.backend.security.OrganizationPermissionEvaluator
 import org.cqfn.save.backend.security.ProjectPermissionEvaluator
 import org.cqfn.save.backend.service.OrganizationService
 import org.cqfn.save.backend.service.PermissionService
 import org.cqfn.save.backend.service.ProjectService
-import org.cqfn.save.backend.utils.AuthenticationDetails
 import org.cqfn.save.backend.utils.toUser
 import org.cqfn.save.domain.Role
 import org.cqfn.save.entities.Project
@@ -42,15 +42,16 @@ import java.util.Optional
 @ApiSwaggerSupport
 @Tags(Tag(name = "api"), Tag(name = "permissions"))
 @RestController
-@RequestMapping(path = ["/api/$v1/projects"])
+@RequestMapping(path = ["/api/$v1"])
 @Suppress("MISSING_KDOC_ON_FUNCTION", "MISSING_KDOC_TOP_LEVEL", "MISSING_KDOC_CLASS_ELEMENTS")
 class PermissionController(
     private val projectService: ProjectService,
     private val permissionService: PermissionService,
     private val organizationService: OrganizationService,
     private val projectPermissionEvaluator: ProjectPermissionEvaluator,
+    private val organizationPermissionEvaluator: OrganizationPermissionEvaluator,
 ) {
-    @GetMapping("/{organizationName}/{projectName}/users/roles")
+    @GetMapping("/projects/{organizationName}/{projectName}/users/roles")
     @Operation(
         description = "Get role for a user on a particular project. Returns self role if no userName is set.",
         parameters = [
@@ -88,7 +89,7 @@ class PermissionController(
             Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
         }
 
-    @PostMapping("/{organizationName}/{projectName}/users/roles")
+    @PostMapping("/projects/{organizationName}/{projectName}/users/roles")
     @Operation(
         description = "Set role for a user on a particular project",
         parameters = [
@@ -120,11 +121,10 @@ class PermissionController(
         }
         .filter { (project, user) ->
             // fixme: could be `@PreAuthorize`, but organizationService cannot be found smh
-            val userId = (authentication.details as AuthenticationDetails).id
             val organization = organizationService.findByName(organizationName)
                 ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
-            val hasOrganizationPermissions = organizationService.canChangeRoles(organization, userId, user, setRoleRequest.role)
-            val hasProjectPermissions = projectService.canChangeRoles(project, userId, user, setRoleRequest.role)
+            val hasOrganizationPermissions = organizationPermissionEvaluator.canChangeRoles(organization, authentication, user, setRoleRequest.role)
+            val hasProjectPermissions = projectPermissionEvaluator.canChangeRoles(project, authentication, user, setRoleRequest.role)
             hasOrganizationPermissions || hasProjectPermissions
         }
         .flatMap {
@@ -135,7 +135,7 @@ class PermissionController(
             Mono.error(ResponseStatusException(HttpStatus.FORBIDDEN))
         }
 
-    @DeleteMapping("/{organizationName}/{projectName}/users/roles/{userName}")
+    @DeleteMapping("/projects/{organizationName}/{projectName}/users/roles/{userName}")
     @Operation(
         description = "Removes user's role on a particular project",
         parameters = [
@@ -163,11 +163,10 @@ class PermissionController(
             Mono.error((ResponseStatusException(HttpStatus.NOT_FOUND)))
         }
         .filter { (project, user) ->
-            val userId = (authentication.details as AuthenticationDetails).id
             val organization = organizationService.findByName(organizationName)
                 ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
-            val hasOrganizationPermissions = organizationService.canChangeRoles(organization, userId, user)
-            val hasProjectPermissions = projectService.canChangeRoles(project, userId, user)
+            val hasOrganizationPermissions = organizationPermissionEvaluator.canChangeRoles(organization, authentication, user)
+            val hasProjectPermissions = projectPermissionEvaluator.canChangeRoles(project, authentication, user)
             hasOrganizationPermissions || hasProjectPermissions
         }
         .switchIfEmpty {

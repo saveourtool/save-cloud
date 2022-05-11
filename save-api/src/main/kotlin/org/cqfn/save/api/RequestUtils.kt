@@ -8,7 +8,6 @@ import org.cqfn.save.domain.FileInfo
 import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.ExecutionRequestBase
 import org.cqfn.save.entities.ExecutionRequestForStandardSuites
-import org.cqfn.save.entities.Organization
 import org.cqfn.save.entities.Project
 import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.execution.ExecutionType
@@ -59,24 +58,14 @@ private object UserInformation {
 }
 
 /**
- * @param name
- * @return Organization instance
- */
-suspend fun HttpClient.getOrganizationByName(
-    name: String
-): Organization = getRequestWithAuthAndJsonContentType(
-    "${Backend.url}/api/$v1/organization/$name"
-).body()
-
-/**
  * @param projectName
- * @param organizationId
+ * @param organizationName
  * @return Project instance
  */
-suspend fun HttpClient.getProjectByNameAndOrganizationId(
-    projectName: String, organizationId: Long
+suspend fun HttpClient.getProjectByNameAndOrganizationName(
+    projectName: String, organizationName: String
 ): Project = getRequestWithAuthAndJsonContentType(
-    "${Backend.url}/api/$v1/projects/get/organization-id?name=$projectName&organizationId=$organizationId"
+    "${Backend.url}/api/$v1/projects/get/organization-name?name=$projectName&organizationName=$organizationName"
 ).body()
 
 /**
@@ -167,14 +156,14 @@ suspend fun HttpClient.submitExecution(executionType: ExecutionType, executionRe
 
 /**
  * @param projectName
- * @param organizationId
+ * @param organizationName
  * @return ExecutionDto
  */
 suspend fun HttpClient.getLatestExecution(
     projectName: String,
-    organizationId: Long
+    organizationName: String
 ): ExecutionDto = getRequestWithAuthAndJsonContentType(
-    "${Backend.url}/api/$v1/latestExecution?name=$projectName&organizationId=$organizationId"
+    "${Backend.url}/api/$v1/latestExecution?name=$projectName&organizationName=$organizationName"
 ).body()
 
 /**

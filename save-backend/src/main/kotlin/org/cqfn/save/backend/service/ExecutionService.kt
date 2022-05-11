@@ -93,11 +93,11 @@ class ExecutionService(private val executionRepository: ExecutionRepository,
      * Get latest (by start time an) execution by project name and organization
      *
      * @param name name of project
-     * @param organizationId id of organization of project
+     * @param organizationName name of organization of project
      * @return execution or null if it was not found
      */
-    fun getLatestExecutionByProjectNameAndProjectOrganizationId(name: String, organizationId: Long): Optional<Execution> =
-            executionRepository.findTopByProjectNameAndProjectOrganizationIdOrderByStartTimeDesc(name, organizationId)
+    fun getLatestExecutionByProjectNameAndProjectOrganizationName(name: String, organizationName: String): Optional<Execution> =
+            executionRepository.findTopByProjectNameAndProjectOrganizationNameOrderByStartTimeDesc(name, organizationName)
 
     /**
      * @param executionInitializationDto execution dto to update
