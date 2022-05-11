@@ -20,7 +20,7 @@ configureJacoco()
 tasks.withType<KotlinCompile> {
     kotlinOptions {
         jvmTarget = Versions.jdk
-        freeCompilerArgs = freeCompilerArgs + "-Xopt-in=kotlin.RequiresOptIn"
+        freeCompilerArgs = freeCompilerArgs + "-opt-in=kotlin.RequiresOptIn"
     }
 }
 

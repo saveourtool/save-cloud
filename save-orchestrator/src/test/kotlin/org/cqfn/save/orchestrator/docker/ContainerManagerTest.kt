@@ -16,15 +16,13 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.test.context.TestPropertySource
 import org.springframework.test.context.junit.jupiter.SpringExtension
 
-import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.createTempDirectory
 import kotlin.io.path.createTempFile
 
-@OptIn(ExperimentalPathApi::class)
 @ExtendWith(SpringExtension::class)
 @EnableConfigurationProperties(ConfigProperties::class)
 @TestPropertySource("classpath:application.properties")
-@DisabledOnOs(OS.WINDOWS, disabledReason = "`getHostIp` method uses `getent`, which is unavailable on Windows")
+@DisabledOnOs(OS.WINDOWS, disabledReason = "If required, can be run with `docker-tcp` profile and with TCP port enabled on Docker Daemon")
 class ContainerManagerTest {
     @Autowired private lateinit var configProperties: ConfigProperties
     private lateinit var containerManager: ContainerManager

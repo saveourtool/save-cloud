@@ -42,7 +42,7 @@ import kotlin.io.path.pathString
 @ExtendWith(SpringExtension::class)
 @EnableConfigurationProperties(ConfigProperties::class)
 @TestPropertySource("classpath:application.properties")
-@DisabledOnOs(OS.WINDOWS, disabledReason = "`getHostIp` method uses `getent`, which is unavailable on Windows")
+@DisabledOnOs(OS.WINDOWS, disabledReason = "If required, can be run with `docker-tcp` profile and with TCP port enabled on Docker Daemon")
 @WebFluxTest(controllers = [AgentsController::class])  // to autowire everything for DockerService
 @MockBeans(
     MockBean(AgentService::class),
