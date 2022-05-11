@@ -4,6 +4,7 @@ import org.cqfn.save.buildutils.pathToSaveCliVersion
 import org.cqfn.save.buildutils.readSaveCliVersion
 
 import de.undercouch.gradle.tasks.download.Download
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.springframework.boot.gradle.tasks.bundling.BootJar
 import org.springframework.boot.gradle.tasks.run.BootRun
@@ -60,7 +61,14 @@ tasks.withType<Test> {
 dependencies {
     api(projects.saveCloudCommon)
     testImplementation(projects.testUtils)
-    runtimeOnly(project(":save-agent", "distribution"))
+    if (DefaultNativePlatform.getCurrentOperatingSystem().isWindows) {
+        logger.warn("Dependency `save-agent` is omitted on Windows because of problems with linking in cross-compilation." +
+                " Task `:save-agent:linkReleaseExecutableLinuxX64` would fail without correct libcurl.so. If your changes are about " +
+                "save-agent, please test them on Linux or provide a file `save-agent-distribution.jar` built on Linux."
+        )
+    } else {
+        runtimeOnly(project(":save-agent", "distribution"))
+    }
     implementation(libs.dockerJava.core)
     implementation(libs.dockerJava.transport.httpclient5)
     implementation(libs.kotlinx.serialization.json.jvm)
