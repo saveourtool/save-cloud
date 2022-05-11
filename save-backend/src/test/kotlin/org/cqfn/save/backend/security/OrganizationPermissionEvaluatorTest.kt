@@ -3,6 +3,7 @@ package org.cqfn.save.backend.security
 import org.cqfn.save.backend.repository.LnkUserOrganizationRepository
 import org.cqfn.save.backend.repository.UserRepository
 import org.cqfn.save.backend.service.LnkUserOrganizationService
+import org.cqfn.save.backend.service.UserDetailsService
 import org.cqfn.save.backend.utils.AuthenticationDetails
 import org.cqfn.save.domain.Role
 import org.cqfn.save.entities.*
@@ -14,6 +15,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.any
+import org.mockito.kotlin.given
 import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.mock.mockito.MockBean
@@ -28,6 +30,7 @@ class OrganizationPermissionEvaluatorTest {
     @Autowired private lateinit var organizationPermissionEvaluator: OrganizationPermissionEvaluator
     @MockBean private lateinit var lnkUserOrganizationRepository: LnkUserOrganizationRepository
     @MockBean private lateinit var userRepository: UserRepository
+    @MockBean private lateinit var userDetailsService: UserDetailsService
     private lateinit var mockOrganization: Organization
 
     @BeforeEach
@@ -92,6 +95,7 @@ class OrganizationPermissionEvaluatorTest {
         userId: Long = 1
     ) {
         val authentication = mockAuth(username, role.asSpringSecurityRole(), id = userId)
+        given(userDetailsService.getGlobalRole(any())).willReturn(Role.VIEWER)
         whenever(lnkUserOrganizationRepository.findByUserIdAndOrganization(any(), any())).thenAnswer { invocation ->
             LnkUserOrganization(
                 invocation.arguments[1] as Organization,

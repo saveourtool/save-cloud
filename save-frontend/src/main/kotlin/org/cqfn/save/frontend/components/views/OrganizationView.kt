@@ -6,6 +6,7 @@ package org.cqfn.save.frontend.components.views
 
 import org.cqfn.save.domain.ImageInfo
 import org.cqfn.save.domain.Role
+import org.cqfn.save.domain.moreOrEqualThan
 import org.cqfn.save.entities.Organization
 import org.cqfn.save.entities.OrganizationStatus
 import org.cqfn.save.entities.Project
@@ -17,6 +18,8 @@ import org.cqfn.save.frontend.externals.fontawesome.*
 import org.cqfn.save.frontend.http.getOrganization
 import org.cqfn.save.frontend.utils.*
 import org.cqfn.save.info.UserInfo
+import org.cqfn.save.utils.AvatarType
+import org.cqfn.save.utils.getHighestRole
 import org.cqfn.save.v1
 
 import csstype.*
@@ -117,6 +120,16 @@ external interface OrganizationViewState : State {
      * Whether editing of organization info is disabled
      */
     var isEditDisabled: Boolean?
+
+    /**
+     * Role of user is viewer
+     */
+    var isRoleViewer: Boolean?
+
+    /**
+     * Users in organization
+     */
+    var usersInOrganization: List<UserInfo>?
 }
 
 /**
@@ -155,13 +168,15 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
     }
 
     private fun deleteOrganization() {
-        val newOrganization = state.organization?.copy(status = OrganizationStatus.DELETED)
+        val newOrganization = state.organization
+            ?.copy(status = OrganizationStatus.DELETED)
+            ?.apply { id = state.organization?.id }
         setState {
             organization = newOrganization
             confirmationType = ConfirmationType.DELETE_CONFIRM
             isConfirmWindowOpen = true
             confirmLabel = ""
-            confirmMessage = "Are you sure you want to delete this project?"
+            confirmMessage = "Are you sure you want to delete this organization?"
         }
     }
 
@@ -171,12 +186,15 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             val avatar = getAvatar()
             val organizationLoaded = getOrganization(props.organizationName)
             val projectsLoaded = getProjectsForOrganization()
-            val role = getRoleInOrganization()
+            val role = getHighestRole(getRoleInOrganization(), props.currentUserInfo?.globalRole)
+            val users = getUsers()
             setState {
                 image = avatar
                 organization = organizationLoaded
                 projects = projectsLoaded
-                isEditDisabled = (role.priority >= Role.ADMIN.priority)
+                isEditDisabled = role.moreOrEqualThan(Role.ADMIN)
+                isRoleViewer = !role.moreOrEqualThan(Role.ADMIN)
+                usersInOrganization = users
             }
         }
     }
@@ -211,7 +229,12 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         }
     }
 
-    @Suppress("TOO_LONG_FUNCTION", "LongMethod", "ComplexMethod")
+    @Suppress(
+        "TOO_LONG_FUNCTION",
+        "LongMethod",
+        "ComplexMethod",
+        "PARAMETER_NAME_IN_OUTER_LAMBDA",
+    )
     private fun RBuilder.renderInfo() {
         // ================= Title for TOP projects ===============
         div("row") {
@@ -265,7 +288,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                                 }
                                 +"Description"
                             }
-                            if (state.isEditDisabled == true) {
+                            if (state.isRoleViewer == false && state.isEditDisabled == true) {
                                 button(classes = "btn btn-link text-xs text-muted text-left ml-auto") {
                                     +"Edit  "
                                     fontAwesomeIcon(icon = faEdit)
@@ -282,7 +305,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                             if (state.isEditDisabled != false) {
                                 attrs.value = state.organization?.description ?: ""
                             }
-                            attrs.disabled = state.isEditDisabled ?: true
+                            attrs.disabled = state.isRoleViewer == true || (state.isEditDisabled ?: true)
                             attrs.onChange = { event ->
                                 val tg = event.target as HTMLInputElement
                                 setNewDescription(tg.value)
@@ -292,7 +315,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                     div("ml-3 mt-2 align-items-right float-right") {
                         button(type = ButtonType.button, classes = "btn") {
                             fontAwesomeIcon(icon = faCheck)
-                            attrs.hidden = state.isEditDisabled ?: true
+                            attrs.hidden = state.isRoleViewer == true || (state.isEditDisabled ?: true)
                             attrs.onClick = {
                                 state.organization?.let { onOrganizationSave(it) }
                                 turnEditMode(true)
@@ -301,7 +324,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
 
                         button(type = ButtonType.button, classes = "btn") {
                             fontAwesomeIcon(icon = faTimesCircle)
-                            attrs.hidden = state.isEditDisabled ?: true
+                            attrs.hidden = state.isRoleViewer == true || (state.isEditDisabled ?: true)
                             attrs.onClick = {
                                 turnEditMode(true)
                             }
@@ -313,67 +336,18 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             div("col-3") {
                 div("latest-photos") {
                     div("row") {
-                        div("col-md-4") {
-                            figure {
-                                img(classes = "img-fluid") {
-                                    attrs["src"] = "https://bootdey.com/img/Content/avatar/avatar1.png"
-                                    attrs["alt"] = ""
-                                }
-                            }
-                        }
-                        div("col-md-4") {
-                            figure {
-                                img(classes = "img-fluid") {
-                                    attrs["src"] = "https://bootdey.com/img/Content/avatar/avatar2.png"
-                                    attrs["alt"] = ""
-                                }
-                            }
-                        }
-                        div("col-md-4") {
-                            figure {
-                                img(classes = "img-fluid") {
-                                    attrs["src"] = "https://bootdey.com/img/Content/avatar/avatar3.png"
-                                    attrs["alt"] = ""
-                                }
-                            }
-                        }
-                        div("col-md-4") {
-                            figure {
-                                img(classes = "img-fluid") {
-                                    attrs["src"] = "https://bootdey.com/img/Content/avatar/avatar4.png"
-                                    attrs["alt"] = ""
-                                }
-                            }
-                        }
-                        div("col-md-4") {
-                            figure {
-                                img(classes = "img-fluid") {
-                                    attrs["src"] = "https://bootdey.com/img/Content/avatar/avatar5.png"
-                                    attrs["alt"] = ""
-                                }
-                            }
-                        }
-                        div("col-md-4") {
-                            figure {
-                                img(classes = "img-fluid") {
-                                    attrs["src"] = "https://bootdey.com/img/Content/avatar/avatar6.png"
-                                    attrs["alt"] = ""
-                                }
-                            }
-                        }
-                        div("col-md-4") {
-                            figure("mb-0") {
-                                img(classes = "img-fluid") {
-                                    attrs["src"] = "https://bootdey.com/img/Content/avatar/avatar7.png"
-                                    attrs["alt"] = ""
-                                }
-                            }
-                        }
-                        div("col-md-4") {
-                            figure("mb-0") {
-                                img(classes = "img-fluid") {
-                                    attrs["src"] = "https://bootdey.com/img/Content/avatar/avatar8.png"
-                                    attrs["alt"] = ""
+                        state.usersInOrganization?.forEach {
+                            div("col-md-4") {
+                                figure {
+                                    img(classes = "img-fluid") {
+                                        attrs["src"] = it.avatar?.let { path ->
+                                            "/api/$v1/avatar$path"
+                                        }
+                                            ?: run {
+                                                "img/user.svg"
+                                            }
+                                        attrs["alt"] = ""
+                                    }
                                 }
                             }
                         }
@@ -487,6 +461,16 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             it.decodeFromJsonString()
         }
 
+    private suspend fun getUsers(): List<UserInfo> = get(
+        url = "$apiUrl/organizations/${props.organizationName}/users",
+        headers = Headers().also {
+            it.set("Accept", "application/json")
+        },
+    )
+        .unsafeMap {
+            it.decodeFromJsonString<List<UserInfo>>()
+        }
+
     private fun postImageUpload(element: HTMLInputElement) =
             scope.launch {
                 setState {
@@ -494,7 +478,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 }
                 element.files!!.asList().single().let { file ->
                     val response: ImageInfo? = post(
-                        "$apiUrl/image/upload?owner=${props.organizationName}",
+                        "$apiUrl/image/upload?owner=${props.organizationName}&type=${AvatarType.ORGANIZATION}",
                         Headers(),
                         FormData().apply {
                             append("file", file)
@@ -673,14 +657,14 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         }
         scope.launch {
             responseFromDeleteOrganization =
-                    post("$apiUrl/organizations/update", headers, Json.encodeToString(state.organization))
+                    post("$apiUrl/organization/${props.organizationName}/update", headers, Json.encodeToString(state.organization))
         }.invokeOnCompletion {
             if (responseFromDeleteOrganization.ok) {
                 window.location.href = "${window.location.origin}/"
             } else {
                 responseFromDeleteOrganization.text().then {
                     setState {
-                        errorLabel = "Failed to delete project"
+                        errorLabel = "Failed to delete organization"
                         errorMessage = it
                         isErrorOpen = true
                     }

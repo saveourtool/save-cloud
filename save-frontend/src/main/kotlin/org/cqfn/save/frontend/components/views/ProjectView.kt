@@ -537,7 +537,8 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             selectedStandardSuites,
             selectedSdk,
             state.execCmd,
-            state.batchSizeForAnalyzer
+            state.batchSizeForAnalyzer,
+            null
         )
         formData.appendJson("execution", request)
         state.files.forEach {
@@ -885,7 +886,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     private suspend fun fetchLatestExecutionId() {
         val headers = Headers().apply { set("Accept", "application/json") }
         val response = get(
-            "$apiUrl/latestExecution?name=${state.project.name}&organizationId=${state.project.organization.id}",
+            "$apiUrl/latestExecution?name=${state.project.name}&organizationName=${state.project.organization.name}",
             headers,
             responseHandler = ::noopResponseHandler
         )

@@ -108,7 +108,7 @@ class DownloadFilesController(
     fun uploadImage(
         @RequestPart("file") file: Mono<FilePart>,
         @RequestParam owner: String,
-        @RequestParam(required = false) type: AvatarType = AvatarType.ORGANIZATION
+        @RequestParam type: AvatarType
     ) =
             additionalToolsFileSystemRepository.saveImage(file, owner, type).map { imageInfo ->
                 imageInfo.path?.let {

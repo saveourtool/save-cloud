@@ -36,6 +36,11 @@
       "managers": ["docker-compose"],
       "groupName": "all docker images",
       "groupSlug": "all-docker-images"
+    },
+    {
+      "managers": ["helm-requirements"],
+      "groupName": "all Helm requirements",
+      "groupSlug": "all-helm-requirements"
     }
   ]
 }
