@@ -5,7 +5,10 @@ package org.cqfn.save.apicli
 import java.lang.IllegalArgumentException
 
 import kotlinx.coroutines.runBlocking
-import org.cqfn.save.`api-cli`.SaveCloudClient
+import org.cqfn.save.api.EvaluatedToolProperties
+import org.cqfn.save.api.PropertiesConfigurationType
+import org.cqfn.save.api.SaveCloudClient
+import org.cqfn.save.api.WebClientProperties
 
 @Suppress("LOCAL_VARIABLE_EARLY_DECLARATION")
 fun main(args: Array<String>) {

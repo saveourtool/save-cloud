@@ -24,15 +24,12 @@ kotlin {
 }
 
 dependencies {
+    implementation(projects.saveApi)
     implementation(projects.saveCloudCommon)
     implementation(libs.save.common.jvm)
     implementation(libs.kotlinx.cli)
     implementation(libs.log4j)
     implementation(libs.log4j.slf4j.impl)
-    implementation(libs.ktor.client.apache)
-    implementation(libs.ktor.client.auth)
-    implementation(libs.ktor.client.core)
-    implementation(libs.ktor.client.serialization)
-    implementation(libs.ktor.client.logging)
+    implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.serialization.properties)
 }

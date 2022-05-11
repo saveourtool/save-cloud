@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory
 
 import kotlinx.cli.ArgParser
 import kotlinx.cli.ArgType
+import org.cqfn.save.api.Authorization
 
 private val log = LoggerFactory.getLogger(object {}.javaClass.enclosingClass::class.java)
 

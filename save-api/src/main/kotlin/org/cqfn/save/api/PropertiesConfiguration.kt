@@ -10,13 +10,8 @@ import org.cqfn.save.domain.Sdk
 
 import org.slf4j.LoggerFactory
 
-import java.io.File
-import java.io.IOException
-
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.properties.Properties
-import kotlinx.serialization.properties.decodeFromStringMap
+
 
 private val log = LoggerFactory.getLogger(PropertiesConfiguration::class.java)
 
