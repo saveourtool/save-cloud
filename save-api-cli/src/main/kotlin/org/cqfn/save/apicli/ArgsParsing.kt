@@ -4,7 +4,7 @@
 
 @file:Suppress("FILE_NAME_MATCH_CLASS")
 
-package org.cqfn.save.api
+package org.cqfn.save.apicli
 
 import org.cqfn.save.execution.ExecutionType
 

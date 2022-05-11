@@ -1,8 +1,13 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
+    application
     kotlin("jvm")
     alias(libs.plugins.kotlin.plugin.serialization)
+}
+
+application {
+    mainClass.set("org.cqfn.save.apicli.MainKt")
 }
 
 tasks.withType<KotlinCompile> {

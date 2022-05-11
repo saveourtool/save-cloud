@@ -36,6 +36,7 @@ include("test-utils")
 include("save-cloud-charts")
 if (isIncludeSaveApi != null) {
     include("save-api")
+    include("save-api-cli")
 }
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")

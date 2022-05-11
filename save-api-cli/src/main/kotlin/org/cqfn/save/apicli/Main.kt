@@ -1,10 +1,11 @@
 @file:Suppress("HEADER_MISSING_IN_NON_SINGLE_CLASS_FILE")
 
-package org.cqfn.save.api
+package org.cqfn.save.apicli
 
 import java.lang.IllegalArgumentException
 
 import kotlinx.coroutines.runBlocking
+import org.cqfn.save.`api-cli`.SaveCloudClient
 
 @Suppress("LOCAL_VARIABLE_EARLY_DECLARATION")
 fun main(args: Array<String>) {
@@ -23,7 +24,7 @@ fun main(args: Array<String>) {
         )
     }
 
-    val automaticTestInitializator = AutomaticTestInitializator(
+    val saveCloudClient = SaveCloudClient(
         webClientProperties,
         evaluatedToolProperties,
         cliArgs.mode,
@@ -31,6 +32,6 @@ fun main(args: Array<String>) {
     )
 
     runBlocking {
-        automaticTestInitializator.start()
+        saveCloudClient.start()
     }
 }

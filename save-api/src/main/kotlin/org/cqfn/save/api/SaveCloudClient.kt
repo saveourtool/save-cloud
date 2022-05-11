@@ -23,13 +23,13 @@ import kotlinx.coroutines.delay
 /**
  * Class, that provides logic for execution submission and result receiving
  */
-class AutomaticTestInitializator(
-    private val webClientProperties: WebClientProperties,
+class SaveCloudClient(
+    webClientProperties: WebClientProperties,
     private val evaluatedToolProperties: EvaluatedToolProperties,
     private val executionType: ExecutionType,
     authorization: Authorization,
 ) {
-    private val log = LoggerFactory.getLogger(AutomaticTestInitializator::class.java)
+    private val log = LoggerFactory.getLogger(SaveCloudClient::class.java)
     private var httpClient: HttpClient = initializeHttpClient(authorization, webClientProperties)
 
     /**
