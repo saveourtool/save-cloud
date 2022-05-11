@@ -4,6 +4,11 @@
 
 package org.cqfn.save.apicli
 
+import org.cqfn.save.api.EvaluatedToolProperties
+import org.cqfn.save.api.PropertiesConfiguration
+import org.cqfn.save.api.PropertiesConfigurationType
+import org.cqfn.save.api.SaveCloudClient
+import org.cqfn.save.api.WebClientProperties
 
 import org.slf4j.LoggerFactory
 
@@ -13,14 +18,8 @@ import java.io.IOException
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.properties.Properties
 import kotlinx.serialization.properties.decodeFromStringMap
-import org.cqfn.save.api.EvaluatedToolProperties
-import org.cqfn.save.api.PropertiesConfiguration
-import org.cqfn.save.api.PropertiesConfigurationType
-import org.cqfn.save.api.SaveCloudClient
-import org.cqfn.save.api.WebClientProperties
 
 private val log = LoggerFactory.getLogger(object {}.javaClass.enclosingClass::class.java)
-
 
 /**
  * Read config file [configFileName] and return [PropertiesConfiguration] instance

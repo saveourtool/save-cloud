@@ -12,7 +12,6 @@ import org.slf4j.LoggerFactory
 
 import kotlinx.serialization.Serializable
 
-
 private val log = LoggerFactory.getLogger(PropertiesConfiguration::class.java)
 
 /**
