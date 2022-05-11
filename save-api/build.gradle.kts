@@ -1,3 +1,4 @@
+import org.cqfn.save.buildutils.configurePublishing
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -29,3 +30,5 @@ dependencies {
     implementation(libs.ktor.client.serialization)
     implementation(libs.ktor.client.logging)
 }
+
+configurePublishing()
