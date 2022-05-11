@@ -14,6 +14,7 @@ Make sure you have Docker installed and active.
 It can be run either with `./gradlew save-backend:bootRun` or with Intellij Idea Ultimate plugin from the menu `Services`.
 3. Run frontend. It can be run with `./gradlew save-frontend:run`.
 You can enable hot reload by passing `--continuous` flag.
+4. More specific instructions can be found in [save-deploy](save-deploy/README.md)
 
 ## Spring Intellij Idea Ultimate plugin
 In order to make Spring Intellij Idea Ultimate plugin work properly, you need to set these active profiles in service's configuration:  

@@ -67,9 +67,10 @@ In the file `/home/saveu/configs/gateway/application.properties` the following p
 ## Local deployment
 Usually not the whole stack is required for development. Application logic is performed by save-backend, save-orchestrator and save-preprocessor, so most time you'll need those three.
 * Ensure that docker daemon is running and docker-compose is installed.
-  * If running on Windows, docker daemon should have HTTP port enabled. Then, `win` profile should be enabled for orchestrator.
-* To make things easier, add line `save.profile=dev` to `gradle.properties`. This will make project version `SNAPSHOT` instead of timetamp-based suffix and allow caching of gradle tasks.
-* Run `./gradlew deployLocal -Psave.profile=dev` to start the database and the three microservices (backend, preprocessor and orchestrator).
+  * If running on a system without Unix socket connection to the Docker Daemon (e.g. with Docker for Windows), docker daemon should have HTTP
+    port enabled. Then, `docker-tcp` profile should be enabled for orchestrator.
+* To make things easier, add line `save.profile=dev` to `gradle.properties`. This will make project version `SNAPSHOT` instead of timestamp-based suffix and allow caching of gradle tasks.
+* Run `./gradlew deployLocal -Psave.profile=dev` to start the database and run three microservices (backend, preprocessor and orchestrator) with Docker Compose.
 
 #### Note:
 If a snapshot version of save-cli is required (i.e., the one which is not available on GitHub releases), then it can be
@@ -83,7 +84,6 @@ manually placed in `save-orchestrator/build/resources/main` before build, and it
 | 5100 | save-orchestrator                          |
 | 5200 | save-test-preprocessor                     |
 | 5300 | api-gateway                                |
-| 6000 | local docker registry (not used currently) |
 | 9090 | prometheus                                 |
 | 9091 | node_exporter                              |
 | 9100 | grafana                                    |
