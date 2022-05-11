@@ -2,9 +2,11 @@ package org.cqfn.save.backend.controllers
 
 import org.cqfn.save.backend.StringResponse
 import org.cqfn.save.backend.repository.UserRepository
+import org.cqfn.save.backend.service.UserDetailsService
 import org.cqfn.save.backend.utils.AuthenticationDetails
 import org.cqfn.save.backend.utils.justOrNotFound
 import org.cqfn.save.domain.ImageInfo
+import org.cqfn.save.domain.Role
 import org.cqfn.save.info.UserInfo
 import org.cqfn.save.v1
 import org.springframework.http.HttpStatus
@@ -23,6 +25,7 @@ import reactor.core.publisher.Mono
 @RequestMapping(path = ["/api/$v1/users"])
 class UsersDetailsController(
     private val userRepository: UserRepository,
+    private val userDetailsService: UserDetailsService,
 ) {
     /**
      * @param userName username
@@ -89,4 +92,13 @@ class UsersDetailsController(
         }
         return Mono.just(response)
     }
+
+    /**
+     * @param authentication
+     * @return global [Role] of authenticated user
+     */
+    @GetMapping("/global-role")
+    @PreAuthorize("isAuthenticated()")
+    fun getSelfGlobalRole(authentication: Authentication): Mono<Role> =
+            Mono.just(userDetailsService.getGlobalRole(authentication))
 }

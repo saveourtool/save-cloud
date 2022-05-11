@@ -3,6 +3,7 @@ package org.cqfn.save.backend.security
 import org.cqfn.save.backend.repository.LnkUserProjectRepository
 import org.cqfn.save.backend.repository.UserRepository
 import org.cqfn.save.backend.service.LnkUserProjectService
+import org.cqfn.save.backend.service.UserDetailsService
 import org.cqfn.save.backend.utils.AuthenticationDetails
 import org.cqfn.save.domain.Role
 import org.cqfn.save.entities.LnkUserProject
@@ -16,6 +17,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.any
+import org.mockito.kotlin.given
 import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.mock.mockito.MockBean
@@ -30,6 +32,7 @@ class ProjectPermissionEvaluatorTest {
     @Autowired private lateinit var projectPermissionEvaluator: ProjectPermissionEvaluator
     @MockBean private lateinit var lnkUserProjectRepository: LnkUserProjectRepository
     @MockBean private lateinit var userRepository: UserRepository
+    @MockBean private lateinit var userDetailsService: UserDetailsService
     private lateinit var mockProject: Project
 
     @BeforeEach
@@ -144,6 +147,7 @@ class ProjectPermissionEvaluatorTest {
         userId: Long = 1
     ) {
         val authentication = mockAuth(username, role.asSpringSecurityRole(), id = userId)
+        given(userDetailsService.getGlobalRole(any())).willReturn(Role.VIEWER)
         whenever(lnkUserProjectRepository.findByUserIdAndProject(any(), any())).thenAnswer { invocation ->
             LnkUserProject(
                 invocation.arguments[1] as Project,
