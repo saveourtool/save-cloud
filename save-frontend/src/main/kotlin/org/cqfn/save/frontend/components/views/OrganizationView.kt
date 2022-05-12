@@ -156,6 +156,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 errorMessage = "Failed to save organization info: ${it.status} ${it.statusText}"
             }
         },
+        updateNotificationMessage = ::showNotification
     )
     private var descriptionTmp: String = ""
     private lateinit var responseFromDeleteOrganization: Response
@@ -177,6 +178,15 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             isConfirmWindowOpen = true
             confirmLabel = ""
             confirmMessage = "Are you sure you want to delete this organization?"
+        }
+    }
+
+    private fun showNotification(notificationLabel: String, notificationMessage: String) {
+        setState {
+            confirmationType = ConfirmationType.GLOBAL_ROLE_CONFIRM
+            isConfirmWindowOpen = true
+            confirmLabel = notificationLabel
+            confirmMessage = notificationMessage
         }
     }
 
@@ -204,7 +214,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         runErrorModal(state.isErrorOpen, state.errorLabel, state.errorMessage) {
             setState { isErrorOpen = false }
         }
-
         runConfirmWindowModal(
             state.isConfirmWindowOpen,
             state.confirmLabel,
@@ -212,6 +221,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             { setState { isConfirmWindowOpen = false } }) {
             when (state.confirmationType) {
                 ConfirmationType.DELETE_CONFIRM -> deleteOrganizationBuilder()
+                ConfirmationType.GLOBAL_ROLE_CONFIRM -> { }
                 else -> throw IllegalStateException("Not implemented yet")
             }
             setState { isConfirmWindowOpen = false }

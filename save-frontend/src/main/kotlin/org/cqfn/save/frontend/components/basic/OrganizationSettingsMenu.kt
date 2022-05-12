@@ -36,6 +36,7 @@ external interface OrganizationSettingsMenuProps : Props {
 /**
  * @param deleteOrganizationCallback
  * @param updateErrorMessage
+ * @param updateNotificationMessage
  * @return ReactElement
  */
 @Suppress(
@@ -47,14 +48,23 @@ external interface OrganizationSettingsMenuProps : Props {
 fun organizationSettingsMenu(
     deleteOrganizationCallback: () -> Unit,
     updateErrorMessage: (Response) -> Unit,
+    updateNotificationMessage: (String, String) -> Unit,
 ) = fc<OrganizationSettingsMenuProps> { props ->
     @Suppress("LOCAL_VARIABLE_EARLY_DECLARATION")
     val organizationPath = props.organization.name
+    val (wasConfirmationModalShown, setWasConfirmationModalShown) = useState(false)
     val organizationPermissionManagerCard = manageUserRoleCardComponent({
         updateErrorMessage(it)
     },
         {
             it.organizations
+        },
+        showGlobalRoleWarning = {
+            updateNotificationMessage(
+                "Super admin message",
+                "Keep in mind that you are super admin, so you are able to manage organization regardless of your organization permissions.",
+            )
+            setWasConfirmationModalShown(true)
         },
     )
 
@@ -68,6 +78,7 @@ fun organizationSettingsMenu(
                 attrs.selfUserInfo = props.currentUserInfo
                 attrs.groupPath = organizationPath
                 attrs.groupType = "organization"
+                attrs.wasConfirmationModalShown = wasConfirmationModalShown
             }
         }
         // ===================== RIGHT COLUMN ======================================================================

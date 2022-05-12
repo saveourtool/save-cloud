@@ -2,11 +2,14 @@ package org.cqfn.save.backend.service
 
 import org.cqfn.save.backend.repository.LnkUserProjectRepository
 import org.cqfn.save.backend.repository.UserRepository
+import org.cqfn.save.backend.utils.AuthenticationDetails
 import org.cqfn.save.domain.Role
 import org.cqfn.save.entities.LnkUserProject
 import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.User
+import org.cqfn.save.utils.getHighestRole
 import org.springframework.data.domain.PageRequest
+import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
 
 /**
@@ -15,7 +18,8 @@ import org.springframework.stereotype.Service
 @Service
 class LnkUserProjectService(
     private val lnkUserProjectRepository: LnkUserProjectRepository,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val userDetailsService: UserDetailsService,
 ) {
     /**
      * @param project
@@ -92,4 +96,16 @@ class LnkUserProjectService(
      * @return list of [User]s that are connected to [project]
      */
     fun getAllUsersByProject(project: Project): List<User> = lnkUserProjectRepository.findByProject(project).map { it.user }
+
+    /**
+     * @param authentication
+     * @param project
+     * @return the highest of two roles: the one in [project] and global one.
+     */
+    fun getGlobalRoleOrProjectRole(authentication: Authentication, project: Project): Role {
+        val selfId = (authentication.details as AuthenticationDetails).id
+        val selfGlobalRole = userDetailsService.getGlobalRole(authentication)
+        val selfOrganizationRole = findRoleByUserIdAndProject(selfId, project)
+        return getHighestRole(selfOrganizationRole, selfGlobalRole)
+    }
 }
