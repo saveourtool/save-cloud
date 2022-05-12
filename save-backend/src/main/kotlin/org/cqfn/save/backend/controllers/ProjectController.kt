@@ -155,9 +155,7 @@ class ProjectController(
             val saveGit = gitService.saveGit(it, projectId)
             log.info("Save new git id = ${saveGit.id}")
         }
-        val project = projectService.findById(projectId).get()
-        val owner = userRepository.findById(userId).get()
-        lnkUserProjectService.setRole(owner, project, Role.OWNER)
+        lnkUserProjectService.setRoleByIds(userId, projectId, Role.OWNER)
         return ResponseEntity.ok(projectStatus.message)
     }
 
