@@ -4,6 +4,7 @@ import org.cqfn.save.backend.configs.WebSecurityConfig
 import org.cqfn.save.backend.controllers.PermissionController
 import org.cqfn.save.backend.repository.OrganizationRepository
 import org.cqfn.save.backend.repository.UserRepository
+import org.cqfn.save.backend.security.OrganizationPermissionEvaluator
 import org.cqfn.save.backend.security.ProjectPermissionEvaluator
 import org.cqfn.save.backend.service.*
 import org.cqfn.save.backend.utils.AuthenticationDetails
@@ -49,6 +50,7 @@ class PermissionControllerTest {
     @MockBean private lateinit var projectPermissionEvaluator: ProjectPermissionEvaluator
     @MockBean private lateinit var userRepository: UserRepository
     @MockBean private lateinit var projectService: ProjectService
+    @MockBean private lateinit var organizationPermissionEvaluator: OrganizationPermissionEvaluator
     @MockBean private lateinit var lnkUserProjectService: LnkUserProjectService
     @MockBean private lateinit var lnkUserOrganizationService: LnkUserOrganizationService
     @MockBean private lateinit var organizationService: OrganizationService
@@ -108,7 +110,7 @@ class PermissionControllerTest {
             project = Project.stub(id = 99),
             permission = Permission.WRITE,
         )
-        given(projectService.canChangeRoles(any(), any(), any(), any())).willReturn(true)
+        given(projectPermissionEvaluator.canChangeRoles(any(), any(), any(), any())).willReturn(true)
         given(organizationRepository.findByName(any())).willReturn(Organization("Example Org", OrganizationStatus.CREATED, ownerId = 99, null, null))
         given(permissionService.setRole(any(), any(), any())).willReturn(Mono.just(Unit))
 
@@ -194,7 +196,7 @@ class PermissionControllerTest {
             permission = Permission.WRITE,
         )
 
-        given(projectService.canChangeRoles(any(), any(), any(), any())).willReturn(true)
+        given(projectPermissionEvaluator.canChangeRoles(any(), any(), any(), any())).willReturn(true)
         given(permissionService.removeRole(any(), any(), any())).willReturn(Mono.just(Unit))
         webTestClient.delete()
             .uri("/api/$v1/projects/Huawei/huaweiName/users/roles/user")
@@ -214,8 +216,8 @@ class PermissionControllerTest {
             project = Project.stub(id = 99),
             permission = Permission.WRITE,
         )
-        given(projectService.canChangeRoles(any(), any(), any(), any())).willReturn(false)
-        given(organizationService.canChangeRoles(any(), any(), any(), any())).willReturn(false)
+        given(projectPermissionEvaluator.canChangeRoles(any(), any(), any(), any())).willReturn(false)
+        given(organizationPermissionEvaluator.canChangeRoles(any(), any(), any(), any())).willReturn(false)
         given(permissionService.removeRole(any(), any(), any())).willReturn(Mono.just(Unit))
         webTestClient.delete()
             .uri("/api/$v1/projects/Huawei/huaweiName/users/roles/user")

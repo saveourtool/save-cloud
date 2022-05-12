@@ -18,6 +18,7 @@ import kotlinx.serialization.Serializable
  * @property gitHub
  * @property twitter
  * @property organizations
+ * @property globalRole
  */
 @Serializable
 data class UserInfo(
@@ -32,4 +33,5 @@ data class UserInfo(
     var linkedin: String? = null,
     var gitHub: String? = null,
     var twitter: String? = null,
+    val globalRole: Role? = null,
 )

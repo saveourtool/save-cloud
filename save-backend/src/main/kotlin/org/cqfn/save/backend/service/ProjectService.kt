@@ -1,11 +1,9 @@
 package org.cqfn.save.backend.service
 
-import org.cqfn.save.backend.repository.LnkUserProjectRepository
 import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.repository.UserRepository
 import org.cqfn.save.backend.security.ProjectPermissionEvaluator
 import org.cqfn.save.domain.ProjectSaveStatus
-import org.cqfn.save.domain.Role
 import org.cqfn.save.entities.Organization
 import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.ProjectStatus
@@ -33,7 +31,6 @@ import java.util.Optional
 class ProjectService(
     private val projectRepository: ProjectRepository,
     private val projectPermissionEvaluator: ProjectPermissionEvaluator,
-    private val lnkUserProjectRepository: LnkUserProjectRepository,
     private val userRepository: UserRepository
 ) {
     /**
@@ -114,28 +111,6 @@ class ProjectService(
                 Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND, messageIfNotFound))
             }
             .filterByPermission(authentication, permission, statusIfForbidden)
-    }
-
-    /**
-     * @param project
-     * @param userId
-     * @param otherUser
-     * @param requestedRole
-     * @return true if user can change roles in project and false otherwise
-     */
-    @Suppress("UnsafeCallOnNullableType")
-    fun canChangeRoles(
-        project: Project,
-        userId: Long,
-        otherUser: User,
-        requestedRole: Role = Role.NONE
-    ): Boolean {
-        val selfRole = lnkUserProjectRepository.findByUserIdAndProject(userId, project)?.role ?: Role.NONE
-        val otherUserId = otherUser.id!!
-        val otherRole = lnkUserProjectRepository.findByUserIdAndProject(otherUserId, project)?.role ?: Role.NONE
-        return projectPermissionEvaluator.isProjectAdminOrHigher(selfRole) &&
-                projectPermissionEvaluator.hasAnotherUserLessPermissions(selfRole, otherRole) &&
-                projectPermissionEvaluator.isRequestedPermissionsCanBeSetByUser(selfRole, requestedRole)
     }
 
     /**

@@ -25,7 +25,6 @@ import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.Month
 import kotlinx.html.ButtonType
-import kotlinx.html.js.onClickFunction
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -47,6 +46,11 @@ external interface OrganizationSaveViewState : State {
      * Validation of input fields
      */
     var isValidOrganizationName: Boolean?
+
+    /**
+     * Flag to redirect to OrganizationView
+     */
+    var isToRedirect: Boolean?
 }
 
 /**
@@ -62,8 +66,8 @@ class CreateOrganizationView : AbstractView<Props, OrganizationSaveViewState>(tr
     init {
         state.isErrorWithOrganizationSave = false
         state.errorMessage = ""
-
         state.isValidOrganizationName = true
+        state.isToRedirect = false
     }
 
     private fun changeFields(fieldName: InputTypes, target: Event, isOrganization: Boolean = true) {
@@ -89,7 +93,9 @@ class CreateOrganizationView : AbstractView<Props, OrganizationSaveViewState>(tr
                     post("$apiUrl/organization/save", headers, Json.encodeToString(newOrganizationRequest))
 
             if (responseFromCreationOrganization.ok) {
-                window.location.href = "${window.location.origin}#/${organizationName.replace(" ", "%20")}/"
+                setState {
+                    isToRedirect = true
+                }
             } else {
                 responseFromCreationOrganization.text().then {
                     setState {
@@ -104,7 +110,6 @@ class CreateOrganizationView : AbstractView<Props, OrganizationSaveViewState>(tr
     @Suppress("SAY_NO_TO_VAR")
     private fun isValidInput(): Boolean {
         var valid = true
-        // ????????????????????????????????????????????????????????
         if (fieldsMap[InputTypes.ORGANIZATION_NAME].isNullOrBlank()) {
             setState { isValidOrganizationName = false }
             valid = false
@@ -116,6 +121,10 @@ class CreateOrganizationView : AbstractView<Props, OrganizationSaveViewState>(tr
 
     @Suppress("TOO_LONG_FUNCTION", "EMPTY_BLOCK_STRUCTURE_ERROR", "LongMethod")
     override fun RBuilder.render() {
+        if (state.isToRedirect == true) {
+            val organizationName = fieldsMap[InputTypes.ORGANIZATION_NAME]?.trim()!!
+            window.location.href = "${window.location.origin}#/${organizationName.replace(" ", "%20")}/"
+        }
         runErrorModal(
             state.isErrorWithOrganizationSave,
             "Error appeared during organization creation",
@@ -145,9 +154,9 @@ class CreateOrganizationView : AbstractView<Props, OrganizationSaveViewState>(tr
                                             changeFields(InputTypes.ORGANIZATION_NAME, it)
                                         }
                                     }
-                                    button(type = ButtonType.submit, classes = "btn btn-info mt-4 mr-3") {
+                                    button(type = ButtonType.button, classes = "btn btn-info mt-4 mr-3") {
                                         +"Create organization"
-                                        attrs.onClickFunction = {
+                                        attrs.onClick = {
                                             saveOrganization()
                                         }
                                     }
