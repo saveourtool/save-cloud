@@ -191,6 +191,17 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
 
                             Route {
                                 attrs {
+                                    path = "/:user/settings/organizations"
+                                    element = buildElement {
+                                        child(UserSettingsTokenMenuView::class) {
+                                            attrs.userName = state.userInfo?.name
+                                        }
+                                    }
+                                }
+                            }
+
+                            Route {
+                                attrs {
                                     path = "/creation"
                                     element = buildElement {
                                         child(CreationView::class) {}

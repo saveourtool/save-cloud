@@ -193,6 +193,22 @@ class LnkUserOrganizationController(
         )
         return (exactMatchUsers + prefixUsers).map { it.toUserInfo() }
     }
+
+    @GetMapping("/by-user/self")
+    fun getOrganizationWithRoles(
+        authentication: Authentication,
+    ): UserInfo {
+        val selfId = (authentication.details as AuthenticationDetails).id
+        val user = lnkUserOrganizationService.getUserById(selfId).get()
+        return lnkUserOrganizationService
+            .getOrganizationsAndRolesByUser(user)
+            .associate {
+                (it.organization?.name ?: "") to (it.role ?: Role.NONE)
+            }
+            .let {
+                user.toUserInfo(organizations = it)
+            }
+    }
     companion object {
         const val PAGE_SIZE = 5
     }

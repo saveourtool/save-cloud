@@ -196,6 +196,15 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                                                     +"Email management"
                                                 }
                                             }
+                                            div("mt-2") {
+                                                a(classes = "item", href = "#/${props.userName}/settings/organizations") {
+                                                    fontAwesomeIcon {
+                                                        attrs.icon = faEnvelope
+                                                        attrs.className = "fas fa-sm fa-fw mr-2 text-gray-600"
+                                                    }
+                                                    +"Organizations"
+                                                }
+                                            }
                                         }
                                     }
                                 }

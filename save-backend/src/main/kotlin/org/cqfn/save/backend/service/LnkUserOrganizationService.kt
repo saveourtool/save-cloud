@@ -132,4 +132,7 @@ class LnkUserOrganizationService(
         val selfOrganizationRole = findRoleByUserIdAndOrganization(selfId, organization)
         return getHighestRole(selfOrganizationRole, selfGlobalRole)
     }
+
+    fun getOrganizationsAndRolesByUser(user: User): List<LnkUserOrganization> =
+        lnkUserOrganizationRepository.findByUserId(user.id!!)
 }
