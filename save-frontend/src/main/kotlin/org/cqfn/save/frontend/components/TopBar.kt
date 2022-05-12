@@ -194,7 +194,7 @@ fun topBar() = fc<TopBarProps> { props ->
                         val globalRole = props.userInfo?.globalRole ?: Role.VIEWER
                         if (globalRole.priority >= Role.ADMIN.priority) {
                             small("text-gray-400 text-justify") {
-                                +props.userInfo?.globalRole?.formattedName!!
+                                +globalRole.formattedName
                             }
                         }
                     }
