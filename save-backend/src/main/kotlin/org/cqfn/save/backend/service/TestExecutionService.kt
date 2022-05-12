@@ -89,10 +89,10 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
     internal fun getByExecutionIdGroupByTestSuite(
         executionId: Long,
         status: TestResultStatus,
-        page: Int?,
-        pageSize: Int?
+        page: Int,
+        pageSize: Int,
     ): List<TestSuiteExecutionStatisticDto>? =
-            testExecutionRepository.findByExecutionIdGroupByTestSuite(executionId, status, PageRequest.of(page!!, pageSize!!))
+            testExecutionRepository.findByExecutionIdGroupByTestSuite(executionId, status, PageRequest.of(page, pageSize))
 
     /**
      * Finds TestExecution by test location
