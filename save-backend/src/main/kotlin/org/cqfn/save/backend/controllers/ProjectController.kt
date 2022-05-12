@@ -1,12 +1,15 @@
 package org.cqfn.save.backend.controllers
 
 import org.cqfn.save.backend.StringResponse
+import org.cqfn.save.backend.repository.UserRepository
 import org.cqfn.save.backend.security.ProjectPermissionEvaluator
 import org.cqfn.save.backend.service.GitService
+import org.cqfn.save.backend.service.LnkUserProjectService
 import org.cqfn.save.backend.service.OrganizationService
 import org.cqfn.save.backend.service.ProjectService
 import org.cqfn.save.backend.utils.AuthenticationDetails
 import org.cqfn.save.domain.ProjectSaveStatus
+import org.cqfn.save.domain.Role
 import org.cqfn.save.entities.GitDto
 import org.cqfn.save.entities.NewProjectDto
 import org.cqfn.save.entities.Project
@@ -35,10 +38,13 @@ import reactor.kotlin.core.publisher.switchIfEmpty
  */
 @RestController
 @RequestMapping(path = ["/api/$v1/projects"])
-class ProjectController(private val projectService: ProjectService,
-                        private val gitService: GitService,
-                        private val organizationService: OrganizationService,
-                        private val projectPermissionEvaluator: ProjectPermissionEvaluator,
+class ProjectController(
+    private val projectService: ProjectService,
+    private val gitService: GitService,
+    private val organizationService: OrganizationService,
+    private val projectPermissionEvaluator: ProjectPermissionEvaluator,
+    private val lnkUserProjectService: LnkUserProjectService,
+    private val userRepository: UserRepository,
 ) {
     /**
      * Get all projects, including deleted and private. Only accessible for admins.
@@ -149,6 +155,9 @@ class ProjectController(private val projectService: ProjectService,
             val saveGit = gitService.saveGit(it, projectId)
             log.info("Save new git id = ${saveGit.id}")
         }
+        val project = projectService.findById(projectId).get()
+        val owner = userRepository.findById(userId).get()
+        lnkUserProjectService.setRole(owner, project, Role.OWNER)
         return ResponseEntity.ok(projectStatus.message)
     }
 
