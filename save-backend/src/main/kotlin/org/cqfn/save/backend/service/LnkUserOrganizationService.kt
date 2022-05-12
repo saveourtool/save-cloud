@@ -2,9 +2,12 @@ package org.cqfn.save.backend.service
 
 import org.cqfn.save.backend.repository.LnkUserOrganizationRepository
 import org.cqfn.save.backend.repository.UserRepository
+import org.cqfn.save.backend.utils.AuthenticationDetails
 import org.cqfn.save.domain.Role
 import org.cqfn.save.entities.*
+import org.cqfn.save.utils.getHighestRole
 import org.springframework.data.domain.PageRequest
+import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
 
 /**
@@ -14,6 +17,7 @@ import org.springframework.stereotype.Service
 class LnkUserOrganizationService(
     private val lnkUserOrganizationRepository: LnkUserOrganizationRepository,
     private val userRepository: UserRepository,
+    private val userDetailsService: UserDetailsService,
 ) {
     /**
      * @param organization
@@ -116,4 +120,16 @@ class LnkUserOrganizationService(
         .findByUserIdAndOrganizationName(userId, organizationName)
         ?.role
         ?: Role.NONE
+
+    /**
+     * @param authentication
+     * @param organization
+     * @return the highest of two roles: the one in [organization] and global one.
+     */
+    fun getGlobalRoleOrOrganizationRole(authentication: Authentication, organization: Organization): Role {
+        val selfId = (authentication.details as AuthenticationDetails).id
+        val selfGlobalRole = userDetailsService.getGlobalRole(authentication)
+        val selfOrganizationRole = findRoleByUserIdAndOrganization(selfId, organization)
+        return getHighestRole(selfOrganizationRole, selfGlobalRole)
+    }
 }

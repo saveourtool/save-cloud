@@ -28,7 +28,7 @@ enum class Role(val formattedName: String, val priority: Int) {
     /**
      * Superuser, that has access to everything
      */
-    SUPER_ADMIN("Superadmin", 4),
+    SUPER_ADMIN("Super admin", 4),
 
     /**
      * Has readonly access to public projects.
