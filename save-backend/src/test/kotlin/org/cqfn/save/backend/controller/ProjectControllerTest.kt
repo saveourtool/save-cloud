@@ -48,9 +48,6 @@ class ProjectControllerTest {
     @Autowired
     lateinit var webClient: WebTestClient
 
-    @MockBean
-    private lateinit var lnkUserProjectService: LnkUserProjectService
-
     @Test
     @WithMockUser
     fun `should return all public projects`() {
