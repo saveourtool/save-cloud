@@ -27,6 +27,7 @@ import org.gradle.plugins.signing.SigningPlugin
     "MISSING_KDOC_TOP_LEVEL",
     "TOO_LONG_FUNCTION")
 fun Project.configurePublishing() {
+    println("\n\n\n\nSTART configurePublishing")
     // If present, set properties from env variables. If any are absent, release will fail.
     System.getenv("OSSRH_USERNAME")?.let {
         extra.set("sonatypeUsername", it)
@@ -63,7 +64,10 @@ fun Project.configurePublishing() {
     afterEvaluate {
         val publicationsFromMainHost = listOf("jvm", "metadata")
         configure<PublishingExtension> {
+            println("\n\npublications")
+            publications.forEach { println(it.name) }
             publications.matching { it.name in publicationsFromMainHost }.all {
+                println("\n\nafterEvaluate ${this.name}")
                 val targetPublication = this@all
                 tasks.withType<AbstractPublishToMaven>()
                     .matching { it.publication == targetPublication }
@@ -84,6 +88,7 @@ fun Project.configurePublishing() {
 
 @Suppress("TOO_LONG_FUNCTION")
 private fun Project.configurePublications() {
+    println("------------------ configurePublications -------------------------")
     val dokkaJar: Jar = tasks.create<Jar>("dokkaJar") {
         group = "documentation"
         archiveClassifier.set("javadoc")
@@ -94,11 +99,12 @@ private fun Project.configurePublications() {
             mavenLocal()
         }
         publications.withType<MavenPublication>().forEach { publication ->
+            println("\n\n\n publication.name ------------ ${publication.name}")
             publication.artifact(dokkaJar)
             publication.pom {
                 name.set(project.name)
                 description.set(project.description ?: project.name)
-                url.set("https://github.com/analysis-dev/save-cloud")
+                url.set("https://github.com/cqfn/save-cloud")
                 licenses {
                     license {
                         name.set("MIT License")
@@ -119,8 +125,8 @@ private fun Project.configurePublications() {
                     }
                 }
                 scm {
-                    url.set("https://github.com/analysis-dev/save-cloud")
-                    connection.set("scm:git:git://github.com/analysis-dev/save-cloud.git")
+                    url.set("https://github.com/cqfn/save-cloud")
+                    connection.set("scm:git:git://github.com/cqfn/save-cloud.git")
                 }
             }
         }

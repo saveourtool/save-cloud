@@ -4,6 +4,8 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     kotlin("jvm")
     alias(libs.plugins.kotlin.plugin.serialization)
+//    id("signing")
+//    id("maven-publish")
 }
 
 tasks.withType<KotlinCompile> {

@@ -1,7 +1,5 @@
 name: Create release
 
-# publishToMavenLocal
-
 on:
   push:
     branches:
@@ -51,5 +49,5 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: save-api-${{ runner.os }}
-          path: save-api/build/bin/**/releaseExecutable/*
+          path: save-api/build/*
           retention-days: 1
