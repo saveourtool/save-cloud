@@ -19,7 +19,9 @@ import com.github.dockerjava.transport.DockerHttpClient
 import io.micrometer.core.instrument.MeterRegistry
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream
+import org.cqfn.save.orchestrator.config.ConfigProperties
 import org.slf4j.LoggerFactory
+import org.springframework.stereotype.Component
 
 import java.io.BufferedOutputStream
 import java.io.ByteArrayOutputStream
@@ -27,7 +29,6 @@ import java.io.File
 import java.nio.file.Files
 import java.util.zip.GZIPOutputStream
 
-import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.createTempDirectory
 import kotlin.io.path.createTempFile
 
@@ -36,22 +37,13 @@ import kotlin.io.path.createTempFile
  *
  * @property settings setting of docker daemon
  */
-class ContainerManager(private val settings: DockerSettings,
-                       private val meterRegistry: MeterRegistry,
+@Component
+class DockerContainerManager(
+    configProperties: ConfigProperties,
+    private val meterRegistry: MeterRegistry,
+    private val dockerClient: DockerClient,
 ) {
-    private val dockerClientConfig: DockerClientConfig = DefaultDockerClientConfig
-        .createDefaultConfigBuilder()
-        .withDockerHost(settings.host)
-        .withDockerTlsVerify(false)
-        .build()
-    private val dockerHttpClient: DockerHttpClient = ApacheDockerHttpClient.Builder()
-        .dockerHost(dockerClientConfig.dockerHost)
-        .build()
-
-    /**
-     * Main class from docker-java-api
-     */
-    internal val dockerClient: DockerClient = DockerClientImpl.getInstance(dockerClientConfig, dockerHttpClient)
+    private val settings: DockerSettings = configProperties.docker
 
     /**
      * Creates a docker container
@@ -133,7 +125,6 @@ class ContainerManager(private val settings: DockerSettings,
      * @return id of the created docker image
      * @throws DockerException
      */
-    @OptIn(ExperimentalPathApi::class)
     @Suppress("TOO_LONG_FUNCTION", "LongMethod")
     internal fun buildImageWithResources(baseImage: String = Sdk.Default.toString(),
                                          imageName: String,
@@ -201,6 +192,6 @@ class ContainerManager(private val settings: DockerSettings,
     }
 
     companion object {
-        private val log = LoggerFactory.getLogger(ContainerManager::class.java)
+        private val log = LoggerFactory.getLogger(DockerContainerManager::class.java)
     }
 }

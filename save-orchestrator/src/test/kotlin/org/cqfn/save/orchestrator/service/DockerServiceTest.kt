@@ -75,10 +75,10 @@ class DockerServiceTest {
 
         // assertions
         Thread.sleep(2_500)  // waiting for container to start
-        val inspectContainerResponse = dockerService.containerManager.dockerClient.inspectContainerCmd(testContainerId).exec()
+        val inspectContainerResponse = dockerService.dockerContainerManager.dockerClient.inspectContainerCmd(testContainerId).exec()
         testImageId = inspectContainerResponse.imageId
         Assertions.assertTrue(inspectContainerResponse.state.running!!) {
-            dockerService.containerManager.dockerClient.logContainerCmd(testContainerId)
+            dockerService.dockerContainerManager.dockerClient.logContainerCmd(testContainerId)
                 .withStdOut(true)
                 .withStdErr(true)
                 .exec(object : ResultCallback.Adapter<Frame>() {
@@ -97,10 +97,10 @@ class DockerServiceTest {
     @AfterEach
     fun tearDown() {
         if (::testContainerId.isInitialized) {
-            dockerService.containerManager.dockerClient.removeContainerCmd(testContainerId).exec()
+            dockerService.dockerContainerManager.dockerClient.removeContainerCmd(testContainerId).exec()
         }
         if (::testImageId.isInitialized) {
-            dockerService.containerManager.dockerClient.removeImageCmd(testImageId).exec()
+            dockerService.dockerContainerManager.dockerClient.removeImageCmd(testImageId).exec()
         }
     }
 

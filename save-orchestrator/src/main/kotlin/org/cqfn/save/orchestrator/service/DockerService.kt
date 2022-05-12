@@ -8,7 +8,7 @@ import org.cqfn.save.execution.ExecutionUpdateDto
 import org.cqfn.save.orchestrator.config.ConfigProperties
 import org.cqfn.save.orchestrator.copyRecursivelyWithAttributes
 import org.cqfn.save.orchestrator.createSyntheticTomlConfig
-import org.cqfn.save.orchestrator.docker.ContainerManager
+import org.cqfn.save.orchestrator.docker.DockerContainerManager
 import org.cqfn.save.testsuite.TestSuiteDto
 import org.cqfn.save.utils.PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE
 import org.cqfn.save.utils.STANDARD_TEST_SUITE_DIR
@@ -20,6 +20,7 @@ import io.micrometer.core.instrument.MeterRegistry
 import net.lingala.zip4j.ZipFile
 import net.lingala.zip4j.exception.ZipException
 import org.apache.commons.io.FileUtils
+import org.cqfn.save.orchestrator.docker.AgentRunner
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
@@ -41,17 +42,15 @@ import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.createTempDirectory
 
 /**
- * A service that uses [ContainerManager] to build and start containers for test execution.
+ * A service that uses [DockerContainerManager] to build and start containers for test execution.
+ * @property dockerContainerManager [DockerContainerManager] that is used to access docker daemon API
  */
 @Service
 @OptIn(ExperimentalPathApi::class)
 class DockerService(private val configProperties: ConfigProperties,
-                    meterRegistry: MeterRegistry,
+                    internal val dockerContainerManager: DockerContainerManager,
+                    private val agentRunner: AgentRunner,
 ) {
-    /**
-     * [ContainerManager] that is used to access docker daemon API
-     */
-    internal val containerManager = ContainerManager(configProperties.docker, meterRegistry)
     private val executionDir = "/run/save-execution"
 
     @Suppress("NonBooleanPropertyPrefixedWithIs")
@@ -75,13 +74,13 @@ class DockerService(private val configProperties: ConfigProperties,
     ): List<String> {
         log.info("Building base image for execution.id=${execution.id}")
         val (imageId, runCmd, saveCliExecFlags) = buildBaseImageForExecution(execution, testSuiteDtos)
+        // todo (k8s): need to also push it so that other nodes will have access to it
         log.info("Built base image for execution.id=${execution.id}")
-        return (1..configProperties.agentsCount).map { number ->
-            log.info("Building container #$number for execution.id=${execution.id}")
-            createContainerForExecution(execution, imageId, "${execution.id}-$number", runCmd, saveCliExecFlags).also {
-                log.info("Built container id=$it for execution.id=${execution.id}")
-            }
-        }
+        agentRunner.create(
+            baseImageId = imageId,
+            replicas = configProperties.agentsCount,
+
+        )
     }
 
     /**
@@ -100,7 +99,7 @@ class DockerService(private val configProperties: ConfigProperties,
             .subscribe()
         agentIds.forEach {
             log.info("Starting container id=$it")
-            containerManager.dockerClient.startContainerCmd(it).exec()
+            agentRunner.start(it)
         }
         log.info("Successfully started all containers for execution.id=$executionId")
     }
@@ -113,12 +112,12 @@ class DockerService(private val configProperties: ConfigProperties,
     fun stopAgents(agentIds: Collection<String>) =
             if (isAgentStoppingInProgress.compareAndSet(false, true)) {
                 try {
-                    val containerList = containerManager.dockerClient.listContainersCmd().withShowAll(true).exec()
+                    val containerList = dockerContainerManager.dockerClient.listContainersCmd().withShowAll(true).exec()
                     val runningContainersIds = containerList.filter { it.state == "running" }.map { it.id }
                     agentIds.forEach { agentId ->
                         if (agentId in runningContainersIds) {
                             log.info("Stopping agent with id=$agentId")
-                            containerManager.dockerClient.stopContainerCmd(agentId).exec()
+                            agentRunner.stop(agentId)
                             log.info("Agent with id=$agentId has been stopped")
                         } else {
                             val state = containerList.find { it.id == agentId }?.state ?: "deleted"
@@ -144,11 +143,11 @@ class DockerService(private val configProperties: ConfigProperties,
      */
     fun removeImage(imageName: String) {
         log.info("Removing image $imageName")
-        val existingImages = containerManager.dockerClient.listImagesCmd().exec().map {
+        val existingImages = dockerContainerManager.dockerClient.listImagesCmd().exec().map {
             it.id
         }
         if (imageName in existingImages) {
-            containerManager.dockerClient.removeImageCmd(imageName).exec()
+            dockerContainerManager.dockerClient.removeImageCmd(imageName).exec()
         } else {
             log.info("Image $imageName is not present, so won't attempt to remove")
         }
@@ -160,12 +159,12 @@ class DockerService(private val configProperties: ConfigProperties,
      */
     fun removeContainer(containerId: String) {
         log.info("Removing container $containerId")
-        val existingContainerIds = containerManager.dockerClient.listContainersCmd().withShowAll(true).exec()
+        val existingContainerIds = dockerContainerManager.dockerClient.listContainersCmd().withShowAll(true).exec()
             .map {
                 it.id
             }
         if (containerId in existingContainerIds) {
-            containerManager.dockerClient.removeContainerCmd(containerId).exec()
+            dockerContainerManager.dockerClient.removeContainerCmd(containerId).exec()
         } else {
             log.info("Container $containerId is not present, so won't attempt to remove")
         }
@@ -249,7 +248,7 @@ class DockerService(private val configProperties: ConfigProperties,
         } else {
             ""
         }
-        val imageId = containerManager.buildImageWithResources(
+        val imageId = dockerContainerManager.buildImageWithResources(
             baseImage = baseImage,
             imageName = imageName(execution.id!!),
             baseDir = resourcesPath,
@@ -364,7 +363,7 @@ class DockerService(private val configProperties: ConfigProperties,
         runCmd: String,
         saveCliExecFlags: String,
     ): String {
-        val containerId = containerManager.createContainerFromImage(
+        val containerId = dockerContainerManager.createContainerFromImage(
             imageId,
             executionDir,
             runCmd,
@@ -381,6 +380,7 @@ class DockerService(private val configProperties: ConfigProperties,
         agentPropertiesFile.writeText(
             agentPropertiesFile.readLines().joinToString(System.lineSeparator()) { line ->
                 when {
+                    // todo: agent should be able to get ID from env POD_NAME
                     line.startsWith("id=") -> "id=$containerId"
                     line.startsWith("cliCommand=") -> "cliCommand=$cliCommand"
                     line.startsWith("backend.url=") && configProperties.agentSettings.backendUrl != null ->
@@ -391,7 +391,7 @@ class DockerService(private val configProperties: ConfigProperties,
                 }
             }
         )
-        containerManager.copyResourcesIntoContainer(
+        dockerContainerManager.copyResourcesIntoContainer(
             containerId, executionDir,
             listOf(agentPropertiesFile)
         )
