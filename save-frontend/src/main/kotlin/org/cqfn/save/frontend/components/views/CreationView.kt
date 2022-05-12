@@ -195,7 +195,7 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
                 ProjectStatus.CREATED,
                 public = state.isPublic!!,
                 userId = -1,
-                organization = Organization("stub", null, date)
+                organization = Organization("stub", OrganizationStatus.CREATED, null, date)
             ),
             fieldsMap[InputTypes.ORGANIZATION_NAME]!!.trim(),
             GitDto(
@@ -212,12 +212,10 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
         scope.launch {
             val responseFromCreationProject =
                     post("$apiUrl/projects/save", headers, Json.encodeToString(newProjectRequest))
-
             if (responseFromCreationProject.ok == true) {
-                window.location.href =
-                        "${window.location.origin}#/" +
-                                "${organizationName.replace(" ", "%20")}/" +
-                                newProjectRequest.project.name.replace(" ", "%20")
+                window.location.href = "${window.location.origin}#/${organizationName.replace(" ", "%20")}/" +
+                        newProjectRequest.project.name.replace(" ", "%20")
+                window.location.reload()
             } else {
                 responseFromCreationProject.text().then {
                     setState {
@@ -408,7 +406,7 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
                                         }
                                     }
 
-                                    button(type = ButtonType.submit, classes = "btn btn-info mt-4 mr-3") {
+                                    button(type = ButtonType.button, classes = "btn btn-info mt-4 mr-3") {
                                         +"Create test project"
                                         attrs.onClickFunction = { saveProject() }
                                     }

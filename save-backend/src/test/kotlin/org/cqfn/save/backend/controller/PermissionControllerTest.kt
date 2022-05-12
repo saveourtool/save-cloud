@@ -4,16 +4,15 @@ import org.cqfn.save.backend.configs.WebSecurityConfig
 import org.cqfn.save.backend.controllers.PermissionController
 import org.cqfn.save.backend.repository.OrganizationRepository
 import org.cqfn.save.backend.repository.UserRepository
+import org.cqfn.save.backend.security.OrganizationPermissionEvaluator
 import org.cqfn.save.backend.security.ProjectPermissionEvaluator
-import org.cqfn.save.backend.service.OrganizationService
-import org.cqfn.save.backend.service.PermissionService
-import org.cqfn.save.backend.service.ProjectService
-import org.cqfn.save.backend.service.UserDetailsService
+import org.cqfn.save.backend.service.*
 import org.cqfn.save.backend.utils.AuthenticationDetails
 import org.cqfn.save.backend.utils.ConvertingAuthenticationManager
 import org.cqfn.save.backend.utils.mutateMockedUser
 import org.cqfn.save.domain.Role
 import org.cqfn.save.entities.Organization
+import org.cqfn.save.entities.OrganizationStatus
 import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.User
 import org.cqfn.save.permission.Permission
@@ -38,6 +37,8 @@ import java.util.Optional
 @Import(
     WebSecurityConfig::class,
     OrganizationService::class,
+    LnkUserProjectService::class,
+    LnkUserOrganizationService::class,
     ConvertingAuthenticationManager::class,
     UserDetailsService::class,
 )
@@ -49,10 +50,17 @@ class PermissionControllerTest {
     @MockBean private lateinit var projectPermissionEvaluator: ProjectPermissionEvaluator
     @MockBean private lateinit var userRepository: UserRepository
     @MockBean private lateinit var projectService: ProjectService
+    @MockBean private lateinit var organizationPermissionEvaluator: OrganizationPermissionEvaluator
+    @MockBean private lateinit var lnkUserProjectService: LnkUserProjectService
+    @MockBean private lateinit var lnkUserOrganizationService: LnkUserOrganizationService
+    @MockBean private lateinit var organizationService: OrganizationService
 
     @Test
     @WithMockUser
     fun `should allow reading of roles if user has permission`() {
+        mutateMockedUser {
+            details = AuthenticationDetails(id = 99)
+        }
         given(
             user = { User(name = it.arguments[0] as String, null, null, "") },
             project = Project.stub(id = 99),
@@ -61,7 +69,7 @@ class PermissionControllerTest {
         given(permissionService.getRole(any(), any())).willReturn(Role.ADMIN)
 
         webTestClient.get()
-            .uri("/api/$v1/projects/roles/Huawei/huaweiName?userName=admin")
+            .uri("/api/$v1/projects/Huawei/huaweiName/users/roles?userName=admin")
             .exchange()
             .expectStatus().isOk
             .expectBody<Role>()
@@ -72,6 +80,9 @@ class PermissionControllerTest {
     @Test
     @WithMockUser
     fun `should forbid reading of roles if user doesn't have permission`() {
+        mutateMockedUser {
+            details = AuthenticationDetails(id = 99)
+        }
         given(
             user = { User(name = it.arguments[0] as String, null, null, "") },
             project = Project.stub(id = 99),
@@ -79,7 +90,7 @@ class PermissionControllerTest {
         )
 
         webTestClient.get()
-            .uri("/api/$v1/projects/roles/Huawei/huaweiName?userName=admin")
+            .uri("/api/$v1/projects/Huawei/huaweiName/users/roles?userName=admin")
             .exchange()
             .expectStatus().isNotFound
         verify(permissionService, times(0)).getRole(any(), any())
@@ -99,11 +110,12 @@ class PermissionControllerTest {
             project = Project.stub(id = 99),
             permission = Permission.WRITE,
         )
-        given(organizationRepository.findByName(any())).willReturn(Organization("Example Org", ownerId = 99, null, null))
+        given(projectPermissionEvaluator.canChangeRoles(any(), any(), any(), any())).willReturn(true)
+        given(organizationRepository.findByName(any())).willReturn(Organization("Example Org", OrganizationStatus.CREATED, ownerId = 99, null, null))
         given(permissionService.setRole(any(), any(), any())).willReturn(Mono.just(Unit))
 
         webTestClient.post()
-            .uri("/api/$v1/projects/roles/Huawei/huaweiName")
+            .uri("/api/$v1/projects/Huawei/huaweiName/users/roles")
             .bodyValue(SetRoleRequest("admin", Role.ADMIN))
             .exchange()
             .expectStatus().isOk
@@ -121,10 +133,10 @@ class PermissionControllerTest {
             project = Project.stub(id = 99),
             permission = Permission.WRITE,
         )
-        given(organizationRepository.findByName(any())).willReturn(Organization("Example Org", ownerId = 42, null, null))
+        given(organizationRepository.findByName(any())).willReturn(Organization("Example Org", OrganizationStatus.CREATED, ownerId = 42, null, null))
 
         webTestClient.post()
-            .uri("/api/$v1/projects/roles/Huawei/huaweiName")
+            .uri("/api/$v1/projects/Huawei/huaweiName/users/roles")
             .bodyValue(SetRoleRequest("admin", Role.ADMIN))
             .exchange()
             .expectStatus().isForbidden
@@ -142,10 +154,10 @@ class PermissionControllerTest {
             project = Project.stub(id = 99).apply { public = false },
             permission = null,
         )
-        given(organizationRepository.findByName(any())).willReturn(Organization("Example Org", ownerId = 42, null, null))
+        given(organizationRepository.findByName(any())).willReturn(Organization("Example Org", OrganizationStatus.CREATED, ownerId = 42, null, null))
 
         webTestClient.post()
-            .uri("/api/$v1/projects/roles/Huawei/huaweiName")
+            .uri("/api/$v1/projects/Huawei/huaweiName/users/roles")
             .bodyValue(SetRoleRequest("admin", Role.ADMIN))
             .exchange()
             .expectStatus().isNotFound
@@ -164,7 +176,7 @@ class PermissionControllerTest {
             permission = null,
         )
         webTestClient.delete()
-            .uri("/api/$v1/projects/roles/Huawei/huaweiName/user")
+            .uri("/api/$v1/projects/Huawei/huaweiName/users/roles/user")
             .exchange()
             .expectStatus()
             .isNotFound
@@ -184,10 +196,10 @@ class PermissionControllerTest {
             permission = Permission.WRITE,
         )
 
-        given(projectService.canChangeRoles(any(), any(), any(), any())).willReturn(true)
+        given(projectPermissionEvaluator.canChangeRoles(any(), any(), any(), any())).willReturn(true)
         given(permissionService.removeRole(any(), any(), any())).willReturn(Mono.just(Unit))
         webTestClient.delete()
-            .uri("/api/$v1/projects/roles/Huawei/huaweiName/user")
+            .uri("/api/$v1/projects/Huawei/huaweiName/users/roles/user")
             .exchange()
             .expectStatus()
             .isOk
@@ -204,10 +216,11 @@ class PermissionControllerTest {
             project = Project.stub(id = 99),
             permission = Permission.WRITE,
         )
-        given(projectService.canChangeRoles(any(), any(), any(), any())).willReturn(false)
+        given(projectPermissionEvaluator.canChangeRoles(any(), any(), any(), any())).willReturn(false)
+        given(organizationPermissionEvaluator.canChangeRoles(any(), any(), any(), any())).willReturn(false)
         given(permissionService.removeRole(any(), any(), any())).willReturn(Mono.just(Unit))
         webTestClient.delete()
-            .uri("/api/$v1/projects/roles/Huawei/huaweiName/user")
+            .uri("/api/$v1/projects/Huawei/huaweiName/users/roles/user")
             .exchange()
             .expectStatus()
             .isForbidden
@@ -223,6 +236,7 @@ class PermissionControllerTest {
         given(permissionService.findUserAndProject(any(), any(), any())).willAnswer { invocationOnMock ->
             Tuples.of(user(invocationOnMock), project).let { Mono.just(it) }
         }
+        given(organizationService.findByName(any())).willReturn(project.organization)
         given(projectService.findByNameAndOrganizationName(any(), any())).willReturn(project)
         given(projectPermissionEvaluator.hasPermission(any(), any(), any())).willAnswer {
             when (it.arguments[2] as Permission?) {

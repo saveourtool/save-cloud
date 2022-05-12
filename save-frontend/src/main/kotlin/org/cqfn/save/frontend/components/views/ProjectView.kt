@@ -7,12 +7,7 @@
 package org.cqfn.save.frontend.components.views
 
 import org.cqfn.save.domain.*
-import org.cqfn.save.entities.ExecutionRequest
-import org.cqfn.save.entities.ExecutionRequestForStandardSuites
-import org.cqfn.save.entities.GitDto
-import org.cqfn.save.entities.Organization
-import org.cqfn.save.entities.Project
-import org.cqfn.save.entities.ProjectStatus
+import org.cqfn.save.entities.*
 import org.cqfn.save.execution.ExecutionDto
 import org.cqfn.save.frontend.components.basic.TestingType
 import org.cqfn.save.frontend.components.basic.cardComponent
@@ -30,16 +25,8 @@ import org.cqfn.save.frontend.externals.fontawesome.faHistory
 import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
 import org.cqfn.save.frontend.externals.modal.modal
 import org.cqfn.save.frontend.http.getProject
-import org.cqfn.save.frontend.utils.ProjectMenuBar
-import org.cqfn.save.frontend.utils.apiUrl
-import org.cqfn.save.frontend.utils.appendJson
-import org.cqfn.save.frontend.utils.decodeFromJsonString
-import org.cqfn.save.frontend.utils.get
+import org.cqfn.save.frontend.utils.*
 import org.cqfn.save.frontend.utils.noopResponseHandler
-import org.cqfn.save.frontend.utils.post
-import org.cqfn.save.frontend.utils.runConfirmWindowModal
-import org.cqfn.save.frontend.utils.runErrorModal
-import org.cqfn.save.frontend.utils.unsafeMap
 import org.cqfn.save.info.UserInfo
 import org.cqfn.save.testsuite.TestSuiteDto
 
@@ -228,16 +215,6 @@ external interface ProjectViewState : State {
 }
 
 /**
- * enum that stores types of confirmation windows for different situations
- */
-enum class ConfirmationType {
-    DELETE_CONFIRM,
-    NO_BINARY_CONFIRM,
-    NO_CONFIRM,
-    ;
-}
-
-/**
  * A Component for project view
  * Each modal opening call causes re-render of the whole page, that's why we need to use state for all fields
  */
@@ -337,6 +314,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 isErrorOpen = true
             }
         },
+        updateNotificationMessage = ::showNotification
     )
     private val projectStatisticMenu = projectStatisticMenu()
     private val projectInfoCard = cardComponent(isBordered = true, hasBg = true) {
@@ -431,7 +409,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             "N/A",
             ProjectStatus.CREATED,
             userId = -1,
-            organization = Organization("stub", null, date)
+            organization = Organization("stub", OrganizationStatus.CREATED, null, date)
         )
         state.gitUrlFromInputField = ""
         state.gitBranchOrCommitFromInputField = ""
@@ -455,6 +433,15 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         state.isUploading = false
         state.isEditDisabled = true
         state.selectedMenu = ProjectMenuBar.RUN
+    }
+
+    private fun showNotification(notificationLabel: String, notificationMessage: String) {
+        setState {
+            confirmationType = ConfirmationType.NO_CONFIRM
+            isConfirmWindowOpen = true
+            confirmLabel = notificationLabel
+            confirmMessage = notificationMessage
+        }
     }
 
     override fun componentDidMount() {
@@ -542,7 +529,8 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             selectedStandardSuites,
             selectedSdk,
             state.execCmd,
-            state.batchSizeForAnalyzer
+            state.batchSizeForAnalyzer,
+            null
         )
         formData.appendJson("execution", request)
         state.files.forEach {
@@ -602,6 +590,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             when (state.confirmationType) {
                 ConfirmationType.NO_BINARY_CONFIRM, ConfirmationType.NO_CONFIRM -> submitExecutionRequest()
                 ConfirmationType.DELETE_CONFIRM -> deleteProjectBuilder()
+                ConfirmationType.GLOBAL_ROLE_CONFIRM -> { }
                 else -> {
                     // this is a generated else block
                 }
@@ -733,7 +722,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     private fun RBuilder.renderSettings() {
         child(projectSettingsMenu) {
             attrs.project = state.project
-
             attrs.selfRole = Role.VIEWER
             attrs.currentUserInfo = props.currentUserInfo ?: UserInfo("Unknown")
         }
@@ -891,7 +879,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     private suspend fun fetchLatestExecutionId() {
         val headers = Headers().apply { set("Accept", "application/json") }
         val response = get(
-            "$apiUrl/latestExecution?name=${state.project.name}&organizationId=${state.project.organization.id}",
+            "$apiUrl/latestExecution?name=${state.project.name}&organizationName=${state.project.organization.name}",
             headers,
             responseHandler = ::noopResponseHandler
         )

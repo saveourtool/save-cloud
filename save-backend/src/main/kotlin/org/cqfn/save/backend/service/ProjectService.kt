@@ -1,11 +1,9 @@
 package org.cqfn.save.backend.service
 
-import org.cqfn.save.backend.repository.LnkUserProjectRepository
 import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.repository.UserRepository
 import org.cqfn.save.backend.security.ProjectPermissionEvaluator
 import org.cqfn.save.domain.ProjectSaveStatus
-import org.cqfn.save.domain.Role
 import org.cqfn.save.entities.Organization
 import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.ProjectStatus
@@ -30,10 +28,10 @@ import java.util.Optional
  * @property projectRepository
  */
 @Service
-class ProjectService(private val projectRepository: ProjectRepository,
-                     private val projectPermissionEvaluator: ProjectPermissionEvaluator,
-                     private val lnkUserProjectRepository: LnkUserProjectRepository,
-                     private val userRepository: UserRepository
+class ProjectService(
+    private val projectRepository: ProjectRepository,
+    private val projectPermissionEvaluator: ProjectPermissionEvaluator,
+    private val userRepository: UserRepository
 ) {
     /**
      * Store [project] in the database
@@ -116,35 +114,14 @@ class ProjectService(private val projectRepository: ProjectRepository,
     }
 
     /**
-     * @param project
-     * @param userId
-     * @param otherUser
-     * @param requestedRole
-     * @return true if user can change roles in project and false otherwise
-     */
-    @Suppress("UnsafeCallOnNullableType")
-    fun canChangeRoles(
-        project: Project,
-        userId: Long,
-        otherUser: User,
-        requestedRole: Role = Role.NONE
-    ): Boolean {
-        val selfRole = lnkUserProjectRepository.findByUserIdAndProject(userId, project)?.role ?: Role.NONE
-        val otherUserId = otherUser.id!!
-        val otherRole = lnkUserProjectRepository.findByUserIdAndProject(otherUserId, project)?.role ?: Role.NONE
-        return isProjectAdminOrHigher(selfRole) && hasAnotherUserLessPermissions(selfRole, otherRole) &&
-                isRequestedPermissionsCanBeSetByUser(selfRole, requestedRole)
-    }
-
-    /**
      * @param userName
      * @return optional of user
      */
     fun findUserByName(userName: String): Optional<User> = userRepository.findByName(userName)
 
-    private fun hasAnotherUserLessPermissions(selfRole: Role, otherRole: Role): Boolean = selfRole.priority > otherRole.priority
-
-    private fun isRequestedPermissionsCanBeSetByUser(selfRole: Role, requestedRole: Role): Boolean = selfRole.priority > requestedRole.priority
-
-    private fun isProjectAdminOrHigher(userRole: Role): Boolean = userRole.priority >= Role.ADMIN.priority
+    /**
+     * @param id
+     * @return [Project] with given [id]
+     */
+    fun findById(id: Long): Optional<Project> = projectRepository.findById(id)
 }

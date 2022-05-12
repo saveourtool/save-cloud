@@ -28,7 +28,7 @@ enum class Role(val formattedName: String, val priority: Int) {
     /**
      * Superuser, that has access to everything
      */
-    SUPER_ADMIN("Superadmin", 4),
+    SUPER_ADMIN("Super admin", 4),
 
     /**
      * Has readonly access to public projects.
@@ -45,3 +45,12 @@ enum class Role(val formattedName: String, val priority: Int) {
      * Minimal possible priority
      */
 }
+
+/**
+ * The method compares the priority between two roles
+ *
+ * @param that role to compare
+ * @return comparison result
+ */
+@Suppress("EXTENSION_FUNCTION_WITH_CLASS")
+fun Role.moreOrEqualThan(that: Role) = this.priority >= that.priority

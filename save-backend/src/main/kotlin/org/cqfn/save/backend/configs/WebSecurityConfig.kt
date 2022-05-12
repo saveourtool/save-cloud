@@ -47,7 +47,7 @@ class WebSecurityConfig(
             .pathMatchers("/", "/internal/**", "/actuator/**", *publicEndpoints.toTypedArray())
             .permitAll()
             // resources for frontend
-            .pathMatchers("/*.html", "/*.js*", "/*.css", "/img/**", "favicon.ico")
+            .pathMatchers("/*.html", "/*.js*", "/*.css", "/img/**", "/*.ico", "/*.png")
             .permitAll()
     }
         .and().run {

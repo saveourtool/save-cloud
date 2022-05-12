@@ -1,10 +1,12 @@
 package org.cqfn.save.backend.security
 
+import org.cqfn.save.backend.repository.LnkUserProjectRepository
 import org.cqfn.save.backend.service.LnkUserProjectService
 import org.cqfn.save.backend.utils.AuthenticationDetails
 import org.cqfn.save.domain.Role
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.Project
+import org.cqfn.save.entities.User
 import org.cqfn.save.permission.Permission
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
@@ -22,6 +24,9 @@ import reactor.kotlin.core.publisher.switchIfEmpty
 class ProjectPermissionEvaluator {
     @Autowired
     private lateinit var lnkUserProjectService: LnkUserProjectService
+
+    @Autowired
+    private lateinit var lnkUserProjectRepository: LnkUserProjectRepository
 
     /**
      * @param authentication [Authentication] describing an authenticated request
@@ -100,4 +105,46 @@ class ProjectPermissionEvaluator {
                 .filterByPermission(authentication, permission, HttpStatus.FORBIDDEN)
                 .map { true }
                 .defaultIfEmpty(false)
+
+    /**
+     * @param project in which the role is going to be changed
+     * @param authentication auth info of a current user
+     * @param otherUser user whose role is going to be changed
+     * @param requestedRole role that is going to be set
+     * @return true if user can change roles in project and false otherwise
+     */
+    @Suppress("UnsafeCallOnNullableType")
+    fun canChangeRoles(
+        project: Project,
+        authentication: Authentication,
+        otherUser: User,
+        requestedRole: Role = Role.NONE
+    ): Boolean {
+        val selfRole = lnkUserProjectService.getGlobalRoleOrProjectRole(authentication, project)
+        val otherUserId = otherUser.id!!
+        val otherRole = lnkUserProjectRepository.findByUserIdAndProject(otherUserId, project)?.role ?: Role.NONE
+        return isProjectAdminOrHigher(selfRole) &&
+                hasAnotherUserLessPermissions(selfRole, otherRole) &&
+                isRequestedPermissionsCanBeSetByUser(selfRole, requestedRole)
+    }
+
+    /**
+     * @param selfRole
+     * @param otherRole
+     * @return true if [otherRole] has less permissions than [selfRole], false otherwise.
+     */
+    fun hasAnotherUserLessPermissions(selfRole: Role, otherRole: Role): Boolean = selfRole.priority > otherRole.priority
+
+    /**
+     * @param selfRole
+     * @param requestedRole
+     * @return true if [requestedRole] can be set by user with role [selfRole], false otherwise.
+     */
+    fun isRequestedPermissionsCanBeSetByUser(selfRole: Role, requestedRole: Role): Boolean = selfRole.priority > requestedRole.priority
+
+    /**
+     * @param userRole
+     * @return true if [userRole] is [Role.ADMIN] or higher, false otherwise.
+     */
+    fun isProjectAdminOrHigher(userRole: Role): Boolean = userRole.priority >= Role.ADMIN.priority
 }

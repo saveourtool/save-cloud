@@ -1,9 +1,11 @@
 package org.cqfn.save.backend.service
 
 import org.cqfn.save.backend.repository.UserRepository
+import org.cqfn.save.domain.Role
 import org.cqfn.save.entities.User
 import org.cqfn.save.utils.IdentitySourceAwareUserDetails
 import org.slf4j.LoggerFactory
+import org.springframework.security.core.Authentication
 import org.springframework.security.core.userdetails.ReactiveUserDetailsService
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.core.userdetails.UsernameNotFoundException
@@ -70,4 +72,16 @@ class UserDetailsService(
         identitySource = this.source,
         id = this.id!!,
     )
+
+    /**
+     * @param authentication
+     * @return global [Role] of authenticated user
+     */
+    fun getGlobalRole(authentication: Authentication): Role = authentication.authorities
+        .map { grantedAuthority ->
+            Role.values().find { role -> role.asSpringSecurityRole() == grantedAuthority.authority }
+        }
+        .sortedBy { it?.priority }
+        .lastOrNull()
+        ?: Role.VIEWER
 }

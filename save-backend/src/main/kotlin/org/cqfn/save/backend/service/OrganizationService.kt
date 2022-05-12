@@ -64,19 +64,4 @@ class OrganizationService(
      * @return list of organization by owner id
      */
     fun findByOwnerId(ownerId: Long) = organizationRepository.findByOwnerId(ownerId)
-
-    /**
-     * In case we widen number of users that can manage roles in an organization, there is a separate method.
-     * Simply delegating now.
-     *
-     * @param organizationName
-     * @param userId
-     * @return whether the user can change roles in organization
-     */
-    fun canChangeRoles(organizationName: String, userId: Long): Boolean = isOwner(organizationName, userId)
-
-    private fun isOwner(organizationName: String, userId: Long): Boolean {
-        val organization = organizationRepository.findByName(organizationName)
-        return organization?.ownerId == userId
-    }
 }

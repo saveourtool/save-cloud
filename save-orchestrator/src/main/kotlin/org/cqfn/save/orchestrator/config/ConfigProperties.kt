@@ -20,6 +20,7 @@ import org.springframework.boot.context.properties.ConstructorBinding
  * @property adjustResourceOwner whether Linux user that will be set as owner of resources copied into docker build directory
  * @property agentsHeartBeatTimeoutMillis interval in milliseconds, after which agent should be marked as crashed, if there weren't received heartbeats from him
  * @property heartBeatInspectorInterval interval in seconds, with the frequency of which heartbeat inspector will look for crashed agents
+ * @property agentSettings if set, this will override defaults in agent.properties
  */
 @ConstructorBinding
 @ConfigurationProperties(prefix = "orchestrator")
@@ -34,6 +35,7 @@ data class ConfigProperties(
     val adjustResourceOwner: Boolean = true,
     val agentsHeartBeatTimeoutMillis: Long,
     val heartBeatInspectorInterval: Long,
+    val agentSettings: AgentSettings = AgentSettings(),
 )
 
 /**
@@ -52,4 +54,13 @@ data class DockerSettings(
     val host: String,
     val loggingDriver: String,
     val runtime: String = "runc",
+)
+
+/**
+ * @property backendUrl url of save-backend that will be used by save-agent
+ * @property orchestratorUrl url of save-orchestrator that will be used by save-agent
+ */
+data class AgentSettings(
+    val backendUrl: String? = null,
+    val orchestratorUrl: String? = null,
 )

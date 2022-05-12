@@ -2,11 +2,14 @@ package org.cqfn.save.backend.service
 
 import org.cqfn.save.backend.repository.LnkUserProjectRepository
 import org.cqfn.save.backend.repository.UserRepository
+import org.cqfn.save.backend.utils.AuthenticationDetails
 import org.cqfn.save.domain.Role
 import org.cqfn.save.entities.LnkUserProject
 import org.cqfn.save.entities.Project
 import org.cqfn.save.entities.User
+import org.cqfn.save.utils.getHighestRole
 import org.springframework.data.domain.PageRequest
+import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
 
 /**
@@ -15,7 +18,8 @@ import org.springframework.stereotype.Service
 @Service
 class LnkUserProjectService(
     private val lnkUserProjectRepository: LnkUserProjectRepository,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val userDetailsService: UserDetailsService,
 ) {
     /**
      * @param project
@@ -51,6 +55,22 @@ class LnkUserProjectService(
     }
 
     /**
+     * Set role of user with [userId] on a project with [projectId] to [role]
+     *
+     * @throws IllegalStateException if [role] is [Role.NONE]
+     */
+    @Suppress("KDOC_WITHOUT_PARAM_TAG", "UnsafeCallOnNullableType")
+    fun setRoleByIds(userId: Long, projectId: Long, role: Role) {
+        if (role == Role.NONE) {
+            throw IllegalStateException("Role NONE should not be present in database!")
+        }
+        lnkUserProjectRepository.findByUserIdAndProjectId(userId, projectId)
+            ?.apply { this.role = role }
+            ?.let { lnkUserProjectRepository.save(it) }
+            ?: lnkUserProjectRepository.save(projectId, userId, role.toString())
+    }
+
+    /**
      * @param user that should be deleted from [project]
      * @param project
      * @return none
@@ -62,9 +82,9 @@ class LnkUserProjectService(
         ?.let {
             lnkUserProjectRepository.deleteById(it)
         }
-        ?: run {
-            throw NoSuchElementException("Cannot delete user ${user.name ?: user.id} from project ${project.organization.name}/${project.name}: no such link was found.")
-        }
+        ?: throw NoSuchElementException(
+            "Cannot delete user with name ${user.name} because he is not found in project ${project.organization.name}/${project.name}"
+        )
 
     /**
      * Get certain [pageSize] of platform users with names that start with [prefix]
@@ -92,4 +112,16 @@ class LnkUserProjectService(
      * @return list of [User]s that are connected to [project]
      */
     fun getAllUsersByProject(project: Project): List<User> = lnkUserProjectRepository.findByProject(project).map { it.user }
+
+    /**
+     * @param authentication
+     * @param project
+     * @return the highest of two roles: the one in [project] and global one.
+     */
+    fun getGlobalRoleOrProjectRole(authentication: Authentication, project: Project): Role {
+        val selfId = (authentication.details as AuthenticationDetails).id
+        val selfGlobalRole = userDetailsService.getGlobalRole(authentication)
+        val selfOrganizationRole = findRoleByUserIdAndProject(selfId, project)
+        return getHighestRole(selfOrganizationRole, selfGlobalRole)
+    }
 }

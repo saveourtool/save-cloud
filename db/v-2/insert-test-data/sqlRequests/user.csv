@@ -1,0 +1,14 @@
+id;name;password;role;source;avatar;email;company;location;linkedin;git_hub;twitter
+1;"admin";"{bcrypt}$2a$12$7jB6.fJ/uHZiti94w0.QOu0M/lPzKU1lvX9TLL3uZHFjLGIfz1gHq";"ROLE_SUPER_ADMIN";"basic";;;;;;;
+2;"John Doe";"{bcrypt}$2a$12$zjCjULtsSvapH5kt6KUq4eyTx3WluDwB3GepcbLA.mf/NcGZCLuvi";"ROLE_VIEWER";"basic";;;;;;;
+3;"user";"noop{123}";"ROLE_VIEWER";"basic";;;;;;;
+4;"user1";"noop{123}";"ROLE_VIEWER";"basic";;;;;;;
+5;"user2";"noop{123}";"ROLE_VIEWER";"basic";;;;;;;
+6;"user3";"noop{123}";"ROLE_VIEWER";"basic";;;;;;;
+7;"user4";"noop{123}";"ROLE_VIEWER";"basic";;;;;;;
+8;"user5";"noop{123}";"ROLE_VIEWER";"basic";;;;;;;
+9;"user6";"noop{123}";"ROLE_VIEWER";"basic";;;;;;;
+10;"user7";"noop{123}";"ROLE_VIEWER";"basic";;;;;;;
+11;"user8";"noop{123}";"ROLE_VIEWER";"basic";;;;;;;
+12;"user9";"noop{123}";"ROLE_VIEWER";"basic";;;;;;;
+13;"user10";"noop{123}";"ROLE_VIEWER";"basic";;;;;;;
