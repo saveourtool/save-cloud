@@ -5,6 +5,7 @@ import org.cqfn.save.backend.repository.GitRepository
 import org.cqfn.save.backend.repository.OrganizationRepository
 import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.scheduling.StandardSuitesUpdateScheduler
+import org.cqfn.save.backend.service.LnkUserProjectService
 import org.cqfn.save.backend.utils.AuthenticationDetails
 import org.cqfn.save.backend.utils.MySqlExtension
 import org.cqfn.save.backend.utils.mutateMockedUser
@@ -31,6 +32,7 @@ import org.springframework.web.reactive.function.BodyInserters
 @ExtendWith(MySqlExtension::class)
 @MockBeans(
     MockBean(StandardSuitesUpdateScheduler::class),
+    MockBean(LnkUserProjectService::class),
 )
 @Suppress("UnsafeCallOnNullableType")
 class ProjectControllerTest {
@@ -45,6 +47,9 @@ class ProjectControllerTest {
 
     @Autowired
     lateinit var webClient: WebTestClient
+
+    @MockBean
+    private lateinit var lnkUserProjectService: LnkUserProjectService
 
     @Test
     @WithMockUser
@@ -149,7 +154,6 @@ class ProjectControllerTest {
             "Huawei",
             gitDto,
         )
-
         saveProjectAndAssert(
             newProject,
             { expectStatus().isOk }
