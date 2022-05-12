@@ -37,15 +37,13 @@ import java.util.logging.Level
  * Service for work with agents and backend
  */
 @Service
-class AgentService {
+class AgentService(
+    @Qualifier("webClientBackend") private val webClientBackend: WebClient
+) {
     /**
      * A scheduler that executes long-running background tasks
      */
     internal val scheduler = Schedulers.boundedElastic().also { it.start() }
-
-    @Autowired
-    @Qualifier("webClientBackend")
-    private lateinit var webClientBackend: WebClient
 
     /**
      * Sets new tests ids
