@@ -90,6 +90,7 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
      * @param status
      * @return a list of test executions
      */
+    @Suppress("UnsafeCallOnNullableType")
     internal fun getByExecutionIdGroupByTestSuite(
         executionId: Long,
         status: TestResultStatus,
