@@ -87,9 +87,9 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
     ): Mono<List<TestSuiteExecutionStatisticDto>> =
             justOrNotFound(executionService.findExecution(executionId)).filterWhen {
                 projectPermissionEvaluator.checkPermissions(authentication, it, Permission.READ)
-            }.map {
+            }.mapNotNull {
                 if (page == null || size == null) {
-                    testExecutionService.getTestExecutions(executionId, page, size).groupBy { it.test.testSuite.name }.map { (testSuiteName, testExecutions) ->
+                    testExecutionService.getTestExecutions(executionId).groupBy { it.test.testSuite.name }.map { (testSuiteName, testExecutions) ->
                         TestSuiteExecutionStatisticDto(testSuiteName, testExecutions.count(), testExecutions.count { it.status == status }, status)
                     }
                 } else {
