@@ -4,6 +4,7 @@
 
 package org.cqfn.save.frontend
 
+import org.cqfn.save.domain.Role
 import org.cqfn.save.domain.TestResultStatus
 import org.cqfn.save.frontend.components.Footer
 import org.cqfn.save.frontend.components.basic.scrollToTopButton
@@ -17,6 +18,7 @@ import org.cqfn.save.frontend.externals.fontawesome.*
 import org.cqfn.save.frontend.externals.modal.ReactModal
 import org.cqfn.save.frontend.utils.*
 import org.cqfn.save.info.UserInfo
+import org.cqfn.save.v1
 
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.url.URLSearchParams
@@ -99,9 +101,18 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                 val responseText = text().await()
                 if (!ok || responseText == "null") null else Json.decodeFromString(responseText)
             }
+
+            val globalRole: Role? = get(
+                "${window.location.origin}/api/$v1/users/global-role",
+                Headers().also { it.set("Accept", "application/json") },
+                responseHandler = ::noopResponseHandler
+            ).run {
+                val responseText = text().await()
+                if (!ok || responseText == "null") null else Json.decodeFromString(responseText)
+            }
             userInfoNew?.let {
                 setState {
-                    userInfo = userInfoNew
+                    userInfo = userInfoNew.copy(globalRole = globalRole)
                 }
             }
         }

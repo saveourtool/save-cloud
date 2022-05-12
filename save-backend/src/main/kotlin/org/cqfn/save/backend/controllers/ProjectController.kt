@@ -72,34 +72,6 @@ class ProjectController(private val projectService: ProjectService,
         .filter { projectPermissionEvaluator.hasPermission(authentication, it, Permission.READ) }
 
     /**
-     * 200 - if user can access the project
-     * 403 - if project is public, but user can't access it
-     * 404 - if project is not found or private and user can't access it
-     * FixMe: requires 'write' permission, because now we rely on this endpoint to load `ProjectView`.
-     *  And if the user isn't allowed to see `ProjectView`, we'll create another view in the future.
-     *
-     * @param name name of project
-     * @param authentication
-     * @param organizationId
-     * @return project by name and organization
-     * @throws ResponseStatusException
-     */
-    @GetMapping("/get/organization-id")
-    @PreAuthorize("hasRole('VIEWER')")
-    fun getProjectByNameAndOrganizationId(@RequestParam name: String,
-                                          @RequestParam organizationId: Long,
-                                          authentication: Authentication,
-    ): Mono<Project> {
-        val project = Mono.fromCallable {
-            val organization = organizationService.getOrganizationById(organizationId)
-            projectService.findByNameAndOrganization(name, organization)
-        }
-        return with(projectPermissionEvaluator) {
-            project.filterByPermission(authentication, Permission.WRITE, HttpStatus.FORBIDDEN)
-        }
-    }
-
-    /**
      * @param name
      * @param organizationName
      * @param authentication

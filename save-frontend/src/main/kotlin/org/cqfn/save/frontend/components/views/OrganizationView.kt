@@ -19,6 +19,7 @@ import org.cqfn.save.frontend.http.getOrganization
 import org.cqfn.save.frontend.utils.*
 import org.cqfn.save.info.UserInfo
 import org.cqfn.save.utils.AvatarType
+import org.cqfn.save.utils.getHighestRole
 import org.cqfn.save.v1
 
 import csstype.*
@@ -167,13 +168,15 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
     }
 
     private fun deleteOrganization() {
-        val newOrganization = state.organization?.copy(status = OrganizationStatus.DELETED)
+        val newOrganization = state.organization
+            ?.copy(status = OrganizationStatus.DELETED)
+            ?.apply { id = state.organization?.id }
         setState {
             organization = newOrganization
             confirmationType = ConfirmationType.DELETE_CONFIRM
             isConfirmWindowOpen = true
             confirmLabel = ""
-            confirmMessage = "Are you sure you want to delete this project?"
+            confirmMessage = "Are you sure you want to delete this organization?"
         }
     }
 
@@ -183,7 +186,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             val avatar = getAvatar()
             val organizationLoaded = getOrganization(props.organizationName)
             val projectsLoaded = getProjectsForOrganization()
-            val role = getRoleInOrganization()
+            val role = getHighestRole(getRoleInOrganization(), props.currentUserInfo?.globalRole)
             val users = getUsers()
             setState {
                 image = avatar
@@ -654,14 +657,14 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         }
         scope.launch {
             responseFromDeleteOrganization =
-                    post("$apiUrl/organizations/update", headers, Json.encodeToString(state.organization))
+                    post("$apiUrl/organization/${props.organizationName}/update", headers, Json.encodeToString(state.organization))
         }.invokeOnCompletion {
             if (responseFromDeleteOrganization.ok) {
                 window.location.href = "${window.location.origin}/"
             } else {
                 responseFromDeleteOrganization.text().then {
                     setState {
-                        errorLabel = "Failed to delete project"
+                        errorLabel = "Failed to delete organization"
                         errorMessage = it
                         isErrorOpen = true
                     }

@@ -1,10 +1,13 @@
 package org.cqfn.save.backend.security
 
+import org.cqfn.save.backend.repository.LnkUserProjectRepository
 import org.cqfn.save.backend.service.LnkUserProjectService
+import org.cqfn.save.backend.service.UserDetailsService
 import org.cqfn.save.backend.utils.AuthenticationDetails
 import org.cqfn.save.domain.Role
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.Project
+import org.cqfn.save.entities.User
 import org.cqfn.save.permission.Permission
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
@@ -22,6 +25,12 @@ import reactor.kotlin.core.publisher.switchIfEmpty
 class ProjectPermissionEvaluator {
     @Autowired
     private lateinit var lnkUserProjectService: LnkUserProjectService
+
+    @Autowired
+    private lateinit var lnkUserProjectRepository: LnkUserProjectRepository
+
+    @Autowired
+    private lateinit var userDetailsService: UserDetailsService
 
     /**
      * @param authentication [Authentication] describing an authenticated request
@@ -100,6 +109,31 @@ class ProjectPermissionEvaluator {
                 .filterByPermission(authentication, permission, HttpStatus.FORBIDDEN)
                 .map { true }
                 .defaultIfEmpty(false)
+
+    /**
+     * @param project in which the role is going to be changed
+     * @param authentication auth info of a current user
+     * @param otherUser user whose role is going to be changed
+     * @param requestedRole role that is going to be set
+     * @return true if user can change roles in project and false otherwise
+     */
+    @Suppress("UnsafeCallOnNullableType")
+    fun canChangeRoles(
+        project: Project,
+        authentication: Authentication,
+        otherUser: User,
+        requestedRole: Role = Role.NONE
+    ): Boolean {
+        val selfId = (authentication.details as AuthenticationDetails).id
+        val selfGlobalRole = userDetailsService.getGlobalRole(authentication)
+        val selfProjectRole = lnkUserProjectRepository.findByUserIdAndProject(selfId, project)?.role ?: Role.NONE
+        val selfRole = listOf(selfGlobalRole, selfProjectRole).maxByOrNull { it.priority }!!
+        val otherUserId = otherUser.id!!
+        val otherRole = lnkUserProjectRepository.findByUserIdAndProject(otherUserId, project)?.role ?: Role.NONE
+        return isProjectAdminOrHigher(selfRole) &&
+                hasAnotherUserLessPermissions(selfRole, otherRole) &&
+                isRequestedPermissionsCanBeSetByUser(selfRole, requestedRole)
+    }
 
     /**
      * @param selfRole
