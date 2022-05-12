@@ -94,13 +94,27 @@ prometheus:
 
 promtail:
   image:
-    tag: 4.2.0
+    tag: 2.5.0
   config:
     lokiAddress: http://loki:3100/loki/api/v1/push
+    snippets:
+      pipelineStages:
+        - docker: {}
+        - output:
+            source: output
+        - labels:
+            stream:
+        - multiline:
+            firstline: '^\d{2}:\d{2}:\d{2}\.\d{3} \[(?P<thread>[\w\d\-.]+)\] (?P<level>\w+)'
+        - regex:
+            expression: '^\d{2}:\d{2}:\d{2}\.\d{3} \[(?P<thread>[\w\d\-.]+)\] (?P<level>\w+)'
+        - labels:
+            level:
 
 loki:
   tag: 2.5.0
   persistence:
     enabled: true
+#  service:
   # TODO: service with a fixed IP => ability to use Docker driver
   #  Or rather - use Promtail
