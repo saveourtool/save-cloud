@@ -25,6 +25,7 @@ import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux.fromIterable
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.doOnError
+import reactor.kotlin.core.publisher.onErrorResume
 
 import java.io.File
 
@@ -64,9 +65,9 @@ class AgentsController(
                 // todo: pass SDK via request body
                 dockerService.buildAndCreateContainers(execution, testSuiteDtos)
             }
-                .doOnError(DockerException::class) {
+                .onErrorResume(DockerException::class) {
                     log.error("Unable to build image and containers for executionId=${execution.id}, will mark it as ERROR")
-                    agentService.updateExecution(execution.id!!, ExecutionStatus.ERROR)
+                    agentService.updateExecution(execution.id!!, ExecutionStatus.ERROR).then(Mono.empty())
                 }
                 .flatMap { agentIds ->
                     agentService.saveAgentsWithInitialStatuses(

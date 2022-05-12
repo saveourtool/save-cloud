@@ -139,3 +139,4 @@ commons-compress = { module = "org.apache.commons:commons-compress", version.ref
 picocli = { module = "info.picocli:picocli", version.ref = "picocli" }
 zip4j = { module = "net.lingala.zip4j:zip4j", version.ref = "zip4j" }
 kotlinx-cli = { module = "org.jetbrains.kotlinx:kotlinx-cli", version.ref = "kotlinx-cli" }
+kubernetes-javaClient = { module = "io.kubernetes:client-java", version = "15.0.1" }
