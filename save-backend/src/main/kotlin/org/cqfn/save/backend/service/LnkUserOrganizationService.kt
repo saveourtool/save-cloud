@@ -54,6 +54,22 @@ class LnkUserOrganizationService(
     }
 
     /**
+     * Set [role] of user with [userId] in organization with [organizationId].
+     *
+     * @throws IllegalStateException if [role] is [Role.NONE]
+     */
+    @Suppress("KDOC_WITHOUT_PARAM_TAG", "UnsafeCallOnNullableType")
+    fun setRoleByIds(userId: Long, organizationId: Long, role: Role) {
+        if (role == Role.NONE) {
+            throw IllegalStateException("Role NONE should not be present in database!")
+        }
+        lnkUserOrganizationRepository.findByUserIdAndOrganizationId(userId, organizationId)
+            ?.apply { this.role = role }
+            ?.let { lnkUserOrganizationRepository.save(it) }
+            ?: lnkUserOrganizationRepository.save(organizationId, userId, role.toString())
+    }
+
+    /**
      * @param user
      * @param organization
      * @return role of the [user] in [organization]

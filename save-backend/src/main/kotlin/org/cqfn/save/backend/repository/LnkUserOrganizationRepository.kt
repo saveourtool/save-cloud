@@ -31,6 +31,32 @@ interface LnkUserOrganizationRepository : BaseEntityRepository<LnkUserOrganizati
 
     /**
      * @param userId
+     * @param organizationId
+     * @return [LnkUserOrganization] if user is connected to organization with [organizationId] and `null` otherwise
+     */
+    fun findByUserIdAndOrganizationId(userId: Long, organizationId: Long): LnkUserOrganization?
+
+    /**
+     * Save [LnkUserOrganization] using only ids and role string.
+     *
+     * @param userId
+     * @param organizationId
+     * @param role
+     */
+    @Transactional
+    @Modifying
+    @Query(
+        value = "insert into save_cloud.lnk_user_organization (organization_id, user_id, role) values (:organization_id, :user_id, :role)",
+        nativeQuery = true,
+    )
+    fun save(
+        @Param("organization_id") organizationId: Long,
+        @Param("user_id") userId: Long,
+        @Param("role") role: String
+    )
+
+    /**
+     * @param userId
      * @return List of [LnkUserOrganization] in which user with [userId] participates
      */
     fun findByUserId(userId: Long): List<LnkUserOrganization>
