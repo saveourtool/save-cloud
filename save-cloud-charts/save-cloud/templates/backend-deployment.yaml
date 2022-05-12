@@ -22,6 +22,8 @@ spec:
             {{- include "spring-boot.common.env" (merge (dict "service" .Values.backend) .) | nindent 12 }}
             - name: DATABASE_SECRETS_PATH
               value: {{ .Values.backend.dbPasswordFile }}
+            - name: JAVA_TOOL_OPTIONS
+              value: -Xmx200m
           volumeMounts:
             - {{ include "spring-boot.config-volume-mount" . | indent 14 | trim }}
             - name: fs-storage
@@ -29,6 +31,9 @@ spec:
             - name: database-secret
               mountPath: {{ .Values.backend.dbPasswordFile }}
           {{- include "spring-boot.management" .Values.backend | nindent 10 }}
+          resources:
+            limits:
+              memory: 300M
       initContainers:
         - name: git-cloner
           image: alpine/git

@@ -24,6 +24,8 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
+            - name: JAVA_TOOL_OPTIONS
+              value: -Xmx200m
           volumeMounts:
             - {{ include "spring-boot.config-volume-mount" . | indent 14 | trim }}
             - name: repos-storage
@@ -31,6 +33,9 @@ spec:
             - name: execution-logs-storage
               mountPath: /home/cnb/executionLogs/
           {{- include "spring-boot.management" .Values.orchestrator | nindent 10 }}
+          resources:
+            limits:
+              memory: 300M
       volumes:
         - {{ include "spring-boot.config-volume" (dict "service" .Values.orchestrator) | indent 10 | trim }}
         - name: repos-storage
