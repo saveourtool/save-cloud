@@ -72,38 +72,13 @@ interface TestExecutionRepository : BaseEntityRepository<TestExecution>, JpaSpec
             on t1.name = t2.name) tt
         """,
         countQuery = """
-            select count(tt.name, tt.count, tt.passed, tt.status) from (
-            select t1.name, t1.count, 
-                CASE 
-                WHEN t2.passed IS NULL 
-                THEN 0 
-                ELSE t2.passed 
-                END as passed,
-                CASE 
-                WHEN t2.status IS NULL 
-                THEN :status
-                ELSE t2.status 
-                END as status
-            from (select ts.name, count(te.id) as count from test_execution te
+            select count(ts.name) from test_execution te
             join test t
                 on te.test_id = t.id
             join test_suite ts
                 on ts.id = t.test_suite_id
-            where 1=1
-                and te.execution_id = :executionId
-            group by ts.name) t1
-            left outer join (
-            select ts.name as name, count(te.id) as passed, te.status from test_execution te
-            join test t
-                on te.test_id = t.id
-            join test_suite ts
-                on ts.id = t.test_suite_id
-            where 1=1
-                and te.execution_id = :executionId
-                and te.status = :status
+            where te.execution_id = :executionId
             group by ts.name
-            ) t2
-            on t1.name = t2.name) tt
         """, nativeQuery = true
     )
     fun findByExecutionIdGroupByTestSuite(
