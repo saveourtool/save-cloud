@@ -36,7 +36,7 @@ jobs:
           gradle-dependencies-cache-key: |
             gradle/libs.versions.toml
           arguments: |
-            save-api:build
+            save-api-cli:build
             -DincludeSaveApi='true'
             -x detekt
           properties: |
