@@ -1,8 +1,6 @@
 package org.cqfn.save.frontend.components.views.usersettingsview
 
 import org.cqfn.save.frontend.components.basic.cardComponent
-import org.cqfn.save.frontend.utils.apiUrl
-import org.cqfn.save.frontend.utils.post
 
 import kotlinext.js.assign
 import org.w3c.fetch.Headers
@@ -14,6 +12,9 @@ import react.setState
 import kotlinx.coroutines.launch
 import kotlinx.html.ButtonType
 import kotlinx.html.js.onClickFunction
+import org.cqfn.save.frontend.utils.*
+import org.cqfn.save.info.UserInfo
+import react.useState
 
 @Suppress("MISSING_KDOC_TOP_LEVEL")
 class UserSettingsOrganizationsMenuView : UserSettingsView() {
@@ -24,9 +25,17 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                     +"Organizations"
                 }
             }
+            val organizationsAndRoles = state.userInfo?.organizations ?: emptyMap()
 
-            div("row justify-content-center") {
-
+            for ((organization, role) in organizationsAndRoles) {
+                div("row justify-content-center") {
+                    a(href = "#/$organization") {
+                        +organization
+                    }
+                    div {
+                        +role.formattedName
+                    }
+                }
             }
         })
     }

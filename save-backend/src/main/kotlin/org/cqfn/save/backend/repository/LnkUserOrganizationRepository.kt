@@ -2,7 +2,11 @@ package org.cqfn.save.backend.repository
 
 import org.cqfn.save.entities.LnkUserOrganization
 import org.cqfn.save.entities.Organization
+import org.springframework.data.jpa.repository.Modifying
+import org.springframework.data.jpa.repository.Query
+import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
+import org.springframework.transaction.annotation.Transactional
 
 /**
  * Repository of lnkUserProject

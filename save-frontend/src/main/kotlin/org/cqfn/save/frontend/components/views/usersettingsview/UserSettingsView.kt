@@ -32,6 +32,8 @@ import kotlinx.html.hidden
 import kotlinx.html.js.onChangeFunction
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.cqfn.save.domain.Role
+import org.cqfn.save.entities.Organization
 
 /**
  * `Props` retrieved from router
@@ -95,7 +97,9 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
         super.componentDidMount()
         scope.launch {
             val avatar = getAvatar()
-            val user = props.userName?.let { getUser(it) }
+            val user = props.userName
+                ?.let { getUser(it) }
+                ?.copy(organizations = getOrganizations())
             setState {
                 image = avatar
                 userInfo = user
@@ -112,6 +116,8 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
         userInfo.gitHub?.let { fieldsMap[InputTypes.GIT_HUB] = it }
         userInfo.twitter?.let { fieldsMap[InputTypes.TWITTER] = it }
     }
+
+
 
     /**
      * @return element
@@ -291,4 +297,11 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
         .unsafeMap {
             it.decodeFromJsonString<ImageInfo>()
         }
+
+    private suspend fun getOrganizations() = get(
+        "",
+        Headers(),
+        responseHandler = ::noopResponseHandler
+    )
+        .unsafeMap { it.decodeFromJsonString<Map<String, Role>>() }
 }
