@@ -3,7 +3,6 @@
 package org.cqfn.save.frontend.components.basic
 
 import org.cqfn.save.domain.Role
-import org.cqfn.save.entities.Organization
 import org.cqfn.save.info.UserInfo
 
 import org.w3c.fetch.Response
@@ -20,7 +19,7 @@ external interface OrganizationSettingsMenuProps : Props {
     /**
      * Current organization settings
      */
-    var organization: Organization
+    var organizationName: String
 
     /**
      * Role of user that opened this window
@@ -51,7 +50,7 @@ fun organizationSettingsMenu(
     updateNotificationMessage: (String, String) -> Unit,
 ) = fc<OrganizationSettingsMenuProps> { props ->
     @Suppress("LOCAL_VARIABLE_EARLY_DECLARATION")
-    val organizationPath = props.organization.name
+    val organizationPath = props.organizationName
     val (wasConfirmationModalShown, setWasConfirmationModalShown) = useState(false)
     val organizationPermissionManagerCard = manageUserRoleCardComponent({
         updateErrorMessage(it)
