@@ -2,9 +2,12 @@ package org.cqfn.save.backend.service
 
 import org.cqfn.save.backend.repository.LnkUserOrganizationRepository
 import org.cqfn.save.backend.repository.UserRepository
+import org.cqfn.save.backend.utils.AuthenticationDetails
 import org.cqfn.save.domain.Role
 import org.cqfn.save.entities.*
+import org.cqfn.save.utils.getHighestRole
 import org.springframework.data.domain.PageRequest
+import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
 
 /**
@@ -14,6 +17,7 @@ import org.springframework.stereotype.Service
 class LnkUserOrganizationService(
     private val lnkUserOrganizationRepository: LnkUserOrganizationRepository,
     private val userRepository: UserRepository,
+    private val userDetailsService: UserDetailsService,
 ) {
     /**
      * @param organization
@@ -47,6 +51,22 @@ class LnkUserOrganizationService(
             ?.apply { this.role = role }
             ?: LnkUserOrganization(organization, user, role)
         lnkUserOrganizationRepository.save(lnkUserOrganization)
+    }
+
+    /**
+     * Set [role] of user with [userId] in organization with [organizationId].
+     *
+     * @throws IllegalStateException if [role] is [Role.NONE]
+     */
+    @Suppress("KDOC_WITHOUT_PARAM_TAG", "UnsafeCallOnNullableType")
+    fun setRoleByIds(userId: Long, organizationId: Long, role: Role) {
+        if (role == Role.NONE) {
+            throw IllegalStateException("Role NONE should not be present in database!")
+        }
+        lnkUserOrganizationRepository.findByUserIdAndOrganizationId(userId, organizationId)
+            ?.apply { this.role = role }
+            ?.let { lnkUserOrganizationRepository.save(it) }
+            ?: lnkUserOrganizationRepository.save(organizationId, userId, role.toString())
     }
 
     /**
@@ -116,4 +136,16 @@ class LnkUserOrganizationService(
         .findByUserIdAndOrganizationName(userId, organizationName)
         ?.role
         ?: Role.NONE
+
+    /**
+     * @param authentication
+     * @param organization
+     * @return the highest of two roles: the one in [organization] and global one.
+     */
+    fun getGlobalRoleOrOrganizationRole(authentication: Authentication, organization: Organization): Role {
+        val selfId = (authentication.details as AuthenticationDetails).id
+        val selfGlobalRole = userDetailsService.getGlobalRole(authentication)
+        val selfOrganizationRole = findRoleByUserIdAndOrganization(selfId, organization)
+        return getHighestRole(selfOrganizationRole, selfGlobalRole)
+    }
 }

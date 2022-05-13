@@ -4,7 +4,7 @@ config.devServer = Object.assign(
     {
       proxy: [
         {
-          context: ["/api/**"],
+          context: ["/api/**", "**.ico", "**.png"],
           target: 'http://localhost:5800',
           logLevel: 'debug',
           onProxyReq: function (proxyReq, req, res) {

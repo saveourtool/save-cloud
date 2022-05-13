@@ -6,6 +6,7 @@
 
 package org.cqfn.save.frontend.components
 
+import org.cqfn.save.domain.Role
 import org.cqfn.save.frontend.components.modal.logoutModal
 import org.cqfn.save.frontend.externals.fontawesome.faCog
 import org.cqfn.save.frontend.externals.fontawesome.faSignOutAlt
@@ -180,13 +181,22 @@ fun topBar() = fc<TopBarProps> { props ->
                         set("aria-expanded", "false")
                     }
 
-                    span("mr-2 d-none d-lg-inline text-gray-600") {
-                        +(props.userInfo?.name ?: "")
-                    }
-
-                    fontAwesomeIcon {
-                        attrs.icon = "user"
-                        attrs.className = "fas fa-lg fa-fw mr-2 text-gray-400"
+                    div("row") {
+                        div {
+                            span("mr-2 d-none d-lg-inline text-gray-600") {
+                                +(props.userInfo?.name ?: "")
+                            }
+                            fontAwesomeIcon {
+                                attrs.icon = "user"
+                                attrs.className = "fas fa-lg fa-fw mr-2 text-gray-400"
+                            }
+                        }
+                        val globalRole = props.userInfo?.globalRole ?: Role.VIEWER
+                        if (globalRole.priority >= Role.ADMIN.priority) {
+                            small("text-gray-400 text-justify") {
+                                +globalRole.formattedName
+                            }
+                        }
                     }
                 }
                 // Dropdown - User Information

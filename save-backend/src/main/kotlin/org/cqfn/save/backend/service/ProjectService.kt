@@ -118,4 +118,10 @@ class ProjectService(
      * @return optional of user
      */
     fun findUserByName(userName: String): Optional<User> = userRepository.findByName(userName)
+
+    /**
+     * @param id
+     * @return [Project] with given [id]
+     */
+    fun findById(id: Long): Optional<Project> = projectRepository.findById(id)
 }
