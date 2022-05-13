@@ -3,7 +3,7 @@ name: Create release
 on:
   push:
     branches:
-      - main
+      - master
     paths:
       - 'save-api/**'
       - 'save-api-cli/**'
@@ -16,10 +16,8 @@ env:
 jobs:
   release:
     name: Build release
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ ubuntu-latest, windows-latest, macos-latest ]
+    runs-on: ubuntu-20.04
+
     steps:
       - name: Checkout
         uses: actions/checkout@v3
