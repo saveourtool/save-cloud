@@ -1,6 +1,5 @@
 package org.cqfn.save.backend.repository
 
-import org.cqfn.save.agent.TestSuiteExecutionStatisticDto
 import org.cqfn.save.domain.TestResultStatus
 import org.cqfn.save.entities.TestExecution
 import org.springframework.data.domain.Pageable
@@ -39,7 +38,41 @@ interface TestExecutionRepository : BaseEntityRepository<TestExecution>, JpaSpec
      */
     @Query(
         value = """
-            select org.cqfn.save.agent.TestSuiteExecutionStatisticDto(tt.name, tt.count, tt.passed, tt.status) from (
+            select tt.name, tt.count, tt.passed, tt.status from (
+            select t1.name, t1.count, 
+                CASE 
+                WHEN t2.passed IS NULL 
+                THEN 0 
+                ELSE t2.passed 
+                END as passed,
+                CASE 
+                WHEN t2.status IS NULL 
+                THEN :status
+                ELSE t2.status 
+                END as status
+            from (select ts.name, count(te.id) as count from test_execution te
+            join test t
+                on te.test_id = t.id
+            join test_suite ts
+                on ts.id = t.test_suite_id
+            where 1=1
+                and te.execution_id = :executionId
+            group by ts.name) t1
+            left outer join (
+            select ts.name as name, count(te.id) as passed, te.status from test_execution te
+            join test t
+                on te.test_id = t.id
+            join test_suite ts
+                on ts.id = t.test_suite_id
+            where 1=1
+                and te.execution_id = :executionId
+                and te.status = :status
+            group by ts.name
+            ) t2
+            on t1.name = t2.name) tt
+        """,
+        countQuery = """
+            select count(tt.name, tt.count, tt.passed, tt.status) from (
             select t1.name, t1.count, 
                 CASE 
                 WHEN t2.passed IS NULL 
@@ -75,9 +108,9 @@ interface TestExecutionRepository : BaseEntityRepository<TestExecution>, JpaSpec
     )
     fun findByExecutionIdGroupByTestSuite(
         @Param("executionId") executionId: Long,
-        @Param("status") status: TestResultStatus?,
+        @Param("status") status: String,
         pageable: Pageable,
-    ): List<TestSuiteExecutionStatisticDto>?
+    ): List<Array<*>>?
 
     /**
      * @param executionId

@@ -1,7 +1,6 @@
 package org.cqfn.save.backend.service
 
 import org.cqfn.save.agent.TestExecutionDto
-import org.cqfn.save.agent.TestSuiteExecutionStatisticDto
 import org.cqfn.save.backend.repository.AgentRepository
 import org.cqfn.save.backend.repository.ExecutionRepository
 import org.cqfn.save.backend.repository.TestExecutionRepository
@@ -91,8 +90,8 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
         status: TestResultStatus,
         page: Int,
         pageSize: Int,
-    ): List<TestSuiteExecutionStatisticDto>? =
-            testExecutionRepository.findByExecutionIdGroupByTestSuite(executionId, status, PageRequest.of(page, pageSize))
+    ): List<Array<*>>? =
+            testExecutionRepository.findByExecutionIdGroupByTestSuite(executionId, status.name, PageRequest.of(page, pageSize))
 
     /**
      * Finds TestExecution by test location
