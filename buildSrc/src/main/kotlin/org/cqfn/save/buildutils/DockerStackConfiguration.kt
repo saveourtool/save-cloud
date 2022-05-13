@@ -110,6 +110,8 @@ fun Project.createStackDeployTask(profile: String) {
                 ""
             } +
                 " save"
+        // Explicitly set environment variable to what would be its default value to be able to access it inside `docker-compose.yml`.
+        environment("COMPOSE_PROJECT_NAME", rootDir.name)
         commandLine("bash", "-c", "$composeCmd | $stackCmd")
     }
 
@@ -120,13 +122,15 @@ fun Project.createStackDeployTask(profile: String) {
 
     tasks.register<Exec>("stopDockerStack") {
         description = "Completely stop all services in docker swarm. NOT NEEDED FOR REDEPLOYING! Use only to explicitly stop everything."
+        environment("COMPOSE_PROJECT_NAME", rootDir.name)
         commandLine("docker", "stack", "rm", "save")
     }
 
     // in case you are running it on MAC, first do the following: docker pull --platform linux/x86_64 mysql
     tasks.register<Exec>("startMysqlDb") {
         dependsOn("generateComposeFile")
-        println("Running the follwoing command: [docker-compose --file $buildDir/docker-compose.yaml up -d mysql]")
+        println("Running the following command: [docker-compose --file $buildDir/docker-compose.yaml up -d mysql]")
+        environment("COMPOSE_PROJECT_NAME", rootDir.name)
         commandLine("docker-compose", "--file", "$buildDir/docker-compose.yaml", "up", "-d", "mysql")
         errorOutput = ByteArrayOutputStream()
         doLast {
@@ -140,6 +144,7 @@ fun Project.createStackDeployTask(profile: String) {
 
     tasks.register<Exec>("restartMysqlDb") {
         dependsOn("generateComposeFile")
+        environment("COMPOSE_PROJECT_NAME", rootDir.name)
         commandLine("docker-compose", "--file", "$buildDir/docker-compose.yaml", "rm", "--force", "mysql")
         finalizedBy("startMysqlDb")
     }
@@ -147,6 +152,7 @@ fun Project.createStackDeployTask(profile: String) {
     tasks.register<Exec>("deployLocal") {
         dependsOn(subprojects.flatMap { it.tasks.withType<BootBuildImage>() })
         dependsOn("startMysqlDb")
+        environment("COMPOSE_PROJECT_NAME", rootDir.name)
         commandLine("docker-compose", "--file", "$buildDir/docker-compose.yaml", "up", "-d", "orchestrator", "backend", "preprocessor")
     }
 
@@ -163,6 +169,7 @@ fun Project.createStackDeployTask(profile: String) {
             "api-gateway" -> "save_gateway"
             else -> error("Wrong component name $componentName")
         }
+        environment("COMPOSE_PROJECT_NAME", rootDir.name)
         commandLine("docker", "service", "update", "--image", buildTask.get().imageName, serviceName)
     }
 }

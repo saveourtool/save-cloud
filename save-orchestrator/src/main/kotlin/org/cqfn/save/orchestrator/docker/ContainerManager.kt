@@ -19,6 +19,7 @@ import com.github.dockerjava.transport.DockerHttpClient
 import io.micrometer.core.instrument.MeterRegistry
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream
+import org.cqfn.save.core.utils.runIf
 import org.slf4j.LoggerFactory
 
 import java.io.BufferedOutputStream
@@ -81,6 +82,9 @@ class ContainerManager(private val settings: DockerSettings,
             .withCmd(runCmd)
             .withName(containerName)
             .withHostConfig(HostConfig.newHostConfig()
+                .runIf({ System.getenv("DOCKER_NETWORK_NAME") != null }) {
+                    withNetworkMode(System.getenv("DOCKER_NETWORK_NAME"))
+                }
                 .withRuntime(settings.runtime)
                 // processes from inside the container will be able to access host's network using this hostname
                 .withExtraHosts("host.docker.internal:${getHostIp()}")
