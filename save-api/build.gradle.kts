@@ -4,8 +4,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     kotlin("jvm")
     alias(libs.plugins.kotlin.plugin.serialization)
-//    id("signing")
-//    id("maven-publish")
+    `maven-publish`
 }
 
 tasks.withType<KotlinCompile> {
@@ -31,6 +30,17 @@ dependencies {
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.serialization)
     implementation(libs.ktor.client.logging)
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("maven") {
+            groupId = "org.cqfn"
+            artifactId = "save-cloud-api"
+            version = "0.1.2"
+            from(components["java"])
+        }
+    }
 }
 
 configurePublishing()

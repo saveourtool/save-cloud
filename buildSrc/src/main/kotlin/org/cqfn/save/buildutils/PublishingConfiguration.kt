@@ -27,7 +27,6 @@ import org.gradle.plugins.signing.SigningPlugin
     "MISSING_KDOC_TOP_LEVEL",
     "TOO_LONG_FUNCTION")
 fun Project.configurePublishing() {
-    println("\n\n\n\nSTART configurePublishing")
     // If present, set properties from env variables. If any are absent, release will fail.
     System.getenv("OSSRH_USERNAME")?.let {
         extra.set("sonatypeUsername", it)
@@ -57,38 +56,10 @@ fun Project.configurePublishing() {
     if (hasProperty("signingKey")) {
         configureSigning()
     }
-
-    // https://kotlinlang.org/docs/mpp-publish-lib.html#avoid-duplicate-publications
-    // Publication with name `save` is for the default artifact.
-    // `configureNexusPublishing` adds sonatype publication tasks inside `afterEvaluate`.
-    afterEvaluate {
-        val publicationsFromMainHost = listOf("jvm", "metadata")
-        configure<PublishingExtension> {
-            println("\n\npublications")
-            publications.forEach { println(it.name) }
-            publications.matching { it.name in publicationsFromMainHost }.all {
-                println("\n\nafterEvaluate ${this.name}")
-                val targetPublication = this@all
-                tasks.withType<AbstractPublishToMaven>()
-                    .matching { it.publication == targetPublication }
-                    .configureEach {
-                        onlyIf {
-                            // main publishing CI job is executed on Linux host
-                            DefaultNativePlatform.getCurrentOperatingSystem().isLinux.apply {
-                                if (!this) {
-                                    logger.lifecycle("Publication ${(it as AbstractPublishToMaven).publication.name} is skipped on current host")
-                                }
-                            }
-                        }
-                    }
-            }
-        }
-    }
 }
 
 @Suppress("TOO_LONG_FUNCTION")
 private fun Project.configurePublications() {
-    println("------------------ configurePublications -------------------------")
     val dokkaJar: Jar = tasks.create<Jar>("dokkaJar") {
         group = "documentation"
         archiveClassifier.set("javadoc")
@@ -99,7 +70,6 @@ private fun Project.configurePublications() {
             mavenLocal()
         }
         publications.withType<MavenPublication>().forEach { publication ->
-            println("\n\n\n publication.name ------------ ${publication.name}")
             publication.artifact(dokkaJar)
             publication.pom {
                 name.set(project.name)
