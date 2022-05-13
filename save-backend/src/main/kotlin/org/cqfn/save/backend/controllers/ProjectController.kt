@@ -13,6 +13,7 @@ import org.cqfn.save.domain.Role
 import org.cqfn.save.entities.GitDto
 import org.cqfn.save.entities.NewProjectDto
 import org.cqfn.save.entities.Project
+import org.cqfn.save.entities.ProjectStatus
 import org.cqfn.save.permission.Permission
 import org.cqfn.save.v1
 
@@ -106,6 +107,18 @@ class ProjectController(
     fun getProjectsByOrganizationName(@RequestParam organizationName: String,
                                       authentication: Authentication?,
     ): Flux<Project> = projectService.findByOrganizationName(organizationName)
+        .filter { projectPermissionEvaluator.hasPermission(authentication, it, Permission.READ) }
+
+    /**
+     * @param organizationName
+     * @param authentication
+     * @return non deleted project by name and organization name
+     */
+    @GetMapping("/get/not-deleted-projects-by-organization")
+    @PreAuthorize("permitAll()")
+    fun getNonDeletedProjectsByOrganizationName(@RequestParam organizationName: String,
+                                                authentication: Authentication?,
+    ): Flux<Project> = projectService.findByOrganizationName(organizationName).filter { it.status != ProjectStatus.DELETED }
         .filter { projectPermissionEvaluator.hasPermission(authentication, it, Permission.READ) }
 
     /**
