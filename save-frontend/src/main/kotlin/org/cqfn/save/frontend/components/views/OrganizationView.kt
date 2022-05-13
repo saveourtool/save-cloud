@@ -434,8 +434,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
 
     private fun RBuilder.renderSettings() {
         child(organizationSettingsMenu) {
-            attrs.organization = state.organization!!
-            attrs.selfRole = Role.SUPER_ADMIN
+            attrs.organizationName = props.organizationName
             attrs.currentUserInfo = props.currentUserInfo ?: UserInfo("Undefined")
         }
     }
