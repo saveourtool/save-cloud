@@ -82,9 +82,7 @@ internal class OrganizationController(
             }
         )
         if (organizationStatus == OrganizationSaveStatus.NEW) {
-            val owner = userRepository.findById(ownerId).get()
-            val organization = organizationService.getOrganizationById(organizationId)
-            lnkUserOrganizationService.setRole(owner, organization, Role.OWNER)
+            lnkUserOrganizationService.setRoleByIds(ownerId, organizationId, Role.OWNER)
         }
 
         val response = if (organizationStatus == OrganizationSaveStatus.EXIST) {

@@ -77,6 +77,7 @@ val errorModalHandler: FC<PropsWithChildren> = FC { props ->
                     if (response?.status == 401.toShort()) {
                         // if 401 - change current URL to the main page (with login screen)
                         window.location.href = "${window.location.origin}/#"
+                        window.location.reload()
                     }
                     setResponse(null)
                     setModalState(modalState.copy(isErrorModalOpen = false))

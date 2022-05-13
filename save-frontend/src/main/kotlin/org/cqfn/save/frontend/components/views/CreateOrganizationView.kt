@@ -46,11 +46,6 @@ external interface OrganizationSaveViewState : State {
      * Validation of input fields
      */
     var isValidOrganizationName: Boolean?
-
-    /**
-     * Flag to redirect to OrganizationView
-     */
-    var isToRedirect: Boolean?
 }
 
 /**
@@ -67,7 +62,6 @@ class CreateOrganizationView : AbstractView<Props, OrganizationSaveViewState>(tr
         state.isErrorWithOrganizationSave = false
         state.errorMessage = ""
         state.isValidOrganizationName = true
-        state.isToRedirect = false
     }
 
     private fun changeFields(fieldName: InputTypes, target: Event, isOrganization: Boolean = true) {
@@ -93,9 +87,8 @@ class CreateOrganizationView : AbstractView<Props, OrganizationSaveViewState>(tr
                     post("$apiUrl/organization/save", headers, Json.encodeToString(newOrganizationRequest))
 
             if (responseFromCreationOrganization.ok) {
-                setState {
-                    isToRedirect = true
-                }
+                window.location.href = "${window.location.origin}#/${organizationName.replace(" ", "%20")}/"
+                window.location.reload()
             } else {
                 responseFromCreationOrganization.text().then {
                     setState {
@@ -121,10 +114,6 @@ class CreateOrganizationView : AbstractView<Props, OrganizationSaveViewState>(tr
 
     @Suppress("TOO_LONG_FUNCTION", "EMPTY_BLOCK_STRUCTURE_ERROR", "LongMethod")
     override fun RBuilder.render() {
-        if (state.isToRedirect == true) {
-            val organizationName = fieldsMap[InputTypes.ORGANIZATION_NAME]?.trim()!!
-            window.location.href = "${window.location.origin}#/${organizationName.replace(" ", "%20")}/"
-        }
         runErrorModal(
             state.isErrorWithOrganizationSave,
             "Error appeared during organization creation",
