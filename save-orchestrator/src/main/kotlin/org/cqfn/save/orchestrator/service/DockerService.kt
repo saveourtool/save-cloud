@@ -79,6 +79,7 @@ class DockerService(private val configProperties: ConfigProperties,
         agentRunner.create(
             baseImageId = imageId,
             replicas = configProperties.agentsCount,
+            runCmd = /*runCmd*/,
 
         )
     }

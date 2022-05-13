@@ -2,6 +2,7 @@ package org.cqfn.save.orchestrator.docker
 
 import com.github.dockerjava.api.DockerClient
 import org.cqfn.save.orchestrator.service.DockerService
+import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 
@@ -16,10 +17,10 @@ class DockerAgentRunner(
         workingDir: String,
         runCmd: String,
         containerName: String
-    ): String? {
-        (1..replicas).map { number ->
+    ): List<String> {
+        return (1..replicas).map { number ->
             logger.info("Building container #$number for execution.id=${execution.id}")
-            createContainerForExecution(execution, imageId, "${execution.id}-$number", runCmd, saveCliExecFlags).also {
+            createContainerForExecution(execution, baseImageId, "${execution.id}-$number", runCmd, saveCliExecFlags).also {
                 logger.info("Built container id=$it for execution.id=${execution.id}")
             }
         }
@@ -34,6 +35,6 @@ class DockerAgentRunner(
     }
 
     companion object {
-        private val logger =
+        private val logger = LoggerFactory.getLogger(DockerAgentRunner::class.java)
     }
 }
