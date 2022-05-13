@@ -2,7 +2,6 @@
 
 package org.cqfn.save.frontend.components.basic
 
-import org.cqfn.save.domain.Role
 import org.cqfn.save.info.UserInfo
 
 import org.w3c.fetch.Response
@@ -20,11 +19,6 @@ external interface OrganizationSettingsMenuProps : Props {
      * Current organization settings
      */
     var organizationName: String
-
-    /**
-     * Role of user that opened this window
-     */
-    var selfRole: Role
 
     /**
      * Information about current user
