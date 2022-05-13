@@ -2,7 +2,7 @@
  * Utilities for kotlin-js RBuilder
  */
 
-@file:Suppress("FILE_NAME_INCORRECT")
+@file:Suppress("FILE_NAME_INCORRECT", "FILE_NAME_MATCH_CLASS")
 
 package org.cqfn.save.frontend.utils
 
@@ -16,6 +16,17 @@ import react.dom.h2
 
 import kotlinx.html.ButtonType
 import kotlinx.html.js.onClickFunction
+
+/**
+ * Enum that stores types of confirmation windows for different situations.
+ */
+enum class ConfirmationType {
+    DELETE_CONFIRM,
+    GLOBAL_ROLE_CONFIRM,
+    NO_BINARY_CONFIRM,
+    NO_CONFIRM,
+    ;
+}
 
 /**
  * @param isErrorOpen flag to handle error

@@ -7,11 +7,11 @@
 package org.cqfn.save.frontend.components.basic
 
 import org.cqfn.save.domain.FileInfo
-import org.cqfn.save.frontend.components.views.ConfirmationType
 import org.cqfn.save.frontend.externals.fontawesome.faFile
 import org.cqfn.save.frontend.externals.fontawesome.faTimesCircle
 import org.cqfn.save.frontend.externals.fontawesome.faUpload
 import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
+import org.cqfn.save.frontend.utils.ConfirmationType
 import org.cqfn.save.frontend.utils.toPrettyString
 
 import csstype.Width

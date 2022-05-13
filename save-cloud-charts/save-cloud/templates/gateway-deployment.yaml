@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway
+  labels:
+    {{- include "common.labels" (merge (dict "service" .Values.gateway) .) | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      io.kompose.service: gateway
+  template:
+    metadata:
+      labels:
+        io.kompose.service: gateway
+    spec:
+      restartPolicy: Always
+      {{- include "spring-boot.securityContext" . | nindent 6 }}
+      containers:
+        - name: gateway
+          {{- include "spring-boot.common" (merge (dict "service" .Values.gateway) .) | nindent 10 }}
+          env:
+            {{- include "spring-boot.common.env" (merge (dict "service" .Values.gateway) .) | nindent 12 }}
+            - name: OAUTH_CONFIG_PATH
+              value: /home/cnb/secrets/oauth
+          {{- include "spring-boot.management" .Values.gateway | nindent 10 }}
+          volumeMounts:
+            - {{ include "spring-boot.config-volume-mount" . | indent 14 | trim }}
+            - mountPath: /home/cnb/secrets/oauth
+              name: oauth-credentials
+      volumes:
+        - {{ include "spring-boot.config-volume" (dict "service" .Values.gateway) | indent 10 | trim }}
+        - name: oauth-credentials
+          secret:
+            secretName: oauth-credentials

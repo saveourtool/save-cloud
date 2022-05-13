@@ -4,6 +4,7 @@ import org.cqfn.save.backend.service.LnkUserOrganizationService
 import org.cqfn.save.backend.utils.AuthenticationDetails
 import org.cqfn.save.domain.Role
 import org.cqfn.save.entities.Organization
+import org.cqfn.save.entities.User
 import org.cqfn.save.permission.Permission
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.core.Authentication
@@ -48,6 +49,29 @@ class OrganizationPermissionEvaluator {
 
     private fun hasDeleteAccess(userId: Long?, organizationRole: Role): Boolean =
             userId?.let { organizationRole.priority >= Role.OWNER.priority } ?: false
+
+    /**
+     * In case we widen number of users that can manage roles in an organization, there is a separate method.
+     * Simply delegating now.
+     *
+     * @param organization in which the role is going to be changed
+     * @param authentication auth info of a current user
+     * @param otherUser user whose role is going to be changed
+     * @param requestedRole role that is going to be set
+     * @return whether the user can change roles in organization
+     */
+    @Suppress("UnsafeCallOnNullableType")
+    fun canChangeRoles(
+        organization: Organization,
+        authentication: Authentication,
+        otherUser: User,
+        requestedRole: Role = Role.NONE
+    ): Boolean {
+        val selfRole = lnkUserOrganizationService.getGlobalRoleOrOrganizationRole(authentication, organization)
+        val otherRole = lnkUserOrganizationService.findRoleByUserIdAndOrganization(otherUser.id!!, organization)
+        return isOrganizationAdminOrHigher(selfRole) && hasAnotherUserLessPermissions(selfRole, otherRole) &&
+                isRequestedPermissionsCanBeSetByUser(selfRole, requestedRole)
+    }
 
     /**
      * @param selfRole

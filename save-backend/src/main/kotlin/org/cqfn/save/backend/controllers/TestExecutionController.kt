@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
+import java.math.BigInteger
 
 /**
  * Controller to work with test execution
@@ -77,7 +78,7 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
      * @return a list of [TestExecutionDto]s
      */
     @GetMapping(path = ["/api/$v1/testLatestExecutions"])
-    @Suppress("TYPE_ALIAS")
+    @Suppress("TYPE_ALIAS", "MagicNumber")
     fun getTestExecutionsByStatus(
         @RequestParam executionId: Long,
         @RequestParam status: TestResultStatus,
@@ -87,9 +88,15 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
     ): Mono<List<TestSuiteExecutionStatisticDto>> =
             justOrNotFound(executionService.findExecution(executionId)).filterWhen {
                 projectPermissionEvaluator.checkPermissions(authentication, it, Permission.READ)
-            }.map {
-                testExecutionService.getTestExecutions(executionId, page, size).groupBy { it.test.testSuite.name }.map { (testSuiteName, testExecutions) ->
-                    TestSuiteExecutionStatisticDto(testSuiteName, testExecutions.count(), testExecutions.count { it.status == status }, status)
+            }.mapNotNull {
+                if (page == null || size == null) {
+                    testExecutionService.getTestExecutions(executionId).groupBy { it.test.testSuite.name }.map { (testSuiteName, testExecutions) ->
+                        TestSuiteExecutionStatisticDto(testSuiteName, testExecutions.count(), testExecutions.count { it.status == status }, status)
+                    }
+                } else {
+                    testExecutionService.getByExecutionIdGroupByTestSuite(executionId, status, page, size)?.map {
+                        TestSuiteExecutionStatisticDto(it[0] as String, (it[1] as BigInteger).toInt(), (it[2] as BigInteger).toInt(), TestResultStatus.valueOf(it[3] as String))
+                    }
                 }
             }
 

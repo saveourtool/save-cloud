@@ -5,6 +5,7 @@ import org.cqfn.save.backend.repository.GitRepository
 import org.cqfn.save.backend.repository.OrganizationRepository
 import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.scheduling.StandardSuitesUpdateScheduler
+import org.cqfn.save.backend.service.LnkUserProjectService
 import org.cqfn.save.backend.utils.AuthenticationDetails
 import org.cqfn.save.backend.utils.MySqlExtension
 import org.cqfn.save.backend.utils.mutateMockedUser
@@ -31,6 +32,7 @@ import org.springframework.web.reactive.function.BodyInserters
 @ExtendWith(MySqlExtension::class)
 @MockBeans(
     MockBean(StandardSuitesUpdateScheduler::class),
+    MockBean(LnkUserProjectService::class),
 )
 @Suppress("UnsafeCallOnNullableType")
 class ProjectControllerTest {
@@ -149,7 +151,6 @@ class ProjectControllerTest {
             "Huawei",
             gitDto,
         )
-
         saveProjectAndAssert(
             newProject,
             { expectStatus().isOk }
@@ -211,7 +212,7 @@ class ProjectControllerTest {
         val project = newProject.project
         webClient
             .get()
-            .uri("/api/$v1/projects/get/organization-id?name=${project.name}&organizationId=${project.organization.id}")
+            .uri("/api/$v1/projects/get/organization-name?name=${project.name}&organizationName=${project.organization.name}")
             .accept(MediaType.APPLICATION_JSON)
             .exchange()
             .let { getAssertion(it) }

@@ -48,6 +48,7 @@ data class ExecutionRequest(
  * @property sdk
  * @property execCmd
  * @property batchSizeForAnalyzer
+ * @property executionId
  */
 @Serializable
 data class ExecutionRequestForStandardSuites(
@@ -56,4 +57,5 @@ data class ExecutionRequestForStandardSuites(
     override val sdk: Sdk,
     val execCmd: String?,
     val batchSizeForAnalyzer: String?,
+    val executionId: Long?,
 ) : ExecutionRequestBase()

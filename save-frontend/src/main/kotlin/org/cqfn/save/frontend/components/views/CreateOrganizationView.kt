@@ -25,7 +25,6 @@ import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.Month
 import kotlinx.html.ButtonType
-import kotlinx.html.js.onClickFunction
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -62,7 +61,6 @@ class CreateOrganizationView : AbstractView<Props, OrganizationSaveViewState>(tr
     init {
         state.isErrorWithOrganizationSave = false
         state.errorMessage = ""
-
         state.isValidOrganizationName = true
     }
 
@@ -90,6 +88,7 @@ class CreateOrganizationView : AbstractView<Props, OrganizationSaveViewState>(tr
 
             if (responseFromCreationOrganization.ok) {
                 window.location.href = "${window.location.origin}#/${organizationName.replace(" ", "%20")}/"
+                window.location.reload()
             } else {
                 responseFromCreationOrganization.text().then {
                     setState {
@@ -104,7 +103,6 @@ class CreateOrganizationView : AbstractView<Props, OrganizationSaveViewState>(tr
     @Suppress("SAY_NO_TO_VAR")
     private fun isValidInput(): Boolean {
         var valid = true
-        // ????????????????????????????????????????????????????????
         if (fieldsMap[InputTypes.ORGANIZATION_NAME].isNullOrBlank()) {
             setState { isValidOrganizationName = false }
             valid = false
@@ -145,9 +143,9 @@ class CreateOrganizationView : AbstractView<Props, OrganizationSaveViewState>(tr
                                             changeFields(InputTypes.ORGANIZATION_NAME, it)
                                         }
                                     }
-                                    button(type = ButtonType.submit, classes = "btn btn-info mt-4 mr-3") {
+                                    button(type = ButtonType.button, classes = "btn btn-info mt-4 mr-3") {
                                         +"Create organization"
-                                        attrs.onClickFunction = {
+                                        attrs.onClick = {
                                             saveOrganization()
                                         }
                                     }

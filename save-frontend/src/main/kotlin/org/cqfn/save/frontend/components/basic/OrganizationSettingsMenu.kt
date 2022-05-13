@@ -2,8 +2,6 @@
 
 package org.cqfn.save.frontend.components.basic
 
-import org.cqfn.save.domain.Role
-import org.cqfn.save.entities.Organization
 import org.cqfn.save.info.UserInfo
 
 import org.w3c.fetch.Response
@@ -20,12 +18,7 @@ external interface OrganizationSettingsMenuProps : Props {
     /**
      * Current organization settings
      */
-    var organization: Organization
-
-    /**
-     * Role of user that opened this window
-     */
-    var selfRole: Role
+    var organizationName: String
 
     /**
      * Information about current user
@@ -36,6 +29,7 @@ external interface OrganizationSettingsMenuProps : Props {
 /**
  * @param deleteOrganizationCallback
  * @param updateErrorMessage
+ * @param updateNotificationMessage
  * @return ReactElement
  */
 @Suppress(
@@ -47,14 +41,23 @@ external interface OrganizationSettingsMenuProps : Props {
 fun organizationSettingsMenu(
     deleteOrganizationCallback: () -> Unit,
     updateErrorMessage: (Response) -> Unit,
+    updateNotificationMessage: (String, String) -> Unit,
 ) = fc<OrganizationSettingsMenuProps> { props ->
     @Suppress("LOCAL_VARIABLE_EARLY_DECLARATION")
-    val organizationPath = props.organization.name
+    val organizationPath = props.organizationName
+    val (wasConfirmationModalShown, setWasConfirmationModalShown) = useState(false)
     val organizationPermissionManagerCard = manageUserRoleCardComponent({
         updateErrorMessage(it)
     },
         {
             it.organizations
+        },
+        showGlobalRoleWarning = {
+            updateNotificationMessage(
+                "Super admin message",
+                "Keep in mind that you are super admin, so you are able to manage organization regardless of your organization permissions.",
+            )
+            setWasConfirmationModalShown(true)
         },
     )
 
@@ -68,6 +71,7 @@ fun organizationSettingsMenu(
                 attrs.selfUserInfo = props.currentUserInfo
                 attrs.groupPath = organizationPath
                 attrs.groupType = "organization"
+                attrs.wasConfirmationModalShown = wasConfirmationModalShown
             }
         }
         // ===================== RIGHT COLUMN ======================================================================

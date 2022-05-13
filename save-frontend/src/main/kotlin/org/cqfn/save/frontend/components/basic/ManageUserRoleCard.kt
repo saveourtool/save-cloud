@@ -7,12 +7,12 @@
 package org.cqfn.save.frontend.components.basic
 
 import org.cqfn.save.domain.Role
-import org.cqfn.save.frontend.externals.fontawesome.faTimesCircle
-import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
+import org.cqfn.save.frontend.externals.fontawesome.*
 import org.cqfn.save.frontend.externals.lodash.debounce
 import org.cqfn.save.frontend.utils.*
 import org.cqfn.save.info.UserInfo
 import org.cqfn.save.permission.SetRoleRequest
+import org.cqfn.save.utils.getHighestRole
 
 import csstype.None
 import org.w3c.dom.HTMLInputElement
@@ -48,6 +48,11 @@ external interface ManageUserRoleCardProps : Props {
      * Kind of a group that will be shown ("project" or "organization" for now)
      */
     var groupType: String
+
+    /**
+     * Flag that shows if the confirm windows was shown or not
+     */
+    var wasConfirmationModalShown: Boolean
 }
 
 private fun String.toRole() = Role.values().find {
@@ -59,6 +64,7 @@ private fun String.toRole() = Role.values().find {
  *
  * @param updateErrorMessage
  * @param getUserGroups
+ * @param showGlobalRoleWarning
  * @return a functional component representing a role managing card
  */
 @Suppress(
@@ -71,6 +77,7 @@ private fun String.toRole() = Role.values().find {
 fun manageUserRoleCardComponent(
     updateErrorMessage: (Response) -> Unit,
     getUserGroups: (UserInfo) -> Map<String, Role>,
+    showGlobalRoleWarning: () -> Unit,
 ) = fc<ManageUserRoleCardProps> { props ->
 
     val (changeUsersFromGroup, setChangeUsersFromGroup) = useState(true)
@@ -177,7 +184,10 @@ fun manageUserRoleCardComponent(
                 it.decodeFromJsonString<String>()
             }
             .toRole()
-        setSelfRole(role)
+        if (!props.wasConfirmationModalShown && role.priority < Role.OWNER.priority && props.selfUserInfo.globalRole == Role.SUPER_ADMIN) {
+            showGlobalRoleWarning()
+        }
+        setSelfRole(getHighestRole(role, props.selfUserInfo.globalRole))
     }()
 
     val (isFirstRender, setIsFirstRender) = useState(true)
@@ -222,12 +232,27 @@ fun manageUserRoleCardComponent(
             }
         }
         for (user in usersFromGroup) {
-            val userName = user.source + ":" + user.name
+            val userName = user.name
             val userRole = getUserGroups(user)[props.groupPath] ?: Role.VIEWER
             val userIndex = usersFromGroup.indexOf(user)
-            div("row mt-2 mr-0") {
-                div("col-1") {
-                    button(classes = "btn h-auto w-auto") {
+            div("row mt-2 mr-0 justify-content-between align-items-center") {
+                div("col-7 d-flex justify-content-start align-items-center") {
+                    div("col-2 align-items-center") {
+                        fontAwesomeIcon(
+                            when (user.source) {
+                                "github" -> faGithub
+                                "codehub" -> faCopyright
+                                else -> faHome
+                            },
+                            classes = "h-75 w-75"
+                        )
+                    }
+                    div("col-7 text-left align-self-center pl-0") {
+                        +userName
+                    }
+                }
+                div("col-5 align-self-right d-flex align-items-center justify-content-end") {
+                    button(classes = "btn col-2 align-items-center mr-2") {
                         fontAwesomeIcon(icon = faTimesCircle)
                         attrs.id = "remove-user-$userIndex"
                         attrs.hidden = selfRole.priority <= userRole.priority
@@ -237,15 +262,10 @@ fun manageUserRoleCardComponent(
                             deleteUser()
                         }
                     }
-                }
-                div("col-6 text-left align-self-center") {
-                    +userName
-                }
-                div("col-5 text-left align-self-right") {
-                    select("custom-select") {
+                    select("custom-select col-9") {
                         attrs.onChangeFunction = { event ->
                             val target = event.target as HTMLSelectElement
-                            setRoleChange { SetRoleRequest(userName.split(":")[1], target.value.toRole()) }
+                            setRoleChange { SetRoleRequest(userName, target.value.toRole()) }
                             updatePermissions()
                         }
                         attrs.id = "role-$userIndex"
@@ -254,7 +274,7 @@ fun manageUserRoleCardComponent(
                                 option {
                                     attrs.value = role.formattedName
                                     attrs.selected = role == userRole
-                                    +role.toString()
+                                    +role.formattedName
                                 }
                             }
                         }

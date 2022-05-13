@@ -1,6 +1,7 @@
 package org.cqfn.save.backend.controllers
 
 import org.cqfn.save.backend.StringResponse
+import org.cqfn.save.backend.repository.UserRepository
 import org.cqfn.save.backend.service.LnkUserOrganizationService
 import org.cqfn.save.backend.service.OrganizationService
 import org.cqfn.save.backend.utils.AuthenticationDetails
@@ -29,6 +30,7 @@ import java.time.LocalDateTime
 internal class OrganizationController(
     private val organizationService: OrganizationService,
     private val lnkUserOrganizationService: LnkUserOrganizationService,
+    private val userRepository: UserRepository,
 ) {
     /**
      * @param organizationName
@@ -79,12 +81,15 @@ internal class OrganizationController(
                 this.dateCreated = LocalDateTime.now()
             }
         )
+        if (organizationStatus == OrganizationSaveStatus.NEW) {
+            lnkUserOrganizationService.setRoleByIds(ownerId, organizationId, Role.OWNER)
+        }
 
         val response = if (organizationStatus == OrganizationSaveStatus.EXIST) {
             logger.info("Attempt to save an organization with id = $organizationId, but it already exists.")
             ResponseEntity.badRequest().body(organizationStatus.message)
         } else {
-            logger.info("Save new organization id = $organizationId")
+            logger.info("Save new organization id = $organizationId with ownerId $ownerId")
             ResponseEntity.ok(organizationStatus.message)
         }
         return Mono.just(response)
@@ -97,9 +102,9 @@ internal class OrganizationController(
      */
     @PostMapping("/{organizationName}/update")
     @PreAuthorize("isAuthenticated()")
+    @Suppress("UnsafeCallOnNullableType")
     fun updateOrganization(@RequestBody organization: Organization, authentication: Authentication): Mono<StringResponse> {
-        val userId = (authentication.details as AuthenticationDetails).id
-        val role = lnkUserOrganizationService.findRoleByUserIdAndOrganizationName(userId, organization.name)
+        val role = lnkUserOrganizationService.getGlobalRoleOrOrganizationRole(authentication, organization)
         val response = if (role.priority >= Role.ADMIN.priority) {
             organizationService.updateOrganization(organization)
             ResponseEntity.ok("Organization updated")

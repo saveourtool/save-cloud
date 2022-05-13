@@ -2,7 +2,6 @@
 
 package org.cqfn.save.frontend.components.basic
 
-import org.cqfn.save.domain.Role
 import org.cqfn.save.entities.Project
 import org.cqfn.save.info.UserInfo
 
@@ -28,11 +27,6 @@ external interface ProjectSettingsMenuProps : Props {
     var project: Project
 
     /**
-     * Role of user that opened this window
-     */
-    var selfRole: Role
-
-    /**
      * Information about current user
      */
     var currentUserInfo: UserInfo
@@ -42,6 +36,7 @@ external interface ProjectSettingsMenuProps : Props {
  * @param deleteProjectCallback
  * @param updateProjectSettings
  * @param updateErrorMessage
+ * @param updateNotificationMessage
  * @return ReactElement
  */
 @Suppress(
@@ -54,6 +49,7 @@ fun projectSettingsMenu(
     deleteProjectCallback: () -> Unit,
     updateProjectSettings: (Project) -> Unit,
     updateErrorMessage: (Response) -> Unit,
+    updateNotificationMessage: (String, String) -> Unit,
 ) = fc<ProjectSettingsMenuProps> { props ->
     @Suppress("LOCAL_VARIABLE_EARLY_DECLARATION")
     val projectRef = useRef(props.project)
@@ -67,12 +63,20 @@ fun projectSettingsMenu(
 
     val projectPath = props.project.let { "${it.organization.name}/${it.name}" }
 
+    val (wasConfirmationModalShown, setWasConfirmationModalShown) = useState(false)
     val projectPermissionManagerCard = manageUserRoleCardComponent({
         updateErrorMessage(it)
     },
         {
             it.projects
         },
+        {
+            updateNotificationMessage(
+                "Super admin message",
+                "Keep in mind that you are super admin, so you are able to manage projects regardless of your organization permissions.",
+            )
+            setWasConfirmationModalShown(true)
+        }
     )
 
     div("row justify-content-center mb-2") {
@@ -85,6 +89,7 @@ fun projectSettingsMenu(
                 attrs.selfUserInfo = props.currentUserInfo
                 attrs.groupPath = projectPath
                 attrs.groupType = "project"
+                attrs.wasConfirmationModalShown = wasConfirmationModalShown
             }
         }
         // ===================== RIGHT COLUMN ======================================================================
