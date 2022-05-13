@@ -2,7 +2,7 @@
  * Logic for configuration for http client and evaluated tool
  */
 
-package org.cqfn.save.api
+package org.cqfn.save.api.config
 
 import org.cqfn.save.domain.Jdk
 import org.cqfn.save.domain.Python

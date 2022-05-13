@@ -4,11 +4,11 @@
 
 package org.cqfn.save.apicli
 
-import org.cqfn.save.api.EvaluatedToolProperties
-import org.cqfn.save.api.PropertiesConfiguration
-import org.cqfn.save.api.PropertiesConfigurationType
 import org.cqfn.save.api.SaveCloudClient
-import org.cqfn.save.api.WebClientProperties
+import org.cqfn.save.api.config.EvaluatedToolProperties
+import org.cqfn.save.api.config.PropertiesConfiguration
+import org.cqfn.save.api.config.PropertiesConfigurationType
+import org.cqfn.save.api.config.WebClientProperties
 
 import org.slf4j.LoggerFactory
 

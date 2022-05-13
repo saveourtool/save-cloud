@@ -1,6 +1,5 @@
 plugins {
     `kotlin-dsl`
-    id("io.github.gradle-nexus.publish-plugin") version "1.1.0"
 }
 
 repositories {
@@ -17,6 +16,7 @@ dependencies {
     implementation(libs.detekt.gradle.plugin)
     implementation(libs.reckon.gradle.plugin)
     implementation(libs.kotlin.plugin.allopen)
+    implementation("io.github.gradle-nexus:publish-plugin:1.1.0")
 }
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {

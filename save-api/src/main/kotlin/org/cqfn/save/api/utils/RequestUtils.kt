@@ -2,8 +2,10 @@
  * Utilities, which extends http client functionality and provide api for execution submission process
  */
 
-package org.cqfn.save.api
+package org.cqfn.save.api.utils
 
+import org.cqfn.save.api.authorization.Authorization
+import org.cqfn.save.api.config.WebClientProperties
 import org.cqfn.save.domain.FileInfo
 import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.ExecutionRequestBase

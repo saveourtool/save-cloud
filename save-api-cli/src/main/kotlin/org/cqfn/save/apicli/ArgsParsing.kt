@@ -6,7 +6,7 @@
 
 package org.cqfn.save.apicli
 
-import org.cqfn.save.api.Authorization
+import org.cqfn.save.api.authorization.Authorization
 import org.cqfn.save.execution.ExecutionType
 
 import org.slf4j.LoggerFactory
