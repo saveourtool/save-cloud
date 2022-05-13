@@ -164,6 +164,7 @@ fun Project.createStackDeployTask(profile: String) {
         require(componentName in allprojects.map { it.name }) { "Component name should be one of gradle subproject names" }
         val buildTask = project(componentName).tasks.named<BootBuildImage>("bootBuildImage")
         dependsOn(buildTask)
+        dependsOn("generateComposeFile")
         val serviceName = when (componentName) {
             "save-backend", "save-orchestrator", "save-preprocessor" -> "save_${componentName.substringAfter("save-")}"
             "api-gateway" -> "save_gateway"

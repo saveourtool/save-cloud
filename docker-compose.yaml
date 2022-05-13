@@ -16,13 +16,6 @@ x-logging:
           level:
 
 services:
-  test:
-    image: alpine
-    environment:
-      - "DOCKER_NETWORK_NAME=${COMPOSE_PROJECT_NAME}"
-    entrypoint:
-      - /bin/echo
-      - $DOCKER_NETWORK_NAME
   orchestrator:
     image: ghcr.io/analysis-dev/save-orchestrator:${TAG}
     user: root  # to access host's docker socket
