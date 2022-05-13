@@ -434,8 +434,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
 
     private fun RBuilder.renderSettings() {
         child(organizationSettingsMenu) {
-            attrs.organization = state.organization!!
-            attrs.selfRole = Role.SUPER_ADMIN
+            attrs.organizationName = props.organizationName
             attrs.currentUserInfo = props.currentUserInfo ?: UserInfo("Undefined")
         }
     }
@@ -452,7 +451,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
     private fun getProjectsFromCache(): Array<Project> = state.projects ?: emptyArray()
 
     private suspend fun getProjectsForOrganization(): Array<Project> = get(
-        url = "$apiUrl/projects/get/projects-by-organization?organizationName=${props.organizationName}",
+        url = "$apiUrl/projects/get/not-deleted-projects-by-organization?organizationName=${props.organizationName}",
         headers = Headers().also {
             it.set("Accept", "application/json")
         },
