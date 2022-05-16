@@ -10,6 +10,7 @@ import org.cqfn.save.frontend.components.views.AbstractView
 import org.cqfn.save.frontend.externals.fontawesome.*
 import org.cqfn.save.frontend.http.getUser
 import org.cqfn.save.frontend.utils.*
+import org.cqfn.save.info.OrganizationInfo
 import org.cqfn.save.info.UserInfo
 import org.cqfn.save.utils.AvatarType
 import org.cqfn.save.v1
@@ -29,7 +30,6 @@ import kotlinx.html.hidden
 import kotlinx.html.js.onChangeFunction
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.cqfn.save.info.OrganizationInfo
 
 /**
  * `Props` retrieved from router
