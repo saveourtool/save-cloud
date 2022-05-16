@@ -1,10 +1,13 @@
-import org.cqfn.save.buildutils.configurePublishing
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
+    application
     kotlin("jvm")
     alias(libs.plugins.kotlin.plugin.serialization)
-    `maven-publish`
+}
+
+application {
+    mainClass.set("org.cqfn.save.apicli.MainKt")
 }
 
 tasks.withType<KotlinCompile> {
@@ -21,26 +24,12 @@ kotlin {
 }
 
 dependencies {
+    implementation(projects.saveApi)
     implementation(projects.saveCloudCommon)
     implementation(libs.save.common.jvm)
+    implementation(libs.kotlinx.cli)
     implementation(libs.log4j)
     implementation(libs.log4j.slf4j.impl)
-    implementation(libs.ktor.client.apache)
-    implementation(libs.ktor.client.auth)
-    implementation(libs.ktor.client.core)
-    implementation(libs.ktor.client.serialization)
-    implementation(libs.ktor.client.logging)
+    implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.kotlinx.serialization.properties)
 }
-
-publishing {
-    publications {
-        create<MavenPublication>("maven") {
-            groupId = "org.cqfn"
-            artifactId = "save-cloud-api"
-            version = version
-            from(components["java"])
-        }
-    }
-}
-
-configurePublishing()
