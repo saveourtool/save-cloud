@@ -13,13 +13,13 @@ import org.cqfn.save.backend.service.OrganizationService
 import org.cqfn.save.backend.utils.AuthenticationDetails
 import org.cqfn.save.domain.Role
 import org.cqfn.save.entities.OrganizationStatus
+import org.cqfn.save.info.OrganizationInfo
 import org.cqfn.save.info.UserInfo
 import org.cqfn.save.permission.Permission
 import org.cqfn.save.permission.SetRoleRequest
 import org.cqfn.save.v1
 
 import io.swagger.v3.oas.annotations.responses.ApiResponse
-import org.cqfn.save.info.OrganizationInfo
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.Authentication
