@@ -322,7 +322,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                 ""
             }
         get(
-            url = "$apiUrl/testExecutions?executionId=${props.executionId}&page=$page&size=$size$status$testSuite",
+            url = "$apiUrl/testExecutions?executionId=${props.executionId}&page=$page&size=$size$status$testSuite&checkDebugInfo=true",
             headers = Headers().apply {
                 set("Accept", "application/json")
             },
