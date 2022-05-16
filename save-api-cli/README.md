@@ -49,4 +49,4 @@ Current API required few cli arguments for execution:
 
 Example:
 
-    ./gradlew save-api:run -DincludeSaveApi='true' --args='-u user -o github -t token -m git'
+    ./gradlew save-api-cli:run -DincludeSaveApi='true' --args='-u user -o github -t token -m git'
