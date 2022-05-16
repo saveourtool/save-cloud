@@ -49,15 +49,21 @@ enum class InputTypes(val str: String) {
  * @param validInput
  * @param classes
  * @param text
+ * @param isProjectOrOrganizationName
  * @param onChangeFun
  * @return div with an input form
  */
-@Suppress("TOO_LONG_FUNCTION")
+@Suppress(
+    "TOO_LONG_FUNCTION",
+    "TOO_MANY_PARAMETERS",
+    "LongParameterList",
+)
 internal fun RBuilder.inputTextFormRequired(
     form: InputTypes,
     validInput: Boolean,
     classes: String,
     text: String,
+    isProjectOrOrganizationName: Boolean = false,
     onChangeFun: (Event) -> Unit
 ) =
         div("$classes mt-1") {
@@ -87,8 +93,14 @@ internal fun RBuilder.inputTextFormRequired(
                 }
 
                 if (!validInput) {
-                    div("invalid-feedback d-block") {
-                        +"Please input a valid ${form.str}"
+                    if (isProjectOrOrganizationName) {
+                        div("invalid-feedback d-block") {
+                            +"Please input a valid ${form.str}. The name must not be longer than 64 characters and contain spaces."
+                        }
+                    } else {
+                        div("invalid-feedback d-block") {
+                            +"Please input a valid ${form.str}"
+                        }
                     }
                 }
             }
