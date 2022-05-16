@@ -12,6 +12,7 @@ import org.cqfn.save.frontend.components.errorModalHandler
 import org.cqfn.save.frontend.components.topBar
 import org.cqfn.save.frontend.components.views.*
 import org.cqfn.save.frontend.components.views.usersettingsview.UserSettingsEmailMenuView
+import org.cqfn.save.frontend.components.views.usersettingsview.UserSettingsOrganizationsMenuView
 import org.cqfn.save.frontend.components.views.usersettingsview.UserSettingsProfileMenuView
 import org.cqfn.save.frontend.components.views.usersettingsview.UserSettingsTokenMenuView
 import org.cqfn.save.frontend.externals.fontawesome.*
@@ -193,7 +194,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                 attrs {
                                     path = "/:user/settings/organizations"
                                     element = buildElement {
-                                        child(UserSettingsTokenMenuView::class) {
+                                        child(UserSettingsOrganizationsMenuView::class) {
                                             attrs.userName = state.userInfo?.name
                                         }
                                     }

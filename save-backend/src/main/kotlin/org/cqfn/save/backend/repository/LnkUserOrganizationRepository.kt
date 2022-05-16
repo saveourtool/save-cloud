@@ -64,5 +64,4 @@ interface LnkUserOrganizationRepository : BaseEntityRepository<LnkUserOrganizati
      * @return List of [LnkUserOrganization] in which user with [userId] participates
      */
     fun findByUserId(userId: Long): List<LnkUserOrganization>
-
 }

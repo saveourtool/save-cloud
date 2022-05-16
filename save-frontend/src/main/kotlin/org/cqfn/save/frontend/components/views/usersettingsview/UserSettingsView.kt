@@ -5,12 +5,10 @@
 package org.cqfn.save.frontend.components.views.usersettingsview
 
 import org.cqfn.save.domain.ImageInfo
+import org.cqfn.save.domain.Role
 import org.cqfn.save.frontend.components.basic.InputTypes
 import org.cqfn.save.frontend.components.views.AbstractView
-import org.cqfn.save.frontend.externals.fontawesome.faEnvelope
-import org.cqfn.save.frontend.externals.fontawesome.faKey
-import org.cqfn.save.frontend.externals.fontawesome.faUser
-import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
+import org.cqfn.save.frontend.externals.fontawesome.*
 import org.cqfn.save.frontend.http.getUser
 import org.cqfn.save.frontend.utils.*
 import org.cqfn.save.info.UserInfo
@@ -32,8 +30,6 @@ import kotlinx.html.hidden
 import kotlinx.html.js.onChangeFunction
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.cqfn.save.domain.Role
-import org.cqfn.save.entities.Organization
 
 /**
  * `Props` retrieved from router
@@ -49,7 +45,7 @@ external interface UserSettingsProps : PropsWithChildren {
 /**
  * [State] of project view component
  */
-@Suppress("MISSING_KDOC_TOP_LEVEL")
+@Suppress("MISSING_KDOC_TOP_LEVEL", "TYPE_ALIAS")
 external interface UserSettingsViewState : State {
     /**
      * Flag to handle uploading a file
@@ -70,6 +66,11 @@ external interface UserSettingsViewState : State {
      * Token for user
      */
     var token: String?
+
+    /**
+     * Organizations connected to user
+     */
+    var selfOrganizations: Map<String, Pair<String?, Role>>?
 }
 
 @Suppress("MISSING_KDOC_TOP_LEVEL")
@@ -78,6 +79,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
 
     init {
         state.isUploading = false
+        state.selfOrganizations = null
     }
 
     /**
@@ -99,11 +101,12 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
             val avatar = getAvatar()
             val user = props.userName
                 ?.let { getUser(it) }
-                ?.copy(organizations = getOrganizations())
+            val organizations = getOrganizations()
             setState {
                 image = avatar
                 userInfo = user
                 userInfo?.let { updateFieldsMap(it) }
+                selfOrganizations = organizations
             }
         }
     }
@@ -116,8 +119,6 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
         userInfo.gitHub?.let { fieldsMap[InputTypes.GIT_HUB] = it }
         userInfo.twitter?.let { fieldsMap[InputTypes.TWITTER] = it }
     }
-
-
 
     /**
      * @return element
@@ -136,7 +137,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                         }
                         div("mb-0 font-weight-bold text-gray-800") {
                             form {
-                                div("row g-3 ml-3 mr-3 pb-2 pt-2  border-bottom") {
+                                div("row g-3 ml-3 mr-3 pb-2 pt-2 border-bottom") {
                                     div("col-md-4 pl-0 pr-0") {
                                         label {
                                             input(type = InputType.file) {
@@ -205,7 +206,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                                             div("mt-2") {
                                                 a(classes = "item", href = "#/${props.userName}/settings/organizations") {
                                                     fontAwesomeIcon {
-                                                        attrs.icon = faEnvelope
+                                                        attrs.icon = faCity
                                                         attrs.className = "fas fa-sm fa-fw mr-2 text-gray-600"
                                                     }
                                                     +"Organizations"
@@ -298,10 +299,11 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
             it.decodeFromJsonString<ImageInfo>()
         }
 
+    @Suppress("TYPE_ALIAS")
     private suspend fun getOrganizations() = get(
-        "",
+        "$apiUrl/organizations/by-user/not-deleted",
         Headers(),
         responseHandler = ::noopResponseHandler
     )
-        .unsafeMap { it.decodeFromJsonString<Map<String, Role>>() }
+        .unsafeMap { it.decodeFromJsonString<Map<String, Pair<String?, Role>>>() }
 }
