@@ -1,5 +1,11 @@
+/**
+ * Utilities related to Swagger
+ */
+
 package org.cqfn.save.backend.configs
 
+import io.swagger.v3.oas.annotations.Parameter
+import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeType
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
@@ -17,3 +23,14 @@ import io.swagger.v3.oas.annotations.security.SecurityScheme
     ApiResponse(responseCode = "401", description = "Unauthorized", content = [])
 )
 annotation class ApiSwaggerSupport
+
+/**
+ * Indicates that an operation requires `X-Authorization-Source` header to be set
+ */
+@Parameter(
+    `in` = ParameterIn.HEADER,
+    name = "X-Authorization-Source",
+    required = true,
+    example = "basic"
+)
+annotation class RequiresAuthorizationSourceHeader
