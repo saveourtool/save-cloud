@@ -25,6 +25,7 @@ import org.cqfn.save.permission.Permission
 import org.cqfn.save.v1
 
 import org.slf4j.LoggerFactory
+import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
@@ -59,9 +60,13 @@ class ExecutionController(private val executionService: ExecutionService,
                           private val agentStatusService: AgentStatusService,
                           private val organizationService: OrganizationService,
                           config: ConfigProperties,
+                          jackson2WebClientCustomizer: WebClientCustomizer,
 ) {
     private val log = LoggerFactory.getLogger(ExecutionController::class.java)
-    private val preprocessorWebClient = WebClient.create(config.preprocessorUrl)
+    private val preprocessorWebClient = WebClient.builder()
+        .apply(jackson2WebClientCustomizer::customize)
+        .baseUrl(config.preprocessorUrl)
+        .build()
 
     /**
      * @param execution
