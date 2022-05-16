@@ -15,6 +15,7 @@ import kotlinx.serialization.Serializable
  * @property tags list of tags of current test
  * @property missingWarnings missing warnings
  * @property matchedWarnings matched warnings
+ * @property hasDebugInfo whether debug info data is available for this test execution
  */
 @Serializable
 data class TestExecutionDto(
@@ -28,4 +29,5 @@ data class TestExecutionDto(
     val tags: List<String> = emptyList(),
     val missingWarnings: Int?,
     val matchedWarnings: Int?,
+    val hasDebugInfo: Boolean? = null,
 )

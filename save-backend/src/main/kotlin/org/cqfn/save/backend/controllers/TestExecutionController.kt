@@ -3,42 +3,50 @@ package org.cqfn.save.backend.controllers
 import org.cqfn.save.agent.AgentState
 import org.cqfn.save.agent.TestExecutionDto
 import org.cqfn.save.agent.TestSuiteExecutionStatisticDto
+import org.cqfn.save.backend.configs.ApiSwaggerSupport
+import org.cqfn.save.backend.configs.RequiresAuthorizationSourceHeader
+import org.cqfn.save.backend.repository.TestDataFilesystemRepository
 import org.cqfn.save.backend.security.ProjectPermissionEvaluator
 import org.cqfn.save.backend.service.ExecutionService
 import org.cqfn.save.backend.service.TestExecutionService
 import org.cqfn.save.backend.utils.justOrNotFound
+import org.cqfn.save.core.utils.runIf
 import org.cqfn.save.domain.TestResultLocation
 import org.cqfn.save.domain.TestResultStatus
 import org.cqfn.save.permission.Permission
 import org.cqfn.save.test.TestDto
 import org.cqfn.save.v1
 
+import io.swagger.v3.oas.annotations.tags.Tag
+import io.swagger.v3.oas.annotations.tags.Tags
 import org.slf4j.LoggerFactory
 import org.springframework.dao.DataAccessException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
 import org.springframework.transaction.annotation.Transactional
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+
 import java.math.BigInteger
+
+import kotlin.io.path.exists
 
 /**
  * Controller to work with test execution
  *
  * @param testExecutionService service for test execution
  */
+@ApiSwaggerSupport
+@Tags(Tag(name = "test-executions"))
 @RestController
 @Transactional
 class TestExecutionController(private val testExecutionService: TestExecutionService,
                               private val executionService: ExecutionService,
                               private val projectPermissionEvaluator: ProjectPermissionEvaluator,
+                              private val testDataFilesystemRepository: TestDataFilesystemRepository
 ) {
     /**
      * Returns a page of [TestExecutionDto]s with [executionId]
@@ -49,9 +57,11 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
      * @param status
      * @param testSuite
      * @param authentication
+     * @param checkDebugInfo if true, response will contain information about whether debug info data is available for this test execution
      * @return a list of [TestExecutionDto]s
      */
     @GetMapping(path = ["/api/$v1/testExecutions"])
+    @RequiresAuthorizationSourceHeader
     @Suppress("LongParameterList", "TOO_MANY_PARAMETERS", "TYPE_ALIAS")
     fun getTestExecutions(
         @RequestParam executionId: Long,
@@ -59,14 +69,26 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
         @RequestParam size: Int,
         @RequestParam(required = false) status: TestResultStatus?,
         @RequestParam(required = false) testSuite: String?,
+        @RequestParam(required = false, defaultValue = "false") checkDebugInfo: Boolean,
         authentication: Authentication,
-    ): Mono<List<TestExecutionDto>> = justOrNotFound(executionService.findExecution(executionId)).filterWhen {
+    ): Flux<TestExecutionDto> = justOrNotFound(executionService.findExecution(executionId)).filterWhen {
         projectPermissionEvaluator.checkPermissions(authentication, it, Permission.READ)
     }
-        .map {
+        .flatMapIterable {
             log.debug("Request to get test executions on page $page with size $size for execution $executionId")
             testExecutionService.getTestExecutions(executionId, page, size, status, testSuite)
-                .map { it.toDto() }
+        }
+        .map { it.toDto() }
+        .runIf({ checkDebugInfo }) {
+            map { testExecutionDto ->
+                val debugInfoFile = testDataFilesystemRepository.getLocation(
+                    executionId,
+                    testExecutionDto
+                )
+                testExecutionDto.copy(
+                    hasDebugInfo = debugInfoFile.exists()
+                )
+            }
         }
 
     /**
@@ -78,6 +100,7 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
      * @return a list of [TestExecutionDto]s
      */
     @GetMapping(path = ["/api/$v1/testLatestExecutions"])
+    @RequiresAuthorizationSourceHeader
     @Suppress("TYPE_ALIAS", "MagicNumber")
     fun getTestExecutionsByStatus(
         @RequestParam executionId: Long,
@@ -120,6 +143,7 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
      * @return TestExecution
      */
     @PostMapping(path = ["/api/$v1/testExecutions"])
+    @RequiresAuthorizationSourceHeader
     fun getTestExecutionByLocation(@RequestParam executionId: Long,
                                    @RequestBody testResultLocation: TestResultLocation,
                                    authentication: Authentication,
@@ -146,6 +170,7 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
      * @param authentication
      */
     @GetMapping(path = ["/api/$v1/testExecution/count"])
+    @RequiresAuthorizationSourceHeader
     fun getTestExecutionsCount(
         @RequestParam executionId: Long,
         @RequestParam(required = false) status: TestResultStatus?,
