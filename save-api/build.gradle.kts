@@ -37,7 +37,8 @@ publishing {
         create<MavenPublication>("maven") {
             groupId = "org.cqfn"
             artifactId = "save-cloud-api"
-            version = "0.1.2"
+            // for consistency, version chosen same, as the version of backend API
+            version = "v1"
             from(components["java"])
         }
     }
