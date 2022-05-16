@@ -1,38 +1,3 @@
 gateway:
   backend:
     url: http://localhost:5800
-
-spring:
-  cloud:
-    gateway:
-      routes:
-        - id: api_route
-          uri: http://localhost:5800
-          predicates:
-            - Path=/api/**
-          filters:
-            # If SESSION cookie is passed to downstream, it is then removed, because downstream discards it
-            - RemoveRequestHeader=Cookie
-            - ConvertAuthorizationHeader=
-        - id: index_route
-          uri: http://localhost:5800/index.html
-          predicates:
-            - Path=/
-          filters:
-            # If SESSION cookie is passed to downstream, it is then removed, because downstream discards it
-            - RemoveRequestHeader=Cookie
-        - id: error_route
-          uri: http://localhost:5800/error
-          predicates:
-            - Path=/error
-        - id: resource_route
-          uri: http://localhost:5800
-          predicates:
-            - Path=/*.html,/*.js*,/*.css,/img/**
-          filters:
-            # If SESSION cookie is passed to downstream, it is then removed, because downstream discards it
-            - RemoveRequestHeader=Cookie
-        - id: grafana
-          uri: http://localhost:9100
-          predicates:
-            - Path=/grafana/**
