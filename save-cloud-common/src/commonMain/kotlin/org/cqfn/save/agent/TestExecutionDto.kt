@@ -28,4 +28,5 @@ data class TestExecutionDto(
     val tags: List<String> = emptyList(),
     val missingWarnings: Int?,
     val matchedWarnings: Int?,
+    val hasDebugInfo: Boolean = false,
 )
