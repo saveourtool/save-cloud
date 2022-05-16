@@ -63,6 +63,10 @@ class OrganizationControllerTest {
         Assertions.assertTrue(
             organizationFromDb?.status == OrganizationStatus.DELETED
         )
+        lnkUserOrganizationRepository.findByUserIdAndOrganization(user.id!!, organization)?.let {
+            lnkUserOrganizationRepository.delete(it)
+        }
+        organizationRepository.delete(organization)
     }
 
     @Test
@@ -92,5 +96,9 @@ class OrganizationControllerTest {
         Assertions.assertTrue(
             organizationFromDb?.status == OrganizationStatus.CREATED
         )
+        lnkUserOrganizationRepository.findByUserIdAndOrganization(user.id!!, organization)?.let {
+            lnkUserOrganizationRepository.delete(it)
+        }
+        organizationRepository.delete(organization)
     }
 }
