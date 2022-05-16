@@ -1,2 +1,55 @@
+server:
+  port: 5300
+  error:
+    path: /error
 gateway:
-  basicCredentials: "user {noop}123"
+  backend:
+    url: http://localhost:5800
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,gateway
+spring:
+
+  cloud:
+    gateway:
+      routes:
+        - id: api_route
+          uri: http://localhost:5800
+          predicates:
+            - Path=/api/**
+          filters:
+            # If SESSION cookie is passed to downstream, it is then removed, because downstream discards it
+            - RemoveRequestHeader=Cookie
+            - ConvertAuthorizationHeader=
+        - id: index_route
+          uri: http://localhost:5800/index.html
+          predicates:
+            - Path=/
+          filters:
+            # If SESSION cookie is passed to downstream, it is then removed, because downstream discards it
+            - RemoveRequestHeader=Cookie
+        - id: error_route
+          uri: http://localhost:5800/error
+          predicates:
+            - Path=/error
+        - id: resource_route
+          uri: http://localhost:5800
+          predicates:
+            - Path=/*.html,/*.js*,/*.css,/img/**
+          filters:
+            # If SESSION cookie is passed to downstream, it is then removed, because downstream discards it
+            - RemoveRequestHeader=Cookie
+        - id: grafana
+          uri: http://localhost:9100
+          predicates:
+            - Path=/grafana/**
+  security:
+    oauth2:
+      client:
+        provider:
+          github:
+            # value that will work with GitHub API, where GitHub provides username as "login" in the response
+            # https://docs.github.com/en/rest/reference/users#get-the-authenticated-user
+            user-name-attribute: login
