@@ -7,7 +7,6 @@ import org.cqfn.save.buildutils.getDatabaseCredentials
 import org.cqfn.save.buildutils.installGitHooks
 import org.cqfn.save.buildutils.registerSaveCliVersionCheckTask
 import org.apache.tools.ant.taskdefs.condition.Os
-import org.cqfn.save.buildutils.configurePublishing
 
 plugins {
     alias(libs.plugins.talaiot.base)
