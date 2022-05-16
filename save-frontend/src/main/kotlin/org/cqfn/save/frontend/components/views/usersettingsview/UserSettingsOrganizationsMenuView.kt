@@ -26,10 +26,7 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                 img(classes = "avatar avatar-user width-full border color-bg-default rounded-circle") {
                                     attrs.src = organizationInfo.avatar?.let {
                                         "/api/$v1/avatar$it"
-                                    }
-                                        ?: run {
-                                            "img/company.svg"
-                                        }
+                                    } ?: "img/company.svg"
                                     attrs.height = "60"
                                     attrs.width = "60"
                                 }
