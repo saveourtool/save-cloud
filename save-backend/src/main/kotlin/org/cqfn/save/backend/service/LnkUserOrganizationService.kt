@@ -74,7 +74,7 @@ class LnkUserOrganizationService(
      * @param organization
      * @return role of the [user] in [organization]
      */
-    @Suppress("KDOC_WITHOUT_PARAM_TAG", "UnsafeCallOnNullableType")
+    @Suppress("UnsafeCallOnNullableType")
     fun getRole(user: User, organization: Organization) = lnkUserOrganizationRepository
         .findByUserIdAndOrganization(user.id!!, organization)
         ?.role
@@ -99,7 +99,7 @@ class LnkUserOrganizationService(
      * @param organization
      * @return Unit
      */
-    @Suppress("KDOC_WITHOUT_PARAM_TAG", "UnsafeCallOnNullableType")
+    @Suppress("UnsafeCallOnNullableType")
     fun removeRole(user: User, organization: Organization) = lnkUserOrganizationRepository
         .findByUserIdAndOrganization(user.id!!, organization)
         ?.id
@@ -160,4 +160,12 @@ class LnkUserOrganizationService(
         val selfOrganizationRole = findRoleByUserIdAndOrganizationName(selfId, organizationName)
         return getHighestRole(selfOrganizationRole, selfGlobalRole)
     }
+    
+    /**
+     * @param user
+     * @return [Organization]s that are connected to the [user]
+     */
+    @Suppress("UnsafeCallOnNullableType")
+    fun getOrganizationsAndRolesByUser(user: User): List<LnkUserOrganization> =
+            lnkUserOrganizationRepository.findByUserId(user.id!!)
 }

@@ -7,12 +7,10 @@ package org.cqfn.save.frontend.components.views.usersettingsview
 import org.cqfn.save.domain.ImageInfo
 import org.cqfn.save.frontend.components.basic.InputTypes
 import org.cqfn.save.frontend.components.views.AbstractView
-import org.cqfn.save.frontend.externals.fontawesome.faEnvelope
-import org.cqfn.save.frontend.externals.fontawesome.faKey
-import org.cqfn.save.frontend.externals.fontawesome.faUser
-import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
+import org.cqfn.save.frontend.externals.fontawesome.*
 import org.cqfn.save.frontend.http.getUser
 import org.cqfn.save.frontend.utils.*
+import org.cqfn.save.info.OrganizationInfo
 import org.cqfn.save.info.UserInfo
 import org.cqfn.save.utils.AvatarType
 import org.cqfn.save.v1
@@ -47,7 +45,7 @@ external interface UserSettingsProps : PropsWithChildren {
 /**
  * [State] of project view component
  */
-@Suppress("MISSING_KDOC_TOP_LEVEL")
+@Suppress("MISSING_KDOC_TOP_LEVEL", "TYPE_ALIAS")
 external interface UserSettingsViewState : State {
     /**
      * Flag to handle uploading a file
@@ -68,6 +66,11 @@ external interface UserSettingsViewState : State {
      * Token for user
      */
     var token: String?
+
+    /**
+     * Organizations connected to user
+     */
+    var selfOrganizationInfos: List<OrganizationInfo>
 }
 
 @Suppress("MISSING_KDOC_TOP_LEVEL")
@@ -76,6 +79,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
 
     init {
         state.isUploading = false
+        state.selfOrganizationInfos = emptyList()
     }
 
     /**
@@ -95,11 +99,14 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
         super.componentDidMount()
         scope.launch {
             val avatar = getAvatar()
-            val user = props.userName?.let { getUser(it) }
+            val user = props.userName
+                ?.let { getUser(it) }
+            val organizationInfos = getOrganizationInfos()
             setState {
                 image = avatar
                 userInfo = user
                 userInfo?.let { updateFieldsMap(it) }
+                selfOrganizationInfos = organizationInfos
             }
         }
     }
@@ -130,7 +137,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                         }
                         div("mb-0 font-weight-bold text-gray-800") {
                             form {
-                                div("row g-3 ml-3 mr-3 pb-2 pt-2  border-bottom") {
+                                div("row g-3 ml-3 mr-3 pb-2 pt-2 border-bottom") {
                                     div("col-md-4 pl-0 pr-0") {
                                         label {
                                             input(type = InputType.file) {
@@ -194,6 +201,15 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                                                         attrs.className = "fas fa-sm fa-fw mr-2 text-gray-600"
                                                     }
                                                     +"Email management"
+                                                }
+                                            }
+                                            div("mt-2") {
+                                                a(classes = "item", href = "#/${props.userName}/settings/organizations") {
+                                                    fontAwesomeIcon {
+                                                        attrs.icon = faCity
+                                                        attrs.className = "fas fa-sm fa-fw mr-2 text-gray-600"
+                                                    }
+                                                    +"Organizations"
                                                 }
                                             }
                                         }
@@ -282,4 +298,11 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
         .unsafeMap {
             it.decodeFromJsonString<ImageInfo>()
         }
+
+    @Suppress("TYPE_ALIAS")
+    private suspend fun getOrganizationInfos() = get(
+        "$apiUrl/organizations/by-user/not-deleted",
+        Headers(),
+    )
+        .unsafeMap { it.decodeFromJsonString<List<OrganizationInfo>>() }
 }
