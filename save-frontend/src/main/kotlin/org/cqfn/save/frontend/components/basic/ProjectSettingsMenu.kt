@@ -2,7 +2,6 @@
 
 package org.cqfn.save.frontend.components.basic
 
-import org.cqfn.save.domain.Role
 import org.cqfn.save.entities.Project
 import org.cqfn.save.info.UserInfo
 
@@ -26,11 +25,6 @@ external interface ProjectSettingsMenuProps : Props {
      * Current project settings
      */
     var project: Project
-
-    /**
-     * Role of user that opened this window
-     */
-    var selfRole: Role
 
     /**
      * Information about current user
