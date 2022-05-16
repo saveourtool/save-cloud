@@ -1,6 +1,7 @@
 package org.cqfn.save.backend.controllers
 
 import org.cqfn.save.backend.configs.ApiSwaggerSupport
+import org.cqfn.save.backend.configs.RequiresAuthorizationSourceHeader
 import org.cqfn.save.backend.security.OrganizationPermissionEvaluator
 import org.cqfn.save.backend.security.ProjectPermissionEvaluator
 import org.cqfn.save.backend.service.OrganizationService
@@ -15,8 +16,6 @@ import org.cqfn.save.permission.SetRoleRequest
 import org.cqfn.save.v1
 
 import io.swagger.v3.oas.annotations.Operation
-import io.swagger.v3.oas.annotations.Parameter
-import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.tags.Tags
@@ -54,10 +53,8 @@ class PermissionController(
     @GetMapping("/projects/{organizationName}/{projectName}/users/roles")
     @Operation(
         description = "Get role for a user on a particular project. Returns self role if no userName is set.",
-        parameters = [
-            Parameter(`in` = ParameterIn.HEADER, name = "X-Authorization-Source", required = true),
-        ]
     )
+    @RequiresAuthorizationSourceHeader
     @ApiResponse(responseCode = "200", description = "Successfully fetched user's role")
     @ApiResponse(
         responseCode = "404", description = "Requested user or project doesn't exist or the user doesn't have enough permissions " +
@@ -92,10 +89,8 @@ class PermissionController(
     @PostMapping("/projects/{organizationName}/{projectName}/users/roles")
     @Operation(
         description = "Set role for a user on a particular project",
-        parameters = [
-            Parameter(`in` = ParameterIn.HEADER, name = "X-Authorization-Source", required = true),
-        ]
     )
+    @RequiresAuthorizationSourceHeader
     @ApiResponse(responseCode = "200", description = "Permission added")
     @ApiResponse(responseCode = "403", description = "User doesn't have permissions to manage this members")
     @ApiResponse(responseCode = "404", description = "Requested user or project doesn't exist")
@@ -138,10 +133,8 @@ class PermissionController(
     @DeleteMapping("/projects/{organizationName}/{projectName}/users/roles/{userName}")
     @Operation(
         description = "Removes user's role on a particular project",
-        parameters = [
-            Parameter(`in` = ParameterIn.HEADER, name = "X-Authorization-Source", required = true),
-        ]
     )
+    @RequiresAuthorizationSourceHeader
     @ApiResponse(responseCode = "200", description = "Permission removed")
     @ApiResponse(responseCode = "403", description = "User doesn't have permissions to manage this members")
     @ApiResponse(responseCode = "404", description = "Requested user or project doesn't exist")
