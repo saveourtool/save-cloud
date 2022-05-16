@@ -1,5 +1,6 @@
 package org.cqfn.save.frontend.components.views.usersettingsview
 
+import org.cqfn.save.domain.Role
 import org.cqfn.save.frontend.components.basic.cardComponent
 import org.cqfn.save.v1
 
@@ -16,16 +17,14 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                     +"Organizations"
                 }
             }
-            val organizationsAndRoles = state.selfOrganizations ?: emptyMap()
 
             ul(classes = "list-group list-group-flush") {
-                for ((organizationName, avatarAndRole) in organizationsAndRoles) {
-                    val (avatar, role) = avatarAndRole
+                for (organizationInfo in state.selfOrganizationInfos) {
                     li("list-group-item") {
                         div("row justify-content-between align-items-center") {
                             div("align-items-center ml-3") {
                                 img(classes = "avatar avatar-user width-full border color-bg-default rounded-circle") {
-                                    attrs.src = avatar?.let {
+                                    attrs.src = organizationInfo.avatar?.let {
                                         "/api/$v1/avatar$it"
                                     }
                                         ?: run {
@@ -34,11 +33,14 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                     attrs.height = "60"
                                     attrs.width = "60"
                                 }
-                                a(classes = "ml-2", href = "#/$organizationName") {
-                                    +organizationName
+                                a(classes = "ml-2", href = "#/${organizationInfo.name}") {
+                                    +organizationInfo.name
                                 }
                             }
                             div("mr-3") {
+                                val role = state.userInfo?.name?.let {
+                                    organizationInfo.userRoles[it]
+                                } ?: Role.NONE
                                 +role.formattedName
                             }
                         }

@@ -5,7 +5,6 @@
 package org.cqfn.save.frontend.components.views.usersettingsview
 
 import org.cqfn.save.domain.ImageInfo
-import org.cqfn.save.domain.Role
 import org.cqfn.save.frontend.components.basic.InputTypes
 import org.cqfn.save.frontend.components.views.AbstractView
 import org.cqfn.save.frontend.externals.fontawesome.*
@@ -30,6 +29,7 @@ import kotlinx.html.hidden
 import kotlinx.html.js.onChangeFunction
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.cqfn.save.info.OrganizationInfo
 
 /**
  * `Props` retrieved from router
@@ -70,7 +70,7 @@ external interface UserSettingsViewState : State {
     /**
      * Organizations connected to user
      */
-    var selfOrganizations: Map<String, Pair<String?, Role>>?
+    var selfOrganizationInfos: List<OrganizationInfo>
 }
 
 @Suppress("MISSING_KDOC_TOP_LEVEL")
@@ -79,7 +79,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
 
     init {
         state.isUploading = false
-        state.selfOrganizations = null
+        state.selfOrganizationInfos = emptyList()
     }
 
     /**
@@ -101,12 +101,12 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
             val avatar = getAvatar()
             val user = props.userName
                 ?.let { getUser(it) }
-            val organizations = getOrganizations()
+            val organizationInfos = getOrganizationInfos()
             setState {
                 image = avatar
                 userInfo = user
                 userInfo?.let { updateFieldsMap(it) }
-                selfOrganizations = organizations
+                selfOrganizationInfos = organizationInfos
             }
         }
     }
@@ -300,10 +300,9 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
         }
 
     @Suppress("TYPE_ALIAS")
-    private suspend fun getOrganizations() = get(
+    private suspend fun getOrganizationInfos() = get(
         "$apiUrl/organizations/by-user/not-deleted",
         Headers(),
-        responseHandler = ::noopResponseHandler
     )
-        .unsafeMap { it.decodeFromJsonString<Map<String, Pair<String?, Role>>>() }
+        .unsafeMap { it.decodeFromJsonString<List<OrganizationInfo>>() }
 }

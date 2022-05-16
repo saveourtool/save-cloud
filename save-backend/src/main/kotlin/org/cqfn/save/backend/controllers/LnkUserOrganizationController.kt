@@ -19,6 +19,7 @@ import org.cqfn.save.permission.SetRoleRequest
 import org.cqfn.save.v1
 
 import io.swagger.v3.oas.annotations.responses.ApiResponse
+import org.cqfn.save.info.OrganizationInfo
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.Authentication
@@ -205,14 +206,19 @@ class LnkUserOrganizationController(
     @GetMapping("/by-user/not-deleted")
     fun getOrganizationWithRoles(
         authentication: Authentication,
-    ): Map<String, Pair<String?, Role>> {
+    ): List<OrganizationInfo> {
         val selfId = (authentication.details as AuthenticationDetails).id
-        val user = lnkUserOrganizationService.getUserById(selfId).get()
+        val user = lnkUserOrganizationService.getUserById(selfId)
+            .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND) }
         return lnkUserOrganizationService
             .getOrganizationsAndRolesByUser(user)
             .filter { it.organization?.status != OrganizationStatus.DELETED }
-            .associate {
-                (it.organization!!.name) to (it.organization!!.avatar to (it.role ?: Role.NONE))
+            .map {
+                OrganizationInfo(
+                    it.organization!!.name,
+                    mapOf(user.name!! to (it.role ?: Role.NONE)),
+                    it.organization!!.avatar,
+                )
             }
     }
     companion object {
