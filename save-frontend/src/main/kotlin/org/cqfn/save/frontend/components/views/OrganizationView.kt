@@ -670,14 +670,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         }.invokeOnCompletion {
             if (responseFromDeleteOrganization.ok) {
                 window.location.href = "${window.location.origin}/"
-            } else {
-                responseFromDeleteOrganization.text().then {
-                    setState {
-                        errorLabel = "Failed to delete organization"
-                        errorMessage = it
-                        isErrorOpen = true
-                    }
-                }
             }
         }
     }

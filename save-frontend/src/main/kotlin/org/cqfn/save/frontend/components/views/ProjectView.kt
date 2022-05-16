@@ -275,11 +275,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                             project = draftProject
                         }
                     } else {
-                        setState {
-                            errorLabel = "Failed to save project info"
-                            errorMessage = "Failed to save project info: ${response.status} ${response.statusText}"
-                            isErrorOpen = true
-                        }
                         // rollback form content
                         setDraftProject(state.project)
                     }
@@ -297,12 +292,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 if (response.ok) {
                     setState {
                         this.project = project
-                    }
-                } else {
-                    setState {
-                        errorLabel = "Failed to save project settings"
-                        errorMessage = "Failed to save project settings: ${response.status} ${response.statusText}"
-                        isErrorOpen = true
                     }
                 }
             }
@@ -330,12 +319,11 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
 
             button(classes = "btn btn-link text-left") {
                 +"Latest Execution"
-                attrs.onClickFunction = {
-                    scope.launch {
-                        switchToLatestExecution(state.latestExecutionId)
-                    }
-                }
                 attrs.disabled = state.latestExecutionId == null
+
+                attrs.onClickFunction = {
+                    window.location.href = "${window.location}/history/execution/${state.latestExecutionId}"
+                }
             }
         }
         div("ml-3 align-items-left") {
@@ -557,15 +545,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         }
         scope.launch {
             val response = post(apiUrl + url, headers, body)
-            if (!response.ok) {
-                response.text().then { text ->
-                    setState {
-                        isErrorOpen = true
-                        errorLabel = "Error from backend"
-                        errorMessage = "Request failed: [${response.statusText}] $text"
-                    }
-                }
-            } else {
+            if (response.ok) {
                 window.location.href = "${window.location}/history"
             }
         }
@@ -863,14 +843,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         }.invokeOnCompletion {
             if (responseFromDeleteProject.ok) {
                 window.location.href = "${window.location.origin}/"
-            } else {
-                responseFromDeleteProject.text().then {
-                    setState {
-                        errorLabel = "Failed to delete project"
-                        errorMessage = it
-                        isErrorOpen = true
-                    }
-                }
             }
         }
     }
@@ -903,13 +875,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         }
     }
 
-    private fun switchToLatestExecution(latestExecutionId: Long?) {
-        latestExecutionId?.let {
-            window.location.href = "${window.location}/history/execution/$latestExecutionId"
-        }
-            ?: setState {
-                isErrorOpen = true
-            }
+    private fun switchToLatestExecution(latestExecutionId: Long) {
     }
 
     private suspend fun getFilesList() = get("$apiUrl/files/list", Headers())
