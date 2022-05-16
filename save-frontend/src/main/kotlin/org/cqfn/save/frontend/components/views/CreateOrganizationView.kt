@@ -104,7 +104,7 @@ class CreateOrganizationView : AbstractView<Props, OrganizationSaveViewState>(tr
     private fun isValidInput(): Boolean {
         var valid = true
         val value = fieldsMap[InputTypes.ORGANIZATION_NAME]
-        if (value.isNullOrBlank() || value.contains(" ") || value.length > 64) {
+        if (value.isInvalid(64)) {
             setState { isValidOrganizationName = false }
             valid = false
         } else {

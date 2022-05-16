@@ -242,7 +242,7 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
         }
 
         val projectName = fieldsMap[InputTypes.PROJECT_NAME]
-        if (projectName.isNullOrBlank() || projectName.contains(" ") || projectName.length > 64) {
+        if (projectName.isInvalid(64)) {
             setState { isValidProjectName = false }
             valid = false
         } else {

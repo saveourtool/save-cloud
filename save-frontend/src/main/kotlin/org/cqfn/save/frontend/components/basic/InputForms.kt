@@ -95,7 +95,7 @@ internal fun RBuilder.inputTextFormRequired(
                 if (!validInput) {
                     if (isProjectOrOrganizationName) {
                         div("invalid-feedback d-block") {
-                            +"Please input a valid ${form.str}. The name must not be longer than 64 characters and contain spaces."
+                            +"Please input a valid ${form.str}. The name can be no longer than 64 characters and can't contain any spaces."
                         }
                     } else {
                         div("invalid-feedback d-block") {
