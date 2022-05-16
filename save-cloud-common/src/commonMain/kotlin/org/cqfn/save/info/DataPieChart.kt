@@ -22,6 +22,7 @@ data class DataPieChart(
 /**
  * @return string of random hex color
  */
+@Suppress("MagicNumber")
 fun randomColor(): String {
     var stringColor = "#"
     val charPool = "0123456789ABCDEF".split("")
