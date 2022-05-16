@@ -22,12 +22,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -196,6 +191,27 @@ class ProjectController(
             val (_, projectStatus) = projectService.getOrSaveProject(updatedProject)
             ResponseEntity.ok(projectStatus.message)
         }
+
+    /**
+     * @param project
+     * @param authentication
+     * @return response
+     */
+    @PostMapping("/delete")
+    fun deleteProject(@RequestBody project: Project, authentication: Authentication): Mono<StringResponse> =
+            projectService.findWithPermissionByNameAndOrganization(
+                authentication, project.name, project.organization, Permission.DELETE
+            )
+                .filter { projectPermissionEvaluator.hasPermission(authentication, project, Permission.DELETE) }
+                .map { projectFromDb ->
+                    projectFromDb.apply {
+                        status = ProjectStatus.DELETED
+                    }
+                }
+                .map { updatedProject ->
+                    val (_, projectStatus) = projectService.getOrSaveProject(updatedProject)
+                    ResponseEntity.ok(projectStatus.message)
+                }
 
     companion object {
         @JvmStatic

@@ -136,6 +136,54 @@ class ProjectControllerTest {
     }
 
     @Test
+    @WithUserDetails(value = "admin")
+    fun `delete organization with owner permission`() {
+        mutateMockedUser {
+            details = AuthenticationDetails(id = 2)
+        }
+        val organization: Organization = organizationRepository.getOrganizationById(1)
+        val project = Project("ToDelete", "url", "", ProjectStatus.CREATED, organization = organization)
+
+        projectRepository.save(project)
+
+        webClient.post()
+            .uri("/api/$v1/projects/delete")
+            .bodyValue(project)
+            .exchange()
+            .expectStatus()
+            .isOk
+
+        val projectFromDb = projectRepository.findByNameAndOrganization(project.name, organization)
+        Assertions.assertTrue(
+            projectFromDb?.status == ProjectStatus.DELETED
+        )
+    }
+
+    @Test
+    @WithUserDetails(value = "John Doe")
+    fun `delete organization without owner permission`() {
+        mutateMockedUser {
+            details = AuthenticationDetails(id = 2)
+        }
+        val organization: Organization = organizationRepository.getOrganizationById(1)
+        val project = Project("ToDelete", "url", "", ProjectStatus.CREATED, organization = organization)
+
+        projectRepository.save(project)
+
+        webClient.post()
+            .uri("/api/$v1/projects/delete")
+            .bodyValue(project)
+            .exchange()
+            .expectStatus()
+            .isForbidden
+
+        val projectFromDb = projectRepository.findByNameAndOrganization(project.name, organization)
+        Assertions.assertTrue(
+            projectFromDb?.status == ProjectStatus.CREATED
+        )
+    }
+
+    @Test
     @WithMockUser(username = "John Doe", roles = ["VIEWER"])
     fun `check save new project`() {
         mutateMockedUser {

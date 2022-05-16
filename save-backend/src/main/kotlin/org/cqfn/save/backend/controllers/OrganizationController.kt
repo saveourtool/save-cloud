@@ -114,6 +114,23 @@ internal class OrganizationController(
         return Mono.just(response)
     }
 
+    /**
+     * @param organizationName
+     * @param authentication
+     */
+    @DeleteMapping("/{organizationName}/delete")
+    @PreAuthorize("isAuthenticated()")
+    fun deleteOrganization(@PathVariable organizationName: String, authentication: Authentication): Mono<StringResponse> {
+        val role = lnkUserOrganizationService.getGlobalRoleOrOrganizationRole(authentication, organizationName)
+        val response = if (role.priority >= Role.OWNER.priority) {
+            organizationService.deleteOrganization(organizationName)
+            ResponseEntity.ok("Organization deleted")
+        } else {
+            ResponseEntity.status(HttpStatus.FORBIDDEN).build()
+        }
+        return Mono.just(response)
+    }
+
     companion object {
         @JvmStatic
         private val logger = LoggerFactory.getLogger(OrganizationController::class.java)
