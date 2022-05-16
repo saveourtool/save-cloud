@@ -9,6 +9,7 @@ import org.cqfn.save.backend.service.TestExecutionService
 import org.cqfn.save.backend.utils.justOrNotFound
 import org.cqfn.save.domain.TestResultLocation
 import org.cqfn.save.domain.TestResultStatus
+import org.cqfn.save.info.DataPieChart
 import org.cqfn.save.permission.Permission
 import org.cqfn.save.test.TestDto
 import org.cqfn.save.v1
@@ -97,6 +98,25 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
                     testExecutionService.getByExecutionIdGroupByTestSuite(executionId, status, page, size)?.map {
                         TestSuiteExecutionStatisticDto(it[0] as String, (it[1] as BigInteger).toInt(), (it[2] as BigInteger).toInt(), TestResultStatus.valueOf(it[3] as String))
                     }
+                }
+            }
+
+    /**
+     * @param executionId an ID of Execution to group TestExecutions
+     * @param authentication
+     * @return a list of [TestExecutionDto]s
+     */
+    @GetMapping(path = ["/api/$v1/testLatestExecutionsPieChart"])
+    @Suppress("TYPE_ALIAS")
+    fun getDataPieChartTestExecutions(
+        @RequestParam executionId: Long,
+        authentication: Authentication,
+    ): Mono<List<DataPieChart>> =
+            justOrNotFound(executionService.findExecution(executionId)).filterWhen {
+                projectPermissionEvaluator.checkPermissions(authentication, it, Permission.READ)
+            }.mapNotNull {
+                testExecutionService.getTestExecutions(executionId).groupBy { it.test.testSuite.name }.map { (testSuiteName, testExecutions) ->
+                    DataPieChart(testSuiteName, testExecutions.count())
                 }
             }
 

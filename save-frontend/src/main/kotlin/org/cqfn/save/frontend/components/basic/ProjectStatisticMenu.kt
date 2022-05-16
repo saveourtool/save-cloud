@@ -5,14 +5,13 @@ package org.cqfn.save.frontend.components.basic
 import org.cqfn.save.agent.TestSuiteExecutionStatisticDto
 import org.cqfn.save.domain.TestResultStatus
 import org.cqfn.save.frontend.components.tables.tableComponent
-import org.cqfn.save.frontend.externals.chart.DataPieChart
 import org.cqfn.save.frontend.externals.chart.pieChart
-import org.cqfn.save.frontend.externals.chart.randomColor
 import org.cqfn.save.frontend.utils.apiUrl
 import org.cqfn.save.frontend.utils.decodeFromJsonString
 import org.cqfn.save.frontend.utils.get
 import org.cqfn.save.frontend.utils.unsafeMap
 import org.cqfn.save.frontend.utils.useRequest
+import org.cqfn.save.info.DataPieChart
 import org.w3c.fetch.Headers
 import react.*
 import react.dom.div
@@ -74,7 +73,7 @@ external interface ProjectStatisticMenuProps : Props {
     /**
      * list of tests
      */
-    var latestExecutionStatisticDtos: List<TestSuiteExecutionStatisticDto>?
+    var latestExecutionDataPieChart: List<DataPieChart>?
 
     /**
      * Flag to open Menu
@@ -93,20 +92,20 @@ external interface ProjectStatisticMenuProps : Props {
 )
 fun projectStatisticMenu(
 ) = fc<ProjectStatisticMenuProps> { props ->
-    val (latestExecutionStatisticDtos, setLatestExecutionStatisticDtos) = useState(props.latestExecutionStatisticDtos)
+    val (latestExecutionDataPieChart, setLatestExecutionDataPieChart) = useState(props.latestExecutionDataPieChart)
 
-    useRequest(arrayOf(props.executionId, props.latestExecutionStatisticDtos, props.isOpen), isDeferred = false) {
+    useRequest(arrayOf(props.executionId, props.latestExecutionDataPieChart, props.isOpen), isDeferred = false) {
         if (props.isOpen != true && props.executionId != null) {
             val testLatestExecutions = get(
-                url = "$apiUrl/testLatestExecutions?executionId=${props.executionId}&status=${TestResultStatus.PASSED}",
+                url = "$apiUrl/testLatestExecutionsPieChart?executionId=${props.executionId}",
                 headers = Headers().also {
                     it.set("Accept", "application/json")
                 },
             )
                 .unsafeMap {
-                    it.decodeFromJsonString<List<TestSuiteExecutionStatisticDto>>()
+                    it.decodeFromJsonString<List<DataPieChart>>()
                 }
-            setLatestExecutionStatisticDtos(testLatestExecutions)
+            setLatestExecutionDataPieChart(testLatestExecutions)
         }
     }()
 
@@ -117,9 +116,7 @@ fun projectStatisticMenu(
                 +"Total number of tests by test suite"
             }
             div("col-xl col-md-6 mb-4") {
-                val data = latestExecutionStatisticDtos?.map {
-                    DataPieChart(it.testSuiteName, it.countTest, randomColor())
-                } ?: emptyList()
+                val data = latestExecutionDataPieChart ?: emptyList()
                 pieChart(
                     data.toTypedArray()
                 ) {
@@ -135,7 +132,7 @@ fun projectStatisticMenu(
                 +"Latest execution"
             }
 
-            if (props.executionId != null && latestExecutionStatisticDtos?.isNotEmpty() == true) {
+            if (props.executionId != null && latestExecutionDataPieChart?.isNotEmpty() == true) {
                 executionDetailsTable {
                     attrs.executionId = props.executionId
                 }

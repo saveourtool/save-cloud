@@ -4,9 +4,9 @@
 
 package org.cqfn.save.frontend.externals.chart
 
+import org.cqfn.save.info.DataPieChart
 import react.RBuilder
 import react.RHandler
-import kotlin.random.Random
 
 /**
  * @param data dataset for pie chart
@@ -24,16 +24,4 @@ fun RBuilder.pieChart(
     attrs.viewBoxSize = intArrayOf(100, 100)
     attrs.radius = 50
     handler(this)
-}
-
-/**
- * @return string of random hex color
- */
-fun randomColor(): String {
-    var stringColor = "#"
-    val charPool = "0123456789ABCDEF".split("")
-    while (stringColor.length <= 6) {
-        stringColor += charPool[Random.nextInt(16)]
-    }
-    return stringColor
 }

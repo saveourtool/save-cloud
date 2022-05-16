@@ -2,6 +2,7 @@
 
 package org.cqfn.save.frontend.externals.chart
 
+import org.cqfn.save.info.DataPieChart
 import org.w3c.dom.events.Event
 import react.PropsWithChildren
 
@@ -49,18 +50,3 @@ external interface PieChartProps : PropsWithChildren {
      */
     var onMouseOver: (Event, Int) -> Unit
 }
-
-/**
- * Source data. Each entry represents a chart segment
- *
- * @property title segment name
- * @property value value of segment
- * @property color color of segment
- * @property key custom value to be used as segments element keys
- */
-data class DataPieChart(
-    val title: String? = null,
-    val value: Int,
-    var color: String,
-    val key: String? = null,
-)
