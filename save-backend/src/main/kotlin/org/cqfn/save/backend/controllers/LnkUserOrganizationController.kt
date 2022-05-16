@@ -12,6 +12,8 @@ import org.cqfn.save.backend.service.LnkUserOrganizationService
 import org.cqfn.save.backend.service.OrganizationService
 import org.cqfn.save.backend.utils.AuthenticationDetails
 import org.cqfn.save.domain.Role
+import org.cqfn.save.entities.OrganizationStatus
+import org.cqfn.save.info.OrganizationInfo
 import org.cqfn.save.info.UserInfo
 import org.cqfn.save.permission.Permission
 import org.cqfn.save.permission.SetRoleRequest
@@ -192,6 +194,32 @@ class LnkUserOrganizationController(
             PAGE_SIZE - exactMatchUsers.size,
         )
         return (exactMatchUsers + prefixUsers).map { it.toUserInfo() }
+    }
+
+    /**
+     * Get not deleted organizations that are connected with current user.
+     *
+     * @param authentication
+     * @return Map where key is organization name, value is a pair of avatar and role.
+     */
+    @Suppress("TYPE_ALIAS", "UnsafeCallOnNullableType")
+    @GetMapping("/by-user/not-deleted")
+    fun getOrganizationWithRoles(
+        authentication: Authentication,
+    ): List<OrganizationInfo> {
+        val selfId = (authentication.details as AuthenticationDetails).id
+        val user = lnkUserOrganizationService.getUserById(selfId)
+            .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND) }
+        return lnkUserOrganizationService
+            .getOrganizationsAndRolesByUser(user)
+            .filter { it.organization?.status != OrganizationStatus.DELETED }
+            .map {
+                OrganizationInfo(
+                    it.organization!!.name,
+                    mapOf(user.name!! to (it.role ?: Role.NONE)),
+                    it.organization!!.avatar,
+                )
+            }
     }
     companion object {
         const val PAGE_SIZE = 5
