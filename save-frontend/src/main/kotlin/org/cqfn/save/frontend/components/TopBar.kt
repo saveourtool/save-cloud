@@ -8,9 +8,7 @@ package org.cqfn.save.frontend.components
 
 import org.cqfn.save.domain.Role
 import org.cqfn.save.frontend.components.modal.logoutModal
-import org.cqfn.save.frontend.externals.fontawesome.faCog
-import org.cqfn.save.frontend.externals.fontawesome.faSignOutAlt
-import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
+import org.cqfn.save.frontend.externals.fontawesome.*
 import org.cqfn.save.info.UserInfo
 
 import csstype.Width
@@ -206,6 +204,11 @@ fun topBar() = fc<TopBarProps> { props ->
                         dropdownEntry(faCog, "Settings") {
                             attrs.onClickFunction = {
                                 window.location.href = "#/$name/settings/email"
+                            }
+                        }
+                        dropdownEntry(faCity, "My organizations") {
+                            attrs.onClickFunction = {
+                                window.location.href = "#/$name/settings/organizations"
                             }
                         }
                     }
