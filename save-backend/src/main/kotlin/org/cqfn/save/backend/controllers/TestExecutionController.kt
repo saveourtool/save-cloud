@@ -1,9 +1,5 @@
 package org.cqfn.save.backend.controllers
 
-import io.swagger.v3.oas.annotations.Parameter
-import io.swagger.v3.oas.annotations.enums.ParameterIn
-import io.swagger.v3.oas.annotations.tags.Tag
-import io.swagger.v3.oas.annotations.tags.Tags
 import org.cqfn.save.agent.AgentState
 import org.cqfn.save.agent.TestExecutionDto
 import org.cqfn.save.agent.TestSuiteExecutionStatisticDto
@@ -16,11 +12,14 @@ import org.cqfn.save.backend.utils.justOrNotFound
 import org.cqfn.save.core.utils.runIf
 import org.cqfn.save.domain.TestResultLocation
 import org.cqfn.save.domain.TestResultStatus
-import org.cqfn.save.from
 import org.cqfn.save.permission.Permission
 import org.cqfn.save.test.TestDto
 import org.cqfn.save.v1
 
+import io.swagger.v3.oas.annotations.Parameter
+import io.swagger.v3.oas.annotations.enums.ParameterIn
+import io.swagger.v3.oas.annotations.tags.Tag
+import io.swagger.v3.oas.annotations.tags.Tags
 import org.slf4j.LoggerFactory
 import org.springframework.dao.DataAccessException
 import org.springframework.http.HttpStatus
@@ -36,7 +35,9 @@ import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+
 import java.math.BigInteger
+
 import kotlin.io.path.exists
 
 /**
@@ -62,10 +63,16 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
      * @param status
      * @param testSuite
      * @param authentication
+     * @param checkDebugInfo if true, response will contain information about whether debug info data is available for this test execution
      * @return a list of [TestExecutionDto]s
      */
     @GetMapping(path = ["/api/$v1/testExecutions"])
-    @Parameter(`in` = ParameterIn.HEADER, name = "X-Authorization-Source", required = true, example = "basic")
+    @Parameter(
+        `in` = ParameterIn.HEADER,
+        name = "X-Authorization-Source",
+        required = true,
+        example = "basic"
+    )
     @Suppress("LongParameterList", "TOO_MANY_PARAMETERS", "TYPE_ALIAS")
     fun getTestExecutions(
         @RequestParam executionId: Long,
@@ -104,7 +111,12 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
      * @return a list of [TestExecutionDto]s
      */
     @GetMapping(path = ["/api/$v1/testLatestExecutions"])
-    @Parameter(`in` = ParameterIn.HEADER, name = "X-Authorization-Source", required = true, example = "basic")
+    @Parameter(
+        `in` = ParameterIn.HEADER,
+        name = "X-Authorization-Source",
+        required = true,
+        example = "basic"
+    )
     @Suppress("TYPE_ALIAS", "MagicNumber")
     fun getTestExecutionsByStatus(
         @RequestParam executionId: Long,
@@ -147,7 +159,12 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
      * @return TestExecution
      */
     @PostMapping(path = ["/api/$v1/testExecutions"])
-    @Parameter(`in` = ParameterIn.HEADER, name = "X-Authorization-Source", required = true, example = "basic")
+    @Parameter(
+        `in` = ParameterIn.HEADER,
+        name = "X-Authorization-Source",
+        required = true,
+        example = "basic"
+    )
     fun getTestExecutionByLocation(@RequestParam executionId: Long,
                                    @RequestBody testResultLocation: TestResultLocation,
                                    authentication: Authentication,
@@ -174,7 +191,12 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
      * @param authentication
      */
     @GetMapping(path = ["/api/$v1/testExecution/count"])
-    @Parameter(`in` = ParameterIn.HEADER, name = "X-Authorization-Source", required = true, example = "basic")
+    @Parameter(
+        `in` = ParameterIn.HEADER,
+        name = "X-Authorization-Source",
+        required = true,
+        example = "basic"
+    )
     fun getTestExecutionsCount(
         @RequestParam executionId: Long,
         @RequestParam(required = false) status: TestResultStatus?,
