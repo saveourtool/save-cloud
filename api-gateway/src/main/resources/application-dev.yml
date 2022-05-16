@@ -1,17 +1,8 @@
-server:
-  port: 5300
-  error:
-    path: /error
 gateway:
   backend:
     url: http://localhost:5800
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info,prometheus,gateway
-spring:
 
+spring:
   cloud:
     gateway:
       routes:
@@ -45,11 +36,3 @@ spring:
           uri: http://localhost:9100
           predicates:
             - Path=/grafana/**
-  security:
-    oauth2:
-      client:
-        provider:
-          github:
-            # value that will work with GitHub API, where GitHub provides username as "login" in the response
-            # https://docs.github.com/en/rest/reference/users#get-the-authenticated-user
-            user-name-attribute: login
