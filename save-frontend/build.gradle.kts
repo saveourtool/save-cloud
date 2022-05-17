@@ -94,27 +94,13 @@ kotlin {
             compileOnly(devNpm("minimist", "^1.2.6"))
         }
         sourceSets["test"].dependencies {
-            compileOnly(devNpm("sass", "^1.43.0"))
-            compileOnly(devNpm("sass-loader", "^12.0.0"))
-            compileOnly(devNpm("style-loader", "^3.3.1"))
-            compileOnly(devNpm("css-loader", "^6.5.0"))
-            compileOnly(devNpm("file-loader", "^6.2.0"))
-            // https://getbootstrap.com/docs/4.0/getting-started/webpack/#importing-precompiled-sass
-            compileOnly(devNpm("postcss-loader", "^6.2.1"))
-            compileOnly(devNpm("postcss", "^8.2.13"))
-            compileOnly(devNpm("autoprefixer", ">9"))
-            compileOnly(devNpm("webpack-bundle-analyzer", "^4.5.0"))
-            compileOnly(devNpm("mini-css-extract-plugin", "^2.6.0"))
-
-
             implementation(kotlin("test-js"))
-            implementation(npm("jsdom", "*"))
-            implementation(npm("global-jsdom", "*"))
-            implementation(npm("@testing-library/react", "*"/*, generateExternals = true*/))
-            implementation(npm("react-dom", "^18.0.0"))
-//            implementation(npm("buffer", "*"))
-//            implementation(npm("blob-polyfill", "*"))
-            implementation(npm("karma-mocha-reporter", "*"))
+            implementation(devNpm("jsdom", "^19.0.0"))
+            implementation(devNpm("global-jsdom", "^8.4.0"))
+            implementation(devNpm("@testing-library/react", "^13.2.0"/*, generateExternals = true*/))
+            implementation(devNpm("karma-mocha-reporter", "^2.0.0"))
+//            implementation(devNpm("istanbul-instrumenter-loader", "^3.0.1"))
+//            implementation(devNpm("karma-coverage-istanbul-reporter", "^3.0.3"))
         }
     }
 }
