@@ -747,7 +747,9 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
 
                     val fileInfo: FileInfo = post(
                         "$apiUrl/files/get-by-dto",
-                        Headers(),
+                        Headers().apply {
+                            set("Content-Type", "application/json")
+                        },
                         Json.encodeToString(response)
                     ).decodeFromJsonString()
 

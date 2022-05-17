@@ -31,6 +31,8 @@ import java.io.File
 import java.time.LocalDateTime
 
 import kotlinx.coroutines.delay
+import org.cqfn.save.api.utils.getFileInfoByDto
+import org.cqfn.save.domain.FileInfoDto
 
 /**
  * Class, that provides logic for execution submission and result receiving
@@ -248,8 +250,9 @@ class SaveCloudClient(
                 resultFileInfoList.add(fileFromStorage.copy(isExecutable = true))
             } ?: run {
                 log.debug("Upload file $file to storage")
-                val uploadedFile: FileInfo = httpClient.uploadAdditionalFile(file).copy(isExecutable = true)
-                resultFileInfoList.add(uploadedFile)
+                val uploadedFile: FileInfoDto = httpClient.uploadAdditionalFile(file).copy(isExecutable = true)
+                val fileInfo = httpClient.getFileInfoByDto(uploadedFile)
+                resultFileInfoList.add(fileInfo)
             }
         }
         return resultFileInfoList

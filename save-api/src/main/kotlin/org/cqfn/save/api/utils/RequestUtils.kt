@@ -87,7 +87,7 @@ suspend fun HttpClient.getAvailableFilesList(
 @OptIn(InternalAPI::class)
 suspend fun HttpClient.uploadAdditionalFile(
     file: String,
-): FileInfo = this.post {
+): FileInfoDto = this.post {
     url("${Backend.url}/api/$v1/files/upload")
     header("X-Authorization-Source", UserInformation.source)
     body = MultiPartFormDataContent(formData {
@@ -112,7 +112,6 @@ suspend fun HttpClient.getFileInfoByDto(
     url("${Backend.url}/api/$v1/files/get-by-dto")
     header("X-Authorization-Source", UserInformation.source)
     contentType(ContentType.Application.Json)
-    //accept(ContentType.Application.Json)
     setBody(fileInfoDto)
 }.body()
 
