@@ -456,8 +456,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 .decodeFromJsonString<GitDto>()
             standardTestSuites = get(
                 "$apiUrl/allStandardTestSuites",
-                headers,
-                responseHandler = ::noopResponseHandler,
+                headers
             )
                 .decodeFromJsonString()
 
@@ -490,6 +489,9 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                     }
                     val newGitDto = gitDto?.copy(url = urlWithTests, branch = newBranch, hash = newCommit)
                         ?: GitDto(url = urlWithTests, branch = newBranch, hash = newCommit)
+
+                    console.log(newGitDto)
+
                     submitExecutionRequestWithCustomTests(newGitDto)
                 }
             }

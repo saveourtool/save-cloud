@@ -159,8 +159,7 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
                 gitConnectionCheckingStatus = GitConnectionStatusEnum.VALIDATING
             }
             val responseFromCreationProject =
-                    get("$apiUrl/check-git-connectivity-adaptor$urlArguments", headers,
-                        responseHandler = ::noopResponseHandler)
+                    get("$apiUrl/check-git-connectivity-adaptor$urlArguments", headers)
 
             if (responseFromCreationProject.ok) {
                 if (responseFromCreationProject.text().await().toBoolean()) {
