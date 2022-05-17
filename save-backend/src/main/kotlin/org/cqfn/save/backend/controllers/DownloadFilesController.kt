@@ -96,7 +96,7 @@ class DownloadFilesController(
      * @return FileInfo, obtained from [fileInfoDto]
      */
     @PostMapping(path = ["/api/$v1/files/get-by-dto"])
-    fun getFileByDto(@RequestBody fileInfoDto: FileInfoDto): FileInfo = additionalToolsFileSystemRepository.getFileInfoByDto(fileInfoDto)
+    fun getFileInfoByDto(@RequestBody fileInfoDto: FileInfoDto): FileInfo = additionalToolsFileSystemRepository.getFileInfoByDto(fileInfoDto)
 
     /**
      * @param file image to be uploaded

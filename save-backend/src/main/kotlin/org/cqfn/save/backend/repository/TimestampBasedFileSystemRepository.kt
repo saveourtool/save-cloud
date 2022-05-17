@@ -65,6 +65,9 @@ class TimestampBasedFileSystemRepository(configProperties: ConfigProperties) {
         .filter { it.isDirectory() }
         .flatMap { it.listDirectoryEntries() }
 
+    /**
+     * @return a list of FileInfo's
+     */
     fun getFileInfoList() = getFilesList().map {
         FileInfo(
             it.name,
@@ -74,6 +77,10 @@ class TimestampBasedFileSystemRepository(configProperties: ConfigProperties) {
         )
     }
 
+    /**
+     * @param fileInfoDto
+     * @return FileInfo, obtained from [fileInfoDto]
+     */
     fun getFileInfoByDto(fileInfoDto: FileInfoDto) = getFileInfoList().first { it.name == fileInfoDto.name }.copy(isExecutable = fileInfoDto.isExecutable)
 
     /**
