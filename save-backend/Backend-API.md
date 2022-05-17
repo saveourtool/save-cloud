@@ -141,6 +141,10 @@ The format will have the following form:
 }
 ```
 
+By default, the `isExecutable` argument, which indicates, whether the provided file\
+should be executable, or not, is `false`. \
+However, for the execution request from the next section, you can set this argument with value, that you need.
+
 
 #### Execution submission
 
