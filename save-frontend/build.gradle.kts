@@ -44,8 +44,8 @@ kotlin {
 //                    debug = true
 //                    webpackConfig.configDirectory = project.projectDir.resolve("webpack.config.ddd")
 //                    useChrome()
-//                    useChromeHeadless()
-                    useFirefox()
+                    useChromeHeadless()
+//                    useFirefox()
 
 //                    requiredDependencies.add(versions.karmaMocha)
 //                    requiredDependencies.add(versions.mocha)
