@@ -3,6 +3,7 @@ package org.cqfn.save.frontend
 import org.cqfn.save.frontend.externals.render
 import org.cqfn.save.frontend.externals.screen
 import org.w3c.dom.HTMLHeadingElement
+import react.create
 import react.createElement
 import react.react
 import kotlin.js.Promise
@@ -13,7 +14,7 @@ class AppTest {
     @Test
     fun app_should_render(): Promise<Unit> {
         render(
-            createElement(App::class.react)
+            App::class.react.create()
         )
 
         return screen.findByText<HTMLHeadingElement>(

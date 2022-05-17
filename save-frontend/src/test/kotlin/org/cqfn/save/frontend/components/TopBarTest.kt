@@ -27,17 +27,14 @@ class TopBarTest {
     @Test
     fun top_bar_should_render_with_user_info() {
         val rr = render(
-            createElement(
-                MemoryRouter,
-                jso {
-                    initialEntries = arrayOf(
-                        "/"
-                    )
-                },
-                createElement(topBar(), jso {
+            MemoryRouter.create {
+                initialEntries = arrayOf(
+                    "/"
+                )
+                topBar().invoke {
                     userInfo = UserInfo("Test User")
-                })
-            )
+                }
+            }
         )
 
         val userInfoSpan = screen.queryByText<HTMLSpanElement?>("Test User")
@@ -52,17 +49,14 @@ class TopBarTest {
     @Test
     fun top_bar_should_render_without_user_info() {
         val rr = render(
-            createElement(
-                MemoryRouter,
-                jso {
-                    initialEntries = arrayOf(
-                        "/"
-                    )
-                },
-                createElement(topBar(), jso {
+            MemoryRouter.create {
+                initialEntries = arrayOf(
+                    "/"
+                )
+                topBar().invoke {
                     userInfo = null
-                })
-            )
+                }
+            }
         )
 
         val userInfoSpan = screen.queryByText<HTMLSpanElement?>("Test User")
