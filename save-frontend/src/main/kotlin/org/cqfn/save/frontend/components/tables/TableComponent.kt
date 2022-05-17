@@ -232,6 +232,15 @@ fun <D : Any> tableComponent(
                 }
                 // if (tableInstance.pageCount > 1) {
                 // block with paging controls
+
+                if (data.isEmpty()) {
+                    div("align-items-center justify-content-center mb-4") {
+                        h6("m-0 font-weight-bold text-primary text-center") {
+                            +"No results found"
+                        }
+                    }
+                }
+
                 div("wrapper container m-0 p-0") {
                     pagingControl(tableInstance, setPageIndex, pageIndex, pageCount)
 
