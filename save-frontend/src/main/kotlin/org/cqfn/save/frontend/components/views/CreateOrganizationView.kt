@@ -103,7 +103,8 @@ class CreateOrganizationView : AbstractView<Props, OrganizationSaveViewState>(tr
     @Suppress("SAY_NO_TO_VAR")
     private fun isValidInput(): Boolean {
         var valid = true
-        if (fieldsMap[InputTypes.ORGANIZATION_NAME].isNullOrBlank()) {
+        val value = fieldsMap[InputTypes.ORGANIZATION_NAME]
+        if (value.isInvalid(64)) {
             setState { isValidOrganizationName = false }
             valid = false
         } else {
@@ -139,7 +140,7 @@ class CreateOrganizationView : AbstractView<Props, OrganizationSaveViewState>(tr
                                 }
                                 form(classes = "needs-validation") {
                                     div {
-                                        inputTextFormRequired(InputTypes.ORGANIZATION_NAME, state.isValidOrganizationName!!, "", "Organization name") {
+                                        inputTextFormRequired(InputTypes.ORGANIZATION_NAME, state.isValidOrganizationName!!, "", "Organization name", true) {
                                             changeFields(InputTypes.ORGANIZATION_NAME, it)
                                         }
                                     }
