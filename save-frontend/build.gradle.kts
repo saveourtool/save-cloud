@@ -97,10 +97,10 @@ kotlin {
             implementation(kotlin("test-js"))
             implementation(devNpm("jsdom", "^19.0.0"))
             implementation(devNpm("global-jsdom", "^8.4.0"))
-            implementation(devNpm("@testing-library/react", "^13.2.0"/*, generateExternals = true*/))
+            implementation(devNpm("@testing-library/react", "^13.2.0"))
             implementation(devNpm("karma-mocha-reporter", "^2.0.0"))
-//            implementation(devNpm("istanbul-instrumenter-loader", "^3.0.1"))
-//            implementation(devNpm("karma-coverage-istanbul-reporter", "^3.0.3"))
+            implementation(devNpm("istanbul-instrumenter-loader", "^3.0.1"))
+            implementation(devNpm("karma-coverage-istanbul-reporter", "^3.0.3"))
         }
     }
 }
