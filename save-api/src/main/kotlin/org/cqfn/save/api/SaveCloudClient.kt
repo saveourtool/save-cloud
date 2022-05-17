@@ -6,6 +6,7 @@ import org.cqfn.save.api.config.WebClientProperties
 import org.cqfn.save.api.config.toSdk
 import org.cqfn.save.api.utils.getAvailableFilesList
 import org.cqfn.save.api.utils.getExecutionById
+import org.cqfn.save.api.utils.getFileInfoByDto
 import org.cqfn.save.api.utils.getLatestExecution
 import org.cqfn.save.api.utils.getProjectByNameAndOrganizationName
 import org.cqfn.save.api.utils.getStandardTestSuites
@@ -13,6 +14,7 @@ import org.cqfn.save.api.utils.initializeHttpClient
 import org.cqfn.save.api.utils.submitExecution
 import org.cqfn.save.api.utils.uploadAdditionalFile
 import org.cqfn.save.domain.FileInfo
+import org.cqfn.save.domain.FileInfoDto
 import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.ExecutionRequestBase
 import org.cqfn.save.entities.ExecutionRequestForStandardSuites
@@ -31,8 +33,6 @@ import java.io.File
 import java.time.LocalDateTime
 
 import kotlinx.coroutines.delay
-import org.cqfn.save.api.utils.getFileInfoByDto
-import org.cqfn.save.domain.FileInfoDto
 
 /**
  * Class, that provides logic for execution submission and result receiving

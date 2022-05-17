@@ -99,12 +99,12 @@ class DownloadFilesController(
                     ResponseEntity.status(HttpStatus.CONFLICT).build()
                 )
 
-
+    /**
+     * @param fileInfoDto
+     * @return FileInfo, obtained from [fileInfoDto]
+     */
     @PostMapping(path = ["/api/$v1/files/get-by-dto"])
-    fun getFileByDto(@RequestBody fileInfoDto: FileInfoDto): FileInfo {
-        return list().first { it.name == fileInfoDto.name }
-    }
-
+    fun getFileByDto(@RequestBody fileInfoDto: FileInfoDto): FileInfo = list().first { it.name == fileInfoDto.name }
 
     /**
      * @param file image to be uploaded

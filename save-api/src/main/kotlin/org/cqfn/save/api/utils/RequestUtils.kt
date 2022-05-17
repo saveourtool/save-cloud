@@ -7,6 +7,7 @@ package org.cqfn.save.api.utils
 import org.cqfn.save.api.authorization.Authorization
 import org.cqfn.save.api.config.WebClientProperties
 import org.cqfn.save.domain.FileInfo
+import org.cqfn.save.domain.FileInfoDto
 import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.ExecutionRequestBase
 import org.cqfn.save.entities.ExecutionRequestForStandardSuites
@@ -31,7 +32,6 @@ import io.ktor.client.request.forms.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.util.*
-import kotlinx.datetime.Clock
 import okio.Path.Companion.toPath
 
 import java.io.File
@@ -40,7 +40,6 @@ import java.time.LocalDateTime
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
-import org.cqfn.save.domain.FileInfoDto
 
 private val json = Json {
     serializersModule = SerializersModule {

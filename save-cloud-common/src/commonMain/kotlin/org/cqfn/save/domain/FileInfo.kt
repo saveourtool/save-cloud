@@ -16,15 +16,20 @@ data class FileInfo(
     val uploadedMillis: Long,
     val sizeBytes: Long,
     val isExecutable: Boolean = false,
-)
-
-fun FileInfo.toDto(): FileInfoDto {
-    return FileInfoDto(
+) {
+    /**
+     * @return FileInfo dto
+     */
+    fun toDto(): FileInfoDto = FileInfoDto(
         this.name,
         this.isExecutable,
     )
 }
 
+/**
+ * @property name name of a file
+ * @property isExecutable whether the file is executable
+ */
 @Serializable
 data class FileInfoDto(
     val name: String,
