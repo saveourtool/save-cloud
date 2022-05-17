@@ -137,21 +137,10 @@ The format will have the following form:
 ```bash
 {
   "name": "your-file-name",
-  "uploadedMillis": 1651662834923,
-  "sizeBytes":172,
   "isExecutable":false
 }
 ```
 
-If you already uploaded them into the SAVE Cloud storage, you will need\
-to get the corresponding `json`. It could be done by following request,\
-which will return the metadata of all files in SAVE Cloud storage:
-
-```bash
-curl -X GET "${SAVE_CLOUD_URL}/api/v1/files/list" \
--H "X-Authorization-Source: ${SAVE_CLOUD_AUTH_SOURCE}" \
--H "Authorization: ${SAVE_CLOUD_AUTH}"
-```
 
 #### Execution submission
 

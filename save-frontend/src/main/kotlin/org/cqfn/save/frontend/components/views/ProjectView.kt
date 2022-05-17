@@ -736,7 +736,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 }
 
                 element.files!!.asList().forEach { file ->
-                    val response: FileInfo = post(
+                    val response: FileInfoDto = post(
                         "$apiUrl/files/upload",
                         Headers(),
                         FormData().apply {
@@ -744,10 +744,17 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                         }
                     )
                         .decodeFromJsonString()
+
+                    val fileInfo: FileInfo = post(
+                        "$apiUrl/files/get-by-dto",
+                        Headers(),
+                        Json.encodeToString(response)
+                    ).decodeFromJsonString()
+
                     setState {
                         // add only to selected files so that this entry isn't duplicated
-                        files.add(response)
-                        bytesReceived += response.sizeBytes
+                        files.add(fileInfo)
+                        bytesReceived += fileInfo.sizeBytes
                     }
                 }
                 setState {

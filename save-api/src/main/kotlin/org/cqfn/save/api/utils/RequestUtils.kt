@@ -31,6 +31,7 @@ import io.ktor.client.request.forms.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.util.*
+import kotlinx.datetime.Clock
 import okio.Path.Companion.toPath
 
 import java.io.File
@@ -39,6 +40,7 @@ import java.time.LocalDateTime
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
+import org.cqfn.save.domain.FileInfoDto
 
 private val json = Json {
     serializersModule = SerializersModule {
@@ -97,6 +99,21 @@ suspend fun HttpClient.uploadAdditionalFile(
             }
         )
     })
+}.body()
+
+/**
+ * @param fileInfoDto
+ * @return FileInfo of file from storage
+ */
+@OptIn(InternalAPI::class)
+suspend fun HttpClient.getFileInfoByDto(
+    fileInfoDto: FileInfoDto,
+): FileInfo = this.post {
+    url("${Backend.url}/api/$v1/files/get-by-dto")
+    header("X-Authorization-Source", UserInformation.source)
+    contentType(ContentType.Application.Json)
+    //accept(ContentType.Application.Json)
+    setBody(fileInfoDto)
 }.body()
 
 /**

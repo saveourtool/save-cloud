@@ -8,8 +8,10 @@ import org.cqfn.save.backend.repository.TimestampBasedFileSystemRepository
 import org.cqfn.save.backend.service.OrganizationService
 import org.cqfn.save.backend.service.UserDetailsService
 import org.cqfn.save.domain.FileInfo
+import org.cqfn.save.domain.FileInfoDto
 import org.cqfn.save.domain.TestResultDebugInfo
 import org.cqfn.save.domain.TestResultLocation
+import org.cqfn.save.domain.toDto
 import org.cqfn.save.from
 import org.cqfn.save.utils.AvatarType
 import org.cqfn.save.v1
@@ -90,12 +92,19 @@ class DownloadFilesController(
                 ResponseEntity.status(
                     if (fileInfo.sizeBytes > 0) HttpStatus.OK else HttpStatus.INTERNAL_SERVER_ERROR
                 )
-                    .body(fileInfo)
+                    .body(fileInfo.toDto())
             }
                 .onErrorReturn(
                     FileAlreadyExistsException::class.java,
                     ResponseEntity.status(HttpStatus.CONFLICT).build()
                 )
+
+
+    @PostMapping(path = ["/api/$v1/files/get-by-dto"])
+    fun getFileByDto(@RequestBody fileInfoDto: FileInfoDto): FileInfo {
+        return list().first { it.name == fileInfoDto.name }
+    }
+
 
     /**
      * @param file image to be uploaded

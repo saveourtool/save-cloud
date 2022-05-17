@@ -18,6 +18,19 @@ data class FileInfo(
     val isExecutable: Boolean = false,
 )
 
+fun FileInfo.toDto(): FileInfoDto {
+    return FileInfoDto(
+        this.name,
+        this.isExecutable,
+    )
+}
+
+@Serializable
+data class FileInfoDto(
+    val name: String,
+    val isExecutable: Boolean = false,
+)
+
 /**
  * @property path path to image
  */
