@@ -236,7 +236,7 @@ fun <D : Any> tableComponent(
                 if (data.isEmpty()) {
                     div("align-items-center justify-content-center mb-4") {
                         h6("m-0 font-weight-bold text-primary text-center") {
-                            +"Results not found"
+                            +"No results found"
                         }
                     }
                 }
