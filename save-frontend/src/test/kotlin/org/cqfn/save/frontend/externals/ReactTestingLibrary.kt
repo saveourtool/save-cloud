@@ -12,3 +12,5 @@ external fun <P : Props> render(ui: ReactElement<P>, options: dynamic): RenderRe
 external class RenderResult {
     var container: dynamic
 }
+
+external val screen: dynamic
