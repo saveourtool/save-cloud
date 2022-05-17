@@ -27,6 +27,7 @@ import org.cqfn.save.v1
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.GetMapping
@@ -253,6 +254,21 @@ class ExecutionController(private val executionService: ExecutionService,
             }
     }
 
+    @GetMapping(path = ["/api/$v1/getTestRootPathByExecutionId"])
+    @Transactional
+    fun getTestRootPathByExecutionId(@RequestParam id: Long, authentication: Authentication): Mono<String> =
+        Mono.justOrEmpty(executionService.findExecution(id))
+            .switchIfEmpty() {
+                Mono.error(ResponseStatusException(HttpStatus.NO_CONTENT))
+            }
+            .filterWhen { projectPermissionEvaluator.checkPermissions(authentication, it, Permission.READ) }
+            .map {
+                it.status.toString()
+                it.getTestRootPathByTestSuites()
+                    .distinct()
+                    .single()
+            }
+
     /**
      * Accepts a request to rerun an existing execution
      *
@@ -303,15 +319,19 @@ class ExecutionController(private val executionService: ExecutionService,
     }
 
     @Suppress("UnsafeCallOnNullableType")
-    private fun Execution.getTestRootPathByTestSuites(): List<String> = this.testSuiteIds?.split(", ")?.map { testSuiteId ->
-        testSuitesService.findTestSuiteById(testSuiteId.toLong()).orElseThrow {
-            log.error("Can't find test suite with id=$testSuiteId for executionId=$id")
-            NoSuchElementException()
+    private fun Execution.getTestRootPathByTestSuites(): List<String> = this
+        .testSuiteIds
+        ?.split(", ")
+        ?.map { testSuiteId ->
+            testSuitesService.findTestSuiteById(testSuiteId.toLong()).orElseThrow {
+                log.error("Can't find test suite with id=$testSuiteId for executionId=$id")
+                NoSuchElementException()
+            }
         }
-    }!!
-        .map {
+        ?.map {
             it.testRootPath
         }
+        ?: emptyList()
 
     /**
      * @param execution

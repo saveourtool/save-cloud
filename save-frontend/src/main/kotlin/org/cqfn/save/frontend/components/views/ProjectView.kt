@@ -54,6 +54,7 @@ import react.setState
 
 import kotlinx.browser.document
 import kotlinx.browser.window
+import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.Month
@@ -241,11 +242,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         updateTestRootPath = { event ->
             setState {
                 testRootPath = (event.target as HTMLInputElement).value
-            }
-        },
-        setTestRootPathFromHistory = { testRootPath ->
-            setState {
-                this.testRootPath = testRootPath
             }
         },
         setExecCmd = {
@@ -452,13 +448,13 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 set("Accept", "application/json")
                 set("Content-Type", "application/json")
             }
-            gitDto = post("$apiUrl/projects/git", headers, jsonProject)
-                .decodeFromJsonString<GitDto>()
-            standardTestSuites = get(
-                "$apiUrl/allStandardTestSuites",
-                headers
-            )
-                .decodeFromJsonString()
+            gitDto = post("$apiUrl/projects/git", headers, jsonProject).decodeFromJsonString<GitDto>()
+            when {
+                state.gitUrlFromInputField.isBlank() && gitDto?.url != null -> state.gitUrlFromInputField = gitDto?.url ?: ""
+                state.gitBranchOrCommitFromInputField.isBlank() && gitDto?.branch != null -> state.gitBranchOrCommitFromInputField = gitDto?.branch ?: ""
+            }
+
+            standardTestSuites = get("$apiUrl/allStandardTestSuites", headers).decodeFromJsonString()
 
             val availableFiles = getFilesList()
             setState {
@@ -489,8 +485,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                     }
                     val newGitDto = gitDto?.copy(url = urlWithTests, branch = newBranch, hash = newCommit)
                         ?: GitDto(url = urlWithTests, branch = newBranch, hash = newCommit)
-
-                    console.log(newGitDto)
 
                     submitExecutionRequestWithCustomTests(newGitDto)
                 }
@@ -867,17 +861,35 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 latestExecutionId = null
             }
             else -> {
-                val latestExecutionIdNew = response
+                val executionDtoFromRequest = response
                     .decodeFromJsonString<ExecutionDto>()
-                    .id
+
                 setState {
-                    latestExecutionId = latestExecutionIdNew
+                    latestExecutionId = executionDtoFromRequest.id
                 }
             }
         }
+
+        getTestRootPathFromLatestExecution()
     }
 
-    private fun switchToLatestExecution(latestExecutionId: Long) {
+    private suspend fun getTestRootPathFromLatestExecution() {
+        if (state.latestExecutionId != null) {
+            val headers = Headers().apply { set("Accept", "application/json") }
+            val response = get(
+                "$apiUrl/getTestRootPathByExecutionId?id=${state.latestExecutionId}",
+                headers,
+                responseHandler = ::noopResponseHandler
+            )
+
+            val rootPath = response.text().await()
+
+            when {
+                response.ok -> setState {
+                    testRootPath = rootPath
+                }
+            }
+        }
     }
 
     private suspend fun getFilesList() = get("$apiUrl/files/list", Headers())
