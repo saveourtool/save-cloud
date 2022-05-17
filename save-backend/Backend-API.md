@@ -180,14 +180,10 @@ curl -X POST "${SAVE_CLOUD_URL}/api/v1/submitExecutionRequest" \
 };type=application/json" \
 -F 'file={
   "name": "ktlint",
-  "uploadedMillis": 1637658398621,
-  "sizeBytes": 54167132,
   "isExecutable": false
 };type=application/json' \
 -F 'file={
   "name": "diktat.jar",
-  "uploadedMillis": 1637658396121,
-  "sizeBytes": 6366668,
   "isExecutable": false
 };type=application/json'
 ```
@@ -212,20 +208,14 @@ curl -X POST "${SAVE_CLOUD_URL}/api/v1/executionRequestStandardTests" \
 };type=application/json" \
 -F 'file={
   "name": "ktlint",
-  "uploadedMillis": 1637658398621,
-  "sizeBytes": 54167132,
   "isExecutable": false
 };type=application/json' \
 -F 'file={
   "name": "diktat-analysis.yml",
-  "uploadedMillis": 1637673340431,
-  "sizeBytes":3207,
   "isExecutable":false
 };type=application/json' \
 -F 'file={
   "name": "diktat.jar",
-  "uploadedMillis": 1637658396121,
-  "sizeBytes": 6366668,
   "isExecutable": false
 };type=application/json'
 ```

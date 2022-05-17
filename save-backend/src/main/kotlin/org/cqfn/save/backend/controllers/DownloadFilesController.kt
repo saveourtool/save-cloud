@@ -11,7 +11,6 @@ import org.cqfn.save.domain.FileInfo
 import org.cqfn.save.domain.FileInfoDto
 import org.cqfn.save.domain.TestResultDebugInfo
 import org.cqfn.save.domain.TestResultLocation
-import org.cqfn.save.domain.toDto
 import org.cqfn.save.from
 import org.cqfn.save.utils.AvatarType
 import org.cqfn.save.v1
