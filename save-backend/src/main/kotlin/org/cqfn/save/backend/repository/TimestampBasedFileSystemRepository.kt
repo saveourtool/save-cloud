@@ -2,6 +2,7 @@ package org.cqfn.save.backend.repository
 
 import org.cqfn.save.backend.configs.ConfigProperties
 import org.cqfn.save.domain.FileInfo
+import org.cqfn.save.domain.FileInfoDto
 import org.cqfn.save.domain.ImageInfo
 import org.cqfn.save.utils.AvatarType
 
@@ -63,6 +64,17 @@ class TimestampBasedFileSystemRepository(configProperties: ConfigProperties) {
     fun getFilesList() = rootDir.listDirectoryEntries()
         .filter { it.isDirectory() }
         .flatMap { it.listDirectoryEntries() }
+
+    fun getFileInfoList() = getFilesList().map {
+        FileInfo(
+            it.name,
+            // assuming here, that we always store files in timestamp-based directories
+            it.parent.name.toLong(),
+            it.fileSize(),
+        )
+    }
+
+    fun getFileInfoByDto(fileInfoDto: FileInfoDto) = getFileInfoList().first { it.name == fileInfoDto.name }.copy(isExecutable = fileInfoDto.isExecutable)
 
     /**
      * @param fileInfo a FileInfo based on which a file should be located

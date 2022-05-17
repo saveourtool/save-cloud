@@ -101,20 +101,6 @@ suspend fun HttpClient.uploadAdditionalFile(
 }.body()
 
 /**
- * @param fileInfoDto
- * @return FileInfo of file from storage
- */
-@OptIn(InternalAPI::class)
-suspend fun HttpClient.getFileInfoByDto(
-    fileInfoDto: FileInfoDto,
-): FileInfo = this.post {
-    url("${Backend.url}/api/$v1/files/get-by-dto")
-    header("X-Authorization-Source", UserInformation.source)
-    contentType(ContentType.Application.Json)
-    setBody(fileInfoDto)
-}.body()
-
-/**
  * @return list of existing standard test suites
  */
 suspend fun HttpClient.getStandardTestSuites(
@@ -132,7 +118,7 @@ suspend fun HttpClient.getStandardTestSuites(
  */
 @OptIn(InternalAPI::class)
 @Suppress("TOO_LONG_FUNCTION")
-suspend fun HttpClient.submitExecution(executionType: ExecutionType, executionRequest: ExecutionRequestBase, additionalFiles: List<FileInfo>?): HttpResponse {
+suspend fun HttpClient.submitExecution(executionType: ExecutionType, executionRequest: ExecutionRequestBase, additionalFiles: List<FileInfoDto>?): HttpResponse {
     val endpoint = if (executionType == ExecutionType.GIT) {
         "/api/$v1/submitExecutionRequest"
     } else {
@@ -158,10 +144,10 @@ suspend fun HttpClient.submitExecution(executionType: ExecutionType, executionRe
                     formDataHeaders
                 )
             }
-            additionalFiles?.forEach { fileInfo ->
+            additionalFiles?.forEach { fileInfoDto ->
                 append(
                     "file",
-                    json.encodeToString(fileInfo),
+                    json.encodeToString(fileInfoDto),
                     Headers.build {
                         append(HttpHeaders.ContentType, ContentType.Application.Json)
                     }

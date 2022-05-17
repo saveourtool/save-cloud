@@ -51,14 +51,7 @@ class DownloadFilesController(
      * @return a list of files in [additionalToolsFileSystemRepository]
      */
     @GetMapping(path = ["/api/$v1/files/list"])
-    fun list(): List<FileInfo> = additionalToolsFileSystemRepository.getFilesList().map {
-        FileInfo(
-            it.name,
-            // assuming here, that we always store files in timestamp-based directories
-            it.parent.name.toLong(),
-            it.fileSize(),
-        )
-    }
+    fun list(): List<FileInfo> = additionalToolsFileSystemRepository.getFileInfoList()
 
     /**
      * @param fileInfo a FileInfo based on which a file should be located
@@ -104,7 +97,7 @@ class DownloadFilesController(
      * @return FileInfo, obtained from [fileInfoDto]
      */
     @PostMapping(path = ["/api/$v1/files/get-by-dto"])
-    fun getFileByDto(@RequestBody fileInfoDto: FileInfoDto): FileInfo = list().first { it.name == fileInfoDto.name }
+    fun getFileByDto(@RequestBody fileInfoDto: FileInfoDto): FileInfo = additionalToolsFileSystemRepository.getFileInfoByDto(fileInfoDto)
 
     /**
      * @param file image to be uploaded

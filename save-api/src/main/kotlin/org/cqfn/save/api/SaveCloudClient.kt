@@ -6,14 +6,12 @@ import org.cqfn.save.api.config.WebClientProperties
 import org.cqfn.save.api.config.toSdk
 import org.cqfn.save.api.utils.getAvailableFilesList
 import org.cqfn.save.api.utils.getExecutionById
-import org.cqfn.save.api.utils.getFileInfoByDto
 import org.cqfn.save.api.utils.getLatestExecution
 import org.cqfn.save.api.utils.getProjectByNameAndOrganizationName
 import org.cqfn.save.api.utils.getStandardTestSuites
 import org.cqfn.save.api.utils.initializeHttpClient
 import org.cqfn.save.api.utils.submitExecution
 import org.cqfn.save.api.utils.uploadAdditionalFile
-import org.cqfn.save.domain.FileInfo
 import org.cqfn.save.domain.FileInfoDto
 import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.ExecutionRequestBase
@@ -91,7 +89,7 @@ class SaveCloudClient(
      */
     private suspend fun submitExecution(
         executionType: ExecutionType,
-        additionalFiles: List<FileInfo>?
+        additionalFiles: List<FileInfoDto>?
     ): ExecutionRequestBase? {
         val executionRequest = if (executionType == ExecutionType.GIT) {
             buildExecutionRequest()
@@ -229,7 +227,7 @@ class SaveCloudClient(
      */
     private suspend fun processAdditionalFiles(
         files: String
-    ): List<FileInfo>? {
+    ): List<FileInfoDto>? {
         val userProvidedAdditionalFiles = files.split(";")
         userProvidedAdditionalFiles.forEach {
             if (!File(it).exists()) {
@@ -240,19 +238,18 @@ class SaveCloudClient(
 
         val availableFilesInCloudStorage = httpClient.getAvailableFilesList()
 
-        val resultFileInfoList: MutableList<FileInfo> = mutableListOf()
+        val resultFileInfoList: MutableList<FileInfoDto> = mutableListOf()
 
         // Try to take files from storage, or upload them if they are absent
         userProvidedAdditionalFiles.forEach { file ->
             val fileFromStorage = availableFilesInCloudStorage.firstOrNull { it.name == file.toPath().name }
             fileFromStorage?.let {
                 log.debug("Take existing file ${file.toPath().name} from storage")
-                resultFileInfoList.add(fileFromStorage.copy(isExecutable = true))
+                resultFileInfoList.add(fileFromStorage.toDto().copy(isExecutable = true))
             } ?: run {
                 log.debug("Upload file $file to storage")
                 val uploadedFile: FileInfoDto = httpClient.uploadAdditionalFile(file).copy(isExecutable = true)
-                val fileInfo = httpClient.getFileInfoByDto(uploadedFile)
-                resultFileInfoList.add(fileInfo)
+                resultFileInfoList.add(uploadedFile)
             }
         }
         return resultFileInfoList

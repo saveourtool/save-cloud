@@ -534,7 +534,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         )
         formData.appendJson("execution", request)
         state.files.forEach {
-            formData.appendJson("file", it)
+            formData.appendJson("file", it.toDto())
         }
         submitRequest("/executionRequestStandardTests", headers, formData)
     }
@@ -546,7 +546,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         val executionRequest = ExecutionRequest(state.project, correctGitDto, testRootPath, selectedSdk, null)
         formData.appendJson("executionRequest", executionRequest)
         state.files.forEach {
-            formData.appendJson("file", it)
+            formData.appendJson("file", it.toDto())
         }
         submitRequest("/submitExecutionRequest", Headers(), formData)
     }
