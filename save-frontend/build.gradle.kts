@@ -98,6 +98,7 @@ kotlin {
             implementation(devNpm("jsdom", "^19.0.0"))
             implementation(devNpm("global-jsdom", "^8.4.0"))
             implementation(devNpm("@testing-library/react", "^13.2.0"))
+            implementation(devNpm("@testing-library/user-event", "^14.0.0"))
             implementation(devNpm("karma-mocha-reporter", "^2.0.0"))
             implementation(devNpm("istanbul-instrumenter-loader", "^3.0.1"))
             implementation(devNpm("karma-coverage-istanbul-reporter", "^3.0.3"))
@@ -105,10 +106,11 @@ kotlin {
     }
 }
 
-// workaround for continuous work of WebPack: (https://github.com/webpack/webpack-cli/issues/2990)
 rootProject.plugins.withType(NodeJsRootPlugin::class.java) {
     rootProject.the<NodeJsRootExtension>().versions.apply {
+        // workaround for continuous work of WebPack: (https://github.com/webpack/webpack-cli/issues/2990)
         webpackCli.version = "4.9.0"
+        // override default version from KGP for security reasons
         karma.version = "^6.3.14"
     }
 }

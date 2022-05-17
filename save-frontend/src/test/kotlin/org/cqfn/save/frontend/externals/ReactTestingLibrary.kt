@@ -14,7 +14,6 @@ import kotlin.js.Promise
 
 external fun <P : Props> render(ui: ReactElement<P>, options: dynamic = definedExternally): RenderResult
 
-@JsName("RenderResult")
 external class RenderResult {
     var container: dynamic
 }
@@ -32,3 +31,4 @@ external class BoundFunctions {
  * https://github.com/testing-library/dom-testing-library/blob/main/types/screen.d.ts
  */
 external val screen: BoundFunctions
+

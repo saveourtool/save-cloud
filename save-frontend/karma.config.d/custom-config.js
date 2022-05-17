@@ -7,7 +7,6 @@
         {
             test: /\.js$/,
             use: {loader: 'istanbul-instrumenter-loader'},
-            // here is necessary to use module-name in `build/js/packages`.
             // fixme: need to exclude Kotlin dependencies
             include: [path.resolve(__dirname, '../save-cloud-save-frontend/kotlin/')]
         }

@@ -13,17 +13,9 @@ import kotlin.test.assertNotNull
 class FooterTest {
     @Test
     fun footer_should_render() {
-        val reactElement = run {
-            val elementType = Footer::class.react
-            console.log("I have elementType")
-            createElement(type = elementType)
-        }
-        console.log("I have an element now")
         render(
-            reactElement,
-            undefined
+            createElement(type = Footer::class.react),
         )
-        console.log("I've called `render`")
 
         val versionLabel = screen.queryByText("Version $SAVE_VERSION", jso {
             // match substring
