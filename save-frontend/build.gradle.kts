@@ -89,6 +89,8 @@ kotlin {
 
             // transitive dependencies with explicit version ranges required for security reasons
             compileOnly(devNpm("minimist", "^1.2.6"))
+            compileOnly(devNpm("async", "^2.6.4"))
+            compileOnly(devNpm("follow-redirects", "^1.14.7"))
         }
         sourceSets["test"].dependencies {
             implementation(kotlin("test-js"))
@@ -108,6 +110,7 @@ rootProject.plugins.withType(NodeJsRootPlugin::class.java) {
     rootProject.the<NodeJsRootExtension>().versions.apply {
         // workaround for continuous work of WebPack: (https://github.com/webpack/webpack-cli/issues/2990)
         webpackCli.version = "4.9.0"
+        webpackDevServer.version = "^4.9.0"
         // override default version from KGP for security reasons
         karma.version = "^6.3.14"
     }
