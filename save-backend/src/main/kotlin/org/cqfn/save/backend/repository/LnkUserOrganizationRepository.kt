@@ -58,4 +58,10 @@ interface LnkUserOrganizationRepository : BaseEntityRepository<LnkUserOrganizati
         @Param("user_id") userId: Long,
         @Param("role") role: String
     )
+
+    /**
+     * @param userId
+     * @return List of [LnkUserOrganization] in which user with [userId] participates
+     */
+    fun findByUserId(userId: Long): List<LnkUserOrganization>
 }

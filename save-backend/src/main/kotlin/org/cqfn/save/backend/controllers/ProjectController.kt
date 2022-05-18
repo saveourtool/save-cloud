@@ -1,7 +1,6 @@
 package org.cqfn.save.backend.controllers
 
 import org.cqfn.save.backend.StringResponse
-import org.cqfn.save.backend.repository.UserRepository
 import org.cqfn.save.backend.security.ProjectPermissionEvaluator
 import org.cqfn.save.backend.service.GitService
 import org.cqfn.save.backend.service.LnkUserProjectService
@@ -22,12 +21,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -45,7 +39,6 @@ class ProjectController(
     private val organizationService: OrganizationService,
     private val projectPermissionEvaluator: ProjectPermissionEvaluator,
     private val lnkUserProjectService: LnkUserProjectService,
-    private val userRepository: UserRepository,
 ) {
     /**
      * Get all projects, including deleted and private. Only accessible for admins.
@@ -130,7 +123,7 @@ class ProjectController(
     @Suppress("UnsafeCallOnNullableType")
     fun getRepositoryDtoByProject(@RequestBody project: Project, authentication: Authentication): Mono<GitDto> = Mono.fromCallable {
         with(project) {
-            projectService.findWithPermissionByNameAndOrganization(authentication, name, organization, Permission.WRITE)
+            projectService.findWithPermissionByNameAndOrganization(authentication, name, organization.name, Permission.WRITE)
         }
     }
         .mapNotNull {
@@ -179,7 +172,7 @@ class ProjectController(
      */
     @PostMapping("/update")
     fun updateProject(@RequestBody project: Project, authentication: Authentication): Mono<StringResponse> = projectService.findWithPermissionByNameAndOrganization(
-        authentication, project.name, project.organization, Permission.WRITE
+        authentication, project.name, project.organization.name, Permission.WRITE
     )
         .filter { projectPermissionEvaluator.hasPermission(authentication, project, Permission.WRITE) }
         .map { projectFromDb ->
@@ -196,6 +189,31 @@ class ProjectController(
             val (_, projectStatus) = projectService.getOrSaveProject(updatedProject)
             ResponseEntity.ok(projectStatus.message)
         }
+
+    /**
+     * @param organizationName
+     * @param projectName
+     * @param authentication
+     * @return response
+     */
+    @DeleteMapping("/{organizationName}/{projectName}/delete")
+    fun deleteProject(
+        @PathVariable organizationName: String,
+        @PathVariable projectName: String,
+        authentication: Authentication
+    ): Mono<StringResponse> =
+            projectService.findWithPermissionByNameAndOrganization(
+                authentication, projectName, organizationName, Permission.DELETE
+            )
+                .map { projectFromDb ->
+                    projectFromDb.apply {
+                        status = ProjectStatus.DELETED
+                    }
+                }
+                .map { updatedProject ->
+                    val (_, projectStatus) = projectService.getOrSaveProject(updatedProject)
+                    ResponseEntity.ok(projectStatus.message)
+                }
 
     companion object {
         @JvmStatic
