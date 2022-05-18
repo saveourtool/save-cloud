@@ -58,17 +58,20 @@ class ExecutionService(private val executionRepository: ExecutionRepository,
      * @param execution
      * @throws ResponseStatusException
      */
+    @Suppress(
+        "TOO_MANY_LINES_IN_LAMBDA",
+        "PARAMETER_NAME_IN_OUTER_LAMBDA",
+    )
     fun updateExecution(execution: ExecutionUpdateDto) {
         executionRepository.findById(execution.id).ifPresentOrElse({
             it.status = execution.status
             if (it.status == ExecutionStatus.FINISHED || it.status == ExecutionStatus.ERROR) {
                 // execution is completed, we can update end time
                 it.endTime = LocalDateTime.now()
-
                 // if the tests are stuck in the READY_FOR_TESTING or RUNNING status
-                testExecutionRepository.findByStatusListAndExecutionId(listOf(TestResultStatus.READY_FOR_TESTING, TestResultStatus.RUNNING), execution.id).map {
-                    it.status = TestResultStatus.FAILED
-                    testExecutionRepository.save(it)
+                testExecutionRepository.findByStatusListAndExecutionId(listOf(TestResultStatus.READY_FOR_TESTING, TestResultStatus.RUNNING), execution.id).map { testExec ->
+                    testExec.status = TestResultStatus.FAILED
+                    testExecutionRepository.save(testExec)
                 }
             }
             executionRepository.save(it)
