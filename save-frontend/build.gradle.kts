@@ -51,7 +51,6 @@ kotlin {
 //                    requiredDependencies.add(versions.mocha)
 //                    config.frameworks.add("mocha")
                 }
-//                useMocha()
             }
         }
         binaries.executable()  // already default for LEGACY, but explicitly needed for IR
@@ -102,6 +101,7 @@ kotlin {
             implementation(devNpm("karma-mocha-reporter", "^2.0.0"))
             implementation(devNpm("istanbul-instrumenter-loader", "^3.0.1"))
             implementation(devNpm("karma-coverage-istanbul-reporter", "^3.0.3"))
+            implementation(devNpm("msw", "^0.40.0"))
         }
     }
 }
