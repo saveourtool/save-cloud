@@ -1,6 +1,5 @@
 package org.cqfn.save.frontend.components
 
-import kotlinx.js.jso
 import org.cqfn.save.frontend.externals.render
 import org.cqfn.save.frontend.externals.screen
 import org.cqfn.save.frontend.externals.userEvent
@@ -11,6 +10,7 @@ import org.w3c.dom.HTMLSpanElement
 import react.*
 import react.router.MemoryRouter
 import kotlin.test.*
+import kotlinx.js.jso
 
 /**
  * [MemoryRouter] is used to enable usage of `useLocation` hook inside the component
