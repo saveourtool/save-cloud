@@ -1,5 +1,6 @@
 /**
- * Declarations from https://github.com/testing-library/dom-testing-library,
+ * Declarations from https://github.com/testing-library/dom-testing-library
+ * https://github.com/testing-library/react-testing-library/blob/main/types/index.d.ts
  */
 
 @file:JsModule("@testing-library/react")

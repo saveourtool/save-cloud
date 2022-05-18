@@ -4,7 +4,6 @@ import org.cqfn.save.frontend.externals.render
 import org.cqfn.save.frontend.externals.screen
 import org.w3c.dom.HTMLHeadingElement
 import react.create
-import react.createElement
 import react.react
 import kotlin.js.Promise
 import kotlin.test.*
