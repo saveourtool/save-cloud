@@ -8,7 +8,7 @@ import org.cqfn.save.backend.repository.TimestampBasedFileSystemRepository
 import org.cqfn.save.backend.service.OrganizationService
 import org.cqfn.save.backend.service.UserDetailsService
 import org.cqfn.save.domain.FileInfo
-import org.cqfn.save.domain.FileInfoDto
+import org.cqfn.save.domain.ShortFileInfo
 import org.cqfn.save.domain.TestResultDebugInfo
 import org.cqfn.save.domain.TestResultLocation
 import org.cqfn.save.from
@@ -79,24 +79,25 @@ class DownloadFilesController(
      * @return [Mono] with response
      */
     @PostMapping(path = ["/api/$v1/files/upload"], consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
-    fun upload(@RequestPart("file") file: Mono<FilePart>) =
-            additionalToolsFileSystemRepository.saveFile(file).map { fileInfo ->
+    fun upload(
+        @RequestPart("file") file: Mono<FilePart>,
+        @RequestParam(required = false, defaultValue = "true") returnShortFileInfo: Boolean,
+    ) = additionalToolsFileSystemRepository.saveFile(file).map { fileInfo ->
                 ResponseEntity.status(
                     if (fileInfo.sizeBytes > 0) HttpStatus.OK else HttpStatus.INTERNAL_SERVER_ERROR
                 )
-                    .body(fileInfo.toDto())
+                    .body(
+                        if (returnShortFileInfo) {
+                            fileInfo.toDto()
+                        } else {
+                            fileInfo
+                        }
+                    )
             }
                 .onErrorReturn(
                     FileAlreadyExistsException::class.java,
                     ResponseEntity.status(HttpStatus.CONFLICT).build()
                 )
-
-    /**
-     * @param fileInfoDto
-     * @return FileInfo, obtained from [fileInfoDto]
-     */
-    @PostMapping(path = ["/api/$v1/files/get-by-dto"])
-    fun getFileInfoByDto(@RequestBody fileInfoDto: FileInfoDto): FileInfo = additionalToolsFileSystemRepository.getFileInfoByDto(fileInfoDto)
 
     /**
      * @param file image to be uploaded

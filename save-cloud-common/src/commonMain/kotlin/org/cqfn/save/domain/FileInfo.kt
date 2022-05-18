@@ -20,7 +20,7 @@ data class FileInfo(
     /**
      * @return FileInfo dto
      */
-    fun toDto(): FileInfoDto = FileInfoDto(
+    fun toDto(): ShortFileInfo = ShortFileInfo(
         this.name,
         this.isExecutable,
     )
@@ -31,7 +31,7 @@ data class FileInfo(
  * @property isExecutable whether the file is executable
  */
 @Serializable
-data class FileInfoDto(
+data class ShortFileInfo(
     val name: String,
     val isExecutable: Boolean = false,
 )

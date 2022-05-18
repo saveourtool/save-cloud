@@ -12,7 +12,7 @@ import org.cqfn.save.api.utils.getStandardTestSuites
 import org.cqfn.save.api.utils.initializeHttpClient
 import org.cqfn.save.api.utils.submitExecution
 import org.cqfn.save.api.utils.uploadAdditionalFile
-import org.cqfn.save.domain.FileInfoDto
+import org.cqfn.save.domain.ShortFileInfo
 import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.ExecutionRequestBase
 import org.cqfn.save.entities.ExecutionRequestForStandardSuites
@@ -89,7 +89,7 @@ class SaveCloudClient(
      */
     private suspend fun submitExecution(
         executionType: ExecutionType,
-        additionalFiles: List<FileInfoDto>?
+        additionalFiles: List<ShortFileInfo>?
     ): ExecutionRequestBase? {
         val executionRequest = if (executionType == ExecutionType.GIT) {
             buildExecutionRequest()
@@ -227,7 +227,7 @@ class SaveCloudClient(
      */
     private suspend fun processAdditionalFiles(
         files: String
-    ): List<FileInfoDto>? {
+    ): List<ShortFileInfo>? {
         val userProvidedAdditionalFiles = files.split(";")
         userProvidedAdditionalFiles.forEach {
             if (!File(it).exists()) {
@@ -238,7 +238,7 @@ class SaveCloudClient(
 
         val availableFilesInCloudStorage = httpClient.getAvailableFilesList()
 
-        val resultFileInfoList: MutableList<FileInfoDto> = mutableListOf()
+        val resultFileInfoList: MutableList<ShortFileInfo> = mutableListOf()
 
         // Try to take files from storage, or upload them if they are absent
         userProvidedAdditionalFiles.forEach { file ->
@@ -248,7 +248,7 @@ class SaveCloudClient(
                 resultFileInfoList.add(fileFromStorage.toDto().copy(isExecutable = true))
             } ?: run {
                 log.debug("Upload file $file to storage")
-                val uploadedFile: FileInfoDto = httpClient.uploadAdditionalFile(file).copy(isExecutable = true)
+                val uploadedFile: ShortFileInfo = httpClient.uploadAdditionalFile(file).copy(isExecutable = true)
                 resultFileInfoList.add(uploadedFile)
             }
         }

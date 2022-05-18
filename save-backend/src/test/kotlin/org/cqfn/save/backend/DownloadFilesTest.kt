@@ -10,7 +10,7 @@ import org.cqfn.save.backend.service.UserDetailsService
 import org.cqfn.save.core.result.DebugInfo
 import org.cqfn.save.core.result.Pass
 import org.cqfn.save.domain.FileInfo
-import org.cqfn.save.domain.FileInfoDto
+import org.cqfn.save.domain.ShortFileInfo
 import org.cqfn.save.domain.TestResultDebugInfo
 import org.cqfn.save.domain.TestResultLocation
 import org.cqfn.save.entities.Agent
@@ -133,10 +133,10 @@ class DownloadFilesTest {
             .body(BodyInserters.fromMultipartData(body))
             .exchange()
             .expectStatus().isOk
-            .expectBody<FileInfoDto>()
+            .expectBody<ShortFileInfo>()
             .consumeWith {
                 Assertions.assertTrue(
-                    fileSystemRepository.getFileInfoByDto(it.responseBody!!).sizeBytes > 0
+                    fileSystemRepository.getFileInfoByShortInfo(it.responseBody!!).sizeBytes > 0
                 )
             }
     }
