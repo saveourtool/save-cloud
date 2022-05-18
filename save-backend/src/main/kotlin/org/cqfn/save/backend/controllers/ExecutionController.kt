@@ -264,7 +264,7 @@ class ExecutionController(private val executionService: ExecutionService,
     fun getTestRootPathByExecutionId(@RequestParam id: Long, authentication: Authentication): Mono<String> =
         Mono.justOrEmpty(executionService.findExecution(id))
             .switchIfEmpty() {
-                Mono.error(ResponseStatusException(HttpStatus.NO_CONTENT))
+                Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
             }
             .filterWhen { projectPermissionEvaluator.checkPermissions(authentication, it, Permission.READ) }
             .map {
