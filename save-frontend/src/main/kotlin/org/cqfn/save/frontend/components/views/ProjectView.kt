@@ -859,7 +859,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         }
         scope.launch {
             responseFromDeleteProject =
-                    post("$apiUrl/projects/update", headers, Json.encodeToString(state.project))
+                    delete("$apiUrl/projects/${state.project.organization.name}/${state.project.name}/delete", headers, Json.encodeToString(state.project))
         }.invokeOnCompletion {
             if (responseFromDeleteProject.ok) {
                 window.location.href = "${window.location.origin}/"

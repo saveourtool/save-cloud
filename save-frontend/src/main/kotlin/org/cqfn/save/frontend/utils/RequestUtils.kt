@@ -86,6 +86,19 @@ suspend fun Component<*, *>.post(url: String,
 ) = request(url, "POST", headers, body, responseHandler = responseHandler)
 
 /**
+ * Perform DELETE request from a class component. See [request] for parameter description.
+ *
+ * @return [Response]
+ */
+@Suppress("KDOC_WITHOUT_PARAM_TAG")
+suspend fun Component<*, *>.delete(
+    url: String,
+    headers: Headers,
+    body: dynamic,
+    responseHandler: (Response) -> Unit = this::classComponentResponseHandler,
+) = request(url, "DELETE", headers, body, responseHandler = responseHandler)
+
+/**
  * Perform GET request from a functional component
  *
  * @return [Response]
