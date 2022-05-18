@@ -1,19 +1,13 @@
 package org.cqfn.save.frontend.components
 
-import generated.SAVE_VERSION
-import history.InitialEntry
-import kotlinx.browser.document
-import kotlinx.js.jso
 import org.cqfn.save.frontend.externals.render
 import org.cqfn.save.frontend.externals.screen
 import org.cqfn.save.frontend.externals.userEvent
 import org.cqfn.save.info.UserInfo
 import org.w3c.dom.HTMLDivElement
-import org.w3c.dom.HTMLElement
 import org.w3c.dom.HTMLSpanElement
 import react.*
 import react.router.MemoryRouter
-import kotlin.js.Promise
 import kotlin.test.*
 
 /**
@@ -25,7 +19,7 @@ import kotlin.test.*
  */
 class TopBarTest {
     @Test
-    fun top_bar_should_render_with_user_info() {
+    fun topBarShouldRenderWithUserInfo() {
         val rr = render(
             MemoryRouter.create {
                 initialEntries = arrayOf(
@@ -37,17 +31,17 @@ class TopBarTest {
             }
         )
 
-        val userInfoSpan = screen.queryByText<HTMLSpanElement?>("Test User")
+        val userInfoSpan: HTMLSpanElement? = screen.queryByText("Test User")
         assertNotNull(userInfoSpan)
 
         // push the button
         userEvent.click(rr.container.querySelector("[id=\"userDropdown\"]"))
         val dropdown = rr.container.querySelector("[aria-labelledby=\"userDropdown\"]") as HTMLDivElement
-        assertEquals(3, dropdown.children.length)
+        assertEquals(3, dropdown.children.length, "When user is logged in, dropdown menu should contain 3 entries")
     }
 
     @Test
-    fun top_bar_should_render_without_user_info() {
+    fun topBarShouldRenderWithoutUserInfo() {
         val rr = render(
             MemoryRouter.create {
                 initialEntries = arrayOf(
@@ -59,12 +53,12 @@ class TopBarTest {
             }
         )
 
-        val userInfoSpan = screen.queryByText<HTMLSpanElement?>("Test User")
+        val userInfoSpan: HTMLSpanElement? = screen.queryByText("Test User")
         assertNull(userInfoSpan)
 
         // push the button
         userEvent.click(rr.container.querySelector("[id=\"userDropdown\"]"))
         val dropdown = rr.container.querySelector("[aria-labelledby=\"userDropdown\"]") as HTMLDivElement
-        assertEquals(1, dropdown.children.length)
+        assertEquals(1, dropdown.children.length, "When user is not logged in, dropdown menu should contain 1 entry")
     }
 }

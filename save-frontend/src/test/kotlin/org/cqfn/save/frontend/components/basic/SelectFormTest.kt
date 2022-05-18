@@ -34,7 +34,7 @@ class SelectFormTest {
     }
 
     @Test
-    fun select_form_should_show_organizations() {
+    fun selectFormShouldShowOrganizations() {
         render(
             selectFormRequired { _, _, _ -> }.create {
                 form = InputTypes.ORGANIZATION_NAME
@@ -52,7 +52,7 @@ class SelectFormTest {
     }
 
     @Test
-    fun component_should_contain_warning_if_no_organizations() {
+    fun componentShouldContainWarningIfNoOrganizations() {
         worker.use(
             rest.get("$apiUrl/organization/get/list") { _, res, ctx ->
                 res(ctx.json(emptyList<Organization>()))

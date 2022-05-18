@@ -303,7 +303,9 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
 @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
 fun main() {
     /** Workaround for issue: https://youtrack.jetbrains.com/issue/KT-31888 */
-    if (window.asDynamic().__karma__) return
+    if (window.asDynamic().__karma__) {
+        return
+    }
 
     kotlinext.js.require("../scss/save-frontend.scss")  // this is needed for webpack to include resource
     kotlinext.js.require("bootstrap")  // this is needed for webpack to include bootstrap

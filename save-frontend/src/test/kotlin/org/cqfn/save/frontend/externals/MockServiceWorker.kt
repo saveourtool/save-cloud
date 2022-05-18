@@ -4,6 +4,12 @@
 
 @file:JsModule("msw")
 @file:JsNonModule
+@file:Suppress(
+    "MISSING_KDOC_ON_FUNCTION",
+    "KDOC_WITHOUT_PARAM_TAG",
+    "KDOC_WITHOUT_RETURN_TAG",
+    "KDOC_NO_EMPTY_TAGS",
+)
 
 package org.cqfn.save.frontend.externals
 

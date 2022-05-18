@@ -5,6 +5,13 @@
 
 @file:JsModule("@testing-library/react")
 @file:JsNonModule
+@file:Suppress(
+    "USE_DATA_CLASS",
+    "MISSING_KDOC_ON_FUNCTION",
+    "MISSING_KDOC_CLASS_ELEMENTS",
+    "MISSING_KDOC_TOP_LEVEL",
+    "KDOC_NO_EMPTY_TAGS",
+)
 
 package org.cqfn.save.frontend.externals
 
@@ -13,7 +20,11 @@ import react.Props
 import react.ReactElement
 import kotlin.js.Promise
 
-external fun <P : Props> render(ui: ReactElement<P>, options: dynamic = definedExternally): RenderResult
+/**
+ * https://testing-library.com/docs/queries/about/#screen
+ * https://github.com/testing-library/dom-testing-library/blob/main/types/screen.d.ts
+ */
+external val screen: BoundFunctions
 
 external class RenderResult {
     var container: dynamic
@@ -27,9 +38,4 @@ external class BoundFunctions {
     fun <T : HTMLElement?> queryByText(text: String, options: dynamic = definedExternally): T?
 }
 
-/**
- * https://testing-library.com/docs/queries/about/#screen
- * https://github.com/testing-library/dom-testing-library/blob/main/types/screen.d.ts
- */
-external val screen: BoundFunctions
-
+external fun <P : Props> render(ui: ReactElement<P>, options: dynamic = definedExternally): RenderResult

@@ -11,7 +11,7 @@ import kotlin.test.Test
 
 class AppTest {
     @Test
-    fun app_should_render(): Promise<Unit> {
+    fun appShouldRender(): Promise<Unit> {
         render(
             App::class.react.create()
         )
