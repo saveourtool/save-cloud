@@ -28,7 +28,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.GetMapping
@@ -259,20 +258,25 @@ class ExecutionController(private val executionService: ExecutionService,
             }
     }
 
+    /**
+     * @param id requested execution ID
+     * @param authentication auth provider
+     * @return string with a test root path that is linked with this execution id
+     */
     @GetMapping(path = ["/api/$v1/getTestRootPathByExecutionId"])
     @Transactional
     fun getTestRootPathByExecutionId(@RequestParam id: Long, authentication: Authentication): Mono<String> =
-        Mono.justOrEmpty(executionService.findExecution(id))
-            .switchIfEmpty() {
-                Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
-            }
-            .filterWhen { projectPermissionEvaluator.checkPermissions(authentication, it, Permission.READ) }
-            .map {
-                it.status.toString()
-                it.getTestRootPathByTestSuites()
-                    .distinct()
-                    .single()
-            }
+            Mono.justOrEmpty(executionService.findExecution(id))
+                .switchIfEmpty() {
+                    Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
+                }
+                .filterWhen { projectPermissionEvaluator.checkPermissions(authentication, it, Permission.READ) }
+                .map {
+                    it.status.toString()
+                    it.getTestRootPathByTestSuites()
+                        .distinct()
+                        .single()
+                }
 
     /**
      * Accepts a request to rerun an existing execution

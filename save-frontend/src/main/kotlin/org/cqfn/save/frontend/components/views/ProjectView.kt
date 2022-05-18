@@ -452,6 +452,9 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             when {
                 state.gitUrlFromInputField.isBlank() && gitDto?.url != null -> state.gitUrlFromInputField = gitDto?.url ?: ""
                 state.gitBranchOrCommitFromInputField.isBlank() && gitDto?.branch != null -> state.gitBranchOrCommitFromInputField = gitDto?.branch ?: ""
+                else -> {
+                    // this is a generated else block
+                }
             }
 
             standardTestSuites = get("$apiUrl/allStandardTestSuites", headers).decodeFromJsonString()
@@ -861,11 +864,11 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 latestExecutionId = null
             }
             else -> {
-                val executionDtoFromRequest = response
-                    .decodeFromJsonString<ExecutionDto>()
+                val executionDtoFromRequest: Long = response
+                    .decodeFromJsonString<ExecutionDto>().id
 
                 setState {
-                    latestExecutionId = executionDtoFromRequest.id
+                    latestExecutionId = executionDtoFromRequest
                 }
             }
         }
@@ -874,16 +877,14 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     }
 
     private suspend fun getTestRootPathFromLatestExecution() {
-        if (state.latestExecutionId != null) {
+        state.latestExecutionId?.let {
             val headers = Headers().apply { set("Accept", "application/json") }
             val response = get(
                 "$apiUrl/getTestRootPathByExecutionId?id=${state.latestExecutionId}",
                 headers,
                 responseHandler = ::noopResponseHandler
             )
-
             val rootPath = response.text().await()
-
             when {
                 response.ok -> setState {
                     testRootPath = rootPath

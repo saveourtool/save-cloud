@@ -17,7 +17,6 @@ import org.cqfn.save.frontend.components.errorStatusContext
 import org.cqfn.save.frontend.externals.fontawesome.faQuestionCircle
 import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
 import org.cqfn.save.frontend.utils.*
-import org.cqfn.save.frontend.utils.noopResponseHandler
 
 import org.w3c.dom.*
 import org.w3c.dom.events.Event

@@ -98,7 +98,6 @@ private fun RBuilder.setAdditionalPropertiesForStandardMode(
  * @param updateGitUrlFromInputField
  * @param updateGitBranchOrCommitInputField
  * @param updateTestRootPath
- * @param setTestRootPathFromHistory
  * @param setSelectedLanguageForStandardTests
  * @param setExecCmd
  * @param setBatchSize
