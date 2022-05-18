@@ -72,7 +72,7 @@ fun selectFormRequired(
 
     div("${props.classes} mt-1") {
         label("form-label") {
-            props.form?.let { attrs.set("for", it.name) }
+            props.form?.let { attrs["htmlFor"] = it.name }
             +"${props.text}"
         }
 
@@ -86,9 +86,9 @@ fun selectFormRequired(
                 attrs["id"] = "${props.form?.name}"
                 attrs["required"] = true
                 if (props.validInput == true) {
-                    attrs["class"] = "form-control"
+                    attrs["className"] = "form-control"
                 } else {
-                    attrs["class"] = "form-control is-invalid"
+                    attrs["className"] = "form-control is-invalid"
                 }
 
                 val newElements = elements.toMutableList()
