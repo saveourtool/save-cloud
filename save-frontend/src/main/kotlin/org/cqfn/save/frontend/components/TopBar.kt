@@ -6,8 +6,9 @@
 
 package org.cqfn.save.frontend.components
 
+import org.cqfn.save.domain.Role
 import org.cqfn.save.frontend.components.modal.logoutModal
-import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
+import org.cqfn.save.frontend.externals.fontawesome.*
 import org.cqfn.save.info.UserInfo
 
 import csstype.Width
@@ -18,6 +19,7 @@ import react.fc
 import react.router.useLocation
 import react.useState
 
+import kotlinx.browser.window
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -28,6 +30,7 @@ import kotlinx.html.classes
 import kotlinx.html.id
 import kotlinx.html.js.onClickFunction
 import kotlinx.html.role
+import kotlinx.js.jso
 
 /**
  * [RProps] of the top bor component
@@ -39,7 +42,7 @@ external interface TopBarProps : PropsWithChildren {
     var userInfo: UserInfo?
 }
 
-private fun RBuilder.dropdownEntry(faIcon: String, text: String, handler: RDOMBuilder<BUTTON>.() -> Unit = { }) =
+private fun RBuilder.dropdownEntry(faIcon: dynamic, text: String, handler: RDOMBuilder<BUTTON>.() -> Unit = { }) =
         button(type = ButtonType.button, classes = "btn btn-no-outline dropdown-item rounded-0 shadow-none") {
             fontAwesomeIcon {
                 attrs.icon = faIcon
@@ -99,9 +102,7 @@ fun topBar() = fc<TopBarProps> { props ->
                                     }
                                 } else {
                                     // small hack to redirect from history/execution to history
-                                    // AND small temp workaround to replace owner URL with "project"
-                                    // should be removed when we will finish with OWNER pages
-                                    val resultingLink = if (index == 0) currentLink.replace(pathPart, "projects") else currentLink.removeSuffix("/execution")
+                                    val resultingLink = currentLink.removeSuffix("/execution")
                                     a(resultingLink) {
                                         attrs.classes = setOf("text-light")
                                         +pathPart
@@ -117,7 +118,7 @@ fun topBar() = fc<TopBarProps> { props ->
         ul("navbar-nav mx-auto") {
             li("nav-item") {
                 a(classes = "nav-link d-flex align-items-center me-2 active") {
-                    attrs["style"] = kotlinext.js.jso<CSSProperties> {
+                    attrs["style"] = jso<CSSProperties> {
                         width = 12.rem
                     }.unsafeCast<Width>()
                     attrs.href = "#/awesome-benchmarks"
@@ -126,7 +127,7 @@ fun topBar() = fc<TopBarProps> { props ->
             }
             li("nav-item") {
                 a(classes = "nav-link d-flex align-items-center me-2 active") {
-                    attrs["style"] = kotlinext.js.jso<CSSProperties> {
+                    attrs["style"] = jso<CSSProperties> {
                         width = 8.rem
                     }.unsafeCast<Width>()
                     attrs.href = "https://github.com/analysis-dev/save"
@@ -135,7 +136,7 @@ fun topBar() = fc<TopBarProps> { props ->
             }
             li("nav-item") {
                 a(classes = "nav-link me-2") {
-                    attrs["style"] = kotlinext.js.jso<CSSProperties> {
+                    attrs["style"] = jso<CSSProperties> {
                         width = 9.rem
                     }.unsafeCast<Width>()
                     attrs.href = "https://github.com/analysis-dev/save-cloud"
@@ -144,16 +145,16 @@ fun topBar() = fc<TopBarProps> { props ->
             }
             li("nav-item") {
                 a(classes = "nav-link me-2") {
-                    attrs["style"] = kotlinext.js.jso<CSSProperties> {
+                    attrs["style"] = jso<CSSProperties> {
                         width = 8.rem
                     }.unsafeCast<Width>()
                     attrs.href = "#/projects"
-                    +"Leaderboard"
+                    +"Projects board"
                 }
             }
             li("nav-item") {
                 a(classes = "nav-link me-2") {
-                    attrs["style"] = kotlinext.js.jso<CSSProperties> {
+                    attrs["style"] = jso<CSSProperties> {
                         width = 6.rem
                     }.unsafeCast<Width>()
                     attrs.href = "https://github.com/analysis-dev/save-cloud"
@@ -178,21 +179,40 @@ fun topBar() = fc<TopBarProps> { props ->
                         set("aria-expanded", "false")
                     }
 
-                    span("mr-2 d-none d-lg-inline text-gray-600") {
-                        +(props.userInfo?.userName ?: "")
-                    }
-
-                    fontAwesomeIcon {
-                        attrs.icon = "user"
-                        attrs.className = "fas fa-lg fa-fw mr-2 text-gray-400"
+                    div("row") {
+                        div {
+                            span("mr-2 d-none d-lg-inline text-gray-600") {
+                                +(props.userInfo?.name ?: "")
+                            }
+                            fontAwesomeIcon {
+                                attrs.icon = "user"
+                                attrs.className = "fas fa-lg fa-fw mr-2 text-gray-400"
+                            }
+                        }
+                        val globalRole = props.userInfo?.globalRole ?: Role.VIEWER
+                        if (globalRole.priority >= Role.ADMIN.priority) {
+                            small("text-gray-400 text-justify") {
+                                +globalRole.formattedName
+                            }
+                        }
                     }
                 }
                 // Dropdown - User Information
                 div("dropdown-menu dropdown-menu-right shadow animated--grow-in") {
                     attrs["aria-labelledby"] = "userDropdown"
-                    // FixMe: temporary disable Profile DropDown, will need to link it with the user in the future
-                    // dropdownEntry("cogs", "Profile")
-                    dropdownEntry("sign-out-alt", "Log out") {
+                    props.userInfo?.name?.let { name ->
+                        dropdownEntry(faCog, "Settings") {
+                            attrs.onClickFunction = {
+                                window.location.href = "#/$name/settings/email"
+                            }
+                        }
+                        dropdownEntry(faCity, "My organizations") {
+                            attrs.onClickFunction = {
+                                window.location.href = "#/$name/settings/organizations"
+                            }
+                        }
+                    }
+                    dropdownEntry(faSignOutAlt, "Log out") {
                         attrs.onClickFunction = {
                             setIsLogoutModalOpen(true)
                         }
@@ -201,7 +221,9 @@ fun topBar() = fc<TopBarProps> { props ->
             }
         }
     }
-    logoutModal(scope, { attrs.isOpen = isLogoutModalOpen }) {
+    logoutModal {
         setIsLogoutModalOpen(false)
+    }() {
+        attrs.isOpen = isLogoutModalOpen
     }
 }

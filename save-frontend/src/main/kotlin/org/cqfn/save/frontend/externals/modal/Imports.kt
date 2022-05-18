@@ -115,7 +115,7 @@ external class ReactModalPortal : Component<PropsWithChildren, State> {
      */
     val overlay: HTMLDivElement
 
-    override fun render(): ReactElement?
+    override fun render(): ReactElement<*>?
 }
 
 /**
@@ -130,7 +130,7 @@ external class ReactModal : Component<ModalProps, State> {
      */
     var portal: ReactModalPortal? = definedExternally
 
-    override fun render(): ReactElement?
+    override fun render(): ReactElement<ModalProps>?
 
     companion object {
         /**

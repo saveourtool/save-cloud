@@ -35,4 +35,32 @@
         </addColumn>
     </changeSet>
 
+    <changeSet id="project-drop-adminIds" author="frolov" context="dev or prod">
+        <dropColumn columnName="admin_ids" tableName="project"/>
+    </changeSet>
+
+    <changeSet id="project-drop-owner" author="frolov" context="dev or prod">
+        <dropColumn columnName="owner" tableName="project"/>
+    </changeSet>
+
+    <changeSet id="project-add-email" author="sanyavertolet" context="dev or prod">
+        <addColumn tableName="project">
+            <column name = "email" type="varchar(256)">
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="project-add-number-of-containers" author="sanyavertolet" context="dev or prod">
+        <addColumn tableName="project">
+            <column name = "number_of_containers" type="int" defaultValue="3">
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="project-new-column-contest-rating" author="akuleshov7" context="dev or prod">
+        <addColumn tableName="project">
+            <column name = "contest_rating" type="int" defaultValue="0">
+            </column>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>

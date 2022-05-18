@@ -4,6 +4,8 @@
 
 package org.cqfn.save.buildutils
 
+import org.ajoberstar.grgit.gradle.GrgitServiceExtension
+import org.ajoberstar.grgit.gradle.GrgitServicePlugin
 import org.ajoberstar.reckon.gradle.ReckonExtension
 import org.ajoberstar.reckon.gradle.ReckonPlugin
 import org.codehaus.groovy.runtime.ResourceGroovyMethods
@@ -11,6 +13,7 @@ import org.gradle.accessors.dm.LibrariesForLibs
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.apply
 import org.gradle.kotlin.dsl.configure
+import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.the
 import java.net.URL
 import java.time.Duration
@@ -21,6 +24,9 @@ import java.util.Properties
  */
 fun Project.configureVersioning() {
     apply<ReckonPlugin>()
+    apply<GrgitServicePlugin>()
+    val grgitProvider = project.extensions.getByType<GrgitServiceExtension>().service.map { it.grgit }
+
     // should be provided in the gradle.properties
     val isDevelopmentVersion = hasProperty("save.profile") && property("save.profile") == "dev"
     configure<ReckonExtension> {
@@ -32,6 +38,14 @@ fun Project.configureVersioning() {
         } else {
             stageFromProp("alpha", "rc", "final")
         }
+    }
+
+    val grgit = grgitProvider.get()
+    val status = grgit.repository.jgit.status().call()
+    if (!status.isClean) {
+        logger.warn("git tree is not clean; " +
+                "Untracked files: ${status.untracked}, uncommitted changes: ${status.uncommittedChanges}"
+        )
     }
 }
 

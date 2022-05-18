@@ -1,5 +1,6 @@
 package org.cqfn.save.gateway.utils
 
+import org.cqfn.save.domain.Role
 import org.cqfn.save.entities.User
 import org.cqfn.save.gateway.config.ConfigurationProperties
 
@@ -34,7 +35,13 @@ class StoringServerAuthenticationSuccessHandler(
     ): Mono<Void> {
         logger.info("Authenticated user ${authentication.userName()} with authentication type ${authentication::class}, will send data to backend")
 
-        val user = authentication.toUser()
+        val user = authentication.toUser().apply {
+            // https://github.com/analysis-dev/save-cloud/issues/583
+            // fixme: this sets a default role for a new user with minimal scope, however this way we discard existing role
+            // from authentication provider. In the future we may want to use this information and have a mapping of existing
+            // roles to save-cloud roles.
+            role = Role.VIEWER.asSpringSecurityRole()
+        }
         return webClient.post()
             .uri("/internal/users/new")
             .contentType(MediaType.APPLICATION_JSON)
@@ -56,4 +63,5 @@ fun Authentication.toUser(): User = User(
     null,
     authorities.joinToString(",") { it.authority },
     toIdentitySource(),
+    null,
 )

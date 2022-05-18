@@ -10,11 +10,9 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
-      - uses: actions/checkout@v2.4.0
-        with:
-          submodules: true
+      - uses: actions/checkout@v3
       - name: Set up JDK 11
-        uses: actions/setup-java@v2
+        uses: actions/setup-java@v3
         with:
           java-version: 11
           distribution: zulu
@@ -23,14 +21,25 @@ jobs:
           gradle-version: wrapper
           arguments: |
             detektAll
+            --build-cache
+            -PgprUser=${{ github.actor }}
+            -PgprKey=${{ secrets.GITHUB_TOKEN }}
+        # Upload reports only if code style checks were failed
       - name: Copy SARIF reports into a single directory
-        if: ${{ always() }}
+        if: ${{ failure() }}
         run: |
           mkdir -p build/detekt-sarif-reports
           i=0
-          find . -name "detekt.sarif" | while read -r f; do echo "$f -> detekt-$i.sarif" && cp $f build/detekt-sarif-reports/detekt-$i.sarif || echo Cannot copy && echo Copied && i=$((i+1)); done
+          find . -path "*/build/reports/detekt/*.sarif" | while read -r f; do echo "$f -> detekt-$i.sarif" && cp $f build/detekt-sarif-reports/detekt-$i.sarif || echo Cannot copy && echo Copied && i=$((i+1)); done
       - name: Upload SARIF to Github
-        if: ${{ always() }}
-        uses: github/codeql-action/upload-sarif@v1
+        if: ${{ failure() }}
+        uses: github/codeql-action/upload-sarif@v2
         with:
           sarif_file: build/detekt-sarif-reports
+      - name: Upload SARIF artifacts
+        uses: actions/upload-artifact@v3
+        if: ${{ failure() }}
+        with:
+          name: sarif-reports
+          path: "**/build/detekt-sarif-reports/"
+          retention-days: 1

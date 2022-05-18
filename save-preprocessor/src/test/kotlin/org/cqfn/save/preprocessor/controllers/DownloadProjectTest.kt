@@ -3,26 +3,21 @@ package org.cqfn.save.preprocessor.controllers
 import org.cqfn.save.core.config.TestConfig
 import org.cqfn.save.domain.FileInfo
 import org.cqfn.save.domain.Sdk
-import org.cqfn.save.entities.Execution
-import org.cqfn.save.entities.ExecutionRequest
-import org.cqfn.save.entities.ExecutionRequestForStandardSuites
-import org.cqfn.save.entities.GitDto
-import org.cqfn.save.entities.Project
-import org.cqfn.save.entities.ProjectStatus
-import org.cqfn.save.entities.TestSuite
+import org.cqfn.save.entities.*
 import org.cqfn.save.execution.ExecutionType
 import org.cqfn.save.preprocessor.config.ConfigProperties
+import org.cqfn.save.preprocessor.config.LocalDateTimeConfig
 import org.cqfn.save.preprocessor.service.TestDiscoveringService
 import org.cqfn.save.preprocessor.utils.RepositoryVolume
 import org.cqfn.save.preprocessor.utils.toHash
 import org.cqfn.save.test.TestDto
 import org.cqfn.save.testsuite.TestSuiteDto
 import org.cqfn.save.testsuite.TestSuiteType
+import org.cqfn.save.testutils.*
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
-import okhttp3.mockwebserver.QueueDispatcher
 import okio.FileSystem
 import okio.Path.Companion.toPath
 import org.junit.jupiter.api.AfterAll
@@ -40,6 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
 import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.context.annotation.Import
 import org.springframework.core.io.FileSystemResource
 import org.springframework.http.MediaType
 import org.springframework.http.client.MultipartBodyBuilder
@@ -50,7 +46,6 @@ import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
 
 import java.io.File
-import java.nio.charset.Charset
 import java.time.Duration
 import java.time.LocalDateTime
 import java.util.concurrent.CompletableFuture
@@ -60,11 +55,12 @@ import kotlin.io.path.fileSize
 import kotlin.io.path.isExecutable
 
 @WebFluxTest(controllers = [DownloadProjectController::class])
+@Import(LocalDateTimeConfig::class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @AutoConfigureWebTestClient(timeout = "60000")
 @Suppress("TOO_LONG_FUNCTION", "LongMethod")
 class DownloadProjectTest(
-    @Autowired private val webClient: WebTestClient,
+    @Autowired private var webClient: WebTestClient,
     @Autowired private val configProperties: ConfigProperties,
     @Autowired private val objectMapper: ObjectMapper
 ) : RepositoryVolume {
@@ -75,7 +71,7 @@ class DownloadProjectTest(
 
     @BeforeEach
     fun webClientSetUp() {
-        webClient.mutate().responseTimeout(Duration.ofSeconds(2)).build()
+        webClient = webClient.mutate().responseTimeout(Duration.ofSeconds(2)).build()
         whenever(testDiscoveringService.getRootTestConfig(any())).thenReturn(mock())
         whenever(testDiscoveringService.getAllTests(any(), any())).thenReturn(
             sequenceOf(TestDto("foo", "fooPlugin", 15, "86", emptyList()))
@@ -89,7 +85,10 @@ class DownloadProjectTest(
 
     @Test
     fun testBadRequest() {
-        val project = Project("owner", "someName", "wrongGit", "descr", ProjectStatus.CREATED, userId = 2, adminIds = null)
+        val organization: Organization = Organization("Huawei", OrganizationStatus.CREATED, 1, null).apply {
+            id = 1
+        }
+        val project = Project("owner", "someName", "wrongGit", ProjectStatus.CREATED, userId = 2, organization = organization)
         val wrongRepo = GitDto("wrongGit")
         val execution = Execution.stub(project).apply {
             id = 97L
@@ -97,6 +96,7 @@ class DownloadProjectTest(
         val request = ExecutionRequest(project, wrongRepo, sdk = Sdk.Default, executionId = execution.id, testRootPath = ".")
         // /updateExecutionByDto
         mockServerBackend.enqueue(
+            "/updateExecutionByDto",
             MockResponse().setResponseCode(200)
         )
 
@@ -123,13 +123,15 @@ class DownloadProjectTest(
         val project = Project.stub(42).apply {
             url = "https://github.com/analysis-dev/save.git"
         }
+        val executionId = 99L
         val execution = Execution.stub(project).apply {
-            id = 99L
+            id = executionId
         }
         val validRepo = GitDto("https://github.com/analysis-dev/save.git")
         val request = ExecutionRequest(project, validRepo, "examples/kotlin-diktat/", Sdk.Default, execution.id)
         // /createExecution
         mockServerBackend.enqueue(
+            "/updateNewExecution",
             MockResponse()
                 .setResponseCode(200)
                 .setHeader("Content-Type", "application/json")
@@ -137,6 +139,7 @@ class DownloadProjectTest(
         )
         // /saveTestSuites
         mockServerBackend.enqueue(
+            "/saveTestSuites",
             MockResponse()
                 .setResponseCode(200)
                 .setHeader("Content-Type", "application/json")
@@ -151,16 +154,19 @@ class DownloadProjectTest(
 
         // /updateExecution
         mockServerBackend.enqueue(
+            "/updateExecution",
             MockResponse()
                 .setResponseCode(200)
         )
         // /initializeTests?executionId=$executionId
         mockServerBackend.enqueue(
+            "/initializeTests\\?executionId=(\\d)+",
             MockResponse()
                 .setResponseCode(200)
         )
         // /initializeAgents
         mockServerOrchestrator.enqueue(
+            "/initializeAgents",
             MockResponse()
                 .setResponseCode(200)
         )
@@ -185,7 +191,7 @@ class DownloadProjectTest(
             .expectStatus()
             .isAccepted
             .expectBody<String>()
-            .isEqualTo("Clone pending")
+            .isEqualTo(executionResponseBody(executionId))
         Thread.sleep(15_000)
         
         val dirName = listOf(validRepo.url).hashCode()
@@ -204,12 +210,13 @@ class DownloadProjectTest(
         val binFile = File(binFilePath)
         val property = File(propertyPath)
         val project = Project.stub(42)
+        val executionId = 98L
         val execution = Execution.stub(project).apply {
             testSuiteIds = "1"
             type = ExecutionType.STANDARD
-            id = 98L
+            id = executionId
         }
-        val request = ExecutionRequestForStandardSuites(project, listOf("Chapter1"), Sdk.Default, null, null)
+        val request = ExecutionRequestForStandardSuites(project, listOf("Chapter1"), Sdk.Default, null, null, executionId)
         val bodyBuilder = MultipartBodyBuilder()
         bodyBuilder.part("executionRequestForStandardSuites", request)
         bodyBuilder.part("file", FileSystemResource(property))
@@ -220,6 +227,7 @@ class DownloadProjectTest(
 
         // /updateNewExecution
         mockServerBackend.enqueue(
+            "/updateNewExecution",
             MockResponse()
                 .setResponseCode(200)
                 .setHeader("Content-Type", "application/json")
@@ -228,6 +236,7 @@ class DownloadProjectTest(
 
         // /standardTestSuitesWithName
         mockServerBackend.enqueue(
+            "/standardTestSuitesWithName\\?name=.*",
             MockResponse()
                 .setResponseCode(200)
                 .setHeader("Content-Type", "application/json")
@@ -242,18 +251,21 @@ class DownloadProjectTest(
 
         // /saveTestExecutionsForStandardByTestSuiteId
         mockServerBackend.enqueue(
+            "/saveTestExecutionsForStandardByTestSuiteId\\?testSuiteId=(\\d)+",
             MockResponse()
                 .setResponseCode(200)
         )
 
         // /updateExecution
         mockServerBackend.enqueue(
+            "/updateExecution",
             MockResponse()
                 .setResponseCode(200)
         )
 
         // /initializeAgents
         mockServerOrchestrator.enqueue(
+            "/initializeAgents",
             MockResponse()
                 .setResponseCode(200)
         )
@@ -276,7 +288,7 @@ class DownloadProjectTest(
             .expectStatus()
             .isAccepted
             .expectBody<String>()
-            .isEqualTo("Clone pending")
+            .isEqualTo(executionResponseBody(executionId))
         Thread.sleep(15_000)
 
         val dirName = listOf(property, binFile).map { it.toHash() }.sorted().hashCode()
@@ -309,6 +321,7 @@ class DownloadProjectTest(
             )
 
             mockServerBackend.enqueue(
+                "/saveTestSuites",
                 MockResponse()
                     .setResponseCode(200)
                     .setHeader("Content-Type", "application/json")
@@ -323,6 +336,7 @@ class DownloadProjectTest(
         }
         repeat(requestSize) {
             mockServerBackend.enqueue(
+                "/initializeTests",
                 MockResponse()
                     .setResponseCode(200)
             )
@@ -330,6 +344,7 @@ class DownloadProjectTest(
 
         // /allStandardTestSuites
         mockServerBackend.enqueue(
+            "/allStandardTestSuites",
             MockResponse()
                 .setResponseCode(200)
                 .setHeader("Content-Type", "application/json")
@@ -342,6 +357,7 @@ class DownloadProjectTest(
 
         // /deleteTestSuite
         mockServerBackend.enqueue(
+            "/markObsoleteTestSuites",
             MockResponse()
                 .setResponseCode(200)
         )
@@ -374,15 +390,18 @@ class DownloadProjectTest(
 
         // /updateExecutionByDto
         mockServerBackend.enqueue(
+            "/updateExecutionByDto",
             MockResponse().setResponseCode(200)
         )
         // /cleanup
         mockServerOrchestrator.enqueue(
+            "/cleanup\\?executionId=(\\d)+",
             MockResponse()
                 .setResponseCode(200)
         )
         // /execution
         mockServerBackend.enqueue(
+            "/execution\\?id=(\\d)+",
             MockResponse()
                 .setResponseCode(200)
                 .setHeader("Content-Type", "application/json")
@@ -390,6 +409,7 @@ class DownloadProjectTest(
         )
         // /saveTestSuites
         mockServerBackend.enqueue(
+            "/saveTestSuites",
             MockResponse()
                 .setResponseCode(200)
                 .setHeader("Content-Type", "application/json")
@@ -404,16 +424,19 @@ class DownloadProjectTest(
 
         // /updateExecution
         mockServerBackend.enqueue(
+            "/updateExecution",
             MockResponse()
                 .setResponseCode(200)
         )
         // /initializeTests?executionId=$executionId
         mockServerBackend.enqueue(
+            "/initializeTests\\?executionId=(\\d)+",
             MockResponse()
                 .setResponseCode(200)
         )
         // /initializeAgents
         mockServerOrchestrator.enqueue(
+            "/initializeAgents",
             MockResponse()
                 .setResponseCode(200)
         )
@@ -460,13 +483,14 @@ class DownloadProjectTest(
         }
 
         // /updateExecutionByDto
-        mockServerBackend.enqueue(MockResponse().setResponseCode(200))
+        mockServerBackend.enqueue("/updateExecutionByDto", MockResponse().setResponseCode(200))
 
         // /cleanup
-        mockServerOrchestrator.enqueue(MockResponse().setResponseCode(200))
+        mockServerOrchestrator.enqueue("/cleanup\\?executionId=(\\d)+", MockResponse().setResponseCode(200))
 
         // /execution
         mockServerBackend.enqueue(
+            "/execution\\?id=(\\d)+",
             MockResponse()
                 .setResponseCode(200)
                 .setHeader("Content-Type", "application/json")
@@ -475,6 +499,7 @@ class DownloadProjectTest(
 
         // /testSuite/{id}
         mockServerBackend.enqueue(
+            "/testSuite/(\\d)+",
             MockResponse()
                 .setResponseCode(200)
                 .setHeader("Content-Type", "application/json")
@@ -483,6 +508,7 @@ class DownloadProjectTest(
 
         // /standardTestSuitesWithName
         mockServerBackend.enqueue(
+            "/standardTestSuitesWithName\\?name=.*",
             MockResponse()
                 .setResponseCode(200)
                 .setHeader("Content-Type", "application/json")
@@ -493,18 +519,21 @@ class DownloadProjectTest(
 
         // /saveTestExecutionsForStandardByTestSuiteId
         mockServerBackend.enqueue(
+            "/saveTestExecutionsForStandardByTestSuiteId\\?testSuiteId=(\\d)+",
             MockResponse()
                 .setResponseCode(200)
         )
 
         // /updateExecution
         mockServerBackend.enqueue(
+            "/updateExecution",
             MockResponse()
                 .setResponseCode(200)
         )
 
         // /initializeAgents
         mockServerOrchestrator.enqueue(
+            "/initializeAgents",
             MockResponse()
                 .setResponseCode(200)
         )
@@ -537,24 +566,9 @@ class DownloadProjectTest(
     }
 
     @AfterEach
-    fun removeTestDir() {
-        listOf(mockServerBackend, mockServerOrchestrator).forEach { server ->
-            server.dispatcher.peek().let { mockResponse ->
-                // when `QueueDispatcher.failFast` is true, default value is an empty response with code 404
-                val hasDefaultEnqueuedResponse =
-                        mockResponse.status == "HTTP/1.1 404 Client Error" && mockResponse.getBody() == null
-                require(hasDefaultEnqueuedResponse) {
-                    "There is an enqueued response in the MockServer after a test has completed. Enqueued body: " +
-                            "${
-                                mockResponse.getBody()?.readString(Charset.defaultCharset())
-                            }, status: ${mockResponse.status}"
-                }
-            }
-        }
-    }
-
-    @AfterEach
     fun removeBinDir() {
+        mockServerBackend.checkQueues()
+        mockServerOrchestrator.checkQueues()
         File(configProperties.repository).deleteRecursively()
         File(binFolder).deleteRecursively()
     }
@@ -568,6 +582,14 @@ class DownloadProjectTest(
         @JvmStatic
         lateinit var mockServerOrchestrator: MockWebServer
 
+        @AfterEach
+        fun cleanup() {
+            mockServerBackend.checkQueues()
+            mockServerBackend.cleanup()
+            mockServerOrchestrator.checkQueues()
+            mockServerOrchestrator.cleanup()
+        }
+
         @AfterAll
         fun tearDown() {
             mockServerBackend.shutdown()
@@ -577,11 +599,9 @@ class DownloadProjectTest(
         @DynamicPropertySource
         @JvmStatic
         fun properties(registry: DynamicPropertyRegistry) {
-            mockServerBackend = MockWebServer()
-            (mockServerBackend.dispatcher as QueueDispatcher).setFailFast(true)
+            mockServerBackend = createMockWebServer()
             mockServerBackend.start()
-            mockServerOrchestrator = MockWebServer()
-            (mockServerOrchestrator.dispatcher as QueueDispatcher).setFailFast(true)
+            mockServerOrchestrator = createMockWebServer()
             mockServerOrchestrator.start()
             registry.add("save.backend") { "http://localhost:${mockServerBackend.port}" }
             registry.add("save.orchestrator") { "http://localhost:${mockServerOrchestrator.port}" }

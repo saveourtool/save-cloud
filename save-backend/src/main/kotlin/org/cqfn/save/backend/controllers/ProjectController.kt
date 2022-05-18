@@ -1,16 +1,23 @@
 package org.cqfn.save.backend.controllers
 
-import org.cqfn.save.backend.security.Permission
+import org.cqfn.save.backend.StringResponse
+import org.cqfn.save.backend.repository.UserRepository
 import org.cqfn.save.backend.security.ProjectPermissionEvaluator
 import org.cqfn.save.backend.service.GitService
+import org.cqfn.save.backend.service.LnkUserProjectService
+import org.cqfn.save.backend.service.OrganizationService
 import org.cqfn.save.backend.service.ProjectService
 import org.cqfn.save.backend.utils.AuthenticationDetails
 import org.cqfn.save.domain.ProjectSaveStatus
+import org.cqfn.save.domain.Role
 import org.cqfn.save.entities.GitDto
 import org.cqfn.save.entities.NewProjectDto
 import org.cqfn.save.entities.Project
-import org.slf4j.LoggerFactory
+import org.cqfn.save.entities.ProjectStatus
+import org.cqfn.save.permission.Permission
+import org.cqfn.save.v1
 
+import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -24,16 +31,21 @@ import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.cast
 import reactor.kotlin.core.publisher.switchIfEmpty
 
 /**
  * Controller for working with projects.
  */
 @RestController
-@RequestMapping("/api/projects")
-class ProjectController(private val projectService: ProjectService,
-                        private val gitService: GitService,
-                        private val projectPermissionEvaluator: ProjectPermissionEvaluator,
+@RequestMapping(path = ["/api/$v1/projects"])
+class ProjectController(
+    private val projectService: ProjectService,
+    private val gitService: GitService,
+    private val organizationService: OrganizationService,
+    private val projectPermissionEvaluator: ProjectPermissionEvaluator,
+    private val lnkUserProjectService: LnkUserProjectService,
+    private val userRepository: UserRepository,
 ) {
     /**
      * Get all projects, including deleted and private. Only accessible for admins.
@@ -41,7 +53,7 @@ class ProjectController(private val projectService: ProjectService,
      * @return a list of projects
      */
     @GetMapping("/all")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
     fun getProjects() = projectService.getProjects()
 
     /**
@@ -66,59 +78,68 @@ class ProjectController(private val projectService: ProjectService,
         .filter { projectPermissionEvaluator.hasPermission(authentication, it, Permission.READ) }
 
     /**
-     * 200 - if user can access the project
-     * 403 - if project is public, but user can't access it
-     * 404 - if project is not found or private and user can't access it
-     * FixMe: requires 'write' permission, because now we rely on this endpoint to load `ProjectView`
-     *
-     * @param name name of project
-     * @param owner owner of project
+     * @param name
+     * @param organizationName
      * @param authentication
-     * @return project by name and owner
-     * @throws ResponseStatusException
+     * @return project by name and organization name
      */
-    @GetMapping("/get")
+    @GetMapping("/get/organization-name")
     @PreAuthorize("hasRole('VIEWER')")
-    @Suppress("UnsafeCallOnNullableType")
-    fun getProjectByNameAndOwner(@RequestParam name: String,
-                                 @RequestParam owner: String,
-                                 authentication: Authentication,
-    ): Mono<Project> = Mono.fromCallable {
-        projectService.findByNameAndOwner(name, owner)
+    fun getProjectByNameAndOrganizationName(@RequestParam name: String,
+                                            @RequestParam organizationName: String,
+                                            authentication: Authentication,
+    ): Mono<Project> {
+        val project = Mono.fromCallable {
+            projectService.findByNameAndOrganizationName(name, organizationName)
+        }
+        return with(projectPermissionEvaluator) {
+            project.filterByPermission(authentication, Permission.WRITE, HttpStatus.FORBIDDEN)
+        }
     }
-        .map {
-            // if value is null, then Mono is empty and this lambda won't be called
-            it!! to projectPermissionEvaluator.hasPermission(authentication, it, Permission.WRITE)
-        }
-        .filter { (project, hasWriteAccess) -> project.public || hasWriteAccess }
-        .map { (project, hasWriteAccess) ->
-            if (hasWriteAccess) {
-                project
-            } else {
-                // project is public, but current user lacks permissions
-                throw ResponseStatusException(HttpStatus.FORBIDDEN)
-            }
-        }
-        .switchIfEmpty {
-            // if project either is not found or shouldn't be visible for current user
-            Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
-        }
+
+    /**
+     * @param organizationName
+     * @param authentication
+     * @return project by name and organization name
+     */
+    @GetMapping("/get/projects-by-organization")
+    @PreAuthorize("permitAll()")
+    fun getProjectsByOrganizationName(@RequestParam organizationName: String,
+                                      authentication: Authentication?,
+    ): Flux<Project> = projectService.findByOrganizationName(organizationName)
+        .filter { projectPermissionEvaluator.hasPermission(authentication, it, Permission.READ) }
+
+    /**
+     * @param organizationName
+     * @param authentication
+     * @return non deleted project by name and organization name
+     */
+    @GetMapping("/get/not-deleted-projects-by-organization")
+    @PreAuthorize("permitAll()")
+    fun getNonDeletedProjectsByOrganizationName(@RequestParam organizationName: String,
+                                                authentication: Authentication?,
+    ): Flux<Project> = projectService.findByOrganizationName(organizationName).filter { it.status != ProjectStatus.DELETED }
+        .filter { projectPermissionEvaluator.hasPermission(authentication, it, Permission.READ) }
 
     /**
      * @param project
+     * @param authentication
      * @return gitDto
      */
     @PostMapping("/git")
-    @PreAuthorize("@projectPermissionEvaluator.hasPermission(authentication, #project, T(org.cqfn.save.backend.security.Permission).WRITE)")
     @Suppress("UnsafeCallOnNullableType")
-    fun getRepositoryDtoByProject(@RequestBody project: Project): Mono<GitDto> =
-            Mono.fromCallable {
-                gitService.getRepositoryDtoByProject(project)
-            }
-                .mapNotNull { it!! }
-                .switchIfEmpty {
-                    Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
-                }
+    fun getRepositoryDtoByProject(@RequestBody project: Project, authentication: Authentication): Mono<GitDto> = Mono.fromCallable {
+        with(project) {
+            projectService.findWithPermissionByNameAndOrganization(authentication, name, organization, Permission.WRITE)
+        }
+    }
+        .mapNotNull {
+            gitService.getRepositoryDtoByProject(project)
+        }
+        .cast<GitDto>()
+        .switchIfEmpty {
+            Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
+        }
 
     /**
      * @param newProjectDto newProjectDto
@@ -126,10 +147,15 @@ class ProjectController(private val projectService: ProjectService,
      * @return response
      */
     @PostMapping("/save")
+    @Suppress("UnsafeCallOnNullableType")
     fun saveProject(@RequestBody newProjectDto: NewProjectDto, authentication: Authentication): ResponseEntity<String> {
         val userId = (authentication.details as AuthenticationDetails).id
-        val (projectId, projectStatus) = projectService.saveProject(
-            newProjectDto.project.apply {
+        val organization = organizationService.findByName(newProjectDto.organizationName)
+        val newProject = newProjectDto.project.apply {
+            this.organization = organization!!
+        }
+        val (projectId, projectStatus) = projectService.getOrSaveProject(
+            newProject.apply {
                 this.userId = userId
             }
         )
@@ -142,19 +168,34 @@ class ProjectController(private val projectService: ProjectService,
             val saveGit = gitService.saveGit(it, projectId)
             log.info("Save new git id = ${saveGit.id}")
         }
+        lnkUserProjectService.setRoleByIds(userId, projectId, Role.OWNER)
         return ResponseEntity.ok(projectStatus.message)
     }
 
     /**
      * @param project
+     * @param authentication
      * @return response
      */
     @PostMapping("/update")
-    @PreAuthorize("@projectPermissionEvaluator.hasPermission(authentication, project, T(org.cqfn.save.backend.security.Permission).WRITE)")
-    fun updateProject(@RequestBody project: Project): ResponseEntity<String> {
-        val (_, projectStatus) = projectService.saveProject(project)
-        return ResponseEntity.ok(projectStatus.message)
-    }
+    fun updateProject(@RequestBody project: Project, authentication: Authentication): Mono<StringResponse> = projectService.findWithPermissionByNameAndOrganization(
+        authentication, project.name, project.organization, Permission.WRITE
+    )
+        .filter { projectPermissionEvaluator.hasPermission(authentication, project, Permission.WRITE) }
+        .map { projectFromDb ->
+            // fixme: instead of manually updating fields, a special ProjectUpdateDto could be introduced
+            projectFromDb.apply {
+                name = project.name
+                description = project.description
+                url = project.url
+                email = project.email
+                public = project.public
+            }
+        }
+        .map { updatedProject ->
+            val (_, projectStatus) = projectService.getOrSaveProject(updatedProject)
+            ResponseEntity.ok(projectStatus.message)
+        }
 
     companion object {
         @JvmStatic

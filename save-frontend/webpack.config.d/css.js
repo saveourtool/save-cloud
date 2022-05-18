@@ -1,8 +1,10 @@
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+
 config.module.rules.push(
     {
         test: /\.scss$/,
         use: [
-            'style-loader', // creates style nodes from JS strings
+            MiniCssExtractPlugin.loader,  // creates CSS files from css-loader's output
             'css-loader', // translates CSS into CommonJS
             {
                 loader: 'postcss-loader', // Run postcss actions
@@ -18,13 +20,6 @@ config.module.rules.push(
         ]
     },
     {
-        // loader for images
-        test: /\.(jpg|png|svg)$/,
-        use: {
-            loader: 'url-loader',
-        }
-    },
-    {
         // loader for fonts
         test: /\.(eot|ttf|woff|woff2)$/,
         use: {
@@ -32,3 +27,7 @@ config.module.rules.push(
         }
     }
 );
+
+config.plugins.push(
+    new MiniCssExtractPlugin()
+)

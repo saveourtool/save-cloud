@@ -2,17 +2,15 @@
  * A view related to the sign-in view
  */
 
+@file:Suppress("FILE_WILDCARD_IMPORTS", "WildcardImport")
+
 package org.cqfn.save.frontend.components.views
 
-import org.cqfn.save.frontend.components.basic.InputTypes
-import org.cqfn.save.frontend.components.basic.inputTextFormRequired
-import org.cqfn.save.frontend.externals.fontawesome.faCopyright
-import org.cqfn.save.frontend.externals.fontawesome.faExternalLinkAlt
-import org.cqfn.save.frontend.externals.fontawesome.faGithub
-import org.cqfn.save.frontend.externals.fontawesome.faSignInAlt
-import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
+import org.cqfn.save.frontend.components.errorStatusContext
+import org.cqfn.save.frontend.externals.fontawesome.*
 import org.cqfn.save.frontend.utils.decodeFromJsonString
 import org.cqfn.save.frontend.utils.get
+import org.cqfn.save.frontend.utils.noopResponseHandler
 import org.cqfn.save.info.OauthProviderInfo
 import org.cqfn.save.info.UserInfo
 
@@ -20,12 +18,15 @@ import csstype.Display
 import csstype.FontSize
 import csstype.FontWeight
 import org.w3c.fetch.Headers
+import org.w3c.fetch.Response
 import react.CSSProperties
+import react.Context
 import react.PropsWithChildren
 import react.RBuilder
+import react.RStatics
 import react.State
+import react.StateSetter
 import react.dom.a
-import react.dom.button
 import react.dom.div
 import react.dom.form
 import react.dom.h1
@@ -38,7 +39,7 @@ import react.setState
 
 import kotlinx.browser.window
 import kotlinx.coroutines.launch
-import kotlinx.html.ButtonType
+import kotlinx.js.jso
 
 /**
  * [RState] of project creation view component
@@ -84,7 +85,8 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
     override fun componentDidMount() {
         super.componentDidMount()
         scope.launch {
-            val oauthProviderInfoList: List<OauthProviderInfo>? = get("${window.location.origin}/sec/oauth-providers", Headers()).run {
+            val oauthProviderInfoList: List<OauthProviderInfo>? = get("${window.location.origin}/sec/oauth-providers", Headers(),
+                responseHandler = ::noopResponseHandler).run {
                 if (ok) decodeFromJsonString() else null
             }
             oauthProviderInfoList?.let {
@@ -104,12 +106,12 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                 div("row") {
                     // Marketing information
                     div("col-lg-4 ml-auto mt-3 mb-5 mr-5 ml-0 text-white") {
-                        marketingTitle("Static")
+                        marketingTitle("Software")
                         marketingTitle("Analysis")
                         marketingTitle("Verification &")
                         marketingTitle("Evaluation")
                         h3("mt-4") {
-                            +"Advanced eco-system for continuous integration, evaluation and benchmarking of static analyzers."
+                            +"Advanced eco-system for continuous integration, evaluation and benchmarking of software tools."
                         }
                     }
 
@@ -151,66 +153,64 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
 
         div("card-body") {
             form(classes = "needs-validation") {
-                inputTextFormRequired(
-                    InputTypes.LOGIN,
-                    state.isValidLogin!!,
-                    "col-lg ml-0 mr-0 pr-0 pl-0",
-                    "Login"
-                ) {
-                    // changeFields()
-                }
-
-                inputTextFormRequired(
-                    InputTypes.PASSWORD,
-                    state.isValidPassword!!,
-                    "col-lg ml-0 mr-0 pr-0 pl-0",
-                    "Password"
-                ) {
-                    // changeFields()
-                }
-
-                div("row text-center") {
-                    button(
-                        type = ButtonType.button,
-                        classes = "btn btn-info w-100 my-4 mb-2 ml-2 mr-2"
-                    ) {
-                        +"Sign in"
-                    }
-                }
-
                 div("mt-4 text-sm text-center") {
                     p("mb-0") {
                         +"Don't have an account?"
                     }
 
                     p("text-sm text-center") {
-                        a(classes = "text-info text-gradient font-weight-bold ml-2 mr-2") {
-                            attrs.href = "#/projects"
-                            +"Continue"
+                        h4 {
+                            a(classes = "text-info text-gradient font-weight-bold ml-2 mr-2") {
+                                attrs.href = "#/projects"
+                                +"Continue "
+                                fontAwesomeIcon(icon = faSignInAlt)
+                            }
                         }
-                        +"without registration"
+                        +"with limited functionality"
                     }
                 }
             }
         }
     }
 
+    @Suppress("TOO_LONG_FUNCTION")
     private fun RBuilder.welcomeUserView() {
         div("card-header p-0 position-relative mt-n4 mx-3 z-index-2 rounded") {
             div("bg-info shadow-primary border-radius-lg py-3 pe-1 rounded") {
                 h4("text-white font-weight-bolder text-center mt-2 mb-0") {
-                    +"Welcome ${props.userInfo?.userName}!"
+                    div("row") {
+                        div("col text-center px-1 mb-3") {
+                            fontAwesomeIcon(icon = faHome)
+                        }
+                    }
+                    +"Welcome ${props.userInfo?.name}!"
                 }
             }
         }
 
         div("card-body") {
-            p("mt-4 text-sm text-center") {
+            p("mt-4 text-sm") {
                 a(classes = "text-info text-gradient font-weight-bold ml-2 mr-2") {
                     attrs.href = "#/projects"
                     h4 {
+                        fontAwesomeIcon(icon = faExternalLinkAlt, "ml-2 mr-2")
                         +"List of Projects"
-                        fontAwesomeIcon(icon = faExternalLinkAlt, "ml-2")
+                    }
+                }
+
+                a(classes = "text-info text-gradient font-weight-bold ml-2 mr-2") {
+                    attrs.href = "/#/awesome-benchmarks"
+                    h4 {
+                        fontAwesomeIcon(icon = faFolderOpen, "ml-2 mr-2")
+                        +"Benchmarks Archive"
+                    }
+                }
+
+                a(classes = "text-info text-gradient font-weight-bold ml-2 mr-2") {
+                    attrs.href = "/#/${props.userInfo?.name}/settings/email"
+                    h4 {
+                        fontAwesomeIcon(icon = faUser, "ml-2 mr-2")
+                        +"User Settings"
                     }
                 }
             }
@@ -226,7 +226,7 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
 
     private fun RBuilder.h1Bold(str: String) = h1 {
         +str
-        attrs["style"] = kotlinext.js.jso<CSSProperties> {
+        attrs["style"] = jso<CSSProperties> {
             fontWeight = "bold".unsafeCast<FontWeight>()
             display = Display.inline
             fontSize = "4.5rem".unsafeCast<FontSize>()
@@ -235,7 +235,7 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
 
     private fun RBuilder.h1Normal(str: String) = h1 {
         +str
-        attrs["style"] = kotlinext.js.jso<CSSProperties> {
+        attrs["style"] = jso<CSSProperties> {
             display = Display.inline
         }
     }
@@ -246,11 +246,17 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                 href = provider.authorizationLink,
                 classes = "btn btn-link px-3 text-white text-lg text-center"
             ) {
-                attrs["style"] = kotlinext.js.jso<CSSProperties> {
+                attrs["style"] = jso<CSSProperties> {
                     fontSize = "3.2rem".unsafeCast<FontSize>()
                 }
                 fontAwesomeIcon(icon = icon)
             }
+        }
+    }
+
+    companion object : RStatics<WelcomeProps, IndexViewState, WelcomeView, Context<StateSetter<Response?>>>(WelcomeView::class) {
+        init {
+            contextType = errorStatusContext
         }
     }
 }

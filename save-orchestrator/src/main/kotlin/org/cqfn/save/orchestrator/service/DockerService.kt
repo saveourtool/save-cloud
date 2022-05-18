@@ -16,6 +16,7 @@ import org.cqfn.save.utils.moveFileWithAttributes
 
 import com.github.dockerjava.api.exception.DockerException
 import generated.SAVE_CORE_VERSION
+import io.micrometer.core.instrument.MeterRegistry
 import net.lingala.zip4j.ZipFile
 import net.lingala.zip4j.exception.ZipException
 import org.apache.commons.io.FileUtils
@@ -44,11 +45,13 @@ import kotlin.io.path.createTempDirectory
  */
 @Service
 @OptIn(ExperimentalPathApi::class)
-class DockerService(private val configProperties: ConfigProperties) {
+class DockerService(private val configProperties: ConfigProperties,
+                    meterRegistry: MeterRegistry,
+) {
     /**
      * [ContainerManager] that is used to access docker daemon API
      */
-    internal val containerManager = ContainerManager(configProperties.docker)
+    internal val containerManager = ContainerManager(configProperties.docker, meterRegistry)
     private val executionDir = "/run/save-execution"
 
     @Suppress("NonBooleanPropertyPrefixedWithIs")
@@ -107,7 +110,7 @@ class DockerService(private val configProperties: ConfigProperties) {
      * @return true if agents have been stopped, false if another thread is already stopping them
      */
     @Suppress("TOO_MANY_LINES_IN_LAMBDA")
-    fun stopAgents(agentIds: List<String>) =
+    fun stopAgents(agentIds: Collection<String>) =
             if (isAgentStoppingInProgress.compareAndSet(false, true)) {
                 try {
                     val containerList = containerManager.dockerClient.listContainersCmd().withShowAll(true).exec()
@@ -268,8 +271,8 @@ class DockerService(private val configProperties: ConfigProperties) {
     private fun changeOwnerRecursively(directory: File, user: String) {
         // orchestrator is executed as root (to access docker socket), but files are in a shared volume
         val lookupService = directory.toPath().fileSystem.userPrincipalLookupService
-        directory.walk().forEach {
-            Files.getFileAttributeView(it.toPath(), PosixFileAttributeView::class.java, LinkOption.NOFOLLOW_LINKS).apply {
+        directory.walk().forEach { file ->
+            Files.getFileAttributeView(file.toPath(), PosixFileAttributeView::class.java, LinkOption.NOFOLLOW_LINKS).apply {
                 setGroup(lookupService.lookupPrincipalByGroupName(user))
                 setOwner(lookupService.lookupPrincipalByName(user))
             }
@@ -284,7 +287,7 @@ class DockerService(private val configProperties: ConfigProperties) {
         resourcesPath: File,
     ) {
         // FixMe: for now support only .zip files
-        execution.additionalFiles?.split(";")?.filter { it.endsWith(".zip") }?.forEach {
+        execution.additionalFiles?.split(";")?.filter { it.endsWith(".zip") }?.forEach { fileName ->
             val fileLocation = if (isStandardMode) {
                 testSuitesDir
             } else {
@@ -300,7 +303,7 @@ class DockerService(private val configProperties: ConfigProperties) {
                 resourcesPath.resolve(testRootPath)
             }
 
-            val file = fileLocation.resolve(File(it).name)
+            val file = fileLocation.resolve(File(fileName).name)
             val shouldBeExecutable = file.canExecute()
             log.debug("Unzip ${file.absolutePath} into ${fileLocation.absolutePath}")
 
@@ -376,13 +379,15 @@ class DockerService(private val configProperties: ConfigProperties) {
         )
         val cliCommand = "./$SAVE_CLI_EXECUTABLE_NAME$saveCliExecFlags"
         agentPropertiesFile.writeText(
-            agentPropertiesFile.readLines().joinToString(System.lineSeparator()) {
-                if (it.startsWith("id=")) {
-                    "id=$containerId"
-                } else if (it.startsWith("cliCommand=")) {
-                    "cliCommand=$cliCommand"
-                } else {
-                    it
+            agentPropertiesFile.readLines().joinToString(System.lineSeparator()) { line ->
+                when {
+                    line.startsWith("id=") -> "id=$containerId"
+                    line.startsWith("cliCommand=") -> "cliCommand=$cliCommand"
+                    line.startsWith("backend.url=") && configProperties.agentSettings.backendUrl != null ->
+                        "backend.url=${configProperties.agentSettings.backendUrl}"
+                    line.startsWith("orchestratorUrl=") && configProperties.agentSettings.orchestratorUrl != null ->
+                        "orchestratorUrl=${configProperties.agentSettings.orchestratorUrl}"
+                    else -> line
                 }
             }
         )

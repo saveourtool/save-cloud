@@ -7,6 +7,7 @@
 package org.cqfn.save.frontend.components.views
 
 import org.cqfn.save.entities.benchmarks.BenchmarkCategoryEnum
+import org.cqfn.save.frontend.components.errorStatusContext
 import org.cqfn.save.frontend.externals.fontawesome.*
 import org.cqfn.save.frontend.utils.*
 import org.cqfn.save.utils.AwesomeBenchmarks
@@ -15,11 +16,14 @@ import csstype.Height
 import csstype.Width
 import csstype.rem
 import org.w3c.fetch.Headers
+import org.w3c.fetch.Response
 import react.*
 import react.dom.*
 
 import kotlinx.coroutines.launch
 import kotlinx.html.ButtonType
+import kotlinx.html.js.onClickFunction
+import kotlinx.js.jso
 
 /**
  * [RState] of project creation view component
@@ -30,6 +34,11 @@ external interface AwesomeBenchmarksState : State {
      * list of benchmarks from DB
      */
     var benchmarks: List<AwesomeBenchmarks>
+
+    /**
+     * list of buttons from DB
+     */
+    var selectedMenuBench: BenchmarkCategoryEnum?
 
     /**
      * list of unique languages from benchmarks
@@ -59,7 +68,7 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                         div("row mb-2") {
                             div("col-md-6") {
                                 div("card flex-md-row mb-1 box-shadow") {
-                                    attrs["style"] = kotlinext.js.jso<CSSProperties> {
+                                    attrs["style"] = jso<CSSProperties> {
                                         height = 14.rem
                                     }.unsafeCast<Height>()
 
@@ -71,7 +80,7 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                             }
                                         }
                                         p("card-text mb-auto") { +"Checkout updates and new benchmarks." }
-                                        a(href = "https://github.com/analysis-dev/awesome-benchmarks/pulls?q=is%3Apr+is%3Aclosed") {
+                                        a(href = "https://github.com/analysis-dev/awesome-benchmarks/pulls") {
                                             +"Check the GitHub"
                                         }
                                     }
@@ -79,7 +88,7 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                         attrs["data-src"] = "holder.js/200x250?theme=thumb"
                                         attrs["src"] = "img/undraw_result_re_uj08.svg"
                                         attrs["data-holder-rendered"] = "true"
-                                        attrs["style"] = kotlinext.js.jso<CSSProperties> {
+                                        attrs["style"] = jso<CSSProperties> {
                                             width = 12.rem
                                         }.unsafeCast<Width>()
                                     }
@@ -87,7 +96,7 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                             }
                             div("col-md-6") {
                                 div("card flex-md-row mb-1 box-shadow") {
-                                    attrs["style"] = kotlinext.js.jso<CSSProperties> {
+                                    attrs["style"] = jso<CSSProperties> {
                                         height = 14.rem
                                     }.unsafeCast<Height>()
 
@@ -110,7 +119,7 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                         attrs["data-src"] = "holder.js/200x250?theme=thumb"
                                         attrs["src"] = "img/undraw_happy_news_re_tsbd.svg"
                                         attrs["data-holder-rendered"] = "true"
-                                        attrs["style"] = kotlinext.js.jso<CSSProperties> {
+                                        attrs["style"] = jso<CSSProperties> {
                                             width = 12.rem
                                         }.unsafeCast<Width>()
                                     }
@@ -145,8 +154,18 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                     nav("nav nav-tabs mb-4") {
                                         BenchmarkCategoryEnum.values().forEachIndexed { i, value ->
                                             li("nav-item") {
-                                                val classVal = if (i == 0) " active font-weight-bold" else ""
-                                                p("nav-link $classVal text-gray-800") { +value.name }
+                                                val classVal =
+                                                        if ((i == 0 && state.selectedMenuBench == null) || state.selectedMenuBench == value) " active font-weight-bold" else ""
+                                                p("nav-link $classVal text-gray-800") {
+                                                    attrs.onClickFunction = {
+                                                        if (state.selectedMenuBench != value) {
+                                                            setState {
+                                                                selectedMenuBench = value
+                                                            }
+                                                        }
+                                                    }
+                                                    +value.name
+                                                }
                                             }
                                         }
                                     }
@@ -156,45 +175,49 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                     div("col-lg-8") {
                                         // https://devicon.dev
                                         state.benchmarks.forEachIndexed { i, benchmark ->
-                                            div("media text-muted ${if (i != 0) "pt-3" else ""}") {
-                                                img(classes = "rounded mt-1") {
-                                                    attrs["data-src"] =
-                                                            "holder.js/32x32?theme=thumb&amp;bg=007bff&amp;fg=007bff&amp;size=1"
-                                                    attrs["src"] = "img/undraw_code_inspection_bdl7.svg"
-                                                    attrs["data-holder-rendered"] = "true"
-                                                    attrs["style"] = kotlinext.js.jso<CSSProperties> {
-                                                        width = 4.2.rem
-                                                    }.unsafeCast<Width>()
-                                                }
+                                            if (state.selectedMenuBench == benchmark.category) {
+                                                div("media text-muted ${if (i != 0) "pt-3" else ""}") {
+                                                    img(classes = "rounded mt-1") {
+                                                        attrs["data-src"] =
+                                                                "holder.js/32x32?theme=thumb&amp;bg=007bff&amp;fg=007bff&amp;size=1"
+                                                        attrs["src"] = "img/undraw_code_inspection_bdl7.svg"
+                                                        attrs["data-holder-rendered"] = "true"
+                                                        attrs["style"] = jso<CSSProperties> {
+                                                            width = 4.2.rem
+                                                        }.unsafeCast<Width>()
+                                                    }
 
-                                                p("media-body pb-3 mb-0 small lh-125 border-bottom border-gray text-left") {
-                                                    strong("d-block text-gray-dark") { +benchmark.name }
-                                                    +benchmark.description
-                                                    div("navbar-landing mt-2") {
-                                                        // FixMe: links should be limited with the length of the div
-                                                        benchmark.tags.split(",").map { " #$it " }.forEach {
-                                                            // FixMe: support proper logic here
-                                                            a("/#/awesome-benchmarks") {
-                                                                +it
+                                                    p("media-body pb-3 mb-0 small lh-125 border-bottom border-gray text-left") {
+                                                        strong("d-block text-gray-dark") { +benchmark.name }
+                                                        +benchmark.description
+                                                        div("navbar-landing mt-2") {
+                                                            // FixMe: links should be limited with the length of the div
+                                                            benchmark.tags.split(",").map { " #$it " }.forEach {
+                                                                a("/#/awesome-benchmarks") {
+                                                                    +it
+                                                                }
                                                             }
                                                         }
-                                                    }
-                                                    div("navbar-landing mt-3") {
-                                                        a(
-                                                            classes = "btn-sm btn-primary mr-2",
-                                                            href = benchmark.documentation
-                                                        ) {
-                                                            +"""Docs"""
-                                                        }
-                                                        a(classes = "btn-sm btn-info mr-2", href = benchmark.sources) {
-                                                            +"""Sources"""
-                                                        }
-                                                        a(
-                                                            classes = "btn-sm btn-success ml-auto",
-                                                            href = benchmark.homepage
-                                                        ) {
-                                                            +"""More """
-                                                            fontAwesomeIcon(icon = faArrowRight)
+                                                        div("navbar-landing mt-3") {
+                                                            a(
+                                                                classes = "btn-sm btn-primary mr-2",
+                                                                href = benchmark.documentation
+                                                            ) {
+                                                                +"""Docs"""
+                                                            }
+                                                            a(
+                                                                classes = "btn-sm btn-info mr-2",
+                                                                href = benchmark.sources
+                                                            ) {
+                                                                +"""Sources"""
+                                                            }
+                                                            a(
+                                                                classes = "btn-sm btn-success ml-auto",
+                                                                href = benchmark.homepage
+                                                            ) {
+                                                                +"""More """
+                                                                fontAwesomeIcon(icon = faArrowRight)
+                                                            }
                                                         }
                                                     }
                                                 }
@@ -209,7 +232,8 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                                 li("list-group-item d-flex justify-content-between align-items-center") {
                                                     +language.replace("language independent", "lang independent")
                                                     span("badge badge-primary badge-pill") {
-                                                        +state.benchmarks.count { it.language == language }.toString()
+                                                        +state.benchmarks.count { it.language == language }
+                                                            .toString()
                                                     }
                                                 }
                                             }
@@ -250,7 +274,7 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
 
                                 div("text-center") {
                                     img(classes = "img-fluid px-3 px-sm-4 mt-3 mb-4") {
-                                        attrs["style"] = kotlinext.js.jso<CSSProperties> {
+                                        attrs["style"] = jso<CSSProperties> {
                                             width = 20.rem
                                         }.unsafeCast<Width>()
                                         attrs["src"] = "img/undraw_programming_re_kg9v.svg"
@@ -321,6 +345,12 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
             setState {
                 benchmarks = response
             }
+        }
+    }
+
+    companion object : RStatics<PropsWithChildren, AwesomeBenchmarksState, AwesomeBenchmarksView, Context<StateSetter<Response?>>>(AwesomeBenchmarksView::class) {
+        init {
+            contextType = errorStatusContext
         }
     }
 }

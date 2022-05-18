@@ -2,6 +2,8 @@
 
 package org.cqfn.save.utils
 
+actual typealias LocalDateTime = kotlinx.datetime.LocalDateTime
+
 actual enum class EnumType {
     /** Persist enumerated type property or field as an integer.  */
     ORDINAL,

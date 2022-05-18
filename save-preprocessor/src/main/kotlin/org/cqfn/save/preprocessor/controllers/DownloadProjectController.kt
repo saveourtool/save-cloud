@@ -26,17 +26,20 @@ import org.cqfn.save.testsuite.TestSuiteDto
 import org.cqfn.save.testsuite.TestSuiteType
 import org.cqfn.save.utils.moveFileWithAttributes
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import okio.FileSystem
 import org.eclipse.jgit.api.errors.GitAPIException
 import org.eclipse.jgit.api.errors.InvalidRemoteException
 import org.eclipse.jgit.api.errors.TransportException
 import org.slf4j.LoggerFactory
+import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
 import org.springframework.core.io.ClassPathResource
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ReactiveHttpOutputMessage
 import org.springframework.http.ResponseEntity
 import org.springframework.http.client.MultipartBodyBuilder
+import org.springframework.http.codec.json.Jackson2JsonEncoder
 import org.springframework.http.codec.multipart.FilePart
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -79,10 +82,18 @@ typealias Status = Mono<ResponseEntity<HttpStatus>>
 class DownloadProjectController(
     private val configProperties: ConfigProperties,
     private val testDiscoveringService: TestDiscoveringService,
+    objectMapper: ObjectMapper,
+    kotlinSerializationWebClientCustomizer: WebClientCustomizer,
 ) {
     private val log = LoggerFactory.getLogger(DownloadProjectController::class.java)
-    private val webClientBackend = WebClient.create(configProperties.backend)
-    private val webClientOrchestrator = WebClient.create(configProperties.orchestrator)
+    private val webClientBackend = WebClient.builder().baseUrl(configProperties.backend)
+        .apply(kotlinSerializationWebClientCustomizer::customize)
+        .build()
+    private val webClientOrchestrator = WebClient.builder().baseUrl(configProperties.orchestrator).codecs {
+        it.defaultCodecs().multipartCodecs().encoder(Jackson2JsonEncoder(objectMapper))
+    }
+        .apply(kotlinSerializationWebClientCustomizer::customize)
+        .build()
     private val scheduler = Schedulers.boundedElastic()
 
     /**
@@ -97,7 +108,7 @@ class DownloadProjectController(
         @RequestPart(required = true) executionRequest: ExecutionRequest,
         @RequestPart("fileInfo", required = false) fileInfos: Flux<FileInfo>,
         @RequestPart("file", required = false) files: Flux<FilePart>,
-    ): Mono<TextResponse> = Mono.just(ResponseEntity("Clone pending", HttpStatus.ACCEPTED))
+    ): Mono<TextResponse> = Mono.just(ResponseEntity(executionResponseBody(executionRequest.executionId), HttpStatus.ACCEPTED))
         .doOnSuccess {
             downLoadRepository(executionRequest)
                 .flatMap { (location, version) ->
@@ -143,7 +154,7 @@ class DownloadProjectController(
         @RequestPart executionRequestForStandardSuites: ExecutionRequestForStandardSuites,
         @RequestPart("file", required = true) files: Flux<FilePart>,
         @RequestPart("fileInfo", required = true) fileInfos: Flux<FileInfo>,
-    ) = Mono.just(ResponseEntity("Clone pending", HttpStatus.ACCEPTED))
+    ) = Mono.just(ResponseEntity(executionResponseBody(executionRequestForStandardSuites.executionId), HttpStatus.ACCEPTED))
         .doOnSuccess { _ ->
             files.zipWith(fileInfos).download(File(FileSystem.SYSTEM_TEMPORARY_DIRECTORY.toString()))
                 .flatMap { files ->
@@ -441,8 +452,8 @@ class DownloadProjectController(
         getTestSuitesById(execution.testSuiteIds!!).map { Triple(location, execution, it) }
     }
 
-    private fun getTestSuitesById(testSuiteIds: String) = testSuiteIds.split(", ").let {
-        Flux.fromIterable(it).flatMap {
+    private fun getTestSuitesById(testSuiteIds: String) = testSuiteIds.split(", ").let { testSuiteIdList ->
+        Flux.fromIterable(testSuiteIdList).flatMap {
             webClientBackend.get()
                 .uri("/testSuite/$it")
                 .retrieve()
@@ -461,15 +472,15 @@ class DownloadProjectController(
         batchSizeForAnalyzer: String? = null,
     ): Mono<Execution> {
         val executionUpdate = ExecutionInitializationDto(project, testSuiteIds, projectRootRelativePath, executionVersion, execCmd, batchSizeForAnalyzer)
-        return webClientBackend.makeRequest(BodyInserters.fromValue(executionUpdate), "/updateNewExecution") {
-            it.onStatus({ status -> status != HttpStatus.OK }) { clientResponse ->
+        return webClientBackend.makeRequest(BodyInserters.fromValue(executionUpdate), "/updateNewExecution") { spec ->
+            spec.onStatus({ status -> status != HttpStatus.OK }) { clientResponse ->
                 log.error("Error when making update to execution fro project id = ${project.id} ${clientResponse.statusCode()}")
                 throw ResponseStatusException(
                     HttpStatus.INTERNAL_SERVER_ERROR,
                     "Execution not found"
                 )
             }
-            it.bodyToMono()
+            spec.bodyToMono()
         }
     }
 
@@ -599,11 +610,11 @@ class DownloadProjectController(
         testSuiteDtos: List<TestSuiteDto>?
     ): Status {
         val bodyBuilder = MultipartBodyBuilder().apply {
-            part("execution", execution)
+            part("execution", execution, MediaType.APPLICATION_JSON)
         }
 
         testSuiteDtos?.let {
-            bodyBuilder.part("testSuiteDtos", testSuiteDtos)
+            bodyBuilder.part("testSuiteDtos", testSuiteDtos, MediaType.APPLICATION_JSON)
         }
 
         return webClientOrchestrator
@@ -692,8 +703,8 @@ fun readStandardTestSuitesFile(name: String) =
             .readText()
             .lines()
             .filter { it.isNotBlank() }
-            .map {
-                val splitRow = it.split("\\s".toRegex())
+            .map { line ->
+                val splitRow = line.split("\\s".toRegex())
                 require(splitRow.size == 3) {
                     "Follow the format for each line: (Gir url) (branch or commit hash) (testRootPath1;testRootPath2;...)"
                 }
@@ -703,6 +714,13 @@ fun readStandardTestSuitesFile(name: String) =
                     testSuitePaths = splitRow[2].split(";")
                 )
             }
+
+/**
+ * @param executionId
+ * @return response body for execution submission request
+ */
+@Suppress("UnsafeCallOnNullableType")
+fun executionResponseBody(executionId: Long?): String = "Clone pending, execution id is ${executionId!!}"
 
 private fun readGitCredentialsForStandardMode(name: String): Pair<String?, String?> {
     val credentialsFile = ClassPathResource(name)

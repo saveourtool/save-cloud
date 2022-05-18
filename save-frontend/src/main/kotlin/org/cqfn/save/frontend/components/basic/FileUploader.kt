@@ -7,11 +7,11 @@
 package org.cqfn.save.frontend.components.basic
 
 import org.cqfn.save.domain.FileInfo
-import org.cqfn.save.frontend.components.views.ConfirmationType
 import org.cqfn.save.frontend.externals.fontawesome.faFile
 import org.cqfn.save.frontend.externals.fontawesome.faTimesCircle
 import org.cqfn.save.frontend.externals.fontawesome.faUpload
 import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
+import org.cqfn.save.frontend.utils.ConfirmationType
 import org.cqfn.save.frontend.utils.toPrettyString
 
 import csstype.Width
@@ -39,6 +39,7 @@ import kotlinx.html.hidden
 import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
 import kotlinx.html.js.onDoubleClickFunction
+import kotlinx.js.jso
 
 /**
  * Props for file uploader
@@ -82,7 +83,7 @@ external interface UploaderProps : PropsWithChildren {
     /**
      * Flag to handle uploading a file
      */
-    var isUploading: Boolean
+    var isUploading: Boolean?
 }
 
 /**
@@ -171,9 +172,9 @@ fun fileUploader(
                 }
 
                 div("progress") {
-                    attrs.hidden = !props.isUploading
+                    attrs.hidden = !(props.isUploading ?: false)
                     div("progress-bar progress-bar-striped progress-bar-animated") {
-                        attrs["style"] = kotlinext.js.jso<CSSProperties> {
+                        attrs["style"] = jso<CSSProperties> {
                             width = if (props.suiteByteSize != 0L) {
                                 "${ (100 * props.bytesReceived / props.suiteByteSize) }%"
                             } else {
@@ -200,12 +201,12 @@ fun fileUploader(
  * @param onExecutableChange a handler that is invoked when icon is clicked
  * @return a functional component
  */
-@Suppress("TYPE_ALIAS", "STRING_CONCATENATION")  // https://github.com/analysis-dev/diKTat/issues/1076
+@Suppress("TYPE_ALIAS")
 internal fun fileIconWithMode(fileInfo: FileInfo, onExecutableChange: (file: FileInfo, checked: Boolean) -> Unit) = fc<Props> {
     span("fa-layers mr-3") {
         attrs["data-toggle"] = "tooltip"
         attrs["data-placement"] = "top"
-        attrs["title"] = "Click to mark file " + if (fileInfo.isExecutable) "regular" else "executable"
+        attrs["title"] = "Click to mark file ${if (fileInfo.isExecutable) "regular" else "executable"}"
         // if file was not executable, after click it will be; and vice versa
         attrs.onClickFunction = { _ ->
             // hide previous tooltip, otherwise it gets stuck during re-render

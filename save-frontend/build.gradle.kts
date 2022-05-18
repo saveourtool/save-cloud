@@ -5,8 +5,8 @@ plugins {
     kotlin("js")
 }
 
-rootProject.plugins.withType<org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin> {
-    rootProject.the<org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension>().nodeVersion = "16.13.1"
+rootProject.plugins.withType<NodeJsRootPlugin> {
+    rootProject.the<NodeJsRootExtension>().nodeVersion = "16.13.1"
 }
 
 dependencies {
@@ -47,15 +47,15 @@ kotlin {
         sourceSets["main"].dependencies {
             compileOnly(devNpm("sass", "^1.43.0"))
             compileOnly(devNpm("sass-loader", "^12.0.0"))
-            compileOnly(devNpm("style-loader", "*"))
-            compileOnly(devNpm("css-loader", "*"))
-            compileOnly(devNpm("url-loader", "*"))
-            compileOnly(devNpm("file-loader", "*"))
+            compileOnly(devNpm("style-loader", "^3.3.1"))
+            compileOnly(devNpm("css-loader", "^6.5.0"))
+            compileOnly(devNpm("file-loader", "^6.2.0"))
             // https://getbootstrap.com/docs/4.0/getting-started/webpack/#importing-precompiled-sass
             compileOnly(devNpm("postcss-loader", "^6.2.1"))
             compileOnly(devNpm("postcss", "^8.2.13"))
             compileOnly(devNpm("autoprefixer", ">9"))
-            compileOnly(devNpm("webpack-bundle-analyzer", "*"))
+            compileOnly(devNpm("webpack-bundle-analyzer", "^4.5.0"))
+            compileOnly(devNpm("mini-css-extract-plugin", "^2.6.0"))
 
             // web-specific dependencies
             implementation(npm("@fortawesome/fontawesome-svg-core", "^1.2.36"))
@@ -73,14 +73,20 @@ kotlin {
             implementation(npm("os-browserify", "^0.3.0"))
             implementation(npm("path-browserify", "^1.0.1"))
             implementation(npm("react-minimal-pie-chart", "^8.2.0"))
+            implementation(npm("lodash.debounce", "^4.0.8"))
+
+            // transitive dependencies with explicit version ranges required for security reasons
+            compileOnly(devNpm("minimist", "^1.2.6"))
         }
     }
 }
 
 // workaround for continuous work of WebPack: (https://github.com/webpack/webpack-cli/issues/2990)
 rootProject.plugins.withType(NodeJsRootPlugin::class.java) {
-    rootProject.the<NodeJsRootExtension>().versions.webpackCli
-        .version = "4.9.0"
+    rootProject.the<NodeJsRootExtension>().versions.apply {
+        webpackCli.version = "4.9.0"
+        karma.version = "^6.3.14"
+    }
 }
 // store yarn.lock in the root directory
 rootProject.extensions.configure<org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension> {
@@ -109,9 +115,12 @@ val generateVersionFileTaskProvider = tasks.register("generateVersionFile") {
 kotlin.sourceSets.getByName("main") {
     kotlin.srcDir("$buildDir/generated/src")
 }
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.Kotlin2JsCompile>().forEach {
-    it.dependsOn(generateVersionFileTaskProvider)
-    it.inputs.file("$buildDir/generated/src/generated/Versions.kt")
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.Kotlin2JsCompile> {
+    dependsOn(generateVersionFileTaskProvider)
+    inputs.file("$buildDir/generated/src/generated/Versions.kt")
+}
+tasks.named<org.gradle.jvm.tasks.Jar>("kotlinSourcesJar") {
+    dependsOn(generateVersionFileTaskProvider)
 }
 
 tasks.withType<org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack>().forEach { kotlinWebpack ->

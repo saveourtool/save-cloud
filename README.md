@@ -3,9 +3,10 @@
 [![codecov](https://codecov.io/gh/analysis-dev/save-cloud/branch/master/graph/badge.svg)](https://codecov.io/gh/analysis-dev/save-cloud)
 
 ## What is SAVE?
-[SAVE](https://github.com/analysis-dev/save) - is an eco-system for measuring, testing and certification of static code analyzers. Instead of writing your test framework SAVE will provide you a command line application with a
-test sets for the language that you are developing analyzer for. It provides you also a service that can be used to determine the readiness of your tool. SAVE has a committee of static analysis experts
-that regularly updates tests and discuss the best practices for particular programming languages.
+[SAVE](https://github.com/analysis-dev/save) (Software Analysis Verification & Evaluation) - is an eco-system for measuring, testing and certification of software tools. Instead of writing your test framework SAVE will provide you a command line application
+and with a test sets for the language that you are developing analyzer/compiler/or any other dev-tool for. 
+It provides you also a cloud service that can be used to determine the readiness of your tool. SAVE has a committee of software analysis and system programming experts
+that regularly update tests and discuss the best practices for particular programming languages.
 
 ## How it looks like from the high-level perspective?
 ![SAVE processing](https://user-images.githubusercontent.com/58667063/146387903-24ba9c91-a2a3-45e7-a07a-cb7bc388e4aa.jpg)

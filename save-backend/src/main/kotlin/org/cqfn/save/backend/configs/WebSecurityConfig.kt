@@ -4,10 +4,10 @@
 
 package org.cqfn.save.backend.configs
 
-import org.cqfn.save.backend.security.ProjectPermissionEvaluator
 import org.cqfn.save.backend.utils.ConvertingAuthenticationManager
 import org.cqfn.save.backend.utils.CustomAuthenticationBasicConverter
 import org.cqfn.save.domain.Role
+import org.cqfn.save.v1
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Profile
@@ -41,14 +41,13 @@ class WebSecurityConfig(
     fun securityWebFilterChain(
         http: ServerHttpSecurity
     ): SecurityWebFilterChain = http.run {
-        // `CollectionView` is a public page
-        // all `/internal/**` requests should be sent only from internal network
-        // they are not proxied from gateway
+        // All `/internal/**` and `/actuator/**` requests should be sent only from internal network,
+        // they are not proxied from gateway.
         authorizeExchange()
-            .pathMatchers("/", "/api/projects/not-deleted", "/api/awesome-benchmarks", "/internal/**")
+            .pathMatchers("/", "/internal/**", "/actuator/**", *publicEndpoints.toTypedArray())
             .permitAll()
             // resources for frontend
-            .pathMatchers("/*.html", "/*.js*", "/img/**")
+            .pathMatchers("/*.html", "/*.js*", "/*.css", "/img/**", "/*.ico", "/*.png")
             .permitAll()
     }
         .and().run {
@@ -75,14 +74,13 @@ class WebSecurityConfig(
         .formLogin().disable()
         .build()
 
-    @Bean
-    fun projectPermissionEvaluator() = ProjectPermissionEvaluator()
-
     fun roleHierarchy(): RoleHierarchy = mapOf(
-        Role.ADMIN to listOf(Role.VIEWER),
+        Role.SUPER_ADMIN to listOf(Role.ADMIN, Role.OWNER, Role.VIEWER),
+        Role.ADMIN to listOf(Role.OWNER, Role.VIEWER),
+        Role.OWNER to listOf(Role.VIEWER),
     )
         .mapKeys { it.key.asSpringSecurityRole() }
-        .mapValues { it.value.map { it.asSpringSecurityRole() } }
+        .mapValues { (_, roles) -> roles.map { it.asSpringSecurityRole() } }
         .let(RoleHierarchyUtils::roleHierarchyFromMap)
         .let {
             RoleHierarchyImpl().apply { setHierarchy(it) }
@@ -91,6 +89,25 @@ class WebSecurityConfig(
     @PostConstruct
     fun postConstruct() {
         defaultMethodSecurityExpressionHandler.setRoleHierarchy(roleHierarchy())
+    }
+
+    companion object {
+        /**
+         * These endpoints will have `permitAll` enabled on them. We can't selectively put `@PreAuthorize("permitAll")` in the code,
+         * because it won't allow us to configure authenticated access to all other endpoints by default.
+         * Or we can use custom AccessDecisionManager later.
+         */
+        internal val publicEndpoints = listOf(
+            "/error",
+            // `CollectionView` is a public page
+            "/api/$v1/projects/not-deleted",
+            "/api/$v1/awesome-benchmarks",
+            "/api/$v1/check-git-connectivity-adaptor",
+            "/api/$v1/allStandardTestSuites",
+            // `OrganizationView` is a public page
+            "/api/$v1/organization/**",
+            "/api/$v1/projects/get/projects-by-organization",
+        )
     }
 }
 

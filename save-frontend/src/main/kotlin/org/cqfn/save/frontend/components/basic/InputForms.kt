@@ -16,7 +16,8 @@ import kotlinx.html.js.onChangeFunction
 /**
  * @property str
  */
-internal enum class InputTypes(val str: String) {
+@Suppress("WRONG_DECLARATIONS_ORDER")
+enum class InputTypes(val str: String) {
     // ==== new project view
     DESCRIPTION("project description"),
     GIT_BRANCH("git branch"),
@@ -26,10 +27,20 @@ internal enum class InputTypes(val str: String) {
 
     // ==== signIn view
     LOGIN("login"),
-    OWNER("owner name"),
     PASSWORD("password"),
     PROJECT_NAME("project name"),
     PROJECT_URL("project Url"),
+
+    // ==== create organization view
+    ORGANIZATION_NAME("organization name"),
+
+    // ==== user setting view
+    USER_EMAIL("user email"),
+    COMPANY("company"),
+    LOCATION("location"),
+    GIT_HUB("git hub"),
+    LINKEDIN("linkedin"),
+    TWITTER("twitter"),
     ;
 }
 
@@ -38,15 +49,21 @@ internal enum class InputTypes(val str: String) {
  * @param validInput
  * @param classes
  * @param text
+ * @param isProjectOrOrganizationName
  * @param onChangeFun
  * @return div with an input form
  */
-@Suppress("TOO_LONG_FUNCTION")
+@Suppress(
+    "TOO_LONG_FUNCTION",
+    "TOO_MANY_PARAMETERS",
+    "LongParameterList",
+)
 internal fun RBuilder.inputTextFormRequired(
     form: InputTypes,
     validInput: Boolean,
     classes: String,
     text: String,
+    isProjectOrOrganizationName: Boolean = false,
     onChangeFun: (Event) -> Unit
 ) =
         div("$classes mt-1") {
@@ -76,8 +93,14 @@ internal fun RBuilder.inputTextFormRequired(
                 }
 
                 if (!validInput) {
-                    div("invalid-feedback d-block") {
-                        +"Please input a valid ${form.str}"
+                    if (isProjectOrOrganizationName) {
+                        div("invalid-feedback d-block") {
+                            +"Please input a valid ${form.str}. The name can be no longer than 64 characters and can't contain any spaces."
+                        }
+                    } else {
+                        div("invalid-feedback d-block") {
+                            +"Please input a valid ${form.str}"
+                        }
                     }
                 }
             }

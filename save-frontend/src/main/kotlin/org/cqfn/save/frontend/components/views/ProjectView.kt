@@ -6,21 +6,28 @@
 
 package org.cqfn.save.frontend.components.views
 
-import org.cqfn.save.domain.FileInfo
-import org.cqfn.save.domain.Sdk
-import org.cqfn.save.domain.getSdkVersions
-import org.cqfn.save.domain.toSdk
+import org.cqfn.save.domain.*
 import org.cqfn.save.entities.*
 import org.cqfn.save.execution.ExecutionDto
-import org.cqfn.save.frontend.components.basic.*
+import org.cqfn.save.frontend.components.basic.TestingType
+import org.cqfn.save.frontend.components.basic.cardComponent
+import org.cqfn.save.frontend.components.basic.fileUploader
+import org.cqfn.save.frontend.components.basic.privacySpan
+import org.cqfn.save.frontend.components.basic.projectInfo
+import org.cqfn.save.frontend.components.basic.projectSettingsMenu
+import org.cqfn.save.frontend.components.basic.projectStatisticMenu
+import org.cqfn.save.frontend.components.basic.sdkSelection
+import org.cqfn.save.frontend.components.basic.testResourcesSelection
+import org.cqfn.save.frontend.components.errorStatusContext
 import org.cqfn.save.frontend.externals.fontawesome.faCalendarAlt
-import org.cqfn.save.frontend.externals.fontawesome.faCheck
 import org.cqfn.save.frontend.externals.fontawesome.faEdit
 import org.cqfn.save.frontend.externals.fontawesome.faHistory
-import org.cqfn.save.frontend.externals.fontawesome.faTimesCircle
 import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
 import org.cqfn.save.frontend.externals.modal.modal
+import org.cqfn.save.frontend.http.getProject
 import org.cqfn.save.frontend.utils.*
+import org.cqfn.save.frontend.utils.noopResponseHandler
+import org.cqfn.save.info.UserInfo
 import org.cqfn.save.testsuite.TestSuiteDto
 
 import org.w3c.dom.HTMLButtonElement
@@ -29,18 +36,29 @@ import org.w3c.dom.asList
 import org.w3c.fetch.Headers
 import org.w3c.fetch.Response
 import org.w3c.xhr.FormData
-import react.*
-import react.dom.*
+import react.Context
+import react.PropsWithChildren
+import react.RBuilder
+import react.RStatics
+import react.State
+import react.StateSetter
+import react.dom.a
+import react.dom.button
+import react.dom.div
+import react.dom.h1
+import react.dom.li
+import react.dom.nav
+import react.dom.p
+import react.dom.span
+import react.setState
 
 import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.coroutines.launch
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.Month
 import kotlinx.html.ButtonType
-import kotlinx.html.InputType
 import kotlinx.html.classes
-import kotlinx.html.hidden
-import kotlinx.html.id
-import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
 import kotlinx.html.role
 import kotlinx.serialization.encodeToString
@@ -53,12 +71,18 @@ import kotlinx.serialization.json.Json
 external interface ProjectExecutionRouteProps : PropsWithChildren {
     var owner: String
     var name: String
+    var currentUserInfo: UserInfo?
 }
 
 /**
  * [State] of project view component
  */
 external interface ProjectViewState : State {
+    /**
+     * Currently loaded for display Project
+     */
+    var project: Project
+
     /**
      * Files required for tests execution for this project
      */
@@ -120,7 +144,7 @@ external interface ProjectViewState : State {
     var testingType: TestingType
 
     /**
-     * Sumbit button was pressed
+     * Submit button was pressed
      */
     var isSubmitButtonPressed: Boolean?
 
@@ -172,17 +196,22 @@ external interface ProjectViewState : State {
     /**
      * Flag to handle uploading a file
      */
-    var isUploading: Boolean
-}
+    var isUploading: Boolean?
 
-/**
- * enum that stores types of confirmation windows for different situations
- */
-enum class ConfirmationType {
-    DELETE_CONFIRM,
-    NO_BINARY_CONFIRM,
-    NO_CONFIRM,
-    ;
+    /**
+     * Whether editing of project info is disabled
+     */
+    var isEditDisabled: Boolean?
+
+    /**
+     * project selected menu
+     */
+    var selectedMenu: ProjectMenuBar?
+
+    /**
+     * latest execution id for this project
+     */
+    var latestExecutionId: Long?
 }
 
 /**
@@ -191,20 +220,197 @@ enum class ConfirmationType {
  */
 @JsExport
 @OptIn(ExperimentalJsExport::class)
+@Suppress("MAGIC_NUMBER")
 class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(false) {
     private var standardTestSuites: List<TestSuiteDto> = emptyList()
     private val selectedStandardSuites: MutableList<String> = mutableListOf()
     private var gitDto: GitDto? = null
-    private var project = Project("N/A", "N/A", "N/A", "N/A", ProjectStatus.CREATED, userId = -1, adminIds = null)
-    private val projectInformation = mutableMapOf(
-        "Tested tool name: " to "",
-        "Description: " to "",
-        "Tested tool Url: " to "",
-        "Test project owner: " to ""
+    private val date = LocalDateTime(1970, Month.JANUARY, 1, 0, 0, 1)
+    private val testResourcesSelection = testResourcesSelection(
+        updateGitUrlFromInputField = { event ->
+            event.preventDefault()
+            setState {
+                gitUrlFromInputField = (event.target as HTMLInputElement).value
+            }
+        },
+        updateGitBranchOrCommitInputField = { event ->
+            setState {
+                gitBranchOrCommitFromInputField = (event.target as HTMLInputElement).value
+            }
+        },
+        updateTestRootPath = { event ->
+            setState {
+                testRootPath = (event.target as HTMLInputElement).value
+            }
+        },
+        setTestRootPathFromHistory = { testRootPath ->
+            setState {
+                this.testRootPath = testRootPath
+            }
+        },
+        setExecCmd = {
+            setState {
+                execCmd = (it.target as HTMLInputElement).value
+            }
+        },
+        setBatchSize = {
+            setState {
+                batchSizeForAnalyzer = (it.target as HTMLInputElement).value
+            }
+        },
+        setSelectedLanguageForStandardTests = {
+            setState {
+                selectedLanguageForStandardTests = it
+            }
+        }
     )
+    private val projectInfo = projectInfo(
+        turnEditMode = ::turnEditMode,
+        onProjectSave = { draftProject, setDraftProject ->
+            if (draftProject != state.project) {
+                scope.launch {
+                    val response = updateProject(draftProject!!)
+                    if (response.ok) {
+                        setState {
+                            project = draftProject
+                        }
+                    } else {
+                        setState {
+                            errorLabel = "Failed to save project info"
+                            errorMessage = "Failed to save project info: ${response.status} ${response.statusText}"
+                            isErrorOpen = true
+                        }
+                        // rollback form content
+                        setDraftProject(state.project)
+                    }
+                }
+            }
+        },
+    )
+
+    @Suppress("TOO_MANY_LINES_IN_LAMBDA")
+    private val projectSettingsMenu = projectSettingsMenu(
+        deleteProjectCallback = ::deleteProject,
+        updateProjectSettings = { project ->
+            scope.launch {
+                val response = updateProject(project)
+                if (response.ok) {
+                    setState {
+                        this.project = project
+                    }
+                } else {
+                    setState {
+                        errorLabel = "Failed to save project settings"
+                        errorMessage = "Failed to save project settings: ${response.status} ${response.statusText}"
+                        isErrorOpen = true
+                    }
+                }
+            }
+        },
+        updateErrorMessage = {
+            setState {
+                errorLabel = "Failed to save project info"
+                errorMessage = "Failed to save project info: ${it.status} ${it.statusText}"
+                isErrorOpen = true
+            }
+        },
+        updateNotificationMessage = ::showNotification
+    )
+    private val projectStatisticMenu = projectStatisticMenu()
+    private val projectInfoCard = cardComponent(isBordered = true, hasBg = true) {
+        child(projectInfo) {
+            attrs {
+                project = state.project
+                isEditDisabled = state.isEditDisabled
+            }
+        }
+
+        div("ml-3 mt-2 align-items-left justify-content-between") {
+            fontAwesomeIcon(icon = faHistory)
+
+            button(classes = "btn btn-link text-left") {
+                +"Latest Execution"
+                attrs.onClickFunction = {
+                    scope.launch {
+                        switchToLatestExecution(state.latestExecutionId)
+                    }
+                }
+                attrs.disabled = state.latestExecutionId == null
+            }
+        }
+        div("ml-3 align-items-left") {
+            fontAwesomeIcon(icon = faCalendarAlt)
+            a(
+                href = "#/${state.project.organization.name}/${state.project.name}/history",
+                classes = "btn btn-link text-left"
+            ) {
+                +"Execution History"
+            }
+        }
+    }
+    private val typeSelection = cardComponent {
+        div("text-left") {
+            testingTypeButton(
+                TestingType.CUSTOM_TESTS,
+                "Evaluate your tool with your own tests from git",
+                "mr-2"
+            )
+            testingTypeButton(
+                TestingType.STANDARD_BENCHMARKS,
+                "Evaluate your tool with standard test suites",
+                "mt-3 mr-2"
+            )
+            testingTypeButton(
+                TestingType.CONTEST_MODE,
+                "Participate in SAVE contests with your tool",
+                "mt-3 mr-2"
+            )
+        }
+    }
+    private val fileUploader = fileUploader(
+        onFileSelect = { element ->
+            setState {
+                val availableFile = availableFiles.first { it.name == element.value }
+                files.add(availableFile)
+                bytesReceived += availableFile.sizeBytes
+                suiteByteSize += availableFile.sizeBytes
+                availableFiles.remove(availableFile)
+            }
+        },
+        onFileRemove = {
+            setState {
+                files.remove(it)
+                bytesReceived -= it.sizeBytes
+                suiteByteSize -= it.sizeBytes
+                availableFiles.add(it)
+            }
+        },
+        onFileInput = { postFileUpload(it) },
+        onExecutableChange = { selectedFile, checked ->
+            setState {
+                files[files.indexOf(selectedFile)] = selectedFile.copy(isExecutable = checked)
+            }
+        }
+    )
+    private val sdkSelection = sdkSelection({
+        setState {
+            selectedSdk = it.value
+            selectedSdkVersion = selectedSdk.getSdkVersions().first()
+        }
+    }, {
+        setState { selectedSdkVersion = it.value }
+    })
     private lateinit var responseFromDeleteProject: Response
 
     init {
+        state.project = Project(
+            "N/A",
+            "N/A",
+            "N/A",
+            ProjectStatus.CREATED,
+            userId = -1,
+            organization = Organization("stub", OrganizationStatus.CREATED, null, date)
+        )
         state.gitUrlFromInputField = ""
         state.gitBranchOrCommitFromInputField = ""
         state.execCmd = ""
@@ -225,13 +431,34 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         state.suiteByteSize = state.files.sumOf { it.sizeBytes }
         state.bytesReceived = state.availableFiles.sumOf { it.sizeBytes }
         state.isUploading = false
+        state.isEditDisabled = true
+        state.selectedMenu = ProjectMenuBar.RUN
+    }
+
+    private fun showNotification(notificationLabel: String, notificationMessage: String) {
+        setState {
+            confirmationType = ConfirmationType.NO_CONFIRM
+            isConfirmWindowOpen = true
+            confirmLabel = notificationLabel
+            confirmMessage = notificationMessage
+        }
     }
 
     override fun componentDidMount() {
         super.componentDidMount()
 
         scope.launch {
-            project = getProject(props.name, props.owner)
+            val result = getProject(props.name, props.owner)
+            val project = if (result.isFailure) {
+                setState { isLoading = false }
+                return@launch
+            } else {
+                result.getOrThrow()
+            }
+            setState {
+                this.project = project
+            }
+
             val jsonProject = Json.encodeToString(project)
             val headers = Headers().apply {
                 set("Accept", "application/json")
@@ -239,7 +466,11 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             }
             gitDto = post("$apiUrl/projects/git", headers, jsonProject)
                 .decodeFromJsonString<GitDto>()
-            standardTestSuites = get("$apiUrl/allStandardTestSuites", headers)
+            standardTestSuites = get(
+                "$apiUrl/allStandardTestSuites",
+                headers,
+                responseHandler = ::noopResponseHandler,
+            )
                 .decodeFromJsonString()
 
             val availableFiles = getFilesList()
@@ -248,6 +479,8 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 this.availableFiles.addAll(availableFiles)
                 isLoading = false
             }
+
+            fetchLatestExecutionId()
         }
     }
 
@@ -267,7 +500,8 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                     } else {
                         null to branchOrCommit
                     }
-                    val newGitDto = gitDto?.copy(url = urlWithTests, branch = newBranch, hash = newCommit) ?: GitDto(url = urlWithTests, branch = newBranch, hash = newCommit)
+                    val newGitDto = gitDto?.copy(url = urlWithTests, branch = newBranch, hash = newCommit)
+                        ?: GitDto(url = urlWithTests, branch = newBranch, hash = newCommit)
                     submitExecutionRequestWithCustomTests(newGitDto)
                 }
             }
@@ -290,7 +524,14 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         val headers = Headers()
         val formData = FormData()
         val selectedSdk = "${state.selectedSdk}:${state.selectedSdkVersion}".toSdk()
-        val request = ExecutionRequestForStandardSuites(project, selectedStandardSuites, selectedSdk, state.execCmd, state.batchSizeForAnalyzer)
+        val request = ExecutionRequestForStandardSuites(
+            state.project,
+            selectedStandardSuites,
+            selectedSdk,
+            state.execCmd,
+            state.batchSizeForAnalyzer,
+            null
+        )
         formData.appendJson("execution", request)
         state.files.forEach {
             formData.appendJson("file", it)
@@ -302,7 +543,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         val selectedSdk = "${state.selectedSdk}:${state.selectedSdkVersion}".toSdk()
         val formData = FormData()
         val testRootPath = state.testRootPath.ifBlank { "." }
-        val executionRequest = ExecutionRequest(project, correctGitDto, testRootPath, selectedSdk, null)
+        val executionRequest = ExecutionRequest(state.project, correctGitDto, testRootPath, selectedSdk, null)
         formData.appendJson("executionRequest", executionRequest)
         state.files.forEach {
             formData.appendJson("file", it)
@@ -349,6 +590,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             when (state.confirmationType) {
                 ConfirmationType.NO_BINARY_CONFIRM, ConfirmationType.NO_CONFIRM -> submitExecutionRequest()
                 ConfirmationType.DELETE_CONFIRM -> deleteProjectBuilder()
+                ConfirmationType.GLOBAL_ROLE_CONFIRM -> { }
                 else -> {
                     // this is a generated else block
                 }
@@ -359,37 +601,52 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         // Page Heading
         div("d-sm-flex align-items-center justify-content-center mb-4") {
             h1("h3 mb-0 text-gray-800") {
-                +" Project ${project.name}"
+                +" Project ${state.project.name}"
             }
-            privacySpan(project)
+            privacySpan(state.project)
         }
 
-        div("row justify-content-center") {
+        div("row align-items-center justify-content-center") {
+            nav("nav nav-tabs mb-4") {
+                ProjectMenuBar.values().forEachIndexed { i, projectMenu ->
+                    li("nav-item") {
+                        val classVal =
+                                if ((i == 0 && state.selectedMenu == null) || state.selectedMenu == projectMenu) " active font-weight-bold" else ""
+                        p("nav-link $classVal text-gray-800") {
+                            attrs.onClickFunction = {
+                                if (state.selectedMenu != projectMenu) {
+                                    setState {
+                                        selectedMenu = projectMenu
+                                    }
+                                }
+                            }
+                            +projectMenu.name
+                        }
+                    }
+                }
+            }
+        }
+
+        when (state.selectedMenu!!) {
+            ProjectMenuBar.RUN -> renderRun()
+            ProjectMenuBar.STATISTICS -> renderStatistics()
+            ProjectMenuBar.SETTINGS -> renderSettings()
+            else -> {
+                // this is a generated else block
+            }
+        }
+    }
+
+    @Suppress("TOO_LONG_FUNCTION", "LongMethod")
+    private fun RBuilder.renderRun() {
+        div("row justify-content-center ml-5") {
             // ===================== LEFT COLUMN =======================================================================
             div("col-2 mr-3") {
                 div("text-xs text-center font-weight-bold text-primary text-uppercase mb-3") {
                     +"Testing types"
                 }
 
-                child(cardComponent {
-                    div("text-left") {
-                        testingTypeButton(
-                            TestingType.CUSTOM_TESTS,
-                            "Evaluate your tool with your own tests from git",
-                            "mr-2"
-                        )
-                        testingTypeButton(
-                            TestingType.STANDARD_BENCHMARKS,
-                            "Evaluate your tool with standard test suites",
-                            "mt-3 mr-2"
-                        )
-                        testingTypeButton(
-                            TestingType.CONTEST_MODE,
-                            "Participate in SAVE contests with your tool",
-                            "mt-3 mr-2"
-                        )
-                    }
-                })
+                child(typeSelection)
             }
             // ===================== MIDDLE COLUMN =====================================================================
             div("col-4") {
@@ -398,32 +655,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 }
 
                 // ======== file selector =========
-                child(fileUploader(
-                    onFileSelect = { element ->
-                        setState {
-                            val availableFile = availableFiles.first { it.name == element.value }
-                            files.add(availableFile)
-                            bytesReceived += availableFile.sizeBytes
-                            suiteByteSize += availableFile.sizeBytes
-                            availableFiles.remove(availableFile)
-                        }
-                    },
-                    onFileRemove = {
-                        setState {
-                            files.remove(it)
-                            bytesReceived -= it.sizeBytes
-                            suiteByteSize -= it.sizeBytes
-                            availableFiles.add(it)
-                        }
-                    },
-                    onFileInput = { postFileUpload(it) },
-                    onExecutableChange = { selectedFile, checked ->
-                        setState {
-                            files[files.indexOf(selectedFile)] = selectedFile.copy(isExecutable = checked)
-                        }
-                    }
-                )
-                ) {
+                child(fileUploader) {
                     attrs.isSubmitButtonPressed = state.isSubmitButtonPressed
                     attrs.files = state.files
                     attrs.availableFiles = state.availableFiles
@@ -434,56 +666,13 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 }
 
                 // ======== sdk selection =========
-                child(sdkSelection({
-                    setState {
-                        selectedSdk = it.value
-                        selectedSdkVersion = selectedSdk.getSdkVersions().first()
-                    }
-                }, {
-                    setState { selectedSdkVersion = it.value }
-                })) {
+                child(sdkSelection) {
                     attrs.selectedSdk = state.selectedSdk
                     attrs.selectedSdkVersion = state.selectedSdkVersion
                 }
 
                 // ======== test resources selection =========
-                child(testResourcesSelection(
-                    updateGitUrlFromInputField = {
-                        setState {
-                            gitUrlFromInputField = (it.target as HTMLInputElement).value
-                        }
-                    },
-                    updateGitBranchOrCommitInputField = {
-                        setState {
-                            gitBranchOrCommitFromInputField = (it.target as HTMLInputElement).value
-                        }
-                    },
-                    updateTestRootPath = {
-                        setState {
-                            testRootPath = (it.target as HTMLInputElement).value
-                        }
-                    },
-                    setTestRootPathFromHistory = {
-                        setState {
-                            testRootPath = it
-                        }
-                    },
-                    setExecCmd = {
-                        setState {
-                            execCmd = (it.target as HTMLInputElement).value
-                        }
-                    },
-                    setBatchSize = {
-                        setState {
-                            batchSizeForAnalyzer = (it.target as HTMLInputElement).value
-                        }
-                    },
-                    setSelectedLanguageForStandardTests = {
-                        setState {
-                            selectedLanguageForStandardTests = it
-                        }
-                    }
-                )) {
+                child(testResourcesSelection) {
                     attrs.testingType = state.testingType
                     attrs.isSubmitButtonPressed = state.isSubmitButtonPressed
                     attrs.gitDto = gitDto
@@ -519,111 +708,21 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                     }
                 }
 
-                child(cardComponent(true, true) {
-                    val newProjectInformation: MutableMap<String, String> = mutableMapOf()
-                    form {
-                        div("row g-3 ml-3 mr-3 pb-2 pt-2  border-bottom") {
-                            projectInformation.putAll(
-                                projectInformation.keys.zip(
-                                    listOf(
-                                        project.name,
-                                        project.description ?: "",
-                                        project.url ?: "",
-                                        project.owner
-                                    )
-                                )
-                            )
-                            projectInformation
-                                .forEach { (header, text) ->
-                                    div("col-md-6 pl-0 pr-0") {
-                                        label(classes = "control-label col-auto justify-content-between pl-0") {
-                                            +header
-                                        }
-                                    }
-                                    div("col-md-6 pl-0") {
-                                        div("controls col-auto pl-0") {
-                                            input(InputType.text, classes = "form-control-plaintext pt-0 pb-0") {
-                                                attrs.id = header
-                                                attrs.defaultValue = text
-                                                attrs.disabled = true
-                                                attrs {
-                                                    onChangeFunction = {
-                                                        val tg = it.target as HTMLInputElement
-                                                        val newValue = tg.value
-                                                        newProjectInformation[header] = newValue
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                        }
-                    }
-
-                    div("ml-3 mt-2 align-items-right float-right") {
-                        button(classes = "btn") {
-                            fontAwesomeIcon {
-                                attrs.icon = faCheck
-                            }
-                            attrs.id = "Save new project info"
-                            attrs.hidden = true
-                            attrs.onClickFunction = {
-                                newProjectInformation.forEach { (key, value) ->
-                                    projectInformation[key] = value
-                                    (document.getElementById(key) as HTMLInputElement).value = value
-                                }
-                                updateProjectBuilder(projectInformation)
-                                turnEditMode(isOff = true)
-                            }
-                        }
-
-                        button(classes = "btn") {
-                            fontAwesomeIcon {
-                                attrs.icon = faTimesCircle
-                            }
-                            attrs.id = "Cancel"
-                            attrs.hidden = true
-                            attrs.onClickFunction = {
-                                projectInformation.forEach { (key, value) ->
-                                    (document.getElementById(key) as HTMLInputElement).value = value
-                                }
-                                newProjectInformation.clear()
-                                turnEditMode(isOff = true)
-                            }
-                        }
-                    }
-
-                    div("ml-3 mt-2 align-items-left justify-content-between") {
-                        fontAwesomeIcon(icon = faHistory)
-
-                        button(classes = "btn btn-link text-left") {
-                            +"Latest Execution"
-                            attrs.onClickFunction = {
-                                scope.launch {
-                                    switchToLatestExecution()
-                                }
-                            }
-                        }
-                    }
-                    div("ml-3 align-items-left") {
-                        fontAwesomeIcon(icon = faCalendarAlt)
-                        a(
-                            href = "#/${project.owner}/${project.name}/history",
-                            classes = "btn btn-link text-left"
-                        ) {
-                            +"Execution History"
-                        }
-                    }
-                    div("ml-3 d-sm-flex align-items-left justify-content-between mt-2") {
-                        button(type = ButtonType.button, classes = "btn btn-sm btn-danger") {
-                            attrs.onClickFunction = {
-                                deleteProject()
-                            }
-                            +"Delete project"
-                        }
-                    }
-                })
+                child(projectInfoCard)
             }
+        }
+    }
+
+    private fun RBuilder.renderStatistics() {
+        child(projectStatisticMenu) {
+            attrs.executionId = state.latestExecutionId
+        }
+    }
+
+    private fun RBuilder.renderSettings() {
+        child(projectSettingsMenu) {
+            attrs.project = state.project
+            attrs.currentUserInfo = props.currentUserInfo ?: UserInfo("Unknown")
         }
     }
 
@@ -657,13 +756,8 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             }
 
     private fun turnEditMode(isOff: Boolean) {
-        projectInformation.keys.forEach {
-            val informationKey = (document.getElementById(it) as HTMLInputElement).apply {
-                disabled = isOff
-            }
-            informationKey.setAttribute(
-                "class", "form-control-plaintext pt-0 pb-0 ${if (isOff) "" else "border border-1"}"
-            )
+        setState {
+            isEditDisabled = isOff
         }
         (document.getElementById("Save new project info") as HTMLButtonElement).hidden = isOff
         (document.getElementById("Cancel") as HTMLButtonElement).hidden = isOff
@@ -708,7 +802,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
 
     /**
      * In some cases scripts and binaries can be uploaded to a git repository, so users won't be providing or uploading
-     * binaries. For this case we should open a window, so user will need to click a check box, so he will confirm that
+     * binaries. For this case we should open a window, so user will need to click a checkbox, so he will confirm that
      * he understand what he is doing.
      */
     private fun submitWithValidation() {
@@ -738,9 +832,10 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     }
 
     private fun deleteProject() {
-        project = project.copy(status = ProjectStatus.DELETED)
+        val newProject = state.project.copy(status = ProjectStatus.DELETED)
 
         setState {
+            project = newProject
             confirmationType = ConfirmationType.DELETE_CONFIRM
             isConfirmWindowOpen = true
             confirmLabel = ""
@@ -748,21 +843,13 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         }
     }
 
-    private fun updateProjectBuilder(projectInfo: Map<String, String>) {
+    @Suppress("COMMENTED_OUT_CODE")
+    private suspend fun updateProject(draftProject: Project): Response {
         val headers = Headers().also {
             it.set("Accept", "application/json")
             it.set("Content-Type", "application/json")
         }
-        val (name, description, url, owner) = projectInfo.values.toList()
-        project = project.copy(
-            name = name,
-            description = description,
-            url = url,
-            owner = owner,
-        )
-        scope.launch {
-            post("$apiUrl/projects/update", headers, Json.encodeToString(project))
-        }
+        return post("$apiUrl/projects/update", headers, Json.encodeToString(draftProject))
     }
 
     private fun deleteProjectBuilder() {
@@ -772,7 +859,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         }
         scope.launch {
             responseFromDeleteProject =
-                    post("$apiUrl/projects/update", headers, Json.encodeToString(project))
+                    post("$apiUrl/projects/update", headers, Json.encodeToString(state.project))
         }.invokeOnCompletion {
             if (responseFromDeleteProject.ok) {
                 window.location.href = "${window.location.origin}/"
@@ -788,25 +875,41 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         }
     }
 
-    private suspend fun switchToLatestExecution() {
+    private suspend fun fetchLatestExecutionId() {
         val headers = Headers().apply { set("Accept", "application/json") }
         val response = get(
-            "$apiUrl/latestExecution?name=${project.name}&owner=${project.owner}",
-            headers
+            "$apiUrl/latestExecution?name=${state.project.name}&organizationName=${state.project.organization.name}",
+            headers,
+            responseHandler = ::noopResponseHandler
         )
-        if (!response.ok) {
-            setState {
+        when {
+            !response.ok -> setState {
                 errorLabel = "Failed to fetch latest execution"
                 errorMessage =
-                        "Failed to fetch latest execution: [${response.status}] ${response.statusText}"
-                isErrorOpen = true
+                        "Failed to fetch latest execution: [${response.status}] ${response.statusText}, please refresh the page and try again"
+                latestExecutionId = null
             }
-        } else {
-            val latestExecutionId = response
-                .decodeFromJsonString<ExecutionDto>()
-                .id
+            response.status == 204.toShort() -> setState {
+                latestExecutionId = null
+            }
+            else -> {
+                val latestExecutionIdNew = response
+                    .decodeFromJsonString<ExecutionDto>()
+                    .id
+                setState {
+                    latestExecutionId = latestExecutionIdNew
+                }
+            }
+        }
+    }
+
+    private fun switchToLatestExecution(latestExecutionId: Long?) {
+        latestExecutionId?.let {
             window.location.href = "${window.location}/history/execution/$latestExecutionId"
         }
+            ?: setState {
+                isErrorOpen = true
+            }
     }
 
     private suspend fun getFilesList() = get("$apiUrl/files/list", Headers())
@@ -814,7 +917,8 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             it.decodeFromJsonString<List<FileInfo>>()
         }
 
-    companion object {
+    companion object :
+        RStatics<ProjectExecutionRouteProps, ProjectViewState, ProjectView, Context<StateSetter<Response?>>>(ProjectView::class) {
         const val TEST_ROOT_DIR_HINT = """
             The path you are providing should be relative to the root directory of your repository.
             This directory should contain <a href = "https://github.com/analysis-dev/save#how-to-configure"> save.properties </a>
@@ -827,5 +931,9 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             Please note, that the tested tool and it's resources will be copied to this directory before the run.
             """
         const val TEST_SUITE_ROW = 4
+
+        init {
+            contextType = errorStatusContext
+        }
     }
 }

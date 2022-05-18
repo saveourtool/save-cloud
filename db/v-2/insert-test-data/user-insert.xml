@@ -5,28 +5,21 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
 
-    <changeSet id="user-insert" author="petertrr" context="dev">
-        <insert dbms="mysql" tableName="user">
-            <column name="id" value="1" />
-            <column name="name" value="admin" />
-            <column name="password" value="{bcrypt}$2a$12$7jB6.fJ/uHZiti94w0.QOu0M/lPzKU1lvX9TLL3uZHFjLGIfz1gHq" />
-            <column name="role" value="ROLE_ADMIN" />
-            <column name="source" value="basic"/>
-        </insert>
-        <insert dbms="mysql" tableName="user">
-            <column name="id" value="2" />
-            <column name="name" value="John Doe" />
-            <column name="password" value="{bcrypt}$2a$12$zjCjULtsSvapH5kt6KUq4eyTx3WluDwB3GepcbLA.mf/NcGZCLuvi" />
-            <column name="role" value="ROLE_VIEWER" />
-            <column name="source" value="basic"/>
-        </insert>
-        <insert dbms="mysql" tableName="user">
-            <column name="id" value="3" />
-            <column name="name" value="user" />
-            <column name="password" value="{noop}123" />
-            <column name="role" value="ROLE_VIEWER" />
-            <column name="source" value="basic"/>
-        </insert>
+    <changeSet id="user-insert" author="sanyavertolet" context="dev">
+        <loadData tableName="user" encoding="UTF-8" separator=";" quotchar="&quot;" file="db/v-2/insert-test-data/sqlRequests/user.csv">
+            <column header="id" name="id" type="NUMERIC" />
+            <column header="name" name="name" type="varchar(64)" />
+            <column header="password" name="password" type="varchar(256)" />
+            <column header="role" name="role" type="varchar(64)" />
+            <column header="source" name="source" type="varchar(64)" />
+            <column header="avatar" name="avatar" type="varchar(250)" />
+            <column header="email" name="email" type="varchar(250)" />
+            <column header="company" name="company" type="varchar(250)" />
+            <column header="location" name="location" type="varchar(250)" />
+            <column header="linkedin" name="linkedin" type="varchar(250)" />
+            <column header="git_hub" name="git_hub" type="varchar(250)" />
+            <column header="twitter" name="twitter" type="varchar(250)" />
+        </loadData>
     </changeSet>
 
 </databaseChangeLog>

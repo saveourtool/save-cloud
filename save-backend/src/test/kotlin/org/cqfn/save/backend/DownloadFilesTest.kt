@@ -5,7 +5,8 @@ import org.cqfn.save.backend.configs.NoopWebSecurityConfig
 import org.cqfn.save.backend.configs.WebConfig
 import org.cqfn.save.backend.controllers.DownloadFilesController
 import org.cqfn.save.backend.repository.*
-import org.cqfn.save.backend.scheduling.StandardSuitesUpdateScheduler
+import org.cqfn.save.backend.service.OrganizationService
+import org.cqfn.save.backend.service.UserDetailsService
 import org.cqfn.save.core.result.DebugInfo
 import org.cqfn.save.core.result.Pass
 import org.cqfn.save.domain.FileInfo
@@ -13,6 +14,7 @@ import org.cqfn.save.domain.TestResultDebugInfo
 import org.cqfn.save.domain.TestResultLocation
 import org.cqfn.save.entities.Agent
 import org.cqfn.save.entities.Execution
+import org.cqfn.save.v1
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -30,6 +32,7 @@ import org.springframework.core.io.FileSystemResource
 import org.springframework.http.HttpMethod
 import org.springframework.http.MediaType
 import org.springframework.http.client.MultipartBodyBuilder
+import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.web.reactive.server.WebTestClient
@@ -46,6 +49,7 @@ import kotlin.io.path.createTempFile
 import kotlin.io.path.name
 import kotlin.io.path.writeLines
 
+@ActiveProfiles("test")
 @WebFluxTest(controllers = [DownloadFilesController::class])
 @Import(
     WebConfig::class,
@@ -56,16 +60,8 @@ import kotlin.io.path.writeLines
 @AutoConfigureWebTestClient
 @EnableConfigurationProperties(ConfigProperties::class)
 @MockBeans(
-    MockBean(AgentStatusRepository::class),
-    MockBean(ExecutionRepository::class),
-    MockBean(ProjectRepository::class),
-    MockBean(TestExecutionRepository::class),
-    MockBean(TestRepository::class),
-    MockBean(TestSuiteRepository::class),
-    MockBean(GitRepository::class),
-    MockBean(StandardSuitesUpdateScheduler::class),
-    MockBean(UserRepository::class),
-    MockBean(AwesomeBenchmarksRepository::class)
+    MockBean(OrganizationService::class),
+    MockBean(UserDetailsService::class),
 )
 class DownloadFilesTest {
     @Autowired
@@ -90,7 +86,7 @@ class DownloadFilesTest {
         Paths.get(configProperties.fileStorage.location).createDirectories()
         val sampleFileInfo = fileSystemRepository.saveFile(tmpFile)
 
-        webTestClient.method(HttpMethod.GET).uri("/api/files/download")
+        webTestClient.method(HttpMethod.GET).uri("/api/$v1/files/download")
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(sampleFileInfo)
             .accept(MediaType.APPLICATION_OCTET_STREAM)
@@ -100,7 +96,7 @@ class DownloadFilesTest {
                 Assertions.assertArrayEquals("Lorem ipsum${System.lineSeparator()}".toByteArray(), it.responseBody)
             }
 
-        webTestClient.get().uri("/api/files/list")
+        webTestClient.get().uri("/api/$v1/files/list")
             .exchange()
             .expectStatus().isOk
             .expectBodyList<FileInfo>()
@@ -117,7 +113,7 @@ class DownloadFilesTest {
 
     @Test
     fun `should return 404 for non-existent files`() {
-        webTestClient.get().uri("/api/files/download/invalid-name").exchange()
+        webTestClient.get().uri("/api/$v1/files/download/invalid-name").exchange()
             .expectStatus().isNotFound
     }
 
@@ -131,7 +127,7 @@ class DownloadFilesTest {
         }
             .build()
 
-        webTestClient.post().uri("/api/files/upload")
+        webTestClient.post().uri("/api/$v1/files/upload")
             .contentType(MediaType.MULTIPART_FORM_DATA)
             .body(BodyInserters.fromMultipartData(body))
             .exchange()
