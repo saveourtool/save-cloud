@@ -41,9 +41,10 @@ class OrganizationService(
             organizationRepository.findByName(organizationName)
                 ?.apply {
                     status = OrganizationStatus.DELETED
-                }?.let {
-                organizationRepository.save(it)
-            } ?: throw NoSuchElementException("There is no organization with name $organizationName.")
+                }
+                ?.let {
+                    organizationRepository.save(it)
+                } ?: throw NoSuchElementException("There is no organization with name $organizationName.")
 
     /**
      * @param organizationId

@@ -137,7 +137,7 @@ class ProjectControllerTest {
 
     @Test
     @WithUserDetails(value = "admin")
-    fun `delete organization with owner permission`() {
+    fun `delete project with owner permission`() {
         mutateMockedUser {
             details = AuthenticationDetails(id = 2)
         }
@@ -146,9 +146,8 @@ class ProjectControllerTest {
 
         projectRepository.save(project)
 
-        webClient.post()
-            .uri("/api/$v1/projects/delete")
-            .bodyValue(project)
+        webClient.delete()
+            .uri("/api/$v1/projects/${organization.name}/${project.name}/delete")
             .exchange()
             .expectStatus()
             .isOk
@@ -161,18 +160,17 @@ class ProjectControllerTest {
 
     @Test
     @WithUserDetails(value = "John Doe")
-    fun `delete organization without owner permission`() {
+    fun `delete project without owner permission`() {
         mutateMockedUser {
             details = AuthenticationDetails(id = 2)
         }
         val organization: Organization = organizationRepository.getOrganizationById(1)
-        val project = Project("ToDelete", "url", "", ProjectStatus.CREATED, organization = organization)
+        val project = Project("ToDelete1", "url", "", ProjectStatus.CREATED, organization = organization)
 
         projectRepository.save(project)
 
-        webClient.post()
-            .uri("/api/$v1/projects/delete")
-            .bodyValue(project)
+        webClient.delete()
+            .uri("/api/$v1/projects/${organization.name}/${project.name}/delete")
             .exchange()
             .expectStatus()
             .isForbidden

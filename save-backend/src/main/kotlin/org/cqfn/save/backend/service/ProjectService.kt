@@ -89,8 +89,8 @@ class ProjectService(
 
     /**
      * @param authentication [Authentication] of the user who wants to access the project
-     * @param name name of the project
-     * @param organization organization that owns the project
+     * @param projectName name of the project
+     * @param organizationName organization that owns the project
      * @param permission requested [Permission]
      * @param messageIfNotFound if project is not found, include this into 404 response body
      * @param statusIfForbidden return this status if permission is not allowed fot the current user
@@ -100,13 +100,13 @@ class ProjectService(
     @Suppress("LongParameterList", "TOO_MANY_PARAMETERS")
     fun findWithPermissionByNameAndOrganization(
         authentication: Authentication,
-        name: String,
-        organization: Organization,
+        projectName: String,
+        organizationName: String,
         permission: Permission,
         messageIfNotFound: String? = null,
         statusIfForbidden: HttpStatus = HttpStatus.FORBIDDEN,
     ): Mono<Project> = with(projectPermissionEvaluator) {
-        Mono.fromCallable { findByNameAndOrganizationName(name, organization.name) }
+        Mono.fromCallable { findByNameAndOrganizationName(projectName, organizationName) }
             .switchIfEmpty {
                 Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND, messageIfNotFound))
             }

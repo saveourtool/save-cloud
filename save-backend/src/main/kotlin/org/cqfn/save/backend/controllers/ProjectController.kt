@@ -1,7 +1,6 @@
 package org.cqfn.save.backend.controllers
 
 import org.cqfn.save.backend.StringResponse
-import org.cqfn.save.backend.repository.UserRepository
 import org.cqfn.save.backend.security.ProjectPermissionEvaluator
 import org.cqfn.save.backend.service.GitService
 import org.cqfn.save.backend.service.LnkUserProjectService
@@ -40,7 +39,6 @@ class ProjectController(
     private val organizationService: OrganizationService,
     private val projectPermissionEvaluator: ProjectPermissionEvaluator,
     private val lnkUserProjectService: LnkUserProjectService,
-    private val userRepository: UserRepository,
 ) {
     /**
      * Get all projects, including deleted and private. Only accessible for admins.
@@ -125,7 +123,7 @@ class ProjectController(
     @Suppress("UnsafeCallOnNullableType")
     fun getRepositoryDtoByProject(@RequestBody project: Project, authentication: Authentication): Mono<GitDto> = Mono.fromCallable {
         with(project) {
-            projectService.findWithPermissionByNameAndOrganization(authentication, name, organization, Permission.WRITE)
+            projectService.findWithPermissionByNameAndOrganization(authentication, name, organization.name, Permission.WRITE)
         }
     }
         .mapNotNull {
@@ -174,7 +172,7 @@ class ProjectController(
      */
     @PostMapping("/update")
     fun updateProject(@RequestBody project: Project, authentication: Authentication): Mono<StringResponse> = projectService.findWithPermissionByNameAndOrganization(
-        authentication, project.name, project.organization, Permission.WRITE
+        authentication, project.name, project.organization.name, Permission.WRITE
     )
         .filter { projectPermissionEvaluator.hasPermission(authentication, project, Permission.WRITE) }
         .map { projectFromDb ->
@@ -193,16 +191,20 @@ class ProjectController(
         }
 
     /**
-     * @param project
+     * @param organizationName
+     * @param projectName
      * @param authentication
      * @return response
      */
-    @PostMapping("/delete")
-    fun deleteProject(@RequestBody project: Project, authentication: Authentication): Mono<StringResponse> =
+    @DeleteMapping("/{organizationName}/{projectName}/delete")
+    fun deleteProject(
+        @PathVariable organizationName: String,
+        @PathVariable projectName: String,
+        authentication: Authentication
+    ): Mono<StringResponse> =
             projectService.findWithPermissionByNameAndOrganization(
-                authentication, project.name, project.organization, Permission.DELETE
+                authentication, projectName, organizationName, Permission.DELETE
             )
-                .filter { projectPermissionEvaluator.hasPermission(authentication, project, Permission.DELETE) }
                 .map { projectFromDb ->
                     projectFromDb.apply {
                         status = ProjectStatus.DELETED
