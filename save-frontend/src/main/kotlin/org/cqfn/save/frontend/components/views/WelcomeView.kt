@@ -158,6 +158,7 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                         +"Don't have an account?"
                     }
 
+                    // Fixme: validateDOMNesting(...): <h4> cannot appear as a descendant of <p>.
                     p("text-sm text-center") {
                         h4 {
                             a(classes = "text-info text-gradient font-weight-bold ml-2 mr-2") {

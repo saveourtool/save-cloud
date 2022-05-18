@@ -229,7 +229,6 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
                 it.decodeFromJsonString<Array<ExecutionDto>>()
             }
     }
-    private lateinit var responseFromDeleteExecutions: Response
 
     @Suppress(
         "TOO_LONG_FUNCTION",
@@ -281,7 +280,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
             it.set("Content-Type", "application/json")
         }
         scope.launch {
-            responseFromDeleteExecutions =
+            val responseFromDeleteExecutions =
                     post("$apiUrl/execution/deleteAll?name=${props.name}&organizationName=${props.organizationName}", headers, undefined)
 
             if (responseFromDeleteExecutions.ok) {
@@ -306,7 +305,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
             it.set("Content-Type", "application/json")
         }
         scope.launch {
-            responseFromDeleteExecutions =
+            val responseFromDeleteExecutions =
                     post("$apiUrl/execution/delete?executionIds=${executionIds.joinToString(",")}", headers, undefined)
 
             if (responseFromDeleteExecutions.ok) {
