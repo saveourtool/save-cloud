@@ -64,15 +64,14 @@ class ExecutionService(private val executionRepository: ExecutionRepository,
             if (it.status == ExecutionStatus.FINISHED || it.status == ExecutionStatus.ERROR) {
                 // execution is completed, we can update end time
                 it.endTime = LocalDateTime.now()
-            }
-            executionRepository.save(it)
-            if (it.status == ExecutionStatus.FINISHED || it.status == ExecutionStatus.ERROR) {
+
                 // if the tests are stuck in the READY_FOR_TESTING or RUNNING status
                 testExecutionRepository.findByStatusListAndExecutionId(listOf(TestResultStatus.READY_FOR_TESTING, TestResultStatus.RUNNING), execution.id).map {
                     it.status = TestResultStatus.FAILED
                     testExecutionRepository.save(it)
                 }
             }
+            executionRepository.save(it)
         }) {
             throw ResponseStatusException(HttpStatus.NOT_FOUND)
         }
