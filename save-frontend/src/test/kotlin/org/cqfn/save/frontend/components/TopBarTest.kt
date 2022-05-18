@@ -1,9 +1,11 @@
 package org.cqfn.save.frontend.components
 
+import kotlinx.js.jso
 import org.cqfn.save.frontend.externals.render
 import org.cqfn.save.frontend.externals.screen
 import org.cqfn.save.frontend.externals.userEvent
 import org.cqfn.save.info.UserInfo
+import org.w3c.dom.HTMLButtonElement
 import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.HTMLSpanElement
 import react.*
@@ -35,7 +37,8 @@ class TopBarTest {
         assertNotNull(userInfoSpan)
 
         // push the button
-        userEvent.click(rr.container.querySelector("[id=\"userDropdown\"]"))
+        val button: HTMLButtonElement = screen.getByRole("button", jso { name = "Test User" })
+        userEvent.click(button)
         val dropdown = rr.container.querySelector("[aria-labelledby=\"userDropdown\"]") as HTMLDivElement
         assertEquals(3, dropdown.children.length, "When user is logged in, dropdown menu should contain 3 entries")
     }

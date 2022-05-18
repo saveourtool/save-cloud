@@ -41,15 +41,13 @@ kotlin {
 
             testTask {
                 useKarma {
-//                    debug = true
-//                    webpackConfig.configDirectory = project.projectDir.resolve("webpack.config.ddd")
-//                    useChrome()
-                    useChromeHeadless()
-//                    useFirefox()
-
-//                    requiredDependencies.add(versions.karmaMocha)
-//                    requiredDependencies.add(versions.mocha)
-//                    config.frameworks.add("mocha")
+                    when (properties["save.profile"]) {
+                        "dev" -> {
+                            useChrome()
+                            // useFirefox()
+                        }
+                        null -> useChromeHeadless()
+                    }
                 }
             }
         }

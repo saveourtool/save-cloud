@@ -30,7 +30,7 @@ class SelectFormTest {
         worker.resetHandlers()
         // todo: stop worker in `afterall`. There doesn't seem to be immediate support for this in kotlin.test for JS.
         // Possible solution is to use https://kotest.io/docs/framework/lifecycle-hooks.html
-//        worker.stop()
+        // worker.stop()
     }
 
     @Test
