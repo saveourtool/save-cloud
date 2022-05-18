@@ -1,7 +1,9 @@
 package org.cqfn.save.backend.service
 
 import org.cqfn.save.backend.repository.ExecutionRepository
+import org.cqfn.save.backend.repository.TestExecutionRepository
 import org.cqfn.save.backend.repository.UserRepository
+import org.cqfn.save.domain.TestResultStatus
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.Organization
 import org.cqfn.save.execution.ExecutionInitializationDto
@@ -23,6 +25,7 @@ import java.util.Optional
 @Service
 class ExecutionService(private val executionRepository: ExecutionRepository,
                        private val userRepository: UserRepository,
+                       private val testExecutionRepository: TestExecutionRepository,
 ) {
     private val log = LoggerFactory.getLogger(ExecutionService::class.java)
 
@@ -63,6 +66,13 @@ class ExecutionService(private val executionRepository: ExecutionRepository,
                 it.endTime = LocalDateTime.now()
             }
             executionRepository.save(it)
+            if (it.status == ExecutionStatus.FINISHED || it.status == ExecutionStatus.ERROR) {
+                // if the tests are stuck in the READY_FOR_TESTING or RUNNING status
+                testExecutionRepository.findByStatusListAndExecutionId(listOf(TestResultStatus.READY_FOR_TESTING, TestResultStatus.RUNNING), execution.id).map {
+                    it.status = TestResultStatus.FAILED
+                    testExecutionRepository.save(it)
+                }
+            }
         }) {
             throw ResponseStatusException(HttpStatus.NOT_FOUND)
         }
