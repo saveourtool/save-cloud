@@ -4,7 +4,6 @@ import org.cqfn.save.frontend.externals.render
 import org.cqfn.save.frontend.externals.screen
 
 import generated.SAVE_VERSION
-import org.w3c.dom.HTMLElement
 import react.createElement
 import react.react
 
@@ -22,7 +21,7 @@ class FooterTest {
         val versionLabel = screen.queryByText("Version $SAVE_VERSION", jso {
             // match substring
             exact = false
-        }) as HTMLElement?
+        })
         assertNotNull(versionLabel, "Footer should contain SAVE version")
     }
 }

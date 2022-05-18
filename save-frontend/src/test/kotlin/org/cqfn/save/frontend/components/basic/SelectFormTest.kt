@@ -44,7 +44,7 @@ class SelectFormTest {
             }
         )
 
-        screen.findByText<HTMLOptionElement>("Test Organization 1").then {
+        screen.findByTextAndCast<HTMLOptionElement>("Test Organization 1").then {
             val select = it.parentElement as HTMLSelectElement?
             assertNotNull(select, "`select` element should have been rendered")
             assertEquals(4, select.children.length, "Select should contain all organizations and an initial empty value")
@@ -68,7 +68,7 @@ class SelectFormTest {
             }
         )
 
-        screen.findByText<HTMLDivElement>("You don't have access to any organizations").then {
+        screen.findByTextAndCast<HTMLDivElement>("You don't have access to any organizations").then {
             assertNotNull(it, "Component should display a warning if no organizations are available")
         }
     }

@@ -36,16 +36,16 @@ external class RenderResult {
  * https://github.com/testing-library/dom-testing-library/blob/main/types/queries.d.ts
  */
 external class BoundFunctions {
-    fun <T : HTMLElement> getByText(text: String, options: dynamic = definedExternally): T
+    fun getByText(text: String, options: dynamic = definedExternally): HTMLElement
 
     /**
      * https://testing-library.com/docs/queries/byrole
      */
-    fun <T : HTMLElement> getByRole(vararg args: dynamic): T
+    fun getByRole(vararg args: dynamic): HTMLElement
 
-    fun <T : HTMLElement> findByText(text: String, options: dynamic = definedExternally): Promise<T>
+    fun findByText(text: String, options: dynamic = definedExternally): Promise<HTMLElement>
 
-    fun <T : HTMLElement?> queryByText(text: String, options: dynamic = definedExternally): T?
+    fun queryByText(text: String, options: dynamic = definedExternally): HTMLElement?
 }
 
 external fun <P : Props> render(ui: ReactElement<P>, options: dynamic = definedExternally): RenderResult

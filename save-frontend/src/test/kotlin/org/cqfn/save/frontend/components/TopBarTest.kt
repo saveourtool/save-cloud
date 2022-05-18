@@ -1,14 +1,13 @@
 package org.cqfn.save.frontend.components
 
-import org.cqfn.save.frontend.externals.render
-import org.cqfn.save.frontend.externals.screen
-import org.cqfn.save.frontend.externals.userEvent
+import org.cqfn.save.frontend.externals.*
 import org.cqfn.save.info.UserInfo
-import org.w3c.dom.HTMLButtonElement
+
 import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.HTMLSpanElement
 import react.*
 import react.router.MemoryRouter
+
 import kotlin.test.*
 import kotlinx.js.jso
 
@@ -33,11 +32,11 @@ class TopBarTest {
             }
         )
 
-        val userInfoSpan: HTMLSpanElement? = screen.queryByText("Test User")
+        val userInfoSpan: HTMLSpanElement? = screen.queryByTextAndCast("Test User")
         assertNotNull(userInfoSpan)
 
         // push the button
-        val button: HTMLButtonElement = screen.getByRole("button", jso { name = "Test User" })
+        val button = screen.getByRole("button", jso { name = "Test User" })
         userEvent.click(button)
         val dropdown = rr.container.querySelector("[aria-labelledby=\"userDropdown\"]") as HTMLDivElement
         assertEquals(3, dropdown.children.length, "When user is logged in, dropdown menu should contain 3 entries")
@@ -56,7 +55,7 @@ class TopBarTest {
             }
         )
 
-        val userInfoSpan: HTMLSpanElement? = screen.queryByText("Test User")
+        val userInfoSpan: HTMLSpanElement? = screen.queryByTextAndCast("Test User")
         assertNull(userInfoSpan)
 
         // push the button

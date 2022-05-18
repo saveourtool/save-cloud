@@ -1,5 +1,6 @@
 package org.cqfn.save.frontend
 
+import org.cqfn.save.frontend.externals.findByTextAndCast
 import org.cqfn.save.frontend.externals.render
 import org.cqfn.save.frontend.externals.screen
 import org.w3c.dom.HTMLHeadingElement
@@ -16,7 +17,7 @@ class AppTest {
             App::class.react.create()
         )
 
-        return screen.findByText<HTMLHeadingElement>(
+        return screen.findByTextAndCast<HTMLHeadingElement>(
             "Advanced eco-system for continuous integration, evaluation and benchmarking of software tools."
         ).then { htmlHeadingElement ->
             assertNotNull(htmlHeadingElement)
