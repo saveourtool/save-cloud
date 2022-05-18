@@ -209,14 +209,17 @@ class SaveAgent(internal val config: AgentConfiguration,
         readFile(jsonFile).joinToString(separator = "")
     )
 
-    private fun CoroutineScope.launchLogSendingJob(executionLogs: ExecutionLogs) = launch {
-        runCatching {
-            sendLogs(executionLogs)
-        }
-            .exceptionOrNull()
-            ?.let {
-                logErrorCustom("Couldn't send logs, reason: ${it.message}")
+    private fun CoroutineScope.launchLogSendingJob(saveCliLogFile: String): Job {
+        val byteArray = FileSystem.SYSTEM.source(saveCliLogFile.toPath()).buffer().readByteArray()
+        return launch {
+            runCatching {
+                sendLogs(byteArray)
             }
+                .exceptionOrNull()
+                ?.let {
+                    logErrorCustom("\n\n\nCouldn't send logs, reason: ${it.message} $it\n\n\n")
+                }
+        }
     }
 
     private fun CoroutineScope.handleSuccessfulExit() {
