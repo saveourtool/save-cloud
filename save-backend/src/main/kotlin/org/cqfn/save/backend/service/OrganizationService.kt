@@ -3,6 +3,7 @@ package org.cqfn.save.backend.service
 import org.cqfn.save.backend.repository.OrganizationRepository
 import org.cqfn.save.domain.OrganizationSaveStatus
 import org.cqfn.save.entities.Organization
+import org.cqfn.save.entities.OrganizationStatus
 import org.springframework.stereotype.Service
 
 /**
@@ -28,6 +29,22 @@ class OrganizationService(
         requireNotNull(organizationId) { "Should have gotten an ID for organization from the database" }
         return Pair(organizationId, organizationSaveStatus)
     }
+
+    /**
+     * Mark organization with [organizationName] as deleted
+     *
+     * @param organizationName an [Organization]'s name to delete
+     * @return deleted organization
+     */
+    @Suppress("UnsafeCallOnNullableType")
+    fun deleteOrganization(organizationName: String) =
+            organizationRepository.findByName(organizationName)
+                ?.apply {
+                    status = OrganizationStatus.DELETED
+                }
+                ?.let {
+                    organizationRepository.save(it)
+                } ?: throw NoSuchElementException("There is no organization with name $organizationName.")
 
     /**
      * @param organizationId

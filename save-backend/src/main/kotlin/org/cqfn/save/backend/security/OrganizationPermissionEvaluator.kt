@@ -39,6 +39,15 @@ class OrganizationPermissionEvaluator {
         }
     }
 
+    /**
+     * @param authentication
+     * @param organizationName
+     * @param requiredRole
+     * @return true if user with [authentication] info has [requiredRole] in organization with name [organizationName] or globally
+     */
+    fun hasGlobalRoleOrOrganizationRole(authentication: Authentication, organizationName: String, requiredRole: Role): Boolean =
+            lnkUserOrganizationService.getGlobalRoleOrOrganizationRole(authentication, organizationName).priority >= requiredRole.priority
+
     private fun Authentication.hasRole(role: Role): Boolean = authorities.any { it.authority == role.asSpringSecurityRole() }
 
     private fun hasReadAccess(userId: Long?, organizationRole: Role): Boolean =

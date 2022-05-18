@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - 'save-api/**'
+      - 'save-api-cli/**'
 
 jobs:
   build_and_test_with_code_coverage:
@@ -35,7 +36,7 @@ jobs:
           gradle-dependencies-cache-key: |
             gradle/libs.versions.toml
           arguments: |
-            save-api:build
+            save-api-cli:build
             -DincludeSaveApi='true'
             -x detekt
           properties: |

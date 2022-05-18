@@ -1,0 +1,49 @@
+name: Create release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+env:
+  GPG_SEC: ${{ secrets.PGP_SEC }}
+  GPG_PASSWORD: ${{ secrets.PGP_PASSWORD }}
+  OSSRH_USERNAME: ${{ secrets.SONATYPE_USER }}
+  OSSRH_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+
+jobs:
+  release:
+    name: Build release
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          # release workflow should have access to all tags
+          fetch-depth: 0
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: 17
+          distribution: zulu
+      - name: Status git before
+        run: git status
+      - uses: burrunan/gradle-cache-action@v1
+        with:
+          gradle-version: wrapper
+      # Until https://github.com/burrunan/gradle-cache-action/issues/42 is addressed, gradle should be run as a separate step
+      - name: gradle release
+        run: |
+          ./gradlew --build-cache -Prelease -PgprUser=${{ github.actor }} -PgprKey=${{ secrets.GITHUB_TOKEN }} \
+            publishToSonatype closeSonatypeStagingRepository
+      - name: Status git after
+        if: ${{ always() }}
+        run: git status
+      - name: Upload artifact
+        id: upload_artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: save-api-${{ runner.os }}
+          path: save-api/build/*
+          retention-days: 1

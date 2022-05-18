@@ -86,3 +86,9 @@ internal fun RBuilder.multilineTextWithIndices(text: String) {
         }
     }
 }
+
+/**
+ * @param maxLength
+ * @return true if string is invalid
+ */
+internal fun String?.isInvalid(maxLength: Int) = this.isNullOrBlank() || this.contains(" ") || this.length > maxLength

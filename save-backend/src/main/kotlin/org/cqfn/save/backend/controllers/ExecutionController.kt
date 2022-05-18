@@ -25,6 +25,7 @@ import org.cqfn.save.permission.Permission
 import org.cqfn.save.v1
 
 import org.slf4j.LoggerFactory
+import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -60,9 +61,13 @@ class ExecutionController(private val executionService: ExecutionService,
                           private val agentStatusService: AgentStatusService,
                           private val organizationService: OrganizationService,
                           config: ConfigProperties,
+                          jackson2WebClientCustomizer: WebClientCustomizer,
 ) {
     private val log = LoggerFactory.getLogger(ExecutionController::class.java)
-    private val preprocessorWebClient = WebClient.create(config.preprocessorUrl)
+    private val preprocessorWebClient = WebClient.builder()
+        .apply(jackson2WebClientCustomizer::customize)
+        .baseUrl(config.preprocessorUrl)
+        .build()
 
     /**
      * @param execution
@@ -136,7 +141,7 @@ class ExecutionController(private val executionService: ExecutionService,
     @GetMapping(path = ["/api/$v1/executionDtoList"])
     fun getExecutionByProject(@RequestParam name: String, @RequestParam organizationName: String, authentication: Authentication): Mono<List<ExecutionDto>> {
         val organization = organizationService.findByName(organizationName) ?: throw NoSuchElementException("Organization with name [$organizationName] was not found.")
-        return projectService.findWithPermissionByNameAndOrganization(authentication, name, organization, Permission.READ).map {
+        return projectService.findWithPermissionByNameAndOrganization(authentication, name, organization.name, Permission.READ).map {
             executionService.getExecutionDtoByNameAndOrganization(name, organization).reversed()
         }
     }
@@ -181,7 +186,7 @@ class ExecutionController(private val executionService: ExecutionService,
         return projectService.findWithPermissionByNameAndOrganization(
             authentication,
             name,
-            organization,
+            organization.name,
             Permission.DELETE,
             messageIfNotFound = "Could not find the project with name: $name and owner: ${organization.name} or related objects",
         )

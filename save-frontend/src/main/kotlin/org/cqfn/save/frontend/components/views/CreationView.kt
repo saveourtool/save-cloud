@@ -240,7 +240,8 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
             setState { isValidOrganization = true }
         }
 
-        if (fieldsMap[InputTypes.PROJECT_NAME].isNullOrBlank()) {
+        val projectName = fieldsMap[InputTypes.PROJECT_NAME]
+        if (projectName.isInvalid(64)) {
             setState { isValidProjectName = false }
             valid = false
         } else {
@@ -309,7 +310,7 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
                                             attrs.classes = "col-md-6 pl-0 pl-2 pr-2"
                                             attrs.text = "Organization"
                                         }
-                                        inputTextFormRequired(InputTypes.PROJECT_NAME, state.isValidProjectName!!, "col-md-6 pl-2 pr-2", "Tested tool name") {
+                                        inputTextFormRequired(InputTypes.PROJECT_NAME, state.isValidProjectName!!, "col-md-6 pl-2 pr-2", "Tested tool name", true) {
                                             changeFields(InputTypes.PROJECT_NAME, it)
                                         }
                                         inputTextFormOptional(InputTypes.PROJECT_URL, "col-md-6 pr-0 mt-3", "Tested Tool Website") {
