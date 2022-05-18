@@ -150,6 +150,18 @@ class LnkUserOrganizationService(
     }
 
     /**
+     * @param authentication
+     * @param organizationName
+     * @return the highest of two roles: the one in organization with name [organizationName] and global one.
+     */
+    fun getGlobalRoleOrOrganizationRole(authentication: Authentication, organizationName: String): Role {
+        val selfId = (authentication.details as AuthenticationDetails).id
+        val selfGlobalRole = userDetailsService.getGlobalRole(authentication)
+        val selfOrganizationRole = findRoleByUserIdAndOrganizationName(selfId, organizationName)
+        return getHighestRole(selfOrganizationRole, selfGlobalRole)
+    }
+    
+    /**
      * @param user
      * @return [Organization]s that are connected to the [user]
      */

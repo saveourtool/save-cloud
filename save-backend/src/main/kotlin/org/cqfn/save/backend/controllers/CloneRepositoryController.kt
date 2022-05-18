@@ -74,7 +74,7 @@ class CloneRepositoryController(
     ): Mono<StringResponse> = with(executionRequest.project) {
         // Project cannot be taken from executionRequest directly for permission evaluation:
         // it can be fudged by user, who submits it. We should get project from DB based on name/owner combination.
-        projectService.findWithPermissionByNameAndOrganization(authentication, name, organization, Permission.WRITE)
+        projectService.findWithPermissionByNameAndOrganization(authentication, name, organization.name, Permission.WRITE)
     }
         .flatMap {
             sendToPreprocessor(
@@ -101,7 +101,7 @@ class CloneRepositoryController(
         @RequestPart("file", required = true) files: Flux<FileInfo>,
         authentication: Authentication,
     ): Mono<StringResponse> = with(executionRequestForStandardSuites.project) {
-        projectService.findWithPermissionByNameAndOrganization(authentication, name, organization, Permission.WRITE)
+        projectService.findWithPermissionByNameAndOrganization(authentication, name, organization.name, Permission.WRITE)
     }
         .flatMap {
             sendToPreprocessor(
