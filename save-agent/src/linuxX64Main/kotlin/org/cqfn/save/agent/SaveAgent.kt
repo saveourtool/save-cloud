@@ -248,19 +248,24 @@ class SaveAgent(internal val config: AgentConfiguration,
      */
     @OptIn(InternalAPI::class)
     private suspend fun sendLogs(byteArray: ByteArray): HttpResponse =
-            httpClient.submitFormWithBinaryData(
-                url = "${config.orchestratorUrl}/executionLogs",
-                formData = formData {
-                    append(config.id, byteArray, Headers.build {
-                        append(HttpHeaders.ContentType, ContentType.MultiPart.FormData)
-                        append(HttpHeaders.ContentDisposition, "filename=${config.id}")
-                    })
-                }
-            ) {
-                onUpload { bytesSentTotal, contentLength ->
-                    println("\n\n\n\nSent $bytesSentTotal bytes from $contentLength")
-                }
+            httpClient.post {
+                url("${config.orchestratorUrl}/executionLogs")
+                setBody(MultiPartFormDataContent(formData {
+                    append(
+                        "executionLogs",
+                        byteArray,
+                        Headers.build {
+                            append(HttpHeaders.ContentType, ContentType.MultiPart.FormData)
+                            append(HttpHeaders.ContentDisposition, "filename=${config.id}")
+                        }
+                    )
+                }))
             }
+//                {
+//                onUpload { bytesSentTotal, contentLength ->
+//                    println("\n\n\n\nSent $bytesSentTotal bytes from $contentLength")
+//                }
+//            }
 
     private suspend fun sendReport(testResultDebugInfo: TestResultDebugInfo) = httpClient.post {
         url("${config.backend.url}/${config.backend.filesEndpoint}/debug-info?agentId=${config.id}")
