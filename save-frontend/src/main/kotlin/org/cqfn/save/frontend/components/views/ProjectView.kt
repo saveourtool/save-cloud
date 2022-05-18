@@ -54,6 +54,7 @@ import react.setState
 
 import kotlinx.browser.document
 import kotlinx.browser.window
+import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.Month
@@ -243,11 +244,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 testRootPath = (event.target as HTMLInputElement).value
             }
         },
-        setTestRootPathFromHistory = { testRootPath ->
-            setState {
-                this.testRootPath = testRootPath
-            }
-        },
         setExecCmd = {
             setState {
                 execCmd = (it.target as HTMLInputElement).value
@@ -275,11 +271,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                             project = draftProject
                         }
                     } else {
-                        setState {
-                            errorLabel = "Failed to save project info"
-                            errorMessage = "Failed to save project info: ${response.status} ${response.statusText}"
-                            isErrorOpen = true
-                        }
                         // rollback form content
                         setDraftProject(state.project)
                     }
@@ -297,12 +288,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 if (response.ok) {
                     setState {
                         this.project = project
-                    }
-                } else {
-                    setState {
-                        errorLabel = "Failed to save project settings"
-                        errorMessage = "Failed to save project settings: ${response.status} ${response.statusText}"
-                        isErrorOpen = true
                     }
                 }
             }
@@ -330,12 +315,11 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
 
             button(classes = "btn btn-link text-left") {
                 +"Latest Execution"
-                attrs.onClickFunction = {
-                    scope.launch {
-                        switchToLatestExecution(state.latestExecutionId)
-                    }
-                }
                 attrs.disabled = state.latestExecutionId == null
+
+                attrs.onClickFunction = {
+                    window.location.href = "${window.location}/history/execution/${state.latestExecutionId}"
+                }
             }
         }
         div("ml-3 align-items-left") {
@@ -464,14 +448,16 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 set("Accept", "application/json")
                 set("Content-Type", "application/json")
             }
-            gitDto = post("$apiUrl/projects/git", headers, jsonProject)
-                .decodeFromJsonString<GitDto>()
-            standardTestSuites = get(
-                "$apiUrl/allStandardTestSuites",
-                headers,
-                responseHandler = ::noopResponseHandler,
-            )
-                .decodeFromJsonString()
+            gitDto = post("$apiUrl/projects/git", headers, jsonProject).decodeFromJsonString<GitDto>()
+            when {
+                state.gitUrlFromInputField.isBlank() && gitDto?.url != null -> state.gitUrlFromInputField = gitDto?.url ?: ""
+                state.gitBranchOrCommitFromInputField.isBlank() && gitDto?.branch != null -> state.gitBranchOrCommitFromInputField = gitDto?.branch ?: ""
+                else -> {
+                    // this is a generated else block
+                }
+            }
+
+            standardTestSuites = get("$apiUrl/allStandardTestSuites", headers).decodeFromJsonString()
 
             val availableFiles = getFilesList()
             setState {
@@ -502,6 +488,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                     }
                     val newGitDto = gitDto?.copy(url = urlWithTests, branch = newBranch, hash = newCommit)
                         ?: GitDto(url = urlWithTests, branch = newBranch, hash = newCommit)
+
                     submitExecutionRequestWithCustomTests(newGitDto)
                 }
             }
@@ -557,15 +544,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         }
         scope.launch {
             val response = post(apiUrl + url, headers, body)
-            if (!response.ok) {
-                response.text().then { text ->
-                    setState {
-                        isErrorOpen = true
-                        errorLabel = "Error from backend"
-                        errorMessage = "Request failed: [${response.statusText}] $text"
-                    }
-                }
-            } else {
+            if (response.ok) {
                 window.location.href = "${window.location}/history"
             }
         }
@@ -863,14 +842,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         }.invokeOnCompletion {
             if (responseFromDeleteProject.ok) {
                 window.location.href = "${window.location.origin}/"
-            } else {
-                responseFromDeleteProject.text().then {
-                    setState {
-                        errorLabel = "Failed to delete project"
-                        errorMessage = it
-                        isErrorOpen = true
-                    }
-                }
             }
         }
     }
@@ -893,23 +864,33 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 latestExecutionId = null
             }
             else -> {
-                val latestExecutionIdNew = response
-                    .decodeFromJsonString<ExecutionDto>()
-                    .id
+                val executionDtoFromRequest: Long = response
+                    .decodeFromJsonString<ExecutionDto>().id
+
                 setState {
-                    latestExecutionId = latestExecutionIdNew
+                    latestExecutionId = executionDtoFromRequest
                 }
             }
         }
+
+        getTestRootPathFromLatestExecution()
     }
 
-    private fun switchToLatestExecution(latestExecutionId: Long?) {
-        latestExecutionId?.let {
-            window.location.href = "${window.location}/history/execution/$latestExecutionId"
-        }
-            ?: setState {
-                isErrorOpen = true
+    private suspend fun getTestRootPathFromLatestExecution() {
+        state.latestExecutionId?.let {
+            val headers = Headers().apply { set("Accept", "application/json") }
+            val response = get(
+                "$apiUrl/getTestRootPathByExecutionId?id=${state.latestExecutionId}",
+                headers,
+                responseHandler = ::noopResponseHandler
+            )
+            val rootPath = response.text().await()
+            when {
+                response.ok -> setState {
+                    testRootPath = rootPath
+                }
             }
+        }
     }
 
     private suspend fun getFilesList() = get("$apiUrl/files/list", Headers())
