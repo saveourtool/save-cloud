@@ -2,8 +2,8 @@ package org.cqfn.save.backend.repository
 
 import org.cqfn.save.backend.configs.ConfigProperties
 import org.cqfn.save.domain.FileInfo
-import org.cqfn.save.domain.ShortFileInfo
 import org.cqfn.save.domain.ImageInfo
+import org.cqfn.save.domain.ShortFileInfo
 import org.cqfn.save.utils.AvatarType
 
 import org.slf4j.LoggerFactory

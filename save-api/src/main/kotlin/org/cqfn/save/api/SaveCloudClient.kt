@@ -245,7 +245,7 @@ class SaveCloudClient(
             val fileFromStorage = availableFilesInCloudStorage.firstOrNull { it.name == file.toPath().name }
             fileFromStorage?.let {
                 log.debug("Take existing file ${file.toPath().name} from storage")
-                resultFileInfoList.add(fileFromStorage.toDto().copy(isExecutable = true))
+                resultFileInfoList.add(fileFromStorage.toShortFileInfo().copy(isExecutable = true))
             } ?: run {
                 log.debug("Upload file $file to storage")
                 val uploadedFile: ShortFileInfo = httpClient.uploadAdditionalFile(file).copy(isExecutable = true)

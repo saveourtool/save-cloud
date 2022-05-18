@@ -7,8 +7,8 @@ import org.cqfn.save.backend.service.ExecutionService
 import org.cqfn.save.backend.service.ProjectService
 import org.cqfn.save.backend.utils.username
 import org.cqfn.save.domain.FileInfo
-import org.cqfn.save.domain.ShortFileInfo
 import org.cqfn.save.domain.Sdk
+import org.cqfn.save.domain.ShortFileInfo
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.ExecutionRequestBase

@@ -144,7 +144,7 @@ suspend fun HttpClient.submitExecution(executionType: ExecutionType, executionRe
                     formDataHeaders
                 )
             }
-            additionalFiles?.forEach { ShortFileInfo ->
+            additionalFiles?.forEach { shortFileInfo ->
                 append(
                     "file",
                     json.encodeToString(ShortFileInfo),

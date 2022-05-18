@@ -18,9 +18,9 @@ data class FileInfo(
     val isExecutable: Boolean = false,
 ) {
     /**
-     * @return FileInfo dto
+     * @return ShortFileInfo
      */
-    fun toDto(): ShortFileInfo = ShortFileInfo(
+    fun toShortFileInfo() = ShortFileInfo(
         this.name,
         this.isExecutable,
     )
