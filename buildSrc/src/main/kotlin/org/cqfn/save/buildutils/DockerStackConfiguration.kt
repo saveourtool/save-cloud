@@ -150,19 +150,22 @@ fun Project.createStackDeployTask(profile: String) {
         commandLine("docker-compose", "--file", "$buildDir/docker-compose.yaml", "up", "-d", "orchestrator", "backend", "preprocessor")
     }
 
-    tasks.register<Exec>("buildAndDeployComponent") {
-        description = "Build and deploy a single component of save-cloud. Component name should be provided via `-Psave.component=<name> " +
-                "and it should be a name of one of gradle subprojects."
-        val componentName = findProperty("save.component") as String?
-        requireNotNull(componentName) { "Component name should be provided for `deployComponent` task" }
-        require(componentName in allprojects.map { it.name }) { "Component name should be one of gradle subproject names" }
-        val buildTask = project(componentName).tasks.named<BootBuildImage>("bootBuildImage")
-        dependsOn(buildTask)
-        val serviceName = when (componentName) {
-            "save-backend", "save-orchestrator", "save-preprocessor" -> "save_${componentName.substringAfter("save-")}"
-            "api-gateway" -> "save_gateway"
-            else -> error("Wrong component name $componentName")
+    val componentName = findProperty("save.component") as String?
+    if (componentName != null) {
+        tasks.register<Exec>("buildAndDeployComponent") {
+            description =
+                "Build and deploy a single component of save-cloud. Component name should be provided via `-Psave.component=<name> " +
+                        "and it should be a name of one of gradle subprojects. If component name is `save-backend`, then `save-frontend` will be built too" +
+                        " and bundled into save-backend image."
+            require(componentName in allprojects.map { it.name }) { "Component name should be one of gradle subproject names, but was [$componentName]" }
+            val buildTask = project(componentName).tasks.named<BootBuildImage>("bootBuildImage")
+            dependsOn(buildTask)
+            val serviceName = when (componentName) {
+                "save-backend", "save-orchestrator", "save-preprocessor" -> "save_${componentName.substringAfter("save-")}"
+                "api-gateway" -> "save_gateway"
+                else -> error("Wrong component name $componentName")
+            }
+            commandLine("docker", "service", "update", "--image", buildTask.get().imageName, serviceName)
         }
-        commandLine("docker", "service", "update", "--image", buildTask.get().imageName, serviceName)
     }
 }
