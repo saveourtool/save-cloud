@@ -44,6 +44,11 @@ external interface AwesomeBenchmarksState : State {
      * list of unique languages from benchmarks
      */
     var languages: List<String>
+
+    /**
+     * Selected language
+     */
+    var lang: String
 }
 
 /**
@@ -175,7 +180,7 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                     div("col-lg-8") {
                                         // https://devicon.dev
                                         state.benchmarks.forEachIndexed { i, benchmark ->
-                                            if (state.selectedMenuBench == benchmark.category) {
+                                            if (state.selectedMenuBench == benchmark.category && benchmark.language == state.lang) {
                                                 div("media text-muted ${if (i != 0) "pt-3" else ""}") {
                                                     img(classes = "rounded mt-1") {
                                                         attrs["data-src"] =
@@ -229,8 +234,21 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                             val languages = state.benchmarks.map { it.language }
                                             // FixMe: optimize this code (create maps with numbers only once). May be even store this data in DB?
                                             languages.distinct().forEach { language ->
+
                                                 li("list-group-item d-flex justify-content-between align-items-center") {
-                                                    +language.replace("language independent", "lang independent")
+                                                    attrs.onClickFunction = {
+                                                        if (state.lang != language) {
+                                                            setState {
+                                                                lang = language
+                                                            }
+                                                        }
+                                                    }
+
+                                                    +language.replace(
+
+                                                        "language independent",
+                                                        "lang independent"
+                                                    )
                                                     span("badge badge-primary badge-pill") {
                                                         +state.benchmarks.count { it.language == language }
                                                             .toString()
