@@ -521,7 +521,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         )
         formData.appendJson("execution", request)
         state.files.forEach {
-            formData.appendJson("file", it)
+            formData.appendJson("file", it.toShortFileInfo())
         }
         submitRequest("/executionRequestStandardTests", headers, formData)
     }
@@ -533,7 +533,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         val executionRequest = ExecutionRequest(state.project, correctGitDto, testRootPath, selectedSdk, null)
         formData.appendJson("executionRequest", executionRequest)
         state.files.forEach {
-            formData.appendJson("file", it)
+            formData.appendJson("file", it.toShortFileInfo())
         }
         submitRequest("/submitExecutionRequest", Headers(), formData)
     }
@@ -716,13 +716,14 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
 
                 element.files!!.asList().forEach { file ->
                     val response: FileInfo = post(
-                        "$apiUrl/files/upload",
+                        "$apiUrl/files/upload?returnShortFileInfo=false",
                         Headers(),
                         FormData().apply {
                             append("file", file)
                         }
                     )
                         .decodeFromJsonString()
+
                     setState {
                         // add only to selected files so that this entry isn't duplicated
                         files.add(response)
