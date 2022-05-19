@@ -94,11 +94,16 @@ interface TestExecutionRepository : BaseEntityRepository<TestExecution>, JpaSpec
     fun findByExecutionId(executionId: Long): List<TestExecution>
 
     /**
-     * @param statuses
+     * @param status
      * @param id
      * @return list of test executions
      */
-    fun findByStatusListAndExecutionId(statuses: List<TestResultStatus>, id: Long): List<TestExecution>
+    @Query(value = """
+        SELECT te FROM TestExecution te 
+        JOIN Execution e
+        ON e = te.execution
+        WHERE te.status IN :status and e.id = :id""")
+    fun findByStatusListAndExecutionId(status: List<TestResultStatus>, id: Long): List<TestExecution>
 
     /**
      * Returns a page of [TestExecution]s with [executionId]
