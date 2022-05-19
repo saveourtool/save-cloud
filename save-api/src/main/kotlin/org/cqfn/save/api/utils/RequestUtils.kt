@@ -7,6 +7,7 @@ package org.cqfn.save.api.utils
 import org.cqfn.save.api.authorization.Authorization
 import org.cqfn.save.api.config.WebClientProperties
 import org.cqfn.save.domain.FileInfo
+import org.cqfn.save.domain.ShortFileInfo
 import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.ExecutionRequestBase
 import org.cqfn.save.entities.ExecutionRequestForStandardSuites
@@ -85,7 +86,7 @@ suspend fun HttpClient.getAvailableFilesList(
 @OptIn(InternalAPI::class)
 suspend fun HttpClient.uploadAdditionalFile(
     file: String,
-): FileInfo = this.post {
+): ShortFileInfo = this.post {
     url("${Backend.url}/api/$v1/files/upload")
     header("X-Authorization-Source", UserInformation.source)
     body = MultiPartFormDataContent(formData {
@@ -117,7 +118,7 @@ suspend fun HttpClient.getStandardTestSuites(
  */
 @OptIn(InternalAPI::class)
 @Suppress("TOO_LONG_FUNCTION")
-suspend fun HttpClient.submitExecution(executionType: ExecutionType, executionRequest: ExecutionRequestBase, additionalFiles: List<FileInfo>?): HttpResponse {
+suspend fun HttpClient.submitExecution(executionType: ExecutionType, executionRequest: ExecutionRequestBase, additionalFiles: List<ShortFileInfo>?): HttpResponse {
     val endpoint = if (executionType == ExecutionType.GIT) {
         "/api/$v1/submitExecutionRequest"
     } else {
@@ -143,10 +144,10 @@ suspend fun HttpClient.submitExecution(executionType: ExecutionType, executionRe
                     formDataHeaders
                 )
             }
-            additionalFiles?.forEach { fileInfo ->
+            additionalFiles?.forEach { shortFileInfo ->
                 append(
                     "file",
-                    json.encodeToString(fileInfo),
+                    json.encodeToString(ShortFileInfo),
                     Headers.build {
                         append(HttpHeaders.ContentType, ContentType.Application.Json)
                     }

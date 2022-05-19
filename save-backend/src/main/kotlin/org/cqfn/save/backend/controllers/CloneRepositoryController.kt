@@ -8,6 +8,7 @@ import org.cqfn.save.backend.service.ProjectService
 import org.cqfn.save.backend.utils.username
 import org.cqfn.save.domain.FileInfo
 import org.cqfn.save.domain.Sdk
+import org.cqfn.save.domain.ShortFileInfo
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.ExecutionRequestBase
@@ -69,7 +70,7 @@ class CloneRepositoryController(
     @PostMapping(path = ["/$v1/submitExecutionRequest"], consumes = ["multipart/form-data"])
     fun submitExecutionRequest(
         @RequestPart(required = true) executionRequest: ExecutionRequest,
-        @RequestPart("file", required = false) files: Flux<FileInfo>,
+        @RequestPart("file", required = false) files: Flux<ShortFileInfo>,
         authentication: Authentication,
     ): Mono<StringResponse> = with(executionRequest.project) {
         // Project cannot be taken from executionRequest directly for permission evaluation:
@@ -81,7 +82,7 @@ class CloneRepositoryController(
                 executionRequest,
                 ExecutionType.GIT,
                 authentication.username(),
-                files
+                files.map { additionalToolsFileSystemRepository.getFileInfoByShortInfo(it) }
             ) { newExecutionId ->
                 part("executionRequest", executionRequest.copy(executionId = newExecutionId), MediaType.APPLICATION_JSON)
             }
@@ -98,7 +99,7 @@ class CloneRepositoryController(
     @PostMapping(path = ["/$v1/executionRequestStandardTests"], consumes = ["multipart/form-data"])
     fun executionRequestStandardTests(
         @RequestPart("execution", required = true) executionRequestForStandardSuites: ExecutionRequestForStandardSuites,
-        @RequestPart("file", required = true) files: Flux<FileInfo>,
+        @RequestPart("file", required = true) files: Flux<ShortFileInfo>,
         authentication: Authentication,
     ): Mono<StringResponse> = with(executionRequestForStandardSuites.project) {
         projectService.findWithPermissionByNameAndOrganization(authentication, name, organization.name, Permission.WRITE)
@@ -108,7 +109,7 @@ class CloneRepositoryController(
                 executionRequestForStandardSuites,
                 ExecutionType.STANDARD,
                 authentication.username(),
-                files
+                files.map { additionalToolsFileSystemRepository.getFileInfoByShortInfo(it) }
             ) { newExecutionId ->
                 part("executionRequestForStandardSuites", executionRequestForStandardSuites.copy(executionId = newExecutionId), MediaType.APPLICATION_JSON)
             }

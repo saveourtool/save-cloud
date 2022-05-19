@@ -12,7 +12,7 @@ import org.cqfn.save.api.utils.getStandardTestSuites
 import org.cqfn.save.api.utils.initializeHttpClient
 import org.cqfn.save.api.utils.submitExecution
 import org.cqfn.save.api.utils.uploadAdditionalFile
-import org.cqfn.save.domain.FileInfo
+import org.cqfn.save.domain.ShortFileInfo
 import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.ExecutionRequestBase
 import org.cqfn.save.entities.ExecutionRequestForStandardSuites
@@ -89,7 +89,7 @@ class SaveCloudClient(
      */
     private suspend fun submitExecution(
         executionType: ExecutionType,
-        additionalFiles: List<FileInfo>?
+        additionalFiles: List<ShortFileInfo>?
     ): ExecutionRequestBase? {
         val executionRequest = if (executionType == ExecutionType.GIT) {
             buildExecutionRequest()
@@ -227,7 +227,7 @@ class SaveCloudClient(
      */
     private suspend fun processAdditionalFiles(
         files: String
-    ): List<FileInfo>? {
+    ): List<ShortFileInfo>? {
         val userProvidedAdditionalFiles = files.split(";")
         userProvidedAdditionalFiles.forEach {
             if (!File(it).exists()) {
@@ -238,17 +238,17 @@ class SaveCloudClient(
 
         val availableFilesInCloudStorage = httpClient.getAvailableFilesList()
 
-        val resultFileInfoList: MutableList<FileInfo> = mutableListOf()
+        val resultFileInfoList: MutableList<ShortFileInfo> = mutableListOf()
 
         // Try to take files from storage, or upload them if they are absent
         userProvidedAdditionalFiles.forEach { file ->
             val fileFromStorage = availableFilesInCloudStorage.firstOrNull { it.name == file.toPath().name }
             fileFromStorage?.let {
                 log.debug("Take existing file ${file.toPath().name} from storage")
-                resultFileInfoList.add(fileFromStorage.copy(isExecutable = true))
+                resultFileInfoList.add(fileFromStorage.toShortFileInfo().copy(isExecutable = true))
             } ?: run {
                 log.debug("Upload file $file to storage")
-                val uploadedFile: FileInfo = httpClient.uploadAdditionalFile(file).copy(isExecutable = true)
+                val uploadedFile: ShortFileInfo = httpClient.uploadAdditionalFile(file).copy(isExecutable = true)
                 resultFileInfoList.add(uploadedFile)
             }
         }
