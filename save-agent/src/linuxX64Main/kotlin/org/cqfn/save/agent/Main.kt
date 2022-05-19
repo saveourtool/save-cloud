@@ -56,10 +56,6 @@ fun main() {
     })
 
     val httpClient = HttpClient {
-        install(Logging) {
-            logger = Logger.DEFAULT
-            level = LogLevel.INFO
-        }
         install(JsonPlugin) {
             serializer = KotlinxSerializer(json)
         }

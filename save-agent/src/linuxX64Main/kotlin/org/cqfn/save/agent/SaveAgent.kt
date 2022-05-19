@@ -172,7 +172,7 @@ class SaveAgent(internal val config: AgentConfiguration,
         .exec(
             config.cliCommand.let {
                 "$it $cliArgs"
-            } + " --report-type json --result-output file",
+            } + " --report-type json --result-output file --log all",
             "",
             config.logFilePath.toPath(),
             1_000_000L
@@ -220,7 +220,7 @@ class SaveAgent(internal val config: AgentConfiguration,
             }
                 .exceptionOrNull()
                 ?.let {
-                    logErrorCustom("\n\n\nCouldn't send logs, reason: ${it.message} $it\n\n\n")
+                    logErrorCustom("Couldn't send logs, reason: ${it.message}")
                 }
         }
     }
@@ -261,11 +261,6 @@ class SaveAgent(internal val config: AgentConfiguration,
                     )
                 }))
             }
-//                {
-//                onUpload { bytesSentTotal, contentLength ->
-//                    println("\n\n\n\nSent $bytesSentTotal bytes from $contentLength")
-//                }
-//            }
 
     private suspend fun sendReport(testResultDebugInfo: TestResultDebugInfo) = httpClient.post {
         url("${config.backend.url}/${config.backend.filesEndpoint}/debug-info?agentId=${config.id}")

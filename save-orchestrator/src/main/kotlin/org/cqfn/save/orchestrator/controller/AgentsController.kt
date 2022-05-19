@@ -104,7 +104,6 @@ class AgentsController(
      */
     @PostMapping("/executionLogs", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     fun saveAgentsLog(@RequestPart(required = true) executionLogs: FilePart) {
-        println("\n\n\n\n\nsaveAgentsLog!")
         val fileName = executionLogs.filename()
         val logDir = File(configProperties.executionLogs)
         if (!logDir.exists()) {
@@ -123,6 +122,9 @@ class AgentsController(
                 }
             }
         }
+            .collectList()
+            .subscribe()
+
         log.info("Logs of agent id = $fileName were written")
     }
 
