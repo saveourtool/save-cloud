@@ -42,8 +42,8 @@ external interface TestResourcesProps : PropsWithChildren {
     var gitDto: GitDto?
 
     // properties for CUSTOM_TESTS mode
-    var gitUrlFromInputField: String?
-    var gitBranchOrCommitFromInputField: String?
+    var gitUrlFromInputField: String
+    var gitBranchOrCommitFromInputField: String
     var execCmd: String
     var batchSizeForAnalyzer: String
     var testRootPath: String
@@ -98,7 +98,6 @@ private fun RBuilder.setAdditionalPropertiesForStandardMode(
  * @param updateGitUrlFromInputField
  * @param updateGitBranchOrCommitInputField
  * @param updateTestRootPath
- * @param setTestRootPathFromHistory
  * @param setSelectedLanguageForStandardTests
  * @param setExecCmd
  * @param setBatchSize
@@ -114,13 +113,11 @@ fun testResourcesSelection(
     updateGitUrlFromInputField: (Event) -> Unit,
     updateGitBranchOrCommitInputField: (Event) -> Unit,
     updateTestRootPath: (Event) -> Unit,
-    setTestRootPathFromHistory: (String) -> Unit,
     setExecCmd: (Event) -> Unit,
     setBatchSize: (Event) -> Unit,
     setSelectedLanguageForStandardTests: (String) -> Unit,
 ) =
         fc<TestResourcesProps> { props ->
-
             if (props.testingType == TestingType.CONTEST_MODE) {
                 label(classes = "control-label col-auto justify-content-between justify-content-center font-weight-bold text-danger mb-4 pl-0") {
                     +"Stay tuned! Contests will be here soon"
@@ -156,18 +153,16 @@ fun testResourcesSelection(
                         div("input-group-prepend") {
                             input(type = InputType.text) {
                                 attrs["class"] =
-                                        if (props.gitUrlFromInputField.isNullOrBlank() && props.isSubmitButtonPressed!!) {
+                                        if (props.gitUrlFromInputField.isBlank() && props.isSubmitButtonPressed!!) {
                                             "form-control is-invalid"
                                         } else {
                                             "form-control"
                                         }
                                 attrs {
-                                    props.gitUrlFromInputField?.let {
-                                        defaultValue = it
-                                    } ?: props.gitDto?.url?.let {
-                                        defaultValue = it
-                                        setTestRootPathFromHistory(it)
+                                    if (props.gitUrlFromInputField.isNotBlank()) {
+                                        defaultValue = props.gitUrlFromInputField
                                     }
+
                                     placeholder = "https://github.com/my-project"
                                     onChangeFunction = {
                                         updateGitUrlFromInputField(it)
@@ -197,10 +192,11 @@ fun testResourcesSelection(
                         div("input-group-prepend") {
                             input(type = InputType.text, name = "itemText") {
                                 key = "itemText"
-                                attrs.set("class", "form-control")
+                                attrs["class"] = "form-control"
+
                                 attrs {
-                                    props.gitBranchOrCommitFromInputField?.let {
-                                        value = it
+                                    if (props.gitBranchOrCommitFromInputField.isNotBlank()) {
+                                        defaultValue = props.gitBranchOrCommitFromInputField
                                     }
                                     placeholder = "leave empty if you would like to use default branch with latest commit"
                                     onChangeFunction = {
@@ -230,7 +226,7 @@ fun testResourcesSelection(
                         div("input-group-prepend") {
                             input(type = InputType.text, name = "itemText") {
                                 key = "itemText"
-                                attrs.set("class", "form-control")
+                                attrs["class"] = "form-control"
                                 attrs {
                                     value = props.testRootPath
                                     placeholder = "leave empty if tests are in the repository root"

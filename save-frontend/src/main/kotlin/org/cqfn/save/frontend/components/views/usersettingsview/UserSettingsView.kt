@@ -293,8 +293,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                 }
             }
 
-    private suspend fun getAvatar() = get("$apiUrl/users/${props.userName}/avatar", Headers(),
-        responseHandler = ::noopResponseHandler)
+    private suspend fun getAvatar() = get("$apiUrl/users/${props.userName}/avatar", Headers())
         .unsafeMap {
             it.decodeFromJsonString<ImageInfo>()
         }
