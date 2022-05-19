@@ -96,11 +96,6 @@ external interface HistoryViewState : State {
     var errorMessage: String
 
     /**
-     * Flag to handle error
-     */
-    var isErrorOpen: Boolean?
-
-    /**
      * Error label
      */
     var errorLabel: String
@@ -241,9 +236,6 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
         "LongMethod",
     )
     override fun RBuilder.render() {
-        runErrorModal(state.isErrorOpen, state.errorLabel, state.errorMessage) {
-            setState { isErrorOpen = false }
-        }
         runConfirmWindowModal(state.isConfirmWindowOpen, state.confirmLabel, state.confirmMessage, { setState { isConfirmWindowOpen = false } }) {
             deleteExecutionsBuilder()
             setState { isConfirmWindowOpen = false }
@@ -253,7 +245,6 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
             setState {
                 isDeleteExecutionWindowOpen = false
             }
-            window.location.reload()
         }
         div {
             button(type = ButtonType.button, classes = "btn btn-danger mb-4") {
@@ -291,16 +282,9 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
         scope.launch {
             val responseFromDeleteExecutions =
                     post("$apiUrl/execution/deleteAll?name=${props.name}&organizationName=${props.organizationName}", headers, undefined)
+
             if (responseFromDeleteExecutions.ok) {
                 window.location.href = "${window.location.origin}#/${props.organizationName}/${props.name}"
-            } else {
-                responseFromDeleteExecutions.text().then {
-                    setState {
-                        errorLabel = "Failed to delete executions"
-                        errorMessage = it
-                        isErrorOpen = true
-                    }
-                }
             }
         }
     }
@@ -326,14 +310,6 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
 
             if (responseFromDeleteExecutions.ok) {
                 window.location.reload()
-            } else {
-                responseFromDeleteExecutions.text().then {
-                    setState {
-                        errorLabel = "Failed to delete executions"
-                        errorMessage = it
-                        isErrorOpen = true
-                    }
-                }
             }
         }
     }
