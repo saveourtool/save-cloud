@@ -23,7 +23,7 @@ spec:
             - name: DATABASE_SECRETS_PATH
               value: {{ .Values.backend.dbPasswordFile }}
             - name: JAVA_TOOL_OPTIONS
-              value: -Xmx200m
+              value: -XX:ReservedCodeCacheSize=48M
           volumeMounts:
             - {{ include "spring-boot.config-volume-mount" . | indent 14 | trim }}
             - name: fs-storage
@@ -33,7 +33,10 @@ spec:
           {{- include "spring-boot.management" .Values.backend | nindent 10 }}
           resources:
             limits:
+              memory: 500M
+            requests:
               memory: 300M
+      {{ if .Values.mysql.migrations.enabled }}
       initContainers:
         - name: git-cloner
           image: alpine/git
@@ -61,6 +64,7 @@ spec:
               name: migrations-data
             - mountPath: {{ .Values.backend.dbPasswordFile }}
               name: database-secret
+      {{ end }}
       volumes:
         - {{ include "spring-boot.config-volume" (dict "service" .Values.backend) | indent 10 | trim }}
         - name: fs-storage

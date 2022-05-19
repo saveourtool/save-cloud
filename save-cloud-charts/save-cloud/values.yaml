@@ -49,6 +49,9 @@ mysql:
   # IP address of an external MySQL database.
   # As an example, this is what may be a resolved IP of `host.minikube.internal`.
   ip: 192.168.65.2
+  migrations:
+    # Whether database migrations should be executed while deploying the application
+    enabled: false
 
 # Values for dependencies
 grafana:
