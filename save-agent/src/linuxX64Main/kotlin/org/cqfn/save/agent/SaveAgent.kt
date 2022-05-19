@@ -244,7 +244,7 @@ class SaveAgent(internal val config: AgentConfiguration,
     }
 
     /**
-     * @param executionLogs logs of CLI execution progress that will be sent in a message
+     * @param byteArray byte array with logs of CLI execution progress that will be sent in a message
      */
     @OptIn(InternalAPI::class)
     private suspend fun sendLogs(byteArray: ByteArray): HttpResponse =
