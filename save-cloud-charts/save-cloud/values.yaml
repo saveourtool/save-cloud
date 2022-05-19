@@ -99,7 +99,7 @@ promtail:
   image:
     tag: 2.5.0
   config:
-    lokiAddress: http://loki:3100/loki/api/v1/push
+    lokiAddress: http://save-cloud-loki:3100/loki/api/v1/push
     snippets:
       pipelineStages:
         - docker: {}
@@ -113,11 +113,17 @@ promtail:
             expression: '^\d{2}:\d{2}:\d{2}\.\d{3} \[(?P<thread>[\w\d\-.]+)\] (?P<level>\w+)'
         - labels:
             level:
+      extraRelabelConfigs:
+        - action: keep
+          regex: true
+          source_labels: [__meta_kubernetes_pod_labelpresent_io_kompose_service]
 
 loki:
   tag: 2.5.0
   persistence:
     enabled: true
-#  service:
-  # TODO: service with a fixed IP => ability to use Docker driver
-  #  Or rather - use Promtail
+  config:
+    ingester:
+      # https://grafana.com/docs/loki/latest/operations/storage/filesystem/
+      max_chunk_age: 2h
+      chunk_idle_period: 2h
