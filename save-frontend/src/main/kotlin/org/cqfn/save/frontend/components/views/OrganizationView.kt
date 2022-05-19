@@ -504,8 +504,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             }
 
     private suspend fun getAvatar() = get(
-        "$apiUrl/organization/${props.organizationName}/avatar", Headers(),
-        responseHandler = ::noopResponseHandler
+        "$apiUrl/organization/${props.organizationName}/avatar", Headers()
     ).unsafeMap {
         it.decodeFromJsonString<ImageInfo>()
     }
@@ -670,14 +669,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         }.invokeOnCompletion {
             if (responseFromDeleteOrganization.ok) {
                 window.location.href = "${window.location.origin}/"
-            } else {
-                responseFromDeleteOrganization.text().then {
-                    setState {
-                        errorLabel = "Failed to delete organization"
-                        errorMessage = it
-                        isErrorOpen = true
-                    }
-                }
             }
         }
     }

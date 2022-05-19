@@ -80,7 +80,6 @@ class LnkUserOrganizationControllerTest {
             details = AuthenticationDetails(id = 99)
         }
         given(
-
             user = { User(name = it.arguments[0] as String, null, null, "") },
             organization = Organization.stub(id = 99),
             organizationRole = Role.NONE,
