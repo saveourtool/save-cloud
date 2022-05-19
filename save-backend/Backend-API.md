@@ -137,21 +137,14 @@ The format will have the following form:
 ```bash
 {
   "name": "your-file-name",
-  "uploadedMillis": 1651662834923,
-  "sizeBytes":172,
   "isExecutable":false
 }
 ```
 
-If you already uploaded them into the SAVE Cloud storage, you will need\
-to get the corresponding `json`. It could be done by following request,\
-which will return the metadata of all files in SAVE Cloud storage:
+By default, the `isExecutable` argument, which indicates, whether the provided file\
+should be executable, or not, is `false`. \
+However, for the execution request from the next section, you can set this argument with value, that you need.
 
-```bash
-curl -X GET "${SAVE_CLOUD_URL}/api/v1/files/list" \
--H "X-Authorization-Source: ${SAVE_CLOUD_AUTH_SOURCE}" \
--H "Authorization: ${SAVE_CLOUD_AUTH}"
-```
 
 #### Execution submission
 
@@ -191,14 +184,10 @@ curl -X POST "${SAVE_CLOUD_URL}/api/v1/submitExecutionRequest" \
 };type=application/json" \
 -F 'file={
   "name": "ktlint",
-  "uploadedMillis": 1637658398621,
-  "sizeBytes": 54167132,
   "isExecutable": false
 };type=application/json' \
 -F 'file={
   "name": "diktat.jar",
-  "uploadedMillis": 1637658396121,
-  "sizeBytes": 6366668,
   "isExecutable": false
 };type=application/json'
 ```
@@ -223,20 +212,14 @@ curl -X POST "${SAVE_CLOUD_URL}/api/v1/executionRequestStandardTests" \
 };type=application/json" \
 -F 'file={
   "name": "ktlint",
-  "uploadedMillis": 1637658398621,
-  "sizeBytes": 54167132,
   "isExecutable": false
 };type=application/json' \
 -F 'file={
   "name": "diktat-analysis.yml",
-  "uploadedMillis": 1637673340431,
-  "sizeBytes":3207,
   "isExecutable":false
 };type=application/json' \
 -F 'file={
   "name": "diktat.jar",
-  "uploadedMillis": 1637658396121,
-  "sizeBytes": 6366668,
   "isExecutable": false
 };type=application/json'
 ```
