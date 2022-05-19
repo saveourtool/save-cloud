@@ -1,6 +1,18 @@
 package org.cqfn.save.api
 
-import org.cqfn.save.domain.FileInfo
+import org.cqfn.save.api.authorization.Authorization
+import org.cqfn.save.api.config.EvaluatedToolProperties
+import org.cqfn.save.api.config.WebClientProperties
+import org.cqfn.save.api.config.toSdk
+import org.cqfn.save.api.utils.getAvailableFilesList
+import org.cqfn.save.api.utils.getExecutionById
+import org.cqfn.save.api.utils.getLatestExecution
+import org.cqfn.save.api.utils.getProjectByNameAndOrganizationName
+import org.cqfn.save.api.utils.getStandardTestSuites
+import org.cqfn.save.api.utils.initializeHttpClient
+import org.cqfn.save.api.utils.submitExecution
+import org.cqfn.save.api.utils.uploadAdditionalFile
+import org.cqfn.save.domain.ShortFileInfo
 import org.cqfn.save.entities.ExecutionRequest
 import org.cqfn.save.entities.ExecutionRequestBase
 import org.cqfn.save.entities.ExecutionRequestForStandardSuites
@@ -23,13 +35,13 @@ import kotlinx.coroutines.delay
 /**
  * Class, that provides logic for execution submission and result receiving
  */
-class AutomaticTestInitializator(
-    private val webClientProperties: WebClientProperties,
+class SaveCloudClient(
+    webClientProperties: WebClientProperties,
     private val evaluatedToolProperties: EvaluatedToolProperties,
     private val executionType: ExecutionType,
     authorization: Authorization,
 ) {
-    private val log = LoggerFactory.getLogger(AutomaticTestInitializator::class.java)
+    private val log = LoggerFactory.getLogger(SaveCloudClient::class.java)
     private var httpClient: HttpClient = initializeHttpClient(authorization, webClientProperties)
 
     /**
@@ -77,7 +89,7 @@ class AutomaticTestInitializator(
      */
     private suspend fun submitExecution(
         executionType: ExecutionType,
-        additionalFiles: List<FileInfo>?
+        additionalFiles: List<ShortFileInfo>?
     ): ExecutionRequestBase? {
         val executionRequest = if (executionType == ExecutionType.GIT) {
             buildExecutionRequest()
@@ -176,11 +188,10 @@ class AutomaticTestInitializator(
     )
 
     /**
-     * Get results for current [executionRequest] and [organizationId]:
+     * Get results for current [executionRequest]:
      * sending requests, which checks current state of execution, until it will be finished, or timeout will be reached
      *
      * @param executionRequest
-     * @param organizationId
      */
     @Suppress("MagicNumber")
     private suspend fun getExecutionResults(
@@ -216,7 +227,7 @@ class AutomaticTestInitializator(
      */
     private suspend fun processAdditionalFiles(
         files: String
-    ): List<FileInfo>? {
+    ): List<ShortFileInfo>? {
         val userProvidedAdditionalFiles = files.split(";")
         userProvidedAdditionalFiles.forEach {
             if (!File(it).exists()) {
@@ -227,17 +238,17 @@ class AutomaticTestInitializator(
 
         val availableFilesInCloudStorage = httpClient.getAvailableFilesList()
 
-        val resultFileInfoList: MutableList<FileInfo> = mutableListOf()
+        val resultFileInfoList: MutableList<ShortFileInfo> = mutableListOf()
 
         // Try to take files from storage, or upload them if they are absent
         userProvidedAdditionalFiles.forEach { file ->
             val fileFromStorage = availableFilesInCloudStorage.firstOrNull { it.name == file.toPath().name }
             fileFromStorage?.let {
                 log.debug("Take existing file ${file.toPath().name} from storage")
-                resultFileInfoList.add(fileFromStorage.copy(isExecutable = true))
+                resultFileInfoList.add(fileFromStorage.toShortFileInfo().copy(isExecutable = true))
             } ?: run {
                 log.debug("Upload file $file to storage")
-                val uploadedFile: FileInfo = httpClient.uploadAdditionalFile(file).copy(isExecutable = true)
+                val uploadedFile: ShortFileInfo = httpClient.uploadAdditionalFile(file).copy(isExecutable = true)
                 resultFileInfoList.add(uploadedFile)
             }
         }

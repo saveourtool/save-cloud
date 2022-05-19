@@ -1,4 +1,4 @@
-package org.cqfn.save.api
+package org.cqfn.save.api.authorization
 
 /**
  * Authorization data

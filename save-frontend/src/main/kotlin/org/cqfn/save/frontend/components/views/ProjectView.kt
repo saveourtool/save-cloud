@@ -25,16 +25,8 @@ import org.cqfn.save.frontend.externals.fontawesome.faHistory
 import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
 import org.cqfn.save.frontend.externals.modal.modal
 import org.cqfn.save.frontend.http.getProject
-import org.cqfn.save.frontend.utils.ProjectMenuBar
-import org.cqfn.save.frontend.utils.apiUrl
-import org.cqfn.save.frontend.utils.appendJson
-import org.cqfn.save.frontend.utils.decodeFromJsonString
-import org.cqfn.save.frontend.utils.get
+import org.cqfn.save.frontend.utils.*
 import org.cqfn.save.frontend.utils.noopResponseHandler
-import org.cqfn.save.frontend.utils.post
-import org.cqfn.save.frontend.utils.runConfirmWindowModal
-import org.cqfn.save.frontend.utils.runErrorModal
-import org.cqfn.save.frontend.utils.unsafeMap
 import org.cqfn.save.info.UserInfo
 import org.cqfn.save.testsuite.TestSuiteDto
 
@@ -62,6 +54,7 @@ import react.setState
 
 import kotlinx.browser.document
 import kotlinx.browser.window
+import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.Month
@@ -223,16 +216,6 @@ external interface ProjectViewState : State {
 }
 
 /**
- * enum that stores types of confirmation windows for different situations
- */
-enum class ConfirmationType {
-    DELETE_CONFIRM,
-    NO_BINARY_CONFIRM,
-    NO_CONFIRM,
-    ;
-}
-
-/**
  * A Component for project view
  * Each modal opening call causes re-render of the whole page, that's why we need to use state for all fields
  */
@@ -259,11 +242,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         updateTestRootPath = { event ->
             setState {
                 testRootPath = (event.target as HTMLInputElement).value
-            }
-        },
-        setTestRootPathFromHistory = { testRootPath ->
-            setState {
-                this.testRootPath = testRootPath
             }
         },
         setExecCmd = {
@@ -293,11 +271,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                             project = draftProject
                         }
                     } else {
-                        setState {
-                            errorLabel = "Failed to save project info"
-                            errorMessage = "Failed to save project info: ${response.status} ${response.statusText}"
-                            isErrorOpen = true
-                        }
                         // rollback form content
                         setDraftProject(state.project)
                     }
@@ -316,12 +289,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                     setState {
                         this.project = project
                     }
-                } else {
-                    setState {
-                        errorLabel = "Failed to save project settings"
-                        errorMessage = "Failed to save project settings: ${response.status} ${response.statusText}"
-                        isErrorOpen = true
-                    }
                 }
             }
         },
@@ -332,6 +299,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 isErrorOpen = true
             }
         },
+        updateNotificationMessage = ::showNotification
     )
     private val projectStatisticMenu = projectStatisticMenu()
     private val projectInfoCard = cardComponent(isBordered = true, hasBg = true) {
@@ -347,12 +315,11 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
 
             button(classes = "btn btn-link text-left") {
                 +"Latest Execution"
-                attrs.onClickFunction = {
-                    scope.launch {
-                        switchToLatestExecution(state.latestExecutionId)
-                    }
-                }
                 attrs.disabled = state.latestExecutionId == null
+
+                attrs.onClickFunction = {
+                    window.location.href = "${window.location}/history/execution/${state.latestExecutionId}"
+                }
             }
         }
         div("ml-3 align-items-left") {
@@ -452,6 +419,15 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         state.selectedMenu = ProjectMenuBar.RUN
     }
 
+    private fun showNotification(notificationLabel: String, notificationMessage: String) {
+        setState {
+            confirmationType = ConfirmationType.NO_CONFIRM
+            isConfirmWindowOpen = true
+            confirmLabel = notificationLabel
+            confirmMessage = notificationMessage
+        }
+    }
+
     override fun componentDidMount() {
         super.componentDidMount()
 
@@ -472,14 +448,16 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 set("Accept", "application/json")
                 set("Content-Type", "application/json")
             }
-            gitDto = post("$apiUrl/projects/git", headers, jsonProject)
-                .decodeFromJsonString<GitDto>()
-            standardTestSuites = get(
-                "$apiUrl/allStandardTestSuites",
-                headers,
-                responseHandler = ::noopResponseHandler,
-            )
-                .decodeFromJsonString()
+            gitDto = post("$apiUrl/projects/git", headers, jsonProject).decodeFromJsonString<GitDto>()
+            when {
+                state.gitUrlFromInputField.isBlank() && gitDto?.url != null -> state.gitUrlFromInputField = gitDto?.url ?: ""
+                state.gitBranchOrCommitFromInputField.isBlank() && gitDto?.branch != null -> state.gitBranchOrCommitFromInputField = gitDto?.branch ?: ""
+                else -> {
+                    // this is a generated else block
+                }
+            }
+
+            standardTestSuites = get("$apiUrl/allStandardTestSuites", headers).decodeFromJsonString()
 
             val availableFiles = getFilesList()
             setState {
@@ -510,6 +488,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                     }
                     val newGitDto = gitDto?.copy(url = urlWithTests, branch = newBranch, hash = newCommit)
                         ?: GitDto(url = urlWithTests, branch = newBranch, hash = newCommit)
+
                     submitExecutionRequestWithCustomTests(newGitDto)
                 }
             }
@@ -542,7 +521,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         )
         formData.appendJson("execution", request)
         state.files.forEach {
-            formData.appendJson("file", it)
+            formData.appendJson("file", it.toShortFileInfo())
         }
         submitRequest("/executionRequestStandardTests", headers, formData)
     }
@@ -554,7 +533,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         val executionRequest = ExecutionRequest(state.project, correctGitDto, testRootPath, selectedSdk, null)
         formData.appendJson("executionRequest", executionRequest)
         state.files.forEach {
-            formData.appendJson("file", it)
+            formData.appendJson("file", it.toShortFileInfo())
         }
         submitRequest("/submitExecutionRequest", Headers(), formData)
     }
@@ -565,15 +544,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         }
         scope.launch {
             val response = post(apiUrl + url, headers, body)
-            if (!response.ok) {
-                response.text().then { text ->
-                    setState {
-                        isErrorOpen = true
-                        errorLabel = "Error from backend"
-                        errorMessage = "Request failed: [${response.statusText}] $text"
-                    }
-                }
-            } else {
+            if (response.ok) {
                 window.location.href = "${window.location}/history"
             }
         }
@@ -598,6 +569,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             when (state.confirmationType) {
                 ConfirmationType.NO_BINARY_CONFIRM, ConfirmationType.NO_CONFIRM -> submitExecutionRequest()
                 ConfirmationType.DELETE_CONFIRM -> deleteProjectBuilder()
+                ConfirmationType.GLOBAL_ROLE_CONFIRM -> { }
                 else -> {
                     // this is a generated else block
                 }
@@ -729,7 +701,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     private fun RBuilder.renderSettings() {
         child(projectSettingsMenu) {
             attrs.project = state.project
-            attrs.selfRole = Role.VIEWER
             attrs.currentUserInfo = props.currentUserInfo ?: UserInfo("Unknown")
         }
     }
@@ -745,13 +716,14 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
 
                 element.files!!.asList().forEach { file ->
                     val response: FileInfo = post(
-                        "$apiUrl/files/upload",
+                        "$apiUrl/files/upload?returnShortFileInfo=false",
                         Headers(),
                         FormData().apply {
                             append("file", file)
                         }
                     )
                         .decodeFromJsonString()
+
                     setState {
                         // add only to selected files so that this entry isn't duplicated
                         files.add(response)
@@ -871,14 +843,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         }.invokeOnCompletion {
             if (responseFromDeleteProject.ok) {
                 window.location.href = "${window.location.origin}/"
-            } else {
-                responseFromDeleteProject.text().then {
-                    setState {
-                        errorLabel = "Failed to delete project"
-                        errorMessage = it
-                        isErrorOpen = true
-                    }
-                }
             }
         }
     }
@@ -901,23 +865,33 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 latestExecutionId = null
             }
             else -> {
-                val latestExecutionIdNew = response
-                    .decodeFromJsonString<ExecutionDto>()
-                    .id
+                val executionDtoFromRequest: Long = response
+                    .decodeFromJsonString<ExecutionDto>().id
+
                 setState {
-                    latestExecutionId = latestExecutionIdNew
+                    latestExecutionId = executionDtoFromRequest
                 }
             }
         }
+
+        getTestRootPathFromLatestExecution()
     }
 
-    private fun switchToLatestExecution(latestExecutionId: Long?) {
-        latestExecutionId?.let {
-            window.location.href = "${window.location}/history/execution/$latestExecutionId"
-        }
-            ?: setState {
-                isErrorOpen = true
+    private suspend fun getTestRootPathFromLatestExecution() {
+        state.latestExecutionId?.let {
+            val headers = Headers().apply { set("Accept", "application/json") }
+            val response = get(
+                "$apiUrl/getTestRootPathByExecutionId?id=${state.latestExecutionId}",
+                headers,
+                responseHandler = ::noopResponseHandler
+            )
+            val rootPath = response.text().await()
+            when {
+                response.ok -> setState {
+                    testRootPath = rootPath
+                }
             }
+        }
     }
 
     private suspend fun getFilesList() = get("$apiUrl/files/list", Headers())

@@ -72,15 +72,26 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
 
     /**
      * @param executionId
-     * @param page
-     * @param pageSize
      * @return a list of test executions
      */
-    internal fun getTestExecutions(executionId: Long, page: Int?, pageSize: Int?): List<TestExecution> = if (page == null || pageSize == null) {
-        testExecutionRepository.findByExecutionId(executionId)
-    } else {
-        testExecutionRepository.findByExecutionId(executionId, PageRequest.of(page, pageSize))
-    }
+    internal fun getTestExecutions(executionId: Long): List<TestExecution> =
+            testExecutionRepository.findByExecutionId(executionId)
+
+    /**
+     * @param executionId
+     * @param page
+     * @param pageSize
+     * @param status
+     * @return a list of test executions
+     */
+    @Suppress("UnsafeCallOnNullableType")
+    internal fun getByExecutionIdGroupByTestSuite(
+        executionId: Long,
+        status: TestResultStatus,
+        page: Int,
+        pageSize: Int,
+    ): List<Array<*>>? =
+            testExecutionRepository.findByExecutionIdGroupByTestSuite(executionId, status.name, PageRequest.of(page, pageSize))
 
     /**
      * Finds TestExecution by test location

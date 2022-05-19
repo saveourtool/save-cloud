@@ -6,10 +6,9 @@
 
 package org.cqfn.save.frontend.components
 
+import org.cqfn.save.domain.Role
 import org.cqfn.save.frontend.components.modal.logoutModal
-import org.cqfn.save.frontend.externals.fontawesome.faCog
-import org.cqfn.save.frontend.externals.fontawesome.faSignOutAlt
-import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
+import org.cqfn.save.frontend.externals.fontawesome.*
 import org.cqfn.save.info.UserInfo
 
 import csstype.Width
@@ -180,13 +179,22 @@ fun topBar() = fc<TopBarProps> { props ->
                         set("aria-expanded", "false")
                     }
 
-                    span("mr-2 d-none d-lg-inline text-gray-600") {
-                        +(props.userInfo?.name ?: "")
-                    }
-
-                    fontAwesomeIcon {
-                        attrs.icon = "user"
-                        attrs.className = "fas fa-lg fa-fw mr-2 text-gray-400"
+                    div("row") {
+                        div {
+                            span("mr-2 d-none d-lg-inline text-gray-600") {
+                                +(props.userInfo?.name ?: "")
+                            }
+                            fontAwesomeIcon {
+                                attrs.icon = "user"
+                                attrs.className = "fas fa-lg fa-fw mr-2 text-gray-400"
+                            }
+                        }
+                        val globalRole = props.userInfo?.globalRole ?: Role.VIEWER
+                        if (globalRole.priority >= Role.ADMIN.priority) {
+                            small("text-gray-400 text-justify") {
+                                +globalRole.formattedName
+                            }
+                        }
                     }
                 }
                 // Dropdown - User Information
@@ -196,6 +204,11 @@ fun topBar() = fc<TopBarProps> { props ->
                         dropdownEntry(faCog, "Settings") {
                             attrs.onClickFunction = {
                                 window.location.href = "#/$name/settings/email"
+                            }
+                        }
+                        dropdownEntry(faCity, "My organizations") {
+                            attrs.onClickFunction = {
+                                window.location.href = "#/$name/settings/organizations"
                             }
                         }
                     }

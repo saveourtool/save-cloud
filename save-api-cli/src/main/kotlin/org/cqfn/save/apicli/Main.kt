@@ -1,6 +1,11 @@
 @file:Suppress("HEADER_MISSING_IN_NON_SINGLE_CLASS_FILE")
 
-package org.cqfn.save.api
+package org.cqfn.save.apicli
+
+import org.cqfn.save.api.SaveCloudClient
+import org.cqfn.save.api.config.EvaluatedToolProperties
+import org.cqfn.save.api.config.PropertiesConfigurationType
+import org.cqfn.save.api.config.WebClientProperties
 
 import java.lang.IllegalArgumentException
 
@@ -23,7 +28,7 @@ fun main(args: Array<String>) {
         )
     }
 
-    val automaticTestInitializator = AutomaticTestInitializator(
+    val saveCloudClient = SaveCloudClient(
         webClientProperties,
         evaluatedToolProperties,
         cliArgs.mode,
@@ -31,6 +36,6 @@ fun main(args: Array<String>) {
     )
 
     runBlocking {
-        automaticTestInitializator.start()
+        saveCloudClient.start()
     }
 }

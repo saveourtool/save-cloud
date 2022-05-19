@@ -2,9 +2,12 @@ package org.cqfn.save.backend.service
 
 import org.cqfn.save.backend.repository.LnkUserOrganizationRepository
 import org.cqfn.save.backend.repository.UserRepository
+import org.cqfn.save.backend.utils.AuthenticationDetails
 import org.cqfn.save.domain.Role
 import org.cqfn.save.entities.*
+import org.cqfn.save.utils.getHighestRole
 import org.springframework.data.domain.PageRequest
+import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
 
 /**
@@ -14,6 +17,7 @@ import org.springframework.stereotype.Service
 class LnkUserOrganizationService(
     private val lnkUserOrganizationRepository: LnkUserOrganizationRepository,
     private val userRepository: UserRepository,
+    private val userDetailsService: UserDetailsService,
 ) {
     /**
      * @param organization
@@ -50,11 +54,27 @@ class LnkUserOrganizationService(
     }
 
     /**
+     * Set [role] of user with [userId] in organization with [organizationId].
+     *
+     * @throws IllegalStateException if [role] is [Role.NONE]
+     */
+    @Suppress("KDOC_WITHOUT_PARAM_TAG", "UnsafeCallOnNullableType")
+    fun setRoleByIds(userId: Long, organizationId: Long, role: Role) {
+        if (role == Role.NONE) {
+            throw IllegalStateException("Role NONE should not be present in database!")
+        }
+        lnkUserOrganizationRepository.findByUserIdAndOrganizationId(userId, organizationId)
+            ?.apply { this.role = role }
+            ?.let { lnkUserOrganizationRepository.save(it) }
+            ?: lnkUserOrganizationRepository.save(organizationId, userId, role.toString())
+    }
+
+    /**
      * @param user
      * @param organization
      * @return role of the [user] in [organization]
      */
-    @Suppress("KDOC_WITHOUT_PARAM_TAG", "UnsafeCallOnNullableType")
+    @Suppress("UnsafeCallOnNullableType")
     fun getRole(user: User, organization: Organization) = lnkUserOrganizationRepository
         .findByUserIdAndOrganization(user.id!!, organization)
         ?.role
@@ -79,7 +99,7 @@ class LnkUserOrganizationService(
      * @param organization
      * @return Unit
      */
-    @Suppress("KDOC_WITHOUT_PARAM_TAG", "UnsafeCallOnNullableType")
+    @Suppress("UnsafeCallOnNullableType")
     fun removeRole(user: User, organization: Organization) = lnkUserOrganizationRepository
         .findByUserIdAndOrganization(user.id!!, organization)
         ?.id
@@ -116,4 +136,36 @@ class LnkUserOrganizationService(
         .findByUserIdAndOrganizationName(userId, organizationName)
         ?.role
         ?: Role.NONE
+
+    /**
+     * @param authentication
+     * @param organization
+     * @return the highest of two roles: the one in [organization] and global one.
+     */
+    fun getGlobalRoleOrOrganizationRole(authentication: Authentication, organization: Organization): Role {
+        val selfId = (authentication.details as AuthenticationDetails).id
+        val selfGlobalRole = userDetailsService.getGlobalRole(authentication)
+        val selfOrganizationRole = findRoleByUserIdAndOrganization(selfId, organization)
+        return getHighestRole(selfOrganizationRole, selfGlobalRole)
+    }
+
+    /**
+     * @param authentication
+     * @param organizationName
+     * @return the highest of two roles: the one in organization with name [organizationName] and global one.
+     */
+    fun getGlobalRoleOrOrganizationRole(authentication: Authentication, organizationName: String): Role {
+        val selfId = (authentication.details as AuthenticationDetails).id
+        val selfGlobalRole = userDetailsService.getGlobalRole(authentication)
+        val selfOrganizationRole = findRoleByUserIdAndOrganizationName(selfId, organizationName)
+        return getHighestRole(selfOrganizationRole, selfGlobalRole)
+    }
+    
+    /**
+     * @param user
+     * @return [Organization]s that are connected to the [user]
+     */
+    @Suppress("UnsafeCallOnNullableType")
+    fun getOrganizationsAndRolesByUser(user: User): List<LnkUserOrganization> =
+            lnkUserOrganizationRepository.findByUserId(user.id!!)
 }

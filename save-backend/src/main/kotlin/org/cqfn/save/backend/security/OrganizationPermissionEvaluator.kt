@@ -1,13 +1,11 @@
 package org.cqfn.save.backend.security
 
 import org.cqfn.save.backend.service.LnkUserOrganizationService
-import org.cqfn.save.backend.service.UserDetailsService
 import org.cqfn.save.backend.utils.AuthenticationDetails
 import org.cqfn.save.domain.Role
 import org.cqfn.save.entities.Organization
 import org.cqfn.save.entities.User
 import org.cqfn.save.permission.Permission
-import org.cqfn.save.utils.getHighestRole
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Component
@@ -19,9 +17,6 @@ import org.springframework.stereotype.Component
 class OrganizationPermissionEvaluator {
     @Autowired
     private lateinit var lnkUserOrganizationService: LnkUserOrganizationService
-
-    @Autowired
-    private lateinit var userDetailsService: UserDetailsService
 
     /**
      * @param authentication [Authentication] describing an authenticated request
@@ -43,6 +38,15 @@ class OrganizationPermissionEvaluator {
             Permission.DELETE -> hasDeleteAccess(userId, organizationRole)
         }
     }
+
+    /**
+     * @param authentication
+     * @param organizationName
+     * @param requiredRole
+     * @return true if user with [authentication] info has [requiredRole] in organization with name [organizationName] or globally
+     */
+    fun hasGlobalRoleOrOrganizationRole(authentication: Authentication, organizationName: String, requiredRole: Role): Boolean =
+            lnkUserOrganizationService.getGlobalRoleOrOrganizationRole(authentication, organizationName).priority >= requiredRole.priority
 
     private fun Authentication.hasRole(role: Role): Boolean = authorities.any { it.authority == role.asSpringSecurityRole() }
 
@@ -72,10 +76,7 @@ class OrganizationPermissionEvaluator {
         otherUser: User,
         requestedRole: Role = Role.NONE
     ): Boolean {
-        val selfId = (authentication.details as AuthenticationDetails).id
-        val selfGlobalRole = userDetailsService.getGlobalRole(authentication)
-        val selfOrganizationRole = lnkUserOrganizationService.findRoleByUserIdAndOrganization(selfId, organization)
-        val selfRole = getHighestRole(selfOrganizationRole, selfGlobalRole)
+        val selfRole = lnkUserOrganizationService.getGlobalRoleOrOrganizationRole(authentication, organization)
         val otherRole = lnkUserOrganizationService.findRoleByUserIdAndOrganization(otherUser.id!!, organization)
         return isOrganizationAdminOrHigher(selfRole) && hasAnotherUserLessPermissions(selfRole, otherRole) &&
                 isRequestedPermissionsCanBeSetByUser(selfRole, requestedRole)

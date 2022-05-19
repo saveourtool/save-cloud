@@ -49,14 +49,7 @@ class DownloadFilesController(
      * @return a list of files in [additionalToolsFileSystemRepository]
      */
     @GetMapping(path = ["/api/$v1/files/list"])
-    fun list(): List<FileInfo> = additionalToolsFileSystemRepository.getFilesList().map {
-        FileInfo(
-            it.name,
-            // assuming here, that we always store files in timestamp-based directories
-            it.parent.name.toLong(),
-            it.fileSize(),
-        )
-    }
+    fun list(): List<FileInfo> = additionalToolsFileSystemRepository.getFileInfoList()
 
     /**
      * @param fileInfo a FileInfo based on which a file should be located
@@ -82,20 +75,29 @@ class DownloadFilesController(
 
     /**
      * @param file a file to be uploaded
+     * @param returnShortFileInfo whether return FileInfo or ShortFileInfo
      * @return [Mono] with response
      */
     @PostMapping(path = ["/api/$v1/files/upload"], consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
-    fun upload(@RequestPart("file") file: Mono<FilePart>) =
-            additionalToolsFileSystemRepository.saveFile(file).map { fileInfo ->
-                ResponseEntity.status(
-                    if (fileInfo.sizeBytes > 0) HttpStatus.OK else HttpStatus.INTERNAL_SERVER_ERROR
-                )
-                    .body(fileInfo)
-            }
-                .onErrorReturn(
-                    FileAlreadyExistsException::class.java,
-                    ResponseEntity.status(HttpStatus.CONFLICT).build()
-                )
+    fun upload(
+        @RequestPart("file") file: Mono<FilePart>,
+        @RequestParam(required = false, defaultValue = "true") returnShortFileInfo: Boolean,
+    ) = additionalToolsFileSystemRepository.saveFile(file).map { fileInfo ->
+        ResponseEntity.status(
+            if (fileInfo.sizeBytes > 0) HttpStatus.OK else HttpStatus.INTERNAL_SERVER_ERROR
+        )
+            .body(
+                if (returnShortFileInfo) {
+                    fileInfo.toShortFileInfo()
+                } else {
+                    fileInfo
+                }
+            )
+    }
+        .onErrorReturn(
+            FileAlreadyExistsException::class.java,
+            ResponseEntity.status(HttpStatus.CONFLICT).build()
+        )
 
     /**
      * @param file image to be uploaded

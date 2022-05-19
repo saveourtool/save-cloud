@@ -156,6 +156,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 errorMessage = "Failed to save organization info: ${it.status} ${it.statusText}"
             }
         },
+        updateNotificationMessage = ::showNotification
     )
     private var descriptionTmp: String = ""
     private lateinit var responseFromDeleteOrganization: Response
@@ -177,6 +178,15 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             isConfirmWindowOpen = true
             confirmLabel = ""
             confirmMessage = "Are you sure you want to delete this organization?"
+        }
+    }
+
+    private fun showNotification(notificationLabel: String, notificationMessage: String) {
+        setState {
+            confirmationType = ConfirmationType.GLOBAL_ROLE_CONFIRM
+            isConfirmWindowOpen = true
+            confirmLabel = notificationLabel
+            confirmMessage = notificationMessage
         }
     }
 
@@ -204,7 +214,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         runErrorModal(state.isErrorOpen, state.errorLabel, state.errorMessage) {
             setState { isErrorOpen = false }
         }
-
         runConfirmWindowModal(
             state.isConfirmWindowOpen,
             state.confirmLabel,
@@ -212,6 +221,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             { setState { isConfirmWindowOpen = false } }) {
             when (state.confirmationType) {
                 ConfirmationType.DELETE_CONFIRM -> deleteOrganizationBuilder()
+                ConfirmationType.GLOBAL_ROLE_CONFIRM -> { }
                 else -> throw IllegalStateException("Not implemented yet")
             }
             setState { isConfirmWindowOpen = false }
@@ -424,8 +434,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
 
     private fun RBuilder.renderSettings() {
         child(organizationSettingsMenu) {
-            attrs.organization = state.organization!!
-            attrs.selfRole = Role.SUPER_ADMIN
+            attrs.organizationName = props.organizationName
             attrs.currentUserInfo = props.currentUserInfo ?: UserInfo("Undefined")
         }
     }
@@ -442,7 +451,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
     private fun getProjectsFromCache(): Array<Project> = state.projects ?: emptyArray()
 
     private suspend fun getProjectsForOrganization(): Array<Project> = get(
-        url = "$apiUrl/projects/get/projects-by-organization?organizationName=${props.organizationName}",
+        url = "$apiUrl/projects/get/not-deleted-projects-by-organization?organizationName=${props.organizationName}",
         headers = Headers().also {
             it.set("Accept", "application/json")
         },
@@ -495,8 +504,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             }
 
     private suspend fun getAvatar() = get(
-        "$apiUrl/organization/${props.organizationName}/avatar", Headers(),
-        responseHandler = ::noopResponseHandler
+        "$apiUrl/organization/${props.organizationName}/avatar", Headers()
     ).unsafeMap {
         it.decodeFromJsonString<ImageInfo>()
     }
@@ -661,14 +669,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         }.invokeOnCompletion {
             if (responseFromDeleteOrganization.ok) {
                 window.location.href = "${window.location.origin}/"
-            } else {
-                responseFromDeleteOrganization.text().then {
-                    setState {
-                        errorLabel = "Failed to delete organization"
-                        errorMessage = it
-                        isErrorOpen = true
-                    }
-                }
             }
         }
     }

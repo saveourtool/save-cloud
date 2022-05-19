@@ -12,6 +12,7 @@ import org.cqfn.save.frontend.components.errorModalHandler
 import org.cqfn.save.frontend.components.topBar
 import org.cqfn.save.frontend.components.views.*
 import org.cqfn.save.frontend.components.views.usersettingsview.UserSettingsEmailMenuView
+import org.cqfn.save.frontend.components.views.usersettingsview.UserSettingsOrganizationsMenuView
 import org.cqfn.save.frontend.components.views.usersettingsview.UserSettingsProfileMenuView
 import org.cqfn.save.frontend.components.views.usersettingsview.UserSettingsTokenMenuView
 import org.cqfn.save.frontend.externals.fontawesome.*
@@ -191,6 +192,17 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
 
                             Route {
                                 attrs {
+                                    path = "/:user/settings/organizations"
+                                    element = buildElement {
+                                        child(UserSettingsOrganizationsMenuView::class) {
+                                            attrs.userName = state.userInfo?.name
+                                        }
+                                    }
+                                }
+                            }
+
+                            Route {
+                                attrs {
                                     path = "/creation"
                                     element = buildElement {
                                         child(CreationView::class) {}
@@ -290,6 +302,11 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
 
 @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
 fun main() {
+    /** Workaround for issue: https://youtrack.jetbrains.com/issue/KT-31888 */
+    if (window.asDynamic().__karma__) {
+        return
+    }
+
     kotlinext.js.require("../scss/save-frontend.scss")  // this is needed for webpack to include resource
     kotlinext.js.require("bootstrap")  // this is needed for webpack to include bootstrap
     library.add(

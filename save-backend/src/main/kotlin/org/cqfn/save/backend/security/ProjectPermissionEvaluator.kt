@@ -2,7 +2,6 @@ package org.cqfn.save.backend.security
 
 import org.cqfn.save.backend.repository.LnkUserProjectRepository
 import org.cqfn.save.backend.service.LnkUserProjectService
-import org.cqfn.save.backend.service.UserDetailsService
 import org.cqfn.save.backend.utils.AuthenticationDetails
 import org.cqfn.save.domain.Role
 import org.cqfn.save.entities.Execution
@@ -28,9 +27,6 @@ class ProjectPermissionEvaluator {
 
     @Autowired
     private lateinit var lnkUserProjectRepository: LnkUserProjectRepository
-
-    @Autowired
-    private lateinit var userDetailsService: UserDetailsService
 
     /**
      * @param authentication [Authentication] describing an authenticated request
@@ -124,10 +120,7 @@ class ProjectPermissionEvaluator {
         otherUser: User,
         requestedRole: Role = Role.NONE
     ): Boolean {
-        val selfId = (authentication.details as AuthenticationDetails).id
-        val selfGlobalRole = userDetailsService.getGlobalRole(authentication)
-        val selfProjectRole = lnkUserProjectRepository.findByUserIdAndProject(selfId, project)?.role ?: Role.NONE
-        val selfRole = listOf(selfGlobalRole, selfProjectRole).maxByOrNull { it.priority }!!
+        val selfRole = lnkUserProjectService.getGlobalRoleOrProjectRole(authentication, project)
         val otherUserId = otherUser.id!!
         val otherRole = lnkUserProjectRepository.findByUserIdAndProject(otherUserId, project)?.role ?: Role.NONE
         return isProjectAdminOrHigher(selfRole) &&
