@@ -43,6 +43,8 @@ import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.createTempDirectory
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.springframework.core.io.FileSystemResource
+import org.springframework.http.MediaType
 
 @WebFluxTest(controllers = [AgentsController::class])
 @Import(AgentService::class, Beans::class)
@@ -189,11 +191,22 @@ class AgentsControllerTest {
     }
 
     private fun makeRequestToSaveLog(text: List<String>): WebTestClient.ResponseSpec {
-        val executionLogs = ExecutionLogs("agent", text)
+        var byteArray = ByteArray(0)
+        text.forEach {
+            byteArray += it.toByteArray()
+        }
+
+        val body = MultipartBodyBuilder().apply {
+            part("executionLogs", byteArray)
+        }
+            .build()
+
         return webClient
             .post()
             .uri("/executionLogs")
-            .body(BodyInserters.fromValue(executionLogs))
+            .contentType(MediaType.MULTIPART_FORM_DATA)
+            .header("Content-Disposition", "filename=agent")
+            .body(BodyInserters.fromMultipartData(body))
             .exchange()
     }
 
