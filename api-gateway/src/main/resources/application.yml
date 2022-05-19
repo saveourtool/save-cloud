@@ -5,6 +5,8 @@ server:
 gateway:
   backend:
     url: http://backend:5800
+  grafana:
+    url: http://grafana:9100
 management:
   endpoints:
     web:
@@ -43,7 +45,7 @@ spring:
             # If SESSION cookie is passed to downstream, it is then removed, because downstream discards it
             - RemoveRequestHeader=Cookie
         - id: grafana
-          uri: http://grafana:9100
+          uri: ${gateway.grafana.url}
           predicates:
             - Path=/grafana/**
   security:
@@ -54,3 +56,12 @@ spring:
             # value that will work with GitHub API, where GitHub provides username as "login" in the response
             # https://docs.github.com/en/rest/reference/users#get-the-authenticated-user
             user-name-attribute: login
+
+---
+spring:
+  config:
+    activate:
+      on-profile: kubernetes
+gateway:
+  grafana:
+    url: http://save-cloud-grafana:9100
