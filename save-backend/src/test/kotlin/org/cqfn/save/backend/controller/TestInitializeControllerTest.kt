@@ -116,7 +116,7 @@ class TestInitializeControllerTest {
     @Test
     fun `should return test executions in batches`() {
         webClient.get()
-            .uri("/internal/getTestBatches?agentId=container-1")
+            .uri("/internal/getTestBatches?agentId=container-4")
             .exchange()
             .expectStatus()
             .isOk
@@ -129,7 +129,7 @@ class TestInitializeControllerTest {
             }
 
         webClient.get()
-            .uri("/internal/getTestBatches?agentId=container-1")
+            .uri("/internal/getTestBatches?agentId=container-4")
             .exchange()
             .expectStatus()
             .isOk
