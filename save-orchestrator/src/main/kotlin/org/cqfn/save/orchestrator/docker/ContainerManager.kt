@@ -133,7 +133,6 @@ class ContainerManager(private val settings: DockerSettings,
      * @return id of the created docker image
      * @throws DockerException
      */
-    @OptIn(ExperimentalPathApi::class)
     @Suppress("TOO_LONG_FUNCTION", "LongMethod")
     internal fun buildImageWithResources(baseImage: String = Sdk.Default.toString(),
                                          imageName: String,
