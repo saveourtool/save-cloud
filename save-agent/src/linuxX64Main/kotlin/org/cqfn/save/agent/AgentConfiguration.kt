@@ -4,6 +4,9 @@
 
 package org.cqfn.save.agent
 
+import platform.posix.getenv
+
+import kotlinx.cinterop.toKString
 import kotlinx.serialization.Serializable
 
 /**
@@ -21,7 +24,7 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class AgentConfiguration(
-    val id: String,
+    private val id: String,
     val backend: BackendConfig,
     val orchestratorUrl: String,
     val heartbeat: HeartbeatConfig,
@@ -30,7 +33,19 @@ data class AgentConfiguration(
     val debug: Boolean = false,
     val cliCommand: String,
     val logFilePath: String = "logs.txt"
-)
+) {
+    /**
+     * If [id] references an environment variable, reads its value and returns the actual ID of the agent.
+     */
+    fun resolvedId() = if (id.startsWith("\${")) {
+        val varName = id.drop(2).dropLast(1)
+        val envVar = getenv(varName)
+        requireNotNull(envVar) { "Config references env variable [$varName] but it was not found" }
+        envVar.toKString()
+    } else {
+        id
+    }
+}
 
 /**
  * @property intervalMillis interval between heartbeats to orchestrator in milliseconds

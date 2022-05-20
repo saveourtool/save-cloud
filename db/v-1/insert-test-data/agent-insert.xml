@@ -24,6 +24,12 @@
             <column name="execution_id" value="3" />
             <column name="version" value="1" />
         </insert>
+        <insert dbms="mysql" tableName="agent">
+            <column name="id" value="4" />
+            <column name="container_id" value="container-4" />
+            <column name="execution_id" value="4" />
+            <column name="version" value="1" />
+        </insert>
     </changeSet>
 
 </databaseChangeLog>

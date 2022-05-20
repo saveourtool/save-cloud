@@ -55,6 +55,22 @@ class LnkUserProjectService(
     }
 
     /**
+     * Set role of user with [userId] on a project with [projectId] to [role]
+     *
+     * @throws IllegalStateException if [role] is [Role.NONE]
+     */
+    @Suppress("KDOC_WITHOUT_PARAM_TAG", "UnsafeCallOnNullableType")
+    fun setRoleByIds(userId: Long, projectId: Long, role: Role) {
+        if (role == Role.NONE) {
+            throw IllegalStateException("Role NONE should not be present in database!")
+        }
+        lnkUserProjectRepository.findByUserIdAndProjectId(userId, projectId)
+            ?.apply { this.role = role }
+            ?.let { lnkUserProjectRepository.save(it) }
+            ?: lnkUserProjectRepository.save(projectId, userId, role.toString())
+    }
+
+    /**
      * @param user that should be deleted from [project]
      * @param project
      * @return none

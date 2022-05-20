@@ -1,7 +1,7 @@
 package org.cqfn.save.backend.controllers
 
 import org.cqfn.save.backend.StringResponse
-import org.cqfn.save.backend.repository.UserRepository
+import org.cqfn.save.backend.security.OrganizationPermissionEvaluator
 import org.cqfn.save.backend.service.LnkUserOrganizationService
 import org.cqfn.save.backend.service.OrganizationService
 import org.cqfn.save.backend.utils.AuthenticationDetails
@@ -30,7 +30,7 @@ import java.time.LocalDateTime
 internal class OrganizationController(
     private val organizationService: OrganizationService,
     private val lnkUserOrganizationService: LnkUserOrganizationService,
-    private val userRepository: UserRepository,
+    private val organizationPermissionEvaluator: OrganizationPermissionEvaluator,
 ) {
     /**
      * @param organizationName
@@ -82,9 +82,7 @@ internal class OrganizationController(
             }
         )
         if (organizationStatus == OrganizationSaveStatus.NEW) {
-            val owner = userRepository.findById(ownerId).get()
-            val organization = organizationService.getOrganizationById(organizationId)
-            lnkUserOrganizationService.setRole(owner, organization, Role.OWNER)
+            lnkUserOrganizationService.setRoleByIds(ownerId, organizationId, Role.OWNER)
         }
 
         val response = if (organizationStatus == OrganizationSaveStatus.EXIST) {
@@ -103,18 +101,29 @@ internal class OrganizationController(
      * @return response
      */
     @PostMapping("/{organizationName}/update")
-    @PreAuthorize("isAuthenticated()")
     @Suppress("UnsafeCallOnNullableType")
-    fun updateOrganization(@RequestBody organization: Organization, authentication: Authentication): Mono<StringResponse> {
-        val role = lnkUserOrganizationService.getGlobalRoleOrOrganizationRole(authentication, organization)
-        val response = if (role.priority >= Role.ADMIN.priority) {
+    fun updateOrganization(@RequestBody organization: Organization, authentication: Authentication): Mono<StringResponse> = Mono
+        .just(organization)
+        .filter { organizationPermissionEvaluator.hasGlobalRoleOrOrganizationRole(authentication, it.name, Role.OWNER) }
+        .map {
             organizationService.updateOrganization(organization)
             ResponseEntity.ok("Organization updated")
-        } else {
-            ResponseEntity.status(HttpStatus.FORBIDDEN).build()
         }
-        return Mono.just(response)
-    }
+        .defaultIfEmpty(ResponseEntity.status(HttpStatus.FORBIDDEN).build())
+
+    /**
+     * @param organizationName
+     * @param authentication
+     */
+    @DeleteMapping("/{organizationName}/delete")
+    fun deleteOrganization(@PathVariable organizationName: String, authentication: Authentication) = Mono
+        .just(organizationName)
+        .filter { organizationPermissionEvaluator.hasGlobalRoleOrOrganizationRole(authentication, it, Role.OWNER) }
+        .map {
+            organizationService.deleteOrganization(it)
+            ResponseEntity.ok("Organization deleted")
+        }
+        .defaultIfEmpty(ResponseEntity.status(HttpStatus.FORBIDDEN).build())
 
     companion object {
         @JvmStatic

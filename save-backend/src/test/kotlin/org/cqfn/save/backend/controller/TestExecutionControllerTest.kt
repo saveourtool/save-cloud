@@ -1,6 +1,7 @@
 package org.cqfn.save.backend.controller
 
 import org.cqfn.save.agent.TestExecutionDto
+import org.cqfn.save.agent.TestSuiteExecutionStatisticDto
 import org.cqfn.save.backend.SaveApplication
 import org.cqfn.save.backend.controllers.ProjectController
 import org.cqfn.save.backend.repository.AgentRepository
@@ -85,6 +86,22 @@ class TestExecutionControllerTest {
             .expectBody<List<TestExecutionDto>>()
             .consumeWith {
                 Assertions.assertEquals(20, it.responseBody!!.size)
+            }
+    }
+
+    @Test
+    @WithMockUser
+    fun `should return a list test suits with number of test for executions id`() {
+        mutateMockedUser {
+            details = AuthenticationDetails(id = 99)
+        }
+
+        webClient.get()
+            .uri("/api/$v1/testLatestExecutions?executionId=3&status=${TestResultStatus.PASSED}&page=0&size=10")
+            .exchange()
+            .expectBody<List<TestSuiteExecutionStatisticDto>>()
+            .consumeWith {
+                Assertions.assertEquals(1, it.responseBody!!.size)
             }
     }
 

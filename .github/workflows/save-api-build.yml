@@ -1,9 +1,10 @@
-name: Build Save-API CLI examples
+name: Build Save-API CLI
 
 on:
   pull_request:
     paths:
       - 'save-api/**'
+      - 'save-api-cli/**'
 
 jobs:
   build_and_test_with_code_coverage:
@@ -35,8 +36,7 @@ jobs:
           gradle-dependencies-cache-key: |
             gradle/libs.versions.toml
           arguments: |
-            save-api:build
-            -DincludeSaveApi='true'
+            save-api-cli:build
             -x detekt
           properties: |
             org.gradle.caching=true

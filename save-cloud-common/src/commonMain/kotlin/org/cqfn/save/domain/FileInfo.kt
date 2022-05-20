@@ -16,6 +16,24 @@ data class FileInfo(
     val uploadedMillis: Long,
     val sizeBytes: Long,
     val isExecutable: Boolean = false,
+) {
+    /**
+     * @return ShortFileInfo
+     */
+    fun toShortFileInfo() = ShortFileInfo(
+        this.name,
+        this.isExecutable,
+    )
+}
+
+/**
+ * @property name name of a file
+ * @property isExecutable whether the file is executable
+ */
+@Serializable
+data class ShortFileInfo(
+    val name: String,
+    val isExecutable: Boolean = false,
 )
 
 /**

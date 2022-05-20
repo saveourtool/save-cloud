@@ -139,7 +139,7 @@ class SaveAgent(internal val config: AgentConfiguration,
         logInfoCustom("Starting SAVE with provided args $cliArgs")
         val executionResult = runSave(cliArgs)
         logInfoCustom("SAVE has completed execution with status ${executionResult.code}")
-        val executionLogs = ExecutionLogs(config.id, readFile(config.logFilePath))
+        val executionLogs = ExecutionLogs(config.resolvedId(), readFile(config.logFilePath))
         launchLogSendingJob(executionLogs)
         logDebugCustom("SAVE has completed execution, execution logs:")
         executionLogs.cliLogs.forEach {
@@ -188,7 +188,7 @@ class SaveAgent(internal val config: AgentConfiguration,
                     TestExecutionDto(
                         adjustLocation(tr.resources.test.toString()),
                         pluginExecution.plugin,
-                        config.id,
+                        config.resolvedId(),
                         testResultStatus,
                         executionStartSeconds.value,
                         currentTime.epochSeconds,
@@ -242,7 +242,7 @@ class SaveAgent(internal val config: AgentConfiguration,
     }
 
     private suspend fun sendReport(testResultDebugInfo: TestResultDebugInfo) = httpClient.post {
-        url("${config.backend.url}/${config.backend.filesEndpoint}/debug-info?agentId=${config.id}")
+        url("${config.backend.url}/${config.backend.filesEndpoint}/debug-info?agentId=${config.resolvedId()}")
         contentType(ContentType.Application.Json)
         setBody(testResultDebugInfo)
     }
@@ -258,7 +258,7 @@ class SaveAgent(internal val config: AgentConfiguration,
             url("${config.orchestratorUrl}/heartbeat")
             contentType(ContentType.Application.Json)
             accept(ContentType.Application.Json)
-            setBody(Heartbeat(config.id, state.value, executionProgress, Clock.System.now()))
+            setBody(Heartbeat(config.resolvedId(), state.value, executionProgress, Clock.System.now()))
         }
             .body()
     }
@@ -274,6 +274,6 @@ class SaveAgent(internal val config: AgentConfiguration,
         logInfoCustom("Posting additional data to backend")
         url("${config.backend.url}/${config.backend.additionalDataEndpoint}")
         contentType(ContentType.Application.Json)
-        setBody(AgentVersion(config.id, SAVE_CLOUD_VERSION))
+        setBody(AgentVersion(config.resolvedId(), SAVE_CLOUD_VERSION))
     }
 }

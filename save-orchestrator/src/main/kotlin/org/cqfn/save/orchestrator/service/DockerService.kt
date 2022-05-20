@@ -39,7 +39,6 @@ import java.nio.file.attribute.PosixFileAttributeView
 import java.util.concurrent.atomic.AtomicBoolean
 
 import kotlin.io.path.ExperimentalPathApi
-import kotlin.io.path.createTempDirectory
 
 /**
  * A service that uses [DockerContainerManager] to build and start containers for test execution.
@@ -73,7 +72,7 @@ class DockerService(private val configProperties: ConfigProperties,
         testSuiteDtos: List<TestSuiteDto>?,
     ): List<String> {
         log.info("Building base image for execution.id=${execution.id}")
-        val (imageId, agentRunCmd, saveCliExecFlags) = buildBaseImageForExecution(execution, testSuiteDtos)
+        val (imageId, agentRunCmd) = buildBaseImageForExecution(execution, testSuiteDtos)
         // todo (k8s): need to also push it so that other nodes will have access to it
         log.info("Built base image for execution.id=${execution.id}")
         // saveCliExecFlags are needed to generate agent.properties
@@ -102,6 +101,7 @@ class DockerService(private val configProperties: ConfigProperties,
         agentIds.forEach {
             log.info("Starting container id=$it")
             agentRunner.start(it)
+
         }
         log.info("Successfully started all containers for execution.id=$executionId")
     }
@@ -180,7 +180,7 @@ class DockerService(private val configProperties: ConfigProperties,
     private fun buildBaseImageForExecution(
         execution: Execution,
         testSuiteDtos: List<TestSuiteDto>?
-    ): Triple<String, String, String> {
+    ): Pair<String, String> {
         val resourcesPath = File(
             configProperties.testResources.basePath,
             execution.resourcesRootPath!!,
@@ -238,6 +238,26 @@ class DockerService(private val configProperties: ConfigProperties,
             changeOwnerRecursively(resourcesPath, "cnb")
         }
 
+        val agentPropertiesFile = File(resourcesPath, "agent.properties")
+        FileUtils.copyInputStreamToFile(
+            ClassPathResource("agent.properties").inputStream,
+            agentPropertiesFile
+        )
+        val cliCommand = "./$SAVE_CLI_EXECUTABLE_NAME$saveCliExecFlags"
+        agentPropertiesFile.writeText(
+            agentPropertiesFile.readLines().joinToString(System.lineSeparator()) { line ->
+                when {
+                    line.startsWith("id=") -> "id=\${${configProperties.agentSettings.agentIdEnv}}"
+                    line.startsWith("cliCommand=") -> "cliCommand=$cliCommand"
+                    line.startsWith("backend.url=") && configProperties.agentSettings.backendUrl != null ->
+                        "backend.url=${configProperties.agentSettings.backendUrl}"
+                    line.startsWith("orchestratorUrl=") && configProperties.agentSettings.orchestratorUrl != null ->
+                        "orchestratorUrl=${configProperties.agentSettings.orchestratorUrl}"
+                    else -> line
+                }
+            }
+        )
+
         val baseImage = execution.sdk
         val aptCmd = "apt-get ${configProperties.aptExtraFlags}"
         // fixme: https://github.com/analysis-dev/save-cloud/issues/352
@@ -266,7 +286,7 @@ class DockerService(private val configProperties: ConfigProperties,
         )
         saveAgent.delete()
         saveCli.delete()
-        return Triple(imageId, agentRunCmd, saveCliExecFlags)
+        return Pair(imageId, agentRunCmd)
     }
 
     private fun changeOwnerRecursively(directory: File, user: String) {
@@ -356,48 +376,6 @@ class DockerService(private val configProperties: ConfigProperties,
                 copyRecursivelyWithAttributes(standardTestSuiteAbsolutePath, currentSuiteDestination)
             }
         }
-    }
-
-    internal fun createContainerForExecution(
-        execution: Execution,
-        imageId: String,
-        containerNumber: String,
-        runCmd: String,
-        saveCliExecFlags: String,
-    ): String {
-        val containerId = dockerContainerManager.createContainerFromImage(
-            imageId,
-            executionDir,
-            runCmd,
-            containerName(containerNumber),
-        )
-        val agentPropertiesFile = createTempDirectory("agent")
-            .resolve("agent.properties")
-            .toFile()
-        FileUtils.copyInputStreamToFile(
-            ClassPathResource("agent.properties").inputStream,
-            agentPropertiesFile
-        )
-        val cliCommand = "./$SAVE_CLI_EXECUTABLE_NAME$saveCliExecFlags"
-        agentPropertiesFile.writeText(
-            agentPropertiesFile.readLines().joinToString(System.lineSeparator()) { line ->
-                when {
-                    // todo: agent should be able to get ID from env POD_NAME
-                    line.startsWith("id=") -> "id=$containerId"
-                    line.startsWith("cliCommand=") -> "cliCommand=$cliCommand"
-                    line.startsWith("backend.url=") && configProperties.agentSettings.backendUrl != null ->
-                        "backend.url=${configProperties.agentSettings.backendUrl}"
-                    line.startsWith("orchestratorUrl=") && configProperties.agentSettings.orchestratorUrl != null ->
-                        "orchestratorUrl=${configProperties.agentSettings.orchestratorUrl}"
-                    else -> line
-                }
-            }
-        )
-        dockerContainerManager.copyResourcesIntoContainer(
-            containerId, executionDir,
-            listOf(agentPropertiesFile)
-        )
-        return containerId
     }
 
     companion object {

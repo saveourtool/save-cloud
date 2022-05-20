@@ -17,7 +17,6 @@ import org.cqfn.save.frontend.components.errorStatusContext
 import org.cqfn.save.frontend.externals.fontawesome.faQuestionCircle
 import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
 import org.cqfn.save.frontend.utils.*
-import org.cqfn.save.frontend.utils.noopResponseHandler
 
 import org.w3c.dom.*
 import org.w3c.dom.events.Event
@@ -159,8 +158,7 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
                 gitConnectionCheckingStatus = GitConnectionStatusEnum.VALIDATING
             }
             val responseFromCreationProject =
-                    get("$apiUrl/check-git-connectivity-adaptor$urlArguments", headers,
-                        responseHandler = ::noopResponseHandler)
+                    get("$apiUrl/check-git-connectivity-adaptor$urlArguments", headers)
 
             if (responseFromCreationProject.ok) {
                 if (responseFromCreationProject.text().await().toBoolean()) {
@@ -212,12 +210,10 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
         scope.launch {
             val responseFromCreationProject =
                     post("$apiUrl/projects/save", headers, Json.encodeToString(newProjectRequest))
-
             if (responseFromCreationProject.ok == true) {
-                window.location.href =
-                        "${window.location.origin}#/" +
-                                "${organizationName.replace(" ", "%20")}/" +
-                                newProjectRequest.project.name.replace(" ", "%20")
+                window.location.href = "${window.location.origin}#/${organizationName.replace(" ", "%20")}/" +
+                        newProjectRequest.project.name.replace(" ", "%20")
+                window.location.reload()
             } else {
                 responseFromCreationProject.text().then {
                     setState {
@@ -243,7 +239,8 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
             setState { isValidOrganization = true }
         }
 
-        if (fieldsMap[InputTypes.PROJECT_NAME].isNullOrBlank()) {
+        val projectName = fieldsMap[InputTypes.PROJECT_NAME]
+        if (projectName.isInvalid(64)) {
             setState { isValidProjectName = false }
             valid = false
         } else {
@@ -312,7 +309,7 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
                                             attrs.classes = "col-md-6 pl-0 pl-2 pr-2"
                                             attrs.text = "Organization"
                                         }
-                                        inputTextFormRequired(InputTypes.PROJECT_NAME, state.isValidProjectName!!, "col-md-6 pl-2 pr-2", "Tested tool name") {
+                                        inputTextFormRequired(InputTypes.PROJECT_NAME, state.isValidProjectName!!, "col-md-6 pl-2 pr-2", "Tested tool name", true) {
                                             changeFields(InputTypes.PROJECT_NAME, it)
                                         }
                                         inputTextFormOptional(InputTypes.PROJECT_URL, "col-md-6 pr-0 mt-3", "Tested Tool Website") {
@@ -408,7 +405,7 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
                                         }
                                     }
 
-                                    button(type = ButtonType.submit, classes = "btn btn-info mt-4 mr-3") {
+                                    button(type = ButtonType.button, classes = "btn btn-info mt-4 mr-3") {
                                         +"Create test project"
                                         attrs.onClickFunction = { saveProject() }
                                     }

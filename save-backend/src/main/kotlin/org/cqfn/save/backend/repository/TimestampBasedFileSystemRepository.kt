@@ -3,6 +3,7 @@ package org.cqfn.save.backend.repository
 import org.cqfn.save.backend.configs.ConfigProperties
 import org.cqfn.save.domain.FileInfo
 import org.cqfn.save.domain.ImageInfo
+import org.cqfn.save.domain.ShortFileInfo
 import org.cqfn.save.utils.AvatarType
 
 import org.slf4j.LoggerFactory
@@ -17,7 +18,6 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.StandardOpenOption.APPEND
-import java.util.*
 import java.util.stream.Collectors
 
 import kotlin.io.path.copyTo
@@ -63,6 +63,24 @@ class TimestampBasedFileSystemRepository(configProperties: ConfigProperties) {
     fun getFilesList() = rootDir.listDirectoryEntries()
         .filter { it.isDirectory() }
         .flatMap { it.listDirectoryEntries() }
+
+    /**
+     * @return a list of FileInfo's
+     */
+    fun getFileInfoList() = getFilesList().map {
+        FileInfo(
+            it.name,
+            // assuming here, that we always store files in timestamp-based directories
+            it.parent.name.toLong(),
+            it.fileSize(),
+        )
+    }
+
+    /**
+     * @param shortFileInfo
+     * @return FileInfo, obtained from [shortFileInfo]
+     */
+    fun getFileInfoByShortInfo(shortFileInfo: ShortFileInfo) = getFileInfoList().first { it.name == shortFileInfo.name }.copy(isExecutable = shortFileInfo.isExecutable)
 
     /**
      * @param fileInfo a FileInfo based on which a file should be located

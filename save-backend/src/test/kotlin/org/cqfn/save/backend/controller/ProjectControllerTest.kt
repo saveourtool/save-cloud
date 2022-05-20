@@ -5,6 +5,7 @@ import org.cqfn.save.backend.repository.GitRepository
 import org.cqfn.save.backend.repository.OrganizationRepository
 import org.cqfn.save.backend.repository.ProjectRepository
 import org.cqfn.save.backend.scheduling.StandardSuitesUpdateScheduler
+import org.cqfn.save.backend.service.LnkUserProjectService
 import org.cqfn.save.backend.utils.AuthenticationDetails
 import org.cqfn.save.backend.utils.MySqlExtension
 import org.cqfn.save.backend.utils.mutateMockedUser
@@ -31,6 +32,7 @@ import org.springframework.web.reactive.function.BodyInserters
 @ExtendWith(MySqlExtension::class)
 @MockBeans(
     MockBean(StandardSuitesUpdateScheduler::class),
+    MockBean(LnkUserProjectService::class),
 )
 @Suppress("UnsafeCallOnNullableType")
 class ProjectControllerTest {
@@ -134,6 +136,52 @@ class ProjectControllerTest {
     }
 
     @Test
+    @WithUserDetails(value = "admin")
+    fun `delete project with owner permission`() {
+        mutateMockedUser {
+            details = AuthenticationDetails(id = 2)
+        }
+        val organization: Organization = organizationRepository.getOrganizationById(1)
+        val project = Project("ToDelete", "url", "", ProjectStatus.CREATED, organization = organization)
+
+        projectRepository.save(project)
+
+        webClient.delete()
+            .uri("/api/$v1/projects/${organization.name}/${project.name}/delete")
+            .exchange()
+            .expectStatus()
+            .isOk
+
+        val projectFromDb = projectRepository.findByNameAndOrganization(project.name, organization)
+        Assertions.assertTrue(
+            projectFromDb?.status == ProjectStatus.DELETED
+        )
+    }
+
+    @Test
+    @WithUserDetails(value = "John Doe")
+    fun `delete project without owner permission`() {
+        mutateMockedUser {
+            details = AuthenticationDetails(id = 2)
+        }
+        val organization: Organization = organizationRepository.getOrganizationById(1)
+        val project = Project("ToDelete1", "url", "", ProjectStatus.CREATED, organization = organization)
+
+        projectRepository.save(project)
+
+        webClient.delete()
+            .uri("/api/$v1/projects/${organization.name}/${project.name}/delete")
+            .exchange()
+            .expectStatus()
+            .isForbidden
+
+        val projectFromDb = projectRepository.findByNameAndOrganization(project.name, organization)
+        Assertions.assertTrue(
+            projectFromDb?.status == ProjectStatus.CREATED
+        )
+    }
+
+    @Test
     @WithMockUser(username = "John Doe", roles = ["VIEWER"])
     fun `check save new project`() {
         mutateMockedUser {
@@ -149,7 +197,6 @@ class ProjectControllerTest {
             "Huawei",
             gitDto,
         )
-
         saveProjectAndAssert(
             newProject,
             { expectStatus().isOk }

@@ -31,6 +31,7 @@ import java.util.zip.GZIPOutputStream
 
 import kotlin.io.path.createTempDirectory
 import kotlin.io.path.createTempFile
+import kotlin.io.path.writeText
 
 /**
  * A class that communicates with docker daemon
@@ -56,7 +57,7 @@ class DockerContainerManager(
      * @throws DockerException if docker daemon has returned an error
      * @throws RuntimeException if an exception not specific to docker has occurred
      */
-    @Suppress("UnsafeCallOnNullableType")
+    @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
     internal fun createContainerFromImage(baseImageId: String,
                                           workingDir: String,
                                           runCmd: String,
@@ -70,7 +71,7 @@ class DockerContainerManager(
         // createContainerCmd accepts image name, not id, so we retrieve it from tags
         val createContainerCmdResponse = dockerClient.createContainerCmd(baseImage.repoTags.first())
             .withWorkingDir(workingDir)
-            .withCmd(runCmd)
+            .withCmd("bash", "-c", "source .env && $runCmd")
             .withName(containerName)
             .withHostConfig(HostConfig.newHostConfig()
                 .withRuntime(settings.runtime)
@@ -93,7 +94,19 @@ class DockerContainerManager(
             )
             .execTimed(meterRegistry, "$DOCKER_METRIC_PREFIX.container.create")
 
-        return createContainerCmdResponse!!.id
+        val containerId = createContainerCmdResponse!!.id
+        val envFile = createTempDirectory("orchestrator").resolve(".env").apply {
+            writeText("""
+                AGENT_ID=$containerId""".trimIndent()
+            )
+        }
+        copyResourcesIntoContainer(
+            containerId,
+            workingDir,
+            listOf(envFile.toFile())
+        )
+
+        return containerId
     }
 
     /**
