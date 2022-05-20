@@ -23,8 +23,6 @@ dependencyResolutionManagement {
     }
 }
 
-val isIncludeSaveApi: String? = System.getProperty("includeSaveApi")
-
 include("api-gateway")
 include("save-backend")
 include("save-orchestrator")
@@ -34,9 +32,7 @@ include("save-agent")
 include("save-preprocessor")
 include("test-utils")
 include("save-cloud-charts")
-if (isIncludeSaveApi != null) {
-    include("save-api")
-    include("save-api-cli")
-}
+include("save-api")
+include("save-api-cli")
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
