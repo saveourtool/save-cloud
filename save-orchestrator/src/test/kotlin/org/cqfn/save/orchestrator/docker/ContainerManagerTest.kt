@@ -57,7 +57,8 @@ class ContainerManagerTest {
             .inspectContainerCmd(testContainerId)
             .exec()
 
-        Assertions.assertEquals("./script.sh", inspectContainerResponse.path)
+        // runCmd is actually wrapped into bash that also loads env file
+        Assertions.assertEquals("bash", inspectContainerResponse.path)
         Assertions.assertEquals(0, inspectContainerResponse.args.size)
         Assertions.assertEquals("/testContainer", inspectContainerResponse.name)
 
