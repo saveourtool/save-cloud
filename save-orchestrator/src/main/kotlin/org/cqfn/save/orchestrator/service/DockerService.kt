@@ -252,7 +252,7 @@ class DockerService(private val configProperties: ConfigProperties,
         agentPropertiesFile.writeText(
             agentPropertiesFile.readLines().joinToString(System.lineSeparator()) { line ->
                 when {
-                    // we rely on id=... being long ID, but $HOSTNAME is a short one...
+                    line.startsWith("id=") -> "id=\${${configProperties.agentSettings.agentIdEnv}}"
                     line.startsWith("cliCommand=") -> "cliCommand=$cliCommand"
                     line.startsWith("backend.url=") && configProperties.agentSettings.backendUrl != null ->
                         "backend.url=${configProperties.agentSettings.backendUrl}"

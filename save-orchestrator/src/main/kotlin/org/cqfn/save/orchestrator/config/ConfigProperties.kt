@@ -59,8 +59,10 @@ data class DockerSettings(
 /**
  * @property backendUrl url of save-backend that will be used by save-agent
  * @property orchestratorUrl url of save-orchestrator that will be used by save-agent
+ * @property agentIdEnv name of an environment variable that can be used by save-agent to read its ID
  */
 data class AgentSettings(
+    val agentIdEnv: String? = null,
     val backendUrl: String? = null,
     val orchestratorUrl: String? = null,
 )
