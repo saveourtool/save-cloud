@@ -147,7 +147,7 @@ suspend fun HttpClient.submitExecution(executionType: ExecutionType, executionRe
             additionalFiles?.forEach { shortFileInfo ->
                 append(
                     "file",
-                    json.encodeToString(ShortFileInfo),
+                    json.encodeToString(shortFileInfo),
                     Headers.build {
                         append(HttpHeaders.ContentType, ContentType.Application.Json)
                     }

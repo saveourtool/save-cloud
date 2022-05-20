@@ -116,17 +116,16 @@ class AgentsController(
                 logFile.createNewFile()
                 log.info("Log file for $fileName agent was created")
             }
+            logFile to logs
+        }.flatMap { (logFile, logs) ->
             logs.content().map { dtBuffer ->
                 FileOutputStream(logFile, true).use { os ->
                     dtBuffer.asInputStream().use {
                         it.copyTo(os)
                     }
                 }
-            }
-                .collectList()
-                .subscribe()
+            }.collectList()
 
-            log.info("Logs of agent id = $fileName were written")
         }
             .subscribe()
     }

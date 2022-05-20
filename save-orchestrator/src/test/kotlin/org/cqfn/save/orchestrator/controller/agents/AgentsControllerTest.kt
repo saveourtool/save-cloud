@@ -205,7 +205,7 @@ class AgentsControllerTest {
             .post()
             .uri("/executionLogs")
             .contentType(MediaType.MULTIPART_FORM_DATA)
-            .header("Content-Disposition", "filename=agent")
+            .header("Content-Disposition", "filename=agent.log")
             .body(BodyInserters.fromMultipartData(body))
             .exchange()
     }
