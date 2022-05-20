@@ -24,6 +24,7 @@ import org.cqfn.save.v1
 
 import csstype.*
 import org.w3c.dom.HTMLInputElement
+import org.w3c.dom.HTMLTextAreaElement
 import org.w3c.dom.asList
 import org.w3c.fetch.Headers
 import org.w3c.fetch.Response
@@ -310,14 +311,14 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                         }
                     }
                     div("card-body") {
-                        input(type = InputType.text) {
-                            attrs["class"] = "form-control-plaintext pt-0 pb-0"
+                        textarea {
+                            attrs["class"] = "auto_height form-control-plaintext pt-0 pb-0"
                             if (state.isEditDisabled != false) {
                                 attrs.value = state.organization?.description ?: ""
                             }
                             attrs.disabled = state.isRoleViewer == true || (state.isEditDisabled ?: true)
                             attrs.onChange = { event ->
-                                val tg = event.target as HTMLInputElement
+                                val tg = event.target as HTMLTextAreaElement
                                 setNewDescription(tg.value)
                             }
                         }
