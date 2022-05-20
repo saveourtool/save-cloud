@@ -63,7 +63,6 @@ class AgentsController(
                     "status=${execution.status}, resourcesRootPath=${execution.resourcesRootPath}]")
             Mono.fromCallable {
                 // todo: pass SDK via request body
-                // todo(k8s): create Deployment and start its rollout, collect pod names
                 dockerService.buildAndCreateContainers(execution, testSuiteDtos)
             }
                 .onErrorResume(DockerException::class) {

@@ -9,7 +9,14 @@ import com.github.dockerjava.api.command.AsyncDockerCmd
 import com.github.dockerjava.api.command.SyncDockerCmd
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Timer
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry
+import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream
+import java.io.BufferedOutputStream
+import java.io.ByteArrayOutputStream
+import java.io.File
+import java.nio.file.Files
 import java.util.function.Supplier
+import java.util.zip.GZIPOutputStream
 
 internal const val DOCKER_METRIC_PREFIX = "save.orchestrator.docker"
 
@@ -79,4 +86,29 @@ fun createSyntheticTomlConfig(execCmd: String?, batchSizeForAnalyzer: String?): 
            |$exeCmdForTomlConfig
            |$batchSizeForTomlConfig
            """.trimMargin()
+}
+
+/**
+ * Add [files] to .tar.gz archive and return the underlying [ByteArrayOutputStream]
+ *
+ * @param files files to be added to archive
+ * @return resulting [ByteArrayOutputStream]
+ */
+internal fun createTgzStream(vararg files: File): ByteArrayOutputStream {
+    val out = ByteArrayOutputStream()
+    BufferedOutputStream(out).use { buffOut ->
+        GZIPOutputStream(buffOut).use { gzOut ->
+            TarArchiveOutputStream(gzOut).use { tgzOut ->
+                files.forEach {
+                    tgzOut.putArchiveEntry(TarArchiveEntry(it, it.name))
+                    Files.copy(it.toPath(), tgzOut)
+                    tgzOut.closeArchiveEntry()
+                }
+                tgzOut.finish()
+            }
+            gzOut.finish()
+        }
+        buffOut.flush()
+    }
+    return out
 }

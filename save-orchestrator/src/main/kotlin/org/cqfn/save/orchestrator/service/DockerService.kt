@@ -1,5 +1,6 @@
 package org.cqfn.save.orchestrator.service
 
+import com.github.dockerjava.api.DockerClient
 import org.cqfn.save.domain.Python
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.TestSuite
@@ -16,7 +17,6 @@ import org.cqfn.save.utils.moveFileWithAttributes
 
 import com.github.dockerjava.api.exception.DockerException
 import generated.SAVE_CORE_VERSION
-import io.micrometer.core.instrument.MeterRegistry
 import net.lingala.zip4j.ZipFile
 import net.lingala.zip4j.exception.ZipException
 import org.apache.commons.io.FileUtils
@@ -47,6 +47,7 @@ import kotlin.io.path.ExperimentalPathApi
 @Service
 @OptIn(ExperimentalPathApi::class)
 class DockerService(private val configProperties: ConfigProperties,
+                    private val dockerClient: DockerClient,
                     internal val dockerContainerManager: DockerContainerManager,
                     private val agentRunner: AgentRunner,
 ) {
@@ -76,11 +77,12 @@ class DockerService(private val configProperties: ConfigProperties,
         // todo (k8s): need to also push it so that other nodes will have access to it
         log.info("Built base image for execution.id=${execution.id}")
         // saveCliExecFlags are needed to generate agent.properties
-        agentRunner.create(
+        return agentRunner.create(
+            executionId = execution.id!!,
             baseImageId = imageId,
             replicas = configProperties.agentsCount,
-            runCmd = agentRunCmd,
-
+            agentRunCmd = agentRunCmd,
+            workingDir = executionDir,
         )
     }
 
@@ -101,12 +103,13 @@ class DockerService(private val configProperties: ConfigProperties,
         agentIds.forEach {
             log.info("Starting container id=$it")
             agentRunner.start(it)
-
         }
         log.info("Successfully started all containers for execution.id=$executionId")
     }
 
     /**
+     * TODO: `agentRunner.stop` should accept execution id and stop the whole group of agents
+     *
      * @param agentIds list of IDs of agents to stop
      * @return true if agents have been stopped, false if another thread is already stopping them
      */
@@ -145,11 +148,11 @@ class DockerService(private val configProperties: ConfigProperties,
      */
     fun removeImage(imageName: String) {
         log.info("Removing image $imageName")
-        val existingImages = dockerContainerManager.dockerClient.listImagesCmd().exec().map {
+        val existingImages = dockerClient.listImagesCmd().exec().map {
             it.id
         }
         if (imageName in existingImages) {
-            dockerContainerManager.dockerClient.removeImageCmd(imageName).exec()
+            dockerClient.removeImageCmd(imageName).exec()
         } else {
             log.info("Image $imageName is not present, so won't attempt to remove")
         }
@@ -160,6 +163,9 @@ class DockerService(private val configProperties: ConfigProperties,
      * @return an instance of docker command
      */
     fun removeContainer(containerId: String) {
+        // TODO
+//        agentRunner.cleanup(executionId)
+
         log.info("Removing container $containerId")
         val existingContainerIds = dockerContainerManager.dockerClient.listContainersCmd().withShowAll(true).exec()
             .map {
@@ -389,11 +395,6 @@ class DockerService(private val configProperties: ConfigProperties,
  * @param executionId
  */
 internal fun imageName(executionId: Long) = "save-execution:$executionId"
-
-/**
- * @param id
- */
-internal fun containerName(id: String) = "save-execution-$id"
 
 /**
  * @param testSuiteDto

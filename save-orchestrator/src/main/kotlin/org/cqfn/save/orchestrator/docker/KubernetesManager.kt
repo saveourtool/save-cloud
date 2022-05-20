@@ -32,11 +32,11 @@ class KubernetesManager(
 
     private val kc = DefaultKubernetesClient().inNamespace(kubernetesSettings.namespace)
 
-    override fun create(baseImageId: String,
+    override fun create(executionId: Long,
+                        baseImageId: String,
                         replicas: Int,
                         workingDir: String,
-                        runCmd: String,
-                        containerName: String,
+                        agentRunCmd: String,
     ): List<String> {
         val deployment = Deployment().apply {
             metadata = ObjectMeta().apply {
