@@ -70,7 +70,7 @@ class ExecutionService(private val executionRepository: ExecutionRepository,
                 it.endTime = LocalDateTime.now()
                 // if the tests are stuck in the READY_FOR_TESTING or RUNNING status
                 testExecutionRepository.findByStatusListAndExecutionId(listOf(TestResultStatus.READY_FOR_TESTING, TestResultStatus.RUNNING), execution.id).map { testExec ->
-                    testExec.status = TestResultStatus.FAILED
+                    testExec.status = TestResultStatus.INTERNAL_ERROR
                     testExecutionRepository.save(testExec)
                 }
             }
