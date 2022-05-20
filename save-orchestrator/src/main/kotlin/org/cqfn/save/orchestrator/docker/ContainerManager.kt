@@ -30,6 +30,7 @@ import java.util.zip.GZIPOutputStream
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.createTempDirectory
 import kotlin.io.path.createTempFile
+import kotlin.io.path.writeText
 
 /**
  * A class that communicates with docker daemon
@@ -78,7 +79,7 @@ class ContainerManager(private val settings: DockerSettings,
         // createContainerCmd accepts image name, not id, so we retrieve it from tags
         val createContainerCmdResponse = dockerClient.createContainerCmd(baseImage.repoTags.first())
             .withWorkingDir(workingDir)
-            .withCmd(runCmd)
+            .withCmd("bash", "-c", "source .env && $runCmd")
             .withName(containerName)
             .withHostConfig(HostConfig.newHostConfig()
                 .withRuntime(settings.runtime)
@@ -101,7 +102,19 @@ class ContainerManager(private val settings: DockerSettings,
             )
             .execTimed(meterRegistry, "$DOCKER_METRIC_PREFIX.container.create")
 
-        return createContainerCmdResponse!!.id
+        val containerId = createContainerCmdResponse!!.id
+        val envFile = createTempDirectory("orchestrator").resolve(".env").apply {
+            writeText("""
+                AGENT_ID=$containerId""".trimIndent()
+            )
+        }
+        copyResourcesIntoContainer(
+            containerId,
+            workingDir,
+            listOf(envFile.toFile())
+        )
+
+        return containerId
     }
 
     /**
@@ -197,6 +210,12 @@ class ContainerManager(private val settings: DockerSettings,
             buffOut.flush()
         }
         return out
+    }
+
+    internal fun getFullContainerId(containerId: String): String {
+        return dockerClient.inspectContainerCmd(containerId)
+            .exec()
+            .id
     }
 
     companion object {

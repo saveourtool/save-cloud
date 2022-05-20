@@ -73,14 +73,14 @@ class DockerService(private val configProperties: ConfigProperties,
         testSuiteDtos: List<TestSuiteDto>?,
     ): List<String> {
         log.info("Building base image for execution.id=${execution.id}")
-        val (imageId, runCmd) = buildBaseImageForExecution(execution, testSuiteDtos)
+        val (imageId, agentRunCmd) = buildBaseImageForExecution(execution, testSuiteDtos)
         log.info("Built base image for execution.id=${execution.id}")
         return (1..configProperties.agentsCount).map { number ->
             log.info("Building container #$number for execution.id=${execution.id}")
             containerManager.createContainerFromImage(
                 imageId,
                 executionDir,
-                runCmd,
+                agentRunCmd,
                 containerName("${execution.id}-$number"),
             ).also {
                 log.info("Built container id=$it for execution.id=${execution.id}")
@@ -252,6 +252,7 @@ class DockerService(private val configProperties: ConfigProperties,
         agentPropertiesFile.writeText(
             agentPropertiesFile.readLines().joinToString(System.lineSeparator()) { line ->
                 when {
+                    // we rely on id=... being long ID, but $HOSTNAME is a short one...
                     line.startsWith("cliCommand=") -> "cliCommand=$cliCommand"
                     line.startsWith("backend.url=") && configProperties.agentSettings.backendUrl != null ->
                         "backend.url=${configProperties.agentSettings.backendUrl}"
