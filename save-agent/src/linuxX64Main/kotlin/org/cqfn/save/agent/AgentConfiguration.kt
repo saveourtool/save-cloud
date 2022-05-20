@@ -4,9 +4,10 @@
 
 package org.cqfn.save.agent
 
+import platform.posix.getenv
+
 import kotlinx.cinterop.toKString
 import kotlinx.serialization.Serializable
-import platform.posix.getenv
 
 /**
  * Configuration for save agent.
@@ -33,6 +34,9 @@ data class AgentConfiguration(
     val cliCommand: String,
     val logFilePath: String = "logs.txt"
 ) {
+    /**
+     * If [id] references an environment variable, reads its value and returns the actual ID of the agent.
+     */
     fun resolvedId() = if (id.startsWith("\${")) {
         val varName = id.drop(2).dropLast(1)
         val envVar = getenv(varName)

@@ -27,7 +27,6 @@ import java.io.File
 import java.nio.file.Files
 import java.util.zip.GZIPOutputStream
 
-import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.createTempDirectory
 import kotlin.io.path.createTempFile
 import kotlin.io.path.writeText
@@ -65,7 +64,7 @@ class ContainerManager(private val settings: DockerSettings,
      * @throws DockerException if docker daemon has returned an error
      * @throws RuntimeException if an exception not specific to docker has occurred
      */
-    @Suppress("UnsafeCallOnNullableType")
+    @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
     internal fun createContainerFromImage(baseImageId: String,
                                           workingDir: String,
                                           runCmd: String,
@@ -210,12 +209,6 @@ class ContainerManager(private val settings: DockerSettings,
             buffOut.flush()
         }
         return out
-    }
-
-    internal fun getFullContainerId(containerId: String): String {
-        return dockerClient.inspectContainerCmd(containerId)
-            .exec()
-            .id
     }
 
     companion object {
