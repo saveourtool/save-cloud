@@ -73,13 +73,14 @@ class DockerService(private val configProperties: ConfigProperties,
         testSuiteDtos: List<TestSuiteDto>?,
     ): List<String> {
         log.info("Building base image for execution.id=${execution.id}")
-        val (imageId, runCmd, saveCliExecFlags) = buildBaseImageForExecution(execution, testSuiteDtos)
+        val (imageId, agentRunCmd, saveCliExecFlags) = buildBaseImageForExecution(execution, testSuiteDtos)
         // todo (k8s): need to also push it so that other nodes will have access to it
         log.info("Built base image for execution.id=${execution.id}")
+        // saveCliExecFlags are needed to generate agent.properties
         agentRunner.create(
             baseImageId = imageId,
             replicas = configProperties.agentsCount,
-            runCmd = /*runCmd*/,
+            runCmd = agentRunCmd,
 
         )
     }
@@ -357,7 +358,7 @@ class DockerService(private val configProperties: ConfigProperties,
         }
     }
 
-    private fun createContainerForExecution(
+    internal fun createContainerForExecution(
         execution: Execution,
         imageId: String,
         containerNumber: String,
