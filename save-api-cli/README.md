@@ -37,8 +37,6 @@ required fields from another section could have empty values.
 
 ### Execution:
 
-**Note:** Module will be included into the project, only if system variable `includeSaveApi` is set
-
 Current API required few cli arguments for execution:
 ```
   -m execution mode: git or standard
@@ -49,4 +47,4 @@ Current API required few cli arguments for execution:
 
 Example:
 
-    ./gradlew save-api-cli:run -DincludeSaveApi='true' --args='-u user -o github -t token -m git'
+    ./gradlew save-api-cli:run --args='-u user -o github -t token -m git'
