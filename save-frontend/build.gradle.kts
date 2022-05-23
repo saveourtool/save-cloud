@@ -90,7 +90,7 @@ kotlin {
             // transitive dependencies with explicit version ranges required for security reasons
             compileOnly(devNpm("minimist", "^1.2.6"))
             compileOnly(devNpm("async", "^2.6.4"))
-            compileOnly(devNpm("follow-redirects", "^1.14.7"))
+            compileOnly(devNpm("follow-redirects", "^1.14.8"))
         }
         sourceSets["test"].dependencies {
             implementation(kotlin("test-js"))
@@ -113,6 +113,7 @@ rootProject.plugins.withType(NodeJsRootPlugin::class.java) {
         webpackDevServer.version = "^4.9.0"
         // override default version from KGP for security reasons
         karma.version = "^6.3.14"
+        mocha.version = "9.2.0"
     }
 }
 // store yarn.lock in the root directory
