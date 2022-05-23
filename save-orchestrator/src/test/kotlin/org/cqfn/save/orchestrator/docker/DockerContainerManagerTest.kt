@@ -57,8 +57,11 @@ class DockerContainerManagerTest {
             .inspectContainerCmd(testContainerId)
             .exec()
 
-        Assertions.assertEquals("./script.sh", inspectContainerResponse.path)
-        Assertions.assertEquals(0, inspectContainerResponse.args.size)
+        Assertions.assertEquals("bash", inspectContainerResponse.path)
+        Assertions.assertArrayEquals(
+            arrayOf("-c", "source .env && ./script.sh"),
+            inspectContainerResponse.args
+        )
         Assertions.assertEquals("/testContainer", inspectContainerResponse.name)
 
         val resourceFile = createTempFile().toFile()
