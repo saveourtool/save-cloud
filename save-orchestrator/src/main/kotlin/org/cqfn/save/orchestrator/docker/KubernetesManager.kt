@@ -75,6 +75,7 @@ class KubernetesManager(
             }
         }
         val appliedDeployment = kc.apps().deployments().create(deployment)
+        // todo: do we need to wait for pods to be created?
         return kc.pods().withLabel("baseImageId", baseImageId).list().items.map { it.metadata.name }
     }
 

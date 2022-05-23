@@ -74,7 +74,7 @@ class DockerService(private val configProperties: ConfigProperties,
         val (imageId, agentRunCmd) = buildBaseImageForExecution(execution, testSuiteDtos)
         // todo (k8s): need to also push it so that other nodes will have access to it
         log.info("Built base image for execution.id=${execution.id}")
-        // saveCliExecFlags are needed to generate agent.properties
+
         return agentRunner.create(
             executionId = execution.id!!,
             baseImageId = imageId,
