@@ -103,9 +103,9 @@ class AgentsController(
      * @param executionLogs ExecutionLogs
      */
     @PostMapping("/executionLogs", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
-    fun saveAgentsLog(@RequestPart(required = true) executionLogs: Mono<FilePart>) {
-        executionLogs.map { logs ->
-            val fileName = logs.filename()
+    fun saveAgentsLog(@RequestPart(required = true) executionLogs: FilePart) {
+            println("\n\n\n\n\n--------------------------saveAgentsLog")
+            val fileName = executionLogs.filename()
             val logDir = File(configProperties.executionLogs)
             if (!logDir.exists()) {
                 log.info("Folder to store logs from agents was created: ${logDir.name}")
@@ -116,18 +116,17 @@ class AgentsController(
                 logFile.createNewFile()
                 log.info("Log file for $fileName agent was created")
             }
-            logFile to logs
-        }.flatMap { (logFile, logs) ->
-            logs.content().map { dtBuffer ->
+            executionLogs.content().map { dtBuffer ->
                 FileOutputStream(logFile, true).use { os ->
                     dtBuffer.asInputStream().use {
                         it.copyTo(os)
                     }
                 }
-            }.collectList()
+            }
+                .collectList()
+                .subscribe()
 
-        }
-            .subscribe()
+            log.info("Logs of agent id = $fileName were written")
     }
 
     /**

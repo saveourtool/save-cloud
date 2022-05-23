@@ -42,9 +42,7 @@ import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.createTempDirectory
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.springframework.core.io.buffer.DataBuffer
 import org.springframework.http.MediaType
-import org.springframework.http.codec.multipart.FilePart
 
 @WebFluxTest(controllers = [AgentsController::class])
 @Import(AgentService::class, Beans::class)
@@ -191,13 +189,26 @@ class AgentsControllerTest {
     }
 
     private fun makeRequestToSaveLog(text: List<String>): WebTestClient.ResponseSpec {
-        var byteArray = ByteArray(0)
+        val fileName = "agent.log"
+        val filePath = configProperties.executionLogs + File.separator + "agent.log"
+        val file = File(filePath)
+
         text.forEach {
-            byteArray += it.toByteArray()
+            file.appendText(it + "\n")
+        }
+        //file.createNewFile()
+
+        println("------------- ${filePath}" + File(filePath).exists())
+        file.readLines().forEach {
+            println("line: ${it}")
         }
 
         val body = MultipartBodyBuilder().apply {
-            part("executionLogs", byteArray)
+            part(
+                "executionLogs",
+                file.readBytes()
+            )
+                .header("Content-Disposition", "form-data; name=executionLogs; filename=${fileName}")
         }
             .build()
 
@@ -205,7 +216,6 @@ class AgentsControllerTest {
             .post()
             .uri("/executionLogs")
             .contentType(MediaType.MULTIPART_FORM_DATA)
-            .header("Content-Disposition", "filename=agent.log")
             .body(BodyInserters.fromMultipartData(body))
             .exchange()
     }
