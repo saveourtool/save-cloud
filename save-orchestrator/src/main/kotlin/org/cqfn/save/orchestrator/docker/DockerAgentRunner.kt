@@ -47,8 +47,29 @@ class DockerAgentRunner(
         dockerClient.startContainerCmd(id).exec()
     }
 
-    override fun stop(id: String) {
-        dockerClient.stopContainerCmd(id).exec()
+    override fun stop(executionId: String) {
+        val runningContainersForExecution = dockerClient.listContainersCmd().withStatusFilter(listOf("RUNNING")).exec()
+            .filter { container -> container.names.any { it.contains("-$executionId-") } }
+        runningContainersForExecution.map { it.id }.forEach { agentId ->
+            dockerClient.stopContainerCmd(agentId).exec()
+        }
+    }
+
+    override fun cleanup(executionId: Long) {
+        val containersForExecution = dockerClient.listContainersCmd().withNameFilter(listOf("-$executionId-")).exec()
+
+        containersForExecution.map { it.id }.forEach { containerId ->
+            logger.info("Removing container $containerId")
+            val existingContainerIds = dockerClient.listContainersCmd().withShowAll(true).exec()
+                .map {
+                    it.id
+                }
+            if (containerId in existingContainerIds) {
+                dockerClient.removeContainerCmd(containerId).exec()
+            } else {
+                logger.info("Container $containerId is not present, so won't attempt to remove")
+            }
+        }
     }
 
     /**

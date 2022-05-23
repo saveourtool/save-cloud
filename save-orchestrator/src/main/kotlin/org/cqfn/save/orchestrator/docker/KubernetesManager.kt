@@ -40,7 +40,7 @@ class KubernetesManager(
     ): List<String> {
         val deployment = Deployment().apply {
             metadata = ObjectMeta().apply {
-                name = containerName
+                name = deploymentNameForExecution("$executionId")
             }
             spec = DeploymentSpec().apply {
                 this.replicas = replicas
@@ -55,15 +55,15 @@ class KubernetesManager(
                                 }
                                 image = baseImageId
                                 imagePullPolicy = "IfNotPresent"  // so that local images could be used
-                                name = containerName
-                                // todo: value
+                                // If agent fails, we should handle it manually (update statuses, attempt restart etc)
+                                // todo: check if this value is correct
                                 restartPolicy = "never"
                                 env = listOf(
                                     EnvVar().apply {
                                         name = "POD_NAME"
                                         valueFrom = EnvVarSource().apply {
                                             fieldRef = ObjectFieldSelector().apply {
-                                                fieldPath = this@pod.metadata!!.name
+                                                fieldPath = "spec.name"
                                             }
                                         }
                                     }
@@ -82,9 +82,15 @@ class KubernetesManager(
         logger.debug("${this::class.simpleName}#start is called, but it's no-op because Kubernetes workloads are managed by Kubernetes itself")
     }
 
-    override fun stop(id: String) {
-        kc.apps().deployments().withName().delete()
+    override fun stop(executionId: String) {
+        kc.apps().deployments().withName(deploymentNameForExecution(executionId)).delete()
     }
+
+    override fun cleanup(executionId: Long) {
+        TODO("Not yet implemented")
+    }
+
+    private fun deploymentNameForExecution(executionId: String) = "save-execution-$executionId"
 
     companion object {
         private val logger = LoggerFactory.getLogger(KubernetesManager::class.java)

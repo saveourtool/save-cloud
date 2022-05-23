@@ -1,6 +1,10 @@
 package org.cqfn.save.orchestrator.service
 
 import com.github.dockerjava.api.DockerClient
+import com.github.dockerjava.api.exception.DockerException
+import net.lingala.zip4j.ZipFile
+import net.lingala.zip4j.exception.ZipException
+import org.apache.commons.io.FileUtils
 import org.cqfn.save.domain.Python
 import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.TestSuite
@@ -10,21 +14,13 @@ import org.cqfn.save.orchestrator.SAVE_CLI_EXECUTABLE_NAME
 import org.cqfn.save.orchestrator.config.ConfigProperties
 import org.cqfn.save.orchestrator.copyRecursivelyWithAttributes
 import org.cqfn.save.orchestrator.createSyntheticTomlConfig
+import org.cqfn.save.orchestrator.docker.AgentRunner
 import org.cqfn.save.orchestrator.docker.DockerContainerManager
-import org.cqfn.save.orchestrator.docker.ContainerManager
 import org.cqfn.save.orchestrator.fillAgentPropertiesFromConfiguration
 import org.cqfn.save.testsuite.TestSuiteDto
 import org.cqfn.save.utils.PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE
 import org.cqfn.save.utils.STANDARD_TEST_SUITE_DIR
 import org.cqfn.save.utils.moveFileWithAttributes
-
-import com.github.dockerjava.api.exception.DockerException
-import generated.SAVE_CORE_VERSION
-import io.micrometer.core.instrument.MeterRegistry
-import net.lingala.zip4j.ZipFile
-import net.lingala.zip4j.exception.ZipException
-import org.apache.commons.io.FileUtils
-import org.cqfn.save.orchestrator.docker.AgentRunner
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
@@ -35,13 +31,11 @@ import org.springframework.util.FileSystemUtils
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
-
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.LinkOption
 import java.nio.file.attribute.PosixFileAttributeView
 import java.util.concurrent.atomic.AtomicBoolean
-
 import kotlin.io.path.ExperimentalPathApi
 
 /**
@@ -107,7 +101,6 @@ class DockerService(private val configProperties: ConfigProperties,
         agentIds.forEach {
             log.info("Starting container id=$it")
             agentRunner.start(it)
-
         }
         log.info("Successfully started all containers for execution.id=$executionId")
     }
@@ -122,7 +115,8 @@ class DockerService(private val configProperties: ConfigProperties,
     fun stopAgents(agentIds: Collection<String>) =
             if (isAgentStoppingInProgress.compareAndSet(false, true)) {
                 try {
-                    val containerList = dockerContainerManager.dockerClient.listContainersCmd().withShowAll(true).exec()
+                    // todo: should delegate to AgentRunner too
+                    val containerList = dockerClient.listContainersCmd().withShowAll(true).exec()
                     val runningContainersIds = containerList.filter { it.state == "running" }.map { it.id }
                     agentIds.forEach { agentId ->
                         if (agentId in runningContainersIds) {
@@ -170,17 +164,6 @@ class DockerService(private val configProperties: ConfigProperties,
     fun removeContainer(containerId: String) {
         // TODO
 //        agentRunner.cleanup(executionId)
-
-        log.info("Removing container $containerId")
-        val existingContainerIds = dockerContainerManager.dockerClient.listContainersCmd().withShowAll(true).exec()
-            .map {
-                it.id
-            }
-        if (containerId in existingContainerIds) {
-            dockerContainerManager.dockerClient.removeContainerCmd(containerId).exec()
-        } else {
-            log.info("Container $containerId is not present, so won't attempt to remove")
-        }
     }
 
     @Suppress(

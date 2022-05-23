@@ -15,7 +15,7 @@ interface AgentRunner {
 
     fun start(id: String)
 
-    fun stop(id: String)
+    fun stop(executionId: String)
 
     fun cleanup(executionId: Long)
 }

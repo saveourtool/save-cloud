@@ -16,7 +16,6 @@ import org.apache.commons.compress.archivers.tar.TarArchiveEntry
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream
 import java.io.BufferedOutputStream
 import java.io.ByteArrayOutputStream
-import java.io.File
 import java.nio.file.Files
 import org.apache.commons.io.FileUtils
 import org.springframework.core.io.ClassPathResource
