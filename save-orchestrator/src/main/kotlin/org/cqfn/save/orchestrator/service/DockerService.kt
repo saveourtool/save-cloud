@@ -5,17 +5,18 @@ import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.TestSuite
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionUpdateDto
+import org.cqfn.save.orchestrator.SAVE_CLI_EXECUTABLE_NAME
 import org.cqfn.save.orchestrator.config.ConfigProperties
 import org.cqfn.save.orchestrator.copyRecursivelyWithAttributes
 import org.cqfn.save.orchestrator.createSyntheticTomlConfig
 import org.cqfn.save.orchestrator.docker.ContainerManager
+import org.cqfn.save.orchestrator.fillAgentPropertiesFromConfiguration
 import org.cqfn.save.testsuite.TestSuiteDto
 import org.cqfn.save.utils.PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE
 import org.cqfn.save.utils.STANDARD_TEST_SUITE_DIR
 import org.cqfn.save.utils.moveFileWithAttributes
 
 import com.github.dockerjava.api.exception.DockerException
-import generated.SAVE_CORE_VERSION
 import io.micrometer.core.instrument.MeterRegistry
 import net.lingala.zip4j.ZipFile
 import net.lingala.zip4j.exception.ZipException
@@ -244,24 +245,7 @@ class DockerService(private val configProperties: ConfigProperties,
         }
 
         val agentPropertiesFile = File(resourcesPath, "agent.properties")
-        FileUtils.copyInputStreamToFile(
-            ClassPathResource("agent.properties").inputStream,
-            agentPropertiesFile
-        )
-        val cliCommand = "./$SAVE_CLI_EXECUTABLE_NAME$saveCliExecFlags"
-        agentPropertiesFile.writeText(
-            agentPropertiesFile.readLines().joinToString(System.lineSeparator()) { line ->
-                when {
-                    line.startsWith("id=") -> "id=\${${configProperties.agentSettings.agentIdEnv}}"
-                    line.startsWith("cliCommand=") -> "cliCommand=$cliCommand"
-                    line.startsWith("backend.url=") && configProperties.agentSettings.backendUrl != null ->
-                        "backend.url=${configProperties.agentSettings.backendUrl}"
-                    line.startsWith("orchestratorUrl=") && configProperties.agentSettings.orchestratorUrl != null ->
-                        "orchestratorUrl=${configProperties.agentSettings.orchestratorUrl}"
-                    else -> line
-                }
-            }
-        )
+        fillAgentPropertiesFromConfiguration(agentPropertiesFile, configProperties.agentSettings, saveCliExecFlags)
 
         val baseImage = execution.sdk
         val aptCmd = "apt-get ${configProperties.aptExtraFlags}"
@@ -386,7 +370,6 @@ class DockerService(private val configProperties: ConfigProperties,
     companion object {
         private val log = LoggerFactory.getLogger(DockerService::class.java)
         private const val SAVE_AGENT_EXECUTABLE_NAME = "save-agent.kexe"
-        private const val SAVE_CLI_EXECUTABLE_NAME = "save-$SAVE_CORE_VERSION-linuxX64.kexe"
     }
 }
 

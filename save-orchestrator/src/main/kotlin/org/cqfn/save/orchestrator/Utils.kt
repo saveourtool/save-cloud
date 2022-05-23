@@ -4,14 +4,23 @@
 
 package org.cqfn.save.orchestrator
 
+import org.cqfn.save.orchestrator.config.AgentSettings
+
 import com.github.dockerjava.api.async.ResultCallback
 import com.github.dockerjava.api.command.AsyncDockerCmd
 import com.github.dockerjava.api.command.SyncDockerCmd
+import generated.SAVE_CORE_VERSION
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Timer
+import org.apache.commons.io.FileUtils
+import org.springframework.core.io.ClassPathResource
+
+import java.io.File
 import java.util.function.Supplier
 
 internal const val DOCKER_METRIC_PREFIX = "save.orchestrator.docker"
+
+internal const val SAVE_CLI_EXECUTABLE_NAME = "save-$SAVE_CORE_VERSION-linuxX64.kexe"
 
 /**
  * Execute this async docker command while recording its execution duration.
@@ -79,4 +88,37 @@ fun createSyntheticTomlConfig(execCmd: String?, batchSizeForAnalyzer: String?): 
            |$exeCmdForTomlConfig
            |$batchSizeForTomlConfig
            """.trimMargin()
+}
+
+/**
+ * Load default agent.properties from classpath, get properties values using configuration and store into [agentPropertiesFile].
+ *
+ * @param agentPropertiesFile target file
+ * @param agentSettings configuration of save-agent loaded from save-orchestrator
+ * @param saveCliExecFlags flags for save-cli
+ */
+internal fun fillAgentPropertiesFromConfiguration(
+    agentPropertiesFile: File,
+    agentSettings: AgentSettings,
+    saveCliExecFlags: String
+) {
+    FileUtils.copyInputStreamToFile(
+        ClassPathResource("agent.properties").inputStream,
+        agentPropertiesFile
+    )
+
+    val cliCommand = "./$SAVE_CLI_EXECUTABLE_NAME$saveCliExecFlags"
+    agentPropertiesFile.writeText(
+        agentPropertiesFile.readLines().joinToString(System.lineSeparator()) { line ->
+            when {
+                line.startsWith("id=") -> "id=\${${agentSettings.agentIdEnv}}"
+                line.startsWith("cliCommand=") -> "cliCommand=$cliCommand"
+                line.startsWith("backend.url=") && agentSettings.backendUrl != null ->
+                    "backend.url=${agentSettings.backendUrl}"
+                line.startsWith("orchestratorUrl=") && agentSettings.orchestratorUrl != null ->
+                    "orchestratorUrl=${agentSettings.orchestratorUrl}"
+                else -> line
+            }
+        }
+    )
 }
