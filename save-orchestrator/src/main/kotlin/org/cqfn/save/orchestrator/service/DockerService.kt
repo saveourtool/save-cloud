@@ -5,17 +5,18 @@ import org.cqfn.save.entities.Execution
 import org.cqfn.save.entities.TestSuite
 import org.cqfn.save.execution.ExecutionStatus
 import org.cqfn.save.execution.ExecutionUpdateDto
+import org.cqfn.save.orchestrator.SAVE_CLI_EXECUTABLE_NAME
 import org.cqfn.save.orchestrator.config.ConfigProperties
 import org.cqfn.save.orchestrator.copyRecursivelyWithAttributes
 import org.cqfn.save.orchestrator.createSyntheticTomlConfig
 import org.cqfn.save.orchestrator.docker.ContainerManager
+import org.cqfn.save.orchestrator.fillAgentPropertiesFromConfiguration
 import org.cqfn.save.testsuite.TestSuiteDto
 import org.cqfn.save.utils.PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE
 import org.cqfn.save.utils.STANDARD_TEST_SUITE_DIR
 import org.cqfn.save.utils.moveFileWithAttributes
 
 import com.github.dockerjava.api.exception.DockerException
-import generated.SAVE_CORE_VERSION
 import io.micrometer.core.instrument.MeterRegistry
 import net.lingala.zip4j.ZipFile
 import net.lingala.zip4j.exception.ZipException
@@ -38,7 +39,6 @@ import java.nio.file.attribute.PosixFileAttributeView
 import java.util.concurrent.atomic.AtomicBoolean
 
 import kotlin.io.path.ExperimentalPathApi
-import kotlin.io.path.createTempDirectory
 
 /**
  * A service that uses [ContainerManager] to build and start containers for test execution.
@@ -74,11 +74,16 @@ class DockerService(private val configProperties: ConfigProperties,
         testSuiteDtos: List<TestSuiteDto>?,
     ): List<String> {
         log.info("Building base image for execution.id=${execution.id}")
-        val (imageId, runCmd, saveCliExecFlags) = buildBaseImageForExecution(execution, testSuiteDtos)
+        val (imageId, agentRunCmd) = buildBaseImageForExecution(execution, testSuiteDtos)
         log.info("Built base image for execution.id=${execution.id}")
         return (1..configProperties.agentsCount).map { number ->
             log.info("Building container #$number for execution.id=${execution.id}")
-            createContainerForExecution(execution, imageId, "${execution.id}-$number", runCmd, saveCliExecFlags).also {
+            containerManager.createContainerFromImage(
+                imageId,
+                executionDir,
+                agentRunCmd,
+                containerName("${execution.id}-$number"),
+            ).also {
                 log.info("Built container id=$it for execution.id=${execution.id}")
             }
         }
@@ -100,7 +105,9 @@ class DockerService(private val configProperties: ConfigProperties,
             .subscribe()
         agentIds.forEach {
             log.info("Starting container id=$it")
-            containerManager.dockerClient.startContainerCmd(it).exec()
+            containerManager.dockerClient
+                .startContainerCmd(it)
+                .exec()
         }
         log.info("Successfully started all containers for execution.id=$executionId")
     }
@@ -179,7 +186,7 @@ class DockerService(private val configProperties: ConfigProperties,
     private fun buildBaseImageForExecution(
         execution: Execution,
         testSuiteDtos: List<TestSuiteDto>?
-    ): Triple<String, String, String> {
+    ): Pair<String, String> {
         val resourcesPath = File(
             configProperties.testResources.basePath,
             execution.resourcesRootPath!!,
@@ -237,6 +244,9 @@ class DockerService(private val configProperties: ConfigProperties,
             changeOwnerRecursively(resourcesPath, "cnb")
         }
 
+        val agentPropertiesFile = File(resourcesPath, "agent.properties")
+        fillAgentPropertiesFromConfiguration(agentPropertiesFile, configProperties.agentSettings, saveCliExecFlags)
+
         val baseImage = execution.sdk
         val aptCmd = "apt-get ${configProperties.aptExtraFlags}"
         // fixme: https://github.com/analysis-dev/save-cloud/issues/352
@@ -265,7 +275,7 @@ class DockerService(private val configProperties: ConfigProperties,
         )
         saveAgent.delete()
         saveCli.delete()
-        return Triple(imageId, agentRunCmd, saveCliExecFlags)
+        return Pair(imageId, agentRunCmd)
     }
 
     private fun changeOwnerRecursively(directory: File, user: String) {
@@ -357,51 +367,9 @@ class DockerService(private val configProperties: ConfigProperties,
         }
     }
 
-    private fun createContainerForExecution(
-        execution: Execution,
-        imageId: String,
-        containerNumber: String,
-        runCmd: String,
-        saveCliExecFlags: String,
-    ): String {
-        val containerId = containerManager.createContainerFromImage(
-            imageId,
-            executionDir,
-            runCmd,
-            containerName(containerNumber),
-        )
-        val agentPropertiesFile = createTempDirectory("agent")
-            .resolve("agent.properties")
-            .toFile()
-        FileUtils.copyInputStreamToFile(
-            ClassPathResource("agent.properties").inputStream,
-            agentPropertiesFile
-        )
-        val cliCommand = "./$SAVE_CLI_EXECUTABLE_NAME$saveCliExecFlags"
-        agentPropertiesFile.writeText(
-            agentPropertiesFile.readLines().joinToString(System.lineSeparator()) { line ->
-                when {
-                    line.startsWith("id=") -> "id=$containerId"
-                    line.startsWith("cliCommand=") -> "cliCommand=$cliCommand"
-                    line.startsWith("backend.url=") && configProperties.agentSettings.backendUrl != null ->
-                        "backend.url=${configProperties.agentSettings.backendUrl}"
-                    line.startsWith("orchestratorUrl=") && configProperties.agentSettings.orchestratorUrl != null ->
-                        "orchestratorUrl=${configProperties.agentSettings.orchestratorUrl}"
-                    else -> line
-                }
-            }
-        )
-        containerManager.copyResourcesIntoContainer(
-            containerId, executionDir,
-            listOf(agentPropertiesFile)
-        )
-        return containerId
-    }
-
     companion object {
         private val log = LoggerFactory.getLogger(DockerService::class.java)
         private const val SAVE_AGENT_EXECUTABLE_NAME = "save-agent.kexe"
-        private const val SAVE_CLI_EXECUTABLE_NAME = "save-$SAVE_CORE_VERSION-linuxX64.kexe"
     }
 }
 

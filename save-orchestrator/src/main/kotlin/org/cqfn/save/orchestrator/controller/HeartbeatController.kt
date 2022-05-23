@@ -30,7 +30,6 @@ import java.util.concurrent.ConcurrentLinkedQueue
 
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 
 private val agentsLatestHeartBeatsMap: AgentStatesWithTimeStamps = ConcurrentHashMap()
@@ -62,7 +61,6 @@ class HeartbeatController(private val agentService: AgentService,
      * @return Answer for agent
      */
     @PostMapping("/heartbeat")
-    @OptIn(ExperimentalSerializationApi::class)
     fun acceptHeartbeat(@RequestBody heartbeat: Heartbeat): Mono<String> {
         logger.info("Got heartbeat state: ${heartbeat.state.name} from ${heartbeat.agentId}")
         updateAgentHeartbeatTimeStamps(heartbeat)

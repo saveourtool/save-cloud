@@ -27,9 +27,9 @@ import java.io.File
 import java.nio.file.Files
 import java.util.zip.GZIPOutputStream
 
-import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.createTempDirectory
 import kotlin.io.path.createTempFile
+import kotlin.io.path.writeText
 
 /**
  * A class that communicates with docker daemon
@@ -64,7 +64,7 @@ class ContainerManager(private val settings: DockerSettings,
      * @throws DockerException if docker daemon has returned an error
      * @throws RuntimeException if an exception not specific to docker has occurred
      */
-    @Suppress("UnsafeCallOnNullableType")
+    @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
     internal fun createContainerFromImage(baseImageId: String,
                                           workingDir: String,
                                           runCmd: String,
@@ -78,7 +78,7 @@ class ContainerManager(private val settings: DockerSettings,
         // createContainerCmd accepts image name, not id, so we retrieve it from tags
         val createContainerCmdResponse = dockerClient.createContainerCmd(baseImage.repoTags.first())
             .withWorkingDir(workingDir)
-            .withCmd(runCmd)
+            .withCmd("bash", "-c", "source .env && $runCmd")
             .withName(containerName)
             .withHostConfig(HostConfig.newHostConfig()
                 .withRuntime(settings.runtime)
@@ -101,7 +101,19 @@ class ContainerManager(private val settings: DockerSettings,
             )
             .execTimed(meterRegistry, "$DOCKER_METRIC_PREFIX.container.create")
 
-        return createContainerCmdResponse!!.id
+        val containerId = createContainerCmdResponse!!.id
+        val envFile = createTempDirectory("orchestrator").resolve(".env").apply {
+            writeText("""
+                AGENT_ID=$containerId""".trimIndent()
+            )
+        }
+        copyResourcesIntoContainer(
+            containerId,
+            workingDir,
+            listOf(envFile.toFile())
+        )
+
+        return containerId
     }
 
     /**
@@ -133,7 +145,6 @@ class ContainerManager(private val settings: DockerSettings,
      * @return id of the created docker image
      * @throws DockerException
      */
-    @OptIn(ExperimentalPathApi::class)
     @Suppress("TOO_LONG_FUNCTION", "LongMethod")
     internal fun buildImageWithResources(baseImage: String = Sdk.Default.toString(),
                                          imageName: String,
