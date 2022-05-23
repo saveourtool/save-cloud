@@ -12,7 +12,7 @@ import org.springframework.boot.gradle.tasks.run.BootRun
 plugins {
     kotlin("jvm")
     id("de.undercouch.download")  // can't use `alias`, because this plugin is a transitive dependency of kotlin-gradle-plugin
-    id("org.gradle.test-retry") version "1.3.2"
+    id("org.gradle.test-retry") version "1.4.0"
 }
 
 configureSpringBoot()
