@@ -133,7 +133,7 @@ dockerJava-core = { module = "com.github.docker-java:docker-java-core", version.
 dockerJava-transport-httpclient5 = { module = "com.github.docker-java:docker-java-transport-httpclient5", version.ref = "docker-java" }
 jgit = { module = "org.eclipse.jgit:org.eclipse.jgit", version.ref = "jgit" }
 micrometer-registry-prometheus = { module = "io.micrometer:micrometer-registry-prometheus", version.ref = "micrometer" }
-diktat-gradle-plugin = { module = "com.saveourtool.diktat:diktat-gradle-plugin", version.ref = "diktat" }
+diktat-gradle-plugin = { module = "org.cqfn.diktat:diktat-gradle-plugin", version.ref = "diktat" }
 detekt-gradle-plugin = { module = "io.gitlab.arturbosch.detekt:detekt-gradle-plugin", version.ref = "detekt" }
 reckon-gradle-plugin = { module = "org.ajoberstar.reckon:reckon-gradle", version.ref = "reckon" }
 commons-compress = { module = "org.apache.commons:commons-compress", version.ref = "commons-compress" }
