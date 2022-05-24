@@ -1,20 +1,17 @@
 package org.cqfn.save.orchestrator.docker
 
 import io.fabric8.kubernetes.api.model.*
-import io.fabric8.kubernetes.api.model.apps.Deployment
-import io.fabric8.kubernetes.api.model.apps.DeploymentSpec
+import io.fabric8.kubernetes.api.model.batch.v1.Job
+import io.fabric8.kubernetes.api.model.batch.v1.JobSpec
 import io.fabric8.kubernetes.client.DefaultKubernetesClient
 import org.cqfn.save.orchestrator.config.ConfigProperties
-import org.cqfn.save.orchestrator.config.KubernetesSettings
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import javax.annotation.PreDestroy
 
 /**
- * For save-agent in K8S the lifecycle is as follows:
- * create ConfigMap -> create Deployment (also creates ReplicaSet that creates Pods and starts containers)
- * stop: remove Deployment (? and also replica set?) -> remove ConfigMap
+ * A component that manages save-agents running in Kubernetes.
  */
 @Component
 @Profile("kubernetes")
@@ -27,7 +24,7 @@ class KubernetesManager(
     }
 
     private val kubernetesSettings = requireNotNull(configProperties.kubernetes) {
-        "Class [${this::class.simpleName}] requires kubernetes-related properties to be set"
+        "Class [${KubernetesManager::class.simpleName}] requires kubernetes-related properties to be set"
     }
 
     private val kc = DefaultKubernetesClient().inNamespace(kubernetesSettings.namespace)
@@ -38,26 +35,28 @@ class KubernetesManager(
                         workingDir: String,
                         agentRunCmd: String,
     ): List<String> {
-        val deployment = Deployment().apply {
+        // Creating Kubernetes objects that will be responsible for lifecycle of save-agents.
+        // We use Job, because Deployment will always try to restart failing pods.
+        val job = Job().apply {
             metadata = ObjectMeta().apply {
-                name = deploymentNameForExecution("$executionId")
+                name = jobNameForExecution("$executionId")
             }
-            spec = DeploymentSpec().apply {
-                this.replicas = replicas
+            spec = JobSpec().apply {
+                parallelism = replicas
                 template = PodTemplateSpec().apply {
                     spec = PodSpec().apply {
                         containers = listOf(
                             Container().apply {
                                 metadata = ObjectMeta().apply {
                                     labels = mapOf(
+                                        "executionId" to "$executionId",
                                         "baseImageId" to baseImageId
                                     )
                                 }
                                 image = baseImageId
                                 imagePullPolicy = "IfNotPresent"  // so that local images could be used
                                 // If agent fails, we should handle it manually (update statuses, attempt restart etc)
-                                // todo: check if this value is correct
-                                restartPolicy = "never"
+                                restartPolicy = "Never"
                                 env = listOf(
                                     EnvVar().apply {
                                         name = "POD_NAME"
@@ -74,7 +73,7 @@ class KubernetesManager(
                 }
             }
         }
-        val appliedDeployment = kc.apps().deployments().create(deployment)
+        kc.batch().v1().jobs().create(job)
         // todo: do we need to wait for pods to be created?
         return kc.pods().withLabel("baseImageId", baseImageId).list().items.map { it.metadata.name }
     }
@@ -84,14 +83,14 @@ class KubernetesManager(
     }
 
     override fun stop(executionId: String) {
-        kc.apps().deployments().withName(deploymentNameForExecution(executionId)).delete()
+        kc.batch().v1().jobs().withName(jobNameForExecution(executionId)).delete()
     }
 
     override fun cleanup(executionId: Long) {
         TODO("Not yet implemented")
     }
 
-    private fun deploymentNameForExecution(executionId: String) = "save-execution-$executionId"
+    private fun jobNameForExecution(executionId: String) = "save-execution-$executionId"
 
     companion object {
         private val logger = LoggerFactory.getLogger(KubernetesManager::class.java)
