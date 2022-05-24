@@ -5,6 +5,6 @@
 @file:JsModule("@fortawesome/free-brands-svg-icons")
 @file:JsNonModule
 
-package org.cqfn.save.frontend.externals.fontawesome
+package com.saveourtool.save.frontend.externals.fontawesome
 
 external val faGithub: dynamic

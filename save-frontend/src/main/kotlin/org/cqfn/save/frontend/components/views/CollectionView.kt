@@ -1,16 +1,16 @@
 @file:Suppress("FILE_WILDCARD_IMPORTS", "WildcardImport", "HEADER_MISSING_IN_NON_SINGLE_CLASS_FILE")
 
-package org.cqfn.save.frontend.components.views
+package com.saveourtool.save.frontend.components.views
 
-import org.cqfn.save.entities.Project
-import org.cqfn.save.frontend.components.basic.privacySpan
-import org.cqfn.save.frontend.components.errorStatusContext
-import org.cqfn.save.frontend.components.tables.tableComponent
-import org.cqfn.save.frontend.utils.apiUrl
-import org.cqfn.save.frontend.utils.decodeFromJsonString
-import org.cqfn.save.frontend.utils.get
-import org.cqfn.save.frontend.utils.unsafeMap
-import org.cqfn.save.info.UserInfo
+import com.saveourtool.save.entities.Project
+import com.saveourtool.save.frontend.components.basic.privacySpan
+import com.saveourtool.save.frontend.components.errorStatusContext
+import com.saveourtool.save.frontend.components.tables.tableComponent
+import com.saveourtool.save.frontend.utils.apiUrl
+import com.saveourtool.save.frontend.utils.decodeFromJsonString
+import com.saveourtool.save.frontend.utils.get
+import com.saveourtool.save.frontend.utils.unsafeMap
+import com.saveourtool.save.info.UserInfo
 
 import org.w3c.fetch.Headers
 import org.w3c.fetch.Response

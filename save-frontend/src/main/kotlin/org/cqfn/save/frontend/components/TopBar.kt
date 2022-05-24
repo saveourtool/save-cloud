@@ -4,12 +4,12 @@
 
 @file:Suppress("FILE_NAME_MATCH_CLASS", "FILE_WILDCARD_IMPORTS", "WildcardImport")
 
-package org.cqfn.save.frontend.components
+package com.saveourtool.save.frontend.components
 
-import org.cqfn.save.domain.Role
-import org.cqfn.save.frontend.components.modal.logoutModal
-import org.cqfn.save.frontend.externals.fontawesome.*
-import org.cqfn.save.info.UserInfo
+import com.saveourtool.save.domain.Role
+import com.saveourtool.save.frontend.components.modal.logoutModal
+import com.saveourtool.save.frontend.externals.fontawesome.*
+import com.saveourtool.save.info.UserInfo
 
 import csstype.Width
 import csstype.rem

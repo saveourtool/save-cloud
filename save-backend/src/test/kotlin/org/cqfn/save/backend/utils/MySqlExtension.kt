@@ -1,4 +1,4 @@
-package org.cqfn.save.backend.utils
+package com.saveourtool.save.backend.utils
 
 import org.junit.jupiter.api.extension.BeforeAllCallback
 import org.junit.jupiter.api.extension.ExtensionContext

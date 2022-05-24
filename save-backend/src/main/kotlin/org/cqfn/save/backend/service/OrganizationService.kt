@@ -1,9 +1,9 @@
-package org.cqfn.save.backend.service
+package com.saveourtool.save.backend.service
 
-import org.cqfn.save.backend.repository.OrganizationRepository
-import org.cqfn.save.domain.OrganizationSaveStatus
-import org.cqfn.save.entities.Organization
-import org.cqfn.save.entities.OrganizationStatus
+import com.saveourtool.save.backend.repository.OrganizationRepository
+import com.saveourtool.save.domain.OrganizationSaveStatus
+import com.saveourtool.save.entities.Organization
+import com.saveourtool.save.entities.OrganizationStatus
 import org.springframework.stereotype.Service
 
 /**

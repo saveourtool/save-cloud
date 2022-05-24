@@ -1,4 +1,4 @@
-package org.cqfn.save.frontend.components
+package com.saveourtool.save.frontend.components
 
 import generated.SAVE_VERSION
 import react.Props

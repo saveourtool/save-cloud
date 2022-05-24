@@ -1,4 +1,4 @@
-package org.cqfn.save.orchestrator
+package com.saveourtool.save.orchestrator
 
 import org.junit.Test
 import org.junit.jupiter.api.Assertions.assertEquals

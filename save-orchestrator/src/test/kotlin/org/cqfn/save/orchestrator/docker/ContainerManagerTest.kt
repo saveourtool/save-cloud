@@ -1,6 +1,6 @@
-package org.cqfn.save.orchestrator.docker
+package com.saveourtool.save.orchestrator.docker
 
-import org.cqfn.save.orchestrator.config.ConfigProperties
+import com.saveourtool.save.orchestrator.config.ConfigProperties
 
 import com.github.dockerjava.api.command.PullImageResultCallback
 import io.micrometer.core.instrument.composite.CompositeMeterRegistry

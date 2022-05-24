@@ -1,18 +1,18 @@
-package org.cqfn.save.orchestrator.controller.agents
+package com.saveourtool.save.orchestrator.controller.agents
 
-import org.cqfn.save.agent.ExecutionLogs
-import org.cqfn.save.entities.Execution
-import org.cqfn.save.entities.Project
-import org.cqfn.save.execution.ExecutionStatus
-import org.cqfn.save.orchestrator.config.Beans
-import org.cqfn.save.orchestrator.config.ConfigProperties
-import org.cqfn.save.orchestrator.controller.AgentsController
-import org.cqfn.save.orchestrator.service.AgentService
-import org.cqfn.save.orchestrator.service.DockerService
-import org.cqfn.save.testutils.checkQueues
-import org.cqfn.save.testutils.cleanup
-import org.cqfn.save.testutils.createMockWebServer
-import org.cqfn.save.testutils.enqueue
+import com.saveourtool.save.agent.ExecutionLogs
+import com.saveourtool.save.entities.Execution
+import com.saveourtool.save.entities.Project
+import com.saveourtool.save.execution.ExecutionStatus
+import com.saveourtool.save.orchestrator.config.Beans
+import com.saveourtool.save.orchestrator.config.ConfigProperties
+import com.saveourtool.save.orchestrator.controller.AgentsController
+import com.saveourtool.save.orchestrator.service.AgentService
+import com.saveourtool.save.orchestrator.service.DockerService
+import com.saveourtool.save.testutils.checkQueues
+import com.saveourtool.save.testutils.cleanup
+import com.saveourtool.save.testutils.createMockWebServer
+import com.saveourtool.save.testutils.enqueue
 
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer

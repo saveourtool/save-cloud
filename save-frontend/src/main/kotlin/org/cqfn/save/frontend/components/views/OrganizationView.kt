@@ -2,25 +2,25 @@
  * A view with organization details
  */
 
-package org.cqfn.save.frontend.components.views
+package com.saveourtool.save.frontend.components.views
 
-import org.cqfn.save.domain.ImageInfo
-import org.cqfn.save.domain.Role
-import org.cqfn.save.domain.moreOrEqualThan
-import org.cqfn.save.entities.Organization
-import org.cqfn.save.entities.OrganizationStatus
-import org.cqfn.save.entities.Project
-import org.cqfn.save.frontend.components.basic.organizationSettingsMenu
-import org.cqfn.save.frontend.components.basic.privacySpan
-import org.cqfn.save.frontend.components.errorStatusContext
-import org.cqfn.save.frontend.components.tables.tableComponent
-import org.cqfn.save.frontend.externals.fontawesome.*
-import org.cqfn.save.frontend.http.getOrganization
-import org.cqfn.save.frontend.utils.*
-import org.cqfn.save.info.UserInfo
-import org.cqfn.save.utils.AvatarType
-import org.cqfn.save.utils.getHighestRole
-import org.cqfn.save.v1
+import com.saveourtool.save.domain.ImageInfo
+import com.saveourtool.save.domain.Role
+import com.saveourtool.save.domain.moreOrEqualThan
+import com.saveourtool.save.entities.Organization
+import com.saveourtool.save.entities.OrganizationStatus
+import com.saveourtool.save.entities.Project
+import com.saveourtool.save.frontend.components.basic.organizationSettingsMenu
+import com.saveourtool.save.frontend.components.basic.privacySpan
+import com.saveourtool.save.frontend.components.errorStatusContext
+import com.saveourtool.save.frontend.components.tables.tableComponent
+import com.saveourtool.save.frontend.externals.fontawesome.*
+import com.saveourtool.save.frontend.http.getOrganization
+import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.info.UserInfo
+import com.saveourtool.save.utils.AvatarType
+import com.saveourtool.save.utils.getHighestRole
+import com.saveourtool.save.v1
 
 import csstype.*
 import org.w3c.dom.HTMLInputElement

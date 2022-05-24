@@ -1,7 +1,7 @@
-package org.cqfn.save.entities.benchmarks
+package com.saveourtool.save.entities.benchmarks
 
-import org.cqfn.save.entities.BaseEntity
-import org.cqfn.save.entities.Entity
+import com.saveourtool.save.entities.BaseEntity
+import com.saveourtool.save.entities.Entity
 import javax.persistence.EnumType
 import javax.persistence.Enumerated
 

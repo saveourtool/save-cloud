@@ -1,6 +1,6 @@
-package org.cqfn.save.backend.repository
+package com.saveourtool.save.backend.repository
 
-import org.cqfn.save.entities.User
+import com.saveourtool.save.entities.User
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Repository

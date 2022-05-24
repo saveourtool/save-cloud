@@ -1,4 +1,4 @@
-package org.cqfn.save.permission
+package com.saveourtool.save.permission
 
 /**
  * Permissions that operations may require on certain objects

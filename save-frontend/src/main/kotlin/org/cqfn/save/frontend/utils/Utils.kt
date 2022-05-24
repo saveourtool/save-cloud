@@ -2,9 +2,9 @@
  * Various utils for frontend
  */
 
-package org.cqfn.save.frontend.utils
+package com.saveourtool.save.frontend.utils
 
-import org.cqfn.save.domain.FileInfo
+import com.saveourtool.save.domain.FileInfo
 
 import org.w3c.files.Blob
 import org.w3c.files.BlobPropertyBag

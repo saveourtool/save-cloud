@@ -1,20 +1,20 @@
-package org.cqfn.save.backend.controllers
+package com.saveourtool.save.backend.controllers
 
-import org.cqfn.save.backend.StringResponse
-import org.cqfn.save.backend.security.ProjectPermissionEvaluator
-import org.cqfn.save.backend.service.GitService
-import org.cqfn.save.backend.service.LnkUserProjectService
-import org.cqfn.save.backend.service.OrganizationService
-import org.cqfn.save.backend.service.ProjectService
-import org.cqfn.save.backend.utils.AuthenticationDetails
-import org.cqfn.save.domain.ProjectSaveStatus
-import org.cqfn.save.domain.Role
-import org.cqfn.save.entities.GitDto
-import org.cqfn.save.entities.NewProjectDto
-import org.cqfn.save.entities.Project
-import org.cqfn.save.entities.ProjectStatus
-import org.cqfn.save.permission.Permission
-import org.cqfn.save.v1
+import com.saveourtool.save.backend.StringResponse
+import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
+import com.saveourtool.save.backend.service.GitService
+import com.saveourtool.save.backend.service.LnkUserProjectService
+import com.saveourtool.save.backend.service.OrganizationService
+import com.saveourtool.save.backend.service.ProjectService
+import com.saveourtool.save.backend.utils.AuthenticationDetails
+import com.saveourtool.save.domain.ProjectSaveStatus
+import com.saveourtool.save.domain.Role
+import com.saveourtool.save.entities.GitDto
+import com.saveourtool.save.entities.NewProjectDto
+import com.saveourtool.save.entities.Project
+import com.saveourtool.save.entities.ProjectStatus
+import com.saveourtool.save.permission.Permission
+import com.saveourtool.save.v1
 
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus

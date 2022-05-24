@@ -2,7 +2,7 @@
  * Utilities for testing of security-related logic
  */
 
-package org.cqfn.save.backend.utils
+package com.saveourtool.save.backend.utils
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.context.SecurityContextHolder

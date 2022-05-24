@@ -1,6 +1,6 @@
 @file:Suppress("FILE_NAME_MATCH_CLASS", "HEADER_MISSING_IN_NON_SINGLE_CLASS_FILE")
 
-package org.cqfn.save.buildutils
+package com.saveourtool.save.buildutils
 
 import org.gradle.api.Project
 import java.io.File

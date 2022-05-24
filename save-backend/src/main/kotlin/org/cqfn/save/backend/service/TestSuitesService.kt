@@ -1,13 +1,13 @@
-package org.cqfn.save.backend.service
+package com.saveourtool.save.backend.service
 
-import org.cqfn.save.backend.repository.ProjectRepository
-import org.cqfn.save.backend.repository.TestExecutionRepository
-import org.cqfn.save.backend.repository.TestRepository
-import org.cqfn.save.backend.repository.TestSuiteRepository
-import org.cqfn.save.entities.Project
-import org.cqfn.save.entities.TestSuite
-import org.cqfn.save.testsuite.TestSuiteDto
-import org.cqfn.save.testsuite.TestSuiteType
+import com.saveourtool.save.backend.repository.ProjectRepository
+import com.saveourtool.save.backend.repository.TestExecutionRepository
+import com.saveourtool.save.backend.repository.TestRepository
+import com.saveourtool.save.backend.repository.TestSuiteRepository
+import com.saveourtool.save.entities.Project
+import com.saveourtool.save.entities.TestSuite
+import com.saveourtool.save.testsuite.TestSuiteDto
+import com.saveourtool.save.testsuite.TestSuiteType
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Example
 import org.springframework.stereotype.Service

@@ -2,7 +2,7 @@
  * Utilities for kotlin-js interop
  */
 
-package org.cqfn.save.frontend.utils
+package com.saveourtool.save.frontend.utils
 
 import react.dom.RDOMBuilder
 

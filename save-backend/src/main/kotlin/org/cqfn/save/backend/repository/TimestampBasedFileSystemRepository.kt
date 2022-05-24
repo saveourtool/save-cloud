@@ -1,10 +1,10 @@
-package org.cqfn.save.backend.repository
+package com.saveourtool.save.backend.repository
 
-import org.cqfn.save.backend.configs.ConfigProperties
-import org.cqfn.save.domain.FileInfo
-import org.cqfn.save.domain.ImageInfo
-import org.cqfn.save.domain.ShortFileInfo
-import org.cqfn.save.utils.AvatarType
+import com.saveourtool.save.backend.configs.ConfigProperties
+import com.saveourtool.save.domain.FileInfo
+import com.saveourtool.save.domain.ImageInfo
+import com.saveourtool.save.domain.ShortFileInfo
+import com.saveourtool.save.utils.AvatarType
 
 import org.slf4j.LoggerFactory
 import org.springframework.core.io.FileSystemResource

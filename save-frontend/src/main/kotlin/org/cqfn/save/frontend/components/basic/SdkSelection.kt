@@ -4,10 +4,10 @@
 
 @file:Suppress("FILE_NAME_MATCH_CLASS", "WildcardImport", "FILE_WILDCARD_IMPORTS")
 
-package org.cqfn.save.frontend.components.basic
+package com.saveourtool.save.frontend.components.basic
 
-import org.cqfn.save.domain.getSdkVersions
-import org.cqfn.save.domain.sdks
+import com.saveourtool.save.domain.getSdkVersions
+import com.saveourtool.save.domain.sdks
 
 import org.w3c.dom.HTMLSelectElement
 import react.PropsWithChildren

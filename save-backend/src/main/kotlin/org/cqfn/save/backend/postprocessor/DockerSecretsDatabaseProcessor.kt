@@ -1,4 +1,4 @@
-package org.cqfn.save.backend.postprocessor
+package com.saveourtool.save.backend.postprocessor
 
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.env.EnvironmentPostProcessor

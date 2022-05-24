@@ -1,6 +1,6 @@
-package org.cqfn.save.frontend.components.views
+package com.saveourtool.save.frontend.components.views
 
-import org.cqfn.save.frontend.utils.ComponentWithScope
+import com.saveourtool.save.frontend.utils.ComponentWithScope
 
 import react.Props
 import react.State

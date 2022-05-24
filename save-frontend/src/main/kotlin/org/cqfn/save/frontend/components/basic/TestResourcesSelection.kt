@@ -4,13 +4,13 @@
 
 @file:Suppress("WildcardImport", "FILE_WILDCARD_IMPORTS")
 
-package org.cqfn.save.frontend.components.basic
+package com.saveourtool.save.frontend.components.basic
 
-import org.cqfn.save.entities.GitDto
-import org.cqfn.save.frontend.components.views.ProjectView
-import org.cqfn.save.frontend.externals.fontawesome.faQuestionCircle
-import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
-import org.cqfn.save.testsuite.TestSuiteDto
+import com.saveourtool.save.entities.GitDto
+import com.saveourtool.save.frontend.components.views.ProjectView
+import com.saveourtool.save.frontend.externals.fontawesome.faQuestionCircle
+import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
+import com.saveourtool.save.testsuite.TestSuiteDto
 
 import org.w3c.dom.events.Event
 import react.PropsWithChildren
@@ -142,7 +142,7 @@ fun testResourcesSelection(
                                 attrs["popover-title"] =
                                         "Use the following link to read more about save format:"
                                 attrs["popover-content"] =
-                                        "<a href =\"https://github.com/cqfn/save/blob/main/README.md\" > SAVE core README </a>"
+                                        "<a href =\"https://github.com/saveourtool/save/blob/main/README.md\" > SAVE core README </a>"
                                 attrs["data-trigger"] = "focus"
                                 attrs["tabindex"] = "0"
                             }

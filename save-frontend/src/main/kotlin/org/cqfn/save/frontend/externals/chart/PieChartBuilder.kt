@@ -2,7 +2,7 @@
  * kotlin-react builders for PieChart components
  */
 
-package org.cqfn.save.frontend.externals.chart
+package com.saveourtool.save.frontend.externals.chart
 
 import react.RBuilder
 import react.RHandler

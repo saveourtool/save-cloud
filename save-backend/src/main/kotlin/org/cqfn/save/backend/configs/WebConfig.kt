@@ -5,13 +5,13 @@
     "MISSING_KDOC_ON_FUNCTION",
 )
 
-package org.cqfn.save.backend.configs
+package com.saveourtool.save.backend.configs
 
-import org.cqfn.save.core.result.Crash
-import org.cqfn.save.core.result.Fail
-import org.cqfn.save.core.result.Ignored
-import org.cqfn.save.core.result.Pass
-import org.cqfn.save.core.result.TestStatus
+import com.saveourtool.save.core.result.Crash
+import com.saveourtool.save.core.result.Fail
+import com.saveourtool.save.core.result.Ignored
+import com.saveourtool.save.core.result.Pass
+import com.saveourtool.save.core.result.TestStatus
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo

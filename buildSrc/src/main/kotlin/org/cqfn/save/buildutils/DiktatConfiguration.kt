@@ -2,11 +2,11 @@
  * Configuration for diktat static analysis
  */
 
-package org.cqfn.save.buildutils
+package com.saveourtool.save.buildutils
 
-import org.cqfn.diktat.plugin.gradle.DiktatExtension
-import org.cqfn.diktat.plugin.gradle.DiktatGradlePlugin
-import org.cqfn.diktat.plugin.gradle.DiktatJavaExecTaskBase
+import com.saveourtool.diktat.plugin.gradle.DiktatExtension
+import com.saveourtool.diktat.plugin.gradle.DiktatGradlePlugin
+import com.saveourtool.diktat.plugin.gradle.DiktatJavaExecTaskBase
 import org.gradle.api.Project
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.jvm.toolchain.JavaToolchainService

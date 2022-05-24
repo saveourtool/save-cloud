@@ -9,6 +9,6 @@
     "MatchingDeclarationName"
 )
 
-package org.cqfn.save.entities
+package com.saveourtool.save.entities
 
 actual annotation class ForeignKey

@@ -2,13 +2,13 @@
  * Utils for configuration of http client and evaluated tool
  */
 
-package org.cqfn.save.apicli
+package com.saveourtool.save.apicli
 
-import org.cqfn.save.api.SaveCloudClient
-import org.cqfn.save.api.config.EvaluatedToolProperties
-import org.cqfn.save.api.config.PropertiesConfiguration
-import org.cqfn.save.api.config.PropertiesConfigurationType
-import org.cqfn.save.api.config.WebClientProperties
+import com.saveourtool.save.api.SaveCloudClient
+import com.saveourtool.save.api.config.EvaluatedToolProperties
+import com.saveourtool.save.api.config.PropertiesConfiguration
+import com.saveourtool.save.api.config.PropertiesConfigurationType
+import com.saveourtool.save.api.config.WebClientProperties
 
 import org.slf4j.LoggerFactory
 

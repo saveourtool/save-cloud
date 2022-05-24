@@ -1,14 +1,14 @@
-package org.cqfn.save.backend.service
+package com.saveourtool.save.backend.service
 
-import org.cqfn.save.backend.repository.ExecutionRepository
-import org.cqfn.save.backend.repository.TestExecutionRepository
-import org.cqfn.save.backend.repository.UserRepository
-import org.cqfn.save.domain.TestResultStatus
-import org.cqfn.save.entities.Execution
-import org.cqfn.save.entities.Organization
-import org.cqfn.save.execution.ExecutionInitializationDto
-import org.cqfn.save.execution.ExecutionStatus
-import org.cqfn.save.execution.ExecutionUpdateDto
+import com.saveourtool.save.backend.repository.ExecutionRepository
+import com.saveourtool.save.backend.repository.TestExecutionRepository
+import com.saveourtool.save.backend.repository.UserRepository
+import com.saveourtool.save.domain.TestResultStatus
+import com.saveourtool.save.entities.Execution
+import com.saveourtool.save.entities.Organization
+import com.saveourtool.save.execution.ExecutionInitializationDto
+import com.saveourtool.save.execution.ExecutionStatus
+import com.saveourtool.save.execution.ExecutionUpdateDto
 
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus

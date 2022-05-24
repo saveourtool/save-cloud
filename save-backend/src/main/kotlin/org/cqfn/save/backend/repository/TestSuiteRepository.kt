@@ -1,7 +1,7 @@
-package org.cqfn.save.backend.repository
+package com.saveourtool.save.backend.repository
 
-import org.cqfn.save.entities.TestSuite
-import org.cqfn.save.testsuite.TestSuiteType
+import com.saveourtool.save.entities.TestSuite
+import com.saveourtool.save.testsuite.TestSuiteType
 import org.springframework.data.repository.query.QueryByExampleExecutor
 import org.springframework.stereotype.Repository
 

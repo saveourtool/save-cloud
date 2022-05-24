@@ -2,17 +2,17 @@
  * Methods to make specific requests to backend
  */
 
-package org.cqfn.save.frontend.http
+package com.saveourtool.save.frontend.http
 
-import org.cqfn.save.agent.TestExecutionDto
-import org.cqfn.save.entities.Organization
-import org.cqfn.save.entities.Project
-import org.cqfn.save.frontend.utils.WithRequestStatusContext
-import org.cqfn.save.frontend.utils.apiUrl
-import org.cqfn.save.frontend.utils.decodeFromJsonString
-import org.cqfn.save.frontend.utils.get
-import org.cqfn.save.frontend.utils.post
-import org.cqfn.save.info.UserInfo
+import com.saveourtool.save.agent.TestExecutionDto
+import com.saveourtool.save.entities.Organization
+import com.saveourtool.save.entities.Project
+import com.saveourtool.save.frontend.utils.WithRequestStatusContext
+import com.saveourtool.save.frontend.utils.apiUrl
+import com.saveourtool.save.frontend.utils.decodeFromJsonString
+import com.saveourtool.save.frontend.utils.get
+import com.saveourtool.save.frontend.utils.post
+import com.saveourtool.save.info.UserInfo
 
 import org.w3c.fetch.Headers
 import org.w3c.fetch.Response

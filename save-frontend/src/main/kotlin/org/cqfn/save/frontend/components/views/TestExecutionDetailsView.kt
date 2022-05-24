@@ -1,20 +1,20 @@
 @file:Suppress("HEADER_MISSING_IN_NON_SINGLE_CLASS_FILE")
 
-package org.cqfn.save.frontend.components.views
+package com.saveourtool.save.frontend.components.views
 
-import org.cqfn.save.core.result.Crash
-import org.cqfn.save.core.result.Fail
-import org.cqfn.save.core.result.Ignored
-import org.cqfn.save.core.result.Pass
-import org.cqfn.save.domain.TestResultDebugInfo
-import org.cqfn.save.domain.TestResultLocation
-import org.cqfn.save.frontend.http.getDebugInfoFor
-import org.cqfn.save.frontend.utils.apiUrl
-import org.cqfn.save.frontend.utils.decodeFromJsonString
-import org.cqfn.save.frontend.utils.multilineText
-import org.cqfn.save.frontend.utils.multilineTextWithIndices
-import org.cqfn.save.frontend.utils.post
-import org.cqfn.save.frontend.utils.useRequest
+import com.saveourtool.save.core.result.Crash
+import com.saveourtool.save.core.result.Fail
+import com.saveourtool.save.core.result.Ignored
+import com.saveourtool.save.core.result.Pass
+import com.saveourtool.save.domain.TestResultDebugInfo
+import com.saveourtool.save.domain.TestResultLocation
+import com.saveourtool.save.frontend.http.getDebugInfoFor
+import com.saveourtool.save.frontend.utils.apiUrl
+import com.saveourtool.save.frontend.utils.decodeFromJsonString
+import com.saveourtool.save.frontend.utils.multilineText
+import com.saveourtool.save.frontend.utils.multilineTextWithIndices
+import com.saveourtool.save.frontend.utils.post
+import com.saveourtool.save.frontend.utils.useRequest
 
 import org.w3c.fetch.Headers
 import react.Props

@@ -2,7 +2,7 @@
  * Classes for configuration properties of orchestrator
  */
 
-package org.cqfn.save.orchestrator.config
+package com.saveourtool.save.orchestrator.config
 
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding

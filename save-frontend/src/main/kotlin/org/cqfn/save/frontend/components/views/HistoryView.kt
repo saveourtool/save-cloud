@@ -2,20 +2,20 @@
  * View for tests execution history
  */
 
-package org.cqfn.save.frontend.components.views
+package com.saveourtool.save.frontend.components.views
 
-import org.cqfn.save.domain.TestResultStatus
-import org.cqfn.save.execution.ExecutionDto
-import org.cqfn.save.execution.ExecutionStatus
-import org.cqfn.save.frontend.components.errorStatusContext
-import org.cqfn.save.frontend.components.tables.tableComponent
-import org.cqfn.save.frontend.externals.fontawesome.faCheck
-import org.cqfn.save.frontend.externals.fontawesome.faExclamationTriangle
-import org.cqfn.save.frontend.externals.fontawesome.faSpinner
-import org.cqfn.save.frontend.externals.fontawesome.faTrashAlt
-import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
-import org.cqfn.save.frontend.themes.Colors
-import org.cqfn.save.frontend.utils.*
+import com.saveourtool.save.domain.TestResultStatus
+import com.saveourtool.save.execution.ExecutionDto
+import com.saveourtool.save.execution.ExecutionStatus
+import com.saveourtool.save.frontend.components.errorStatusContext
+import com.saveourtool.save.frontend.components.tables.tableComponent
+import com.saveourtool.save.frontend.externals.fontawesome.faCheck
+import com.saveourtool.save.frontend.externals.fontawesome.faExclamationTriangle
+import com.saveourtool.save.frontend.externals.fontawesome.faSpinner
+import com.saveourtool.save.frontend.externals.fontawesome.faTrashAlt
+import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
+import com.saveourtool.save.frontend.themes.Colors
+import com.saveourtool.save.frontend.utils.*
 
 import csstype.Background
 import org.w3c.fetch.Headers

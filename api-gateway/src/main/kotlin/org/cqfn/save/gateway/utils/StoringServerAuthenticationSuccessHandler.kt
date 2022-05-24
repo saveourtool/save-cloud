@@ -1,8 +1,8 @@
-package org.cqfn.save.gateway.utils
+package com.saveourtool.save.gateway.utils
 
-import org.cqfn.save.domain.Role
-import org.cqfn.save.entities.User
-import org.cqfn.save.gateway.config.ConfigurationProperties
+import com.saveourtool.save.domain.Role
+import com.saveourtool.save.entities.User
+import com.saveourtool.save.gateway.config.ConfigurationProperties
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.LoggerFactory

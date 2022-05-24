@@ -1,4 +1,4 @@
-package org.cqfn.save.preprocessor.config
+package com.saveourtool.save.preprocessor.config
 
 /**
  * Class for repositories with standard test suites

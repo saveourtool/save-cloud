@@ -2,17 +2,17 @@
  * Heartbeat controller and corresponding logic which accepts heartbeat and depending on the state it returns the needed response
  */
 
-package org.cqfn.save.orchestrator.controller
+package com.saveourtool.save.orchestrator.controller
 
-import org.cqfn.save.agent.AgentState
-import org.cqfn.save.agent.ContinueResponse
-import org.cqfn.save.agent.Heartbeat
-import org.cqfn.save.agent.HeartbeatResponse
-import org.cqfn.save.agent.WaitResponse
-import org.cqfn.save.entities.AgentStatusDto
-import org.cqfn.save.orchestrator.config.ConfigProperties
-import org.cqfn.save.orchestrator.service.AgentService
-import org.cqfn.save.orchestrator.service.DockerService
+import com.saveourtool.save.agent.AgentState
+import com.saveourtool.save.agent.ContinueResponse
+import com.saveourtool.save.agent.Heartbeat
+import com.saveourtool.save.agent.HeartbeatResponse
+import com.saveourtool.save.agent.WaitResponse
+import com.saveourtool.save.entities.AgentStatusDto
+import com.saveourtool.save.orchestrator.config.ConfigProperties
+import com.saveourtool.save.orchestrator.service.AgentService
+import com.saveourtool.save.orchestrator.service.DockerService
 
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.PropertySource

@@ -1,8 +1,8 @@
-package org.cqfn.save.frontend.components.views.usersettingsview
+package com.saveourtool.save.frontend.components.views.usersettingsview
 
-import org.cqfn.save.frontend.components.basic.cardComponent
-import org.cqfn.save.frontend.utils.apiUrl
-import org.cqfn.save.frontend.utils.post
+import com.saveourtool.save.frontend.components.basic.cardComponent
+import com.saveourtool.save.frontend.utils.apiUrl
+import com.saveourtool.save.frontend.utils.post
 
 import kotlinext.js.assign
 import org.w3c.fetch.Headers

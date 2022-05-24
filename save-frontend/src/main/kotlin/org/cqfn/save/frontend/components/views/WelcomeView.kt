@@ -4,15 +4,15 @@
 
 @file:Suppress("FILE_WILDCARD_IMPORTS", "WildcardImport")
 
-package org.cqfn.save.frontend.components.views
+package com.saveourtool.save.frontend.components.views
 
-import org.cqfn.save.frontend.components.errorStatusContext
-import org.cqfn.save.frontend.externals.fontawesome.*
-import org.cqfn.save.frontend.utils.decodeFromJsonString
-import org.cqfn.save.frontend.utils.get
-import org.cqfn.save.frontend.utils.noopResponseHandler
-import org.cqfn.save.info.OauthProviderInfo
-import org.cqfn.save.info.UserInfo
+import com.saveourtool.save.frontend.components.errorStatusContext
+import com.saveourtool.save.frontend.externals.fontawesome.*
+import com.saveourtool.save.frontend.utils.decodeFromJsonString
+import com.saveourtool.save.frontend.utils.get
+import com.saveourtool.save.frontend.utils.noopResponseHandler
+import com.saveourtool.save.info.OauthProviderInfo
+import com.saveourtool.save.info.UserInfo
 
 import csstype.Display
 import csstype.FontSize

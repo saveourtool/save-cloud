@@ -1,16 +1,16 @@
-package org.cqfn.save.preprocessor.service
+package com.saveourtool.save.preprocessor.service
 
-import org.cqfn.save.core.config.TestConfig
-import org.cqfn.save.core.files.ConfigDetector
-import org.cqfn.save.core.plugin.GeneralConfig
-import org.cqfn.save.core.utils.buildActivePlugins
-import org.cqfn.save.core.utils.processInPlace
-import org.cqfn.save.entities.Project
-import org.cqfn.save.entities.TestSuite
-import org.cqfn.save.preprocessor.utils.toHash
-import org.cqfn.save.test.TestDto
-import org.cqfn.save.testsuite.TestSuiteDto
-import org.cqfn.save.testsuite.TestSuiteType
+import com.saveourtool.save.core.config.TestConfig
+import com.saveourtool.save.core.files.ConfigDetector
+import com.saveourtool.save.core.plugin.GeneralConfig
+import com.saveourtool.save.core.utils.buildActivePlugins
+import com.saveourtool.save.core.utils.processInPlace
+import com.saveourtool.save.entities.Project
+import com.saveourtool.save.entities.TestSuite
+import com.saveourtool.save.preprocessor.utils.toHash
+import com.saveourtool.save.test.TestDto
+import com.saveourtool.save.testsuite.TestSuiteDto
+import com.saveourtool.save.testsuite.TestSuiteType
 
 import okio.FileSystem
 import okio.Path.Companion.toPath

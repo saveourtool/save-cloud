@@ -1,6 +1,6 @@
 @file:Suppress("HEADER_MISSING_IN_NON_SINGLE_CLASS_FILE")
 
-package org.cqfn.save.preprocessor.utils
+package com.saveourtool.save.preprocessor.utils
 
 import org.slf4j.LoggerFactory
 import org.springframework.util.FileSystemUtils

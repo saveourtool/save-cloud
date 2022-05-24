@@ -1,7 +1,7 @@
-package org.cqfn.save.entities
+package com.saveourtool.save.entities
 
-import org.cqfn.save.domain.Role
-import org.cqfn.save.info.UserInfo
+import com.saveourtool.save.domain.Role
+import com.saveourtool.save.info.UserInfo
 import javax.persistence.Entity
 
 /**

@@ -2,9 +2,9 @@
  * Support for scheduling updates of standard suites
  */
 
-package org.cqfn.save.backend.scheduling
+package com.saveourtool.save.backend.scheduling
 
-import org.cqfn.save.backend.configs.ConfigProperties
+import com.saveourtool.save.backend.configs.ConfigProperties
 import org.quartz.CronScheduleBuilder
 import org.quartz.Job
 import org.quartz.JobBuilder

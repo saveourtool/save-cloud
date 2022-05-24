@@ -1,8 +1,8 @@
-package org.cqfn.save.frontend.components.views.usersettingsview
+package com.saveourtool.save.frontend.components.views.usersettingsview
 
-import org.cqfn.save.domain.Role
-import org.cqfn.save.frontend.components.basic.cardComponent
-import org.cqfn.save.v1
+import com.saveourtool.save.domain.Role
+import com.saveourtool.save.frontend.components.basic.cardComponent
+import com.saveourtool.save.v1
 
 import react.FC
 import react.dom.*

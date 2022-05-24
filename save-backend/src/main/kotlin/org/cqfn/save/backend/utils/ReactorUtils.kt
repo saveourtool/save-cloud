@@ -2,7 +2,7 @@
  * Utility methods for working with Reactor publishers
  */
 
-package org.cqfn.save.backend.utils
+package com.saveourtool.save.backend.utils
 
 import org.springframework.http.HttpStatus
 import org.springframework.web.server.ResponseStatusException

@@ -1,10 +1,10 @@
-package org.cqfn.save.preprocessor.controllers
+package com.saveourtool.save.preprocessor.controllers
 
-import org.cqfn.save.entities.GitDto
-import org.cqfn.save.entities.benchmarks.BenchmarkEntity
-import org.cqfn.save.preprocessor.config.ConfigProperties
-import org.cqfn.save.preprocessor.utils.generateDirectory
-import org.cqfn.save.preprocessor.utils.pullOrCloneProjectWithSpecificBranch
+import com.saveourtool.save.entities.GitDto
+import com.saveourtool.save.entities.benchmarks.BenchmarkEntity
+import com.saveourtool.save.preprocessor.config.ConfigProperties
+import com.saveourtool.save.preprocessor.utils.generateDirectory
+import com.saveourtool.save.preprocessor.utils.pullOrCloneProjectWithSpecificBranch
 
 import com.akuleshov7.ktoml.file.TomlFileReader
 import org.eclipse.jgit.api.errors.GitAPIException

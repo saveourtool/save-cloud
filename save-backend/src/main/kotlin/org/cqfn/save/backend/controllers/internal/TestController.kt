@@ -1,9 +1,9 @@
-package org.cqfn.save.backend.controllers.internal
+package com.saveourtool.save.backend.controllers.internal
 
-import org.cqfn.save.backend.service.TestExecutionService
-import org.cqfn.save.backend.service.TestService
-import org.cqfn.save.entities.Test
-import org.cqfn.save.test.TestDto
+import com.saveourtool.save.backend.service.TestExecutionService
+import com.saveourtool.save.backend.service.TestService
+import com.saveourtool.save.entities.Test
+import com.saveourtool.save.test.TestDto
 
 import io.micrometer.core.instrument.MeterRegistry
 import org.slf4j.LoggerFactory

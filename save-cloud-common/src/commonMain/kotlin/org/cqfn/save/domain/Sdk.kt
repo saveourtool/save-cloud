@@ -2,7 +2,7 @@
  * SDK which are supported for test execution in save-cloud
  */
 
-package org.cqfn.save.domain
+package com.saveourtool.save.domain
 
 import kotlinx.serialization.Serializable
 

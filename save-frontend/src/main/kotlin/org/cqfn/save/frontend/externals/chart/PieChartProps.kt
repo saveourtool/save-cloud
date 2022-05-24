@@ -1,6 +1,6 @@
 @file:Suppress("HEADER_MISSING_IN_NON_SINGLE_CLASS_FILE")
 
-package org.cqfn.save.frontend.externals.chart
+package com.saveourtool.save.frontend.externals.chart
 
 import org.w3c.dom.events.Event
 import react.PropsWithChildren

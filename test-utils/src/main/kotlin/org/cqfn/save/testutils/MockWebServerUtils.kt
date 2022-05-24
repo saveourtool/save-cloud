@@ -1,6 +1,6 @@
 @file:Suppress("FILE_NAME_MATCH_CLASS", "MatchingDeclarationName")
 
-package org.cqfn.save.testutils
+package com.saveourtool.save.testutils
 
 import okhttp3.mockwebserver.*
 import org.junit.Assert.assertTrue

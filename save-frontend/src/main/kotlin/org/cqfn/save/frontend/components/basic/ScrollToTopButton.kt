@@ -2,9 +2,9 @@
  * Scroll-to-top button component
  */
 
-package org.cqfn.save.frontend.components.basic
+package com.saveourtool.save.frontend.components.basic
 
-import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
+import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 
 import org.w3c.dom.SMOOTH
 import org.w3c.dom.ScrollBehavior

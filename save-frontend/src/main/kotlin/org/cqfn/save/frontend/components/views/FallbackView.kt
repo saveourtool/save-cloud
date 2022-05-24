@@ -1,4 +1,4 @@
-package org.cqfn.save.frontend.components.views
+package com.saveourtool.save.frontend.components.views
 
 import react.PropsWithChildren
 import react.RBuilder

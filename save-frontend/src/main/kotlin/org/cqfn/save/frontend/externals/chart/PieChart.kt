@@ -1,7 +1,7 @@
 @file:JsModule("react-minimal-pie-chart")
 @file:JsNonModule
 
-package org.cqfn.save.frontend.externals.chart
+package com.saveourtool.save.frontend.externals.chart
 
 import react.Component
 import react.ReactElement

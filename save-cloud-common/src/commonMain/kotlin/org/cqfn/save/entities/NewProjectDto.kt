@@ -1,4 +1,4 @@
-package org.cqfn.save.entities
+package com.saveourtool.save.entities
 
 import kotlinx.serialization.Serializable
 

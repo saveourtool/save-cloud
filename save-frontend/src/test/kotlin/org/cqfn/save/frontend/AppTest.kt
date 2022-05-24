@@ -1,8 +1,8 @@
-package org.cqfn.save.frontend
+package com.saveourtool.save.frontend
 
-import org.cqfn.save.frontend.externals.findByTextAndCast
-import org.cqfn.save.frontend.externals.render
-import org.cqfn.save.frontend.externals.screen
+import com.saveourtool.save.frontend.externals.findByTextAndCast
+import com.saveourtool.save.frontend.externals.render
+import com.saveourtool.save.frontend.externals.screen
 import org.w3c.dom.HTMLHeadingElement
 import react.create
 import react.react

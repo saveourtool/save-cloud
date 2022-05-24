@@ -1,18 +1,18 @@
 @file:Suppress("FILE_NAME_MATCH_CLASS", "FILE_WILDCARD_IMPORTS", "LargeClass")
 
-package org.cqfn.save.frontend.components.basic
+package com.saveourtool.save.frontend.components.basic
 
-import org.cqfn.save.agent.TestSuiteExecutionStatisticDto
-import org.cqfn.save.domain.TestResultStatus
-import org.cqfn.save.frontend.components.tables.tableComponent
-import org.cqfn.save.frontend.externals.chart.DataPieChart
-import org.cqfn.save.frontend.externals.chart.pieChart
-import org.cqfn.save.frontend.externals.chart.randomColor
-import org.cqfn.save.frontend.utils.apiUrl
-import org.cqfn.save.frontend.utils.decodeFromJsonString
-import org.cqfn.save.frontend.utils.get
-import org.cqfn.save.frontend.utils.unsafeMap
-import org.cqfn.save.frontend.utils.useRequest
+import com.saveourtool.save.agent.TestSuiteExecutionStatisticDto
+import com.saveourtool.save.domain.TestResultStatus
+import com.saveourtool.save.frontend.components.tables.tableComponent
+import com.saveourtool.save.frontend.externals.chart.DataPieChart
+import com.saveourtool.save.frontend.externals.chart.pieChart
+import com.saveourtool.save.frontend.externals.chart.randomColor
+import com.saveourtool.save.frontend.utils.apiUrl
+import com.saveourtool.save.frontend.utils.decodeFromJsonString
+import com.saveourtool.save.frontend.utils.get
+import com.saveourtool.save.frontend.utils.unsafeMap
+import com.saveourtool.save.frontend.utils.useRequest
 import org.w3c.fetch.Headers
 import react.*
 import react.dom.div

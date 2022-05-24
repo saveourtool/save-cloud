@@ -1,8 +1,8 @@
 @file:Suppress("FILE_NAME_MATCH_CLASS")
 
-package org.cqfn.save.frontend.components
+package com.saveourtool.save.frontend.components
 
-import org.cqfn.save.frontend.externals.modal.modal
+import com.saveourtool.save.frontend.externals.modal.modal
 
 import csstype.ClassName
 import org.w3c.fetch.Response

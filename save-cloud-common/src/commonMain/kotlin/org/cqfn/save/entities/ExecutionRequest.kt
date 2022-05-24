@@ -2,9 +2,9 @@
  * Data classes that are used to trigger execution start
  */
 
-package org.cqfn.save.entities
+package com.saveourtool.save.entities
 
-import org.cqfn.save.domain.Sdk
+import com.saveourtool.save.domain.Sdk
 
 import kotlinx.serialization.Serializable
 

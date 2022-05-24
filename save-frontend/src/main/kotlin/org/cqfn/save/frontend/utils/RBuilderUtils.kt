@@ -4,9 +4,9 @@
 
 @file:Suppress("FILE_NAME_INCORRECT", "FILE_NAME_MATCH_CLASS")
 
-package org.cqfn.save.frontend.utils
+package com.saveourtool.save.frontend.utils
 
-import org.cqfn.save.frontend.externals.modal.modal
+import com.saveourtool.save.frontend.externals.modal.modal
 
 import org.w3c.dom.events.Event
 import react.RBuilder

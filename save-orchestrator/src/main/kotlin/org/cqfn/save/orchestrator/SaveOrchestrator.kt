@@ -1,6 +1,6 @@
-package org.cqfn.save.orchestrator
+package com.saveourtool.save.orchestrator
 
-import org.cqfn.save.orchestrator.config.ConfigProperties
+import com.saveourtool.save.orchestrator.config.ConfigProperties
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.context.properties.EnableConfigurationProperties

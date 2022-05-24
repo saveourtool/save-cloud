@@ -1,12 +1,12 @@
 @file:Suppress("SAY_NO_TO_VAR")
 
-package org.cqfn.save.preprocessor.controllers
+package com.saveourtool.save.preprocessor.controllers
 
-import org.cqfn.save.preprocessor.service.TestDiscoveringService
-import org.cqfn.save.preprocessor.utils.RepositoryVolume
-import org.cqfn.save.testutils.checkQueues
-import org.cqfn.save.testutils.cleanup
-import org.cqfn.save.testutils.createMockWebServer
+import com.saveourtool.save.preprocessor.service.TestDiscoveringService
+import com.saveourtool.save.preprocessor.utils.RepositoryVolume
+import com.saveourtool.save.testutils.checkQueues
+import com.saveourtool.save.testutils.cleanup
+import com.saveourtool.save.testutils.createMockWebServer
 
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.jupiter.api.*

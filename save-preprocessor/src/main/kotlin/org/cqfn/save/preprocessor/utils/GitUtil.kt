@@ -2,9 +2,9 @@
  * Git utilities that are used in preprocessor for download/clone/update git repo
  */
 
-package org.cqfn.save.preprocessor.utils
+package com.saveourtool.save.preprocessor.utils
 
-import org.cqfn.save.entities.GitDto
+import com.saveourtool.save.entities.GitDto
 import org.eclipse.jgit.api.CreateBranchCommand
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.api.MergeCommand

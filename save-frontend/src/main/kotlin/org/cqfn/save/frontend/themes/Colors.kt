@@ -1,4 +1,4 @@
-package org.cqfn.save.frontend.themes
+package com.saveourtool.save.frontend.themes
 
 /**
  * @property value - string with the color in rgb

@@ -2,9 +2,9 @@
  * File that contains html elements that are used multiple times in the project
  */
 
-package org.cqfn.save.frontend.components.basic
+package com.saveourtool.save.frontend.components.basic
 
-import org.cqfn.save.entities.Project
+import com.saveourtool.save.entities.Project
 
 import csstype.BorderRadius
 import react.CSSProperties

@@ -1,9 +1,9 @@
 @file:Suppress("HEADER_MISSING_IN_NON_SINGLE_CLASS_FILE")
 
-package org.cqfn.save
+package com.saveourtool.save
 
-import org.cqfn.save.agent.TestExecutionDto
-import org.cqfn.save.domain.TestResultLocation
+import com.saveourtool.save.agent.TestExecutionDto
+import com.saveourtool.save.domain.TestResultLocation
 import java.nio.file.Paths
 import kotlin.io.path.name
 

@@ -2,7 +2,7 @@
  * Utilities to work with react-router
  */
 
-package org.cqfn.save.frontend.utils
+package com.saveourtool.save.frontend.utils
 
 import history.Location
 import react.Props

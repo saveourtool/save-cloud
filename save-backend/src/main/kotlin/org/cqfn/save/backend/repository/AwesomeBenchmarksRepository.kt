@@ -1,6 +1,6 @@
-package org.cqfn.save.backend.repository
+package com.saveourtool.save.backend.repository
 
-import org.cqfn.save.entities.benchmarks.AwesomeBenchmarks
+import com.saveourtool.save.entities.benchmarks.AwesomeBenchmarks
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import org.springframework.stereotype.Repository
 

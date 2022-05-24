@@ -5,7 +5,7 @@
 @file:JsModule("@fortawesome/free-solid-svg-icons")
 @file:JsNonModule
 
-package org.cqfn.save.frontend.externals.fontawesome
+package com.saveourtool.save.frontend.externals.fontawesome
 
 external val fas: dynamic
 external val faUser: dynamic

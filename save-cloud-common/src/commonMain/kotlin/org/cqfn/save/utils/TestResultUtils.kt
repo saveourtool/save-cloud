@@ -2,18 +2,18 @@
  * Mapping entities from SAVE-core to their equivalents from SAVE-cloud
  */
 
-package org.cqfn.save.utils
+package com.saveourtool.save.utils
 
-import org.cqfn.save.core.logging.logTrace
-import org.cqfn.save.core.result.Crash
-import org.cqfn.save.core.result.Fail
-import org.cqfn.save.core.result.Ignored
-import org.cqfn.save.core.result.Pass
-import org.cqfn.save.core.result.TestResult
-import org.cqfn.save.core.result.TestStatus
-import org.cqfn.save.domain.TestResultDebugInfo
-import org.cqfn.save.domain.TestResultLocation
-import org.cqfn.save.domain.TestResultStatus
+import com.saveourtool.save.core.logging.logTrace
+import com.saveourtool.save.core.result.Crash
+import com.saveourtool.save.core.result.Fail
+import com.saveourtool.save.core.result.Ignored
+import com.saveourtool.save.core.result.Pass
+import com.saveourtool.save.core.result.TestResult
+import com.saveourtool.save.core.result.TestStatus
+import com.saveourtool.save.domain.TestResultDebugInfo
+import com.saveourtool.save.domain.TestResultLocation
+import com.saveourtool.save.domain.TestResultStatus
 
 /**
  * Maps `TestStatus` to `TestResultStatus`

@@ -1,6 +1,6 @@
-package org.cqfn.save.backend.repository
+package com.saveourtool.save.backend.repository
 
-import org.cqfn.save.entities.BaseEntity
+import com.saveourtool.save.entities.BaseEntity
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.repository.NoRepositoryBean
 

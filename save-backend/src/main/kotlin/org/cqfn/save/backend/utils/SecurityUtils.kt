@@ -2,9 +2,9 @@
  * Utility methods for spring-security
  */
 
-package org.cqfn.save.backend.utils
+package com.saveourtool.save.backend.utils
 
-import org.cqfn.save.entities.User
+import com.saveourtool.save.entities.User
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.userdetails.UserDetails

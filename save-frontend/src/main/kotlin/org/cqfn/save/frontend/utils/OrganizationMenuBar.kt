@@ -1,4 +1,4 @@
-package org.cqfn.save.frontend.utils
+package com.saveourtool.save.frontend.utils
 
 /**
  * A value for project menu.

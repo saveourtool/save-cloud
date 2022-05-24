@@ -2,7 +2,7 @@
  * This file contains actual annotation from Spring data jpa
  */
 
-package org.cqfn.save.entities
+package com.saveourtool.save.entities
 
 import javax.persistence.Entity
 import javax.persistence.Enumerated

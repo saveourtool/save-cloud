@@ -2,9 +2,9 @@
  * Utilities for orchestrator
  */
 
-package org.cqfn.save.orchestrator
+package com.saveourtool.save.orchestrator
 
-import org.cqfn.save.orchestrator.config.AgentSettings
+import com.saveourtool.save.orchestrator.config.AgentSettings
 
 import com.github.dockerjava.api.async.ResultCallback
 import com.github.dockerjava.api.command.AsyncDockerCmd

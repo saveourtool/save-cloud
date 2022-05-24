@@ -4,13 +4,13 @@
 
 @file:Suppress("FILE_NAME_MATCH_CLASS", "MatchingDeclarationName")
 
-package org.cqfn.save.frontend.components.tables
+package com.saveourtool.save.frontend.components.tables
 
-import org.cqfn.save.frontend.components.errorStatusContext
-import org.cqfn.save.frontend.components.modal.errorModal
-import org.cqfn.save.frontend.http.HttpStatusException
-import org.cqfn.save.frontend.utils.WithRequestStatusContext
-import org.cqfn.save.frontend.utils.spread
+import com.saveourtool.save.frontend.components.errorStatusContext
+import com.saveourtool.save.frontend.components.modal.errorModal
+import com.saveourtool.save.frontend.http.HttpStatusException
+import com.saveourtool.save.frontend.utils.WithRequestStatusContext
+import com.saveourtool.save.frontend.utils.spread
 
 import react.Props
 import react.RBuilder

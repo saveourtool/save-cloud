@@ -1,7 +1,7 @@
-package org.cqfn.save.frontend.components.views.usersettingsview
+package com.saveourtool.save.frontend.components.views.usersettingsview
 
-import org.cqfn.save.frontend.components.basic.InputTypes
-import org.cqfn.save.frontend.components.basic.cardComponent
+import com.saveourtool.save.frontend.components.basic.InputTypes
+import com.saveourtool.save.frontend.components.basic.cardComponent
 
 import react.FC
 import react.dom.*

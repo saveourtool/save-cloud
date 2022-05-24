@@ -1,8 +1,8 @@
-package org.cqfn.save.gateway.controller
+package com.saveourtool.save.gateway.controller
 
-import org.cqfn.save.gateway.utils.userName
-import org.cqfn.save.info.OauthProviderInfo
-import org.cqfn.save.info.UserInfo
+import com.saveourtool.save.gateway.utils.userName
+import com.saveourtool.save.info.OauthProviderInfo
+import com.saveourtool.save.info.UserInfo
 import org.slf4j.LoggerFactory
 import org.springframework.security.oauth2.client.registration.InMemoryReactiveClientRegistrationRepository
 import org.springframework.web.bind.annotation.*

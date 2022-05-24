@@ -1,4 +1,4 @@
-package org.cqfn.save.frontend.externals.fontawesome
+package com.saveourtool.save.frontend.externals.fontawesome
 
 import react.PropsWithChildren
 

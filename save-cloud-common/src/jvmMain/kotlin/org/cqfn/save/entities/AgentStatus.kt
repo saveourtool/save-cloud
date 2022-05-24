@@ -2,9 +2,9 @@
  * Data classes for agent status
  */
 
-package org.cqfn.save.entities
+package com.saveourtool.save.entities
 
-import org.cqfn.save.agent.AgentState
+import com.saveourtool.save.agent.AgentState
 import java.time.LocalDateTime
 import javax.persistence.Entity
 import javax.persistence.EnumType

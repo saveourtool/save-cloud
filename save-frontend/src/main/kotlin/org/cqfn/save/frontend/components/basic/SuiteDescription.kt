@@ -1,8 +1,8 @@
 @file:Suppress("HEADER_MISSING_IN_NON_SINGLE_CLASS_FILE")
 
-package org.cqfn.save.frontend.components.basic
+package com.saveourtool.save.frontend.components.basic
 
-import org.cqfn.save.testsuite.TestSuiteDto
+import com.saveourtool.save.testsuite.TestSuiteDto
 
 /**
  * Create a piece of HTML with formatted representation of test suite

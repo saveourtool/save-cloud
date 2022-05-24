@@ -4,15 +4,15 @@
 
 @file:Suppress("FILE_NAME_MATCH_CLASS", "MatchingDeclarationName")
 
-package org.cqfn.save.frontend.components.basic
+package com.saveourtool.save.frontend.components.basic
 
-import org.cqfn.save.domain.Role
-import org.cqfn.save.frontend.externals.fontawesome.*
-import org.cqfn.save.frontend.externals.lodash.debounce
-import org.cqfn.save.frontend.utils.*
-import org.cqfn.save.info.UserInfo
-import org.cqfn.save.permission.SetRoleRequest
-import org.cqfn.save.utils.getHighestRole
+import com.saveourtool.save.domain.Role
+import com.saveourtool.save.frontend.externals.fontawesome.*
+import com.saveourtool.save.frontend.externals.lodash.debounce
+import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.info.UserInfo
+import com.saveourtool.save.permission.SetRoleRequest
+import com.saveourtool.save.utils.getHighestRole
 
 import csstype.None
 import org.w3c.dom.HTMLInputElement

@@ -1,11 +1,11 @@
-package org.cqfn.save.backend.controllers.internal
+package com.saveourtool.save.backend.controllers.internal
 
-import org.cqfn.save.backend.repository.UserRepository
-import org.cqfn.save.backend.service.UserDetailsService
-import org.cqfn.save.entities.User
-import org.cqfn.save.utils.IdentitySourceAwareUserDetails
-import org.cqfn.save.utils.IdentitySourceAwareUserDetailsMixin
-import org.cqfn.save.utils.extractUserNameAndSource
+import com.saveourtool.save.backend.repository.UserRepository
+import com.saveourtool.save.backend.service.UserDetailsService
+import com.saveourtool.save.entities.User
+import com.saveourtool.save.utils.IdentitySourceAwareUserDetails
+import com.saveourtool.save.utils.IdentitySourceAwareUserDetailsMixin
+import com.saveourtool.save.utils.extractUserNameAndSource
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.LoggerFactory

@@ -1,9 +1,9 @@
-package org.cqfn.save.backend.service
+package com.saveourtool.save.backend.service
 
-import org.cqfn.save.backend.repository.GitRepository
-import org.cqfn.save.entities.Git
-import org.cqfn.save.entities.GitDto
-import org.cqfn.save.entities.Project
+import com.saveourtool.save.backend.repository.GitRepository
+import com.saveourtool.save.entities.Git
+import com.saveourtool.save.entities.GitDto
+import com.saveourtool.save.entities.Project
 import org.springframework.stereotype.Service
 
 /**

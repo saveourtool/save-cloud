@@ -2,12 +2,12 @@
  * Configuration beans for security in different profiles
  */
 
-package org.cqfn.save.backend.configs
+package com.saveourtool.save.backend.configs
 
-import org.cqfn.save.backend.utils.ConvertingAuthenticationManager
-import org.cqfn.save.backend.utils.CustomAuthenticationBasicConverter
-import org.cqfn.save.domain.Role
-import org.cqfn.save.v1
+import com.saveourtool.save.backend.utils.ConvertingAuthenticationManager
+import com.saveourtool.save.backend.utils.CustomAuthenticationBasicConverter
+import com.saveourtool.save.domain.Role
+import com.saveourtool.save.v1
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Profile

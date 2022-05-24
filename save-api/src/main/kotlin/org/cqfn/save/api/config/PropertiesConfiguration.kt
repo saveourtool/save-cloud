@@ -2,11 +2,11 @@
  * Logic for configuration for http client and evaluated tool
  */
 
-package org.cqfn.save.api.config
+package com.saveourtool.save.api.config
 
-import org.cqfn.save.domain.Jdk
-import org.cqfn.save.domain.Python
-import org.cqfn.save.domain.Sdk
+import com.saveourtool.save.domain.Jdk
+import com.saveourtool.save.domain.Python
+import com.saveourtool.save.domain.Sdk
 
 import org.slf4j.LoggerFactory
 

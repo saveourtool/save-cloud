@@ -4,7 +4,7 @@
 
 @file:Suppress("FILE_NAME_MATCH_CLASS")
 
-package org.cqfn.save.frontend.http
+package com.saveourtool.save.frontend.http
 
 /**
  * Exception class for HTTP responses until we use a dedicated HTTP client

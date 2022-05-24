@@ -1,6 +1,6 @@
-package org.cqfn.save.gateway
+package com.saveourtool.save.gateway
 
-import org.cqfn.save.gateway.config.ConfigurationProperties
+import com.saveourtool.save.gateway.config.ConfigurationProperties
 
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication

@@ -4,9 +4,9 @@
     "MISSING_KDOC_ON_FUNCTION",
 )
 
-package org.cqfn.save.orchestrator.config
+package com.saveourtool.save.orchestrator.config
 
-import org.cqfn.save.utils.LocalDateTimeSerializer
+import com.saveourtool.save.utils.LocalDateTimeSerializer
 
 import com.fasterxml.jackson.databind.SerializationFeature
 import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer

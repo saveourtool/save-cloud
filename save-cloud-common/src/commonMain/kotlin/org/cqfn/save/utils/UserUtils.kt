@@ -2,7 +2,7 @@
  * Utilities of User entity
  */
 
-package org.cqfn.save.utils
+package com.saveourtool.save.utils
 
 /**
  * @param userInformation

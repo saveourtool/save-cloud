@@ -2,7 +2,7 @@
  * Common class for representing the entity used in awesome-benchamrks
  */
 
-package org.cqfn.save.entities.benchmarks
+package com.saveourtool.save.entities.benchmarks
 
 import kotlinx.serialization.Serializable
 

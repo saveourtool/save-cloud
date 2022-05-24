@@ -1,15 +1,15 @@
 @file:Suppress("HEADER_MISSING_IN_NON_SINGLE_CLASS_FILE")
 
-package org.cqfn.save.frontend.components.basic
+package com.saveourtool.save.frontend.components.basic
 
-import org.cqfn.save.core.result.Crash
-import org.cqfn.save.core.result.Fail
-import org.cqfn.save.core.result.Ignored
-import org.cqfn.save.core.result.Pass
-import org.cqfn.save.core.result.TestStatus
-import org.cqfn.save.domain.TestResultDebugInfo
-import org.cqfn.save.frontend.externals.fontawesome.faExternalLinkAlt
-import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
+import com.saveourtool.save.core.result.Crash
+import com.saveourtool.save.core.result.Fail
+import com.saveourtool.save.core.result.Ignored
+import com.saveourtool.save.core.result.Pass
+import com.saveourtool.save.core.result.TestStatus
+import com.saveourtool.save.domain.TestResultDebugInfo
+import com.saveourtool.save.frontend.externals.fontawesome.faExternalLinkAlt
+import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 
 import okio.Path.Companion.toPath
 import react.Props

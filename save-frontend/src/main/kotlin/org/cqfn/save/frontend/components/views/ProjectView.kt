@@ -4,31 +4,31 @@
 
 @file:Suppress("WildcardImport", "FILE_WILDCARD_IMPORTS", "LargeClass")
 
-package org.cqfn.save.frontend.components.views
+package com.saveourtool.save.frontend.components.views
 
-import org.cqfn.save.domain.*
-import org.cqfn.save.entities.*
-import org.cqfn.save.execution.ExecutionDto
-import org.cqfn.save.frontend.components.basic.TestingType
-import org.cqfn.save.frontend.components.basic.cardComponent
-import org.cqfn.save.frontend.components.basic.fileUploader
-import org.cqfn.save.frontend.components.basic.privacySpan
-import org.cqfn.save.frontend.components.basic.projectInfo
-import org.cqfn.save.frontend.components.basic.projectSettingsMenu
-import org.cqfn.save.frontend.components.basic.projectStatisticMenu
-import org.cqfn.save.frontend.components.basic.sdkSelection
-import org.cqfn.save.frontend.components.basic.testResourcesSelection
-import org.cqfn.save.frontend.components.errorStatusContext
-import org.cqfn.save.frontend.externals.fontawesome.faCalendarAlt
-import org.cqfn.save.frontend.externals.fontawesome.faEdit
-import org.cqfn.save.frontend.externals.fontawesome.faHistory
-import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
-import org.cqfn.save.frontend.externals.modal.modal
-import org.cqfn.save.frontend.http.getProject
-import org.cqfn.save.frontend.utils.*
-import org.cqfn.save.frontend.utils.noopResponseHandler
-import org.cqfn.save.info.UserInfo
-import org.cqfn.save.testsuite.TestSuiteDto
+import com.saveourtool.save.domain.*
+import com.saveourtool.save.entities.*
+import com.saveourtool.save.execution.ExecutionDto
+import com.saveourtool.save.frontend.components.basic.TestingType
+import com.saveourtool.save.frontend.components.basic.cardComponent
+import com.saveourtool.save.frontend.components.basic.fileUploader
+import com.saveourtool.save.frontend.components.basic.privacySpan
+import com.saveourtool.save.frontend.components.basic.projectInfo
+import com.saveourtool.save.frontend.components.basic.projectSettingsMenu
+import com.saveourtool.save.frontend.components.basic.projectStatisticMenu
+import com.saveourtool.save.frontend.components.basic.sdkSelection
+import com.saveourtool.save.frontend.components.basic.testResourcesSelection
+import com.saveourtool.save.frontend.components.errorStatusContext
+import com.saveourtool.save.frontend.externals.fontawesome.faCalendarAlt
+import com.saveourtool.save.frontend.externals.fontawesome.faEdit
+import com.saveourtool.save.frontend.externals.fontawesome.faHistory
+import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
+import com.saveourtool.save.frontend.externals.modal.modal
+import com.saveourtool.save.frontend.http.getProject
+import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.frontend.utils.noopResponseHandler
+import com.saveourtool.save.info.UserInfo
+import com.saveourtool.save.testsuite.TestSuiteDto
 
 import org.w3c.dom.HTMLButtonElement
 import org.w3c.dom.HTMLInputElement

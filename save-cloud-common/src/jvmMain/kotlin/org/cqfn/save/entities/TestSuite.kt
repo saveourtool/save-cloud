@@ -1,7 +1,7 @@
-package org.cqfn.save.entities
+package com.saveourtool.save.entities
 
-import org.cqfn.save.testsuite.TestSuiteDto
-import org.cqfn.save.testsuite.TestSuiteType
+import com.saveourtool.save.testsuite.TestSuiteDto
+import com.saveourtool.save.testsuite.TestSuiteType
 
 import java.time.LocalDateTime
 import javax.persistence.Entity

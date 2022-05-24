@@ -2,18 +2,18 @@
  * A view with settings user
  */
 
-package org.cqfn.save.frontend.components.views.usersettingsview
+package com.saveourtool.save.frontend.components.views.usersettingsview
 
-import org.cqfn.save.domain.ImageInfo
-import org.cqfn.save.frontend.components.basic.InputTypes
-import org.cqfn.save.frontend.components.views.AbstractView
-import org.cqfn.save.frontend.externals.fontawesome.*
-import org.cqfn.save.frontend.http.getUser
-import org.cqfn.save.frontend.utils.*
-import org.cqfn.save.info.OrganizationInfo
-import org.cqfn.save.info.UserInfo
-import org.cqfn.save.utils.AvatarType
-import org.cqfn.save.v1
+import com.saveourtool.save.domain.ImageInfo
+import com.saveourtool.save.frontend.components.basic.InputTypes
+import com.saveourtool.save.frontend.components.views.AbstractView
+import com.saveourtool.save.frontend.externals.fontawesome.*
+import com.saveourtool.save.frontend.http.getUser
+import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.info.OrganizationInfo
+import com.saveourtool.save.info.UserInfo
+import com.saveourtool.save.utils.AvatarType
+import com.saveourtool.save.v1
 
 import csstype.*
 import org.w3c.dom.HTMLInputElement

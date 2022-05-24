@@ -4,13 +4,13 @@
 
 @file:Suppress("MAGIC_NUMBER", "WildcardImport", "FILE_WILDCARD_IMPORTS")
 
-package org.cqfn.save.frontend.components.views
+package com.saveourtool.save.frontend.components.views
 
-import org.cqfn.save.entities.benchmarks.BenchmarkCategoryEnum
-import org.cqfn.save.frontend.components.errorStatusContext
-import org.cqfn.save.frontend.externals.fontawesome.*
-import org.cqfn.save.frontend.utils.*
-import org.cqfn.save.utils.AwesomeBenchmarks
+import com.saveourtool.save.entities.benchmarks.BenchmarkCategoryEnum
+import com.saveourtool.save.frontend.components.errorStatusContext
+import com.saveourtool.save.frontend.externals.fontawesome.*
+import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.utils.AwesomeBenchmarks
 
 import csstype.Height
 import csstype.Width

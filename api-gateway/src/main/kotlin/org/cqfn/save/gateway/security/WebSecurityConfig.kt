@@ -2,12 +2,12 @@
  * Configuration beans for security in different profiles
  */
 
-package org.cqfn.save.gateway.security
+package com.saveourtool.save.gateway.security
 
-import org.cqfn.save.gateway.config.ConfigurationProperties
-import org.cqfn.save.gateway.utils.StoringServerAuthenticationSuccessHandler
-import org.cqfn.save.utils.IdentitySourceAwareUserDetails
-import org.cqfn.save.utils.IdentitySourceAwareUserDetailsMixin
+import com.saveourtool.save.gateway.config.ConfigurationProperties
+import com.saveourtool.save.gateway.utils.StoringServerAuthenticationSuccessHandler
+import com.saveourtool.save.utils.IdentitySourceAwareUserDetails
+import com.saveourtool.save.utils.IdentitySourceAwareUserDetailsMixin
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.context.annotation.Bean

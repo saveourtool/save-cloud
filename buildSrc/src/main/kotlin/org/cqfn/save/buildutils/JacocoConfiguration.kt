@@ -2,7 +2,7 @@
  * Configuration for code coverage calculation via Jacoco
  */
 
-package org.cqfn.save.buildutils
+package com.saveourtool.save.buildutils
 
 import org.gradle.api.Project
 import org.gradle.api.tasks.testing.Test

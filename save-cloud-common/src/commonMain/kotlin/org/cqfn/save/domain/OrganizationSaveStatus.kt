@@ -1,4 +1,4 @@
-package org.cqfn.save.domain
+package com.saveourtool.save.domain
 
 import kotlinx.serialization.Serializable
 

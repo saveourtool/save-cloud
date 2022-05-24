@@ -1,6 +1,6 @@
-package org.cqfn.save.backend
+package com.saveourtool.save.backend
 
-import org.cqfn.save.backend.configs.ConfigProperties
+import com.saveourtool.save.backend.configs.ConfigProperties
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.context.properties.EnableConfigurationProperties

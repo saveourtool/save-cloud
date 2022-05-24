@@ -1,4 +1,4 @@
-package org.cqfn.save.utils
+package com.saveourtool.save.utils
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo

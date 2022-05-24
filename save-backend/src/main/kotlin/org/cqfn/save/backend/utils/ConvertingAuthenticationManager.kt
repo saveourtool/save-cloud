@@ -1,7 +1,7 @@
-package org.cqfn.save.backend.utils
+package com.saveourtool.save.backend.utils
 
-import org.cqfn.save.backend.service.UserDetailsService
-import org.cqfn.save.utils.IdentitySourceAwareUserDetails
+import com.saveourtool.save.backend.service.UserDetailsService
+import com.saveourtool.save.utils.IdentitySourceAwareUserDetails
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.authentication.ReactiveAuthenticationManager

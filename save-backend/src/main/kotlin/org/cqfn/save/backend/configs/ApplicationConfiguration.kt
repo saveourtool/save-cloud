@@ -1,4 +1,4 @@
-package org.cqfn.save.backend.configs
+package com.saveourtool.save.backend.configs
 
 import org.springframework.boot.actuate.autoconfigure.metrics.orm.jpa.HibernateMetricsAutoConfiguration
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration
@@ -9,8 +9,8 @@ import org.springframework.web.reactive.config.EnableWebFlux
 
 @Configuration
 @EnableWebFlux
-@EnableJpaRepositories(basePackages = ["org.cqfn.save.backend.repository"])
-@EntityScan("org.cqfn.save.entities")
+@EnableJpaRepositories(basePackages = ["com.saveourtool.save.backend.repository"])
+@EntityScan("com.saveourtool.save.entities")
 @ImportAutoConfiguration(HibernateMetricsAutoConfiguration::class)
 @Suppress("MISSING_KDOC_TOP_LEVEL")
 class ApplicationConfiguration

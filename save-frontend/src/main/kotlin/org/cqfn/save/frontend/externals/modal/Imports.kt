@@ -4,7 +4,7 @@
 
 @file:Suppress("USE_DATA_CLASS")
 
-package org.cqfn.save.frontend.externals.modal
+package com.saveourtool.save.frontend.externals.modal
 
 import org.w3c.dom.Element
 import org.w3c.dom.HTMLDivElement

@@ -2,31 +2,31 @@
  * View for displaying individual execution results
  */
 
-package org.cqfn.save.frontend.components.views
+package com.saveourtool.save.frontend.components.views
 
-import org.cqfn.save.agent.TestExecutionDto
-import org.cqfn.save.domain.TestResultDebugInfo
-import org.cqfn.save.domain.TestResultStatus
-import org.cqfn.save.execution.ExecutionDto
-import org.cqfn.save.execution.ExecutionStatus
-import org.cqfn.save.frontend.components.basic.SelectOption.Companion.ANY
-import org.cqfn.save.frontend.components.basic.executionStatistics
-import org.cqfn.save.frontend.components.basic.executionTestsNotFound
-import org.cqfn.save.frontend.components.basic.testExecutionFiltersRow
-import org.cqfn.save.frontend.components.basic.testStatusComponent
-import org.cqfn.save.frontend.components.errorStatusContext
-import org.cqfn.save.frontend.components.tables.tableComponent
-import org.cqfn.save.frontend.externals.fontawesome.faRedo
-import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
-import org.cqfn.save.frontend.externals.table.useFilters
-import org.cqfn.save.frontend.http.getDebugInfoFor
-import org.cqfn.save.frontend.themes.Colors
-import org.cqfn.save.frontend.utils.apiUrl
-import org.cqfn.save.frontend.utils.decodeFromJsonString
-import org.cqfn.save.frontend.utils.get
-import org.cqfn.save.frontend.utils.post
-import org.cqfn.save.frontend.utils.spread
-import org.cqfn.save.frontend.utils.unsafeMap
+import com.saveourtool.save.agent.TestExecutionDto
+import com.saveourtool.save.domain.TestResultDebugInfo
+import com.saveourtool.save.domain.TestResultStatus
+import com.saveourtool.save.execution.ExecutionDto
+import com.saveourtool.save.execution.ExecutionStatus
+import com.saveourtool.save.frontend.components.basic.SelectOption.Companion.ANY
+import com.saveourtool.save.frontend.components.basic.executionStatistics
+import com.saveourtool.save.frontend.components.basic.executionTestsNotFound
+import com.saveourtool.save.frontend.components.basic.testExecutionFiltersRow
+import com.saveourtool.save.frontend.components.basic.testStatusComponent
+import com.saveourtool.save.frontend.components.errorStatusContext
+import com.saveourtool.save.frontend.components.tables.tableComponent
+import com.saveourtool.save.frontend.externals.fontawesome.faRedo
+import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
+import com.saveourtool.save.frontend.externals.table.useFilters
+import com.saveourtool.save.frontend.http.getDebugInfoFor
+import com.saveourtool.save.frontend.themes.Colors
+import com.saveourtool.save.frontend.utils.apiUrl
+import com.saveourtool.save.frontend.utils.decodeFromJsonString
+import com.saveourtool.save.frontend.utils.get
+import com.saveourtool.save.frontend.utils.post
+import com.saveourtool.save.frontend.utils.spread
+import com.saveourtool.save.frontend.utils.unsafeMap
 
 import csstype.Background
 import csstype.TextDecoration

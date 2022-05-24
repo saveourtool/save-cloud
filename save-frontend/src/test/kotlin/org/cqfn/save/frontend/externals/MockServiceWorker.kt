@@ -11,7 +11,7 @@
     "KDOC_NO_EMPTY_TAGS",
 )
 
-package org.cqfn.save.frontend.externals
+package com.saveourtool.save.frontend.externals
 
 external val rest: dynamic
 

@@ -4,12 +4,12 @@
 
 @file:Suppress("FILE_NAME_MATCH_CLASS")
 
-package org.cqfn.save.frontend.components.basic
+package com.saveourtool.save.frontend.components.basic
 
-import org.cqfn.save.entities.Project
-import org.cqfn.save.frontend.externals.fontawesome.faCheck
-import org.cqfn.save.frontend.externals.fontawesome.faTimesCircle
-import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
+import com.saveourtool.save.entities.Project
+import com.saveourtool.save.frontend.externals.fontawesome.faCheck
+import com.saveourtool.save.frontend.externals.fontawesome.faTimesCircle
+import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 
 import csstype.ClassName
 import react.FC

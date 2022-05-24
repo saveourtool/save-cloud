@@ -1,7 +1,7 @@
-package org.cqfn.save.backend.repository
+package com.saveourtool.save.backend.repository
 
-import org.cqfn.save.entities.Git
-import org.cqfn.save.entities.Project
+import com.saveourtool.save.entities.Git
+import com.saveourtool.save.entities.Project
 import org.springframework.stereotype.Repository
 
 /**

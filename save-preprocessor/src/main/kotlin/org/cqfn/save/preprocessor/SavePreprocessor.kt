@@ -1,6 +1,6 @@
-package org.cqfn.save.preprocessor
+package com.saveourtool.save.preprocessor
 
-import org.cqfn.save.preprocessor.config.ConfigProperties
+import com.saveourtool.save.preprocessor.config.ConfigProperties
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.context.properties.EnableConfigurationProperties

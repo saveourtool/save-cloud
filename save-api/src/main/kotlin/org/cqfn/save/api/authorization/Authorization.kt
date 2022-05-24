@@ -1,4 +1,4 @@
-package org.cqfn.save.api.authorization
+package com.saveourtool.save.api.authorization
 
 /**
  * Authorization data

@@ -2,7 +2,7 @@
  * Configuration for project versioning
  */
 
-package org.cqfn.save.buildutils
+package com.saveourtool.save.buildutils
 
 import org.ajoberstar.grgit.gradle.GrgitServiceExtension
 import org.ajoberstar.grgit.gradle.GrgitServicePlugin

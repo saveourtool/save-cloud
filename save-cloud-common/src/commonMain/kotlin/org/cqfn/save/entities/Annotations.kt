@@ -4,9 +4,9 @@
 
 @file:Suppress("MISSING_KDOC_TOP_LEVEL", "EMPTY_PRIMARY_CONSTRUCTOR")
 
-package org.cqfn.save.entities
+package com.saveourtool.save.entities
 
-import org.cqfn.save.utils.EnumType
+import com.saveourtool.save.utils.EnumType
 
 @OptIn(ExperimentalMultiplatform::class)
 @OptionalExpectation

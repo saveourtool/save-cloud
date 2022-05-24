@@ -4,11 +4,11 @@
 
 @file:Suppress("FILE_NAME_MATCH_CLASS", "FILE_WILDCARD_IMPORTS", "WildcardImport")
 
-package org.cqfn.save.frontend.components.basic
+package com.saveourtool.save.frontend.components.basic
 
-import org.cqfn.save.frontend.externals.fontawesome.faQuestionCircle
-import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
-import org.cqfn.save.testsuite.TestSuiteDto
+import com.saveourtool.save.frontend.externals.fontawesome.faQuestionCircle
+import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
+import com.saveourtool.save.testsuite.TestSuiteDto
 
 import react.PropsWithChildren
 import react.dom.*

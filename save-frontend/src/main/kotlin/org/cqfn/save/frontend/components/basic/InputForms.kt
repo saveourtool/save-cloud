@@ -1,6 +1,6 @@
 @file:Suppress("FILE_NAME_MATCH_CLASS")
 
-package org.cqfn.save.frontend.components.basic
+package com.saveourtool.save.frontend.components.basic
 
 import org.w3c.dom.events.Event
 import react.RBuilder

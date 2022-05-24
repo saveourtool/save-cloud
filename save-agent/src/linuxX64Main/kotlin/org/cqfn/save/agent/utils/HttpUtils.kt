@@ -2,11 +2,11 @@
  * Utility methods for HTTP requests
  */
 
-package org.cqfn.save.agent.utils
+package com.saveourtool.save.agent.utils
 
-import org.cqfn.save.agent.AgentState
-import org.cqfn.save.agent.RetryConfig
-import org.cqfn.save.agent.SaveAgent
+import com.saveourtool.save.agent.AgentState
+import com.saveourtool.save.agent.RetryConfig
+import com.saveourtool.save.agent.SaveAgent
 
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.HttpStatusCode

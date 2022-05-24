@@ -2,13 +2,13 @@
  * Main entrypoint for SAVE Agent
  */
 
-package org.cqfn.save.agent
+package com.saveourtool.save.agent
 
-import org.cqfn.save.agent.utils.logDebugCustom
-import org.cqfn.save.agent.utils.logInfoCustom
-import org.cqfn.save.agent.utils.readProperties
-import org.cqfn.save.core.config.LogType
-import org.cqfn.save.core.logging.logType
+import com.saveourtool.save.agent.utils.logDebugCustom
+import com.saveourtool.save.agent.utils.logInfoCustom
+import com.saveourtool.save.agent.utils.readProperties
+import com.saveourtool.save.core.config.LogType
+import com.saveourtool.save.core.logging.logType
 
 import generated.SAVE_CLOUD_VERSION
 import io.ktor.client.HttpClient

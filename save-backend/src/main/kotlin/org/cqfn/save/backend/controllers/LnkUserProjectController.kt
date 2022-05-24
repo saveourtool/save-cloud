@@ -5,15 +5,15 @@
  * 3) to remove users from projects
  */
 
-package org.cqfn.save.backend.controllers
+package com.saveourtool.save.backend.controllers
 
-import org.cqfn.save.backend.security.ProjectPermissionEvaluator
-import org.cqfn.save.backend.service.LnkUserProjectService
-import org.cqfn.save.backend.service.ProjectService
-import org.cqfn.save.domain.Role
-import org.cqfn.save.info.UserInfo
-import org.cqfn.save.permission.Permission
-import org.cqfn.save.v1
+import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
+import com.saveourtool.save.backend.service.LnkUserProjectService
+import com.saveourtool.save.backend.service.ProjectService
+import com.saveourtool.save.domain.Role
+import com.saveourtool.save.info.UserInfo
+import com.saveourtool.save.permission.Permission
+import com.saveourtool.save.v1
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.Authentication

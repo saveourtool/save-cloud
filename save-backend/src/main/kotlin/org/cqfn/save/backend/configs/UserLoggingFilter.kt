@@ -1,4 +1,4 @@
-package org.cqfn.save.backend.configs
+package com.saveourtool.save.backend.configs
 
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component

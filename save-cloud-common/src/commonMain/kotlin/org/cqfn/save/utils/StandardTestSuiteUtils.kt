@@ -1,6 +1,6 @@
 @file:Suppress("HEADER_MISSING_IN_NON_SINGLE_CLASS_FILE")
 
-package org.cqfn.save.utils
+package com.saveourtool.save.utils
 
 /**
  * Directory in docker image, where all requested standard test suites will be located for execution

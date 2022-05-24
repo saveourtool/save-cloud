@@ -1,18 +1,18 @@
-package org.cqfn.save.backend.controller
+package com.saveourtool.save.backend.controller
 
-import org.cqfn.save.backend.SaveApplication
-import org.cqfn.save.backend.controllers.ProjectController
-import org.cqfn.save.backend.repository.ProjectRepository
-import org.cqfn.save.backend.repository.TestSuiteRepository
-import org.cqfn.save.backend.scheduling.StandardSuitesUpdateScheduler
-import org.cqfn.save.backend.utils.MySqlExtension
-import org.cqfn.save.entities.TestSuite
-import org.cqfn.save.testsuite.TestSuiteDto
-import org.cqfn.save.testsuite.TestSuiteType
-import org.cqfn.save.testutils.checkQueues
-import org.cqfn.save.testutils.cleanup
-import org.cqfn.save.testutils.createMockWebServer
-import org.cqfn.save.v1
+import com.saveourtool.save.backend.SaveApplication
+import com.saveourtool.save.backend.controllers.ProjectController
+import com.saveourtool.save.backend.repository.ProjectRepository
+import com.saveourtool.save.backend.repository.TestSuiteRepository
+import com.saveourtool.save.backend.scheduling.StandardSuitesUpdateScheduler
+import com.saveourtool.save.backend.utils.MySqlExtension
+import com.saveourtool.save.entities.TestSuite
+import com.saveourtool.save.testsuite.TestSuiteDto
+import com.saveourtool.save.testsuite.TestSuiteType
+import com.saveourtool.save.testutils.checkQueues
+import com.saveourtool.save.testutils.cleanup
+import com.saveourtool.save.testutils.createMockWebServer
+import com.saveourtool.save.v1
 
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.jupiter.api.AfterAll

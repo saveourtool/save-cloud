@@ -1,4 +1,4 @@
-package org.cqfn.save.preprocessor.utils
+package com.saveourtool.save.preprocessor.utils
 
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource

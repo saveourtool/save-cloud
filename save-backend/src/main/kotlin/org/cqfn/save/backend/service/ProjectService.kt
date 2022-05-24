@@ -1,14 +1,14 @@
-package org.cqfn.save.backend.service
+package com.saveourtool.save.backend.service
 
-import org.cqfn.save.backend.repository.ProjectRepository
-import org.cqfn.save.backend.repository.UserRepository
-import org.cqfn.save.backend.security.ProjectPermissionEvaluator
-import org.cqfn.save.domain.ProjectSaveStatus
-import org.cqfn.save.entities.Organization
-import org.cqfn.save.entities.Project
-import org.cqfn.save.entities.ProjectStatus
-import org.cqfn.save.entities.User
-import org.cqfn.save.permission.Permission
+import com.saveourtool.save.backend.repository.ProjectRepository
+import com.saveourtool.save.backend.repository.UserRepository
+import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
+import com.saveourtool.save.domain.ProjectSaveStatus
+import com.saveourtool.save.entities.Organization
+import com.saveourtool.save.entities.Project
+import com.saveourtool.save.entities.ProjectStatus
+import com.saveourtool.save.entities.User
+import com.saveourtool.save.permission.Permission
 
 import org.springframework.data.domain.Example
 import org.springframework.data.domain.ExampleMatcher

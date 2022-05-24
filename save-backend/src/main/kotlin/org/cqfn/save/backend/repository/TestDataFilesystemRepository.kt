@@ -1,10 +1,10 @@
-package org.cqfn.save.backend.repository
+package com.saveourtool.save.backend.repository
 
-import org.cqfn.save.agent.TestExecutionDto
-import org.cqfn.save.backend.configs.ConfigProperties
-import org.cqfn.save.domain.TestResultDebugInfo
-import org.cqfn.save.domain.TestResultLocation
-import org.cqfn.save.entities.TestExecution
+import com.saveourtool.save.agent.TestExecutionDto
+import com.saveourtool.save.backend.configs.ConfigProperties
+import com.saveourtool.save.domain.TestResultDebugInfo
+import com.saveourtool.save.domain.TestResultLocation
+import com.saveourtool.save.entities.TestExecution
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import okio.Path.Companion.toPath

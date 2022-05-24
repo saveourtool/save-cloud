@@ -2,7 +2,7 @@
  * Configuration for detekt static analysis
  */
 
-package org.cqfn.save.buildutils
+package com.saveourtool.save.buildutils
 
 import io.gitlab.arturbosch.detekt.Detekt
 import io.gitlab.arturbosch.detekt.DetektPlugin

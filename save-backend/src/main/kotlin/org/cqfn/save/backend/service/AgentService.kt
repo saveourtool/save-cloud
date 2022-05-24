@@ -1,6 +1,6 @@
-package org.cqfn.save.backend.service
+package com.saveourtool.save.backend.service
 
-import org.cqfn.save.backend.repository.AgentRepository
+import com.saveourtool.save.backend.repository.AgentRepository
 import org.springframework.stereotype.Service
 
 /**

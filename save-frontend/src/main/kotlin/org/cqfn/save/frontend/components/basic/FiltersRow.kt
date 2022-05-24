@@ -1,12 +1,12 @@
 @file:Suppress("HEADER_MISSING_IN_NON_SINGLE_CLASS_FILE", "FILE_NAME_MATCH_CLASS")
 
-package org.cqfn.save.frontend.components.basic
+package com.saveourtool.save.frontend.components.basic
 
-import org.cqfn.save.domain.TestResultStatus
-import org.cqfn.save.frontend.components.basic.SelectOption.Companion.ANY
-import org.cqfn.save.frontend.externals.fontawesome.faFilter
-import org.cqfn.save.frontend.externals.fontawesome.faSearch
-import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
+import com.saveourtool.save.domain.TestResultStatus
+import com.saveourtool.save.frontend.components.basic.SelectOption.Companion.ANY
+import com.saveourtool.save.frontend.externals.fontawesome.faFilter
+import com.saveourtool.save.frontend.externals.fontawesome.faSearch
+import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.HTMLSelectElement

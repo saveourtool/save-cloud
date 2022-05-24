@@ -1,9 +1,9 @@
-package org.cqfn.save.backend.controller
+package com.saveourtool.save.backend.controller
 
-import org.cqfn.save.agent.AgentState
-import org.cqfn.save.backend.configs.ApplicationConfiguration
-import org.cqfn.save.backend.repository.AgentStatusRepository
-import org.cqfn.save.backend.utils.MySqlExtension
+import com.saveourtool.save.agent.AgentState
+import com.saveourtool.save.backend.configs.ApplicationConfiguration
+import com.saveourtool.save.backend.repository.AgentStatusRepository
+import com.saveourtool.save.backend.utils.MySqlExtension
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith

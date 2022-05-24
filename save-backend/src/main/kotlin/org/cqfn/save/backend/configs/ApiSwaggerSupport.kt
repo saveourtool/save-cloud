@@ -2,7 +2,7 @@
  * Utilities related to Swagger
  */
 
-package org.cqfn.save.backend.configs
+package com.saveourtool.save.backend.configs
 
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.enums.ParameterIn

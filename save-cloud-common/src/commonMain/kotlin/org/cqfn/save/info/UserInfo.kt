@@ -1,6 +1,6 @@
-package org.cqfn.save.info
+package com.saveourtool.save.info
 
-import org.cqfn.save.domain.Role
+import com.saveourtool.save.domain.Role
 
 import kotlinx.serialization.Serializable
 

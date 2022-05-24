@@ -2,7 +2,7 @@
  * Util class for Long type
  */
 
-package org.cqfn.save.backend.utils
+package com.saveourtool.save.backend.utils
 
 import java.time.Instant
 import java.time.LocalDateTime

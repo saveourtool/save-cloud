@@ -2,7 +2,7 @@
  * Kotlin/JS-React wrapper for react-modal: kotlin bindings
  */
 
-package org.cqfn.save.frontend.externals.modal
+package com.saveourtool.save.frontend.externals.modal
 
 import react.ChildrenBuilder
 import react.RBuilder

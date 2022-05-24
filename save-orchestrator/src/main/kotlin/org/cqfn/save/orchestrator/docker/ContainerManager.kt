@@ -1,11 +1,11 @@
-package org.cqfn.save.orchestrator.docker
+package com.saveourtool.save.orchestrator.docker
 
-import org.cqfn.save.domain.Sdk
-import org.cqfn.save.orchestrator.DOCKER_METRIC_PREFIX
-import org.cqfn.save.orchestrator.config.DockerSettings
-import org.cqfn.save.orchestrator.copyRecursivelyWithAttributes
-import org.cqfn.save.orchestrator.execTimed
-import org.cqfn.save.orchestrator.getHostIp
+import com.saveourtool.save.domain.Sdk
+import com.saveourtool.save.orchestrator.DOCKER_METRIC_PREFIX
+import com.saveourtool.save.orchestrator.config.DockerSettings
+import com.saveourtool.save.orchestrator.copyRecursivelyWithAttributes
+import com.saveourtool.save.orchestrator.execTimed
+import com.saveourtool.save.orchestrator.getHostIp
 
 import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.api.command.BuildImageResultCallback

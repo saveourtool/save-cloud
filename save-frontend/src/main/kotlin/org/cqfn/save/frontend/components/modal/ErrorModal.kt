@@ -2,10 +2,10 @@
  * A component to display an error message in a modal view
  */
 
-package org.cqfn.save.frontend.components.modal
+package com.saveourtool.save.frontend.components.modal
 
-import org.cqfn.save.frontend.externals.modal.ModalProps
-import org.cqfn.save.frontend.externals.modal.modal
+import com.saveourtool.save.frontend.externals.modal.ModalProps
+import com.saveourtool.save.frontend.externals.modal.modal
 
 import react.RBuilder
 import react.RHandler

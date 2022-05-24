@@ -1,8 +1,8 @@
-package org.cqfn.save.frontend.components.basic
+package com.saveourtool.save.frontend.components.basic
 
-import org.cqfn.save.entities.Organization
-import org.cqfn.save.frontend.externals.*
-import org.cqfn.save.frontend.utils.apiUrl
+import com.saveourtool.save.entities.Organization
+import com.saveourtool.save.frontend.externals.*
+import com.saveourtool.save.frontend.utils.apiUrl
 import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.HTMLOptionElement
 import org.w3c.dom.HTMLSelectElement

@@ -1,6 +1,6 @@
-package org.cqfn.save.agent
+package com.saveourtool.save.agent
 
-import org.cqfn.save.domain.TestResultStatus
+import com.saveourtool.save.domain.TestResultStatus
 
 import kotlinx.serialization.Serializable
 

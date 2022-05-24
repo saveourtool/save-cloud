@@ -1,4 +1,4 @@
-package org.cqfn.save.testsuite
+package com.saveourtool.save.testsuite
 
 import kotlinx.serialization.Serializable
 

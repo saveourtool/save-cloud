@@ -1,7 +1,7 @@
-package org.cqfn.save.frontend.components
+package com.saveourtool.save.frontend.components
 
-import org.cqfn.save.frontend.externals.render
-import org.cqfn.save.frontend.externals.screen
+import com.saveourtool.save.frontend.externals.render
+import com.saveourtool.save.frontend.externals.screen
 
 import generated.SAVE_VERSION
 import react.createElement

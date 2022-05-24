@@ -1,19 +1,19 @@
-package org.cqfn.save.preprocessor.controllers
+package com.saveourtool.save.preprocessor.controllers
 
-import org.cqfn.save.core.config.TestConfig
-import org.cqfn.save.domain.FileInfo
-import org.cqfn.save.domain.Sdk
-import org.cqfn.save.entities.*
-import org.cqfn.save.execution.ExecutionType
-import org.cqfn.save.preprocessor.config.ConfigProperties
-import org.cqfn.save.preprocessor.config.LocalDateTimeConfig
-import org.cqfn.save.preprocessor.service.TestDiscoveringService
-import org.cqfn.save.preprocessor.utils.RepositoryVolume
-import org.cqfn.save.preprocessor.utils.toHash
-import org.cqfn.save.test.TestDto
-import org.cqfn.save.testsuite.TestSuiteDto
-import org.cqfn.save.testsuite.TestSuiteType
-import org.cqfn.save.testutils.*
+import com.saveourtool.save.core.config.TestConfig
+import com.saveourtool.save.domain.FileInfo
+import com.saveourtool.save.domain.Sdk
+import com.saveourtool.save.entities.*
+import com.saveourtool.save.execution.ExecutionType
+import com.saveourtool.save.preprocessor.config.ConfigProperties
+import com.saveourtool.save.preprocessor.config.LocalDateTimeConfig
+import com.saveourtool.save.preprocessor.service.TestDiscoveringService
+import com.saveourtool.save.preprocessor.utils.RepositoryVolume
+import com.saveourtool.save.preprocessor.utils.toHash
+import com.saveourtool.save.test.TestDto
+import com.saveourtool.save.testsuite.TestSuiteDto
+import com.saveourtool.save.testsuite.TestSuiteType
+import com.saveourtool.save.testutils.*
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import okhttp3.mockwebserver.MockResponse

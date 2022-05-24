@@ -2,9 +2,9 @@
  * Utilities of Role entity
  */
 
-package org.cqfn.save.utils
+package com.saveourtool.save.utils
 
-import org.cqfn.save.domain.Role
+import com.saveourtool.save.domain.Role
 
 /**
  * @param oneRole

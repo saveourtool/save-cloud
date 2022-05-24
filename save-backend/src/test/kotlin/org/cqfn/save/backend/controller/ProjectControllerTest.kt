@@ -1,16 +1,16 @@
-package org.cqfn.save.backend.controller
+package com.saveourtool.save.backend.controller
 
-import org.cqfn.save.backend.SaveApplication
-import org.cqfn.save.backend.repository.GitRepository
-import org.cqfn.save.backend.repository.OrganizationRepository
-import org.cqfn.save.backend.repository.ProjectRepository
-import org.cqfn.save.backend.scheduling.StandardSuitesUpdateScheduler
-import org.cqfn.save.backend.service.LnkUserProjectService
-import org.cqfn.save.backend.utils.AuthenticationDetails
-import org.cqfn.save.backend.utils.MySqlExtension
-import org.cqfn.save.backend.utils.mutateMockedUser
-import org.cqfn.save.entities.*
-import org.cqfn.save.v1
+import com.saveourtool.save.backend.SaveApplication
+import com.saveourtool.save.backend.repository.GitRepository
+import com.saveourtool.save.backend.repository.OrganizationRepository
+import com.saveourtool.save.backend.repository.ProjectRepository
+import com.saveourtool.save.backend.scheduling.StandardSuitesUpdateScheduler
+import com.saveourtool.save.backend.service.LnkUserProjectService
+import com.saveourtool.save.backend.utils.AuthenticationDetails
+import com.saveourtool.save.backend.utils.MySqlExtension
+import com.saveourtool.save.backend.utils.mutateMockedUser
+import com.saveourtool.save.entities.*
+import com.saveourtool.save.v1
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test

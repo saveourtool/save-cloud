@@ -4,11 +4,11 @@
 
 @file:Suppress("FILE_NAME_MATCH_CLASS")
 
-package org.cqfn.save.frontend.utils
+package com.saveourtool.save.frontend.utils
 
-import org.cqfn.save.frontend.components.errorStatusContext
-import org.cqfn.save.frontend.http.HttpStatusException
-import org.cqfn.save.v1
+import com.saveourtool.save.frontend.components.errorStatusContext
+import com.saveourtool.save.frontend.http.HttpStatusException
+import com.saveourtool.save.v1
 
 import org.w3c.fetch.Headers
 import org.w3c.fetch.RequestCredentials

@@ -1,9 +1,9 @@
 @file:Suppress("FILE_NAME_MATCH_CLASS", "FILE_WILDCARD_IMPORTS", "WildcardImport")
 
-package org.cqfn.save.frontend.components.basic
+package com.saveourtool.save.frontend.components.basic
 
-import org.cqfn.save.execution.ExecutionDto
-import org.cqfn.save.execution.ExecutionStatus
+import com.saveourtool.save.execution.ExecutionDto
+import com.saveourtool.save.execution.ExecutionStatus
 
 import csstype.Width
 import react.CSSProperties

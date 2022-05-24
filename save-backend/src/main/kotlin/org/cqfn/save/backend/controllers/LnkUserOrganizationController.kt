@@ -5,19 +5,19 @@
  * 3) to remove users from organizations
  */
 
-package org.cqfn.save.backend.controllers
+package com.saveourtool.save.backend.controllers
 
-import org.cqfn.save.backend.security.OrganizationPermissionEvaluator
-import org.cqfn.save.backend.service.LnkUserOrganizationService
-import org.cqfn.save.backend.service.OrganizationService
-import org.cqfn.save.backend.utils.AuthenticationDetails
-import org.cqfn.save.domain.Role
-import org.cqfn.save.entities.OrganizationStatus
-import org.cqfn.save.info.OrganizationInfo
-import org.cqfn.save.info.UserInfo
-import org.cqfn.save.permission.Permission
-import org.cqfn.save.permission.SetRoleRequest
-import org.cqfn.save.v1
+import com.saveourtool.save.backend.security.OrganizationPermissionEvaluator
+import com.saveourtool.save.backend.service.LnkUserOrganizationService
+import com.saveourtool.save.backend.service.OrganizationService
+import com.saveourtool.save.backend.utils.AuthenticationDetails
+import com.saveourtool.save.domain.Role
+import com.saveourtool.save.entities.OrganizationStatus
+import com.saveourtool.save.info.OrganizationInfo
+import com.saveourtool.save.info.UserInfo
+import com.saveourtool.save.permission.Permission
+import com.saveourtool.save.permission.SetRoleRequest
+import com.saveourtool.save.v1
 
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import org.slf4j.LoggerFactory

@@ -1,10 +1,10 @@
-package org.cqfn.save.backend.service
+package com.saveourtool.save.backend.service
 
-import org.cqfn.save.backend.repository.UserRepository
-import org.cqfn.save.domain.Role
-import org.cqfn.save.entities.Project
-import org.cqfn.save.entities.User
-import org.cqfn.save.permission.SetRoleRequest
+import com.saveourtool.save.backend.repository.UserRepository
+import com.saveourtool.save.domain.Role
+import com.saveourtool.save.entities.Project
+import com.saveourtool.save.entities.User
+import com.saveourtool.save.permission.SetRoleRequest
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.util.function.component1

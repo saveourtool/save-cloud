@@ -1,18 +1,18 @@
-package org.cqfn.save.backend.controllers
+package com.saveourtool.save.backend.controllers
 
-import org.cqfn.save.agent.TestExecutionDto
-import org.cqfn.save.backend.ByteArrayResponse
-import org.cqfn.save.backend.repository.AgentRepository
-import org.cqfn.save.backend.repository.TestDataFilesystemRepository
-import org.cqfn.save.backend.repository.TimestampBasedFileSystemRepository
-import org.cqfn.save.backend.service.OrganizationService
-import org.cqfn.save.backend.service.UserDetailsService
-import org.cqfn.save.domain.FileInfo
-import org.cqfn.save.domain.TestResultDebugInfo
-import org.cqfn.save.domain.TestResultLocation
-import org.cqfn.save.from
-import org.cqfn.save.utils.AvatarType
-import org.cqfn.save.v1
+import com.saveourtool.save.agent.TestExecutionDto
+import com.saveourtool.save.backend.ByteArrayResponse
+import com.saveourtool.save.backend.repository.AgentRepository
+import com.saveourtool.save.backend.repository.TestDataFilesystemRepository
+import com.saveourtool.save.backend.repository.TimestampBasedFileSystemRepository
+import com.saveourtool.save.backend.service.OrganizationService
+import com.saveourtool.save.backend.service.UserDetailsService
+import com.saveourtool.save.domain.FileInfo
+import com.saveourtool.save.domain.TestResultDebugInfo
+import com.saveourtool.save.domain.TestResultLocation
+import com.saveourtool.save.from
+import com.saveourtool.save.utils.AvatarType
+import com.saveourtool.save.v1
 
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus

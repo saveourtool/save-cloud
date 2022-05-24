@@ -1,14 +1,14 @@
-package org.cqfn.save.backend.controllers
+package com.saveourtool.save.backend.controllers
 
-import org.cqfn.save.backend.StringResponse
-import org.cqfn.save.backend.repository.UserRepository
-import org.cqfn.save.backend.service.UserDetailsService
-import org.cqfn.save.backend.utils.AuthenticationDetails
-import org.cqfn.save.backend.utils.justOrNotFound
-import org.cqfn.save.domain.ImageInfo
-import org.cqfn.save.domain.Role
-import org.cqfn.save.info.UserInfo
-import org.cqfn.save.v1
+import com.saveourtool.save.backend.StringResponse
+import com.saveourtool.save.backend.repository.UserRepository
+import com.saveourtool.save.backend.service.UserDetailsService
+import com.saveourtool.save.backend.utils.AuthenticationDetails
+import com.saveourtool.save.backend.utils.justOrNotFound
+import com.saveourtool.save.domain.ImageInfo
+import com.saveourtool.save.domain.Role
+import com.saveourtool.save.info.UserInfo
+import com.saveourtool.save.v1
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize

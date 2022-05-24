@@ -5,7 +5,7 @@
     "HEADER_MISSING_IN_NON_SINGLE_CLASS_FILE"
 )
 
-package org.cqfn.save.utils
+package com.saveourtool.save.utils
 
 expect enum class EnumType {
     /** Persist enumerated type property or field as an integer.  */

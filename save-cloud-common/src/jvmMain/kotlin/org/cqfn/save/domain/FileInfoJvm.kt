@@ -2,7 +2,7 @@
  * Utils for `FileInfo` on JVM
  */
 
-package org.cqfn.save.domain
+package com.saveourtool.save.domain
 
 import java.io.File
 import java.nio.file.Path

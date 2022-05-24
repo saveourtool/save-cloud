@@ -1,7 +1,7 @@
-package org.cqfn.save.frontend.components
+package com.saveourtool.save.frontend.components
 
-import org.cqfn.save.frontend.externals.*
-import org.cqfn.save.info.UserInfo
+import com.saveourtool.save.frontend.externals.*
+import com.saveourtool.save.info.UserInfo
 
 import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.HTMLSpanElement

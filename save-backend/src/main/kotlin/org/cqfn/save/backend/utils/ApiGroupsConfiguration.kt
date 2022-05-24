@@ -1,7 +1,7 @@
-package org.cqfn.save.backend.utils
+package com.saveourtool.save.backend.utils
 
-import org.cqfn.save.latestVersion
-import org.cqfn.save.v1
+import com.saveourtool.save.latestVersion
+import com.saveourtool.save.v1
 
 import io.swagger.v3.oas.models.Components
 import io.swagger.v3.oas.models.OpenAPI
@@ -21,7 +21,7 @@ class ApiGroupsConfiguration {
     fun openApiAll(): GroupedOpenApi? = GroupedOpenApi.builder()
         .group("all")
         .pathsToMatch("/api/**")
-        .packagesToScan("org.cqfn.save.backend.controllers")
+        .packagesToScan("com.saveourtool.save.backend.controllers")
         .build()
 
     @Bean
@@ -43,6 +43,6 @@ class ApiGroupsConfiguration {
         .group(groupName)
         .pathsToMatch("/api/$version/**")
         .pathsToExclude("?!(/api/$version).+")
-        .packagesToScan("org.cqfn.save.backend.controllers")
+        .packagesToScan("com.saveourtool.save.backend.controllers")
         .build()
 }

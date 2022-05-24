@@ -1,6 +1,6 @@
-package org.cqfn.save.entities
+package com.saveourtool.save.entities
 
-import org.cqfn.save.test.TestDto
+import com.saveourtool.save.test.TestDto
 import java.time.LocalDateTime
 import javax.persistence.Entity
 import javax.persistence.JoinColumn

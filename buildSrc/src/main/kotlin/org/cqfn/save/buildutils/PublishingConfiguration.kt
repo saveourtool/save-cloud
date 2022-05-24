@@ -2,7 +2,7 @@
  * Publishing configuration file.
  */
 
-package org.cqfn.save.buildutils
+package com.saveourtool.save.buildutils
 
 import io.github.gradlenexus.publishplugin.NexusPublishExtension
 import io.github.gradlenexus.publishplugin.NexusPublishPlugin
@@ -74,7 +74,7 @@ private fun Project.configurePublications() {
             publication.pom {
                 name.set(project.name)
                 description.set(project.description ?: project.name)
-                url.set("https://github.com/cqfn/save-cloud")
+                url.set("https://github.com/saveourtool/save-cloud")
                 licenses {
                     license {
                         name.set("MIT License")
@@ -95,8 +95,8 @@ private fun Project.configurePublications() {
                     }
                 }
                 scm {
-                    url.set("https://github.com/cqfn/save-cloud")
-                    connection.set("scm:git:git://github.com/cqfn/save-cloud.git")
+                    url.set("https://github.com/saveourtool/save-cloud")
+                    connection.set("scm:git:git://github.com/saveourtool/save-cloud.git")
                 }
             }
         }

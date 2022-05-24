@@ -4,11 +4,11 @@
  * 2) to get benchmarks for the Frontend
  */
 
-package org.cqfn.save.backend.controllers
+package com.saveourtool.save.backend.controllers
 
-import org.cqfn.save.backend.service.AwesomeBenchmarksService
-import org.cqfn.save.entities.benchmarks.BenchmarkEntity
-import org.cqfn.save.v1
+import com.saveourtool.save.backend.service.AwesomeBenchmarksService
+import com.saveourtool.save.entities.benchmarks.BenchmarkEntity
+import com.saveourtool.save.v1
 import org.slf4j.LoggerFactory
 import org.springframework.web.bind.annotation.*
 

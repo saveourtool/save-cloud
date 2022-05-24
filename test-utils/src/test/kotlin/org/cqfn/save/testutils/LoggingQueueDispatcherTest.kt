@@ -1,4 +1,4 @@
-package org.cqfn.save.testutils
+package com.saveourtool.save.testutils
 
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.RecordedRequest

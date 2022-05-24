@@ -1,4 +1,4 @@
-package org.cqfn.save.gateway.config
+package com.saveourtool.save.gateway.config
 
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding

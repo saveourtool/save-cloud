@@ -4,15 +4,15 @@
 
 @file:Suppress("FILE_NAME_MATCH_CLASS")
 
-package org.cqfn.save.frontend.components.basic
+package com.saveourtool.save.frontend.components.basic
 
-import org.cqfn.save.domain.FileInfo
-import org.cqfn.save.frontend.externals.fontawesome.faFile
-import org.cqfn.save.frontend.externals.fontawesome.faTimesCircle
-import org.cqfn.save.frontend.externals.fontawesome.faUpload
-import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
-import org.cqfn.save.frontend.utils.ConfirmationType
-import org.cqfn.save.frontend.utils.toPrettyString
+import com.saveourtool.save.domain.FileInfo
+import com.saveourtool.save.frontend.externals.fontawesome.faFile
+import com.saveourtool.save.frontend.externals.fontawesome.faTimesCircle
+import com.saveourtool.save.frontend.externals.fontawesome.faUpload
+import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
+import com.saveourtool.save.frontend.utils.ConfirmationType
+import com.saveourtool.save.frontend.utils.toPrettyString
 
 import csstype.Width
 import org.w3c.dom.HTMLInputElement

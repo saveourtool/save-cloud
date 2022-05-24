@@ -2,7 +2,7 @@
  * DTOs for retrieving test batches
  */
 
-package org.cqfn.save.test
+package com.saveourtool.save.test
 
 import kotlinx.serialization.Serializable
 

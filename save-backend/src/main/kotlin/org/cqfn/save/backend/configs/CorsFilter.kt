@@ -1,4 +1,4 @@
-package org.cqfn.save.backend.configs
+package com.saveourtool.save.backend.configs
 
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpMethod

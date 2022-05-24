@@ -1,6 +1,6 @@
 @file:Suppress("HEADER_MISSING_IN_NON_SINGLE_CLASS_FILE")
 
-package org.cqfn.save.utils
+package com.saveourtool.save.utils
 
 import java.io.File
 import java.io.FileNotFoundException

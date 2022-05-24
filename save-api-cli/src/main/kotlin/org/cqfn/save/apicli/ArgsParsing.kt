@@ -4,10 +4,10 @@
 
 @file:Suppress("FILE_NAME_MATCH_CLASS")
 
-package org.cqfn.save.apicli
+package com.saveourtool.save.apicli
 
-import org.cqfn.save.api.authorization.Authorization
-import org.cqfn.save.execution.ExecutionType
+import com.saveourtool.save.api.authorization.Authorization
+import com.saveourtool.save.execution.ExecutionType
 
 import org.slf4j.LoggerFactory
 

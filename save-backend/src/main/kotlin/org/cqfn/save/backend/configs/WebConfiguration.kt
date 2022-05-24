@@ -1,7 +1,7 @@
-package org.cqfn.save.backend.configs
+package com.saveourtool.save.backend.configs
 
-import org.cqfn.save.backend.utils.toInstant
-import org.cqfn.save.v1
+import com.saveourtool.save.backend.utils.toInstant
+import com.saveourtool.save.v1
 
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.info.BuildProperties

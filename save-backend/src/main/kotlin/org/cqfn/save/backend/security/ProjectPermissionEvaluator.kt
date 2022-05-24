@@ -1,13 +1,13 @@
-package org.cqfn.save.backend.security
+package com.saveourtool.save.backend.security
 
-import org.cqfn.save.backend.repository.LnkUserProjectRepository
-import org.cqfn.save.backend.service.LnkUserProjectService
-import org.cqfn.save.backend.utils.AuthenticationDetails
-import org.cqfn.save.domain.Role
-import org.cqfn.save.entities.Execution
-import org.cqfn.save.entities.Project
-import org.cqfn.save.entities.User
-import org.cqfn.save.permission.Permission
+import com.saveourtool.save.backend.repository.LnkUserProjectRepository
+import com.saveourtool.save.backend.service.LnkUserProjectService
+import com.saveourtool.save.backend.utils.AuthenticationDetails
+import com.saveourtool.save.domain.Role
+import com.saveourtool.save.entities.Execution
+import com.saveourtool.save.entities.Project
+import com.saveourtool.save.entities.User
+import com.saveourtool.save.permission.Permission
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.Authentication

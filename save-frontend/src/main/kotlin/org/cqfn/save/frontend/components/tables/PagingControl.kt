@@ -2,7 +2,7 @@
  * Paging control utils
  */
 
-package org.cqfn.save.frontend.components.tables
+package com.saveourtool.save.frontend.components.tables
 
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.HTMLSelectElement

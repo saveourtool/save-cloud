@@ -1,9 +1,9 @@
 @file:Suppress("FILE_NAME_MATCH_CLASS", "HEADER_MISSING_IN_NON_SINGLE_CLASS_FILE")
 
-package org.cqfn.save.frontend.components.basic
+package com.saveourtool.save.frontend.components.basic
 
-import org.cqfn.save.entities.Organization
-import org.cqfn.save.frontend.utils.*
+import com.saveourtool.save.entities.Organization
+import com.saveourtool.save.frontend.utils.*
 
 import org.w3c.dom.events.Event
 import org.w3c.fetch.Headers

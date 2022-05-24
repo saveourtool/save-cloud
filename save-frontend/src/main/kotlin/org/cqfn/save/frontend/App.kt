@@ -2,24 +2,24 @@
  * Main entrypoint for SAVE frontend
  */
 
-package org.cqfn.save.frontend
+package com.saveourtool.save.frontend
 
-import org.cqfn.save.domain.Role
-import org.cqfn.save.domain.TestResultStatus
-import org.cqfn.save.frontend.components.Footer
-import org.cqfn.save.frontend.components.basic.scrollToTopButton
-import org.cqfn.save.frontend.components.errorModalHandler
-import org.cqfn.save.frontend.components.topBar
-import org.cqfn.save.frontend.components.views.*
-import org.cqfn.save.frontend.components.views.usersettingsview.UserSettingsEmailMenuView
-import org.cqfn.save.frontend.components.views.usersettingsview.UserSettingsOrganizationsMenuView
-import org.cqfn.save.frontend.components.views.usersettingsview.UserSettingsProfileMenuView
-import org.cqfn.save.frontend.components.views.usersettingsview.UserSettingsTokenMenuView
-import org.cqfn.save.frontend.externals.fontawesome.*
-import org.cqfn.save.frontend.externals.modal.ReactModal
-import org.cqfn.save.frontend.utils.*
-import org.cqfn.save.info.UserInfo
-import org.cqfn.save.v1
+import com.saveourtool.save.domain.Role
+import com.saveourtool.save.domain.TestResultStatus
+import com.saveourtool.save.frontend.components.Footer
+import com.saveourtool.save.frontend.components.basic.scrollToTopButton
+import com.saveourtool.save.frontend.components.errorModalHandler
+import com.saveourtool.save.frontend.components.topBar
+import com.saveourtool.save.frontend.components.views.*
+import com.saveourtool.save.frontend.components.views.usersettingsview.UserSettingsEmailMenuView
+import com.saveourtool.save.frontend.components.views.usersettingsview.UserSettingsOrganizationsMenuView
+import com.saveourtool.save.frontend.components.views.usersettingsview.UserSettingsProfileMenuView
+import com.saveourtool.save.frontend.components.views.usersettingsview.UserSettingsTokenMenuView
+import com.saveourtool.save.frontend.externals.fontawesome.*
+import com.saveourtool.save.frontend.externals.modal.ReactModal
+import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.info.UserInfo
+import com.saveourtool.save.v1
 
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.url.URLSearchParams

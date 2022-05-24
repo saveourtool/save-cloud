@@ -1,10 +1,10 @@
-package org.cqfn.save.preprocessor.service
+package com.saveourtool.save.preprocessor.service
 
-import org.cqfn.save.core.config.TestConfig
-import org.cqfn.save.entities.Project
-import org.cqfn.save.entities.TestSuite
-import org.cqfn.save.preprocessor.config.ConfigProperties
-import org.cqfn.save.testsuite.TestSuiteType
+import com.saveourtool.save.core.config.TestConfig
+import com.saveourtool.save.entities.Project
+import com.saveourtool.save.entities.TestSuite
+import com.saveourtool.save.preprocessor.config.ConfigProperties
+import com.saveourtool.save.testsuite.TestSuiteType
 import org.eclipse.jgit.api.Git
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions

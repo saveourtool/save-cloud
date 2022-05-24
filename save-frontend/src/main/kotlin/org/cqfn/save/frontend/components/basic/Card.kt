@@ -4,9 +4,9 @@
 
 @file:Suppress("FILE_NAME_MATCH_CLASS", "MatchingDeclarationName")
 
-package org.cqfn.save.frontend.components.basic
+package com.saveourtool.save.frontend.components.basic
 
-import org.cqfn.save.frontend.externals.fontawesome.fontAwesomeIcon
+import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 
 import react.PropsWithChildren
 import react.dom.RDOMBuilder

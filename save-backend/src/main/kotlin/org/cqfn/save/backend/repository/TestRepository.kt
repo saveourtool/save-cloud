@@ -1,6 +1,6 @@
-package org.cqfn.save.backend.repository
+package com.saveourtool.save.backend.repository
 
-import org.cqfn.save.entities.Test
+import com.saveourtool.save.entities.Test
 import org.springframework.stereotype.Repository
 
 import java.util.Optional

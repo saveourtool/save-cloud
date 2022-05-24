@@ -1,7 +1,7 @@
-package org.cqfn.save.backend.controllers
+package com.saveourtool.save.backend.controllers
 
-import org.cqfn.save.backend.configs.ConfigProperties
-import org.cqfn.save.v1
+import com.saveourtool.save.backend.configs.ConfigProperties
+import com.saveourtool.save.v1
 
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.GetMapping

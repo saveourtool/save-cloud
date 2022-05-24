@@ -2,9 +2,9 @@
  * Model classes for heartbeating between save agent and the orchestrator
  */
 
-package org.cqfn.save.agent
+package com.saveourtool.save.agent
 
-import org.cqfn.save.test.TestDto
+import com.saveourtool.save.test.TestDto
 
 import kotlinx.datetime.Instant
 import kotlinx.serialization.Serializable

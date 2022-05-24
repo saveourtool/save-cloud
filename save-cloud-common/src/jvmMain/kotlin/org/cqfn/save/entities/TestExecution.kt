@@ -1,7 +1,7 @@
-package org.cqfn.save.entities
+package com.saveourtool.save.entities
 
-import org.cqfn.save.agent.TestExecutionDto
-import org.cqfn.save.domain.TestResultStatus
+import com.saveourtool.save.agent.TestExecutionDto
+import com.saveourtool.save.domain.TestResultStatus
 
 import java.time.LocalDateTime
 import java.time.ZoneOffset

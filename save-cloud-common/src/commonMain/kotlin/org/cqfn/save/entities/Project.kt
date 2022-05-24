@@ -1,6 +1,6 @@
-package org.cqfn.save.entities
+package com.saveourtool.save.entities
 
-import org.cqfn.save.utils.EnumType
+import com.saveourtool.save.utils.EnumType
 
 import kotlinx.serialization.Serializable
 

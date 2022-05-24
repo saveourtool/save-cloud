@@ -1,4 +1,4 @@
-package org.cqfn.save.orchestrator.config
+package com.saveourtool.save.orchestrator.config
 
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration

@@ -4,11 +4,11 @@
 
 @file:Suppress("MISSING_KDOC_TOP_LEVEL", "MISSING_KDOC_ON_FUNCTION")
 
-package org.cqfn.save.agent.utils
+package com.saveourtool.save.agent.utils
 
-import org.cqfn.save.core.logging.logDebug
-import org.cqfn.save.core.logging.logError
-import org.cqfn.save.core.logging.logInfo
+import com.saveourtool.save.core.logging.logDebug
+import com.saveourtool.save.core.logging.logError
+import com.saveourtool.save.core.logging.logInfo
 
 import platform.linux.__NR_gettid
 import platform.posix.syscall

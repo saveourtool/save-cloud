@@ -1,11 +1,11 @@
 @file:Suppress("HEADER_MISSING_IN_NON_SINGLE_CLASS_FILE")
 
-package org.cqfn.save.apicli
+package com.saveourtool.save.apicli
 
-import org.cqfn.save.api.SaveCloudClient
-import org.cqfn.save.api.config.EvaluatedToolProperties
-import org.cqfn.save.api.config.PropertiesConfigurationType
-import org.cqfn.save.api.config.WebClientProperties
+import com.saveourtool.save.api.SaveCloudClient
+import com.saveourtool.save.api.config.EvaluatedToolProperties
+import com.saveourtool.save.api.config.PropertiesConfigurationType
+import com.saveourtool.save.api.config.WebClientProperties
 
 import java.lang.IllegalArgumentException
 

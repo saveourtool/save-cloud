@@ -1,9 +1,9 @@
 @file:Suppress("FILE_NAME_MATCH_CLASS", "FILE_WILDCARD_IMPORTS", "LargeClass")
 
-package org.cqfn.save.frontend.components.basic
+package com.saveourtool.save.frontend.components.basic
 
-import org.cqfn.save.entities.Project
-import org.cqfn.save.info.UserInfo
+import com.saveourtool.save.entities.Project
+import com.saveourtool.save.info.UserInfo
 
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.HTMLSelectElement

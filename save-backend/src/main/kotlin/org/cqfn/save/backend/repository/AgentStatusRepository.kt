@@ -2,10 +2,10 @@
  * JPA repositories for Agent related data
  */
 
-package org.cqfn.save.backend.repository
+package com.saveourtool.save.backend.repository
 
-import org.cqfn.save.entities.Agent
-import org.cqfn.save.entities.AgentStatus
+import com.saveourtool.save.entities.Agent
+import com.saveourtool.save.entities.AgentStatus
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import org.springframework.stereotype.Repository
 import javax.transaction.Transactional

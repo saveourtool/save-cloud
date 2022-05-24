@@ -1,12 +1,12 @@
-package org.cqfn.save.backend.controllers.internal
+package com.saveourtool.save.backend.controllers.internal
 
-import org.cqfn.save.agent.AgentVersion
-import org.cqfn.save.backend.repository.AgentRepository
-import org.cqfn.save.backend.repository.AgentStatusRepository
-import org.cqfn.save.entities.Agent
-import org.cqfn.save.entities.AgentStatus
-import org.cqfn.save.entities.AgentStatusDto
-import org.cqfn.save.entities.AgentStatusesForExecution
+import com.saveourtool.save.agent.AgentVersion
+import com.saveourtool.save.backend.repository.AgentRepository
+import com.saveourtool.save.backend.repository.AgentStatusRepository
+import com.saveourtool.save.entities.Agent
+import com.saveourtool.save.entities.AgentStatus
+import com.saveourtool.save.entities.AgentStatusDto
+import com.saveourtool.save.entities.AgentStatusesForExecution
 import org.slf4j.LoggerFactory
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.GetMapping

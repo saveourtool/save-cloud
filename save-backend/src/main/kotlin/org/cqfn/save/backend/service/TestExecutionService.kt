@@ -1,15 +1,15 @@
-package org.cqfn.save.backend.service
+package com.saveourtool.save.backend.service
 
-import org.cqfn.save.agent.TestExecutionDto
-import org.cqfn.save.backend.repository.AgentRepository
-import org.cqfn.save.backend.repository.ExecutionRepository
-import org.cqfn.save.backend.repository.TestExecutionRepository
-import org.cqfn.save.backend.repository.TestRepository
-import org.cqfn.save.backend.utils.secondsToLocalDateTime
-import org.cqfn.save.domain.TestResultLocation
-import org.cqfn.save.domain.TestResultStatus
-import org.cqfn.save.entities.TestExecution
-import org.cqfn.save.test.TestDto
+import com.saveourtool.save.agent.TestExecutionDto
+import com.saveourtool.save.backend.repository.AgentRepository
+import com.saveourtool.save.backend.repository.ExecutionRepository
+import com.saveourtool.save.backend.repository.TestExecutionRepository
+import com.saveourtool.save.backend.repository.TestRepository
+import com.saveourtool.save.backend.utils.secondsToLocalDateTime
+import com.saveourtool.save.domain.TestResultLocation
+import com.saveourtool.save.domain.TestResultStatus
+import com.saveourtool.save.entities.TestExecution
+import com.saveourtool.save.test.TestDto
 
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.PageRequest

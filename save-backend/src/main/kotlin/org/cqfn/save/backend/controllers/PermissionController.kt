@@ -1,19 +1,19 @@
-package org.cqfn.save.backend.controllers
+package com.saveourtool.save.backend.controllers
 
-import org.cqfn.save.backend.configs.ApiSwaggerSupport
-import org.cqfn.save.backend.configs.RequiresAuthorizationSourceHeader
-import org.cqfn.save.backend.security.OrganizationPermissionEvaluator
-import org.cqfn.save.backend.security.ProjectPermissionEvaluator
-import org.cqfn.save.backend.service.OrganizationService
-import org.cqfn.save.backend.service.PermissionService
-import org.cqfn.save.backend.service.ProjectService
-import org.cqfn.save.backend.utils.toUser
-import org.cqfn.save.domain.Role
-import org.cqfn.save.entities.Project
-import org.cqfn.save.entities.User
-import org.cqfn.save.permission.Permission
-import org.cqfn.save.permission.SetRoleRequest
-import org.cqfn.save.v1
+import com.saveourtool.save.backend.configs.ApiSwaggerSupport
+import com.saveourtool.save.backend.configs.RequiresAuthorizationSourceHeader
+import com.saveourtool.save.backend.security.OrganizationPermissionEvaluator
+import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
+import com.saveourtool.save.backend.service.OrganizationService
+import com.saveourtool.save.backend.service.PermissionService
+import com.saveourtool.save.backend.service.ProjectService
+import com.saveourtool.save.backend.utils.toUser
+import com.saveourtool.save.domain.Role
+import com.saveourtool.save.entities.Project
+import com.saveourtool.save.entities.User
+import com.saveourtool.save.permission.Permission
+import com.saveourtool.save.permission.SetRoleRequest
+import com.saveourtool.save.v1
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.responses.ApiResponse

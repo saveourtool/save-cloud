@@ -2,13 +2,13 @@
  * A component for logout modal window
  */
 
-package org.cqfn.save.frontend.components.modal
+package com.saveourtool.save.frontend.components.modal
 
-import org.cqfn.save.frontend.externals.modal.ModalProps
-import org.cqfn.save.frontend.externals.modal.modal
-import org.cqfn.save.frontend.utils.post
-import org.cqfn.save.frontend.utils.spread
-import org.cqfn.save.frontend.utils.useRequest
+import com.saveourtool.save.frontend.externals.modal.ModalProps
+import com.saveourtool.save.frontend.externals.modal.modal
+import com.saveourtool.save.frontend.utils.post
+import com.saveourtool.save.frontend.utils.spread
+import com.saveourtool.save.frontend.utils.useRequest
 
 import csstype.ClassName
 import org.w3c.fetch.Headers

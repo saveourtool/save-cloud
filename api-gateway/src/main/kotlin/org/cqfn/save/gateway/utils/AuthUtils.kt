@@ -2,7 +2,7 @@
  * Utility methods to work with authentication-related objects
  */
 
-package org.cqfn.save.gateway.utils
+package com.saveourtool.save.gateway.utils
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.Authentication

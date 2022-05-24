@@ -1,6 +1,6 @@
-package org.cqfn.save.utils
+package com.saveourtool.save.utils
 
-import org.cqfn.save.entities.benchmarks.BenchmarkCategoryEnum
+import com.saveourtool.save.entities.benchmarks.BenchmarkCategoryEnum
 
 import kotlinx.serialization.Serializable
 

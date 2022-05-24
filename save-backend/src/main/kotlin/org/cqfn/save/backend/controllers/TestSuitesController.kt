@@ -1,10 +1,10 @@
-package org.cqfn.save.backend.controllers
+package com.saveourtool.save.backend.controllers
 
-import org.cqfn.save.backend.scheduling.StandardSuitesUpdateScheduler
-import org.cqfn.save.backend.service.TestSuitesService
-import org.cqfn.save.entities.TestSuite
-import org.cqfn.save.testsuite.TestSuiteDto
-import org.cqfn.save.v1
+import com.saveourtool.save.backend.scheduling.StandardSuitesUpdateScheduler
+import com.saveourtool.save.backend.service.TestSuitesService
+import com.saveourtool.save.entities.TestSuite
+import com.saveourtool.save.testsuite.TestSuiteDto
+import com.saveourtool.save.v1
 
 import org.quartz.JobKey
 import org.quartz.Scheduler

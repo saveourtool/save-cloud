@@ -1,7 +1,7 @@
 @file:JsModule("@fortawesome/react-fontawesome")
 @file:JsNonModule
 
-package org.cqfn.save.frontend.externals.fontawesome
+package com.saveourtool.save.frontend.externals.fontawesome
 
 import react.Component
 import react.ReactElement

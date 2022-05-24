@@ -2,22 +2,22 @@
  * Utilities, which extends http client functionality and provide api for execution submission process
  */
 
-package org.cqfn.save.api.utils
+package com.saveourtool.save.api.utils
 
-import org.cqfn.save.api.authorization.Authorization
-import org.cqfn.save.api.config.WebClientProperties
-import org.cqfn.save.domain.FileInfo
-import org.cqfn.save.domain.ShortFileInfo
-import org.cqfn.save.entities.ExecutionRequest
-import org.cqfn.save.entities.ExecutionRequestBase
-import org.cqfn.save.entities.ExecutionRequestForStandardSuites
-import org.cqfn.save.entities.Project
-import org.cqfn.save.execution.ExecutionDto
-import org.cqfn.save.execution.ExecutionType
-import org.cqfn.save.testsuite.TestSuiteDto
-import org.cqfn.save.utils.LocalDateTimeSerializer
-import org.cqfn.save.utils.extractUserNameAndSource
-import org.cqfn.save.v1
+import com.saveourtool.save.api.authorization.Authorization
+import com.saveourtool.save.api.config.WebClientProperties
+import com.saveourtool.save.domain.FileInfo
+import com.saveourtool.save.domain.ShortFileInfo
+import com.saveourtool.save.entities.ExecutionRequest
+import com.saveourtool.save.entities.ExecutionRequestBase
+import com.saveourtool.save.entities.ExecutionRequestForStandardSuites
+import com.saveourtool.save.entities.Project
+import com.saveourtool.save.execution.ExecutionDto
+import com.saveourtool.save.execution.ExecutionType
+import com.saveourtool.save.testsuite.TestSuiteDto
+import com.saveourtool.save.utils.LocalDateTimeSerializer
+import com.saveourtool.save.utils.extractUserNameAndSource
+import com.saveourtool.save.v1
 
 import io.ktor.client.*
 import io.ktor.client.call.*

@@ -2,7 +2,7 @@
  * Configuration classes for save-agent
  */
 
-package org.cqfn.save.agent
+package com.saveourtool.save.agent
 
 import platform.posix.getenv
 

@@ -2,7 +2,7 @@
  * Configuration utilities for spring boot projects
  */
 
-package org.cqfn.save.buildutils
+package com.saveourtool.save.buildutils
 
 import org.apache.tools.ant.taskdefs.condition.Os
 import org.gradle.accessors.dm.LibrariesForLibs

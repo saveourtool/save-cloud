@@ -1,4 +1,4 @@
-package org.cqfn.save.utils
+package com.saveourtool.save.utils
 
 import kotlinx.serialization.Serializable
 

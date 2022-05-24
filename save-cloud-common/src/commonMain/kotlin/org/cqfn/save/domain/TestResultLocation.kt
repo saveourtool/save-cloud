@@ -2,10 +2,10 @@
  * data classes representing additional data associated with test executions
  */
 
-package org.cqfn.save.domain
+package com.saveourtool.save.domain
 
-import org.cqfn.save.core.result.DebugInfo
-import org.cqfn.save.core.result.TestStatus
+import com.saveourtool.save.core.result.DebugInfo
+import com.saveourtool.save.core.result.TestStatus
 
 import kotlinx.serialization.Serializable
 

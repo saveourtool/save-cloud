@@ -1,6 +1,6 @@
-package org.cqfn.save.agent
+package com.saveourtool.save.agent
 
-import org.cqfn.save.agent.utils.readProperties
+import com.saveourtool.save.agent.utils.readProperties
 
 import generated.SAVE_CORE_VERSION
 import io.ktor.client.HttpClient

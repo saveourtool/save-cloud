@@ -2,7 +2,7 @@
  * This file contains actual classes from jvmMain
  */
 
-package org.cqfn.save.utils
+package com.saveourtool.save.utils
 
 import javax.persistence.EnumType
 

@@ -1,6 +1,6 @@
-package org.cqfn.save.testsuite
+package com.saveourtool.save.testsuite
 
-import org.cqfn.save.entities.Project
+import com.saveourtool.save.entities.Project
 
 import kotlinx.serialization.Serializable
 

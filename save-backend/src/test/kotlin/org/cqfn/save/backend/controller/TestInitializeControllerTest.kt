@@ -1,13 +1,13 @@
-package org.cqfn.save.backend.controller
+package com.saveourtool.save.backend.controller
 
-import org.cqfn.save.backend.SaveApplication
-import org.cqfn.save.backend.controllers.ProjectController
-import org.cqfn.save.backend.repository.TestRepository
-import org.cqfn.save.backend.repository.TestSuiteRepository
-import org.cqfn.save.backend.scheduling.StandardSuitesUpdateScheduler
-import org.cqfn.save.backend.utils.MySqlExtension
-import org.cqfn.save.test.TestBatch
-import org.cqfn.save.test.TestDto
+import com.saveourtool.save.backend.SaveApplication
+import com.saveourtool.save.backend.controllers.ProjectController
+import com.saveourtool.save.backend.repository.TestRepository
+import com.saveourtool.save.backend.repository.TestSuiteRepository
+import com.saveourtool.save.backend.scheduling.StandardSuitesUpdateScheduler
+import com.saveourtool.save.backend.utils.MySqlExtension
+import com.saveourtool.save.test.TestBatch
+import com.saveourtool.save.test.TestDto
 import org.junit.jupiter.api.Assertions.assertEquals
 
 import org.junit.jupiter.api.Assertions.assertNotNull

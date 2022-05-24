@@ -1,17 +1,17 @@
-package org.cqfn.save.backend.service
+package com.saveourtool.save.backend.service
 
-import org.cqfn.save.backend.repository.AgentRepository
-import org.cqfn.save.backend.repository.ExecutionRepository
-import org.cqfn.save.backend.repository.TestExecutionRepository
-import org.cqfn.save.backend.repository.TestRepository
-import org.cqfn.save.domain.TestResultStatus
-import org.cqfn.save.entities.Execution
-import org.cqfn.save.entities.Test
-import org.cqfn.save.entities.TestExecution
-import org.cqfn.save.entities.TestSuite
-import org.cqfn.save.execution.ExecutionStatus
-import org.cqfn.save.test.TestBatch
-import org.cqfn.save.test.TestDto
+import com.saveourtool.save.backend.repository.AgentRepository
+import com.saveourtool.save.backend.repository.ExecutionRepository
+import com.saveourtool.save.backend.repository.TestExecutionRepository
+import com.saveourtool.save.backend.repository.TestRepository
+import com.saveourtool.save.domain.TestResultStatus
+import com.saveourtool.save.entities.Execution
+import com.saveourtool.save.entities.Test
+import com.saveourtool.save.entities.TestExecution
+import com.saveourtool.save.entities.TestSuite
+import com.saveourtool.save.execution.ExecutionStatus
+import com.saveourtool.save.test.TestBatch
+import com.saveourtool.save.test.TestDto
 
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.PageRequest

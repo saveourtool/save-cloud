@@ -1,4 +1,4 @@
-package org.cqfn.save.entities
+package com.saveourtool.save.entities
 
 import javax.persistence.GeneratedValue
 import javax.persistence.Id

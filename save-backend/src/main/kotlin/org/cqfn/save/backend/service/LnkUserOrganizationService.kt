@@ -1,11 +1,11 @@
-package org.cqfn.save.backend.service
+package com.saveourtool.save.backend.service
 
-import org.cqfn.save.backend.repository.LnkUserOrganizationRepository
-import org.cqfn.save.backend.repository.UserRepository
-import org.cqfn.save.backend.utils.AuthenticationDetails
-import org.cqfn.save.domain.Role
-import org.cqfn.save.entities.*
-import org.cqfn.save.utils.getHighestRole
+import com.saveourtool.save.backend.repository.LnkUserOrganizationRepository
+import com.saveourtool.save.backend.repository.UserRepository
+import com.saveourtool.save.backend.utils.AuthenticationDetails
+import com.saveourtool.save.domain.Role
+import com.saveourtool.save.entities.*
+import com.saveourtool.save.utils.getHighestRole
 import org.springframework.data.domain.PageRequest
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service

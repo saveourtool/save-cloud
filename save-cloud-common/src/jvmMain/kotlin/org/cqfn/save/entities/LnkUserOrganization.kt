@@ -1,6 +1,6 @@
-package org.cqfn.save.entities
+package com.saveourtool.save.entities
 
-import org.cqfn.save.domain.Role
+import com.saveourtool.save.domain.Role
 import javax.persistence.*
 import javax.persistence.Entity
 import javax.persistence.Enumerated

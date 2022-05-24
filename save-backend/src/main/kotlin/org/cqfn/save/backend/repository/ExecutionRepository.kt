@@ -1,8 +1,8 @@
-package org.cqfn.save.backend.repository
+package com.saveourtool.save.backend.repository
 
-import org.cqfn.save.entities.Execution
-import org.cqfn.save.entities.Organization
-import org.cqfn.save.entities.Project
+import com.saveourtool.save.entities.Execution
+import com.saveourtool.save.entities.Organization
+import com.saveourtool.save.entities.Project
 import org.springframework.stereotype.Repository
 import java.util.Optional
 

@@ -2,7 +2,7 @@
  * Utility methods for testing web requests
  */
 
-package org.cqfn.save.backend.utils
+package com.saveourtool.save.backend.utils
 
 import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.WebTestClient

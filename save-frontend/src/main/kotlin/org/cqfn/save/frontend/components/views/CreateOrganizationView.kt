@@ -4,12 +4,12 @@
 
 @file:Suppress("WildcardImport", "FILE_WILDCARD_IMPORTS")
 
-package org.cqfn.save.frontend.components.views
+package com.saveourtool.save.frontend.components.views
 
-import org.cqfn.save.entities.*
-import org.cqfn.save.frontend.components.basic.InputTypes
-import org.cqfn.save.frontend.components.basic.inputTextFormRequired
-import org.cqfn.save.frontend.utils.*
+import com.saveourtool.save.entities.*
+import com.saveourtool.save.frontend.components.basic.InputTypes
+import com.saveourtool.save.frontend.components.basic.inputTextFormRequired
+import com.saveourtool.save.frontend.utils.*
 
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.events.Event

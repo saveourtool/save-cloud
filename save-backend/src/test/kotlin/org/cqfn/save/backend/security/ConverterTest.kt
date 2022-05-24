@@ -1,7 +1,7 @@
-package org.cqfn.save.backend.security
+package com.saveourtool.save.backend.security
 
-import org.cqfn.save.backend.utils.AuthenticationDetails
-import org.cqfn.save.backend.utils.CustomAuthenticationBasicConverter
+import com.saveourtool.save.backend.utils.AuthenticationDetails
+import com.saveourtool.save.backend.utils.CustomAuthenticationBasicConverter
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.springframework.http.HttpHeaders

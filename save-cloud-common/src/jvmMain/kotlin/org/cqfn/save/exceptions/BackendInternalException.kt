@@ -1,4 +1,4 @@
-package org.cqfn.save.exceptions
+package com.saveourtool.save.exceptions
 
 import java.lang.Exception
 
