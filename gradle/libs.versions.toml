@@ -45,7 +45,7 @@ kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref 
 kotlin-plugin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 kotlin-plugin-jpa = { id = "org.jetbrains.kotlin.plugin.jpa", version.ref = "kotlin" }
 kotlin-plugin-allopen = { id = "org.jetbrains.kotlin.plugin.allopen", version.ref = "kotlin" }
-diktat = { id = "com.saveourtool.diktat.diktat-gradle-plugin", version.ref = "diktat" }
+diktat = { id = "com.cqfn.diktat.diktat-gradle-plugin", version.ref = "diktat" }
 liquibase-gradle = { id = "org.liquibase.gradle", version = "2.1.1" }
 talaiot-base = { id = "com.cdsap.talaiot.plugin.base", version = "1.4.2" }
 download = { id = "de.undercouch.download", version = "5.1.0" }
