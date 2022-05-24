@@ -113,7 +113,7 @@ class WebSecurityConfig(
                 .authenticated()
         }
         .and().run {
-            // FixMe: Properly support CSRF protection https://github.com/analysis-dev/save-cloud/issues/34
+            // FixMe: Properly support CSRF protection https://github.com/saveourtool/save-cloud/issues/34
             csrf().disable()
         }
         .exceptionHandling {

@@ -78,7 +78,7 @@ fun Project.registerSaveCliVersionCheckTask() {
                 findProperty("saveCliVersion") as String? ?: run {
                     // as fallback, use latest release to allow the project to build successfully
                     val latestRelease = ResourceGroovyMethods.getText(
-                        URL("https://api.github.com/repos/analysis-dev/save/releases/latest")
+                        URL("https://api.github.com/repos/saveourtool/save/releases/latest")
                     )
                     (groovy.json.JsonSlurper().parseText(latestRelease) as Map<String, Any>)["tag_name"].let {
                         (it as String).trim('v')

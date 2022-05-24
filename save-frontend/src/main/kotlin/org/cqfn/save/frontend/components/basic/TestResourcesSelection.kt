@@ -260,7 +260,7 @@ fun testResourcesSelection(
                         setExecCmd
                     )
                     val toolTipTextForBatchSize = "Batch size controls how many files will be processed at the same time." +
-                            " To know more about batch size, please visit: https://github.com/analysis-dev/save."
+                            " To know more about batch size, please visit: https://github.com/saveourtool/save."
                     setAdditionalPropertiesForStandardMode(
                         props.batchSizeForAnalyzer,
                         "",

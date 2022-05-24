@@ -130,7 +130,7 @@ fun topBar() = fc<TopBarProps> { props ->
                     attrs["style"] = jso<CSSProperties> {
                         width = 8.rem
                     }.unsafeCast<Width>()
-                    attrs.href = "https://github.com/analysis-dev/save"
+                    attrs.href = "https://github.com/saveourtool/save"
                     +"SAVE format"
                 }
             }
@@ -139,7 +139,7 @@ fun topBar() = fc<TopBarProps> { props ->
                     attrs["style"] = jso<CSSProperties> {
                         width = 9.rem
                     }.unsafeCast<Width>()
-                    attrs.href = "https://github.com/analysis-dev/save-cloud"
+                    attrs.href = "https://github.com/saveourtool/save-cloud"
                     +"SAVE on GitHub"
                 }
             }
@@ -157,7 +157,7 @@ fun topBar() = fc<TopBarProps> { props ->
                     attrs["style"] = jso<CSSProperties> {
                         width = 6.rem
                     }.unsafeCast<Width>()
-                    attrs.href = "https://github.com/analysis-dev/save-cloud"
+                    attrs.href = "https://github.com/saveourtool/save-cloud"
                     i("fa fa-user opacity-6 text-dark me-1") {
                         attrs["aria-hidden"] = "true"
                     }

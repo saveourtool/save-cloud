@@ -99,7 +99,7 @@ fun projectInfo(
                             this.id = fieldId
                             value = text ?: ""
                             disabled = if (fieldId == "name") {
-                                // temporary workaround for https://github.com/analysis-dev/save-cloud/issues/589#issuecomment-1049674021
+                                // temporary workaround for https://github.com/saveourtool/save-cloud/issues/589#issuecomment-1049674021
                                 true
                             } else {
                                 props.isEditDisabled ?: true

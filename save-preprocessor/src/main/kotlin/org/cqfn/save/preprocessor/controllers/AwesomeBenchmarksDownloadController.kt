@@ -91,7 +91,7 @@ class AwesomeBenchmarksDownloadController(
     }
 
     companion object {
-        private const val AWESOME_BENCHMARKS_URL = "https://github.com/analysis-dev/awesome-benchmarks.git"
+        private const val AWESOME_BENCHMARKS_URL = "https://github.com/saveourtool/awesome-benchmarks.git"
 
         @JvmStatic
         internal val log = LoggerFactory.getLogger(AwesomeBenchmarksDownloadController::class.java)

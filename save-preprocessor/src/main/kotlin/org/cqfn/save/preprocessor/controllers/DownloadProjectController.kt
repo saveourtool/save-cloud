@@ -204,7 +204,7 @@ class DownloadProjectController(
                             StandardCopyOption.COPY_ATTRIBUTES
                         )
                         // FixMe: currently it's quite rough solution, to make all additional files executable
-                        // FixMe: https://github.com/analysis-dev/save-cloud/issues/442
+                        // FixMe: https://github.com/saveourtool/save-cloud/issues/442
                         if (!resourcesLocation.resolve(file.name).setExecutable(true)) {
                             log.warn("Failed to mark file ${resourcesLocation.resolve(file.name)} as executable")
                         }
@@ -339,7 +339,7 @@ class DownloadProjectController(
             moveFileWithAttributes(it, tmpDir)
         }
         val project = executionRequestForStandardSuites.project
-        // TODO: Save the proper version https://github.com/analysis-dev/save-cloud/issues/321
+        // TODO: Save the proper version https://github.com/saveourtool/save-cloud/issues/321
         val version = files.first().name
         val execCmd = executionRequestForStandardSuites.execCmd
         val batchSizeForAnalyzer = executionRequestForStandardSuites.batchSizeForAnalyzer

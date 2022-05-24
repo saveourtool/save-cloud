@@ -36,7 +36,7 @@ class StoringServerAuthenticationSuccessHandler(
         logger.info("Authenticated user ${authentication.userName()} with authentication type ${authentication::class}, will send data to backend")
 
         val user = authentication.toUser().apply {
-            // https://github.com/analysis-dev/save-cloud/issues/583
+            // https://github.com/saveourtool/save-cloud/issues/583
             // fixme: this sets a default role for a new user with minimal scope, however this way we discard existing role
             // from authentication provider. In the future we may want to use this information and have a mapping of existing
             // roles to save-cloud roles.

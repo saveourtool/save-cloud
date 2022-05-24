@@ -20,7 +20,7 @@ import reactor.core.publisher.Mono
 /**
  * Controller that handles operation with users
  */
-// TODO: https://github.com/analysis-dev/save-cloud/issues/656
+// TODO: https://github.com/saveourtool/save-cloud/issues/656
 @RestController
 @RequestMapping(path = ["/api/$v1/users"])
 class UsersDetailsController(

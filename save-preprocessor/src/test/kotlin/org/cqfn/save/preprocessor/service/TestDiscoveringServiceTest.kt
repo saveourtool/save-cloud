@@ -37,7 +37,7 @@ class TestDiscoveringServiceTest {
     fun setUp() {
         tmpDir = createTempDirectory(this::class.simpleName)
         Git.cloneRepository()
-            .setURI("https://github.com/analysis-dev/save")
+            .setURI("https://github.com/saveourtool/save")
             .setDirectory(tmpDir.toFile())
             .call().use {
                 it.checkout().setName("993aa6228cba0a9f9075fb3aca8a0a8b9196a12a").call()

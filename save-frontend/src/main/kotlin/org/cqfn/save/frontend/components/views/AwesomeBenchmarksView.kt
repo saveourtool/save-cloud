@@ -85,7 +85,7 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                             }
                                         }
                                         p("card-text mb-auto") { +"Checkout updates and new benchmarks." }
-                                        a(href = "https://github.com/analysis-dev/awesome-benchmarks/pulls") {
+                                        a(href = "https://github.com/saveourtool/awesome-benchmarks/pulls") {
                                             +"Check the GitHub"
                                         }
                                     }
@@ -113,10 +113,10 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                             }
                                         }
                                         p("card-text mb-auto") { +"Checkout latest news about SAVE project." }
-                                        a(href = "https://github.com/analysis-dev/save-cloud") {
+                                        a(href = "https://github.com/saveourtool/save-cloud") {
                                             +"SAVE-cloud "
                                         }
-                                        a(href = "https://github.com/analysis-dev/save") {
+                                        a(href = "https://github.com/saveourtool/save") {
                                             +" SAVE-cli"
                                         }
                                     }
@@ -271,7 +271,7 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                 p {
                                     +"""As a group of enthusiasts who create """
 
-                                    a("https://github.com/analysis-dev/") {
+                                    a("https://github.com/saveourtool/") {
                                         +"""dev-tools"""
                                     }
 
@@ -280,7 +280,7 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                             
                                             So we decided to create this """
 
-                                    a("https://github.com/analysis-dev/awesome-benchmarks") {
+                                    a("https://github.com/saveourtool/awesome-benchmarks") {
                                         +"""curated list of standards, tests and benchmarks"""
                                     }
 
@@ -310,7 +310,7 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                     li {
                                         fontAwesomeIcon(icon = faGithub)
                                         +""" Go to the"""
-                                        a("https://github.com/analysis-dev/awesome-benchmarks") {
+                                        a("https://github.com/saveourtool/awesome-benchmarks") {
                                             +""" awesome-benchmarks """
                                         }
                                         +"""repository"""
@@ -326,7 +326,7 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                     li {
                                         fontAwesomeIcon(icon = faFolderOpen)
                                         +""" Add your benchmark to"""
-                                        a("https://github.com/analysis-dev/awesome-benchmarks/tree/main/benchmarks") {
+                                        a("https://github.com/saveourtool/awesome-benchmarks/tree/main/benchmarks") {
                                             +""" benchmarks """
                                         }
                                         +"""dir"""
