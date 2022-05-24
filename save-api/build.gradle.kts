@@ -35,7 +35,7 @@ dependencies {
 publishing {
     publications {
         create<MavenPublication>("maven") {
-            groupId = "org.cqfn"
+            groupId = "org.cqfn.save"
             artifactId = "save-cloud-api"
             version = version
             from(components["java"])
