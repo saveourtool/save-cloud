@@ -9,7 +9,7 @@ dependencyResolutionManagement {
             }
         }
         maven {
-            url = uri("https://maven.pkg.github.com/analysis-dev/sarif4k")
+            url = uri("https://maven.pkg.github.com/saveourtool/sarif4k")
             val gprUser: String? by settings
             val gprKey: String? by settings
             credentials {
