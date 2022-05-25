@@ -15,6 +15,7 @@ import org.cqfn.save.orchestrator.config.ConfigProperties
 import org.cqfn.save.orchestrator.copyRecursivelyWithAttributes
 import org.cqfn.save.orchestrator.createSyntheticTomlConfig
 import org.cqfn.save.orchestrator.docker.AgentRunner
+import org.cqfn.save.orchestrator.docker.DockerAgentRunner
 import org.cqfn.save.orchestrator.docker.DockerContainerManager
 import org.cqfn.save.orchestrator.fillAgentPropertiesFromConfiguration
 import org.cqfn.save.testsuite.TestSuiteDto
@@ -121,7 +122,7 @@ class DockerService(private val configProperties: ConfigProperties,
                     agentIds.forEach { agentId ->
                         if (agentId in runningContainersIds) {
                             log.info("Stopping agent with id=$agentId")
-                            agentRunner.stop(agentId)
+                            (agentRunner as DockerAgentRunner).stopByAgentId(agentId)
                             log.info("Agent with id=$agentId has been stopped")
                         } else {
                             val state = containerList.find { it.id == agentId }?.state ?: "deleted"

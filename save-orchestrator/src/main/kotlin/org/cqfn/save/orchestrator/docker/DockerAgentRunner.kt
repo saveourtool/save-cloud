@@ -55,6 +55,8 @@ class DockerAgentRunner(
         }
     }
 
+    fun stopByAgentId(agentId: String) = dockerClient.stopContainerCmd(agentId).exec()
+
     override fun cleanup(executionId: Long) {
         val containersForExecution = dockerClient.listContainersCmd().withNameFilter(listOf("-$executionId-")).exec()
 

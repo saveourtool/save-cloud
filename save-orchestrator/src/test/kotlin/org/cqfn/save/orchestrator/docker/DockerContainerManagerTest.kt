@@ -67,7 +67,7 @@ class DockerContainerManagerTest {
 
         Assertions.assertEquals("bash", inspectContainerResponse.path)
         Assertions.assertArrayEquals(
-            arrayOf("-c", "source .env && ./script.sh"),
+            arrayOf("-c", "env \$(cat .env | xargs) ./script.sh"),
             inspectContainerResponse.args
         )
         Assertions.assertEquals("/testContainer", inspectContainerResponse.name)
