@@ -97,7 +97,7 @@ class DockerAgentRunner(
         // createContainerCmd accepts image name, not id, so we retrieve it from tags
         val createContainerCmdResponse = dockerClient.createContainerCmd(baseImage.repoTags.first())
             .withWorkingDir(workingDir)
-            .withCmd("bash", "-c", "source .env && $runCmd")
+            .withCmd("bash", "-c", "env \$(cat .env | xargs) $runCmd")
             .withName(containerName)
             .withHostConfig(
                 HostConfig.newHostConfig()
