@@ -48,7 +48,7 @@ class DockerAgentRunner(
     }
 
     override fun stop(executionId: String) {
-        val runningContainersForExecution = dockerClient.listContainersCmd().withStatusFilter(listOf("RUNNING")).exec()
+        val runningContainersForExecution = dockerClient.listContainersCmd().withStatusFilter(listOf("running")).exec()
             .filter { container -> container.names.any { it.contains("-$executionId-") } }
         runningContainersForExecution.map { it.id }.forEach { agentId ->
             dockerClient.stopContainerCmd(agentId).exec()
