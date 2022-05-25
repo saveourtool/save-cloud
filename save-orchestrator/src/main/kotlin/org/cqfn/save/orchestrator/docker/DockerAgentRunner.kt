@@ -10,6 +10,7 @@ import org.cqfn.save.orchestrator.config.DockerSettings
 import org.cqfn.save.orchestrator.createTgzStream
 import org.cqfn.save.orchestrator.execTimed
 import org.cqfn.save.orchestrator.getHostIp
+import org.cqfn.save.orchestrator.service.DockerService
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
@@ -56,7 +57,14 @@ class DockerAgentRunner(
     }
 
     override fun stopByAgentId(agentId: String) {
-        dockerClient.stopContainerCmd(agentId).exec()
+        logger.info("Stopping agent with id=$agentId")
+        val state = dockerClient.inspectContainerCmd(agentId).exec().state
+        if (state.running == true) {
+            dockerClient.stopContainerCmd(agentId).exec()
+            logger.info("Agent with id=$agentId has been stopped")
+        } else {
+            logger.warn("Agent with id=$agentId was requested to be stopped, but it actual state=$state")
+        }
     }
 
     override fun cleanup(executionId: Long) {

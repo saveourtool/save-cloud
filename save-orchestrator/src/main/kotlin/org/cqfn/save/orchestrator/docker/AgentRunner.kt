@@ -15,6 +15,9 @@ interface AgentRunner {
 
     fun start(id: String)
 
+    /**
+     * Stop all agents in an execution. Currently, not used.
+     */
     fun stop(executionId: String)
 
     fun stopByAgentId(agentId: String)

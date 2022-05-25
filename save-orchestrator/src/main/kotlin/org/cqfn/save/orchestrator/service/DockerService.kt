@@ -107,8 +107,6 @@ class DockerService(private val configProperties: ConfigProperties,
     }
 
     /**
-     * TODO: `agentRunner.stop` should accept execution id and stop the whole group of agents
-     *
      * @param agentIds list of IDs of agents to stop
      * @return true if agents have been stopped, false if another thread is already stopping them
      */
@@ -116,19 +114,8 @@ class DockerService(private val configProperties: ConfigProperties,
     fun stopAgents(agentIds: Collection<String>) =
             if (isAgentStoppingInProgress.compareAndSet(false, true)) {
                 try {
-                    // todo: should delegate to AgentRunner too
-                    val containerList = dockerClient.listContainersCmd().withShowAll(true).exec()
-                    val runningContainersIds = containerList.filter { it.state == "running" }.map { it.id }
                     agentIds.forEach { agentId ->
-                        if (agentId in runningContainersIds) {
-                            log.info("Stopping agent with id=$agentId")
-                            agentRunner.stopByAgentId(agentId)
-                            log.info("Agent with id=$agentId has been stopped")
-                        } else {
-                            val state = containerList.find { it.id == agentId }?.state ?: "deleted"
-                            val warnMsg = "Agent with id=$agentId was requested to be stopped, but it actual state=$state"
-                            log.warn(warnMsg)
-                        }
+                        agentRunner.stopByAgentId(agentId)
                     }
                     true
                 } catch (dex: DockerException) {
