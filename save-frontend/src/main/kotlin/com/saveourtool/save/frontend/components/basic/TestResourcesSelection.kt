@@ -142,7 +142,7 @@ fun testResourcesSelection(
                                 attrs["popover-title"] =
                                         "Use the following link to read more about save format:"
                                 attrs["popover-content"] =
-                                        "<a href =\"https://github.com/saveourtool/save/blob/main/README.md\" > SAVE core README </a>"
+                                        "<a href =\"https://github.com/saveourtool/save-cli/blob/main/README.md\" > SAVE core README </a>"
                                 attrs["data-trigger"] = "focus"
                                 attrs["tabindex"] = "0"
                             }

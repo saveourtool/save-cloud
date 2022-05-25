@@ -34,7 +34,7 @@ val downloadSaveCliTaskProvider: TaskProvider<Download> = tasks.register<Downloa
 
     src(KotlinClosure0(function = {
         val saveCliVersion = readSaveCliVersion()
-        "https://github.com/saveourtool/save/releases/download/v$saveCliVersion/save-$saveCliVersion-linuxX64.kexe"
+        "https://github.com/saveourtool/save-cli/releases/download/v$saveCliVersion/save-$saveCliVersion-linuxX64.kexe"
     }))
     dest("$buildDir/resources/main")
     overwrite(false)
