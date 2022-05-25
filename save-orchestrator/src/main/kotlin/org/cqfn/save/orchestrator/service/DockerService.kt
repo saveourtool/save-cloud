@@ -122,7 +122,7 @@ class DockerService(private val configProperties: ConfigProperties,
                     agentIds.forEach { agentId ->
                         if (agentId in runningContainersIds) {
                             log.info("Stopping agent with id=$agentId")
-                            (agentRunner as DockerAgentRunner).stopByAgentId(agentId)
+                            agentRunner.stopByAgentId(agentId)
                             log.info("Agent with id=$agentId has been stopped")
                         } else {
                             val state = containerList.find { it.id == agentId }?.state ?: "deleted"

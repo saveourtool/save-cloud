@@ -83,7 +83,14 @@ class KubernetesManager(
     }
 
     override fun stop(executionId: String) {
-        kc.batch().v1().jobs().withName(jobNameForExecution(executionId)).delete()
+        val jobName = jobNameForExecution(executionId)
+        val isDeleted = kc.batch().v1().jobs().withName(jobName).delete()
+        if (!isDeleted) throw AgentRunnerException("Failed to delete job with name $jobName")
+    }
+
+    override fun stopByAgentId(agentId: String) {
+        val isDeleted = kc.pods().withName(agentId).delete()
+        if (!isDeleted) throw AgentRunnerException("Failed to delete pod with name $agentId")
     }
 
     override fun cleanup(executionId: Long) {
