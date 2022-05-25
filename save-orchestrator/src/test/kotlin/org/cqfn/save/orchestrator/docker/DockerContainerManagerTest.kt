@@ -1,9 +1,13 @@
 package org.cqfn.save.orchestrator.docker
 
+import com.github.dockerjava.api.DockerClient
 import org.cqfn.save.orchestrator.config.ConfigProperties
 
 import com.github.dockerjava.api.command.PullImageResultCallback
 import io.micrometer.core.instrument.composite.CompositeMeterRegistry
+import org.cqfn.save.orchestrator.config.Beans
+import org.cqfn.save.orchestrator.service.DockerService
+import org.cqfn.save.orchestrator.testutils.TestConfiguration
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
@@ -13,6 +17,7 @@ import org.junit.jupiter.api.condition.OS
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.properties.EnableConfigurationProperties
+import org.springframework.context.annotation.Import
 import org.springframework.test.context.TestPropertySource
 import org.springframework.test.context.junit.jupiter.SpringExtension
 
@@ -22,9 +27,11 @@ import kotlin.io.path.createTempFile
 @ExtendWith(SpringExtension::class)
 @EnableConfigurationProperties(ConfigProperties::class)
 @TestPropertySource("classpath:application.properties")
+@Import(Beans::class, DockerAgentRunner::class, TestConfiguration::class)
 @DisabledOnOs(OS.WINDOWS, disabledReason = "If required, can be run with `docker-tcp` profile and with TCP port enabled on Docker Daemon")
 class DockerContainerManagerTest {
-    @Autowired private lateinit var configProperties: ConfigProperties
+    @Autowired private lateinit var dockerClient: DockerClient
+    @Autowired private lateinit var dockerAgentRunner: DockerAgentRunner
     private lateinit var dockerContainerManager: DockerContainerManager
     private lateinit var baseImageId: String
     private lateinit var testContainerId: String
@@ -32,12 +39,12 @@ class DockerContainerManagerTest {
 
     @BeforeEach
     fun setUp() {
-        dockerContainerManager = DockerContainerManager(configProperties.docker, CompositeMeterRegistry())
-        dockerContainerManager.dockerClient.pullImageCmd("ubuntu")
+        dockerContainerManager = DockerContainerManager(CompositeMeterRegistry(), dockerClient)
+        dockerClient.pullImageCmd("ubuntu")
             .withTag("latest")
             .exec(PullImageResultCallback())
             .awaitCompletion()
-        baseImageId = dockerContainerManager.dockerClient.listImagesCmd().exec().first {
+        baseImageId = dockerClient.listImagesCmd().exec().first {
             it.repoTags!!.contains("ubuntu:latest")
         }
             .id
@@ -47,13 +54,14 @@ class DockerContainerManagerTest {
     fun `should create a container with specified cmd and then copy resources into it`() {
         val testFile = createTempFile().toFile()
         testFile.writeText("wow such testing")
-        testContainerId = dockerContainerManager.createContainerFromImage(
-            baseImageId,
-            "/",
-            "./script.sh",
-            "testContainer"
-        )
-        val inspectContainerResponse = dockerContainerManager.dockerClient
+        testContainerId = dockerAgentRunner.create(
+            executionId = 42,
+            baseImageId = baseImageId,
+            replicas = 1,
+            workingDir = "/",
+            agentRunCmd = "./script.sh",
+        ).single()
+        val inspectContainerResponse = dockerClient
             .inspectContainerCmd(testContainerId)
             .exec()
 
@@ -66,7 +74,7 @@ class DockerContainerManagerTest {
 
         val resourceFile = createTempFile().toFile()
         resourceFile.writeText("Lorem ipsum dolor sit amet")
-        dockerContainerManager.copyResourcesIntoContainer(testContainerId, "/var", listOf(testFile, resourceFile))
+        dockerAgentRunner.copyResourcesIntoContainer(testContainerId, "/var", listOf(testFile, resourceFile))
     }
 
     @Test
@@ -77,17 +85,17 @@ class DockerContainerManagerTest {
         testImageId = dockerContainerManager.buildImageWithResources(
             imageName = "test:test", baseDir = resourcesDir.toFile(), resourcesPath = "/app/resources"
         )
-        val inspectImageResponse = dockerContainerManager.dockerClient.inspectImageCmd(testImageId).exec()
+        val inspectImageResponse = dockerClient.inspectImageCmd(testImageId).exec()
         Assertions.assertTrue(inspectImageResponse.size!! > 0)
     }
 
     @AfterEach
     fun tearDown() {
         if (::testContainerId.isInitialized) {
-            dockerContainerManager.dockerClient.removeContainerCmd(testContainerId).exec()
+            dockerClient.removeContainerCmd(testContainerId).exec()
         }
         if (::testImageId.isInitialized) {
-            dockerContainerManager.dockerClient.removeImageCmd(testImageId).exec()
+            dockerClient.removeImageCmd(testImageId).exec()
         }
     }
 }
