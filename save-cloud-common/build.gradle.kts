@@ -1,4 +1,4 @@
-import org.cqfn.save.buildutils.configurePublishing
+import com.saveourtool.save.buildutils.configurePublishing
 
 plugins {
     kotlin("multiplatform")
