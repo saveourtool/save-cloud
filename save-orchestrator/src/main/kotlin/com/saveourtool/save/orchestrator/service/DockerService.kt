@@ -1,5 +1,6 @@
 package com.saveourtool.save.orchestrator.service
 
+import com.github.dockerjava.api.DockerClient
 import com.saveourtool.save.domain.Python
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.TestSuite
@@ -9,7 +10,6 @@ import com.saveourtool.save.orchestrator.SAVE_CLI_EXECUTABLE_NAME
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.copyRecursivelyWithAttributes
 import com.saveourtool.save.orchestrator.createSyntheticTomlConfig
-import com.saveourtool.save.orchestrator.docker.ContainerManager
 import com.saveourtool.save.orchestrator.fillAgentPropertiesFromConfiguration
 import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.utils.PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE
@@ -17,7 +17,8 @@ import com.saveourtool.save.utils.STANDARD_TEST_SUITE_DIR
 import com.saveourtool.save.utils.moveFileWithAttributes
 
 import com.github.dockerjava.api.exception.DockerException
-import io.micrometer.core.instrument.MeterRegistry
+import com.saveourtool.save.orchestrator.docker.AgentRunner
+import com.saveourtool.save.orchestrator.docker.DockerContainerManager
 import net.lingala.zip4j.ZipFile
 import net.lingala.zip4j.exception.ZipException
 import org.apache.commons.io.FileUtils

@@ -3,10 +3,10 @@ package com.saveourtool.save.orchestrator.docker
 import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.api.command.BuildImageResultCallback
 import io.micrometer.core.instrument.MeterRegistry
-import org.cqfn.save.domain.Sdk
-import org.cqfn.save.orchestrator.copyRecursivelyWithAttributes
-import org.cqfn.save.orchestrator.execTimed
-import org.cqfn.save.orchestrator.getHostIp
+import com.saveourtool.save.domain.Sdk
+import com.saveourtool.save.orchestrator.copyRecursivelyWithAttributes
+import com.saveourtool.save.orchestrator.execTimed
+import com.saveourtool.save.orchestrator.getHostIp
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 

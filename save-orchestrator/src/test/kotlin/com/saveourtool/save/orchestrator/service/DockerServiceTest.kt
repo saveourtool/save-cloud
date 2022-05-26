@@ -1,23 +1,21 @@
 package com.saveourtool.save.orchestrator.service
 
-import com.github.dockerjava.api.DockerClient
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.orchestrator.config.Beans
 import com.saveourtool.save.orchestrator.config.ConfigProperties
-import com.saveourtool.save.orchestrator.controller.AgentsController
 import com.saveourtool.save.orchestrator.testutils.TestConfiguration
 import com.saveourtool.save.testutils.checkQueues
 import com.saveourtool.save.testutils.cleanup
 import com.saveourtool.save.testutils.createMockWebServer
 import com.saveourtool.save.testutils.enqueue
 
+import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.api.async.ResultCallback
 import com.github.dockerjava.api.model.Frame
 import okhttp3.mockwebserver.MockResponse
-import org.cqfn.save.orchestrator.docker.AgentRunner
-import org.cqfn.save.orchestrator.docker.DockerAgentRunner
-import org.cqfn.save.orchestrator.docker.DockerContainerManager
+import com.saveourtool.save.orchestrator.docker.DockerAgentRunner
+import com.saveourtool.save.orchestrator.docker.DockerContainerManager
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
@@ -28,12 +26,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.properties.EnableConfigurationProperties
-import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
-import org.springframework.boot.test.mock.mockito.MockBean
-import org.springframework.boot.test.mock.mockito.MockBeans
 import org.springframework.context.annotation.Import
-import org.springframework.context.annotation.Profile
-import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.context.TestPropertySource
