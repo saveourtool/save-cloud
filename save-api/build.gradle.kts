@@ -35,7 +35,7 @@ dependencies {
 publishing {
     publications {
         create<MavenPublication>("maven") {
-            groupId = "com.saveourtool"
+            groupId = "com.saveourtool.save"
             artifactId = "save-cloud-api"
             version = version
             from(components["java"])
