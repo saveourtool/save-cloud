@@ -1,13 +1,11 @@
-package org.cqfn.save.orchestrator.docker
+package com.saveourtool.save.orchestrator.docker
 
 import com.github.dockerjava.api.DockerClient
-import org.cqfn.save.orchestrator.config.ConfigProperties
-
 import com.github.dockerjava.api.command.PullImageResultCallback
 import io.micrometer.core.instrument.composite.CompositeMeterRegistry
-import org.cqfn.save.orchestrator.config.Beans
-import org.cqfn.save.orchestrator.service.DockerService
-import org.cqfn.save.orchestrator.testutils.TestConfiguration
+import com.saveourtool.save.orchestrator.config.Beans
+import com.saveourtool.save.orchestrator.config.ConfigProperties
+import com.saveourtool.save.orchestrator.testutils.TestConfiguration
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
