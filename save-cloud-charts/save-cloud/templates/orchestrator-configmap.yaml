@@ -8,10 +8,6 @@ data:
     orchestrator.docker.host=tcp://${HOST_IP}:2375
     orchestrator.docker.runtime=runc
     orchestrator.docker.loggingDriver=json
-
-    orchestrator.kubernetes.apiServerUrl=
-    orchestrator.kubernetes.namespace=${POD_NAMESPACE}
-
     server.shutdown=graceful
     management.endpoints.web.exposure.include=*
     {{- if .Values.orchestrator.clusterIP }}

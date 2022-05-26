@@ -27,8 +27,7 @@ import org.springframework.boot.context.properties.ConstructorBinding
 data class ConfigProperties(
     val backendUrl: String,
     val testResources: TestResources,
-    val docker: DockerSettings?,
-    val kubernetes: KubernetesSettings?,
+    val docker: DockerSettings,
     val agentsCount: Int,
     val executionLogs: String,
     val shutdownChecksIntervalMillis: Long,
@@ -37,13 +36,7 @@ data class ConfigProperties(
     val agentsHeartBeatTimeoutMillis: Long,
     val heartBeatInspectorInterval: Long,
     val agentSettings: AgentSettings = AgentSettings(),
-) {
-    init {
-        require(docker != null || kubernetes != null) {
-            "Either docker or kubernetes config should be provided in application properties, but both are missing."
-        }
-    }
-}
+)
 
 /**
  * @property basePath path to the root directory, where all test resources are stored
@@ -61,11 +54,6 @@ data class DockerSettings(
     val host: String,
     val loggingDriver: String,
     val runtime: String = "runc",
-)
-
-data class KubernetesSettings(
-    val apiServerUrl: String,
-    val namespace: String,
 )
 
 /**

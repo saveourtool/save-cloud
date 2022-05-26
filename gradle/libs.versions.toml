@@ -37,7 +37,6 @@ zip4j = "2.10.0"
 ktoml = "0.2.11"
 springdoc = "1.6.8"
 kotlinx-cli = "0.3.4"
-fabric8 = "5.12.2"
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
@@ -141,4 +140,3 @@ commons-compress = { module = "org.apache.commons:commons-compress", version.ref
 picocli = { module = "info.picocli:picocli", version.ref = "picocli" }
 zip4j = { module = "net.lingala.zip4j:zip4j", version.ref = "zip4j" }
 kotlinx-cli = { module = "org.jetbrains.kotlinx:kotlinx-cli", version.ref = "kotlinx-cli" }
-fabric8-kubernetes-client = { module = "io.fabric8:kubernetes-client", version.ref = "fabric8" }
