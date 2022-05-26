@@ -106,5 +106,5 @@ File `save-deploy/reverse-proxy.conf` should be copied to `/etc/nginx/sites-avai
 # Adding a new service
 Sometimes it's necessary to create a new service. These steps are required to seamlessly add it to deployment:
 * Add it to [docker-compose.yaml.template](../docker-compose.yaml.template)
-* Add it to task `depoyDockerStack` in [`DockerStackConfiguration.kt`](../buildSrc/src/main/kotlin/org/cqfn/save/buildutils/DockerStackConfiguration.kt)
+* Add it to task `depoyDockerStack` in [`DockerStackConfiguration.kt`](../buildSrc/src/main/kotlin/com/saveourtool/save/buildutils/DockerStackConfiguration.kt)
   so that config directory is created (if it's another Spring Boot service)

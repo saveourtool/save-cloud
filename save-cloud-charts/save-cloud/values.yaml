@@ -1,4 +1,4 @@
-imageRegistry: ghcr.io/analysis-dev
+imageRegistry: ghcr.io/saveourtool
 dockerTag: latest  # this should be set explicitly during chart installation
 
 env: staging
