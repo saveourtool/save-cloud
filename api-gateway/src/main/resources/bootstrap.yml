@@ -1,0 +1,15 @@
+spring:
+  config:
+    activate:
+      on-profile: kubernetes
+  cloud:
+    kubernetes:
+      enabled: true
+      config:
+        # don't look up any ConfigMaps
+        enabled: false
+      secrets:
+        enabled: true
+        fail-fast: true
+        paths:
+        - ${OAUTH_CONFIG_PATH}

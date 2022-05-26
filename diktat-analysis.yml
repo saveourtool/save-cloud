@@ -1,7 +1,7 @@
 - name: DIKTAT_COMMON
   enabled: true
   configuration:
-    domainName: org.cqfn.save
+    domainName: com.saveourtool.save
     kotlinVersion: 1.5
     srcDirectories: "main,nativeMain,linuxX64Main"
     testDirs: "test,nativeTest,linuxX64Test"
@@ -109,5 +109,4 @@
 - name: MAGIC_NUMBER
   enabled: true
 - name: COMPLEX_EXPRESSION
-  # https://github.com/analysis-dev/diKTat/issues/1148
-  enabled: false
+  enabled: true

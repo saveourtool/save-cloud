@@ -1,9 +1,10 @@
-import org.cqfn.save.buildutils.configureJacoco
-import org.cqfn.save.buildutils.configureSpringBoot
-import org.cqfn.save.buildutils.pathToSaveCliVersion
-import org.cqfn.save.buildutils.readSaveCliVersion
+import com.saveourtool.save.buildutils.configureJacoco
+import com.saveourtool.save.buildutils.configureSpringBoot
+import com.saveourtool.save.buildutils.pathToSaveCliVersion
+import com.saveourtool.save.buildutils.readSaveCliVersion
 
 import de.undercouch.gradle.tasks.download.Download
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.springframework.boot.gradle.tasks.bundling.BootJar
 import org.springframework.boot.gradle.tasks.run.BootRun
@@ -11,6 +12,7 @@ import org.springframework.boot.gradle.tasks.run.BootRun
 plugins {
     kotlin("jvm")
     id("de.undercouch.download")  // can't use `alias`, because this plugin is a transitive dependency of kotlin-gradle-plugin
+    id("org.gradle.test-retry") version "1.4.0"
 }
 
 configureSpringBoot()
@@ -19,7 +21,7 @@ configureJacoco()
 tasks.withType<KotlinCompile> {
     kotlinOptions {
         jvmTarget = Versions.jdk
-        freeCompilerArgs = freeCompilerArgs + "-Xopt-in=kotlin.RequiresOptIn"
+        freeCompilerArgs = freeCompilerArgs + "-opt-in=kotlin.RequiresOptIn"
     }
 }
 
@@ -32,7 +34,7 @@ val downloadSaveCliTaskProvider: TaskProvider<Download> = tasks.register<Downloa
 
     src(KotlinClosure0(function = {
         val saveCliVersion = readSaveCliVersion()
-        "https://github.com/analysis-dev/save/releases/download/v$saveCliVersion/save-$saveCliVersion-linuxX64.kexe"
+        "https://github.com/saveourtool/save-cli/releases/download/v$saveCliVersion/save-$saveCliVersion-linuxX64.kexe"
     }))
     dest("$buildDir/resources/main")
     overwrite(false)
@@ -49,12 +51,24 @@ tasks.named("jacocoTestReport") { dependsOn(downloadSaveCliTaskProvider) }
 
 tasks.withType<Test> {
     useJUnitPlatform()
+    retry {
+        failOnPassedAfterRetry.set(false)
+        maxFailures.set(20)
+        maxRetries.set(5)
+    }
 }
 
 dependencies {
     api(projects.saveCloudCommon)
     testImplementation(projects.testUtils)
-    runtimeOnly(project(":save-agent", "distribution"))
+    if (DefaultNativePlatform.getCurrentOperatingSystem().isWindows) {
+        logger.warn("Dependency `save-agent` is omitted on Windows because of problems with linking in cross-compilation." +
+                " Task `:save-agent:linkReleaseExecutableLinuxX64` would fail without correct libcurl.so. If your changes are about " +
+                "save-agent, please test them on Linux or provide a file `save-agent-distribution.jar` built on Linux."
+        )
+    } else {
+        runtimeOnly(project(":save-agent", "distribution"))
+    }
     implementation(libs.dockerJava.core)
     implementation(libs.dockerJava.transport.httpclient5)
     implementation(libs.kotlinx.serialization.json.jvm)

@@ -1,5 +1,5 @@
-import org.cqfn.save.buildutils.configureJacoco
-import org.cqfn.save.buildutils.configureSpringBoot
+import com.saveourtool.save.buildutils.configureJacoco
+import com.saveourtool.save.buildutils.configureSpringBoot
 
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
@@ -25,6 +25,7 @@ dependencies {
     implementation(libs.spring.cloud.starter.gateway)
     implementation(libs.spring.boot.starter.security)
     implementation(libs.spring.boot.starter.oauth2.client)
+    implementation(libs.spring.cloud.starter.kubernetes.client.config)
     implementation(libs.spring.security.core)
 }
 

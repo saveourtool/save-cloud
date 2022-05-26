@@ -1,5 +1,5 @@
-import org.cqfn.save.buildutils.pathToSaveCliVersion
-import org.cqfn.save.buildutils.readSaveCliVersion
+import com.saveourtool.save.buildutils.pathToSaveCliVersion
+import com.saveourtool.save.buildutils.readSaveCliVersion
 
 plugins {
     kotlin("multiplatform")
@@ -10,8 +10,12 @@ kotlin {
     // Create a target for the host platform.
     val hostTarget = linuxX64 {
         binaries.executable {
-            entryPoint = "org.cqfn.save.agent.main"
+            entryPoint = "com.saveourtool.save.agent.main"
             baseName = "save-agent"
+        }
+        binaries.all {
+            binaryOptions["memoryModel"] = "experimental"
+            freeCompilerArgs = freeCompilerArgs + "-Xruntime-logs=gc=info"
         }
     }
 
