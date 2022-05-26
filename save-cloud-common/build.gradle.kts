@@ -1,8 +1,11 @@
+import com.saveourtool.save.buildutils.configurePublishing
+
 plugins {
     kotlin("multiplatform")
     alias(libs.plugins.kotlin.plugin.serialization)
     kotlin("plugin.allopen")
     alias(libs.plugins.kotlin.plugin.jpa)
+    `maven-publish`
 }
 kotlin {
     allOpen {
@@ -45,3 +48,5 @@ kotlin {
         }
     }
 }
+
+configurePublishing()

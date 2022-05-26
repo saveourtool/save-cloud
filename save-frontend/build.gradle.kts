@@ -32,9 +32,9 @@ kotlin {
         browser {
             repositories {
                 mavenCentral()
-                maven("https://oss.sonatype.org/content/repositories/snapshots") {
+                maven("https://s01.oss.sonatype.org/content/repositories/snapshots") {
                     content {
-                        includeGroup("org.cqfn.save")
+                        includeGroup("com.saveourtool.save")
                     }
                 }
             }

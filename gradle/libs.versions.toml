@@ -45,21 +45,21 @@ kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref 
 kotlin-plugin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 kotlin-plugin-jpa = { id = "org.jetbrains.kotlin.plugin.jpa", version.ref = "kotlin" }
 kotlin-plugin-allopen = { id = "org.jetbrains.kotlin.plugin.allopen", version.ref = "kotlin" }
-diktat = { id = "org.cqfn.diktat.diktat-gradle-plugin", version.ref = "diktat" }
+diktat = { id = "com.cqfn.diktat.diktat-gradle-plugin", version.ref = "diktat" }
 liquibase-gradle = { id = "org.liquibase.gradle", version = "2.1.1" }
 talaiot-base = { id = "com.cdsap.talaiot.plugin.base", version = "1.4.2" }
 download = { id = "de.undercouch.download", version = "5.1.0" }
 
 [libraries]
-save-common = { module = "org.cqfn.save:save-common", version.ref = "save-core" }
-save-common-jvm = { module = "org.cqfn.save:save-common-jvm", version.ref = "save-core" }
-save-core = { module = "org.cqfn.save:save-core", version.ref = "save-core" }
-save-core-jvm = { module = "org.cqfn.save:save-core-jvm", version.ref = "save-core" }
-save-plugins-fix = { module = "org.cqfn.save:fix-plugin", version.ref = "save-core" }
-save-plugins-fix-jvm = { module = "org.cqfn.save:fix-plugin-jvm", version.ref = "save-core" }
-save-plugins-warn-jvm = { module = "org.cqfn.save:warn-plugin-jvm", version.ref = "save-core" }
-save-plugins-fixAndWarn-jvm = { module = "org.cqfn.save:fix-and-warn-plugin-jvm", version.ref = "save-core" }
-save-reporters = { module = "org.cqfn.save:save-reporters", version.ref = "save-core" }
+save-common = { module = "com.saveourtool.save:save-common", version.ref = "save-core" }
+save-common-jvm = { module = "com.saveourtool.save:save-common-jvm", version.ref = "save-core" }
+save-core = { module = "com.saveourtool.save:save-core", version.ref = "save-core" }
+save-core-jvm = { module = "com.saveourtool.save:save-core-jvm", version.ref = "save-core" }
+save-plugins-fix = { module = "com.saveourtool.save:fix-plugin", version.ref = "save-core" }
+save-plugins-fix-jvm = { module = "com.saveourtool.save:fix-plugin-jvm", version.ref = "save-core" }
+save-plugins-warn-jvm = { module = "com.saveourtool.save:warn-plugin-jvm", version.ref = "save-core" }
+save-plugins-fixAndWarn-jvm = { module = "com.saveourtool.save:fix-and-warn-plugin-jvm", version.ref = "save-core" }
+save-reporters = { module = "com.saveourtool.save:save-reporters", version.ref = "save-core" }
 
 kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 kotlin-plugin-serialization = { module = "org.jetbrains.kotlin:kotlin-serialization", version.ref = "kotlin" }

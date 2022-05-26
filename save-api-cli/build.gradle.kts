@@ -7,7 +7,7 @@ plugins {
 }
 
 application {
-    mainClass.set("org.cqfn.save.apicli.MainKt")
+    mainClass.set("com.saveourtool.save.apicli.MainKt")
 }
 
 tasks.withType<KotlinCompile> {
