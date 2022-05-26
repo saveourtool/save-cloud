@@ -21,7 +21,7 @@ jobs:
       - name: checkout save-core
         uses: actions/checkout@v3
         with:
-          repository: analysis-dev/save
+          repository: saveourtool/save
           path: save
           fetch-depth: 0
           submodules: true

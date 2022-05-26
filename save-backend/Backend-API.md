@@ -46,7 +46,7 @@ organizationName=Huawei
 projectName='"save"'
 
 # Required
-gitUrl='"https://github.com/analysis-dev/save-cli"'
+gitUrl='"https://github.com/saveourtool/save-cli"'
 
 # Optional
 sdkName='"openjdk"'

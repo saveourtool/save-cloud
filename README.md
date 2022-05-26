@@ -1,9 +1,9 @@
-![Build and test](https://github.com/analysis-dev/save-cloud/workflows/Build%20and%20test/badge.svg)
-[![License](https://img.shields.io/github/license/analysis-dev/save-cloud)](https://github.com/analysis-dev/save-cloud/blob/master/LICENSE)
-[![codecov](https://codecov.io/gh/analysis-dev/save-cloud/branch/master/graph/badge.svg)](https://codecov.io/gh/analysis-dev/save-cloud)
+![Build and test](https://github.com/saveourtool/save-cloud/workflows/Build%20and%20test/badge.svg)
+[![License](https://img.shields.io/github/license/saveourtool/save-cloud)](https://github.com/saveourtool/save-cloud/blob/master/LICENSE)
+[![codecov](https://codecov.io/gh/saveourtool/save-cloud/branch/master/graph/badge.svg)](https://codecov.io/gh/saveourtool/save-cloud)
 
 ## What is SAVE?
-[SAVE](https://github.com/analysis-dev/save) (Software Analysis Verification & Evaluation) - is an eco-system for measuring, testing and certification of software tools. Instead of writing your test framework SAVE will provide you a command line application
+[SAVE](https://github.com/saveourtool/save) (Software Analysis Verification & Evaluation) - is an eco-system for measuring, testing and certification of software tools. Instead of writing your test framework SAVE will provide you a command line application
 and with a test sets for the language that you are developing analyzer/compiler/or any other dev-tool for. 
 It provides you also a cloud service that can be used to determine the readiness of your tool. SAVE has a committee of software analysis and system programming experts
 that regularly update tests and discuss the best practices for particular programming languages.

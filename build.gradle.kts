@@ -1,13 +1,13 @@
-import org.cqfn.save.buildutils.configureDetekt
-import org.cqfn.save.buildutils.configureDiktat
-import org.cqfn.save.buildutils.configureVersioning
-import org.cqfn.save.buildutils.createDetektTask
-import org.cqfn.save.buildutils.createStackDeployTask
-import org.cqfn.save.buildutils.getDatabaseCredentials
-import org.cqfn.save.buildutils.installGitHooks
-import org.cqfn.save.buildutils.registerSaveCliVersionCheckTask
+import com.saveourtool.save.buildutils.configureDetekt
+import com.saveourtool.save.buildutils.configureDiktat
+import com.saveourtool.save.buildutils.configureVersioning
+import com.saveourtool.save.buildutils.createDetektTask
+import com.saveourtool.save.buildutils.createStackDeployTask
+import com.saveourtool.save.buildutils.getDatabaseCredentials
+import com.saveourtool.save.buildutils.installGitHooks
+import com.saveourtool.save.buildutils.registerSaveCliVersionCheckTask
 import org.apache.tools.ant.taskdefs.condition.Os
-import org.cqfn.save.buildutils.configurePublishing
+import com.saveourtool.save.buildutils.configurePublishing
 
 plugins {
     alias(libs.plugins.talaiot.base)

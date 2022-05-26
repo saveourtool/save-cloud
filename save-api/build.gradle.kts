@@ -1,4 +1,4 @@
-import org.cqfn.save.buildutils.configurePublishing
+import com.saveourtool.save.buildutils.configurePublishing
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -35,7 +35,7 @@ dependencies {
 publishing {
     publications {
         create<MavenPublication>("maven") {
-            groupId = "org.cqfn"
+            groupId = "com.saveourtool"
             artifactId = "save-cloud-api"
             version = version
             from(components["java"])

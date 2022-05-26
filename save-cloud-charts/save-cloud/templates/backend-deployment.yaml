@@ -44,7 +44,7 @@ spec:
             - clone
             - --single-branch
             - --
-            - https://github.com/analysis-dev/save-cloud.git
+            - https://github.com/saveourtool/save-cloud.git
             - /data
           volumeMounts:
             - mountPath: /data
