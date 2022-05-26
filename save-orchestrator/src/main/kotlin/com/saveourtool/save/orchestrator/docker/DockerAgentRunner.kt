@@ -1,23 +1,30 @@
 package com.saveourtool.save.orchestrator.docker
 
-import com.github.dockerjava.api.DockerClient
-import com.github.dockerjava.api.model.HostConfig
-import com.github.dockerjava.api.model.LogConfig
-import io.micrometer.core.instrument.MeterRegistry
 import com.saveourtool.save.orchestrator.DOCKER_METRIC_PREFIX
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.config.DockerSettings
 import com.saveourtool.save.orchestrator.createTgzStream
 import com.saveourtool.save.orchestrator.execTimed
 import com.saveourtool.save.orchestrator.getHostIp
+
+import com.github.dockerjava.api.DockerClient
+import com.github.dockerjava.api.model.HostConfig
+import com.github.dockerjava.api.model.LogConfig
+import io.micrometer.core.instrument.MeterRegistry
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
+
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ConcurrentMap
+
 import kotlin.io.path.createTempDirectory
 import kotlin.io.path.writeText
 
+/**
+ * [AgentRunner] that uses Docker Daemon API to run save-agents
+ */
 @Component
 @Profile("!kubernetes")
 class DockerAgentRunner(
@@ -28,7 +35,9 @@ class DockerAgentRunner(
     private val settings: DockerSettings = requireNotNull(configProperties.docker) {
         "orchestrator.docker properties are missing but are required with current active profiles"
     }
-    private val agentIdsByExecution = ConcurrentHashMap<Long, MutableList<String>>()
+
+    @Suppress("TYPE_ALIAS")
+    private val agentIdsByExecution: ConcurrentMap<Long, MutableList<String>> = ConcurrentHashMap()
 
     override fun create(
         executionId: Long,
@@ -36,20 +45,19 @@ class DockerAgentRunner(
         replicas: Int,
         workingDir: String,
         agentRunCmd: String,
-    ): List<String> {
-        return (1..replicas).map { number ->
-            logger.info("Building container #$number for execution.id=${executionId}")
-            createContainerFromImage(baseImageId, workingDir, agentRunCmd, containerName("${executionId}-$number")).also {
-                logger.info("Built container id=$it for execution.id=${executionId}")
-                agentIdsByExecution.putIfAbsent(executionId, mutableListOf())
-                agentIdsByExecution[executionId]!!.add(it)
-            }
+    ): List<String> = (1..replicas).map { number ->
+        logger.info("Building container #$number for execution.id=$executionId")
+        createContainerFromImage(baseImageId, workingDir, agentRunCmd, containerName("$executionId-$number")).also { agentId ->
+            logger.info("Built container id=$agentId for execution.id=$executionId")
+            agentIdsByExecution
+                .getOrPut(executionId) { mutableListOf() }
+                .add(agentId)
         }
     }
 
     override fun start(executionId: Long) {
         val agentIds = agentIdsByExecution.computeIfAbsent(executionId) {
-//            agentService.getAgentsForExecution(executionId)
+            // agentService.getAgentsForExecution(executionId)
             TODO("${DockerAgentRunner::class.simpleName} should be able to load data about agents started by other instances of orchestrator")
         }
         agentIds.forEach { agentId ->
@@ -107,9 +115,9 @@ class DockerAgentRunner(
      */
     @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
     private fun createContainerFromImage(baseImageId: String,
-                                          workingDir: String,
-                                          runCmd: String,
-                                          containerName: String,
+                                         workingDir: String,
+                                         runCmd: String,
+                                         containerName: String,
     ): String {
         val baseImage = dockerClient.listImagesCmd().execTimed(meterRegistry, "$DOCKER_METRIC_PREFIX.image.list")!!.find {
             // fixme: sometimes createImageCmd returns short id without prefix, sometimes full and with prefix.
@@ -123,23 +131,23 @@ class DockerAgentRunner(
             .withName(containerName)
             .withHostConfig(
                 HostConfig.newHostConfig()
-                .withRuntime(settings.runtime)
-                // processes from inside the container will be able to access host's network using this hostname
-                .withExtraHosts("host.docker.internal:${getHostIp()}")
-                .withLogConfig(
-                    when (settings.loggingDriver) {
-                        "loki" -> LogConfig(
-                            LogConfig.LoggingType.LOKI,
-                            mapOf(
-                                // similar to config in docker-compose.yaml
-                                "mode" to "non-blocking",
-                                "loki-url" to "http://127.0.0.1:9110/loki/api/v1/push",
-                                "loki-external-labels" to "container_name={{.Name}},source=save-agent"
+                    .withRuntime(settings.runtime)
+                    // processes from inside the container will be able to access host's network using this hostname
+                    .withExtraHosts("host.docker.internal:${getHostIp()}")
+                    .withLogConfig(
+                        when (settings.loggingDriver) {
+                            "loki" -> LogConfig(
+                                LogConfig.LoggingType.LOKI,
+                                mapOf(
+                                    // similar to config in docker-compose.yaml
+                                    "mode" to "non-blocking",
+                                    "loki-url" to "http://127.0.0.1:9110/loki/api/v1/push",
+                                    "loki-external-labels" to "container_name={{.Name}},source=save-agent"
+                                )
                             )
-                        )
-                        else -> LogConfig(LogConfig.LoggingType.DEFAULT)
-                    }
-                )
+                            else -> LogConfig(LogConfig.LoggingType.DEFAULT)
+                        }
+                    )
             )
             .execTimed(meterRegistry, "$DOCKER_METRIC_PREFIX.container.create")
 
@@ -175,7 +183,6 @@ class DockerAgentRunner(
                 .execTimed(meterRegistry, "$DOCKER_METRIC_PREFIX.container.copy.archive")
         }
     }
-
 
     companion object {
         private val logger = LoggerFactory.getLogger(DockerAgentRunner::class.java)

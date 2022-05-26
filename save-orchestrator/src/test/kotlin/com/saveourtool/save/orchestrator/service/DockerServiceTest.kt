@@ -4,6 +4,8 @@ import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.orchestrator.config.Beans
 import com.saveourtool.save.orchestrator.config.ConfigProperties
+import com.saveourtool.save.orchestrator.docker.DockerAgentRunner
+import com.saveourtool.save.orchestrator.docker.DockerContainerManager
 import com.saveourtool.save.orchestrator.testutils.TestConfiguration
 import com.saveourtool.save.testutils.checkQueues
 import com.saveourtool.save.testutils.cleanup
@@ -14,8 +16,6 @@ import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.api.async.ResultCallback
 import com.github.dockerjava.api.model.Frame
 import okhttp3.mockwebserver.MockResponse
-import com.saveourtool.save.orchestrator.docker.DockerAgentRunner
-import com.saveourtool.save.orchestrator.docker.DockerContainerManager
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions

@@ -23,11 +23,15 @@ class Beans(private val configProperties: ConfigProperties) {
     @Bean
     fun webClientBackend() = WebClient.create(configProperties.backendUrl)
 
+    /**
+     * @param configProperties orchestrator configuration
+     * @return instance of [DockerClient]
+     */
     @Bean
     fun dockerClient(
         configProperties: ConfigProperties,
     ): DockerClient {
-        val settings = configProperties.docker!!
+        val settings = configProperties.docker
         val dockerClientConfig: DockerClientConfig = DefaultDockerClientConfig
             .createDefaultConfigBuilder()
             .withDockerHost(settings.host)

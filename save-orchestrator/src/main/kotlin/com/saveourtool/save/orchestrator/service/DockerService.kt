@@ -1,6 +1,5 @@
 package com.saveourtool.save.orchestrator.service
 
-import com.github.dockerjava.api.DockerClient
 import com.saveourtool.save.domain.Python
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.TestSuite
@@ -10,15 +9,16 @@ import com.saveourtool.save.orchestrator.SAVE_CLI_EXECUTABLE_NAME
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.copyRecursivelyWithAttributes
 import com.saveourtool.save.orchestrator.createSyntheticTomlConfig
+import com.saveourtool.save.orchestrator.docker.AgentRunner
+import com.saveourtool.save.orchestrator.docker.DockerContainerManager
 import com.saveourtool.save.orchestrator.fillAgentPropertiesFromConfiguration
 import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.utils.PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE
 import com.saveourtool.save.utils.STANDARD_TEST_SUITE_DIR
 import com.saveourtool.save.utils.moveFileWithAttributes
 
+import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.api.exception.DockerException
-import com.saveourtool.save.orchestrator.docker.AgentRunner
-import com.saveourtool.save.orchestrator.docker.DockerContainerManager
 import net.lingala.zip4j.ZipFile
 import net.lingala.zip4j.exception.ZipException
 import org.apache.commons.io.FileUtils
@@ -32,11 +32,13 @@ import org.springframework.util.FileSystemUtils
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
+
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.LinkOption
 import java.nio.file.attribute.PosixFileAttributeView
 import java.util.concurrent.atomic.AtomicBoolean
+
 import kotlin.io.path.ExperimentalPathApi
 
 /**
@@ -67,6 +69,7 @@ class DockerService(private val configProperties: ConfigProperties,
      * @return list of IDs of created containers
      * @throws DockerException if interaction with docker daemon is not successful
      */
+    @Suppress("UnsafeCallOnNullableType")
     fun buildAndCreateContainers(
         execution: Execution,
         testSuiteDtos: List<TestSuiteDto>?,
@@ -89,6 +92,7 @@ class DockerService(private val configProperties: ConfigProperties,
      * @param execution an [Execution] for which containers are being started
      * @param agentIds list of IDs of agents (==containers) for this execution
      */
+    @Suppress("UnsafeCallOnNullableType")
     fun startContainersAndUpdateExecution(execution: Execution, agentIds: List<String>) {
         val executionId = requireNotNull(execution.id) { "For project=${execution.project} method has been called with execution with id=null" }
         log.info("Sending request to make execution.id=$executionId RUNNING")
@@ -148,7 +152,7 @@ class DockerService(private val configProperties: ConfigProperties,
      */
     fun removeContainer(containerId: String) {
         // TODO
-//        agentRunner.cleanup(executionId)
+        // agentRunner.cleanup(executionId)
     }
 
     @Suppress(
