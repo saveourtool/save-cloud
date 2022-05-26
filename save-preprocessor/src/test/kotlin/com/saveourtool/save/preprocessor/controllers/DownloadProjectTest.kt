@@ -121,13 +121,13 @@ class DownloadProjectTest(
     @Test
     fun testCorrectDownload() {
         val project = Project.stub(42).apply {
-            url = "https://github.com/saveourtool/save.git"
+            url = "https://github.com/saveourtool/save-cli.git"
         }
         val executionId = 99L
         val execution = Execution.stub(project).apply {
             id = executionId
         }
-        val validRepo = GitDto("https://github.com/saveourtool/save.git")
+        val validRepo = GitDto("https://github.com/saveourtool/save-cli.git")
         val request = ExecutionRequest(project, validRepo, "examples/kotlin-diktat/", Sdk.Default, execution.id)
         // /createExecution
         mockServerBackend.enqueue(
@@ -145,7 +145,7 @@ class DownloadProjectTest(
                 .setHeader("Content-Type", "application/json")
                 .setBody(objectMapper.writeValueAsString(
                     listOf(
-                        TestSuite(TestSuiteType.PROJECT, "", null, project, LocalDateTime.now(), "save.properties", "https://github.com/saveourtool/save.git").apply {
+                        TestSuite(TestSuiteType.PROJECT, "", null, project, LocalDateTime.now(), "save.properties", "https://github.com/saveourtool/save-cli.git").apply {
                             id = 42L
                         }
                     )
@@ -307,7 +307,7 @@ class DownloadProjectTest(
         repeat(requestSize) {
             val project = Project.stub(42)
 
-            val tempDir = "${configProperties.repository}/${"https://github.com/saveourtool/save".hashCode()}/examples/kotlin-diktat/"
+            val tempDir = "${configProperties.repository}/${"https://github.com/saveourtool/save-cli".hashCode()}/examples/kotlin-diktat/"
             val config = "${tempDir}save.toml"
             File(tempDir).mkdirs()
             File(config).createNewFile()
@@ -376,7 +376,7 @@ class DownloadProjectTest(
             .isAccepted
         Thread.sleep(15_000)
         assertions.orTimeout(60, TimeUnit.SECONDS).join().forEach { Assertions.assertNotNull(it) }
-        Assertions.assertTrue(File("${configProperties.repository}/${"https://github.com/saveourtool/save".hashCode()}").exists())
+        Assertions.assertTrue(File("${configProperties.repository}/${"https://github.com/saveourtool/save-cli".hashCode()}").exists())
     }
 
     @Test
@@ -386,7 +386,7 @@ class DownloadProjectTest(
         val execution = Execution.stub(project).apply {
             id = 98L
         }
-        val request = ExecutionRequest(project, GitDto("https://github.com/saveourtool/save"), "examples/kotlin-diktat/", Sdk.Default, execution.id)
+        val request = ExecutionRequest(project, GitDto("https://github.com/saveourtool/save-cli"), "examples/kotlin-diktat/", Sdk.Default, execution.id)
 
         // /updateExecutionByDto
         mockServerBackend.enqueue(
@@ -476,7 +476,7 @@ class DownloadProjectTest(
             type = ExecutionType.STANDARD
             id = 98L
         }
-        val request = ExecutionRequest(project, GitDto("https://github.com/saveourtool/save"), "examples/kotlin-diktat/", Sdk.Default, execution.id)
+        val request = ExecutionRequest(project, GitDto("https://github.com/saveourtool/save-cli"), "examples/kotlin-diktat/", Sdk.Default, execution.id)
 
         val testSuite = TestSuite(TestSuiteType.STANDARD, "", null, project, LocalDateTime.now(), ".").apply {
             id = 42
