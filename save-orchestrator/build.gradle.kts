@@ -75,6 +75,7 @@ dependencies {
     implementation(libs.commons.compress)
     implementation(libs.kotlinx.datetime)
     implementation(libs.zip4j)
+    implementation(libs.fabric8.kubernetes.client)
 }
 
 // todo: this logic is duplicated between agent and frontend, can be moved to a shared plugin in buildSrc

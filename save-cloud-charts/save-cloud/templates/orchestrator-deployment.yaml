@@ -26,6 +26,14 @@ spec:
                   fieldPath: status.hostIP
             - name: JAVA_TOOL_OPTIONS
               value: -XX:ReservedCodeCacheSize=48M
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.namespace
+            - name: POD_SERVICE_ACCOUNT
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.serviceAccountName
           volumeMounts:
             - {{ include "spring-boot.config-volume-mount" . | indent 14 | trim }}
             - name: repos-storage
