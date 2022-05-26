@@ -20,6 +20,10 @@ kotlin {
     }
 }
 
+java {
+    withSourcesJar()
+}
+
 dependencies {
     implementation(projects.saveCloudCommon)
     implementation(libs.save.common.jvm)
