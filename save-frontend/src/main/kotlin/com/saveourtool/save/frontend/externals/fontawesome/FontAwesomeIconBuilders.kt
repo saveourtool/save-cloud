@@ -22,19 +22,9 @@ fun RBuilder.fontAwesomeIcon(
     classes: String = "",
     handler: RHandler<FontAwesomeIconProps> = {},
 ) = child(FontAwesomeIcon::class) {
-    attrs.icon = icon
+    attrs.icon = icon.definition
     attrs.className = classes
     handler(this)
-}
-
-/**
- * @param handler handler to set up a component
- * @return ReactElement
- */
-fun RBuilder.fontAwesomeIcon(
-    handler: RHandler<FontAwesomeIconProps>
-) = child(FontAwesomeIcon::class) {
-    handler.invoke(this)
 }
 
 /**
@@ -49,7 +39,7 @@ fun ChildrenBuilder.fontAwesomeIcon(
     classes: String = "",
     handler: ChildrenBuilder.(props: FontAwesomeIconProps) -> Unit = {},
 ): Unit = child(FontAwesomeIcon::class.react, props = jso {
-    this.icon = icon
+    this.icon = icon.definition
     this.className = classes
     handler(this)
 })
