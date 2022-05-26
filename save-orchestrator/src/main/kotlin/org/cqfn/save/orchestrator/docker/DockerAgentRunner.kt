@@ -10,11 +10,11 @@ import org.cqfn.save.orchestrator.config.DockerSettings
 import org.cqfn.save.orchestrator.createTgzStream
 import org.cqfn.save.orchestrator.execTimed
 import org.cqfn.save.orchestrator.getHostIp
-import org.cqfn.save.orchestrator.service.DockerService
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import java.io.File
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.io.path.createTempDirectory
 import kotlin.io.path.writeText
 
@@ -28,6 +28,7 @@ class DockerAgentRunner(
     private val settings: DockerSettings = requireNotNull(configProperties.docker) {
         "orchestrator.docker properties are missing but are required with current active profiles"
     }
+    private val agentIdsByExecution = ConcurrentHashMap<Long, MutableList<String>>()
 
     override fun create(
         executionId: Long,
@@ -40,12 +41,21 @@ class DockerAgentRunner(
             logger.info("Building container #$number for execution.id=${executionId}")
             createContainerFromImage(baseImageId, workingDir, agentRunCmd, containerName("${executionId}-$number")).also {
                 logger.info("Built container id=$it for execution.id=${executionId}")
+                agentIdsByExecution.putIfAbsent(executionId, mutableListOf())
+                agentIdsByExecution[executionId]!!.add(it)
             }
         }
     }
 
-    override fun start(id: String) {
-        dockerClient.startContainerCmd(id).exec()
+    override fun start(executionId: Long) {
+        val agentIds = agentIdsByExecution.computeIfAbsent(executionId) {
+//            agentService.getAgentsForExecution(executionId)
+            TODO("${DockerAgentRunner::class.simpleName} should be able to load data about agents started by other instances of orchestrator")
+        }
+        agentIds.forEach { agentId ->
+            logger.info("Starting container id=$agentId")
+            dockerClient.startContainerCmd(agentId).exec()
+        }
     }
 
     override fun stop(executionId: String) {

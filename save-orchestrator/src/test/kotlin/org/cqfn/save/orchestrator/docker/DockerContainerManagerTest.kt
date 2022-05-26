@@ -70,7 +70,8 @@ class DockerContainerManagerTest {
             arrayOf("-c", "env \$(cat .env | xargs) ./script.sh"),
             inspectContainerResponse.args
         )
-        Assertions.assertEquals("/testContainer", inspectContainerResponse.name)
+        // leading extra slash: https://github.com/moby/moby/issues/6705
+        Assertions.assertEquals("/save-execution-42-1", inspectContainerResponse.name)
 
         val resourceFile = createTempFile().toFile()
         resourceFile.writeText("Lorem ipsum dolor sit amet")

@@ -78,7 +78,7 @@ class KubernetesManager(
         return kc.pods().withLabel("baseImageId", baseImageId).list().items.map { it.metadata.name }
     }
 
-    override fun start(id: String) {
+    override fun start(executionId: Long) {
         logger.debug("${this::class.simpleName}#start is called, but it's no-op because Kubernetes workloads are managed by Kubernetes itself")
     }
 

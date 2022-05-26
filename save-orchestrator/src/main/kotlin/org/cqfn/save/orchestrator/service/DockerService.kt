@@ -99,10 +99,7 @@ class DockerService(private val configProperties: ConfigProperties,
             .retrieve()
             .toBodilessEntity()
             .subscribe()
-        agentIds.forEach {
-            log.info("Starting container id=$it")
-            agentRunner.start(it)
-        }
+        agentRunner.start(execution.id!!)
         log.info("Successfully started all containers for execution.id=$executionId")
     }
 
