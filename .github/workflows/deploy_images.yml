@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - 'master'
+    tags:
+      - 'v*'
+
 
 jobs:
   deploy_images:
