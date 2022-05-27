@@ -1,12 +1,20 @@
 package com.saveourtool.save.frontend.components.basic
 
 import com.saveourtool.save.entities.Organization
+import com.saveourtool.save.frontend.components.errorStatusContext
 import com.saveourtool.save.frontend.externals.*
 import com.saveourtool.save.frontend.utils.apiUrl
+import com.saveourtool.save.v1
+import kotlinx.browser.window
+import kotlinx.js.jso
 import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.HTMLOptionElement
 import org.w3c.dom.HTMLSelectElement
+import org.w3c.fetch.Response
+import react.StateSetter
 import react.create
+import react.useContext
+import kotlin.js.Promise
 import kotlin.test.*
 
 class SelectFormTest {
@@ -22,7 +30,11 @@ class SelectFormTest {
 
     @BeforeTest
     fun setup() {
-        worker.start()
+        worker.start(/*serviceWorker = jso {
+            options = jso {
+                scope = "$apiUrl"
+            }
+        }*/)
     }
 
     @AfterTest
@@ -34,27 +46,36 @@ class SelectFormTest {
     }
 
     @Test
-    fun selectFormShouldShowOrganizations() {
+    fun selectFormShouldShowOrganizations(): Promise<Unit> {
         render(
-            selectFormRequired { _, _, _ -> }.create {
-                form = InputTypes.ORGANIZATION_NAME
-                validInput = true
-                classes = "col-md-6 pl-0 pl-2 pr-2"
-                text = "Organization"
+            errorStatusContext.Provider.create {
+                value = {
+                    console.log("setResponse has been called")
+                }.asDynamic()
+                selectFormRequired { _, _, _ -> }.create {
+                    form = InputTypes.ORGANIZATION_NAME
+                    validInput = true
+                    classes = "col-md-6 pl-0 pl-2 pr-2"
+                    text = "Organization"
+                }
             }
         )
 
-        screen.findByTextAndCast<HTMLOptionElement>("Test Organization 1").then {
+        console.log("window.location=${window.location}")
+        return screen.findByTextAndCast<HTMLOptionElement>("Test Organization 1").then {
+            console.log("Promise")
             val select = it.parentElement as HTMLSelectElement?
             assertNotNull(select, "`select` element should have been rendered")
             assertEquals(4, select.children.length, "Select should contain all organizations and an initial empty value")
-        }
+        }/*.catch {
+            fail("Promise has been rejected.")
+        }*/
     }
 
     @Test
     fun componentShouldContainWarningIfNoOrganizations() {
         worker.use(
-            rest.get("$apiUrl/organization/get/list") { _, res, ctx ->
+            rest.get("/api/$v1/organization/get/list") { _, res, ctx ->
                 res(ctx.json(emptyList<Organization>()))
             }
         )
