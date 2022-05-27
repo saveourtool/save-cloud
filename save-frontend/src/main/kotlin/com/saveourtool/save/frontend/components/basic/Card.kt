@@ -6,6 +6,7 @@
 
 package com.saveourtool.save.frontend.components.basic
 
+import com.saveourtool.save.frontend.externals.fontawesome.FontAwesomeIconModule
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 
 import react.PropsWithChildren
@@ -22,7 +23,7 @@ external interface CardProps : PropsWithChildren {
     /**
      * font-awesome class to be used as an icon
      */
-    var faIcon: String
+    var faIcon: FontAwesomeIconModule
 }
 
 /**

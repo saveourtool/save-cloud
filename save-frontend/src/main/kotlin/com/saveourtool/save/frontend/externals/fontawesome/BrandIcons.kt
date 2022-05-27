@@ -6,4 +6,4 @@ package com.saveourtool.save.frontend.externals.fontawesome
 
 @JsModule("@fortawesome/free-brands-svg-icons/faGithub")
 @JsNonModule
-external val faGithub: dynamic
+external val faGithub: FontAwesomeIconModule
