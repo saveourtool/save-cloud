@@ -63,17 +63,20 @@ fun RBuilder.runErrorModal(
  * @param isConfirmWindowOpen flag to handle confirm Window
  * @param confirmLabel label of confirm Window
  * @param confirmMessage message
- * @param handler handler to event and close
+ * @param okButtonLabel label for ok button
+ * @param closeButtonLabel label for close button
  * @param handlerClose handler to close
+ * @param handler handler to event and close
  * @return modal
  */
+@Suppress("LongParameterList", "TOO_MANY_PARAMETERS")
 fun RBuilder.runConfirmWindowModal(
     isConfirmWindowOpen: Boolean?,
     confirmLabel: String,
     confirmMessage: String,
-    handlerClose: (Event) -> Unit,
     okButtonLabel: String = "Ok",
     closeButtonLabel: String = "Close",
+    handlerClose: (Event) -> Unit,
     handler: (Event) -> Unit
 ) = modal {
     attrs {
