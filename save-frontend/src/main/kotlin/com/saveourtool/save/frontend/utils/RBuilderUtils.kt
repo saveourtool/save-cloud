@@ -22,7 +22,6 @@ import kotlinx.html.js.onClickFunction
  */
 enum class ConfirmationType {
     DELETE_CONFIRM,
-    GLOBAL_ROLE_CONFIRM,
     NO_BINARY_CONFIRM,
     NO_CONFIRM,
     ;
@@ -32,6 +31,7 @@ enum class ConfirmationType {
  * @param isErrorOpen flag to handle error
  * @param errorLabel label of error
  * @param errorMessage message of error
+ * @param closeButtonLabel label that will be shown on the only button
  * @param handler handler to close
  * @return modal
  */
@@ -39,6 +39,7 @@ fun RBuilder.runErrorModal(
     isErrorOpen: Boolean?,
     errorLabel: String,
     errorMessage: String,
+    closeButtonLabel: String = "Close",
     handler: (Event) -> Unit
 ) = modal {
     attrs {
@@ -53,7 +54,7 @@ fun RBuilder.runErrorModal(
     div("d-sm-flex align-items-center justify-content-center mt-4") {
         button(type = ButtonType.button, classes = "btn btn-primary") {
             attrs.onClickFunction = handler
-            +"Close"
+            +closeButtonLabel
         }
     }
 }
@@ -71,6 +72,8 @@ fun RBuilder.runConfirmWindowModal(
     confirmLabel: String,
     confirmMessage: String,
     handlerClose: (Event) -> Unit,
+    okButtonLabel: String = "Ok",
+    closeButtonLabel: String = "Close",
     handler: (Event) -> Unit
 ) = modal {
     attrs {
@@ -85,11 +88,11 @@ fun RBuilder.runConfirmWindowModal(
     div("d-sm-flex align-items-center justify-content-center mt-4") {
         button(type = ButtonType.button, classes = "btn btn-primary mr-3") {
             attrs.onClickFunction = handler
-            +"Ok"
+            +okButtonLabel
         }
         button(type = ButtonType.button, classes = "btn btn-outline-primary") {
             attrs.onClickFunction = handlerClose
-            +"Close"
+            +closeButtonLabel
         }
     }
 }

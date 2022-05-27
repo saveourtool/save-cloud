@@ -131,6 +131,11 @@ external interface OrganizationViewState : State {
      * Users in organization
      */
     var usersInOrganization: List<UserInfo>?
+
+    /**
+     * Label that will be shown on Close button of modal windows
+     */
+    var closeButtonLabel: String?
 }
 
 /**
@@ -167,6 +172,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         state.organization = Organization("", OrganizationStatus.CREATED, null, null, null)
         state.selectedMenu = OrganizationMenuBar.INFO
         state.projects = emptyArray()
+        state.closeButtonLabel = null
     }
 
     private fun deleteOrganization() {
@@ -184,10 +190,10 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
 
     private fun showNotification(notificationLabel: String, notificationMessage: String) {
         setState {
-            confirmationType = ConfirmationType.GLOBAL_ROLE_CONFIRM
-            isConfirmWindowOpen = true
-            confirmLabel = notificationLabel
-            confirmMessage = notificationMessage
+            isErrorOpen = true
+            errorLabel = notificationLabel
+            errorMessage = notificationMessage
+            closeButtonLabel = "Confirm"
         }
     }
 
@@ -212,8 +218,11 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
 
     @Suppress("TOO_LONG_FUNCTION", "LongMethod", "MAGIC_NUMBER")
     override fun RBuilder.render() {
-        runErrorModal(state.isErrorOpen, state.errorLabel, state.errorMessage) {
-            setState { isErrorOpen = false }
+        runErrorModal(state.isErrorOpen, state.errorLabel, state.errorMessage, state.closeButtonLabel ?: "Close") {
+            setState {
+                isErrorOpen = false
+                closeButtonLabel = null
+            }
         }
         runConfirmWindowModal(
             state.isConfirmWindowOpen,
@@ -222,7 +231,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             { setState { isConfirmWindowOpen = false } }) {
             when (state.confirmationType) {
                 ConfirmationType.DELETE_CONFIRM -> deleteOrganizationBuilder()
-                ConfirmationType.GLOBAL_ROLE_CONFIRM -> { }
                 else -> throw IllegalStateException("Not implemented yet")
             }
             setState { isConfirmWindowOpen = false }
