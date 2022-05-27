@@ -1,8 +1,8 @@
-@file:Suppress("FILE_NAME_MATCH_CLASS")
-
 /**
  * kotlin-react builders for FontAwesomeIcon components
  */
+
+@file:Suppress("FILE_NAME_MATCH_CLASS")
 
 package com.saveourtool.save.frontend.externals.fontawesome
 
