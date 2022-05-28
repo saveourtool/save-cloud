@@ -114,9 +114,7 @@ fun fileUploader(
                 props.files.map { fileInfo ->
                     li(classes = "list-group-item") {
                         button(classes = "btn") {
-                            fontAwesomeIcon {
-                                attrs.icon = faTimesCircle
-                            }
+                            fontAwesomeIcon(icon = faTimesCircle)
                             attrs.onClickFunction = {
                                 onFileRemove(fileInfo)
                             }
