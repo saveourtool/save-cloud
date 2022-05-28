@@ -575,6 +575,8 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             state.isConfirmWindowOpen,
             state.confirmLabel,
             state.confirmMessage,
+            "Ok",
+            "Cancel",
             { setState { isConfirmWindowOpen = false } }) {
             when (state.confirmationType) {
                 ConfirmationType.NO_BINARY_CONFIRM, ConfirmationType.NO_CONFIRM -> submitExecutionRequest()

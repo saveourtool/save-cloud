@@ -228,6 +228,8 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             state.isConfirmWindowOpen,
             state.confirmLabel,
             state.confirmMessage,
+            "Ok",
+            "Cancel",
             { setState { isConfirmWindowOpen = false } }) {
             when (state.confirmationType) {
                 ConfirmationType.DELETE_CONFIRM -> deleteOrganizationBuilder()

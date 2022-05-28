@@ -89,16 +89,6 @@ external interface HistoryViewState : State {
      * Label of confirm Window
      */
     var confirmLabel: String
-
-    /**
-     * Message of error
-     */
-    var errorMessage: String
-
-    /**
-     * Error label
-     */
-    var errorLabel: String
 }
 
 /**
@@ -236,11 +226,11 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
         "LongMethod",
     )
     override fun RBuilder.render() {
-        runConfirmWindowModal(state.isConfirmWindowOpen, state.confirmLabel, state.confirmMessage, { setState { isConfirmWindowOpen = false } }) {
+        runConfirmWindowModal(state.isConfirmWindowOpen, state.confirmLabel, state.confirmMessage, "Ok", "Cancel", { setState { isConfirmWindowOpen = false } }) {
             deleteExecutionsBuilder()
             setState { isConfirmWindowOpen = false }
         }
-        runConfirmWindowModal(state.isDeleteExecutionWindowOpen, state.confirmLabel, state.confirmMessage, { setState { isDeleteExecutionWindowOpen = false } }) {
+        runConfirmWindowModal(state.isDeleteExecutionWindowOpen, state.confirmLabel, state.confirmMessage, "Ok", "Cancel", { setState { isDeleteExecutionWindowOpen = false } }) {
             deleteExecutionBuilder(state.deleteExecutionId)
             setState {
                 isDeleteExecutionWindowOpen = false
