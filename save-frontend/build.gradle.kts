@@ -123,11 +123,15 @@ rootProject.extensions.configure<org.jetbrains.kotlin.gradle.targets.js.yarn.Yar
 }
 
 val installMwsScriptTaskProvider = tasks.register<Exec>("installMswScript") {
+    dependsOn("packageJson")
+    // cd to directory where the generated package.json is located. This is required for correct operation of npm/npx
+    workingDir("$rootDir/build/js")
     commandLine(
         "npx",
         "msw",
         "init",
         file("${rootProject.buildDir}/js/packages/${rootProject.name}-${project.name}-test/node_modules").absolutePath,
+        "--no-save",
     )
 }
 tasks.named<KotlinJsTest>("browserTest").configure {
