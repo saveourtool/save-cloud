@@ -58,19 +58,22 @@ class SelectFormTest {
             }
         )
 
-        return window.fetch("$apiUrl/organization/get/list", RequestInit(method = "GET")).then {
+        /*return window.fetch("$apiUrl/organization/get/list", RequestInit(method = "GET")).then {
             it.json()
         }.then {
             println("json: ${JSON.stringify(it)}")
-        }
+        }*/
 
-        /*return screen.findByTextAndCast<HTMLOptionElement>("Test Organization 1").then {
+        return screen.findByTextAndCast<HTMLOptionElement>(
+            "Test Organization 1",
+            options = jso {
+                timeout = 10_000
+            }
+        ).then {
             val select = it.parentElement as HTMLSelectElement?
             assertNotNull(select, "`select` element should have been rendered")
             assertEquals(4, select.children.length, "Select should contain all organizations and an initial empty value")
-        }*//*.catch {
-            fail("Promise has been rejected.")
-        }*/
+        }
     }
 
     @Test
