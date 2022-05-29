@@ -10,6 +10,7 @@ import kotlinx.js.jso
 import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.HTMLOptionElement
 import org.w3c.dom.HTMLSelectElement
+import org.w3c.fetch.RequestInit
 import org.w3c.fetch.Response
 import react.StateSetter
 import react.create
@@ -29,12 +30,8 @@ class SelectFormTest {
     )
 
     @BeforeTest
-    fun setup() {
-        worker.start(/*serviceWorker = jso {
-            options = jso {
-                scope = "$apiUrl"
-            }
-        }*/)
+    fun setup(): Promise<*> {
+        return worker.start() as Promise<*>
     }
 
     @AfterTest
@@ -61,13 +58,17 @@ class SelectFormTest {
             }
         )
 
-        console.log("window.location=${window.location}")
-        return screen.findByTextAndCast<HTMLOptionElement>("Test Organization 1").then {
-            console.log("Promise")
+        return window.fetch("$apiUrl/organization/get/list", RequestInit(method = "GET")).then {
+            it.json()
+        }.then {
+            println("json: ${JSON.stringify(it)}")
+        }
+
+        /*return screen.findByTextAndCast<HTMLOptionElement>("Test Organization 1").then {
             val select = it.parentElement as HTMLSelectElement?
             assertNotNull(select, "`select` element should have been rendered")
             assertEquals(4, select.children.length, "Select should contain all organizations and an initial empty value")
-        }/*.catch {
+        }*//*.catch {
             fail("Promise has been rejected.")
         }*/
     }

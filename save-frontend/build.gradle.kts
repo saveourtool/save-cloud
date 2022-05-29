@@ -1,5 +1,6 @@
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin
+import org.jetbrains.kotlin.gradle.targets.js.testing.KotlinJsTest
 
 plugins {
     kotlin("js")
@@ -119,6 +120,18 @@ rootProject.plugins.withType(NodeJsRootPlugin::class.java) {
 // store yarn.lock in the root directory
 rootProject.extensions.configure<org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension> {
     lockFileDirectory = rootProject.projectDir
+}
+
+val installMwsScriptTaskProvider = tasks.register<Exec>("installMswScript") {
+    commandLine(
+        "npx",
+        "msw",
+        "init",
+        file("${rootProject.buildDir}/js/packages/${rootProject.name}-${project.name}-test/node_modules").absolutePath,
+    )
+}
+tasks.named<KotlinJsTest>("browserTest").configure {
+    dependsOn(installMwsScriptTaskProvider)
 }
 
 // generate kotlin file with project version to include in web page
