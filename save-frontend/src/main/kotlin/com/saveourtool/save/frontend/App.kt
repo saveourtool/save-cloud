@@ -6,6 +6,7 @@ package com.saveourtool.save.frontend
 
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.domain.TestResultStatus
+import com.saveourtool.save.frontend.components.ErrorBoundary
 import com.saveourtool.save.frontend.components.Footer
 import com.saveourtool.save.frontend.components.basic.scrollToTopButton
 import com.saveourtool.save.frontend.components.errorModalHandler
@@ -32,6 +33,7 @@ import react.State
 import react.buildElement
 import react.dom.div
 import react.dom.render
+import react.react
 import react.router.Route
 import react.router.Routes
 import react.router.dom.HashRouter
@@ -47,7 +49,7 @@ import kotlinx.serialization.json.Json
 
 private val scrollToTopButton = scrollToTopButton()
 
-private val topBar = topBar()
+internal val topBarComponent = topBar()
 
 private val testExecutionDetailsView = testExecutionDetailsView()
 
@@ -129,174 +131,182 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
             errorModalHandler {
                 div("d-flex flex-column") {
                     attrs.id = "content-wrapper"
-                    topBar {
-                        attrs {
-                            userInfo = state.userInfo
+                    ErrorBoundary::class.react {
+                        topBarComponent {
+                            attrs {
+                                userInfo = state.userInfo
+                            }
                         }
-                    }
 
-                    div("container-fluid") {
-                        Routes {
-                            Route {
-                                attrs {
-                                    path = "/"
-                                    element = buildElement {
-                                        child(WelcomeView::class) {
-                                            attrs.userInfo = state.userInfo
+                        div("container-fluid") {
+                            Routes {
+                                Route {
+                                    attrs {
+                                        path = "/"
+                                        element = buildElement {
+                                            child(WelcomeView::class) {
+                                                attrs.userInfo = state.userInfo
+                                            }
                                         }
                                     }
                                 }
-                            }
 
-                            Route {
-                                attrs {
-                                    path = "/awesome-benchmarks"
-                                    element = buildElement {
-                                        child(AwesomeBenchmarksView::class) {}
-                                    }
-                                }
-                            }
-
-                            Route {
-                                attrs {
-                                    path = "/:user/settings/profile"
-                                    element = buildElement {
-                                        child(UserSettingsProfileMenuView::class) {
-                                            attrs.userName = state.userInfo?.name
+                                Route {
+                                    attrs {
+                                        path = "/awesome-benchmarks"
+                                        element = buildElement {
+                                            child(AwesomeBenchmarksView::class) {}
                                         }
                                     }
                                 }
-                            }
 
-                            Route {
-                                attrs {
-                                    path = "/:user/settings/email"
-                                    element = buildElement {
-                                        child(UserSettingsEmailMenuView::class) {
-                                            attrs.userName = state.userInfo?.name
+                                Route {
+                                    attrs {
+                                        path = "/:user/settings/profile"
+                                        element = buildElement {
+                                            child(UserSettingsProfileMenuView::class) {
+                                                attrs.userName = state.userInfo?.name
+                                            }
                                         }
                                     }
                                 }
-                            }
 
-                            Route {
-                                attrs {
-                                    path = "/:user/settings/token"
-                                    element = buildElement {
-                                        child(UserSettingsTokenMenuView::class) {
-                                            attrs.userName = state.userInfo?.name
+                                Route {
+                                    attrs {
+                                        path = "/:user/settings/email"
+                                        element = buildElement {
+                                            child(UserSettingsEmailMenuView::class) {
+                                                attrs.userName = state.userInfo?.name
+                                            }
                                         }
                                     }
                                 }
-                            }
 
-                            Route {
-                                attrs {
-                                    path = "/:user/settings/organizations"
-                                    element = buildElement {
-                                        child(UserSettingsOrganizationsMenuView::class) {
-                                            attrs.userName = state.userInfo?.name
+                                Route {
+                                    attrs {
+                                        path = "/:user/settings/token"
+                                        element = buildElement {
+                                            child(UserSettingsTokenMenuView::class) {
+                                                attrs.userName = state.userInfo?.name
+                                            }
                                         }
                                     }
                                 }
-                            }
 
-                            Route {
-                                attrs {
-                                    path = "/creation"
-                                    element = buildElement {
-                                        child(CreationView::class) {}
-                                    }
-                                }
-                            }
-
-                            Route {
-                                attrs {
-                                    path = "/createOrganization"
-                                    element = buildElement {
-                                        child(CreateOrganizationView::class) {}
-                                    }
-                                }
-                            }
-
-                            Route {
-                                attrs {
-                                    path = "/projects"
-                                    element = buildElement {
-                                        child(CollectionView::class) {
-                                            attrs.currentUserInfo = state.userInfo
+                                Route {
+                                    attrs {
+                                        path = "/:user/settings/organizations"
+                                        element = buildElement {
+                                            child(UserSettingsOrganizationsMenuView::class) {
+                                                attrs.userName = state.userInfo?.name
+                                            }
                                         }
                                     }
                                 }
-                            }
 
-                            Route {
-                                attrs {
-                                    path = "/:owner"
-                                    element = buildElement {
-                                        child(withRouter { _, params ->
-                                            child(OrganizationView::class) {
-                                                attrs.organizationName = params["owner"]!!
+                                Route {
+                                    attrs {
+                                        path = "/creation"
+                                        element = buildElement {
+                                            child(CreationView::class) {}
+                                        }
+                                    }
+                                }
+
+                                Route {
+                                    attrs {
+                                        path = "/createOrganization"
+                                        element = buildElement {
+                                            child(CreateOrganizationView::class) {}
+                                        }
+                                    }
+                                }
+
+                                Route {
+                                    attrs {
+                                        path = "/projects"
+                                        element = buildElement {
+                                            child(CollectionView::class) {
                                                 attrs.currentUserInfo = state.userInfo
                                             }
-                                        })
+                                        }
                                     }
                                 }
-                            }
 
-                            Route {
-                                attrs {
-                                    path = "/:owner/:name"
-                                    element = buildElement {
-                                        child(projectView)
+                                Route {
+                                    attrs {
+                                        path = "/:owner"
+                                        element = buildElement {
+                                            child(withRouter { _, params ->
+                                                child(OrganizationView::class) {
+                                                    attrs.organizationName = params["owner"]!!
+                                                    attrs.currentUserInfo = state.userInfo
+                                                }
+                                            })
+                                        }
                                     }
                                 }
-                            }
 
-                            Route {
-                                attrs {
-                                    path = "/:owner/:name/history"
-                                    element = buildElement {
-                                        child(historyView)
+                                Route {
+                                    attrs {
+                                        path = "/:owner/:name"
+                                        element = buildElement {
+                                            child(projectView)
+                                        }
                                     }
                                 }
-                            }
 
-                            Route {
-                                attrs {
-                                    path = "/:owner/:name/history/execution/:executionId"
-                                    element = buildElement {
-                                        child(executionView)
+                                Route {
+                                    attrs {
+                                        path = "/:owner/:name/history"
+                                        element = buildElement {
+                                            child(historyView)
+                                        }
                                     }
                                 }
-                            }
 
-                            Route {
-                                attrs {
-                                    // Since testFilePath can represent the nested path, we catch it as *
-                                    path =
-                                            "/:owner/:name/history/execution/:executionId/details/:testSuiteName/:pluginName/*"
-                                    element = buildElement {
-                                        testExecutionDetailsView()
+                                Route {
+                                    attrs {
+                                        path = "/:owner/:name/history/execution/:executionId"
+                                        element = buildElement {
+                                            child(executionView)
+                                        }
                                     }
                                 }
-                            }
 
-                            Route {
-                                attrs {
-                                    path = "*"
-                                    element = buildElement {
-                                        child(FallbackView::class) {}
+                                Route {
+                                    attrs {
+                                        // Since testFilePath can represent the nested path, we catch it as *
+                                        path =
+                                                "/:owner/:name/history/execution/:executionId/details/:testSuiteName/:pluginName/*"
+                                        element = buildElement {
+                                            testExecutionDetailsView()
+                                        }
+                                    }
+                                }
+
+                                Route {
+                                    attrs {
+                                        path = "*"
+                                        element = buildElement {
+                                            FallbackView::class.react {
+                                                attrs {
+                                                    bigText = "404"
+                                                    smallText = "Page not found"
+                                                    withRouterLink = true
+                                                }
+                                            }
+                                        }
                                     }
                                 }
                             }
                         }
+                        child(Footer::class) {}
                     }
-                    child(Footer::class) {}
                 }
             }
+            child(scrollToTopButton) {}
         }
-        child(scrollToTopButton) {}
     }
 }
 
@@ -309,10 +319,6 @@ fun main() {
 
     kotlinext.js.require("../scss/save-frontend.scss")  // this is needed for webpack to include resource
     kotlinext.js.require("bootstrap")  // this is needed for webpack to include bootstrap
-    library.add(
-        fas, faUser, faCogs, faSignOutAlt, faAngleUp, faCheck, faExclamationTriangle, faTimesCircle, faQuestionCircle,
-        faUpload, faFile, faCheckCircle
-    )
     ReactModal.setAppElement(document.getElementById("wrapper") as HTMLElement)  // required for accessibility in react-modal
 
     render(document.getElementById("wrapper") as HTMLElement) {

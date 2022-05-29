@@ -187,8 +187,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                                         div("menu") {
                                             div("mt-2") {
                                                 a(classes = "item", href = "#/${props.userName}/settings/profile") {
-                                                    fontAwesomeIcon {
-                                                        attrs.icon = faUser
+                                                    fontAwesomeIcon(icon = faUser) {
                                                         attrs.className = "fas fa-sm fa-fw mr-2 text-gray-600"
                                                     }
                                                     +"Profile"
@@ -196,8 +195,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                                             }
                                             div("mt-2") {
                                                 a(classes = "item", href = "#/${props.userName}/settings/email") {
-                                                    fontAwesomeIcon {
-                                                        attrs.icon = faEnvelope
+                                                    fontAwesomeIcon(icon = faEnvelope) {
                                                         attrs.className = "fas fa-sm fa-fw mr-2 text-gray-600"
                                                     }
                                                     +"Email management"
@@ -205,8 +203,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                                             }
                                             div("mt-2") {
                                                 a(classes = "item", href = "#/${props.userName}/settings/organizations") {
-                                                    fontAwesomeIcon {
-                                                        attrs.icon = faCity
+                                                    fontAwesomeIcon(icon = faCity) {
                                                         attrs.className = "fas fa-sm fa-fw mr-2 text-gray-600"
                                                     }
                                                     +"Organizations"
@@ -223,8 +220,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                                         div("menu") {
                                             div("mt-2") {
                                                 a(classes = "item", href = "#/${props.userName}/settings/token") {
-                                                    fontAwesomeIcon {
-                                                        attrs.icon = faKey
+                                                    fontAwesomeIcon(icon = faKey) {
                                                         attrs.className = "fas fa-sm fa-fw mr-2 text-gray-600"
                                                     }
                                                     +"Personal access tokens"
