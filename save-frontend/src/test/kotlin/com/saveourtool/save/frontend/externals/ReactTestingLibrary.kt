@@ -43,7 +43,7 @@ external class BoundFunctions {
      */
     fun getByRole(vararg args: dynamic): HTMLElement
 
-    fun findByText(text: String, options: dynamic = definedExternally): Promise<HTMLElement>
+    fun findByText(text: String, options: dynamic = definedExternally, waitForOptions: dynamic = definedExternally): Promise<HTMLElement>
 
     fun queryByText(text: String, options: dynamic = definedExternally): HTMLElement?
 }
