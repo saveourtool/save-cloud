@@ -1,20 +1,14 @@
 package com.saveourtool.save.frontend.components.basic
 
 import com.saveourtool.save.entities.Organization
-import com.saveourtool.save.frontend.components.errorStatusContext
 import com.saveourtool.save.frontend.externals.*
 import com.saveourtool.save.frontend.utils.apiUrl
+import com.saveourtool.save.frontend.utils.mockMswResponse
 import com.saveourtool.save.frontend.utils.wrapper
 import com.saveourtool.save.v1
-import kotlinx.browser.window
-import kotlinx.js.jso
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.HTMLOptionElement
 import org.w3c.dom.HTMLSelectElement
-import org.w3c.fetch.RequestInit
-import org.w3c.fetch.Response
 import react.*
 import kotlin.js.Promise
 import kotlin.test.*
@@ -22,15 +16,14 @@ import kotlin.test.*
 class SelectFormTest {
     private val worker = setupWorker(
         rest.get("$apiUrl/organization/get/list") { _, res, _ ->
-            res { res ->
-                res.status = 200
-                res.headers.set("Content-Type", "application/json")
-                res.body = Json.encodeToString(listOf(
-                    Organization.stub(1).apply { name = "Test Organization 1" },
-                    Organization.stub(2),
-                    Organization.stub(3),
-                ))
-                res
+            res { response ->
+                mockMswResponse(
+                    response, listOf(
+                        Organization.stub(1).apply { name = "Test Organization 1" },
+                        Organization.stub(2),
+                        Organization.stub(3),
+                    )
+                )
             }
         }
     )
@@ -71,8 +64,12 @@ class SelectFormTest {
     @Test
     fun componentShouldContainWarningIfNoOrganizations(): Promise<*> {
         worker.use(
-            rest.get("/api/$v1/organization/get/list") { _, res, ctx ->
-                res(ctx.json(emptyList<Organization>()))
+            rest.get("/api/$v1/organization/get/list") { _, res, _ ->
+                res { response ->
+                    mockMswResponse(
+                        response, emptyList<Organization>()
+                    )
+                }
             }
         )
 

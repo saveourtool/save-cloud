@@ -123,10 +123,11 @@ rootProject.extensions.configure<org.jetbrains.kotlin.gradle.targets.js.yarn.Yar
     lockFileDirectory = rootProject.projectDir
 }
 
+val mswScriptTargetPath = file("${rootProject.buildDir}/js/packages/${rootProject.name}-${project.name}-test/node_modules").absolutePath
+val mswScriptTargetFile = "$mswScriptTargetPath/mockServiceWorker.js"
 val installMwsScriptTaskProvider = tasks.register<Exec>("installMswScript") {
     dependsOn("packageJson")
-    val targetPath = file("${rootProject.buildDir}/js/packages/${rootProject.name}-${project.name}-test/node_modules").absolutePath
-    outputs.file("$targetPath/mockServiceWorker.js")
+    outputs.file(mswScriptTargetFile)
     // cd to directory where the generated package.json is located. This is required for correct operation of npm/npx
     workingDir("$rootDir/build/js")
 
@@ -139,12 +140,13 @@ val installMwsScriptTaskProvider = tasks.register<Exec>("installMswScript") {
         nodeBinDir.resolve(if (isWindows) "npx.cmd" else "npx").canonicalPath,
         "msw",
         "init",
-        targetPath,
+        mswScriptTargetPath,
         "--no-save",
     )
 }
 tasks.named<KotlinJsTest>("browserTest").configure {
     dependsOn(installMwsScriptTaskProvider)
+    inputs.file(mswScriptTargetFile)
 }
 
 // generate kotlin file with project version to include in web page
