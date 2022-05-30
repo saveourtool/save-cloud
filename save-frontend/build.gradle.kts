@@ -126,7 +126,8 @@ rootProject.extensions.configure<org.jetbrains.kotlin.gradle.targets.js.yarn.Yar
 val mswScriptTargetPath = file("${rootProject.buildDir}/js/packages/${rootProject.name}-${project.name}-test/node_modules").absolutePath
 val mswScriptTargetFile = "$mswScriptTargetPath/mockServiceWorker.js"
 val installMwsScriptTaskProvider = tasks.register<Exec>("installMswScript") {
-    dependsOn("packageJson")
+    dependsOn("packageJson", ":kotlinNpmInstall")
+    inputs.dir(mswScriptTargetPath)
     outputs.file(mswScriptTargetFile)
     // cd to directory where the generated package.json is located. This is required for correct operation of npm/npx
     workingDir("$rootDir/build/js")
