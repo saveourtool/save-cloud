@@ -6,7 +6,6 @@ package com.saveourtool.save.buildutils
 
 import com.diffplug.gradle.spotless.SpotlessExtension
 import com.diffplug.gradle.spotless.SpotlessPlugin
-import com.diffplug.spotless.LineEnding
 import org.cqfn.diktat.plugin.gradle.DiktatExtension
 import org.cqfn.diktat.plugin.gradle.DiktatGradlePlugin
 import org.cqfn.diktat.plugin.gradle.DiktatJavaExecTaskBase
@@ -36,6 +35,10 @@ fun Project.configureDiktat() {
     fixDiktatTasks()
 }
 
+/**
+ * Applies spotless to [this] project and configures diktat step
+ */
+@Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
 fun Project.configureSpotless() {
     val libs = the<LibrariesForLibs>()
     val diktatVersion = libs.versions.diktat.get()
@@ -44,6 +47,9 @@ fun Project.configureSpotless() {
         kotlin {
             diktat(diktatVersion).configFile(rootProject.file("diktat-analysis.yml"))
             target("src/**/*.kt")
+            if (path == rootProject.path) {
+                target("buildSrc/**/*.kt")
+            }
         }
         kotlinGradle {
             diktat(diktatVersion).configFile(rootProject.file("diktat-analysis.yml"))
