@@ -17,7 +17,7 @@ jobs:
         uses: actions/setup-java@v3
         with:
           java-version: 11
-          distribution: zulu
+          distribution: temurin
       - name: Install system packages
         # libcurl is needed for ktor-client-curl, libc-bin for orchestrator
         run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev libc-bin
