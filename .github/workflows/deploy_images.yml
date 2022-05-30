@@ -45,22 +45,21 @@ jobs:
             ${{ runner.os }}-gradle-konan
       - run: |
           cd save && git status && git diff
-      - uses: burrunan/gradle-cache-action@v1
+      - uses: gradle/gradle-build-action@v2
         with:
           gradle-version: wrapper
           build-root-directory: save
           arguments: |
             :save-cli:linkReleaseExecutableLinuxX64
-          properties: |
-            org.gradle.caching=true
-            gprUser=${{ github.actor }}
-            gprKey=${{ secrets.GITHUB_TOKEN }}
+            -Porg.gradle.caching=true
+            -PgprUser=${{ github.actor }}
+            -PgprKey=${{ secrets.GITHUB_TOKEN }}
       - name: Set environment variable with save-cli version
         run: |
           mkdir -p save-cloud/save-orchestrator/build/resources/main
           find save/save-cli/build/bin/linuxX64/releaseExecutable -name "save-*.kexe" -exec cp {} save-cloud/save-orchestrator/build/resources/main \;
           find save/save-cli/build/bin/linuxX64/releaseExecutable -name "save-*.kexe" -exec sh -c 'printf "$1" | sed -r "s/.*save-(.*)-linuxX64.kexe/\1/" | echo "SAVE_CLI_VERSION=$(cat)" >> $GITHUB_ENV' _ {} \;
-      - uses: burrunan/gradle-cache-action@v1
+      - uses: gradle/gradle-build-action@v2
         with:
           gradle-version: wrapper
           build-root-directory: save-cloud
@@ -70,12 +69,11 @@ jobs:
             :save-orchestrator:bootBuildImage
             :save-preprocessor:bootBuildImage
             --stacktrace
-          properties: |
-            org.gradle.caching=true
-            detekt.multiplatform.disabled=true
-            saveCliVersion=${{ env.SAVE_CLI_VERSION }}
-            gprUser=${{ github.actor }}
-            gprKey=${{ secrets.GITHUB_TOKEN }}
+            -Porg.gradle.caching=true
+            -Pdetekt.multiplatform.disabled=true
+            -PsaveCliVersion=${{ env.SAVE_CLI_VERSION }}
+            -PgprUser=${{ github.actor }}
+            -PgprKey=${{ secrets.GITHUB_TOKEN }}
       - name: Upload gradle reports
         if: ${{ always() }}
         uses: actions/upload-artifact@v3
