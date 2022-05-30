@@ -29,9 +29,7 @@ class SelectFormTest {
     )
 
     @BeforeTest
-    fun setup(): Promise<*> {
-        return worker.start() as Promise<*>
-    }
+    fun setup(): Promise<*> = worker.start() as Promise<*>
 
     @AfterTest
     fun tearDown() {
@@ -54,7 +52,7 @@ class SelectFormTest {
             }
         )
 
-        return screen.findByTextAndCast<HTMLOptionElement>("Test Organization 1",).then {
+        return screen.findByTextAndCast<HTMLOptionElement>("Test Organization 1").then {
             val select = it.parentElement as HTMLSelectElement?
             assertNotNull(select, "`select` element should have been rendered")
             assertEquals(4, select.children.length, "Select should contain all organizations and an initial empty value")

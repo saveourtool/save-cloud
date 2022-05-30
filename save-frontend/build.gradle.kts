@@ -125,6 +125,7 @@ rootProject.extensions.configure<org.jetbrains.kotlin.gradle.targets.js.yarn.Yar
 
 val mswScriptTargetPath = file("${rootProject.buildDir}/js/packages/${rootProject.name}-${project.name}-test/node_modules").absolutePath
 val mswScriptTargetFile = "$mswScriptTargetPath/mockServiceWorker.js"
+@Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
 val installMwsScriptTaskProvider = tasks.register<Exec>("installMswScript") {
     dependsOn(":kotlinNodeJsSetup", ":kotlinNpmInstall", "packageJson")
     inputs.dir(mswScriptTargetPath)
@@ -146,7 +147,7 @@ val installMwsScriptTaskProvider = tasks.register<Exec>("installMswScript") {
 
     if (!isWindows) {
         doFirst {
-//             workaround, because `npx` is a symlink but symlinks are lost when Gradle unpacks archive
+            // workaround, because `npx` is a symlink but symlinks are lost when Gradle unpacks archive
             exec {
                 commandLine("ln", "-sf", "$nodeDir/lib/node_modules/npm/bin/npx-cli.js", "$nodeBinDir/npx")
             }
