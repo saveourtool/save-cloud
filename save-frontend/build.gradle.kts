@@ -1,4 +1,4 @@
-import org.cqfn.save.buildutils.configureSpotless
+import com.saveourtool.save.buildutils.configureSpotless
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin
 
@@ -33,9 +33,21 @@ kotlin {
         browser {
             repositories {
                 mavenCentral()
-                maven("https://oss.sonatype.org/content/repositories/snapshots") {
+                maven("https://s01.oss.sonatype.org/content/repositories/snapshots") {
                     content {
-                        includeGroup("org.cqfn.save")
+                        includeGroup("com.saveourtool.save")
+                    }
+                }
+            }
+
+            testTask {
+                useKarma {
+                    when (properties["save.profile"]) {
+                        "dev" -> {
+                            useChrome()
+                            // useFirefox()
+                        }
+                        null -> useChromeHeadless()
                     }
                 }
             }
@@ -68,8 +80,8 @@ kotlin {
             implementation(npm("popper.js", "1.16.1"))
             // BS5: implementation(npm("bootstrap", "5.0.1"))
             implementation(npm("bootstrap", "^4.6.0"))
-            implementation(npm("react", "17.0.2"))
-            implementation(npm("react-dom", "17.0.2"))
+            implementation(npm("react", "^18.0.0"))
+            implementation(npm("react-dom", "^18.0.0"))
             implementation(npm("react-modal", "^3.0.0"))
             implementation(npm("os-browserify", "^0.3.0"))
             implementation(npm("path-browserify", "^1.0.1"))
@@ -78,15 +90,31 @@ kotlin {
 
             // transitive dependencies with explicit version ranges required for security reasons
             compileOnly(devNpm("minimist", "^1.2.6"))
+            compileOnly(devNpm("async", "^2.6.4"))
+            compileOnly(devNpm("follow-redirects", "^1.14.8"))
+        }
+        sourceSets["test"].dependencies {
+            implementation(kotlin("test-js"))
+            implementation(devNpm("jsdom", "^19.0.0"))
+            implementation(devNpm("global-jsdom", "^8.4.0"))
+            implementation(devNpm("@testing-library/react", "^13.2.0"))
+            implementation(devNpm("@testing-library/user-event", "^14.0.0"))
+            implementation(devNpm("karma-mocha-reporter", "^2.0.0"))
+            implementation(devNpm("istanbul-instrumenter-loader", "^3.0.1"))
+            implementation(devNpm("karma-coverage-istanbul-reporter", "^3.0.3"))
+            implementation(devNpm("msw", "^0.40.0"))
         }
     }
 }
 
-// workaround for continuous work of WebPack: (https://github.com/webpack/webpack-cli/issues/2990)
 rootProject.plugins.withType(NodeJsRootPlugin::class.java) {
     rootProject.the<NodeJsRootExtension>().versions.apply {
+        // workaround for continuous work of WebPack: (https://github.com/webpack/webpack-cli/issues/2990)
         webpackCli.version = "4.9.0"
+        webpackDevServer.version = "^4.9.0"
+        // override default version from KGP for security reasons
         karma.version = "^6.3.14"
+        mocha.version = "9.2.0"
     }
 }
 // store yarn.lock in the root directory

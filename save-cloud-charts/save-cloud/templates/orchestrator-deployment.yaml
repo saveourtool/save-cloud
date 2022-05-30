@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orchestrator
+  labels:
+    {{- include "common.labels" (merge (dict "service" .Values.orchestrator) .) | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      io.kompose.service: orchestrator
+  template:
+    metadata:
+      labels:
+        io.kompose.service: orchestrator
+    spec:
+      restartPolicy: Always
+      {{- include "spring-boot.securityContext" . | nindent 6 }}
+      containers:
+        - name: orchestrator
+          {{- include "spring-boot.common" (merge (dict "service" .Values.orchestrator) .) | nindent 10 }}
+          env:
+            {{- include "spring-boot.common.env" (merge (dict "service" .Values.orchestrator) .) | nindent 12 }}
+            - name: HOST_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+            - name: JAVA_TOOL_OPTIONS
+              value: -XX:ReservedCodeCacheSize=48M
+          volumeMounts:
+            - {{ include "spring-boot.config-volume-mount" . | indent 14 | trim }}
+            - name: repos-storage
+              mountPath: /home/cnb
+            - name: execution-logs-storage
+              mountPath: /home/cnb/executionLogs/
+          {{- include "spring-boot.management" .Values.orchestrator | nindent 10 }}
+          resources:
+            limits:
+              memory: 400M
+            requests:
+              memory: 300M
+      volumes:
+        - {{ include "spring-boot.config-volume" (dict "service" .Values.orchestrator) | indent 10 | trim }}
+        - name: repos-storage
+          hostPath:
+            path: /tmp/save/repos
+        - name: execution-logs-storage
+          # FixMe: Do we still need logs storage? All logs should be stored in Loki.
+          emptyDir: {}

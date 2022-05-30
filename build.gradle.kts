@@ -1,5 +1,5 @@
+import com.saveourtool.save.buildutils.*
 import org.apache.tools.ant.taskdefs.condition.Os
-import org.cqfn.save.buildutils.*
 
 plugins {
     alias(libs.plugins.talaiot.base)
@@ -65,6 +65,7 @@ configureSpotless()
 
 createStackDeployTask(profile)
 configureVersioning()
+configurePublishing()
 createDetektTask()
 installGitHooks()
 registerSaveCliVersionCheckTask()

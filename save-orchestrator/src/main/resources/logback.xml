@@ -5,8 +5,8 @@
         </encoder>
     </appender>
 
-    <logger name="org.cqfn.save.orchestrator.controller.HeartbeatController" level="DEBUG"/>
-    <logger name="org.cqfn.save.orchestrator.service.AgentService" level="DEBUG"/>
+    <logger name="com.saveourtool.save.orchestrator.controller.HeartbeatController" level="DEBUG"/>
+    <logger name="com.saveourtool.save.orchestrator.service.AgentService" level="DEBUG"/>
     <root level="info">
         <appender-ref ref="STDOUT" />
     </root>

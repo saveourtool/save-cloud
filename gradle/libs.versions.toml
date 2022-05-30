@@ -1,40 +1,41 @@
 [versions]
 kotlin = "1.6.21"
 save-core = "0.4.0-SNAPSHOT"
-ktor = "2.0.1"
+ktor = "2.0.2"
 okio = "3.1.0"
-serialization = "1.3.2"
-kotlinx-datetime = "0.3.2"
-kotlinx-coroutines = "1.6.1"
-kotlin-wrappers = "0.0.1-pre.333"
-spring-boot = "2.6.7"
-spring-security = "5.6.3"
-spring-cloud = "3.1.2"
-spring-cloud-kubernetes = "2.1.2"
+serialization = "1.3.3"
+# kx.datetime 0.3.3 is built with Kotlin 1.7, so currently not compatible with our build
+kotlinx-datetime = { require = "0.3.2", rejects = "0.3.3" }
+kotlinx-coroutines = "1.6.2"
+kotlin-wrappers = "1.0.0-pre.340"
+spring-boot = "2.7.0"
+spring-security = "5.7.1"
+spring-cloud = "3.1.3"
+spring-cloud-kubernetes = "2.1.3"
 junit = "5.8.2"
 diktat = "1.1.0"
 detekt = "1.20.0"
-liquibase-core = "4.9.1"
+liquibase-core = "4.11.0"
 docker-java = "3.2.13"
 jgit = "6.1.0.202203080745-r"
 reactor = "1.1.6"
-jackson = "2.13.2"
+jackson = "2.13.3"
 mockito-kotlin = "4.0.0"
 slf4j = "1.7.36"
 logback = "1.2.11"
 log4j = "2.17.2"
-micrometer = "1.8.5"
+micrometer = "1.9.0"
 jpa = "1.0.2"
-hibernate = "5.6.8.Final"
+hibernate = "5.6.9.Final"
 mySql = "8.0.29"
-testcontainers = "1.17.1"
+testcontainers = "1.17.2"
 okhttp3 = "4.9.3"
 reckon = "0.16.1"
 commons-compress = "1.21"
 picocli = "4.6.3"
 zip4j = "2.10.0"
 ktoml = "0.2.11"
-springdoc = "1.6.8"
+springdoc = "1.6.9"
 kotlinx-cli = "0.3.4"
 spotless = "6.5.2"
 
@@ -45,22 +46,22 @@ kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref 
 kotlin-plugin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 kotlin-plugin-jpa = { id = "org.jetbrains.kotlin.plugin.jpa", version.ref = "kotlin" }
 kotlin-plugin-allopen = { id = "org.jetbrains.kotlin.plugin.allopen", version.ref = "kotlin" }
-diktat = { id = "org.cqfn.diktat.diktat-gradle-plugin", version.ref = "diktat" }
+diktat = { id = "com.cqfn.diktat.diktat-gradle-plugin", version.ref = "diktat" }
 liquibase-gradle = { id = "org.liquibase.gradle", version = "2.1.1" }
 talaiot-base = { id = "com.cdsap.talaiot.plugin.base", version = "1.4.2" }
 download = { id = "de.undercouch.download", version = "5.1.0" }
 spotless = { id = "com.diffplug.gradle.spotless", version.ref = "spotless" }
 
 [libraries]
-save-common = { module = "org.cqfn.save:save-common", version.ref = "save-core" }
-save-common-jvm = { module = "org.cqfn.save:save-common-jvm", version.ref = "save-core" }
-save-core = { module = "org.cqfn.save:save-core", version.ref = "save-core" }
-save-core-jvm = { module = "org.cqfn.save:save-core-jvm", version.ref = "save-core" }
-save-plugins-fix = { module = "org.cqfn.save:fix-plugin", version.ref = "save-core" }
-save-plugins-fix-jvm = { module = "org.cqfn.save:fix-plugin-jvm", version.ref = "save-core" }
-save-plugins-warn-jvm = { module = "org.cqfn.save:warn-plugin-jvm", version.ref = "save-core" }
-save-plugins-fixAndWarn-jvm = { module = "org.cqfn.save:fix-and-warn-plugin-jvm", version.ref = "save-core" }
-save-reporters = { module = "org.cqfn.save:save-reporters", version.ref = "save-core" }
+save-common = { module = "com.saveourtool.save:save-common", version.ref = "save-core" }
+save-common-jvm = { module = "com.saveourtool.save:save-common-jvm", version.ref = "save-core" }
+save-core = { module = "com.saveourtool.save:save-core", version.ref = "save-core" }
+save-core-jvm = { module = "com.saveourtool.save:save-core-jvm", version.ref = "save-core" }
+save-plugins-fix = { module = "com.saveourtool.save:fix-plugin", version.ref = "save-core" }
+save-plugins-fix-jvm = { module = "com.saveourtool.save:fix-plugin-jvm", version.ref = "save-core" }
+save-plugins-warn-jvm = { module = "com.saveourtool.save:warn-plugin-jvm", version.ref = "save-core" }
+save-plugins-fixAndWarn-jvm = { module = "com.saveourtool.save:fix-and-warn-plugin-jvm", version.ref = "save-core" }
+save-reporters = { module = "com.saveourtool.save:save-reporters", version.ref = "save-core" }
 
 kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 kotlin-plugin-serialization = { module = "org.jetbrains.kotlin:kotlin-serialization", version.ref = "kotlin" }

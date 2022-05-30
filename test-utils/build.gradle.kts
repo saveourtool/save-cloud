@@ -1,4 +1,4 @@
-import org.cqfn.save.buildutils.configureSpotless
+import com.saveourtool.save.buildutils.configureSpotless
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
