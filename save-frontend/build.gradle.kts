@@ -1,3 +1,4 @@
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin
 import org.jetbrains.kotlin.gradle.targets.js.testing.KotlinJsTest
@@ -124,13 +125,21 @@ rootProject.extensions.configure<org.jetbrains.kotlin.gradle.targets.js.yarn.Yar
 
 val installMwsScriptTaskProvider = tasks.register<Exec>("installMswScript") {
     dependsOn("packageJson")
+    val targetPath = file("${rootProject.buildDir}/js/packages/${rootProject.name}-${project.name}-test/node_modules").absolutePath
+    outputs.file("$targetPath/mockServiceWorker.js")
     // cd to directory where the generated package.json is located. This is required for correct operation of npm/npx
     workingDir("$rootDir/build/js")
+
+    val nodeJsEnv = NodeJsRootPlugin.apply(project.rootProject).requireConfigured()
+    val nodeBinDir = nodeJsEnv.nodeBinDir
+    environment("PATH", nodeBinDir)
+
+    val isWindows = DefaultNativePlatform.getCurrentOperatingSystem().isWindows
     commandLine(
-        "npx",
+        nodeBinDir.resolve(if (isWindows) "npx.cmd" else "npx").canonicalPath,
         "msw",
         "init",
-        file("${rootProject.buildDir}/js/packages/${rootProject.name}-${project.name}-test/node_modules").absolutePath,
+        targetPath,
         "--no-save",
     )
 }
