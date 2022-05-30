@@ -10,6 +10,7 @@ that regularly update tests and discuss the best practices for particular progra
 
 ## How it looks like from the high-level perspective?
 ![SAVE processing](https://user-images.githubusercontent.com/58667063/146387903-24ba9c91-a2a3-45e7-a07a-cb7bc388e4aa.jpg)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fsaveourtool%2Fsave-cloud.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fsaveourtool%2Fsave-cloud?ref=badge_shield)
 
 ## What is SAVE Cloud?
 SAVE Cloud is a service for executing tests using the SAVE tool. You can provide a link to a git repository with a project, configured to
@@ -24,3 +25,7 @@ To build the project and run all tests, execute `./gradlew build`. For more deta
 
 ## Architecture and design
 <img src="/save.svg" width="1024px"/>
+
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fsaveourtool%2Fsave-cloud.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fsaveourtool%2Fsave-cloud?ref=badge_large)
