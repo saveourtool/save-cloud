@@ -1,12 +1,4 @@
-import com.saveourtool.save.buildutils.configureDetekt
-import com.saveourtool.save.buildutils.configureDiktat
-import com.saveourtool.save.buildutils.configurePublishing
-import com.saveourtool.save.buildutils.configureVersioning
-import com.saveourtool.save.buildutils.createDetektTask
-import com.saveourtool.save.buildutils.createStackDeployTask
-import com.saveourtool.save.buildutils.getDatabaseCredentials
-import com.saveourtool.save.buildutils.installGitHooks
-import com.saveourtool.save.buildutils.registerSaveCliVersionCheckTask
+import com.saveourtool.save.buildutils.*
 
 import org.apache.tools.ant.taskdefs.condition.Os
 
@@ -71,6 +63,7 @@ allprojects {
 allprojects {
     configureDiktat()
 }
+configureSpotless()
 
 createStackDeployTask(profile)
 configureVersioning()
