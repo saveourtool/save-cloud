@@ -126,17 +126,39 @@ rootProject.extensions.configure<org.jetbrains.kotlin.gradle.targets.js.yarn.Yar
 val mswScriptTargetPath = file("${rootProject.buildDir}/js/packages/${rootProject.name}-${project.name}-test/node_modules").absolutePath
 val mswScriptTargetFile = "$mswScriptTargetPath/mockServiceWorker.js"
 val installMwsScriptTaskProvider = tasks.register<Exec>("installMswScript") {
-    dependsOn("packageJson", ":kotlinNpmInstall")
+    dependsOn(":kotlinNodeJsSetup", ":kotlinNpmInstall", "packageJson")
     inputs.dir(mswScriptTargetPath)
     outputs.file(mswScriptTargetFile)
     // cd to directory where the generated package.json is located. This is required for correct operation of npm/npx
     workingDir("$rootDir/build/js")
 
-    val nodeJsEnv = NodeJsRootPlugin.apply(project.rootProject).requireConfigured()
-    val nodeBinDir = nodeJsEnv.nodeBinDir
-    environment("PATH", nodeBinDir)
-
     val isWindows = DefaultNativePlatform.getCurrentOperatingSystem().isWindows
+    val nodeJsEnv = NodeJsRootPlugin.apply(project.rootProject).requireConfigured()
+    val nodeDir = nodeJsEnv.nodeDir
+    val nodeBinDir = nodeJsEnv.nodeBinDir
+    listOf(
+        System.getenv("PATH"),
+        nodeBinDir.absolutePath,
+    )
+        .filterNot { it.isNullOrEmpty() }
+        .joinToString(separator = File.pathSeparator)
+        .let { environment("PATH", it) }
+
+    if (!isWindows) {
+        doFirst {
+//             workaround, because `npx` is a symlink but symlinks are lost when Gradle unpacks archive
+            exec {
+                commandLine("ln", "-sf", "$nodeDir/lib/node_modules/npm/bin/npx-cli.js", "$nodeBinDir/npx")
+            }
+            exec {
+                commandLine("ln", "-sf", "$nodeDir/lib/node_modules/npm/bin/npm-cli.js", "$nodeBinDir/npm")
+            }
+            exec {
+                commandLine("ln", "-sf", "$nodeDir/lib/node_modules/corepack/dist/corepack.js", "$nodeBinDir/corepack")
+            }
+        }
+    }
+
     commandLine(
         nodeBinDir.resolve(if (isWindows) "npx.cmd" else "npx").canonicalPath,
         "msw",
