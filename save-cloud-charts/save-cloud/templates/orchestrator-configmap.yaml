@@ -9,7 +9,8 @@ data:
     orchestrator.docker.runtime=runc
     orchestrator.docker.loggingDriver=json
 
-    orchestrator.kubernetes.apiServerUrl=
+    orchestrator.kubernetes.apiServerUrl=http://kubernetes.default.svc
+    orchestrator.kubernetes.serviceAccount=${POD_SERVICE_ACCOUNT}
     orchestrator.kubernetes.namespace=${POD_NAMESPACE}
 
     server.shutdown=graceful

@@ -37,13 +37,7 @@ data class ConfigProperties(
     val agentsHeartBeatTimeoutMillis: Long,
     val heartBeatInspectorInterval: Long,
     val agentSettings: AgentSettings = AgentSettings(),
-) {
-    init {
-        require(docker != null || kubernetes != null) {
-            "Either docker or kubernetes config should be provided in application properties, but both are missing."
-        }
-    }
-}
+)
 
 /**
  * @property basePath path to the root directory, where all test resources are stored
@@ -63,8 +57,12 @@ data class DockerSettings(
     val runtime: String = "runc",
 )
 
+/**
+ * @property apiServerUrl see https://kubernetes.io/docs/tasks/run-application/access-api-from-pod/
+ */
 data class KubernetesSettings(
     val apiServerUrl: String,
+    val serviceAccount: String,
     val namespace: String,
 )
 

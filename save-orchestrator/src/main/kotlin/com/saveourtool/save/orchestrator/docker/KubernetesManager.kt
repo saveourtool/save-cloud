@@ -1,10 +1,10 @@
-package org.cqfn.save.orchestrator.docker
+package com.saveourtool.save.orchestrator.docker
 
+import com.saveourtool.save.orchestrator.config.ConfigProperties
 import io.fabric8.kubernetes.api.model.*
 import io.fabric8.kubernetes.api.model.batch.v1.Job
 import io.fabric8.kubernetes.api.model.batch.v1.JobSpec
 import io.fabric8.kubernetes.client.DefaultKubernetesClient
-import org.cqfn.save.orchestrator.config.ConfigProperties
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
@@ -24,7 +24,7 @@ class KubernetesManager(
     }
 
     private val kubernetesSettings = requireNotNull(configProperties.kubernetes) {
-        "Class [${KubernetesManager::class.simpleName}] requires kubernetes-related properties to be set"
+        "Class [${KubernetesManager::class.simpleName}] requires `orchestrator.kubernetes.*` properties to be set"
     }
 
     private val kc = DefaultKubernetesClient().inNamespace(kubernetesSettings.namespace)
