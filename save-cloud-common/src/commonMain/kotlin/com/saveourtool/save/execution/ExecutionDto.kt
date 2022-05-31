@@ -11,6 +11,8 @@ import kotlinx.serialization.Serializable
  * @property passedTests
  * @property failedTests
  * @property skippedTests
+ * @property precisionRate
+ * @property recallRate
  * @property endTime
  * @property additionalFiles
  * @property startTime
@@ -28,5 +30,7 @@ data class ExecutionDto(
     val passedTests: Long,
     val failedTests: Long,
     val skippedTests: Long,
+    val precisionRate: Double,
+    val recallRate: Double,
     val additionalFiles: List<String>?,
 )

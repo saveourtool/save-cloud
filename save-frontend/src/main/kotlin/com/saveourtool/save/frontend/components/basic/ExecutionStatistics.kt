@@ -59,6 +59,8 @@ fun executionStatistics(classes: String = "") = fc<ExecutionStatisticsProps> { p
     val passRate = props.executionDto?.run {
         if (totalTests > 0) (passedTests.toFloat() / totalTests * 100).toInt() else 0
     } ?: "0"
+    val precisionRate = props.executionDto?.precisionRate?.let { (it * 100).toInt() } ?: 0L
+    val recallRate = props.executionDto?.recallRate?.let { (it * 100).toInt() } ?: 0L
 
     div("col-xl-3 col-md-6 mb-4") {
         div("card border-left-info shadow h-100 py-2") {
@@ -113,6 +115,14 @@ fun executionStatistics(classes: String = "") = fc<ExecutionStatisticsProps> { p
                     div("col mr-2") {
                         div("text-xs font-weight-bold text-success text-uppercase mb-1") { +"Passed" }
                         div("h5 mb-0 font-weight-bold text-gray-800") { +passedTests.toString() }
+                    }
+                    div("col mr-2") {
+                        div("text-xs font-weight-bold text-info text-uppercase mb-1") { +"Precision" }
+                        div("h5 mb-0 font-weight-bold text-gray-800") { +precisionRate.toString() }
+                    }
+                    div("col mr-2") {
+                        div("text-xs font-weight-bold text-info text-uppercase mb-1") { +"Recall" }
+                        div("h5 mb-0 font-weight-bold text-gray-800") { +recallRate.toString() }
                     }
                 }
             }

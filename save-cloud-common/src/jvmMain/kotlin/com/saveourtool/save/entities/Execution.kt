@@ -95,8 +95,18 @@ class Execution(
         passedTests,
         failedTests,
         skippedTests,
+        calculatePrecisionRate(),
+        calculateRecallRate(),
         additionalFiles?.split(";")?.filter { it.isNotBlank() },
     )
+
+    private fun calculatePrecisionRate(): Double {
+        return 0.0
+    }
+
+    private fun calculateRecallRate(): Double {
+        return 0.0
+    }
 
     companion object {
         /**
@@ -125,5 +135,6 @@ class Execution(
             execCmd = null,
             batchSizeForAnalyzer = null,
         )
+
     }
 }
