@@ -1,7 +1,4 @@
-import com.saveourtool.save.buildutils.configureJacoco
-import com.saveourtool.save.buildutils.configureSpringBoot
-import com.saveourtool.save.buildutils.pathToSaveCliVersion
-import com.saveourtool.save.buildutils.readSaveCliVersion
+import com.saveourtool.save.buildutils.*
 
 import de.undercouch.gradle.tasks.download.Download
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
@@ -17,6 +14,7 @@ plugins {
 
 configureSpringBoot()
 configureJacoco()
+configureSpotless()
 
 tasks.withType<KotlinCompile> {
     kotlinOptions {

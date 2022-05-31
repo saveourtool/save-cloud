@@ -20,8 +20,7 @@ import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-import org.mockito.ArgumentMatchers.anyList
-import org.mockito.ArgumentMatchers.anyString
+import org.mockito.ArgumentMatchers.*
 import org.mockito.kotlin.any
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
@@ -184,7 +183,7 @@ class AgentsControllerTest {
             .isOk
 
         Thread.sleep(2_500)
-        verify(dockerService, times(3)).removeContainer(anyString())
+        verify(dockerService, times(1)).cleanup(anyLong())
         verify(dockerService, times(1)).removeImage(anyString())
     }
 

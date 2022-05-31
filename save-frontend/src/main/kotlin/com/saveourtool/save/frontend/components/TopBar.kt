@@ -44,8 +44,7 @@ external interface TopBarProps : PropsWithChildren {
 
 private fun RBuilder.dropdownEntry(faIcon: dynamic, text: String, handler: RDOMBuilder<BUTTON>.() -> Unit = { }) =
         button(type = ButtonType.button, classes = "btn btn-no-outline dropdown-item rounded-0 shadow-none") {
-            fontAwesomeIcon {
-                attrs.icon = faIcon
+            fontAwesomeIcon(icon = faIcon) {
                 attrs.className = "fas fa-sm fa-fw mr-2 text-gray-400"
             }
             +text
@@ -158,9 +157,7 @@ fun topBar() = fc<TopBarProps> { props ->
                         width = 6.rem
                     }.unsafeCast<Width>()
                     attrs.href = "https://github.com/saveourtool/save-cloud"
-                    i("fa fa-user opacity-6 text-dark me-1") {
-                        attrs["aria-hidden"] = "true"
-                    }
+                    fontAwesomeIcon(icon = faUser, classes = "fa opacity-6 text-dark me-1")
                     +"About"
                 }
             }
@@ -184,8 +181,7 @@ fun topBar() = fc<TopBarProps> { props ->
                             span("mr-2 d-none d-lg-inline text-gray-600") {
                                 +(props.userInfo?.name ?: "")
                             }
-                            fontAwesomeIcon {
-                                attrs.icon = "user"
+                            fontAwesomeIcon(icon = faUser) {
                                 attrs.className = "fas fa-lg fa-fw mr-2 text-gray-400"
                             }
                         }

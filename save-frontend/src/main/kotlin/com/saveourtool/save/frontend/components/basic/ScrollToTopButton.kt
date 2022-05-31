@@ -4,6 +4,7 @@
 
 package com.saveourtool.save.frontend.components.basic
 
+import com.saveourtool.save.frontend.externals.fontawesome.faAngleUp
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 
 import org.w3c.dom.SMOOTH
@@ -39,7 +40,7 @@ fun scrollToTopButton() = fc<PropsWithChildren> {
             attrs.onClickFunction = {
                 window.scrollTo(ScrollToOptions(top = 0.0, behavior = ScrollBehavior.SMOOTH))
             }
-            fontAwesomeIcon(icon = "angle-up")
+            fontAwesomeIcon(icon = faAngleUp)
         }
     }
 }
