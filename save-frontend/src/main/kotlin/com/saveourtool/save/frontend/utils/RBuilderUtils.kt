@@ -22,7 +22,6 @@ import kotlinx.html.js.onClickFunction
  */
 enum class ConfirmationType {
     DELETE_CONFIRM,
-    GLOBAL_ROLE_CONFIRM,
     NO_BINARY_CONFIRM,
     NO_CONFIRM,
     ;
@@ -32,6 +31,7 @@ enum class ConfirmationType {
  * @param isErrorOpen flag to handle error
  * @param errorLabel label of error
  * @param errorMessage message of error
+ * @param closeButtonLabel label that will be shown on the only button
  * @param handler handler to close
  * @return modal
  */
@@ -39,6 +39,7 @@ fun RBuilder.runErrorModal(
     isErrorOpen: Boolean?,
     errorLabel: String,
     errorMessage: String,
+    closeButtonLabel: String = "Close",
     handler: (Event) -> Unit
 ) = modal {
     attrs {
@@ -53,7 +54,7 @@ fun RBuilder.runErrorModal(
     div("d-sm-flex align-items-center justify-content-center mt-4") {
         button(type = ButtonType.button, classes = "btn btn-primary") {
             attrs.onClickFunction = handler
-            +"Close"
+            +closeButtonLabel
         }
     }
 }
@@ -62,14 +63,19 @@ fun RBuilder.runErrorModal(
  * @param isConfirmWindowOpen flag to handle confirm Window
  * @param confirmLabel label of confirm Window
  * @param confirmMessage message
- * @param handler handler to event and close
+ * @param okButtonLabel label for ok button
+ * @param closeButtonLabel label for close button
  * @param handlerClose handler to close
+ * @param handler handler to event and close
  * @return modal
  */
+@Suppress("LongParameterList", "TOO_MANY_PARAMETERS")
 fun RBuilder.runConfirmWindowModal(
     isConfirmWindowOpen: Boolean?,
     confirmLabel: String,
     confirmMessage: String,
+    okButtonLabel: String = "Ok",
+    closeButtonLabel: String = "Close",
     handlerClose: (Event) -> Unit,
     handler: (Event) -> Unit
 ) = modal {
@@ -85,11 +91,11 @@ fun RBuilder.runConfirmWindowModal(
     div("d-sm-flex align-items-center justify-content-center mt-4") {
         button(type = ButtonType.button, classes = "btn btn-primary mr-3") {
             attrs.onClickFunction = handler
-            +"Ok"
+            +okButtonLabel
         }
         button(type = ButtonType.button, classes = "btn btn-outline-primary") {
             attrs.onClickFunction = handlerClose
-            +"Close"
+            +closeButtonLabel
         }
     }
 }

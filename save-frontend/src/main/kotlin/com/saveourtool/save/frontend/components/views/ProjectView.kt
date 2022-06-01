@@ -213,6 +213,11 @@ external interface ProjectViewState : State {
      * latest execution id for this project
      */
     var latestExecutionId: Long?
+
+    /**
+     * Label that will be shown on close button
+     */
+    var closeButtonLabel: String?
 }
 
 /**
@@ -417,14 +422,15 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         state.isUploading = false
         state.isEditDisabled = true
         state.selectedMenu = ProjectMenuBar.RUN
+        state.closeButtonLabel = null
     }
 
     private fun showNotification(notificationLabel: String, notificationMessage: String) {
         setState {
-            confirmationType = ConfirmationType.NO_CONFIRM
-            isConfirmWindowOpen = true
-            confirmLabel = notificationLabel
-            confirmMessage = notificationMessage
+            isErrorOpen = true
+            errorLabel = notificationLabel
+            errorMessage = notificationMessage
+            closeButtonLabel = "Confirm"
         }
     }
 
@@ -558,18 +564,23 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     @Suppress("TOO_LONG_FUNCTION", "LongMethod", "ComplexMethod")
     override fun RBuilder.render() {
         // modal windows are initially hidden
-        runErrorModal(state.isErrorOpen, state.errorLabel, state.errorMessage) {
-            setState { isErrorOpen = false }
+        runErrorModal(state.isErrorOpen, state.errorLabel, state.errorMessage, state.closeButtonLabel ?: "Close") {
+            setState {
+                isErrorOpen = false
+                closeButtonLabel = null
+            }
         }
+
         runConfirmWindowModal(
             state.isConfirmWindowOpen,
             state.confirmLabel,
             state.confirmMessage,
+            "Ok",
+            "Cancel",
             { setState { isConfirmWindowOpen = false } }) {
             when (state.confirmationType) {
                 ConfirmationType.NO_BINARY_CONFIRM, ConfirmationType.NO_CONFIRM -> submitExecutionRequest()
                 ConfirmationType.DELETE_CONFIRM -> deleteProjectBuilder()
-                ConfirmationType.GLOBAL_ROLE_CONFIRM -> { }
                 else -> {
                     // this is a generated else block
                 }

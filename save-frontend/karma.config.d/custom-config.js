@@ -22,5 +22,14 @@ config.set({
             // completely disable timeout
             timeout: 0
         }
-    }
+    },
+    proxies: {
+        // serving mockServiceWorker.js.js from location relative to base url
+        // the file should be included into Karma's `files` to be served by server at all
+        '/mockServiceWorker.js': '/base/mockServiceWorker.js',
+    },
 })
+
+// http://karma-runner.github.io/6.3/config/files.html
+// 'All of the relative patterns will get resolved using the basePath first.', where basePath is set by KGP to `node_modules`
+config.files.push('./mockServiceWorker.js')

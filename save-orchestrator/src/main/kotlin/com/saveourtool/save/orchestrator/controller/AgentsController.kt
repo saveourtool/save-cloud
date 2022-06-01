@@ -23,7 +23,6 @@ import org.springframework.web.bind.annotation.RequestPart
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import org.springframework.web.server.ResponseStatusException
-import reactor.core.publisher.Flux.fromIterable
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.doOnError
 import reactor.kotlin.core.publisher.onErrorResume
@@ -67,7 +66,7 @@ class AgentsController(
                 dockerService.buildBaseImage(execution, testSuiteDtos)
             }
                 .onErrorResume(DockerException::class) {
-                    log.error("Unable to build image for executionId=${execution.id}, will mark it as ERROR", it)
+                    log.error("Unable to build image and containers for executionId=${execution.id}, will mark it as ERROR")
                     agentService.updateExecution(execution.id!!, ExecutionStatus.ERROR).then(Mono.empty())
                 }
                 .map { (baseImageId, agentRunCmd) ->
@@ -85,9 +84,7 @@ class AgentsController(
                     )
                         .doOnError(WebClientResponseException::class) { exception ->
                             log.error("Unable to save agents, backend returned code ${exception.statusCode}", exception)
-                            agentIds.forEach {
-                                dockerService.removeContainer(it)
-                            }
+                            dockerService.cleanup(execution.id!!)
                         }
                         .doOnSuccess {
                             dockerService.startContainersAndUpdateExecution(execution, agentIds)
@@ -132,19 +129,15 @@ class AgentsController(
      * @return empty response
      */
     @PostMapping("/cleanup")
-    fun cleanup(@RequestParam executionId: Long) =
-            agentService.getAgentIdsForExecution(executionId)
-                .flatMapMany(::fromIterable)
-                .map { id ->
-                    dockerService.removeContainer(id)
-                }
-                .doOnComplete {
-                    dockerService.removeImage(imageName(executionId))
-                }
-                .collectList()
-                .flatMap {
-                    Mono.just(ResponseEntity<Void>(HttpStatus.OK))
-                }
+    fun cleanup(@RequestParam executionId: Long) = Mono.fromCallable {
+        dockerService.cleanup(executionId)
+    }
+        .doOnSuccess {
+            dockerService.removeImage(imageName(executionId))
+        }
+        .flatMap {
+            Mono.just(ResponseEntity<Void>(HttpStatus.OK))
+        }
 
     companion object {
         private val log = LoggerFactory.getLogger(AgentsController::class.java)

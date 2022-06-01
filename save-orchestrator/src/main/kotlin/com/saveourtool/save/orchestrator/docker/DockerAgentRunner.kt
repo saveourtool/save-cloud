@@ -57,7 +57,8 @@ class DockerAgentRunner(
 
     override fun start(executionId: Long) {
         val agentIds = agentIdsByExecution.computeIfAbsent(executionId) {
-            // agentService.getAgentsForExecution(executionId)
+            // For executions started by the running instance of orchestrator, this key should be already present in the map.
+            // Otherwise, it will be added by `DockerAgentRunner#discover`, which is not yet implemented.
             TODO("${DockerAgentRunner::class.simpleName} should be able to load data about agents started by other instances of orchestrator")
         }
         agentIds.forEach { agentId ->

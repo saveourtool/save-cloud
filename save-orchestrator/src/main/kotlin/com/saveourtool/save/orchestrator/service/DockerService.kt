@@ -161,12 +161,10 @@ class DockerService(private val configProperties: ConfigProperties,
     }
 
     /**
-     * @param containerId id of container to remove
-     * @return an instance of docker command
+     * @param executionId ID of execution
      */
-    fun removeContainer(containerId: String) {
-        // TODO
-        // agentRunner.cleanup(executionId)
+    fun cleanup(executionId: Long) {
+        agentRunner.cleanup(executionId)
     }
 
     @Suppress(
