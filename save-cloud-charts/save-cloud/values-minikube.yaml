@@ -3,12 +3,16 @@
 profile: dev
 backend:
   profile: dev,secure,kubernetes
+  clusterIP: 10.106.182.9
 gateway:
   profile: dev,kubernetes
   applicationProperties: |+
     server.shutdown=graceful
     management.endpoints.web.exposure.include=*
     gateway.knownActuatorConsumers=172.0.0.0/8
+orchestrator:
+  clusterIP: 10.99.80.42
+  dockerHost: tcp://${HOST_IP}:2376
 mysql:
   external: false
   ip: nil

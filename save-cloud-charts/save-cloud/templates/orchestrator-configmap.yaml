@@ -5,13 +5,16 @@ metadata:
 data:
   application.properties: |
     orchestrator.backendUrl=http://backend:5800/internal
-    orchestrator.docker.host=tcp://${HOST_IP}:2375
+    orchestrator.docker.host={{ .Values.orchestrator.dockerHost }}
     orchestrator.docker.runtime=runc
     orchestrator.docker.loggingDriver=json
 
     orchestrator.kubernetes.apiServerUrl=http://kubernetes.default.svc
     orchestrator.kubernetes.serviceAccount=${POD_SERVICE_ACCOUNT}
     orchestrator.kubernetes.namespace=${POD_NAMESPACE}
+
+    logging.level.com.github.dockerjava.api.command.BuildImageResultCallback=DEBUG
+    #logging.level.com.saveourtool.save.orchestrator.docker.DockerContainerManager=DEBUG
 
     server.shutdown=graceful
     management.endpoints.web.exposure.include=*

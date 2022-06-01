@@ -37,6 +37,7 @@ import java.io.File
 import java.nio.file.Files
 import java.nio.file.LinkOption
 import java.nio.file.attribute.PosixFileAttributeView
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
 
 import kotlin.io.path.ExperimentalPathApi
@@ -54,8 +55,7 @@ class DockerService(private val configProperties: ConfigProperties,
 ) {
     private val executionDir = "/run/save-execution"
 
-    @Suppress("NonBooleanPropertyPrefixedWithIs")
-    private val isAgentStoppingInProgress = AtomicBoolean(false)
+    private val isAgentStoppingInProgress = ConcurrentHashMap<Long, Boolean>()
 
     @Autowired
     @Qualifier("webClientBackend")
@@ -70,23 +70,28 @@ class DockerService(private val configProperties: ConfigProperties,
      * @throws DockerException if interaction with docker daemon is not successful
      */
     @Suppress("UnsafeCallOnNullableType")
-    fun buildAndCreateContainers(
+    fun buildBaseImage(
         execution: Execution,
         testSuiteDtos: List<TestSuiteDto>?,
-    ): List<String> {
+    ): Pair<String, String> {
         log.info("Building base image for execution.id=${execution.id}")
         val (imageId, agentRunCmd) = buildBaseImageForExecution(execution, testSuiteDtos)
         // todo (k8s): need to also push it so that other nodes will have access to it
-        log.info("Built base image for execution.id=${execution.id}")
+        log.info("Built base image [id=$imageId] for execution.id=${execution.id}")
 
-        return agentRunner.create(
-            executionId = execution.id!!,
-            baseImageId = imageId,
-            replicas = configProperties.agentsCount,
-            agentRunCmd = agentRunCmd,
-            workingDir = executionDir,
-        )
+        return imageId to agentRunCmd
     }
+
+    fun createContainers(executionId: Long,
+                         baseImageId: String,
+                         agentRunCmd: String,
+    ) = agentRunner.create(
+        executionId = executionId,
+        baseImageId = baseImageId,
+        replicas = configProperties.agentsCount,
+        agentRunCmd = agentRunCmd,
+        workingDir = executionDir,
+    )
 
     /**
      * @param execution an [Execution] for which containers are being started
@@ -112,8 +117,8 @@ class DockerService(private val configProperties: ConfigProperties,
      * @return true if agents have been stopped, false if another thread is already stopping them
      */
     @Suppress("TOO_MANY_LINES_IN_LAMBDA")
-    fun stopAgents(agentIds: Collection<String>) =
-            if (isAgentStoppingInProgress.compareAndSet(false, true)) {
+    fun stopAgents(executionId: Long, agentIds: Collection<String>) =
+            if (isAgentStoppingInProgress.compute(executionId) { _, value -> if (value == false) true else value } == true) {
                 try {
                     agentIds.forEach { agentId ->
                         agentRunner.stopByAgentId(agentId)
@@ -123,12 +128,21 @@ class DockerService(private val configProperties: ConfigProperties,
                     log.error("Error while stopping agents $agentIds", dex)
                     false
                 } finally {
-                    isAgentStoppingInProgress.lazySet(false)
+                    isAgentStoppingInProgress.compute(executionId) { _, _ -> false }
                 }
             } else {
                 log.info("Agents stopping is already in progress, skipping")
                 false
             }
+
+    fun stop(executionId: Long): Boolean {
+        return if (isAgentStoppingInProgress.compute(executionId) { _, value -> if (value == false) true else value } == true) {
+            agentRunner.stop(executionId)
+            true
+        } else {
+            false
+        }
+    }
 
     /**
      * @param imageName name of the image to remove

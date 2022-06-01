@@ -13,6 +13,7 @@ spec:
       labels:
         io.kompose.service: orchestrator
     spec:
+      serviceAccountName: orchestrator-sa
       restartPolicy: Always
       {{- include "spring-boot.securityContext" . | nindent 6 }}
       containers:

@@ -119,7 +119,7 @@ class AgentsControllerTest {
     fun `should stop agents by id`() {
         webClient
             .post()
-            .uri("/stopAgents")
+            .uri("/stopAgents?executionId=-1")
             .body(BodyInserters.fromValue(listOf("id-of-agent")))
             .exchange()
             .expectStatus()

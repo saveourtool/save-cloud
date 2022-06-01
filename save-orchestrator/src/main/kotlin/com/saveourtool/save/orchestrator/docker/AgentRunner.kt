@@ -32,7 +32,7 @@ interface AgentRunner {
      *
      * @param executionId
      */
-    fun stop(executionId: String)
+    fun stop(executionId: Long)
 
     /**
      * @param agentId

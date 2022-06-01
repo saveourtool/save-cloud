@@ -31,7 +31,9 @@ class Beans(private val configProperties: ConfigProperties) {
     fun dockerClient(
         configProperties: ConfigProperties,
     ): DockerClient {
-        val settings = configProperties.docker
+        val settings = requireNotNull(configProperties.docker) {
+            "properties `orchestrator.docker.*` are required to setup docker client"
+        }
         val dockerClientConfig: DockerClientConfig = DefaultDockerClientConfig
             .createDefaultConfigBuilder()
             .withDockerHost(settings.host)

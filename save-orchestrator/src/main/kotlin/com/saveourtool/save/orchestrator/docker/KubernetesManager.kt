@@ -1,10 +1,14 @@
 package com.saveourtool.save.orchestrator.docker
 
+import com.github.dockerjava.api.DockerClient
+import com.saveourtool.save.orchestrator.DOCKER_METRIC_PREFIX
 import com.saveourtool.save.orchestrator.config.ConfigProperties
+import com.saveourtool.save.orchestrator.execTimed
 import io.fabric8.kubernetes.api.model.*
 import io.fabric8.kubernetes.api.model.batch.v1.Job
 import io.fabric8.kubernetes.api.model.batch.v1.JobSpec
 import io.fabric8.kubernetes.client.DefaultKubernetesClient
+import io.micrometer.core.instrument.MeterRegistry
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
@@ -16,6 +20,8 @@ import javax.annotation.PreDestroy
 @Component
 @Profile("kubernetes")
 class KubernetesManager(
+    private val dockerClient: DockerClient,
+    private val meterRegistry: MeterRegistry,
     configProperties: ConfigProperties,
 ): AgentRunner {
     @PreDestroy
@@ -35,11 +41,19 @@ class KubernetesManager(
                         workingDir: String,
                         agentRunCmd: String,
     ): List<String> {
+        // fixme: pass image name instead of ID from the outside
+        val baseImage = dockerClient.listImagesCmd().execTimed(meterRegistry, "$DOCKER_METRIC_PREFIX.image.list")!!.find {
+            // fixme: sometimes createImageCmd returns short id without prefix, sometimes full and with prefix.
+            it.id.replaceFirst("sha256:", "").startsWith(baseImageId.replaceFirst("sha256:", ""))
+        }
+            ?: error("Image with requested baseImageId=$baseImageId is not present in the system")
+        val baseImageName = baseImage.repoTags.first()
+
         // Creating Kubernetes objects that will be responsible for lifecycle of save-agents.
         // We use Job, because Deployment will always try to restart failing pods.
         val job = Job().apply {
             metadata = ObjectMeta().apply {
-                name = jobNameForExecution("$executionId")
+                name = jobNameForExecution(executionId)
             }
             spec = JobSpec().apply {
                 parallelism = replicas
@@ -47,13 +61,15 @@ class KubernetesManager(
                     spec = PodSpec().apply {
                         containers = listOf(
                             Container().apply {
+                                name = "save-agent-pod"
                                 metadata = ObjectMeta().apply {
                                     labels = mapOf(
                                         "executionId" to "$executionId",
-                                        "baseImageId" to baseImageId
+                                        "baseImageId" to baseImageId,
+//                                        "baseImageName" to baseImageName
                                     )
                                 }
-                                image = baseImageId
+                                image = baseImageName
                                 imagePullPolicy = "IfNotPresent"  // so that local images could be used
                                 // If agent fails, we should handle it manually (update statuses, attempt restart etc)
                                 restartPolicy = "Never"
@@ -62,11 +78,13 @@ class KubernetesManager(
                                         name = "POD_NAME"
                                         valueFrom = EnvVarSource().apply {
                                             fieldRef = ObjectFieldSelector().apply {
-                                                fieldPath = "spec.name"
+                                                fieldPath = "metadata.name"
                                             }
                                         }
                                     }
                                 )
+                                command = agentRunCmd.split(" ")
+                                this.workingDir = workingDir
                             }
                         )
                     }
@@ -82,7 +100,7 @@ class KubernetesManager(
         logger.debug("${this::class.simpleName}#start is called, but it's no-op because Kubernetes workloads are managed by Kubernetes itself")
     }
 
-    override fun stop(executionId: String) {
+    override fun stop(executionId: Long) {
         val jobName = jobNameForExecution(executionId)
         val isDeleted = kc.batch().v1().jobs().withName(jobName).delete()
         if (!isDeleted) throw AgentRunnerException("Failed to delete job with name $jobName")
@@ -97,7 +115,7 @@ class KubernetesManager(
         TODO("Not yet implemented")
     }
 
-    private fun jobNameForExecution(executionId: String) = "save-execution-$executionId"
+    private fun jobNameForExecution(executionId: Long) = "save-execution-$executionId"
 
     companion object {
         private val logger = LoggerFactory.getLogger(KubernetesManager::class.java)

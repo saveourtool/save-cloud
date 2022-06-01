@@ -8,6 +8,7 @@ import com.saveourtool.save.entities.AgentStatus
 import com.saveourtool.save.entities.AgentStatusDto
 import com.saveourtool.save.entities.AgentStatusesForExecution
 import org.slf4j.LoggerFactory
+import org.springframework.http.HttpStatus
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.server.ResponseStatusException
 
 /**
  * Controller to manipulate with Agent related data
@@ -107,6 +109,10 @@ class AgentsController(private val agentStatusRepository: AgentStatusRepository,
     fun findAgentIdsForExecution(@RequestParam executionId: Long) = agentRepository.findByExecutionId(executionId)
         .map(Agent::containerId)
 
+    @GetMapping("/getExecutionIdByAgentId")
+    fun findExecutionIdByAgentId(@RequestParam agentId: String) = agentRepository.findByContainerId(agentId)
+        ?.let { it.execution.id!! }!!
+
     /**
      * Get agent by containerId.
      *
@@ -117,7 +123,7 @@ class AgentsController(private val agentStatusRepository: AgentStatusRepository,
         val agent = agentRepository.findOne { root, _, cb ->
             cb.equal(root.get<String>("containerId"), containerId)
         }
-        return agent.orElseThrow { IllegalStateException("Agent with containerId=$containerId not found in the DB") }
+        return agent.orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "Agent with containerId=$containerId not found in the DB") }
     }
 
     companion object {
