@@ -18,7 +18,6 @@ import com.saveourtool.save.test.TestBatch
 import com.saveourtool.save.test.TestDto
 import com.saveourtool.save.testsuite.TestSuiteType
 
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.BodyInserters
@@ -37,15 +36,13 @@ import java.util.logging.Level
  * Service for work with agents and backend
  */
 @Service
-class AgentService {
+class AgentService(
+    @Qualifier("webClientBackend") private val webClientBackend: WebClient
+) {
     /**
      * A scheduler that executes long-running background tasks
      */
     internal val scheduler = Schedulers.boundedElastic().also { it.start() }
-
-    @Autowired
-    @Qualifier("webClientBackend")
-    private lateinit var webClientBackend: WebClient
 
     /**
      * Sets new tests ids
