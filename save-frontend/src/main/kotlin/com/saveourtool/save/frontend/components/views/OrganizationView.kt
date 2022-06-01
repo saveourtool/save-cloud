@@ -622,7 +622,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 }
 
                 h1("h3 mb-0 text-gray-800 ml-2") {
-                    +"${state.organization?.name}"
+                    +(state.organization?.name ?: "N/A")
                 }
             }
 

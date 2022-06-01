@@ -3,8 +3,6 @@ package com.saveourtool.save.frontend.components.views
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.OrganizationStatus
-import com.saveourtool.save.entities.Project
-import com.saveourtool.save.entities.ProjectStatus
 import com.saveourtool.save.frontend.externals.*
 import com.saveourtool.save.frontend.utils.apiUrl
 import com.saveourtool.save.frontend.utils.mockMswResponse
@@ -15,36 +13,26 @@ import react.react
 import kotlin.js.Promise
 import kotlin.test.*
 
-class ProjectViewTest {
+class OrganizationViewTest {
     private val testOrganization = Organization(
         "TestOrg",
         OrganizationStatus.CREATED,
         2,
         LocalDateTime(2022, 6, 1, 12, 25),
     )
-    private val testProject = Project(
-        "TestProject",
-        null,
-        "Project Description",
-        ProjectStatus.CREATED,
-        true,
-        2,
-        "email@test.org",
-        organization = testOrganization,
-    )
     private val testUserInfo = UserInfo(
         "TestUser",
         "basic",
-        mapOf(testProject.name to Role.OWNER),
+        emptyMap(),
         mapOf(testOrganization.name to Role.OWNER),
         globalRole = Role.VIEWER,
     )
     private val worker = setupWorker(
-        rest.get("$apiUrl/projects/get/organization-name") { _, res, _ ->
+        rest.get("$apiUrl/organization/${testOrganization.name}") { _, res, _ ->
             res { response ->
                 mockMswResponse(
                     response,
-                    testProject
+                    testOrganization
                 )
             }
         },
@@ -62,20 +50,12 @@ class ProjectViewTest {
     }
 
     @Test
-    fun projectViewShouldRender(): Promise<Unit> {
-        renderProjectView()
-        return screen.findByText("Project ${testProject.name}").then {
-            assertNotNull(it, "Should show project name")
-        }
-    }
-
-    @Test
-    fun shouldShowConfirmationWindowWhenDeletingProject(): Promise<Unit> {
-        renderProjectView()
+    fun shouldShowConfirmationWindowWhenDeletingOrganization(): Promise<Unit> {
+        renderOrganizationView()
         return screen.findByText("SETTINGS").then {
             userEvent.click(it)
         }.then { _: Unit ->
-            screen.findByText("Delete project")
+            screen.findByText("Delete organization")
         }
             .then {
                 userEvent.click(it)
@@ -86,10 +66,9 @@ class ProjectViewTest {
             }
     }
 
-    private fun renderProjectView(userInfo: UserInfo = testUserInfo) = ProjectView::class.react
+    private fun renderOrganizationView(userInfo: UserInfo = testUserInfo) = OrganizationView::class.react
         .create {
-            owner = testOrganization.name
-            name = testProject.name
+            organizationName = testOrganization.name
             currentUserInfo = userInfo
         }.let {
             render(it)
