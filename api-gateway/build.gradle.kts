@@ -1,5 +1,6 @@
-import org.cqfn.save.buildutils.configureJacoco
-import org.cqfn.save.buildutils.configureSpringBoot
+import com.saveourtool.save.buildutils.configureJacoco
+import com.saveourtool.save.buildutils.configureSpotless
+import com.saveourtool.save.buildutils.configureSpringBoot
 
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
@@ -30,3 +31,4 @@ dependencies {
 }
 
 configureJacoco()
+configureSpotless()

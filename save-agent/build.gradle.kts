@@ -1,5 +1,6 @@
-import org.cqfn.save.buildutils.pathToSaveCliVersion
-import org.cqfn.save.buildutils.readSaveCliVersion
+import com.saveourtool.save.buildutils.configureSpotless
+import com.saveourtool.save.buildutils.pathToSaveCliVersion
+import com.saveourtool.save.buildutils.readSaveCliVersion
 
 plugins {
     kotlin("multiplatform")
@@ -10,7 +11,7 @@ kotlin {
     // Create a target for the host platform.
     val hostTarget = linuxX64 {
         binaries.executable {
-            entryPoint = "org.cqfn.save.agent.main"
+            entryPoint = "com.saveourtool.save.agent.main"
             baseName = "save-agent"
         }
         binaries.all {
@@ -87,6 +88,7 @@ kotlin {
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinTest> {
     testLogging.showStandardStreams = true
 }
+configureSpotless()
 
 // todo: this logic is duplicated between agent and frontend, can be moved to a shared plugin in buildSrc
 val generateVersionFileTaskProvider = tasks.register("generateVersionFile") {

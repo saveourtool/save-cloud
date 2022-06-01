@@ -1,8 +1,12 @@
+import com.saveourtool.save.buildutils.configurePublishing
+import com.saveourtool.save.buildutils.configureSpotless
+
 plugins {
     kotlin("multiplatform")
     alias(libs.plugins.kotlin.plugin.serialization)
     kotlin("plugin.allopen")
     alias(libs.plugins.kotlin.plugin.jpa)
+    `maven-publish`
 }
 kotlin {
     allOpen {
@@ -45,3 +49,6 @@ kotlin {
         }
     }
 }
+
+configureSpotless()
+configurePublishing()

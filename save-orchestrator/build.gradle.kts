@@ -1,7 +1,4 @@
-import org.cqfn.save.buildutils.configureJacoco
-import org.cqfn.save.buildutils.configureSpringBoot
-import org.cqfn.save.buildutils.pathToSaveCliVersion
-import org.cqfn.save.buildutils.readSaveCliVersion
+import com.saveourtool.save.buildutils.*
 
 import de.undercouch.gradle.tasks.download.Download
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
@@ -12,11 +9,12 @@ import org.springframework.boot.gradle.tasks.run.BootRun
 plugins {
     kotlin("jvm")
     id("de.undercouch.download")  // can't use `alias`, because this plugin is a transitive dependency of kotlin-gradle-plugin
-    id("org.gradle.test-retry") version "1.3.2"
+    id("org.gradle.test-retry") version "1.4.0"
 }
 
 configureSpringBoot()
 configureJacoco()
+configureSpotless()
 
 tasks.withType<KotlinCompile> {
     kotlinOptions {
@@ -34,7 +32,7 @@ val downloadSaveCliTaskProvider: TaskProvider<Download> = tasks.register<Downloa
 
     src(KotlinClosure0(function = {
         val saveCliVersion = readSaveCliVersion()
-        "https://github.com/analysis-dev/save/releases/download/v$saveCliVersion/save-$saveCliVersion-linuxX64.kexe"
+        "https://github.com/saveourtool/save-cli/releases/download/v$saveCliVersion/save-$saveCliVersion-linuxX64.kexe"
     }))
     dest("$buildDir/resources/main")
     overwrite(false)

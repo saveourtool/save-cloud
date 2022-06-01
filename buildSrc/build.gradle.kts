@@ -16,6 +16,7 @@ dependencies {
     implementation(libs.detekt.gradle.plugin)
     implementation(libs.reckon.gradle.plugin)
     implementation(libs.kotlin.plugin.allopen)
+    implementation(libs.gradle.plugin.spotless)
     implementation("io.github.gradle-nexus:publish-plugin:1.1.0")
 }
 

@@ -22,7 +22,14 @@ spec:
             {{- include "spring-boot.common.env" (merge (dict "service" .Values.gateway) .) | nindent 12 }}
             - name: OAUTH_CONFIG_PATH
               value: /home/cnb/secrets/oauth
+            - name: JAVA_TOOL_OPTIONS
+              value: -XX:ReservedCodeCacheSize=48M
           {{- include "spring-boot.management" .Values.gateway | nindent 10 }}
+          resources:
+            limits:
+              memory: 400M
+            requests:
+              memory: 300M
           volumeMounts:
             - {{ include "spring-boot.config-volume-mount" . | indent 14 | trim }}
             - mountPath: /home/cnb/secrets/oauth
