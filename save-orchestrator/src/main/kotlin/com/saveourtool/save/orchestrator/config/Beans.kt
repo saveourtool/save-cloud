@@ -1,5 +1,11 @@
 package com.saveourtool.save.orchestrator.config
 
+import com.github.dockerjava.api.DockerClient
+import com.github.dockerjava.core.DefaultDockerClientConfig
+import com.github.dockerjava.core.DockerClientConfig
+import com.github.dockerjava.core.DockerClientImpl
+import com.github.dockerjava.httpclient5.ApacheDockerHttpClient
+import com.github.dockerjava.transport.DockerHttpClient
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.web.reactive.function.client.WebClient
@@ -16,4 +22,25 @@ class Beans(private val configProperties: ConfigProperties) {
      */
     @Bean
     fun webClientBackend() = WebClient.create(configProperties.backendUrl)
+
+    /**
+     * @param configProperties orchestrator configuration
+     * @return instance of [DockerClient]
+     */
+    @Bean
+    fun dockerClient(
+        configProperties: ConfigProperties,
+    ): DockerClient {
+        val settings = configProperties.docker
+        val dockerClientConfig: DockerClientConfig = DefaultDockerClientConfig
+            .createDefaultConfigBuilder()
+            .withDockerHost(settings.host)
+            .withDockerTlsVerify(false)
+            .build()
+        val dockerHttpClient: DockerHttpClient = ApacheDockerHttpClient.Builder()
+            .dockerHost(dockerClientConfig.dockerHost)
+            .build()
+
+        return DockerClientImpl.getInstance(dockerClientConfig, dockerHttpClient)
+    }
 }

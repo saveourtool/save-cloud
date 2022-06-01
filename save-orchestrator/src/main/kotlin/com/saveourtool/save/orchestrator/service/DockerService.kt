@@ -9,15 +9,16 @@ import com.saveourtool.save.orchestrator.SAVE_CLI_EXECUTABLE_NAME
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.copyRecursivelyWithAttributes
 import com.saveourtool.save.orchestrator.createSyntheticTomlConfig
-import com.saveourtool.save.orchestrator.docker.ContainerManager
+import com.saveourtool.save.orchestrator.docker.AgentRunner
+import com.saveourtool.save.orchestrator.docker.DockerContainerManager
 import com.saveourtool.save.orchestrator.fillAgentPropertiesFromConfiguration
 import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.utils.PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE
 import com.saveourtool.save.utils.STANDARD_TEST_SUITE_DIR
 import com.saveourtool.save.utils.moveFileWithAttributes
 
+import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.api.exception.DockerException
-import io.micrometer.core.instrument.MeterRegistry
 import net.lingala.zip4j.ZipFile
 import net.lingala.zip4j.exception.ZipException
 import org.apache.commons.io.FileUtils
@@ -41,17 +42,16 @@ import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.io.path.ExperimentalPathApi
 
 /**
- * A service that uses [ContainerManager] to build and start containers for test execution.
+ * A service that uses [DockerContainerManager] to build and start containers for test execution.
+ * @property dockerContainerManager [DockerContainerManager] that is used to access docker daemon API
  */
 @Service
 @OptIn(ExperimentalPathApi::class)
 class DockerService(private val configProperties: ConfigProperties,
-                    meterRegistry: MeterRegistry,
+                    private val dockerClient: DockerClient,
+                    internal val dockerContainerManager: DockerContainerManager,
+                    private val agentRunner: AgentRunner,
 ) {
-    /**
-     * [ContainerManager] that is used to access docker daemon API
-     */
-    internal val containerManager = ContainerManager(configProperties.docker, meterRegistry)
     private val executionDir = "/run/save-execution"
 
     @Suppress("NonBooleanPropertyPrefixedWithIs")
@@ -69,30 +69,30 @@ class DockerService(private val configProperties: ConfigProperties,
      * @return list of IDs of created containers
      * @throws DockerException if interaction with docker daemon is not successful
      */
+    @Suppress("UnsafeCallOnNullableType")
     fun buildAndCreateContainers(
         execution: Execution,
         testSuiteDtos: List<TestSuiteDto>?,
     ): List<String> {
         log.info("Building base image for execution.id=${execution.id}")
         val (imageId, agentRunCmd) = buildBaseImageForExecution(execution, testSuiteDtos)
+        // todo (k8s): need to also push it so that other nodes will have access to it
         log.info("Built base image for execution.id=${execution.id}")
-        return (1..configProperties.agentsCount).map { number ->
-            log.info("Building container #$number for execution.id=${execution.id}")
-            containerManager.createContainerFromImage(
-                imageId,
-                executionDir,
-                agentRunCmd,
-                containerName("${execution.id}-$number"),
-            ).also {
-                log.info("Built container id=$it for execution.id=${execution.id}")
-            }
-        }
+
+        return agentRunner.create(
+            executionId = execution.id!!,
+            baseImageId = imageId,
+            replicas = configProperties.agentsCount,
+            agentRunCmd = agentRunCmd,
+            workingDir = executionDir,
+        )
     }
 
     /**
      * @param execution an [Execution] for which containers are being started
      * @param agentIds list of IDs of agents (==containers) for this execution
      */
+    @Suppress("UnsafeCallOnNullableType")
     fun startContainersAndUpdateExecution(execution: Execution, agentIds: List<String>) {
         val executionId = requireNotNull(execution.id) { "For project=${execution.project} method has been called with execution with id=null" }
         log.info("Sending request to make execution.id=$executionId RUNNING")
@@ -103,12 +103,7 @@ class DockerService(private val configProperties: ConfigProperties,
             .retrieve()
             .toBodilessEntity()
             .subscribe()
-        agentIds.forEach {
-            log.info("Starting container id=$it")
-            containerManager.dockerClient
-                .startContainerCmd(it)
-                .exec()
-        }
+        agentRunner.start(execution.id!!)
         log.info("Successfully started all containers for execution.id=$executionId")
     }
 
@@ -120,18 +115,8 @@ class DockerService(private val configProperties: ConfigProperties,
     fun stopAgents(agentIds: Collection<String>) =
             if (isAgentStoppingInProgress.compareAndSet(false, true)) {
                 try {
-                    val containerList = containerManager.dockerClient.listContainersCmd().withShowAll(true).exec()
-                    val runningContainersIds = containerList.filter { it.state == "running" }.map { it.id }
                     agentIds.forEach { agentId ->
-                        if (agentId in runningContainersIds) {
-                            log.info("Stopping agent with id=$agentId")
-                            containerManager.dockerClient.stopContainerCmd(agentId).exec()
-                            log.info("Agent with id=$agentId has been stopped")
-                        } else {
-                            val state = containerList.find { it.id == agentId }?.state ?: "deleted"
-                            val warnMsg = "Agent with id=$agentId was requested to be stopped, but it actual state=$state"
-                            log.warn(warnMsg)
-                        }
+                        agentRunner.stopByAgentId(agentId)
                     }
                     true
                 } catch (dex: DockerException) {
@@ -151,31 +136,21 @@ class DockerService(private val configProperties: ConfigProperties,
      */
     fun removeImage(imageName: String) {
         log.info("Removing image $imageName")
-        val existingImages = containerManager.dockerClient.listImagesCmd().exec().map {
+        val existingImages = dockerClient.listImagesCmd().exec().map {
             it.id
         }
         if (imageName in existingImages) {
-            containerManager.dockerClient.removeImageCmd(imageName).exec()
+            dockerClient.removeImageCmd(imageName).exec()
         } else {
             log.info("Image $imageName is not present, so won't attempt to remove")
         }
     }
 
     /**
-     * @param containerId id of container to remove
-     * @return an instance of docker command
+     * @param executionId ID of execution
      */
-    fun removeContainer(containerId: String) {
-        log.info("Removing container $containerId")
-        val existingContainerIds = containerManager.dockerClient.listContainersCmd().withShowAll(true).exec()
-            .map {
-                it.id
-            }
-        if (containerId in existingContainerIds) {
-            containerManager.dockerClient.removeContainerCmd(containerId).exec()
-        } else {
-            log.info("Container $containerId is not present, so won't attempt to remove")
-        }
+    fun cleanup(executionId: Long) {
+        agentRunner.cleanup(executionId)
     }
 
     @Suppress(
@@ -259,7 +234,7 @@ class DockerService(private val configProperties: ConfigProperties,
         } else {
             ""
         }
-        val imageId = containerManager.buildImageWithResources(
+        val imageId = dockerContainerManager.buildImageWithResources(
             baseImage = baseImage,
             imageName = imageName(execution.id!!),
             baseDir = resourcesPath,
@@ -377,11 +352,6 @@ class DockerService(private val configProperties: ConfigProperties,
  * @param executionId
  */
 internal fun imageName(executionId: Long) = "save-execution:$executionId"
-
-/**
- * @param id
- */
-internal fun containerName(id: String) = "save-execution-$id"
 
 /**
  * @param testSuiteDto
