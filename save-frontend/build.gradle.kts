@@ -1,5 +1,9 @@
+import com.saveourtool.save.buildutils.configureSpotless
+
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin
+import org.jetbrains.kotlin.gradle.targets.js.testing.KotlinJsTest
 
 plugins {
     kotlin("js")
@@ -121,6 +125,56 @@ rootProject.extensions.configure<org.jetbrains.kotlin.gradle.targets.js.yarn.Yar
     lockFileDirectory = rootProject.projectDir
 }
 
+val mswScriptTargetPath = file("${rootProject.buildDir}/js/packages/${rootProject.name}-${project.name}-test/node_modules").absolutePath
+val mswScriptTargetFile = "$mswScriptTargetPath/mockServiceWorker.js"
+@Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
+val installMwsScriptTaskProvider = tasks.register<Exec>("installMswScript") {
+    dependsOn(":kotlinNodeJsSetup", ":kotlinNpmInstall", "packageJson")
+    inputs.dir(mswScriptTargetPath)
+    outputs.file(mswScriptTargetFile)
+    // cd to directory where the generated package.json is located. This is required for correct operation of npm/npx
+    workingDir("$rootDir/build/js")
+
+    val isWindows = DefaultNativePlatform.getCurrentOperatingSystem().isWindows
+    val nodeJsEnv = NodeJsRootPlugin.apply(project.rootProject).requireConfigured()
+    val nodeDir = nodeJsEnv.nodeDir
+    val nodeBinDir = nodeJsEnv.nodeBinDir
+    listOf(
+        System.getenv("PATH"),
+        nodeBinDir.absolutePath,
+    )
+        .filterNot { it.isNullOrEmpty() }
+        .joinToString(separator = File.pathSeparator)
+        .let { environment("PATH", it) }
+
+    if (!isWindows) {
+        doFirst {
+            // workaround, because `npx` is a symlink but symlinks are lost when Gradle unpacks archive
+            exec {
+                commandLine("ln", "-sf", "$nodeDir/lib/node_modules/npm/bin/npx-cli.js", "$nodeBinDir/npx")
+            }
+            exec {
+                commandLine("ln", "-sf", "$nodeDir/lib/node_modules/npm/bin/npm-cli.js", "$nodeBinDir/npm")
+            }
+            exec {
+                commandLine("ln", "-sf", "$nodeDir/lib/node_modules/corepack/dist/corepack.js", "$nodeBinDir/corepack")
+            }
+        }
+    }
+
+    commandLine(
+        nodeBinDir.resolve(if (isWindows) "npx.cmd" else "npx").canonicalPath,
+        "msw",
+        "init",
+        mswScriptTargetPath,
+        "--no-save",
+    )
+}
+tasks.named<KotlinJsTest>("browserTest").configure {
+    dependsOn(installMwsScriptTaskProvider)
+    inputs.file(mswScriptTargetFile)
+}
+
 // generate kotlin file with project version to include in web page
 val generateVersionFileTaskProvider = tasks.register("generateVersionFile") {
     val versionsFile = File("$buildDir/generated/src/generated/Versions.kt")
@@ -178,3 +232,4 @@ artifacts.add(distribution.name, distributionJarTask.get().archiveFile) {
 detekt {
     config.setFrom(config.plus(file("detekt.yml")))
 }
+configureSpotless()

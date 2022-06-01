@@ -20,6 +20,7 @@ data class DatabaseCredentials(
  * @param profile a profile to get credentials for
  * @return an instance of [DatabaseCredentials] for [profile]
  */
+@Suppress("AVOID_NULL_CHECKS")
 fun Project.getDatabaseCredentials(profile: String): DatabaseCredentials {
     val props = java.util.Properties()
 
@@ -33,7 +34,6 @@ fun Project.getDatabaseCredentials(profile: String): DatabaseCredentials {
     } else {
         // Branch for other environments, e.g. local deployment or server deployment
         file("save-backend/src/main/resources/application-$profile.properties").inputStream().use(props::load)
-
         if (File("${System.getenv("HOME")}/secrets").exists()) {
             file("${System.getenv("HOME")}/secrets").inputStream().use(props::load)
         }
