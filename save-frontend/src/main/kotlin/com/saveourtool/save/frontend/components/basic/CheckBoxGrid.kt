@@ -16,7 +16,6 @@ import react.fc
 import react.useEffect
 
 import kotlinx.html.InputType
-import kotlinx.html.classes
 import kotlinx.html.js.onClickFunction
 
 /**
@@ -124,6 +123,8 @@ fun checkBoxGrid(suites: List<TestSuiteDto>, selectedLanguageForStandardTests: S
             }
             useEffect(emptyList<dynamic>()) {
                 js("var jQuery = require(\"jquery\")")
+                js("require(\"popper.js\")")
+                js("require(\"bootstrap\")")
                 js("""jQuery('.tooltip-and-popover').each(function() {
             jQuery(this).popover({
                 placement: jQuery(this).attr("popover-placement"),

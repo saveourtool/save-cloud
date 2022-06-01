@@ -188,6 +188,8 @@ fun fileUploader(
 
     useEffect(listOf<dynamic>()) {
         val jquery = kotlinext.js.require("jquery")
+        kotlinext.js.require("popper.js")
+        kotlinext.js.require("bootstrap")
         jquery("[data-toggle=\"tooltip\"]").tooltip()
     }
 }

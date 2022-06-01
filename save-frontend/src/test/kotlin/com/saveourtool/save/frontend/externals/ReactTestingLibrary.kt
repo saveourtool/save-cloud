@@ -49,3 +49,5 @@ external class BoundFunctions {
 }
 
 external fun <P : Props> render(ui: ReactElement<P>, options: dynamic = definedExternally): RenderResult
+
+external fun <T> waitForElementToBeRemoved(elem: T, options: dynamic = definedExternally): Promise<Unit>
