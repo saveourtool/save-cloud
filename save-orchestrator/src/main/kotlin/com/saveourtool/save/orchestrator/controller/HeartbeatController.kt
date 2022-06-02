@@ -26,7 +26,6 @@ import reactor.core.publisher.Mono
 import java.time.Duration
 import java.time.LocalDateTime
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.ConcurrentLinkedQueue
 
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
@@ -34,7 +33,7 @@ import kotlinx.serialization.json.Json
 import java.util.concurrent.ConcurrentMap
 
 private val agentsLatestHeartBeatsMap: ConcurrentMap<String, ShortAgentInfo> = ConcurrentHashMap()
-internal val crashedAgentsList: ConcurrentMap<Long, MutableList<String>> = ConcurrentHashMap()
+internal val crashedAgentsByExecution: ConcurrentMap<Long, MutableList<String>> = ConcurrentHashMap()
 
 internal data class ShortAgentInfo(
     val executionId: Long,
@@ -70,6 +69,7 @@ class HeartbeatController(private val agentService: AgentService,
     @PostMapping("/heartbeat")
     fun acceptHeartbeat(@RequestBody heartbeat: Heartbeat): Mono<String> {
         logger.info("Got heartbeat state: ${heartbeat.state.name} from ${heartbeat.agentId}")
+        // fixme: maybe it'll be better to include executionId into heartbeat itself
         return agentService.getExecutionIdByAgentId(heartbeat.agentId).map { executionId ->
             updateAgentHeartbeatTimeStamps(executionId, heartbeat)
         }
@@ -135,14 +135,14 @@ class HeartbeatController(private val agentService: AgentService,
      * Consider agent as crashed, if it didn't send heartbeats for some time
      */
     fun determineCrashedAgents() {
-        agentsLatestHeartBeatsMap.filterValues { (currentAgentId, _) ->
-            currentAgentId !in crashedAgentsList
+        agentsLatestHeartBeatsMap.filter { (currentAgentId, agentInfo) ->
+            crashedAgentsByExecution[agentInfo.executionId]?.contains(currentAgentId)?.not() ?: false
         }.forEach { (currentAgentId, agentInfo) ->
             val duration = (Clock.System.now() - agentInfo.timestamp).inWholeMilliseconds
             logger.debug("Latest heartbeat from $currentAgentId was sent: $duration ms ago")
             if (duration >= configProperties.agentsHeartBeatTimeoutMillis) {
                 logger.debug("Adding $currentAgentId to list crashed agents")
-                crashedAgentsList.compute(agentInfo.executionId) { _, ids ->
+                crashedAgentsByExecution.compute(agentInfo.executionId) { _, ids ->
                     ids?.apply { add(currentAgentId) }
                 }
             }
@@ -153,12 +153,12 @@ class HeartbeatController(private val agentService: AgentService,
      * Stop crashed agents and mark corresponding test executions as failed with internal error
      */
     fun processCrashedAgents() {
-        if (crashedAgentsList.isEmpty()) {
+        if (crashedAgentsByExecution.isEmpty()) {
             return
         }
-        logger.debug("Stopping crashed agents: $crashedAgentsList")
+        logger.debug("Stopping crashed agents: $crashedAgentsByExecution")
 
-        crashedAgentsList.forEach { executionId, crashedAgentsList ->
+        crashedAgentsByExecution.forEach { executionId, crashedAgentsList ->
             val areAgentsStopped = dockerService.stopAgents(executionId, crashedAgentsList)
             if (areAgentsStopped) {
                 agentService.markAgentsAndTestExecutionsCrashed(crashedAgentsList)
@@ -196,10 +196,14 @@ class HeartbeatController(private val agentService: AgentService,
                 if (finishedAgentIds.isNotEmpty()) {
                     finishedAgentIds.forEach {
                         val agentInfo = agentsLatestHeartBeatsMap.remove(it)
-                        crashedAgentsList[agentInfo!!.executionId]!!.remove(it)
+                        if (agentInfo != null) {
+                            crashedAgentsByExecution[agentInfo.executionId]?.remove(it)
+                        }
                     }
                     if (!areAllAgentsCrashed) {
                         logger.debug("Agents ids=$finishedAgentIds have completed execution, will make an attempt to terminate them")
+                        // todo: if Job won't try to restart crashed agents, then we can still kill them by ID
+                        //  and grouping by execution can be done in a separate PR
 //                        val areAgentsStopped = dockerService.stopAgents(finishedAgentIds)
                         val areAgentsStopped = dockerService.stop(executionId)
                         if (areAgentsStopped) {
