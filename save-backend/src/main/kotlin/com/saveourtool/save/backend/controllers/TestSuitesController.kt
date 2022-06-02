@@ -1,6 +1,7 @@
 package com.saveourtool.save.backend.controllers
 
 import com.saveourtool.save.backend.scheduling.UpdateJob
+import com.saveourtool.save.backend.service.TestService
 import com.saveourtool.save.backend.service.TestSuitesService
 import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.testsuite.TestSuiteDto
@@ -28,6 +29,7 @@ typealias ResponseListTestSuites = ResponseEntity<List<TestSuiteDto>>
 @RestController
 class TestSuitesController(
     private val testSuitesService: TestSuitesService,
+    private val testService: TestService,
     private val quartzScheduler: Scheduler,
 ) {
     /**
@@ -55,6 +57,13 @@ class TestSuitesController(
     fun getAllStandardTestSuitesWithSpecificName(@RequestParam name: String) =
             ResponseEntity.status(HttpStatus.OK).body(testSuitesService.findStandardTestSuitesByName(name))
 
+    fun getAllStandardTestsByTestSuiteName(@RequestParam name: String) =
+        ResponseEntity.status(HttpStatus.OK)
+            .body(testSuitesService.findStandardTestSuitesByName(name)
+                .flatMap { testSuite ->
+                    testService.findTestsByTestSuiteId(testSuite.id!!).map { it.id!! }
+                })
+
     /**
      * @param id id of the test suite
      * @return response with test suite with provided id
@@ -62,6 +71,14 @@ class TestSuitesController(
     @GetMapping("/internal/testSuite/{id}")
     fun getTestSuiteById(@PathVariable id: Long) =
             ResponseEntity.status(HttpStatus.OK).body(testSuitesService.findTestSuiteById(id))
+
+    /**
+     * @param id id of the test suite
+     * @return response with test suite with provided id
+     */
+    @GetMapping("/internal/testSuiteDto/{id}")
+    fun getTestSuiteDtoById(@PathVariable id: Long) =
+        ResponseEntity.status(HttpStatus.OK).body(testSuitesService.findTestSuiteById(id).map { it.toDto() })
 
     /**
      * Trigger update of standard test suites. Can be called only by superadmins externally.

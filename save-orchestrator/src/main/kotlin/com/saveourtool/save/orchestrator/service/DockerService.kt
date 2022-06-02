@@ -219,7 +219,7 @@ class DockerService(private val configProperties: ConfigProperties,
             // copy corresponding standard test suites to resourcesRootPath dir
             copyTestSuitesToResourcesPath(testSuitesForDocker, testSuitesDir)
             // move additional files, which were downloaded into the root dit to the execution dir for standard suites
-            execution.additionalFiles?.split(";")?.filter { it.isNotBlank() }?.forEach {
+            execution.parseAndGetAdditionalFiles()?.forEach {
                 val additionalFilePath = resourcesPath.resolve(File(it).name)
                 log.info("Move additional file $additionalFilePath into $testSuitesDir")
                 moveFileWithAttributes(additionalFilePath, testSuitesDir)
@@ -344,7 +344,7 @@ class DockerService(private val configProperties: ConfigProperties,
         resourcesPath: File,
     ) {
         // FixMe: for now support only .zip files
-        execution.additionalFiles?.split(";")?.filter { it.endsWith(".zip") }?.forEach { fileName ->
+        execution.parseAndGetAdditionalFiles()?.filter { it.endsWith(".zip") }?.forEach { fileName ->
             val fileLocation = if (isStandardMode) {
                 testSuitesDir
             } else {

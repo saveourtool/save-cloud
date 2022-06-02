@@ -38,6 +38,7 @@ import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
 import java.lang.StringBuilder
+import java.nio.file.Path
 
 /**
  * Controller to save project
@@ -118,11 +119,7 @@ class CloneRepositoryController(
             }
         }
 
-    @Suppress(
-        "UnsafeCallOnNullableType",
-        "TOO_MANY_LINES_IN_LAMBDA",
-        "PARAMETER_NAME_IN_OUTER_LAMBDA",
-    )
+    @Suppress("UnsafeCallOnNullableType")
     private fun sendToPreprocessor(
         executionRequest: ExecutionRequestBase,
         executionType: ExecutionType,
@@ -146,7 +143,7 @@ class CloneRepositoryController(
             }
             files.collectToMultipartAndUpdateExecution(bodyBuilder, newExecution, it.organization.name, it.name)
                 .flatMap {
-                    preprocessorWebClient.postMultipart(bodyBuilder, uri)
+                    preprocessorWebClient.postMultipart(it, uri)
                 }
         } ?: Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).body("Project doesn't exist"))
     }
@@ -176,26 +173,24 @@ class CloneRepositoryController(
         .retrieve()
         .toEntity<String>()
 
-    @Suppress("TYPE_ALIAS")
     private fun Flux<FileInfo>.collectToMultipartAndUpdateExecution(
         multipartBodyBuilder: MultipartBodyBuilder,
         execution: Execution,
         organizationName: String,
         projectName: String,
-    ): Mono<List<MultipartBodyBuilder.PartBuilder>> {
-        val additionalFiles = StringBuilder("")
+    ): Mono<MultipartBodyBuilder> {
         val projectCoordinates = ProjectCoordinates(organizationName, projectName)
-        return map {
-            val path = additionalToolsFileSystemRepository.getPath(it, projectCoordinates)
-            additionalFiles.append("$path;")
-            multipartBodyBuilder.part("fileInfo", it)
-            multipartBodyBuilder.part("file", additionalToolsFileSystemRepository.getFile(it, projectCoordinates))
-        }
-            .collectList()
+        this.collectList()
             .switchIfEmpty(Mono.just(emptyList()))
-            .doOnNext {
-                execution.additionalFiles = additionalFiles.toString()
+            .map { fileInfos ->
+                fileInfos.forEach {
+                    multipartBodyBuilder.part("fileInfo", it)
+                    multipartBodyBuilder.part("file", additionalToolsFileSystemRepository.getFile(it, projectCoordinates))
+                }
+                execution.formatAdnSetAdditionalFiles(fileInfos.map { additionalToolsFileSystemRepository.getPath(it, projectCoordinates) }
+                    .map { it.toString() })
                 executionService.saveExecution(execution)
+                multipartBodyBuilder
             }
     }
 }

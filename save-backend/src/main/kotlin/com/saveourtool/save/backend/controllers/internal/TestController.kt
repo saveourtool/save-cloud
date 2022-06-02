@@ -2,11 +2,15 @@ package com.saveourtool.save.backend.controllers.internal
 
 import com.saveourtool.save.backend.service.TestExecutionService
 import com.saveourtool.save.backend.service.TestService
+import com.saveourtool.save.backend.service.TestSuitesService
 import com.saveourtool.save.entities.Test
 import com.saveourtool.save.test.TestDto
+import com.saveourtool.save.utils.debug
+import com.saveourtool.save.utils.getLogger
 
 import io.micrometer.core.instrument.MeterRegistry
-import org.slf4j.LoggerFactory
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -22,22 +26,50 @@ import org.springframework.web.bind.annotation.RestController
 class TestController(
     private val testService: TestService,
     private val testExecutionService: TestExecutionService,
+    private val testSuitesService: TestSuitesService,
     private val meterRegistry: MeterRegistry,
 ) {
+
     /**
      * @param testDtos list of [TestDto]s to save into the DB
-     * @param executionId ID of the [Execution], during which these tests will be executed. It might be not required if there are standard test suites
+     * @param executionId ID of the [Execution], during which these tests will be initialized
      */
     @PostMapping("/initializeTests")
-    fun initializeTests(@RequestBody testDtos: List<TestDto>, @RequestParam(required = false) executionId: Long?) {
-        log.debug("Received the following tests for initialization under executionId=$executionId: $testDtos")
-        val testsIds = meterRegistry.timer("save.backend.saveTests").record<List<Long>> {
-            testService.saveTests(testDtos)
+    fun initializeTests(@RequestBody testDtos: List<TestDto>, @RequestParam executionId: Long): List<Test> {
+        return doInitializeTests(testDtos, executionId)
+    }
+
+    /**
+     * @param testDtos list of [TestDto]s to save into the DB
+     * @param executionId ID of the [Execution], during which these tests will be initiliazed and executed
+     */
+    @PostMapping("/initializeAndExecuteTests")
+    fun initializeAndExecuteTests(@RequestBody testDtos: List<TestDto>, @RequestParam executionId: Long) {
+        val tests = doInitializeTests(testDtos, executionId)
+        doExecuteTests(tests, executionId)
+    }
+
+    /**
+     * @param testDtos list of [TestDto]s to save into the DB
+     * @param executionId ID of the [Execution], during which these tests will be initiliazed and executed
+     */
+    @PostMapping("/initializeAndExecuteTests")
+    fun executeTests(@RequestBody testDtos: List<TestDto>, @RequestParam executionId: Long) {
+        val tests = doInitializeTests(testDtos, executionId)
+        doExecuteTests(tests, executionId)
+    }
+
+    private fun doInitializeTests(testDtos: List<TestDto>, executionId: Long): List<Test> {
+        log.debug { "Received the following tests for initialization under executionId=$executionId: $testDtos" }
+        return meterRegistry.timer("save.backend.saveTests").record<List<Test>> {
+            testService.saveTestsNew(testDtos)
         }!!
-        executionId?.let {
-            meterRegistry.timer("save.backend.saveTestExecution").record {
-                testExecutionService.saveTestExecution(executionId, testsIds)
-            }
+    }
+
+    private fun doExecuteTests(tests: List<Test>, executionId: Long) {
+        log.debug { "Received the following test ids for saving test execution under executionId=$executionId: $tests" }
+        meterRegistry.timer("save.backend.saveTestExecution").record {
+            testExecutionService.updateExecutionAndSaveTestExecutions(executionId, tests)
         }
     }
 
@@ -55,9 +87,21 @@ class TestController(
     @Suppress("UnsafeCallOnNullableType")
     @PostMapping("/saveTestExecutionsForStandardByTestSuiteId")
     fun saveTestExecutionsForStandardByTestSuiteId(@RequestBody executionId: Long, @RequestParam testSuiteId: Long) {
-        val testsIds = testService.findTestsByTestSuiteId(testSuiteId).map { it.id!! }
-        log.debug("Received the following test ids for saving test execution under executionId=$executionId: $testsIds")
-        testExecutionService.saveTestExecution(executionId, testsIds)
+        val tests = testService.findTestsByTestSuiteId(testSuiteId)
+        doExecuteTests(tests, executionId)
+    }
+
+    /**
+     * @param executionId ID of the [Execution], during which these tests will be executed
+     * @param testSuiteName name of the [TestSuite], for which there will be created execution in DB
+     */
+    @Suppress("UnsafeCallOnNullableType")
+    @PostMapping("/saveTestExecutionsForStandardByTestSuiteName")
+    fun saveTestExecutionsForStandardByTestSuiteName(@RequestBody executionId: Long, @RequestParam testSuiteName: String) {
+        val tests = testSuitesService.findStandardTestSuitesByName(testSuiteName).flatMap {
+            testService.findTestsByTestSuiteId(it.id!!)
+        }
+        doExecuteTests(tests, executionId)
     }
 
     /**
@@ -68,6 +112,6 @@ class TestController(
     fun testBatches(@RequestParam agentId: String) = testService.getTestBatches(agentId)
 
     companion object {
-        private val log = LoggerFactory.getLogger(TestController::class.java)
+        private val log = getLogger<TestController>()
     }
 }

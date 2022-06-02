@@ -115,7 +115,7 @@ class Execution(
         matchedChecks,
         expectedChecks,
         unexpectedChecks,
-        additionalFiles?.split(";")?.filter { it.isNotBlank() },
+        parseAndGetAdditionalFiles(),
     )
 
     /**
@@ -137,8 +137,30 @@ class Execution(
             .joinToString(TEST_SUITE_IDS_DELIMITER)
     }
 
+    /**
+     * Appends testSuiteIds to existed formatted String
+     *
+     * @param newTestSuiteIds new list of TestSuite IDs
+     */
+    fun appendTestSuiteIds(newTestSuiteIds: List<Long>) {
+        parseAndGetTestSuiteIds()
+            ?.let { it + newTestSuiteIds }
+            ?.distinct()
+            ?.let { formatAndSetTestSuiteIds(it) }
+    }
+
+    fun parseAndGetAdditionalFiles(): List<String>? = this.additionalFiles
+        ?.split(ADDITIONAL_FILES_DELIMITER)
+        ?.filter { it.isNotBlank() }
+
+    fun formatAdnSetAdditionalFiles(additionalFiles: List<String>) {
+        this.additionalFiles = additionalFiles.joinToString(ADDITIONAL_FILES_DELIMITER)
+    }
+
     companion object {
         private const val TEST_SUITE_IDS_DELIMITER = ", "
+
+        private const val ADDITIONAL_FILES_DELIMITER = ";"
 
         /**
          * Create a stub for testing. Since all fields are mutable, only required ones can be set after calling this method.
