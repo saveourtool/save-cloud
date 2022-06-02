@@ -79,9 +79,10 @@ class ProjectViewTest {
             userEvent.click(it)
         }.then { _: Unit ->
             screen.findByText("Ok")
-        }.then {
-            assertNotNull(it, "Should show confirmation window")
         }
+            .then {
+                assertNotNull(it, "Should show confirmation window")
+            }
     }
 
     private fun renderProjectView(userInfo: UserInfo = testUserInfo) = ProjectView::class.react

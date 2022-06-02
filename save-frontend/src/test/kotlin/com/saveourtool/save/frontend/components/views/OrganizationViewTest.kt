@@ -59,9 +59,10 @@ class OrganizationViewTest {
             userEvent.click(it)
         }.then { _: Unit ->
             screen.findByText("Ok")
-        }.then {
-            assertNotNull(it, "Should show confirmation window")
         }
+            .then {
+                assertNotNull(it, "Should show confirmation window")
+            }
     }
 
     private fun renderOrganizationView(userInfo: UserInfo = testUserInfo) = OrganizationView::class.react
