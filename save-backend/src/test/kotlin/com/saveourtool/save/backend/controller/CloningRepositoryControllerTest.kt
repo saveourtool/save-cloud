@@ -138,8 +138,8 @@ class CloningRepositoryControllerTest {
         val property = tmpDir.resolve("property").apply {
             createFile()
         }
-        fileSystemRepository.saveFile(binFile)
-        fileSystemRepository.saveFile(property)
+        fileSystemRepository.saveFile(binFile, "Huawei", "huaweiName")
+        fileSystemRepository.saveFile(property, "Huawei", "huaweiName")
 
         val sdk = Jdk("8")
         val request = ExecutionRequestForStandardSuites(testProject, emptyList(), sdk, null, null, null)

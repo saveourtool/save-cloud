@@ -19,22 +19,7 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.StandardOpenOption.APPEND
 import java.util.stream.Collectors
-
-import kotlin.io.path.copyTo
-import kotlin.io.path.createDirectories
-import kotlin.io.path.createDirectory
-import kotlin.io.path.createFile
-import kotlin.io.path.deleteExisting
-import kotlin.io.path.deleteIfExists
-import kotlin.io.path.div
-import kotlin.io.path.exists
-import kotlin.io.path.fileSize
-import kotlin.io.path.getLastModifiedTime
-import kotlin.io.path.isDirectory
-import kotlin.io.path.listDirectoryEntries
-import kotlin.io.path.name
-import kotlin.io.path.notExists
-import kotlin.io.path.outputStream
+import kotlin.io.path.*
 
 /**
  * A repository which gives access to the files in a designated file system location
@@ -53,21 +38,51 @@ class TimestampBasedFileSystemRepository(configProperties: ConfigProperties) {
         }
     }
 
-    private fun getStorageDir(fileInfo: FileInfo) = rootDir.resolve(fileInfo.uploadedMillis.toString())
+    private fun getStorageDir(
+        fileInfo: FileInfo,
+        organizationName: String,
+        projectName: String,
+    ) = rootDir
+        .resolve(organizationName)
+        .resolve(projectName)
+        .resolve(fileInfo.uploadedMillis.toString())
 
-    private fun createStorageDir(fileInfo: FileInfo) = getStorageDir(fileInfo).createDirectory()
+    private fun createStorageDir(
+        fileInfo: FileInfo,
+        organizationName: String,
+        projectName: String,
+    ) = getStorageDir(fileInfo, organizationName, projectName).createDirectory()
 
     /**
+     * @param organizationName
+     * @param projectName
      * @return list of files in [rootDir]
      */
-    fun getFilesList() = rootDir.listDirectoryEntries()
-        .filter { it.isDirectory() }
-        .flatMap { it.listDirectoryEntries() }
+    fun getFilesList(
+        organizationName: String,
+        projectName: String,
+    ): List<Path> {
+        rootDir
+            .resolve(organizationName)
+            .resolve(projectName).let { path ->
+                if (path.exists()) {
+                    return path.listDirectoryEntries()
+                        .filter { it.isDirectory() }
+                        .flatMap { it.listDirectoryEntries() }
+                }
+            }
+        return emptyList()
+    }
 
     /**
+     * @param organizationName
+     * @param projectName
      * @return a list of FileInfo's
      */
-    fun getFileInfoList() = getFilesList().map {
+    fun getFileInfoList(
+        organizationName: String,
+        projectName: String,
+    ) = getFilesList(organizationName, projectName).map {
         FileInfo(
             it.name,
             // assuming here, that we always store files in timestamp-based directories
@@ -78,22 +93,42 @@ class TimestampBasedFileSystemRepository(configProperties: ConfigProperties) {
 
     /**
      * @param shortFileInfo
+     * @param organizationName
+     * @param projectName
      * @return FileInfo, obtained from [shortFileInfo]
      */
-    fun getFileInfoByShortInfo(shortFileInfo: ShortFileInfo) = getFileInfoList().first { it.name == shortFileInfo.name }.copy(isExecutable = shortFileInfo.isExecutable)
+    fun getFileInfoByShortInfo(
+        shortFileInfo: ShortFileInfo,
+        organizationName: String,
+        projectName: String,
+    ) = getFileInfoList(organizationName, projectName).first { it.name == shortFileInfo.name }.copy(isExecutable = shortFileInfo.isExecutable)
 
     /**
      * @param fileInfo a FileInfo based on which a file should be located
+     * @param organizationName
+     * @param projectName
      * @return requested file as a [FileSystemResource]
      */
-    fun getFile(fileInfo: FileInfo): FileSystemResource = getPath(fileInfo).let(::FileSystemResource)
+    fun getFile(
+        fileInfo: FileInfo,
+        organizationName: String,
+        projectName: String,
+    ): FileSystemResource = getPath(fileInfo, organizationName, projectName).let(::FileSystemResource)
 
     /**
      * @param file a file to save
+     * @param organizationName
+     * @param projectName
      * @return a FileInfo describing a saved file
      */
-    fun saveFile(file: Path): FileInfo {
+    fun saveFile(
+        file: Path,
+        organizationName: String,
+        projectName: String,
+    ): FileInfo {
         val destination = rootDir
+            .resolve(organizationName)
+            .resolve(projectName)
             .resolve(file.getLastModifiedTime().toMillis().toString())
             .createDirectories()
             .resolve(file.name)
@@ -104,12 +139,20 @@ class TimestampBasedFileSystemRepository(configProperties: ConfigProperties) {
 
     /**
      * @param parts file parts
+     * @param organizationName
+     * @param projectName
      * @return Mono with number of bytes saved
      * @throws FileAlreadyExistsException if file with this name already exists
      */
-    fun saveFile(parts: Mono<FilePart>): Mono<FileInfo> = parts.flatMap { part ->
+    fun saveFile(
+        parts: Mono<FilePart>,
+        organizationName: String,
+        projectName: String,
+    ): Mono<FileInfo> = parts.flatMap { part ->
         val uploadedMillis = System.currentTimeMillis()
         rootDir
+            .resolve(organizationName)
+            .resolve(projectName)
             .resolve(uploadedMillis.toString())
             .createDirectories()
             .resolve(part.filename()).run {
@@ -180,10 +223,16 @@ class TimestampBasedFileSystemRepository(configProperties: ConfigProperties) {
      * Delete a file described by [fileInfo]
      *
      * @param fileInfo a [FileInfo] describing a file to be deleted
+     * @param organizationName
+     * @param projectName
      * @return true if file has been deleted successfully, false otherwise
      */
-    fun delete(fileInfo: FileInfo) = try {
-        Files.walk(getStorageDir(fileInfo)).forEach {
+    fun delete(
+        fileInfo: FileInfo,
+        organizationName: String,
+        projectName: String,
+    ) = try {
+        Files.walk(getStorageDir(fileInfo, organizationName, projectName)).forEach {
             it.deleteExisting()
         }
         true
@@ -194,7 +243,13 @@ class TimestampBasedFileSystemRepository(configProperties: ConfigProperties) {
 
     /**
      * @param fileInfo
+     * @param organizationName
+     * @param projectName
      * @return path to the file in storage
      */
-    fun getPath(fileInfo: FileInfo) = getStorageDir(fileInfo).resolve(fileInfo.name)
+    fun getPath(
+        fileInfo: FileInfo,
+        organizationName: String,
+        projectName: String,
+    ) = getStorageDir(fileInfo, organizationName, projectName).resolve(fileInfo.name)
 }

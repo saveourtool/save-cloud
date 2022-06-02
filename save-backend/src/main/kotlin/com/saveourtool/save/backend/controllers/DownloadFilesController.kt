@@ -46,20 +46,31 @@ class DownloadFilesController(
     private val logger = LoggerFactory.getLogger(DownloadFilesController::class.java)
 
     /**
+     * @param organizationName
+     * @param projectName
      * @return a list of files in [additionalToolsFileSystemRepository]
      */
     @GetMapping(path = ["/api/$v1/files/list"])
-    fun list(): List<FileInfo> = additionalToolsFileSystemRepository.getFileInfoList()
+    fun list(
+        @RequestParam organizationName: String,
+        @RequestParam projectName: String,
+    ): List<FileInfo> = additionalToolsFileSystemRepository.getFileInfoList(organizationName, projectName)
 
     /**
      * @param fileInfo a FileInfo based on which a file should be located
+     * @param organizationName
+     * @param projectName
      * @return [Mono] with file contents
      */
     @GetMapping(path = ["/api/$v1/files/download"], produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
-    fun download(@RequestBody fileInfo: FileInfo): Mono<ByteArrayResponse> = Mono.fromCallable {
+    fun download(
+        @RequestBody fileInfo: FileInfo,
+        @RequestParam organizationName: String,
+        @RequestParam projectName: String,
+    ): Mono<ByteArrayResponse> = Mono.fromCallable {
         logger.info("Sending file ${fileInfo.name} to a client")
         ResponseEntity.ok().contentType(MediaType.APPLICATION_OCTET_STREAM).body(
-            additionalToolsFileSystemRepository.getFile(fileInfo).inputStream.readAllBytes()
+            additionalToolsFileSystemRepository.getFile(fileInfo, organizationName, projectName).inputStream.readAllBytes()
         )
     }
         .doOnError(FileNotFoundException::class.java) {
@@ -76,13 +87,17 @@ class DownloadFilesController(
     /**
      * @param file a file to be uploaded
      * @param returnShortFileInfo whether return FileInfo or ShortFileInfo
+     * @param organizationName
+     * @param projectName
      * @return [Mono] with response
      */
     @PostMapping(path = ["/api/$v1/files/upload"], consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     fun upload(
         @RequestPart("file") file: Mono<FilePart>,
+        @RequestParam organizationName: String,
+        @RequestParam projectName: String,
         @RequestParam(required = false, defaultValue = "true") returnShortFileInfo: Boolean,
-    ) = additionalToolsFileSystemRepository.saveFile(file).map { fileInfo ->
+    ) = additionalToolsFileSystemRepository.saveFile(file, organizationName, projectName).map { fileInfo ->
         ResponseEntity.status(
             if (fileInfo.sizeBytes > 0) HttpStatus.OK else HttpStatus.INTERNAL_SERVER_ERROR
         )

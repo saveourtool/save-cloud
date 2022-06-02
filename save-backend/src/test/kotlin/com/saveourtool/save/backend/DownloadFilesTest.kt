@@ -85,9 +85,9 @@ class DownloadFilesTest {
         val tmpFile = createTempFile("test", "txt")
             .writeLines("Lorem ipsum".lines())
         Paths.get(configProperties.fileStorage.location).createDirectories()
-        val sampleFileInfo = fileSystemRepository.saveFile(tmpFile)
+        val sampleFileInfo = fileSystemRepository.saveFile(tmpFile, "Example.com", "The Project")
 
-        webTestClient.method(HttpMethod.GET).uri("/api/$v1/files/download")
+        webTestClient.method(HttpMethod.GET).uri("/api/$v1/files/download?organizationName=Example.com&projectName=The Project")
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(sampleFileInfo)
             .accept(MediaType.APPLICATION_OCTET_STREAM)
@@ -128,7 +128,7 @@ class DownloadFilesTest {
         }
             .build()
 
-        webTestClient.post().uri("/api/$v1/files/upload")
+        webTestClient.post().uri("/api/$v1/files/upload?organizationName=Huawei&projectName=huaweiName")
             .contentType(MediaType.MULTIPART_FORM_DATA)
             .body(BodyInserters.fromMultipartData(body))
             .exchange()
@@ -136,7 +136,7 @@ class DownloadFilesTest {
             .expectBody<ShortFileInfo>()
             .consumeWith {
                 Assertions.assertTrue(
-                    fileSystemRepository.getFileInfoByShortInfo(it.responseBody!!).sizeBytes > 0
+                    fileSystemRepository.getFileInfoByShortInfo(it.responseBody!!, "Huawei", "huaweiName").sizeBytes > 0
                 )
             }
     }

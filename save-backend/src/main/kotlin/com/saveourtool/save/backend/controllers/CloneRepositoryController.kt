@@ -77,12 +77,12 @@ class CloneRepositoryController(
         // it can be fudged by user, who submits it. We should get project from DB based on name/owner combination.
         projectService.findWithPermissionByNameAndOrganization(authentication, name, organization.name, Permission.WRITE)
     }
-        .flatMap {
+        .flatMap { project ->
             sendToPreprocessor(
                 executionRequest,
                 ExecutionType.GIT,
                 authentication.username(),
-                files.map { additionalToolsFileSystemRepository.getFileInfoByShortInfo(it) }
+                files.map { additionalToolsFileSystemRepository.getFileInfoByShortInfo(it, project.organization.name, project.name) }
             ) { newExecutionId ->
                 part("executionRequest", executionRequest.copy(executionId = newExecutionId), MediaType.APPLICATION_JSON)
             }
@@ -104,18 +104,22 @@ class CloneRepositoryController(
     ): Mono<StringResponse> = with(executionRequestForStandardSuites.project) {
         projectService.findWithPermissionByNameAndOrganization(authentication, name, organization.name, Permission.WRITE)
     }
-        .flatMap {
+        .flatMap { project ->
             sendToPreprocessor(
                 executionRequestForStandardSuites,
                 ExecutionType.STANDARD,
                 authentication.username(),
-                files.map { additionalToolsFileSystemRepository.getFileInfoByShortInfo(it) }
+                files.map { additionalToolsFileSystemRepository.getFileInfoByShortInfo(it, project.organization.name, project.name) }
             ) { newExecutionId ->
                 part("executionRequestForStandardSuites", executionRequestForStandardSuites.copy(executionId = newExecutionId), MediaType.APPLICATION_JSON)
             }
         }
 
-    @Suppress("UnsafeCallOnNullableType")
+    @Suppress(
+        "UnsafeCallOnNullableType",
+        "TOO_MANY_LINES_IN_LAMBDA",
+        "PARAMETER_NAME_IN_OUTER_LAMBDA",
+    )
     private fun sendToPreprocessor(
         executionRequest: ExecutionRequestBase,
         executionType: ExecutionType,
@@ -137,7 +141,7 @@ class CloneRepositoryController(
                 ExecutionType.GIT -> "/upload"
                 ExecutionType.STANDARD -> "/uploadBin"
             }
-            files.collectToMultipartAndUpdateExecution(bodyBuilder, newExecution)
+            files.collectToMultipartAndUpdateExecution(bodyBuilder, newExecution, it.organization.name, it.name)
                 .flatMap {
                     preprocessorWebClient.postMultipart(bodyBuilder, uri)
                 }
@@ -172,14 +176,16 @@ class CloneRepositoryController(
     @Suppress("TYPE_ALIAS")
     private fun Flux<FileInfo>.collectToMultipartAndUpdateExecution(
         multipartBodyBuilder: MultipartBodyBuilder,
-        execution: Execution
+        execution: Execution,
+        organizationName: String,
+        projectName: String,
     ): Mono<List<MultipartBodyBuilder.PartBuilder>> {
         val additionalFiles = StringBuilder("")
         return map {
-            val path = additionalToolsFileSystemRepository.getPath(it)
+            val path = additionalToolsFileSystemRepository.getPath(it, organizationName, projectName)
             additionalFiles.append("$path;")
             multipartBodyBuilder.part("fileInfo", it)
-            multipartBodyBuilder.part("file", additionalToolsFileSystemRepository.getFile(it))
+            multipartBodyBuilder.part("file", additionalToolsFileSystemRepository.getFile(it, organizationName, projectName))
         }
             .collectList()
             .switchIfEmpty(Mono.just(emptyList()))
