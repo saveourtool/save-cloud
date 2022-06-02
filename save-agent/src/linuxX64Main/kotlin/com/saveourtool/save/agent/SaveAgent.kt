@@ -170,7 +170,7 @@ class SaveAgent(internal val config: AgentConfiguration,
             1_000_000L
         )
 
-    @Suppress("TOO_MANY_LINES_IN_LAMBDA")
+    @Suppress("TOO_MANY_LINES_IN_LAMBDA", "MAGIC_NUMBER", "MagicNumber")
     private fun CoroutineScope.readExecutionResults(jsonFile: String): List<TestExecutionDto> {
         val currentTime = Clock.System.now()
         val reports: List<Report> = readExecutionReportFromFile(jsonFile)
@@ -192,8 +192,10 @@ class SaveAgent(internal val config: AgentConfiguration,
                         testResultStatus,
                         executionStartSeconds.value,
                         currentTime.epochSeconds,
-                        missingWarnings = debugInfo.debugInfo?.countWarnings?.missing,
-                        matchedWarnings = debugInfo.debugInfo?.countWarnings?.match,
+                        unmatched = debugInfo.debugInfo?.countWarnings?.missing?.toLong() ?: 0L,
+                        matched = debugInfo.debugInfo?.countWarnings?.match?.toLong() ?: 0L,
+                        expected = debugInfo.debugInfo?.countWarnings?.expected?.toLong() ?: 0L,
+                        unexpected = debugInfo.debugInfo?.countWarnings?.unexpected?.toLong() ?: 0L,
                     )
                 }
             }

@@ -23,10 +23,15 @@ import javax.persistence.ManyToOne
  * @property batchSize Maximum number of returning tests per execution
  * @property type
  * @property version
+ * @property allTests
  * @property runningTests
  * @property passedTests
  * @property failedTests
  * @property skippedTests
+ * @property unmatchedChecks
+ * @property matchedChecks
+ * @property expectedChecks
+ * @property unexpectedChecks
  * @property sdk
  * @property additionalFiles
  * @property user user that has started this execution
@@ -59,6 +64,8 @@ class Execution(
 
     var version: String?,
 
+    var allTests: Long,
+
     var runningTests: Long,
 
     var passedTests: Long,
@@ -66,6 +73,14 @@ class Execution(
     var failedTests: Long,
 
     var skippedTests: Long,
+
+    var unmatchedChecks: Long,
+
+    var matchedChecks: Long,
+
+    var expectedChecks: Long,
+
+    var unexpectedChecks: Long,
 
     var sdk: String,
 
@@ -91,12 +106,46 @@ class Execution(
         version,
         startTime.toEpochSecond(ZoneOffset.UTC),
         endTime?.toEpochSecond(ZoneOffset.UTC),
+        allTests,
         runningTests,
         passedTests,
         failedTests,
         skippedTests,
+        unmatchedChecks,
+        matchedChecks,
+        expectedChecks,
+        unexpectedChecks,
         additionalFiles?.split(";")?.filter { it.isNotBlank() },
     )
+
+    /**
+     * Appends testSuiteIds to existed formatted String
+     *
+     * @param newTestSuiteIds new list of TestSuite IDs
+     */
+    fun appendTestSuiteIds(newTestSuiteIds: List<Long>) {
+        parseAndGetTestSuiteIds()
+            ?.let { it + newTestSuiteIds }
+            ?.let { formatAndSetTestSuiteIds(it) }
+    }
+
+    /**
+     * Parse and get testSuiteIds as List<Long>
+     * @return list of TestSuite IDs
+     */
+    fun parseAndGetTestSuiteIds(): List<Long>? = this.testSuiteIds
+        ?.split(TEST_SUITE_IDS_DELIMITER)
+        ?.map { it.toLong() }
+
+    /**
+     * Format and set provided list of TestSuite IDs
+     *
+     * @param testSuiteIds list of TestSuite IDs
+     */
+    fun formatAndSetTestSuiteIds(testSuiteIds: List<Long>) {
+        this.testSuiteIds = testSuiteIds.sorted()
+            .joinToString(TEST_SUITE_IDS_DELIMITER)
+    }
 
     companion object {
         /**
@@ -115,15 +164,22 @@ class Execution(
             batchSize = 20,
             type = ExecutionType.GIT,
             version = null,
-            0,
-            0,
-            0,
-            0,
+            allTests = 0,
+            runningTests = 0,
+            passedTests = 0,
+            failedTests = 0,
+            skippedTests = 0,
+            unmatchedChecks = 0,
+            matchedChecks = 0,
+            expectedChecks = 0,
+            unexpectedChecks = 0,
             sdk = Sdk.Default.toString(),
             additionalFiles = null,
             user = null,
             execCmd = null,
             batchSizeForAnalyzer = null,
         )
+
+        private const val TEST_SUITE_IDS_DELIMITER = ", "
     }
 }

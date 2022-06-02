@@ -22,4 +22,18 @@
             <where>status='READY'</where>
         </update>
     </changeSet>
+
+    <changeSet id="precision-recall-supporting" author="nulls" context="dev or prod">
+        <renameColumn tableName="test_execution" oldColumnName="missing_warnings" newColumnName="unmatched" />
+        <renameColumn tableName="test_execution" oldColumnName="matched_warnings" newColumnName="matched" />
+
+        <addColumn tableName="test_execution">
+            <column name="expected" type="bigint">
+                <constraints nullable="true"/>
+            </column>
+            <column name="unexpected" type="bigint">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>
