@@ -4,12 +4,6 @@ import com.saveourtool.save.core.config.SaveProperties
 import com.saveourtool.save.core.config.TestConfig
 import com.saveourtool.save.core.config.defaultConfig
 import com.saveourtool.save.domain.FileInfo
-import com.saveourtool.save.entities.Execution
-import com.saveourtool.save.entities.ExecutionRequest
-import com.saveourtool.save.entities.ExecutionRequestForStandardSuites
-import com.saveourtool.save.entities.GitDto
-import com.saveourtool.save.entities.Project
-import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.execution.ExecutionInitializationDto
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.ExecutionType
@@ -28,6 +22,8 @@ import com.saveourtool.save.utils.moveFileWithAttributes
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.saveourtool.save.core.utils.runIf
+import com.saveourtool.save.entities.*
+import com.saveourtool.save.test.TestDto
 import com.saveourtool.save.utils.debug
 import okio.FileSystem
 import org.eclipse.jgit.api.errors.GitAPIException
@@ -58,6 +54,7 @@ import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
 import reactor.kotlin.core.publisher.toFlux
+import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
 import reactor.netty.http.client.HttpClientRequest
@@ -263,10 +260,9 @@ class DownloadProjectController(
                         }
                             .flatMap { testSuites ->
                                 log.info("Starting to save new tests for config test root $testRootPath")
-                                initializeTests(
+                                initializeTestsNew(
                                     testSuites,
-                                    rootTestConfig,
-                                    null,
+                                    rootTestConfig
                                 )
                             }
                     }
@@ -504,7 +500,7 @@ class DownloadProjectController(
                                            testRootPath: String,
                                            projectRootRelativePath: String,
                                            gitUrl: String,
-    ): Mono<List<EmptyResponse>> = Mono.fromCallable {
+    ): Mono<EmptyResponse> = Mono.fromCallable {
         val testResourcesRootAbsolutePath =
                 getTestResourcesRootAbsolutePath(testRootPath, projectRootRelativePath)
         testDiscoveringService.getRootTestConfig(testResourcesRootAbsolutePath)
@@ -513,7 +509,9 @@ class DownloadProjectController(
             discoverAndSaveTestSuites(project, rootTestConfig, testRootPath, gitUrl)
         }
         .flatMap { (rootTestConfig, testSuites) ->
-            initializeTests(testSuites, rootTestConfig, execution)
+            initializeTestsNew(testSuites, rootTestConfig)
+        }.flatMap { tests ->
+            executeTests(tests, execution)
         }
 
     @Suppress("TYPE_ALIAS", "UnsafeCallOnNullableType")
@@ -567,11 +565,10 @@ class DownloadProjectController(
                                 rootTestConfig: TestConfig,
                                 execution: Execution?,
     ): Mono<List<EmptyResponse>> {
-        val allTests = testDiscoveringService.getAllTests(
+        return testDiscoveringService.getAllTests(
             rootTestConfig,
             testSuites,
         )
-        return allTests
             // default Webflux in-memory buffer is 256 KiB
             .chunked(128)
             .toFlux()
@@ -585,6 +582,43 @@ class DownloadProjectController(
                 ) { it.toBodilessEntity() }
             }
             .collectList()
+    }
+
+
+
+    /**
+     * Discover tests and send them to backend
+     */
+    @Suppress("MagicNumber")
+    private fun initializeTestsNew(testSuites: List<TestSuite>,
+                                    rootTestConfig: TestConfig
+    ): Mono<List<Test>> {
+        return testDiscoveringService.getAllTests(rootTestConfig, testSuites)
+            // default Webflux in-memory buffer is 256 KiB
+            .chunked(128)
+            .toFlux()
+            .doOnNext {
+                log.debug { "Processing chuck of tests [${it.first()} ... ${it.last()}]" }
+            }
+            .flatMap<Test> { testDtos ->
+                webClientBackend.makeRequest(BodyInserters.fromValue(testDtos), "/initializeTests") {
+                    it.bodyToMono()
+                }
+            }
+            .collectList()
+    }
+
+    /**
+     * Discover tests and send them to backend
+     */
+    @Suppress("MagicNumber")
+    private fun executeTests(tests: List<Test>,
+                             execution: Execution,
+    ): Mono<EmptyResponse> {
+        return webClientBackend.makeRequest(
+            BodyInserters.fromValue(tests),
+            "/executeTests?executionId=${execution.id}"
+        ) { it.toBodilessEntity() }
     }
 
     /**

@@ -49,6 +49,16 @@ class TestController(
         doExecuteTests(tests, executionId)
     }
 
+    /**
+     * @param testDtos list of [TestDto]s to save into the DB
+     * @param executionId ID of the [Execution], during which these tests will be initiliazed and executed
+     */
+    @PostMapping("/initializeAndExecuteTests")
+    fun executeTests(@RequestBody testDtos: List<TestDto>, @RequestParam executionId: Long) {
+        val tests = doInitializeTests(testDtos, executionId)
+        doExecuteTests(tests, executionId)
+    }
+
     private fun doInitializeTests(testDtos: List<TestDto>, executionId: Long): List<Test> {
         log.debug { "Received the following tests for initialization under executionId=$executionId: $testDtos" }
         return meterRegistry.timer("save.backend.saveTests").record<List<Test>> {
