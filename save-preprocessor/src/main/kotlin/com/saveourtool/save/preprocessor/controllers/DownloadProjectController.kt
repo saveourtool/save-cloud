@@ -27,6 +27,8 @@ import com.saveourtool.save.testsuite.TestSuiteType
 import com.saveourtool.save.utils.moveFileWithAttributes
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.saveourtool.save.core.utils.runIf
+import com.saveourtool.save.utils.debug
 import okio.FileSystem
 import org.eclipse.jgit.api.errors.GitAPIException
 import org.eclipse.jgit.api.errors.InvalidRemoteException
@@ -191,7 +193,7 @@ class DownloadProjectController(
                 .flatMap { (location, execution) ->
                     getTestSuitesIfStandard(executionType, execution, location)
                 }
-                .flatMap { (location, execution, testSuites) ->
+                .flatMap { (location, execution, testSuiteDtos) ->
                     val files = execution.additionalFiles?.split(";")?.filter { it.isNotBlank() }?.map { File(it) } ?: emptyList()
                     val resourcesLocation = getResourceLocation(executionType, location, executionRerunRequest.testRootPath, files)
 
@@ -214,7 +216,7 @@ class DownloadProjectController(
                         execution.project,
                         executionRerunRequest.testRootPath,
                         location,
-                        testSuites?.map { it.toDto() },
+                        testSuiteDtos,
                         executionRerunRequest.gitDto.url,
                     )
                 }
@@ -403,7 +405,7 @@ class DownloadProjectController(
         return if (executionType == ExecutionType.GIT) {
             prepareForExecutionFromGit(project, execution, testRootPath, projectRootRelativePath, gitUrl!!)
         } else {
-            prepareExecutionForStandard(testSuiteDtos!!, execution)
+            prepareExecutionForStandard(execution)
         }
             .then(initializeAgents(execution, testSuiteDtos))
             .onErrorResume { ex ->
@@ -455,9 +457,9 @@ class DownloadProjectController(
     private fun getTestSuitesById(testSuiteIds: String) = testSuiteIds.split(", ").let { testSuiteIdList ->
         Flux.fromIterable(testSuiteIdList).flatMap {
             webClientBackend.get()
-                .uri("/testSuite/$it")
+                .uri("/testSuiteDto/$it")
                 .retrieve()
-                .bodyToMono<TestSuite>()
+                .bodyToMono<TestSuiteDto>()
         }
             .collectList()
     }
@@ -511,42 +513,22 @@ class DownloadProjectController(
             discoverAndSaveTestSuites(project, rootTestConfig, testRootPath, gitUrl)
         }
         .flatMap { (rootTestConfig, testSuites) ->
-            val testSuiteIds = testSuites.map { it.id!! }.sorted()
-            execution.testSuiteIds = testSuiteIds.joinToString()
-            updateExecution(execution).map { rootTestConfig to testSuites }
-        }
-        .flatMap { (rootTestConfig, testSuites) ->
-            initializeTests(testSuites, rootTestConfig, execution.id!!)
+            initializeTests(testSuites, rootTestConfig, execution)
         }
 
     @Suppress("TYPE_ALIAS", "UnsafeCallOnNullableType")
-    private fun prepareExecutionForStandard(
-        testSuiteDtos: List<TestSuiteDto>,
-        execution: Execution
-    ): Mono<ResponseEntity<HttpStatus>> {
-        val testSuiteIds: MutableList<Long> = mutableListOf()
-        return Flux.fromIterable(testSuiteDtos).flatMap<List<TestSuite>?> {
-            webClientBackend.get()
-                .uri("/standardTestSuitesWithName?name=${it.name}")
-                .retrieve()
-                .bodyToMono()
-        }.flatMap { testSuites ->
-            Flux.fromIterable(testSuites).flatMap { testSuite ->
-                testSuiteIds.add(testSuite.id!!)
+    private fun prepareExecutionForStandard(execution: Execution): Mono<List<ResponseEntity<Void>>> {
+        return getTestSuitesById(execution.testSuiteIds!!)
+            .flatMapMany { Flux.fromIterable(it) }
+            .flatMap { testSuiteDto ->
                 webClientBackend.makeRequest(
                     BodyInserters.fromValue(execution.id!!),
-                    "/saveTestExecutionsForStandardByTestSuiteId?testSuiteId=${testSuite.id}"
+                    "/saveTestExecutionsForStandardByTestSuiteName?testSuiteName=${testSuiteDto.name}"
                 ) {
                     it.toBodilessEntity()
                 }
             }
-        }
             .collectList()
-            .flatMap {
-                testSuiteIds.sort()
-                execution.testSuiteIds = testSuiteIds.joinToString()
-                updateExecution(execution)
-            }
     }
 
     @Suppress("UnsafeCallOnNullableType")
@@ -583,24 +565,27 @@ class DownloadProjectController(
     @Suppress("MagicNumber")
     private fun initializeTests(testSuites: List<TestSuite>,
                                 rootTestConfig: TestConfig,
-                                executionId: Long?,
-    ): Mono<List<EmptyResponse>> = testDiscoveringService.getAllTests(
-        rootTestConfig,
-        testSuites,
-    )
-        // default Webflux in-memory buffer is 256 KiB
-        .chunked(128)
-        .toFlux()
-        .doOnNext {
-            log.debug("Processing chuck of tests [${it.first()} ... ${it.last()}]")
-        }
-        .flatMap { testDtos ->
-            webClientBackend.makeRequest(
-                BodyInserters.fromValue(testDtos),
-                "/initializeTests${(executionId?.let { "?executionId=$it" } ?: "")}"
-            ) { it.toBodilessEntity() }
-        }
-        .collectList()
+                                execution: Execution?,
+    ): Mono<List<EmptyResponse>> {
+        val allTests = testDiscoveringService.getAllTests(
+            rootTestConfig,
+            testSuites,
+        )
+        return allTests
+            // default Webflux in-memory buffer is 256 KiB
+            .chunked(128)
+            .toFlux()
+            .doOnNext {
+                log.debug { "Processing chuck of tests [${it.first()} ... ${it.last()}]" }
+            }
+            .flatMap { testDtos ->
+                webClientBackend.makeRequest(
+                    BodyInserters.fromValue(testDtos),
+                    "/initializeTests${(execution?.let { "?executionId=${it.id}" } ?: "")}"
+                ) { it.toBodilessEntity() }
+            }
+            .collectList()
+    }
 
     /**
      * POST request to orchestrator to initiate its work

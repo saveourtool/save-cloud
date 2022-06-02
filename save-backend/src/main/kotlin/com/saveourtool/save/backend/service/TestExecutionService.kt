@@ -8,10 +8,14 @@ import com.saveourtool.save.backend.repository.TestRepository
 import com.saveourtool.save.backend.utils.secondsToLocalDateTime
 import com.saveourtool.save.domain.TestResultLocation
 import com.saveourtool.save.domain.TestResultStatus
+import com.saveourtool.save.entities.Execution
+import com.saveourtool.save.entities.Test
 import com.saveourtool.save.entities.TestExecution
 import com.saveourtool.save.test.TestDto
+import com.saveourtool.save.utils.debug
+import com.saveourtool.save.utils.error
+import com.saveourtool.save.utils.getLogger
 
-import org.slf4j.LoggerFactory
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
 import org.springframework.transaction.PlatformTransactionManager
@@ -35,7 +39,6 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
                            private val executionRepository: ExecutionRepository,
                            transactionManager: PlatformTransactionManager,
 ) {
-    private val log = LoggerFactory.getLogger(TestExecutionService::class.java)
     private val locks: ConcurrentHashMap<Long, Any> = ConcurrentHashMap()
     private val transactionTemplate = TransactionTemplate(transactionManager).apply {
         propagationBehavior = TransactionDefinition.PROPAGATION_REQUIRES_NEW
@@ -174,18 +177,27 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
                     // update only those test executions, that haven't been updated before
                     it.status == TestResultStatus.RUNNING
                 }
-                .ifPresentOrElse({
-                    it.startTime = testExecDto.startTimeSeconds?.secondsToLocalDateTime()
-                    it.endTime = testExecDto.endTimeSeconds?.secondsToLocalDateTime()
-                    it.status = testExecDto.status
-                    it.missingWarnings = testExecDto.missingWarnings
-                    it.matchedWarnings = testExecDto.matchedWarnings
+                .ifPresentOrElse({ testExec ->
+                    testExec.startTime = testExecDto.startTimeSeconds?.secondsToLocalDateTime()
+                    testExec.endTime = testExecDto.endTimeSeconds?.secondsToLocalDateTime()
+                    testExec.status = testExecDto.status
+                    testExec.unmatched = testExecDto.unmatched
+                    testExec.matched = testExecDto.matched
+                    testExec.expected = testExecDto.expected
+                    testExec.unexpected = testExecDto.unexpected
                     when (testExecDto.status) {
                         TestResultStatus.PASSED -> counters.passed++
                         TestResultStatus.FAILED -> counters.failed++
                         else -> counters.skipped++
                     }
-                    testExecutionRepository.save(it)
+                    testExecDto.expected?.let {
+                        counters.expectedChecks += it
+                        testExec.expected = it
+                    }
+                    testExecDto.matched?.let { counters.matchedChecks += it }
+                    testExecDto.unexpected?.let { counters.unexpectedChecks += it }
+                    testExecDto.unmatched?.let { counters.unmatchedChecks += it }
+                    testExecutionRepository.save(testExec)
                 },
                     {
                         lostTests.add(testExecDto)
@@ -204,6 +216,10 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
                     passedTests += counters.passed
                     failedTests += counters.failed
                     skippedTests += counters.skipped
+                    unmatchedChecks += counters.unmatchedChecks
+                    matchedChecks += counters.matchedChecks
+                    expectedChecks += counters.expectedChecks
+                    unexpectedChecks += counters.unexpectedChecks
                 }
                 executionRepository.save(execution)
             }
@@ -216,32 +232,56 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
      * @param executionId ID of the [Execution], during which these tests will be executed
      */
     fun saveTestExecution(executionId: Long, testIds: List<Long>) {
-        log.debug("Will create test executions for executionId=$executionId for tests $testIds")
+        val execution = executionRepository.findById(executionId).get()
+        doSaveTestExecutions(execution, testIds)
+    }
+
+    /**
+     * @param executionId ID of the [Execution], during which these tests will be executed
+     * @param tests the tests, which will be executed
+     */
+    fun updateExecutionAndSaveTestExecutions(executionId: Long, tests: List<Test>) {
+        val testSuiteIds = tests.map { it.testSuite.id!! }.distinct()
+        val testIds = tests.map { it.id!! }
+
+        val execution = executionRepository.findById(executionId).get()
+        execution.allTests += testIds.size.toLong()
+        execution.appendTestSuiteIds(testSuiteIds)
+        executionRepository.save(execution)
+
+        doSaveTestExecutions(execution, testIds)
+    }
+
+    private fun doSaveTestExecutions(execution: Execution, testIds: List<Long>) {
+        val executionId = execution.id!!
+        log.debug { "Will create test executions for executionId=$executionId for tests $testIds" }
         testIds.map { testId ->
             val testExecutionList = testExecutionRepository.findByExecutionIdAndTestId(executionId, testId)
             if (testExecutionList.isNotEmpty()) {
                 log.debug("For execution with id=$executionId test id=$testId already exists in DB, deleting it")
                 testExecutionRepository.deleteAllByExecutionIdAndTestId(executionId, testId)
             }
-            val execution = executionRepository.findById(executionId).get()
-            testRepository.findById(testId).ifPresentOrElse({ test ->
-                log.debug("Creating TestExecution for test $testId")
-                val id = testExecutionRepository.save(
-                    TestExecution(
-                        test = test,
-                        execution = execution,
-                        agent = null,
-                        status = TestResultStatus.READY_FOR_TESTING,
-                        startTime = null,
-                        endTime = null,
-                        missingWarnings = null,
-                        matchedWarnings = null,
+            testRepository.findById(testId)
+                .ifPresentOrElse({ test ->
+                    log.debug("Creating TestExecution for test $testId")
+                    val id = testExecutionRepository.save(
+                        TestExecution(
+                            test = test,
+                            execution = execution,
+                            agent = null,
+                            status = TestResultStatus.READY_FOR_TESTING,
+                            startTime = null,
+                            endTime = null,
+                            unmatched = null,
+                            matched = null,
+                            expected = null,
+                            unexpected = null,
+                        )
                     )
+                    log.debug { "Created TestExecution $id for test $testId" }
+                },
+                    { log.error { "Can't find test with id = $testId to save in testExecution" } }
                 )
-                log.debug("Created TestExecution $id for test $testId")
-            },
-                { log.error("Can't find test with id = $testId to save in testExecution") }
-            )
         }
     }
 
@@ -319,7 +359,22 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
         var passed: Int = 0,
         var failed: Int = 0,
         var skipped: Int = 0,
+
+        // how many checks/validations are not found, but we expect them
+        var unmatchedChecks: Int = 0,
+        // how many checks/validations matched to expected results
+        var matchedChecks: Int = 0,
+        // how many checks/validations we expect
+        var expectedChecks: Int = 0,
+        // how many checks/validations are found, but we don't expect them
+        var unexpectedChecks: Int = 0,
+
+        // note: missedResults = expectedResults - matchedResults
     ) {
         fun total() = passed + failed + skipped
+    }
+
+    private companion object {
+        private val log = getLogger<TestExecutionService>()
     }
 }

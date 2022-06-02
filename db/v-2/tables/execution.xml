@@ -23,4 +23,14 @@
         </addColumn>
     </changeSet>
 
+    <changeSet id="add-precision-recall-columns" author="nulls" context="dev or prod">
+        <addColumn tableName="execution">
+            <column name="precision_rate" type="decimal(5, 2)" defaultValue="NULL"/>
+        </addColumn>
+
+        <addColumn tableName="execution">
+            <column name="recall_rate" type="decimal(5, 2)" defaultValue="NULL"/>
+        </addColumn>
+    </changeSet>
+
 </databaseChangeLog>
