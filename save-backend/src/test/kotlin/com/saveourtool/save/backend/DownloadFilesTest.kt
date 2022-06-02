@@ -97,7 +97,7 @@ class DownloadFilesTest {
                 Assertions.assertArrayEquals("Lorem ipsum${System.lineSeparator()}".toByteArray(), it.responseBody)
             }
 
-        webTestClient.get().uri("/api/$v1/files/list")
+        webTestClient.get().uri("/api/$v1/files/list?organizationName=Example.com&projectName=The Project")
             .exchange()
             .expectStatus().isOk
             .expectBodyList<FileInfo>()
