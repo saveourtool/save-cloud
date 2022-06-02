@@ -148,6 +148,8 @@ class Execution(
     }
 
     companion object {
+        private const val TEST_SUITE_IDS_DELIMITER = ", "
+
         /**
          * Create a stub for testing. Since all fields are mutable, only required ones can be set after calling this method.
          *
@@ -179,7 +181,5 @@ class Execution(
             execCmd = null,
             batchSizeForAnalyzer = null,
         )
-
-        private const val TEST_SUITE_IDS_DELIMITER = ", "
     }
 }
