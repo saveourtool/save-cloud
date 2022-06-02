@@ -4,13 +4,15 @@ import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.orchestrator.config.Beans
 import com.saveourtool.save.orchestrator.config.ConfigProperties
-import com.saveourtool.save.orchestrator.controller.AgentsController
+import com.saveourtool.save.orchestrator.docker.DockerAgentRunner
+import com.saveourtool.save.orchestrator.docker.DockerContainerManager
 import com.saveourtool.save.orchestrator.testutils.TestConfiguration
 import com.saveourtool.save.testutils.checkQueues
 import com.saveourtool.save.testutils.cleanup
 import com.saveourtool.save.testutils.createMockWebServer
 import com.saveourtool.save.testutils.enqueue
 
+import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.api.async.ResultCallback
 import com.github.dockerjava.api.model.Frame
 import okhttp3.mockwebserver.MockResponse
@@ -24,9 +26,6 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.properties.EnableConfigurationProperties
-import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
-import org.springframework.boot.test.mock.mockito.MockBean
-import org.springframework.boot.test.mock.mockito.MockBeans
 import org.springframework.context.annotation.Import
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
@@ -43,12 +42,15 @@ import kotlin.io.path.pathString
 @EnableConfigurationProperties(ConfigProperties::class)
 @TestPropertySource("classpath:application.properties")
 @DisabledOnOs(OS.WINDOWS, disabledReason = "If required, can be run with `docker-tcp` profile and with TCP port enabled on Docker Daemon")
-@WebFluxTest(controllers = [AgentsController::class])  // to autowire everything for DockerService
-@MockBeans(
-    MockBean(AgentService::class),
+@Import(
+    Beans::class,
+    DockerContainerManager::class,
+    DockerAgentRunner::class,
+    TestConfiguration::class,
+    DockerService::class,
 )
-@Import(Beans::class, DockerService::class, TestConfiguration::class)
 class DockerServiceTest {
+    @Autowired private lateinit var dockerClient: DockerClient
     @Autowired private lateinit var dockerService: DockerService
     private lateinit var testImageId: String
     private lateinit var testContainerId: String
@@ -75,10 +77,10 @@ class DockerServiceTest {
 
         // assertions
         Thread.sleep(2_500)  // waiting for container to start
-        val inspectContainerResponse = dockerService.containerManager.dockerClient.inspectContainerCmd(testContainerId).exec()
+        val inspectContainerResponse = dockerClient.inspectContainerCmd(testContainerId).exec()
         testImageId = inspectContainerResponse.imageId
         Assertions.assertTrue(inspectContainerResponse.state.running!!) {
-            dockerService.containerManager.dockerClient.logContainerCmd(testContainerId)
+            dockerClient.logContainerCmd(testContainerId)
                 .withStdOut(true)
                 .withStdErr(true)
                 .exec(object : ResultCallback.Adapter<Frame>() {
@@ -97,10 +99,10 @@ class DockerServiceTest {
     @AfterEach
     fun tearDown() {
         if (::testContainerId.isInitialized) {
-            dockerService.containerManager.dockerClient.removeContainerCmd(testContainerId).exec()
+            dockerClient.removeContainerCmd(testContainerId).exec()
         }
         if (::testImageId.isInitialized) {
-            dockerService.containerManager.dockerClient.removeImageCmd(testImageId).exec()
+            dockerClient.removeImageCmd(testImageId).exec()
         }
     }
 

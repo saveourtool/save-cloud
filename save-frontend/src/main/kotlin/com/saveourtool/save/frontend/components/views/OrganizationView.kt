@@ -131,6 +131,11 @@ external interface OrganizationViewState : State {
      * Users in organization
      */
     var usersInOrganization: List<UserInfo>?
+
+    /**
+     * Label that will be shown on Close button of modal windows
+     */
+    var closeButtonLabel: String?
 }
 
 /**
@@ -167,6 +172,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         state.organization = Organization("", OrganizationStatus.CREATED, null, null, null)
         state.selectedMenu = OrganizationMenuBar.INFO
         state.projects = emptyArray()
+        state.closeButtonLabel = null
     }
 
     private fun deleteOrganization() {
@@ -184,10 +190,10 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
 
     private fun showNotification(notificationLabel: String, notificationMessage: String) {
         setState {
-            confirmationType = ConfirmationType.GLOBAL_ROLE_CONFIRM
-            isConfirmWindowOpen = true
-            confirmLabel = notificationLabel
-            confirmMessage = notificationMessage
+            isErrorOpen = true
+            errorLabel = notificationLabel
+            errorMessage = notificationMessage
+            closeButtonLabel = "Confirm"
         }
     }
 
@@ -212,17 +218,21 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
 
     @Suppress("TOO_LONG_FUNCTION", "LongMethod", "MAGIC_NUMBER")
     override fun RBuilder.render() {
-        runErrorModal(state.isErrorOpen, state.errorLabel, state.errorMessage) {
-            setState { isErrorOpen = false }
+        runErrorModal(state.isErrorOpen, state.errorLabel, state.errorMessage, state.closeButtonLabel ?: "Close") {
+            setState {
+                isErrorOpen = false
+                closeButtonLabel = null
+            }
         }
         runConfirmWindowModal(
             state.isConfirmWindowOpen,
             state.confirmLabel,
             state.confirmMessage,
+            "Ok",
+            "Cancel",
             { setState { isConfirmWindowOpen = false } }) {
             when (state.confirmationType) {
                 ConfirmationType.DELETE_CONFIRM -> deleteOrganizationBuilder()
-                ConfirmationType.GLOBAL_ROLE_CONFIRM -> { }
                 else -> throw IllegalStateException("Not implemented yet")
             }
             setState { isConfirmWindowOpen = false }
@@ -612,7 +622,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 }
 
                 h1("h3 mb-0 text-gray-800 ml-2") {
-                    +"${state.organization?.name}"
+                    +(state.organization?.name ?: "N/A")
                 }
             }
 
@@ -666,7 +676,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         }
         scope.launch {
             responseFromDeleteOrganization =
-                    post("$apiUrl/organization/${props.organizationName}/update", headers, Json.encodeToString(state.organization))
+                    delete("$apiUrl/organization/${props.organizationName}/delete", headers, body = undefined)
         }.invokeOnCompletion {
             if (responseFromDeleteOrganization.ok) {
                 window.location.href = "${window.location.origin}/"

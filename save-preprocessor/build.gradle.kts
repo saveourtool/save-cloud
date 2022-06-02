@@ -1,4 +1,5 @@
 import com.saveourtool.save.buildutils.configureJacoco
+import com.saveourtool.save.buildutils.configureSpotless
 import com.saveourtool.save.buildutils.configureSpringBoot
 
 plugins {
@@ -35,3 +36,4 @@ tasks.withType<Test> {
 }
 
 configureJacoco()
+configureSpotless()

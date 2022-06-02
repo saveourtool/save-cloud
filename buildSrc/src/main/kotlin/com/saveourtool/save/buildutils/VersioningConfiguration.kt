@@ -20,6 +20,12 @@ import java.time.Duration
 import java.util.Properties
 
 /**
+ * @return path to the file with save-cli version for current build
+ */
+@Suppress("CUSTOM_GETTERS_SETTERS")
+val Project.pathToSaveCliVersion get() = "${rootProject.buildDir}/save-cli.properties"
+
+/**
  * Configures reckon plugin for [this] project, should be applied for root project only
  */
 fun Project.configureVersioning() {
@@ -56,12 +62,10 @@ fun Project.configureVersioning() {
  */
 fun Project.versionForDockerImages() = version.toString().replace("+", "-")
 
-val Project.pathToSaveCliVersion get() = "${rootProject.buildDir}/save-cli.properties"
-
 /**
- * @return version of save-cli, either from project property, or from Versions, or latest
+ * Register task that reads version of save-cli, either from project property, or from Versions, or latest
  */
-@Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
+@Suppress("GENERIC_VARIABLE_WRONG_DECLARATION", "MAGIC_NUMBER")
 fun Project.registerSaveCliVersionCheckTask() {
     val libs = the<LibrariesForLibs>()
     val saveCoreVersion = libs.versions.save.core.get()
@@ -92,6 +96,9 @@ fun Project.registerSaveCliVersionCheckTask() {
     }
 }
 
+/**
+ * @return version of save-cli from properties file
+ */
 fun Project.readSaveCliVersion(): String {
     val file = file(pathToSaveCliVersion)
     return Properties().apply { load(file.reader()) }["version"] as String

@@ -222,7 +222,7 @@ fun manageUserRoleCardComponent(
                     }
                 }
                 div("input-group-append") {
-                    button(type = ButtonType.button, classes = "btn btn-sm btn-success") {
+                    button(type = ButtonType.button, classes = "btn btn-sm btn-outline-success") {
                         attrs.onClickFunction = {
                             addUserToGroup()
                         }

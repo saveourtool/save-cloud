@@ -43,9 +43,11 @@ external class BoundFunctions {
      */
     fun getByRole(vararg args: dynamic): HTMLElement
 
-    fun findByText(text: String, options: dynamic = definedExternally): Promise<HTMLElement>
+    fun findByText(text: String, options: dynamic = definedExternally, waitForOptions: dynamic = definedExternally): Promise<HTMLElement>
 
     fun queryByText(text: String, options: dynamic = definedExternally): HTMLElement?
 }
 
 external fun <P : Props> render(ui: ReactElement<P>, options: dynamic = definedExternally): RenderResult
+
+external fun <T> waitForElementToBeRemoved(elem: T, options: dynamic = definedExternally): Promise<Unit>
