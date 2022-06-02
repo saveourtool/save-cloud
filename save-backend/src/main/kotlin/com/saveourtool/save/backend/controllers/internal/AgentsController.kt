@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -109,8 +110,8 @@ class AgentsController(private val agentStatusRepository: AgentStatusRepository,
     fun findAgentIdsForExecution(@RequestParam executionId: Long) = agentRepository.findByExecutionId(executionId)
         .map(Agent::containerId)
 
-    @GetMapping("/getExecutionIdByAgentId")
-    fun findExecutionIdByAgentId(@RequestParam agentId: String) = agentRepository.findByContainerId(agentId)
+    @GetMapping("/agents/{agentId}/execution/id")
+    fun findExecutionIdByAgentId(@PathVariable agentId: String) = agentRepository.findByContainerId(agentId)
         ?.let { it.execution.id!! }!!
 
     /**
