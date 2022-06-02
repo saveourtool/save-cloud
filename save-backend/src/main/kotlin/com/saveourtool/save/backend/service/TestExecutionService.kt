@@ -333,7 +333,12 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
         }
     }
 
-    @Suppress("KDOC_NO_CONSTRUCTOR_PROPERTY", "MISSING_KDOC_ON_FUNCTION", "LongParameterList")
+    @Suppress(
+        "KDOC_NO_CONSTRUCTOR_PROPERTY",
+        "MISSING_KDOC_ON_FUNCTION",
+        "LongParameterList",
+        "KDOC_NO_CONSTRUCTOR_PROPERTY_WITH_COMMENT",
+    )
     private class Counters(
         var passed: Int = 0,
         var failed: Int = 0,
