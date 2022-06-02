@@ -119,18 +119,8 @@ class Execution(
     )
 
     /**
-     * Appends testSuiteIds to existed formatted String
-     *
-     * @param newTestSuiteIds new list of TestSuite IDs
-     */
-    fun appendTestSuiteIds(newTestSuiteIds: List<Long>) {
-        parseAndGetTestSuiteIds()
-            ?.let { it + newTestSuiteIds }
-            ?.let { formatAndSetTestSuiteIds(it) }
-    }
-
-    /**
      * Parse and get testSuiteIds as List<Long>
+     *
      * @return list of TestSuite IDs
      */
     fun parseAndGetTestSuiteIds(): List<Long>? = this.testSuiteIds
