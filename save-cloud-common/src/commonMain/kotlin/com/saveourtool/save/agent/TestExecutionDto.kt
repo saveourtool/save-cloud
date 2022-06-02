@@ -29,9 +29,9 @@ data class TestExecutionDto(
     val endTimeSeconds: Long?,
     val testSuiteName: String? = null,
     val tags: List<String> = emptyList(),
-    val unmatched: Long,
-    val matched: Long,
-    val expected: Long,
-    val unexpected: Long,
+    val unmatched: Long?,
+    val matched: Long?,
+    val expected: Long?,
+    val unexpected: Long?,
     val hasDebugInfo: Boolean? = null,
 )

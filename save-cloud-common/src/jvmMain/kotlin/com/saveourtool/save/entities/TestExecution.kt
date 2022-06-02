@@ -46,13 +46,13 @@ class TestExecution(
 
     var endTime: LocalDateTime?,
 
-    var unmatched: Long,
+    var unmatched: Long?,
 
-    var matched: Long,
+    var matched: Long?,
 
-    var expected: Long,
+    var expected: Long?,
 
-    var unexpected: Long,
+    var unexpected: Long?,
 
 ) : BaseEntity() {
     /**

@@ -24,8 +24,12 @@
     </changeSet>
 
     <changeSet id="precision-recall-supporting" author="nulls" context="dev or prod">
-        <renameColumn tableName="test_execution" oldColumnName="missing_warnings" newColumnName="unmatched" />
-        <renameColumn tableName="test_execution" oldColumnName="matched_warnings" newColumnName="matched" />
+        <renameColumn tableName="test_execution"
+                      oldColumnName="missing_warnings" newColumnName="unmatched"
+                      columnDataType="bigint" />
+        <renameColumn tableName="test_execution"
+                      oldColumnName="matched_warnings" newColumnName="matched"
+                      columnDataType="bigint" />
 
         <addColumn tableName="test_execution">
             <column name="expected" type="bigint">

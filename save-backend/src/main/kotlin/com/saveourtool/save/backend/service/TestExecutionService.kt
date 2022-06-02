@@ -142,7 +142,9 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
         "TOO_MANY_LINES_IN_LAMBDA",
         "TOO_LONG_FUNCTION",
         "UnsafeCallOnNullableType",
-        "LongMethod"
+        "LongMethod",
+        "MAGIC_NUMBER",
+        "MagicNumber",
     )
     @Transactional
     fun saveTestResult(testExecutionsDtos: List<TestExecutionDto>): List<TestExecutionDto> {
@@ -188,10 +190,10 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
                     it.expected = testExecDto.expected
                     it.unexpected = testExecDto.unexpected
 
-                    counters.unmatchedChecks += testExecDto.unmatched
-                    counters.matchedChecks += testExecDto.matched
-                    counters.expectedChecks += testExecDto.expected
-                    counters.unexpectedChecks += testExecDto.unexpected
+                    counters.unmatchedChecks += testExecDto.unmatched ?: 0L
+                    counters.matchedChecks += testExecDto.matched ?: 0L
+                    counters.expectedChecks += testExecDto.expected ?: 0L
+                    counters.unexpectedChecks += testExecDto.unexpected ?: 0L
 
                     testExecutionRepository.save(it)
                 },

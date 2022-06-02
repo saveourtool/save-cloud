@@ -9,4 +9,23 @@
             <column name="user_id" value="1"/>
         </update>
     </changeSet>
+
+    <changeSet id="precision-recall-supporting" author="nulls" context="dev">
+        <update dbms="mysql" tableName="execution">
+            <column name="all_tests" value="14"/>
+            <where>id=1</where>
+        </update>
+        <update dbms="mysql" tableName="execution">
+            <column name="all_tests" value="0"/>
+            <where>id=2</where>
+        </update>
+        <update dbms="mysql" tableName="execution">
+            <column name="all_tests" value="2"/>
+            <where>id=3</where>
+        </update>
+        <update dbms="mysql" tableName="execution">
+            <column name="all_tests" value="14"/>
+            <where>id=4</where>
+        </update>
+    </changeSet>
 </databaseChangeLog>
