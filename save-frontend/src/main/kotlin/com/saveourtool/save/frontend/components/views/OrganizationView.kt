@@ -622,7 +622,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 }
 
                 h1("h3 mb-0 text-gray-800 ml-2") {
-                    +"${state.organization?.name}"
+                    +(state.organization?.name ?: "N/A")
                 }
             }
 
@@ -676,7 +676,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         }
         scope.launch {
             responseFromDeleteOrganization =
-                    post("$apiUrl/organization/${props.organizationName}/update", headers, Json.encodeToString(state.organization))
+                    delete("$apiUrl/organization/${props.organizationName}/delete", headers, body = undefined)
         }.invokeOnCompletion {
             if (responseFromDeleteOrganization.ok) {
                 window.location.href = "${window.location.origin}/"
