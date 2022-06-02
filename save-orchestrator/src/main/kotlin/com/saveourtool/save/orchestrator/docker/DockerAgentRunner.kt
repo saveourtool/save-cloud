@@ -75,14 +75,16 @@ class DockerAgentRunner(
         }
     }
 
-    override fun stopByAgentId(agentId: String) {
+    override fun stopByAgentId(agentId: String): Boolean {
         logger.info("Stopping agent with id=$agentId")
         val state = dockerClient.inspectContainerCmd(agentId).exec().state
-        if (state.running == true) {
+        return if (state.running == true) {
             dockerClient.stopContainerCmd(agentId).exec()
             logger.info("Agent with id=$agentId has been stopped")
+            true
         } else {
             logger.warn("Agent with id=$agentId was requested to be stopped, but it actual state=$state")
+            false
         }
     }
 

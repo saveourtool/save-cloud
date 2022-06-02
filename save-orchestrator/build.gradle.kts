@@ -75,6 +75,7 @@ dependencies {
     implementation(libs.zip4j)
     implementation(libs.spring.cloud.starter.kubernetes.client.config)
     implementation(libs.fabric8.kubernetes.client)
+    testImplementation(libs.fabric8.kubernetes.server.mock)
 }
 
 // todo: this logic is duplicated between agent and frontend, can be moved to a shared plugin in buildSrc

@@ -57,6 +57,9 @@ class KubernetesManager(
             }
             spec = JobSpec().apply {
                 parallelism = replicas
+                // do not attempt to restart failed pods, because if we manually stop pods by deleting them,
+                // job controller would think that they need to be restarted
+                backoffLimit = 0
                 template = PodTemplateSpec().apply {
                     spec = PodSpec().apply {
                         containers = listOf(
@@ -106,9 +109,10 @@ class KubernetesManager(
         if (!isDeleted) throw AgentRunnerException("Failed to delete job with name $jobName")
     }
 
-    override fun stopByAgentId(agentId: String) {
+    override fun stopByAgentId(agentId: String): Boolean {
         val isDeleted = kc.pods().withName(agentId).delete()
         if (!isDeleted) throw AgentRunnerException("Failed to delete pod with name $agentId")
+        else return true
     }
 
     override fun cleanup(executionId: Long) {

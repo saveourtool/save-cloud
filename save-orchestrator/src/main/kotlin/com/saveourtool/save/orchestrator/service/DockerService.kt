@@ -120,12 +120,12 @@ class DockerService(private val configProperties: ConfigProperties,
     fun stopAgents(agentIds: Collection<String>) =
             if (isAgentStoppingInProgress.compareAndSet(false, true)) {
                 try {
-                    agentIds.forEach { agentId ->
+                    agentIds.all { agentId ->
                         agentRunner.stopByAgentId(agentId)
                     }
-                    true
-                } catch (dex: DockerException) {
-                    log.error("Error while stopping agents $agentIds", dex)
+                    // todo: for Kubernetes also need to delete a Job here
+                } catch (e: Exception) {
+                    log.error("Error while stopping agents $agentIds", e)
                     false
                 } finally {
                     isAgentStoppingInProgress.lazySet(false)
