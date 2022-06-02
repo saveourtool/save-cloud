@@ -121,8 +121,10 @@ class TestExecutionControllerTest {
             TestResultStatus.FAILED,
             DEFAULT_DATE_TEST_EXECUTION,
             DEFAULT_DATE_TEST_EXECUTION,
-            missingWarnings = 3,
-            matchedWarnings = 2,
+            unmatched = 3,
+            matched = 2,
+            expected = null,
+            unexpected = null,
         )
         val testExecutionDtoSecond = TestExecutionDto(
             "testPath42",
@@ -131,8 +133,10 @@ class TestExecutionControllerTest {
             TestResultStatus.PASSED,
             DEFAULT_DATE_TEST_EXECUTION,
             DEFAULT_DATE_TEST_EXECUTION,
-            missingWarnings = 4,
-            matchedWarnings = 3,
+            unmatched = 4,
+            matched = 3,
+            expected = null,
+            unexpected = null,
         )
         val passedTestsBefore = getExecutionsTestsResultByAgentContainerId(testExecutionDtoSecond.agentContainerId!!, true)
         val failedTestsBefore = getExecutionsTestsResultByAgentContainerId(testExecutionDtoFirst.agentContainerId!!, false)
@@ -150,8 +154,8 @@ class TestExecutionControllerTest {
         assertTrue(tests.any { it.endTime == testExecutionDtoFirst.endTimeSeconds!!.secondsToLocalDateTime().withNano(0) })
         Assertions.assertEquals(passedTestsBefore, passedTestsAfter - 1)
         Assertions.assertEquals(failedTestsBefore, failedTestsAfter - 1)
-        assertTrue(tests.any { it.missingWarnings == testExecutionDtoFirst.missingWarnings && it.matchedWarnings == testExecutionDtoFirst.matchedWarnings })
-        assertTrue(tests.any { it.missingWarnings == testExecutionDtoSecond.missingWarnings && it.matchedWarnings == testExecutionDtoSecond.matchedWarnings })
+        assertTrue(tests.any { it.unmatched == testExecutionDtoFirst.unmatched && it.matched == testExecutionDtoFirst.matched })
+        assertTrue(tests.any { it.unmatched == testExecutionDtoSecond.unmatched && it.matched == testExecutionDtoSecond.matched })
     }
 
     @Test
@@ -165,8 +169,10 @@ class TestExecutionControllerTest {
             TestResultStatus.FAILED,
             DEFAULT_DATE_TEST_EXECUTION,
             DEFAULT_DATE_TEST_EXECUTION,
-            missingWarnings = null,
-            matchedWarnings = null,
+            unmatched = null,
+            matched = null,
+            expected = null,
+            unexpected = null,
         )
         webClient.post()
             .uri("/internal/saveTestResult")

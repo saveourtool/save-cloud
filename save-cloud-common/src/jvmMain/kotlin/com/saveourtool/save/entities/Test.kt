@@ -42,6 +42,7 @@ class Test(
      */
     @Suppress("UnsafeCallOnNullableType")
     fun toDto(): TestDto = TestDto(
+        id!!,
         filePath,
         pluginName,
         testSuite.id!!,

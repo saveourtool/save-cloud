@@ -27,6 +27,10 @@ import javax.persistence.ManyToOne
  * @property passedTests
  * @property failedTests
  * @property skippedTests
+ * @property unmatchedChecks
+ * @property matchedChecks
+ * @property expectedChecks
+ * @property unexpectedChecks
  * @property sdk
  * @property additionalFiles
  * @property user user that has started this execution
@@ -59,6 +63,8 @@ class Execution(
 
     var version: String?,
 
+    var allTests: Long,
+
     var runningTests: Long,
 
     var passedTests: Long,
@@ -66,6 +72,14 @@ class Execution(
     var failedTests: Long,
 
     var skippedTests: Long,
+
+    var unmatchedChecks: Long,
+
+    var matchedChecks: Long,
+
+    var expectedChecks: Long,
+
+    var unexpectedChecks: Long,
 
     var sdk: String,
 
@@ -79,7 +93,7 @@ class Execution(
 
     var batchSizeForAnalyzer: String?,
 
-) : BaseEntity() {
+    ) : BaseEntity() {
     /**
      * @return Execution dto
      */
@@ -91,21 +105,31 @@ class Execution(
         version,
         startTime.toEpochSecond(ZoneOffset.UTC),
         endTime?.toEpochSecond(ZoneOffset.UTC),
+        allTests,
         runningTests,
         passedTests,
         failedTests,
         skippedTests,
-        calculatePrecisionRate(),
-        calculateRecallRate(),
+        unmatchedChecks,
+        matchedChecks,
+        expectedChecks,
+        unexpectedChecks,
         additionalFiles?.split(";")?.filter { it.isNotBlank() },
     )
 
-    private fun calculatePrecisionRate(): Double {
-        return 0.0
+    fun appendTestSuiteIds(newTestSuiteIds: List<Long>) {
+        parseAndGetTestSuiteIds()
+            ?.let { it + newTestSuiteIds }
+            ?.let { formatAndSetTestSuiteIds(it) }
     }
 
-    private fun calculateRecallRate(): Double {
-        return 0.0
+    fun parseAndGetTestSuiteIds(): List<Long>? = this.testSuiteIds
+        ?.split(testSuiteIdsDelimiter)
+        ?.map { it.toLong() }
+
+    fun formatAndSetTestSuiteIds(testSuiteIds: List<Long>) {
+        this.testSuiteIds = testSuiteIds.sorted()
+            .joinToString(testSuiteIdsDelimiter)
     }
 
     companion object {
@@ -125,10 +149,15 @@ class Execution(
             batchSize = 20,
             type = ExecutionType.GIT,
             version = null,
-            0,
-            0,
-            0,
-            0,
+            allTests = 0,
+            runningTests = 0,
+            passedTests = 0,
+            failedTests = 0,
+            skippedTests = 0,
+            unmatchedChecks = 0,
+            matchedChecks = 0,
+            expectedChecks = 0,
+            unexpectedChecks = 0,
             sdk = Sdk.Default.toString(),
             additionalFiles = null,
             user = null,
@@ -136,5 +165,6 @@ class Execution(
             batchSizeForAnalyzer = null,
         )
 
+        private const val testSuiteIdsDelimiter = ", "
     }
 }

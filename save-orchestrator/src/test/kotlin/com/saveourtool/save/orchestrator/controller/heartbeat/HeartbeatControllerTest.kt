@@ -345,8 +345,10 @@ class HeartbeatControllerTest {
                 TestResultStatus.READY_FOR_TESTING,
                 0,
                 0,
-                missingWarnings = 3,
-                matchedWarnings = 2,
+                unmatched = 3,
+                matched = 2,
+                expected = null,
+                unexpected = null,
             )
         )
 
