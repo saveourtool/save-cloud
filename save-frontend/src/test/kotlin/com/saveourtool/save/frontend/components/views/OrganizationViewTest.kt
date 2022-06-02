@@ -52,18 +52,16 @@ class OrganizationViewTest {
     @Test
     fun shouldShowConfirmationWindowWhenDeletingOrganization(): Promise<Unit> {
         renderOrganizationView()
-        return screen.findByText("SETTINGS").then {
+        screen.getByText("SETTINGS").let {
+            userEvent.click(it)
+        }
+        return screen.findByText("Delete organization").then {
             userEvent.click(it)
         }.then { _: Unit ->
-            screen.findByText("Delete organization")
+            screen.findByText("Ok")
+        }.then {
+            assertNotNull(it, "Should show confirmation window")
         }
-            .then {
-                userEvent.click(it)
-            }.then { _: Unit ->
-                screen.findByText("Ok")
-            }.then {
-                assertNotNull(it, "Should show confirmation window")
-            }
     }
 
     private fun renderOrganizationView(userInfo: UserInfo = testUserInfo) = OrganizationView::class.react

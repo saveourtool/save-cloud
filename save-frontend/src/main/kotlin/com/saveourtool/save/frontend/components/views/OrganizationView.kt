@@ -676,7 +676,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         }
         scope.launch {
             responseFromDeleteOrganization =
-                    delete("$apiUrl/organization/${props.organizationName}/delete", headers, "")
+                    delete("$apiUrl/organization/${props.organizationName}/delete", headers, body = undefined)
         }.invokeOnCompletion {
             if (responseFromDeleteOrganization.ok) {
                 window.location.href = "${window.location.origin}/"
