@@ -12,7 +12,6 @@ import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.orchestrator.config.Beans
 import com.saveourtool.save.orchestrator.config.LocalDateTimeConfig
 import com.saveourtool.save.orchestrator.controller.HeartBeatInspector
-import com.saveourtool.save.orchestrator.controller.crashedAgentsList
 import com.saveourtool.save.orchestrator.service.AgentService
 import com.saveourtool.save.orchestrator.service.DockerService
 import com.saveourtool.save.test.TestBatch
@@ -21,6 +20,7 @@ import com.saveourtool.save.testsuite.TestSuiteType
 import com.saveourtool.save.testutils.*
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.saveourtool.save.orchestrator.controller.crashedAgentsList
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import okhttp3.mockwebserver.RecordedRequest
@@ -58,6 +58,9 @@ import kotlin.time.Duration.Companion.seconds
 import kotlinx.datetime.Clock
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.mockito.ArgumentMatchers.anyList
+import org.mockito.ArgumentMatchers.anyLong
 
 @WebFluxTest
 @Import(
@@ -81,6 +84,12 @@ class HeartbeatControllerTest {
             .mutate()
             .responseTimeout(Duration.ofSeconds(2))
             .build()
+    }
+
+    @AfterEach
+    fun cleanup() {
+        mockServer.checkQueues()
+        mockServer.cleanup()
     }
 
     @Test
@@ -122,7 +131,8 @@ class HeartbeatControllerTest {
 
         val monoResponse = agentService.getNewTestsIds("container-1").block() as NewJobResponse
 
-        assertTrue(monoResponse.tests.isNotEmpty() && monoResponse.tests.first().filePath == "qwe")
+        assertTrue(monoResponse.tests.isNotEmpty())
+        assertEquals("qwe", monoResponse.tests.first().filePath)
     }
 
     @Test
@@ -137,7 +147,8 @@ class HeartbeatControllerTest {
             testSuite = null,
             mockAgentStatuses = true,
         ) {
-            verify(dockerService, times(0)).stopAgents(any())
+            verify(dockerService, times(0)).stopAgents(anyList())
+//            verify(dockerService, times(0)).stop(anyLong())
         }
     }
 
@@ -162,13 +173,14 @@ class HeartbeatControllerTest {
             },
             mockAgentStatuses = false,
         ) {
-            verify(dockerService, times(0)).stopAgents(any())
+            verify(dockerService, times(0)).stopAgents(anyList())
+//            verify(dockerService, times(0)).stop(anyLong())
         }
     }
 
     @Test
     fun `should shutdown idle agents when there are no tests left`() {
-        whenever(dockerService.stopAgents(any())).thenReturn(true)
+        whenever(dockerService.stopAgents(anyList())).thenReturn(true)
         val agentStatusDtos = listOf(
             AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "test-1"),
             AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "test-2"),
@@ -200,7 +212,7 @@ class HeartbeatControllerTest {
                 )
             }
         ) {
-            verify(dockerService, times(1)).stopAgents(any())
+            verify(dockerService, times(1)).stopAgents(anyList())
         }
     }
 
@@ -225,7 +237,8 @@ class HeartbeatControllerTest {
             },
             mockAgentStatuses = false,
         ) {
-            verify(dockerService, times(0)).stopAgents(any())
+            verify(dockerService, times(0)).stopAgents(anyList())
+//            verify(dockerService, times(0)).stop(anyLong())
         }
     }
 
@@ -323,7 +336,7 @@ class HeartbeatControllerTest {
                 )
             }
         ) {
-            verify(dockerService, times(1)).stopAgents(any())
+            verify(dockerService, times(1)).stopAgents(anyList())
         }
     }
 
@@ -433,6 +446,13 @@ class HeartbeatControllerTest {
             )
         }
 
+/*        mockServer.enqueue(
+            "/agents/[^/]+/execution/id",
+            MockResponse().setResponseCode(200)
+                .setHeader("Content-Type", "application/json")
+                .setBody(objectMapper.writeValueAsString(99))
+        )*/
+
         if (mockAgentStatuses) {
             // /getAgentsStatusesForSameExecution
             mockServer.enqueue(
@@ -481,12 +501,6 @@ class HeartbeatControllerTest {
     companion object {
         @JvmStatic
         private lateinit var mockServer: MockWebServer
-
-        @AfterEach
-        fun cleanup() {
-            mockServer.checkQueues()
-            mockServer.cleanup()
-        }
 
         @AfterAll
         fun tearDown() {

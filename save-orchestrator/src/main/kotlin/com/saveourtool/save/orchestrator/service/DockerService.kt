@@ -55,7 +55,8 @@ class DockerService(private val configProperties: ConfigProperties,
 ) {
     private val executionDir = "/run/save-execution"
 
-    private val isAgentStoppingInProgress = ConcurrentHashMap<Long, Boolean>()
+    @Suppress("NonBooleanPropertyPrefixedWithIs")
+    private val isAgentStoppingInProgress = AtomicBoolean(false)
 
     @Autowired
     @Qualifier("webClientBackend")
@@ -117,8 +118,8 @@ class DockerService(private val configProperties: ConfigProperties,
      * @return true if agents have been stopped, false if another thread is already stopping them
      */
     @Suppress("TOO_MANY_LINES_IN_LAMBDA")
-    fun stopAgents(executionId: Long, agentIds: Collection<String>) =
-            if (isAgentStoppingInProgress.compute(executionId) { _, value -> if (value == false) true else value } == true) {
+    fun stopAgents(agentIds: Collection<String>) =
+            if (isAgentStoppingInProgress.compareAndSet(false, true)) {
                 try {
                     agentIds.forEach { agentId ->
                         agentRunner.stopByAgentId(agentId)
@@ -128,7 +129,7 @@ class DockerService(private val configProperties: ConfigProperties,
                     log.error("Error while stopping agents $agentIds", dex)
                     false
                 } finally {
-                    isAgentStoppingInProgress.compute(executionId) { _, _ -> false }
+                    isAgentStoppingInProgress.lazySet(false)
                 }
             } else {
                 log.info("Agents stopping is already in progress, skipping")
@@ -136,9 +137,14 @@ class DockerService(private val configProperties: ConfigProperties,
             }
 
     fun stop(executionId: Long): Boolean {
-        return if (isAgentStoppingInProgress.compute(executionId) { _, value -> if (value == false) true else value } == true) {
-            agentRunner.stop(executionId)
-            true
+//        return if (isAgentStoppingInProgress.compute(executionId) { _, value -> if (value == false) true else value } == true) {
+        return if (isAgentStoppingInProgress.compareAndSet(false, true)) {
+            try {
+                agentRunner.stop(executionId)
+                true
+            } finally {
+                isAgentStoppingInProgress.lazySet(false)
+            }
         } else {
             false
         }
