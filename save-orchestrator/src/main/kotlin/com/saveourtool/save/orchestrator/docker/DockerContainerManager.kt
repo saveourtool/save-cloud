@@ -29,7 +29,7 @@ class DockerContainerManager(
      *
      * @param baseImage base docker image from which this image will be built
      * @param baseDir a context dir for Dockerfile
-     * @param resourcesPath target path to additional resources. Resources from baseDir will be copied into this directory inside of the container.
+     * @param resourcesTargetPath target path to additional resources. Resources from [baseDir] will be copied into this directory inside the container.
      * @param runCmd command to append to the Dockerfile. Actual entrypoint is added on container creation.
      * @param imageName name which will be assigned to the image
      * @return id of the created docker image
@@ -38,28 +38,24 @@ class DockerContainerManager(
     @Suppress("TOO_LONG_FUNCTION", "LongMethod")
     internal fun buildImageWithResources(baseImage: String = Sdk.Default.toString(),
                                          imageName: String,
-                                         baseDir: File,
-                                         resourcesPath: String,
+                                         baseDir: File?,
+                                         resourcesTargetPath: String?,
                                          runCmd: String = "RUN /bin/bash",
     ): String {
         val tmpDir = createTempDirectory().toFile()
         val tmpResourcesDir = tmpDir.absoluteFile.resolve("resources")
-        log.debug("Copying ${baseDir.absolutePath} into $tmpResourcesDir")
-        copyRecursivelyWithAttributes(baseDir, tmpResourcesDir)
-        val dockerFileAsText =
-                """
-                    |FROM $baseImage
-                    |COPY resources $resourcesPath
-                    |$runCmd
-                """.trimMargin()
-        val dockerFile = createTempFile(tmpDir.toPath()).toFile()
-        dockerFile.writeText(dockerFileAsText)
+        if (baseDir != null) {
+            log.debug("Copying ${baseDir.absolutePath} into $tmpResourcesDir")
+            copyRecursivelyWithAttributes(baseDir, tmpResourcesDir)
+        }
+        val dockerFile = createDockerFile(tmpDir, baseImage, resourcesTargetPath, runCmd)
         val hostIp = getHostIp()
         log.debug("Resolved host IP as $hostIp, will add it to the container")
         val buildImageResultCallback: BuildImageResultCallback = try {
             val buildCmd = dockerClient.buildImageCmd(dockerFile)
                 .withBaseDirectory(tmpDir)
                 .withTags(setOf(imageName))
+                // this is required to be able to access host, e.g. if proxy running on the host is required during image build process
                 .withExtraHosts(setOf("host.docker.internal:$hostIp"))
             buildCmd.execTimed(meterRegistry, "save.orchestrator.docker.build", "baseImage", baseImage) { record ->
                 object : BuildImageResultCallback() {
@@ -74,6 +70,23 @@ class DockerContainerManager(
             tmpDir.deleteRecursively()
         }
         return buildImageResultCallback.awaitImageId()
+    }
+
+    private fun createDockerFile(
+        dir: File,
+        baseImage: String,
+        resourcesPath: String?,
+        runCmd: String,
+    ): File {
+        val dockerFileAsText = buildString {
+            append("FROM $baseImage")
+            if (resourcesPath != null)
+                append("COPY resources $resourcesPath")
+            append(runCmd)
+        }
+        val dockerFile = createTempFile(dir.toPath()).toFile()
+        dockerFile.writeText(dockerFileAsText)
+        return dockerFile
     }
 
     companion object {

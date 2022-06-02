@@ -19,6 +19,7 @@ import com.saveourtool.save.utils.moveFileWithAttributes
 
 import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.api.exception.DockerException
+import com.saveourtool.save.domain.Sdk
 import net.lingala.zip4j.ZipFile
 import net.lingala.zip4j.exception.ZipException
 import org.apache.commons.io.FileUtils
@@ -238,7 +239,7 @@ class DockerService(private val configProperties: ConfigProperties,
             baseImage = baseImage,
             imageName = imageName(execution.id!!),
             baseDir = resourcesPath,
-            resourcesPath = executionDir,
+            resourcesTargetPath = executionDir,
             runCmd = """RUN $aptCmd update && env DEBIAN_FRONTEND="noninteractive" $aptCmd install -y \
                     |libcurl4-openssl-dev tzdata
                     |RUN ln -fs /usr/share/zoneinfo/UTC /etc/localtime
@@ -251,6 +252,22 @@ class DockerService(private val configProperties: ConfigProperties,
         saveAgent.delete()
         saveCli.delete()
         return Pair(imageId, agentRunCmd)
+    }
+
+    fun buildBaseImage(sdk: Sdk) {
+        val imageAlreadyExists = dockerClient.listImagesCmd()
+            .withImageNameFilter(baseImageName(sdk))
+            .exec()
+            .isNotEmpty()
+        if (imageAlreadyExists) {
+            return
+        }
+        dockerContainerManager.buildImageWithResources(
+            baseImage = sdk.toString(),
+            imageName = baseImageName(sdk),
+            baseDir = null,
+            resourcesTargetPath = null,
+        )
     }
 
     private fun changeOwnerRecursively(directory: File, user: String) {
@@ -352,6 +369,8 @@ class DockerService(private val configProperties: ConfigProperties,
  * @param executionId
  */
 internal fun imageName(executionId: Long) = "save-execution:$executionId"
+
+internal fun baseImageName(sdk: Sdk) = "save-base-$sdk"
 
 /**
  * @param testSuiteDto

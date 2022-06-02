@@ -83,7 +83,7 @@ class DockerContainerManagerTest {
         val resourcesDir = createTempDirectory()
         repeat(5) { createTempFile(resourcesDir) }
         testImageId = dockerContainerManager.buildImageWithResources(
-            imageName = "test:test", baseDir = resourcesDir.toFile(), resourcesPath = "/app/resources"
+            imageName = "test:test", baseDir = resourcesDir.toFile(), resourcesTargetPath = "/app/resources"
         )
         val inspectImageResponse = dockerClient.inspectImageCmd(testImageId).exec()
         Assertions.assertTrue(inspectImageResponse.size!! > 0)
