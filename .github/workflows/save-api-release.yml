@@ -29,14 +29,17 @@ jobs:
           distribution: temurin
       - name: Status git before
         run: git status
-      - uses: burrunan/gradle-cache-action@v1
+      - name: gradle release
+        uses: gradle/gradle-build-action@v2
         with:
           gradle-version: wrapper
-      # Until https://github.com/burrunan/gradle-cache-action/issues/42 is addressed, gradle should be run as a separate step
-      - name: gradle release
-        run: |
-          ./gradlew --build-cache -Prelease -PgprUser=${{ github.actor }} -PgprKey=${{ secrets.GITHUB_TOKEN }} \
-            publishToSonatype closeSonatypeStagingRepository
+          arguments: |
+            --build-cache
+            -Prelease
+            -PgprUser=${{ github.actor }}
+            -PgprKey=${{ secrets.GITHUB_TOKEN }}
+            publishToSonatype
+            closeSonatypeStagingRepository
       - name: Status git after
         if: ${{ always() }}
         run: git status

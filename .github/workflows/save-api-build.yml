@@ -29,20 +29,17 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-konan
 
-      - uses: burrunan/gradle-cache-action@v1
+      - uses: gradle/gradle-build-action@v2
         with:
           gradle-version: wrapper
-          # additional files to calculate key for dependency cache
-          gradle-dependencies-cache-key: |
-            gradle/libs.versions.toml
           arguments: |
             save-api-cli:build
             -x detekt
-          properties: |
-            org.gradle.caching=true
-            detekt.multiplatform.disabled=true
-            gprUser=${{ github.actor }}
-            gprKey=${{ secrets.GITHUB_TOKEN }}
+            -x spotlessCheck
+            -Porg.gradle.caching=true
+            -Pdetekt.multiplatform.disabled=true
+            -PgprUser=${{ github.actor }}
+            -PgprKey=${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload gradle reports
         if: ${{ always() }}

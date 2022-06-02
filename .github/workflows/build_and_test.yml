@@ -58,6 +58,7 @@ jobs:
           arguments: |
             build
             -x detekt
+            -x spotlessCheck
             -x :save-agent:linkDebugExecutableLinuxX64
             -Porg.gradle.caching=true
             -Pdetekt.multiplatform.disabled=true
