@@ -10,6 +10,7 @@ import com.saveourtool.save.backend.service.UserDetailsService
 import com.saveourtool.save.core.result.DebugInfo
 import com.saveourtool.save.core.result.Pass
 import com.saveourtool.save.domain.FileInfo
+import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.domain.ShortFileInfo
 import com.saveourtool.save.domain.TestResultDebugInfo
 import com.saveourtool.save.domain.TestResultLocation
@@ -85,7 +86,7 @@ class DownloadFilesTest {
         val tmpFile = createTempFile("test", "txt")
             .writeLines("Lorem ipsum".lines())
         Paths.get(configProperties.fileStorage.location).createDirectories()
-        val sampleFileInfo = fileSystemRepository.saveFile(tmpFile, "Example.com", "The Project")
+        val sampleFileInfo = fileSystemRepository.saveFile(tmpFile, ProjectCoordinates("Example.com", "The Project"))
 
         webTestClient.method(HttpMethod.GET).uri("/api/$v1/files/Example.com/The Project/download")
             .contentType(MediaType.APPLICATION_JSON)
@@ -136,7 +137,7 @@ class DownloadFilesTest {
             .expectBody<ShortFileInfo>()
             .consumeWith {
                 Assertions.assertTrue(
-                    fileSystemRepository.getFileInfoByShortInfo(it.responseBody!!, "Huawei", "huaweiName").sizeBytes > 0
+                    fileSystemRepository.getFileInfoByShortInfo(it.responseBody!!, ProjectCoordinates("Huawei", "huaweiName")).sizeBytes > 0
                 )
             }
     }
