@@ -73,11 +73,6 @@ external interface ExecutionState : State {
     var executionDto: ExecutionDto?
 
     /**
-     * Count tests with executionId
-     */
-    var countTests: Int?
-
-    /**
      * Test Result Status to filter by
      */
     var status: TestResultStatus?
