@@ -39,7 +39,7 @@ internal class ExecutionTest {
     @Test
     fun formatAndSetTestSuiteIds() {
         execution.testSuiteIds = null
-        execution.formatAndSetTestSuiteIds(listOf())
+        execution.formatAndSetTestSuiteIds(emptyList())
         assertEquals("", execution.testSuiteIds)
 
         execution.testSuiteIds = null
