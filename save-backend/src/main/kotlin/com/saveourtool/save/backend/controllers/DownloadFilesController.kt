@@ -5,13 +5,16 @@ import com.saveourtool.save.backend.ByteArrayResponse
 import com.saveourtool.save.backend.repository.AgentRepository
 import com.saveourtool.save.backend.repository.TestDataFilesystemRepository
 import com.saveourtool.save.backend.repository.TimestampBasedFileSystemRepository
+import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.service.OrganizationService
+import com.saveourtool.save.backend.service.ProjectService
 import com.saveourtool.save.backend.service.UserDetailsService
 import com.saveourtool.save.domain.FileInfo
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.domain.TestResultDebugInfo
 import com.saveourtool.save.domain.TestResultLocation
 import com.saveourtool.save.from
+import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.utils.AvatarType
 import com.saveourtool.save.v1
 
@@ -20,6 +23,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.http.codec.multipart.FilePart
+import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
@@ -38,19 +42,30 @@ class DownloadFilesController(
     private val agentRepository: AgentRepository,
     private val organizationService: OrganizationService,
     private val userDetailsService: UserDetailsService,
+    private val projectService: ProjectService,
+    private val projectPermissionEvaluator: ProjectPermissionEvaluator,
 ) {
     private val logger = LoggerFactory.getLogger(DownloadFilesController::class.java)
 
     /**
      * @param organizationName
      * @param projectName
+     * @param authentication
      * @return a list of files in [additionalToolsFileSystemRepository]
      */
     @GetMapping(path = ["/api/$v1/files/{organizationName}/{projectName}/list"])
     fun list(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
-    ): List<FileInfo> = additionalToolsFileSystemRepository.getFileInfoList(ProjectCoordinates(organizationName, projectName))
+        authentication: Authentication,
+    ): Mono<List<FileInfo>> = projectService.findWithPermissionByNameAndOrganization(
+        authentication, projectName, organizationName, Permission.WRITE
+    ).filter {
+        val project = projectService.findByNameAndOrganizationName(projectName, organizationName)
+        projectPermissionEvaluator.hasPermission(authentication, project!!, Permission.WRITE)
+    }.map {
+        additionalToolsFileSystemRepository.getFileInfoList(ProjectCoordinates(organizationName, projectName))
+    }
 
     /**
      * @param fileInfo a FileInfo based on which a file should be located
@@ -85,6 +100,7 @@ class DownloadFilesController(
      * @param returnShortFileInfo whether return FileInfo or ShortFileInfo
      * @param organizationName
      * @param projectName
+     * @param authentication
      * @return [Mono] with response
      */
     @PostMapping(path = ["/api/$v1/files/{organizationName}/{projectName}/upload"], consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
@@ -93,22 +109,31 @@ class DownloadFilesController(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
         @RequestParam(required = false, defaultValue = "true") returnShortFileInfo: Boolean,
-    ) = additionalToolsFileSystemRepository.saveFile(file, ProjectCoordinates(organizationName, projectName)).map { fileInfo ->
-        ResponseEntity.status(
-            if (fileInfo.sizeBytes > 0) HttpStatus.OK else HttpStatus.INTERNAL_SERVER_ERROR
-        )
-            .body(
-                if (returnShortFileInfo) {
-                    fileInfo.toShortFileInfo()
-                } else {
-                    fileInfo
-                }
-            )
+        authentication: Authentication,
+    ) = projectService.findWithPermissionByNameAndOrganization(
+        authentication, projectName, organizationName, Permission.WRITE
+    ).filter {
+        val project = projectService.findByNameAndOrganizationName(projectName, organizationName)
+        projectPermissionEvaluator.hasPermission(authentication, project!!, Permission.WRITE)
     }
-        .onErrorReturn(
-            FileAlreadyExistsException::class.java,
-            ResponseEntity.status(HttpStatus.CONFLICT).build()
-        )
+        .map {
+            additionalToolsFileSystemRepository.saveFile(file, ProjectCoordinates(organizationName, projectName)).map { fileInfo ->
+                ResponseEntity.status(
+                    if (fileInfo.sizeBytes > 0) HttpStatus.OK else HttpStatus.INTERNAL_SERVER_ERROR
+                )
+                    .body(
+                        if (returnShortFileInfo) {
+                            fileInfo.toShortFileInfo()
+                        } else {
+                            fileInfo
+                        }
+                    )
+            }
+                .onErrorReturn(
+                    FileAlreadyExistsException::class.java,
+                    ResponseEntity.status(HttpStatus.CONFLICT).build()
+                )
+        }
 
     /**
      * @param file image to be uploaded
