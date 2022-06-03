@@ -1,3 +1,10 @@
+@file:Suppress(
+    "FILE_NAME_INCORRECT",
+    "HEADER_MISSING_IN_NON_SINGLE_CLASS_FILE",
+    "MISSING_KDOC_TOP_LEVEL",
+    "MISSING_KDOC_ON_FUNCTION"
+)
+
 package com.saveourtool.save.utils
 
 import org.slf4j.Logger

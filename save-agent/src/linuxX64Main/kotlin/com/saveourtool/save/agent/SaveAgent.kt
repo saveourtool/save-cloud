@@ -9,6 +9,7 @@ import com.saveourtool.save.agent.utils.readFile
 import com.saveourtool.save.agent.utils.sendDataToBackend
 import com.saveourtool.save.core.logging.describe
 import com.saveourtool.save.core.plugin.Plugin
+import com.saveourtool.save.core.result.CountWarnings
 import com.saveourtool.save.core.utils.ExecutionResult
 import com.saveourtool.save.core.utils.ProcessBuilder
 import com.saveourtool.save.domain.TestResultDebugInfo
@@ -170,7 +171,7 @@ class SaveAgent(internal val config: AgentConfiguration,
             1_000_000L
         )
 
-    @Suppress("TOO_MANY_LINES_IN_LAMBDA", "MAGIC_NUMBER", "MagicNumber")
+    @Suppress("TOO_MANY_LINES_IN_LAMBDA")
     private fun CoroutineScope.readExecutionResults(jsonFile: String): List<TestExecutionDto> {
         val currentTime = Clock.System.now()
         val reports: List<Report> = readExecutionReportFromFile(jsonFile)
@@ -192,15 +193,19 @@ class SaveAgent(internal val config: AgentConfiguration,
                         testResultStatus,
                         executionStartSeconds.value,
                         currentTime.epochSeconds,
-                        unmatched = debugInfo.debugInfo?.countWarnings?.missing?.toLong() ?: 0L,
-                        matched = debugInfo.debugInfo?.countWarnings?.match?.toLong() ?: 0L,
-                        expected = debugInfo.debugInfo?.countWarnings?.expected?.toLong() ?: 0L,
-                        unexpected = debugInfo.debugInfo?.countWarnings?.unexpected?.toLong() ?: 0L,
+                        unmatched = debugInfo.getCountWarningsAsLong { it.unmatched },
+                        matched = debugInfo.getCountWarningsAsLong { it.matched },
+                        expected = debugInfo.getCountWarningsAsLong { it.expected },
+                        unexpected = debugInfo.getCountWarningsAsLong { it.unexpected },
                     )
                 }
             }
         }
     }
+
+    @Suppress("MAGIC_NUMBER", "MagicNumber")
+    private fun TestResultDebugInfo.getCountWarningsAsLong(getter: (CountWarnings) -> Int?) =
+        this.debugInfo?.countWarnings?.let { getter(it) }?.let { it.toLong() } ?: 0L
 
     private fun readExecutionReportFromFile(jsonFile: String) = reportFormat.decodeFromString<List<Report>>(
         readFile(jsonFile).joinToString(separator = "")

@@ -13,18 +13,42 @@
     <changeSet id="precision-recall-supporting" author="nulls" context="dev">
         <update dbms="mysql" tableName="execution">
             <column name="all_tests" value="14"/>
+
+            <column name="unmatched_checks" value="1"/>
+            <column name="matched_checks" value="9"/>
+            <column name="expected_checks" value="14"/>
+            <column name="unexpected_checks" value="0"/>
+
             <where>id=1</where>
         </update>
         <update dbms="mysql" tableName="execution">
             <column name="all_tests" value="0"/>
+
+            <column name="unmatched_checks" value="0"/>
+            <column name="matched_checks" value="0"/>
+            <column name="expected_checks" value="0"/>
+            <column name="unexpected_checks" value="0"/>
+
             <where>id=2</where>
         </update>
         <update dbms="mysql" tableName="execution">
             <column name="all_tests" value="2"/>
+
+            <column name="unmatched_checks" value="0"/>
+            <column name="matched_checks" value="0"/>
+            <column name="expected_checks" value="2"/>
+            <column name="unexpected_checks" value="0"/>
+
             <where>id=3</where>
         </update>
         <update dbms="mysql" tableName="execution">
             <column name="all_tests" value="14"/>
+
+            <column name="unmatched_checks" value="1"/>
+            <column name="matched_checks" value="9"/>
+            <column name="expected_checks" value="14"/>
+            <column name="unexpected_checks" value="0"/>
+
             <where>id=4</where>
         </update>
     </changeSet>
