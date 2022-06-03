@@ -258,10 +258,13 @@ class DockerService(private val configProperties: ConfigProperties,
         val imageAlreadyExists = dockerClient.listImagesCmd()
             .withImageNameFilter(baseImageName(sdk))
             .exec()
+            .also { log.info("Images: ${it.map { it.repoTags?.joinToString() ?: it.id } }") }
             .isNotEmpty()
         if (imageAlreadyExists) {
+            log.info("Base image for sdk=$sdk already exists, skipping build")
             return
         }
+        log.info("Starting to build base image for sdk=$sdk")
         dockerContainerManager.buildImageWithResources(
             baseImage = sdk.toString(),
             imageName = baseImageName(sdk),

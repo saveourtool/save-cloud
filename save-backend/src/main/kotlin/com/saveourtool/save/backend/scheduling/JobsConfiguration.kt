@@ -11,17 +11,12 @@ import org.quartz.JobBuilder
 import org.quartz.JobDetail
 import org.quartz.JobKey
 import org.quartz.ScheduleBuilder
-import org.quartz.Scheduler
 import org.quartz.Trigger
 import org.quartz.TriggerBuilder
-import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Profile
 import org.springframework.scheduling.quartz.SchedulerFactoryBean
-import org.springframework.stereotype.Service
-import javax.annotation.PostConstruct
 
 @Configuration
 @ConditionalOnBean(SchedulerFactoryBean::class)

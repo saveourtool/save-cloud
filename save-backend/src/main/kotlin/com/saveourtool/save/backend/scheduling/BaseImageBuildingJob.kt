@@ -20,6 +20,7 @@ class BaseImageBuildingJob(
         Flux.fromIterable(
             Jdk.versions.map { Jdk(it) } + Python.versions.map { Python(it) }
         ).flatMap { sdk ->
+            logger.info("Requesting base image build for sdk=$sdk")
             orchestratorWebClient.post()
                 .uri("/internal/management/docker/images/build-base")
                 .bodyValue(sdk)
