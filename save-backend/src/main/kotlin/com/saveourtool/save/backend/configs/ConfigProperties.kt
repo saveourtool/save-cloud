@@ -15,14 +15,20 @@ import org.springframework.boot.context.properties.ConstructorBinding
 @ConfigurationProperties(prefix = "backend")
 data class ConfigProperties(
     val preprocessorUrl: String,
+    val orchestratorUrl: String,
     val initialBatchSize: Int,
     val fileStorage: FileStorageConfig,
-    val standardSuitesUpdateCron: String = "0 0 */1 * * ?",
+    val scheduling: Scheduling = Scheduling(),
 ) {
     /**
      * @property location location of file storage
      */
     data class FileStorageConfig(
         val location: String,
+    )
+
+    data class Scheduling(
+        val standardSuitesUpdateCron: String = "0 0 */1 * * ?",
+        val baseImagesBuildCron: String = "0 0 */1 * * ?",
     )
 }

@@ -1,6 +1,6 @@
 package com.saveourtool.save.backend.controllers
 
-import com.saveourtool.save.backend.scheduling.StandardSuitesUpdateScheduler
+import com.saveourtool.save.backend.scheduling.UpdateJob
 import com.saveourtool.save.backend.service.TestSuitesService
 import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.testsuite.TestSuiteDto
@@ -8,8 +8,10 @@ import com.saveourtool.save.v1
 
 import org.quartz.JobKey
 import org.quartz.Scheduler
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.scheduling.quartz.SchedulerFactoryBean
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.GetMapping
@@ -28,7 +30,6 @@ typealias ResponseListTestSuites = ResponseEntity<List<TestSuiteDto>>
 @RestController
 class TestSuitesController(
     private val testSuitesService: TestSuitesService,
-    private val scheduler: Scheduler,
 ) {
     /**
      * Save new test suites into DB
@@ -70,9 +71,10 @@ class TestSuitesController(
      */
     @PostMapping(path = ["/api/$v1/updateStandardTestSuites", "/internal/updateStandardTestSuites"])
     @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
-    fun updateStandardTestSuites() = Mono.fromCallable {
-        scheduler.triggerJob(
-            JobKey.jobKey(StandardSuitesUpdateScheduler.jobName)
+    @ConditionalOnBean(SchedulerFactoryBean::class)
+    fun updateStandardTestSuites(schedulerFactoryBean: SchedulerFactoryBean) = Mono.fromCallable {
+        schedulerFactoryBean.scheduler.triggerJob(
+            JobKey.jobKey(UpdateJob::class.simpleName)
         )
     }
 
