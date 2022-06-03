@@ -8,6 +8,7 @@ import com.saveourtool.save.backend.repository.TimestampBasedFileSystemRepositor
 import com.saveourtool.save.backend.service.OrganizationService
 import com.saveourtool.save.backend.service.UserDetailsService
 import com.saveourtool.save.domain.FileInfo
+import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.domain.TestResultDebugInfo
 import com.saveourtool.save.domain.TestResultLocation
 import com.saveourtool.save.from
@@ -19,12 +20,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.http.codec.multipart.FilePart
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.RequestPart
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
 
@@ -50,11 +46,11 @@ class DownloadFilesController(
      * @param projectName
      * @return a list of files in [additionalToolsFileSystemRepository]
      */
-    @GetMapping(path = ["/api/$v1/files/list"])
+    @GetMapping(path = ["/api/$v1/files/{organizationName}/{projectName}/list"])
     fun list(
-        @RequestParam organizationName: String,
-        @RequestParam projectName: String,
-    ): List<FileInfo> = additionalToolsFileSystemRepository.getFileInfoList(organizationName, projectName)
+        @PathVariable organizationName: String,
+        @PathVariable projectName: String,
+    ): List<FileInfo> = additionalToolsFileSystemRepository.getFileInfoList(ProjectCoordinates(organizationName, projectName))
 
     /**
      * @param fileInfo a FileInfo based on which a file should be located
@@ -62,15 +58,15 @@ class DownloadFilesController(
      * @param projectName
      * @return [Mono] with file contents
      */
-    @GetMapping(path = ["/api/$v1/files/download"], produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
+    @GetMapping(path = ["/api/$v1/files/{organizationName}/{projectName}/download"], produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
     fun download(
         @RequestBody fileInfo: FileInfo,
-        @RequestParam organizationName: String,
-        @RequestParam projectName: String,
+        @PathVariable organizationName: String,
+        @PathVariable projectName: String,
     ): Mono<ByteArrayResponse> = Mono.fromCallable {
         logger.info("Sending file ${fileInfo.name} to a client")
         ResponseEntity.ok().contentType(MediaType.APPLICATION_OCTET_STREAM).body(
-            additionalToolsFileSystemRepository.getFile(fileInfo, organizationName, projectName).inputStream.readAllBytes()
+            additionalToolsFileSystemRepository.getFile(fileInfo, ProjectCoordinates(organizationName, projectName)).inputStream.readAllBytes()
         )
     }
         .doOnError(FileNotFoundException::class.java) {
@@ -91,13 +87,13 @@ class DownloadFilesController(
      * @param projectName
      * @return [Mono] with response
      */
-    @PostMapping(path = ["/api/$v1/files/upload"], consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
+    @PostMapping(path = ["/api/$v1/files/{organizationName}/{projectName}/upload"], consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     fun upload(
         @RequestPart("file") file: Mono<FilePart>,
-        @RequestParam organizationName: String,
-        @RequestParam projectName: String,
+        @PathVariable organizationName: String,
+        @PathVariable projectName: String,
         @RequestParam(required = false, defaultValue = "true") returnShortFileInfo: Boolean,
-    ) = additionalToolsFileSystemRepository.saveFile(file, organizationName, projectName).map { fileInfo ->
+    ) = additionalToolsFileSystemRepository.saveFile(file, ProjectCoordinates(organizationName, projectName)).map { fileInfo ->
         ResponseEntity.status(
             if (fileInfo.sizeBytes > 0) HttpStatus.OK else HttpStatus.INTERNAL_SERVER_ERROR
         )

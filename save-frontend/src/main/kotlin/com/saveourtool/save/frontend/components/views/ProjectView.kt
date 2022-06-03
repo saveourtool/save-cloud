@@ -727,7 +727,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
 
                 element.files!!.asList().forEach { file ->
                     val response: FileInfo = post(
-                        "$apiUrl/files/upload?organizationName=${props.owner}&projectName=${props.name}&returnShortFileInfo=false",
+                        "$apiUrl/files/${props.owner}/${props.name}/upload?returnShortFileInfo=false",
                         Headers(),
                         FormData().apply {
                             append("file", file)
@@ -908,7 +908,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     private suspend fun getFilesList(
         organizationName: String,
         projectName: String,
-    ) = get("$apiUrl/files/list?organizationName=$organizationName&projectName=$projectName", Headers())
+    ) = get("$apiUrl/files/$organizationName/$projectName/list", Headers())
         .unsafeMap {
             it.decodeFromJsonString<List<FileInfo>>()
         }

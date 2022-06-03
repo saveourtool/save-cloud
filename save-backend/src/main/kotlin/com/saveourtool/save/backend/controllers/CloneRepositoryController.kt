@@ -7,6 +7,7 @@ import com.saveourtool.save.backend.service.ExecutionService
 import com.saveourtool.save.backend.service.ProjectService
 import com.saveourtool.save.backend.utils.username
 import com.saveourtool.save.domain.FileInfo
+import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.domain.Sdk
 import com.saveourtool.save.domain.ShortFileInfo
 import com.saveourtool.save.entities.Execution
@@ -78,11 +79,12 @@ class CloneRepositoryController(
         projectService.findWithPermissionByNameAndOrganization(authentication, name, organization.name, Permission.WRITE)
     }
         .flatMap { project ->
+            val projectCoordinates = ProjectCoordinates(project.organization.name, project.name)
             sendToPreprocessor(
                 executionRequest,
                 ExecutionType.GIT,
                 authentication.username(),
-                files.map { additionalToolsFileSystemRepository.getFileInfoByShortInfo(it, project.organization.name, project.name) }
+                files.map { additionalToolsFileSystemRepository.getFileInfoByShortInfo(it, projectCoordinates) }
             ) { newExecutionId ->
                 part("executionRequest", executionRequest.copy(executionId = newExecutionId), MediaType.APPLICATION_JSON)
             }
@@ -105,11 +107,12 @@ class CloneRepositoryController(
         projectService.findWithPermissionByNameAndOrganization(authentication, name, organization.name, Permission.WRITE)
     }
         .flatMap { project ->
+            val projectCoordinates = ProjectCoordinates(project.organization.name, project.name)
             sendToPreprocessor(
                 executionRequestForStandardSuites,
                 ExecutionType.STANDARD,
                 authentication.username(),
-                files.map { additionalToolsFileSystemRepository.getFileInfoByShortInfo(it, project.organization.name, project.name) }
+                files.map { additionalToolsFileSystemRepository.getFileInfoByShortInfo(it, projectCoordinates) }
             ) { newExecutionId ->
                 part("executionRequestForStandardSuites", executionRequestForStandardSuites.copy(executionId = newExecutionId), MediaType.APPLICATION_JSON)
             }
@@ -181,11 +184,12 @@ class CloneRepositoryController(
         projectName: String,
     ): Mono<List<MultipartBodyBuilder.PartBuilder>> {
         val additionalFiles = StringBuilder("")
+        val projectCoordinates = ProjectCoordinates(organizationName, projectName)
         return map {
-            val path = additionalToolsFileSystemRepository.getPath(it, organizationName, projectName)
+            val path = additionalToolsFileSystemRepository.getPath(it, projectCoordinates)
             additionalFiles.append("$path;")
             multipartBodyBuilder.part("fileInfo", it)
-            multipartBodyBuilder.part("file", additionalToolsFileSystemRepository.getFile(it, organizationName, projectName))
+            multipartBodyBuilder.part("file", additionalToolsFileSystemRepository.getFile(it, projectCoordinates))
         }
             .collectList()
             .switchIfEmpty(Mono.just(emptyList()))
