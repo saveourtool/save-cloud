@@ -1,3 +1,8 @@
+@file:Suppress(
+    "MISSING_KDOC_TOP_LEVEL",
+    "MISSING_KDOC_CLASS_ELEMENTS",
+)
+
 package com.saveourtool.save.entities
 
 import kotlin.test.Test
@@ -6,15 +11,13 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
 internal class ExecutionTest {
-
     private val project = Project(
         name = "stub",
         url = null,
         description = null,
         status = ProjectStatus.CREATED,
-        organization = Organization.stub(null)
+        organization = Organization.stub(null),
     )
-
     private val execution = Execution.stub(project)
 
     @Test
