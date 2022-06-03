@@ -192,8 +192,8 @@ class SaveAgent(internal val config: AgentConfiguration,
                         testResultStatus,
                         executionStartSeconds.value,
                         currentTime.epochSeconds,
-                        missingWarnings = debugInfo.debugInfo?.countWarnings?.missing,
-                        matchedWarnings = debugInfo.debugInfo?.countWarnings?.match,
+                        missingWarnings = debugInfo.debugInfo?.countWarnings?.unmatched,
+                        matchedWarnings = debugInfo.debugInfo?.countWarnings?.matched,
                     )
                 }
             }
