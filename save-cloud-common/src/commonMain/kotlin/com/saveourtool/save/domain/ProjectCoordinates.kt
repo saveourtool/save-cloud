@@ -9,6 +9,5 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class ProjectCoordinates(
     val organizationName: String,
-
     val projectName: String,
 )
