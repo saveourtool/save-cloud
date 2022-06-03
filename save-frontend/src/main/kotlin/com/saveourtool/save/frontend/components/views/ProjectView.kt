@@ -29,7 +29,6 @@ import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopResponseHandler
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.testsuite.TestSuiteDto
-import com.saveourtool.save.utils.getHighestRole
 
 import org.w3c.dom.HTMLButtonElement
 import org.w3c.dom.HTMLInputElement
@@ -219,11 +218,6 @@ external interface ProjectViewState : State {
      * Label that will be shown on close button
      */
     var closeButtonLabel: String?
-
-    /**
-     * Role of user is viewer
-     */
-    var isRoleViewer: Boolean?
 }
 
 /**
@@ -440,12 +434,10 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         }
     }
 
-    @Suppress("TOO_LONG_FUNCTION")
     override fun componentDidMount() {
         super.componentDidMount()
 
         scope.launch {
-            val role = getHighestRole(getRoleInOrganization(), props.currentUserInfo?.globalRole)
             val result = getProject(props.name, props.owner)
             val project = if (result.isFailure) {
                 setState { isLoading = false }
@@ -455,7 +447,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             }
             setState {
                 this.project = project
-                isRoleViewer = !role.moreOrEqualThan(Role.ADMIN)
             }
 
             val jsonProject = Json.encodeToString(project)
@@ -484,16 +475,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             fetchLatestExecutionId()
         }
     }
-
-    private suspend fun getRoleInOrganization(): Role = get(
-        url = "$apiUrl/projects/${props.owner}/${props.name}/users/roles",
-        headers = Headers().also {
-            it.set("Accept", "application/json")
-        },
-    )
-        .unsafeMap {
-            it.decodeFromJsonString()
-        }
 
     @Suppress("ComplexMethod", "TOO_LONG_FUNCTION")
     private fun submitExecutionRequest() {
@@ -672,7 +653,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                     attrs.suiteByteSize = state.suiteByteSize
                     attrs.bytesReceived = state.bytesReceived
                     attrs.isUploading = state.isUploading
-                    attrs.isRoleViewer = state.isRoleViewer
                 }
 
                 // ======== sdk selection =========

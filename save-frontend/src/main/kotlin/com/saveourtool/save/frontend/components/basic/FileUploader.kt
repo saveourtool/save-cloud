@@ -84,11 +84,6 @@ external interface UploaderProps : PropsWithChildren {
      * Flag to handle uploading a file
      */
     var isUploading: Boolean?
-
-    /**
-     * Role of user is viewer
-     */
-    var isRoleViewer: Boolean?
 }
 
 /**
@@ -154,25 +149,23 @@ fun fileUploader(
                         }
                     }
                 }
-                if (props.isRoleViewer == false) {
-                    li("list-group-item d-flex justify-content-between align-items-center") {
-                        label {
-                            input(type = InputType.file) {
-                                attrs.multiple = true
-                                attrs.hidden = true
-                                attrs {
-                                    onChangeFunction = { event ->
-                                        val target = event.target as HTMLInputElement
-                                        onFileInput(target)
-                                    }
+                li("list-group-item d-flex justify-content-between align-items-center") {
+                    label {
+                        input(type = InputType.file) {
+                            attrs.multiple = true
+                            attrs.hidden = true
+                            attrs {
+                                onChangeFunction = { event ->
+                                    val target = event.target as HTMLInputElement
+                                    onFileInput(target)
                                 }
                             }
-                            fontAwesomeIcon(icon = faUpload)
-                            attrs["data-toggle"] = "tooltip"
-                            attrs["data-placement"] = "top"
-                            attrs["title"] = "Regular files/Executable files/ZIP Archives"
-                            strong { +"Upload files:" }
                         }
+                        fontAwesomeIcon(icon = faUpload)
+                        attrs["data-toggle"] = "tooltip"
+                        attrs["data-placement"] = "top"
+                        attrs["title"] = "Regular files/Executable files/ZIP Archives"
+                        strong { +"Upload files:" }
                     }
                 }
 
