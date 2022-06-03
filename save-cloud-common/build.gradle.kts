@@ -48,6 +48,11 @@ kotlin {
                 api(libs.slf4j.api)
             }
         }
+        val jvmTest by getting {
+            dependencies {
+                implementation(libs.kotlin.test)
+            }
+        }
     }
 }
 
