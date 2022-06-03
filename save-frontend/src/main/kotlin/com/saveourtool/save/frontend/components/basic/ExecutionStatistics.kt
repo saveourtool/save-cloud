@@ -1,4 +1,8 @@
-@file:Suppress("FILE_NAME_MATCH_CLASS", "FILE_WILDCARD_IMPORTS", "WildcardImport")
+@file:Suppress(
+    "FILE_NAME_MATCH_CLASS",
+    "FILE_WILDCARD_IMPORTS",
+    "WildcardImport",
+)
 
 package com.saveourtool.save.frontend.components.basic
 
@@ -129,11 +133,6 @@ fun executionStatistics(classes: String = "") = fc<ExecutionStatisticsProps> { p
     }
 }
 
-private fun calculateRate(numerator: Long, denominator: Long) = denominator.takeIf { it > 0 }
-    ?.run { numerator.toDouble() / denominator }
-    ?.let { it * 100 }
-    ?.toInt()
-    ?.toString()
 /**
  * A component which displays a GIF if tests not found
  *
@@ -159,3 +158,9 @@ fun executionTestsNotFound() = fc<ExecutionStatisticsProps> { props ->
         }
     }
 }
+
+private fun calculateRate(numerator: Long, denominator: Long) = denominator.takeIf { it > 0 }
+    ?.run { numerator.toDouble() / denominator }
+    ?.let { it * 100 }
+    ?.toInt()
+    ?.toString()
