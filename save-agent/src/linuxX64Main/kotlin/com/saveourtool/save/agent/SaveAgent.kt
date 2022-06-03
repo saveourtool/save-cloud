@@ -205,7 +205,10 @@ class SaveAgent(internal val config: AgentConfiguration,
 
     @Suppress("MAGIC_NUMBER", "MagicNumber")
     private fun TestResultDebugInfo.getCountWarningsAsLong(getter: (CountWarnings) -> Int?) =
-        this.debugInfo?.countWarnings?.let { getter(it) }?.let { it.toLong() } ?: 0L
+        this.debugInfo?.countWarnings
+            ?.let { getter(it) }
+            ?.let { it.toLong() }
+            ?: 0L
 
     private fun readExecutionReportFromFile(jsonFile: String) = reportFormat.decodeFromString<List<Report>>(
         readFile(jsonFile).joinToString(separator = "")
