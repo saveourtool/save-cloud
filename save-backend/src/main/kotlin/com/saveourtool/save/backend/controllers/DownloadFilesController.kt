@@ -116,7 +116,7 @@ class DownloadFilesController(
         val project = projectService.findByNameAndOrganizationName(projectName, organizationName)
         projectPermissionEvaluator.hasPermission(authentication, project!!, Permission.WRITE)
     }
-        .map {
+        .flatMap {
             additionalToolsFileSystemRepository.saveFile(file, ProjectCoordinates(organizationName, projectName)).map { fileInfo ->
                 ResponseEntity.status(
                     if (fileInfo.sizeBytes > 0) HttpStatus.OK else HttpStatus.INTERNAL_SERVER_ERROR
