@@ -55,6 +55,7 @@ class DownloadFilesController(
      * @return a list of files in [additionalToolsFileSystemRepository]
      */
     @GetMapping(path = ["/api/$v1/files/{organizationName}/{projectName}/list"])
+    @Suppress("UnsafeCallOnNullableType")
     fun list(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
@@ -105,6 +106,7 @@ class DownloadFilesController(
      * @return [Mono] with response
      */
     @PostMapping(path = ["/api/$v1/files/{organizationName}/{projectName}/upload"], consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
+    @Suppress("UnsafeCallOnNullableType")
     fun upload(
         @RequestPart("file") file: Mono<FilePart>,
         @PathVariable organizationName: String,
