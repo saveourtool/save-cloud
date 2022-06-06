@@ -154,8 +154,18 @@ class TestExecutionControllerTest {
         assertTrue(tests.any { it.endTime == testExecutionDtoFirst.endTimeSeconds!!.secondsToLocalDateTime().withNano(0) })
         Assertions.assertEquals(passedTestsBefore, passedTestsAfter - 1)
         Assertions.assertEquals(failedTestsBefore, failedTestsAfter - 1)
-        assertTrue(tests.any { it.unmatched == testExecutionDtoFirst.unmatched && it.matched == testExecutionDtoFirst.matched })
-        assertTrue(tests.any { it.unmatched == testExecutionDtoSecond.unmatched && it.matched == testExecutionDtoSecond.matched })
+        assertTrue(tests.any {
+            it.unmatched == testExecutionDtoFirst.unmatched &&
+                    it.matched == testExecutionDtoFirst.matched &&
+                    it.expected == testExecutionDtoFirst.expected &&
+                    it.unexpected == testExecutionDtoFirst.unexpected
+        })
+        assertTrue(tests.any {
+            it.unmatched == testExecutionDtoSecond.unmatched &&
+                    it.matched == testExecutionDtoSecond.matched &&
+                    it.expected == testExecutionDtoSecond.expected &&
+                    it.unexpected == testExecutionDtoSecond.unexpected
+        })
     }
 
     @Test
