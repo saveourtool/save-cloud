@@ -49,6 +49,9 @@ kotlin {
             }
         }
         val jvmTest by getting {
+            tasks.withType<Test> {
+                useJUnitPlatform()
+            }
             dependencies {
                 implementation(libs.kotlin.test)
             }
