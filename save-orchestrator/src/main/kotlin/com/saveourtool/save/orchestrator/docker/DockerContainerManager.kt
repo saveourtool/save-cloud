@@ -1,6 +1,7 @@
 package com.saveourtool.save.orchestrator.docker
 
 import com.saveourtool.save.domain.Sdk
+import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.copyRecursivelyWithAttributes
 import com.saveourtool.save.orchestrator.execTimed
 import com.saveourtool.save.orchestrator.getHostIp
@@ -8,7 +9,6 @@ import com.saveourtool.save.orchestrator.getHostIp
 import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.api.command.BuildImageResultCallback
 import com.github.dockerjava.api.model.Image
-import com.saveourtool.save.orchestrator.config.ConfigProperties
 import io.micrometer.core.instrument.MeterRegistry
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -76,13 +76,11 @@ class DockerContainerManager(
         return buildImageResultCallback.awaitImageId()
     }
 
-    internal fun findImages(imageName: String): List<Image> {
-        return dockerClient.listImagesCmd()
+    internal fun findImages(imageName: String): List<Image> = dockerClient.listImagesCmd()
         // Can't use filters on the daemon level: https://github.com/docker-java/docker-java/issues/1517
-//            .withImageNameFilter("label=\"save-id=$imageName\"")
-            .exec()
-            .filter { it.labels?.get("save-id") == imageName }
-    }
+        // .withImageNameFilter("label=\"save-id=$imageName\"")
+        .exec()
+        .filter { it.labels?.get("save-id") == imageName }
 
     private fun createDockerFile(
         dir: File,
@@ -92,8 +90,9 @@ class DockerContainerManager(
     ): File {
         val dockerFileAsText = buildString {
             append("FROM ${configProperties.docker.registry}/$baseImage")
-            if (resourcesPath != null)
+            if (resourcesPath != null) {
                 append("COPY resources $resourcesPath")
+            }
             append(runCmd)
         }
         val dockerFile = createTempFile(dir.toPath()).toFile()

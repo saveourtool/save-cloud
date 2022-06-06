@@ -49,6 +49,7 @@ data class TestResources(
  * @property host hostname of docker daemon
  * @property runtime OCI compliant runtime for docker
  * @property loggingDriver logging driver for the container
+ * @property registry docker registry to pull images for test executions from
  */
 data class DockerSettings(
     val host: String,

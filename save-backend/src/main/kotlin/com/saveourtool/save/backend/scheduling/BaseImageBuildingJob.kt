@@ -35,8 +35,7 @@ class BaseImageBuildingJob(
     }
 
     companion object {
-        val jobKey = JobKey(BaseImageBuildingJob::class.simpleName)
-
         private val logger = LoggerFactory.getLogger(BaseImageBuildingJob::class.java)
+        val jobKey = JobKey(BaseImageBuildingJob::class.simpleName)
     }
 }

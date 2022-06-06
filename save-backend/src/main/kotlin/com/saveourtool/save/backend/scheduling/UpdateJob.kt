@@ -2,11 +2,9 @@ package com.saveourtool.save.backend.scheduling
 
 import com.saveourtool.save.backend.configs.ConfigProperties
 import org.quartz.Job
-import org.quartz.JobBuilder
 import org.quartz.JobExecutionContext
 import org.quartz.JobKey
 import org.slf4j.LoggerFactory
-import org.springframework.context.annotation.Bean
 import org.springframework.web.reactive.function.client.WebClient
 import java.time.Duration
 
@@ -29,7 +27,7 @@ class UpdateJob(
     }
 
     companion object {
-        val jobKey = JobKey(UpdateJob::class.simpleName)
         private val logger = LoggerFactory.getLogger(UpdateJob::class.java)
+        val jobKey = JobKey(UpdateJob::class.simpleName)
     }
 }

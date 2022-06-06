@@ -29,7 +29,7 @@ class JobsConfiguration {
         .build()
 
     @Bean
-    fun baseImageBuildingJobDetail(): JobDetail =  JobBuilder.newJob(BaseImageBuildingJob::class.java)
+    fun baseImageBuildingJobDetail(): JobDetail = JobBuilder.newJob(BaseImageBuildingJob::class.java)
         .storeDurably()
         .withIdentity(BaseImageBuildingJob.jobKey)
         .withDescription("Build base images for test execution for different SDKs")
@@ -48,9 +48,7 @@ class JobsConfiguration {
     )
 }
 
-private fun <T : Trigger> scheduledTrigger(jobKey: JobKey, scheduleBuilder: ScheduleBuilder<T>): T {
-    return TriggerBuilder.newTrigger()
-        .withSchedule(scheduleBuilder)
-        .forJob(jobKey)
-        .build()
-}
+private fun <T : Trigger> scheduledTrigger(jobKey: JobKey, scheduleBuilder: ScheduleBuilder<T>): T = TriggerBuilder.newTrigger()
+    .withSchedule(scheduleBuilder)
+    .forJob(jobKey)
+    .build()

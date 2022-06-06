@@ -1,6 +1,8 @@
 package com.saveourtool.save.orchestrator.service
 
 import com.saveourtool.save.domain.Python
+import com.saveourtool.save.domain.Sdk
+import com.saveourtool.save.domain.toSdk
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.execution.ExecutionStatus
@@ -19,8 +21,6 @@ import com.saveourtool.save.utils.moveFileWithAttributes
 
 import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.api.exception.DockerException
-import com.saveourtool.save.domain.Sdk
-import com.saveourtool.save.domain.toSdk
 import net.lingala.zip4j.ZipFile
 import net.lingala.zip4j.exception.ZipException
 import org.apache.commons.io.FileUtils
@@ -249,6 +249,10 @@ class DockerService(private val configProperties: ConfigProperties,
         return Pair(imageId, agentRunCmd)
     }
 
+    /**
+     * @param sdk
+     * @return
+     */
     fun buildBaseImage(sdk: Sdk): String {
         val images = dockerContainerManager.findImages(baseImageName(sdk))
         if (images.isNotEmpty()) {
@@ -381,6 +385,9 @@ class DockerService(private val configProperties: ConfigProperties,
  */
 internal fun imageName(executionId: Long) = "save-execution:$executionId"
 
+/**
+ * @param sdk
+ */
 internal fun baseImageName(sdk: Sdk) = "save-base-$sdk"
 
 /**

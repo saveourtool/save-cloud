@@ -7,7 +7,6 @@ import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.v1
 
 import org.quartz.JobKey
-import org.quartz.Scheduler
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -67,6 +66,7 @@ class TestSuitesController(
     /**
      * Trigger update of standard test suites. Can be called only by superadmins externally.
      *
+     * @param schedulerFactoryBean
      * @return response entity
      */
     @PostMapping(path = ["/api/$v1/updateStandardTestSuites", "/internal/updateStandardTestSuites"])
