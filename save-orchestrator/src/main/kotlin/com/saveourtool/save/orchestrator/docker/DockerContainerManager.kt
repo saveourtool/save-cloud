@@ -34,12 +34,19 @@ class DockerContainerManager(
      * @param baseImage base docker image from which this image will be built
      * @param baseDir a context dir for Dockerfile
      * @param resourcesTargetPath target path to additional resources. Resources from [baseDir] will be copied into this directory inside the container.
-     * @param runCmd command to append to the Dockerfile. Actual entrypoint is added on container creation.
      * @param imageName name which will be assigned to the image
+     * @param runCmd `RUN` directives to be added to Dockerfile *before* resources from `baseDir` are copied (so that resources-agnostic command
+     * results can be cached in docker layers).
+     * @param runOnResourcesCmd `RUN` directives to be added to Dockerfile *after* resources from `baseDir` are copied.
      * @return id of the created docker image
      * @throws DockerException
      */
-    @Suppress("TOO_LONG_FUNCTION", "LongMethod")
+    @Suppress(
+        "TOO_LONG_FUNCTION",
+        "LongMethod",
+        "LongParameterList",
+        "TOO_MANY_PARAMETERS"
+    )
     internal fun buildImageWithResources(baseImage: String = Sdk.Default.toString(),
                                          imageName: String,
                                          baseDir: File?,
