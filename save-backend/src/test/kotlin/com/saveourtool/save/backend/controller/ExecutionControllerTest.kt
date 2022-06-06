@@ -4,16 +4,19 @@ import com.saveourtool.save.backend.SaveApplication
 import com.saveourtool.save.backend.controllers.ProjectController
 import com.saveourtool.save.backend.repository.ExecutionRepository
 import com.saveourtool.save.backend.repository.ProjectRepository
+import com.saveourtool.save.backend.repository.TestSuiteRepository
 import com.saveourtool.save.backend.scheduling.StandardSuitesUpdateScheduler
 import com.saveourtool.save.backend.utils.AuthenticationDetails
 import com.saveourtool.save.backend.utils.MySqlExtension
 import com.saveourtool.save.backend.utils.mutateMockedUser
 import com.saveourtool.save.entities.Execution
+import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.execution.ExecutionInitializationDto
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.ExecutionType
 import com.saveourtool.save.execution.ExecutionUpdateDto
+import com.saveourtool.save.testsuite.TestSuiteType
 import com.saveourtool.save.testutils.checkQueues
 import com.saveourtool.save.testutils.cleanup
 import com.saveourtool.save.testutils.createMockWebServer
@@ -25,6 +28,7 @@ import okhttp3.mockwebserver.MockWebServer
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -65,6 +69,9 @@ class ExecutionControllerTest {
 
     @Autowired
     lateinit var projectRepository: ProjectRepository
+
+    @Autowired
+    lateinit var testSuiteRepository: TestSuiteRepository
 
     @Test
     @WithMockUser("John Doe")
@@ -243,6 +250,69 @@ class ExecutionControllerTest {
         assertions.orTimeout(60, TimeUnit.SECONDS).join().forEach {
             assertNotNull(it)
         }
+    }
+
+    @Suppress("TOO_LONG_FUNCTION")
+    @Test
+    @WithMockUser(username = "John Doe")
+    fun `test testSuiteIds`() {
+        val project = projectRepository.findById(1).get()
+        val executionEmptyTestSuiteIds = Execution.stub(project).apply {
+            testSuiteIds = null
+        }
+
+        webClient.post()
+            .uri("/internal/findTestRootPathForExecutionByTestSuites")
+            .body(BodyInserters.fromValue(executionEmptyTestSuiteIds))
+            .exchange()
+            .expectStatus()
+            .isOk
+            .expectBody<List<String>>()
+            .consumeWith {
+                val responseBody = requireNotNull(it.responseBody)
+                assertTrue(responseBody.isEmpty())
+            }
+
+        val testSuite1 = testSuiteRepository.save(
+            TestSuite(
+                type = TestSuiteType.PROJECT,
+                project = project,
+                dateAdded = testLocalDateTime,
+                testRootPath = "test 1",
+            )
+        )
+        val testSuite2 = testSuiteRepository.save(
+            TestSuite(
+                type = TestSuiteType.PROJECT,
+                project = project,
+                dateAdded = testLocalDateTime,
+                testRootPath = "test 2",
+            )
+        )
+        val testSuite3 = testSuiteRepository.save(
+            TestSuite(
+                type = TestSuiteType.PROJECT,
+                project = project,
+                dateAdded = testLocalDateTime,
+                testRootPath = "test 3",
+            )
+        )
+        val executionTestSuiteIds = Execution.stub(project).apply {
+            testSuiteIds = "${testSuite1.id}, ${testSuite2.id}, ${testSuite3.id}"
+        }
+
+        webClient.post()
+            .uri("/internal/findTestRootPathForExecutionByTestSuites")
+            .body(BodyInserters.fromValue(executionTestSuiteIds))
+            .exchange()
+            .expectStatus()
+            .isOk
+            .expectBody<List<String>>()
+            .consumeWith {
+                val responseBody = requireNotNull(it.responseBody)
+                assertFalse(responseBody.isEmpty())
+                assertEquals(listOf("test 1", "test 2", "test 3"), responseBody)
+            }
     }
 
     companion object {
