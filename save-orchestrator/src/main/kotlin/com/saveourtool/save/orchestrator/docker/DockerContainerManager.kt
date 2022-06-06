@@ -7,6 +7,8 @@ import com.saveourtool.save.orchestrator.getHostIp
 
 import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.api.command.BuildImageResultCallback
+import com.github.dockerjava.api.model.Image
+import com.saveourtool.save.orchestrator.config.ConfigProperties
 import io.micrometer.core.instrument.MeterRegistry
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -56,6 +58,7 @@ class DockerContainerManager(
             val buildCmd = dockerClient.buildImageCmd(dockerFile)
                 .withBaseDirectory(tmpDir)
                 .withTags(setOf(imageName))
+                .withLabels(mapOf("save-id" to imageName))
                 // this is required to be able to access host, e.g. if proxy running on the host is required during image build process
                 .withExtraHosts(setOf("host.docker.internal:$hostIp"))
             buildCmd.execTimed(meterRegistry, "save.orchestrator.docker.build", "baseImage", baseImage) { record ->
@@ -71,6 +74,14 @@ class DockerContainerManager(
             tmpDir.deleteRecursively()
         }
         return buildImageResultCallback.awaitImageId()
+    }
+
+    internal fun findImages(imageName: String): List<Image> {
+        return dockerClient.listImagesCmd()
+        // Can't use filters on the daemon level: https://github.com/docker-java/docker-java/issues/1517
+//            .withImageNameFilter("label=\"save-id=$imageName\"")
+            .exec()
+            .filter { it.labels?.get("save-id") == imageName }
     }
 
     private fun createDockerFile(
