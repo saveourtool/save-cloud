@@ -21,6 +21,7 @@ import kotlin.io.path.createTempFile
  */
 @Component
 class DockerContainerManager(
+    private val configProperties: ConfigProperties,
     private val meterRegistry: MeterRegistry,
     private val dockerClient: DockerClient,
 ) {
@@ -79,7 +80,7 @@ class DockerContainerManager(
         runCmd: String,
     ): File {
         val dockerFileAsText = buildString {
-            append("FROM $baseImage")
+            append("FROM ${configProperties.docker.registry}/$baseImage")
             if (resourcesPath != null)
                 append("COPY resources $resourcesPath")
             append(runCmd)

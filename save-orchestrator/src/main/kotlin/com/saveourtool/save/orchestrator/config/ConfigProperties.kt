@@ -54,6 +54,7 @@ data class DockerSettings(
     val host: String,
     val loggingDriver: String,
     val runtime: String = "runc",
+    val registry: String = "docker.io/library",
 )
 
 /**
