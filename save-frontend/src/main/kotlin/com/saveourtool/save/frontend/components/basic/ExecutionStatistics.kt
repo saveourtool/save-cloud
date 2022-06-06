@@ -2,6 +2,7 @@
     "FILE_NAME_MATCH_CLASS",
     "FILE_WILDCARD_IMPORTS",
     "WildcardImport",
+    "HEADER_MISSING_IN_NON_SINGLE_CLASS_FILE",
 )
 
 package com.saveourtool.save.frontend.components.basic
@@ -188,7 +189,6 @@ fun executionStatistics(classes: String = "") = fc<ExecutionStatisticsProps> { p
     }
 }
 
-
 /**
  * A component which displays a GIF if tests not found
  *
@@ -214,4 +214,3 @@ fun executionTestsNotFound() = fc<ExecutionStatisticsProps> { props ->
         }
     }
 }
-

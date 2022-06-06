@@ -252,6 +252,7 @@ class ExecutionControllerTest {
         }
     }
 
+    @Suppress("TOO_LONG_FUNCTION")
     @Test
     @WithMockUser(username = "John Doe")
     fun `test testSuiteIds`() {
