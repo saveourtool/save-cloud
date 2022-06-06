@@ -28,6 +28,84 @@ external interface ExecutionStatisticsProps : Props {
 }
 
 /**
+ * Class contains all execution statistics values for rending
+ *
+ * @param executionDto
+ */
+internal class ExecutionStatisticsValues(executionDto: ExecutionDto?) {
+    /**
+     * The style for rending
+     */
+    val style: String
+
+    /**
+     * All tests in the current execution or 0
+     */
+    val allTests: String
+
+    /**
+     * Number of passed tests in the current execution or 0
+     */
+    val passedTests: String
+
+    /**
+     * Number of failed tests in the current execution or 0
+     */
+    val failedTests: String
+
+    /**
+     * Number of running tests in the current execution or 0
+     */
+    val runningTests: String
+
+    /**
+     * Rate of passed tests in the current execution or 0
+     */
+    val passRate: String
+
+    /**
+     * Precision rate in the current execution or 0
+     */
+    val precisionRate: String
+
+    /**
+     * Recall rate in the current execution or 0
+     */
+    val recallRate: String
+
+    init {
+        val isInProgress = executionDto?.run { status == ExecutionStatus.RUNNING || status == ExecutionStatus.PENDING } ?: true
+        val isSuccess = executionDto?.run { passedTests == allTests } ?: false
+        this.style = if (isInProgress) {
+            "info"
+        } else if (isSuccess) {
+            "success"
+        } else {
+            "danger"
+        }
+        this.allTests = executionDto?.allTests?.toString() ?: "0"
+        this.passedTests = executionDto?.passedTests?.toString() ?: "0"
+        this.failedTests = executionDto?.failedTests?.toString() ?: "0"
+        this.runningTests = executionDto?.runningTests?.toString() ?: "0"
+        this.passRate = executionDto
+            ?.let { calculateRate(it.passedTests, it.allTests) }
+            ?: "0"
+        this.precisionRate = executionDto
+            ?.let { calculateRate(it.matchedChecks, it.matchedChecks + it.unexpectedChecks) }
+            ?: "0"
+        this.recallRate = executionDto
+            ?.let { calculateRate(it.matchedChecks, it.matchedChecks + it.unmatchedChecks) }
+            ?: "0"
+    }
+
+    private fun calculateRate(numerator: Long, denominator: Long) = denominator.takeIf { it > 0 }
+        ?.run { numerator.toDouble() / denominator }
+        ?.let { it * 100 }
+        ?.toInt()
+        ?.toString()
+}
+
+/**
  * A component which displays statistics about an execution from its props
  *
  * @param classes HTML classes for the enclosing div
@@ -137,82 +215,3 @@ fun executionTestsNotFound() = fc<ExecutionStatisticsProps> { props ->
     }
 }
 
-/**
- * Class contains all execution statistics values for rending
- *
- * @param executionDto
- */
-internal class ExecutionStatisticsValues(executionDto: ExecutionDto?) {
-    /**
-     * The style for rending
-     */
-    val style: String
-
-    /**
-     * All tests in the current execution or 0
-     */
-    val allTests: String
-
-    /**
-     * Number of passed tests in the current execution or 0
-     */
-    val passedTests: String
-
-    /**
-     * Number of failed tests in the current execution or 0
-     */
-    val failedTests: String
-
-    /**
-     * Number of running tests in the current execution or 0
-     */
-    val runningTests: String
-
-
-    /**
-     * Rate of passed tests in the current execution or 0
-     */
-    val passRate: String
-
-    /**
-     * Precision rate in the current execution or 0
-     */
-    val precisionRate: String
-
-    /**
-     * Recall rate in the current execution or 0
-     */
-    val recallRate: String
-
-    init {
-        val isInProgress =
-            executionDto?.run { status == ExecutionStatus.RUNNING || status == ExecutionStatus.PENDING } ?: true
-        val isSuccess = executionDto?.run { passedTests == allTests } ?: false
-        this.style = if (isInProgress) {
-            "info"
-        } else if (isSuccess) {
-            "success"
-        } else {
-            "danger"
-        }
-        this.allTests = executionDto?.allTests?.toString() ?: "0"
-        this.passedTests = executionDto?.passedTests?.toString() ?: "0"
-        this.failedTests = executionDto?.failedTests?.toString() ?: "0"
-        this.runningTests = executionDto?.runningTests?.toString() ?: "0"
-        this.passRate = executionDto
-            ?.let { calculateRate(it.passedTests, it.allTests) }
-            ?: "0"
-        this.precisionRate = executionDto
-            ?.let { calculateRate(it.matchedChecks, it.matchedChecks + it.unexpectedChecks) }
-            ?: "0"
-        this.recallRate = executionDto
-            ?.let { calculateRate(it.matchedChecks, it.matchedChecks + it.unmatchedChecks) }
-            ?: "0"
-    }
-
-    private fun calculateRate(numerator: Long, denominator: Long) = denominator.takeIf { it > 0 }
-        ?.run { numerator.toDouble() / denominator }
-        ?.let { it * 100 }
-        ?.toInt()
-        ?.toString()
-}
