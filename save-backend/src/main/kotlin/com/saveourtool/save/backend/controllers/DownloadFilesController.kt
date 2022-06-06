@@ -36,6 +36,7 @@ import kotlin.io.path.*
  * A Spring controller for file downloading
  */
 @RestController
+@Suppress("LongParameterList")
 class DownloadFilesController(
     private val additionalToolsFileSystemRepository: TimestampBasedFileSystemRepository,
     private val testDataFilesystemRepository: TestDataFilesystemRepository,

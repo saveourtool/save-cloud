@@ -5,8 +5,12 @@ import com.saveourtool.save.backend.configs.NoopWebSecurityConfig
 import com.saveourtool.save.backend.configs.WebConfig
 import com.saveourtool.save.backend.controllers.DownloadFilesController
 import com.saveourtool.save.backend.repository.*
+import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.service.OrganizationService
+import com.saveourtool.save.backend.service.ProjectService
 import com.saveourtool.save.backend.service.UserDetailsService
+import com.saveourtool.save.backend.utils.AuthenticationDetails
+import com.saveourtool.save.backend.utils.mutateMockedUser
 import com.saveourtool.save.core.result.DebugInfo
 import com.saveourtool.save.core.result.Pass
 import com.saveourtool.save.domain.FileInfo
@@ -34,6 +38,7 @@ import org.springframework.core.io.FileSystemResource
 import org.springframework.http.HttpMethod
 import org.springframework.http.MediaType
 import org.springframework.http.client.MultipartBodyBuilder
+import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
@@ -64,6 +69,8 @@ import kotlin.io.path.writeLines
 @MockBeans(
     MockBean(OrganizationService::class),
     MockBean(UserDetailsService::class),
+    MockBean(ProjectService::class),
+    MockBean(ProjectPermissionEvaluator::class),
 )
 class DownloadFilesTest {
     @Autowired
@@ -82,7 +89,12 @@ class DownloadFilesTest {
     private lateinit var agentRepository: AgentRepository
 
     @Test
+    @WithMockUser(username = "admin")
     fun `should download a file`() {
+        mutateMockedUser {
+            details = AuthenticationDetails(id = 1)
+        }
+
         val tmpFile = createTempFile("test", "txt")
             .writeLines("Lorem ipsum".lines())
         Paths.get(configProperties.fileStorage.location).createDirectories()
@@ -120,7 +132,12 @@ class DownloadFilesTest {
     }
 
     @Test
+    @WithMockUser(roles = ["ADMIN"])
     fun checkUpload() {
+        mutateMockedUser {
+            details = AuthenticationDetails(id = 1)
+        }
+
         val tmpFile = createTempFile("test", "txt")
             .writeLines("Lorem ipsum".lines())
 
