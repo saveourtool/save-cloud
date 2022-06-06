@@ -20,6 +20,12 @@ import org.springframework.scheduling.quartz.SchedulerFactoryBean
 
 @Configuration
 @ConditionalOnBean(SchedulerFactoryBean::class)
+@Suppress(
+    "MISSING_KDOC_TOP_LEVEL",
+    "KDOC_NO_EMPTY_TAGS",
+    "MISSING_KDOC_ON_FUNCTION",
+    "MISSING_KDOC_CLASS_ELEMENTS"
+)
 class JobsConfiguration {
     @Bean
     fun updateJobDetail(): JobDetail = JobBuilder.newJob(UpdateJob::class.java)

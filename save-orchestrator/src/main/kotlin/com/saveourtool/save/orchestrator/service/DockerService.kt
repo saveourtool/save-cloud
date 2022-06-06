@@ -251,7 +251,7 @@ class DockerService(private val configProperties: ConfigProperties,
 
     /**
      * @param sdk
-     * @return
+     * @return an ID of the built image or of an existing one
      */
     fun buildBaseImage(sdk: Sdk): String {
         val images = dockerContainerManager.findImages(baseImageName(sdk))

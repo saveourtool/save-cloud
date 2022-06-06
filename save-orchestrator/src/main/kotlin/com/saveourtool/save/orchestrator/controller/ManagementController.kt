@@ -1,6 +1,7 @@
 package com.saveourtool.save.orchestrator.controller
 
 import com.saveourtool.save.domain.Sdk
+import com.saveourtool.save.orchestrator.BodilessResponseEntity
 import com.saveourtool.save.orchestrator.service.AgentService
 import com.saveourtool.save.orchestrator.service.DockerService
 
@@ -15,6 +16,9 @@ import reactor.core.publisher.Mono
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 
+/**
+ * Group of endpoints for different management tasks, e.g. docker environment management.
+ */
 @RestController
 @RequestMapping("/internal/management")
 class ManagementController(
@@ -25,7 +29,7 @@ class ManagementController(
      * @param request
      */
     @PostMapping("/docker/images/build-base", consumes = [MediaType.APPLICATION_JSON_VALUE])
-    fun buildBaseImage(@RequestBody request: String): Mono<ResponseEntity<Void>> =
+    fun buildBaseImage(@RequestBody request: String): Mono<BodilessResponseEntity> =
             Mono.just(request)
                 .map { Json.decodeFromString<Sdk>(it) }
                 .doOnSuccess { sdk ->

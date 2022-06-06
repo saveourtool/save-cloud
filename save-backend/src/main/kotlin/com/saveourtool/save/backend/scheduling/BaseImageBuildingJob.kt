@@ -11,6 +11,9 @@ import org.springframework.web.reactive.function.client.WebClient
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
+/**
+ * A Quartz Job to send request to start base images build in save-orchestrator
+ */
 class BaseImageBuildingJob(
     configProperties: ConfigProperties,
 ) : QuartzJobBean() {

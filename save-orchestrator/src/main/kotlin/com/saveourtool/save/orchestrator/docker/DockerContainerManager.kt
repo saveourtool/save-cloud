@@ -22,6 +22,7 @@ import kotlin.io.path.createTempFile
  * A class that communicates with docker daemon
  */
 @Component
+@Suppress("AVOID_NULL_CHECKS")
 class DockerContainerManager(
     private val configProperties: ConfigProperties,
     private val meterRegistry: MeterRegistry,
@@ -76,11 +77,17 @@ class DockerContainerManager(
         return buildImageResultCallback.awaitImageId()
     }
 
-    internal fun findImages(imageName: String): List<Image> = dockerClient.listImagesCmd()
+    /**
+     * Returns all images labelled `save-id=[saveId]`
+     *
+     * @param saveId value of `save-id` label to search by
+     * @return a list of images with matching label
+     */
+    internal fun findImages(saveId: String): List<Image> = dockerClient.listImagesCmd()
         // Can't use filters on the daemon level: https://github.com/docker-java/docker-java/issues/1517
         // .withImageNameFilter("label=\"save-id=$imageName\"")
         .exec()
-        .filter { it.labels?.get("save-id") == imageName }
+        .filter { it.labels?.get("save-id") == saveId }
 
     private fun createDockerFile(
         dir: File,
@@ -90,10 +97,10 @@ class DockerContainerManager(
     ): File {
         val dockerFileAsText = buildString {
             append("FROM ${configProperties.docker.registry}/$baseImage")
+            append(runCmd)
             if (resourcesPath != null) {
                 append("COPY resources $resourcesPath")
             }
-            append(runCmd)
         }
         val dockerFile = createTempFile(dir.toPath()).toFile()
         dockerFile.writeText(dockerFileAsText)
