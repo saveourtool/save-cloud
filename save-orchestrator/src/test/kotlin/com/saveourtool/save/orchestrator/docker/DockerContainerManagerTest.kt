@@ -29,6 +29,7 @@ import kotlin.io.path.createTempFile
 @Import(Beans::class, DockerAgentRunner::class, TestConfiguration::class)
 @DisabledOnOs(OS.WINDOWS, disabledReason = "If required, can be run with `docker-tcp` profile and with TCP port enabled on Docker Daemon")
 class DockerContainerManagerTest {
+    @Autowired private lateinit var configProperties: ConfigProperties
     @Autowired private lateinit var dockerClient: DockerClient
     @Autowired private lateinit var dockerAgentRunner: DockerAgentRunner
     private lateinit var dockerContainerManager: DockerContainerManager
@@ -38,7 +39,7 @@ class DockerContainerManagerTest {
 
     @BeforeEach
     fun setUp() {
-        dockerContainerManager = DockerContainerManager(CompositeMeterRegistry(), dockerClient)
+        dockerContainerManager = DockerContainerManager(configProperties, CompositeMeterRegistry(), dockerClient)
         dockerClient.pullImageCmd("ubuntu")
             .withTag("latest")
             .exec(PullImageResultCallback())
