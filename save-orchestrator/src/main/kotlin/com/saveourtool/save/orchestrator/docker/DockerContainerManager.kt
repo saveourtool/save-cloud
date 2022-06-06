@@ -45,6 +45,7 @@ class DockerContainerManager(
                                          baseDir: File?,
                                          resourcesTargetPath: String?,
                                          runCmd: String = "RUN /bin/bash",
+                                         runOnResourcesCmd: String? = null,
     ): String {
         val tmpDir = createTempDirectory().toFile()
         val tmpResourcesDir = tmpDir.absoluteFile.resolve("resources")
@@ -52,7 +53,7 @@ class DockerContainerManager(
             log.debug("Copying ${baseDir.absolutePath} into $tmpResourcesDir")
             copyRecursivelyWithAttributes(baseDir, tmpResourcesDir)
         }
-        val dockerFile = createDockerFile(tmpDir, baseImage, resourcesTargetPath, runCmd)
+        val dockerFile = createDockerFile(tmpDir, baseImage, resourcesTargetPath, runCmd, runOnResourcesCmd)
         val hostIp = getHostIp()
         log.debug("Resolved host IP as $hostIp, will add it to the container")
         val buildImageResultCallback: BuildImageResultCallback = try {
@@ -94,12 +95,14 @@ class DockerContainerManager(
         baseImage: String,
         resourcesPath: String?,
         runCmd: String,
+        runOnResourcesCmd: String? = null,
     ): File {
         val dockerFileAsText = buildString {
             appendLine("FROM ${configProperties.docker.registry}/$baseImage")
             appendLine(runCmd)
             if (resourcesPath != null) {
                 appendLine("COPY resources $resourcesPath")
+                runOnResourcesCmd?.let(::appendLine)
             }
         }
         log.debug("Using generated Dockerfile {}", dockerFileAsText)
