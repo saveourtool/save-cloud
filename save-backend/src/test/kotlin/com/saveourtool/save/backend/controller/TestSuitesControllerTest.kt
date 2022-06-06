@@ -4,7 +4,6 @@ import com.saveourtool.save.backend.SaveApplication
 import com.saveourtool.save.backend.controllers.ProjectController
 import com.saveourtool.save.backend.repository.ProjectRepository
 import com.saveourtool.save.backend.repository.TestSuiteRepository
-import com.saveourtool.save.backend.scheduling.StandardSuitesUpdateScheduler
 import com.saveourtool.save.backend.utils.MySqlExtension
 import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.testsuite.TestSuiteDto
@@ -46,7 +45,6 @@ import java.util.Date
 @AutoConfigureWebTestClient
 @ExtendWith(MySqlExtension::class)
 @MockBeans(
-    MockBean(StandardSuitesUpdateScheduler::class),
     MockBean(ProjectController::class),
 )
 class TestSuitesControllerTest {
