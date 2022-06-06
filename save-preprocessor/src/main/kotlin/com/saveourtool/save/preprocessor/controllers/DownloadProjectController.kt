@@ -449,18 +449,17 @@ class DownloadProjectController(
         // Do nothing
         Mono.fromCallable { Triple(location, execution, null) }
     } else {
-        getTestSuitesById(execution.testSuiteIds!!).map { Triple(location, execution, it) }
+        getTestSuitesById(execution.parseAndGetTestSuiteIds()!!).map { Triple(location, execution, it) }
     }
 
-    private fun getTestSuitesById(testSuiteIds: String) = testSuiteIds.split(", ").let { testSuiteIdList ->
-        Flux.fromIterable(testSuiteIdList).flatMap {
+    private fun getTestSuitesById(testSuiteIds: List<Long>) = Flux.fromIterable(testSuiteIds)
+        .flatMap {
             webClientBackend.get()
                 .uri("/testSuite/$it")
                 .retrieve()
                 .bodyToMono<TestSuite>()
         }
-            .collectList()
-    }
+        .collectList()
 
     @Suppress("TOO_MANY_PARAMETERS", "LongParameterList")
     private fun updateExecution(
@@ -511,8 +510,7 @@ class DownloadProjectController(
             discoverAndSaveTestSuites(project, rootTestConfig, testRootPath, gitUrl)
         }
         .flatMap { (rootTestConfig, testSuites) ->
-            val testSuiteIds = testSuites.map { it.id!! }.sorted()
-            execution.testSuiteIds = testSuiteIds.joinToString()
+            execution.formatAndSetTestSuiteIds(testSuites.map { it.id!! })
             updateExecution(execution).map { rootTestConfig to testSuites }
         }
         .flatMap { (rootTestConfig, testSuites) ->
@@ -543,8 +541,7 @@ class DownloadProjectController(
         }
             .collectList()
             .flatMap {
-                testSuiteIds.sort()
-                execution.testSuiteIds = testSuiteIds.joinToString()
+                execution.formatAndSetTestSuiteIds(testSuiteIds)
                 updateExecution(execution)
             }
     }
