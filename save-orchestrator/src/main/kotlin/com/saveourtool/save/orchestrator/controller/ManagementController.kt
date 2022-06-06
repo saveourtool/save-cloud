@@ -5,34 +5,23 @@ import com.saveourtool.save.orchestrator.service.AgentService
 import com.saveourtool.save.orchestrator.service.DockerService
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
-import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Configuration
-import org.springframework.web.reactive.function.server.RouterFunctionDsl
-import org.springframework.web.reactive.function.server.ServerRequest
-import org.springframework.web.reactive.function.server.ServerResponse
-import org.springframework.web.reactive.function.server.ServerResponse.accepted
-import org.springframework.web.reactive.function.server.bodyToMono
-import org.springdoc.kotlin.SpringDocKotlinConfiguration
-import org.springframework.web.reactive.function.server.RouterFunction
-import org.springframework.web.reactive.function.server.router
+import org.springframework.http.MediaType
+import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
 
-@Configuration
-class ManagementControllerConfiguration(
+@RestController
+@RequestMapping("/internal/management")
+class ManagementController(
     private val dockerService: DockerService,
     private val agentService: AgentService,
 ) {
-    @Bean
-    fun managementController(): RouterFunction<ServerResponse> = router {
-        "/internal/management".nest {
-            "/docker".nest {
-                POST("/images/build-base", ::buildBaseImage)
-            }
-        }
-    }
-
-    private fun buildBaseImage(request: ServerRequest): Mono<ServerResponse> =
-        request.bodyToMono<String>()
+    @PostMapping("/docker/images/build-base", consumes = [MediaType.APPLICATION_JSON_VALUE])
+    fun buildBaseImage(@RequestBody request: String): Mono<ResponseEntity<Void>> =
+        Mono.just(request)
             .map { Json.decodeFromString<Sdk>(it) }
             .doOnSuccess { sdk ->
                 Mono.fromCallable {
@@ -41,5 +30,5 @@ class ManagementControllerConfiguration(
                     .subscribeOn(agentService.scheduler)
                     .subscribe()
             }
-            .then(accepted().build())
+            .then(Mono.just(ResponseEntity.accepted().build()))
 }
