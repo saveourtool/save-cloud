@@ -242,7 +242,7 @@ class DockerService(private val configProperties: ConfigProperties,
                     |RUN rm -rf /var/lib/apt/lists/*
                     |RUN chmod +x $executionDir/$SAVE_AGENT_EXECUTABLE_NAME
                     |RUN chmod +x $executionDir/$SAVE_CLI_EXECUTABLE_NAME
-                """
+                """.trimMargin()
         )
         saveAgent.delete()
         saveCli.delete()

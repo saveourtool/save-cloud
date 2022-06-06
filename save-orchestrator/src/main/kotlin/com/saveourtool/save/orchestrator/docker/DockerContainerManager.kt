@@ -96,12 +96,13 @@ class DockerContainerManager(
         runCmd: String,
     ): File {
         val dockerFileAsText = buildString {
-            append("FROM ${configProperties.docker.registry}/$baseImage")
-            append(runCmd)
+            appendLine("FROM ${configProperties.docker.registry}/$baseImage")
+            appendLine(runCmd)
             if (resourcesPath != null) {
-                append("COPY resources $resourcesPath")
+                appendLine("COPY resources $resourcesPath")
             }
         }
+        log.debug("Using generated Dockerfile {}", dockerFileAsText)
         val dockerFile = createTempFile(dir.toPath()).toFile()
         dockerFile.writeText(dockerFileAsText)
         return dockerFile
