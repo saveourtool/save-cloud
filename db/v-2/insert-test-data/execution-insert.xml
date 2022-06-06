@@ -47,7 +47,7 @@
             <column name="unmatched_checks" value="1"/>
             <column name="matched_checks" value="9"/>
             <column name="expected_checks" value="14"/>
-            <column name="unexpected_checks" value="0"/>
+            <column name="unexpected_checks" value="3"/>
 
             <where>id=4</where>
         </update>
