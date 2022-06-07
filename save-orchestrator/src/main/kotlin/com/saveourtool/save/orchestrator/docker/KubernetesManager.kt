@@ -2,12 +2,11 @@ package com.saveourtool.save.orchestrator.docker
 
 import com.github.dockerjava.api.DockerClient
 import com.saveourtool.save.orchestrator.DOCKER_METRIC_PREFIX
-import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.execTimed
 import io.fabric8.kubernetes.api.model.*
 import io.fabric8.kubernetes.api.model.batch.v1.Job
 import io.fabric8.kubernetes.api.model.batch.v1.JobSpec
-import io.fabric8.kubernetes.client.DefaultKubernetesClient
+import io.fabric8.kubernetes.client.KubernetesClient
 import io.micrometer.core.instrument.MeterRegistry
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
@@ -21,14 +20,9 @@ import javax.annotation.PreDestroy
 @Profile("kubernetes")
 class KubernetesManager(
     private val dockerClient: DockerClient,
+    private val kc: KubernetesClient,
     private val meterRegistry: MeterRegistry,
-    configProperties: ConfigProperties,
 ): AgentRunner {
-    private val kubernetesSettings = requireNotNull(configProperties.kubernetes) {
-        "Class [${KubernetesManager::class.simpleName}] requires `orchestrator.kubernetes.*` properties to be set"
-    }
-
-    private val kc = DefaultKubernetesClient().inNamespace(kubernetesSettings.namespace)
 
     /**
      * Cleanup resources related to the connection to the Kubernetes API server
