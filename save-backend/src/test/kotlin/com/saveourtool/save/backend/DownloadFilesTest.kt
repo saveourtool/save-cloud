@@ -20,11 +20,19 @@ import com.saveourtool.save.domain.TestResultDebugInfo
 import com.saveourtool.save.domain.TestResultLocation
 import com.saveourtool.save.entities.Agent
 import com.saveourtool.save.entities.Execution
+import com.saveourtool.save.entities.Organization
+import com.saveourtool.save.entities.OrganizationStatus
+import com.saveourtool.save.entities.Project
+import com.saveourtool.save.entities.ProjectStatus
+import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.v1
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
+import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
@@ -38,6 +46,8 @@ import org.springframework.core.io.FileSystemResource
 import org.springframework.http.HttpMethod
 import org.springframework.http.MediaType
 import org.springframework.http.client.MultipartBodyBuilder
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
+import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.DynamicPropertyRegistry
@@ -46,6 +56,7 @@ import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.test.web.reactive.server.expectBodyList
 import org.springframework.web.reactive.function.BodyInserters
+import reactor.core.publisher.Mono
 
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -69,10 +80,31 @@ import kotlin.io.path.writeLines
 @MockBeans(
     MockBean(OrganizationService::class),
     MockBean(UserDetailsService::class),
-    MockBean(ProjectService::class),
-    MockBean(ProjectPermissionEvaluator::class),
 )
 class DownloadFilesTest {
+    private val organization = Organization("Example.com", OrganizationStatus.CREATED, 1, null).apply { id = 2 }
+    private val organization2 = Organization("Huawei", OrganizationStatus.CREATED, 1, null).apply { id = 1 }
+    private var testProject: Project = Project(
+        organization = organization,
+        name = "The Project",
+        url = "example.com",
+        description = "This is an example project",
+        status = ProjectStatus.CREATED,
+        userId = 2,
+    ).apply {
+        id = 3
+    }
+    private var testProject2: Project = Project(
+        organization = organization2,
+        name = "huaweiName",
+        url = "huawei.com",
+        description = "test description",
+        status = ProjectStatus.CREATED,
+        userId = 1,
+    ).apply {
+        id = 1
+    }
+
     @Autowired
     lateinit var webTestClient: WebTestClient
     
@@ -88,11 +120,29 @@ class DownloadFilesTest {
     @MockBean
     private lateinit var agentRepository: AgentRepository
 
+    @MockBean
+    private lateinit var projectService: ProjectService
+
+    @MockBean
+    private lateinit var projectPermissionEvaluator: ProjectPermissionEvaluator
+
     @Test
-    @WithMockUser(username = "admin")
+    @Suppress("TOO_LONG_FUNCTION")
+    @WithMockUser(roles = ["ADMIN"])
     fun `should download a file`() {
         mutateMockedUser {
             details = AuthenticationDetails(id = 1)
+        }
+
+        whenever(projectService.findWithPermissionByNameAndOrganization(any(), eq(testProject.name), eq(organization.name), eq(Permission.WRITE), anyOrNull(), any()))
+            .thenAnswer { Mono.just(testProject) }
+
+        whenever(projectService.findByNameAndOrganizationName("The Project", "Example.com"))
+            .thenReturn(testProject)
+
+        whenever(projectPermissionEvaluator.hasPermission(any(), any(), any())).thenAnswer {
+            val authentication = it.arguments[0] as UsernamePasswordAuthenticationToken
+            return@thenAnswer authentication.authorities.contains(SimpleGrantedAuthority("ROLE_ADMIN"))
         }
 
         val tmpFile = createTempFile("test", "txt")
@@ -136,6 +186,17 @@ class DownloadFilesTest {
     fun checkUpload() {
         mutateMockedUser {
             details = AuthenticationDetails(id = 1)
+        }
+
+        whenever(projectService.findWithPermissionByNameAndOrganization(any(), eq(testProject2.name), eq(organization2.name), eq(Permission.WRITE), anyOrNull(), any()))
+            .thenAnswer { Mono.just(testProject2) }
+
+        whenever(projectService.findByNameAndOrganizationName("huaweiName", "Huawei"))
+            .thenReturn(testProject2)
+
+        whenever(projectPermissionEvaluator.hasPermission(any(), any(), any())).thenAnswer {
+            val authentication = it.arguments[0] as UsernamePasswordAuthenticationToken
+            return@thenAnswer authentication.authorities.contains(SimpleGrantedAuthority("ROLE_ADMIN"))
         }
 
         val tmpFile = createTempFile("test", "txt")
