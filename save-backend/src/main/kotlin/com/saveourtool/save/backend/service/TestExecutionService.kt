@@ -142,7 +142,9 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
         "TOO_MANY_LINES_IN_LAMBDA",
         "TOO_LONG_FUNCTION",
         "UnsafeCallOnNullableType",
-        "LongMethod"
+        "LongMethod",
+        "MAGIC_NUMBER",
+        "MagicNumber",
     )
     @Transactional
     fun saveTestResult(testExecutionsDtos: List<TestExecutionDto>): List<TestExecutionDto> {
@@ -178,13 +180,21 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
                     it.startTime = testExecDto.startTimeSeconds?.secondsToLocalDateTime()
                     it.endTime = testExecDto.endTimeSeconds?.secondsToLocalDateTime()
                     it.status = testExecDto.status
-                    it.missingWarnings = testExecDto.missingWarnings
-                    it.matchedWarnings = testExecDto.matchedWarnings
                     when (testExecDto.status) {
                         TestResultStatus.PASSED -> counters.passed++
                         TestResultStatus.FAILED -> counters.failed++
                         else -> counters.skipped++
                     }
+                    it.unmatched = testExecDto.unmatched
+                    it.matched = testExecDto.matched
+                    it.expected = testExecDto.expected
+                    it.unexpected = testExecDto.unexpected
+
+                    counters.unmatchedChecks += testExecDto.unmatched ?: 0L
+                    counters.matchedChecks += testExecDto.matched ?: 0L
+                    counters.expectedChecks += testExecDto.expected ?: 0L
+                    counters.unexpectedChecks += testExecDto.unexpected ?: 0L
+
                     testExecutionRepository.save(it)
                 },
                     {
@@ -204,6 +214,11 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
                     passedTests += counters.passed
                     failedTests += counters.failed
                     skippedTests += counters.skipped
+
+                    matchedChecks += counters.matchedChecks
+                    unmatchedChecks += counters.unmatchedChecks
+                    expectedChecks += counters.expectedChecks
+                    unexpectedChecks += counters.unexpectedChecks
                 }
                 executionRepository.save(execution)
             }
@@ -217,13 +232,15 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
      */
     fun saveTestExecution(executionId: Long, testIds: List<Long>) {
         log.debug("Will create test executions for executionId=$executionId for tests $testIds")
+        val execution = executionRepository.findById(executionId).get()
+        execution.allTests += testIds.size
+        executionRepository.save(execution)
         testIds.map { testId ->
             val testExecutionList = testExecutionRepository.findByExecutionIdAndTestId(executionId, testId)
             if (testExecutionList.isNotEmpty()) {
                 log.debug("For execution with id=$executionId test id=$testId already exists in DB, deleting it")
                 testExecutionRepository.deleteAllByExecutionIdAndTestId(executionId, testId)
             }
-            val execution = executionRepository.findById(executionId).get()
             testRepository.findById(testId).ifPresentOrElse({ test ->
                 log.debug("Creating TestExecution for test $testId")
                 val id = testExecutionRepository.save(
@@ -234,8 +251,10 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
                         status = TestResultStatus.READY_FOR_TESTING,
                         startTime = null,
                         endTime = null,
-                        missingWarnings = null,
-                        matchedWarnings = null,
+                        unmatched = 0,
+                        matched = 0,
+                        expected = 0,
+                        unexpected = 0
                     )
                 )
                 log.debug("Created TestExecution $id for test $testId")
@@ -314,11 +333,27 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
         }
     }
 
-    @Suppress("KDOC_NO_CONSTRUCTOR_PROPERTY", "MISSING_KDOC_ON_FUNCTION")
+    @Suppress(
+        "KDOC_NO_CONSTRUCTOR_PROPERTY",
+        "MISSING_KDOC_ON_FUNCTION",
+        "LongParameterList",
+        "KDOC_NO_CONSTRUCTOR_PROPERTY_WITH_COMMENT",
+    )
     private class Counters(
         var passed: Int = 0,
         var failed: Int = 0,
         var skipped: Int = 0,
+
+        // how many checks/validations are not found, but we expect them
+        var unmatchedChecks: Long = 0,
+        // how many checks/validations matched to expected results
+        var matchedChecks: Long = 0,
+        // how many checks/validations we expect
+        var expectedChecks: Long = 0,
+        // how many checks/validations are found, but we don't expect them
+        var unexpectedChecks: Long = 0,
+
+        // note: missedResults = expectedResults - matchedResults
     ) {
         fun total() = passed + failed + skipped
     }
