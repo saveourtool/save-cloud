@@ -4,6 +4,7 @@ import com.saveourtool.save.backend.SaveApplication
 import com.saveourtool.save.backend.controllers.ProjectController
 import com.saveourtool.save.backend.repository.ProjectRepository
 import com.saveourtool.save.backend.repository.TestSuiteRepository
+import com.saveourtool.save.backend.scheduling.JobsConfiguration
 import com.saveourtool.save.backend.utils.MySqlExtension
 import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.testsuite.TestSuiteDto
@@ -12,25 +13,22 @@ import com.saveourtool.save.testutils.checkQueues
 import com.saveourtool.save.testutils.cleanup
 import com.saveourtool.save.testutils.createMockWebServer
 import com.saveourtool.save.v1
-
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import org.mockito.kotlin.any
-import org.mockito.kotlin.times
-import org.mockito.kotlin.verify
-import org.mockito.kotlin.whenever
+import org.mockito.kotlin.*
 import org.quartz.Scheduler
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.autoconfigure.quartz.QuartzAutoConfiguration
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.boot.test.mock.mockito.MockBeans
+import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.context.DynamicPropertyRegistry
@@ -38,9 +36,8 @@ import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
-
 import java.time.Instant
-import java.util.Date
+import java.util.*
 
 @SpringBootTest(classes = [SaveApplication::class])
 @AutoConfigureWebTestClient
@@ -48,6 +45,7 @@ import java.util.Date
 @MockBeans(
     MockBean(ProjectController::class),
 )
+@Import(QuartzAutoConfiguration::class, JobsConfiguration::class)
 class TestSuitesControllerTest {
     @Autowired
     lateinit var webClient: WebTestClient
@@ -202,7 +200,6 @@ class TestSuitesControllerTest {
 
     @Test
     @WithMockUser(roles = ["SUPER_ADMIN"])
-    @Disabled("TODO: correctly mock Scheduler to be injected into the controller")
     fun testUpdateStandardTestSuites() {
         whenever(scheduler.scheduleJob(any())).thenReturn(Date.from(Instant.now()))
 

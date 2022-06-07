@@ -5,21 +5,13 @@
 package com.saveourtool.save.backend.scheduling
 
 import com.saveourtool.save.backend.configs.ConfigProperties
-import org.quartz.CronScheduleBuilder
-import org.quartz.CronTrigger
-import org.quartz.JobBuilder
-import org.quartz.JobDetail
-import org.quartz.JobKey
-import org.quartz.ScheduleBuilder
-import org.quartz.Trigger
-import org.quartz.TriggerBuilder
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
+import org.quartz.*
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.scheduling.quartz.SchedulerFactoryBean
+import org.springframework.context.annotation.Profile
 
 @Configuration
-@ConditionalOnBean(SchedulerFactoryBean::class)
+@Profile("prod")
 @Suppress(
     "MISSING_KDOC_TOP_LEVEL",
     "KDOC_NO_EMPTY_TAGS",

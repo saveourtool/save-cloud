@@ -6,11 +6,10 @@ import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.v1
 
-import org.quartz.JobKey
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
+import org.quartz.Scheduler
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.scheduling.quartz.SchedulerFactoryBean
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.GetMapping
@@ -20,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
+import java.util.*
 
 typealias ResponseListTestSuites = ResponseEntity<List<TestSuiteDto>>
 
@@ -30,6 +30,9 @@ typealias ResponseListTestSuites = ResponseEntity<List<TestSuiteDto>>
 class TestSuitesController(
     private val testSuitesService: TestSuitesService,
 ) {
+    @Autowired(required = false)
+    private lateinit var quartzScheduler: Optional<Scheduler>
+
     /**
      * Save new test suites into DB
      *
@@ -66,17 +69,16 @@ class TestSuitesController(
     /**
      * Trigger update of standard test suites. Can be called only by superadmins externally.
      *
-     * @param schedulerFactoryBean
      * @return response entity
      */
     @PostMapping(path = ["/api/$v1/updateStandardTestSuites", "/internal/updateStandardTestSuites"])
     @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
-    @ConditionalOnBean(SchedulerFactoryBean::class)
-    fun updateStandardTestSuites(schedulerFactoryBean: SchedulerFactoryBean) = Mono.fromCallable {
-        schedulerFactoryBean.scheduler.triggerJob(
-            JobKey.jobKey(UpdateJob::class.simpleName)
-        )
-    }
+    fun updateStandardTestSuites() = Mono.justOrEmpty(quartzScheduler)
+        .map {
+            it.triggerJob(
+                UpdateJob.jobKey
+            )
+        }
 
     /**
      * @param testSuiteDtos suites, which need to be marked as obsolete
