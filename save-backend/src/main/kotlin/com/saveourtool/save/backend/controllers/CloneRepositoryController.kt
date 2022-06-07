@@ -180,7 +180,7 @@ class CloneRepositoryController(
         projectName: String,
     ): Mono<MultipartBodyBuilder> {
         val projectCoordinates = ProjectCoordinates(organizationName, projectName)
-        this.collectList()
+        return this.collectList()
             .switchIfEmpty(Mono.just(emptyList()))
             .map { fileInfos ->
                 fileInfos.forEach {

@@ -21,6 +21,8 @@ import com.saveourtool.save.utils.STANDARD_TEST_SUITE_DIR
 import com.saveourtool.save.utils.moveFileWithAttributes
 
 import com.github.dockerjava.api.DockerClient
+import com.github.dockerjava.api.exception.DockerException
+import com.saveourtool.save.execution.ExecutionType
 import net.lingala.zip4j.ZipFile
 import net.lingala.zip4j.exception.ZipException
 import org.apache.commons.io.FileUtils
@@ -28,12 +30,15 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.core.io.ClassPathResource
+import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import org.springframework.util.FileSystemUtils
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
+import org.springframework.web.server.ResponseStatusException
+import reactor.kotlin.core.publisher.toFlux
 
 import java.io.File
 import java.nio.file.Files
@@ -67,17 +72,13 @@ class DockerService(private val configProperties: ConfigProperties,
      * Function that builds a base image with test resources
      *
      * @param execution [Execution] from which this workflow is started
-     * @param testSuiteDtos test suites, selected by user
      * @return image ID and execution command for the agent
      * @throws DockerException if interaction with docker daemon is not successful
      */
     @Suppress("UnsafeCallOnNullableType")
-    fun buildBaseImage(
-        execution: Execution,
-        testSuiteDtos: List<TestSuiteDto>?,
-    ): Pair<String, String> {
+    fun buildBaseImage(execution: Execution): Pair<String, String> {
         log.info("Building base image for execution.id=${execution.id}")
-        val (imageId, agentRunCmd) = buildBaseImageForExecution(execution, testSuiteDtos)
+        val (imageId, agentRunCmd) = buildBaseImageForExecution(execution)
         // todo (k8s): need to also push it so that other nodes will have access to it
         log.info("Built base image [id=$imageId] for execution.id=${execution.id}")
 
@@ -198,10 +199,7 @@ class DockerService(private val configProperties: ConfigProperties,
         "UnsafeCallOnNullableType",
         "LongMethod",
     )
-    private fun buildBaseImageForExecution(
-        execution: Execution,
-        testSuiteDtos: List<TestSuiteDto>?
-    ): Pair<String, String> {
+    private fun buildBaseImageForExecution(execution: Execution): Pair<String, String> {
         val resourcesPath = File(
             configProperties.testResources.basePath,
             execution.resourcesRootPath!!,
@@ -209,7 +207,7 @@ class DockerService(private val configProperties: ConfigProperties,
         val agentRunCmd = "./$SAVE_AGENT_EXECUTABLE_NAME"
 
         // collect standard test suites for docker image, which were selected by user, if any
-        val testSuitesForDocker = collectStandardTestSuitesForDocker(testSuiteDtos)
+        val testSuitesForDocker = collectStandardTestSuitesForDocker(execution)
         val testSuitesDir = resourcesPath.resolve(STANDARD_TEST_SUITE_DIR)
 
         // list is not empty only in standard mode
@@ -387,13 +385,27 @@ class DockerService(private val configProperties: ConfigProperties,
         }
     }
 
-    private fun collectStandardTestSuitesForDocker(testSuiteDtos: List<TestSuiteDto>?): List<TestSuiteDto> = testSuiteDtos?.flatMap {
-        webClientBackend.get()
-            .uri("/standardTestSuitesWithName?name=${it.name}")
-            .retrieve()
-            .bodyToMono<List<TestSuite>>()
-            .block()!!
-    }?.map { it.toDto() } ?: emptyList()
+    private fun collectStandardTestSuitesForDocker(execution: Execution): List<TestSuiteDto> {
+        return when (execution.type) {
+            ExecutionType.GIT -> emptyList()
+            ExecutionType.STANDARD -> {
+                val testSuiteIds = execution.parseAndGetTestSuiteIds() ?: throw ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Execution (id=${execution.id}) doesn't contain testSuiteIds"
+                )
+                testSuiteIds.toFlux()
+                    .flatMap {
+                        webClientBackend.get()
+                            .uri("/testSuite/$it")
+                            .retrieve()
+                            .bodyToMono<TestSuite>()
+                    }
+                    .map { it.toDto() }
+                    .collectList()
+                    .block()!!
+            }
+        }
+    }
 
     @Suppress("UnsafeCallOnNullableType", "TOO_MANY_LINES_IN_LAMBDA")
     private fun copyTestSuitesToResourcesPath(testSuitesForDocker: List<TestSuiteDto>, destination: File) {

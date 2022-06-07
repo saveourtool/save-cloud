@@ -72,7 +72,7 @@ class AgentsControllerTest {
             id = 42L
         }
         whenever(dockerService.buildBaseImage(any(), any())).thenReturn("test-image-id" to "test-exec-cmd")
-        whenever(dockerService.createContainers(any(), any(), any())).thenReturn(listOf("test-agent-id-1", "test-agent-id-2"))
+        whenever(dockerService.createContainers(any(), any())).thenReturn(listOf("test-agent-id-1", "test-agent-id-2"))
         // /addAgents
         mockServer.enqueue(
             "/addAgents.*",
@@ -98,7 +98,7 @@ class AgentsControllerTest {
             .isAccepted
         Thread.sleep(2_500)  // wait for background task to complete on mocks
         verify(dockerService).buildBaseImage(any(), any())
-        verify(dockerService).createContainers(any(), any(), any())
+        verify(dockerService).createContainers(any(), any())
         verify(dockerService).startContainersAndUpdateExecution(any(), anyList())
     }
 

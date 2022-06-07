@@ -15,12 +15,14 @@ import com.saveourtool.save.test.TestDto
 
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.PageRequest
+import org.springframework.http.HttpStatus
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import org.springframework.transaction.PlatformTransactionManager
 import org.springframework.transaction.TransactionDefinition.PROPAGATION_REQUIRES_NEW
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.transaction.support.TransactionTemplate
+import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
 
 import java.time.LocalDateTime
@@ -110,6 +112,18 @@ class TestService(
      */
     fun findTestsByTestSuiteId(testSuiteId: Long) =
             testRepository.findAllByTestSuiteId(testSuiteId)
+
+    /**
+     * @param executionId
+     * @return all tests which has testSuiteId from [execution][com.saveourtool.save.entities.Execution] found by provided [executionId]
+     */
+    fun findTestsByExecutionId(executionId: Long): List<Test> {
+        val execution = executionRepository.findById(executionId).orElseGet {
+            throw ResponseStatusException(HttpStatus.NOT_FOUND, "Execution (id=$executionId) not found")
+        }
+        return execution.parseAndGetTestSuiteIds()?.flatMap { findTestsByTestSuiteId(it) }
+            ?: throw ResponseStatusException(HttpStatus.CONFLICT, "Execution (id=${executionId}) doesn't contain testSuiteIds")
+    }
 
     /**
      * Retrieves a batch of test executions with status `READY_FOR_TESTING` from the datasource and sets their statuses to `RUNNING`

@@ -81,6 +81,13 @@ class TestController(
     fun getTestsByTestSuiteId(@RequestParam testSuiteId: Long): List<Test> = testService.findTestsByTestSuiteId(testSuiteId)
 
     /**
+     * @param executionId ID of the [Execution][com.saveourtool.save.entities.Execution], for which all corresponding tests will be returned
+     * @return list of tests
+     */
+    @GetMapping("/getTestsByExecutionId")
+    fun getTestsByExecutionId(@RequestParam executionId: Long): List<Test> = testService.findTestsByExecutionId(executionId)
+
+    /**
      * @param executionId ID of the [Execution], during which these tests will be executed
      * @param testSuiteId ID of the [TestSuite], for which there will be created execution in DB
      */
