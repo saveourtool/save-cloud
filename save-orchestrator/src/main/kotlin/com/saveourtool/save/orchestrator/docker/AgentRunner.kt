@@ -36,8 +36,10 @@ interface AgentRunner {
     fun stop(executionId: Long)
 
     /**
-     * @param agentId
+     * @param agentId ID of agent that should be stopped
+     * @return true if agent has been stopped successfully
      */
+    @Suppress("FUNCTION_BOOLEAN_PREFIX")
     fun stopByAgentId(agentId: String): Boolean
 
     /**

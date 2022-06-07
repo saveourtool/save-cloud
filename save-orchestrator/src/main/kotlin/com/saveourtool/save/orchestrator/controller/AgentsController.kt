@@ -96,6 +96,7 @@ class AgentsController(
     }
 
     /**
+     * @param executionId ID of execution for which agents should be stopped
      * @param agentIds list of IDs of agents to stop
      */
     @PostMapping("/stopAgents")

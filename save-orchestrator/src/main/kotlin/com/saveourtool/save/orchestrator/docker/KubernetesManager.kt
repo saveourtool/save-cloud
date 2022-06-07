@@ -24,17 +24,21 @@ class KubernetesManager(
     private val meterRegistry: MeterRegistry,
     configProperties: ConfigProperties,
 ): AgentRunner {
-    @PreDestroy
-    fun close() {
-        kc.close()
-    }
-
     private val kubernetesSettings = requireNotNull(configProperties.kubernetes) {
         "Class [${KubernetesManager::class.simpleName}] requires `orchestrator.kubernetes.*` properties to be set"
     }
 
     private val kc = DefaultKubernetesClient().inNamespace(kubernetesSettings.namespace)
 
+    /**
+     * Cleanup resources related to the connection to the Kubernetes API server
+     */
+    @PreDestroy
+    fun close() {
+        kc.close()
+    }
+
+    @Suppress("TOO_LONG_FUNCTION")
     override fun create(executionId: Long,
                         baseImageId: String,
                         replicas: Int,
