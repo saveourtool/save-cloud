@@ -9,12 +9,9 @@ import com.saveourtool.save.core.result.Pass
 import com.saveourtool.save.domain.TestResultDebugInfo
 import com.saveourtool.save.domain.TestResultLocation
 import com.saveourtool.save.frontend.http.getDebugInfoFor
-import com.saveourtool.save.frontend.utils.apiUrl
-import com.saveourtool.save.frontend.utils.decodeFromJsonString
+import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.multilineText
 import com.saveourtool.save.frontend.utils.multilineTextWithIndices
-import com.saveourtool.save.frontend.utils.post
-import com.saveourtool.save.frontend.utils.useRequest
 
 import org.w3c.fetch.Headers
 import react.Props
@@ -121,7 +118,8 @@ fun testExecutionDetailsView() = fc<Props> {
             Headers().apply {
                 set("Content-Type", "application/json")
             },
-            Json.encodeToString(testResultLocation)
+            Json.encodeToString(testResultLocation),
+            ::noopLoadingHandler,
         )
         if (testExecutionDtoResponse.ok) {
             val testResultDebugInfoResponse = getDebugInfoFor(testExecutionDtoResponse.decodeFromJsonString())

@@ -7,11 +7,7 @@ package com.saveourtool.save.frontend.http
 import com.saveourtool.save.agent.TestExecutionDto
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.Project
-import com.saveourtool.save.frontend.utils.WithRequestStatusContext
-import com.saveourtool.save.frontend.utils.apiUrl
-import com.saveourtool.save.frontend.utils.decodeFromJsonString
-import com.saveourtool.save.frontend.utils.get
-import com.saveourtool.save.frontend.utils.post
+import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 
 import org.w3c.fetch.Headers
@@ -43,6 +39,7 @@ suspend fun Component<*, *>.getProject(name: String, organizationName: String) =
     Headers().apply {
         set("Accept", "application/json")
     },
+    loadingHandler = ::loadingHandler,
 )
     .runCatching {
         decodeFromJsonString<Project>()
@@ -57,6 +54,7 @@ suspend fun Component<*, *>.getOrganization(name: String) = get(
     Headers().apply {
         set("Accept", "application/json")
     },
+    loadingHandler = ::loadingHandler,
 )
     .decodeFromJsonString<Organization>()
 
@@ -69,6 +67,7 @@ suspend fun Component<*, *>.getUser(name: String) = get(
     Headers().apply {
         set("Accept", "application/json")
     },
+    loadingHandler = ::loadingHandler,
 )
     .decodeFromJsonString<UserInfo>()
 
@@ -80,12 +79,14 @@ suspend fun Component<*, *>.getUser(name: String) = get(
  * @return Response
  */
 @Suppress("TYPE_ALIAS")
-private suspend fun getDebugInfoFor(testExecutionDto: TestExecutionDto,
-                                    post: suspend (String, Headers, dynamic) -> Response,
+private suspend fun getDebugInfoFor(
+    testExecutionDto: TestExecutionDto,
+    post: suspend (String, Headers, dynamic, suspend (suspend () -> Response) -> Response) -> Response,
 ) = post(
     "$apiUrl/files/get-debug-info",
     Headers().apply {
         set("Content-Type", "application/json")
     },
-    Json.encodeToString(testExecutionDto)
+    Json.encodeToString(testExecutionDto),
+    ::noopLoadingHandler,
 )

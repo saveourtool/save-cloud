@@ -2,6 +2,7 @@ package com.saveourtool.save.frontend.components.views.usersettingsview
 
 import com.saveourtool.save.frontend.components.basic.cardComponent
 import com.saveourtool.save.frontend.utils.apiUrl
+import com.saveourtool.save.frontend.utils.noopLoadingHandler
 import com.saveourtool.save.frontend.utils.post
 
 import kotlinext.js.assign
@@ -66,7 +67,12 @@ class UserSettingsTokenMenuView : UserSettingsView() {
                 it.set("Content-Type", "application/json")
             }
             scope.launch {
-                post("$apiUrl/users/${state.userInfo!!.name}/save/token", headers, state.token)
+                post(
+                    "$apiUrl/users/${state.userInfo!!.name}/save/token",
+                    headers,
+                    state.token,
+                    loadingHandler = ::noopLoadingHandler,
+                )
             }
         }
     }

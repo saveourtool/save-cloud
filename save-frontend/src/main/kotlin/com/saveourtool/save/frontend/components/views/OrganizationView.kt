@@ -10,9 +10,10 @@ import com.saveourtool.save.domain.moreOrEqualThan
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.entities.Project
+import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.organizationSettingsMenu
 import com.saveourtool.save.frontend.components.basic.privacySpan
-import com.saveourtool.save.frontend.components.errorStatusContext
+import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.http.getOrganization
@@ -378,6 +379,35 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         }
     }
 
+    private val table = tableComponent(
+        columns = columns<Project> {
+            column(id = "name", header = "Evaluated Tool", { name }) { cellProps ->
+                buildElement {
+                    td {
+                        a(href = "#/${cellProps.row.original.organization.name}/${cellProps.value}") { +cellProps.value }
+                        privacySpan(cellProps.row.original)
+                    }
+                }
+            }
+            column(id = "description", header = "Description") {
+                buildElement {
+                    td {
+                        +(it.value.description ?: "Description not provided")
+                    }
+                }
+            }
+            column(id = "rating", header = "Contest Rating") {
+                buildElement {
+                    td {
+                        +"0"
+                    }
+                }
+            }
+        },
+        useServerPaging = false,
+        usePageSelection = false,
+    )
+
     @Suppress("TOO_LONG_FUNCTION", "LongMethod")
     private fun RBuilder.renderTools() {
         div("row justify-content-center") {
@@ -387,36 +417,11 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                     +"Projects"
                 }
 
-                child(tableComponent(
-                    columns = columns<Project> {
-                        column(id = "name", header = "Evaluated Tool", { name }) { cellProps ->
-                            buildElement {
-                                td {
-                                    a(href = "#/${cellProps.row.original.organization.name}/${cellProps.value}") { +cellProps.value }
-                                    privacySpan(cellProps.row.original)
-                                }
-                            }
-                        }
-                        column(id = "description", header = "Description") {
-                            buildElement {
-                                td {
-                                    +(it.value.description ?: "Description not provided")
-                                }
-                            }
-                        }
-                        column(id = "rating", header = "Contest Rating") {
-                            buildElement {
-                                td {
-                                    +"0"
-                                }
-                            }
-                        }
-                    },
-                    useServerPaging = false,
-                    usePageSelection = false,
-                ) { _, _ ->
-                    getProjectsFromCache()
-                }) { }
+                child(table) {
+                    attrs.getData = { _, _ ->
+                        getProjectsFromCache()
+                    }
+                }
             }
         }
     }
@@ -434,7 +439,12 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             it.set("Content-Type", "application/json")
         }
         scope.launch {
-            val response = post("$apiUrl/organization/${props.organizationName}/update", headers, Json.encodeToString(newOrganization))
+            val response = post(
+                "$apiUrl/organization/${props.organizationName}/update",
+                headers,
+                Json.encodeToString(newOrganization),
+                loadingHandler = ::loadingHandler,
+            )
             if (response.ok) {
                 setState {
                     organization = newOrganization
@@ -466,6 +476,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         headers = Headers().also {
             it.set("Accept", "application/json")
         },
+        ::loadingHandler,
     )
         .unsafeMap {
             it.decodeFromJsonString()
@@ -476,6 +487,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         headers = Headers().also {
             it.set("Accept", "application/json")
         },
+        ::loadingHandler,
     )
         .unsafeMap {
             it.decodeFromJsonString()
@@ -486,6 +498,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         headers = Headers().also {
             it.set("Accept", "application/json")
         },
+        ::loadingHandler,
     )
         .unsafeMap {
             it.decodeFromJsonString<List<UserInfo>>()
@@ -502,7 +515,8 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                         Headers(),
                         FormData().apply {
                             append("file", file)
-                        }
+                        },
+                        loadingHandler = ::noopLoadingHandler,
                     )
                         .decodeFromJsonString()
                     setState {
@@ -515,7 +529,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             }
 
     private suspend fun getAvatar() = get(
-        "$apiUrl/organization/${props.organizationName}/avatar", Headers()
+        "$apiUrl/organization/${props.organizationName}/avatar", Headers(), ::noopLoadingHandler
     ).unsafeMap {
         it.decodeFromJsonString<ImageInfo>()
     }
@@ -676,7 +690,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         }
         scope.launch {
             responseFromDeleteOrganization =
-                    delete("$apiUrl/organization/${props.organizationName}/delete", headers, body = undefined)
+                    delete("$apiUrl/organization/${props.organizationName}/delete", headers, body = undefined, ::noopLoadingHandler)
         }.invokeOnCompletion {
             if (responseFromDeleteOrganization.ok) {
                 window.location.href = "${window.location.origin}/"
@@ -685,12 +699,12 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
     }
 
     companion object :
-        RStatics<OrganizationProps, OrganizationViewState, OrganizationView, Context<StateSetter<Response?>>>(
+        RStatics<OrganizationProps, OrganizationViewState, OrganizationView, Context<RequestStatusContext>>(
         OrganizationView::class
     ) {
         const val TOP_PROJECTS_NUMBER = 4
         init {
-            contextType = errorStatusContext
+            contextType = requestStatusContext
         }
     }
 }

@@ -26,6 +26,8 @@ external interface OrganizationSettingsMenuProps : Props {
     var currentUserInfo: UserInfo
 }
 
+private val organizationPermissionManagerCard = manageUserRoleCardComponent()
+
 /**
  * @param deleteOrganizationCallback
  * @param updateErrorMessage
@@ -46,20 +48,7 @@ fun organizationSettingsMenu(
     @Suppress("LOCAL_VARIABLE_EARLY_DECLARATION")
     val organizationPath = props.organizationName
     val (wasConfirmationModalShown, setWasConfirmationModalShown) = useState(false)
-    val organizationPermissionManagerCard = manageUserRoleCardComponent({
-        updateErrorMessage(it)
-    },
-        {
-            it.organizations
-        },
-        showGlobalRoleWarning = {
-            updateNotificationMessage(
-                "Super admin message",
-                "Keep in mind that you are super admin, so you are able to manage organization regardless of your organization permissions.",
-            )
-            setWasConfirmationModalShown(true)
-        },
-    )
+
 
     div("row justify-content-center mb-2") {
         // ===================== LEFT COLUMN =======================================================================
@@ -72,6 +61,15 @@ fun organizationSettingsMenu(
                 attrs.groupPath = organizationPath
                 attrs.groupType = "organization"
                 attrs.wasConfirmationModalShown = wasConfirmationModalShown
+                attrs.updateErrorMessage = updateErrorMessage
+                attrs.getUserGroups = { it.organizations }
+                attrs.showGlobalRoleWarning = {
+                    updateNotificationMessage(
+                        "Super admin message",
+                        "Keep in mind that you are super admin, so you are able to manage organization regardless of your organization permissions.",
+                    )
+                    setWasConfirmationModalShown(true)
+                }
             }
         }
         // ===================== RIGHT COLUMN ======================================================================

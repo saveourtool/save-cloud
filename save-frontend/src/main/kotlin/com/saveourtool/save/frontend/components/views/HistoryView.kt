@@ -7,7 +7,8 @@ package com.saveourtool.save.frontend.components.views
 import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.execution.ExecutionStatus
-import com.saveourtool.save.frontend.components.errorStatusContext
+import com.saveourtool.save.frontend.components.RequestStatusContext
+import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.externals.fontawesome.faCheck
 import com.saveourtool.save.frontend.externals.fontawesome.faExclamationTriangle
@@ -208,17 +209,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
                 }
             }
         }
-    ) { _, _ ->
-        get(
-            url = "$apiUrl/executionDtoList?name=${props.name}&organizationName=${props.organizationName}",
-            headers = Headers().also {
-                it.set("Accept", "application/json")
-            },
-        )
-            .unsafeMap {
-                it.decodeFromJsonString<Array<ExecutionDto>>()
-            }
-    }
+    )
 
     @Suppress(
         "TOO_LONG_FUNCTION",
@@ -246,6 +237,18 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
         }
         child(executionsTable) {
             attrs.tableHeader = "Executions details"
+            attrs.getData = { _, _ ->
+                get(
+                    url = "$apiUrl/executionDtoList?name=${props.name}&organizationName=${props.organizationName}",
+                    headers = Headers().also {
+                        it.set("Accept", "application/json")
+                    },
+                    loadingHandler = ::loadingHandler
+                )
+                    .unsafeMap {
+                        it.decodeFromJsonString<Array<ExecutionDto>>()
+                    }
+            }
         }
     }
 
@@ -271,7 +274,12 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
         }
         scope.launch {
             val responseFromDeleteExecutions =
-                    post("$apiUrl/execution/deleteAll?name=${props.name}&organizationName=${props.organizationName}", headers, undefined)
+                    post(
+                        "$apiUrl/execution/deleteAll?name=${props.name}&organizationName=${props.organizationName}",
+                        headers,
+                        undefined,
+                        loadingHandler = ::noopLoadingHandler,
+                    )
 
             if (responseFromDeleteExecutions.ok) {
                 window.location.href = "${window.location.origin}#/${props.organizationName}/${props.name}"
@@ -296,7 +304,12 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
         }
         scope.launch {
             val responseFromDeleteExecutions =
-                    post("$apiUrl/execution/delete?executionIds=${executionIds.joinToString(",")}", headers, undefined)
+                    post(
+                        "$apiUrl/execution/delete?executionIds=${executionIds.joinToString(",")}",
+                        headers,
+                        undefined,
+                        loadingHandler = ::noopLoadingHandler
+                    )
 
             if (responseFromDeleteExecutions.ok) {
                 window.location.reload()
@@ -313,9 +326,9 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
      */
     private data class ResultColorAndIcon(val resColor: String, val resIcon: dynamic)
 
-    companion object : RStatics<HistoryProps, HistoryViewState, HistoryView, Context<StateSetter<Response?>>>(HistoryView::class) {
+    companion object : RStatics<HistoryProps, HistoryViewState, HistoryView, Context<RequestStatusContext>>(HistoryView::class) {
         init {
-            contextType = errorStatusContext
+            contextType = requestStatusContext
         }
     }
 }

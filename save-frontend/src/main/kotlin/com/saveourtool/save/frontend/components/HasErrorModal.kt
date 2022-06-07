@@ -2,6 +2,7 @@
 
 package com.saveourtool.save.frontend.components
 
+import com.saveourtool.save.core.utils.AtomicInt
 import com.saveourtool.save.frontend.externals.modal.modal
 
 import csstype.ClassName
@@ -20,25 +21,38 @@ import react.useMemo
 import react.useState
 
 import kotlinx.browser.window
+import react.dom.aria.AriaRole
+import react.dom.html.ReactHTML.img
+
+data class RequestStatusContext(
+    val setResponse: StateSetter<Response?>,
+    val setNLoading: StateSetter<Int>,
+)
 
 /**
- * Context to store data about current request error.
+ * Context to store data about current request such as errors and isLoading flag.
  */
 @Suppress("TYPE_ALIAS")
-val errorStatusContext: Context<StateSetter<Response?>> = createContext()
+val requestStatusContext: Context<RequestStatusContext> = createContext()
 
 /**
- * Component that displays generic warning about unsuccessful request based on info in [errorStatusContext].
+ * Component that displays generic warning about unsuccessful request based on info in [requestStatusContext].
  * Also renders its `children`.
  */
 @Suppress("TOO_MANY_LINES_IN_LAMBDA", "MAGIC_NUMBER")
-val errorModalHandler: FC<PropsWithChildren> = FC { props ->
+val requestModalHandler: FC<PropsWithChildren> = FC { props ->
     val (response, setResponse) = useState<Response?>(null)
+    val (nLoading, setNLoading) = useState(0)
+    val statusContext = RequestStatusContext(setResponse, setNLoading)
     val (modalState, setModalState) = useState(ErrorModalState(
         isErrorModalOpen = false,
         errorMessage = "",
         errorLabel = "",
     ))
+    val (loadingState, setLoadingState) = useState(LoadingModalState(
+        false,
+    ))
+    console.log(nLoading)
 
     useEffect(response) {
         val newModalState = if (response?.status == 401.toShort()) {
@@ -87,11 +101,26 @@ val errorModalHandler: FC<PropsWithChildren> = FC { props ->
         }
     }
 
-    val contextPayload = useMemo(
-        arrayOf(setResponse)
-    ) { setResponse }
+    useEffect(nLoading) {
+        if (nLoading != 0) {
+            setLoadingState(LoadingModalState(true))
+        } else {
+            setLoadingState(LoadingModalState(false))
+        }
+    }
+    modal { modalProps ->
+        modalProps.isOpen = loadingState.isLoadingModalOpen
+        img {
+            src = "img/logo-anim.gif"
+            alt = "Loading..."
+        }
+    }
 
-    errorStatusContext.Provider {
+    val contextPayload = useMemo(
+        arrayOf(statusContext)
+    ) { statusContext }
+
+    requestStatusContext.Provider {
         value = contextPayload
         +props.children
     }
@@ -108,4 +137,8 @@ data class ErrorModalState(
     val errorMessage: String,
     val errorLabel: String,
     val confirmationText: String = "Close",
+)
+
+data class LoadingModalState(
+    val isLoadingModalOpen: Boolean?,
 )

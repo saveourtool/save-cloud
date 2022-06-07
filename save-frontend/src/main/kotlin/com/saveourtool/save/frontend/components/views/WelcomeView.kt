@@ -6,10 +6,10 @@
 
 package com.saveourtool.save.frontend.components.views
 
-import com.saveourtool.save.frontend.components.errorStatusContext
+import com.saveourtool.save.frontend.components.RequestStatusContext
+import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.externals.fontawesome.*
-import com.saveourtool.save.frontend.utils.decodeFromJsonString
-import com.saveourtool.save.frontend.utils.get
+import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopResponseHandler
 import com.saveourtool.save.info.OauthProviderInfo
 import com.saveourtool.save.info.UserInfo
@@ -85,8 +85,12 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
     override fun componentDidMount() {
         super.componentDidMount()
         scope.launch {
-            val oauthProviderInfoList: List<OauthProviderInfo>? = get("${window.location.origin}/sec/oauth-providers", Headers(),
-                responseHandler = ::noopResponseHandler).run {
+            val oauthProviderInfoList: List<OauthProviderInfo>? = get(
+                "${window.location.origin}/sec/oauth-providers",
+                Headers(),
+                ::loadingHandler,
+                responseHandler = ::noopResponseHandler,
+            ).run {
                 if (ok) decodeFromJsonString() else null
             }
             oauthProviderInfoList?.let {
@@ -255,9 +259,9 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
         }
     }
 
-    companion object : RStatics<WelcomeProps, IndexViewState, WelcomeView, Context<StateSetter<Response?>>>(WelcomeView::class) {
+    companion object : RStatics<WelcomeProps, IndexViewState, WelcomeView, Context<RequestStatusContext>>(WelcomeView::class) {
         init {
-            contextType = errorStatusContext
+            contextType = requestStatusContext
         }
     }
 }

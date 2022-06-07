@@ -9,6 +9,7 @@ package com.saveourtool.save.frontend.components.views
 import com.saveourtool.save.domain.*
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.execution.ExecutionDto
+import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.TestingType
 import com.saveourtool.save.frontend.components.basic.cardComponent
 import com.saveourtool.save.frontend.components.basic.fileUploader
@@ -18,7 +19,7 @@ import com.saveourtool.save.frontend.components.basic.projectSettingsMenu
 import com.saveourtool.save.frontend.components.basic.projectStatisticMenu
 import com.saveourtool.save.frontend.components.basic.sdkSelection
 import com.saveourtool.save.frontend.components.basic.testResourcesSelection
-import com.saveourtool.save.frontend.components.errorStatusContext
+import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.externals.fontawesome.faCalendarAlt
 import com.saveourtool.save.frontend.externals.fontawesome.faEdit
 import com.saveourtool.save.frontend.externals.fontawesome.faHistory
@@ -454,7 +455,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 set("Accept", "application/json")
                 set("Content-Type", "application/json")
             }
-            gitDto = post("$apiUrl/projects/git", headers, jsonProject).decodeFromJsonString<GitDto>()
+            gitDto = post("$apiUrl/projects/git", headers, jsonProject, ::noopLoadingHandler).decodeFromJsonString<GitDto>()
             when {
                 state.gitUrlFromInputField.isBlank() && gitDto?.url != null -> state.gitUrlFromInputField = gitDto?.url ?: ""
                 state.gitBranchOrCommitFromInputField.isBlank() && gitDto?.branch != null -> state.gitBranchOrCommitFromInputField = gitDto?.branch ?: ""
@@ -463,7 +464,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 }
             }
 
-            standardTestSuites = get("$apiUrl/allStandardTestSuites", headers).decodeFromJsonString()
+            standardTestSuites = get("$apiUrl/allStandardTestSuites", headers, ::loadingHandler).decodeFromJsonString()
 
             val availableFiles = getFilesList()
             setState {
@@ -549,7 +550,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             isLoading = true
         }
         scope.launch {
-            val response = post(apiUrl + url, headers, body)
+            val response = post(apiUrl + url, headers, body, ::loadingHandler)
             if (response.ok) {
                 window.location.href = "${window.location}/history"
             }
@@ -731,7 +732,8 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                         Headers(),
                         FormData().apply {
                             append("file", file)
-                        }
+                        },
+                        ::loadingHandler,
                     )
                         .decodeFromJsonString()
 
@@ -840,7 +842,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             it.set("Accept", "application/json")
             it.set("Content-Type", "application/json")
         }
-        return post("$apiUrl/projects/update", headers, Json.encodeToString(draftProject))
+        return post("$apiUrl/projects/update", headers, Json.encodeToString(draftProject), ::noopLoadingHandler)
     }
 
     private fun deleteProjectBuilder() {
@@ -850,7 +852,12 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         }
         scope.launch {
             responseFromDeleteProject =
-                    delete("$apiUrl/projects/${state.project.organization.name}/${state.project.name}/delete", headers, body = undefined)
+                    delete(
+                        "$apiUrl/projects/${state.project.organization.name}/${state.project.name}/delete",
+                        headers,
+                        body = undefined,
+                        ::noopLoadingHandler,
+                    )
         }.invokeOnCompletion {
             if (responseFromDeleteProject.ok) {
                 window.location.href = "${window.location.origin}/"
@@ -863,7 +870,8 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         val response = get(
             "$apiUrl/latestExecution?name=${state.project.name}&organizationName=${state.project.organization.name}",
             headers,
-            responseHandler = ::noopResponseHandler
+            ::noopLoadingHandler,
+            responseHandler = ::noopResponseHandler,
         )
         when {
             !response.ok -> setState {
@@ -894,7 +902,8 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             val response = get(
                 "$apiUrl/getTestRootPathByExecutionId?id=${state.latestExecutionId}",
                 headers,
-                responseHandler = ::noopResponseHandler
+                ::noopLoadingHandler,
+                responseHandler = ::noopResponseHandler,
             )
             val rootPath = response.text().await()
             when {
@@ -905,13 +914,13 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         }
     }
 
-    private suspend fun getFilesList() = get("$apiUrl/files/list", Headers())
+    private suspend fun getFilesList() = get("$apiUrl/files/list", Headers(), ::noopLoadingHandler)
         .unsafeMap {
             it.decodeFromJsonString<List<FileInfo>>()
         }
 
     companion object :
-        RStatics<ProjectExecutionRouteProps, ProjectViewState, ProjectView, Context<StateSetter<Response?>>>(ProjectView::class) {
+        RStatics<ProjectExecutionRouteProps, ProjectViewState, ProjectView, Context<RequestStatusContext>>(ProjectView::class) {
         const val TEST_ROOT_DIR_HINT = """
             The path you are providing should be relative to the root directory of your repository.
             This directory should contain <a href = "https://github.com/saveourtool/save#how-to-configure"> save.properties </a>
@@ -926,7 +935,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         const val TEST_SUITE_ROW = 4
 
         init {
-            contextType = errorStatusContext
+            contextType = requestStatusContext
         }
     }
 }

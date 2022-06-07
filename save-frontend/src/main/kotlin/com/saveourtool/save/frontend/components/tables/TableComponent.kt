@@ -6,8 +6,8 @@
 
 package com.saveourtool.save.frontend.components.tables
 
-import com.saveourtool.save.frontend.components.errorStatusContext
 import com.saveourtool.save.frontend.components.modal.errorModal
+import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.http.HttpStatusException
 import com.saveourtool.save.frontend.utils.WithRequestStatusContext
 import com.saveourtool.save.frontend.utils.spread
@@ -49,15 +49,18 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.html.THEAD
 import kotlinx.js.jso
+import org.w3c.fetch.Response
 
 /**
  * [Props] of a data table
  */
-external interface TableProps : Props {
+external interface TableProps<D : Any> : Props {
     /**
      * Table header
      */
     var tableHeader: String
+
+    var getData: suspend WithRequestStatusContext.(pageIndex: Int, pageSize: Int) -> Array<out D>
 }
 
 /**
@@ -98,8 +101,7 @@ fun <D : Any> tableComponent(
     getPageCount: (suspend (pageSize: Int) -> Int)? = null,
     renderExpandedRow: (RBuilder.(table: TableInstance<D>, row: Row<D>) -> Unit)? = undefined,
     commonHeader: RDOMBuilder<THEAD>.(table: TableInstance<D>) -> Unit = {},
-    getData: suspend WithRequestStatusContext.(pageIndex: Int, pageSize: Int) -> Array<out D>,
-) = fc<TableProps> { props ->
+) = fc<TableProps<D>> { props ->
     require(useServerPaging xor (getPageCount == null)) {
         "Either use client-side paging or provide a function to get page count"
     }
@@ -127,6 +129,7 @@ fun <D : Any> tableComponent(
 
     useEffect(arrayOf<dynamic>(tableInstance.state.pageSize, pageCount)) {
         if (useServerPaging) {
+            console.log("Inside useEffect weird")
             scope.launch {
                 val newPageCount = getPageCount!!.invoke(tableInstance.state.pageSize)
                 setPageCount(newPageCount)
@@ -141,14 +144,20 @@ fun <D : Any> tableComponent(
         // when all data is already available, we don't need to repeat `getData` calls
         emptyArray()
     }
-    val setResponse = useContext(errorStatusContext)
-    val context = WithRequestStatusContext {
-        setResponse(it)
+    val statusContext = useContext(requestStatusContext)
+    val context = object : WithRequestStatusContext {
+        override fun setResponse(response: Response){
+            statusContext.setResponse(response)
+        }
+        override fun setNLoading(lambda: (Int) -> Int){
+            statusContext.setNLoading(lambda)
+        }
     }
     useEffect(*dependencies) {
+        console.log("Inside useEffect(deps)")
         scope.launch {
             try {
-                setData(context.getData(tableInstance.state.pageIndex, tableInstance.state.pageSize))
+                setData(context.(props.getData)(tableInstance.state.pageIndex, tableInstance.state.pageSize))
             } catch (e: CancellationException) {
                 // this means, that view is re-rendering while network request was still in progress
                 // no need to display an error message in this case

@@ -6,6 +6,7 @@ package com.saveourtool.save.frontend.components.modal
 
 import com.saveourtool.save.frontend.externals.modal.ModalProps
 import com.saveourtool.save.frontend.externals.modal.modal
+import com.saveourtool.save.frontend.utils.loadingHandler
 import com.saveourtool.save.frontend.utils.post
 import com.saveourtool.save.frontend.utils.spread
 import com.saveourtool.save.frontend.utils.useRequest
@@ -30,7 +31,12 @@ fun logoutModal(
     closeCallback: () -> Unit
 ) = FC<ModalProps> { props ->
     val doLogoutRequest = useRequest {
-        val replyToLogout = post("${window.location.origin}/logout", Headers(), "ping")
+        val replyToLogout = post(
+            "${window.location.origin}/logout",
+            Headers(),
+            "ping",
+            loadingHandler = ::loadingHandler,
+        )
         if (replyToLogout.ok) {
             // logout went good, need either to reload page or to setUserInfo(null) and use redirection like `window.location.href = window.location.origin`
             window.location.href = "${window.location.origin}/#"

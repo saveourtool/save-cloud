@@ -9,24 +9,20 @@ import com.saveourtool.save.domain.TestResultDebugInfo
 import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.execution.ExecutionStatus
+import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.SelectOption.Companion.ANY
 import com.saveourtool.save.frontend.components.basic.executionStatistics
 import com.saveourtool.save.frontend.components.basic.executionTestsNotFound
 import com.saveourtool.save.frontend.components.basic.testExecutionFiltersRow
 import com.saveourtool.save.frontend.components.basic.testStatusComponent
-import com.saveourtool.save.frontend.components.errorStatusContext
+import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.externals.fontawesome.faRedo
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.externals.table.useFilters
 import com.saveourtool.save.frontend.http.getDebugInfoFor
 import com.saveourtool.save.frontend.themes.Colors
-import com.saveourtool.save.frontend.utils.apiUrl
-import com.saveourtool.save.frontend.utils.decodeFromJsonString
-import com.saveourtool.save.frontend.utils.get
-import com.saveourtool.save.frontend.utils.post
-import com.saveourtool.save.frontend.utils.spread
-import com.saveourtool.save.frontend.utils.unsafeMap
+import com.saveourtool.save.frontend.utils.*
 
 import csstype.Background
 import csstype.TextDecoration
@@ -288,6 +284,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                 headers = Headers().also {
                     it.set("Accept", "application/json")
                 },
+                loadingHandler = ::loadingHandler,
             )
                 .json()
                 .await()
@@ -308,34 +305,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                 }
             }
         }
-    ) { page, size ->
-        val status = state.status?.let {
-            "&status=${state.status}"
-        }
-            ?: run {
-                ""
-            }
-        val testSuite = state.testSuite?.let {
-            "&testSuite=${state.testSuite}"
-        }
-            ?: run {
-                ""
-            }
-        get(
-            url = "$apiUrl/testExecutions?executionId=${props.executionId}&page=$page&size=$size$status$testSuite&checkDebugInfo=true",
-            headers = Headers().apply {
-                set("Accept", "application/json")
-            },
-        )
-            .unsafeMap {
-                Json.decodeFromString<Array<TestExecutionDto>>(
-                    it.text().await()
-                )
-            }
-            .apply {
-                asDynamic().debugInfo = null
-            }
-    }
+    )
     init {
         state.executionDto = null
         state.status = null
@@ -348,13 +318,14 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
         scope.launch {
             val headers = Headers().also { it.set("Accept", "application/json") }
             val executionDtoFromBackend: ExecutionDto =
-                    get("$apiUrl/executionDto?executionId=${props.executionId}", headers)
+                    get("$apiUrl/executionDto?executionId=${props.executionId}", headers, loadingHandler = ::loadingHandler)
                         .decodeFromJsonString()
             val count: Int = get(
                 url = "$apiUrl/testExecution/count?executionId=${props.executionId}",
                 headers = Headers().also {
                     it.set("Accept", "application/json")
                 },
+                loadingHandler = ::loadingHandler,
             )
                 .json()
                 .await()
@@ -413,7 +384,8 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                                             val response = post(
                                                 "$apiUrl/rerunExecution?id=${props.executionId}",
                                                 Headers(),
-                                                undefined
+                                                undefined,
+                                                loadingHandler = ::loadingHandler,
                                             )
                                             if (response.ok) {
                                                 window.alert("Rerun request successfully submitted")
@@ -431,16 +403,46 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
         }
 
         // fixme: table is rendered twice because of state change when `executionDto` is fetched
-        child(testExecutionsTable)
+        child(testExecutionsTable) {
+            attrs.getData = { page, size ->
+                val status = state.status?.let {
+                    "&status=${state.status}"
+                }
+                    ?: run {
+                        ""
+                    }
+                val testSuite = state.testSuite?.let {
+                    "&testSuite=${state.testSuite}"
+                }
+                    ?: run {
+                        ""
+                    }
+                get(
+                    url = "$apiUrl/testExecutions?executionId=${props.executionId}&page=$page&size=$size$status$testSuite&checkDebugInfo=true",
+                    headers = Headers().apply {
+                        set("Accept", "application/json")
+                    },
+                    loadingHandler = ::loadingHandler,
+                )
+                    .unsafeMap {
+                        Json.decodeFromString<Array<TestExecutionDto>>(
+                            it.text().await()
+                        )
+                    }
+                    .apply {
+                        asDynamic().debugInfo = null
+                    }
+            }
+        }
         child(executionTestsNotFound) {
             attrs.executionDto = state.executionDto
             attrs.countTests = state.countTests
         }
     }
 
-    companion object : RStatics<ExecutionProps, ExecutionState, ExecutionView, Context<StateSetter<Response?>>>(ExecutionView::class) {
+    companion object : RStatics<ExecutionProps, ExecutionState, ExecutionView, Context<RequestStatusContext>>(ExecutionView::class) {
         init {
-            contextType = errorStatusContext
+            contextType = requestStatusContext
         }
     }
 }

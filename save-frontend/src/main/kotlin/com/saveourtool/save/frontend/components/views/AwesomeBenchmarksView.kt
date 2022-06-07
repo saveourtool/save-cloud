@@ -7,7 +7,8 @@
 package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.entities.benchmarks.BenchmarkCategoryEnum
-import com.saveourtool.save.frontend.components.errorStatusContext
+import com.saveourtool.save.frontend.components.RequestStatusContext
+import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.utils.AwesomeBenchmarks
@@ -358,7 +359,11 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
         }
 
         scope.launch {
-            val response: List<AwesomeBenchmarks> = get("$apiUrl/awesome-benchmarks", headers).decodeFromJsonString()
+            val response: List<AwesomeBenchmarks> = get(
+                "$apiUrl/awesome-benchmarks",
+                headers,
+                ::loadingHandler,
+            ).decodeFromJsonString()
 
             setState {
                 benchmarks = response
@@ -366,9 +371,9 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
         }
     }
 
-    companion object : RStatics<PropsWithChildren, AwesomeBenchmarksState, AwesomeBenchmarksView, Context<StateSetter<Response?>>>(AwesomeBenchmarksView::class) {
+    companion object : RStatics<PropsWithChildren, AwesomeBenchmarksState, AwesomeBenchmarksView, Context<RequestStatusContext>>(AwesomeBenchmarksView::class) {
         init {
-            contextType = errorStatusContext
+            contextType = requestStatusContext
         }
     }
 }
