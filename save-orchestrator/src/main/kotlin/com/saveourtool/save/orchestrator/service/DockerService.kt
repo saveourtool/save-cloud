@@ -19,6 +19,7 @@ import com.saveourtool.save.utils.moveFileWithAttributes
 
 import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.api.exception.DockerException
+import com.saveourtool.save.orchestrator.docker.AgentRunnerException
 import net.lingala.zip4j.ZipFile
 import net.lingala.zip4j.exception.ZipException
 import org.apache.commons.io.FileUtils
@@ -62,7 +63,7 @@ class DockerService(private val configProperties: ConfigProperties,
     private lateinit var webClientBackend: WebClient
 
     /**
-     * Function that builds a base image with test resources and then creates containers with agents.
+     * Function that builds a base image with test resources
      *
      * @param execution [Execution] from which this workflow is started
      * @param testSuiteDtos test suites, selected by user
@@ -82,6 +83,14 @@ class DockerService(private val configProperties: ConfigProperties,
         return imageId to agentRunCmd
     }
 
+    /**
+     * creates containers with agents
+     *
+     * @param executionId
+     * @param baseImageId
+     * @param agentRunCmd
+     * @return list of IDs of created containers
+     */
     fun createContainers(executionId: Long,
                          baseImageId: String,
                          agentRunCmd: String,
@@ -116,7 +125,7 @@ class DockerService(private val configProperties: ConfigProperties,
      * @param agentIds list of IDs of agents to stop
      * @return true if agents have been stopped, false if another thread is already stopping them
      */
-    @Suppress("TOO_MANY_LINES_IN_LAMBDA")
+    @Suppress("TOO_MANY_LINES_IN_LAMBDA", "FUNCTION_BOOLEAN_PREFIX")
     fun stopAgents(agentIds: Collection<String>) =
             if (isAgentStoppingInProgress.compareAndSet(false, true)) {
                 try {
@@ -124,7 +133,7 @@ class DockerService(private val configProperties: ConfigProperties,
                         agentRunner.stopByAgentId(agentId)
                     }
                     // todo: for Kubernetes also need to delete a Job here
-                } catch (e: Exception) {
+                } catch (e: AgentRunnerException) {
                     log.error("Error while stopping agents $agentIds", e)
                     false
                 } finally {
@@ -135,6 +144,7 @@ class DockerService(private val configProperties: ConfigProperties,
                 false
             }
 
+    @Suppress("FUNCTION_BOOLEAN_PREFIX")
     fun stop(executionId: Long): Boolean {
 //        return if (isAgentStoppingInProgress.compute(executionId) { _, value -> if (value == false) true else value } == true) {
         return if (isAgentStoppingInProgress.compareAndSet(false, true)) {

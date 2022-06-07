@@ -8,6 +8,7 @@ import com.saveourtool.save.orchestrator.execTimed
 import com.saveourtool.save.orchestrator.getHostIp
 
 import com.github.dockerjava.api.DockerClient
+import com.github.dockerjava.api.exception.DockerException
 import com.github.dockerjava.api.model.HostConfig
 import com.github.dockerjava.api.model.LogConfig
 import io.micrometer.core.instrument.MeterRegistry
@@ -79,7 +80,11 @@ class DockerAgentRunner(
         logger.info("Stopping agent with id=$agentId")
         val state = dockerClient.inspectContainerCmd(agentId).exec().state
         return if (state.running == true) {
-            dockerClient.stopContainerCmd(agentId).exec()
+            try {
+                dockerClient.stopContainerCmd(agentId).exec()
+            } catch (dex: DockerException) {
+                throw AgentRunnerException("Exception when stopping agent id=$agentId", dex)
+            }
             logger.info("Agent with id=$agentId has been stopped")
             true
         } else {

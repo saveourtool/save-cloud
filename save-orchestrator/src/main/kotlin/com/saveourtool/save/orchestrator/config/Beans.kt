@@ -19,6 +19,7 @@ import org.springframework.web.reactive.function.client.WebClient
  * Configuration class with various beans
  */
 @Configuration
+@Suppress("KDOC_WITHOUT_PARAM_TAG")
 class Beans(private val configProperties: ConfigProperties) {
     /**
      * Used to send requests to backend
@@ -51,6 +52,9 @@ class Beans(private val configProperties: ConfigProperties) {
         return DockerClientImpl.getInstance(dockerClientConfig, dockerHttpClient)
     }
 
+    /**
+     * @return a Kubernetes client that uses properties from [configProperties] for connection
+     */
     @Bean
     @Profile("kubernetes")
     fun kubernetesClient(configProperties: ConfigProperties): KubernetesClient {
