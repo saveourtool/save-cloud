@@ -20,7 +20,7 @@ dependencyResolutionManagement {
                 includeGroup("io.github.detekt.sarif4k")
             }
         }
-        repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+        repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
     }
 }
 
