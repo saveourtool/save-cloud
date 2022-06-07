@@ -23,4 +23,25 @@
         </addColumn>
     </changeSet>
 
+    <changeSet id="precision-recall-supporting" author="nulls" context="dev or prod">
+        <addColumn tableName="execution">
+            <column name="all_tests" type="bigint">
+                <constraints nullable="false" />
+            </column>
+
+            <column name="unmatched_checks" type="bigint">
+                <constraints nullable="false" />
+            </column>
+            <column name="matched_checks" type="bigint">
+                <constraints nullable="false" />
+            </column>
+            <column name="expected_checks" type="bigint">
+                <constraints nullable="false" />
+            </column>
+            <column name="unexpected_checks" type="bigint">
+                <constraints nullable="false" />
+            </column>
+        </addColumn>
+    </changeSet>
+
 </databaseChangeLog>

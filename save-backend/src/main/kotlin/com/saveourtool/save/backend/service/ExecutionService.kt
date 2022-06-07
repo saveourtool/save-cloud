@@ -156,10 +156,15 @@ class ExecutionService(private val executionRepository: ExecutionRepository,
      */
     fun resetMetrics(execution: Execution) {
         execution.apply {
+            allTests = 0
             runningTests = 0
             passedTests = 0
             failedTests = 0
             skippedTests = 0
+            unmatchedChecks = 0
+            matchedChecks = 0
+            expectedChecks = 0
+            unexpectedChecks = 0
         }
         saveExecution(execution)
     }
