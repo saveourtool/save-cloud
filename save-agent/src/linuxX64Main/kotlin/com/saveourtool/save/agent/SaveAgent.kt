@@ -9,6 +9,7 @@ import com.saveourtool.save.agent.utils.readFile
 import com.saveourtool.save.agent.utils.sendDataToBackend
 import com.saveourtool.save.core.logging.describe
 import com.saveourtool.save.core.plugin.Plugin
+import com.saveourtool.save.core.result.CountWarnings
 import com.saveourtool.save.core.utils.ExecutionResult
 import com.saveourtool.save.core.utils.ProcessBuilder
 import com.saveourtool.save.domain.TestResultDebugInfo
@@ -192,13 +193,22 @@ class SaveAgent(internal val config: AgentConfiguration,
                         testResultStatus,
                         executionStartSeconds.value,
                         currentTime.epochSeconds,
-                        missingWarnings = debugInfo.debugInfo?.countWarnings?.missing,
-                        matchedWarnings = debugInfo.debugInfo?.countWarnings?.match,
+                        unmatched = debugInfo.getCountWarningsAsLong { it.unmatched },
+                        matched = debugInfo.getCountWarningsAsLong { it.matched },
+                        expected = debugInfo.getCountWarningsAsLong { it.expected },
+                        unexpected = debugInfo.getCountWarningsAsLong { it.unexpected },
                     )
                 }
             }
         }
     }
+
+    @Suppress("MAGIC_NUMBER", "MagicNumber")
+    private fun TestResultDebugInfo.getCountWarningsAsLong(getter: (CountWarnings) -> Int?) = this.debugInfo
+        ?.countWarnings
+        ?.let { getter(it) }
+        ?.toLong()
+        ?: 0L
 
     private fun readExecutionReportFromFile(jsonFile: String) = reportFormat.decodeFromString<List<Report>>(
         readFile(jsonFile).joinToString(separator = "")
