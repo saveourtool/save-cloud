@@ -128,22 +128,14 @@ class DownloadFilesTest {
 
     @Test
     @Suppress("TOO_LONG_FUNCTION")
-    @WithMockUser(roles = ["ADMIN"])
+    @WithMockUser(roles = ["USER"])
     fun `should download a file`() {
         mutateMockedUser {
             details = AuthenticationDetails(id = 1)
         }
 
-        whenever(projectService.findWithPermissionByNameAndOrganization(any(), eq(testProject.name), eq(organization.name), eq(Permission.WRITE), anyOrNull(), any()))
+        whenever(projectService.findWithPermissionByNameAndOrganization(any(), eq(testProject.name), eq(organization.name), eq(Permission.READ), anyOrNull(), any()))
             .thenAnswer { Mono.just(testProject) }
-
-        whenever(projectService.findByNameAndOrganizationName("The Project", "Example.com"))
-            .thenReturn(testProject)
-
-        whenever(projectPermissionEvaluator.hasPermission(any(), any(), any())).thenAnswer {
-            val authentication = it.arguments[0] as UsernamePasswordAuthenticationToken
-            return@thenAnswer authentication.authorities.contains(SimpleGrantedAuthority("ROLE_ADMIN"))
-        }
 
         val tmpFile = createTempFile("test", "txt")
             .writeLines("Lorem ipsum".lines())
@@ -190,14 +182,6 @@ class DownloadFilesTest {
 
         whenever(projectService.findWithPermissionByNameAndOrganization(any(), eq(testProject2.name), eq(organization2.name), eq(Permission.WRITE), anyOrNull(), any()))
             .thenAnswer { Mono.just(testProject2) }
-
-        whenever(projectService.findByNameAndOrganizationName("huaweiName", "Huawei"))
-            .thenReturn(testProject2)
-
-        whenever(projectPermissionEvaluator.hasPermission(any(), any(), any())).thenAnswer {
-            val authentication = it.arguments[0] as UsernamePasswordAuthenticationToken
-            return@thenAnswer authentication.authorities.contains(SimpleGrantedAuthority("ROLE_ADMIN"))
-        }
 
         val tmpFile = createTempFile("test", "txt")
             .writeLines("Lorem ipsum".lines())
