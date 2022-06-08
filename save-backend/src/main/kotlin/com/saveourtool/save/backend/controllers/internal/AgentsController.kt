@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
+import reactor.kotlin.core.publisher.toMono
 
 /**
  * Controller to manipulate with Agent related data
@@ -112,10 +113,13 @@ class AgentsController(private val agentStatusRepository: AgentStatusRepository,
 
     /**
      * Return ID of execution for which agent [agentId] has been created
+     *
+     * @param agentId id of an agent to look for
      */
     @GetMapping("/agents/{agentId}/execution/id")
     fun findExecutionIdByAgentId(@PathVariable agentId: String) = agentRepository.findByContainerId(agentId)
-        ?.let { it.execution.id!! }!!
+        .toMono()
+        .mapNotNull { it.execution.id }
 
     /**
      * Get agent by containerId.

@@ -159,7 +159,7 @@ class DockerAgentRunner(
             )
             .execTimed(meterRegistry, "$DOCKER_METRIC_PREFIX.container.create")
 
-        val containerId = createContainerCmdResponse!!.id
+        val containerId = createContainerCmdResponse.id
         val envFile = createTempDirectory("orchestrator").resolve(".env").apply {
             writeText("""
                 AGENT_ID=$containerId""".trimIndent()

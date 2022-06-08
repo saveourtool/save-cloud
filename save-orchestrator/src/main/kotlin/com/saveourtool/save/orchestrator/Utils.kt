@@ -58,15 +58,18 @@ inline fun <reified CMD_T : AsyncDockerCmd<CMD_T, A_RES_T>, RC_T : ResultCallbac
  * @param tags additional tags for the timer (command name in form of Java class name is assigned automatically)
  * @return sync result
  */
-inline fun <reified CMD_T : SyncDockerCmd<RES_T>, RES_T> CMD_T.execTimed(
+inline fun <reified CMD_T : SyncDockerCmd<RES_T>, RES_T : Any> CMD_T.execTimed(
     meterRegistry: MeterRegistry,
     name: String,
     vararg tags: String,
-): RES_T? {
+): RES_T {
     val timer = meterRegistry.timer(name, "cmd", "${CMD_T::class.simpleName}", *tags)
-    return timer.record(Supplier {
+    val result = timer.record(Supplier {
         exec()
     })
+    return requireNotNull(result) {
+        "Result of docker command $this has returned null, but it never should"
+    }
 }
 
 /**

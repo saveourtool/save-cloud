@@ -40,7 +40,7 @@ class KubernetesManager(
                         agentRunCmd: String,
     ): List<String> {
         // fixme: pass image name instead of ID from the outside
-        val baseImage = dockerClient.listImagesCmd().execTimed(meterRegistry, "$DOCKER_METRIC_PREFIX.image.list")!!.find {
+        val baseImage = dockerClient.listImagesCmd().execTimed(meterRegistry, "$DOCKER_METRIC_PREFIX.image.list").find {
             // fixme: sometimes createImageCmd returns short id without prefix, sometimes full and with prefix.
             it.id.replaceFirst("sha256:", "").startsWith(baseImageId.replaceFirst("sha256:", ""))
         }
