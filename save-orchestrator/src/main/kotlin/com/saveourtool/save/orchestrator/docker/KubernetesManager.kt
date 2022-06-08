@@ -108,9 +108,17 @@ class KubernetesManager(
     }
 
     override fun stopByAgentId(agentId: String): Boolean {
+        val pod: Pod? = kc.pods().withName(agentId).get()
+        if (pod == null) {
+            logger.debug("Agent id=$agentId is already stopped or not yet created")
+            return true
+        }
         val isDeleted = kc.pods().withName(agentId).delete()
-        if (!isDeleted) throw AgentRunnerException("Failed to delete pod with name $agentId")
-        else return true
+        if (!isDeleted) {
+            throw AgentRunnerException("Failed to delete pod with name $agentId")
+        } else {
+            return true
+        }
     }
 
     override fun cleanup(executionId: Long) {
