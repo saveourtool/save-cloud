@@ -1,16 +1,20 @@
 package com.saveourtool.save.orchestrator.docker
 
-import com.saveourtool.save.orchestrator.DOCKER_METRIC_PREFIX
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.config.DockerSettings
-import com.saveourtool.save.orchestrator.createTgzStream
-import com.saveourtool.save.orchestrator.execTimed
-import com.saveourtool.save.orchestrator.getHostIp
 
 import com.github.dockerjava.api.DockerClient
+import com.github.dockerjava.api.command.CopyArchiveToContainerCmd
+import com.github.dockerjava.api.command.CreateContainerCmd
+import com.github.dockerjava.api.command.CreateContainerResponse
+import com.github.dockerjava.api.command.ListImagesCmd
 import com.github.dockerjava.api.exception.DockerException
 import com.github.dockerjava.api.model.HostConfig
+import com.github.dockerjava.api.model.Image
 import com.github.dockerjava.api.model.LogConfig
+import com.saveourtool.save.orchestrator.*
+import com.saveourtool.save.orchestrator.DOCKER_METRIC_PREFIX
+import com.saveourtool.save.orchestrator.createTgzStream
 import io.micrometer.core.instrument.MeterRegistry
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
@@ -127,13 +131,10 @@ class DockerAgentRunner(
                                          runCmd: String,
                                          containerName: String,
     ): String {
-        val baseImage = dockerClient.listImagesCmd().execTimed(meterRegistry, "$DOCKER_METRIC_PREFIX.image.list")!!.find {
-            // fixme: sometimes createImageCmd returns short id without prefix, sometimes full and with prefix.
-            it.id.replaceFirst("sha256:", "").startsWith(baseImageId.replaceFirst("sha256:", ""))
-        }
+        val baseImage = dockerClient.findImage(baseImageId, meterRegistry)
             ?: error("Image with requested baseImageId=$baseImageId is not present in the system")
         // createContainerCmd accepts image name, not id, so we retrieve it from tags
-        val createContainerCmdResponse = dockerClient.createContainerCmd(baseImage.repoTags.first())
+        val createContainerCmdResponse: CreateContainerResponse = dockerClient.createContainerCmd(baseImage.repoTags.first())
             .withWorkingDir(workingDir)
             .withCmd("bash", "-c", "env \$(cat .env | xargs) $runCmd")
             .withName(containerName)
@@ -188,7 +189,7 @@ class DockerAgentRunner(
             dockerClient.copyArchiveToContainerCmd(containerId)
                 .withTarInputStream(out.toByteArray().inputStream())
                 .withRemotePath(remotePath)
-                .execTimed(meterRegistry, "$DOCKER_METRIC_PREFIX.container.copy.archive")
+                .execTimed<CopyArchiveToContainerCmd, Void?>(meterRegistry, "$DOCKER_METRIC_PREFIX.container.copy.archive")
         }
     }
 

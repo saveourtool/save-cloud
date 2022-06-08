@@ -1,9 +1,8 @@
 package com.saveourtool.save.orchestrator.docker
 
-import com.saveourtool.save.orchestrator.DOCKER_METRIC_PREFIX
-import com.saveourtool.save.orchestrator.execTimed
 
 import com.github.dockerjava.api.DockerClient
+import com.saveourtool.save.orchestrator.findImage
 import io.fabric8.kubernetes.api.model.*
 import io.fabric8.kubernetes.api.model.batch.v1.Job
 import io.fabric8.kubernetes.api.model.batch.v1.JobSpec
@@ -41,10 +40,7 @@ class KubernetesManager(
                         agentRunCmd: String,
     ): List<String> {
         // fixme: pass image name instead of ID from the outside
-        val baseImage = dockerClient.listImagesCmd().execTimed(meterRegistry, "$DOCKER_METRIC_PREFIX.image.list").find {
-            // fixme: sometimes createImageCmd returns short id without prefix, sometimes full and with prefix.
-            it.id.replaceFirst("sha256:", "").startsWith(baseImageId.replaceFirst("sha256:", ""))
-        }
+        val baseImage = dockerClient.findImage(baseImageId, meterRegistry)
             ?: error("Image with requested baseImageId=$baseImageId is not present in the system")
         val baseImageName = baseImage.repoTags.first()
 
@@ -119,7 +115,7 @@ class KubernetesManager(
 
     override fun stopByAgentId(agentId: String): Boolean {
         val pod: Pod? = kc.pods().withName(agentId).get()
-        if (pod == null) {
+        pod ?: run {
             logger.debug("Agent id=$agentId is already stopped or not yet created")
             return true
         }
