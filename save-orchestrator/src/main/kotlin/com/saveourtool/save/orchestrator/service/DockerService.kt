@@ -131,7 +131,6 @@ class DockerService(private val configProperties: ConfigProperties,
                     agentIds.all { agentId ->
                         agentRunner.stopByAgentId(agentId)
                     }
-                    // todo: for Kubernetes also need to delete a Job here
                 } catch (e: AgentRunnerException) {
                     log.error("Error while stopping agents $agentIds", e)
                     false
@@ -148,7 +147,7 @@ class DockerService(private val configProperties: ConfigProperties,
      */
     @Suppress("FUNCTION_BOOLEAN_PREFIX")
     fun stop(executionId: Long): Boolean {
-//        return if (isAgentStoppingInProgress.compute(executionId) { _, value -> if (value == false) true else value } == true) {
+        // return if (isAgentStoppingInProgress.compute(executionId) { _, value -> if (value == false) true else value } == true) {
         return if (isAgentStoppingInProgress.compareAndSet(false, true)) {
             try {
                 agentRunner.stop(executionId)

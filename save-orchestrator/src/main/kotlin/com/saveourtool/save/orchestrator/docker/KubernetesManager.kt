@@ -128,7 +128,11 @@ class KubernetesManager(
     }
 
     override fun cleanup(executionId: Long) {
-        TODO("Not yet implemented")
+        logger.debug("Removing a Job for execution id=$executionId")
+        val job = kc.batch().v1().jobs().withName(jobNameForExecution(executionId)).get()
+        if (job != null) {
+            kc.batch().v1().jobs().withName(jobNameForExecution(executionId)).delete()
+        }
     }
 
     private fun jobNameForExecution(executionId: Long) = "save-execution-$executionId"
