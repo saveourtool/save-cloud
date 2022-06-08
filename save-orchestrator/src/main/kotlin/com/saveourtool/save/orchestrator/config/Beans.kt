@@ -1,15 +1,15 @@
 package com.saveourtool.save.orchestrator.config
 
+import com.saveourtool.save.orchestrator.docker.KubernetesManager
+
 import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.core.DefaultDockerClientConfig
 import com.github.dockerjava.core.DockerClientConfig
 import com.github.dockerjava.core.DockerClientImpl
 import com.github.dockerjava.httpclient5.ApacheDockerHttpClient
 import com.github.dockerjava.transport.DockerHttpClient
-import com.saveourtool.save.orchestrator.docker.KubernetesManager
 import io.fabric8.kubernetes.client.DefaultKubernetesClient
 import io.fabric8.kubernetes.client.KubernetesClient
-import io.fabric8.kubernetes.client.NamespacedKubernetesClient
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Profile

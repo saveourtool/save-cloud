@@ -21,6 +21,7 @@ import org.springframework.boot.context.properties.ConstructorBinding
  * @property agentsHeartBeatTimeoutMillis interval in milliseconds, after which agent should be marked as crashed, if there weren't received heartbeats from him
  * @property heartBeatInspectorInterval interval in seconds, with the frequency of which heartbeat inspector will look for crashed agents
  * @property agentSettings if set, this will override defaults in agent.properties
+ * @property kubernetes configuration for setup in Kubernetes
  */
 @ConstructorBinding
 @ConfigurationProperties(prefix = "orchestrator")
@@ -59,6 +60,8 @@ data class DockerSettings(
 
 /**
  * @property apiServerUrl see https://kubernetes.io/docs/tasks/run-application/access-api-from-pod/
+ * @property serviceAccount
+ * @property namespace
  */
 data class KubernetesSettings(
     val apiServerUrl: String,

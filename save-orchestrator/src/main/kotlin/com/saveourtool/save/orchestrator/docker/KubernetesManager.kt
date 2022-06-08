@@ -1,8 +1,9 @@
 package com.saveourtool.save.orchestrator.docker
 
-import com.github.dockerjava.api.DockerClient
 import com.saveourtool.save.orchestrator.DOCKER_METRIC_PREFIX
 import com.saveourtool.save.orchestrator.execTimed
+
+import com.github.dockerjava.api.DockerClient
 import io.fabric8.kubernetes.api.model.*
 import io.fabric8.kubernetes.api.model.batch.v1.Job
 import io.fabric8.kubernetes.api.model.batch.v1.JobSpec
@@ -11,6 +12,7 @@ import io.micrometer.core.instrument.MeterRegistry
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
+
 import javax.annotation.PreDestroy
 
 /**
@@ -22,8 +24,7 @@ class KubernetesManager(
     private val dockerClient: DockerClient,
     private val kc: KubernetesClient,
     private val meterRegistry: MeterRegistry,
-): AgentRunner {
-
+) : AgentRunner {
     /**
      * Cleanup resources related to the connection to the Kubernetes API server
      */
@@ -65,9 +66,9 @@ class KubernetesManager(
                                 name = "save-agent-pod"
                                 metadata = ObjectMeta().apply {
                                     labels = mapOf(
-                                        "executionId" to "$executionId",
+                                        "executionId" to executionId.toString(),
                                         "baseImageId" to baseImageId,
-//                                        "baseImageName" to baseImageName
+                                        // "baseImageName" to baseImageName
                                     )
                                 }
                                 image = baseImageName
@@ -92,9 +93,13 @@ class KubernetesManager(
                 }
             }
         }
-        kc.batch().v1().jobs().create(job)
-        // todo: do we need to wait for pods to be created?
-        return kc.pods().withLabel("baseImageId", baseImageId).list().items.map { it.metadata.name }
+        kc.batch().v1()
+            .jobs()
+            .create(job)
+        return kc.pods().withLabel("baseImageId", baseImageId)
+            .list()
+            .items
+            .map { it.metadata.name }
     }
 
     override fun start(executionId: Long) {
@@ -103,8 +108,13 @@ class KubernetesManager(
 
     override fun stop(executionId: Long) {
         val jobName = jobNameForExecution(executionId)
-        val isDeleted = kc.batch().v1().jobs().withName(jobName).delete()
-        if (!isDeleted) throw AgentRunnerException("Failed to delete job with name $jobName")
+        val isDeleted = kc.batch().v1()
+            .jobs()
+            .withName(jobName)
+            .delete()
+        if (!isDeleted) {
+            throw AgentRunnerException("Failed to delete job with name $jobName")
+        }
     }
 
     override fun stopByAgentId(agentId: String): Boolean {

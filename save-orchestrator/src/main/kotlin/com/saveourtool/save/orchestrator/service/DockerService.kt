@@ -10,6 +10,7 @@ import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.copyRecursivelyWithAttributes
 import com.saveourtool.save.orchestrator.createSyntheticTomlConfig
 import com.saveourtool.save.orchestrator.docker.AgentRunner
+import com.saveourtool.save.orchestrator.docker.AgentRunnerException
 import com.saveourtool.save.orchestrator.docker.DockerContainerManager
 import com.saveourtool.save.orchestrator.fillAgentPropertiesFromConfiguration
 import com.saveourtool.save.testsuite.TestSuiteDto
@@ -18,8 +19,6 @@ import com.saveourtool.save.utils.STANDARD_TEST_SUITE_DIR
 import com.saveourtool.save.utils.moveFileWithAttributes
 
 import com.github.dockerjava.api.DockerClient
-import com.github.dockerjava.api.exception.DockerException
-import com.saveourtool.save.orchestrator.docker.AgentRunnerException
 import net.lingala.zip4j.ZipFile
 import net.lingala.zip4j.exception.ZipException
 import org.apache.commons.io.FileUtils
@@ -144,6 +143,9 @@ class DockerService(private val configProperties: ConfigProperties,
                 false
             }
 
+    /**
+     * @param executionId
+     */
     @Suppress("FUNCTION_BOOLEAN_PREFIX")
     fun stop(executionId: Long): Boolean {
 //        return if (isAgentStoppingInProgress.compute(executionId) { _, value -> if (value == false) true else value } == true) {

@@ -12,6 +12,7 @@ import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.orchestrator.config.Beans
 import com.saveourtool.save.orchestrator.config.LocalDateTimeConfig
 import com.saveourtool.save.orchestrator.controller.HeartBeatInspector
+import com.saveourtool.save.orchestrator.controller.crashedAgentsList
 import com.saveourtool.save.orchestrator.service.AgentService
 import com.saveourtool.save.orchestrator.service.DockerService
 import com.saveourtool.save.test.TestBatch
@@ -20,18 +21,18 @@ import com.saveourtool.save.testsuite.TestSuiteType
 import com.saveourtool.save.testutils.*
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.saveourtool.save.orchestrator.controller.crashedAgentsList
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import okhttp3.mockwebserver.RecordedRequest
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import org.mockito.kotlin.any
+import org.mockito.ArgumentMatchers.anyList
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
@@ -58,9 +59,6 @@ import kotlin.time.Duration.Companion.seconds
 import kotlinx.datetime.Clock
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.mockito.ArgumentMatchers.anyList
-import org.mockito.ArgumentMatchers.anyLong
 
 @WebFluxTest
 @Import(
@@ -148,7 +146,7 @@ class HeartbeatControllerTest {
             mockAgentStatuses = true,
         ) {
             verify(dockerService, times(0)).stopAgents(anyList())
-//            verify(dockerService, times(0)).stop(anyLong())
+            // verify(dockerService, times(0)).stop(anyLong())
         }
     }
 
@@ -174,7 +172,7 @@ class HeartbeatControllerTest {
             mockAgentStatuses = false,
         ) {
             verify(dockerService, times(0)).stopAgents(anyList())
-//            verify(dockerService, times(0)).stop(anyLong())
+            // verify(dockerService, times(0)).stop(anyLong())
         }
     }
 
@@ -238,7 +236,7 @@ class HeartbeatControllerTest {
             mockAgentStatuses = false,
         ) {
             verify(dockerService, times(0)).stopAgents(anyList())
-//            verify(dockerService, times(0)).stop(anyLong())
+            // verify(dockerService, times(0)).stop(anyLong())
         }
     }
 
@@ -448,7 +446,7 @@ class HeartbeatControllerTest {
             )
         }
 
-/*        mockServer.enqueue(
+        /* mockServer.enqueue(
             "/agents/[^/]+/execution/id",
             MockResponse().setResponseCode(200)
                 .setHeader("Content-Type", "application/json")
