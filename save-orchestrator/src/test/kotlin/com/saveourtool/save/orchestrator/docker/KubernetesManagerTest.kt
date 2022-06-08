@@ -11,7 +11,6 @@ import io.micrometer.core.instrument.composite.CompositeMeterRegistry
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import org.mockito.Mockito.mock
 import org.mockito.kotlin.mock
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.http.HttpStatus
@@ -40,7 +39,7 @@ class KubernetesManagerTest {
             .andReturn(HttpStatus.OK.value(), null)
             .once()
 
-        val d = Mono.fromCallable {
+        val disposable = Mono.fromCallable {
             kubernetesMockServer.takeRequest()
         }
             .subscribeOn(Schedulers.single())
@@ -52,7 +51,7 @@ class KubernetesManagerTest {
 
         kubernetesManager.stop(1)
 
-        Assertions.assertTrue(d.isDisposed)
+        Assertions.assertTrue(disposable.isDisposed)
     }
 
     companion object {

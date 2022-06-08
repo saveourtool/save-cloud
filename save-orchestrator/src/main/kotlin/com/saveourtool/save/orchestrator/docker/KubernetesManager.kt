@@ -1,8 +1,8 @@
 package com.saveourtool.save.orchestrator.docker
 
+import com.saveourtool.save.orchestrator.findImage
 
 import com.github.dockerjava.api.DockerClient
-import com.saveourtool.save.orchestrator.findImage
 import io.fabric8.kubernetes.api.model.*
 import io.fabric8.kubernetes.api.model.batch.v1.Job
 import io.fabric8.kubernetes.api.model.batch.v1.JobSpec
@@ -129,9 +129,13 @@ class KubernetesManager(
 
     override fun cleanup(executionId: Long) {
         logger.debug("Removing a Job for execution id=$executionId")
-        val job = kc.batch().v1().jobs().withName(jobNameForExecution(executionId)).get()
-        if (job != null) {
-            kc.batch().v1().jobs().withName(jobNameForExecution(executionId)).delete()
+        val job = kc.batch().v1().jobs()
+            .withName(jobNameForExecution(executionId))
+            .get()
+        job?.let {
+            kc.batch().v1().jobs()
+                .withName(jobNameForExecution(executionId))
+                .delete()
         }
     }
 

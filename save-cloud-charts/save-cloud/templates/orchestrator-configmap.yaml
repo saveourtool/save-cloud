@@ -13,9 +13,6 @@ data:
     orchestrator.kubernetes.serviceAccount=${POD_SERVICE_ACCOUNT}
     orchestrator.kubernetes.namespace=${POD_NAMESPACE}
 
-    logging.level.com.github.dockerjava.api.command.BuildImageResultCallback=DEBUG
-    #logging.level.com.saveourtool.save.orchestrator.docker.DockerContainerManager=DEBUG
-
     server.shutdown=graceful
     management.endpoints.web.exposure.include=*
     {{- if .Values.orchestrator.clusterIP }}
