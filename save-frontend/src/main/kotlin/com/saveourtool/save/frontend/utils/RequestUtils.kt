@@ -44,7 +44,7 @@ interface WithRequestStatusContext {
     /**
      * @param lambda
      */
-    fun setLoadingCounter(lambda: (Int) -> Int)
+    fun setLoadingCounter(transform: (oldValue: Int) -> Int)
 }
 
 /**
