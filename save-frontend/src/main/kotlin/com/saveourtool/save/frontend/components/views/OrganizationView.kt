@@ -476,7 +476,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         headers = Headers().also {
             it.set("Accept", "application/json")
         },
-        ::classLoadingHandler,
+        loadingHandler = ::classLoadingHandler,
     )
         .unsafeMap {
             it.decodeFromJsonString()
@@ -487,7 +487,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         headers = Headers().also {
             it.set("Accept", "application/json")
         },
-        ::classLoadingHandler,
+        loadingHandler = ::classLoadingHandler,
     )
         .unsafeMap {
             it.decodeFromJsonString()
@@ -498,7 +498,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         headers = Headers().also {
             it.set("Accept", "application/json")
         },
-        ::classLoadingHandler,
+        loadingHandler = ::classLoadingHandler,
     )
         .unsafeMap {
             it.decodeFromJsonString<List<UserInfo>>()
@@ -529,7 +529,9 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             }
 
     private suspend fun getAvatar() = get(
-        "$apiUrl/organization/${props.organizationName}/avatar", Headers(), ::noopLoadingHandler
+        "$apiUrl/organization/${props.organizationName}/avatar",
+        Headers(),
+        loadingHandler = ::noopLoadingHandler,
     ).unsafeMap {
         it.decodeFromJsonString<ImageInfo>()
     }
@@ -690,7 +692,12 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         }
         scope.launch {
             responseFromDeleteOrganization =
-                    delete("$apiUrl/organization/${props.organizationName}/delete", headers, body = undefined, ::noopLoadingHandler)
+                    delete(
+                        "$apiUrl/organization/${props.organizationName}/delete",
+                        headers,
+                        body = undefined,
+                        loadingHandler = ::noopLoadingHandler,
+                    )
         }.invokeOnCompletion {
             if (responseFromDeleteOrganization.ok) {
                 window.location.href = "${window.location.origin}/"

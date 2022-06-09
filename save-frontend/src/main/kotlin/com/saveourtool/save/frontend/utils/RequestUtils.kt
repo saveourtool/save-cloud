@@ -42,9 +42,9 @@ interface WithRequestStatusContext {
     fun setResponse(response: Response)
 
     /**
-     * @param lambda
+     * @param transform
      */
-    fun setLoadingCounter(lambda: (Int) -> Int)
+    fun setLoadingCounter(transform: (oldValue: Int) -> Int)
 }
 
 /**
@@ -184,12 +184,13 @@ internal fun Component<*, *>.classComponentResponseHandler(
  * @param request REST API method
  * @return [Response] received with [request]
  */
-internal suspend fun Component<*, *>.loadingHandler(request: suspend () -> Response) = run {
-    val context: RequestStatusContext = this.asDynamic().context
-    context.setLoadingCounter { it + 1 }
-    val response = request()
-    context.setLoadingCounter { it - 1 }
-    response
+@Suppress("MAGIC_NUMBER")
+internal suspend fun Component<*, *>.classLoadingHandler(request: suspend () -> Response): Response {
+    val hasRequestStatusContext = this.asDynamic().context is RequestStatusContext
+    if (hasRequestStatusContext) {
+        return this.loadingHandler(request)
+    }
+    return request()
 }
 
 /**
@@ -198,13 +199,12 @@ internal suspend fun Component<*, *>.loadingHandler(request: suspend () -> Respo
  * @param request REST API method
  * @return [Response] received with [request]
  */
-@Suppress("MAGIC_NUMBER")
-internal suspend fun Component<*, *>.classLoadingHandler(request: suspend () -> Response): Response {
-    val hasRequestStatusContext = this.asDynamic().context is RequestStatusContext
-    if (hasRequestStatusContext) {
-        return this.loadingHandler(request)
-    }
-    return request()
+private suspend fun Component<*, *>.loadingHandler(request: suspend () -> Response) = run {
+    val context: RequestStatusContext = this.asDynamic().context
+    context.setLoadingCounter { it + 1 }
+    val response = request()
+    context.setLoadingCounter { it - 1 }
+    response
 }
 
 private fun Component<*, *>.withModalResponseHandler(
@@ -245,7 +245,7 @@ fun <R> useRequest(
     val statusContext = useContext(requestStatusContext)
     val context = object : WithRequestStatusContext {
         override fun setResponse(response: Response) = statusContext.setResponse(response)
-        override fun setLoadingCounter(lambda: (Int) -> Int) = statusContext.setLoadingCounter(lambda)
+        override fun setLoadingCounter(transform: (oldValue: Int) -> Int) = statusContext.setLoadingCounter(transform)
     }
 
     useEffect(isSending, *dependencies) {

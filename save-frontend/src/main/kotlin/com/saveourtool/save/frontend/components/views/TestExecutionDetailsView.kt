@@ -119,7 +119,7 @@ fun testExecutionDetailsView() = fc<Props> {
                 set("Content-Type", "application/json")
             },
             Json.encodeToString(testResultLocation),
-            ::noopLoadingHandler,
+            loadingHandler = ::noopLoadingHandler,
         )
         if (testExecutionDtoResponse.ok) {
             val testResultDebugInfoResponse = getDebugInfoFor(testExecutionDtoResponse.decodeFromJsonString())

@@ -86,7 +86,7 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
             val oauthProviderInfoList: List<OauthProviderInfo>? = get(
                 "${window.location.origin}/sec/oauth-providers",
                 Headers(),
-                ::classLoadingHandler,
+                loadingHandler = ::classLoadingHandler,
                 responseHandler = ::noopResponseHandler,
             ).run {
                 if (ok) decodeFromJsonString() else null

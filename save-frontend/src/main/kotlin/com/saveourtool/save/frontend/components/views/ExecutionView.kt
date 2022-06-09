@@ -287,7 +287,11 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
         scope.launch {
             val headers = Headers().also { it.set("Accept", "application/json") }
             val executionDtoFromBackend: ExecutionDto =
-                    get("$apiUrl/executionDto?executionId=${props.executionId}", headers, ::classLoadingHandler)
+                    get(
+                        "$apiUrl/executionDto?executionId=${props.executionId}",
+                        headers,
+                        loadingHandler = ::classLoadingHandler,
+                    )
                         .decodeFromJsonString()
             setState {
                 executionDto = executionDtoFromBackend

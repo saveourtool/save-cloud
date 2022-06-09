@@ -361,7 +361,7 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
             val response: List<AwesomeBenchmarks> = get(
                 "$apiUrl/awesome-benchmarks",
                 headers,
-                ::classLoadingHandler,
+                loadingHandler = ::classLoadingHandler,
             ).decodeFromJsonString()
 
             setState {

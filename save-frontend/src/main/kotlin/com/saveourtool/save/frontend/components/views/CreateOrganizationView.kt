@@ -84,7 +84,12 @@ class CreateOrganizationView : AbstractView<Props, OrganizationSaveViewState>(tr
         }
         scope.launch {
             val responseFromCreationOrganization =
-                    post("$apiUrl/organization/save", headers, Json.encodeToString(newOrganizationRequest), ::classLoadingHandler)
+                    post(
+                        "$apiUrl/organization/save",
+                        headers,
+                        Json.encodeToString(newOrganizationRequest),
+                        loadingHandler = ::classLoadingHandler,
+                    )
             if (responseFromCreationOrganization.ok) {
                 window.location.href = "${window.location.origin}#/${organizationName.replace(" ", "%20")}/"
                 window.location.reload()

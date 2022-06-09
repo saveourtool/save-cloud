@@ -425,6 +425,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         }
     }
 
+    @Suppress("TOO_LONG_FUNCTION")
     override fun componentDidMount() {
         super.componentDidMount()
 
@@ -444,7 +445,12 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 set("Accept", "application/json")
                 set("Content-Type", "application/json")
             }
-            gitDto = post("$apiUrl/projects/git", headers, jsonProject, ::noopLoadingHandler).decodeFromJsonString<GitDto>()
+            gitDto = post(
+                "$apiUrl/projects/git",
+                headers,
+                jsonProject,
+                loadingHandler = ::noopLoadingHandler,
+            ).decodeFromJsonString<GitDto>()
             when {
                 state.gitUrlFromInputField.isBlank() && gitDto?.url != null -> state.gitUrlFromInputField = gitDto?.url ?: ""
                 state.gitBranchOrCommitFromInputField.isBlank() && gitDto?.branch != null -> state.gitBranchOrCommitFromInputField = gitDto?.branch ?: ""
@@ -453,7 +459,10 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 }
             }
 
-            standardTestSuites = get("$apiUrl/allStandardTestSuites", headers, ::classLoadingHandler).decodeFromJsonString()
+            standardTestSuites = get(
+                "$apiUrl/allStandardTestSuites",
+                headers, loadingHandler = ::classLoadingHandler,
+            ).decodeFromJsonString()
 
             val availableFiles = getFilesList(project.organization.name, project.name)
             setState {
@@ -535,7 +544,12 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
 
     private fun submitRequest(url: String, headers: Headers, body: dynamic) {
         scope.launch {
-            val response = post(apiUrl + url, headers, body, ::classLoadingHandler)
+            val response = post(
+                apiUrl + url,
+                headers,
+                body,
+                loadingHandler = ::classLoadingHandler,
+            )
             if (response.ok) {
                 window.location.href = "${window.location}/history"
             }
@@ -712,7 +726,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                         FormData().apply {
                             append("file", file)
                         },
-                        ::classLoadingHandler,
+                        loadingHandler = ::classLoadingHandler,
                     )
                         .decodeFromJsonString()
 
@@ -806,7 +820,12 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             it.set("Accept", "application/json")
             it.set("Content-Type", "application/json")
         }
-        return post("$apiUrl/projects/update", headers, Json.encodeToString(draftProject), ::noopLoadingHandler)
+        return post(
+            "$apiUrl/projects/update",
+            headers,
+            Json.encodeToString(draftProject),
+            loadingHandler = ::noopLoadingHandler,
+        )
     }
 
     private fun deleteProjectBuilder() {
@@ -820,7 +839,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                         "$apiUrl/projects/${state.project.organization.name}/${state.project.name}/delete",
                         headers,
                         body = undefined,
-                        ::noopLoadingHandler,
+                        loadingHandler = ::noopLoadingHandler,
                     )
         }.invokeOnCompletion {
             if (responseFromDeleteProject.ok) {
@@ -834,7 +853,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         val response = get(
             "$apiUrl/latestExecution?name=${state.project.name}&organizationName=${state.project.organization.name}",
             headers,
-            ::noopLoadingHandler,
+            loadingHandler = ::noopLoadingHandler,
             responseHandler = ::noopResponseHandler,
         )
         when {
@@ -866,7 +885,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             val response = get(
                 "$apiUrl/getTestRootPathByExecutionId?id=${state.latestExecutionId}",
                 headers,
-                ::noopLoadingHandler,
+                loadingHandler = ::noopLoadingHandler,
                 responseHandler = ::noopResponseHandler,
             )
             val rootPath = response.text().await()
@@ -881,7 +900,11 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     private suspend fun getFilesList(
         organizationName: String,
         projectName: String,
-    ) = get("$apiUrl/files/$organizationName/$projectName/list", Headers(), ::noopLoadingHandler)
+    ) = get(
+        "$apiUrl/files/$organizationName/$projectName/list",
+        Headers(),
+        loadingHandler = ::noopLoadingHandler,
+    )
         .unsafeMap {
             it.decodeFromJsonString<List<FileInfo>>()
         }

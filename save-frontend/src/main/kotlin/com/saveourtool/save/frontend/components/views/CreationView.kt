@@ -157,7 +157,10 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
                 gitConnectionCheckingStatus = GitConnectionStatusEnum.VALIDATING
             }
             val responseFromCreationProject =
-                    get("$apiUrl/check-git-connectivity-adaptor$urlArguments", headers, ::loadingHandler)
+                    get(
+                        "$apiUrl/check-git-connectivity-adaptor$urlArguments",
+                        headers, loadingHandler = ::classLoadingHandler,
+                    )
 
             if (responseFromCreationProject.ok) {
                 if (responseFromCreationProject.text().await().toBoolean()) {
@@ -208,7 +211,12 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
         }
         scope.launch {
             val responseFromCreationProject =
-                    post("$apiUrl/projects/save", headers, Json.encodeToString(newProjectRequest), ::loadingHandler)
+                    post(
+                        "$apiUrl/projects/save",
+                        headers,
+                        Json.encodeToString(newProjectRequest),
+                        loadingHandler = ::classLoadingHandler,
+                    )
             if (responseFromCreationProject.ok == true) {
                 window.location.href = "${window.location.origin}#/${organizationName.replace(" ", "%20")}/" +
                         newProjectRequest.project.name.replace(" ", "%20")
