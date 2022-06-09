@@ -8,11 +8,7 @@ import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.externals.chart.DataPieChart
 import com.saveourtool.save.frontend.externals.chart.pieChart
 import com.saveourtool.save.frontend.externals.chart.randomColor
-import com.saveourtool.save.frontend.utils.apiUrl
-import com.saveourtool.save.frontend.utils.decodeFromJsonString
-import com.saveourtool.save.frontend.utils.get
-import com.saveourtool.save.frontend.utils.unsafeMap
-import com.saveourtool.save.frontend.utils.useRequest
+import com.saveourtool.save.frontend.utils.*
 import org.w3c.fetch.Headers
 import react.*
 import react.dom.div
@@ -21,46 +17,34 @@ import react.dom.td
 import react.table.columns
 
 @Suppress("MAGIC_NUMBER")
-private val executionDetailsTable: FC<ProjectStatisticMenuProps> = FC { props ->
-    tableComponent(
-        columns = columns<TestSuiteExecutionStatisticDto> {
-            column(id = "name", header = "Test suite", { testSuiteName }) {
-                buildElement {
-                    td {
-                        +it.value
-                    }
+private val executionDetailsTable = tableComponent(
+    columns = columns<TestSuiteExecutionStatisticDto> {
+        column(id = "name", header = "Test suite", { testSuiteName }) {
+            buildElement {
+                td {
+                    +it.value
                 }
             }
-            column(id = "tests", header = "Number of tests", { countTest }) {
-                buildElement {
-                    td {
-                        +"${it.value}"
-                    }
+        }
+        column(id = "tests", header = "Number of tests", { countTest }) {
+            buildElement {
+                td {
+                    +"${it.value}"
                 }
             }
-            column(id = "rate", header = "Passed tests", { countWithStatusTest }) {
-                buildElement {
-                    td {
-                        +"${it.value}"
-                    }
+        }
+        column(id = "rate", header = "Passed tests", { countWithStatusTest }) {
+            buildElement {
+                td {
+                    +"${it.value}"
                 }
             }
-        },
-        initialPageSize = 10,
-        useServerPaging = false,
-        usePageSelection = false,
-    ) { page, size ->
-        get(
-            url = "$apiUrl/testLatestExecutions?executionId=${props.executionId}&status=${TestResultStatus.PASSED}&page=$page&size=$size",
-            headers = Headers().also {
-                it.set("Accept", "application/json")
-            },
-        )
-            .unsafeMap {
-                it.decodeFromJsonString<Array<TestSuiteExecutionStatisticDto>>()
-            }
-    }()
-}
+        }
+    },
+    initialPageSize = 10,
+    useServerPaging = false,
+    usePageSelection = false,
+)
 
 /**
  * ProjectStatisticMenu component props
@@ -102,6 +86,7 @@ fun projectStatisticMenu(
                 headers = Headers().also {
                     it.set("Accept", "application/json")
                 },
+                loadingHandler = ::loadingHandler,
             )
                 .unsafeMap {
                     it.decodeFromJsonString<List<TestSuiteExecutionStatisticDto>>()
@@ -137,7 +122,19 @@ fun projectStatisticMenu(
 
             if (props.executionId != null && latestExecutionStatisticDtos?.isNotEmpty() == true) {
                 executionDetailsTable {
-                    attrs.executionId = props.executionId
+                    attrs.getData = { page, size ->
+                        get(
+                            url = "$apiUrl/testLatestExecutions?executionId=${props.executionId}&status=${TestResultStatus.PASSED}&page=$page&size=$size",
+                            headers = Headers().also {
+                                it.set("Accept", "application/json")
+                            },
+                            loadingHandler = ::loadingHandler,
+                        )
+                            .unsafeMap {
+                                it.decodeFromJsonString<Array<TestSuiteExecutionStatisticDto>>()
+                            }
+                    }
+                    attrs.getPageCount = null
                 }
             } else {
                 div("card shadow mb-4") {

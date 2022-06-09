@@ -129,7 +129,7 @@ fun topBar() = fc<TopBarProps> { props ->
                     attrs["style"] = jso<CSSProperties> {
                         width = 8.rem
                     }.unsafeCast<Width>()
-                    attrs.href = "https://github.com/saveourtool/save"
+                    attrs.href = "https://github.com/saveourtool/save-cli"
                     +"SAVE format"
                 }
             }
