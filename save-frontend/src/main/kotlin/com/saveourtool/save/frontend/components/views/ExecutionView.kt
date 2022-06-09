@@ -27,7 +27,6 @@ import com.saveourtool.save.frontend.utils.*
 import csstype.Background
 import csstype.TextDecoration
 import org.w3c.fetch.Headers
-import org.w3c.fetch.Response
 import react.*
 import react.dom.*
 import react.table.columns
@@ -266,31 +265,6 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                 }
             }
         },
-        getPageCount = { pageSize ->
-            val status = state.status?.let {
-                "&status=${state.status}"
-            }
-                ?: run {
-                    ""
-                }
-            val testSuite = state.testSuite?.let {
-                "&testSuite=${state.testSuite}"
-            }
-                ?: run {
-                    ""
-                }
-            val count: Int = get(
-                url = "$apiUrl/testExecution/count?executionId=${props.executionId}$status$testSuite",
-                headers = Headers().also {
-                    it.set("Accept", "application/json")
-                },
-                loadingHandler = ::loadingHandler,
-            )
-                .json()
-                .await()
-                .unsafeCast<Int>()
-            count / pageSize + 1
-        },
         getRowProps = { row ->
             val color = when (row.original.status) {
                 TestResultStatus.FAILED -> Colors.RED
@@ -317,15 +291,18 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
 
         scope.launch {
             val headers = Headers().also { it.set("Accept", "application/json") }
-            val executionDtoFromBackend: ExecutionDto =
-                    get("$apiUrl/executionDto?executionId=${props.executionId}", headers, loadingHandler = ::loadingHandler)
-                        .decodeFromJsonString()
+            val executionDtoFromBackend: ExecutionDto = get(
+                "$apiUrl/executionDto?executionId=${props.executionId}",
+                headers,
+                loadingHandler = ::classLoadingHandler,
+            )
+                .decodeFromJsonString()
             val count: Int = get(
                 url = "$apiUrl/testExecution/count?executionId=${props.executionId}",
                 headers = Headers().also {
                     it.set("Accept", "application/json")
                 },
-                loadingHandler = ::loadingHandler,
+                loadingHandler = ::classLoadingHandler,
             )
                 .json()
                 .await()
@@ -385,7 +362,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                                                 "$apiUrl/rerunExecution?id=${props.executionId}",
                                                 Headers(),
                                                 undefined,
-                                                loadingHandler = ::loadingHandler,
+                                                loadingHandler = ::classLoadingHandler,
                                             )
                                             if (response.ok) {
                                                 window.alert("Rerun request successfully submitted")
@@ -422,7 +399,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                     headers = Headers().apply {
                         set("Accept", "application/json")
                     },
-                    loadingHandler = ::loadingHandler,
+                    loadingHandler = ::noopLoadingHandler,
                 )
                     .unsafeMap {
                         Json.decodeFromString<Array<TestExecutionDto>>(
@@ -432,6 +409,31 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                     .apply {
                         asDynamic().debugInfo = null
                     }
+            }
+            attrs.getPageCount = { pageSize ->
+                val status = state.status?.let {
+                    "&status=${state.status}"
+                }
+                    ?: run {
+                        ""
+                    }
+                val testSuite = state.testSuite?.let {
+                    "&testSuite=${state.testSuite}"
+                }
+                    ?: run {
+                        ""
+                    }
+                val count: Int = get(
+                    url = "$apiUrl/testExecution/count?executionId=${props.executionId}$status$testSuite",
+                    headers = Headers().also {
+                        it.set("Accept", "application/json")
+                    },
+                    loadingHandler = ::noopLoadingHandler,
+                )
+                    .json()
+                    .await()
+                    .unsafeCast<Int>()
+                count / pageSize + 1
             }
         }
         child(executionTestsNotFound) {

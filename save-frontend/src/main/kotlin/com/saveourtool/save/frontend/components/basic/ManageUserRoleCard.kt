@@ -54,10 +54,19 @@ external interface ManageUserRoleCardProps : Props {
      */
     var wasConfirmationModalShown: Boolean
 
+    /**
+     * Lambda to show error after fail response
+     */
     var updateErrorMessage: (Response) -> Unit
 
+    /**
+     * Lambda to get users from project/organization
+     */
     var getUserGroups: (UserInfo) -> Map<String, Role>
 
+    /**
+     * Lambda to show warning if current user is super admin
+     */
     var showGlobalRoleWarning: () -> Unit
 }
 
@@ -68,9 +77,6 @@ private fun String.toRole() = Role.values().find {
 /**
  * A functional `RComponent` for a card that shows users from the group and their permissions.
  *
- * @param updateErrorMessage
- * @param getUserGroups
- * @param showGlobalRoleWarning
  * @return a functional component representing a role managing card
  */
 @Suppress(

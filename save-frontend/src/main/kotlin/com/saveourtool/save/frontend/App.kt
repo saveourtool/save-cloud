@@ -13,7 +13,6 @@ import com.saveourtool.save.frontend.components.views.usersettingsview.UserSetti
 import com.saveourtool.save.frontend.components.views.usersettingsview.UserSettingsOrganizationsMenuView
 import com.saveourtool.save.frontend.components.views.usersettingsview.UserSettingsProfileMenuView
 import com.saveourtool.save.frontend.components.views.usersettingsview.UserSettingsTokenMenuView
-import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.externals.modal.ReactModal
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
@@ -96,7 +95,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
             val userInfoNew: UserInfo? = get(
                 "${window.location.origin}/sec/user",
                 Headers().also { it.set("Accept", "application/json") },
-                loadingHandler = ::classLoadingHandler,
+                loadingHandler = ::noopLoadingHandler,
                 responseHandler = ::noopResponseHandler
             ).run {
                 val responseText = text().await()
@@ -106,7 +105,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
             val globalRole: Role? = get(
                 "${window.location.origin}/api/$v1/users/global-role",
                 Headers().also { it.set("Accept", "application/json") },
-                loadingHandler = ::classLoadingHandler,
+                loadingHandler = ::noopLoadingHandler,
                 responseHandler = ::noopResponseHandler
             ).run {
                 val responseText = text().await()
@@ -126,7 +125,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
 
     @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR", "TOO_LONG_FUNCTION", "LongMethod")
     override fun RBuilder.render() {
-//        while (true) { }
+        // while (true) { }
         HashRouter {
             requestModalHandler {
                 div("d-flex flex-column") {
@@ -278,7 +277,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                     attrs {
                                         // Since testFilePath can represent the nested path, we catch it as *
                                         path =
-                                            "/:owner/:name/history/execution/:executionId/details/:testSuiteName/:pluginName/*"
+                                                "/:owner/:name/history/execution/:executionId/details/:testSuiteName/:pluginName/*"
                                         element = buildElement {
                                             testExecutionDetailsView()
                                         }

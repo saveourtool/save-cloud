@@ -166,6 +166,34 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         updateNotificationMessage = ::showNotification
     )
     private var descriptionTmp: String = ""
+    private val table = tableComponent(
+        columns = columns<Project> {
+            column(id = "name", header = "Evaluated Tool", { name }) { cellProps ->
+                buildElement {
+                    td {
+                        a(href = "#/${cellProps.row.original.organization.name}/${cellProps.value}") { +cellProps.value }
+                        privacySpan(cellProps.row.original)
+                    }
+                }
+            }
+            column(id = "description", header = "Description") {
+                buildElement {
+                    td {
+                        +(it.value.description ?: "Description not provided")
+                    }
+                }
+            }
+            column(id = "rating", header = "Contest Rating") {
+                buildElement {
+                    td {
+                        +"0"
+                    }
+                }
+            }
+        },
+        useServerPaging = false,
+        usePageSelection = false,
+    )
     private lateinit var responseFromDeleteOrganization: Response
 
     init {
@@ -379,35 +407,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         }
     }
 
-    private val table = tableComponent(
-        columns = columns<Project> {
-            column(id = "name", header = "Evaluated Tool", { name }) { cellProps ->
-                buildElement {
-                    td {
-                        a(href = "#/${cellProps.row.original.organization.name}/${cellProps.value}") { +cellProps.value }
-                        privacySpan(cellProps.row.original)
-                    }
-                }
-            }
-            column(id = "description", header = "Description") {
-                buildElement {
-                    td {
-                        +(it.value.description ?: "Description not provided")
-                    }
-                }
-            }
-            column(id = "rating", header = "Contest Rating") {
-                buildElement {
-                    td {
-                        +"0"
-                    }
-                }
-            }
-        },
-        useServerPaging = false,
-        usePageSelection = false,
-    )
-
     @Suppress("TOO_LONG_FUNCTION", "LongMethod")
     private fun RBuilder.renderTools() {
         div("row justify-content-center") {
@@ -421,6 +420,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                     attrs.getData = { _, _ ->
                         getProjectsFromCache()
                     }
+                    attrs.getPageCount = null
                 }
             }
         }
@@ -443,7 +443,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 "$apiUrl/organization/${props.organizationName}/update",
                 headers,
                 Json.encodeToString(newOrganization),
-                loadingHandler = ::loadingHandler,
+                loadingHandler = ::noopLoadingHandler,
             )
             if (response.ok) {
                 setState {
@@ -476,7 +476,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         headers = Headers().also {
             it.set("Accept", "application/json")
         },
-        ::loadingHandler,
+        ::classLoadingHandler,
     )
         .unsafeMap {
             it.decodeFromJsonString()
@@ -487,7 +487,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         headers = Headers().also {
             it.set("Accept", "application/json")
         },
-        ::loadingHandler,
+        ::classLoadingHandler,
     )
         .unsafeMap {
             it.decodeFromJsonString()
@@ -498,7 +498,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         headers = Headers().also {
             it.set("Accept", "application/json")
         },
-        ::loadingHandler,
+        ::classLoadingHandler,
     )
         .unsafeMap {
             it.decodeFromJsonString<List<UserInfo>>()

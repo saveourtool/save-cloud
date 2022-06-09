@@ -18,14 +18,12 @@ import csstype.Display
 import csstype.FontSize
 import csstype.FontWeight
 import org.w3c.fetch.Headers
-import org.w3c.fetch.Response
 import react.CSSProperties
 import react.Context
 import react.PropsWithChildren
 import react.RBuilder
 import react.RStatics
 import react.State
-import react.StateSetter
 import react.dom.a
 import react.dom.div
 import react.dom.form
@@ -88,7 +86,7 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
             val oauthProviderInfoList: List<OauthProviderInfo>? = get(
                 "${window.location.origin}/sec/oauth-providers",
                 Headers(),
-                ::loadingHandler,
+                ::classLoadingHandler,
                 responseHandler = ::noopResponseHandler,
             ).run {
                 if (ok) decodeFromJsonString() else null

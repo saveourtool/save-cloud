@@ -18,34 +18,33 @@ import react.table.columns
 
 @Suppress("MAGIC_NUMBER")
 private val executionDetailsTable = tableComponent(
-        columns = columns<TestSuiteExecutionStatisticDto> {
-            column(id = "name", header = "Test suite", { testSuiteName }) {
-                buildElement {
-                    td {
-                        +it.value
-                    }
+    columns = columns<TestSuiteExecutionStatisticDto> {
+        column(id = "name", header = "Test suite", { testSuiteName }) {
+            buildElement {
+                td {
+                    +it.value
                 }
             }
-            column(id = "tests", header = "Number of tests", { countTest }) {
-                buildElement {
-                    td {
-                        +"${it.value}"
-                    }
+        }
+        column(id = "tests", header = "Number of tests", { countTest }) {
+            buildElement {
+                td {
+                    +"${it.value}"
                 }
             }
-            column(id = "rate", header = "Passed tests", { countWithStatusTest }) {
-                buildElement {
-                    td {
-                        +"${it.value}"
-                    }
+        }
+        column(id = "rate", header = "Passed tests", { countWithStatusTest }) {
+            buildElement {
+                td {
+                    +"${it.value}"
                 }
             }
-        },
-        initialPageSize = 10,
-        useServerPaging = false,
-        usePageSelection = false,
-    )
-
+        }
+    },
+    initialPageSize = 10,
+    useServerPaging = false,
+    usePageSelection = false,
+)
 
 /**
  * ProjectStatisticMenu component props
@@ -135,6 +134,7 @@ fun projectStatisticMenu(
                                 it.decodeFromJsonString<Array<TestSuiteExecutionStatisticDto>>()
                             }
                     }
+                    attrs.getPageCount = null
                 }
             } else {
                 div("card shadow mb-4") {

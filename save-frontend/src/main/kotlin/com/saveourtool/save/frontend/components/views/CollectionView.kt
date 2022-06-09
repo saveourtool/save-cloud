@@ -8,9 +8,9 @@ import com.saveourtool.save.frontend.components.basic.privacySpan
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.utils.apiUrl
+import com.saveourtool.save.frontend.utils.classLoadingHandler
 import com.saveourtool.save.frontend.utils.decodeFromJsonString
 import com.saveourtool.save.frontend.utils.get
-import com.saveourtool.save.frontend.utils.loadingHandler
 import com.saveourtool.save.frontend.utils.unsafeMap
 import com.saveourtool.save.info.UserInfo
 
@@ -100,7 +100,7 @@ class CollectionView : AbstractView<CreationViewProps, State>(false) {
                     headers = Headers().also {
                         it.set("Accept", "application/json")
                     },
-                    loadingHandler = ::loadingHandler,
+                    loadingHandler = ::classLoadingHandler,
                 )
                 if (response.ok) {
                     response.unsafeMap {

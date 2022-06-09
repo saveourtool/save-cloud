@@ -1,33 +1,19 @@
-@file:Suppress("FILE_NAME_MATCH_CLASS")
+@file:Suppress("FILE_NAME_MATCH_CLASS", "HEADER_MISSING_IN_NON_SINGLE_CLASS_FILE")
 
 package com.saveourtool.save.frontend.components
 
-import com.saveourtool.save.core.utils.AtomicInt
 import com.saveourtool.save.frontend.externals.modal.modal
 
 import csstype.ClassName
 import org.w3c.fetch.Response
-import react.Context
-import react.FC
-import react.PropsWithChildren
-import react.StateSetter
-import react.createContext
+import react.*
 import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h2
-import react.useEffect
-import react.useMemo
-import react.useState
+import react.dom.html.ReactHTML.span
 
 import kotlinx.browser.window
-import react.dom.aria.AriaRole
-import react.dom.html.ReactHTML.img
-
-data class RequestStatusContext(
-    val setResponse: StateSetter<Response?>,
-    val setNLoading: StateSetter<Int>,
-)
 
 /**
  * Context to store data about current request such as errors and isLoading flag.
@@ -42,8 +28,8 @@ val requestStatusContext: Context<RequestStatusContext> = createContext()
 @Suppress("TOO_MANY_LINES_IN_LAMBDA", "MAGIC_NUMBER")
 val requestModalHandler: FC<PropsWithChildren> = FC { props ->
     val (response, setResponse) = useState<Response?>(null)
-    val (nLoading, setNLoading) = useState(0)
-    val statusContext = RequestStatusContext(setResponse, setNLoading)
+    val (loadingCounter, setLoadingCounter) = useState(0)
+    val statusContext = RequestStatusContext(setResponse, setLoadingCounter)
     val (modalState, setModalState) = useState(ErrorModalState(
         isErrorModalOpen = false,
         errorMessage = "",
@@ -52,7 +38,6 @@ val requestModalHandler: FC<PropsWithChildren> = FC { props ->
     val (loadingState, setLoadingState) = useState(LoadingModalState(
         false,
     ))
-    console.log(nLoading)
 
     useEffect(response) {
         val newModalState = if (response?.status == 401.toShort()) {
@@ -101,18 +86,25 @@ val requestModalHandler: FC<PropsWithChildren> = FC { props ->
         }
     }
 
-    useEffect(nLoading) {
-        if (nLoading != 0) {
+    useEffect(loadingCounter) {
+        if (loadingCounter != 0) {
             setLoadingState(LoadingModalState(true))
         } else {
             setLoadingState(LoadingModalState(false))
         }
     }
+
     modal { modalProps ->
         modalProps.isOpen = loadingState.isLoadingModalOpen
-        img {
-            src = "img/logo-anim.gif"
-            alt = "Loading..."
+        div {
+            className = ClassName("d-flex justify-content-center mt-4")
+            div {
+                className = ClassName("spinner-border text-primary spinner-border-lg")
+                span {
+                    className = ClassName("sr-only")
+                    +"Loading..."
+                }
+            }
         }
     }
 
@@ -127,6 +119,15 @@ val requestModalHandler: FC<PropsWithChildren> = FC { props ->
 }
 
 /**
+ * @property setResponse [StateSetter] for response error handler
+ * @property setLoadingCounter [StateSetter] for active request counter
+ */
+data class RequestStatusContext(
+    val setResponse: StateSetter<Response?>,
+    val setLoadingCounter: StateSetter<Int>,
+)
+
+/**
  * @property isErrorModalOpen
  * @property errorMessage
  * @property errorLabel
@@ -139,6 +140,9 @@ data class ErrorModalState(
     val confirmationText: String = "Close",
 )
 
+/**
+ * @property isLoadingModalOpen
+ */
 data class LoadingModalState(
     val isLoadingModalOpen: Boolean?,
 )

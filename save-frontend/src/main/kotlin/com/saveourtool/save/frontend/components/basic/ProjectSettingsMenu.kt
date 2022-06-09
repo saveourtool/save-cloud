@@ -17,6 +17,8 @@ import kotlinx.html.id
 import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
 
+private val projectPermissionManagerCard = manageUserRoleCardComponent()
+
 /**
  * ProjectSettingsMenu component props
  */
@@ -31,8 +33,6 @@ external interface ProjectSettingsMenuProps : Props {
      */
     var currentUserInfo: UserInfo
 }
-
-private val projectPermissionManagerCard = manageUserRoleCardComponent()
 
 /**
  * @param deleteProjectCallback

@@ -266,7 +266,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                 "$apiUrl/users/save",
                 headers,
                 Json.encodeToString(newUserInfo),
-                loadingHandler = ::loadingHandler,
+                loadingHandler = ::classLoadingHandler,
             )
         }
     }
@@ -283,7 +283,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                         FormData().apply {
                             append("file", file)
                         },
-                        loadingHandler = ::loadingHandler,
+                        loadingHandler = ::classLoadingHandler,
                     )
                         .decodeFromJsonString()
                     setState {
@@ -304,7 +304,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
     private suspend fun getOrganizationInfos() = get(
         "$apiUrl/organizations/by-user/not-deleted",
         Headers(),
-        loadingHandler = ::loadingHandler,
+        loadingHandler = ::classLoadingHandler,
     )
         .unsafeMap { it.decodeFromJsonString<List<OrganizationInfo>>() }
 }

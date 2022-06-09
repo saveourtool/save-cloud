@@ -17,7 +17,6 @@ import csstype.Height
 import csstype.Width
 import csstype.rem
 import org.w3c.fetch.Headers
-import org.w3c.fetch.Response
 import react.*
 import react.dom.*
 
@@ -362,7 +361,7 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
             val response: List<AwesomeBenchmarks> = get(
                 "$apiUrl/awesome-benchmarks",
                 headers,
-                ::loadingHandler,
+                ::classLoadingHandler,
             ).decodeFromJsonString()
 
             setState {

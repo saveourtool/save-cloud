@@ -11,6 +11,8 @@ import react.dom.*
 import kotlinx.html.ButtonType
 import kotlinx.html.js.onClickFunction
 
+private val organizationPermissionManagerCard = manageUserRoleCardComponent()
+
 /**
  * OrganizationSettingsMenu component props
  */
@@ -25,8 +27,6 @@ external interface OrganizationSettingsMenuProps : Props {
      */
     var currentUserInfo: UserInfo
 }
-
-private val organizationPermissionManagerCard = manageUserRoleCardComponent()
 
 /**
  * @param deleteOrganizationCallback
@@ -48,8 +48,6 @@ fun organizationSettingsMenu(
     @Suppress("LOCAL_VARIABLE_EARLY_DECLARATION")
     val organizationPath = props.organizationName
     val (wasConfirmationModalShown, setWasConfirmationModalShown) = useState(false)
-
-
     div("row justify-content-center mb-2") {
         // ===================== LEFT COLUMN =======================================================================
         div("col-4 mb-2 pl-0 pr-0 mr-2 ml-2") {

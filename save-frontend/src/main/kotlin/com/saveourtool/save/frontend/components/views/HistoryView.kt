@@ -20,13 +20,11 @@ import com.saveourtool.save.frontend.utils.*
 
 import csstype.Background
 import org.w3c.fetch.Headers
-import org.w3c.fetch.Response
 import react.Context
 import react.PropsWithChildren
 import react.RBuilder
 import react.RStatics
 import react.State
-import react.StateSetter
 import react.buildElement
 import react.dom.a
 import react.dom.button
@@ -243,12 +241,13 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
                     headers = Headers().also {
                         it.set("Accept", "application/json")
                     },
-                    loadingHandler = ::loadingHandler
+                    loadingHandler = ::classLoadingHandler
                 )
                     .unsafeMap {
                         it.decodeFromJsonString<Array<ExecutionDto>>()
                     }
             }
+            attrs.getPageCount = null
         }
     }
 

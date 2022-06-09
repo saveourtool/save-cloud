@@ -24,7 +24,6 @@ import com.saveourtool.save.frontend.externals.fontawesome.faCalendarAlt
 import com.saveourtool.save.frontend.externals.fontawesome.faEdit
 import com.saveourtool.save.frontend.externals.fontawesome.faHistory
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
-import com.saveourtool.save.frontend.externals.modal.modal
 import com.saveourtool.save.frontend.http.getProject
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopResponseHandler
@@ -42,7 +41,6 @@ import react.PropsWithChildren
 import react.RBuilder
 import react.RStatics
 import react.State
-import react.StateSetter
 import react.dom.a
 import react.dom.button
 import react.dom.div
@@ -50,7 +48,6 @@ import react.dom.h1
 import react.dom.li
 import react.dom.nav
 import react.dom.p
-import react.dom.span
 import react.setState
 
 import kotlinx.browser.document
@@ -62,7 +59,6 @@ import kotlinx.datetime.Month
 import kotlinx.html.ButtonType
 import kotlinx.html.classes
 import kotlinx.html.js.onClickFunction
-import kotlinx.html.role
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -124,11 +120,6 @@ external interface ProjectViewState : State {
      * Label of confirm Window
      */
     var confirmLabel: String
-
-    /**
-     * Flag to handle loading
-     */
-    var isLoading: Boolean?
 
     /**
      * Selected sdk
@@ -412,7 +403,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         state.isSubmitButtonPressed = false
         state.errorMessage = ""
         state.errorLabel = ""
-        state.isLoading = true
         state.files = mutableListOf()
         state.availableFiles = mutableListOf()
         state.selectedSdk = Sdk.Default.name
@@ -441,7 +431,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         scope.launch {
             val result = getProject(props.name, props.owner)
             val project = if (result.isFailure) {
-                setState { isLoading = false }
                 return@launch
             } else {
                 result.getOrThrow()
@@ -464,13 +453,12 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 }
             }
 
-            standardTestSuites = get("$apiUrl/allStandardTestSuites", headers, ::loadingHandler).decodeFromJsonString()
+            standardTestSuites = get("$apiUrl/allStandardTestSuites", headers, ::classLoadingHandler).decodeFromJsonString()
 
             val availableFiles = getFilesList()
             setState {
                 this.availableFiles.clear()
                 this.availableFiles.addAll(availableFiles)
-                isLoading = false
             }
 
             fetchLatestExecutionId()
@@ -546,20 +534,12 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     }
 
     private fun submitRequest(url: String, headers: Headers, body: dynamic) {
-        setState {
-            isLoading = true
-        }
         scope.launch {
-            val response = post(apiUrl + url, headers, body, ::loadingHandler)
+            val response = post(apiUrl + url, headers, body, ::classLoadingHandler)
             if (response.ok) {
                 window.location.href = "${window.location}/history"
             }
         }
-            .invokeOnCompletion {
-                setState {
-                    isLoading = false
-                }
-            }
     }
 
     @Suppress("TOO_LONG_FUNCTION", "LongMethod", "ComplexMethod")
@@ -588,7 +568,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             }
             setState { isConfirmWindowOpen = false }
         }
-        runLoadingModal()
         // Page Heading
         div("d-sm-flex align-items-center justify-content-center mb-4") {
             h1("h3 mb-0 text-gray-800") {
@@ -733,7 +712,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                         FormData().apply {
                             append("file", file)
                         },
-                        ::loadingHandler,
+                        ::classLoadingHandler,
                     )
                         .decodeFromJsonString()
 
@@ -754,21 +733,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         }
         (document.getElementById("Save new project info") as HTMLButtonElement).hidden = isOff
         (document.getElementById("Cancel") as HTMLButtonElement).hidden = isOff
-    }
-
-    private fun RBuilder.runLoadingModal() = modal {
-        attrs {
-            isOpen = state.isLoading
-            contentLabel = "Loading"
-        }
-        div("d-flex justify-content-center mt-4") {
-            div("spinner-border text-primary spinner-border-lg") {
-                attrs.role = "status"
-                span("sr-only") {
-                    +"Loading..."
-                }
-            }
-        }
     }
 
     private fun RBuilder.testingTypeButton(selectedTestingType: TestingType, text: String, divClass: String) {

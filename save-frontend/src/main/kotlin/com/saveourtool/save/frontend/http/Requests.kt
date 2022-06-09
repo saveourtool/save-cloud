@@ -39,7 +39,7 @@ suspend fun Component<*, *>.getProject(name: String, organizationName: String) =
     Headers().apply {
         set("Accept", "application/json")
     },
-    loadingHandler = ::loadingHandler,
+    loadingHandler = ::classLoadingHandler,
 )
     .runCatching {
         decodeFromJsonString<Project>()
@@ -54,7 +54,7 @@ suspend fun Component<*, *>.getOrganization(name: String) = get(
     Headers().apply {
         set("Accept", "application/json")
     },
-    loadingHandler = ::loadingHandler,
+    loadingHandler = ::noopLoadingHandler,
 )
     .decodeFromJsonString<Organization>()
 
@@ -67,7 +67,7 @@ suspend fun Component<*, *>.getUser(name: String) = get(
     Headers().apply {
         set("Accept", "application/json")
     },
-    loadingHandler = ::loadingHandler,
+    loadingHandler = ::classLoadingHandler,
 )
     .decodeFromJsonString<UserInfo>()
 

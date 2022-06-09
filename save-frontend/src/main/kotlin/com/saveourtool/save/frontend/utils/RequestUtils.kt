@@ -16,7 +16,6 @@ import org.w3c.fetch.RequestCredentials
 import org.w3c.fetch.RequestInit
 import org.w3c.fetch.Response
 import react.Component
-import react.StateSetter
 import react.useContext
 import react.useEffect
 import react.useState
@@ -28,7 +27,6 @@ import kotlinx.coroutines.await
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.html.injector.injectTo
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 
@@ -46,7 +44,7 @@ interface WithRequestStatusContext {
     /**
      * @param lambda
      */
-    fun setNLoading(lambda: (Int) -> Int)
+    fun setLoadingCounter(lambda: (Int) -> Int)
 }
 
 /**
@@ -152,6 +150,20 @@ suspend fun WithRequestStatusContext.delete(
 ) = request(url, "DELETE", headers, body, loadingHandler = loadingHandler, responseHandler = errorHandler)
 
 /**
+ * Handler that allows to show loading modal
+ *
+ * @param request REST API method
+ * @return [Response] received with [request]
+ */
+@Suppress("EXTENSION_FUNCTION_WITH_CLASS")
+suspend fun WithRequestStatusContext.loadingHandler(request: suspend () -> Response) = run {
+    setLoadingCounter { it + 1 }
+    val response = request()
+    setLoadingCounter { it - 1 }
+    response
+}
+
+/**
  * If this component has context, set [response] in this context. Otherwise, fallback to redirect.
  *
  * @param response
@@ -160,12 +172,39 @@ suspend fun WithRequestStatusContext.delete(
 internal fun Component<*, *>.classComponentResponseHandler(
     response: Response,
 ) {
-    // dirty hack to determine whether this component contains `setResponse` in its context.
-    // If we add another context with a function, this logic will break.
     val hasResponseContext = this.asDynamic().context is RequestStatusContext
     if (hasResponseContext) {
         this.withModalResponseHandler(response)
     }
+}
+
+/**
+ * Handler that allows to show loading modal
+ *
+ * @param request REST API method
+ * @return [Response] received with [request]
+ */
+internal suspend fun Component<*, *>.loadingHandler(request: suspend () -> Response) = run {
+    val context: RequestStatusContext = this.asDynamic().context
+    context.setLoadingCounter { it + 1 }
+    val response = request()
+    context.setLoadingCounter { it - 1 }
+    response
+}
+
+/**
+ * Handler that allows to show loading modal
+ *
+ * @param request REST API method
+ * @return [Response] received with [request]
+ */
+@Suppress("MAGIC_NUMBER")
+internal suspend fun Component<*, *>.classLoadingHandler(request: suspend () -> Response): Response {
+    val hasRequestStatusContext = this.asDynamic().context is RequestStatusContext
+    if (hasRequestStatusContext) {
+        return this.loadingHandler(request)
+    }
+    return request()
 }
 
 private fun Component<*, *>.withModalResponseHandler(
@@ -195,6 +234,7 @@ private fun WithRequestStatusContext.withModalResponseHandler(
  * @param request
  * @return a function to trigger request execution. If `isDeferred == false`, this function should be called right after the hook is called.
  */
+@Suppress("TOO_LONG_FUNCTION")
 fun <R> useRequest(
     dependencies: Array<dynamic> = emptyArray(),
     isDeferred: Boolean = true,
@@ -203,13 +243,9 @@ fun <R> useRequest(
     val scope = CoroutineScope(Dispatchers.Default)
     val (isSending, setIsSending) = useState(false)
     val statusContext = useContext(requestStatusContext)
-    val context = object: WithRequestStatusContext {
-        override fun setResponse(response: Response){
-            statusContext.setResponse(response)
-        }
-        override fun setNLoading(lambda: (Int) -> Int) {
-            statusContext.setNLoading(lambda)
-        }
+    val context = object : WithRequestStatusContext {
+        override fun setResponse(response: Response) = statusContext.setResponse(response)
+        override fun setLoadingCounter(lambda: (Int) -> Int) = statusContext.setLoadingCounter(lambda)
     }
 
     useEffect(isSending, *dependencies) {
@@ -241,45 +277,20 @@ fun <R> useRequest(
 }
 
 /**
+ * Handler that allows to skip loading modal
+ *
+ * @param request REST API method
+ * @return [Response] received with [request]
+ */
+internal suspend fun noopLoadingHandler(request: suspend () -> Response) = request()
+
+/**
  * Can be used to explicitly specify, that response will be handled is a custom way
  *
  * @param response
  * @return Unit
  */
 internal fun noopResponseHandler(response: Response) = Unit
-
-suspend fun WithRequestStatusContext.loadingHandler(request: suspend () -> Response) = run {
-    console.log("Increased N loading")
-    setNLoading { it + 1 }
-    val response = request()
-    console.log("Decreased N loading")
-    setNLoading { it - 1 }
-    response
-}
-
-
-internal suspend fun Component<*, *>.loadingHandler(request: suspend () -> Response) = run {
-    val context: RequestStatusContext = this.asDynamic().context
-    console.log("Increased N loading")
-    context.setNLoading { it + 1 }
-    val response = request()
-//    console.log("Got response ${response.status}:${response.body}")
-    console.log("Decreased N loading")
-    context.setNLoading { it - 1 }
-    response
-}
-
-@Suppress("MAGIC_NUMBER")
-internal suspend fun Component<*, *>.classLoadingHandler(request: suspend () -> Response): Response {
-    val hasRequestStatusContext = this.asDynamic().context is WithRequestStatusContext
-    if (hasRequestStatusContext) {
-        return this.loadingHandler(request)
-    }
-    return request()
-}
-
-
-internal suspend fun noopLoadingHandler(request: suspend () -> Response) = request()
 
 /**
  * Perform an HTTP request using Fetch API. Suspending function that returns a [Response] - a JS promise with result.
@@ -301,20 +312,20 @@ private suspend fun request(
     loadingHandler: suspend (suspend () -> Response) -> Response,
     responseHandler: (Response) -> Unit = ::noopResponseHandler,
 ): Response =
-    loadingHandler {
-        window.fetch(
-            input = url,
-            RequestInit(
-                method = method,
-                headers = headers,
-                body = body,
-                credentials = credentials,
+        loadingHandler {
+            window.fetch(
+                input = url,
+                RequestInit(
+                    method = method,
+                    headers = headers,
+                    body = body,
+                    credentials = credentials,
+                )
             )
-        ).also { console.log("$method $url") }
-            .await()
-    }
-        .also { response ->
-            if (responseHandler != undefined) {
-                responseHandler(response)
-            }
+                .await()
         }
+            .also { response ->
+                if (responseHandler != undefined) {
+                    responseHandler(response)
+                }
+            }
