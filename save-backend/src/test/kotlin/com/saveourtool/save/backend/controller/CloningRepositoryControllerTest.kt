@@ -11,6 +11,7 @@ import com.saveourtool.save.backend.service.ProjectService
 import com.saveourtool.save.backend.service.UserDetailsService
 import com.saveourtool.save.backend.utils.ConvertingAuthenticationManager
 import com.saveourtool.save.domain.Jdk
+import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.domain.toFileInfo
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.testutils.checkQueues
@@ -138,8 +139,8 @@ class CloningRepositoryControllerTest {
         val property = tmpDir.resolve("property").apply {
             createFile()
         }
-        fileSystemRepository.saveFile(binFile)
-        fileSystemRepository.saveFile(property)
+        fileSystemRepository.saveFile(binFile, ProjectCoordinates("Huawei", "huaweiName"))
+        fileSystemRepository.saveFile(property, ProjectCoordinates("Huawei", "huaweiName"))
 
         val sdk = Jdk("8")
         val request = ExecutionRequestForStandardSuites(testProject, emptyList(), sdk, null, null, null)

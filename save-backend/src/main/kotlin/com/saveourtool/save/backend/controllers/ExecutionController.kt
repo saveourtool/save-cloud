@@ -329,10 +329,9 @@ class ExecutionController(private val executionService: ExecutionService,
 
     @Suppress("UnsafeCallOnNullableType")
     private fun Execution.getTestRootPathByTestSuites(): List<String> = this
-        .testSuiteIds
-        ?.split(", ")
+        .parseAndGetTestSuiteIds()
         ?.map { testSuiteId ->
-            testSuitesService.findTestSuiteById(testSuiteId.toLong()).orElseThrow {
+            testSuitesService.findTestSuiteById(testSuiteId).orElseThrow {
                 log.error("Can't find test suite with id=$testSuiteId for executionId=$id")
                 NoSuchElementException()
             }

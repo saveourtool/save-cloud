@@ -68,11 +68,6 @@ external interface ExecutionState : State {
     var executionDto: ExecutionDto?
 
     /**
-     * Count tests with executionId
-     */
-    var countTests: Int?
-
-    /**
      * Test Result Status to filter by
      */
     var status: TestResultStatus?
@@ -155,14 +150,14 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                     }
                 }
             }
-            column(id = "missing", header = "Missing", { missingWarnings }) {
+            column(id = "missing", header = "Missing", { unmatched }) {
                 buildElement {
                     td {
                         +"${it.value ?: ""}"
                     }
                 }
             }
-            column(id = "matched", header = "Matched", { matchedWarnings }) {
+            column(id = "matched", header = "Matched", { matched }) {
                 buildElement {
                     td {
                         +"${it.value ?: ""}"
@@ -291,26 +286,12 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
 
         scope.launch {
             val headers = Headers().also { it.set("Accept", "application/json") }
-            val executionDtoFromBackend: ExecutionDto = get(
-                "$apiUrl/executionDto?executionId=${props.executionId}",
-                headers,
-                loadingHandler = ::classLoadingHandler,
-            )
-                .decodeFromJsonString()
-            val count: Int = get(
-                url = "$apiUrl/testExecution/count?executionId=${props.executionId}",
-                headers = Headers().also {
-                    it.set("Accept", "application/json")
-                },
-                loadingHandler = ::classLoadingHandler,
-            )
-                .json()
-                .await()
-                .unsafeCast<Int>()
+            val executionDtoFromBackend: ExecutionDto =
+                    get("$apiUrl/executionDto?executionId=${props.executionId}", headers, ::classLoadingHandler)
+                        .decodeFromJsonString()
             setState {
                 executionDto = executionDtoFromBackend
                 status = props.status
-                countTests = count
             }
         }
     }
@@ -345,7 +326,6 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
 
                 child(executionStatistics) {
                     attrs.executionDto = state.executionDto
-                    attrs.countTests = state.countTests
                 }
 
                 div("col-md-3 mb-4") {
@@ -438,7 +418,6 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
         }
         child(executionTestsNotFound) {
             attrs.executionDto = state.executionDto
-            attrs.countTests = state.countTests
         }
     }
 
