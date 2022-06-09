@@ -46,19 +46,10 @@ class TestService(
 
     /**
      * @param tests
-     * @return list tests id's
-     */
-    @Suppress("UnsafeCallOnNullableType")
-    fun saveTests(tests: List<TestDto>): List<Long> {
-        return saveTestsNew(tests).map { it.id!! }
-    }
-
-    /**
-     * @param tests
      * @return list tests
      */
     @Suppress("UnsafeCallOnNullableType")
-    fun saveTestsNew(tests: List<TestDto>): List<Test> {
+    fun saveTests(tests: List<TestDto>): List<Test> {
         val (existingTests, nonExistentTests) = tests.map { testDto ->
             // only match fields that are present in DTO
             testRepository.findByHashAndFilePathAndTestSuiteIdAndPluginName(testDto.hash, testDto.filePath, testDto.testSuiteId, testDto.pluginName).map {

@@ -57,13 +57,6 @@ class TestSuitesController(
     fun getAllStandardTestSuitesWithSpecificName(@RequestParam name: String) =
             ResponseEntity.status(HttpStatus.OK).body(testSuitesService.findStandardTestSuitesByName(name))
 
-    fun getAllStandardTestsByTestSuiteName(@RequestParam name: String) =
-        ResponseEntity.status(HttpStatus.OK)
-            .body(testSuitesService.findStandardTestSuitesByName(name)
-                .flatMap { testSuite ->
-                    testService.findTestsByTestSuiteId(testSuite.id!!).map { it.id!! }
-                })
-
     /**
      * @param id id of the test suite
      * @return response with test suite with provided id
@@ -78,7 +71,7 @@ class TestSuitesController(
      */
     @GetMapping("/internal/testSuiteDto/{id}")
     fun getTestSuiteDtoById(@PathVariable id: Long) =
-        ResponseEntity.status(HttpStatus.OK).body(testSuitesService.findTestSuiteById(id).map { it.toDto() })
+            ResponseEntity.status(HttpStatus.OK).body(testSuitesService.findTestSuiteById(id).map { it.toDto() })
 
     /**
      * Trigger update of standard test suites. Can be called only by superadmins externally.

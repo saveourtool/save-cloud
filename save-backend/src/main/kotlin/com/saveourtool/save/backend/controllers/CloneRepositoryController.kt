@@ -37,9 +37,6 @@ import org.springframework.web.reactive.function.client.toEntity
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
-import java.lang.StringBuilder
-import java.nio.file.Path
-
 /**
  * Controller to save project
  *
@@ -119,7 +116,10 @@ class CloneRepositoryController(
             }
         }
 
-    @Suppress("UnsafeCallOnNullableType")
+    @Suppress(
+        "UnsafeCallOnNullableType",
+        "TOO_MANY_LINES_IN_LAMBDA",
+    )
     private fun sendToPreprocessor(
         executionRequest: ExecutionRequestBase,
         executionType: ExecutionType,
@@ -130,8 +130,8 @@ class CloneRepositoryController(
         val project = with(executionRequest.project) {
             projectService.findByNameAndOrganizationName(name, organization.name)
         }
-        return project?.let {
-            val newExecution = saveExecution(project, username, executionType, configProperties.initialBatchSize, executionRequest.sdk)
+        return project?.let { p ->
+            val newExecution = saveExecution(p, username, executionType, configProperties.initialBatchSize, executionRequest.sdk)
             val newExecutionId = newExecution.id!!
             log.info("Sending request to preprocessor (executionType $executionType) to start save file for project id=${project.id}")
             val bodyBuilder = MultipartBodyBuilder().apply {
@@ -141,7 +141,7 @@ class CloneRepositoryController(
                 ExecutionType.GIT -> "/upload"
                 ExecutionType.STANDARD -> "/uploadBin"
             }
-            files.collectToMultipartAndUpdateExecution(bodyBuilder, newExecution, it.organization.name, it.name)
+            files.collectToMultipartAndUpdateExecution(bodyBuilder, newExecution, p.organization.name, p.name)
                 .flatMap {
                     preprocessorWebClient.postMultipart(it, uri)
                 }
@@ -187,7 +187,7 @@ class CloneRepositoryController(
                     multipartBodyBuilder.part("fileInfo", it)
                     multipartBodyBuilder.part("file", additionalToolsFileSystemRepository.getFile(it, projectCoordinates))
                 }
-                execution.formatAdnSetAdditionalFiles(fileInfos.map { additionalToolsFileSystemRepository.getPath(it, projectCoordinates) }
+                execution.formatAndSetAdditionalFiles(fileInfos.map { additionalToolsFileSystemRepository.getPath(it, projectCoordinates) }
                     .map { it.toString() })
                 executionService.saveExecution(execution)
                 multipartBodyBuilder

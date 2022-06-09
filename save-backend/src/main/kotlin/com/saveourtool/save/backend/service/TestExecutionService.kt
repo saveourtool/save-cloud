@@ -15,6 +15,7 @@ import com.saveourtool.save.test.TestDto
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.error
 import com.saveourtool.save.utils.getLogger
+import org.slf4j.Logger
 
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
@@ -382,6 +383,6 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
     }
 
     private companion object {
-        private val log = getLogger<TestExecutionService>()
+        private val log: Logger = getLogger<TestExecutionService>()
     }
 }

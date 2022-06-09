@@ -133,8 +133,11 @@ class Execution(
      * @param testSuiteIds list of TestSuite IDs
      */
     fun formatAndSetTestSuiteIds(testSuiteIds: List<Long>) {
-        this.testSuiteIds = testSuiteIds.sorted()
-            .joinToString(TEST_SUITE_IDS_DELIMITER)
+        this.testSuiteIds = if (testSuiteIds.isNotEmpty()) {
+            testSuiteIds.sorted().joinToString(TEST_SUITE_IDS_DELIMITER)
+        } else {
+            null
+        }
     }
 
     /**
@@ -149,12 +152,26 @@ class Execution(
             ?.let { formatAndSetTestSuiteIds(it) }
     }
 
+    /**
+     * Parse and get additionalFiles as List<String>
+     *
+     * @return list of additional files
+     */
     fun parseAndGetAdditionalFiles(): List<String>? = this.additionalFiles
         ?.split(ADDITIONAL_FILES_DELIMITER)
         ?.filter { it.isNotBlank() }
 
-    fun formatAdnSetAdditionalFiles(additionalFiles: List<String>) {
-        this.additionalFiles = additionalFiles.joinToString(ADDITIONAL_FILES_DELIMITER)
+    /**
+     * Format and set provided list of additional files
+     *
+     * @param additionalFiles list of additional files
+     */
+    fun formatAndSetAdditionalFiles(additionalFiles: List<String>) {
+        this.additionalFiles = if (additionalFiles.isNotEmpty()) {
+            additionalFiles.joinToString(ADDITIONAL_FILES_DELIMITER)
+        } else {
+            null
+        }
     }
 
     companion object {

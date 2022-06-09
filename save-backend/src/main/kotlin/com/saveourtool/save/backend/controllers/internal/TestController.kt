@@ -9,8 +9,7 @@ import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.getLogger
 
 import io.micrometer.core.instrument.MeterRegistry
-import org.springframework.http.HttpStatus
-import org.springframework.http.ResponseEntity
+import org.slf4j.Logger
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -62,7 +61,7 @@ class TestController(
     private fun doInitializeTests(testDtos: List<TestDto>, executionId: Long): List<Test> {
         log.debug { "Received the following tests for initialization under executionId=$executionId: $testDtos" }
         return meterRegistry.timer("save.backend.saveTests").record<List<Test>> {
-            testService.saveTestsNew(testDtos)
+            testService.saveTests(testDtos)
         }!!
     }
 
@@ -119,6 +118,6 @@ class TestController(
     fun testBatches(@RequestParam agentId: String) = testService.getTestBatches(agentId)
 
     companion object {
-        private val log = getLogger<TestController>()
+        private val log: Logger = getLogger<TestController>()
     }
 }

@@ -215,19 +215,6 @@ class DownloadProjectController(
         }
     }
 
-    private fun resolveResourceLocation(
-        executionRerunRequest: ExecutionRequest,
-        execution: Execution
-    ): Mono<File> {
-        return when (execution.type) {
-            ExecutionType.GIT ->
-                downLoadRepository(executionRerunRequest).map { (location, _) -> location }
-                    .map { getResourceLocationForGit(it, executionRerunRequest.testRootPath) }
-            ExecutionType.STANDARD ->
-                Mono.just(getTmpDirName(calculateTmpNameForFiles(execution.parseAndGetAdditionalFiles()?.map { File(it) } ?: emptyList()), configProperties.repository))
-        }
-    }
-
     /**
      * Controller to download standard test suites
      *
@@ -297,6 +284,10 @@ class DownloadProjectController(
                 it.toBodilessEntity()
             }
         }
+
+    private fun calculateLocation(executionType: ExecutionType): String {
+
+    }
 
     @Suppress(
         "TYPE_ALIAS",
@@ -400,7 +391,8 @@ class DownloadProjectController(
 
     private fun getExecutionAndResourceLocation(executionRerunRequest: ExecutionRequest, executionType: ExecutionType, files: List<File>) =
         when (executionType) {
-            ExecutionType.GIT -> downLoadRepository(executionRerunRequest).map { (location, _) -> location to getResourceLocationForGit(location, executionRerunRequest.testRootPath) }
+            ExecutionType.GIT -> downLoadRepository(executionRerunRequest)
+                .map { (location, _) -> location to getResourceLocationForGit(location, executionRerunRequest.testRootPath) }
             ExecutionType.STANDARD ->
                 // In standard mode we will calculate location later, according list of additional files
                 Mono.just(null to getTmpDirName(calculateTmpNameForFiles(files), configProperties.repository))

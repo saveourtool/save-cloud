@@ -7,7 +7,6 @@ package com.saveourtool.save.test
 import kotlinx.serialization.Serializable
 
 /**
- * @property id
  * @property filePath path to a test file
  * @property hash hash of file content
  * @property testSuiteId id of test suite, which this test belongs to
