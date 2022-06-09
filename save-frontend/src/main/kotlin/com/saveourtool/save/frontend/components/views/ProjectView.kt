@@ -375,6 +375,8 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             }
         },
         onFileInput = { postFileUpload(it) },
+        onFileOutput = { postFileDownload(it) },
+        onFileDelete = { postFileDelete(it) },
         onExecutableChange = { selectedFile, checked ->
             setState {
                 files[files.indexOf(selectedFile)] = selectedFile.copy(isExecutable = checked)
@@ -713,6 +715,45 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         child(projectSettingsMenu) {
             attrs.project = state.project
             attrs.currentUserInfo = props.currentUserInfo ?: UserInfo("Unknown")
+        }
+    }
+
+    private fun postFileDownload(file: FileInfo) {
+        scope.launch {
+            val headers = Headers().also {
+                it.set("Accept", "application/octet-stream")
+                it.set("Content-Type", "application/json")
+                it.set("Content-Disposition", "attachment; filename=\"${file.name}\"")
+            }
+
+            val response = post(
+                "$apiUrl/files/${props.owner}/${props.name}/download",
+                headers,
+                Json.encodeToString(file),
+            )
+        }
+    }
+
+    private fun postFileDelete(file: FileInfo) {
+        scope.launch {
+            val headers = Headers().also {
+                it.set("Accept", "application/json")
+                it.set("Content-Type", "application/json")
+            }
+
+            val response = delete(
+                "$apiUrl/files/${props.owner}/${props.name}/${file.uploadedMillis}/delete",
+                headers,
+                Json.encodeToString(file),
+            )
+
+            if (response.ok) {
+                setState {
+                    files.remove(file)
+                    bytesReceived -= file.sizeBytes
+                    suiteByteSize -= file.sizeBytes
+                }
+            }
         }
     }
 

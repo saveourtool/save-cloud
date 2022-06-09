@@ -86,6 +86,23 @@ class TimestampBasedFileSystemRepository(configProperties: ConfigProperties) {
     }
 
     /**
+     * @param projectCoordinates
+     * @param dirName
+     * @return a list of FileInfo's
+     */
+    fun deleteFileByDirName(
+        projectCoordinates: ProjectCoordinates,
+        dirName: String,
+    ) =
+            getFileResourcesDir(projectCoordinates)
+                .resolve(dirName)
+                .apply {
+                    if (exists()) {
+                        listDirectoryEntries().forEach { it.deleteIfExists() }
+                    }
+                }.deleteIfExists()
+
+    /**
      * @param shortFileInfo
      * @param projectCoordinates
      * @return FileInfo, obtained from [shortFileInfo]

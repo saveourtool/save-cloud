@@ -7,10 +7,7 @@
 package com.saveourtool.save.frontend.components.basic
 
 import com.saveourtool.save.domain.FileInfo
-import com.saveourtool.save.frontend.externals.fontawesome.faFile
-import com.saveourtool.save.frontend.externals.fontawesome.faTimesCircle
-import com.saveourtool.save.frontend.externals.fontawesome.faUpload
-import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
+import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.ConfirmationType
 import com.saveourtool.save.frontend.utils.toPrettyString
 
@@ -20,17 +17,7 @@ import org.w3c.dom.HTMLSelectElement
 import react.CSSProperties
 import react.Props
 import react.PropsWithChildren
-import react.dom.attrs
-import react.dom.button
-import react.dom.div
-import react.dom.input
-import react.dom.label
-import react.dom.li
-import react.dom.option
-import react.dom.select
-import react.dom.span
-import react.dom.strong
-import react.dom.ul
+import react.dom.*
 import react.fc
 import react.useEffect
 
@@ -91,13 +78,23 @@ external interface UploaderProps : PropsWithChildren {
  * @param onFileSelect invoked when a file is selected from [UploaderProps.availableFiles]
  * @param onFileRemove invoked when a file is removed from selection by pushing a button
  * @param onExecutableChange when file is checked to be executable or vice versa, this handler is called
+ * @param onFileOutput invoked when a file is downloaded
+ * @param onFileDelete invoked when a file is deleted forever
  * @return a RComponent
  */
-@Suppress("TOO_LONG_FUNCTION", "TYPE_ALIAS", "LongMethod")
+@Suppress(
+    "TOO_LONG_FUNCTION",
+    "TYPE_ALIAS",
+    "LongMethod",
+    "TOO_MANY_PARAMETERS",
+    "LongParameterList",
+)
 fun fileUploader(
     onFileSelect: (HTMLSelectElement) -> Unit,
     onFileRemove: (FileInfo) -> Unit,
     onFileInput: (HTMLInputElement) -> Unit,
+    onFileOutput: (FileInfo) -> Unit,
+    onFileDelete: (FileInfo) -> Unit,
     onExecutableChange: (file: FileInfo, checked: Boolean) -> Unit,
 ) = fc<UploaderProps> { props ->
     div("mb-3") {
@@ -117,6 +114,18 @@ fun fileUploader(
                             fontAwesomeIcon(icon = faTimesCircle)
                             attrs.onClickFunction = {
                                 onFileRemove(fileInfo)
+                            }
+                        }
+                        button(classes = "btn") {
+                            fontAwesomeIcon(icon = faDownload)
+                            attrs.onClickFunction = {
+                                onFileOutput(fileInfo)
+                            }
+                        }
+                        button(classes = "btn") {
+                            fontAwesomeIcon(icon = faTrash)
+                            attrs.onClickFunction = {
+                                onFileDelete(fileInfo)
                             }
                         }
                         child(fileIconWithMode(fileInfo, onExecutableChange))
