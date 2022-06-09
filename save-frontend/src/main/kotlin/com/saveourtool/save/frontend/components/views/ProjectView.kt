@@ -455,7 +455,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
 
             standardTestSuites = get("$apiUrl/allStandardTestSuites", headers, ::classLoadingHandler).decodeFromJsonString()
 
-            val availableFiles = getFilesList()
+            val availableFiles = getFilesList(project.organization.name, project.name)
             setState {
                 this.availableFiles.clear()
                 this.availableFiles.addAll(availableFiles)
@@ -707,7 +707,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
 
                 element.files!!.asList().forEach { file ->
                     val response: FileInfo = post(
-                        "$apiUrl/files/upload?returnShortFileInfo=false",
+                        "$apiUrl/files/${props.owner}/${props.name}/upload?returnShortFileInfo=false",
                         Headers(),
                         FormData().apply {
                             append("file", file)
@@ -878,7 +878,10 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         }
     }
 
-    private suspend fun getFilesList() = get("$apiUrl/files/list", Headers(), ::noopLoadingHandler)
+    private suspend fun getFilesList(
+        organizationName: String,
+        projectName: String,
+    ) = get("$apiUrl/files/$organizationName/$projectName/list", Headers(), ::noopLoadingHandler)
         .unsafeMap {
             it.decodeFromJsonString<List<FileInfo>>()
         }

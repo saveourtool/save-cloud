@@ -45,6 +45,15 @@ kotlin {
                 implementation(libs.spring.security.core)
                 implementation(libs.jackson.module.kotlin)
                 implementation(libs.hibernate.jpa21.api)
+                api(libs.slf4j.api)
+            }
+        }
+        val jvmTest by getting {
+            tasks.withType<Test> {
+                useJUnitPlatform()
+            }
+            dependencies {
+                implementation(libs.kotlin.test)
             }
         }
     }

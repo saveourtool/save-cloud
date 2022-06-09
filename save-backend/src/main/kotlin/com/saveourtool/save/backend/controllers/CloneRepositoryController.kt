@@ -7,6 +7,7 @@ import com.saveourtool.save.backend.service.ExecutionService
 import com.saveourtool.save.backend.service.ProjectService
 import com.saveourtool.save.backend.utils.username
 import com.saveourtool.save.domain.FileInfo
+import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.domain.Sdk
 import com.saveourtool.save.domain.ShortFileInfo
 import com.saveourtool.save.entities.Execution
@@ -77,12 +78,13 @@ class CloneRepositoryController(
         // it can be fudged by user, who submits it. We should get project from DB based on name/owner combination.
         projectService.findWithPermissionByNameAndOrganization(authentication, name, organization.name, Permission.WRITE)
     }
-        .flatMap {
+        .flatMap { project ->
+            val projectCoordinates = ProjectCoordinates(project.organization.name, project.name)
             sendToPreprocessor(
                 executionRequest,
                 ExecutionType.GIT,
                 authentication.username(),
-                files.map { additionalToolsFileSystemRepository.getFileInfoByShortInfo(it) }
+                files.map { additionalToolsFileSystemRepository.getFileInfoByShortInfo(it, projectCoordinates) }
             ) { newExecutionId ->
                 part("executionRequest", executionRequest.copy(executionId = newExecutionId), MediaType.APPLICATION_JSON)
             }
@@ -104,18 +106,23 @@ class CloneRepositoryController(
     ): Mono<StringResponse> = with(executionRequestForStandardSuites.project) {
         projectService.findWithPermissionByNameAndOrganization(authentication, name, organization.name, Permission.WRITE)
     }
-        .flatMap {
+        .flatMap { project ->
+            val projectCoordinates = ProjectCoordinates(project.organization.name, project.name)
             sendToPreprocessor(
                 executionRequestForStandardSuites,
                 ExecutionType.STANDARD,
                 authentication.username(),
-                files.map { additionalToolsFileSystemRepository.getFileInfoByShortInfo(it) }
+                files.map { additionalToolsFileSystemRepository.getFileInfoByShortInfo(it, projectCoordinates) }
             ) { newExecutionId ->
                 part("executionRequestForStandardSuites", executionRequestForStandardSuites.copy(executionId = newExecutionId), MediaType.APPLICATION_JSON)
             }
         }
 
-    @Suppress("UnsafeCallOnNullableType")
+    @Suppress(
+        "UnsafeCallOnNullableType",
+        "TOO_MANY_LINES_IN_LAMBDA",
+        "PARAMETER_NAME_IN_OUTER_LAMBDA",
+    )
     private fun sendToPreprocessor(
         executionRequest: ExecutionRequestBase,
         executionType: ExecutionType,
@@ -137,7 +144,7 @@ class CloneRepositoryController(
                 ExecutionType.GIT -> "/upload"
                 ExecutionType.STANDARD -> "/uploadBin"
             }
-            files.collectToMultipartAndUpdateExecution(bodyBuilder, newExecution)
+            files.collectToMultipartAndUpdateExecution(bodyBuilder, newExecution, it.organization.name, it.name)
                 .flatMap {
                     preprocessorWebClient.postMultipart(bodyBuilder, uri)
                 }
@@ -172,14 +179,17 @@ class CloneRepositoryController(
     @Suppress("TYPE_ALIAS")
     private fun Flux<FileInfo>.collectToMultipartAndUpdateExecution(
         multipartBodyBuilder: MultipartBodyBuilder,
-        execution: Execution
+        execution: Execution,
+        organizationName: String,
+        projectName: String,
     ): Mono<List<MultipartBodyBuilder.PartBuilder>> {
         val additionalFiles = StringBuilder("")
+        val projectCoordinates = ProjectCoordinates(organizationName, projectName)
         return map {
-            val path = additionalToolsFileSystemRepository.getPath(it)
+            val path = additionalToolsFileSystemRepository.getPath(it, projectCoordinates)
             additionalFiles.append("$path;")
             multipartBodyBuilder.part("fileInfo", it)
-            multipartBodyBuilder.part("file", additionalToolsFileSystemRepository.getFile(it))
+            multipartBodyBuilder.part("file", additionalToolsFileSystemRepository.getFile(it, projectCoordinates))
         }
             .collectList()
             .switchIfEmpty(Mono.just(emptyList()))
