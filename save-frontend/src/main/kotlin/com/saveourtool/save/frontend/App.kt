@@ -125,7 +125,6 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
 
     @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR", "TOO_LONG_FUNCTION", "LongMethod")
     override fun RBuilder.render() {
-        // while (true) { }
         HashRouter {
             requestModalHandler {
                 div("d-flex flex-column") {
