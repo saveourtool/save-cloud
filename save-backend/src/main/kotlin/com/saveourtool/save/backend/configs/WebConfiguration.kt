@@ -52,7 +52,7 @@ class WebConfiguration(
      * @return a router with routes for avatars that set `Cache-Control` header
      */
     @Bean
-    fun staticImageResourceRouter() = router {
+    fun staticStorageResourceRouter() = router {
         cacheableFsResource(
             "/api/$v1/avatar/{*resourcePath}",
             "${configProperties.fileStorage.location}/images/avatars",
@@ -61,6 +61,7 @@ class WebConfiguration(
             "/api/$v1/avatar/users/{*resourcePath}",
             "${configProperties.fileStorage.location}/images/avatars/users",
         )
+        resources("/api/$v1/resource/**", FileSystemResource("${configProperties.fileStorage.location}/storage/"))
     }
 
     /**
