@@ -10,6 +10,7 @@ import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.copyRecursivelyWithAttributes
 import com.saveourtool.save.orchestrator.createSyntheticTomlConfig
 import com.saveourtool.save.orchestrator.docker.AgentRunner
+import com.saveourtool.save.orchestrator.docker.AgentRunnerException
 import com.saveourtool.save.orchestrator.docker.DockerContainerManager
 import com.saveourtool.save.orchestrator.fillAgentPropertiesFromConfiguration
 import com.saveourtool.save.testsuite.TestSuiteDto
@@ -18,7 +19,6 @@ import com.saveourtool.save.utils.STANDARD_TEST_SUITE_DIR
 import com.saveourtool.save.utils.moveFileWithAttributes
 
 import com.github.dockerjava.api.DockerClient
-import com.github.dockerjava.api.exception.DockerException
 import net.lingala.zip4j.ZipFile
 import net.lingala.zip4j.exception.ZipException
 import org.apache.commons.io.FileUtils
@@ -62,31 +62,44 @@ class DockerService(private val configProperties: ConfigProperties,
     private lateinit var webClientBackend: WebClient
 
     /**
-     * Function that builds a base image with test resources and then creates containers with agents.
+     * Function that builds a base image with test resources
      *
      * @param execution [Execution] from which this workflow is started
      * @param testSuiteDtos test suites, selected by user
-     * @return list of IDs of created containers
+     * @return image ID and execution command for the agent
      * @throws DockerException if interaction with docker daemon is not successful
      */
     @Suppress("UnsafeCallOnNullableType")
-    fun buildAndCreateContainers(
+    fun buildBaseImage(
         execution: Execution,
         testSuiteDtos: List<TestSuiteDto>?,
-    ): List<String> {
+    ): Pair<String, String> {
         log.info("Building base image for execution.id=${execution.id}")
         val (imageId, agentRunCmd) = buildBaseImageForExecution(execution, testSuiteDtos)
         // todo (k8s): need to also push it so that other nodes will have access to it
-        log.info("Built base image for execution.id=${execution.id}")
+        log.info("Built base image [id=$imageId] for execution.id=${execution.id}")
 
-        return agentRunner.create(
-            executionId = execution.id!!,
-            baseImageId = imageId,
-            replicas = configProperties.agentsCount,
-            agentRunCmd = agentRunCmd,
-            workingDir = executionDir,
-        )
+        return imageId to agentRunCmd
     }
+
+    /**
+     * creates containers with agents
+     *
+     * @param executionId
+     * @param baseImageId
+     * @param agentRunCmd
+     * @return list of IDs of created containers
+     */
+    fun createContainers(executionId: Long,
+                         baseImageId: String,
+                         agentRunCmd: String,
+    ) = agentRunner.create(
+        executionId = executionId,
+        baseImageId = baseImageId,
+        replicas = configProperties.agentsCount,
+        agentRunCmd = agentRunCmd,
+        workingDir = executionDir,
+    )
 
     /**
      * @param execution an [Execution] for which containers are being started
@@ -111,16 +124,15 @@ class DockerService(private val configProperties: ConfigProperties,
      * @param agentIds list of IDs of agents to stop
      * @return true if agents have been stopped, false if another thread is already stopping them
      */
-    @Suppress("TOO_MANY_LINES_IN_LAMBDA")
+    @Suppress("TOO_MANY_LINES_IN_LAMBDA", "FUNCTION_BOOLEAN_PREFIX")
     fun stopAgents(agentIds: Collection<String>) =
             if (isAgentStoppingInProgress.compareAndSet(false, true)) {
                 try {
-                    agentIds.forEach { agentId ->
+                    agentIds.all { agentId ->
                         agentRunner.stopByAgentId(agentId)
                     }
-                    true
-                } catch (dex: DockerException) {
-                    log.error("Error while stopping agents $agentIds", dex)
+                } catch (e: AgentRunnerException) {
+                    log.error("Error while stopping agents $agentIds", e)
                     false
                 } finally {
                     isAgentStoppingInProgress.lazySet(false)
@@ -129,6 +141,24 @@ class DockerService(private val configProperties: ConfigProperties,
                 log.info("Agents stopping is already in progress, skipping")
                 false
             }
+
+    /**
+     * @param executionId
+     */
+    @Suppress("FUNCTION_BOOLEAN_PREFIX")
+    fun stop(executionId: Long): Boolean {
+        // return if (isAgentStoppingInProgress.compute(executionId) { _, value -> if (value == false) true else value } == true) {
+        return if (isAgentStoppingInProgress.compareAndSet(false, true)) {
+            try {
+                agentRunner.stop(executionId)
+                true
+            } finally {
+                isAgentStoppingInProgress.lazySet(false)
+            }
+        } else {
+            false
+        }
+    }
 
     /**
      * @param imageName name of the image to remove

@@ -29,15 +29,18 @@ interface AgentRunner {
 
     /**
      * Stop all agents in an execution. Currently, not used.
+     * TODO: actually call
      *
      * @param executionId
      */
-    fun stop(executionId: String)
+    fun stop(executionId: Long)
 
     /**
-     * @param agentId
+     * @param agentId ID of agent that should be stopped
+     * @return true if agent has been stopped successfully
      */
-    fun stopByAgentId(agentId: String)
+    @Suppress("FUNCTION_BOOLEAN_PREFIX")
+    fun stopByAgentId(agentId: String): Boolean
 
     /**
      * @param executionId

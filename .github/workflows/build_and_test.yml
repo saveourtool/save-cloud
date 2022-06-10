@@ -54,6 +54,7 @@ jobs:
           arguments: |
             build
             -x detekt
+            -x spotlessCheck
             -x :save-agent:linkDebugExecutableLinuxX64
           properties: |
             org.gradle.caching=true
